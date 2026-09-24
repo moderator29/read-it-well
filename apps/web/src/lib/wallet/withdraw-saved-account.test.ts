@@ -29,6 +29,12 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+/* These drive the withdraw flow as it runs once bank payouts open; the refusal
+   while they are closed is withdraw-payouts-closed.test.ts. */
+vi.mock("./bank-payouts", async () => ({
+  ...(await vi.importActual<typeof import("./bank-payouts")>("./bank-payouts")),
+  bankPayoutsOpen: () => true,
+}));
 vi.mock("next/headers", () => ({ headers: async () => new Map() }));
 vi.mock("../security/money-limits", () => ({ guardMoney: async () => ({ allowed: true }) }));
 vi.mock("../flags", () => ({ isFeatureEnabled: async () => true }));

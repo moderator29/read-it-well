@@ -28,6 +28,7 @@
  * email failure can change what the ledger says or what the caller is told.
  */
 
+import { bankPayoutsOpen, PAYOUTS_CLOSED_MESSAGE } from "./bank-payouts";
 import { moneyHoldRefusal } from "./money-hold";
 import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
@@ -515,6 +516,12 @@ export async function withdraw(
   _prev: ActionResult<WithdrawReceipt | null>,
   formData: FormData,
 ): Promise<ActionResult<WithdrawReceipt | null>> {
+  /* Bank payouts are closed (lib/wallet/bank-payouts.ts). Refused first:
+     before the session, the idempotency claim, any hold or any transfer, for
+     the typed-in account and the saved one alike. The database refuses a new
+     withdrawal debit on its own switch as well. */
+  if (!bankPayoutsOpen()) return fail(PAYOUTS_CLOSED_MESSAGE);
+
   const session = await resolveSession();
   const key = formDataToObject(formData)["idempotencyKey"] ?? null;
   if (session.state !== "signed-in" || !key) return withdrawWork(_prev, formData);
