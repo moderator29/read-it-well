@@ -525,7 +525,7 @@ async function withdrawWork(
   const accountHold = await accountHoldRefusal(session.supabase);
   if (accountHold) return fail(accountHold);
   /* V-81: an enrolled phone lock means this needs a fresh proof. */
-  const moneyLock = await moneyLockRefusal(session.user.id, formData);
+  const moneyLock = await moneyLockRefusal(session.user.id, formData, "withdraw");
   if (moneyLock) return fail(moneyLock);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
@@ -850,7 +850,7 @@ async function withdrawToSavedAccount(
   const accountHold = await accountHoldRefusal(session.supabase);
   if (accountHold) return fail(accountHold);
   /* V-81: an enrolled phone lock means this needs a fresh proof. */
-  const moneyLock = await moneyLockRefusal(session.user.id, formData);
+  const moneyLock = await moneyLockRefusal(session.user.id, formData, "withdraw");
   if (moneyLock) return fail(moneyLock);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
@@ -1144,7 +1144,7 @@ async function transferToUserWork(
   const accountHold = await accountHoldRefusal(session.supabase);
   if (accountHold) return fail(accountHold);
   /* V-81: an enrolled phone lock means this needs a fresh proof. */
-  const moneyLock = await moneyLockRefusal(session.user.id, formData);
+  const moneyLock = await moneyLockRefusal(session.user.id, formData, "send");
   if (moneyLock) return fail(moneyLock);
 
   const admin = getAdminClient();

@@ -22,6 +22,8 @@ import {
 } from "@/lib/escrow/copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
+import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 
 /**
  * THE PROPOSAL, INSIDE THE THREAD THE TWO PEOPLE ARE ALREADY IN.
@@ -85,6 +87,8 @@ export function ProposeHeldPayment({
   const [iPay, setIPay] = useState<boolean | null>(null);
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  /* V-81: setting money aside asks for the phone lock, when there is one. */
+  const lock = useMoneyStepUp(DEFAULT_LOCALE);
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>): void {
     setMessage(null);
@@ -117,12 +121,19 @@ export function ProposeHeldPayment({
           {proposed ? proposalStanding(agreement.viewer) : stateLine(agreement.state, agreement.viewer)}
         </p>
 
+        {lock.sheet}
         <div className="nf-esc-actions">
           {proposed && payer ? (
             <Button
               variant="primary"
               disabled={pending}
-              onClick={() => run(() => fundHeldPaymentProposal({ id: agreement.id }))}
+              onClick={() =>
+                run(async () => {
+                  const stepUp = await lock.prove({ kind: "escrow_fund", target: agreement.id });
+                  if (stepUp === null) return { ok: false, error: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed };
+                  return fundHeldPaymentProposal({ id: agreement.id, stepUp: stepUp || undefined });
+                })
+              }
             >
               Set this money aside
             </Button>

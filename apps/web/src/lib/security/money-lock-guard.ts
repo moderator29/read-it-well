@@ -2,16 +2,22 @@ import "server-only";
 
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "../locale";
+import { intentFromForm, type MoneyIntent } from "./money-intent";
 import { moneyStepUpRefusal } from "./money-step-up";
 
 /**
- * The sentence a withdrawal or a send is refused with when this person has
- * locked money with their phone (V-81) and the form carried no fresh proof,
- * or null. The proof is spent here, once.
+ * The sentence a money action is refused with when this person has locked
+ * money with their phone (V-81) and the request carried no fresh proof FOR
+ * THIS ACTION, or null. The proof is spent here, once; its digest must match
+ * the intent rebuilt from the request itself.
  */
-export async function moneyLockRefusal(userId: string, formData: FormData): Promise<string | null> {
-  const stepUp = formData.get("stepUp");
-  const refusal = await moneyStepUpRefusal(userId, typeof stepUp === "string" ? stepUp : null);
+export async function moneyLockRefusalFor(userId: string, stepUp: unknown, intent: MoneyIntent): Promise<string | null> {
+  const refusal = await moneyStepUpRefusal(userId, typeof stepUp === "string" ? stepUp : null, intent);
   if (!refusal) return null;
   return getDictionary(await getLocale()).platform.moneyLock.needed;
+}
+
+/** For the two form actions: a send or a withdrawal, read off the form. */
+export async function moneyLockRefusal(userId: string, formData: FormData, kind: "send" | "withdraw"): Promise<string | null> {
+  return moneyLockRefusalFor(userId, formData.get("stepUp"), intentFromForm(kind, formData));
 }

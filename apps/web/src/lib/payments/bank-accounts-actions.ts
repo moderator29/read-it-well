@@ -31,6 +31,7 @@ import {
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { guardMoney } from "../security/money-limits";
 import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
+import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { subjectForUser } from "../security/rate-limit";
 import { recordMoneyAudit } from "../wallet/audit";
 import { getAdminClient } from "../wallet/ledger";
@@ -159,6 +160,8 @@ export async function addBankAccount(input: {
    * tap replays the first answer instead of paying for a second resolution.
    */
   idempotencyKey?: string;
+  /** V-81: a fresh proof for exactly this, when the person locked money with a phone. */
+  stepUp?: string;
 }): Promise<ActionResult<BankAccount>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -175,6 +178,12 @@ export async function addBankAccount(input: {
      audit's trigger; say so in words before Paystack is paid to resolve it. */
   const accountHold = await accountHoldRefusal(session.supabase);
   if (accountHold) return fail(accountHold);
+  /* V-81: a new account to be paid into; an enrolled phone lock asks first. */
+  const bankLock = await moneyLockRefusalFor(session.user.id, input.stepUp, {
+    kind: "bank_add",
+    target: `${parsed.data.bankCode}:${parsed.data.accountNumber}`,
+  });
+  if (bankLock) return fail(bankLock);
 
   /* IDEMPOTENT FROM HERE. The resolution below is a paid call to Paystack and
      the insert below that is the row somebody gets paid into. The allowance

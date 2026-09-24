@@ -1,11 +1,10 @@
 import "server-only";
 
-import { randomBytes } from "node:crypto";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createHash, randomBytes } from "node:crypto";
 import { authOrigin } from "../site";
 import { getAdminClient } from "../wallet/ledger";
-import { requireSupabasePublicEnv } from "../supabase/env";
 import { b64urlToBuffer, bufferToB64url, checkClientData, readEnrolKey, verifyAssertion, type Alg } from "./webauthn";
+import { intentLine, type MoneyIntent } from "./money-intent";
 
 /**
  * THE LOCK ON MONEY, SERVER SIDE. V-81.
@@ -15,7 +14,8 @@ import { b64urlToBuffer, bufferToB64url, checkClientData, readEnrolKey, verifyAs
  * challenge is minted, a key is enrolled and a step-up is recorded only after
  * this code has checked the proof. The proof is WebAuthn from the phone's
  * platform authenticator, verified by `webauthn.ts`, or the account password
- * (A2-013's fallback), checked with a throwaway client that keeps no session.
+ * (A2-013's fallback) or an email code for an account with no password,
+ * checked by `lib/account-deletion/reauthenticate.ts`, the one re-auth door.
  *
  * The origin and RP id are this request's own, the same rule `authOrigin`
  * applies to auth links, so a credential made on www.vallospaces.com is asked
@@ -35,25 +35,75 @@ export function admin(): Admin | null {
   return getAdminClient();
 }
 
+/** The digest a proof is bound to. */
+export function intentDigest(intent: MoneyIntent): string {
+  return createHash("sha256").update(intentLine(intent)).digest("hex");
+}
+
+/**
+ * Has this person locked money with a phone? FAILS CLOSED: an unreadable
+ * answer is "yes", so a read error asks for a proof rather than waving money
+ * through. The one exception is a missing table (42P01), which means the
+ * lock is not deployed at all and nobody can have enrolled.
+ */
 export async function hasMoneyCredential(a: Admin, userId: string): Promise<boolean> {
-  const { data, error } = await loose(a).from("money_credentials").select("id").eq("user_id", userId).limit(1);
-  if (error) return false;
-  return Array.isArray(data) && data.length > 0;
+  try {
+    const { data, error } = await loose(a).from("money_credentials").select("id").eq("user_id", userId).limit(1);
+    if (error) return (error as { code?: string }).code !== "42P01";
+    return Array.isArray(data) && data.length > 0;
+  } catch {
+    return true;
+  }
 }
 
-export async function listCredentialIds(a: Admin, userId: string): Promise<string[]> {
-  const { data } = await loose(a).from("money_credentials").select("credential_id").eq("user_id", userId);
-  return Array.isArray(data) ? (data as { credential_id: string }[]).map((r) => r.credential_id) : [];
+/**
+ * Did the password change in the last day? Read from the password-changed
+ * email the database queues on every change (kept at least seven days after
+ * it is sent). While it is fresh, the password is not accepted as a money
+ * proof or as the key to enrol: `updatePassword` accepts any signed-in
+ * session, so a fresh password proves nothing about who is holding the phone.
+ * Unreadable counts as "changed", closed.
+ */
+export async function passwordChangedRecently(a: Admin, userId: string): Promise<boolean> {
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await loose(a)
+      .from("email_outbox")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("template", "security.password_changed")
+      .gte("created_at", since)
+      .limit(1);
+    if (error) return true;
+    return Array.isArray(data) && data.length > 0;
+  } catch {
+    return true;
+  }
 }
 
-export async function mintChallenge(a: Admin, userId: string, purpose: "enrol" | "money"): Promise<string | null> {
+/** Null when the list cannot be read, which the phone treats as "let the server decide". */
+export async function listCredentialIds(a: Admin, userId: string): Promise<string[] | null> {
+  try {
+    const { data, error } = await loose(a).from("money_credentials").select("credential_id").eq("user_id", userId);
+    if (error) return (error as { code?: string }).code === "42P01" ? [] : null;
+    return Array.isArray(data) ? (data as { credential_id: string }[]).map((r) => r.credential_id) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function mintChallenge(a: Admin, userId: string, purpose: "enrol" | "money", digest: string | null = null): Promise<string | null> {
   const challenge = bufferToB64url(randomBytes(32));
-  const { error } = await loose(a).from("money_challenges").insert({ user_id: userId, challenge, purpose });
+  const { error } = await loose(a).from("money_challenges").insert({ user_id: userId, challenge, purpose, digest });
   return error ? null : challenge;
 }
 
-/** Take a challenge once: it must be ours, unused, unexpired and of this purpose. */
-export async function takeChallenge(a: Admin, userId: string, challenge: string, purpose: "enrol" | "money"): Promise<boolean> {
+/**
+ * Take a challenge once: it must be ours, unused, unexpired and of this
+ * purpose. Answers the digest it was minted for ("" for an enrolment), or
+ * null when it cannot be taken.
+ */
+export async function takeChallenge(a: Admin, userId: string, challenge: string, purpose: "enrol" | "money"): Promise<string | null> {
   const { data, error } = await loose(a)
     .from("money_challenges")
     .update({ used_at: new Date().toISOString() })
@@ -62,26 +112,9 @@ export async function takeChallenge(a: Admin, userId: string, challenge: string,
     .eq("purpose", purpose)
     .is("used_at", null)
     .gt("expires_at", new Date().toISOString())
-    .select("id");
-  return !error && Array.isArray(data) && data.length === 1;
-}
-
-/** The account password, checked without creating a session anybody keeps. */
-export async function passwordIsRight(email: string, password: string): Promise<boolean> {
-  if (!email || !password) return false;
-  try {
-    const { url, anonKey } = requireSupabasePublicEnv();
-    const throwaway = createSupabaseClient(url, anonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data, error } = await throwaway.auth.signInWithPassword({ email, password });
-    if (error || !data.session) return false;
-    /* The check made a session; end it at once so it is not a live key. */
-    await throwaway.auth.signOut({ scope: "local" }).catch(() => undefined);
-    return true;
-  } catch {
-    return false;
-  }
+    .select("id, digest");
+  if (error || !Array.isArray(data) || data.length !== 1) return null;
+  return (data[0] as { digest: string | null }).digest ?? "";
 }
 
 export async function enrolKey(
@@ -96,7 +129,7 @@ export async function enrolKey(
   });
   const key = readEnrolKey(input.publicKey, input.alg);
   if (!client.ok || !key || input.credentialId.length < 16) return "rejected";
-  if (!(await takeChallenge(a, input.userId, input.challenge, "enrol"))) return "rejected";
+  if ((await takeChallenge(a, input.userId, input.challenge, "enrol")) === null) return "rejected";
   const { error } = await loose(a).from("money_credentials").insert({
     user_id: input.userId,
     credential_id: input.credentialId,
@@ -132,27 +165,34 @@ export async function proveWithAssertion(
     rpId,
   });
   if (!verdict.ok) return null;
-  if (!(await takeChallenge(a, input.userId, input.challenge, "money"))) return null;
+  const digest = await takeChallenge(a, input.userId, input.challenge, "money");
+  if (!digest) return null;
   await loose(a)
     .from("money_credentials")
     .update({ sign_count: verdict.signCount, last_used_at: new Date().toISOString() })
     .eq("id", row.id);
-  return recordStepUp(a, input.userId, "biometric");
+  return recordStepUp(a, input.userId, "biometric", digest);
 }
 
-export async function recordStepUp(a: Admin, userId: string, method: "biometric" | "password"): Promise<string | null> {
-  const { data, error } = await loose(a).from("money_step_ups").insert({ user_id: userId, method }).select("id").single();
+export async function recordStepUp(
+  a: Admin,
+  userId: string,
+  method: "biometric" | "password" | "email_code",
+  digest: string,
+): Promise<string | null> {
+  const { data, error } = await loose(a).from("money_step_ups").insert({ user_id: userId, method, digest }).select("id").single();
   return error || !data ? null : (data as { id: string }).id;
 }
 
-/** Use a step-up once. True only if it was this person's, fresh and unused. */
-export async function consumeStepUp(a: Admin, userId: string, id: string): Promise<boolean> {
+/** Use a step-up once. True only if it was this person's, for this action, fresh and unused. */
+export async function consumeStepUp(a: Admin, userId: string, id: string, digest: string): Promise<boolean> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return false;
   const { data, error } = await loose(a)
     .from("money_step_ups")
     .update({ used_at: new Date().toISOString() })
     .eq("id", id)
     .eq("user_id", userId)
+    .eq("digest", digest)
     .is("used_at", null)
     .gt("expires_at", new Date().toISOString())
     .select("id");
@@ -164,16 +204,19 @@ export async function consumeStepUp(a: Admin, userId: string, id: string): Promi
  * carry a fresh step-up, and it is spent here. Null means go ahead; a code
  * means refuse. No key enrolled means nothing new is asked.
  */
-export async function moneyStepUpRefusal(userId: string, stepUp: unknown): Promise<"needed" | null> {
+export async function moneyStepUpRefusal(userId: string, stepUp: unknown, intent: MoneyIntent): Promise<"needed" | null> {
   const a = getAdminClient();
   if (!a) return null;
   if (!(await hasMoneyCredential(a, userId))) return null;
-  if (typeof stepUp !== "string" || !(await consumeStepUp(a, userId, stepUp))) return "needed";
+  if (typeof stepUp !== "string" || !(await consumeStepUp(a, userId, stepUp, intentDigest(intent)))) return "needed";
   return null;
 }
 
 export type MoneyCredentialRow = { id: string; label: string | null; createdAt: string; lastUsedAt: string | null };
-export type MoneyCredentialList = { state: "signed-out" } | { state: "unreadable" } | { state: "ok"; rows: MoneyCredentialRow[] };
+export type MoneyCredentialList =
+  | { state: "signed-out" }
+  | { state: "unreadable" }
+  | { state: "ok"; rows: MoneyCredentialRow[]; fallback: "password" | "email-code" };
 
 /**
  * The phones that lock this person's money, read AS the person: the column
@@ -182,6 +225,7 @@ export type MoneyCredentialList = { state: "signed-out" } | { state: "unreadable
  */
 export async function loadMoneyCredentials(): Promise<MoneyCredentialList> {
   const { resolveSession } = await import("../actions/session");
+  const { reauthMethodFor } = await import("../account-deletion/reauthenticate");
   const session = await resolveSession();
   if (session.state !== "signed-in") return { state: "signed-out" };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -192,6 +236,7 @@ export async function loadMoneyCredentials(): Promise<MoneyCredentialList> {
   if (error || !Array.isArray(data)) return { state: "unreadable" };
   return {
     state: "ok",
+    fallback: reauthMethodFor(session.user),
     rows: (data as { id: string; label: string | null; created_at: string; last_used_at: string | null }[]).map((r) => ({
       id: r.id,
       label: r.label,

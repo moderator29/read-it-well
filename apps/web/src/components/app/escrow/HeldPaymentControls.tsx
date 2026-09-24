@@ -12,6 +12,8 @@ import {
 import type { EscrowState, Party } from "@/lib/escrow/copy";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
+import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 
 /**
  * The two or three things a person can actually do, and nothing they cannot.
@@ -44,6 +46,13 @@ export function HeldPaymentControls({
   const [message, setMessage] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [arguing, setArguing] = useState(false);
+  /* V-81: paying held money out asks for the phone lock, when there is one. */
+  const lock = useMoneyStepUp(DEFAULT_LOCALE);
+  const confirmOut = async () => {
+    const stepUp = await lock.prove({ kind: "escrow_confirm", target: id });
+    if (stepUp === null) return { ok: false, error: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed };
+    return confirmHeldPayment({ id, stepUp: stepUp || undefined });
+  };
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>): void {
     setMessage(null);
@@ -79,7 +88,7 @@ export function HeldPaymentControls({
           key="confirm"
           variant="primary"
           disabled={pending}
-          onClick={() => run(() => confirmHeldPayment({ id }))}
+          onClick={() => run(confirmOut)}
         >
           Pay it out now
         </Button>,
@@ -105,7 +114,7 @@ export function HeldPaymentControls({
         key="confirm"
         variant="primary"
         disabled={pending}
-        onClick={() => run(() => confirmHeldPayment({ id }))}
+        onClick={() => run(confirmOut)}
       >
         Confirm the payout
       </Button>,
@@ -151,6 +160,7 @@ export function HeldPaymentControls({
 
   return (
     <div className="nf-esc-controls">
+      {lock.sheet}
       <div className="nf-esc-actions">{controls}</div>
 
       {arguing ? (

@@ -16,11 +16,16 @@
  *                       read their own (to list and remove them).
  *   money_challenges    single-use random challenges, five minutes.
  *   money_step_ups      a proof that just happened, single use, two minutes,
- *                       consumed by the one withdrawal or send it unlocks.
+ *                       bound to one action digest (kind, amount, recipient),
+ *                       consumed by the one money action it unlocks.
  *
- * Enrolling needs the account password first (A2-013's rule), which is what
- * stops a thief holding an unlocked session from enrolling their own finger.
- * On a phone that cannot do this, the password is the fallback proof, so a
+ * Enrolling needs the account password first (A2-013's rule), or an email
+ * code for an account with no password, and the password path is refused
+ * for a day after the password changes (the password-changed email row is
+ * the signal). That matters because `updatePassword` accepts any signed-in
+ * session today, reported to the audit: without the day, a thief holding a
+ * session could set a password and then use it here. On a phone that cannot
+ * do WebAuthn, the same password or email code is the fallback proof, so a
  * person is never locked out of their own money by a sensor.
  *
  * It is opt-in per person: somebody with no enrolled key is asked for nothing
@@ -61,6 +66,11 @@ create table if not exists public.money_challenges (
   user_id uuid not null references auth.users(id) on delete cascade,
   challenge text not null unique,
   purpose text not null check (purpose in ('enrol', 'money')),
+  /* What the proof is for: a SHA-256 of the action's kind, amount in kobo
+     and recipient or account (`lib/security/money-intent.ts`). Null only for
+     an enrolment challenge. */
+  digest text check (digest is null or digest ~ '^[0-9a-f]{64}$'),
+  check ((purpose = 'enrol') = (digest is null)),
   expires_at timestamptz not null default now() + interval '5 minutes',
   used_at timestamptz,
   created_at timestamptz not null default now()
@@ -77,7 +87,11 @@ comment on table public.money_challenges is
 create table if not exists public.money_step_ups (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  method text not null check (method in ('biometric', 'password')),
+  method text not null check (method in ('biometric', 'password', 'email_code')),
+  /* The one action this proof unlocks; the money action recomputes it from
+     its own validated input and must match, so a proof for one send cannot
+     be spent on another. */
+  digest text not null check (digest ~ '^[0-9a-f]{64}$'),
   created_at timestamptz not null default now(),
   expires_at timestamptz not null default now() + interval '2 minutes',
   used_at timestamptz
@@ -89,7 +103,7 @@ alter table public.money_step_ups enable row level security;
 revoke all on table public.money_step_ups from public, anon, authenticated;
 
 comment on table public.money_step_ups is
-  'V-81. A proof that just happened, consumed by the one withdrawal or send it unlocks. Two minutes, single use. Service role only.';
+  'V-81. A proof that just happened, bound to one action digest and consumed by the one money action it unlocks. Two minutes, single use. Service role only.';
 
 /* Old challenges and step-ups are forgotten after a day, beside the other
    quiet-hour purges. */

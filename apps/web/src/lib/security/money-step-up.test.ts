@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /* A fake service-role client over two tables: enrolled keys and step-ups. */
 const db = vi.hoisted(() => ({
   credentials: [] as { user_id: string }[],
-  stepUps: [] as { id: string; user_id: string; used_at: string | null; expires_at: string }[],
+  credentialsError: null as null | { code: string },
+  stepUps: [] as { id: string; user_id: string; digest: string; used_at: string | null; expires_at: string }[],
 }));
 
 vi.mock("../wallet/ledger", () => ({
@@ -13,7 +14,10 @@ vi.mock("../wallet/ledger", () => ({
         return {
           select: () => ({
             eq: (_c: string, user: string) => ({
-              limit: async () => ({ data: db.credentials.filter((r) => r.user_id === user), error: null }),
+              limit: async () =>
+                db.credentialsError
+                  ? { data: null, error: db.credentialsError }
+                  : { data: db.credentials.filter((r) => r.user_id === user), error: null },
             }),
           }),
         };
@@ -28,7 +32,12 @@ vi.mock("../wallet/ledger", () => ({
             gt: (_c: string, now: string) => ((where.now = now), chain),
             select: async () => {
               const hit = db.stepUps.filter(
-                (r) => r.id === where.id && r.user_id === where.user_id && r.used_at === null && r.expires_at > where.now!,
+                (r) =>
+                  r.id === where.id &&
+                  r.user_id === where.user_id &&
+                  r.digest === where.digest &&
+                  r.used_at === null &&
+                  r.expires_at > where.now!,
               );
               for (const r of hit) r.used_at = patch.used_at;
               return { data: hit.map((r) => ({ id: r.id })), error: null };
@@ -46,35 +55,57 @@ const ADA = "11111111-1111-4111-8111-111111111111";
 const THIEF = "22222222-2222-4222-8222-222222222222";
 const PROOF = "33333333-3333-4333-8333-333333333333";
 const later = () => new Date(Date.now() + 60_000).toISOString();
+const SEND = { kind: "send" as const, amount: "5,000", target: "ada@example.com" };
 
 beforeEach(() => {
   db.credentials = [];
+  db.credentialsError = null;
   db.stepUps = [];
 });
+
+async function digestOf(intent: typeof SEND) {
+  const { intentDigest } = await import("./money-step-up");
+  return intentDigest(intent);
+}
 
 describe("moneyStepUpRefusal (V-81)", () => {
   it("asks nothing new of somebody who never locked money with a phone", async () => {
     const { moneyStepUpRefusal } = await import("./money-step-up");
-    expect(await moneyStepUpRefusal(ADA, null)).toBeNull();
+    expect(await moneyStepUpRefusal(ADA, null, SEND)).toBeNull();
   });
   it("refuses a locked account with no proof, or with somebody else's", async () => {
     db.credentials = [{ user_id: ADA }];
-    db.stepUps = [{ id: PROOF, user_id: THIEF, used_at: null, expires_at: later() }];
+    db.stepUps = [{ id: PROOF, user_id: THIEF, digest: await digestOf(SEND), used_at: null, expires_at: later() }];
     const { moneyStepUpRefusal } = await import("./money-step-up");
-    expect(await moneyStepUpRefusal(ADA, null)).toBe("needed");
-    expect(await moneyStepUpRefusal(ADA, PROOF)).toBe("needed");
+    expect(await moneyStepUpRefusal(ADA, null, SEND)).toBe("needed");
+    expect(await moneyStepUpRefusal(ADA, PROOF, SEND)).toBe("needed");
   });
   it("lets a fresh proof through once, and never twice", async () => {
     db.credentials = [{ user_id: ADA }];
-    db.stepUps = [{ id: PROOF, user_id: ADA, used_at: null, expires_at: later() }];
+    db.stepUps = [{ id: PROOF, user_id: ADA, digest: await digestOf(SEND), used_at: null, expires_at: later() }];
     const { moneyStepUpRefusal } = await import("./money-step-up");
-    expect(await moneyStepUpRefusal(ADA, PROOF)).toBeNull();
-    expect(await moneyStepUpRefusal(ADA, PROOF)).toBe("needed");
+    expect(await moneyStepUpRefusal(ADA, PROOF, SEND)).toBeNull();
+    expect(await moneyStepUpRefusal(ADA, PROOF, SEND)).toBe("needed");
   });
   it("refuses an expired proof", async () => {
     db.credentials = [{ user_id: ADA }];
-    db.stepUps = [{ id: PROOF, user_id: ADA, used_at: null, expires_at: new Date(Date.now() - 1).toISOString() }];
+    db.stepUps = [{ id: PROOF, user_id: ADA, digest: await digestOf(SEND), used_at: null, expires_at: new Date(Date.now() - 1).toISOString() }];
     const { moneyStepUpRefusal } = await import("./money-step-up");
-    expect(await moneyStepUpRefusal(ADA, PROOF)).toBe("needed");
+    expect(await moneyStepUpRefusal(ADA, PROOF, SEND)).toBe("needed");
+  });
+  it("refuses a proof made for a different amount or recipient", async () => {
+    db.credentials = [{ user_id: ADA }];
+    db.stepUps = [{ id: PROOF, user_id: ADA, digest: await digestOf(SEND), used_at: null, expires_at: later() }];
+    const { moneyStepUpRefusal } = await import("./money-step-up");
+    expect(await moneyStepUpRefusal(ADA, PROOF, { ...SEND, amount: "500,000" })).toBe("needed");
+    expect(await moneyStepUpRefusal(ADA, PROOF, { ...SEND, target: "thief@example.com" })).toBe("needed");
+    expect(await moneyStepUpRefusal(ADA, PROOF, { ...SEND, amount: "5000" })).toBeNull();
+  });
+  it("fails closed when the lock cannot be read, and open only when it is not deployed", async () => {
+    const { moneyStepUpRefusal } = await import("./money-step-up");
+    db.credentialsError = { code: "57014" };
+    expect(await moneyStepUpRefusal(ADA, null, SEND)).toBe("needed");
+    db.credentialsError = { code: "42P01" };
+    expect(await moneyStepUpRefusal(ADA, null, SEND)).toBeNull();
   });
 });

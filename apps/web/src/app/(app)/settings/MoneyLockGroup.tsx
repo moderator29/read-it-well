@@ -8,7 +8,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
-import { beginEnrol, finishEnrol, removeMoneyCredential } from "@/lib/security/money-step-up-actions";
+import { beginEnrol, finishEnrol, removeMoneyCredential, sendFallbackCode } from "@/lib/security/money-step-up-actions";
 import { createPlatformKey, platformLockAvailable } from "@/lib/security/webauthn-client";
 import type { MoneyCredentialList } from "@/lib/security/money-step-up";
 
@@ -33,6 +33,7 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
   const [supported, setSupported] = useState<boolean | null>(null);
   const [enrolling, setEnrolling] = useState(false);
   const [password, setPassword] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -48,13 +49,15 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
   }, []);
 
   if (list.state === "signed-out") return null;
+  const byCode = list.state === "ok" && list.fallback === "email-code";
 
   const enrol = () =>
     start(async () => {
       setError(null);
-      const begun = await beginEnrol(password).catch(() => ({ error: "failed" as const }));
+      const proof = byCode ? { code: password.trim() } : { password };
+      const begun = await beginEnrol(proof).catch(() => ({ error: "failed" as const }));
       if ("error" in begun) {
-        setError(begun.error === "rejected" ? copy.rejected : copy.failed);
+        setError(begun.error === "rejected" ? copy.rejected : begun.error === "password_recent" ? copy.passwordRecent : copy.failed);
         return;
       }
       const made = await createPlatformKey({
@@ -83,12 +86,12 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
     });
 
   const remove = (event: FormEvent<HTMLFormElement>) => {
-    if (!lock.pass(event)) return;
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const id = String(data.get("id") ?? "");
-    const stepUp = String(data.get("stepUp") ?? "");
+    const id = String(new FormData(event.currentTarget).get("id") ?? "");
     start(async () => {
+      /* Removing a phone asks for a proof for exactly that. */
+      const stepUp = await lock.prove({ kind: "remove_lock", target: id });
+      if (stepUp === null) return;
       const done = await removeMoneyCredential({ id, stepUp }).catch(() => ({ error: "failed" as const }));
       if ("error" in done) {
         setError(done.error === "rejected" ? copy.rejected : copy.failed);
@@ -110,7 +113,6 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
       {rows.map((row) => (
         <form key={row.id} onSubmit={remove} data-testid="money-lock-phone">
           <input type="hidden" name="id" value={row.id} />
-          <input type="hidden" name="stepUp" value={lock.token} />
           <RowSubmit
             label={row.label ?? copy.thisPhone}
             sub={`${copy.added.replace("{when}", formatDate(new Date(row.createdAt), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }))} ${copy.settingsRemoveNeedsProof}`}
@@ -137,16 +139,38 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
       <Sheet open={enrolling} onOpenChange={(open) => !pending && setEnrolling(open)} title={copy.settingsTitle} detents={[0.6]}>
         <div className="space-y-row">
           <p className="nf-body text-[var(--nf-content-secondary)]">{copy.settingsPasswordFirst}</p>
-          <TextField
-            label={copy.passwordLabel}
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <Button type="button" variant="primary" full loading={pending} disabled={pending || password.length === 0} onClick={enrol}>
-            {copy.settingsEnrol}
-          </Button>
+          {byCode && !codeSent ? (
+            <Button
+              type="button"
+              variant="primary"
+              full
+              loading={pending}
+              disabled={pending}
+              onClick={() =>
+                start(async () => {
+                  const sent = await sendFallbackCode().catch(() => ({ error: "failed" as const }));
+                  if ("error" in sent) setError(copy.failed);
+                  else setCodeSent(true);
+                })
+              }
+            >
+              {copy.sendCode}
+            </Button>
+          ) : (
+            <>
+              <TextField
+                label={byCode ? copy.codeLabel : copy.passwordLabel}
+                type={byCode ? "text" : "password"}
+                inputMode={byCode ? "numeric" : undefined}
+                autoComplete={byCode ? "one-time-code" : "current-password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <Button type="button" variant="primary" full loading={pending} disabled={pending || password.trim().length === 0} onClick={enrol}>
+                {copy.settingsEnrol}
+              </Button>
+            </>
+          )}
           <Button type="button" variant="ghost" full disabled={pending} onClick={() => setEnrolling(false)}>
             {copy.cancel}
           </Button>
