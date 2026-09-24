@@ -176,6 +176,17 @@ export const afterTheGateEn = {
     keptBy: "Kept by {name}",
     forEstate: "Paid to {name} for the estate",
   },
+  paid: {
+    heading: "What people actually paid",
+    lede: "Move-in totals settled through Vallo in the last 12 months. Asking prices are what listers hope for; these are what tenants paid.",
+    row: "{type}, {beds}: move-in {low} to {high}, from {count} tenancies",
+    feeShare: "Fees on top of the rent: {percent}% of the rent, at the median.",
+    months: "Paid between {from} and {to}.",
+    bedsOne: "1 bedroom",
+    bedsMany: "{count} bedrooms",
+    empty: "No paid figures here yet. We show them once at least five tenancies from at least three different listers have settled in this area, so no single payment or agent can be read from them.",
+    unavailable: "The paid figures could not be read just now.",
+  },
   admin: {
     dueSoonTitle: "Refunds due within 24 hours",
     dueSoonEmpty: "No refund request or rent refund is due in the next 24 hours.",
