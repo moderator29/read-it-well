@@ -242,6 +242,10 @@ async function guardPayable(bookingId: string): Promise<Guarded> {
 
   if (error) return { ok: false, result: fail<never>(SERVICE_DOWN_MESSAGE) };
   if (!booking) return { ok: false, result: fail<never>(NOT_FOUND_MESSAGE) };
+  /* SEC-P2-04. Reading a booking is not owning it: the host and admins can
+     read it too. Only its guest pays for it, as the wallet path already
+     requires (pay_booking_from_wallet: guest_id = payer). */
+  if (booking.guest_id !== session.user.id) return { ok: false, result: fail<never>(NOT_FOUND_MESSAGE) };
   if (booking.status === "CANCELLED") return { ok: false, result: fail<never>(CANCELLED_MESSAGE) };
   // CONFIRMED is deliberately payable. A request-to-book stay is confirmed by
   // the host accepting it, not by money arriving, so refusing CONFIRMED here
