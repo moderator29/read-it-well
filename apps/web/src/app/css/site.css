@@ -402,3 +402,18 @@
     border: var(--nf-border-width) solid var(--nf-border-subtle);
   }
 }
+
+/*
+ * V-11, BELT AND BRACES. Inside the store shell the marketing chrome never
+ * shows: the server already leaves the site header and footer out when it
+ * sees the shell's user agent (`(site)/layout.tsx`), and `lib/native/boot.ts`
+ * marks the document so that a page served from a cache, or a future page
+ * that forgot to ask, still hides them. The back bar stays: it is how a
+ * person reading the privacy notice inside the app gets back.
+ */
+@layer components {
+  :root[data-shell="native"] .nf-site-nav,
+  :root[data-shell="native"] .nf-site-footer {
+    display: none;
+  }
+}

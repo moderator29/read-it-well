@@ -51,10 +51,10 @@ function pathOf(url: string): string {
 }
 
 describe("the sitemap and the gate agree about what is public", () => {
-  it("emits a sitemap worth asserting about", () => {
+  it("emits a sitemap worth asserting about", async () => {
     /* THE BLIND-LIGHT GUARD. Every assertion below passes over an empty
        array, and an empty sitemap is a plausible accident. */
-    const entries = sitemap();
+    const entries = await sitemap();
     expect(entries.length, "an empty sitemap makes every check below vacuous").toBeGreaterThan(5);
     expect(entries.map((entry) => pathOf(entry.url))).toContain("/");
   });
@@ -113,5 +113,23 @@ describe("the sitemap and the gate agree about what is public", () => {
         `${closed} is behind the gate now and robots.txt should say so`,
       ).toContain(closed);
     }
+  });
+
+  it("lists an area price page only as an aggregate address, and only when handed one", () => {
+    /* V-82. Today the list is empty because every listing is an example, and
+       the sitemap must say nothing about areas at all. */
+    const today = buildSitemap(ORIGIN, []).map((entry) => pathOf(entry.url));
+    expect(today.filter((path) => path.startsWith("/areas"))).toEqual([]);
+    /* When an area earns a page, it is public through the gate, and nothing
+       shaped like inventory can ride in on the same list. */
+    const later = buildSitemap(ORIGIN, [
+      { path: "/areas/lagos/yaba", lastModified: "2026-09-01T00:00:00Z" },
+      { path: "/listing/abc" },
+      { path: "/areas/lagos" },
+    ]).map((entry) => pathOf(entry.url));
+    expect(later).toContain("/areas/lagos/yaba");
+    expect(later).not.toContain("/listing/abc");
+    expect(later).not.toContain("/areas/lagos");
+    expect(later.filter((path) => !isPublicPath(path))).toEqual([]);
   });
 });

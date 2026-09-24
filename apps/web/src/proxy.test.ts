@@ -211,6 +211,8 @@ const EXPECTED_PUBLIC = new Set([
   "/opengraph-image.png",
   /* Company and support. */
   "/about",
+  /* V-82: area price pages, aggregates only, 404 below the floor. */
+  "/areas/[state]/[area]",
   "/careers",
   "/contact",
   "/docs",
@@ -239,6 +241,17 @@ const EXPECTED_PUBLIC = new Set([
   "/sign-up/verify",
   "/start",
   "/welcome",
+  /* The share door (V-07): one card, area only, one button into sign in. */
+  "/s/[token]",
+  /* V-71: the same card as a 9:16 Status picture. */
+  "/s/[token]/status",
+  /* V-31 and V-32: the landlord's reply page, a door for somebody with no
+     account, opened by a single-use token and showing the area only. */
+  "/landlord/[token]",
+  /* V-61: the agent check, open to a renter with no account. V-62: the page a
+     renter's trusted contact opens by a token, the area only. */
+  "/check",
+  "/safe/[token]",
   /* No network, and which home. */
   "/home-or-landing",
   "/offline",
@@ -251,9 +264,14 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
   "/api/cron/inventory-drift",
+  "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
+  "/api/cron/store-readiness",
+  "/api/cron/new-match-alerts",
   "/api/csp-report",
+  /* V-31: a landlord's SMS reply from the aggregator, behind its own bearer. */
+  "/api/landlord/inbound",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
   "/api/push/drain",
@@ -407,5 +425,25 @@ describe("who may see the platform with no session", () => {
        not-found page is still served to anybody signed in; a stranger is sent
        to the door. */
     expect(isPublicPath("/definitely-not-a-route")).toBe(false);
+  });
+});
+
+describe("the store shell never opens on the landing page (V-11)", () => {
+  const SHELL =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 ValloShell";
+
+  it("sends the shell's request for / to its own start, with the policy still stamped", async () => {
+    const response = await proxy(new NextRequest("http://localhost/", { headers: { "user-agent": SHELL } }));
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get("location") ?? "").pathname).toBe("/home-or-landing");
+    expect(new URL(response.headers.get("location") ?? "").searchParams.get("app")).toBe("1");
+    expect(response.headers.get("content-security-policy")).toBeTruthy();
+  });
+
+  it("leaves a browser, and every other path in the shell, alone", async () => {
+    const browser = await proxy(new NextRequest("http://localhost/"));
+    expect(browser.status).not.toBe(307);
+    const privacy = await proxy(new NextRequest("http://localhost/privacy", { headers: { "user-agent": SHELL } }));
+    expect(privacy.status).not.toBe(307);
   });
 });

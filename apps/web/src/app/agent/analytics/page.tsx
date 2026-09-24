@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import { DemandBoard } from "@/components/agent/DemandBoard";
+import { readDemandBoard } from "@/lib/demand/queries";
+import { EnquiryFunnel, LostByAreaPanel } from "@/components/agent/EnquiryDesk";
+import { readDeskStages, readLostReasonsByArea } from "@/lib/enquiry/queries";
+import { countByStage } from "@/lib/enquiry/stage";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -71,7 +76,12 @@ export default async function Page() {
    * page falls through to the same "we could not read this" rendering rather
    * than to an error boundary.
    */
-  const analytics = await readAgentAnalytics(context).catch(() => null);
+  const [analytics, demand, stages, lost] = await Promise.all([
+    readAgentAnalytics(context).catch(() => null),
+    readDemandBoard(4),
+    readDeskStages(),
+    readLostReasonsByArea(12),
+  ]);
 
   return (
     <AgentShell
@@ -108,6 +118,13 @@ export default async function Page() {
           {t.agentAnalytics.unavailable}
         </p>
       )}
+
+      {/* V-10: what renters asked for and could not find, by neighbourhood. */}
+      <DemandBoard rows={demand} copy={t.frontDoor.demand} locale={locale} listHref="/agent/list" />
+
+      {/* V-72: the lister's enquiries by stage, and why enquiries are lost by area. */}
+      <EnquiryFunnel counts={stages ? countByStage(stages.values()) : null} copy={t.frontDoor.desk} />
+      <LostByAreaPanel areas={lost} copy={t.frontDoor.desk} />
     </AgentShell>
   );
 }

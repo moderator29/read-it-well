@@ -11,6 +11,7 @@ import {
   readQueueQuery,
   type QueueStatusOption,
 } from "../_components/QueueFilters";
+import { readClosedReasons } from "@/lib/landlord/queries";
 import { StopsDesk } from "./StopsDesk";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -32,7 +33,7 @@ function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
 }
 
 const LEDE =
-  "Agents taken off the platform, and everything a stop took down. A stop is not a deletion: their listings come back where they were the moment it is lifted, and confirmed stays are never cancelled.";
+  "Agents taken off the platform, and everything a stop took down. A stop is not a deletion: their listings come back where they were the moment it is lifted, unless one was closed as let or unavailable in the meantime, and confirmed stays are never cancelled.";
 
 /**
  * Stops: taking an agent off the platform, and putting them back.
@@ -90,6 +91,14 @@ export default async function AdminStopsPage({
     );
   }
 
+  /* Which withdrawn listings were closed as let or unavailable since. A closed
+     listing is held down by the database whatever a lift does, so the desk says
+     "closed, stays closed" rather than promising it back. Fails soft to none. */
+  const withdrawnIds = [...read.stopped, ...read.trading].flatMap((agent) =>
+    [agent.openStop, ...agent.pastStops].flatMap((stop) => stop?.withdrawn.map((w) => w.id) ?? []),
+  );
+  const closedIds = Object.keys(await readClosedReasons(withdrawnIds));
+
   const shown = read.stopped.length + read.trading.length;
   /* Page two of a desk that has run out is a RESULT, not "nobody has ever been
      here", so the offset counts towards the narrowed reading exactly as it does
@@ -126,7 +135,7 @@ export default async function AdminStopsPage({
           state={narrowed ? "no-match" : "never"}
         />
       ) : (
-        <StopsDesk stopped={read.stopped} trading={read.trading} />
+        <StopsDesk stopped={read.stopped} trading={read.trading} closedIds={closedIds} />
       )}
 
       <QueuePager

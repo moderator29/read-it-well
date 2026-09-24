@@ -25,8 +25,6 @@ import LoadingProposeArea from "@/app/(app)/around/new/loading";
 import LoadingAroundSettings from "@/app/(app)/around/settings/loading";
 import LoadingBookings from "@/app/(app)/bookings/loading";
 import LoadingReview from "@/app/(app)/bookings/[bookingId]/review/loading";
-import LoadingCrypto from "@/app/(app)/crypto/loading";
-import LoadingCoin from "@/app/(app)/crypto/[id]/loading";
 import LoadingVerification from "@/app/(app)/verification/loading";
 import LoadingRent from "@/app/(app)/rent/loading";
 import LoadingSaved from "@/app/(app)/saved/loading";
@@ -89,8 +87,6 @@ const LOADING: Record<string, { route: string; view: () => ReactNode }> = {
   "loading-places": { route: "/around/settings", view: () => <LoadingAroundSettings /> },
   "loading-bookings": { route: "/bookings", view: () => <LoadingBookings /> },
   "loading-review": { route: "/bookings/b/review", view: () => <LoadingReview /> },
-  "loading-crypto": { route: "/crypto", view: () => <LoadingCrypto /> },
-  "loading-coin": { route: "/crypto/c", view: () => <LoadingCoin /> },
   "loading-kyc": { route: "/verification", view: () => <LoadingVerification /> },
   "loading-rent": { route: "/rent", view: () => <LoadingRent /> },
   "loading-saved": { route: "/saved", view: () => <LoadingSaved /> },

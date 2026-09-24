@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { listingBoardIsOn } from "@/lib/listings/board-queries";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -10,6 +11,7 @@ import {
 import { ListingPitch } from "../list/ListingPitch";
 import { ListingsWorkspace } from "./ListingsWorkspace";
 import { ButtonLink } from "@/components/ui/Button";
+import { readClosedReasons, readOpenOwnerHeartbeats } from "@/lib/landlord/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -62,6 +64,14 @@ export default async function Page({
   }
 
   const listings = await readMyListings(context.supabase, context.agent.id);
+  /* V-48: which of these were closed with a reason, read beside the list and
+     failing soft into "none", which draws the workspace as it was. V-08: and
+     whether the board flag is on. */
+  const [closed, ownerAsks, boardOn] = await Promise.all([
+    readClosedReasons(listings.map((listing) => listing.id)),
+    readOpenOwnerHeartbeats(),
+    listingBoardIsOn(),
+  ]);
 
   return (
     <AgentShell
@@ -88,6 +98,13 @@ export default async function Page({
         listings={listings}
         locale={locale}
         query={query}
+        boardLabel={boardOn ? t.frontDoor.board.action : undefined}
+        duplicateCopy={t.frontDoor.duplicate}
+        statusLabel={t.frontDoor.status.action}
+        closed={closed}
+        closeCopy={t.landlord.close}
+        ownerAsks={ownerAsks}
+        ownerCopy={t.landlord.owner}
       />
     </AgentShell>
   );

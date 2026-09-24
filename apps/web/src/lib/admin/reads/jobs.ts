@@ -64,6 +64,10 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
     maxGapHours: 26,
     audit: { entityType: "cron_job", term: "saved-search-alerts" },
   },
+  { name: "new-match-alerts", cron: "0,5,10,15,20,25,30,35,45,50,55 * * * *", schedule: "Every 5 minutes except minute 40", maxGapHours: 2, audit: { entityType: "cron_job", term: "new-match-alerts" } },
+  { name: "store-readiness", cron: "0 5 * * *", schedule: "Daily at 06:00", maxGapHours: 26, audit: { entityType: "cron_job", term: "store-readiness" } },
+  /* V-31 and V-32, the landlord line. A no-op while `landlord_line` is off. */
+  { name: "landlord-line", cron: "*/15 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "landlord-line" } },
 ];
 
 /**
@@ -79,6 +83,7 @@ export type PgCronJob = { name: string; cron: string; when: string; what: string
 
 export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_push_drain", cron: "*/5 * * * *", when: "every 5 min", what: "asks the app to drain the push queue" },
+  { name: "vallo_safety_share_sweep", cron: "*/10 * * * *", when: "every 10 min", what: "reminds a renter who has not checked in after an inspection they shared" },
   { name: "vallo_release_stale_holds", cron: "*/15 * * * *", when: "every 15 min", what: "database side of the hold release" },
   { name: "vallo_alert_overdue_refunds", cron: "12 * * * *", when: "hourly at :12", what: "alerts on refunds past their due-by date" },
   { name: "vallo_escrow_sweep_timeouts", cron: "17 * * * *", when: "hourly at :17", what: "escrow timeouts" },
@@ -88,9 +93,12 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_purge_idempotency", cron: "10 2 * * *", when: "daily 03:10", what: "clears old idempotency records" },
   { name: "vallo-nightly-badges", cron: "20 2 * * *", when: "daily 03:20", what: "awards earned badges" },
   { name: "vallo_purge_email_outbox", cron: "25 2 * * *", when: "daily 03:25", what: "forgets emails already delivered" },
+  { name: "vallo_purge_web_vitals", cron: "35 2 * * *", when: "daily 03:35", what: "deletes field speed samples older than 30 days" },
   { name: "vallo_escrow_book_the_float", cron: "5 3 * * *", when: "daily 04:05", what: "books the day's escrow float as a liability" },
   { name: "vallo_sweep_price_check_events", cron: "40 3 * * *", when: "daily 04:40", what: "deletes price check events older than 24 months" },
   { name: "vallo_announce_completed_stays", cron: "20 5 * * *", when: "daily 06:20", what: "announces completed stays" },
+  { name: "vallo_landlord_not_reconfirmed", cron: "35 4 * * *", when: "daily 05:35", what: "marks a listing Not reconfirmed after 21 days of owner silence" },
+  { name: "vallo_owner_heartbeat", cron: "15 8 * * *", when: "daily 09:15", what: "asks an owner lister in the app whether the flat is still available" },
   { name: "vallo_sweep_price_check_watches", cron: "50 5 * * *", when: "daily 06:50", what: "tells a price check watcher once the area opens" },
   { name: "vallo-daily-note", cron: "0 6 * * *", when: "daily 07:00", what: "the daily note" },
   { name: "vallo_remind_caution_due", cron: "15 7 * * *", when: "daily 08:15", what: "reminds listers and tenants when a caution is due back" },

@@ -30,6 +30,11 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
+import { BROADCAST_MONEY_KEYS } from "./broadcast";
+import { readBroadcastMarks } from "./broadcast-marks-queries";
+import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import {
@@ -989,6 +994,14 @@ export async function submitListing(input: {
     return fail("This listing has already been through review. Return it to a draft to change it.");
   }
 
+  /* V-09: a figure read from a pasted WhatsApp message is not sent for review
+     until a person has looked at it. The set is kept beside the draft on the
+     server, so this holds on every device, not only the one that pasted. */
+  const unconfirmed = await readBroadcastMarks(gate.supabase, listingId);
+  if (unconfirmed.some((key) => (BROADCAST_MONEY_KEYS as readonly string[]).includes(key))) {
+    return fail(getDictionary(await getLocale()).frontDoor.broadcast.unconfirmedOnServer);
+  }
+
   const [photoRes, amenityRes] = await Promise.all([
     gate.supabase.from("listing_photos").select("id, position").eq("listing_id", listingId),
     gate.supabase.from("listing_amenities").select("amenity_id").eq("listing_id", listingId),
@@ -1037,6 +1050,7 @@ export async function submitListing(input: {
     .select("id, status")
     .single();
 
+  if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
   if (error || !updated) {
     return fail("We could not send this listing for review just now. Please try again.");
   }
@@ -1070,6 +1084,7 @@ export async function unpublishListing(input: {
     .update({ status: "DRAFT" })
     .eq("id", listing.id)
     .eq("agent_id", gate.agentId);
+  if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
   if (error) return fail("We could not take this listing down just now. Please try again.");
 
   refreshAgentSurfaces();

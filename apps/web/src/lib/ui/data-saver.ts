@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { loadSettings } from "@/components/app/account/settings-store";
+import { liteCookieOn } from "./lite-cookie";
 
 /**
  * Is this person on a connection worth conserving?
@@ -62,6 +63,8 @@ export function isDataSaver(): boolean {
   try {
     const stored = loadSettings().dataSaver;
     if (stored === true) return true;
+    /* V-79: the cookie the server reads, set by the Settings switch. */
+    if (liteCookieOn(document.cookie)) return true;
   } catch {
     /* Storage can be unavailable. Fall through to what the browser knows. */
   }

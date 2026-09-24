@@ -12,9 +12,6 @@ const PAGES = [
   "result?state=received",
   "result?state=failed",
   "payments",
-  "crypto",
-  "crypto-coin",
-  "crypto-off",
 ];
 
 export default function PreviewEIndex() {

@@ -3,6 +3,8 @@ import type { AgentInbox as Inbox, AgentThread } from "@/lib/agent/messages-quer
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
+import type { Dictionary } from "@vallo/i18n";
+import { countByStage, STAGES, type DeskStage, type Stage } from "@/lib/enquiry/stage";
 
 /**
  * The host inbox.
@@ -25,7 +27,25 @@ function waitLabel(hours: number): string {
   return days === 1 ? "1 day waiting" : `${days} days waiting`;
 }
 
-function ThreadRow({ thread }: { thread: AgentThread }) {
+type DeskCopy = Dictionary["frontDoor"]["desk"];
+
+function stageWords(stage: DeskStage, copy: DeskCopy): string {
+  return stage.stage === "lost" && stage.lostReason
+    ? copy.lostWithReason.replace("{reason}", copy.reasons[stage.lostReason])
+    : copy.stages[stage.stage];
+}
+
+function ThreadRow({
+  thread,
+  askedLabel,
+  stage,
+  deskCopy,
+}: {
+  thread: AgentThread;
+  askedLabel?: string | undefined;
+  stage?: DeskStage | undefined;
+  deskCopy?: DeskCopy | undefined;
+}) {
   return (
     <li>
       <Link
@@ -51,6 +71,15 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
             )}
           </div>
           <span className="flex shrink-0 items-center gap-xs">
+            {/* V-72: where this enquiry stands. */}
+            {stage && deskCopy && (
+              <span
+                className={`nf-badge ${stage.stage === "lost" ? "nf-badge--warning" : "nf-badge--info"}`}
+                data-testid="inbox-stage"
+              >
+                {stageWords(stage, deskCopy)}
+              </span>
+            )}
             {thread.unread > 0 && (
               <span className="nf-numeric nf-badge nf-badge--brand">{thread.unread}</span>
             )}
@@ -64,6 +93,13 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
           {thread.lastMessage}
         </p>
 
+        {/* V-14: a still-available question waiting on a one-tap answer. */}
+        {askedLabel && (
+          <p className="mt-sm" data-testid="inbox-still-available">
+            <span className="nf-badge nf-badge--info">{askedLabel}</span>
+          </p>
+        )}
+
         {thread.waitingOnYou && (
           <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-state-warning)]">
             <UiIcon name="bell" size={12} className="shrink-0" />
@@ -75,8 +111,41 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
   );
 }
 
-export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilter }) {
-  const threads = filter === "waiting" ? inbox.threads.filter((t) => t.waitingOnYou) : inbox.threads;
+export function AgentInbox({
+  inbox,
+  filter,
+  asked,
+  askedLabel,
+  stages,
+  stage,
+  deskCopy,
+}: {
+  inbox: Inbox;
+  filter: InboxFilter;
+  /**
+   * V-72: each thread's stage, or null when the desk could not be read (then
+   * no stage is drawn and no stage filter offered, rather than every thread
+   * shown as New).
+   */
+  stages?: ReadonlyMap<string, DeskStage> | null;
+  /** V-72: the stage filter from the address bar, or null for none. */
+  stage?: Stage | null;
+  deskCopy?: DeskCopy;
+  /** V-14: thread ids with an unanswered still-available question. */
+  asked?: ReadonlySet<string>;
+  askedLabel?: string;
+}) {
+  const staged = stages && deskCopy ? stages : null;
+  const activeStage = staged ? (stage ?? null) : null;
+  const threads =
+    activeStage !== null
+      ? inbox.threads.filter((t) => staged?.get(t.id)?.stage === activeStage)
+      : filter === "waiting"
+        ? inbox.threads.filter((t) => t.waitingOnYou)
+        : inbox.threads;
+  const stageCounts = staged
+    ? countByStage(inbox.threads.flatMap((t) => (staged.get(t.id) ? [staged.get(t.id)!] : [])))
+    : null;
 
   const chips: { key: InboxFilter; label: string; count: number }[] = [
     { key: "waiting", label: "Waiting on you", count: inbox.waitingCount },
@@ -96,7 +165,7 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
               key={chip.key}
               behaviour="link"
               href={chip.key === "all" ? "/agent/messages?filter=all" : "/agent/messages"}
-              selected={chip.key === filter}
+              selected={activeStage === null && chip.key === filter}
               count={chip.count}
             >
               {chip.label}
@@ -105,15 +174,52 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
         </ChipRow>
       </nav>
 
+      {/* V-72: the desk. Every stage with its count; the filter travels in
+          the address bar like the one above, so a filtered desk is a link. */}
+      {stageCounts && deskCopy && (
+        <nav aria-label={deskCopy.filterLabel} className="mt-sm" data-testid="inbox-stages">
+          <ChipRow bleed={false}>
+            {STAGES.map((s) => (
+              <Chip
+                key={s}
+                behaviour="link"
+                href={activeStage === s ? "/agent/messages?filter=all" : `/agent/messages?stage=${s}`}
+                selected={activeStage === s}
+                count={stageCounts[s]}
+                size="sm"
+              >
+                {deskCopy.stages[s]}
+              </Chip>
+            ))}
+          </ChipRow>
+        </nav>
+      )}
+
       {threads.length > 0 ? (
         /* `grid-cols-1` rather than a bare `grid`: an implicit `auto` track
            will not shrink below its item's min-content, which is how the
            reviews list came to be 395px wide inside a 358px column. */
         <ul className="mt-md grid grid-cols-1 gap-sm">
           {threads.map((thread) => (
-            <ThreadRow key={thread.id} thread={thread} />
+            <ThreadRow
+              key={thread.id}
+              thread={thread}
+              askedLabel={asked?.has(thread.id) ? askedLabel : undefined}
+              stage={staged?.get(thread.id)}
+              deskCopy={deskCopy}
+            />
           ))}
         </ul>
+      ) : activeStage !== null && deskCopy ? (
+        <div className="nf-panel nf-panel--card block mt-md p-xl text-center" data-testid="inbox-stage-empty">
+          <p className="font-semibold text-[var(--nf-content-primary)]">{deskCopy.emptyStage}</p>
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            {deskCopy.emptyStageBody}
+          </p>
+          <Link href="/agent/messages?filter=all" className="nf-btn nf-btn--glass mt-md">
+            {deskCopy.all}
+          </Link>
+        </div>
       ) : (
         <div className="nf-panel nf-panel--card block mt-md p-xl text-center">
           <span className="mx-auto block h-16 w-16">

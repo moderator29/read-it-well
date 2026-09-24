@@ -1,0 +1,45 @@
+"use client";
+
+import { useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { forgetPacksKeepQueue } from "@/lib/offline/pack-store";
+import { clearShelf } from "@/lib/offline/shelf-store";
+
+/**
+ * THE WAY IN FORGETS WHAT THE LAST PERSON LEFT ON THE PHONE. V-35, V-77.
+ *
+ * Mounted in the sign-in layout, which also holds `/reset-password`, reached
+ * WHILE signed in. So it acts only when this browser holds no session (read
+ * locally, no network): a session that ended some other way (an expiry,
+ * "sign out everywhere else" from another device, "this was not me") is
+ * cleared the next time the phone shows the way in, and a signed-in person
+ * changing their password loses nothing.
+ *
+ * What it clears: the gate packs (codes) and the shortlist copy. What it
+ * keeps: the queue of unsent gate check-ins, and the record of whose they
+ * are. Those are what happened at a gate, waiting for signal; if the same
+ * person signs back in they still go, and if somebody else saves a pack on
+ * this phone `savePack` clears them first. The settings sign-out and account
+ * deletion clear everything. Renders nothing.
+ */
+export function ForgetOnSignOut() {
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      let signedIn = false;
+      try {
+        const { data } = await createClient().auth.getSession();
+        signedIn = data.session !== null;
+      } catch {
+        signedIn = false;
+      }
+      if (cancelled || signedIn) return;
+      await forgetPacksKeepQueue();
+      await clearShelf();
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return null;
+}

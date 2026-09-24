@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
+import { readClosedReasons } from "../landlord/queries";
 import { SUPABASE_URL } from "../supabase/env";
 import { resolveSession } from "../actions/session";
 import type { AgentProfile } from "./types";
@@ -653,7 +654,7 @@ export async function readAgentNumbers(
   const today = lagosToday();
 
   const [statusRes, bookingRes, conversationRes] = await Promise.all([
-    supabase.from("listings").select("status").eq("agent_id", agentId),
+    supabase.from("listings").select("id, status").eq("agent_id", agentId),
     supabase
       .from("bookings")
       .select("id, check_in, check_out, total_minor, status, listings!inner(title, agent_id)")
@@ -665,8 +666,13 @@ export async function readAgentNumbers(
     supabase.from("conversations").select("id").eq("agent_id", userId),
   ]);
 
+  /* V-48: a listing closed with a reason is SUSPENDED underneath and is not a
+     suspension, so it is not counted as one. The read fails soft into "none
+     closed", which counts exactly as before. */
+  const closed = await readClosedReasons((statusRes.data ?? []).map((row) => row.id));
   const byStatus: Record<ListingStatus, number> = { ...EMPTY_STATUS_COUNTS };
   for (const row of statusRes.data ?? []) {
+    if (row.id in closed) continue;
     byStatus[row.status] += 1;
   }
 
