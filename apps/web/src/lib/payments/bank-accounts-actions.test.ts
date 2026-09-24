@@ -15,6 +15,7 @@ const state = vi.hoisted(() => ({
   resolved: { ok: true, accountName: "ADA OBI" } as unknown,
   bank: { ok: true, name: "Test Bank" } as unknown,
   resolveCalls: 0,
+  admin: null as unknown,
 }));
 
 vi.mock("../actions/session", () => ({
@@ -31,7 +32,7 @@ vi.mock("../security/idempotency", () => ({
   withIdempotency: async (_opts: unknown, work: () => Promise<unknown>) => ({ status: "ran", result: await work() }),
 }));
 vi.mock("../wallet/audit", () => ({ recordMoneyAudit: async () => undefined }));
-vi.mock("../wallet/ledger", () => ({ getAdminClient: () => null }));
+vi.mock("../wallet/ledger", () => ({ getAdminClient: () => state.admin }));
 vi.mock("./notices", () => ({
   bankAccountAddedNotice: async () => undefined,
   bankAccountRemovedNotice: async () => undefined,
@@ -57,9 +58,14 @@ const ME = "11111111-1111-4111-8111-111111111111";
 const ACCOUNT = "77777777-7777-4777-8777-777777777777";
 
 let own: ReturnType<typeof fakeSupabase>;
+/* DB-05: a new account is filed by the service role, never by the member's
+   own client, so the writer is a second fake with the same script. */
+let service: ReturnType<typeof fakeSupabase>;
 function signedIn(script: Parameters<typeof fakeSupabase>[0] = {}) {
   own = fakeSupabase(script);
+  service = fakeSupabase(script);
   state.session = { state: "signed-in", user: { id: ME }, supabase: own.client };
+  state.admin = service.client;
 }
 
 const ROW = {
@@ -85,8 +91,9 @@ describe("addBankAccount", () => {
   it("stores the account with the name Paystack resolved, for the signed-in user", async () => {
     const input = { bankCode: "058", accountNumber: "0123456789", resolved_account_name: "SOMEONE ELSE", user_id: "x" };
     expect(await addBankAccount(input as never)).toMatchObject({ ok: true, data: { accountName: "ADA OBI" } });
-    const [insert] = own.of("bank_accounts", "insert");
+    const [insert] = service.of("bank_accounts", "insert");
     expect(insert?.values).toMatchObject({ user_id: ME, resolved_account_name: "ADA OBI", bank_name: "Test Bank" });
+    expect(own.of("bank_accounts", "insert")).toHaveLength(0);
   });
 
   it("stores nothing when Paystack will not confirm the account", async () => {
@@ -96,6 +103,7 @@ describe("addBankAccount", () => {
       fieldErrors: { accountNumber: expect.any(String) },
     });
     expect(own.wrote()).toBe(false);
+    expect(service.wrote()).toBe(false);
   });
 
   it("stores nothing, and never asks Paystack, past the money limit", async () => {
@@ -103,6 +111,7 @@ describe("addBankAccount", () => {
     expect(await addBankAccount({ bankCode: "058", accountNumber: "0123456789" })).toMatchObject({ ok: false, error: "limit reached" });
     expect(state.resolveCalls).toBe(0);
     expect(own.wrote()).toBe(false);
+    expect(service.wrote()).toBe(false);
   });
 
   it("stores nothing for a signed-out caller, a bad number, or with Paystack unconfigured", async () => {
@@ -114,12 +123,14 @@ describe("addBankAccount", () => {
     expect((await addBankAccount({ bankCode: "058", accountNumber: "0123456789" })).ok).toBe(false);
     expect(state.resolveCalls).toBe(0);
     expect(own.wrote()).toBe(false);
+    expect(service.wrote()).toBe(false);
   });
 
   it("refuses a bank code that is not on the registry", async () => {
     state.bank = { ok: false, failure: "unknown" };
     expect((await addBankAccount({ bankCode: "999", accountNumber: "0123456789" })).ok).toBe(false);
     expect(own.wrote()).toBe(false);
+    expect(service.wrote()).toBe(false);
   });
 });
 
@@ -149,6 +160,7 @@ describe("setDefaultBankAccount and removeBankAccount", () => {
     expect((await setDefaultBankAccount(ACCOUNT)).ok).toBe(false);
     expect((await removeBankAccount(ACCOUNT)).ok).toBe(false);
     expect(own.wrote()).toBe(false);
+    expect(service.wrote()).toBe(false);
   });
 
   it("change nothing past the money limit, or for a malformed id", async () => {
