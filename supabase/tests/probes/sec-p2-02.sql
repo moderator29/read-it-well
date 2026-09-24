@@ -32,14 +32,14 @@ begin
   begin
     insert into public.conversations (guest_id, agent_id) values (member, admin_id);
   exception when others then refused := sqlstate; end;
-  if refused is null then raise exception 'PROBE_FAIL sec-p2-02: a thread with an arbitrary user and no listing was created'; end if;
+  if refused is distinct from '23514' then raise exception 'PROBE_FAIL sec-p2-02: a thread with an arbitrary user and no listing was created (%)', coalesce(refused, 'created'); end if;
 
   -- REFUSAL 2: a real listing, but the counterpart is not its lister.
   refused := null;
   begin
     insert into public.conversations (guest_id, agent_id, listing_id) values (member, admin_id, l_id);
   exception when others then refused := sqlstate; end;
-  if refused is null then raise exception 'PROBE_FAIL sec-p2-02: a thread on a listing was opened with someone who does not list it'; end if;
+  if refused is distinct from '23514' then raise exception 'PROBE_FAIL sec-p2-02: a thread on a listing was opened with someone who does not list it (%)', coalesce(refused, 'created'); end if;
 
   -- REFUSAL 3: the lister cannot open a listing thread on a guest's behalf.
   perform set_config('request.jwt.claims', json_build_object('sub', lister, 'role', 'authenticated')::text, true);
@@ -47,7 +47,7 @@ begin
   begin
     insert into public.conversations (guest_id, agent_id, listing_id) values (admin_id, lister, l_id);
   exception when others then refused := sqlstate; end;
-  if refused is null then raise exception 'PROBE_FAIL sec-p2-02: a lister opened a thread in a guest''s name'; end if;
+  if refused is distinct from '23514' then raise exception 'PROBE_FAIL sec-p2-02: a lister opened a thread in a guest''s name (%)', coalesce(refused, 'created'); end if;
 
   -- REFUSAL 4: the daily limit. Nineteen more listing threads today (written
   -- as the service would, so they are not themselves checked) make 20; the
@@ -64,16 +64,17 @@ begin
    limit 1;
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
-  if other_listing is not null then
-    refused := null;
-    begin
-      insert into public.conversations (guest_id, agent_id, listing_id) values (member, lister, other_listing);
-    exception when others then refused := sqlstate; end;
-    if refused is distinct from '54000' then
-      raise exception 'PROBE_FAIL sec-p2-02: the 21st listing thread today was not refused by the daily limit (%)', coalesce(refused, 'created');
-    end if;
+  if other_listing is null then
+    raise exception 'PROBE_FAIL sec-p2-02: no second published listing by the same lister, so the daily limit cannot be tested';
+  end if;
+  refused := null;
+  begin
+    insert into public.conversations (guest_id, agent_id, listing_id) values (member, lister, other_listing);
+  exception when others then refused := sqlstate; end;
+  if refused is distinct from '54000' then
+    raise exception 'PROBE_FAIL sec-p2-02: the 21st listing thread today was not refused by the daily limit (%)', coalesce(refused, 'created');
   end if;
 
-  raise exception 'PROBE_OK sec-p2-02: listing threads need the published listing''s lister, the caller as guest, and fit the daily limit (limit tested: %)', other_listing is not null;
+  raise exception 'PROBE_OK sec-p2-02: listing threads need the published listing''s lister and the caller as guest (23514), and the 21st in a day is refused (54000)';
 end;
 $$;
