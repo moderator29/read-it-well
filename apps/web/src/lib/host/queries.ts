@@ -185,7 +185,7 @@ async function loadMyHostDraft(): Promise<HostDraft> {
     const [business] = await withBusinessPrivate(session.supabase, [publicBusiness], BUSINESS_PRIVATE_KEYS);
     if (!business) return emptyHostDraft();
 
-    const [documents, accommodations, restaurant, windows, bankAccounts] = await Promise.all([
+    const [documents, accommodations, restaurant, windows, bankAccounts, businessPhotos] = await Promise.all([
       session.supabase.from("business_documents").select("kind").eq("business_id", business.id),
       session.supabase
         .from("accommodations")
@@ -212,6 +212,11 @@ async function loadMyHostDraft(): Promise<HostDraft> {
         .eq("user_id", session.user.id)
         .is("deleted_at", null)
         .limit(1),
+      /* SUP-17: a restaurant is submitted with a photograph, as a property is. */
+      session.supabase
+        .from("business_photos")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", business.id),
     ]);
 
     const accommodation = accommodations.data?.[0] ?? null;
@@ -319,6 +324,7 @@ async function loadMyHostDraft(): Promise<HostDraft> {
           }
         : null,
       serviceWindowCount: windows.data?.length ?? 0,
+      businessPhotoCount: businessPhotos.count ?? 0,
       serviceWindows: (windows.data ?? []).map((row) => ({
         id: row.id,
         weekday: row.weekday,
