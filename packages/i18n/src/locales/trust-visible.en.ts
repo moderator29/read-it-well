@@ -450,4 +450,13 @@ export const trustVisibleEn = {
     readFailed: "Your passport did not load. Nothing was changed. Try again in a moment.",
     working: "Saving",
   },
+  /**
+   * V-97, the state kit's own screens. Written to `docs/design/VOICE.md`:
+   * second person, one sentence of body, and nothing the code cannot prove.
+   */
+  state: {
+    /** The shared 404. No hotel pun: renters and landlords read this too. */
+    lostTitle: "We could not find that page",
+    lostBody: "The link may be old, or the page may have moved. Search for what you came for, or go back home.",
+  },
 };
