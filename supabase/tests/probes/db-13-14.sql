@@ -1,6 +1,6 @@
 -- DB-13 and DB-14: no index repeats a unique index with the same leading
 -- columns, the unique indexes that serve those reads are still there, and the
--- eighteen foreign keys have an index whose first column is the key.
+-- twenty-two foreign keys have an index whose first column is the key.
 do $$
 declare
   n int;
@@ -16,7 +16,9 @@ begin
   if n <> 5 then raise exception 'PROBE_FAIL db-13: only % of the 5 unique indexes stand', n; end if;
 
   select string_agg(f.tbl || '.' || f.col, ', ') into uncovered
-    from (values ('email_outbox', 'user_id'), ('escrow_evidence', 'author_id'), ('escrows', 'disputed_by'),
+    from (values ('email_outbox', 'user_id'), ('email_recovery_requests', 'opened_by'),
+                 ('email_recovery_requests', 'began_by'), ('email_recovery_requests', 'completed_by'),
+                 ('email_recovery_requests', 'cancelled_by'), ('escrow_evidence', 'author_id'), ('escrows', 'disputed_by'),
                  ('escrows', 'opened_by'), ('escrows', 'release_requested_by'), ('escrows', 'resolved_by'),
                  ('fee_rates', 'created_by'), ('inspection_reports', 'author_id'), ('platform_revenue', 'listing_id'),
                  ('platform_revenue', 'rate_id'), ('price_check_events', 'lga_code'), ('price_check_events', 'listing_id'),
