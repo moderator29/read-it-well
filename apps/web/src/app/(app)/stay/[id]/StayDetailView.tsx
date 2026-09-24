@@ -203,7 +203,9 @@ export function StayDetailView({
   /* V-20. Book now picks the cheapest rate that can be cancelled for free,
      else the cheapest, and says which; `cheapestBookable` is kept for the
      room list's own ordering. */
-  const choice = datesPicked ? bookNowChoice(detail, nights, guests) : null;
+  // A server render per request, so this instant is when the reader sees it.
+  const renderedAt = new Date();
+  const choice = datesPicked ? bookNowChoice(detail, nights, guests, checkIn, renderedAt) : null;
   const bookable = choice?.pick ?? null;
   /* The total under Book now is the total of the rate Book now opens, not the
      cheapest rate on the property, or the button and its figure disagree. */
@@ -218,7 +220,7 @@ export function StayDetailView({
       ? termsFromPolicyRules(flexPlan.policy.id, flexPlan.policy.rules, Number.isInteger(checkInHour) ? checkInHour : 15)
       : null;
     const until = terms ? freeToCancelUntil(terms, checkIn) : null;
-    const untilLabel = until ? formatMoneyDate(until, locale, { withTime: true }) : null;
+    const untilLabel = until && until > renderedAt ? formatMoneyDate(until, locale, { withTime: true }) : null;
     if (!untilLabel) return null;
     return gateCopy.bothRates
       .replace("{cheap}", formatMoney(choice.cheaperNonRefundable.plan.rateMinor * nights, locale))

@@ -1,3 +1,5 @@
+import { freeCancellationOpen, termsFromPolicyRules } from "@/lib/trust/cancellation";
+
 /**
  * THE STAY DETAIL, AS THE SCREEN NEEDS IT.
  *
@@ -262,24 +264,21 @@ export function reserveHref(base: ReserveBase, roomTypeId: string, ratePlanId: s
 /* ------------------------------------------------------------------ V-20 */
 
 /**
- * Whether anything ever comes back under a plan's policy. Read from the
- * rules when present (the thing a refund is computed from), else from the
- * named free window. A plan with no policy is not called refundable: a
- * promise nobody wrote down is not one this screen makes for them.
+ * Whether a plan is refundable in the sense a guest means it: its first
+ * window gives EVERYTHING back and, given a check-in, that window is still
+ * open now. Read from the policy's rules (what a refund is computed from),
+ * else from the named free window. A plan with no policy is not called
+ * refundable: a promise nobody wrote down is not one this screen makes.
  */
-export function planRefundable(plan: StayRatePlan): boolean {
+export function planRefundable(plan: StayRatePlan, checkIn?: string | null, now: Date = new Date()): boolean {
   const policy = plan.policy;
   if (!policy) return false;
-  if (Array.isArray(policy.rules)) {
-    return policy.rules.some(
-      (rule) =>
-        typeof rule === "object" &&
-        rule !== null &&
-        typeof (rule as Record<string, unknown>).refund_bps === "number" &&
-        ((rule as Record<string, unknown>).refund_bps as number) > 0,
-    );
-  }
-  return policy.freeUntilHours !== null;
+  const terms = Array.isArray(policy.rules)
+    ? termsFromPolicyRules(policy.id, policy.rules)
+    : policy.freeUntilHours !== null
+      ? termsFromPolicyRules(policy.id, [{ refund_bps: 10_000, hours_before: policy.freeUntilHours }])
+      : null;
+  return terms !== null && freeCancellationOpen(terms, checkIn, now);
 }
 
 /**
@@ -296,6 +295,8 @@ export function bookNowChoice(
   detail: StayDetail,
   nights: number | null,
   guests: number,
+  checkIn?: string | null,
+  now: Date = new Date(),
 ): {
   pick: { room: StayRoomType; plan: StayRatePlan };
   refundable: boolean;
@@ -308,7 +309,7 @@ export function bookNowChoice(
     for (const plan of room.ratePlans) {
       if (!planAcceptsNights(plan, nights)) continue;
       if (cheapest === null || plan.rateMinor < cheapest.plan.rateMinor) cheapest = { room, plan };
-      if (planRefundable(plan) && (cheapestRefundable === null || plan.rateMinor < cheapestRefundable.plan.rateMinor)) {
+      if (planRefundable(plan, checkIn, now) && (cheapestRefundable === null || plan.rateMinor < cheapestRefundable.plan.rateMinor)) {
         cheapestRefundable = { room, plan };
       }
     }
@@ -319,6 +320,8 @@ export function bookNowChoice(
     pick: cheapestRefundable,
     refundable: true,
     cheaperNonRefundable:
-      cheapest.plan.rateMinor < cheapestRefundable.plan.rateMinor && !planRefundable(cheapest.plan) ? cheapest : null,
+      cheapest.plan.rateMinor < cheapestRefundable.plan.rateMinor && !planRefundable(cheapest.plan, checkIn, now)
+        ? cheapest
+        : null,
   };
 }

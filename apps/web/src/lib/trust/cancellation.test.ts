@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import {
   CANCELLATION_STOPS,
   PLATFORM_TERMS_V1,
+  cancelStanding,
+  freeCancellationOpen,
   freeToCancelUntil,
   isNonRefundable,
   readCancellationTerms,
@@ -90,5 +92,25 @@ describe("frozen terms decide the refund", () => {
   it("refuses a malformed row rather than guessing", () => {
     expect(readCancellationTerms("platform_schedule_v1", { tiers: [{ closes_hours_before: -1, refund_bps: 1 }], check_in_hour: 15 })).toBeNull();
     expect(readCancellationTerms("", {})).toBeNull();
+  });
+});
+
+describe("cancelStanding and freeCancellationOpen", () => {
+  it("promises a free window only while it is ahead", () => {
+    expect(cancelStanding(PLATFORM_TERMS_V1, CHECK_IN, new Date("2026-10-10T00:00:00Z")).kind).toBe("free");
+    expect(cancelStanding(PLATFORM_TERMS_V1, CHECK_IN, new Date("2026-10-15T00:00:00Z"))).toEqual({ kind: "share", refundBps: 5_000 });
+    expect(cancelStanding(PLATFORM_TERMS_V1, CHECK_IN, new Date("2026-10-18T00:00:00Z")).kind).toBe("none");
+  });
+
+  it("turns a closed 48-hour window into nothing back", () => {
+    const terms = termsFromPolicyRules("p1", [{ refund_bps: 10000, hours_before: 48 }, { refund_bps: 0, hours_before: 0 }])!;
+    expect(cancelStanding(terms, CHECK_IN, new Date("2026-10-16T00:00:00Z")).kind).toBe("none");
+    expect(freeCancellationOpen(terms, CHECK_IN, new Date("2026-10-16T00:00:00Z"))).toBe(false);
+    expect(freeCancellationOpen(terms, CHECK_IN, new Date("2026-10-10T00:00:00Z"))).toBe(true);
+  });
+
+  it("does not call a partial first tier refundable", () => {
+    const half = termsFromPolicyRules("p3", [{ refund_bps: 5000, hours_before: 24 }])!;
+    expect(freeCancellationOpen(half, null)).toBe(false);
   });
 });

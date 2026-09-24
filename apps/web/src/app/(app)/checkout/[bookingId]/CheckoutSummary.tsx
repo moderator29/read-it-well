@@ -4,7 +4,7 @@ import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Panel } from "@/components/ui/Panel";
 import { formatMoneyDate } from "@/lib/money/dates";
-import { PLATFORM_TERMS_V1, freeToCancelUntil, isNonRefundable } from "@/lib/trust/cancellation";
+import { PLATFORM_TERMS_V1, cancelStanding } from "@/lib/trust/cancellation";
 
 /**
  * What is being bought, on the checkout screen.
@@ -15,7 +15,16 @@ import { PLATFORM_TERMS_V1, freeToCancelUntil, isNonRefundable } from "@/lib/tru
  * booking's own stored total in integer kobo, printed through `Amount`, and
  * the guest and night counts pick their form through `Intl.PluralRules`.
  */
-export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: Locale }) {
+export function CheckoutSummary({
+  view,
+  locale,
+  tenancy = false,
+}: {
+  view: CheckoutView;
+  locale: Locale;
+  /** True when this booking row carries a rent charge: no stay terms apply to it. */
+  tenancy?: boolean;
+}) {
   const t = getDictionary(locale);
   const counts = t.counts;
   /* V-20. What cancelling costs, said under the total at a size somebody
@@ -26,13 +35,14 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
   // A server component rendered per request (the route is dynamic), so the
   // instant it renders is the instant the guest reads the line.
   const renderedAt = new Date();
-  const freeUntil = freeToCancelUntil(PLATFORM_TERMS_V1, view.checkIn);
-  const freeUntilLabel = freeUntil ? formatMoneyDate(freeUntil, locale, { withTime: true }) : null;
-  const cancelLine = isNonRefundable(PLATFORM_TERMS_V1)
-    ? cancelCopy.nonRefundable
-    : freeUntilLabel && freeUntil && freeUntil > renderedAt
-      ? cancelCopy.freeUntil.replace("{date}", freeUntilLabel)
-      : null;
+  const standing = cancelStanding(PLATFORM_TERMS_V1, view.checkIn, renderedAt);
+  const cancelLine = tenancy
+    ? null
+    : standing.kind === "free"
+      ? cancelCopy.freeUntil.replace("{date}", formatMoneyDate(standing.until, locale, { withTime: true }) ?? "")
+      : standing.kind === "share"
+        ? cancelCopy.shareNow.replace("{percent}", String(standing.refundBps / 100))
+        : cancelCopy.nonRefundable;
   return (
     <Panel aria-labelledby="nf-checkout-summary" variant="card">
       <h2 id="nf-checkout-summary" className="nf-h3">
@@ -85,7 +95,7 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
         </p>
         {cancelLine && (
           <p
-            className="nf-body mt-xs font-semibold text-[var(--nf-content-primary)]"
+            className="mt-xs text-[length:var(--nf-text-display-sm)] font-bold leading-tight tracking-[-0.02em] text-[var(--nf-content-primary)]"
             data-testid="checkout-cancel-line"
           >
             {cancelLine}

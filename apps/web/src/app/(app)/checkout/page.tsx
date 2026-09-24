@@ -11,7 +11,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Panel } from "@/components/ui/Panel";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { formatMoneyDate } from "@/lib/money/dates";
-import { freeToCancelUntil, isNonRefundable, termsFromPolicyRules } from "@/lib/trust/cancellation";
+import { cancelStanding, termsFromPolicyRules } from "@/lib/trust/cancellation";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false, follow: false } };
 
@@ -60,13 +60,15 @@ export default async function RoomCheckoutPage({
   const terms = plan?.policy
     ? termsFromPolicyRules(plan.policy.id, plan.policy.rules, Number.isInteger(checkInHour) ? checkInHour : 15)
     : null;
-  const freeUntil = terms && checkIn ? freeToCancelUntil(terms, checkIn) : null;
-  const cancelLine = terms
-    ? isNonRefundable(terms)
-      ? cancelCopy.nonRefundable
-      : freeUntil
-        ? cancelCopy.freeUntil.replace("{date}", formatMoneyDate(freeUntil, locale, { withTime: true }) ?? "")
-        : null
+  // A closed free window is never printed as a promise: from now the rate
+  // is priced by its next tier (a dynamic route, so this is the reading time).
+  const standing = terms && checkIn ? cancelStanding(terms, checkIn, new Date()) : null;
+  const cancelLine = standing
+    ? standing.kind === "free"
+      ? cancelCopy.freeUntil.replace("{date}", formatMoneyDate(standing.until, locale, { withTime: true }) ?? "")
+      : standing.kind === "share"
+        ? cancelCopy.shareNow.replace("{percent}", String(standing.refundBps / 100))
+        : cancelCopy.nonRefundable
     : null;
   const checkInLabel = checkIn ? (formatMoneyDate(checkIn, locale) ?? checkIn) : null;
   const checkOutLabel = checkOut ? (formatMoneyDate(checkOut, locale) ?? checkOut) : null;
