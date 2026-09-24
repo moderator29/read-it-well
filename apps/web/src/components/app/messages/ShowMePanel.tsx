@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { createClient } from "@/lib/supabase/client";
+import { useDataSaver } from "@/lib/ui/data-saver";
 import { answerShowMe, requestShowMe } from "@/lib/messages/show-me-actions";
 import {
   SHOW_ME_ITEMS,
@@ -11,6 +12,7 @@ import {
   clipPath,
   elapsedText,
   showMeState,
+  sizeText,
   type ShowMeItem,
   type ShowMeRequest,
   type ShowMeResult,
@@ -63,6 +65,9 @@ export function ShowMePanel({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnArrival && role === "guest");
+  /* V-79's data saver: clips wait for a tap. */
+  const saver = useDataSaver();
+  const [played, setPlayed] = useState<string[]>([]);
   const [other, setOther] = useState("");
   const [result, setResult] = useState<ShowMeResult | null>(null);
   const [pending, startTransition] = useTransition();
@@ -178,8 +183,28 @@ export function ShowMePanel({
                 {/* Only a clip that can be played gets a "Sent" line (review). */}
                 {state === "answered" && request.answeredAt && request.clipUrl && (
                   <>
-                    {/* A clip the renter asked for; it has no captions to offer. */}
-                    <video className="mt-xs w-full rounded-[var(--nf-radius-md)]" controls preload="none" src={request.clipUrl} />
+                    {/* With the data saver on, nothing loads until a tap, and the
+                        tap says what it costs. A clip the renter asked for; it
+                        has no captions to offer. */}
+                    {saver && !played.includes(request.id) ? (
+                      <button
+                        type="button"
+                        className="nf-btn nf-btn--secondary nf-btn--sm mt-xs min-h-11"
+                        onClick={() => setPlayed((ids) => [...ids, request.id])}
+                        data-testid="show-me-play"
+                      >
+                        {copy.tapToPlay
+                          .replace("{seconds}", String(request.clipSeconds ?? ""))
+                          .replace("{size}", request.clipBytes ? sizeText(request.clipBytes) : copy.sizeUnknown)}
+                      </button>
+                    ) : (
+                      <video
+                        className="mt-xs w-full rounded-[var(--nf-radius-md)]"
+                        controls
+                        preload={saver ? "auto" : "none"}
+                        src={request.clipUrl}
+                      />
+                    )}
                     <p className="nf-caption mt-2xs text-[var(--nf-content-secondary)]">
                       {(role === "host" ? copy.sentAtHost : copy.sentAt)
                         .replace("{time}", time(request.answeredAt))

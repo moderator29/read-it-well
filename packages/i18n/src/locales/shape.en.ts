@@ -256,6 +256,8 @@ export const shapeEn = {
     otherPlaceholder: "Something else, in a line",
     send: "Ask",
     answer: "Send a clip",
+    tapToPlay: "Play the clip: {seconds} seconds, {size}",
+    sizeUnknown: "size unknown",
     askedAt: "asked {time}",
     waiting: "Waiting for the clip, until {time}.",
     sentAt: "Sent {time}, {after} after you asked.",
