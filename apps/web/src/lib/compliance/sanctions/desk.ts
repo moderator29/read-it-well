@@ -37,6 +37,8 @@ export type SanctionsHit = {
   nationalities: string[];
   /** A confirmed match whose reference left a newer list version (item 9). */
   delisted: boolean;
+  /** A close match on names common in Nigeria only: raised, shown in the lower group. */
+  commonName: boolean;
   /** Whether a hold on the person's money is actually in force right now. */
   moneyHeld: boolean;
   /** Each desk's claim on the hold (sanctions, STR) and when it ends. */
@@ -86,6 +88,7 @@ export function readSanctionsDesk(data: unknown, error: unknown): SanctionsDesk 
       datesOfBirth: Array.isArray(raw.datesOfBirth) ? raw.datesOfBirth.filter(str) : [],
       nationalities: Array.isArray(raw.nationalities) ? raw.nationalities.filter(str) : [],
       delisted: raw.delisted === true,
+      commonName: raw.commonName === true,
       moneyHeld: raw.moneyHeld === true,
       claims: Array.isArray(raw.claims)
         ? (raw.claims as Record<string, unknown>[]).filter((c) => str(c.owner) && str(c.until)).map((c) => ({ owner: c.owner as string, until: c.until as string }))

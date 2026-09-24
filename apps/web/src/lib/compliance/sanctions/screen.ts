@@ -275,6 +275,7 @@ export async function drainScreenQueue(admin: Admin, now: Date = new Date(), lim
           score: m.score,
           screened_name: m.screenedName,
           matched_name: m.matchedName,
+          common_name: m.common,
         }));
       if (hits.length > 0) {
         const { data: raised, error: hitError } = await admin

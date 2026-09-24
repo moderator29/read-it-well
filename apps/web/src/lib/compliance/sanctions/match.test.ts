@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FUZZY_THRESHOLD, createMatcher, factsAllowHit, foldWord, matchNames, nameScore, normaliseName, outcomeOf, rarityWeights, type ListedName } from "./match";
+import { FUZZY_THRESHOLD, createMatcher, factsAllowHit, foldWord, matchNames, nameScore, normaliseName, outcomeOf, rarityWeights, wordsCover, type ListedName } from "./match";
 
 const LISTED: ListedName[] = [
   { entryId: "e1", source: "un", reference: "FXi.001", primaryName: "ZEPHYRIN QUILLAN BRAXTOVÉ", names: ["braxtove quillan zephyrin", "braxtove zeph"] },
@@ -77,10 +77,60 @@ describe("matching (SCUML item 8)", () => {
     expect(matchNames(["Ahmed Abdullahi"], listed)).toHaveLength(1);
   });
 
-  it("records a listing of common names inside a longer name of ours, without raising it", () => {
-    const listed = [{ entryId: "y", source: "un" as const, reference: "FXi.022", primaryName: "Muhammad Yusuf", names: ["muhammad yusuf"] }];
-    expect(matchNames(["Mohammed Yousef"], listed)[0]).toMatchObject({ kind: "fuzzy", raise: true });
-    expect(matchNames(["Mohammed Yousef Bello"], listed)[0]).toMatchObject({ raise: false });
+  it("raises common names too, marked for the desk's lower group", () => {
+    const listed = [
+      { entryId: "y", source: "un" as const, reference: "FXi.022", primaryName: "Muhammad Yusuf", names: ["muhammad yusuf"] },
+      { entryId: "g", source: "un" as const, reference: "FXi.023", primaryName: "Ibrahim Musa Garba", names: ["garba ibrahim musa"] },
+      { entryId: "u", source: "un" as const, reference: "FXi.024", primaryName: "Abubakar Muhammad Bello Usman", names: ["abubakar bello muhammad usman"] },
+    ];
+    const one = (name: string, ref: string) => matchNames([name], listed).find((m) => m.reference === ref);
+    expect(one("Mohammed Yousef", "FXi.022")).toMatchObject({ kind: "fuzzy", raise: true, common: true });
+    expect(one("Mohammed Yusuf Bello", "FXi.022")).toMatchObject({ kind: "fuzzy", raise: true, common: true });
+    expect(one("Ibrahim Musa Garba Lawal", "FXi.023")).toMatchObject({ raise: true, common: true });
+    /* A whole name of ours of three words inside a four-word listing. */
+    expect(one("Abubakar Muhammad Bello", "FXi.024")).toMatchObject({ raise: true, common: true });
+    /* An exact match is never put in the lower group. */
+    expect(one("Ibrahim Musa Garba", "FXi.023")).toMatchObject({ kind: "exact", raise: true, common: false });
+  });
+
+  it("catches the standard spellings of Abdul- names and a y between vowels", () => {
+    const listed = [
+      { entryId: "1", source: "un" as const, reference: "R1", primaryName: "Abdullah Yusuf Danjuma", names: [normaliseName("Abdullah Yusuf Danjuma")] },
+      { entryId: "2", source: "un" as const, reference: "R2", primaryName: "Abdulrahman Ahmed Aliyu", names: [normaliseName("Abdulrahman Ahmed Aliyu")] },
+      { entryId: "3", source: "un" as const, reference: "R3", primaryName: "Abdussalam Tijjani Ringim", names: [normaliseName("Abdussalam Tijjani Ringim")] },
+      { entryId: "4", source: "un" as const, reference: "R4", primaryName: "Aliyu Sani Kachalla", names: [normaliseName("Aliyu Sani Kachalla")] },
+      { entryId: "5", source: "un" as const, reference: "R5", primaryName: "Abd al-Rahman Ould Mohamed", names: [normaliseName("Abd al-Rahman Ould Mohamed")] },
+    ];
+    const hits = (name: string) => matchNames([name], listed).filter((m) => m.raise).map((m) => m.reference);
+    expect(hits("Abdullahi Yusuf Danjuma")).toContain("R1");
+    expect(hits("Abdallah Yusuf Danjuma")).toContain("R1");
+    expect(hits("Abdurrahman Ahmed Aliyu")).toContain("R2");
+    expect(hits("Abdul Rahman Ahmed Aliyu")).toContain("R2");
+    expect(hits("Abdulrahman Ahmad Aliu")).toContain("R2");
+    expect(hits("Abdulsalam Tijani Ringim")).toContain("R3");
+    expect(hits("Aliu Sani Kachalla")).toContain("R4");
+    expect(hits("Abdelrahman Ould Mohamed")).toContain("R5");
+    expect(hits("Abdurahman Wuld Muhammad")).toContain("R5");
+    const w = (a: string, b: string) => wordsCover(foldWord(a), foldWord(b));
+    for (const [a, b] of [["abdullahi", "abdullah"], ["abdurrahman", "abdulrahman"], ["abdussalam", "abdulsalam"], ["aliu", "aliyu"], ["abdallah", "abdullah"]]) {
+      expect(w(a!, b!), `${a}/${b}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("keeps apart names that only share consonants", () => {
+    const w = (a: string, b: string) => wordsCover(foldWord(a), foldWord(b));
+    for (const [a, b] of [
+      ["muhammad", "mahmud"], ["ahmad", "hamid"], ["karim", "akram"], ["kabir", "akbar"], ["salim", "aslam"], ["salim", "islam"],
+      /* Hasan and Husayn are two names, not two spellings (see the header). */
+      ["hassan", "hussein"], ["bashir", "bushra"], ["rashid", "rushdi"],
+    ]) {
+      expect(w(a!, b!), `${a}/${b}`).toBe(0);
+    }
+    for (const [a, b] of [["yousef", "yusuf"], ["khaled", "khalid"], ["tahiru", "tahir"], ["hussein", "hussaini"]]) {
+      expect(w(a!, b!), `${a}/${b}`).toBeGreaterThan(0);
+    }
+    const listed = [{ entryId: "k", source: "un" as const, reference: "R6", primaryName: "Akram Hamid Tahir", names: ["akram hamid tahir"] }];
+    expect(matchNames(["Karim Ahmad Tahir"], listed)).toEqual([]);
   });
 
   it("reads Mohd as Muhammad, and an al- prefix joined or apart as the same word", () => {

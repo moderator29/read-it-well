@@ -18,34 +18,56 @@
  *     share a common surname do not.
  * TRANSLITERATION. Before scoring (and indexing), each word is FOLDED to a
  * rough sound: "ph" to f, "ou"/"oo" to u, "kh" to k, "q" and a "c" not in
- * "ch" to k, doubled
- * letters to one, then o to u and e to a, so "Mohammed Yousef" and "Muhammad
- * Yusuf" land on the same letters. Exact still means the unfolded names are
- * the same words; a match only through folding is fuzzy.
+ * "ch" to k, doubled letters to one, then o to u and e to a, a leading "wu"
+ * to u (Ould/Wuld), and an assimilated article back to Abdul (Abdurrahman,
+ * Abdussalam), so "Mohammed Yousef" and "Muhammad Yusuf" land on the same
+ * letters. Exact still means the unfolded names are the same words; a match
+ * only through folding is fuzzy.
  *
  * ABBREVIATIONS AND ARTICLES. "Mohd", "Muhd", "Mhd" and "Md" read as
  * Muhammad; a standalone "al"/"el" is dropped and a joined one split off
- * ("Alhassan" and "Al Hassan" are the same word).
+ * before a consonant ("Alhassan" and "Al Hassan" are the same word; "Aliyu"
+ * is left alone). A standalone "Abdul"/"Abd" is also tried joined to each
+ * other word ("Abdul Rahman" is Abdulrahman; names are stored sorted, so the
+ * word that followed it is not known).
  *
  * NEVER ON ONE WORD OR ON PART OF A LISTING. A single-word name from our side
  * is never matched, exact or not: one word is not a person. The LISTED
- * name's words must be COVERED by ours, one to one (each of our words covers
- * at most one listed word, paired greedily by best score, so "Muhammad Musa"
- * never covers "Muhammad Mustafa Musa"). A word covers another only when the
- * two fold to the same letters or their edit ratio is at least 0.85; no
- * prefix bonus, and an "Abdul-" name is compared on what follows the prefix,
- * so Abdulkadir never covers Abdullahi. Every listed word must be covered for
- * a listing of three words or fewer; a longer one needs two thirds, each word
- * weighted by how RARE it is, across the lists AND across the names we
- * screen, with names common in Nigeria (Bello, Usman, Garba, Musa, Ibrahim,
- * Abubakar...) capped low; and unless every word is covered, at least one
- * covered word must be a distinctive one. A covered "Muhammad" or "Bello" is
- * worth little; a covered "Braxtove" a lot.
+ * name's words must be COVERED by ours, ONE TO ONE: each of our words covers
+ * at most one listed word, and the pairing chosen is the best over all
+ * pairings (so "Muhammad Musa" never covers "Muhammad Mustafa Musa"). A word
+ * covers another when:
+ *   - they fold to the same letters, or are the same but for a y between
+ *     vowels (Aliyu/Aliu);
+ *   - their edit ratio is at least 0.85; or
+ *   - they have the same consonants (three or more), the same first letter
+ *     and an edit ratio of at least 0.7 (Yousef/Yusuf, Khaled/Khalid,
+ *     Tahiru/Tahir), which keeps apart names that only share consonants:
+ *     Muhammad/Mahmud, Karim/Akram, Kabir/Akbar, Salim/Aslam/Islam,
+ *     Bashir/Bushra, Rashid/Rushdi. Hassan and Hussein are kept apart ON
+ *     PURPOSE: Hasan and Husayn are two different names (brothers, both
+ *     widely borne), not two spellings of one, while Hussein/Hussaini/Husain
+ *     are one name and still cover each other. Stated cost: one-vowel pairs
+ *     such as Jamil/Jamal and Rashid/Rashad cover each other, exactly as
+ *     Khaled/Khalid must; telling them apart needs a dictionary, and a
+ *     missed match is worse than a wrong one.
+ * An "Abdul-" word is compared on what follows the prefix, a final i or u
+ * being optional (Abdullah/Abdullahi/Abdallah), so a shared prefix never
+ * covers a word by itself: Abdulkadir never covers Abdullahi.
  *
- * A LISTING OF COMMON NAMES ONLY, found inside a LONGER name of ours ("Muhammad
- * Yusuf" inside "Mohammed Yusuf Bello"), is recorded on the screening and not
- * raised: thousands of Nigerians carry those two names, and the extra name is
- * evidence it is somebody else. The same words and no more are still raised.
+ * Every listed word must be covered for a listing of three words or fewer. A
+ * longer one needs two thirds, each word weighted by how RARE it is, across
+ * the lists AND the names we screen, with names common in Nigeria (Bello,
+ * Usman, Garba, Musa, Ibrahim, Abubakar...) capped low; and at least one
+ * covered word must be a distinctive one, UNLESS every word of a name of ours
+ * of three or more words is found in the listing ("Abubakar Muhammad Bello"
+ * inside "Abubakar Muhammad Bello Usman").
+ *
+ * COMMON NAMES ARE RAISED, IN THEIR OWN GROUP. For a screening duty a missed
+ * match is worse than a wrong one. A close match resting only on names common
+ * in Nigeria ("Muhammad Yusuf" inside "Mohammed Yusuf Bello") is raised like
+ * any other, marked `common`, and the desk shows it in a lower group: "common
+ * name, check identifiers". No match, of any kind, holds money by itself.
  *
  * A CLOSE MATCH NEEDS THE FACTS NOT TO DISAGREE. A fuzzy match becomes a
  * queue item only when the listing's date of birth or nationality is
@@ -73,7 +95,8 @@ function expandWords(words: string[]): string[] {
   for (const raw of words) {
     const word = ABBREVIATIONS[raw] ?? raw;
     if (word === "al" || word === "el") continue;
-    const joined = /^(?:al|el)([a-z]{3,})$/.exec(word);
+    /* Split only before a consonant: Alhassan is al-Hassan, Aliyu is not al-Iyu. */
+    const joined = /^(?:al|el)([^aeiouy][a-z]{2,})$/.exec(word);
     out.push(joined ? joined[1]! : word);
   }
   return out;
@@ -89,7 +112,11 @@ export function foldWord(word: string): string {
     .replace(/c(?!h)/g, "k")
     .replace(/(.)\1+/g, "$1")
     .replace(/o/g, "u")
-    .replace(/e/g, "a");
+    .replace(/e/g, "a")
+    /* Ould and Wuld ("son of") are one word. */
+    .replace(/^wu/, "u")
+    /* The assimilated article: Abdurrahman, Abdussalam, Abduzzahir are Abdul-names. */
+    .replace(/^abd[ua](?=[rstzn])/, "abdul");
 }
 
 /** A normalised name, every word folded (word order kept sorted). */
@@ -179,6 +206,8 @@ function wordScore(a: string[], b: string[]): number {
 }
 
 const WORD_EDIT = 0.85;
+/* Same consonants alone is not enough: Karim/Akram, Muhammad/Mahmud share them. */
+const SKELETON_EDIT = 0.7;
 const MIN_COVERAGE = 2 / 3;
 const SHORT_LISTING = 3;
 
@@ -192,7 +221,7 @@ const EVEN: WordWeight = () => 1;
  */
 const COMMON_NG = new Set(
   [
-    "muhammad", "mohammed", "ahmad", "ahmed", "ali", "aliyu", "abdullahi", "abubakar", "bello", "usman", "uthman", "garba",
+    "muhammad", "mohammed", "ahmad", "ahmed", "ali", "aliyu", "abdullahi", "abdullah", "abdallah", "abubakar", "bello", "usman", "uthman", "garba",
     "adamu", "danjuma", "musa", "ibrahim", "yusuf", "umar", "sani", "haruna", "suleiman", "sulaiman", "isa", "yakubu",
     "idris", "lawal", "shehu", "sadiq", "aminu", "kabiru", "nasiru", "bashir", "tijani", "hassan", "hussaini", "hussein",
     "abdulrahman", "abdulkadir", "abdulmalik", "abdulaziz", "abdulsalam", "abdulhamid", "abdul", "salisu", "auwal",
@@ -209,51 +238,89 @@ function abdulTail(word: string): string | null {
   return m ? m[1]! : null;
 }
 
+/** A standalone Abdul word ("Abdul Rahman", "Abd al-Rahman"), folded, to be joined to the next. */
+const ABDUL_ALONE = new Set(["abd", "abdul", "abdal", "abdur", "abdus", "abduz", "abdut", "abdun"]);
+
 /** A word's consonants, in order: "yusaf" and "yusuf" are both "ysf". */
 const skeleton = (word: string): string => word.replace(/[aeiou]/g, "");
 const SKELETON_MIN = 3;
+/** A y between vowels is optional: Aliyu/Aliu, Zakariya/Zakaria. */
+const dropGlide = (word: string): string => word.replace(/([aeiou])y(?=[aeiou])/g, "$1");
+/** A trailing i or u on an Abdul- tail is optional: Abdullah/Abdullahi. */
+const dropFinalVowel = (tail: string): string => (tail.length > 2 ? tail.replace(/[iu]$/, "") : tail);
+
+function closeWords(a: string, b: string): number {
+  if (a === b) return 1;
+  if (dropGlide(a) === dropGlide(b)) return 0.95;
+  const ratio = editRatio(a, b);
+  if (ratio >= WORD_EDIT) return ratio;
+  /* Transliterations differ in vowels (Yousef/Yusuf, Khaled/Khalid, Bakar/Bakr),
+     but a shared skeleton only counts from the same first letter and with the
+     letters mostly in place, so Karim/Akram and Muhammad/Mahmud stay apart. */
+  const sk = skeleton(a);
+  if (sk.length >= SKELETON_MIN && sk === skeleton(b) && a[0] === b[0] && ratio >= SKELETON_EDIT) return 0.9;
+  return 0;
+}
 
 /**
- * Do two folded words cover each other? Equal folds; the same consonant
- * skeleton of three or more letters (transliterations differ in vowels:
- * Yousef/Yusuf, Khaled/Khalid, Bakar/Bakr); or an edit ratio of 0.85 or more.
+ * Do two folded words cover each other? Equal folds; the same word but for a
+ * y between vowels; an edit ratio of 0.85 or more; or the same consonant
+ * skeleton of three or more letters from the same first letter with an edit
+ * ratio of at least 0.7. An Abdul- word is compared on its tail only, a
+ * trailing i or u on the tail being optional.
  */
 export function wordsCover(mine: string, theirs: string): number {
   if (mine === theirs) return 1;
-  const sameSkeleton = (a: string, b: string) => skeleton(a).length >= SKELETON_MIN && skeleton(a) === skeleton(b);
   const a = abdulTail(mine);
   const b = abdulTail(theirs);
   if (a !== null || b !== null) {
     if (a === null || b === null || !a || !b) return 0;
-    const tail = a === b ? 1 : sameSkeleton(a, b) ? 0.9 : editRatio(a, b);
-    return tail >= WORD_EDIT ? tail : 0;
+    if (dropFinalVowel(a) === dropFinalVowel(b)) return 0.95;
+    return closeWords(a, b);
   }
-  if (sameSkeleton(mine, theirs)) return 0.9;
-  const ratio = editRatio(mine, theirs);
-  return ratio >= WORD_EDIT ? ratio : 0;
+  return closeWords(mine, theirs);
 }
 
+type Pairing = { covered: Set<number>; mineUsed: number };
+
 /**
- * The listed words our words cover, ONE TO ONE: every close pair, best first,
- * each of ours and each of theirs used once.
+ * The best ONE-TO-ONE pairing of our words with the listed words: each of
+ * ours covers at most one listed word, and the pairing chosen covers the most
+ * listed weight (then the best scores). Exhaustive over the few words a name
+ * has, so a greedy first pick can never block a better whole.
  */
-export function coveredWords(ours: string[], listed: string[]): Set<number> {
-  const pairs: { i: number; j: number; score: number }[] = [];
-  ours.forEach((mine, i) =>
-    listed.forEach((theirs, j) => {
-      const score = wordsCover(mine, theirs);
-      if (score > 0) pairs.push({ i, j, score });
-    }),
-  );
-  pairs.sort((x, y) => y.score - x.score);
-  const usedMine = new Set<number>();
+function pairWords(ours: string[], listed: string[], weight: WordWeight = EVEN): Pairing {
+  const scores = ours.map((mine) => listed.map((theirs) => wordsCover(mine, theirs)));
+  const memo = new Map<string, { value: number; picks: number[] }>();
+  const best = (j: number, used: number): { value: number; picks: number[] } => {
+    if (j === listed.length) return { value: 0, picks: [] };
+    const key = `${j}:${used}`;
+    const hit = memo.get(key);
+    if (hit) return hit;
+    const skip = best(j + 1, used);
+    let top = { value: skip.value, picks: [-1, ...skip.picks] };
+    for (let i = 0; i < ours.length; i += 1) {
+      const score = scores[i]![j]!;
+      if (score <= 0 || used & (1 << i)) continue;
+      const rest = best(j + 1, used | (1 << i));
+      const value = rest.value + weight(listed[j]!) + score * 1e-3;
+      if (value > top.value) top = { value, picks: [i, ...rest.picks] };
+    }
+    memo.set(key, top);
+    return top;
+  };
+  if (ours.length > 16) return { covered: new Set(), mineUsed: 0 };
+  const picks = best(0, 0).picks;
   const covered = new Set<number>();
-  for (const pair of pairs) {
-    if (usedMine.has(pair.i) || covered.has(pair.j)) continue;
-    usedMine.add(pair.i);
-    covered.add(pair.j);
-  }
-  return covered;
+  picks.forEach((i, j) => {
+    if (i >= 0) covered.add(j);
+  });
+  return { covered, mineUsed: covered.size };
+}
+
+/** The listed words our words cover, one to one (see `pairWords`). */
+export function coveredWords(ours: string[], listed: string[]): Set<number> {
+  return pairWords(ours, listed).covered;
 }
 
 /**
@@ -275,39 +342,72 @@ export function rarityWeights(listed: readonly { names: string[] }[], ourNames: 
   };
 }
 
-/** Does ours cover the listing well enough to be the same person? */
-function listingCovered(ours: string[], listed: string[], weight: WordWeight): boolean {
-  const covered = coveredWords(ours, listed);
-  if (covered.size === listed.length) return true;
-  if (listed.length <= SHORT_LISTING) return false;
+/**
+ * How ours covers a listing: null when not well enough to be the same person;
+ * otherwise whether the covered words are all names common in Nigeria.
+ */
+function listingCovered(ours: string[], listed: string[], weight: WordWeight): { common: boolean } | null {
+  const { covered, mineUsed } = pairWords(ours, listed, weight);
+  const common = [...covered].every((j) => isCommonWord(listed[j]!));
+  if (covered.size === listed.length) return { common };
+  if (listed.length <= SHORT_LISTING) return null;
   let got = 0;
   let total = 0;
-  let distinctive = false;
   listed.forEach((word, j) => {
     const w = weight(word);
     total += w;
-    if (covered.has(j)) {
-      got += w;
-      if (!isCommonWord(word)) distinctive = true;
-    }
+    if (covered.has(j)) got += w;
   });
-  return total > 0 && got / total >= MIN_COVERAGE && distinctive;
+  if (total <= 0 || got / total < MIN_COVERAGE) return null;
+  /* Every word of a name of ours of three or more words found in the listing
+     is enough: the distinctive-word rule is for partial names, not for a
+     whole name of ours that the listing contains. */
+  if (ours.length >= 3 && mineUsed === ours.length) return { common };
+  return common ? null : { common };
 }
 
 /**
- * 0..1 for a screened name against a listed one, both already normalised
- * (`screened` is ours, `listed` is the list's). Scored on folded words.
+ * A folded name's word lists to try: as written, and with each standalone
+ * Abdul word joined to another word (names are stored with their words sorted,
+ * so "Abdul Rahman" is tried as "Abdulrahman").
  */
+function wordVariants(normalised: string): string[][] {
+  const words = expandWords(normalised.split(" ").filter(Boolean)).map(foldWord);
+  const out = [words];
+  words.forEach((word, i) => {
+    if (!ABDUL_ALONE.has(word)) return;
+    words.forEach((other, j) => {
+      if (j === i || ABDUL_ALONE.has(other)) return;
+      out.push([foldWord(`abdul${other}`), ...words.filter((_, k) => k !== i && k !== j)]);
+    });
+  });
+  return out;
+}
+
+/**
+ * Score and kind of cover for a screened name against a listed one, both
+ * already normalised (`screened` is ours, `listed` is the list's).
+ */
+export function nameAssess(screened: string, listed: string, weight: WordWeight = EVEN): { score: number; common: boolean } {
+  let top = { score: 0, common: false };
+  if (!screened || !listed) return top;
+  for (const aw of wordVariants(screened)) {
+    for (const bw of wordVariants(listed)) {
+      if (aw.length < 2 || bw.length < 2) continue;
+      const cover = listingCovered(aw, bw, weight);
+      if (!cover) continue;
+      const a = [...aw].sort().join(" ");
+      const b = [...bw].sort().join(" ");
+      const score = a === b ? 1 : Math.max(editRatio(a, b), wordScore(aw, bw));
+      if (score > top.score) top = { score, common: cover.common };
+    }
+  }
+  return top;
+}
+
+/** 0..1 for a screened name against a listed one (see `nameAssess`). */
 export function nameScore(screened: string, listed: string, weight: WordWeight = EVEN): number {
-  if (!screened || !listed) return 0;
-  const a = foldName(screened);
-  const b = foldName(listed);
-  const aw = a.split(" ");
-  const bw = b.split(" ");
-  if (aw.length < 2 || bw.length < 2) return 0;
-  if (!listingCovered(aw, bw, weight)) return 0;
-  if (a === b) return 1;
-  return Math.max(editRatio(a, b), wordScore(aw, bw));
+  return nameAssess(screened, listed, weight).score;
 }
 
 export type ListedName = {
@@ -348,6 +448,12 @@ export type NameMatch = {
   matchedName: string;
   /** False when a known date of birth or nationality disagrees: recorded, not raised. */
   raise: boolean;
+  /**
+   * A close match resting only on names common in Nigeria. Still raised (a
+   * missed match is worse than a wrong one), in the desk's lower group:
+   * "common name, check identifiers".
+   */
+  common: boolean;
 };
 
 /**
@@ -393,10 +499,8 @@ export function createMatcher(
         let best: NameMatch | null = null;
         for (const name of entry.names) {
           const exact = person.norm === name;
-          const listedFolded = foldName(name).split(" ");
-          const commonOnly = listedFolded.every(isCommonWord);
-          const longerThanListing = foldName(person.norm).split(" ").length > listedFolded.length;
-          const score = exact ? 1 : Math.min(nameScore(person.norm, name, weight), 0.999);
+          const assessed = exact ? { score: 1, common: false } : nameAssess(person.norm, name, weight);
+          const score = exact ? 1 : Math.min(assessed.score, 0.999);
           if (score < threshold) continue;
           const kind = exact ? "exact" : "fuzzy";
           if (!best || score > best.score) {
@@ -408,7 +512,8 @@ export function createMatcher(
               score,
               screenedName: person.raw,
               matchedName: entry.primaryName,
-              raise: kind === "exact" || (!(commonOnly && longerThanListing) && factsAllowHit(entry, facts)),
+              raise: kind === "exact" || factsAllowHit(entry, facts),
+              common: kind === "fuzzy" && assessed.common,
             };
           }
         }
