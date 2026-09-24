@@ -348,7 +348,7 @@ describe("sending to an @handle", () => {
       form({ ...SEND, idempotencyKey: "paced-send" }),
     );
     expect(sent.ok).toBe(false);
-    expect(sent.ok ? "" : sent.error).toMatch(/checked a lot of recipients/);
+    expect(sent.ok ? "" : sent.error).toMatch(/looked up a lot of recipients/);
     expect(moves).toHaveLength(0);
   });
 

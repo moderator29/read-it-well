@@ -4380,7 +4380,7 @@ export const en = {
         willRelease: "This will check {withdrawals} ({amount}) with Paystack.",
         withdrawals: { one: "1 held withdrawal", other: "{count} held withdrawals" },
         consequence:
-          "Each hold is checked with Paystack first. A transfer that paid out is marked complete. One that failed, was reversed or never reached Paystack is released to the owner's spendable balance, and they start it again if they still want it. One Paystack cannot answer for yet is left as it is. Nobody is paid by this.",
+          "Vallo asks Paystack about each hold first. A transfer that paid out is marked complete. One that failed, was reversed or never reached Paystack is released to the owner's spendable balance, and they start it again if they still want it. One Paystack cannot answer for yet is left as it is. Nobody is paid by this.",
         release: "Check and settle {amount}",
         cancel: "Cancel",
         nothingNeeded: "Nothing was released. Every hold had settled, paid out, or is still waiting on Paystack.",
