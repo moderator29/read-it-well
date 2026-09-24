@@ -182,5 +182,10 @@ describe("SCUML item 6: what the database holds to", () => {
     expect(own).toContain("if private.hold_claim_clear(r.user_id, 'str') then");
     expect(own).toContain("elsif v_row.hold_until > now() and v_row.reason <> 'plain' then");
     expect(own).toContain("if r.requested_by = actor then return 'same_person'; end if;");
+    /* A live non-plain hold is not touched; the claims wait, and the job takes over. */
+    expect(own).not.toMatch(/reason <> 'plain' then\s+if v_latest/);
+    expect(own).toContain("create or replace function private.hold_recompute_due()");
+    /* A plain freeze this model did not write, later than every claim, is left alone. */
+    expect(own).toContain("if v_written is distinct from v_row.hold_until and (v_latest is null or v_row.hold_until > v_latest) then");
   });
 });

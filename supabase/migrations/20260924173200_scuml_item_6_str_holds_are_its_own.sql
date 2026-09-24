@@ -18,15 +18,25 @@
 --       it), then recomputes the row.
 --   private.hold_claim_clear(user, owner)
 --       deletes only that desk's claim, then recomputes the row.
+--   private.hold_rows(user_id, written_until)
+--       the end hold_recompute last wrote to each person's row.
 --   private.hold_recompute(user)
 --       the row follows the latest live claim:
---         a live hold with a NON-plain reason (a "this was not me" hold) never
---           has its reason changed and is never ended; it is only extended
---           when a claim runs longer;
---         a live `plain` hold is set to the latest live claim, and ended
---           (hold_until = now()) when no claim is live;
+--         a live hold with a NON-plain reason (a "this was not me" hold) is
+--           NOT TOUCHED AT ALL: not relabelled, not lengthened, not ended. The
+--           claims wait, pending, until it ends;
+--         a live `plain` row whose end this model did not write and which runs
+--           later than every claim is a freeze not registered as a claim, and
+--           is left alone;
+--         otherwise a live `plain` row is set to the latest live claim, and
+--           ended (hold_until = now()) when no claim is live;
 --         `plain` is written only when a hold is created or replaces one that
 --           has ended.
+--   private.hold_recompute_due()
+--       recomputes every person with a live claim, so pending claims take
+--       over the moment a "this was not me" hold ends. Called by the
+--       compliance desk's 15-minute screening job; returns how many rows it
+--       looked at.
 --   Execute on all four is granted to nobody; only definer functions call
 --   them.
 --
@@ -37,7 +47,8 @@
 --                                   the asker, never a party) clears the 'str'
 --                                   claim. Any other claim, a sanctions
 --                                   freeze above all, holds on regardless.
---   private.str_holds               an append-only log of every STR hold placed.
+--   private.str_holds               an append-only log of every STR claim set
+--                                   (the claim's end, not necessarily the row's).
 --   public.str_pending_releases()   releases waiting on a second person.
 
 -- ----------------------------------------------------------------------------
@@ -57,6 +68,17 @@ comment on table private.hold_claims is
 
 revoke all on private.hold_claims from public, anon, authenticated;
 
+create table if not exists private.hold_rows (
+  user_id        uuid primary key,
+  written_until  timestamptz,
+  written_at     timestamptz not null default now()
+);
+
+comment on table private.hold_rows is
+  'SCUML items 6 and 8. The end private.hold_recompute last wrote to a person''s account_money_holds row, so a plain row written by anything else (a freeze not yet registered as a claim) is recognised and left alone. No grants.';
+
+revoke all on private.hold_rows from public, anon, authenticated;
+
 create or replace function private.hold_recompute(p_user uuid)
 returns void
 language plpgsql
@@ -66,28 +88,59 @@ as $$
 declare
   v_latest timestamptz;
   v_row public.account_money_holds%rowtype;
+  v_written timestamptz;
+  v_new timestamptz;
 begin
   select max(c.until) into v_latest from private.hold_claims c where c.user_id = p_user and c.until > now();
   select * into v_row from public.account_money_holds h where h.user_id = p_user for update;
+  select w.written_until into v_written from private.hold_rows w where w.user_id = p_user;
 
   if v_row.user_id is null then
-    if v_latest is not null then
-      insert into public.account_money_holds (user_id, hold_until, reason, created_at)
-      values (p_user, v_latest, 'plain', now());
-    end if;
+    if v_latest is null then return; end if;
+    insert into public.account_money_holds (user_id, hold_until, reason, created_at)
+    values (p_user, v_latest, 'plain', now());
+    v_new := v_latest;
   elsif v_row.hold_until > now() and v_row.reason <> 'plain' then
-    /* Somebody else's live hold (a "this was not me" hold): its words are
-       theirs. Only ever lengthened, never ended or relabelled. */
-    if v_latest is not null and v_latest > v_row.hold_until then
-      update public.account_money_holds set hold_until = v_latest where user_id = p_user;
-    end if;
+    /* Somebody else's live hold (a "this was not me" hold): not touched at
+       all. The claims stay pending and take over when it ends. */
+    return;
   elsif v_row.hold_until > now() then
-    /* A live plain hold follows the claims, and ends with the last one. */
-    update public.account_money_holds set hold_until = coalesce(v_latest, now()) where user_id = p_user;
+    /* A live plain row this model did not write, running later than every
+       claim: a freeze not yet registered as a claim. Left alone. */
+    if v_written is distinct from v_row.hold_until and (v_latest is null or v_row.hold_until > v_latest) then
+      return;
+    end if;
+    v_new := coalesce(v_latest, now());
+    update public.account_money_holds set hold_until = v_new where user_id = p_user;
   elsif v_latest is not null then
-    /* A hold that has ended is replaced. */
+    /* A hold that has ended is replaced by the pending claims. */
     update public.account_money_holds set hold_until = v_latest, reason = 'plain' where user_id = p_user;
+    v_new := v_latest;
+  else
+    return;
   end if;
+
+  insert into private.hold_rows (user_id, written_until, written_at)
+  values (p_user, v_new, now())
+  on conflict (user_id) do update set written_until = excluded.written_until, written_at = now();
+end;
+$$;
+
+create or replace function private.hold_recompute_due()
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  u uuid;
+  n integer := 0;
+begin
+  for u in select distinct c.user_id from private.hold_claims c where c.until > now() loop
+    perform private.hold_recompute(u);
+    n := n + 1;
+  end loop;
+  return n;
 end;
 $$;
 
@@ -125,6 +178,7 @@ end;
 $$;
 
 revoke all on function private.hold_recompute(uuid) from public, anon, authenticated, service_role;
+revoke all on function private.hold_recompute_due() from public, anon, authenticated, service_role;
 revoke all on function private.hold_claim_set(uuid, text, timestamptz, uuid) from public, anon, authenticated, service_role;
 revoke all on function private.hold_claim_clear(uuid, text) from public, anon, authenticated, service_role;
 
@@ -143,7 +197,7 @@ create table if not exists private.str_holds (
 create index if not exists str_holds_user_idx on private.str_holds (user_id, placed_at desc);
 
 comment on table private.str_holds is
-  'SCUML item 6. Every money hold the STR desk placed, with the end it set. The desk ends a hold only while the hold in force still carries that end. Append-only, kept five years.';
+  'SCUML item 6. A log of every STR hold placed: the case, the person, the end of the ''str'' claim it set, who and when. The claim is in private.hold_claims; the audit''s row may carry another end while another hold is live. Append-only, kept five years.';
 
 create table if not exists private.str_hold_releases (
   id            uuid primary key default gen_random_uuid(),
