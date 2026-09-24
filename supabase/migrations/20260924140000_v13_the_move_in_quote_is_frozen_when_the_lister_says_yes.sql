@@ -24,12 +24,17 @@
 -- is the quote they are charged, which is the direction a mistake should fall.
 --
 -- THE CHARGE READS THE QUOTE. `private.open_rent_charge` is replaced with the
--- same body plus one branch: when a quote exists for the inspection, the six
--- parts and the total come from the quote instead of the listing. Nothing
--- else in the function changes, and it is claimed in docs/FIX_SCOPE.md
--- because the audit session has its own pending changes to this function
--- (the Lagos date, the 23P01 answer, the tenancy kind). Whichever lands
--- second must carry the other's lines.
+-- LIVE body as read by `pg_get_functiondef` on 24 September 2026 (it already
+-- carries the audit's ESC-03 change: the bookings insert answers `date_taken`
+-- on an exclusion violation), plus one branch: when a quote exists for the
+-- inspection, the six parts and the total come from the quote instead of the
+-- listing. Nothing else in the function changes.
+--
+-- ANY LATER REPLACEMENT OF `open_rent_charge` MUST CARRY THE QUOTE BRANCH
+-- below (the `select * into q from public.move_in_quotes` block). Without it
+-- the guard at the end of this file refuses every charge on an inspection
+-- that has a quote (VQ013), which fails closed but stops tenants paying.
+-- Claimed in docs/FIX_SCOPE.md for that reason.
 --
 -- AND A GUARD THAT OUTLIVES A REPLACEMENT. If a later migration replaces the
 -- function from an older body and drops the quote branch, a charge that
@@ -334,15 +339,22 @@ begin
     end if;
   end if;
   perform set_config('vallo.rent_charge', 'true', true);
-  insert into public.bookings (
-    listing_id, guest_id, check_in, check_out, nights, adults, children,
-    price_per_night_minor, cleaning_fee_minor, service_fee_minor,
-    subtotal_minor, total_minor, currency, status
-  ) values (
-    lst.id, p_tenant, p_move_in, p_move_in + 1, 1, 1, 0,
-    total, 0, 0, total, total, 'NGN', 'PENDING'
-  )
-  returning id into v_booking;
+  /* ESC-03. A stay held on the move-in date makes this insert collide with
+     the calendar; say so rather than failing as "could not be opened". */
+  begin
+    insert into public.bookings (
+      listing_id, guest_id, check_in, check_out, nights, adults, children,
+      price_per_night_minor, cleaning_fee_minor, service_fee_minor,
+      subtotal_minor, total_minor, currency, status
+    ) values (
+      lst.id, p_tenant, p_move_in, p_move_in + 1, 1, 1, 0,
+      total, 0, 0, total, total, 'NGN', 'PENDING'
+    )
+    returning id into v_booking;
+  exception when exclusion_violation then
+    perform set_config('vallo.rent_charge', '', true);
+    return jsonb_build_object('status', 'date_taken');
+  end;
   perform set_config('vallo.rent_charge', '', true);
   if existing.id is not null then
     update public.rent_payments
