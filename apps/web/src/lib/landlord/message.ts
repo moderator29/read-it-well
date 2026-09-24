@@ -4,9 +4,11 @@
  * ---------------------------------------------------------------------------
  * THE MESSAGE. One question, the four character reply code printed beside
  * every option, and the link to the same question in Vallo's own chrome. The
- * place is "2 bedroom apartment in Ikeja GRA", built by the database from the
- * area and never the address, so nothing a landlord forwards identifies a
- * door. The agent is named by their public display name only, because the
+ * place is "2 bedroom apartment in Ikeja GRA", built by the database from
+ * facts only: bedrooms and type from their columns, and a neighbourhood from a
+ * closed list, else the city, else the state. Nothing the lister typed (the
+ * area field, the title) ever reaches it, so nothing a landlord forwards
+ * identifies a door. The agent is named by their public display name only, because the
  * landlord needs to know which agent we mean and the agent's name is already
  * on the listing.
  *

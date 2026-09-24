@@ -12,8 +12,10 @@
  *   failed    we could not read it: our fault, try again
  *
  * Nothing in the model can carry an address, because the read never returns
- * one: `place` and `area` are built by the database from the area and the
- * bedrooms, and the lister is their public display name.
+ * one: `place` and `area` are built by the database from facts only (a
+ * neighbourhood from a closed list, else the city, else the state, and the
+ * bedrooms and type), never from what the lister typed, and the lister is
+ * their public display name.
  */
 
 export type ReplyState = "open" | "used" | "expired" | "unknown" | "closed" | "failed";
