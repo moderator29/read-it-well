@@ -8,6 +8,7 @@ import { EmptyActions } from "@/components/app/EmptyActions";
 import { ROOM_COPY } from "@/lib/inspections/report";
 import { DeductionAnswer, ProposeDeduction, RecordReturn } from "@/components/app/tenancy/CautionControls";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
+import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";
 
 /** A private record. Never indexed, never in a tab title. */
 export const metadata: Metadata = { title: "Tenancy", robots: { index: false, follow: false } };
@@ -66,6 +67,11 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
     <Stack>
       <TenancyHead file={file} copy={copy} />
       <MoneySection file={file} copy={copy} />
+      {file.viewer === "tenant" && file.paid && (
+        <Section>
+          <ReceiptCodePanel tenancyId={file.id} live={file.receiptCode} copy={t.afterTheGate.receipt} />
+        </Section>
+      )}
       <CautionSection file={file} copy={copy} />
       <PromiseSection file={file} copy={copy} />
       <Section title={copy.evidenceHeading} divided>

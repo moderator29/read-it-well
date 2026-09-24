@@ -95,6 +95,8 @@ export type TenancyFile = {
   viewing: { submittedLabel: string | null; ticked: number } | null;
   reports: TenancyReportView[];
   pins: { id: string; body: string; date: string }[];
+  /** V-55: the tenant's live receipt code, when they have made one. */
+  receiptCode: { id: string; code: string } | null;
 };
 
 export type TenancyRead =
@@ -167,7 +169,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     const endsOn = tenancyEnd(rp.move_in, period);
     const today = lagosToday(now);
 
-    const [listingRead, txRead, snapshotRead, obligationRead, reportsRead, viewingRead, pinsRead] = await Promise.all([
+    const [listingRead, txRead, snapshotRead, obligationRead, reportsRead, viewingRead, pinsRead, codeRead] = await Promise.all([
       db.from("listings").select("title, area, city, agent_id").eq("id", rp.listing_id).maybeSingle(),
       db
         .from("transactions")
@@ -180,6 +182,15 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       loose.from("tenancy_reports").select("*").eq("rent_payment_id", id),
       db.from("inspection_reports").select("submitted_at").eq("inspection_id", rp.inspection_id).maybeSingle(),
       loose.from("tenancy_pins").select("message_id, created_at").eq("rent_payment_id", id),
+      // Owner-only under RLS, so only the tenant ever gets a row back.
+      loose
+        .from("receipt_codes")
+        .select("id, code")
+        .eq("subject_kind", "rent_payment")
+        .eq("subject_id", id)
+        .is("revoked_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1),
     ]);
 
     const listing = listingRead.data;
@@ -377,6 +388,12 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         viewing,
         reports,
         pins,
+        receiptCode: (() => {
+          const row = codeRead.error ? null : rows(codeRead.data)[0];
+          const codeId = row ? str(row.id) : null;
+          const codeText = row ? str(row.code) : null;
+          return codeId && codeText ? { id: codeId, code: codeText } : null;
+        })(),
       },
     };
   } catch {

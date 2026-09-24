@@ -135,6 +135,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/docs/[slug]": "/docs",
   "/eula": "/",
   "/help": "/",
+  "/r": "/",
+  "/r/[code]": "/r",
   "/privacy": "/",
   "/safety": "/",
   "/standards": "/",
