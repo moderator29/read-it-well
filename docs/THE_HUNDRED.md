@@ -3102,3 +3102,41 @@ The audit session applies them, because it owns the live schema.
 - **New money paths to review:** `return_caution`, `return_rent_share` and `pay_rent_share`. All three go through `private.transfer_between_wallets` unchanged, behind the account hold and the money lock.
 - **One audit-owned function redefined:** `end_other_sessions`, copied verbatim with one added line that revokes widget tokens.
 - **Proof scripts and the production database:** screen proofs taken against preview URLs read production. The last round of proofs overlapped the audit's grants and may explain the 403s it rolled back.
+
+### From the build: the close (24 September, evening)
+
+**Everything is on `main`.** The audit's merge went in first, and its version won in every area it owns. All four gates ran green on the merged tree before each push. Every V-number's final state is in `docs/THE_HUNDRED_BUILD.md`: 48 SHIPPED, 34 PARTIAL, 13 FOUNDER, 1 DEFERRED (V-44), and the rest AUDIT.
+
+**The five live regressions you reported are fixed on `main`.** Each fix was proven on a local production build against the live database, not on a passing test alone.
+1. **"Message agent" said the listing was gone.** It was not gone. A second `listings -> agents` foreign key had made the database query ambiguous. Every such query now names its key. The app may now say a listing no longer exists only after a privileged read confirms it; otherwise it says "This chat did not open just now. Nothing has changed on the listing." A test fails the build if the ambiguous form comes back.
+2. **Sideways scroll and shaking at phone width.** The page no longer scrolls sideways at 390px, and nothing moves once the page has settled: the drifting background animation is gone.
+3. **Small input text and a zoomed-out page.** The page can no longer open zoomed out, and inputs stay at 16px.
+4. **The 64 listings.** 62 appear in search. The other two are the **2 restaurant listings**: they open, but no search list includes them. I flagged this and did not change it; say whether restaurants belong in search. The **3 land plots have no photographs in the database**, so they show without photos until someone uploads them.
+5. **Example photos.** The original photos are back and stay until honest photos exist for each slot, so no example card is blank.
+
+**Please check 2 and 3 on a real iPhone.** No Safari engine was available here. The fixes are proven in Chromium with an iPhone profile, which is close but is not the device.
+
+**One-line decisions still open.**
+- **Workspace or listing account.** V-75 calls the lister's door "Workspace"; the audit's UX-23 calls it "listing account". The build kept Workspace (PRODUCT.md section 7). Confirm or reverse.
+- **The two supply dates (V-03).** The proof strip shows signed-out visitors the dates a listing's ownership and mandate were checked. The audit had removed the anonymous grant, and then applied the hundred's grant live. Confirm that you want signed-out visitors to see those two dates.
+- **The public catalogue flag.** The audit added `VALLO_PUBLIC_CATALOGUE`, which is off by default. Turning it on reopens signed-out search, which goes against the 23 September sign-in wall. Leave it off unless you mean to reverse that ruling.
+- **V-96 WhatsApp.** Built and off. It needs the business number, Meta credentials and five approved templates before `whatsapp_doorbell` is switched on.
+
+**SCUML: the AML duties are built.** They are in the ledger by checklist item, so you can show an examiner which code discharges which obligation:
+- item 17: beneficial ownership, with a mandate required before an agent or firm listing publishes, and "Acting for" on any transaction;
+- items 8 and 9: sanctions screening and re-screening when a list changes;
+- item 20: PEPs;
+- item 15: risk class;
+- item 7: the ₦5m / ₦10m reports within 7 days;
+- item 6: STRs to the NFIU.
+
+They all live on one staff-only desk at `/admin/compliance`. None of it is shown to a member: there is no badge, no score and no changed wording. Every decision needs a second staff member (item 19), and every record is kept five years (item 11). **Only you can do these:**
+1. **Appoint the Compliance Officer in writing** (item 13). A board minute naming the officer and their duties. The fine recurs monthly after six months.
+2. **Register with the Nigeria Sanctions Committee Alert System** (item 9). Until then, the desk re-screens against whatever list staff upload.
+3. **Set the list feeds.** Put the UN Consolidated List XML address in `SANCTIONS_UN_URL` (and the Nigeria list in `SANCTIONS_NG_URL` if the Committee publishes one). Without them, staff upload the files on the desk. A new list version needs two people to activate it.
+4. **Sign off the risk thresholds** (item 16). The high, medium and low rules in `lib/compliance/risk-rules.ts` are a first reading. They need your reading of the National Risk Assessment.
+5. **Grant a second staff member.** Two-person approval cannot work with one admin. Until a second person exists, every compliance decision stays pending.
+6. **Ask the solicitor, in the same letter as the custody question:**
+   - Does the "promptly" duty on an STR mean a decision within 24 hours? The desk makes a case due 24 hours after it is opened (`private.str_due_after`).
+   - Should a transaction be classed as individual or corporate by the capacity the party acted in, not the account type? The item 7 monitor classes it by capacity.
+   - What may a member whose money is held for a compliance reason be told? Today they see the same neutral wording as any other hold, so nobody is tipped off.

@@ -39,6 +39,16 @@
 - The last three over-long state lines are on the wallet screens.
 - **Tests I edited to follow the merged behaviour** (each has a comment; please review): `listing-account-words`, `empty-notes`, `rent-market`, `provider-refusal`, `revoked-columns`, `claims`, `withdraw-saved-account`, and five more guard inputs.
 
-**Still to come from this session:** SCUML items 6, 8, 15, 17 and 20 are in adversarial review. They are purely additive: AFTER triggers that only enqueue, plus staff-only tables. They will land on main as a separate merge with the same gates.
+**SCUML items 17, 7, 15, 20, 6 and 8/9 are on main** (migrations `20260924171000` to `2026092417650x`). None of them is applied. Apply them in timestamp order after the hundred's files. They are additive: AFTER triggers that only enqueue, plus staff-only tables behind definers. The one thing that touches money is the hold-claims model. Items 6 and 8 each place a claim in `private.hold_claims` (owner `str` or `sanctions`). `hold_recompute` writes your `account_money_holds` row with the neutral reason `plain` and the latest live claim's end date. A `pg_cron` sweep (`hold_claims_sweep`) runs every minute. A live hold that is not `plain` (for example `not_me`) is never lengthened or relabelled.
+
+**SCUML hand-offs, all in your areas:**
+- `money_hold_until` should honour live `hold_claims` directly. Today there is a window of up to 60 seconds between a claim ending and the sweep recomputing the row.
+- Account deletion should refuse while a compliance claim is live. The record is kept anyway (item 11), but the person should not be able to delete their way out of a hold.
+- `admin_finish_email_recovery` overwrites a live `plain` hold (already listed above). This now matters for SCUML holds.
+- RM050: the member-facing hold text must stay reason-neutral (see `refuse_money_out_during_hold` above).
+- Members can read `hold_until` (above). A compliance hold's end date should not be readable by the member.
+- `subjectForIp` IPv6 /64 (above) also governs the rate limits on the PEP answer and the mandate filing.
+- `reinstate` counts listings diverted by the item 17 mandate grace sweep as restored. They were paused for a missing mandate, not by a moderator.
+- The purge deletes the mandate photo (above). Item 17 requires the principal's identity record for five years.
 
 **Preview URLs:** this session no longer requests preview or deployed URLs. Earlier proofs against previews read production and may explain the 403s you rolled back last night.
