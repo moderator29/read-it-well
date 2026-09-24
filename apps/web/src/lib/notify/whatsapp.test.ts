@@ -51,8 +51,21 @@ describe("inbound", () => {
     expect(await inboundSignatureValid(body, good, undefined)).toBe(false);
   });
   it("reads senders and text from Meta's shape, and nothing malformed", () => {
-    const payload = { entry: [{ changes: [{ value: { messages: [{ from: "2348030000000", text: { body: "hello" } }, { from: "evil" }] } }] }] };
-    expect(inboundMessages(payload)).toEqual([{ from: "+2348030000000", text: "hello" }]);
+    const payload = {
+      entry: [{ changes: [{ value: { messages: [{ id: "wamid.1", from: "2348030000000", text: { body: "hello" } }, { from: "evil" }] } }] }],
+    };
+    expect(inboundMessages(payload)).toEqual([{ id: "wamid.1", from: "+2348030000000", text: "hello" }]);
     expect(inboundMessages(null)).toEqual([]);
+  });
+});
+
+describe("the drain (V-96)", () => {
+  it("leaves the queue alone without credentials", async () => {
+    vi.doMock("server-only", () => ({}));
+    const { whatsappDrain } = await import("./whatsapp-drain");
+    const from = vi.fn();
+    const counts = await whatsappDrain({ from, auth: { admin: { getUserById: vi.fn() } } } as never, stubTransport);
+    expect(counts.idle).toBe(true);
+    expect(from).not.toHaveBeenCalled();
   });
 });

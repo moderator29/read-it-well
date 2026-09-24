@@ -158,9 +158,9 @@ export async function inboundSignatureValid(rawBody: string, header: string | nu
   return given.length === expected.length && timingSafeEqual(given, expected);
 }
 
-/** The inbound messages in a webhook body: the sender as E.164 and the text, if any. */
-export function inboundMessages(payload: unknown): { from: string; text: string | null }[] {
-  const out: { from: string; text: string | null }[] = [];
+/** The inbound messages in a webhook body: Meta's message id, the sender as E.164, and the text, if any. */
+export function inboundMessages(payload: unknown): { id: string | null; from: string; text: string | null }[] {
+  const out: { id: string | null; from: string; text: string | null }[] = [];
   const entries = (payload as { entry?: unknown })?.entry;
   if (!Array.isArray(entries)) return out;
   for (const entry of entries) {
@@ -170,10 +170,11 @@ export function inboundMessages(payload: unknown): { from: string; text: string 
       const messages = (change as { value?: { messages?: unknown } })?.value?.messages;
       if (!Array.isArray(messages)) continue;
       for (const message of messages) {
-        const m = message as { from?: unknown; text?: { body?: unknown } };
+        const m = message as { id?: unknown; from?: unknown; text?: { body?: unknown } };
         const from = typeof m.from === "string" && /^\d{8,15}$/.test(m.from) ? `+${m.from}` : null;
         if (!from) continue;
-        out.push({ from, text: typeof m.text?.body === "string" ? m.text.body.slice(0, 500) : null });
+        const id = typeof m.id === "string" && m.id.length > 0 && m.id.length <= 200 ? m.id : null;
+        out.push({ id, from, text: typeof m.text?.body === "string" ? m.text.body.slice(0, 500) : null });
         if (out.length >= 20) return out;
       }
     }
