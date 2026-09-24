@@ -1,22 +1,10 @@
 "use server";
 
 import { resolveSession } from "../actions/session";
+import { COMMUTE_RESULTS, type CommuteResult } from "./commute";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export const COMMUTE_RESULTS = [
-  "ok",
-  "off",
-  "signed-out",
-  "not-member",
-  "too-new",
-  "bad-minutes",
-  "bad-anchor",
-  "off-peak",
-  "already",
-  "failed",
-] as const;
-export type CommuteResult = (typeof COMMUTE_RESULTS)[number];
 
 /**
  * A member's one-tap "How long did it take you?" (V-43). The window, the

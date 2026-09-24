@@ -13,6 +13,21 @@ export type Peak = "am" | "pm";
 /** A named place a renter goes to every day (`public.landmarks`). */
 export type Anchor = { id: string; slug: string; name: string; city: string };
 
+/** What `report_commute` may answer; each is said in full on the card. */
+export const COMMUTE_RESULTS = [
+  "ok",
+  "off",
+  "signed-out",
+  "not-member",
+  "too-new",
+  "bad-minutes",
+  "bad-anchor",
+  "off-peak",
+  "already",
+  "failed",
+] as const;
+export type CommuteResult = (typeof COMMUTE_RESULTS)[number];
+
 /** The drawer's one commute choice: under this many minutes at the morning rush. */
 export const RUSH_WITHIN = 45;
 

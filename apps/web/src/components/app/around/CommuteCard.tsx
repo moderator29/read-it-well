@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n";
-import type { Anchor } from "@/lib/listings/commute";
-import { reportCommute, type CommuteResult } from "@/lib/listings/commute-actions";
+import type { Anchor, CommuteResult } from "@/lib/listings/commute";
+import { reportCommute } from "@/lib/listings/commute-actions";
 
 /**
  * "How long did it take you?" (V-43), for members of an Around place. One
