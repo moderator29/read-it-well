@@ -184,8 +184,13 @@ const PUBLIC = [
   "/sitemap.xml",
 ];
 
-const PORT = 33492;
-const STUB = `http://127.0.0.1:${PORT}`;
+/*
+ * The stand-in listens on a port the operating system picks. A fixed port
+ * collided whenever two copies of this suite ran on one machine (two
+ * worktrees, or CI beside a local run): the second `listen` raised
+ * EADDRINUSE, nothing handled it, and the whole file failed at collection.
+ */
+let STUB = "";
 
 let server: Server;
 let cookieHeader = "";
@@ -205,7 +210,15 @@ beforeAll(async () => {
     res.statusCode = 404;
     res.end(JSON.stringify({ stub: "serves /auth/v1/user only", path: url.pathname }));
   });
-  await new Promise<void>((resolve) => server.listen(PORT, "127.0.0.1", resolve));
+  const port = await new Promise<number>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      if (address && typeof address === "object") resolve(address.port);
+      else reject(new Error("the stand-in reported no port"));
+    });
+  });
+  STUB = `http://127.0.0.1:${port}`;
 
   /* Set BEFORE the module is loaded: `lib/supabase/env.ts` reads
      `process.env` at module scope, so an import above this line would arm the
@@ -242,7 +255,9 @@ beforeAll(async () => {
     proxy: (request: Request) => Promise<Response>;
   });
   ({ NextRequest } = await import("next/server"));
-});
+  /* Loading the middleware pulls in most of the server graph, which takes
+     well over the 10 s hook default on a machine running several suites. */
+}, 60_000);
 
 afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
@@ -260,7 +275,10 @@ async function ask(path: string, withSession: boolean) {
   };
 }
 
-describe("the gate admits a session, which is the half a refusal test cannot see", () => {
+/* Each case walks up to forty-one routes through the real middleware, one
+   HTTP round trip to the stand-in each: tens of milliseconds idle, seconds
+   under a loaded machine, so the 5 s default is not a budget for it. */
+describe("the gate admits a session, which is the half a refusal test cannot see", { timeout: 30_000 }, () => {
   it("is armed at all, and refuses without the session", async () => {
     /* THE INSTRUMENT PROVES ITSELF FIRST. If the guard were a pass-through
        here, because the environment was not set in time or Supabase read as

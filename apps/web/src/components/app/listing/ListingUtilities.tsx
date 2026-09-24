@@ -218,24 +218,32 @@ function Row({
   answered: boolean;
   value: React.ReactNode;
 }) {
+  /*
+   * DOC-21: a row of a <dl> may be a <div>, but that <div> may hold only
+   * <dt> and <dd>. The icon and an inner wrapper used to sit between them
+   * (axe `definition-list`, `dlitem`), so assistive tech read the terms as
+   * orphans. The grid now places the icon, and the <dt> carries it while
+   * dissolving into the grid (`display: contents`), so the layout is unchanged
+   * and the structure is legal.
+   */
   return (
-    <div className="flex gap-sm py-md first:pt-0">
-      <span className="block h-10 w-10 shrink-0">
-        <BrandIcon name={icon} fill />
-      </span>
-      <div className="min-w-0 flex-1">
-        <dt className={TYPE.label}>{term}</dt>
-        <dd className="mt-2xs">
-          {answered ? (
-            value
-          ) : (
-            <span className={TYPE.body}>
-              The agent has not answered this yet. Ask them before you commit,
-              rather than assuming either way.
-            </span>
-          )}
-        </dd>
-      </div>
+    <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-sm py-md first:pt-0">
+      <dt className="contents">
+        <span aria-hidden="true" className="row-span-2 block h-10 w-10 shrink-0">
+          <BrandIcon name={icon} fill />
+        </span>
+        <span className={`col-start-2 ${TYPE.label}`}>{term}</span>
+      </dt>
+      <dd className="col-start-2 mt-2xs min-w-0">
+        {answered ? (
+          value
+        ) : (
+          <span className={TYPE.body}>
+            The agent has not answered this yet. Ask them before you commit,
+            rather than assuming either way.
+          </span>
+        )}
+      </dd>
     </div>
   );
 }

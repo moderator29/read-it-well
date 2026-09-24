@@ -175,7 +175,9 @@ export function AppRail({
         sections={sections}
         active={active}
         activeType={activeType}
-        label={t.nav.primaryLabel}
+        /* DOC-21: the dock is also a nav named "Primary", and two navigation
+           landmarks with one name are one entry too many in a landmark list. */
+        label={t.a11y.railNav}
         onNavigate={onNavigate}
       />
 

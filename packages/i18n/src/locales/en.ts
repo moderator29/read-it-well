@@ -4695,6 +4695,13 @@ export const en = {
      */
     notificationsUnread: "Notifications, {count} unread",
     unreadOn: "{label}, {count} unread notifications",
+    /* DOC-21: a horizontal scroller a keyboard can reach has to be named. */
+    photoGallery: "Photographs of {title}. Use the arrow keys to move between them.",
+    /* DOC-21: the navigation landmarks, each named for what it is, so a
+       screen reader's landmark list does not offer two called "Primary". */
+    railNav: "Main menu",
+    dockNav: "Shortcuts",
+    walletHeading: "Wallet",
   },
 
   /**

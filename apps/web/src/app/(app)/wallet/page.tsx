@@ -78,6 +78,10 @@ export default async function WalletPage({
 
   return (
     <div className="nf-money mx-auto max-w-2xl">
+      {/* DOC-21: the screen's name. The balance card is the visual title and
+          carries no heading, so without this the page had no h1 at all
+          (axe `page-has-heading-one`). */}
+      <h1 className="sr-only">{t.a11y.walletHeading}</h1>
       <WalletBack />
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}
 
