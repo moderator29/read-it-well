@@ -426,9 +426,9 @@ export const trustVisibleEn = {
     phone: "Phone confirmed",
     /** `{date}` is a date. */
     nimc: "Identity matched with NIMC, {date}",
-    attendedOne: "1 inspection attended, confirmed by the code at the gate",
+    attendedOne: "1 inspection attended, recorded at the gate by both phones",
     /** `{count}` inspections. */
-    attended: "{count} inspections attended, confirmed by the code at the gate",
+    attended: "{count} inspections attended, recorded at the gate by both phones",
     tenancyOne: "1 tenancy paid through Vallo",
     /** `{count}` tenancies. */
     tenancies: "{count} tenancies paid through Vallo",

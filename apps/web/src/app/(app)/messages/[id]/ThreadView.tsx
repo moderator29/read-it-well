@@ -196,6 +196,7 @@ export type ThreadViewProps = {
   passportLine?: { key: string; text: string }[];
   /** V-100: the renter's own switch for this thread. Null for anybody else. */
   passportShare?: { enabled: boolean; shared: boolean } | null;
+  passportLabel?: string;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -333,6 +334,7 @@ export function ThreadView({
   recordLabel,
   passportLine = [],
   passportShare = null,
+  passportLabel,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -774,7 +776,7 @@ export function ThreadView({
               </p>
             )}
             {passportLine.length > 0 && (
-              <ul className="mt-3xs grid gap-3xs" data-testid="thread-passport">
+              <ul className="mt-3xs grid gap-3xs" aria-label={passportLabel} data-testid="thread-passport">
                 {passportLine.map((line) => (
                   <li key={line.key} className="nf-caption text-[var(--nf-content-secondary)]">
                     {line.text}

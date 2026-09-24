@@ -21,7 +21,7 @@ describe("the renter passport (V-100)", () => {
     expect(passportLines(facts, copy, "en").map((l) => l.text)).toEqual([
       "Phone confirmed",
       "Identity matched with NIMC, 12 Aug 2026",
-      "4 inspections attended, confirmed by the code at the gate",
+      "4 inspections attended, recorded at the gate by both phones",
       "1 tenancy paid through Vallo",
       "On Vallo since March 2026",
     ]);
@@ -71,5 +71,20 @@ describe("where the passport is drawn", () => {
     expect(read("app/(app)/settings/passport/page.tsx")).toContain("<PassportSwitch");
     expect(read("app/(app)/settings/passport/loading.tsx")).toContain("LoadingShell");
     expect(read("app/(app)/settings/SettingsHub.tsx")).toContain('href="/settings/passport"');
+  });
+});
+
+describe("after review (V-100)", () => {
+  const root = join(__dirname, "..", "..");
+  it("counts an inspection only when both phones recorded it, and never with the renter's shadow", () => {
+    const sql = readFileSync(join(root, "../../../supabase/migrations/20260924131500_v100_the_renter_passport.sql"), "utf8");
+    expect(sql).toContain("k.role = 'shower' and k.result = 'shown'");
+    expect(sql).toContain("cardinality(private.shares_identity_with(p_user, r.lister_id)) = 0");
+    expect(copy.attended).toContain("both phones");
+  });
+
+  it("draws nothing in the thread when the passport is off", () => {
+    const row = readFileSync(join(root, "components/app/safety/PassportShareRow.tsx"), "utf8");
+    expect(row).toContain("if (!initial.enabled) return null;");
   });
 });

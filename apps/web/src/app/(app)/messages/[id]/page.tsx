@@ -304,6 +304,7 @@ export default async function ConversationPage({
         recordLine={counterpartRecordLine}
         passportLine={passportLine}
         passportShare={passportShare}
+        passportLabel={t.trustVisible.passport.heading}
         recordLabel={t.trustVisible.record.title}
         personLabel={t.trustVisible.person.label}
         accountCopy={t.trustVisible.account}

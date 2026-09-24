@@ -20,8 +20,10 @@
 --                      the reader must be the lister in that conversation.
 --   derived, dated, counted
 --                      phone confirmed (V-50), identity matched with NIMC and
---                      when (V-49), inspections attended (the renter's phone
---                      recorded the lister's code matching at the gate, V-35),
+--                      when (V-49), inspections attended (recorded at the gate
+--                      by BOTH phones, V-35: the renter's match and the
+--                      lister's or delegate's shown, never the renter's word
+--                      alone, and never with the renter's own shadow),
 --                      tenancies paid through Vallo. Every line is null or zero-free: a line
 --                      with nothing behind it is not printed.
 --
@@ -81,8 +83,22 @@ begin
     exists (select 1 from public.confirmed_phones cp where cp.user_id = p_user),
     (select max(iv.decided_at) from public.identity_verifications iv
       where iv.subject_id = p_user and iv.outcome = 'matched' and iv.method = 'vnin'),
-    (select count(distinct k.inspection_id)::integer from public.inspection_checkins k
-      where k.recorded_by = p_user and k.role = 'checker' and k.result = 'match'),
+    /* ATTENDED MEANS BOTH PHONES. The renter's own 'match' is the renter's
+       word, so it counts only on a confirmed or completed inspection where
+       the lister (or the delegate they named and who accepted) also recorded
+       showing the code, and only with a lister who is not the renter's own
+       shadow (V-58). */
+    (select count(*)::integer
+       from public.inspection_requests r
+      where r.requester_id = p_user
+        and r.state in ('CONFIRMED'::public.inspection_state, 'COMPLETED'::public.inspection_state)
+        and exists (select 1 from public.inspection_checkins k
+                     where k.inspection_id = r.id and k.recorded_by = p_user
+                       and k.role = 'checker' and k.result = 'match')
+        and exists (select 1 from public.inspection_checkins k
+                     where k.inspection_id = r.id and k.role = 'shower' and k.result = 'shown'
+                       and (k.recorded_by = r.lister_id or k.recorded_by = private.active_delegate(r.id)))
+        and cardinality(private.shares_identity_with(p_user, r.lister_id)) = 0),
     (select count(*)::integer from public.rent_payments rp
        join public.bookings b on b.id = rp.booking_id
       where rp.tenant_id = p_user

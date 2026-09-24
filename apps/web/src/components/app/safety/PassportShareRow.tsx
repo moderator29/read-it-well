@@ -1,15 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n";
 import { shareRenterPassport } from "@/lib/trust/passport-actions";
 
 /**
  * V-100 IN A THREAD, FOR THE RENTER: show the passport to this lister, or take
- * it back. With the passport off, the row says where to turn it on instead of
- * offering a switch that cannot work. Never shown to the lister, who never
- * gets a way to ask for it.
+ * it back. With the passport off, nothing is drawn. Never shown to the lister,
+ * who never gets a way to ask for it.
  */
 export function PassportShareRow({
   copy,
@@ -24,15 +22,9 @@ export function PassportShareRow({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  if (!initial.enabled) {
-    return (
-      <p className="mt-md nf-caption text-[var(--nf-content-muted)]" data-testid="passport-share-off">
-        <Link href="/settings/passport" className="underline underline-offset-2">
-          {copy.turnOnFirst}
-        </Link>
-      </p>
-    );
-  }
+  /* Off means off: nothing in the thread, not even a nudge to turn it on.
+     Vallo never asks for the passport, and a prompt here would be asking. */
+  if (!initial.enabled) return null;
 
   function flip() {
     setError(null);
