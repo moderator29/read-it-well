@@ -50,6 +50,7 @@ const LEFT_ALONE = [
   "singles and couples welcome",
   "Christian neighbourhood",
   "bachelor pad",
+  "Men only barbershop on the ground floor",
 ];
 
 describe("tenantPreference (SEC-06)", () => {

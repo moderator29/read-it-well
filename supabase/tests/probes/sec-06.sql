@@ -36,7 +36,7 @@ begin
     ('no men allowed in the rooms after 10pm', false), ('no Igbo Efon traffic', false),
     ('perfect for couples', false), ('married couples welcome', false),
     ('singles and couples welcome', false), ('Christian neighbourhood', false),
-    ('bachelor pad', false)
+    ('bachelor pad', false), ('Men only barbershop on the ground floor', false)
   ) as t(txt, want) loop
     if (private.discriminatory_phrase(rec.txt) is not null) <> rec.want then
       raise exception 'PROBE_FAIL sec-06: "%" gave %, expected %',

@@ -38,7 +38,9 @@ const REFUSAL =
 
 const PATTERNS = [
   new RegExp(`\\b(${REFUSAL} ${GROUP})\\b`),
-  new RegExp(`\\b(${GROUP} (?:tenants? |people |occupants? )?(?:only|not allowed|not accepted|not welcome|preferred))\\b`),
+  new RegExp(
+    `\\b(${GROUP} (?:tenants? |people |occupants? )?(?:only(?! (?:barbers?|barbershops?|salons?|hairdressers?|gyms?|spas?|toilets?|restrooms?))|not allowed|not accepted|not welcome|preferred))\\b`,
+  ),
   new RegExp(`\\b(only ${GROUP})\\b`),
   new RegExp(`\\b((?:we )?prefer(?:red|s)? (?:only )?${GROUP})\\b`),
   new RegExp(`\\b(strictly for ${GROUP})\\b`),
