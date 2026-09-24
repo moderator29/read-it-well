@@ -18,6 +18,7 @@ import {
   type ReportStatus,
 } from "./model";
 import { attributeCaution, leadShare } from "./shares";
+import { bpsAsPercentText } from "../money/percent";
 import { daysUntil, exitAccountOpen, relistOpen, relistOpensOn, renewalCarriesFees, renewalTotal, rentChange } from "./renewal";
 
 /**
@@ -66,6 +67,8 @@ export type TenancyCaution = {
   deducted: string;
   outstanding: string;
   outstandingMinor: number;
+  /** What a return can still be: the caution less returns and every line not disputed. */
+  returnableMinor: number;
   deductions: TenancyDeduction[];
   returns: { amount: string; date: string }[];
 };
@@ -116,7 +119,8 @@ export type TenancyFile = {
   /** V-86: flatmates' shares of the move-in, the lead's as the remainder. */
   flatmates: TenancyFlatmates;
   /** V-55: the tenant's live receipt code, when they have made one. */
-  receiptCode: { id: string; code: string } | null;
+  /** Only a hint: the code itself is shown once, when it is made, and never stored. */
+  receiptCode: { id: string; hint: string } | null;
 };
 
 export type TenancyRenewal = {
@@ -131,6 +135,8 @@ export type TenancyRenewal = {
     /** Signed change against the rent paid, formatted, or null when it did not move. */
     rise: string | null;
     fall: string | null;
+    /** The change as a percentage of the rent paid, for the sentence. */
+    percent: string | null;
   } | null;
   /** The lister's figures to prefill a new offer, in kobo. */
   rentMinor: number | null;
@@ -146,7 +152,15 @@ export type TenancyRenewal = {
 };
 
 export type TenancyFlatmates = {
-  rows: { id: string; name: string | null; share: string; paid: boolean; cautionPart: string | null }[];
+  rows: {
+    id: string;
+    name: string | null;
+    share: string;
+    answer: "accepted" | "declined" | null;
+    paid: boolean;
+    returned: boolean;
+    cautionPart: string | null;
+  }[];
   leadShare: string;
   leadCautionPart: string | null;
   unavailable: boolean;
@@ -238,7 +252,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       // Owner-only under RLS, so only the tenant ever gets a row back.
       loose
         .from("receipt_codes")
-        .select("id, code")
+        .select("id, code_hint")
         .eq("subject_kind", "rent_payment")
         .eq("subject_id", id)
         .is("revoked_at", null)
@@ -323,6 +337,15 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         deducted: money(reading.deductedMinor),
         outstanding: money(reading.outstandingMinor),
         outstandingMinor: reading.outstandingMinor,
+        returnableMinor: Math.max(
+          0,
+          amountMinor -
+            reading.returnedMinor -
+            deductionRows.reduce((sum, row) => {
+              const value = kobo(row.amount_minor) ?? 0;
+              return answers.get(String(row.id)) === "disputed" ? sum : sum + value;
+            }, 0),
+        ),
         deductions,
         returns: returns.map((row) => ({ amount: money(row.amountMinor), date: day(row.date) })),
       };
@@ -451,6 +474,10 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
             offeredOn: day(str(offerRow?.offered_at)),
             rise: change !== null && change > 0 ? money(change) : null,
             fall: change !== null && change < 0 ? money(-change) : null,
+            percent:
+              change !== null && change !== 0 && rp.rent_minor && rp.rent_minor > 0
+                ? bpsAsPercentText(Math.round((Math.abs(change) * 10_000) / rp.rent_minor))
+                : null,
           }
         : null,
       rentMinor: offer?.rentMinor ?? rp.rent_minor ?? null,
@@ -480,27 +507,39 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       const share = kobo(row.share_minor);
       return share === null ? [] : [{ id: String(row.id), userId: String(row.user_id), shareMinor: share }];
     });
-    const [sharePaidRead, namesRead] = coShares.length
+    const shareIds = coShares.map((row) => row.id);
+    const [sharePaidRead, namesRead, answersRead, returnsRead] = coShares.length
       ? await Promise.all([
-          loose.from("rent_share_payments").select("contributor_id").in("contributor_id", coShares.map((row) => row.id)),
+          loose.from("rent_share_payments").select("contributor_id").in("contributor_id", shareIds),
           db.from("profiles").select("id, first_name").in("id", coShares.map((row) => row.userId)),
+          loose.from("rent_share_answers").select("contributor_id, answer").in("contributor_id", shareIds),
+          loose.from("rent_share_returns").select("contributor_id").in("contributor_id", shareIds),
         ])
-      : [{ data: [], error: null }, { data: [], error: null }];
+      : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
     const sharePaid = new Set(rows(sharePaidRead.data).map((row) => String(row.contributor_id)));
+    const shareReturned = new Set(rows(returnsRead.data).map((row) => String(row.contributor_id)));
+    const shareAnswer = new Map(rows(answersRead.data).map((row) => [String(row.contributor_id), row.answer]));
+    // A declined share does not count: the lead carries it again.
+    const standing = coShares.filter((row) => shareAnswer.get(row.id) !== "declined");
     const firstNames = new Map(rows(namesRead.data).map((row) => [String(row.id), str(row.first_name)]));
     const cautionMinor = rp.caution_minor ?? 0;
-    const attributed = attributeCaution(cautionMinor, rp.total_minor, coShares);
+    const attributed = attributeCaution(cautionMinor, rp.total_minor, standing);
     const flatmates: TenancyFlatmates = {
       rows: coShares.map((row) => ({
         id: row.id,
         name: firstNames.get(row.userId) ?? null,
         share: money(row.shareMinor),
+        answer: (() => {
+          const value = shareAnswer.get(row.id);
+          return value === "accepted" || value === "declined" ? value : null;
+        })(),
         paid: sharePaid.has(row.id),
-        cautionPart: cautionMinor > 0 ? money(attributed.byId[row.id] ?? 0) : null,
+        returned: shareReturned.has(row.id),
+        cautionPart: cautionMinor > 0 && attributed.byId[row.id] !== undefined ? money(attributed.byId[row.id] ?? 0) : null,
       })),
-      leadShare: money(leadShare(rp.total_minor, coShares)),
+      leadShare: money(leadShare(rp.total_minor, standing)),
       leadCautionPart: cautionMinor > 0 ? money(attributed.lead) : null,
-      unavailable: Boolean(contributorsRead.error || sharePaidRead.error),
+      unavailable: Boolean(contributorsRead.error || sharePaidRead.error || answersRead.error || returnsRead.error),
     };
 
     /* ---------------------------------------------------------- promise */
@@ -550,8 +589,8 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         receiptCode: (() => {
           const row = codeRead.error ? null : rows(codeRead.data)[0];
           const codeId = row ? str(row.id) : null;
-          const codeText = row ? str(row.code) : null;
-          return codeId && codeText ? { id: codeId, code: codeText } : null;
+          const hint = row ? str(row.code_hint) : null;
+          return codeId && hint ? { id: codeId, hint } : null;
         })(),
       },
     };

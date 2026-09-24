@@ -136,8 +136,9 @@ set search_path to 'pg_catalog', 'public'
 as $function$
 declare
   rp public.rent_payments%rowtype;
+  prev public.tenancy_renewal_offers%rowtype;
 begin
-  select * into rp from public.rent_payments where id = p_rent_payment;
+  select * into rp from public.rent_payments where id = p_rent_payment for update;
   if rp.id is null or rp.lister_id <> (select auth.uid()) then
     return jsonb_build_object('status', 'not_found');
   end if;
@@ -151,11 +152,25 @@ begin
      or coalesce(p_agency, 0) < 0 or coalesce(p_legal, 0) < 0 or coalesce(p_agreement, 0) < 0 then
     return jsonb_build_object('status', 'bad_amount');
   end if;
+  select * into prev from public.tenancy_renewal_offers
+   where rent_payment_id = rp.id order by offered_at desc limit 1;
+  -- The same figures again are not a new offer: nothing is written and the
+  -- tenant is not told twice.
+  if prev.id is not null
+     and prev.rent_minor = p_rent and prev.service_minor is not distinct from p_service
+     and prev.agency_minor = coalesce(p_agency, 0) and prev.legal_minor = coalesce(p_legal, 0)
+     and prev.agreement_minor = coalesce(p_agreement, 0) then
+    return jsonb_build_object('status', 'ok', 'unchanged', true);
+  end if;
   insert into public.tenancy_renewal_offers
     (rent_payment_id, rent_minor, service_minor, agency_minor, legal_minor, agreement_minor, offered_by)
   values (rp.id, p_rent, p_service, coalesce(p_agency, 0), coalesce(p_legal, 0), coalesce(p_agreement, 0), rp.lister_id);
-  perform private.tenancy_tell(rp.tenant_id, 'The renewal figure is in',
-                               'Your tenancy file shows what renewing costs.', rp.id);
+  -- Told on the first offer and on a changed one, at most once a day.
+  if prev.id is null or prev.offered_at < now() - interval '1 day' then
+    perform private.tenancy_tell(rp.tenant_id,
+      case when prev.id is null then 'The renewal figure is in' else 'The renewal figure changed' end,
+      'Your tenancy file shows what renewing costs.', rp.id);
+  end if;
   return jsonb_build_object('status', 'ok');
 end;
 $function$;
@@ -331,6 +346,14 @@ as $function$
     join public.rent_payments rp on rp.id = l.predecessor_rent_payment_id
    where l.successor_listing_id = p_listing
      and rp.rent_minor is not null
+     -- Only for the same flat: a successor edited into another area, type or
+     -- size is not the flat that was let, so its last let is not printed.
+     and exists (select 1 from public.listings pre
+                  where pre.id = l.predecessor_listing_id
+                    and pre.state_code is not distinct from s.state_code
+                    and lower(btrim(coalesce(pre.area, ''))) = lower(btrim(coalesce(s.area, '')))
+                    and pre.property_type is not distinct from s.property_type
+                    and pre.bedrooms is not distinct from s.bedrooms)
      and not private.tenancy_void(rp.id)
      and exists (select 1 from public.transactions t where t.booking_id = rp.booking_id and t.status = 'SUCCESSFUL');
 $function$;
