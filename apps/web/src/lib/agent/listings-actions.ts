@@ -68,6 +68,7 @@ import {
   type PropertyType,
   type RentPeriod,
 } from "./listings-schema";
+import { dbLimitRefusal } from "@/lib/security/db-limit";
 
 const NOT_AGENT_MESSAGE =
   "Only approved agents can manage listings. Apply in two minutes.";
@@ -379,7 +380,7 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     .select("id, status")
     .single();
 
-  if (error || !created) return fail(SAVE_FAILED_MESSAGE);
+  if (error || !created) return fail(dbLimitRefusal(error) ?? SAVE_FAILED_MESSAGE);
 
   refreshAgentSurfaces();
   return ok({ id: created.id, status: created.status });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { reportError } from "@/lib/observability/report";
+import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
 
 /**
  * Where the browser posts a crash, and the only way a client error reaches
@@ -99,6 +100,18 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (previous !== undefined && now - previous < QUIET_MS) return acknowledged;
   if (lastSeen.size >= MAX_QUIET_KEYS) prune(now);
   lastSeen.set(key, now);
+
+  /* SEC-17: the quiet window above is per message, so varying the message
+     walked straight past it. Thirty reports per address per ten minutes is
+     more than a crashing page sends and caps what a script can pour into
+     the error sink. The caller still gets its 204 either way. */
+  const verdict = await consume({
+    bucket: "client_error",
+    subject: subjectForIp(ipFromHeaders(request.headers)),
+    limit: 30,
+    windowSeconds: 600,
+  });
+  if (!verdict.allowed) return acknowledged;
 
   // Rebuilt as an Error so the reporter sees the same shape it sees on the
   // server, and so the scrubber runs over the message and the stack rather

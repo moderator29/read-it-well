@@ -19,7 +19,9 @@ describe("when an inspection may be asked for", () => {
 
   it("sets the picker's earliest time two hours ahead on the Lagos clock", () => {
     const now = Date.parse("2026-09-24T22:10:00Z"); // 23:10 in Lagos
-    expect(earliestLagosInput(now)).toBe("2026-09-25T01:10");
+    expect(earliestLagosInput(now)).toBe("2026-09-25T01:15");
+    expect(earliestLagosInput(Date.parse("2026-09-24T22:00:00Z"))).toBe("2026-09-25T01:00");
+    expect(earliestLagosInput(Date.parse("2026-09-24T12:37:10Z"))).toBe("2026-09-24T15:45");
   });
 
   it("refuses the past and the next two hours, accepts after", () => {

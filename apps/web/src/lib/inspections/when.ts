@@ -18,9 +18,16 @@ export function lagosWallClockToIso(local: string): string | null {
   return Number.isNaN(at) ? null : new Date(at).toISOString();
 }
 
-/** The picker's `min`: two hours from now, on the Lagos clock, to the minute. */
+const QUARTER_MS = 15 * 60 * 1000;
+
+/**
+ * The picker's `min`: two hours from now on the Lagos clock, rounded UP to
+ * the next quarter hour. The picker steps in 15 minutes from `min`, so an
+ * unrounded minimum (14:37) would make 15:00 an invalid choice.
+ */
 export function earliestLagosInput(now: number = Date.now()): string {
-  return new Date(now + LEAD_MS + LAGOS_OFFSET_MS).toISOString().slice(0, 16);
+  const earliest = Math.ceil((now + LEAD_MS) / QUARTER_MS) * QUARTER_MS;
+  return new Date(earliest + LAGOS_OFFSET_MS).toISOString().slice(0, 16);
 }
 
 /** True when an instant is far enough ahead to be asked for. */
