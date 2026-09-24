@@ -84,6 +84,19 @@ describe("runVninCheck", () => {
     });
   });
 
+  it("keeps one NIN per person and never undoes a passed rung, as the database answers", async () => {
+    expect(await runVninCheck(deps({ [TOKEN]: CLEAN }, "other_nin").d, { userId: "u", vnin: TOKEN, applicationName: "Chidi Okeke" })).toEqual({
+      status: "refused",
+      reason: "other_nin",
+    });
+    const miss = deps({ [TOKEN]: { ...CLEAN, legalName: "ADEBAYO TUNDE" } });
+    miss.d.record = vi.fn(async () => "unchanged");
+    expect(await runVninCheck(miss.d, { userId: "u", vnin: TOKEN, applicationName: "Chidi Okeke" })).toEqual({
+      status: "refused",
+      reason: "unchanged",
+    });
+  });
+
   it("refuses a malformed token and an unknown one without recording anything", async () => {
     const { d, recorded } = deps({});
     expect(await runVninCheck(d, { userId: "u", vnin: "123", applicationName: "X Y" })).toEqual({

@@ -34,6 +34,10 @@
 -- matches. A selfie match is the next step and needs a camera capture this
 -- product does not have yet.
 --
+-- ONE NIN PER PERSON, AND A PASS IS NOT UNDONE. A subject matched to one NIN
+-- cannot be matched to another ('other_nin'), and a later mismatch by
+-- somebody whose rung already passed leaves the rung passed ('unchanged').
+--
 -- THE SAME CHECK TWICE IS NOT A SECOND ACCOUNT. A subject who already holds a
 -- matched row for this NIN and checks again gets the rung passed again, with
 -- no second matched row (the unique index would refuse one).
@@ -129,6 +133,28 @@ begin
     perform private.record_verification_check(agent, 'identity', 'pending',
       'The vNIN check returned a NIN already matched to another Vallo account. Somebody should look at this.', null);
     return 'nin_elsewhere';
+  end if;
+
+  /* ONE NIN PER PERSON. A subject already matched to one NIN cannot be
+     matched to a different one: the attempt is kept for the desk and changes
+     nothing. */
+  if exists (select 1 from public.identity_verifications v
+              where v.subject_id = p_user and v.outcome = 'matched' and v.nin_hmac <> p_nin_hmac) then
+    insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+    values (p_user, 'vnin', 'mismatch', p_legal_name, p_nin_hmac, p_provider_ref,
+            'A different NIN from the one already matched to this account.');
+    return 'other_nin';
+  end if;
+
+  /* A PASSED RUNG IS NOT UNDONE BY A LATER MISMATCH. Somebody already matched
+     who checks again and does not match keeps the rung they earned; the
+     attempt is kept for the desk. */
+  if not p_matched and exists (
+       select 1 from public.agent_verification_checks c
+        where c.agent_id = agent and c.kind = 'identity' and c.status = 'passed') then
+    insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+    values (p_user, 'vnin', 'mismatch', p_legal_name, p_nin_hmac, p_provider_ref, left(p_note, 1000));
+    return 'unchanged';
   end if;
 
   /* The same subject, the same NIN, matched again: no second matched row

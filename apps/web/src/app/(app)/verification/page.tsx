@@ -225,7 +225,7 @@ export default async function VerificationPage({
               for it to sit behind. */}
           <PageHeader title="Verification" fallback="/profile" />
           {vnin}
-        <KycFlow submit={submitVerification} />
+          <KycFlow submit={submitVerification} />
         </>
       )}
     </div>
