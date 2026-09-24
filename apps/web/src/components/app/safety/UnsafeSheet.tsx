@@ -15,9 +15,15 @@ import { responseTimeFor } from "@/lib/trust/standards";
  * them:
  *
  *   Call 112          a `tel:` link, the one exit the product allows for danger.
- *   Leave and block   blocks, tells Vallo, pauses their inspections.
- *   Tell Vallo        tells Vallo on the four-hour clock, pauses their
- *                     inspections, and changes nothing else.
+ *   Leave and block   blocks and tells Vallo.
+ *   Tell Vallo        tells Vallo on the four-hour clock and changes nothing
+ *                     else.
+ *
+ * Either one pauses the other person's OWN new inspection requests when this
+ * person has written to them in the thread, and the sheet says so only when
+ * it happened. The other person is never told who reported them; if they try
+ * to arrange a viewing they read that requests are paused, which the sheet
+ * says too rather than promising they are told nothing.
  *
  * "Tell someone" (the trusted-contact check-in, V-62) is not drawn: it does
  * not exist on this branch, and a row that does nothing is worse than none.
@@ -59,7 +65,8 @@ export function UnsafeSheet({
         setNote({ ok: false, text: result.error });
         return;
       }
-      setNote({ ok: true, text: (block ? copy.left : copy.told).replace("{clock}", clock) });
+      const said = (block ? copy.left : copy.told).replace("{clock}", clock);
+      setNote({ ok: true, text: result.data.held ? `${said} ${copy.heldNote}` : said });
       if (block && afterLeave) window.setTimeout(() => window.location.assign(afterLeave), 2500);
     });
   }

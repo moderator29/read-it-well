@@ -102,7 +102,7 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
   try {
     ({ data: held } = await (session.supabase as unknown as {
       rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown }>;
-    }).rpc("safety_hold_open", { p_user: session.user.id }));
+    }).rpc("safety_hold_open", {}));
   } catch {
     /* A read that fails is not a hold; the trigger still refuses a held
        person's insert, so nothing is let through. */
@@ -136,10 +136,10 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
     if (/example/i.test(message)) {
       return fail(EXAMPLE_LISTING_MESSAGE);
     }
-    /* V-63: the lister is on a safety hold, which is theirs to know about,
-       not the renter's, so the renter reads the ordinary refusal. */
+    /* V-63: the requester is on a safety hold (the courtesy check above can
+       miss it by a moment). A hold only ever pauses the person asking. */
     if ((error as { hint?: string } | null)?.hint === "safety_hold") {
-      return fail("This property is not taking inspection requests just now.");
+      return fail(getDictionary(await getLocale()).trustVisible.unsafe.held);
     }
     if (message.includes("inspection_requests_parties_differ")) {
       return fail("This is your own property, so there is nothing to arrange.");

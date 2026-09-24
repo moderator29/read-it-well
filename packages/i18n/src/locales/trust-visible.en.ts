@@ -318,6 +318,17 @@ export const trustVisibleEn = {
     recallFailed: "That did not go through. Nothing was sent. Try again in a moment.",
     recallForbidden: "Only Vallo staff can recall a stop.",
     recallAlready: "This stop has already been recalled. Nobody is told twice.",
+    /** V-63: the moderation lane's safety holds. */
+    holdsTitle: "Safety holds",
+    holdsLede: "People whose new inspection requests are paused because somebody pressed \"I feel unsafe\" after writing to them. A hold lapses on its own; clear it once you have looked, or extend it.",
+    holdsEmpty: "Nobody is on a safety hold.",
+    /** `{name}` is the held person, `{date}` when it lapses. */
+    holdsRow: "{name}, paused until {date}",
+    holdsClear: "Clear",
+    holdsExtend: "Extend 72 hours",
+    holdsWorking: "Saving",
+    holdsFailed: "That did not save. Try again.",
+    holdsUnavailable: "The safety holds could not be read just now.",
   },
   /** V-34: the Vallo Record, counted facts, never a score. */
   record: {
@@ -353,24 +364,26 @@ export const trustVisibleEn = {
   /** V-63: "I feel unsafe", one sheet, the actions in order. */
   unsafe: {
     opener: "I feel unsafe",
-    openerHint: "Call for help, leave, or tell Vallo. The other person is not told.",
+    openerHint: "Call for help, leave, or tell Vallo.",
     title: "If you feel unsafe",
-    lede: "Do what you need to in this order. Nothing here tells the other person anything.",
+    lede: "Do what you need to, in this order. Vallo never tells the other person who reported them.",
     call: "Call 112",
     callHint: "Nigeria's emergency number. If you are in danger, call now.",
     leave: "Leave and block",
-    leaveHint: "They can no longer message you, Vallo is told, and they cannot arrange new inspections until a person here has looked.",
+    leaveHint: "They can no longer message you and Vallo is told. If you have written to them here, their new inspection requests pause while a person here looks.",
     tell: "Tell Vallo",
-    tellHint: "A person here reads it {clock}, and they cannot arrange new inspections until then.",
+    tellHint: "A person here reads it {clock}. If you have written to them here, their new inspection requests pause until then.",
     working: "One moment",
     /** `{clock}` is the promised time, e.g. "within 4 hours". */
-    told: "Vallo has it. A person here reads it {clock}. They have not been told.",
+    told: "Vallo has it. A person here reads it {clock}. Vallo does not tell them who reported them.",
     left: "You have left and they are blocked. Vallo has it and a person here reads it {clock}.",
     failed: "That did not go through. If you are in danger, call 112 now.",
     notAParty: "This is not a conversation you are part of.",
     signedOut: "Sign in to tell Vallo. If you are in danger, call 112 now.",
     close: "Close",
     held: "Inspection requests are paused on this account while Vallo looks at a safety report. A person here will be in touch.",
+    /** After filing, when the hold was placed. */
+    heldNote: "Their new inspection requests are paused while a person here looks. If they try, they are told requests are paused, never who asked.",
   },
   /** V-63: the report sheet's promise, read from the category's own clock. */
   report: {

@@ -10,9 +10,10 @@ import { getLocale } from "../locale";
 /**
  * "I FEEL UNSAFE" (V-63), THE SERVER HALF. One call to `public.feel_unsafe`,
  * which checks the caller is a party, files the report as `unsafe` on the
- * four-hour clock, blocks when asked, and pauses the other person's
- * inspection requests until a moderator has looked. Nothing tells the other
- * side.
+ * four-hour clock, blocks when asked, and, when the caller has written in
+ * that thread (or has a confirmed inspection with them), pauses the other
+ * person's own inspection requests for 72 hours or until a moderator has
+ * looked. The other person is never told who reported them.
  *
  * No phone gate and no rate limit in front of this, deliberately: a person in
  * danger is never slowed by a code, and the database keeps one open report and
@@ -29,7 +30,7 @@ const schema = z
 
 type RpcCaller = { rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: unknown }> };
 
-export async function feelUnsafe(input: unknown): Promise<ActionResult<{ blocked: boolean }>> {
+export async function feelUnsafe(input: unknown): Promise<ActionResult<{ blocked: boolean; held: boolean }>> {
   const copy = getDictionary(await getLocale()).trustVisible.unsafe;
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -48,5 +49,5 @@ export async function feelUnsafe(input: unknown): Promise<ActionResult<{ blocked
   if (status !== "filed") return fail(copy.failed);
   revalidatePath("/messages");
   revalidatePath("/inspections");
-  return ok({ blocked: parsed.data.block });
+  return ok({ blocked: parsed.data.block, held: (data as { held?: unknown }).held === true });
 }
