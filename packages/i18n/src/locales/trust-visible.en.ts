@@ -140,6 +140,19 @@ export const trustVisibleEn = {
     submit: "Confirm with NIMC",
     checking: "Checking with NIMC",
   },
+  /** V-23: the line about the other person under a thread's header. */
+  person: {
+    label: "About the person in this conversation",
+    /** `{date}` is a formatted date. */
+    identitySeen: "Identity document seen by Vallo, {date}",
+    identityNimc: "Identity matched with NIMC, {date}",
+    /** `{month}` is a month and year. */
+    memberSince: "On Vallo since {month}",
+    phoneConfirmed: "Phone confirmed",
+    viewingsOne: "1 viewing arranged on Vallo",
+    /** `{count}` is a number. */
+    viewingsMany: "{count} viewings arranged on Vallo",
+  },
   /** V-21: the agent band on a profile, with no score in it. */
   profile: {
     reviews: "Reviews",

@@ -12,6 +12,7 @@ import { readHeldPaymentForConversation } from "@/lib/escrow/queries";
 import { ThreadView, type ThreadBubble } from "./ThreadView";
 import { resolveCards } from "./cards";
 import { readAccountMoment } from "@/lib/messages/account-moment-read";
+import { counterpartFactsFrom, personFacts } from "@/lib/messages/person-line";
 import { InboxEmpty } from "../Inbox";
 
 /**
@@ -156,6 +157,18 @@ export default async function ConversationPage({
        ask, structurally. */
     const inspection =
       context.kind === "listing" ? await readOpenInspectionForConversation(id) : null;
+    /* V-23: the dated facts about the other person, for the line under the
+       header. One RPC that answers only to a party; a failure is no line. */
+    let counterpartFactsLine: { key: string; text: string }[] = [];
+    try {
+      const { data: factsRows } = await (session.supabase as unknown as {
+        rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown }>;
+      }).rpc("thread_counterpart_facts", { p_conversation: id });
+      const first = Array.isArray(factsRows) ? factsRows[0] : null;
+      counterpartFactsLine = personFacts(counterpartFactsFrom(first), t.trustVisible.person, locale);
+    } catch {
+      counterpartFactsLine = [];
+    }
     /* V-04: the receiver's account card. Skipped, at no cost, unless a
        message from the other side carries an account number. */
     const accountMoment =
@@ -227,6 +240,8 @@ export default async function ConversationPage({
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         heldPaymentsOpen={heldPaymentsOpen}
         accountMoment={accountMoment}
+        personLine={counterpartFactsLine}
+        personLabel={t.trustVisible.person.label}
         accountCopy={t.trustVisible.account}
         agreement={
           heldPayment.payment

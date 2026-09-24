@@ -161,6 +161,12 @@ export type ThreadViewProps = {
    */
   accountMoment?: { checks: Record<string, AccountCheckView>; offer: ChargeOffer } | null;
   accountCopy?: Dictionary["trustVisible"]["account"];
+  /**
+   * V-23: dated facts about the other person, already worded, in order.
+   * Empty draws nothing: a null fact is never a line.
+   */
+  personLine?: { key: string; text: string }[];
+  personLabel?: string;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -288,6 +294,8 @@ export function ThreadView({
   agreement = null,
   accountMoment = null,
   accountCopy,
+  personLine = [],
+  personLabel,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -708,6 +716,29 @@ export function ThreadView({
           </button>
         </div>
       </header>
+
+      {/* V-23: WHO THIS IS, under the header. On a property thread the header
+          names the flat, so the person gets their own slim line: the avatar
+          with their one published mark, their name, and only the dated facts
+          Vallo holds about them. Nothing that is null is drawn. */}
+      {live && (propertyFace || personLine.length > 0) && (
+        <div className="nf-thread__person flex items-center gap-sm px-gutter py-xs" aria-label={personLabel} data-testid="thread-person">
+          {propertyFace && <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="sm" />}
+          <div className="min-w-0 flex-1">
+            {propertyFace && (
+              <p className="flex items-center gap-inline-tight nf-body-sm font-semibold text-[var(--nf-content-primary)]">
+                <span className="truncate">{counterpartName}</span>
+                <TierBadge tier={counterpartTier} size={14} />
+              </p>
+            )}
+            {personLine.length > 0 && (
+              <p className="nf-caption text-[var(--nf-content-muted)]">
+                {personLine.map((fact) => fact.text).join(" · ")}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <ThreadOptionsSheet
         open={sheetOpen}
