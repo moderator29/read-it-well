@@ -62,6 +62,17 @@ export function sideOfPath(pathname: string): Side | null {
 }
 
 /**
+ * A single listing, stay or restaurant. UX-04: these paint the side they
+ * belong to (the URL wins) but do not move the stored preference, so opening
+ * one card does not silently turn the rest of the app over.
+ */
+const DETAIL_PATHS = /^\/(listing|stay|restaurant)\/[^/]+\/?$/;
+
+export function isDetailPath(pathname: string): boolean {
+  return DETAIL_PATHS.test(pathname);
+}
+
+/**
  * The cookie write, in one place, so the switch control and the deep-link
  * reconciler cannot spell it two ways.
  */

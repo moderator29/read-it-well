@@ -13,7 +13,8 @@ import { HOLD_WINDOW_HOURS } from "../agent/bookings-schema";
  *   - a paid CONFIRMED stay whose check-out day has passed is COMPLETED;
  *   - inventory that disagrees with the bookings behind it is reported, never
  *     corrected;
- *   - NO_SHOW is recorded by the host (or an admin) and only from arrival day.
+ *   - NO_SHOW is recorded by the host (or an admin), and only from 12:00 WAT
+ *     the day after check-in, never on a tenant's move-in charge (ESC-04).
  *
  * The database does the moving, in the B4 functions
  * (supabase/migrations/*_b4_booking_lifecycle_sweeps.sql), because each move
@@ -162,30 +163,51 @@ export function sweepCompletions(
 
 /* ---------------------------------------------------------------- no show */
 
-export type NoShowDecision = "record" | "already" | "not_confirmed" | "not_arrived";
+export type NoShowDecision = "record" | "already" | "not_confirmed" | "not_arrived" | "too_early";
 
 /**
- * Whether a host may record a no show right now. From arrival day, because
- * that is the day you learn it; CONFIRMED only, because a request nobody
- * accepted was never a stay; and never twice.
+ * When a no show may first be recorded for a stay checking in on `checkIn`
+ * (a Lagos date): 12:00 WAT the next day. Lagos is UTC+1 all year, so that
+ * is 11:00 UTC. The same moment as private.record_booking_no_show.
+ */
+export function noShowOpensAt(checkIn: string): Date {
+  const [year = NaN, month = NaN, day = NaN] = checkIn.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1, 11, 0, 0));
+}
+
+/**
+ * Whether a host may record a no show right now. Not before 12:00 WAT the day
+ * after check-in, because a guest may arrive late on the day and the nights
+ * are theirs until then; CONFIRMED only, because a request nobody accepted
+ * was never a stay; and never twice. A move-in charge is refused by the
+ * database ('rent_charge').
  */
 export function noShowDecision(
   row: { status: BookingStatus; checkIn: string },
   today: string,
+  now: Date = new Date(),
 ): NoShowDecision {
   if (row.status === "NO_SHOW") return "already";
   if (row.status !== "CONFIRMED") return "not_confirmed";
   if (row.checkIn > today) return "not_arrived";
+  if (now.getTime() < noShowOpensAt(row.checkIn).getTime()) return "too_early";
   return "record";
 }
 
 /** What a host reads when the answer is not "recorded". */
-export const NO_SHOW_MESSAGES: Record<Exclude<NoShowDecision, "record"> | "missing", string> = {
+export const NO_SHOW_MESSAGES: Record<
+  Exclude<NoShowDecision, "record"> | "missing" | "rent_charge",
+  string
+> = {
   already: "This stay is already recorded as a no show.",
   not_confirmed:
     "Only a confirmed stay can be recorded as a no show. Reload the page to see where this one stands.",
   not_arrived:
-    "Arrival day has not come yet, so there is nothing to record. Come back on the day.",
+    "Arrival day has not come yet, so there is nothing to record. You can record a no show from 12:00 the day after check-in.",
+  too_early:
+    "A guest can still arrive late on the day. You can record a no show from 12:00 the day after check-in.",
+  rent_charge:
+    "A move-in is not recorded as a no show. If your tenant has not moved in, contact support and we will look into it.",
   missing: "We could not find that booking. Reload the page to see your current stays.",
 };
 
@@ -255,6 +277,8 @@ const noShowOutcomeSchema = z.discriminatedUnion("outcome", [
   z.object({ outcome: z.literal("already") }),
   z.object({ outcome: z.literal("not_confirmed"), status: z.string() }),
   z.object({ outcome: z.literal("not_arrived") }),
+  z.object({ outcome: z.literal("too_early"), opens_at: z.string() }),
+  z.object({ outcome: z.literal("rent_charge") }),
   z.object({ outcome: z.literal("missing") }),
 ]);
 

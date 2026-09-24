@@ -35,14 +35,14 @@ These images are the founder's design references from [`docs/design/references/`
 |---|---|
 | Web app | Next.js 16 (App Router), React 19, TypeScript 5 (`strict` and `noUncheckedIndexedAccess`) |
 | Styling | Tailwind CSS v4, plus design tokens in one stylesheet (`packages/design-tokens/src/tokens.css`) |
-| Data, auth, storage | Supabase: Postgres 17 with row level security on every table, Supabase Auth (email and password), Supabase Storage |
+| Data, auth, storage | Supabase: Postgres 17 with row level security on every table, Supabase Auth (email and password, plus Sign in with Apple where Supabase has it enabled), Supabase Storage |
 | Scheduled work | `pg_cron` inside the database, plus Vercel Cron for the HTTP jobs in `apps/web/vercel.json` |
 | Payments | Paystack: the server initialises each transaction and the payer finishes it in Paystack's inline iframe on our own page. Transfers and a signed webhook also go through Paystack. Crypto top-ups go through Yellow Card and stay hidden until it is configured |
 | Email | Resend, with a Supabase Send Email hook so auth mail uses the same sender |
 | Push | Web Push (VAPID), Firebase Cloud Messaging and APNs, through one drain in `lib/push/` |
 | Maps | Leaflet. CARTO tiles by default, MapTiler when a key is set |
 | Native | Capacitor 8. The shell loads the live origin, with an offline fallback page |
-| Hosting | Vercel |
+| Hosting | Vercel. Functions run in `dub1` (Dublin), beside the database in eu-west-1 (`apps/web/vercel.json`) |
 | Languages | English, Yoruba, Hausa and Igbo (`packages/i18n`) |
 
 Some choices that shape the code:
@@ -142,9 +142,9 @@ Other root scripts:
 
 | Command | What it does |
 |---|---|
-| `npm run build` | `next build` for `@vallo/web`. The `prebuild` step first regenerates the scene manifest (`scripts/build-scene-manifest.mjs`) |
+| `npm run build` | `next build` for `@vallo/web`. The `prebuild` step first regenerates the scene manifest (`scripts/build-scene-manifest.mjs`) and runs the claims check |
 | `npm run start` | Serves the production build on port 3000 |
-| `npm run lint` | ESLint, then `check-css-tokens.mjs` and `check-valuation-words.mjs` |
+| `npm run lint` | ESLint, then `check-css-tokens.mjs`, `check-valuation-words.mjs` and the claims check |
 | `npm run typecheck` | `tsc --noEmit` in every workspace that defines it |
 | `npm run test` | Vitest unit tests |
 | `npm run sync:versions` | Writes one app version into the iOS and Android projects (`scripts/sync-native-versions.mjs`) |
@@ -210,6 +210,7 @@ A push transport with no credentials keeps its queue rows until a key arrives. [
 | `NEXT_PUBLIC_MAPTILER_KEY` | Commercial map tiles. Without it the map uses CARTO basemaps, which are licensed for non-commercial use only | MapTiler |
 | `COINGECKO_API_KEY`, `COINGECKO_PLAN` | Server only. Market data for the display-only Crypto surface. `COINGECKO_PLAN` is `demo` or `pro` | CoinGecko |
 | `SENTRY_DSN` | Server only. The server forwards errors to Sentry. There is deliberately no `NEXT_PUBLIC_` twin | Sentry |
+| `OPS_ALERT_EMAIL`, `OPS_ALERT_WEBHOOK_URL` | Server only. Where a CRITICAL alert (a refused catalogue read, the five-minute canary, a stopped cron, a money job failure) is sent, at most once an hour per alert. Unset, alerts are only rows on `/admin/alerts` | The operator |
 | `CSP_ENFORCE` | Leave it unset: the policy enforces by default. Only the literal `false` steps back to report-only (`lib/security/csp.ts`) | The operator |
 
 ### Site copy and links
@@ -219,12 +220,13 @@ A push transport with no credentials keeps its queue rows until a key arrives. [
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | Support address. When unset, support links go to the in-app `/contact` form |
 | `NEXT_PUBLIC_APP_STORE_URL`, `NEXT_PUBLIC_PLAY_STORE_URL` | Store badges. They fall back to `/start` |
 | `NEXT_PUBLIC_VALLO_X_URL`, `NEXT_PUBLIC_VALLO_TELEGRAM_URL` | Footer social links. Each one is drawn only when its URL is set |
-| `NEXT_PUBLIC_AUTH_PROVIDERS` | Which social sign-in buttons to draw. **Leave it unset.** The product is email and password only |
+| `VALLO_SOCIAL_SIGN_IN` | Server only. Unset: email sign-in, plus Sign in with Apple when Supabase reports it enabled. `google` turns Google back on for the website only; `none` turns Apple off. (The old `NEXT_PUBLIC_AUTH_PROVIDERS` is no longer read.) |
 
 ### Switches
 
 | Name | Purpose |
 |---|---|
+| `VALLO_PUBLIC_CATALOGUE` | **Off by default: the product is behind sign-in.** `1`, `true` or `on` opens a read-only catalogue to signed-out visitors: `/search`, `/stays`, `/restaurants`, the listing, stay and restaurant pages and the map, rate-limited at 120 pages per 5 minutes per IP (`lib/catalogue/public-access.ts`). Everything else stays behind sign-in. Read by `proxy.ts` on each request, so switching it needs no rebuild. `/open` (the native shell's start page) sends a signed-out visitor to `/search` when it is on, otherwise to `/welcome`. See [`docs/PRODUCT.md`](docs/PRODUCT.md) section 4 |
 | `NF_DATA_SOURCE` | Listing data source. Leave it unset. Setting it to `api` selects a source that is not implemented |
 | `VALLO_INSPECTION_REPORTS` | Set it to `0` to turn off inspection report storage (`lib/inspections/report-flag.ts`). Defaults to on |
 | `VALLO_PREVIEW_HARNESS` | Local only. `1` opens the `(dev)/preview` and `/gallery` fixture harnesses on a local `next start`; they answer not-found on Vercel regardless |
@@ -238,6 +240,7 @@ A push transport with no credentials keeps its queue rows until a key arrives. [
 | `NEXT_DIST_DIR` | `next.config.ts`. An alternative `.next` output directory for parallel builds |
 | `VALLO_AUTH_EMAIL_OUT_DIR` | `scripts/build-auth-emails.mjs`. Where the auth email templates are written |
 | `SEED_REVIEWER_EMAIL`, `SEED_REVIEWER_PASSWORD` | `npm run seed:reviewer` only |
+| `DATABASE_URL` | `scripts/db-probes/run.mjs`, the database probe runner (CI reads it from the `PROBES_DATABASE_URL` secret) |
 | `BASE_URL`, `QA_MEMBER_EMAIL`, `QA_MEMBER_PASSWORD`, `SOCIAL_AREA`, `SOCIAL_HANDLE`, `SOCIAL_STANDIN_PORT`, `SOCIAL_STANDIN_DELAY_MS`, `CHROMIUM_PATH` and other `PROOF_*` / `PROBE_*` names | Playwright specs in `apps/web/tests/` and the scripts under `scripts/` |
 
 Vercel and Node set `NODE_ENV`, `NEXT_RUNTIME`, `VERCEL_ENV`, `VERCEL_URL`, `VERCEL_GIT_COMMIT_SHA` and `VERCEL_PROJECT_PRODUCTION_URL` themselves. Do not set them.
@@ -272,8 +275,10 @@ Vercel and Node set `NODE_ENV`, `NEXT_RUNTIME`, `VERCEL_ENV`, `VERCEL_URL`, `VER
 │   ├── design-tokens/           tokens.css: colour, type, space, radius, elevation, motion
 │   └── i18n/                    dictionaries for en, yo, ha, ig; plural rules; money formatting
 ├── supabase/
-│   ├── migrations/              the schema, one file per applied migration (~300)
-│   │   └── pending/             drafts waiting for a decision; not applied
+│   ├── migrations/              the schema, one file per applied migration (356)
+│   │   └── pending/             not applied: post-release steps and drafts waiting for a decision
+│   ├── tests/probes/            the database regression tests (one DO block each, see below)
+│   ├── tests/pending/           the probes for the pending post-release steps
 │   ├── templates/               generated auth email templates
 │   ├── config.toml              Supabase CLI config
 │   └── README.md                auth email templates: how to generate and apply them
@@ -281,7 +286,9 @@ Vercel and Node set `NODE_ENV`, `NEXT_RUNTIME`, `VERCEL_ENV`, `VERCEL_URL`, `VER
 │   ├── build-*.mjs              generators: auth emails, brand marks, icons, OG image, scene manifest
 │   ├── seed/                    store reviewer account seeding
 │   ├── audit/                   route inventory, smoke test, dead-control scan
-│   ├── probes/                  SQL and shell probes that exercise live database behaviour
+│   ├── db-probes/               the runner for supabase/tests/probes (run.mjs, contract.mjs)
+│   ├── check-migrations.mjs     CI check: migration names, one file per version, applied files never edited
+│   ├── probes/                  older SQL and shell probes from the build sessions
 │   └── design/                  reference-crop and screenshot tooling for the design sweep
 ├── assets/                      brand sheets and icon pack sources
 ├── docs/                        documentation (see docs/README.md)
@@ -294,7 +301,7 @@ The governing design renders are in `docs/design/references/`, indexed by `docs/
 
 ## Database and migrations
 
-There is one hosted Supabase project (`uccixoonmbhrnyczyigt`, eu-west-1, Postgres 17). `supabase/migrations/` holds about 300 SQL files, and together they are the schema. No workflow for running a full local Supabase stack from them is documented or checked here. Treat the files as the record of what the hosted database has applied.
+There is one hosted Supabase project (`uccixoonmbhrnyczyigt`, eu-west-1, Postgres 17). `supabase/migrations/` holds 356 SQL files, and together they are the schema. No workflow for running a full local Supabase stack from them is documented or checked here. Treat the files as the record of what the hosted database has applied.
 
 Rules, taken from how the project works and the incidents recorded in `docs/archive/PLATFORM_STATUS.md` and `docs/RECOMMENDATIONS.md`:
 
@@ -304,8 +311,34 @@ Rules, taken from how the project works and the incidents recorded in `docs/arch
 4. **Never edit an applied migration.** Applied files are history, including their old names and comments (some still say "rentme"). To change something, write a new migration.
 5. **Put the reasoning in the file header.** Migrations open with a comment saying what changes and why. Money and grant changes should assert the state they expect before touching anything and check the result afterwards.
 6. **New tables and columns need their RLS and grants in the same migration.** RLS goes on every table. Every foreign key gets a covering index. Some tables, `listings` among them, are granted to `anon` column by column, so a new column without its grant breaks every read that selects it. A new storage bucket gets its policies in the same commit.
-7. **A migration that applies is not a migration that works.** Probe the behaviour, and for RLS probe it as the real role (`set local role`, with a control that must succeed). `scripts/probes/` holds the existing probes. The MCP `execute_sql` role bypasses RLS, so it cannot show a refusal.
+7. **A migration that applies is not a migration that works.** Every change to RLS, a grant, a trigger or a `security definer` function ships with a probe in `supabase/tests/probes/` (below) that fails on the old database and passes on the new one. The MCP `execute_sql` role bypasses RLS, so it cannot show a refusal.
 8. **No secrets in migrations.** A migration that sets a secret is committed with the literal redacted.
+9. **Applied files are never edited.** `scripts/check-migrations.mjs` runs in CI and fails when a committed migration is modified, renamed or deleted, when two files share a version, or when a name breaks rule 1.
+
+### The database probes
+
+`supabase/tests/probes/*.sql` are the database's regression tests. There are 53. The unit tests never reach the database, so these are the only checks that fail when a migration revokes a grant a policy needs, opens a money table to the API roles, or lets a member publish their own listing. Each file is one `do $$ … $$;` block. It switches into `anon` or `authenticated` with the QA account's claims, runs a control that must succeed, then each refusal, and always ends in `raise exception 'PROBE_OK <id>'`, so it always rolls back. The contract is in [`supabase/tests/README.md`](supabase/tests/README.md) and `scripts/db-probes/contract.mjs`, and a unit test holds every file to it.
+
+```bash
+DATABASE_URL='postgresql://postgres.<ref>:<password>@aws-0-eu-west-1.pooler.supabase.com:5432/postgres' \
+  node scripts/db-probes/run.mjs              # every probe, each in its own rolled-back transaction
+node scripts/db-probes/run.mjs --only sec-09  # one probe
+node scripts/db-probes/run.mjs --check        # the contract only, no database
+```
+
+It needs `psql` and the `postgres` user on the session pooler (port 5432), because the probes build fixtures as the owner and then `set role`. Without a connection string, the same files can be run through the Supabase MCP `apply_migration`: the expected result is an error that contains `PROBE_OK <id>`, and because it failed, nothing is recorded.
+
+### After the release is deployed: the pending steps
+
+Some fixes are split in two. Step 1 is applied and is compatible with the code that production runs today. Step 2 would break production until the release that no longer needs the old access is live, so it waits in `supabase/migrations/pending/`. **Apply these only after the release branch is merged and deployed**, one at a time, then move its probe from `supabase/tests/pending/` into `supabase/tests/probes/` and run it (expect `PROBE_OK`):
+
+| Step 2 | What it does | Its probe | Also |
+|---|---|---|---|
+| `new_a4_01_step2_anon_reads_only_the_public_point.sql` | A signed-out caller reads a property's point to about a kilometre, never the exact coordinates | `tests/pending/new-a4-01-step2.sql` | Deployed first, or signed-out reads go blank |
+| `db10_step2_signed_in_members_read_only_the_public_columns.sql` | `authenticated` loses SELECT on the private columns of listings, businesses and accommodations | `tests/pending/db-10-step2.sql` | After it, no signed-in `select *` on those tables |
+| `db05_step2_bank_and_payout_accounts_are_filed_by_the_server.sql` | Members and agents can no longer insert bank or payout accounts; only the server files them | `tests/pending/db-05-step2.sql` | Then change the DB-06 probe's allowlist as the file says |
+
+Apply each through the migration API, then save the file under the version the server stamps (rule 2) and delete it from `pending/`. The other files in `pending/` (the B4 digit scrub, the M6 bookings extension and the M8 landmarks seed with `LANDMARKS.md`) wait for the founder's decision, not for a release.
 
 To change the auth email templates, edit `scripts/build-auth-emails.mjs` and regenerate them (`supabase/README.md`).
 
@@ -317,19 +350,37 @@ To change the auth email templates, edit `scripts/build-auth-emails.mjs` and reg
 |---|---|---|
 | Typecheck | `npm run typecheck` | `tsc --noEmit` across workspaces |
 | Lint | `npm run lint` | ESLint (with local rules in `apps/web/eslint-rules/`), then two repository checks: `check-css-tokens.mjs` catches CSS and token claims that are silently false, and `check-valuation-words.mjs` keeps regulated valuation terms out of product code |
-| Unit tests | `npm run test` | Vitest, `apps/web/src/**/*.test.ts`, Node environment. About 240 files, mostly server logic, money, parsers and copy guards |
+| Unit tests | `npm run test` | Vitest in two projects: `unit` (`src/**/*.test.ts`, Node) and `dom` (`src/**/*.dom.test.tsx`, which renders components and runs axe-core in a real Chromium). Server logic, money, server actions against a recording fake client, parsers, copy and i18n guards, and a few real-browser checks (the service worker, CSS layout). Budgets are 30 s per test and 60 s per hook, with no retries |
+| Claims check | part of lint and prebuild | `check:claims`: product copy may not claim a safeguard the code does not have |
+| Database probes | `node scripts/db-probes/run.mjs` | See [the database probes](#the-database-probes). Needs a connection string |
+| Migrations check | `node scripts/check-migrations.mjs --base <ref>` | Names, one file per version, applied files never edited |
 | Build | `npm run build` | `next build`. This is the only gate that catches a non-function export from a `"use server"` module, which has taken production down before |
 | Browser specs | `BASE_URL=http://localhost:3210 node apps/web/tests/<name>.spec.mjs` | Self-contained Playwright (`playwright-core`) scripts run against a live server. They are not part of CI. Some need a Chromium path or QA account variables |
 
-**CI** (`.github/workflows/ci.yml`) runs on pushes and pull requests to `main`. It has two independent jobs on Node 22: `checks` (typecheck, lint, test, each running even if an earlier step fails) and `build`. No secrets are involved.
+**Last measured green**, at `e6b2b23c` on the release branch, on a clean `npm ci` of the lockfile tree:
 
-**Current state: CI fails at `npm ci`.** `apps/web/package.json` depends on `@capacitor/push-notifications`, and `package-lock.json` has no entry for it, so a clean install refuses. The fix, being made separately, is `npm install --package-lock-only` with a diff that touches only that entry. Until it lands, run the gates locally after `npm install`.
+| Gate | Result |
+|---|---|
+| Typecheck | 0 errors |
+| Lint | 0 errors, 333 warnings (the ceiling is `--max-warnings=333`, so a new warning fails it) |
+| Unit and component tests | 4613 passed, 1 skipped, three runs in a row |
+| Build | exit 0 |
+
+These were run by hand. **CI has not run them.**
+
+**CI** (`.github/workflows/ci.yml`) runs on pushes and pull requests to `main`, on Node 22, in four jobs:
+- `checks`: typecheck, lint, tests (with a JUnit report), the deep-link check (allowed to fail until the founder supplies the signing fingerprints), the probe contract check and the migrations check.
+- `audit`: `npm audit` of production dependencies at high severity.
+- `build`: `next build` with the public production values from repository variables, and a warning for any that are missing.
+- `db-probes`: runs every database probe against the database in the `PROBES_DATABASE_URL` secret. Without the secret the job **fails** and says the database was not checked, so it can never pass without running.
+
+**Current state: CI cannot run at all.** GitHub Actions is stopped on this account for billing, so no job starts. Until the founder restores GitHub billing and adds the `PROBES_DATABASE_URL` repository secret (`supabase/tests/README.md` says which connection string to use), every gate above is a local run, and nothing checks a push. Once both are done, make `checks`, `build` and `db-probes` required checks on `main`. The lockfile is consistent now: `npm ci` installs cleanly.
 
 ---
 
 ## Deployment
 
-**Web.** Vercel builds `apps/web` (Root Directory `apps/web`, Next.js preset, default build and install commands; npm workspaces resolve the two internal packages). Set environment variables in Vercel for Production and Preview. `apps/web/vercel.json` declares eight cron routes: email outbox, hold sweep, Paystack reconciliation, pg_cron watch, stay completion, inventory drift, account purge and saved-search alerts. Security headers come from `next.config.ts`. The CSP comes from `proxy.ts`. Do not add either in Vercel. The full runbook, including the Supabase dashboard steps, the Paystack webhook and the pre-launch checklist, is [`docs/DEPLOY.md`](docs/DEPLOY.md).
+**Web.** Vercel builds `apps/web` (Root Directory `apps/web`, Next.js preset, default build and install commands; npm workspaces resolve the two internal packages). Set environment variables in Vercel for Production and Preview. `apps/web/vercel.json` pins functions to `dub1` and declares nine cron routes: the five-minute catalogue canary, email outbox, hold sweep, Paystack reconciliation, pg_cron watch, stay completion, inventory drift, account purge and saved-search alerts. Security headers come from `next.config.ts`. The CSP comes from `proxy.ts`. Do not add either in Vercel. The full runbook, including the Supabase dashboard steps, the Paystack webhook and the pre-launch checklist, is [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 **Native.** iOS and Android are Capacitor 8 projects in `apps/web/ios` and `apps/web/android`. They load the live origin rather than bundling the site:
 
@@ -359,7 +410,9 @@ The supply and verification vocabulary in the prompts comes from `lib/supply/rol
 
 - [`docs/README.md`](docs/README.md) is the index of the live documentation, grouped by purpose.
 - [`docs/PRODUCT.md`](docs/PRODUCT.md) covers what the product is, who it serves and the vocabulary. Read it first.
-- [`docs/THE_AUDIT.md`](docs/THE_AUDIT.md) is the latest checked state of the platform, finding by finding, and section 11 lists what only the founder can do.
+- [`docs/THE_AUDIT.md`](docs/THE_AUDIT.md) is the audit of the platform, finding by finding, and section 11 lists what only the founder can do.
+- [`docs/THE_AUDIT_FIXES.md`](docs/THE_AUDIT_FIXES.md) records how each finding was closed: what changed, the evidence, the test or probe that would have caught it, and its independent review. Findings not closed are marked PARTIAL, DEFERRED or FOUNDER with the reason.
+- [`docs/SUBJECT_ACCESS.md`](docs/SUBJECT_ACCESS.md) is how a person gets a copy of their data (self-serve from Settings, or by request).
 - [`docs/RECOMMENDATIONS.md`](docs/RECOMMENDATIONS.md) is the register of open findings. Code comments cite its IDs (for example `W-1`, `T-4`).
 - [`docs/ARCHITECTURE_DECISIONS.md`](docs/ARCHITECTURE_DECISIONS.md) and [`docs/adr/`](docs/adr/) hold the decision records.
 - [`docs/archive/`](docs/archive/) holds retired documents and the scaffolding from earlier build sessions (handoffs, ledgers, audits). They are kept for history and govern nothing.

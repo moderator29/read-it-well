@@ -148,4 +148,6 @@ export const noRawColour = {
   },
 };
 
-export default { rules: { "no-raw-colour": noRawColour } };
+const plugin = { rules: { "no-raw-colour": noRawColour } };
+
+export default plugin;

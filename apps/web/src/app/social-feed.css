@@ -292,8 +292,9 @@
     /* A count beside a glyph is a word on a control: 6 on 28 (0.21). */
     border-radius: var(--nf-radius-xs);
     color: var(--nf-content-muted);
-    /* The counts: "243" runs 27 image px, 8.5px. */
-    font-size: 8.5px;
+    /* UI-08: the counts on the caption step, in rem, so Text size reaches
+       them (they were 8.5px, read off the reference image). */
+    font-size: var(--nf-text-caption);
     font-weight: 400;
     font-variant-numeric: tabular-nums;
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
@@ -2525,9 +2526,16 @@
     display: flex;
     align-items: center;
     gap: 5px;
+    /* UI-10: the row may shrink, and a long unbroken name wraps inside the
+       card instead of running under the Follow button and past the edge. */
+    min-inline-size: 0;
     font-size: 0.95rem;
     font-weight: 700;
     color: var(--nf-content-primary);
+  }
+  .nf-people__name > :first-child {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
   }
   .nf-people__handle {
     display: block;
@@ -2886,7 +2894,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     /* Set so "Lekki, Lagos" runs the image's 110 px (64.5 CSS). */
-    font-size: 11.5px;
+    font-size: var(--nf-text-caption);
     font-weight: 400;
     letter-spacing: 0;
   }
@@ -3030,8 +3038,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 9.1px;
-    line-height: 12px;
+    font-size: var(--nf-text-overline);
+    line-height: 1.35;
     font-weight: 400;
     color: var(--nf-content-primary);
   }
@@ -3073,7 +3081,7 @@
     border: 1px solid transparent;
     border-radius: 8px;
     /* Cap 13 image px: 10.5px drawn. */
-    font-size: 10.5px;
+    font-size: var(--nf-text-body-sm);
     font-weight: 500;
     color: var(--nf-content-primary);
     transition:
@@ -3175,8 +3183,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 11.3px;
-    line-height: 14px;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.3;
     font-weight: 600;
     /* "Tunde Adebayo" runs 132 image px; Inter is wider than the image's. */
     letter-spacing: -0.045em;
@@ -3193,7 +3201,7 @@
     /* 6 of 19 tall: a rectangle, never a capsule (shape law). */
     border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-border-subtle);
-    font-size: 11px;
+    font-size: var(--nf-text-caption);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -3209,16 +3217,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 8.6px;
-    line-height: 12px;
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
     margin-block-start: -0.5px;
   }
   .nf-post__when {
     align-self: start;
     padding-block-start: 4.5px;
     white-space: nowrap;
-    font-size: 8.5px;
-    line-height: 12px;
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
   }
   .nf-post__handle,
   .nf-post__when {
@@ -3238,19 +3246,21 @@
   .nf-post__body {
     margin-block-start: 1px;
     min-inline-size: 0;
-    /* "Just closed ... Phase 1." runs 486 image px on a 24 px line: 9.2px
-       on 14.1. The author's own line breaks are kept (`pre-line`): the
+    /* UI-08: the reading size is the type scale's, in rem, so the in-app
+       Text size setting reaches it (it scales the root). The reference's
+       9.2px was a measurement off an image, below the product's own floor.
+       The author's own line breaks are kept (`pre-line`): the
        image's copy is a sentence a line, and a person's typed breaks used
        to collapse into one paragraph on every card. */
-    font-size: 9.2px;
-    line-height: 14.1px;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
     letter-spacing: 0;
     white-space: pre-line;
     color: var(--nf-content-primary);
   }
   .nf-post__body--system {
-    font-size: 9.2px;
-    line-height: 14.1px;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
     color: var(--nf-content-secondary);
   }
   /*
@@ -3297,46 +3307,46 @@
       padding-inline: 12px 14px;
     }
     .nf-feed-chip__label {
-      font-size: 14px;
+      font-size: 0.875rem;
     }
     .nf-story-ring__name {
-      font-size: 12px;
-      line-height: 16px;
+      font-size: 0.75rem;
+      line-height: 1rem;
     }
     .nf-feed-seg__link {
       min-block-size: 44px;
-      font-size: 14px;
+      font-size: 0.875rem;
     }
     .nf-panel.nf-post {
       padding: 12px 16px 0;
     }
     .nf-post__name {
-      font-size: 15px;
-      line-height: 20px;
+      font-size: 0.9375rem;
+      line-height: 1.25rem;
     }
     .nf-post__who {
       padding-block-start: 3px;
     }
     .nf-post__handle {
-      font-size: 12.5px;
-      line-height: 17px;
+      font-size: 0.78125rem;
+      line-height: 1.0625rem;
     }
     .nf-post__when {
-      font-size: 12.5px;
-      line-height: 17px;
+      font-size: 0.78125rem;
+      line-height: 1.0625rem;
       padding-block-start: 5px;
     }
     .nf-post__body {
       margin-block-start: 6px;
-      font-size: 14px;
-      line-height: 21px;
+      font-size: 0.875rem;
+      line-height: 1.3125rem;
     }
     .nf-post__media {
       margin-block-start: 12px;
     }
     .nf-post__act {
       height: 36px;
-      font-size: 13px;
+      font-size: 0.8125rem;
     }
     .nf-post__act--like {
       min-inline-size: 100px;
@@ -3579,7 +3589,7 @@
     pointer-events: auto;
     color: var(--nf-content-on-brand);
     /* "Post": cap 12.8 image px, 10.3px drawn. */
-    font-size: 10.3px;
+    font-size: var(--nf-text-caption);
     font-weight: 500;
     letter-spacing: 0.005em;
     /* The shared selected edges: cyan-lit, near-white along the top,

@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/Button";
 /**
  * The two things anybody does with a receipt: copy the reference, or send it on.
  *
- * NEITHER IS A DOWNLOAD, and that is deliberate rather than a gap. A "download
- * PDF" button needs a renderer somewhere; what people actually do with a
- * receipt on a phone is screenshot it and put it in a chat, which needs
- * nothing from us and already works. Offering a download that produced a
- * worse artefact than the screenshot they were going to take anyway would be
- * a button added for the look of the thing.
+ * And a third, Print (MON-16): a landlord asking for proof of payment wants
+ * a document, and the browser's own print dialog prints the receipt alone or
+ * saves it as a PDF with nothing to render on our side. The share text
+ * carries the amount, the parties' details and the issuer, so it proves
+ * something on its own.
  *
  * Share falls back to copy where the Web Share API is absent - desktop
  * browsers, mostly - rather than being hidden there. A control that vanishes
@@ -53,12 +52,17 @@ export function ReceiptActions({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-row">
+    <div className="nf-receipt-actions grid grid-cols-3 gap-row">
       <Button type="button" variant="secondary" onClick={() => void copy(reference)}>
         {copied ? "Copied" : "Copy reference"}
       </Button>
       <Button type="button" variant="secondary" onClick={() => void share()}>
         Share
+      </Button>
+      {/* MON-16. The browser's print, which also saves as a PDF; the print
+          rules in wallet.css print the receipt alone. */}
+      <Button type="button" variant="secondary" onClick={() => window.print()}>
+        Print
       </Button>
     </div>
   );

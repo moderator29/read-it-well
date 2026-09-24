@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode, RefObject } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { useSheetHistory } from "@/lib/ui/use-sheet-history";
 import { useClientMount } from "@/lib/ui/client-mount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -252,6 +253,8 @@ export function Sheet({
      needs `preventScroll`, which the hook does not pass. */
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
   useOverlay({ open, onClose: close, panelRef: sheetRef, autoFocus: false });
+  /* UX-19: the browser's Back closes the sheet instead of leaving the page. */
+  useSheetHistory(open, titleId, close);
 
   /*
    * First focus, and the drag offset reset.

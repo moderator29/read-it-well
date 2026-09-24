@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { marketOf, type ListingMarket } from "@/lib/listings/market";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -150,24 +151,19 @@ function rentPeriodOf(value: PricePeriod | null | undefined): RentPeriod {
   return value === "month" || value === "quarter" ? value : "year";
 }
 
-const MARKET_PILL: Record<ListingKind, { icon: UiIconName; label: string; tone: StatusTone }> = {
-  rental: { icon: "key", label: "For rent", tone: "brand" },
-  hotel: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  apartment: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  home: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  shortlet: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  villa: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  /* Semantic, never generic grey: a status pill in a neutral wash reads as an
-     absence of state rather than as a market. */
-  restaurant: { icon: "utensils", label: "Dining", tone: "info" },
+/*
+ * UX-10 / UI-P2-03: the pill names the MARKET the listing is in
+ * (`marketOf`), not its kind. A villa let by the year is "For rent", not
+ * "For stays"; restaurant premises let on a rent are "For rent", not
+ * "Dining". Semantic tones, never generic grey: a status pill in a neutral
+ * wash reads as an absence of state rather than as a market.
+ */
+const MARKET_PILL: Record<ListingMarket, { icon: UiIconName; label: string; tone: StatusTone }> = {
+  tenancy: { icon: "key", label: "For rent", tone: "brand" },
+  sale: { icon: "key", label: "For sale", tone: "brand" },
+  stay: { icon: "calendar-booking", label: "For stays", tone: "success" },
+  dining: { icon: "utensils", label: "Dining", tone: "info" },
   experience: { icon: "ticket", label: "Experience", tone: "info" },
-  /* Commercial space and land are let on a tenancy exactly like a rental, so
-     they read as the same market and take the same key glyph and brand tint.
-     What they are individually is already said by `KIND_LABEL`; the pill
-     answers "which market am I in", not "what is this". */
-  shop: { icon: "key", label: "For rent", tone: "brand" },
-  office: { icon: "key", label: "For rent", tone: "brand" },
-  land: { icon: "key", label: "For rent", tone: "brand" },
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */
@@ -296,13 +292,17 @@ export default async function ListingDetailPage({
 
   // Rentals are annual tenancies: no Reserve control anywhere on the page.
   // The path is message the agent, inspect the property, then pay.
-  const isRental = listing.kind === "rental";
+  /* UX-10: the market decides, by the price period and the intent, with the
+     kind only as the fallback (`lib/listings/market.ts`). A villa or an
+     apartment let by the year is a tenancy here, never a nightly stay. */
+  const listingMarket = marketOf(listing);
+  const isRental = listingMarket === "tenancy";
 
   /* A restaurant is ours to take a booking for, and it is NOT a stay. Without
      this it fell into the nightly branch and drew a date range picker, a
      cleaning fee and a per-night total for a table. What a restaurant takes is
      a party size at a moment (docs/HYBRID_INVENTORY.md section 9). */
-  const isRestaurant = listing.kind === "restaurant";
+  const isRestaurant = listingMarket === "dining";
 
   /*
    * A property FOR SALE is not bookable, and until now it was.
@@ -357,7 +357,7 @@ export default async function ListingDetailPage({
       : `${listing.city}, ${stateLabel(listing.state)}`;
 
   const kind = KIND_LABEL[listing.kind];
-  const market = MARKET_PILL[listing.kind];
+  const market = MARKET_PILL[listingMarket];
 
   /*
    * What the price buys, from the one place that owns that mapping.

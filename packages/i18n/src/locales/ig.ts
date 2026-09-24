@@ -886,7 +886,7 @@ export const ig: Dictionary = withFallback({
       off: "Gbanyụrụ",
       privacy: "Nzuzo & Nchekwa",
       privacySub: "Okwuntughe, mbanye na ngwaọrụ",
-      appearanceSub: "Ụdị, nha mkpụrụedemede, mmegharị",
+      appearanceSub: "Nha mkpụrụedemede, mmegharị",
       languageSub: "Asụsụ ngwa",
       help: "Enyemaka & Nkwado",
       helpSub: "Ajụjụ, kpọtụrụ anyị",
@@ -1136,7 +1136,7 @@ export const ig: Dictionary = withFallback({
       // own label further up this same screen.
       note: "Ntọala echekwara na ngwaọrụ a na-anọgide na ngwaọrụ a. E ji row level security echedo ntọala akaụntụ, ya mere naanị gị nwere ike ịgụ ma ọ bụ gbanwee nke gị.",
       help: "Enyemaka",
-      helpSub: "Nweta azịza site n'aka mmadụ",
+      helpSub: "Ajụjụ, kpọtụrụ anyị",
       terms: "Usoro",
       privacy: "Amụma nzuzo",
       version: "Ụdị",
