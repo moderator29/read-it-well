@@ -21,6 +21,7 @@ import {
   type AdminClient,
 } from "./ledger";
 import { processorFeeMetadata } from "./funding-fee";
+import { creditReversedWithdrawal, reversalReference } from "./withdrawal-reversal";
 
 /**
  * Reconciliation. The permanent answer to "the processor took the money and
@@ -969,6 +970,126 @@ export async function sweepStaleWithdrawalHolds(
   };
 }
 
+/* ------------------------------------------------- paid withdrawals */
+
+/** NEW-A2-05. How far back the daily check re-asks about paid withdrawals. */
+export const PAID_VERIFY_DAYS = 3;
+/** NEW-A2-05. The UTC hour of the daily check: 23:00 UTC is midnight in Lagos. */
+export const PAID_VERIFY_UTC_HOUR = 23;
+const PAID_VERIFY_LIMIT = 100;
+
+/** True for the one hourly run a day that also re-checks paid withdrawals. */
+export function isPaidVerifyHour(now: Date = new Date()): boolean {
+  return now.getUTCHours() === PAID_VERIFY_UTC_HOUR;
+}
+
+export type PaidVerifyReport = {
+  checked: number;
+  /** Paid withdrawals Paystack now reports reversed, credited back or to credit. */
+  reversed: Array<{ reference: string; amountMinor: number; credited: boolean }>;
+  failures: number;
+  skipped: boolean;
+};
+
+/**
+ * NEW-A2-05. A COMPLETED withdrawal whose bank later sends the money back is
+ * credited by the webhook (`transfer.reversed`, MON-03). When that delivery is
+ * lost the member's balance stays short and nothing else would notice. Once a
+ * day this asks Paystack about every withdrawal paid in the last few days that
+ * has no reversal credit yet, and posts the same credit, audit and critical
+ * alert the webhook would have. creditReversedWithdrawal is keyed on the
+ * reversal reference, so a webhook arriving at the same time posts once.
+ */
+export async function verifyPaidWithdrawals(
+  admin: AdminClient,
+  options?: { days?: number; apply?: boolean; actor?: MoneyActor },
+): Promise<PaidVerifyReport> {
+  const days = Math.max(1, options?.days ?? PAID_VERIFY_DAYS);
+  const apply = options?.apply ?? false;
+  const actor: MoneyActor = options?.actor ?? { kind: "sweep" };
+  const empty: PaidVerifyReport = { checked: 0, reversed: [], failures: 0, skipped: false };
+  if (!isPaystackConfigured()) return { ...empty, skipped: true };
+
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await admin
+    .from("wallet_entries")
+    .select("reference, amount_minor")
+    .eq("kind", "withdrawal")
+    .eq("status", "COMPLETED")
+    .gte("created_at", since)
+    .order("created_at", { ascending: true })
+    .limit(PAID_VERIFY_LIMIT);
+  if (error) {
+    logMoney({ surface: "withdraw", outcome: "failed", reason: `paid_verify_read_failed:${error.message}` });
+    return { ...empty, failures: 1 };
+  }
+  const paid = data ?? [];
+  if (paid.length === 0) return empty;
+
+  const { data: credited, error: creditedError } = await admin
+    .from("wallet_entries")
+    .select("reference")
+    .in(
+      "reference",
+      paid.map((row) => reversalReference(row.reference)),
+    );
+  if (creditedError) {
+    logMoney({ surface: "withdraw", outcome: "failed", reason: `paid_verify_read_failed:${creditedError.message}` });
+    return { ...empty, failures: 1 };
+  }
+  const alreadyCredited = new Set((credited ?? []).map((row) => row.reference));
+
+  const report: PaidVerifyReport = { ...empty };
+  for (const row of paid) {
+    if (alreadyCredited.has(reversalReference(row.reference))) continue;
+    report.checked += 1;
+    try {
+      const transfer = await verifyTransfer(row.reference);
+      if (transfer.status !== "reversed") continue;
+      if (!apply) {
+        report.reversed.push({ reference: row.reference, amountMinor: row.amount_minor, credited: false });
+        continue;
+      }
+      const credit = await creditReversedWithdrawal(admin, row.reference);
+      if (credit.state === "not_completed") continue;
+      report.reversed.push({ reference: row.reference, amountMinor: credit.amountMinor, credited: true });
+      if (credit.state === "duplicate") continue;
+      const ownerId = await walletOwnerId(admin, credit.walletId);
+      await recordMoneyAudit(admin, {
+        actor,
+        action: "wallet.withdrawal.reversed_after_payout",
+        reference: row.reference,
+        amountMinor: credit.amountMinor,
+        walletId: credit.walletId,
+        subjectUserId: ownerId,
+        outcome: "REVERSED",
+        detail: { found_by: "paid_verify" },
+      });
+      await recordAlert({
+        kind: "wallet.withdrawal_reversed_after_payout",
+        severity: "critical",
+        subjectKind: "wallet_entry",
+        subjectId: row.reference,
+        detail: {
+          amount_minor: credit.amountMinor,
+          credited_as: reversalReference(row.reference),
+          found_by: "paid_verify",
+        },
+      });
+    } catch (error) {
+      report.failures += 1;
+      logMoney({
+        surface: "withdraw",
+        outcome: "failed",
+        reason: `paid_verify_failed:${failureReason(error)}`,
+        reference: row.reference,
+        amountMinor: row.amount_minor,
+      });
+    }
+  }
+  return report;
+}
+
 /* ------------------------------------------------------------ overdrawn */
 
 export type OverdrawnWallet = {
@@ -1033,6 +1154,8 @@ export type MoneyReconciliationReport = {
   charges: SweepReport;
   holds: HoldSweepReport;
   overdrawn: OverdrawnWallet[];
+  /** NEW-A2-05. Null on the hours the daily paid-withdrawal check does not run. */
+  paid: PaidVerifyReport | null;
   /** True when anything at all needs a human. */
   needsAttention: boolean;
 };
@@ -1043,7 +1166,7 @@ export type MoneyReconciliationReport = {
  */
 export async function runMoneyReconciliation(
   admin: AdminClient,
-  options?: { hours?: number; apply?: boolean; actor?: MoneyActor },
+  options?: { hours?: number; apply?: boolean; actor?: MoneyActor; verifyPaid?: boolean },
 ): Promise<MoneyReconciliationReport> {
   const actor: MoneyActor = options?.actor ?? { kind: "sweep" };
   const charges = await sweepUnrecordedCharges(admin, {
@@ -1056,13 +1179,21 @@ export async function runMoneyReconciliation(
     actor,
   });
   const overdrawn = await findOverdrawnWallets(admin);
+  const paid =
+    (options?.verifyPaid ?? isPaidVerifyHour())
+      ? await verifyPaidWithdrawals(admin, {
+          ...(options?.apply === undefined ? {} : { apply: options.apply }),
+          actor,
+        })
+      : null;
 
   const needsAttention =
     charges.unavailable ||
     charges.gaps.length > 0 ||
     holds.unavailable ||
     holds.resolutions.some((r) => r.action === "failed" || r.action === "released") ||
-    overdrawn.length > 0;
+    overdrawn.length > 0 ||
+    (paid !== null && (paid.reversed.length > 0 || paid.failures > 0));
 
-  return { charges, holds, overdrawn, needsAttention };
+  return { charges, holds, overdrawn, paid, needsAttention };
 }
