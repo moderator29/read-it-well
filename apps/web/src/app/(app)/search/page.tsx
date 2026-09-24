@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { RecordDemand } from "@/components/app/search/RecordDemand";
+import { after } from "next/server";
+import { demandRecorder } from "@/lib/demand/record";
 import { demandCell } from "@/lib/demand/cell";
 import Link from "next/link";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
@@ -172,6 +173,9 @@ export default async function SearchPage({
     maxMinor: query.maxMinor,
     results: rawResults.filter((listing) => !listing.isDemo).length,
   });
+  /* Recorded on the server after the response, never by the client. */
+  const recordDemand = await demandRecorder(demand);
+  if (recordDemand) after(recordDemand);
 
   /*
    * WHICH OF THESE ARE ALREADY ON THE SHORTLIST.
@@ -260,7 +264,6 @@ export default async function SearchPage({
 
   return (
     <>
-      <RecordDemand cell={demand} />
       {/*
         THE WAY BACK, ON THE BAR'S OWN ROW.
 

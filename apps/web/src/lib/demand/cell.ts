@@ -48,8 +48,3 @@ export function demandCell(input: {
   if (cell.areaKey === null && cell.bedroomsMin === null && cell.budgetBand === null) return null;
   return cell;
 }
-
-/** The tab-local key that stops one search being counted twice in a session. */
-export function cellKey(cell: DemandCell): string {
-  return [cell.stateCode, cell.areaKey, cell.market, cell.bedroomsMin, cell.budgetBand].join("|");
-}

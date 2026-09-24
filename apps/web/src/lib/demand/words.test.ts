@@ -17,7 +17,7 @@ describe("a demand cell in words", () => {
 
   it("counts searches, shortfalls and real supply, and says none when there is none", () => {
     expect(demandCounts({ searches: 41, unmet: 30, realSupply: 0 }, copy)).toBe(
-      "41 searches, 30 of them found fewer than three homes. No real listing on Vallo matches today.",
+      "41 people searched, 30 of them found fewer than three homes. No real listing on Vallo matches today.",
     );
     expect(demandCounts({ searches: 5, unmet: 5, realSupply: 3 }, copy)).toContain("3 real listings");
   });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { budgetBand, cellKey, demandCell } from "./cell";
+import { budgetBand, demandCell } from "./cell";
 
 describe("a search becomes a cell and nothing else", () => {
   it("keeps a closed-list neighbourhood and throws the typed words away", () => {
@@ -23,10 +23,9 @@ describe("a search becomes a cell and nothing else", () => {
     expect(budgetBand(0)).toBeNull();
   });
 
-  it("keys a cell so one tab counts one search once", () => {
-    const a = demandCell({ q: "Yaba", bedrooms: 2, results: 0 });
-    const b = demandCell({ q: "yaba", bedrooms: 2, results: 7 });
-    if (!a || !b) throw new Error("expected cells");
-    expect(cellKey(a)).toBe(cellKey(b));
+  it("takes only a closed-list name from the typed words, never the words", () => {
+    expect(demandCell({ q: "2 bed at 14 Admiralty Way", bedrooms: 2, results: 0 })?.areaKey).toBeNull();
+    expect(demandCell({ q: "flat in yaba please", results: 0 })?.areaKey).toBe("Yaba");
+    expect(demandCell({ q: "14 Admiralty Way", results: 0 })).toBeNull();
   });
 });
