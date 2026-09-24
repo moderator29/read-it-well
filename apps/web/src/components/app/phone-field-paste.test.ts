@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { chromium, type Browser } from "playwright-core";
-import { maskNational, readPhone } from "@/lib/phone";
+import { maskNational, normalisePhone, readPhone } from "@/lib/phone";
 
 /**
  * UX-12: the phone field had maxlength 12, and browsers clip inserted text
@@ -34,7 +34,7 @@ describe.skipIf(!CHROMIUM && !process.env.CI)("pasting a phone number (real Chro
     await browser?.close();
   });
 
-  it.each(["+234 803 123 4567", "+2348031234567", "0803 123 4567", "08031234567"])(
+  it.each(["+234 803 123 4567", "+2348031234567", "0803 123 4567", "08031234567", "+234 (0) 803 123 4567", "+2340803 123 4567"])(
     "keeps all of %s",
     async (pasted) => {
       const html = `<input type="tel" inputmode="tel"${LIMIT ? ` maxlength="${LIMIT}"` : ""}>`;
@@ -48,4 +48,12 @@ describe.skipIf(!CHROMIUM && !process.env.CI)("pasting a phone number (real Chro
       expect(readPhone(maskNational(received)).state).not.toBe("incomplete");
     },
   );
+});
+
+describe("the country code and the trunk zero together", () => {
+  it.each(["+234 (0) 803 123 4567", "+2340803 123 4567", "2340 8031234567"])("reads %s as 803 123 4567", (written) => {
+    expect(maskNational(written)).toBe("803 123 4567");
+    expect(normalisePhone(written)).toBe("+2348031234567");
+    expect(readPhone(written).state).toBe("valid");
+  });
 });
