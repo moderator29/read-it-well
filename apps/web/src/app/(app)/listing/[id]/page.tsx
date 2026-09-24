@@ -27,6 +27,7 @@ import { isTenancyPeriod } from "@/lib/listings/pricing";
 import { isModestExample } from "@/lib/listings/example-imagery";
 import { ListingCompound } from "@/components/app/listing/ListingCompound";
 import { ListingService } from "@/components/app/listing/ListingService";
+import { RecordViews } from "@/components/app/search/RecordViews";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -704,6 +705,8 @@ export default async function ListingDetailPage({
 
         {/* Nothing rendered. Puts this place in the recently-viewed memory the
             search page offers back, whichever way it was reached. */}
+        {/* V-73: this listing was opened (counted once per person per day). */}
+        <RecordViews opened={listing.id} />
         <RecordVisit
           id={listing.id}
           title={listing.title}

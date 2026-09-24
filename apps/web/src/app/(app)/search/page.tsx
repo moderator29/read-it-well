@@ -37,6 +37,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
 import { LastVisitProvider } from "@/components/app/search/LastVisit";
+import { RecordViews } from "@/components/app/search/RecordViews";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -418,6 +419,8 @@ export default async function SearchPage({
             /* The New mark reads the reader's previous visit on this device
                (V-22); the provider records this one. */
             <LastVisitProvider>
+            {/* V-73: the first twenty cards drawn were seen. */}
+            <RecordViews seen={listings.slice(0, 20).map((l) => l.id)} />
             <ul
               key={toShelfHref(query)}
               data-testid="results-grid"

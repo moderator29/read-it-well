@@ -98,6 +98,37 @@ export const shapeEn = {
   market: {
     rent: "Rent",
   },
+  /** V-73: each listing's week, stage by stage, and one fix. */
+  funnel: {
+    title: "How each listing did this week",
+    blurb: "Seven days, beside the middle figure for similar homes in the same city.",
+    stage: "Stage",
+    yours: "Yours",
+    similar: "Similar",
+    tooFew: "Too few",
+    stages: {
+      seen: "Seen in results",
+      opened: "Opened",
+      saved: "Saved",
+      enquired: "Enquired",
+      booked: "Viewing booked",
+      viewed: "Viewed",
+    },
+    noMedian: "Fewer than three similar homes are live in this city, so there is nothing fair to compare with yet.",
+    fixLabel: "One thing to do:",
+    fixes: {
+      "not-seen": "Nobody was shown this in results this week. Check the price, the area and the property type are filled in, so it answers the searches renters make.",
+      "not-opened": "Seen by {seen} people and opened by none. Put a daylight photo of the main room first and name the area in the title.",
+      "not-saved": "Opened by {opened} people and saved by none. It has {photos} photos; add the kitchen, the bathroom and the view from the gate.",
+      "no-enquiry": "Opened by {opened} people and nobody asked about it. State the total to move in, so a renter can see the whole cost before they write.",
+      "no-viewing": "{enquired} people asked and nobody booked a viewing. Reply with a day and a time they can come and see it.",
+    },
+    empty: "Publish a listing and its week appears here: who saw it, who opened it, and what happened next.",
+    howCounted:
+      "Seen and opened count different signed-in people, once each per day. Example listings and your own visits are never counted. Nobody's name is kept.",
+    viewsCounted:
+      "Views are counted per listing above: different signed-in people who saw or opened it, once each per day, with no names kept. There is still no conversion rate, because a rate over a week this young would be noise.",
+  },
   /** V-68: what the service charge buys, and the word Serviced, derived. */
   service: {
     title: "What the service charge covers",
