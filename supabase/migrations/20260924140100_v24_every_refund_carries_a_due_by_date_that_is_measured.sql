@@ -1,12 +1,34 @@
--- V-24: EVERY REFUND CARRIES A DUE-BY DATE, AND THE DATE IS MEASURED.
+-- V-24: A REFUND HAS A DUE-BY DATE, AND THE DATE IS MEASURED FROM THE ASK.
 --
 -- The founder's refund promise is three to five business days. The stays copy
--- said "usually within minutes", and nothing anywhere measured either. From
--- here a refund has ONE promise, stored on its own row at the moment it is
--- decided: in the guest's wallet by the end of the fifth Nigerian business
--- day after the decision, Lagos time. The guest sees that date; the operator
--- sees the refunds due inside a day; a job raises a high alert for any refund
--- whose date passed without a completed credit.
+-- said "usually within minutes", and nothing anywhere measured either.
+--
+-- WHAT IS ACTUALLY SLOW, AND WHAT IS NOT. Both refund doors
+-- (`private.refund_and_cancel_booking`, `escrow_settle`) credit the wallet
+-- COMPLETED in the same transaction that writes the `booking_refunds` row, so
+-- once a refund is DECIDED it is in the wallet that instant. A clock started
+-- at the decision is met in zero seconds by construction and could never
+-- fire. The waits a person actually experiences are two:
+--
+--   1. from the guest ASKING for a paid stay to be cancelled to support
+--      deciding it. There was no record of the ask at all: a guest wrote to
+--      support in free text. `public.refund_requests` is that record, and its
+--      due-by is the promise.
+--   2. a rent refund the lister owes (`public.rent_refunds_owed`, the audit's
+--      lister-short path), which has no `booking_refunds` row and waits on the
+--      lister. Its clock starts at the row's `created_at`, read at run time;
+--      nothing is added to the audit's table.
+--
+-- THE PROMISE IS A CEILING. A decided refund lands the moment it is decided;
+-- the due-by, the end of the fifth Nigerian business day after the ask, Lagos
+-- time, is the latest it may take. An hourly job raises one high alert per
+-- request or rent refund past that date with no refund recorded.
+--
+-- WHAT THE ALERT CANNOT CATCH, said plainly: a guest who asks support in free
+-- text instead of through the booking page's request (no row, no clock); a
+-- partial refund decided later than a first one on the same booking (the
+-- first `booking_refunds` row after the ask answers the request); and any
+-- refund path that does not write `booking_refunds` or `rent_refunds_owed`.
 --
 -- THE CALENDAR IS A TABLE, AND IT HAS A TWIN. `apps/web/src/lib/trust/
 -- business-days.ts` holds the same holidays for the screens, and its test
@@ -14,17 +36,9 @@
 -- holidays are estimates until the Federal Government declares them and are
 -- flagged as such; correct both places when a date is declared.
 --
--- WHY A TRIGGER AND NOT THE REFUND FUNCTIONS. Refunds are written by
--- `private.refund_and_cancel_booking` and `escrow_settle`, both owned by the
--- audit session. A BEFORE INSERT trigger stamps `due_by` on whatever row they
--- write without a line of theirs changing. The append-only guard on
--- `booking_refunds` refuses UPDATE and DELETE, never INSERT, and the trigger
--- only ever sets the new row's own column, and it catches its own failure
--- so it can never raise inside the refund's transaction.
---
--- LANDED IS NOT A COLUMN. Whether the refund reached the wallet is the linked
--- wallet entry's own status, which is the only honest answer; a copy of it here
--- would be a second truth that could disagree with the first.
+-- NOTHING HERE TOUCHES A MONEY TABLE. The only new trigger is on the new
+-- `refund_requests` table; `booking_refunds`, `wallet_entries` and
+-- `rent_refunds_owed` are only read.
 
 create table if not exists public.ng_public_holidays (
   day        date primary key,
@@ -90,22 +104,61 @@ $function$;
 
 revoke all on function private.business_days_after(timestamptz, int) from public, anon, authenticated;
 
-alter table public.booking_refunds add column if not exists due_by timestamptz;
+/* ------------------------------------------------------------ the ask */
 
-comment on column public.booking_refunds.due_by is
-  'V-24. The promise: this refund is in the guest''s wallet by the end of the fifth Nigerian business day after the decision, Lagos time. Stamped on insert by booking_refunds_stamp_due_by; measured by private.alert_overdue_refunds.';
+create table if not exists public.refund_requests (
+  id           uuid primary key default gen_random_uuid(),
+  booking_id   uuid not null unique references public.bookings(id) on delete cascade,
+  guest_id     uuid not null default auth.uid(),
+  reason       text not null check (reason in ('guest_choice', 'host_cancelled', 'not_as_listed', 'no_access')),
+  note         text check (note is null or length(note) <= 1000),
+  requested_at timestamptz not null default now(),
+  due_by       timestamptz
+);
 
-create or replace function private.booking_refunds_stamp_due_by()
+comment on table public.refund_requests is
+  'V-24. A guest asking for a paid stay to be cancelled and refunded. due_by (the end of the fifth Nigerian business day after the ask, Lagos time) is the ceiling of the refund promise; the first booking_refunds row for the booking after requested_at answers it. Append-only.';
+
+create index if not exists refund_requests_due_idx on public.refund_requests (due_by);
+
+alter table public.refund_requests enable row level security;
+revoke all on public.refund_requests from public, anon, authenticated;
+grant select, insert on public.refund_requests to authenticated;
+grant all on public.refund_requests to service_role;
+
+drop policy if exists refund_requests_read on public.refund_requests;
+create policy refund_requests_read on public.refund_requests for select to authenticated
+  using (guest_id = (select auth.uid())
+         or private.has_role((select auth.uid()), 'admin'::public.app_role)
+         or private.has_role((select auth.uid()), 'super_admin'::public.app_role));
+
+/* The guest asks, as themselves, about their own paid, uncancelled stay. */
+drop policy if exists refund_requests_insert on public.refund_requests;
+create policy refund_requests_insert on public.refund_requests for insert to authenticated
+  with check (
+    guest_id = (select auth.uid())
+    and exists (
+      select 1 from public.bookings b
+       where b.id = refund_requests.booking_id
+         and b.guest_id = (select auth.uid())
+         and b.status <> 'CANCELLED'
+         and not exists (select 1 from public.rent_payments rp where rp.booking_id = b.id)
+         and exists (select 1 from public.transactions t where t.booking_id = b.id and t.status = 'SUCCESSFUL')
+    )
+  );
+
+create or replace function private.refund_requests_stamp()
 returns trigger
 language plpgsql
 set search_path to 'pg_catalog', 'public'
 as $function$
 begin
-  -- Runs inside the refund's own transaction, so it may never raise: a date
-  -- that cannot be computed is left null and the alert job treats a null
-  -- due-by as nothing to measure, rather than the refund being refused.
+  if tg_op = 'UPDATE' then
+    raise exception 'public.refund_requests is append-only' using errcode = '42501';
+  end if;
+  new.requested_at := now();
   begin
-    new.due_by := private.business_days_after(coalesce(new.created_at, now()), 5);
+    new.due_by := private.business_days_after(new.requested_at, 5);
   exception when others then
     new.due_by := null;
   end;
@@ -113,15 +166,18 @@ begin
 end;
 $function$;
 
-revoke all on function private.booking_refunds_stamp_due_by() from public, anon, authenticated;
+revoke all on function private.refund_requests_stamp() from public, anon, authenticated;
 
-drop trigger if exists booking_refunds_stamp_due_by on public.booking_refunds;
-create trigger booking_refunds_stamp_due_by
-  before insert on public.booking_refunds
-  for each row execute function private.booking_refunds_stamp_due_by();
+drop trigger if exists refund_requests_stamp on public.refund_requests;
+create trigger refund_requests_stamp
+  before insert or update on public.refund_requests
+  for each row execute function private.refund_requests_stamp();
 
-/* The measurement. Hourly: any refund with money owed, past its due-by, whose
-   wallet credit is missing or not COMPLETED, raises one high alert, once. */
+/* ------------------------------------------------------------ the measurement */
+
+/* Hourly. One high alert, once, per ask past its due-by with no refund
+   recorded after it, and per rent refund owed past five business days and not
+   cleared. */
 create or replace function private.alert_overdue_refunds()
 returns int
 language plpgsql
@@ -130,30 +186,76 @@ set search_path to 'pg_catalog', 'public'
 as $function$
 declare
   raised int := 0;
+  more   int := 0;
 begin
   insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
   select 'high', 'open',
-         'A refund missed its due-by date',
-         format('Refund of %s kobo on booking %s was due in the guest''s wallet by %s (Lagos) and has not landed.',
-                r.refund_minor, r.booking_id,
-                to_char(r.due_by at time zone 'Africa/Lagos', 'Dy DD Mon YYYY HH24:MI')),
-         'booking_refund', r.id::text
-    from public.booking_refunds r
-    left join public.wallet_entries e on e.id = r.wallet_entry_id
-   where r.refund_minor > 0
-     and r.due_by is not null
-     and r.due_by < now()
-     and (e.id is null or e.status <> 'COMPLETED')
-     and not exists (
-       select 1 from public.risk_alerts a
-        where a.entity_type = 'booking_refund' and a.entity_id = r.id::text
-     );
+         'A refund request missed its due-by date',
+         format('The guest asked on %s for booking %s to be cancelled and refunded; it was due by %s (Lagos) and no refund has been recorded.',
+                to_char(q.requested_at at time zone 'Africa/Lagos', 'Dy DD Mon YYYY HH24:MI'), q.booking_id,
+                to_char(q.due_by at time zone 'Africa/Lagos', 'Dy DD Mon YYYY HH24:MI')),
+         'refund_request', q.id::text
+    from public.refund_requests q
+   where q.due_by is not null
+     and q.due_by < now()
+     and not exists (select 1 from public.booking_refunds r
+                      where r.booking_id = q.booking_id and r.created_at >= q.requested_at)
+     and not exists (select 1 from public.risk_alerts a
+                      where a.entity_type = 'refund_request' and a.entity_id = q.id::text);
   get diagnostics raised = row_count;
-  return raised;
+
+  insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
+  select 'high', 'open',
+         'A rent refund owed by a lister is past five business days',
+         format('Booking %s: %s kobo owed back by the lister since %s (Lagos), not cleared.',
+                o.booking_id, o.amount_minor,
+                to_char(o.created_at at time zone 'Africa/Lagos', 'Dy DD Mon YYYY HH24:MI')),
+         'rent_refund_owed', o.booking_id::text
+    from public.rent_refunds_owed o
+   where o.cleared_at is null
+     and private.business_days_after(o.created_at, 5) < now()
+     and not exists (select 1 from public.risk_alerts a
+                      where a.entity_type = 'rent_refund_owed' and a.entity_id = o.booking_id::text);
+  get diagnostics more = row_count;
+  return raised + more;
 end;
 $function$;
 
 revoke all on function private.alert_overdue_refunds() from public, anon, authenticated;
+
+/* The operator's list, filtered in the database so it can never be emptied
+   by a page of old rows: open asks and uncleared rent refunds whose due-by is
+   past or inside the next 24 hours, soonest first. */
+create or replace function public.admin_refund_clock()
+returns table (kind text, subject_id uuid, booking_id uuid, amount_minor bigint, due_by timestamptz)
+language sql
+stable
+security definer
+set search_path to 'pg_catalog', 'public'
+as $function$
+  select * from (
+    select 'request'::text, q.id, q.booking_id,
+           coalesce((select sum(t.amount_minor) from public.transactions t
+                      where t.booking_id = q.booking_id and t.status = 'SUCCESSFUL'), 0)::bigint,
+           coalesce(q.due_by, private.business_days_after(q.requested_at, 5))
+      from public.refund_requests q
+     where not exists (select 1 from public.booking_refunds r
+                        where r.booking_id = q.booking_id and r.created_at >= q.requested_at)
+    union all
+    select 'rent_owed'::text, o.booking_id, o.booking_id, o.amount_minor,
+           private.business_days_after(o.created_at, 5)
+      from public.rent_refunds_owed o
+     where o.cleared_at is null
+  ) clock (kind, subject_id, booking_id, amount_minor, due_by)
+  where (private.has_role((select auth.uid()), 'admin'::public.app_role)
+         or private.has_role((select auth.uid()), 'super_admin'::public.app_role))
+    and clock.due_by < now() + interval '24 hours'
+  order by clock.due_by asc
+  limit 500;
+$function$;
+
+revoke all on function public.admin_refund_clock() from public, anon;
+grant execute on function public.admin_refund_clock() to authenticated;
 
 select cron.unschedule('vallo_alert_overdue_refunds')
  where exists (select 1 from cron.job where jobname = 'vallo_alert_overdue_refunds');

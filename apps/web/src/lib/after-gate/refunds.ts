@@ -5,27 +5,24 @@ import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { requireAdmin } from "../admin/guard";
 import { formatMoneyDate } from "../money/dates";
-import { createAdminClient } from "../supabase/admin";
-import { refundClock, refundDueBy } from "../trust/business-days";
+import { refundClock } from "../trust/business-days";
 import { readCancellationTerms, type CancellationTerms } from "../trust/cancellation";
-import { readRefundRow, type RefundRow } from "./rows";
+import { readRefundRequest, readRefundRow, type RefundRequestRow, type RefundRow } from "./rows";
 
 /**
  * The refund promise, read back. V-24 and V-20.
  *
- * Three reads, each through the narrowest client that can answer it:
- *
- *   - `readFrozenTerms`: the terms a booking was paid under, through the
- *     client the caller hands in (the guest's own, or the admin's own), so
- *     the bookings RLS decides who may see them.
- *   - `readMyRefundLines`: the guest's refunds on one booking, each with its
- *     due-by and whether it landed, as the sentences the booking page prints.
- *   - `readRefundClockBoard`: the operator's two lists, due inside a day and
- *     past due, through the service role behind `requireAdmin`.
+ * WHAT IS MEASURED. A decided refund is credited COMPLETED in the same
+ * transaction that records it, so it lands the moment it is decided and there
+ * is nothing to time. The wait a guest actually has is from ASKING to the
+ * decision, so the clock is the `refund_requests` row: its `due_by` (five
+ * Nigerian business days after the ask) is the ceiling, and the first
+ * `booking_refunds` row after the ask answers it. A rent refund a lister owes
+ * (`rent_refunds_owed`) is timed from when it became owed. Both are listed for
+ * the operator by `public.admin_refund_clock`, which filters in the database.
  *
  * Every read degrades to "nothing to show" or "unavailable", never a crash,
- * and a refund decided before the due-by column existed is dated from its
- * decision by the same five-business-day rule the database now stamps.
+ * and a read that fails is never drawn as a refund that has not landed.
  */
 
 type Loose = SupabaseClient;
@@ -51,11 +48,13 @@ export async function readFrozenTerms(
   }
 }
 
-async function landedTimes(client: Loose, rows: RefundRow[]): Promise<Map<string, string>> {
-  const ids = rows.map((row) => row.walletEntryId).filter((id): id is string => id !== null);
+/** Landed credit times by wallet entry id, or null when the read failed. */
+async function landedTimes(client: Loose, refunds: RefundRow[]): Promise<Map<string, string> | null> {
+  const ids = refunds.map((row) => row.walletEntryId).filter((id): id is string => id !== null);
   const landed = new Map<string, string>();
   if (ids.length === 0) return landed;
-  const { data } = await client.from("wallet_entries").select("id, status, created_at").in("id", ids);
+  const { data, error } = await client.from("wallet_entries").select("id, status, created_at").in("id", ids);
+  if (error) return null;
   for (const entry of (data ?? []) as Record<string, unknown>[]) {
     if (entry.status === "COMPLETED" && typeof entry.id === "string" && typeof entry.created_at === "string") {
       landed.set(entry.id, entry.created_at);
@@ -64,110 +63,135 @@ async function landedTimes(client: Loose, rows: RefundRow[]): Promise<Map<string
   return landed;
 }
 
-function dueByOf(row: RefundRow): Date {
-  return row.dueBy ? new Date(row.dueBy) : refundDueBy(new Date(row.createdAt));
-}
-
 export type RefundLine = {
   id: string;
-  amount: string;
+  amount: string | null;
   retained: string | null;
   sentence: string;
   tone: "success" | "attention" | "error" | "neutral";
 };
 
-export type MyRefunds = { state: "none" } | { state: "unavailable" } | { state: "ready"; lines: RefundLine[] };
+export type MyRefunds =
+  | { state: "none"; canAsk: boolean }
+  | { state: "unavailable" }
+  | { state: "ready"; lines: RefundLine[]; canAsk: boolean };
 
-export async function readMyRefundLines(bookingId: string, locale: Locale, now: Date = new Date()): Promise<MyRefunds> {
+/**
+ * The guest's refund lines on one booking, and whether they may still ask.
+ * Asking needs a paid, uncancelled stay that is not a rent charge; the same
+ * rule is the insert policy on `refund_requests`, this only decides whether
+ * to draw the form.
+ */
+export async function readMyRefundLines(
+  bookingId: string,
+  locale: Locale,
+  booking: { cancelled: boolean },
+  now: Date = new Date(),
+): Promise<MyRefunds> {
   const session = await resolveSession();
-  if (session.state !== "signed-in") return { state: "none" };
+  if (session.state !== "signed-in") return { state: "none", canAsk: false };
   const copy = getDictionary(locale).afterTheGate.refund;
+  const date = (value: string | Date, withTime = false) => formatMoneyDate(value, locale, { withTime, now }) ?? "";
   try {
     const loose = session.supabase as unknown as Loose;
-    const { data, error } = await loose
-      .from("booking_refunds")
-      .select("*")
-      .eq("booking_id", bookingId)
-      .order("created_at", { ascending: true });
-    if (error) return { state: "unavailable" };
-    const rows = ((data ?? []) as unknown[]).map(readRefundRow).filter((row): row is RefundRow => row !== null);
-    if (rows.length === 0) return { state: "none" };
-    const landed = await landedTimes(loose, rows);
-    const lines = rows.map((row): RefundLine => {
-      const landedAt = row.walletEntryId ? landed.get(row.walletEntryId) : undefined;
-      const clock = refundClock({
-        refundMinor: row.refundMinor,
-        dueBy: dueByOf(row),
-        landedAt: landedAt ? new Date(landedAt) : null,
-        now,
-      });
-      const date = (value: Date, withTime = false) => formatMoneyDate(value, locale, { withTime, now }) ?? "";
+    const [refundsRead, requestRead, paidRead, rentRead] = await Promise.all([
+      loose.from("booking_refunds").select("*").eq("booking_id", bookingId).order("created_at", { ascending: true }),
+      loose.from("refund_requests").select("*").eq("booking_id", bookingId).maybeSingle(),
+      loose.from("transactions").select("id").eq("booking_id", bookingId).eq("status", "SUCCESSFUL").limit(1),
+      loose.from("rent_payments").select("id").eq("booking_id", bookingId).limit(1),
+    ]);
+    const paid = !paidRead.error && Array.isArray(paidRead.data) && paidRead.data.length > 0;
+    const tenancy = !rentRead.error && Array.isArray(rentRead.data) && rentRead.data.length > 0;
+    if (refundsRead.error) return { state: "unavailable" };
+    const refunds = ((refundsRead.data ?? []) as unknown[])
+      .map(readRefundRow)
+      .filter((row): row is RefundRow => row !== null);
+    // A missing table (before the migration applies) reads as "no request".
+    const request: RefundRequestRow | null = requestRead.error ? null : readRefundRequest(requestRead.data);
+    const landed = await landedTimes(loose, refunds);
+    if (landed === null) return { state: "unavailable" };
+
+    const lines: RefundLine[] = refunds.map((row): RefundLine => {
       const base = {
         id: row.id,
         amount: copy.amount.replace("{amount}", formatMoney(row.refundMinor, locale)),
         retained: row.retainedMinor > 0 ? copy.retained.replace("{amount}", formatMoney(row.retainedMinor, locale)) : null,
       };
-      switch (clock.state) {
-        case "nothing_owed":
-          return { ...base, sentence: copy.nothingOwed, tone: "neutral" };
-        case "landed":
-          return clock.onTime
-            ? { ...base, sentence: copy.landed.replace("{date}", date(clock.landedAt, true)), tone: "success" }
-            : {
-                ...base,
-                sentence: copy.landedLate
-                  .replace("{date}", date(clock.landedAt, true))
-                  .replace("{due}", date(clock.dueBy)),
-                tone: "attention",
-              };
-        case "due":
-          return { ...base, sentence: copy.dueBy.replace("{date}", date(clock.dueBy)), tone: "attention" };
-        case "overdue":
-          return { ...base, sentence: copy.overdue.replace("{date}", date(clock.dueBy)), tone: "error" };
-      }
+      if (row.refundMinor <= 0) return { ...base, sentence: copy.nothingOwed, tone: "neutral" };
+      const landedAt = row.walletEntryId ? landed.get(row.walletEntryId) : undefined;
+      if (!landedAt) return { ...base, sentence: copy.unavailable, tone: "attention" };
+      const answers = request && Date.parse(row.createdAt) >= Date.parse(request.requestedAt) ? request : null;
+      const late = answers?.dueBy ? Date.parse(landedAt) > Date.parse(answers.dueBy) : false;
+      return late && answers?.dueBy
+        ? {
+            ...base,
+            sentence: copy.landedLate.replace("{date}", date(landedAt, true)).replace("{due}", date(answers.dueBy)),
+            tone: "attention",
+          }
+        : { ...base, sentence: copy.landed.replace("{date}", date(landedAt, true)), tone: "success" };
     });
-    return { state: "ready", lines };
+
+    const answered = request
+      ? refunds.some((row) => Date.parse(row.createdAt) >= Date.parse(request.requestedAt))
+      : false;
+    if (request && !answered && request.dueBy) {
+      const clock = refundClock({ refundMinor: 1, dueBy: new Date(request.dueBy), landedAt: null, now });
+      lines.push({
+        id: request.id,
+        amount: null,
+        retained: null,
+        sentence: (clock.state === "overdue" ? copy.overdue : copy.asked)
+          .replace("{asked}", date(request.requestedAt))
+          .replace("{date}", date(request.dueBy)),
+        tone: clock.state === "overdue" ? "error" : "attention",
+      });
+    }
+
+    const canAsk =
+      paid && !booking.cancelled && !tenancy && !requestRead.error && !request && refunds.length === 0;
+    return lines.length === 0 ? { state: "none", canAsk } : { state: "ready", lines, canAsk };
   } catch {
     return { state: "unavailable" };
   }
 }
 
-export type ClockBoardRow = { id: string; bookingId: string; amount: string; due: string };
+export type ClockBoardRow = {
+  id: string;
+  bookingId: string;
+  kind: "request" | "rent_owed";
+  amount: string;
+  due: string;
+};
 
 export type ClockBoard =
   | { state: "unavailable" }
   | { state: "ready"; dueSoon: ClockBoardRow[]; overdue: ClockBoardRow[] };
 
-/** The operator's refund clock: due inside 24 hours, and past due, not yet landed. */
+/** The operator's refund clock, filtered in the database by `admin_refund_clock`. */
 export async function readRefundClockBoard(locale: Locale, now: Date = new Date()): Promise<ClockBoard> {
   const access = await requireAdmin();
   if (access.state !== "admin") return { state: "unavailable" };
   try {
-    const admin = createAdminClient() as unknown as Loose;
-    const horizon = new Date(now.getTime() + 24 * 3_600_000).toISOString();
-    const { data, error } = await admin
-      .from("booking_refunds")
-      .select("*")
-      .gt("refund_minor", 0)
-      .lte("due_by", horizon)
-      .order("due_by", { ascending: true })
-      .limit(200);
-    if (error) return { state: "unavailable" };
-    const rows = ((data ?? []) as unknown[]).map(readRefundRow).filter((row): row is RefundRow => row !== null);
-    const landed = await landedTimes(admin, rows);
+    const loose = access.supabase as unknown as Loose;
+    const { data, error } = await loose.rpc("admin_refund_clock");
+    if (error || !Array.isArray(data)) return { state: "unavailable" };
     const dueSoon: ClockBoardRow[] = [];
     const overdue: ClockBoardRow[] = [];
-    for (const row of rows) {
-      if (row.walletEntryId && landed.has(row.walletEntryId)) continue;
-      const dueBy = dueByOf(row);
-      const entry = {
-        id: row.id,
-        bookingId: row.bookingId,
-        amount: formatMoney(row.refundMinor, locale),
+    for (const raw of data as Record<string, unknown>[]) {
+      const dueBy = typeof raw.due_by === "string" ? raw.due_by : null;
+      const amount = typeof raw.amount_minor === "number" ? raw.amount_minor : Number(raw.amount_minor);
+      if (!dueBy || typeof raw.subject_id !== "string" || typeof raw.booking_id !== "string" || !Number.isInteger(amount)) {
+        continue;
+      }
+      const row: ClockBoardRow = {
+        id: `${String(raw.kind)}-${raw.subject_id}`,
+        bookingId: raw.booking_id,
+        kind: raw.kind === "rent_owed" ? "rent_owed" : "request",
+        amount: formatMoney(amount, locale),
         due: formatMoneyDate(dueBy, locale, { withTime: true, now }) ?? "",
       };
-      if (dueBy.getTime() < now.getTime()) overdue.push(entry);
-      else dueSoon.push(entry);
+      if (Date.parse(dueBy) < now.getTime()) overdue.push(row);
+      else dueSoon.push(row);
     }
     return { state: "ready", dueSoon, overdue };
   } catch {

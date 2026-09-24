@@ -60,7 +60,10 @@ export function formatMoneyDate(
     parts.find((part) => part.type === type)?.value ?? "";
   // Assembled rather than taken whole, because en-NG puts a comma after the
   // weekday ("Fri, 16 Oct") and the money screens read cleaner without it.
-  const day = [piece("weekday"), piece("day"), piece("month"), sameYear ? "" : piece("year")]
+  // en-NG spells September "Sept" where every other month is three letters;
+  // the house style is three letters throughout.
+  const month = piece("month") === "Sept" ? "Sep" : piece("month");
+  const day = [piece("weekday"), piece("day"), month, sameYear ? "" : piece("year")]
     .filter((segment) => segment.length > 0)
     .join(" ");
 

@@ -112,7 +112,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "refunds",
     keywords: ["refund", "money back", "my money", "reimburse", "paid twice", "double charge", "reversal"],
     answer:
-      "Refunds go to your Vallo wallet in naira, to the kobo, because that is the fastest route in this market. It is due in the wallet within five Nigerian business days of the decision, and the booking shows the exact date. It is not a store credit: move it to your Nigerian bank account from Wallet whenever you want, and banks normally credit within minutes and can take up to one working day, or spend it on your next stay with nothing to wait for. If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.",
+      "Refunds go to your Vallo wallet in naira, to the kobo, because that is the fastest route in this market. The money is in the wallet the moment the cancellation is decided, and never later than five Nigerian business days after you ask from the booking. It is not a store credit: move it to your Nigerian bank account from Wallet whenever you want, and banks normally credit within minutes and can take up to one working day, or spend it on your next stay with nothing to wait for. If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.",
   },
   {
     id: "arrival",

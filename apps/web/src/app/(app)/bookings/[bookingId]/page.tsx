@@ -136,7 +136,12 @@ export default async function BookingDetailPage({
       <BookingDetailCard booking={booking} locale={locale} />
       {/* V-20 and V-24: the terms this stay was paid under, and every refund
           with the date it is due by. Nothing at all for an unpaid stay. */}
-      <BookingMoneyRecord bookingId={booking.id} checkIn={booking.checkIn} locale={locale} />
+      <BookingMoneyRecord
+        bookingId={booking.id}
+        checkIn={booking.checkIn}
+        cancelled={booking.status === "CANCELLED"}
+        locale={locale}
+      />
     </>,
   );
 }

@@ -5,15 +5,17 @@
  * "how long does a refund take" is three to five business days; the stays copy
  * said "usually within minutes"; the Send page said "3 to 5 business days" on
  * a screen where nothing is refunded at all. Three sentences, two numbers,
- * nothing measuring either. This module makes it one: a refund is due in the
- * guest's wallet by the END of the fifth Nigerian business day after the
- * decision, Lagos time, and that instant is stored on the refund row
- * (`booking_refunds.due_by`) so a job can tell when it was missed. A promise
- * that is dated and measured is a fact; a range nobody checks is a claim.
+ * nothing measuring either. This module makes it one: a refund is in the
+ * guest's wallet the moment support decides it, and never later than the END
+ * of the fifth Nigerian business day after the guest ASKED, Lagos time. That
+ * instant is stored on the ask (`refund_requests.due_by`) so a job can tell
+ * when it was missed. A promise that is dated and measured is a fact; a range
+ * nobody checks is a claim.
  *
- * Wallet refunds today land the moment support decides them, so the due-by is
- * a ceiling, not a forecast. It exists so that the day card refunds arrive
- * (and take days) nothing about the promise has to be rewritten.
+ * The clock starts at the ask, not the decision, because a decided refund is
+ * credited in the same transaction that records it: a clock started there is
+ * met in zero seconds and measures nothing. The due-by is a ceiling, not a
+ * forecast, and it survives the day card refunds arrive and take days.
  *
  * THE HOLIDAY CALENDAR IS DATA, and it has a twin. `private.business_days_after`
  * in `supabase/migrations/20260924140100_v24_*.sql` computes the stored due-by
@@ -60,7 +62,7 @@ export const NG_PUBLIC_HOLIDAYS: readonly PublicHoliday[] = [
 
 const HOLIDAY_SET = new Set(NG_PUBLIC_HOLIDAYS.map((holiday) => holiday.day));
 
-/** How many business days a refund has, from the decision. */
+/** How many business days a refund has, from the ask. */
 export const REFUND_DUE_BUSINESS_DAYS = 5;
 
 /** Lagos is UTC+1 all year: Nigeria has never observed daylight saving. */
@@ -85,8 +87,8 @@ function nextDay(day: string): string {
 
 /**
  * The Lagos date of the nth business day after an instant. The day of the
- * decision itself never counts, even when it is a business day, because a
- * refund decided at 4pm on a Friday has not had Friday.
+ * ask itself never counts, even when it is a business day, because a request
+ * made at 4pm on a Friday has not had Friday.
  */
 export function businessDaysAfter(from: Date, count: number): string {
   let day = lagosDay(from);
@@ -99,7 +101,7 @@ export function businessDaysAfter(from: Date, count: number): string {
 }
 
 /**
- * When a refund decided at `decidedAt` is due in the wallet: the last second
+ * When a refund asked for at `decidedAt` is due in the wallet: the last second
  * of the fifth business day, Lagos time. "Due by Thu 22 Oct" means by the end
  * of that Thursday, so the stored instant is 23:59:59 WAT that day.
  */

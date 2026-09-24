@@ -24,6 +24,10 @@ describe("formatMoneyDate", () => {
     expect(formatMoneyDate("2027-01-04", "en", { now: NOW })).toBe("Mon 4 Jan 2027");
   });
 
+  it("writes September in three letters like every other month", () => {
+    expect(formatMoneyDate("2026-09-30", "en", { now: NOW })).toBe("Wed 30 Sep");
+  });
+
   it("renders nothing for nothing", () => {
     expect(formatMoneyDate(null)).toBeNull();
     expect(formatMoneyDate("not a date")).toBeNull();

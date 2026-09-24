@@ -2,7 +2,7 @@
  * The rows the after-the-gate records add, read defensively.
  *
  * `move_in_quotes` (V-13), `booking_cancellation_terms` (V-20) and
- * `booking_refunds.due_by` (V-24) arrive in migrations that apply when this
+ * `refund_requests` (V-24) arrive in migrations that apply when this
  * branch merges, so the generated `Database` type does not know them yet.
  * They are reached through the untyped view of the caller's own RLS-bound
  * client (the pattern `lib/admin/reads/shared.ts` uses) and every row is read
@@ -67,8 +67,6 @@ export type RefundRow = {
   refundMinor: number;
   retainedMinor: number;
   createdAt: string;
-  /** Null for a refund decided before the due-by column existed. */
-  dueBy: string | null;
   walletEntryId: string | null;
 };
 
@@ -90,7 +88,25 @@ export function readRefundRow(raw: unknown): RefundRow | null {
     refundMinor: refund,
     retainedMinor: retained,
     createdAt: created,
-    dueBy: text(row.due_by),
     walletEntryId: text(row.wallet_entry_id),
   };
+}
+
+export type RefundRequestRow = {
+  id: string;
+  bookingId: string;
+  requestedAt: string;
+  /** Null only if the stamp could not be computed; the screen then shows no date. */
+  dueBy: string | null;
+};
+
+/** One `refund_requests` row (V-24), or null. */
+export function readRefundRequest(raw: unknown): RefundRequestRow | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const row = raw as Record<string, unknown>;
+  const id = text(row.id);
+  const booking = text(row.booking_id);
+  const requested = text(row.requested_at);
+  if (!id || !booking || !requested) return null;
+  return { id, bookingId: booking, requestedAt: requested, dueBy: text(row.due_by) };
 }

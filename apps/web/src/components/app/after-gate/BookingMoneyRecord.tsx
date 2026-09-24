@@ -4,6 +4,8 @@ import { readFrozenTerms, readMyRefundLines, type RefundLine } from "@/lib/after
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
+import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
+import { RefundRequestForm } from "./RefundRequestForm";
 
 /**
  * The money record under one stay: the terms it was paid under, and every
@@ -35,11 +37,14 @@ const TONE_ICON: Record<RefundLine["tone"], "verified" | "history" | "info"> = {
 export async function BookingMoneyRecord({
   bookingId,
   checkIn,
+  cancelled,
   totalMinor,
   locale,
 }: {
   bookingId: string;
   checkIn: string;
+  /** The booking's own status says CANCELLED. */
+  cancelled: boolean;
   /** What was paid, in kobo, when the caller has it; without it the terms show as shares. */
   totalMinor?: number | null;
   locale: Locale;
@@ -49,10 +54,11 @@ export async function BookingMoneyRecord({
   const copy = getDictionary(locale).afterTheGate.refund;
   const [frozen, refunds] = await Promise.all([
     readFrozenTerms(session.supabase, bookingId),
-    readMyRefundLines(bookingId, locale),
+    readMyRefundLines(bookingId, locale, { cancelled }),
   ]);
 
-  if (!frozen && refunds.state === "none") return null;
+  const canAsk = refunds.state !== "unavailable" && refunds.canAsk;
+  if (!frozen && refunds.state === "none" && !canAsk) return null;
 
   return (
     <section className="mt-lg grid gap-lg" data-testid="booking-money-record">
@@ -67,7 +73,7 @@ export async function BookingMoneyRecord({
           <ul className="mt-row grid gap-row">
             {refunds.lines.map((line) => (
               <li key={line.id} className="grid gap-2xs" data-testid="booking-refund-line" data-tone={line.tone}>
-                <p className={`${TYPE.rowTitle} nf-numeric`}>{line.amount}</p>
+                {line.amount && <p className={`${TYPE.rowTitle} nf-numeric`}>{line.amount}</p>}
                 <p className={`flex items-start gap-xs ${TYPE.body} ${TONE_CLASS[line.tone]}`}>
                   <UiIcon name={TONE_ICON[line.tone]} size={16} className="mt-3xs shrink-0" />
                   <span className="nf-numeric">{line.sentence}</span>
@@ -77,6 +83,13 @@ export async function BookingMoneyRecord({
             ))}
           </ul>
         </div>
+      )}
+      {canAsk && (
+        <RefundRequestForm
+          bookingId={bookingId}
+          copy={copy}
+          reasons={CANCELLATION_REASONS.map((reason) => ({ code: reason.code, label: copy.reasons[reason.code] }))}
+        />
       )}
       {frozen && (
         <div className="nf-panel nf-panel--card block p-md">

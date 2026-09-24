@@ -46,7 +46,7 @@ export const CANCELLATION_STOPS: CancellationStop[] = [
     refundBasisPoints: 10_000,
     label: "Everything back",
     detail:
-      "Cancel more than 72 hours before check-in and the full amount you paid is due back in your Vallo wallet within five Nigerian business days of the decision. Your booking shows the exact date.",
+      "Cancel more than 72 hours before check-in and the full amount you paid returns to your Vallo wallet the moment the cancellation is decided, and never later than five Nigerian business days after you ask.",
   },
   {
     tier: "half",
@@ -406,4 +406,39 @@ export function refundForReasonUnderTerms(
     retainedMinor: priced.retainedMinor,
     hoursBeforeCheckIn: scheduled.hoursBeforeCheckIn,
   };
+}
+
+/**
+ * What cancelling is worth FROM NOW, in one of three sentences: free until a
+ * date still ahead, a share back, or nothing back. A free window that has
+ * already closed is never printed as a promise; from that moment the rate is
+ * priced by the next tier.
+ */
+export type CancelStanding =
+  | { kind: "free"; until: Date }
+  | { kind: "share"; refundBps: number }
+  | { kind: "none" };
+
+export function cancelStanding(terms: CancellationTerms, checkInIso: string, now: Date = new Date()): CancelStanding {
+  const until = freeToCancelUntil(terms, checkInIso);
+  if (until && until.getTime() > now.getTime()) return { kind: "free", until };
+  const bps = refundBpsUnderTerms(terms, checkInIso, now);
+  if (bps <= 0) return { kind: "none" };
+  return { kind: "share", refundBps: bps };
+}
+
+/**
+ * Refundable in the sense a guest means it: the first window gives everything
+ * back, and (given a check-in) that window is still open now.
+ */
+export function freeCancellationOpen(
+  terms: CancellationTerms,
+  checkInIso: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  const first = terms.tiers[0];
+  if (!first || first.refundBps < 10_000) return false;
+  if (!checkInIso) return true;
+  const until = freeToCancelUntil(terms, checkInIso);
+  return until !== null && until.getTime() > now.getTime();
 }
