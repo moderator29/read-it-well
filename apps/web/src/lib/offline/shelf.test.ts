@@ -13,7 +13,7 @@ function listing(over: Partial<Listing> = {}): Listing {
     kind: "property",
     area: "Yaba",
     city: "Lagos",
-    state: "LA",
+    state: "Lagos State",
     priceMinor: 240_000_000,
     currency: "NGN",
     pricePeriod: "year",
@@ -39,27 +39,29 @@ describe("shelfFromListing", () => {
     expect(item.lead).toBe("moveIn");
     expect(item.minor).toBe(360_000_000);
     expect(item.rentMinor).toBe(240_000_000);
-    expect(item.place).toBe("Yaba, Lagos");
-    for (const banned of ["address", "lat", "lng", "phone", "photos"]) expect(Object.keys(item)).not.toContain(banned);
+    expect(item.place).toBe("Yaba, Lagos State");
+    expect(item.isDemo).toBe(false);
+    for (const banned of ["title", "address", "lat", "lng", "phone", "photos"]) expect(Object.keys(item)).not.toContain(banned);
   });
   it("round-trips through storage", () => {
     const item = shelfFromListing(listing(), T0);
     expect(asShelfItem(JSON.parse(JSON.stringify(item)))).toEqual(item);
-    expect(asShelfItem({ ...item, version: 2 })).toBeNull();
+    expect(asShelfItem({ ...item, version: 1 })).toBeNull();
+    expect(shelfFromListing(listing({ isDemo: true }), T0).isDemo).toBe(true);
   });
 });
 
 describe("mergeShelf", () => {
   const first = shelfFromListing(listing(), T0);
 
-  it("reports a rent that moved since it was saved, against the first figure", () => {
+  it("reports a rent that moved since the phone first kept it, with that date", () => {
     const now = shelfFromListing(listing({ priceMinor: 260_000_000, moveInCostMinor: 380_000_000 }), T1);
     const { items, changes } = mergeShelf([first], [now]);
     expect(items[0]?.firstRentMinor).toBe(240_000_000);
     expect(items[0]?.firstStoredAt).toBe(first.storedAt);
     expect(changes).toEqual([
-      { id: first.id, title: first.title, field: "moveIn", wasMinor: 360_000_000, nowMinor: 380_000_000 },
-      { id: first.id, title: first.title, field: "rent", wasMinor: 240_000_000, nowMinor: 260_000_000 },
+      { id: first.id, place: first.place, bedrooms: 2, field: "moveIn", wasMinor: 360_000_000, nowMinor: 380_000_000, since: first.storedAt },
+      { id: first.id, place: first.place, bedrooms: 2, field: "rent", wasMinor: 240_000_000, nowMinor: 260_000_000, since: first.storedAt },
     ]);
   });
   it("reports nothing when nothing moved", () => {

@@ -14,7 +14,15 @@ import { ShelfView } from "@/components/app/offline/ShelfView";
  * drawn. Nothing is drawn when the phone holds none, which is most people:
  * for them the page's job is the reconnect message.
  */
-export function OfflineShelf({ copy, locale }: { copy: Dictionary["platform"]["shelf"]; locale: Locale }) {
+export function OfflineShelf({
+  copy,
+  exampleLabel,
+  locale,
+}: {
+  copy: Dictionary["platform"]["shelf"];
+  exampleLabel: string;
+  locale: Locale;
+}) {
   const [state, setState] = useState<{ items: ShelfItem[]; now: number }>({ items: [], now: 0 });
   useEffect(() => {
     let cancelled = false;
@@ -25,5 +33,5 @@ export function OfflineShelf({ copy, locale }: { copy: Dictionary["platform"]["s
       cancelled = true;
     };
   }, []);
-  return <ShelfView items={state.items} copy={copy} locale={locale} now={state.now} />;
+  return <ShelfView items={state.items} copy={copy} exampleLabel={exampleLabel} locale={locale} now={state.now} />;
 }

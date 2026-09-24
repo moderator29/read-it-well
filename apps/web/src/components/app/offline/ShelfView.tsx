@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatDate, formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import type { ShelfItem } from "@/lib/offline/shelf";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * THE SHORTLIST, DRAWN FROM THE PHONE. V-77.
@@ -19,6 +20,12 @@ import type { ShelfItem } from "@/lib/offline/shelf";
  */
 
 type Copy = Dictionary["platform"]["shelf"];
+
+/** A copy's name: its rooms and area, never the lister's own title. */
+export function shelfName(item: { bedrooms: number; place: string }, copy: Copy, locale: Locale): string {
+  const beds = plural(item.bedrooms, copy.beds, locale);
+  return item.place ? copy.name.replace("{beds}", beds).replace("{place}", item.place) : copy.nameNoPlace.replace("{beds}", beds);
+}
 
 function storedWhen(iso: string, locale: Locale, copy: Copy, now: number): string {
   const at = new Date(iso);
@@ -50,11 +57,14 @@ export function priceLines(item: ShelfItem, locale: Locale, copy: Copy): { lead:
 export function ShelfView({
   items,
   copy,
+  exampleLabel,
   locale,
   now,
 }: {
   items: ShelfItem[];
   copy: Copy;
+  /** The catalogue card's own Example word, so the two marks read the same. */
+  exampleLabel: string;
   locale: Locale;
   /** Read by the caller outside render. */
   now: number;
@@ -82,7 +92,13 @@ export function ShelfView({
                 <th className="nf-caption text-muted" scope="col" />
                 {chosen.map((item) => (
                   <th key={item.id} scope="col" className="nf-caption px-2xs align-top font-semibold text-content">
-                    {item.title}
+                    {shelfName(item, copy, locale)}
+                    {item.isDemo && (
+                      <span className="nf-badge nf-badge--example mt-3xs flex w-fit items-center gap-3xs">
+                        <UiIcon name="info" size={12} />
+                        {exampleLabel}
+                      </span>
+                    )}
                   </th>
                 ))}
               </tr>
@@ -150,7 +166,15 @@ export function ShelfView({
                   onChange={() => toggle(item.id)}
                 />
                 <span className="min-w-0">
-                  <span className="nf-body block font-semibold text-content">{item.title}</span>
+                  <span className="nf-body block font-semibold text-content">{shelfName(item, copy, locale)}</span>
+                  {/* The same Example mark the card carries: an example on the
+                      phone is still an example. */}
+                  {item.isDemo && (
+                    <span className="nf-badge nf-badge--example mt-3xs inline-flex items-center gap-3xs">
+                      <UiIcon name="info" size={12} />
+                      {exampleLabel}
+                    </span>
+                  )}
                   {item.place && <span className="nf-caption block text-muted">{item.place}</span>}
                   <span className="nf-body-sm mt-row block tabular-nums text-content">{lines.lead}</span>
                   {lines.rent && <span className="nf-caption block tabular-nums text-content-2">{lines.rent}</span>}

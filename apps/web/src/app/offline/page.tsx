@@ -50,7 +50,11 @@ export default function OfflinePage() {
           every other sentence on it. */}
       <OfflinePacks copy={getDictionary(DEFAULT_LOCALE).platform.gate} locale={DEFAULT_LOCALE} />
       {/* V-77: the shortlist this phone holds, with a compare. */}
-      <OfflineShelf copy={getDictionary(DEFAULT_LOCALE).platform.shelf} locale={DEFAULT_LOCALE} />
+      <OfflineShelf
+        copy={getDictionary(DEFAULT_LOCALE).platform.shelf}
+        exampleLabel={getDictionary(DEFAULT_LOCALE).catalogue.card.example}
+        locale={DEFAULT_LOCALE}
+      />
     </SystemMoment>
   );
 }

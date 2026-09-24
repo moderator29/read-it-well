@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { shelfName } from "@/components/app/offline/ShelfView";
 import type { ShelfChange, ShelfItem } from "@/lib/offline/shelf";
 import { syncShelf } from "@/lib/offline/shelf-store";
 
@@ -11,17 +12,21 @@ import { syncShelf } from "@/lib/offline/shelf-store";
  * Mounted on `/saved`, which is only ever read with signal. It hands the
  * light copies the server built to `syncShelf`, which replaces the phone's
  * shelf with the account's list and returns any figure that differs from the
- * one the phone first stored. Those are drawn as changes, with both numbers:
- * the phone recorded both, so the sentence is one it can prove.
+ * one the phone first stored. Those are drawn as changes, with both numbers
+ * and the date the phone first kept the older one: the phone recorded all
+ * three, so the sentence is one it can prove. It never says "when you saved
+ * it", because the save's own figure was never recorded.
  *
  * Nothing is drawn when nothing moved. The one-line note that the shortlist
  * opens without signal is shown only once the copy has actually been written.
  */
 export function ShelfSync({
+  owner,
   items,
   copy,
   locale,
 }: {
+  owner: string;
   items: ShelfItem[];
   copy: Dictionary["platform"]["shelf"];
   locale: Locale;
@@ -31,7 +36,7 @@ export function ShelfSync({
 
   useEffect(() => {
     let cancelled = false;
-    void syncShelf(items).then((found) => {
+    void syncShelf(owner, items).then((found) => {
       if (cancelled) return;
       setChanges(found);
       setWritten(items.length > 0);
@@ -39,7 +44,7 @@ export function ShelfSync({
     return () => {
       cancelled = true;
     };
-  }, [items]);
+  }, [owner, items]);
 
   if (changes.length === 0) {
     return written ? <p className="nf-caption mb-row text-muted" data-testid="shelf-on-phone">{copy.onPhone}</p> : null;
@@ -55,7 +60,8 @@ export function ShelfSync({
           return (
             <li key={`${change.id}-${change.field}`} className="nf-body-sm text-content-2">
               {template
-                .replace("{title}", change.title)
+                .replace("{name}", shelfName(change, copy, locale))
+                .replace("{date}", formatDate(new Date(change.since), locale, { day: "numeric", month: "short", timeZone: "Africa/Lagos" }))
                 .replace("{was}", formatMoney(change.wasMinor, locale))
                 .replace("{now}", formatMoney(change.nowMinor, locale))}
             </li>
@@ -66,3 +72,4 @@ export function ShelfSync({
     </section>
   );
 }
+

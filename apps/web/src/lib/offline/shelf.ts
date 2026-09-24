@@ -13,30 +13,41 @@ import { cardPrice, cardUtility } from "@/components/app/listing-card-model";
  * WHAT A COPY HOLDS. The card's own figures, computed by the same functions
  * the card uses (`cardPrice`, `cardUtility`), so the offline row cannot
  * disagree with the online one: the move-in total or the headline price, the
- * rent beneath it, bedrooms, bathrooms, the power line, the area and city.
+ * rent beneath it, bedrooms, bathrooms, the power line, the area and state,
+ * and whether it is an example listing (drawn with the same Example mark the
+ * card carries). NOT the title: the lister's own words are shown only on
+ * the listing's page, so a copy is named by its rooms and area instead.
  * No address, no lister contact, no photograph (photographs are the heavy
  * part and the service worker does not cache images; the row says what it
  * has rather than drawing an empty frame).
  *
  * WAS AND IS NOW. The first figure the phone ever stored for a listing is
- * kept beside the current one. When a refresh finds the figure moved, the
- * change is shown as a change: "Rent was ₦2,400,000 when you saved it; it
- * is ₦2,600,000 now." That is a claim the phone can prove: it is comparing
- * two numbers it was given, on two dates it recorded.
+ * kept beside the current one, with the date it stored it. When a refresh
+ * finds the figure moved, the change says exactly that: "the rent was
+ * ₦2,400,000 when this phone first kept it on 3 Oct; it is ₦2,600,000 now."
+ * It does NOT say "when you saved it": the phone's first copy may be long
+ * after the save, and the save's own figure was never recorded.
+ *
+ * ONE OWNER. The shelf records the account it was synced for
+ * (`shelf-store.ts`); a sync for a different account starts from nothing, so
+ * one person's first figures never become another's "was".
  *
  * THE LIST IS THE ACCOUNT'S, NOT THE PHONE'S. A refresh replaces the shelf
  * with exactly what `/saved` returned, so an unsaved listing leaves the phone
  * the next time there is signal. Fifty at most, most recently saved first.
  */
 
-export const SHELF_VERSION = 1;
+/* 2: the title left the copy and isDemo joined it. A version-1 record is
+   not read back; the next sync with signal rewrites it. */
+export const SHELF_VERSION = 2;
 export const SHELF_CAP = 50;
 
 export type ShelfItem = {
   version: typeof SHELF_VERSION;
   id: string;
-  title: string;
+  /** Area and state only. Never the lister's title or an address. */
   place: string;
+  isDemo: boolean;
   lead: "moveIn" | "headline" | "none";
   /** The move-in total (lead moveIn) or the headline price, in kobo. */
   minor: number | null;
@@ -57,10 +68,13 @@ export type ShelfItem = {
 
 export type ShelfChange = {
   id: string;
-  title: string;
+  place: string;
+  bedrooms: number;
   field: "moveIn" | "rent" | "price";
   wasMinor: number;
   nowMinor: number;
+  /** When this phone first kept the figure, ISO 8601. */
+  since: string;
 };
 
 export function shelfFromListing(listing: Listing, now: number): ShelfItem {
@@ -71,8 +85,8 @@ export function shelfFromListing(listing: Listing, now: number): ShelfItem {
   return {
     version: SHELF_VERSION,
     id: listing.id,
-    title: listing.title,
-    place: [listing.area, listing.city].filter((part) => part && part.trim().length > 0).join(", "),
+    place: [listing.area, listing.state].filter((part) => part && part.trim().length > 0).join(", "),
+    isDemo: listing.isDemo === true,
     lead: price.lead,
     minor,
     approximate: price.lead === "moveIn" ? price.approximate : false,
@@ -117,14 +131,24 @@ export function mergeShelf(
     if (item.firstMinor !== null && item.minor !== null && item.firstMinor !== item.minor) {
       changes.push({
         id: item.id,
-        title: item.title,
+        place: item.place,
+        bedrooms: item.bedrooms,
         field: item.lead === "moveIn" ? "moveIn" : "price",
         wasMinor: item.firstMinor,
         nowMinor: item.minor,
+        since: item.firstStoredAt,
       });
     }
     if (item.firstRentMinor !== null && item.rentMinor !== null && item.firstRentMinor !== item.rentMinor) {
-      changes.push({ id: item.id, title: item.title, field: "rent", wasMinor: item.firstRentMinor, nowMinor: item.rentMinor });
+      changes.push({
+        id: item.id,
+        place: item.place,
+        bedrooms: item.bedrooms,
+        field: "rent",
+        wasMinor: item.firstRentMinor,
+        nowMinor: item.rentMinor,
+        since: item.firstStoredAt,
+      });
     }
   }
   return { items, changes };
@@ -141,15 +165,15 @@ export function asShelfItem(value: unknown): ShelfItem | null {
   if (!value || typeof value !== "object") return null;
   const v = value as Record<string, unknown>;
   if (v.version !== SHELF_VERSION || typeof v.id !== "string" || !UUID.test(v.id)) return null;
-  if (typeof v.title !== "string" || typeof v.place !== "string" || typeof v.suffix !== "string") return null;
+  if (typeof v.place !== "string" || typeof v.suffix !== "string") return null;
   if (v.lead !== "moveIn" && v.lead !== "headline" && v.lead !== "none") return null;
   if (typeof v.storedAt !== "string" || !Number.isFinite(Date.parse(v.storedAt))) return null;
   if (typeof v.firstStoredAt !== "string" || !Number.isFinite(Date.parse(v.firstStoredAt))) return null;
   return {
     version: SHELF_VERSION,
     id: v.id,
-    title: v.title,
     place: v.place,
+    isDemo: v.isDemo === true,
     lead: v.lead,
     minor: num(v.minor),
     approximate: v.approximate === true,

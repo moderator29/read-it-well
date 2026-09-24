@@ -200,10 +200,13 @@ export const platformEn = {
   /* V-77: the shortlist on the phone. MB and dates only; no claim the phone
      cannot prove. */
   shelf: {
-    changesTitle: "Since you saved these",
-    moveInChanged: "{title}: the move-in total was {was} when you saved it; it is {now} now.",
-    priceChanged: "{title}: the price was {was} when you saved it; it is {now} now.",
-    rentChanged: "{title}: the rent was {was} when you saved it; it is {now} now.",
+    changesTitle: "Since this phone first kept these",
+    moveInChanged: "{name}: the move-in total was {was} when this phone first kept it on {date}; it is {now} now.",
+    priceChanged: "{name}: the price was {was} when this phone first kept it on {date}; it is {now} now.",
+    rentChanged: "{name}: the rent was {was} when this phone first kept it on {date}; it is {now} now.",
+    /* A copy is named by its rooms and area, never the lister's title. */
+    name: "{beds} in {place}",
+    nameNoPlace: "{beds}",
     onPhone: "Your shortlist is kept on this phone too, so it opens without signal.",
     offlineHeading: "Your shortlist on this phone",
     storedAt: "Saved on your phone {when}. Prices may have changed.",
