@@ -240,6 +240,8 @@ const EXPECTED_PUBLIC = new Set([
   "/welcome",
   /* The share door (V-07): one card, area only, one button into sign in. */
   "/s/[token]",
+  /* V-71: the same card as a 9:16 Status picture. */
+  "/s/[token]/status",
   /* No network, and which home. */
   "/home-or-landing",
   "/offline",

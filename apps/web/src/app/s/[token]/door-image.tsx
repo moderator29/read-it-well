@@ -196,3 +196,90 @@ export async function doorImage(input: DoorImageFace, copy: Dictionary["frontDoo
   const fonts = [{ name: "Inter", data: await interRegular(), weight: 400 as const, style: "normal" as const }];
   return new ImageResponse(face(input, copy), { ...DOOR_IMAGE_SIZE, fonts });
 }
+
+/* ------------------------------------------------------ V-71, the Status */
+
+export const STATUS_IMAGE_SIZE = { width: 1080, height: 1920 };
+
+/**
+ * THE STATUS PICTURE (V-71): the door's card at 9:16, for a WhatsApp Status.
+ * A Status carries no link, so the listing code is the largest thing on it
+ * after the figure, and the lister shares their own door link beside it. The
+ * same inputs as the door card: area and state only, no phone, no address, no
+ * sharer. An example draws "Example listing" and no figure.
+ */
+export async function statusImage(
+  input: DoorImageFace,
+  copy: Dictionary["frontDoor"]["door"],
+  utilities: string | null,
+): Promise<ImageResponse> {
+  const fonts = [{ name: "Inter", data: await interRegular(), weight: 400 as const, style: "normal" as const }];
+  const frame = (children: React.ReactNode) => (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background: OG_CANVAS,
+        padding: 88,
+        fontFamily: "Inter",
+        borderTop: `12px solid ${OG_BRAND}`,
+      }}
+    >
+      {children}
+    </div>
+  );
+  if (input.kind !== "listing") {
+    const example = input.kind === "example";
+    return new ImageResponse(
+      frame(
+        <>
+          <div style={{ display: "flex", color: OG_INK_MUTED, fontSize: 40, letterSpacing: 6 }}>VALLO</div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", color: OG_INK, fontSize: 96 }}>{example ? copy.example : "Vallo"}</div>
+            {example && (
+              <div style={{ display: "flex", marginTop: 28, color: OG_INK_SECONDARY, fontSize: 44, lineHeight: 1.3 }}>
+                {copy.exampleBody}
+              </div>
+            )}
+          </div>
+          {example && input.card.reference ? <Code code={input.card.reference} /> : <div style={{ display: "flex" }} />}
+        </>,
+      ),
+      { ...STATUS_IMAGE_SIZE, fonts },
+    );
+  }
+  const { card, lines, photo } = input;
+  const sub = [lines.bedrooms, card.place].filter(Boolean).join(" · ");
+  return new ImageResponse(
+    frame(
+      <>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", color: OG_INK_MUTED, fontSize: 40, letterSpacing: 6 }}>VALLO</div>
+          {photo && (
+            // Satori draws this; there is no browser here for next/image to serve.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photo} alt="" width={904} height={680} style={{ marginTop: 48, borderRadius: 40, objectFit: "cover" }} />
+          )}
+          <div style={{ display: "flex", marginTop: 48, color: OG_INK, fontSize: 76, lineHeight: 1.15 }}>
+            {lines.title.length > 70 ? `${lines.title.slice(0, 67)}...` : lines.title}
+          </div>
+          {sub && <div style={{ display: "flex", marginTop: 20, color: OG_INK_SECONDARY, fontSize: 48 }}>{sub}</div>}
+          {utilities && <div style={{ display: "flex", marginTop: 16, color: OG_INK_SECONDARY, fontSize: 44 }}>{utilities}</div>}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", color: OG_INK, fontSize: 104, letterSpacing: -2 }}>{lines.headline ?? copy.askForPrice}</div>
+          {lines.second && <div style={{ display: "flex", marginTop: 12, color: OG_INK_SECONDARY, fontSize: 52 }}>{lines.second}</div>}
+          {card.reference && (
+            <div style={{ display: "flex", marginTop: 56 }}>
+              <Code code={card.reference} />
+            </div>
+          )}
+        </div>
+      </>,
+    ),
+    { ...STATUS_IMAGE_SIZE, fonts },
+  );
+}

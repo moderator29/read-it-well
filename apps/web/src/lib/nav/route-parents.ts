@@ -369,6 +369,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/listings/[listingId]/calendar": "/agent/listings",
   /* V-08: the TO LET board, under the listing's workspace like its calendar. */
   "/agent/listings/[listingId]/board": "/agent/listings",
+  /* V-71: the Status kit, under the listing's workspace like its board. */
+  "/agent/listings/[listingId]/status": "/agent/listings",
   "/agent/list": "/agent/listings",
   "/agent/messages": "/agent/dashboard",
   "/agent/reviews": "/agent/dashboard",
@@ -474,6 +476,7 @@ export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
  */
 export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/agent/listings/[listingId]/board/image": "V-08: the board as a PNG, not a page.",
+  "/s/[token]/status": "V-71: the door's card as a Status PNG, not a page.",
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",

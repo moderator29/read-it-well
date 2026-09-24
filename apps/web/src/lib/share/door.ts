@@ -72,6 +72,9 @@ export type DoorRow = {
   rate_period: string | null;
   photo_path: string | null;
   price_share_id: string | null;
+  /** V-71: power and water in their stated terms; absent before that migration. */
+  power_grid?: string | null;
+  water_supply?: string | null;
 };
 
 /** The headline figure and the line under it, already chosen and ordered. */
@@ -101,6 +104,9 @@ export type DoorCard =
       bedrooms: number | null;
       figures: DoorFigures;
       photoPath: string | null;
+      /** Stated power and water, for the Status image (V-71). Null when unstated. */
+      powerGrid: string | null;
+      waterSupply: string | null;
     }
   | { kind: "example"; listingId: string; reference: string | null }
   | { kind: "price_area"; shareId: string }
@@ -241,6 +247,8 @@ export function doorCardFromRow(row: DoorRow | null | undefined): DoorCard | nul
     bedrooms: row.bedrooms !== null && row.bedrooms >= 0 ? row.bedrooms : null,
     figures: doorFigures(row),
     photoPath: clean(row.photo_path),
+    powerGrid: clean(row.power_grid ?? null),
+    waterSupply: clean(row.water_supply ?? null),
   };
 }
 
@@ -337,4 +345,18 @@ export function doorTitle(card: Extract<DoorCard, { kind: "listing" }>, copy: Di
           ? fill(t.bedrooms, { count: card.bedrooms, noun })
           : noun.charAt(0).toUpperCase() + noun.slice(1);
   return card.area ? fill(t.inArea, { shape, area: card.area }) : shape;
+}
+
+/**
+ * V-71: power and water in words, for the Status image. Only what the lister
+ * stated; an unstated fact is absent, never "not verified" (rule 7).
+ */
+export function doorUtilities(
+  card: Extract<DoorCard, { kind: "listing" }>,
+  copy: Dictionary["frontDoor"]["status"],
+): string | null {
+  const power = card.powerGrid ? (copy.power as Record<string, string | undefined>)[card.powerGrid] : undefined;
+  const water = card.waterSupply ? (copy.water as Record<string, string | undefined>)[card.waterSupply] : undefined;
+  const parts = [power, water].filter((part): part is string => typeof part === "string" && part.length > 0);
+  return parts.length > 0 ? parts.join(" · ") : null;
 }

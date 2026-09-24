@@ -292,12 +292,15 @@ function ListingRow({
   onDelete,
   boardLabel,
   duplicateCopy,
+  statusLabel,
 }: {
   t: WorkspaceCopy;
   /** V-08: the board action's words, when the board is switched on. */
   boardLabel?: string;
   /** V-29: "List another like this". */
   duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
+  /** V-71: "Share to Status". */
+  statusLabel?: string;
   /* The listing code's own namespace, shared with the search page and the
      public listing page so one set of words governs the code everywhere. */
   reference: Dictionary["listingReference"];
@@ -435,6 +438,17 @@ function ListingRow({
           Calendar
         </Link>
         {duplicateCopy && <DuplicateListing listingId={listing.id} copy={duplicateCopy} />}
+        {/* V-71: a published listing's Status picture and the lister's own link. */}
+        {statusLabel && listing.status === "PUBLISHED" && (
+          <Link
+            href={`/agent/listings/${listing.id}/status`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            data-testid="listing-status"
+          >
+            <UiIcon name="share" size={16} />
+            {statusLabel}
+          </Link>
+        )}
         {/* V-08: a board needs a code, and a code needs a published listing. */}
         {boardLabel && listing.reference && listing.status === "PUBLISHED" && (
           <Link
@@ -500,6 +514,7 @@ export function ListingsWorkspace({
   query = "",
   boardLabel,
   duplicateCopy,
+  statusLabel,
 }: {
   t: WorkspaceCopy;
   reference: Dictionary["listingReference"];
@@ -514,6 +529,8 @@ export function ListingsWorkspace({
   boardLabel?: string;
   /** V-29, "List another like this". Absent in harnesses, which then draw no action. */
   duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
+  /** V-71, "Share to Status". */
+  statusLabel?: string;
 }) {
   /* The bar's search lands here with `?q=`, so it is a real narrowing and
      not a field that does nothing. */
@@ -648,6 +665,7 @@ export function ListingsWorkspace({
                     onDelete={scheduleDelete}
                     boardLabel={boardLabel}
                     duplicateCopy={duplicateCopy}
+                    statusLabel={statusLabel}
                   />
                 ),
               )}

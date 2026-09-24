@@ -9,6 +9,7 @@ import { doorLines, type DoorCard } from "@/lib/share/door";
 import { doorPhotoUrl, noteDoorOpen, readDoor } from "@/lib/share/queries";
 import { EXAMPLE_LABEL } from "@/lib/listings/syndication";
 import { DoorAreaView, DoorExampleView, DoorListingView, DoorStateView } from "./DoorViews";
+import { RememberDoor } from "./RememberDoor";
 
 /**
  * `/s/[token]`: THE SHARE DOOR (V-07).
@@ -125,11 +126,15 @@ export default async function DoorPage({ params }: Params) {
   if (card.kind === "example") return <DoorExampleView card={card} copy={copy} />;
 
   return (
-    <DoorListingView
-      card={card}
-      lines={doorLines(card, copy, locale)}
-      photo={doorPhotoUrl(card.photoPath)}
-      copy={copy}
-    />
+    <>
+      {/* V-71: first touch, for the lister whose link this is. */}
+      <RememberDoor token={token} />
+      <DoorListingView
+        card={card}
+        lines={doorLines(card, copy, locale)}
+        photo={doorPhotoUrl(card.photoPath)}
+        copy={copy}
+      />
+    </>
   );
 }

@@ -94,6 +94,7 @@ export default async function Page({
         query={query}
         boardLabel={boardOn ? t.frontDoor.board.action : undefined}
         duplicateCopy={t.frontDoor.duplicate}
+        statusLabel={t.frontDoor.status.action}
       />
     </AgentShell>
   );

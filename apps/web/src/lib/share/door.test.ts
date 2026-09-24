@@ -6,6 +6,7 @@ import {
   doorLines,
   doorPlace,
   doorSignInHref,
+  doorUtilities,
   isDoorKey,
   type DoorRow,
 } from "./door";
@@ -250,5 +251,21 @@ describe("the way in", () => {
     expect(isDoorKey("wp-admin")).toBe(false);
     expect(isDoorKey("k7m2qp9xz1")).toBe(false);
     expect(isDoorKey("VL-100000")).toBe(false);
+  });
+});
+
+describe("power and water in words, for the Status picture (V-71)", () => {
+  const status = getDictionary("en").frontDoor.status;
+  it("says only what was stated", () => {
+    const both = doorCardFromRow(row({ power_grid: "BAND_A", water_supply: "BOREHOLE" }));
+    if (both?.kind !== "listing") throw new Error("expected a listing card");
+    expect(doorUtilities(both, status)).toBe("Band A light · Borehole water");
+    const none = doorCardFromRow(row());
+    if (none?.kind !== "listing") throw new Error("expected a listing card");
+    expect(doorUtilities(none, status)).toBeNull();
+  });
+
+  it("carries no utility on an example", () => {
+    expect(doorCardFromRow(row({ is_demo: true, power_grid: "BAND_A" }))).not.toHaveProperty("powerGrid");
   });
 });

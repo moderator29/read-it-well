@@ -8,6 +8,7 @@ import { getLocale } from "../locale";
 import { sendMessage, startConversation } from "../messages/actions";
 import { isLaterDate } from "./check";
 import { availabilityTable } from "./table";
+import { attributeConversation } from "../share/attribution";
 
 /**
  * V-14: ASK "STILL AVAILABLE?" IN ONE TAP, ANSWER IT IN ONE TAP.
@@ -40,6 +41,8 @@ export async function askStillAvailable(input: unknown): Promise<ActionResult<{ 
   const thread = await startConversation({ listingId: parsed.data.listingId });
   if (!thread.ok) return fail(thread.error);
   const conversationId = thread.data.conversationId;
+  /* V-71: credit the lister whose link this device first came through. */
+  await attributeConversation(session.supabase, conversationId);
 
   /* An open question on this thread is the answer to a second tap: no second
      row and no second message. */
