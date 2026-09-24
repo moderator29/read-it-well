@@ -24,13 +24,9 @@ export type LandlordRpcArgs = {
   mandate_consents: { p_mandates: string[] };
   landlord_line_enqueue: Record<string, never>;
   landlord_line_issue: { p_limit: number };
-  landlord_line_record: {
-    p_ask: string;
-    p_channel: string;
-    p_body: string;
-    p_ref: string | null;
-    p_delivered: boolean;
-  };
+  landlord_line_begin: { p_ask: string; p_channel: string; p_body: string };
+  landlord_line_finish: { p_message: string; p_delivered: boolean; p_ref: string | null };
+  landlord_line_release: { p_ask: string };
   landlord_line_read: { p_token: string };
   landlord_line_answer: { p_token: string; p_answer: string; p_note: string | null };
   landlord_line_stop: { p_token: string };
@@ -57,6 +53,7 @@ export type LandlordRpcArgs = {
   my_agent_lookup: Record<string, never>;
   safety_share_create: { p_inspection: string; p_minutes: number };
   safety_share_done: { p_inspection: string };
+  safety_share_stop: { p_inspection: string };
   safety_share_read: { p_token: string };
   /* V-42: migration 20260924110600. */
   my_buildings: Record<string, never>;

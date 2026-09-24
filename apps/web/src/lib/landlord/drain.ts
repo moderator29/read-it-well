@@ -10,8 +10,9 @@ import { callLandlordRpc } from "./rpc";
  * `landlord_line_enqueue` decides what is due inside the database (the
  * fortnightly question, the question on the day an inspection is confirmed,
  * the rent figures the day a charge is paid), `landlord_line_issue` mints a
- * token and a reply code per question and hands each back once, this sends,
- * and `landlord_line_record` writes what the transport said.
+ * token and a reply code per question and hands each back once,
+ * `landlord_line_begin` writes the log row as "sending" BEFORE the transport is
+ * called, and `landlord_line_finish` records what the transport said.
  *
  * ---------------------------------------------------------------------------
  * THE RENT QUESTION IS FOUND, NOT PUSHED. A paid rent charge is picked up by
@@ -25,11 +26,13 @@ import { callLandlordRpc } from "./rpc";
  * THREE CONSENT GATES. The database refuses to create or issue a question for
  * a principal who may not be messaged. The drain checks again, from the
  * consent state `landlord_line_issue` returns beside each question, and then
- * CLAIMS the question (`landlord_line_claim`) immediately before the send, so
- * a STOP that arrived between issue and send is honoured. A refused question
- * is recorded as not delivered, which returns it to unsent, where the next
- * issue deletes it. A delivered message whose log write fails is counted as
- * `unlogged` and raised by the job as critical.
+ * re-checks it inside `landlord_line_begin` immediately before the send, so a
+ * STOP that arrived between issue and send is honoured. A question refused
+ * before any attempt is released back to unsent, where the next issue deletes
+ * it. A question is resent NEVER: a send begun and not finished is marked
+ * unknown an hour later and raised, because the landlord may already hold the
+ * link. A finish the log refused is counted as `unlogged` and raised by the
+ * job as critical.
  *
  * ---------------------------------------------------------------------------
  * NOTHING IDENTIFYING IS LOGGED. The number and the token exist in this
@@ -145,8 +148,9 @@ export async function drainLandlordLine(deps: DrainDeps): Promise<DrainResult> {
     error: null,
   };
 
-  /* A question marked sent an hour ago with nothing logged never reached
-     anybody (a run that died between issue and record): back to the queue. */
+  /* A question issued an hour ago with no attempt logged never reached anybody
+     (a run that died between issue and begin): back to the queue. A send that
+     was begun and never finished is marked unknown and raised, never resent. */
   await callLandlordRpc(deps.db, "landlord_line_requeue", {});
 
   const queued = await callLandlordRpc(deps.db, "landlord_line_enqueue", {});
@@ -176,29 +180,25 @@ export async function drainLandlordLine(deps: DrainDeps): Promise<DrainResult> {
 
     const body = mayMessagePrincipal(ask.consent, deps.today) ? bodyFor(ask, deps) : null;
     if (body === null) {
+      /* Never attempted, so it may safely go back to the queue; the next issue
+         drops it if the principal still may not be messaged. */
       result.refused += 1;
-      await callLandlordRpc(deps.db, "landlord_line_record", {
-        p_ask: ask.askId,
-        p_channel: deps.channel.name,
-        p_body: "",
-        p_ref: null,
-        p_delivered: false,
-      });
+      await callLandlordRpc(deps.db, "landlord_line_release", { p_ask: ask.askId });
       continue;
     }
 
-    /* Claim, immediately before the send: the consent, the approval, the
-       expiry and the flag, read again now rather than when it was issued. */
-    const claim = await callLandlordRpc(deps.db, "landlord_line_claim", { p_ask: ask.askId });
-    if (claim.error || claim.data !== true) {
+    /* LOGGED BEFORE IT IS SENT. `begin` re-reads the consent, the approval,
+       the expiry and the flag now, and writes the log row as "sending" in the
+       same statement; a null answer means do not send. */
+    const begun = await callLandlordRpc(deps.db, "landlord_line_begin", {
+      p_ask: ask.askId,
+      p_channel: deps.channel.name,
+      p_body: redactToken(body),
+    });
+    const messageId = typeof begun.data === "string" ? begun.data : null;
+    if (begun.error || !messageId) {
       result.refused += 1;
-      await callLandlordRpc(deps.db, "landlord_line_record", {
-        p_ask: ask.askId,
-        p_channel: deps.channel.name,
-        p_body: "",
-        p_ref: null,
-        p_delivered: false,
-      });
+      if (!begun.error) await callLandlordRpc(deps.db, "landlord_line_release", { p_ask: ask.askId });
       continue;
     }
 
@@ -209,18 +209,16 @@ export async function drainLandlordLine(deps: DrainDeps): Promise<DrainResult> {
       outcome = { ok: false, reason: "transport threw" };
     }
 
-    const logged = await callLandlordRpc(deps.db, "landlord_line_record", {
-      p_ask: ask.askId,
-      p_channel: deps.channel.name,
-      p_body: redactToken(body),
-      p_ref: outcome.ok ? outcome.ref : null,
+    const finished = await callLandlordRpc(deps.db, "landlord_line_finish", {
+      p_message: messageId,
       p_delivered: outcome.ok,
+      p_ref: outcome.ok ? outcome.ref : null,
     });
     if (outcome.ok) result.sent += 1;
     else result.failed += 1;
-    /* A delivered message that is not on the record is the one thing this job
-       must shout about: the landlord was messaged and the log does not say so. */
-    if (logged.error && outcome.ok) result.unlogged += 1;
+    /* A message the log could not finish stays "sending"; an hour later the
+       database marks it unknown and raises it. It is never resent. */
+    if (finished.error) result.unlogged += 1;
   }
 
   return result;
