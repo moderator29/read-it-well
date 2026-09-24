@@ -72,6 +72,11 @@ comment on column public.identity_verifications.nin_hmac is
 
 create unique index if not exists identity_verifications_one_account_per_nin
   on public.identity_verifications (nin_hmac) where outcome = 'matched' and nin_hmac is not null;
+/* ONE MATCHED NIN PER PERSON, held by the database as well as the function:
+   two checks for the same person racing with two different NINs cannot both
+   land as matched. */
+create unique index if not exists identity_verifications_one_nin_per_person
+  on public.identity_verifications (subject_id) where outcome = 'matched' and method = 'vnin';
 create index if not exists identity_verifications_subject_idx
   on public.identity_verifications (subject_id, decided_at desc);
 
@@ -117,6 +122,8 @@ declare
 begin
   select a.id into agent from public.agents a where a.user_id = p_user and not a.is_demo;
   if agent is null then return 'no_agent'; end if;
+  /* One check per person at a time, so the answers below read a settled row. */
+  perform pg_advisory_xact_lock(hashtextextended('record_vnin_check:' || p_user::text, 0));
   if p_nin_hmac !~ '^[0-9a-f]{64}$' or p_provider_ref is null then return 'invalid'; end if;
 
   select exists (
@@ -245,7 +252,7 @@ begin
      or has_table_privilege('authenticated', 'public.identity_verifications', 'update') then
     bad := bad || ' [a member can write a verification]';
   end if;
-  if has_function_privilege('authenticated', 'public.record_vnin_check(uuid,text,text,text,numeric,boolean,text)', 'execute') then
+  if has_function_privilege('authenticated', 'public.record_vnin_check(uuid,text,text,text,boolean,text)', 'execute') then
     bad := bad || ' [a member can record their own check]';
   end if;
   if exists (select 1 from information_schema.columns
