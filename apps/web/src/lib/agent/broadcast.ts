@@ -373,13 +373,26 @@ function tokens(clause: string, rejects: NotCarried[] = []): Token[] {
     if (a.type !== "amount" || b.type !== "amount") continue;
     const between = clause.slice(a.end, b.at);
     const range =
-      /^\s*(?:-|–|—|to|or|\/)\s*$/i.test(between) ||
+      /^\s*(?:-|\u2013|\u2014|~|to|or|and|\/)\s*$/i.test(between) ||
       /* "between 2.5m and 3m" */
       (/^\s*and\s*$/i.test(between) && /\bbetween\s*(?:₦|n|#)?\s*$/i.test(clause.slice(0, a.at)));
     if (!range) continue;
     drop.add(a);
     drop.add(b);
     rejects.push({ kind: "ambiguous", text: clause.slice(a.at, b.end).trim() });
+  }
+  /* "2.5 to 3m", "2.5-3m", "between 2.5 and 3 million": the unit on the
+     second figure belongs to both, so a bare number just before it makes a
+     range too. Both are handed back. */
+  for (const b of sorted) {
+    if (b.type !== "amount" || !b.explicit || drop.has(b)) continue;
+    const before = clause.slice(0, b.at);
+    const bare = /(?<![\w.,])(\d+(?:\.\d+)?)\s*(?:-|\u2013|\u2014|~|to|and)\s*$/i.exec(before);
+    if (!bare) continue;
+    const from = bare.index;
+    if (sorted.some((t) => t !== b && t.at < b.at && t.end > from)) continue;
+    drop.add(b);
+    rejects.push({ kind: "ambiguous", text: clause.slice(from, b.end).trim() });
   }
   return sorted.filter((token) => !drop.has(token));
 }

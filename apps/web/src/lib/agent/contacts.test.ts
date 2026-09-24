@@ -90,7 +90,7 @@ describe("figures the reader will not guess at (review item 6)", () => {
 describe("the second review's survivors (rv_a2c)", () => {
   const LEAD2 = "3 bedroom flat in Yaba, rent 2.5m. Very nice and clean house with good water. ";
   for (const tail of [
-    "Call 0803—123—4567",
+    "Call 0803\u2014123\u20144567",
     "Follow instagram.com/vallohomes",
     "tel eight zero three, one two three, four five six seven",
     "call 0803 ...123... 4567",
@@ -102,6 +102,22 @@ describe("the second review's survivors (rv_a2c)", () => {
     "t.me/vallohomes",
     "@vallohomes on insta",
     "ade [at] yahoo [dot] com",
+    "call 0803, 123, 4567",
+    "call 0803;123;4567",
+    "call 0803|123|4567",
+    "call 0803*123*4567",
+    "call 0803~123~4567",
+    "call 0803 or 123 4567",
+    "call 0803 / 123 / 4567",
+    "call 0803.....123.....4567",
+    "call o8o3 i23 4567",
+    "call 08O3l234567",
+    "call 0803\u200b123\u200b4567",
+    "call 0803\u2060123\u20604567",
+    "call 0803 then after that 1234567",
+    "call 0803 and 123 and 4567",
+    "call 080 312 34567 and 070 111 22233",
+    "call 0803 1 2 3 4 5 6 7",
   ]) {
     it(tail, () => {
       const parse = parseBroadcast(LEAD2 + tail);
@@ -117,7 +133,16 @@ describe("the second review's survivors (rv_a2c)", () => {
   });
 
   it("hands back 'between X and Y' and 'from X to Y' as ranges", () => {
-    for (const text of ["3 bedroom flat in Yaba, rent between 2.5m and 3m.", "3 bedroom flat in Yaba, rent from 2.5m to 3m."]) {
+    for (const text of [
+      "3 bedroom flat in Yaba, rent between 2.5m and 3m.",
+      "3 bedroom flat in Yaba, rent from 2.5m to 3m.",
+      "3 bedroom flat in Yaba, rent 2.5 to 3m.",
+      "3 bedroom flat in Yaba, rent 2.5-3m.",
+      "3 bedroom flat in Yaba, rent between 2.5 and 3 million.",
+      "3 bedroom flat in Yaba, rent 2.5m~3m.",
+      "3 bedroom flat in Yaba, rent 2.5m \u2013 3m.",
+      "3 bedroom flat in Yaba, rent 2.5m and 3m.",
+    ]) {
       const parse = parseBroadcast(text);
       expect(parse.values.rentNaira, text).toBeUndefined();
       expect(parse.notCarried.some((n) => n.kind === "ambiguous"), text).toBe(true);

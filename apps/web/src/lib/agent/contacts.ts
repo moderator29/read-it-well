@@ -68,7 +68,10 @@ const SPELLED_CHAIN = new RegExp(`(?<![a-z])${DIGIT_TOKEN}(?:${CHAIN_SEP}${DIGIT
  * A run: digits (or O next to digits) joined by at most three separator
  * characters. Separators: space, dot, dash, slash, underscore, x, brackets.
  */
-const RUN = /[+(]?[\dOo](?:[\dOo]|[\s().\/_x+-]{1,5}(?=[+(]?[\dOo]))*\)?/g;
+/* Any short run of non-alphanumeric characters (up to five) joins digit
+   groups: spaces, dots, commas, slashes, pipes, stars, tildes, semicolons,
+   brackets, dashes. And "x", which people write between groups. */
+const RUN = /[+(]?[\dOo](?:[\dOo]|(?:[^\p{L}\p{N}\n]{1,5}|\s?x\s?)(?=[+(]?[\dOo]))*\)?/gu;
 
 const MOBILE = /^(?:0|234|2340)[789][01]\d{8}$/;
 const LANDLINE = /^0[1-9]\d{6,8}$/;
@@ -100,13 +103,23 @@ function groupsOf(run: string): Group[] {
 export function stripContacts(message: string): { text: string; hits: ContactHit[] } {
   const hits: ContactHit[] = [];
   let text = message.normalize("NFKC");
-  /* Every dash is a dash and an ellipsis is dots, so "0803—123—4567" and
-     "0803 ...123... 4567" are runs like any other. */
+  /* Invisible format characters (zero-width spaces and joiners) are
+     removed, so a number split by them is one number. */
+  text = text.replace(/\p{Cf}/gu, "");
+  /* Every dash is a dash and an ellipsis is dots, so "0803\u2014123\u20144567"
+     and "0803 ...123... 4567" are runs like any other. */
   text = text.replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, "-").replace(/\u2026/g, "...");
   /* "0803 and 1234567", "0803 and then 1234567": two groups of digits joined
      by words are still one number. Only between groups of three or more
      digits, so "2 and 3 bedrooms" is untouched. */
-  text = text.replace(/(\d{3,})\s+(?:and\s+then|and|then|plus)\s+(?=\d{3,})/gi, "$1 ");
+  text = text.replace(/(\d{3,})(?:\s+(?:and|then|or|plus|after|that|also)){1,3}\s+(?=\d{3,})/gi, "$1 ");
+  /* Letters that stand in for digits inside a number: O for zero, I and l
+     for one ("o8o3 i23 4567", "08O3l234567"). Only in a token made of
+     digits and those letters that holds at least two real digits, so words
+     are never touched. */
+  text = text.replace(/(?<![\p{L}\p{N}])[0-9oOiIlL]*\d[0-9oOiIlL]*\d[0-9oOiIlL]*(?![\p{L}\p{N}])/gu, (token) =>
+    token.replace(/[oO]/g, "0").replace(/[iIlL]/g, "1"),
+  );
 
   /* 2. Spelled digit chains to digits. */
   text = text.replace(SPELLED_CHAIN, (chain) => {
