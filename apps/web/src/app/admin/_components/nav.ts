@@ -78,7 +78,14 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
       { key: "stops", href: "/admin/stops", icon: ui("shield-stop"), label: "Stops" },
     ],
   },
-  { key: "kyc", href: "/admin/kyc", icon: glyph("check-square"), label: "Verification" },
+  {
+    key: "kyc",
+    href: "/admin/kyc",
+    icon: glyph("check-square"),
+    label: "Verification",
+    /* SCUML: the AML/CFT duties, one lane each. */
+    children: [{ key: "compliance", href: "/admin/compliance", icon: glyph("shield-lock"), label: "Compliance" }],
+  },
   {
     key: "money",
     href: "/admin/money",
