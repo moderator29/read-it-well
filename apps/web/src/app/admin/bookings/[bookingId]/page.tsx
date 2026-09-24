@@ -133,7 +133,15 @@ export default async function AdminBookingPage({
         </ui.DetailSection>
 
         <ui.DetailSection title={copy.sections.people}>
-          <ui.DetailRow label={f.guest} value={stay.guestName ?? copy.unnamed} />
+          {/* V-90: the guest's name opens their person file. */}
+          <ui.DetailRow
+            label={f.guest}
+            value={
+              <Link href={`/admin/people/${stay.guestId}`} className="underline underline-offset-2">
+                {stay.guestName ?? copy.unnamed}
+              </Link>
+            }
+          />
           <ui.DetailRow label={f.host} value={stay.agentName} />
           <ui.DetailRow
             label={f.listing}
