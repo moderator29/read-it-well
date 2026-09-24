@@ -10,7 +10,11 @@
 -- second super admin applies it; the proposer or approver cannot reverse, a
 -- third super admin can, the escrow is DISPUTED again with the float whole, and
 -- it can be ruled again; a reversal that would overdraw the credited wallet is
--- refused. Every ruling change is in audit_log.
+-- refused and put on the desk. After a reversal the next ruling needs two
+-- people. A reversal keeps the removed commission row in the audit log. The
+-- ruling rows cannot be edited or deleted, even by the service role or the
+-- owner; the service role cannot fund through escrow_hold or create an
+-- agreement while the gate is closed. Every ruling change is in audit_log.
 do $$
 declare
   member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';   -- payer
@@ -60,6 +64,17 @@ begin
   if r->>'status' <> 'held_payments_closed' then raise exception 'PROBE_FAIL esc-08: propose with the gate closed: %', r; end if;
   r := public.escrow_fund_proposal_as(member, gen_random_uuid(), 21);
   if r->>'status' <> 'held_payments_closed' then raise exception 'PROBE_FAIL esc-08: fund with the gate closed: %', r; end if;
+  set local role service_role;
+  begin
+    insert into public.escrows (payer_id, payee_id, purpose, amount_minor, opened_by)
+    values (member, lister, 'agency_fee', 100000, member);
+    raise exception 'PROBE_FAIL esc-08: the service role created an agreement with the gate closed';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform public.escrow_hold(gen_random_uuid(), member, 100000, 'probe-esc08-hold', 'agency_fee', 21);
+    raise exception 'PROBE_FAIL esc-08: the service role reached escrow_hold';
+  exception when insufficient_privilege then null; end;
+  reset role;
   -- CONTROL: custody decided and the switch on, the gate passes.
   update private.platform_settings set value = 'trustee' where key = 'custody_structure';
   set local role authenticated;
@@ -123,11 +138,50 @@ begin
   if st is distinct from 'REVERSED' then raise exception 'PROBE_FAIL esc-07: settlement credit is %', st; end if;
   f := private.escrow_float_components();
   if (f->>'difference_minor')::bigint <> 0 then raise exception 'PROBE_FAIL esc-07: float after reversal %', f; end if;
-  -- It can be ruled again, under the same rules.
+  -- It is ruled again, and after a reversal that takes two people.
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', sa2, 'role', 'authenticated')::text, true);
   r := public.escrow_admin_resolve(small, 'release', 'The work was delivered as agreed by both of them.');
+  if r->>'status' <> 'awaiting_second_approval' then raise exception 'PROBE_FAIL esc-07: the reverser re-ruled alone %', r; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  r := public.escrow_admin_resolve(small, 'release', 'The work was delivered as agreed by both of them.');
   if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL esc-07: re-ruling %', r; end if;
+  rid := (r->>'ruling_id')::uuid;
+  reset role;
+
+  -- A reversal of a commissioned release keeps the removed commission on record.
+  insert into public.platform_revenue (source, amount_minor, escrow_id, reference)
+  values ('escrow_commission', 1, small, 'escrow:commission:' || small)
+  on conflict (reference) do nothing;
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', sa3, 'role', 'authenticated')::text, true);
+  r := public.escrow_reverse_ruling(rid, 'Reversing to prove the commission stays on record.');
+  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL esc-07: commissioned reversal %', r; end if;
+  reset role;
+  select count(*) into n from public.audit_log where action = 'platform_revenue.reversed' and entity_id = small::text
+     and (metadata -> 'removed_row' ->> 'reference') = 'escrow:commission:' || small;
+  if n <> 1 then raise exception 'PROBE_FAIL esc-07: the removed commission left no record'; end if;
+
+  -- The ruling rows are kept: not the service role, not the owner, can edit or delete one.
+  set local role service_role;
+  begin
+    update public.escrow_rulings set proposed_by = sa3 where id = rid;
+    raise exception 'PROBE_FAIL esc-07: the service role rewrote a ruling';
+  exception when insufficient_privilege then null; end;
+  begin
+    delete from public.escrow_rulings where id = rid;
+    raise exception 'PROBE_FAIL esc-07: the service role deleted a ruling';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  begin
+    delete from public.escrow_rulings where id = rid;
+    raise exception 'PROBE_FAIL esc-07: the owner deleted a ruling';
+  exception when insufficient_privilege then null; end;
+  begin
+    update public.escrow_rulings set proposed_by = sa3 where id = rid;
+    raise exception 'PROBE_FAIL esc-07: the owner rewrote who proposed a ruling';
+  exception when insufficient_privilege then null; end;
+  set local role authenticated;
 
   -- At the threshold: two people.
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
@@ -161,6 +215,9 @@ begin
   r := public.escrow_reverse_ruling(rid, 'The release was a mistake and must be undone now.');
   if r->>'status' <> 'shortfall' then raise exception 'PROBE_FAIL esc-07: overdrawing reversal %', r; end if;
   reset role;
+  select count(*) into n from public.risk_alerts where entity_type = 'escrow' and entity_id = big::text
+     and title = 'A ruling reversal is waiting for money to be recovered' and status = 'open';
+  if n <> 1 then raise exception 'PROBE_FAIL esc-07: a refused reversal left nothing on the desk'; end if;
 
   -- Every ruling change is audited.
   select count(*) into n from public.audit_log where entity_type = 'escrow' and entity_id in (small::text, big::text)
