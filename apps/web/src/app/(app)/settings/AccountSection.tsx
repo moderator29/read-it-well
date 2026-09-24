@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { RowLink, RowValue, RowButton, SettingsGroup } from "@/components/app/account/rows";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
+import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetWidget } from "@/lib/native/widget";
+import { revokeWidgetTokens } from "@/lib/native/widget-actions";
+import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
 import { DeleteAccountPanel } from "./DeleteAccountPanel";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
@@ -58,6 +62,8 @@ export function AccountSection({
   const leave = () => {
     setSignOutError(null);
     startSignOut(async () => {
+      /* V-98: the widget stops reading this account before the session ends. */
+      await revokeWidgetTokens().catch(() => undefined);
       const result = await signOut();
       if (!result.ok) {
         setSignOutError(result.error);
@@ -69,6 +75,9 @@ export function AccountSection({
       await clearShelf();
       /* SUP-16: a listing draft never outlives the session that wrote it. */
       clearListingDrafts();
+      await clearOutbox();
+      await forgetWidget();
+      clearAllInflight();
       router.replace("/");
       router.refresh();
     });

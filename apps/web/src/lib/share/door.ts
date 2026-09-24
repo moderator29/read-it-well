@@ -1,6 +1,6 @@
 import { formatMoneyGlance, type Dictionary, type Locale } from "@vallo/i18n";
 import { moveInTotal, type MoveInColumns } from "../listings/pricing";
-import { publicAreaName, publicCityName } from "./public-text";
+import { publicAreaName } from "./public-text";
 
 /**
  * THE SHARE DOOR, AS PURE FUNCTIONS: what a row from `public.share_door` may
@@ -23,9 +23,9 @@ import { publicAreaName, publicCityName } from "./public-text";
  *
  *   1. `public.share_door` returns a fixed row type with no address, landmark,
  *      coordinate, location, estate, lister or contact column, returns NO
- *      title at all, and returns an area or city only when the whole of it is
- *      a name on the closed lists (`private.public_neighbourhood`,
- *      `private.public_city`).
+ *      title and no city at all, and returns an area only when the whole of
+ *      it is a closed-list neighbourhood in the listing's own state
+ *      (`private.public_neighbourhood`).
  *   2. `DoorRow` below names only the columns that function returns, and
  *      `doorCardFromRow` reads them by name. A row that somehow carried an
  *      `address` or a `title` is ignored, because nothing here reads it; the
@@ -33,8 +33,8 @@ import { publicAreaName, publicCityName } from "./public-text";
  *      output.
  *   3. NO TEXT A LISTER TYPED IS PRINTED. The heading is always composed from
  *      facts (`doorTitle`: "2 bedroom flat in Yaba"; a stay: "A stay in
- *      Ikoyi"), and the place is a closed-list neighbourhood, else a
- *      closed-list city, else the state (`lib/share/public-text.ts`). A filter
+ *      Ikoyi"), and the place is a closed-list neighbourhood in its own state,
+ *      else the state (`lib/share/public-text.ts`). A filter
  *      over free text cannot be made provable; a closed list can.
  *
  * ---------------------------------------------------------------------------
@@ -54,6 +54,7 @@ export type DoorRow = {
   /** Always null since migration 20260924121300, and never read here: no lister text is printed. */
   title: string | null;
   area: string | null;
+  /** Always null since migration 20260924122100, and never read: no city is printed. */
   city: string | null;
   state_name: string | null;
   property_type: string | null;
@@ -76,6 +77,8 @@ export type DoorRow = {
   /** V-71: power and water in their stated terms; absent before that migration. */
   power_grid?: string | null;
   water_supply?: string | null;
+  /** The listing's state code (20260924122100), from the states table: the area is held to it. */
+  state_code?: string | null;
 };
 
 /** The headline figure and the line under it, already chosen and ordered. */
@@ -115,8 +118,10 @@ export type DoorCard =
   | {
       kind: "stay";
       stayId: string;
-      /** A closed-list neighbourhood or city. The stay's name is never carried. */
+      /** A closed-list neighbourhood in its state. The stay's name is never carried. */
       area: string | null;
+      /** The state's name, from the states table, for "A stay in Lagos". */
+      stateName: string | null;
       place: string | null;
       photoPath: string | null;
     }
@@ -161,17 +166,18 @@ function clean(text: string | null | undefined): string | null {
 /**
  * The place a door may print: AREA AND STATE ONLY.
  *
- * The area when the whole of it is a name on the closed neighbourhood list;
- * otherwise the city when it is on the closed city list; otherwise the state
- * alone. Always in the list's spelling, never the lister's.
+ * The area when the whole of it is a name on the closed neighbourhood list IN
+ * THE LISTING'S OWN STATE; otherwise the state alone, whose name comes from
+ * the states table and was never typed. Always in the list's spelling, never
+ * the lister's. No city: a city is text a lister typed too (rule 10).
  */
 export function doorPlace(
   area: string | null | undefined,
-  city: string | null | undefined,
+  stateCode: string | null | undefined,
   stateName: string | null | undefined,
 ): string | null {
   const state = clean(stateName);
-  const local = publicAreaName(area) ?? publicCityName(city);
+  const local = stateCode ? publicAreaName(area, stateCode) : null;
   if (local === null) return state;
   if (state === null || local.toLowerCase() === state.toLowerCase()) return local;
   return `${local}, ${state}`;
@@ -245,8 +251,9 @@ export function doorCardFromRow(row: DoorRow | null | undefined): DoorCard | nul
     return {
       kind: "stay",
       stayId: row.listing_id,
-      area: publicAreaName(row.area) ?? publicCityName(row.city),
-      place: doorPlace(row.area, row.city, row.state_name),
+      area: row.state_code ? publicAreaName(row.area, row.state_code) : null,
+      stateName: clean(row.state_name),
+      place: doorPlace(row.area, row.state_code, row.state_name),
       photoPath: clean(row.photo_path),
     };
   }
@@ -264,8 +271,8 @@ export function doorCardFromRow(row: DoorRow | null | undefined): DoorCard | nul
     listingId: row.listing_id,
     reference,
     propertyType: clean(row.property_type),
-    area: publicAreaName(row.area) ?? publicCityName(row.city),
-    place: doorPlace(row.area, row.city, row.state_name),
+    area: row.state_code ? publicAreaName(row.area, row.state_code) : null,
+    place: doorPlace(row.area, row.state_code, row.state_name),
     bedrooms: row.bedrooms !== null && row.bedrooms >= 0 ? row.bedrooms : null,
     figures: doorFigures(row),
     photoPath: clean(row.photo_path),
@@ -393,7 +400,8 @@ export function doorUtilities(
  * only the line saying the rate is chosen by dates inside.
  */
 export function stayLines(card: Extract<DoorCard, { kind: "stay" }>, copy: Dictionary["frontDoor"]["door"]): DoorLines {
-  const title = card.area ? fill(copy.stay.inArea, { area: card.area }) : copy.stay.plain;
+  const where = card.area ?? card.stateName;
+  const title = where ? fill(copy.stay.inArea, { area: where }) : copy.stay.plain;
   return { title, headline: copy.stay.rates, second: null, bedrooms: null };
 }
 

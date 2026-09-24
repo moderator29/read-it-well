@@ -1,5 +1,6 @@
 "use client";
 
+import { createClient } from "@/lib/supabase/client";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { formatDate, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
@@ -60,11 +61,18 @@ function online(): boolean {
   return typeof navigator === "undefined" ? true : navigator.onLine !== false;
 }
 
-/** Hand the queued check-ins over, if there is signal. Never throws. */
+/**
+ * Hand the queued check-ins over, if there is signal. Never throws. Only the
+ * signed-in account's own are sent (V-35): a queue left by somebody else on
+ * this phone waits for them, and their next pack clears it if they are gone.
+ */
 export async function flushCheckins(): Promise<void> {
   if (!online()) return;
   try {
-    const queued = await readCheckins();
+    const { data } = await createClient().auth.getSession();
+    const me = data.session?.user.id;
+    if (!me) return;
+    const queued = (await readCheckins()).filter((checkin) => checkin.ownerId === me);
     if (queued.length === 0) return;
     const { settled } = await recordCheckins(queued);
     for (const checkin of settled) await forgetCheckin(checkin);
@@ -215,7 +223,7 @@ function ShowCode({ pack, copy, locale }: { pack: InspectionPack; copy: Copy; lo
   const show = () => {
     setShowing(true);
     /* Recorded on the tap at the gate, queued for signal. */
-    void queueCheckin({ inspectionId: pack.inspectionId, result: "shown", observedAt: new Date().toISOString() });
+    void queueCheckin({ ownerId: pack.userId, inspectionId: pack.inspectionId, result: "shown", observedAt: new Date().toISOString() });
   };
 
   return (
@@ -325,7 +333,7 @@ function CheckCode({ pack, copy }: { pack: InspectionPack; copy: Copy }) {
   const [checking, startChecking] = useTransition();
 
   const record = (result: "match" | "mismatch" | "skipped") => {
-    void queueCheckin({ inspectionId: pack.inspectionId, result, observedAt: new Date().toISOString() }).then(
+    void queueCheckin({ ownerId: pack.userId, inspectionId: pack.inspectionId, result, observedAt: new Date().toISOString() }).then(
       () => flushCheckins(),
     );
   };

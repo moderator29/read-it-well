@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { countOf, type Locale } from "@vallo/i18n";
+import { countOf, getDictionary, type Locale } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -809,9 +811,17 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
     setResolved(result.data.accountName);
   };
 
+  /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
+  const viewerLocale = useClientLocale();
+  const lock = useMoneyStepUp(viewerLocale);
   const save = () =>
     run(
-      () => addBankAccount({ bankCode: bank, accountNumber: number }),
+      async () => {
+        const result = await lock.guard({ kind: "bank_add", target: `${bank}:${number.replace(/\D/g, "")}` }, (stepUp) =>
+          addBankAccount({ bankCode: bank, accountNumber: number, stepUp }),
+        );
+        return result ?? { ok: false as const, error: getDictionary(viewerLocale).platform.moneyLock.notConfirmed };
+      },
       () => {
         set("hasBankAccount", true);
         setNotice({ tone: "ok", text: "The account is saved, in the name the bank gave." });
@@ -820,6 +830,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
 
   return (
     <>
+      {lock.sheet}
       <section className="nf-panel nf-panel--card block nf-host-group">
         <h2 className="nf-host-group__title">Where payouts go</h2>
         <p className="nf-host-group__note">

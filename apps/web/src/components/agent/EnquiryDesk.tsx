@@ -47,14 +47,16 @@ export function EnquiryFunnel({ counts, copy }: { counts: Record<Stage, number> 
   );
 }
 
-export function LostByAreaPanel({ areas, copy }: { areas: LostByArea[] | null; copy: Copy }) {
+export function LostByAreaPanel({ areas, copy }: { areas: LostByArea[] | null | "approved_only"; copy: Copy }) {
   return (
     <section className="nf-panel nf-panel--card mt-lg p-card-sm" aria-labelledby="lost-by-area-title" data-testid="lost-by-area">
       <h2 id="lost-by-area-title" className="nf-h4 text-[var(--nf-content-primary)]">
         {copy.lostTitle}
       </h2>
       <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]">{copy.lostNote}</p>
-      {areas === null ? (
+      {areas === "approved_only" ? (
+        <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.lostApprovedOnly}</p>
+      ) : areas === null ? (
         <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.unreachable}</p>
       ) : areas.length === 0 ? (
         <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.lostEmpty}</p>

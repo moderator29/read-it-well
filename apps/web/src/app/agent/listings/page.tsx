@@ -1,3 +1,4 @@
+import { readMyRoutingFirms } from "@/lib/firm/queries";
 import type { Metadata } from "next";
 import { listingBoardIsOn } from "@/lib/listings/board-queries";
 import { getDictionary } from "@vallo/i18n";
@@ -71,10 +72,12 @@ export default async function Page({
   /* V-48: which of these were closed with a reason, read beside the list and
      failing soft into "none", which draws the workspace as it was. V-08: and
      whether the board flag is on. */
-  const [closed, ownerAsks, boardOn] = await Promise.all([
+  const [closed, ownerAsks, boardOn, routingFirms] = await Promise.all([
     readClosedReasons(listings.map((listing) => listing.id)),
     readOpenOwnerHeartbeats(),
     listingBoardIsOn(),
+    /* V-99: the way to the firm desk, for a principal or coordinator. */
+    readMyRoutingFirms(),
   ]);
 
   return (
@@ -94,6 +97,11 @@ export default async function Page({
         <ButtonLink href="/agent/list" variant="primary">
           {t.agentListings.workspace.start}
         </ButtonLink>
+        {routingFirms && routingFirms.length > 0 && (
+          <ButtonLink href="/agent/firm" variant="secondary">
+            {t.frontDoor.firm.title}
+          </ButtonLink>
+        )}
       </div>
 
       <ListingsWorkspace

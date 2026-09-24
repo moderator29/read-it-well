@@ -92,7 +92,7 @@ export default async function RentSharePage({ params }: { params: Promise<{ id: 
       </>
     );
   } else {
-    state = <PayShare contributorId={id} label={copy.sharePay.replace("{share}", formatMoney(share, locale))} />;
+    state = <PayShare contributorId={id} amountMinor={share} locale={locale} label={copy.sharePay.replace("{share}", formatMoney(share, locale))} />;
   }
 
   return shell(

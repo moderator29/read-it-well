@@ -31,6 +31,10 @@ const state = vi.hoisted(() => ({
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/headers", () => ({ headers: async () => new Map() }));
 vi.mock("../security/money-limits", () => ({ guardMoney: async () => ({ allowed: true }) }));
+/* The hundred's gates in front of the money (V-81 phone lock, V-19 hold): open
+   here, because this file is about the bank's name, and each has its own tests. */
+vi.mock("../security/money-lock-guard", () => ({ moneyLockRefusalFor: async () => null }));
+vi.mock("../security/account-hold-guard", () => ({ accountHoldRefusal: async () => null }));
 vi.mock("../flags", () => ({ isFeatureEnabled: async () => true }));
 vi.mock("../email/client", () => ({ bestEffortEmail: vi.fn(), sendMessage: vi.fn() }));
 vi.mock("../payments/yellowcard", () => ({

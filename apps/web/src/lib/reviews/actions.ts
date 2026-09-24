@@ -21,6 +21,7 @@
  * so nothing here writes a notification or a risk alert.
  */
 
+import { oncePerTap, tapKey } from "../offline/replay-guard";
 import { revalidatePath } from "next/cache";
 import { phoneGateFor } from "../phone-otp/gate";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
@@ -65,7 +66,14 @@ export async function submitReview(
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  /* V-40: a replay of the same tap answers with the first review (one per stay anyway). */
+  return oncePerTap("outbox.review", session.user.id, tapKey(formData.get("tapKey")), () => submitReviewWork(session, formData));
+}
 
+async function submitReviewWork(
+  session: Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>,
+  formData: FormData,
+): Promise<ActionResult<ReviewWritten>> {
   if (!(await isFeatureEnabled("bookings"))) return fail(PAUSED_MESSAGE);
 
   /* V-50: the first review needs a confirmed phone, when the flag is on. */

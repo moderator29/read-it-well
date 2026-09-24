@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -11,6 +11,7 @@ import { TYPE } from "@/components/app/Screen";
 import { requestInspection } from "@/lib/inspections/actions";
 import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 import Link from "next/link";
+import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import type { Inspection } from "@/lib/inspections/types";
 
 /**
@@ -48,7 +49,19 @@ export function RequestInspection({
   const [when, setWhen] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const OUTBOX = getDictionary(locale).platform.outbox;
   const [pending, startTransition] = useTransition();
+  /* V-40: asked with no signal; kept, and sent when it returns. */
+  const [kept, setKept] = useState(false);
+
+  if (kept && !existing) {
+    return (
+      <p className={`flex items-start gap-xs ${TYPE.rowMeta}`} role="status" data-testid="inspection-waiting">
+        <UiIcon name="calendar-booking" size={20} className="mt-3xs shrink-0" />
+        <span>{OUTBOX.waiting}</span>
+      </p>
+    );
+  }
 
   if (existing) {
     const shown = existing.slotAt ?? existing.requestedAt;
@@ -78,11 +91,25 @@ export function RequestInspection({
   function submit() {
     setError(null);
     startTransition(async () => {
-      const result = await requestInspection({
+      const fields = {
         listingId,
         when: lagosWallClockToIso(when) ?? when,
         ...(note.trim() ? { note: note.trim() } : {}),
-      });
+      };
+      /* V-40: with no signal the request is kept and sent when it returns. */
+      const done = await sendOrKeep("request_inspection", fields, (tapKey) => requestInspection({ ...fields, tapKey }));
+      if (done.state === "kept") {
+        setOpen(false);
+        setWhen("");
+        setNote("");
+        setKept(true);
+        return;
+      }
+      if (done.state === "not_kept") {
+        setError(OUTBOX.couldNotKeep);
+        return;
+      }
+      const result = done.result;
       if (!result.ok) {
         setError(result.error);
         return;

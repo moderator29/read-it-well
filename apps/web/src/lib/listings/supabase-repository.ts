@@ -1278,6 +1278,29 @@ export async function loadListingsByIds(
   }
 }
 
+/**
+ * V-10: one listing in ANY status, as the card model, read under the caller's
+ * own client, so RLS decides (a draft comes back only to its owner). Used to
+ * ask which saved searches a draft would match before it is published; never
+ * for anything shown to somebody else. Null when it cannot be read.
+ */
+export async function loadOwnListingAnyStatus(supabase: Client, id: string): Promise<Listing | null> {
+  try {
+    /* NEW-A4-01: through `pointSelect`, like every other listing read, so a
+       caller without a session asks for the public point. */
+    const { data, error } = await supabase
+      .from("listings")
+      .select(await pointSelect(supabase, LISTING_SELECT))
+      .eq("id", id)
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    const [listing] = await mapRows(supabase, data as unknown as ListingRow[]);
+    return listing ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export class SupabaseListingRepository implements ListingRepository {
   readonly isSeed = false;
 

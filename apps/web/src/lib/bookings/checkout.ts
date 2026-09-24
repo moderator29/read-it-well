@@ -56,6 +56,7 @@ import { checkoutReturnPath } from "../rent/return-path";
 import { ALREADY_LET_MESSAGE } from "../rent/db";
 import { guardMoney } from "../security/money-limits";
 import { accountHoldRefusal } from "../security/account-hold-guard";
+import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { createClient } from "../supabase/server";
 import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet/ledger";
 import { announceConfirmedStay } from "./arrival";
@@ -109,6 +110,8 @@ export type CheckoutInput = {
    * instead of paying twice.
    */
   idempotencyKey?: string;
+  /** V-81: a fresh proof for paying this booking from the wallet, when the person locked money with a phone. */
+  stepUp?: string;
 };
 
 export type CardCheckout = {
@@ -638,6 +641,10 @@ export async function payWithWallet(
 
   const limit = await guardMoney("payWithWallet", guarded.userId);
   if (!limit.allowed) return fail(limit.message);
+  /* V-81: paying from the balance is money leaving the wallet. The booking
+     fixes the amount, so the proof names the booking. */
+  const lock = await moneyLockRefusalFor(guarded.userId, input.stepUp, { kind: "pay_wallet", target: guarded.booking.id });
+  if (lock) return fail(lock);
 
   const run = await withIdempotency<ActionResult<WalletPayment | null>>(
     {

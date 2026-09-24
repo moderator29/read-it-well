@@ -16,6 +16,7 @@
  * SQLSTATE into one true sentence.
  */
 
+import { oncePerTap, tapKey } from "../offline/replay-guard";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -89,14 +90,25 @@ export async function dropPost(input: {
   areaId?: string;
   kind: "GIST" | "ASK";
   body: string;
+  /** V-40: the UUID minted when this was tapped; a replay answers with the first post. */
+  tapKey?: string;
 }): Promise<ActionResult<{ postId: string; held: boolean }>> {
   if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
-  const parsed = validate(dropPostSchema, input);
+  const { tapKey: rawKey, ...fields } = input;
+  const parsed = validate(dropPostSchema, fields);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  return oncePerTap("outbox.post", session.user.id, tapKey(rawKey), () => dropPostWork(session, parsed.data));
+}
+
+async function dropPostWork(
+  session: Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>,
+  input: z.infer<typeof dropPostSchema>,
+): Promise<ActionResult<{ postId: string; held: boolean }>> {
+  const parsed = { data: input };
 
   const subject = subjectForUser(session.user.id);
   for (const limit of [POST_LIMITS.post, POST_LIMITS.postDaily]) {

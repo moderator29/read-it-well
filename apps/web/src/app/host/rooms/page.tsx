@@ -130,7 +130,7 @@ export function HostRoomsBody({
       <EmptyState
         icon="hotel"
         title="Save the property first"
-        body="Rooms and their nights hang on the property itself, so the application asks for its name and its pin first. Open the application, save the property, and the rooms follow on the next step."
+        body="Rooms and their nights hang on the property itself, so the application asks for its name and pin first. Save the property there, and the rooms follow on the next step."
         action={
           <ButtonLink href="/host/apply" variant="primary" size="lg">
             Open the application
@@ -179,7 +179,7 @@ export function HostRoomsBody({
           <EmptyState
             icon="hotel"
             title="No room types yet"
-            body="A room type is a kind of room a guest books: a deluxe double, an executive suite. Add at least one, with how many of them there are and what a night costs, and the property can go on the shelf."
+            body="A room type is a kind of room a guest books, such as a deluxe double. Add at least one, with how many there are and what a night costs, and the property can go on the shelf."
             action={
               <ButtonLink href="/host/apply" variant="primary" size="lg">
                 Add a room type

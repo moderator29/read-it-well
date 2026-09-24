@@ -23,14 +23,11 @@ export const NEIGHBOURHOODS: readonly Neighbourhood[] = (
     ["Lekki Phase 2", "Lagos", "LA"],
     ["Ikeja GRA", "Lagos", "LA"],
     ["Victoria Island", "Lagos", "LA"],
-    ["Banana Island", "Lagos", "LA"],
     ["Old Ikoyi", "Lagos", "LA"],
-    ["Parkview", "Lagos", "LA"],
     ["Ikoyi", "Lagos", "LA"],
     ["Lekki", "Lagos", "LA"],
     ["Ajah", "Lagos", "LA"],
     ["Sangotedo", "Lagos", "LA"],
-    ["Chevron", "Lagos", "LA"],
     ["Osapa London", "Lagos", "LA"],
     ["Osapa", "Lagos", "LA"],
     ["Agungi", "Lagos", "LA"],
@@ -41,10 +38,8 @@ export const NEIGHBOURHOODS: readonly Neighbourhood[] = (
     ["Ikeja", "Lagos", "LA"],
     ["Maryland", "Lagos", "LA"],
     ["Gbagada", "Lagos", "LA"],
-    ["Magodo", "Lagos", "LA"],
     ["Ogudu", "Lagos", "LA"],
     ["Ojodu", "Lagos", "LA"],
-    ["Omole", "Lagos", "LA"],
     ["Ilupeju", "Lagos", "LA"],
     ["Anthony", "Lagos", "LA"],
     ["Ogba", "Lagos", "LA"],
@@ -76,35 +71,10 @@ export const NEIGHBOURHOODS: readonly Neighbourhood[] = (
   .map(([area, city, stateCode]) => ({ area, city, stateCode }))
   .sort((a, b) => b.area.length - a.area.length);
 
-/**
- * Cities a public surface may name when the area is not on the list above.
- * Closed for the same reason: a city a lister typed is free text too. Each
- * with its state, so "Lagos" is only ever printed for a listing in Lagos.
- * The SQL twin is `private.public_city` (migration 20260924121300), and a
- * test holds the two lists equal.
- */
-export const PUBLIC_CITIES: readonly { city: string; stateCode: string }[] = [
-  ["Lagos", "LA"],
-  ["Abuja", "FC"],
-  ["Ibadan", "OY"],
-  ["Port Harcourt", "RI"],
-  ["Kano", "KN"],
-  ["Enugu", "EN"],
-  ["Benin City", "ED"],
-  ["Abeokuta", "OG"],
-  ["Kaduna", "KD"],
-  ["Jos", "PL"],
-  ["Ilorin", "KW"],
-  ["Owerri", "IM"],
-  ["Uyo", "AK"],
-  ["Calabar", "CR"],
-  ["Warri", "DE"],
-  ["Asaba", "DE"],
-  ["Awka", "AN"],
-  ["Onitsha", "AN"],
-].map(([city, stateCode]) => ({ city: city!, stateCode: stateCode! }));
-
 /** "VI" is how half of Lagos writes Victoria Island. */
+/* Estates (Banana Island, Parkview, Magodo, Omole) are not on the list and have no alias: a
+   named estate is nearly an address, and the reviewer's rule-10 cases expect
+   them to print nothing. */
 export const PLACE_ALIASES: Readonly<Record<string, string>> = {
   vi: "Victoria Island",
   "v.i": "Victoria Island",
@@ -158,14 +128,4 @@ export function exactNeighbourhood(text: string | null | undefined, stateCode?: 
   if (!place) return null;
   if (stateCode && place.stateCode !== stateCode.toUpperCase()) return null;
   return place;
-}
-
-/** The canonical city when the whole text is a city on the closed list. */
-export function exactCity(text: string | null | undefined, stateCode?: string | null): string | null {
-  if (typeof text !== "string") return null;
-  const key = placeKey(text);
-  const found = PUBLIC_CITIES.find((c) => c.city.toLowerCase() === key);
-  if (!found) return null;
-  if (stateCode && found.stateCode !== stateCode.toUpperCase()) return null;
-  return found.city;
 }

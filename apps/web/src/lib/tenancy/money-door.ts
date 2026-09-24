@@ -3,7 +3,10 @@ import "server-only";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
+import type { MoneyIntent } from "../security/money-intent";
+import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { guardMoney } from "../security/money-limits";
 import { recordMoneyAudit } from "../wallet/audit";
 import { getAdminClient } from "../wallet/ledger";
@@ -17,7 +20,8 @@ import { callMoneyRpc } from "../wallet/rpc";
  * `transferToUserWork`:
  *
  *   the wallet flag, the session, the account hold (V-19), the money limits,
- *   then the call naming the signed-in user; a failure the hold trigger raised
+ *   the phone lock (V-81) for exactly this kind, target and amount, then the
+ *   call naming the signed-in user; a failure the hold trigger raised
  *   is said as the hold, a failure that may have reached the database is
  *   said as unconfirmed, and only a call that moved money is written to the
  *   money history (a repeat that found it already moved was written the first
@@ -36,6 +40,13 @@ export async function callMoneyDoor(input: {
   action: string;
   words: Record<string, string>;
   detail?: Record<string, string | number | boolean | null>;
+  /**
+   * V-81. What a phone-lock proof must be for, built on the server from the
+   * request and the database, never from the browser's say-so. Null means the
+   * figure could not be read, and nothing moves.
+   */
+  intent: (supabase: SupabaseClient) => Promise<MoneyIntent | null>;
+  stepUp?: unknown;
 }): Promise<ActionResult<Record<string, unknown>>> {
   if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF);
   const session = await resolveSession();
@@ -45,6 +56,10 @@ export async function callMoneyDoor(input: {
   if (hold) return fail(hold);
   const limit = await guardMoney("transferToUser", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+  const intent = await input.intent(session.supabase as unknown as SupabaseClient).catch(() => null);
+  if (!intent) return fail(SERVICE_DOWN);
+  const lock = await moneyLockRefusalFor(session.user.id, input.stepUp, intent);
+  if (lock) return fail(lock);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 

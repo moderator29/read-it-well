@@ -53,6 +53,10 @@ const claims = new Map<string, Claim>();
 const rpc = vi.hoisted(() => ({ callSecurityRpc: vi.fn(), hasServiceRole: vi.fn(() => true) }));
 const ledgerSpies = vi.hoisted(() => ({ setEntryStatus: vi.fn(async () => true) }));
 
+/* V-81: the lock on money. Null lets the movement through; a sentence refuses. */
+const moneyLock = vi.hoisted(() => ({ refusal: null as string | null }));
+vi.mock("../security/money-lock-guard", () => ({ moneyLockRefusalFor: async () => moneyLock.refusal }));
+
 vi.mock("../security/service-rpc", () => ({
   callSecurityRpc: rpc.callSecurityRpc,
   hasServiceRole: rpc.hasServiceRole,
@@ -229,6 +233,7 @@ beforeEach(() => {
   holds.length = 0;
   audits.length = 0;
   claims.clear();
+  moneyLock.refusal = null;
   registryDown = false;
   transferGate = null;
   transferMode = "ok";
@@ -319,6 +324,15 @@ describe("the withdraw door asks the live registry, not a hand-typed list", () =
     expect(recipient?.body).toMatchObject({ bank_code: "51310", name: "ADAOBI O NWOSU" });
     expect(transferCalls()).toHaveLength(1);
     expect(transferCalls()[0]!.body).toMatchObject({ amount: 500_000, reference: result.data.reference });
+  });
+
+  it("refuses before any bank call when an enrolled phone lock has no fresh proof (V-81)", async () => {
+    moneyLock.refusal = "Confirm it is you first.";
+    const { withdraw } = await load();
+    const result = await withdraw({ ok: false, error: "" }, form({ ...WITHDRAW, bankCode: "51310" }));
+    expect(result).toMatchObject({ ok: false, error: "Confirm it is you first." });
+    expect(holds).toHaveLength(0);
+    expect(transferCalls()).toHaveLength(0);
   });
 
   it("pays a VFD account and a Jaiz account too", async () => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import { startRentPayment } from "@/lib/rent/actions";
 import type { RentPayView } from "@/lib/rent/queries";
@@ -119,6 +120,8 @@ export function PayPanel({
 }) {
   const c = getDictionary(view.locale).checkout;
   const router = useRouter();
+  /* V-81: paying from the wallet asks for the phone lock, when there is one. */
+  const moneyLock = useMoneyStepUp(view.locale);
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
   const cardKey = useMemo(() => newKey(), []);
@@ -231,8 +234,16 @@ export function PayPanel({
     startClocks("wallet");
     const bookingId = await openCharge();
     if (!bookingId) return;
-    setPhase({ kind: "wallet-paying" });
-    const result = await payWithWallet({ bookingId, idempotencyKey: walletKey });
+    /* V-81: the phone lock, when there is one, for exactly this charge. */
+    const result = await moneyLock.guard({ kind: "pay_wallet", target: bookingId }, (stepUp) => {
+      setPhase({ kind: "wallet-paying" });
+      return payWithWallet({ bookingId, idempotencyKey: walletKey, stepUp });
+    });
+    if (result === null) {
+      clearTimers();
+      setPhase({ kind: "error", message: getDictionary(view.locale).platform.moneyLock.notConfirmed });
+      return;
+    }
     clearTimers();
     if (result.ok && result.data) {
       setPhase({ kind: "paid" });
@@ -414,6 +425,7 @@ export function PayPanel({
 
   return (
     <>
+      {moneyLock.sheet}
       {/*
         THE CHECKOUT, ON THIS PAGE. The identical component the stay checkout
         uses, for the identical reason: rent was the other half of the same

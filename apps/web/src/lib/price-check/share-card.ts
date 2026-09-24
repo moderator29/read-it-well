@@ -1,5 +1,5 @@
 import { formatMoneyGlance, type Locale } from "@vallo/i18n";
-import { safeAreaName } from "./area-name";
+import { publicAreaName } from "../share/public-text";
 import { SHARE_CARD_FOOTER } from "./disclaimer";
 import type { AreaShare, ListingPropertyType } from "./types";
 
@@ -154,8 +154,13 @@ export function shareLines(
    * by now. `safeAreaName` returns null for an address-shaped name and the
    * card says the state instead, which is a real and honest artefact rather
    * than a blank.
+   *
+   * RULE 10 (FIX_SCOPE, V-07 review): a stored string is shape-checked only,
+   * so it is now read through the closed neighbourhood list instead. A name
+   * on the list in the card's own state prints in the list's spelling;
+   * anything else prints the state.
    */
-  const place = safeAreaName(share.area) ?? stateName;
+  const place = publicAreaName(share.area, share.stateCode) ?? stateName;
   const type = typeWord(share.propertyType, copy);
 
   /*

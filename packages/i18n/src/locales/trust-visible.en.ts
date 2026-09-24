@@ -398,7 +398,7 @@ export const trustVisibleEn = {
      * thread or on this inspection: a hold pauses the other person's requests
      * to them, which means nothing to a renter filing about a lister.
      */
-    pauseHint: "If you have written to them here, their new inspection requests to you pause while a person here looks.",
+    pauseHint: "If you have written to them here, their new inspection requests to you are paused for up to three days while a person here looks at it.",
     working: "One moment",
     /** `{clock}` is the promised time, e.g. "within 4 hours". */
     told: "Vallo has it. A person here reads it {clock}. Vallo does not tell them who reported them.",
@@ -408,7 +408,7 @@ export const trustVisibleEn = {
     signedOut: "Sign in to tell Vallo. If you are in danger, call 112 now.",
     close: "Close",
     /** After filing, when the hold was placed. */
-    heldNote: "Their new inspection requests to you are paused while a person here looks.",
+    heldNote: "Their new inspection requests to you are paused for up to three days while a person here looks at it.",
   },
   /** V-63: the report sheet's promise, read from the category's own clock. */
   report: {

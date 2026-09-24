@@ -43,7 +43,7 @@ import { flagIsOn, NEIGHBOURS_FLAG } from "../flags/read";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "../locale";
 import { BROADCAST_MONEY_KEYS } from "./broadcast";
-import { readBroadcastMarks } from "./broadcast-marks-queries";
+import { readBroadcastMarks, writeBroadcastMarks } from "./broadcast-marks-queries";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
@@ -382,6 +382,10 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     if (!(await writeFlooding(gate.supabase, value.id, gate.agentId, value.flooding))) {
       return fail(SAVE_FAILED_MESSAGE);
     }
+    /* V-09: the unconfirmed set, in the same save, so it cannot lag the draft. */
+    if (value.broadcastUnconfirmed !== undefined && !(await writeBroadcastMarks(gate.supabase, value.id, value.broadcastUnconfirmed))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
 
     refreshAgentSurfaces();
     return ok({ id: value.id, status: existing.status });
@@ -408,17 +412,32 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     .single();
 
   if (error || !created) return fail(dbLimitRefusal(error) ?? SAVE_FAILED_MESSAGE);
-  if (!(await writeCompound(gate.supabase, created.id, gate.agentId, value))) {
-    return fail(SAVE_FAILED_MESSAGE);
-  }
-  if (!(await writeService(gate.supabase, created.id, gate.agentId, value))) {
-    return fail(SAVE_FAILED_MESSAGE);
-  }
-  if (!(await writeUnit(gate.supabase, created.id, gate.agentId, value))) {
-    return fail(SAVE_FAILED_MESSAGE);
-  }
-  if (!(await writeFlooding(gate.supabase, created.id, gate.agentId, value.flooding))) {
-    return fail(SAVE_FAILED_MESSAGE);
+  /* Every follow-up write belongs to the draft just made. If any fails, the
+     draft is taken back and the save fails, so a retry starts clean and no
+     half-written draft (above all one whose unchecked figures were not
+     recorded, V-09) is left behind. The marks go first. */
+  const followUps = [
+    () =>
+      value.broadcastUnconfirmed !== undefined && value.broadcastUnconfirmed.length > 0
+        ? writeBroadcastMarks(gate.supabase, created.id, value.broadcastUnconfirmed)
+        : Promise.resolve(true),
+    () => writeCompound(gate.supabase, created.id, gate.agentId, value),
+    () => writeService(gate.supabase, created.id, gate.agentId, value),
+    () => writeUnit(gate.supabase, created.id, gate.agentId, value),
+    () => writeFlooding(gate.supabase, created.id, gate.agentId, value.flooding),
+  ];
+  for (const write of followUps) {
+    if (!(await write())) {
+      const { error: rollbackError } = await gate.supabase
+        .from("listings")
+        .delete()
+        .eq("id", created.id)
+        .eq("agent_id", gate.agentId);
+      /* A draft left behind is harmless to the lister (it is theirs, and a
+         draft) but must not go unseen. */
+      if (rollbackError) console.warn(`[saveDraft] rollback of draft ${created.id} failed: ${rollbackError.message}`);
+      return fail(SAVE_FAILED_MESSAGE);
+    }
   }
 
   refreshAgentSurfaces();
@@ -1176,7 +1195,8 @@ export async function submitListing(input: {
      until a person has looked at it. The set is kept beside the draft on the
      server, so this holds on every device, not only the one that pasted. */
   const unconfirmed = await readBroadcastMarks(gate.supabase, listingId);
-  if (unconfirmed.some((key) => (BROADCAST_MONEY_KEYS as readonly string[]).includes(key))) {
+  /* Fails closed: a set we could not read is treated as unchecked. */
+  if (unconfirmed === null || unconfirmed.some((key) => (BROADCAST_MONEY_KEYS as readonly string[]).includes(key))) {
     return fail(getDictionary(await getLocale()).frontDoor.broadcast.unconfirmedOnServer);
   }
 

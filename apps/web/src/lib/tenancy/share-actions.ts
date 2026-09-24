@@ -47,6 +47,14 @@ const WORDS: Record<string, string> = {
 
 const uuid = z.uuid("That could not be identified.");
 
+/** One stored kobo figure under the caller's own session, or null. */
+async function storedMinor(supabase: SupabaseClient, table: string, key: string, column: string, id: string): Promise<number | null> {
+  const { data, error } = await supabase.from(table).select(column).eq(key, id).maybeSingle();
+  if (error || !data) return null;
+  const value = Number((data as unknown as Record<string, unknown>)[column]);
+  return Number.isSafeInteger(value) && value > 0 ? value : null;
+}
+
 export async function addRentContributor(input: {
   tenancyId: string;
   email: string;
@@ -127,13 +135,19 @@ export async function answerRentShare(input: {
   }
 }
 
-export async function payRentShare(input: { contributorId: string }): Promise<ActionResult<null>> {
-  const parsed = validate(z.object({ contributorId: uuid }), input);
+export async function payRentShare(input: { contributorId: string; stepUp?: string }): Promise<ActionResult<null>> {
+  const parsed = validate(z.object({ contributorId: uuid, stepUp: z.string().max(200).optional() }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const result = await callMoneyDoor({
     fn: "pay_rent_share",
     args: (userId) => ({ p_contributor: parsed.data.contributorId, p_payer: userId }),
     amountMinor: null,
+    // The proof is bound to the share as stored, read under the payer's own session.
+    intent: async (supabase) => {
+      const amountKobo = await storedMinor(supabase, "rent_payment_contributors", "id", "share_minor", parsed.data.contributorId);
+      return amountKobo === null ? null : { kind: "rent_share", target: parsed.data.contributorId, amountKobo };
+    },
+    stepUp: parsed.data.stepUp,
     action: "tenancy.share.paid",
     words: WORDS,
     detail: { contributor_id: parsed.data.contributorId },
@@ -144,13 +158,19 @@ export async function payRentShare(input: { contributorId: string }): Promise<Ac
   return ok(null);
 }
 
-export async function returnRentShare(input: { tenancyId: string; contributorId: string }): Promise<ActionResult<null>> {
-  const parsed = validate(z.object({ tenancyId: uuid, contributorId: uuid }), input);
+export async function returnRentShare(input: { tenancyId: string; contributorId: string; stepUp?: string }): Promise<ActionResult<null>> {
+  const parsed = validate(z.object({ tenancyId: uuid, contributorId: uuid, stepUp: z.string().max(200).optional() }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const result = await callMoneyDoor({
     fn: "return_rent_share",
     args: (userId) => ({ p_contributor: parsed.data.contributorId, p_lead: userId }),
     amountMinor: null,
+    // Bound to what was paid, read under the lead's own session.
+    intent: async (supabase) => {
+      const amountKobo = await storedMinor(supabase, "rent_share_payments", "contributor_id", "amount_minor", parsed.data.contributorId);
+      return amountKobo === null ? null : { kind: "rent_share_return", target: parsed.data.contributorId, amountKobo };
+    },
+    stepUp: parsed.data.stepUp,
     action: "tenancy.share.returned",
     words: WORDS,
     detail: { contributor_id: parsed.data.contributorId },

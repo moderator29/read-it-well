@@ -16,6 +16,7 @@ import { arrivalCheckEn } from "./arrival-check.en";
 /* The platform and the craft (devices, sign-in alert, wallet hold, feedback),
    in its own module for the same reason as Price Check. */
 import { platformEn } from "./platform.en";
+import { complianceEn } from "./compliance.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -3428,6 +3429,8 @@ export const en = {
         reviewing: "In review",
         resolved: "Resolved",
         dismissed: "Dismissed",
+        /* V-89: the reporter took it back. */
+        withdrawn: "Withdrawn by the reporter",
         pending: "Awaiting reply",
         closed: "Closed",
         DRAFT: "Draft",
@@ -6243,6 +6246,8 @@ export const en = {
   arrivalCheck: arrivalCheckEn,
 
   platform: platformEn,
+
+  compliance: complianceEn,
 
 };
 

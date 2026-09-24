@@ -7,6 +7,7 @@ import { createAdminClient } from "../supabase/admin";
 import { coarsenPoint } from "./address";
 import { isHeldAreaName, looksLikeAnAddress } from "./area-name";
 import { geohash5 } from "./geohash";
+import { publicAreaName } from "../share/public-text";
 import { areaSuggestions } from "./queries";
 import { insertPriceCheckWatch, priceCheckRpc } from "./rpc";
 import {
@@ -209,6 +210,12 @@ export async function shareAreaPrices(input: unknown): Promise<ActionResult<{ id
 
   const values = parsed.data;
 
+  /* RULE 10: a card names only a neighbourhood on the closed list, in its own
+     state, stored in the list's spelling. Checked at mint as well as at
+     render. */
+  const listedArea = values.area === undefined ? null : publicAreaName(values.area, values.stateCode);
+  if (values.area !== undefined && listedArea === null) return fail(SHARE_AREA_UNKNOWN);
+
   if (values.area !== undefined) {
     /* The shape rule first, because it needs no round trip and because it is
        the same rule the database applies, read a second time at a different
@@ -231,7 +238,7 @@ export async function shareAreaPrices(input: unknown): Promise<ActionResult<{ id
         p_scope: values.scope,
         p_state_code: values.stateCode,
         p_lga_code: values.lgaCode ?? null,
-        p_area: values.area ?? null,
+        p_area: listedArea,
         p_property_type: values.propertyType ?? null,
         p_listing_intent: values.listingIntent,
         p_bedrooms: values.bedrooms ?? null,

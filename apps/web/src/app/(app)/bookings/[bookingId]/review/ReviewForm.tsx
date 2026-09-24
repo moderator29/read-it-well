@@ -4,11 +4,46 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { submitReview, type ReviewWritten } from "@/lib/reviews/actions";
+import { sendOrKeep } from "@/lib/offline/send-or-keep";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
 import type { ReviewSubject } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { Button } from "@/components/ui/Button";
+
+/**
+ * V-40: the review goes now, or, with no signal, is kept and sent when the
+ * signal returns. A form missing its rating goes straight to the server, which
+ * says what is missing.
+ */
+async function sendReview(
+  prev: ActionResult<ReviewWritten> | null,
+  formData: FormData,
+  onKept: () => void,
+  couldNotKeep: string,
+): Promise<ActionResult<ReviewWritten> | null> {
+  const field = (key: string) => {
+    const value = formData.get(key);
+    return typeof value === "string" ? value : "";
+  };
+  const fields = {
+    bookingId: field("bookingId"),
+    rating: field("rating"),
+    ...(field("body").trim() ? { body: field("body") } : {}),
+  };
+  if (!fields.rating) return submitReview(prev, formData);
+  const done = await sendOrKeep("submit_review", fields, (tapKey) => {
+    formData.set("tapKey", tapKey);
+    return submitReview(prev, formData);
+  });
+  if (done.state === "kept") {
+    onKept();
+    return prev;
+  }
+  if (done.state === "not_kept") return { ok: false, error: couldNotKeep };
+  return done.result;
+}
 
 /**
  * The review form.
@@ -32,10 +67,12 @@ export function ReviewForm({
   plansAction: { label: string; href: string };
 }) {
   const router = useRouter();
+  const [kept, setKept] = useState(false);
+  const OUTBOX = useClientDictionary().platform.outbox;
   const [state, formAction, pending] = useActionState<
     ActionResult<ReviewWritten> | null,
     FormData
-  >(submitReview, null);
+  >((prev, formData) => sendReview(prev, formData, () => setKept(true), OUTBOX.couldNotKeep), null);
 
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState("");
@@ -59,6 +96,18 @@ export function ReviewForm({
           },
           { label: plansAction.label, href: plansAction.href, tone: "quiet" },
         ]}
+      />
+    );
+  }
+
+  if (kept) {
+    return (
+      <ResultScreen
+        state="pending"
+        mark="reviews"
+        verdict={OUTBOX.reviewKeptVerdict}
+        consequence={OUTBOX.waiting}
+        actions={[{ label: plansAction.label, href: plansAction.href, tone: "quiet" }]}
       />
     );
   }
