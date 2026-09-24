@@ -71,7 +71,21 @@ const SPELLED_CHAIN = new RegExp(`(?<![a-z])${DIGIT_TOKEN}(?:${CHAIN_SEP}${DIGIT
 /* Any short run of non-alphanumeric characters (up to five) joins digit
    groups: spaces, dots, commas, slashes, pipes, stars, tildes, semicolons,
    brackets, dashes. And "x", which people write between groups. */
-const RUN = /[+(]?[\dOo](?:[\dOo]|(?:[^\p{L}\p{N}\n]{1,5}|\s?x\s?)(?=[+(]?[\dOo]))*\)?/gu;
+/* Any run of non-alphanumeric characters joins digit groups, however long
+   ("0803 ------ 123"), and so do joining words ("0803 or 123 4567", "0803
+   and then 1234567"). A run that holds no contact is handed back exactly as
+   it was, so prices and dates keep their shape. Comma-grouped figures are set
+   aside before this runs (see stripContacts). */
+/* One or two short words between digit groups ("0803 or 123 4567", "0803
+   (my line) 123 4567", "0803 abc 123 4567"), up to three, still join
+   groups of three or more digits: a word is not a
+   separator a number needs, and only a join that reads as a whole mobile,
+   landline or account is ever removed. */
+const WORD_BRIDGE = "(?<=\\d{3})[^\\p{L}\\p{N}]*\\p{L}{1,8}(?:[^\\p{L}\\p{N}]+\\p{L}{1,8}){0,2}[^\\p{L}\\p{N}]*(?=[+(\\[{]?\\d{2})";
+const RUN = new RegExp(
+  `[+(]?\\d(?:\\d|(?:[^\\p{L}\\p{N}]+|\\s?x\\s?|${WORD_BRIDGE})(?=[+(\\[{]?\\d))*[)\\]}]?`,
+  "gu",
+);
 
 const MOBILE = /^(?:0|234|2340)[789][01]\d{8}$/;
 const LANDLINE = /^0[1-9]\d{6,8}$/;
@@ -88,9 +102,9 @@ type Group = { start: number; end: number; digits: string };
 
 function groupsOf(run: string): Group[] {
   const out: Group[] = [];
-  const re = /[\dOo]+/g;
+  const re = /\d+/g;
   for (const m of run.matchAll(re)) {
-    const digits = m[0].replace(/[Oo]/g, "0");
+    const digits = m[0];
     out.push({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length, digits });
   }
   return out;
@@ -109,23 +123,29 @@ export function stripContacts(message: string): { text: string; hits: ContactHit
   /* Every dash is a dash and an ellipsis is dots, so "0803\u2014123\u20144567"
      and "0803 ...123... 4567" are runs like any other. */
   text = text.replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, "-").replace(/\u2026/g, "...");
-  /* "0803 and 1234567", "0803 and then 1234567": two groups of digits joined
-     by words are still one number. Only between groups of three or more
-     digits, so "2 and 3 bedrooms" is untouched. */
-  text = text.replace(/(\d{3,})(?:\s+(?:and|then|or|plus|after|that|also)){1,3}\s+(?=\d{3,})/gi, "$1 ");
   /* Letters that stand in for digits inside a number: O for zero, I and l
      for one ("o8o3 i23 4567", "08O3l234567"). Only in a token made of
      digits and those letters that holds at least two real digits, so words
      are never touched. */
-  text = text.replace(/(?<![\p{L}\p{N}])[0-9oOiIlL]*\d[0-9oOiIlL]*\d[0-9oOiIlL]*(?![\p{L}\p{N}])/gu, (token) =>
-    token.replace(/[oO]/g, "0").replace(/[iIlL]/g, "1"),
+  text = text.replace(/(?<![\p{L}\p{N}])[0-9oOiIlLsS]*\d[0-9oOiIlLsS]*\d[0-9oOiIlLsS]*(?![\p{L}\p{N}])/gu, (token) =>
+    token.replace(/[oO]/g, "0").replace(/[iIlL]/g, "1").replace(/[sS]/g, "5"),
   );
+
+  /* A comma-grouped figure ("1,500,000") is money, never a phone or an
+     account: it is set aside whole before the runs are read, so no group
+     inside it can join a neighbour. Only a figure that starts 1 to 9 with
+     every later group exactly three digits; "080,312,..." is not one. */
+  const figures: string[] = [];
+  text = text.replace(/(?<![\d,.])[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?(?![\d,]\d)/g, (figure) => {
+    figures.push(figure);
+    return `\uE000${String(figures.length - 1).replace(/\d/g, (d) => "abcdefghij"[Number(d)]!)}\uE001`;
+  });
 
   /* 2. Spelled digit chains to digits. */
   text = text.replace(SPELLED_CHAIN, (chain) => {
     /* A chain of plain digits is left for the run reader below, so a price
        like "2500000" keeps its place in the sentence. */
-    if (!/[a-z]/i.test(chain)) return chain;
+    if (!/zero|oh|one|two|three|four|five|six|seven|eight|nine/i.test(chain)) return chain;
     const digits = chain
       .replace(/\b(?:and|then)\b/gi, " ")
       .replace(/zero|oh|one|two|three|four|five|six|seven|eight|nine/gi, (w) => DIGIT_WORDS[w.toLowerCase()] ?? w)
@@ -139,29 +159,49 @@ export function stripContacts(message: string): { text: string; hits: ContactHit
     const isMoney = /[₦#]\s?$|\bn\s?$|\bN\s?$/.test(before);
     const groups = groupsOf(run);
     if (groups.length === 0) return run;
-    /* Every group must hold at least one real digit to count; "Ooo" is a word. */
-    let best: { i: number; j: number; kind: "phone" | "account"; compact: string } | null = null;
-    for (let i = 0; i < groups.length; i++) {
-      let compact = "";
-      for (let j = i; j < groups.length; j++) {
-        compact += groups[j]!.digits;
-        if (compact.length > 14) break;
-        const kind = classify(compact);
-        if (!kind) continue;
-        if (kind === "account" && isMoney && i === 0) continue;
-        if (!best || j - i > best.j - best.i || compact.length > best.compact.length) best = { i, j, kind, compact };
+    /* Every stretch of whole groups that reads as a contact is taken, the
+       longest first, so "0803 123 4567 or 0803-123-4567" loses both. */
+    const used = new Array<boolean>(groups.length).fill(false);
+    const cuts: { from: number; to: number }[] = [];
+    for (;;) {
+      let best: { i: number; j: number; kind: "phone" | "account"; compact: string } | null = null;
+      for (let i = 0; i < groups.length; i++) {
+        let compact = "";
+        for (let j = i; j < groups.length; j++) {
+          if (used[j]) break;
+          compact += groups[j]!.digits;
+          if (compact.length > 14) break;
+          const kind = classify(compact);
+          if (!kind) continue;
+          if (kind === "account" && isMoney && i === 0) continue;
+          if (!best || j - i > best.j - best.i || compact.length > best.compact.length) best = { i, j, kind, compact };
+        }
       }
+      if (!best) break;
+      for (let k = best.i; k <= best.j; k++) used[k] = true;
+      const from = groups[best.i]!.start;
+      const to = groups[best.j]!.end;
+      /* The digit runs must be real digits in the majority: "Oooo 1" is not a number. */
+      const raw = run.slice(from, to);
+      if ((raw.match(/\d/g) ?? []).length < Math.ceil(best.compact.length * 0.6)) continue;
+      hits.push({ kind: best.kind, text: raw.trim() });
+      cuts.push({ from, to });
     }
-    if (!best) return run;
-    const from = groups[best.i]!.start;
-    const to = groups[best.j]!.end;
-    /* The digit runs must be real digits in the majority: "Oooo 1" is not a number. */
-    const raw = run.slice(from, to);
-    if ((raw.match(/\d/g) ?? []).length < Math.ceil(best.compact.length * 0.6)) return run;
-    hits.push({ kind: best.kind, text: raw.trim() });
-    const lead = run.slice(0, from).replace(/[+(]\s*$/, "");
-    const tail = run.slice(to).replace(/^\s*\)/, "");
-    return `${lead} ${CUT_MARK} ${tail}`;
+    if (cuts.length === 0) return run;
+    cuts.sort((a, b) => a.from - b.from);
+    let out = "";
+    let at = 0;
+    for (const cut of cuts) {
+      out += `${run.slice(at, cut.from).replace(/[+(]\s*$/, "")} ${CUT_MARK} `;
+      at = cut.to;
+      if (/^\s*[)\]}]/.test(run.slice(at))) at += run.slice(at).indexOf(run.slice(at).trimStart()[0]!) + 1;
+    }
+    return out + run.slice(at);
+  });
+
+  text = text.replace(/\uE000([a-j]+)\uE001/g, (_all, code: string) => {
+    const index = Number(code.replace(/[a-j]/g, (c) => String("abcdefghij".indexOf(c))));
+    return figures[index] ?? "";
   });
 
   /* 4a. Handles named by their platform. */

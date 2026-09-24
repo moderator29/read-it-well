@@ -149,3 +149,52 @@ describe("the second review's survivors (rv_a2c)", () => {
     }
   });
 });
+
+describe("the third review (rv_a2e)", () => {
+  const LEAD2 = "3 bedroom flat in Yaba, rent 2.5m. Very nice and clean house with good water. ";
+  it("never reads a comma-grouped price range as an account", () => {
+    for (const text of [
+      "3 bedroom flat in Yaba. Rent 1,500,000 - 2,000,000 per annum.",
+      "3 bedroom flat in Yaba. Rent 850,000 - 1,000,000 per annum.",
+      "3 bedroom flat in Yaba. Rent 1,200,000 / 1,500,000 per annum.",
+      "3 bedroom flat in Yaba. Rent 800,000 and 900,000 for top floor.",
+    ]) {
+      const parse = parseBroadcast(text);
+      expect(parse.cleaned, text).toContain(text.slice(text.indexOf("Rent"), text.indexOf(" per") > 0 ? text.indexOf(" per") : text.indexOf(" for")));
+      expect(parse.notCarried.some((n) => n.kind === "ambiguous"), text).toBe(true);
+      expect(parse.values.rentNaira, text).toBeUndefined();
+    }
+  });
+
+  it("keeps plain comma-grouped figures where they were", () => {
+    const text = "3 bedroom flat in Yaba. Rent 1,500,000, agency 150,000, legal 150,000, caution 200,000.";
+    expect(parseBroadcast(text).cleaned).toContain("agency 150,000, legal 150,000, caution 200,000");
+  });
+
+  for (const tail of [
+    "call 0803 ------ 123 4567",
+    "call 0803 ...... 123 ...... 4567",
+    "call 0803 - - - - - - 123 4567",
+    "call O8O3 I23 4S67",
+    "call 0803 (my line) 123 4567",
+    "call 0803 abc 123 4567",
+    "call 0803 hundred 23 4567",
+    "call 0803 123 4567 or 0803-123-4567",
+    "call 0803 {123} [4567]",
+  ]) {
+    it(tail, () => {
+      const parse = parseBroadcast(LEAD2 + tail);
+      const left = `${parse.cleaned} ${String(parse.values.description ?? "")}`;
+      expect(dialable(left).replace(/^3|25/g, "").length, left).toBeLessThan(4);
+      expect(parse.values.rentNaira, tail).toBe("2500000");
+    });
+  }
+
+  it("hands back two figures told apart only by a word", () => {
+    for (const text of ["3 bedroom flat in Yaba, rent min 2.5m max 3m.", "3 bedroom flat in Yaba, rent 2.5m (ground) 3m (top)."]) {
+      const parse = parseBroadcast(text);
+      expect(parse.values.rentNaira, text).toBeUndefined();
+      expect(parse.notCarried.some((n) => n.kind === "ambiguous"), text).toBe(true);
+    }
+  });
+});

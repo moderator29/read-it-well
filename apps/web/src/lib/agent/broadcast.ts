@@ -374,6 +374,10 @@ function tokens(clause: string, rejects: NotCarried[] = []): Token[] {
     const between = clause.slice(a.end, b.at);
     const range =
       /^\s*(?:-|\u2013|\u2014|~|to|or|and|\/)\s*$/i.test(between) ||
+      /* "min 2.5m max 3m", "2.5m (ground) 3m (top)": two figures for one
+         field, told apart only by a word. */
+      /^\s*(?:max(?:imum)?|up\s+to)\s*$/i.test(between) ||
+      /^\s*\([^()]{1,24}\)\s*$/.test(between) ||
       /* "between 2.5m and 3m" */
       (/^\s*and\s*$/i.test(between) && /\bbetween\s*(?:₦|n|#)?\s*$/i.test(clause.slice(0, a.at)));
     if (!range) continue;
