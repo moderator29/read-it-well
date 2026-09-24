@@ -57,16 +57,20 @@ const DIGIT_WORDS: Readonly<Record<string, string>> = {
 };
 
 const DIGIT_TOKEN = "(?:\\d|zero|oh|one|two|three|four|five|six|seven|eight|nine)";
-/** Seven or more digit tokens, glued or separated by spaces and dashes. */
-const SPELLED_CHAIN = new RegExp(`(?<![a-z])${DIGIT_TOKEN}(?:[\\s-]*${DIGIT_TOKEN}){6,}(?![a-z])`, "gi");
+/**
+ * Seven or more digit tokens, glued or separated by spaces, dashes, dots,
+ * commas, or "and" / "then" ("eight zero three, one two three, four ...").
+ */
+const CHAIN_SEP = "(?:[\\s,.-]|\\band\\b|\\bthen\\b)*";
+const SPELLED_CHAIN = new RegExp(`(?<![a-z])${DIGIT_TOKEN}(?:${CHAIN_SEP}${DIGIT_TOKEN}){6,}(?![a-z])`, "gi");
 
 /**
  * A run: digits (or O next to digits) joined by at most three separator
  * characters. Separators: space, dot, dash, slash, underscore, x, brackets.
  */
-const RUN = /[+(]?[\dOo](?:[\dOo]|[\s().\/_x+-]{1,3}(?=[+(]?[\dOo]))*\)?/g;
+const RUN = /[+(]?[\dOo](?:[\dOo]|[\s().\/_x+-]{1,5}(?=[+(]?[\dOo]))*\)?/g;
 
-const MOBILE = /^(?:0|234)[789][01]\d{8}$/;
+const MOBILE = /^(?:0|234|2340)[789][01]\d{8}$/;
 const LANDLINE = /^0[1-9]\d{6,8}$/;
 const ACCOUNT = /^\d{10}$/;
 
@@ -96,11 +100,25 @@ function groupsOf(run: string): Group[] {
 export function stripContacts(message: string): { text: string; hits: ContactHit[] } {
   const hits: ContactHit[] = [];
   let text = message.normalize("NFKC");
+  /* Every dash is a dash and an ellipsis is dots, so "0803—123—4567" and
+     "0803 ...123... 4567" are runs like any other. */
+  text = text.replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, "-").replace(/\u2026/g, "...");
+  /* "0803 and 1234567", "0803 and then 1234567": two groups of digits joined
+     by words are still one number. Only between groups of three or more
+     digits, so "2 and 3 bedrooms" is untouched. */
+  text = text.replace(/(\d{3,})\s+(?:and\s+then|and|then|plus)\s+(?=\d{3,})/gi, "$1 ");
 
   /* 2. Spelled digit chains to digits. */
-  text = text.replace(SPELLED_CHAIN, (chain) =>
-    chain.replace(/zero|oh|one|two|three|four|five|six|seven|eight|nine/gi, (w) => DIGIT_WORDS[w.toLowerCase()] ?? w),
-  );
+  text = text.replace(SPELLED_CHAIN, (chain) => {
+    /* A chain of plain digits is left for the run reader below, so a price
+       like "2500000" keeps its place in the sentence. */
+    if (!/[a-z]/i.test(chain)) return chain;
+    const digits = chain
+      .replace(/\b(?:and|then)\b/gi, " ")
+      .replace(/zero|oh|one|two|three|four|five|six|seven|eight|nine/gi, (w) => DIGIT_WORDS[w.toLowerCase()] ?? w)
+      .replace(/[^\d]/g, "");
+    return ` ${digits} `;
+  });
 
   /* 3. Runs of digits, examined group by group. */
   text = text.replace(RUN, (run, offset: number, whole: string) => {
@@ -114,7 +132,7 @@ export function stripContacts(message: string): { text: string; hits: ContactHit
       let compact = "";
       for (let j = i; j < groups.length; j++) {
         compact += groups[j]!.digits;
-        if (compact.length > 13) break;
+        if (compact.length > 14) break;
         const kind = classify(compact);
         if (!kind) continue;
         if (kind === "account" && isMoney && i === 0) continue;

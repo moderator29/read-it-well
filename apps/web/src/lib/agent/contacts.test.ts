@@ -86,3 +86,41 @@ describe("figures the reader will not guess at (review item 6)", () => {
     expect(letterO.notCarried).toContainEqual({ kind: "unreadable", text: "1O%" });
   });
 });
+
+describe("the second review's survivors (rv_a2c)", () => {
+  const LEAD2 = "3 bedroom flat in Yaba, rent 2.5m. Very nice and clean house with good water. ";
+  for (const tail of [
+    "Call 0803—123—4567",
+    "Follow instagram.com/vallohomes",
+    "tel eight zero three, one two three, four five six seven",
+    "call 0803 ...123... 4567",
+    "call 0803 and then 1234567",
+    "Whatsapp wa.me/2348031234567",
+    "call +234 (0) 803 123 4567",
+    "0803 _ 123 _ 4567",
+    "call 080 three 123 4567",
+    "t.me/vallohomes",
+    "@vallohomes on insta",
+    "ade [at] yahoo [dot] com",
+  ]) {
+    it(tail, () => {
+      const parse = parseBroadcast(LEAD2 + tail);
+      const left = `${parse.cleaned} ${String(parse.values.description ?? "")}`;
+      expect(dialable(left).replace(/^3|25/g, "").length, left).toBeLessThan(4);
+      expect(left).not.toMatch(/vallohomes|yahoo|\/[a-z]/i);
+      expect(parse.values.rentNaira, tail).toBe("2500000");
+    });
+  }
+
+  it("keeps a plain price where it was", () => {
+    expect(parseBroadcast("3 bedroom flat in Yaba, rent 2500000 per year").values.rentNaira).toBe("2500000");
+  });
+
+  it("hands back 'between X and Y' and 'from X to Y' as ranges", () => {
+    for (const text of ["3 bedroom flat in Yaba, rent between 2.5m and 3m.", "3 bedroom flat in Yaba, rent from 2.5m to 3m."]) {
+      const parse = parseBroadcast(text);
+      expect(parse.values.rentNaira, text).toBeUndefined();
+      expect(parse.notCarried.some((n) => n.kind === "ambiguous"), text).toBe(true);
+    }
+  });
+});

@@ -371,7 +371,12 @@ function tokens(clause: string, rejects: NotCarried[] = []): Token[] {
     const a = sorted[i]!;
     const b = sorted[i + 1]!;
     if (a.type !== "amount" || b.type !== "amount") continue;
-    if (!/^\s*(?:-|–|—|to|or|\/)\s*$/i.test(clause.slice(a.end, b.at))) continue;
+    const between = clause.slice(a.end, b.at);
+    const range =
+      /^\s*(?:-|–|—|to|or|\/)\s*$/i.test(between) ||
+      /* "between 2.5m and 3m" */
+      (/^\s*and\s*$/i.test(between) && /\bbetween\s*(?:₦|n|#)?\s*$/i.test(clause.slice(0, a.at)));
+    if (!range) continue;
     drop.add(a);
     drop.add(b);
     rejects.push({ kind: "ambiguous", text: clause.slice(a.at, b.end).trim() });
@@ -448,7 +453,11 @@ export function parseBroadcast(message: string): BroadcastParse {
   /* 1. Strip what must never be carried, and say what it was. Contacts are
         normalised first (`contacts.ts`), then the words that led up to each
         go with it, then the shapes below catch anything left. */
-  const stripped = stripContacts(message.replace(/\r/g, ""));
+  /* Links first, so "instagram.com/vallohomes" goes whole rather than
+     leaving "/vallohomes" behind once the handle reader has taken a word. */
+  const linked = message.replace(/\r/g, "");
+  for (const m of linked.matchAll(LINK)) notCarried.push({ kind: "link", text: m[0] });
+  const stripped = stripContacts(linked.replace(LINK, " "));
   for (const hit of stripped.hits) notCarried.push({ kind: hit.kind, text: hit.text });
   let text = stripped.text.replace(CONTACT_LEAD_TO_CUT, " ").replace(CUT_MARK_RE, " ");
   text = text.replace(CONTACT_LEAD, "");
