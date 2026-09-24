@@ -17,6 +17,7 @@ declare
   o_old  uuid;
   o_new  uuid;
   o_fail uuid;
+  pot    uuid;
   req_r  uuid;
   req_c  uuid;
   res    jsonb;
@@ -51,8 +52,17 @@ begin
   values (app_a, agent, 'identity', agent::text || '/probe-id.jpg');
   insert into public.agents (user_id, display_name) values (agent, 'Probe Agent');
 
-  -- The rich account has money in a savings pot.
-  insert into public.wallet_pots (user_id, name, balance_minor) values (rich, 'Rent pot', 250000);
+  -- The rich account has money in a savings pot, as the ledger records it:
+  -- a deposit, then the same amount moved into the pot.
+  insert into public.wallets (user_id) values (rich) on conflict (user_id) do nothing;
+  insert into public.wallet_pots (user_id, name) values (rich, 'Rent pot') returning id into pot;
+  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
+  select w.id, 'deposit', 'credit', 250000, 'PROBE-SEC13-D-' || gen_random_uuid(), 'COMPLETED'
+    from public.wallets w where w.user_id = rich;
+  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status, metadata)
+  select w.id, 'pot_hold', 'debit', 250000, 'PROBE-SEC13-P-' || gen_random_uuid(), 'COMPLETED',
+         jsonb_build_object('pot_id', pot)
+    from public.wallets w where w.user_id = rich;
 
   -- The clean account has device and behavioural rows the purge used to leave.
   insert into public.push_tokens (user_id, platform, token, p256dh, auth)
@@ -109,7 +119,7 @@ begin
   if (select display_name from public.profiles where id = rich) = 'Deleted account' then
     raise exception 'PROBE_FAIL sec-13: the parked account was scrubbed';
   end if;
-  if (select balance_minor from public.wallet_pots where user_id = rich) <> 250000 then
+  if private.pot_balance_minor(pot) <> 250000 then
     raise exception 'PROBE_FAIL sec-13: the pot changed';
   end if;
   select count(*) into n from public.risk_alerts
