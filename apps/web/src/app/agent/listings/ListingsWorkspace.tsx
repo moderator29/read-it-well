@@ -1,5 +1,6 @@
 "use client";
 
+import { DuplicateListing } from "./DuplicateListing";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -290,10 +291,13 @@ function ListingRow({
   onAction,
   onDelete,
   boardLabel,
+  duplicateCopy,
 }: {
   t: WorkspaceCopy;
   /** V-08: the board action's words, when the board is switched on. */
   boardLabel?: string;
+  /** V-29: "List another like this". */
+  duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
   /* The listing code's own namespace, shared with the search page and the
      public listing page so one set of words governs the code everywhere. */
   reference: Dictionary["listingReference"];
@@ -430,6 +434,7 @@ function ListingRow({
           <UiIcon name="calendar-booking" size={16} />
           Calendar
         </Link>
+        {duplicateCopy && <DuplicateListing listingId={listing.id} copy={duplicateCopy} />}
         {/* V-08: a board needs a code, and a code needs a published listing. */}
         {boardLabel && listing.reference && listing.status === "PUBLISHED" && (
           <Link
@@ -494,6 +499,7 @@ export function ListingsWorkspace({
   locale,
   query = "",
   boardLabel,
+  duplicateCopy,
 }: {
   t: WorkspaceCopy;
   reference: Dictionary["listingReference"];
@@ -506,6 +512,8 @@ export function ListingsWorkspace({
    * `feature_flags.listing_board` is on; absent, no row draws the action.
    */
   boardLabel?: string;
+  /** V-29, "List another like this". Absent in harnesses, which then draw no action. */
+  duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
 }) {
   /* The bar's search lands here with `?q=`, so it is a real narrowing and
      not a field that does nothing. */
@@ -639,6 +647,7 @@ export function ListingsWorkspace({
                     onAction={(kind, target) => setSheet({ kind, listing: target })}
                     onDelete={scheduleDelete}
                     boardLabel={boardLabel}
+                    duplicateCopy={duplicateCopy}
                   />
                 ),
               )}
