@@ -54,6 +54,8 @@ const RETIRED = [
   /you can move money to a Nigerian bank\s+account whenever you want/i,
   /From there, withdraw to your bank/i,
   /a withdrawal you have started is held out of what you can spend/i,
+  /move it to your Nigerian bank account from Wallet whenever you want/i,
+  /banks normally credit within minutes/i,
 ];
 
 describe("bank payouts are closed, and the copy says so (MON-04)", () => {

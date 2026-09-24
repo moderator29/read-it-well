@@ -1774,8 +1774,9 @@ export const CHAPTERS: DocChapter[] = [
               </li>
               <li>
                 <strong>Payout account.</strong> The Nigerian bank account your earnings
-                go to. We ask the bank whose account it is and store the name the bank
-                gave, not the one typed into the form.
+                {BANK_PAYOUTS_OPEN ? " go to" : " will be paid to once bank payouts open"}.
+                We ask the bank whose account it is and store the name the bank gave, not
+                the one typed into the form.
               </li>
               <li>
                 <strong>Review.</strong> Check it and submit.
