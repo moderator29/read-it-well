@@ -102,7 +102,7 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
   try {
     ({ data: held } = await (session.supabase as unknown as {
       rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown }>;
-    }).rpc("safety_hold_open", {}));
+    }).rpc("safety_hold_open", { p_listing: parsed.data.listingId }));
   } catch {
     /* A read that fails is not a hold; the trigger still refuses a held
        person's insert, so nothing is let through. */

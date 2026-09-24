@@ -13,8 +13,9 @@
 --   private.safety_holds
 --     one row per hold: who is held, who filed, the report, when, when it
 --     lapses, and when a moderator cleared it. While a hold is open the HELD
---     PERSON cannot REQUEST an inspection (a trigger refuses the insert; the
---     app says so first). Nothing stops anyone RECEIVING a request: a hold on
+--     PERSON cannot REQUEST an inspection of the FILER'S listings (a trigger
+--     refuses the insert; the app says so first). It does not follow them to
+--     anybody else's. Nothing stops anyone RECEIVING a request: a hold on
 --     an agent's inbound requests would let one report shut an agent's
 --     business, which is the lever V-63 must not hand anybody.
 --     A hold lapses after 72 hours unless a moderator extends it
@@ -59,9 +60,9 @@ create index if not exists safety_holds_open_idx on private.safety_holds (held_i
 revoke all on private.safety_holds from public, anon, authenticated;
 grant all on private.safety_holds to service_role;
 
-/* The one definition of an open hold, for the trigger and the caller's own
-   check. Private: nobody may ask it about somebody else. */
-create or replace function private.has_open_safety_hold(p_user uuid)
+/* The one definition of an open hold: THIS person held against THIS lister,
+   the one who filed it. Private: nobody may ask it about somebody else. */
+create or replace function private.has_open_safety_hold(p_user uuid, p_lister uuid)
 returns boolean
 language sql
 stable
@@ -69,28 +70,31 @@ security definer
 set search_path = ''
 as $$
   select exists (select 1 from private.safety_holds h
-                  where h.held_id = p_user and h.cleared_at is null and h.expires_at > now());
+                  where h.held_id = p_user and h.filed_by = p_lister
+                    and h.cleared_at is null and h.expires_at > now());
 $$;
 
-revoke all on function private.has_open_safety_hold(uuid) from public, anon, authenticated;
+revoke all on function private.has_open_safety_hold(uuid, uuid) from public, anon, authenticated;
 
-/* Am I on an open hold? Answers for the caller only, so it cannot be used to
-   learn whether somebody else was reported. */
-create or replace function public.safety_hold_open()
+/* Am I held against the lister of this listing? Answers for the caller only,
+   so it cannot be used to learn whether somebody else was reported. */
+create or replace function public.safety_hold_open(p_listing uuid)
 returns boolean
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select coalesce(private.has_open_safety_hold((select auth.uid())), false);
+  select coalesce(private.has_open_safety_hold(
+           (select auth.uid()),
+           (select a.user_id from public.listings l join public.agents a on a.id = l.agent_id where l.id = p_listing)), false);
 $$;
 
-comment on function public.safety_hold_open() is
-  'V-63. True while the caller is on an open safety hold. Takes no argument: it never answers about anybody else.';
+comment on function public.safety_hold_open(uuid) is
+  'V-63. True while the caller is on an open safety hold filed by the lister of this listing. Never answers about anybody else.';
 
-revoke all on function public.safety_hold_open() from public, anon;
-grant execute on function public.safety_hold_open() to authenticated;
+revoke all on function public.safety_hold_open(uuid) from public, anon;
+grant execute on function public.safety_hold_open(uuid) to authenticated;
 
 create or replace function public.feel_unsafe(p_conversation uuid, p_inspection uuid, p_block boolean)
 returns jsonb
@@ -106,6 +110,7 @@ declare
   v_target_id text;
   report uuid;
   escalated boolean := false;
+  previous text;
   may_hold boolean := false;
   held boolean := false;
 begin
@@ -141,11 +146,17 @@ begin
     values (me, v_target_type, v_target_id, 'unsafe', 'Filed from "I feel unsafe".')
     returning id into report;
   exception when unique_violation then
+    select r.category into previous from public.reports r
+     where r.reporter_id = me and r.target_type = v_target_type and r.target_id = v_target_id
+       and r.status in ('open'::public.report_status, 'reviewing'::public.report_status)
+     limit 1;
     update public.reports r set category = 'unsafe'
      where r.reporter_id = me and r.target_type = v_target_type and r.target_id = v_target_id
        and r.status in ('open'::public.report_status, 'reviewing'::public.report_status)
     returning r.id into report;
-    escalated := report is not null;
+    /* Only a real raise wakes the desk: pressing again on a report that is
+       already unsafe changes nothing. */
+    escalated := report is not null and previous is distinct from 'unsafe';
   end;
   if escalated then
     insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
@@ -277,8 +288,10 @@ security definer
 set search_path = ''
 as $$
 begin
-  /* The requester only. A hold never stops anybody receiving a request. */
-  if private.has_open_safety_hold(new.requester_id) then
+  /* The requester, and only toward the lister who filed the hold. A hold never
+     stops anybody receiving a request, and never follows the held person to
+     other listers. */
+  if private.has_open_safety_hold(new.requester_id, new.lister_id) then
     raise exception 'inspection requests are paused while Vallo looks at a safety report'
       using errcode = 'P0001', hint = 'safety_hold';
   end if;
@@ -298,7 +311,7 @@ declare bad text := '';
 begin
   if has_table_privilege('authenticated', 'private.safety_holds', 'select') then bad := bad || ' [holds are readable]'; end if;
   if has_function_privilege('anon', 'public.feel_unsafe(uuid, uuid, boolean)', 'execute') then bad := bad || ' [anon can file]'; end if;
-  if has_function_privilege('authenticated', 'private.has_open_safety_hold(uuid)', 'execute') then bad := bad || ' [holds can be tested for anyone]'; end if;
+  if has_function_privilege('authenticated', 'private.has_open_safety_hold(uuid, uuid)', 'execute') then bad := bad || ' [holds can be tested for anyone]'; end if;
   if bad <> '' then raise exception 'READ-BACK FAILED:%', bad; end if;
 end;
 $readback$;

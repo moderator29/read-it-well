@@ -389,9 +389,9 @@ export const trustVisibleEn = {
     call: "Call 112",
     callHint: "Nigeria's emergency number. If you are in danger, call now.",
     leave: "Leave and block",
-    leaveHint: "They can no longer message you and Vallo is told. If you have written to them here, their new inspection requests pause while a person here looks.",
+    leaveHint: "They can no longer message you and Vallo is told. If you have written to them here, their new inspection requests to you pause while a person here looks.",
     tell: "Tell Vallo",
-    tellHint: "A person here reads it {clock}. If you have written to them here, their new inspection requests pause until then.",
+    tellHint: "A person here reads it {clock}. If you have written to them here, their new inspection requests to you pause until then.",
     working: "One moment",
     /** `{clock}` is the promised time, e.g. "within 4 hours". */
     told: "Vallo has it. A person here reads it {clock}. Vallo does not tell them who reported them.",
@@ -400,9 +400,9 @@ export const trustVisibleEn = {
     notAParty: "This is not a conversation you are part of.",
     signedOut: "Sign in to tell Vallo. If you are in danger, call 112 now.",
     close: "Close",
-    held: "Inspection requests are paused on this account while Vallo looks at a safety report. A person here will be in touch.",
+    held: "Inspection requests to this lister are paused while Vallo looks at a safety report.",
     /** After filing, when the hold was placed. */
-    heldNote: "Their new inspection requests are paused while a person here looks. If they try, they are told requests are paused, never who asked.",
+    heldNote: "Their new inspection requests to you are paused while a person here looks. If they try, they are told requests are paused, never who asked.",
   },
   /** V-63: the report sheet's promise, read from the category's own clock. */
   report: {

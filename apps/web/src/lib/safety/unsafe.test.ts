@@ -49,16 +49,17 @@ describe("I feel unsafe (V-63)", () => {
     expect(action).not.toContain("phoneGateFor");
     expect(action).toContain('rpc("feel_unsafe"');
     const inspections = read("lib/inspections/actions.ts");
-    expect(inspections).toContain('rpc("safety_hold_open", {})');
+    expect(inspections).toContain('rpc("safety_hold_open", { p_listing: parsed.data.listingId })');
   });
 });
 
 describe("the hold, after review (V-63)", () => {
   it("never tests a hold for anybody but the caller, and pauses only the person asking", () => {
     const sql = read("../../../supabase/migrations/20260924131400_v63_i_feel_unsafe.sql");
-    expect(sql).toContain("create or replace function public.safety_hold_open()");
+    expect(sql).toContain("create or replace function public.safety_hold_open(p_listing uuid)");
     expect(sql).not.toContain("public.safety_hold_open(p_user uuid)");
-    expect(sql).toContain("if private.has_open_safety_hold(new.requester_id) then");
+    expect(sql).toContain("if private.has_open_safety_hold(new.requester_id, new.lister_id) then");
+    expect(sql).toContain("escalated := report is not null and previous is distinct from 'unsafe';");
     expect(sql).not.toContain("h.held_id in (new.requester_id, new.lister_id)");
     expect(sql).toContain("expires_at  timestamptz not null default now() + interval '72 hours'");
     expect(sql).toContain("m.sender_id = me");
