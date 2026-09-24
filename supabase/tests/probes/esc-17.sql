@@ -11,15 +11,15 @@ declare
 begin
   -- A confirmed stay that checked out yesterday in Lagos does not hold the
   -- account open. Bookings cannot be made in the past, so it is moved back
-  -- with the pricing trigger set aside.
+  -- with triggers set aside for that one update (no table lock).
   update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
   set local timezone = 'Etc/GMT+12';
   before_n := (private.deletion_money_blockers(member) ->> 'active_bookings')::int;
   insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
   values (stay, member, lagos_today + 200, lagos_today + 202, 2, 1, 2, 2, 'CONFIRMED') returning id into bk;
-  alter table public.bookings disable trigger bookings_priced_by_the_listing;
+  set local session_replication_role = replica;
   update public.bookings set check_in = lagos_today - 3, check_out = lagos_today - 1 where id = bk;
-  alter table public.bookings enable trigger bookings_priced_by_the_listing;
+  set local session_replication_role = origin;
   after_n := (private.deletion_money_blockers(member) ->> 'active_bookings')::int;
   if after_n <> before_n then
     raise exception 'PROBE_FAIL esc-17: a stay that checked out yesterday in Lagos still blocks deletion (session zone UTC-12)';
