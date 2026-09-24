@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { AcceptTerms } from "./AcceptTerms";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
@@ -208,12 +208,23 @@ export function EmailAuthForm({
       <form
         action={formAction}
         onSubmit={(e) => {
+          /* UX-14: the action is dispatched here rather than by `<form
+             action>`, because React resets a form after a `<form action>`
+             submission completes, refusal included. Controlled text fields
+             survive that; the terms tick and the "where did you hear" select
+             did not, so a person fixing one named error was refused again on
+             two answers they had given. A dispatch from here is not followed
+             by a reset, so every answer stays. `action` above still serves a
+             submit made before the page has hydrated. */
+          e.preventDefault();
           /* Sign up only. Signing in is not the moment somebody agrees to
              anything: they agreed when they made the account. */
           if (isSignUp && !accepted) {
-            e.preventDefault();
             setAcceptError(true);
+            return;
           }
+          const data = new FormData(e.currentTarget);
+          startTransition(() => formAction(data));
         }}
         className={isSignUp ? "text-left" : "space-y-md text-left"}
         noValidate
