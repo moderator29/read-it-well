@@ -155,7 +155,7 @@ const FAQS: Faq[] = [
     /* This answer used to promise card reversals in three to ten business
        days. Refunds do not go back to a card: they land in the wallet, which
        is what the docs, the cancellation policy and the product itself say. */
-    a: "A refund lands in your Vallo wallet, usually within minutes of the decision. Moving it from the wallet to your bank is an ordinary withdrawal and takes as long as your bank takes. If nothing has appeared in your wallet statement, contact support with your booking reference.",
+    a: "A refund is due in your Vallo wallet within five Nigerian business days of the decision, and your booking shows the exact date it is due by. Moving it from the wallet to your bank is an ordinary withdrawal and takes as long as your bank takes. If nothing has appeared in your wallet statement, contact support with your booking reference.",
   },
 
   // ------------------------------------------------------------ listing
