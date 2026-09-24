@@ -42,18 +42,21 @@ describe("the tenancy review (V-59)", () => {
   it("publishes N only, never how many answered, and nothing at zero", () => {
     const copy = getDictionary("en").trustVisible.tenancy;
     expect(doorHonestyLine(9, copy)).toBe("Moved in for the Vallo price: 9 tenants said nothing more was asked at the door.");
-    expect(doorHonestyLine(1, copy)).toContain("1 tenant said");
+    expect(doorHonestyLine(5, copy)).toContain("5 tenants said");
+    expect(doorHonestyLine(4, copy)).toBeNull();
+    expect(doorHonestyLine(1, copy)).toBeNull();
     expect(doorHonestyLine(0, copy)).toBeNull();
     expect(doorHonestyLine(null, copy)).toBeNull();
     expect(copy.doorMany).not.toContain("{total}");
   });
 
-  it("is published by the database only once five tenants have answered", () => {
+  it("is published by the database only once five tenants said nothing more was asked", () => {
     const sql = readFileSync(
       join(__dirname, "../../../../../supabase/migrations/20260924130900_v59_the_rental_review_asks_about_the_door.sql"),
       "utf8",
     );
-    expect(sql).toContain("having count(*) >= 5");
+    expect(sql).toContain("having count(*) filter (where t.paid_extra = 'no') >= 5;");
+    expect(sql).not.toContain("having count(*) >= 5");
     expect(sql).not.toMatch(/count\(\*\)::integer as answered/);
   });
 
