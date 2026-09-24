@@ -57,3 +57,30 @@ export async function answerArrivalCheck(input: {
   }
   return fail(copy.failed);
 }
+
+/**
+ * V-91, for staff: the desk's ruling on an arrival report, recorded on the
+ * check itself so the settlement sweep's `arrival_report_open` sees it even
+ * when an older refund ask on the booking was already decided. The database
+ * refuses a non-staff caller, a second ruling, and an as-listed answer.
+ */
+export async function ruleArrivalCheck(input: {
+  bookingId: string;
+  ruling: string;
+}): Promise<ActionResult<{ state: "ruled" | "none" }>> {
+  const copy = getDictionary(await getLocale()).arrivalCheck.admin;
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  const parsed = z.object({ bookingId: z.string().uuid(), ruling: z.enum(["upheld", "declined"]) }).safeParse(input);
+  if (!parsed.success) return fail(copy.ruleFailed);
+  const db = session.supabase as unknown as SupabaseClient;
+  const { data, error } = await db.rpc("rule_arrival_check", {
+    p_booking: parsed.data.bookingId,
+    p_ruling: parsed.data.ruling,
+  });
+  if (error) return fail(copy.ruleFailed);
+  revalidatePath(`/admin/bookings/${parsed.data.bookingId}`);
+  const state = (data as { state?: unknown } | null)?.state;
+  return ok({ state: state === "ruled" ? "ruled" : "none" });
+}

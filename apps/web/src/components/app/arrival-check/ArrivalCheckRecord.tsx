@@ -1,5 +1,6 @@
 import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
 import { readArrivalCheckRecord } from "@/lib/stays/arrival-check-queries";
+import { ArrivalRuling } from "./ArrivalRuling";
 
 /**
  * V-91, IN THE CONSOLE: what the guest answered on arrival, with the photos.
@@ -37,6 +38,17 @@ export async function ArrivalCheckRecord({ bookingId, locale }: { bookingId: str
           {record.note}
         </p>
       )}
+      {record.answer !== "as_listed" &&
+        (record.ruling && record.ruledAt ? (
+          <p className="nf-body-sm mt-xs font-medium">
+            {(record.ruling === "upheld" ? copy.admin.ruledUpheld : copy.admin.ruledDeclined).replace(
+              "{when}",
+              formatDate(new Date(record.ruledAt), locale, { day: "numeric", month: "short", timeZone: "Africa/Lagos" }),
+            )}
+          </p>
+        ) : (
+          <ArrivalRuling bookingId={bookingId} copy={copy.admin} />
+        ))}
       {record.photoUrls.length > 0 && (
         <ul className="mt-sm grid grid-cols-3 gap-xs">
           {record.photoUrls.map((url, index) => (

@@ -41,5 +41,10 @@ export const arrivalCheckEn = {
     reported: "The guest reported: {reason}.",
     photos: "Photo {n}",
     note: "Guest's note",
+    uphold: "Uphold the report",
+    decline: "Decline the report",
+    ruledUpheld: "Upheld on {when}.",
+    ruledDeclined: "Declined on {when}.",
+    ruleFailed: "The ruling was not saved. Try again.",
   },
 } as const;

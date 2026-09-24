@@ -38,6 +38,9 @@ export type ArrivalCheckRecord = {
   answeredAt: string;
   reference: string | null;
   photoUrls: string[];
+  /** The desk's ruling on a report, once made. */
+  ruling: "upheld" | "declined" | null;
+  ruledAt: string | null;
 };
 
 /** For staff: the answer and short-lived links to its photos. Null when none. */
@@ -49,12 +52,20 @@ export async function readArrivalCheckRecord(
     if (!db) return "unavailable";
     const { data, error } = await db
       .from("booking_arrival_checks")
-      .select("answer, note, answered_at, ticket_ref, photo_paths")
+      .select("answer, note, answered_at, ticket_ref, photo_paths, ruling, ruled_at")
       .eq("booking_id", bookingId)
       .maybeSingle();
     if (error) return "unavailable";
     if (!data) return null;
-    const row = data as { answer?: unknown; note?: unknown; answered_at?: unknown; ticket_ref?: unknown; photo_paths?: unknown };
+    const row = data as {
+      answer?: unknown;
+      note?: unknown;
+      answered_at?: unknown;
+      ticket_ref?: unknown;
+      photo_paths?: unknown;
+      ruling?: unknown;
+      ruled_at?: unknown;
+    };
     if (!isArrivalAnswer(row.answer) || typeof row.answered_at !== "string") return "unavailable";
     const paths = Array.isArray(row.photo_paths) ? row.photo_paths.filter((p): p is string => typeof p === "string") : [];
     let photoUrls: string[] = [];
@@ -68,6 +79,8 @@ export async function readArrivalCheckRecord(
       answeredAt: row.answered_at,
       reference: typeof row.ticket_ref === "string" ? row.ticket_ref : null,
       photoUrls,
+      ruling: row.ruling === "upheld" || row.ruling === "declined" ? row.ruling : null,
+      ruledAt: typeof row.ruled_at === "string" ? row.ruled_at : null,
     };
   } catch {
     return "unavailable";
