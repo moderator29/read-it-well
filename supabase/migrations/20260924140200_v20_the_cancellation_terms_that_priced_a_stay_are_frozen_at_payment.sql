@@ -105,12 +105,27 @@ begin
   if tg_op = 'UPDATE' and old.status = 'SUCCESSFUL' then
     return new;
   end if;
-  if exists (select 1 from public.rent_payments rp where rp.booking_id = new.booking_id) then
-    return new;
-  end if;
-  insert into public.booking_cancellation_terms (booking_id, source, terms)
-  values (new.booking_id, 'platform_schedule_v1', private.platform_cancellation_terms_v1())
-  on conflict (booking_id) do nothing;
+  -- THIS RUNS INSIDE THE SETTLEMENT TRANSACTION AND MAY NEVER RAISE. Any
+  -- failure is caught and recorded as an alert, and the payment settles
+  -- exactly as it would have without this file. A booking with no frozen row
+  -- is priced under the platform schedule, which is what it was paid under.
+  begin
+    if exists (select 1 from public.rent_payments rp where rp.booking_id = new.booking_id) then
+      return new;
+    end if;
+    insert into public.booking_cancellation_terms (booking_id, source, terms)
+    values (new.booking_id, 'platform_schedule_v1', private.platform_cancellation_terms_v1())
+    on conflict (booking_id) do nothing;
+  exception when others then
+    begin
+      insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
+      values ('medium', 'open', 'Cancellation terms were not frozen at payment',
+              format('Booking %s settled but its terms row was not written: %s', new.booking_id, sqlerrm),
+              'booking', new.booking_id::text);
+    exception when others then
+      null;
+    end;
+  end;
   return new;
 end;
 $function$;

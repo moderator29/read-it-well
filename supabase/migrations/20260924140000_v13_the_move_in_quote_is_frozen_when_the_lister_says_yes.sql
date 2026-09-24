@@ -170,17 +170,31 @@ begin
     return new;
   end if;
 
-  insert into public.move_in_quotes (
-    inspection_id, listing_id, tenant_id, lister_id, rent_period,
-    rent_minor, caution_minor, service_minor, agency_minor, legal_minor, agreement_minor,
-    total_minor, total_stated
-  ) values (
-    new.id, lst.id, new.requester_id, new.lister_id, coalesce(lst.rent_period, 'year'),
-    lst.rent_amount_minor, lst.caution_deposit_minor, lst.service_charge_minor,
-    lst.agency_fee_minor, lst.legal_fee_minor, lst.agreement_fee_minor,
-    total, stated
-  )
-  on conflict (inspection_id) do nothing;
+  -- A failed freeze must never refuse the lister's yes. It is caught and
+  -- recorded as an alert; the charge then falls back to the listing's figure,
+  -- which is exactly what it charged before this file.
+  begin
+    insert into public.move_in_quotes (
+      inspection_id, listing_id, tenant_id, lister_id, rent_period,
+      rent_minor, caution_minor, service_minor, agency_minor, legal_minor, agreement_minor,
+      total_minor, total_stated
+    ) values (
+      new.id, lst.id, new.requester_id, new.lister_id, coalesce(lst.rent_period, 'year'),
+      lst.rent_amount_minor, lst.caution_deposit_minor, lst.service_charge_minor,
+      lst.agency_fee_minor, lst.legal_fee_minor, lst.agreement_fee_minor,
+      total, stated
+    )
+    on conflict (inspection_id) do nothing;
+  exception when others then
+    begin
+      insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
+      values ('medium', 'open', 'A move-in quote could not be frozen',
+              format('Inspection %s was accepted but its quote was not written: %s', new.id, sqlerrm),
+              'inspection_request', new.id::text);
+    exception when others then
+      null;
+    end;
+  end;
 
   return new;
 end;
@@ -393,7 +407,14 @@ $function$;
 
 revoke all on function private.rent_payments_honour_the_quote() from public, anon, authenticated;
 
+-- NARROWED TO THE MONEY COLUMNS. The guard fires on an insert and on an
+-- update that touches a part or the total, which only the charge-opening door
+-- does. A settlement, a status stamp or any other write to `rent_payments`
+-- that leaves the figure alone never reaches it, so it cannot raise inside a
+-- settlement transaction.
 drop trigger if exists rent_payments_honour_the_quote on public.rent_payments;
 create trigger rent_payments_honour_the_quote
-  before insert or update on public.rent_payments
+  before insert or update of total_minor, rent_minor, caution_minor, service_minor,
+                             agency_minor, legal_minor, agreement_minor
+  on public.rent_payments
   for each row execute function private.rent_payments_honour_the_quote();

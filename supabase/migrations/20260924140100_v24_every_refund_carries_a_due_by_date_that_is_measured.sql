@@ -19,7 +19,8 @@
 -- audit session. A BEFORE INSERT trigger stamps `due_by` on whatever row they
 -- write without a line of theirs changing. The append-only guard on
 -- `booking_refunds` refuses UPDATE and DELETE, never INSERT, and the trigger
--- only ever sets the new row's own column.
+-- only ever sets the new row's own column, and it catches its own failure
+-- so it can never raise inside the refund's transaction.
 --
 -- LANDED IS NOT A COLUMN. Whether the refund reached the wallet is the linked
 -- wallet entry's own status, which is the only honest answer; a copy of it here
@@ -100,7 +101,14 @@ language plpgsql
 set search_path to 'pg_catalog', 'public'
 as $function$
 begin
-  new.due_by := private.business_days_after(coalesce(new.created_at, now()), 5);
+  -- Runs inside the refund's own transaction, so it may never raise: a date
+  -- that cannot be computed is left null and the alert job treats a null
+  -- due-by as nothing to measure, rather than the refund being refused.
+  begin
+    new.due_by := private.business_days_after(coalesce(new.created_at, now()), 5);
+  exception when others then
+    new.due_by := null;
+  end;
   return new;
 end;
 $function$;
