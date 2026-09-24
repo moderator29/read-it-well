@@ -74,7 +74,7 @@ function fakeClient(answers: Record<string, Answer>, writes: Write[]) {
       let op: "insert" | "update" | "select" = "select";
       const chain: Record<string, unknown> = {};
       const settle = (): Answer => answers[`${table}:${op}`] ?? { data: null, error: null };
-      for (const method of ["select", "eq", "neq", "order", "limit"]) {
+      for (const method of ["select", "eq", "neq", "in", "order", "limit"]) {
         chain[method] = () => chain;
       }
       chain["insert"] = (payload: Record<string, unknown>) => {

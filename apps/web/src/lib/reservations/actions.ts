@@ -281,9 +281,11 @@ export async function respondToReservation(
  *
  * Separate from the host's decision even though both write CANCELLED, because
  * they are scoped by different policies and mean different things. This one is
- * allowed at any status: somebody who cannot come should be able to say so
- * whether or not the restaurant has answered yet, and a confirmed table nobody
- * releases is a table the restaurant loses. The word goes into the thread too,
+ * allowed while the table is still ahead, PENDING or CONFIRMED: somebody who
+ * cannot come should be able to say so whether or not the restaurant has
+ * answered yet, and a confirmed table nobody releases is a table the
+ * restaurant loses. A finished table (completed or a no-show) is the venue's
+ * record and is not rewritten; the database refuses it as well. The word goes into the thread too,
  * so the venue reads it where they read everything else about this table.
  */
 export async function cancelReservation(
@@ -309,12 +311,12 @@ export async function cancelReservation(
     .update({ status: cancelled, responded_at: new Date().toISOString() })
     .eq("id", id)
     .eq("guest_id", session.user.id)
-    .neq("status", cancelled)
+    .in("status", ["PENDING", "CONFIRMED"])
     .select("id, party_size, reserved_for, conversation_id")
     .maybeSingle();
 
   if (error) return fail("That could not be cancelled. Try again.");
-  if (!data) return fail("That reservation is already cancelled.");
+  if (!data) return fail("That reservation is already cancelled or has already happened.");
 
   const conversationId = await speakInThread(
     data.id,
