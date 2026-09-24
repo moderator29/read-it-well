@@ -122,12 +122,12 @@ export const CHAPTERS: DocChapter[] = [
                   Search
                 </Link>{" "}
                 and{" "}
-                <Link href="/rent" className={A}>
+                <Link href="/search?market=rent" className={A}>
                   Rent
                 </Link>
                 , listings, agents, inspections and{" "}
-                <Link href="/bookings" className={A}>
-                  Bookings
+                <Link href="/bookings?side=property&from=property" className={A}>
+                  Plans
                 </Link>
                 . Prices are a sale price or a yearly rent with the move-in total
                 printed under it.
@@ -142,8 +142,8 @@ export const CHAPTERS: DocChapter[] = [
                   Restaurants
                 </Link>{" "}
                 and{" "}
-                <Link href="/trips" className={A}>
-                  Trips
+                <Link href="/bookings?side=stays&from=stays" className={A}>
+                  Plans
                 </Link>
                 . Prices are per night, against dates and a party size.
               </li>
@@ -153,9 +153,8 @@ export const CHAPTERS: DocChapter[] = [
               switch sits at the foot of the side drawer, and flipping it changes the
               vocabulary and the bottom bar, not your account: the same profile, the
               same wallet, the same balance, the same inbox and the same saved places.
-              Bookings is the Property side&apos;s word for what is coming up, and
-              Trips is the Stays side&apos;s word for it. A table you hold and a room
-              you book both land in Trips.
+              Plans is one dated list of everything you have lined up on both sides:
+              inspections, move-ins, stays and tables, in the order they happen.
             </p>
           </>
         ),
@@ -284,11 +283,11 @@ export const CHAPTERS: DocChapter[] = [
             <ul>
               <li>
                 <strong>The platform.</strong> Home, Search, Stays, Restaurants,
-                Around, Saved, Bookings and Trips, Wallet, Inbox, Notifications, the
+                Around, Saved, Plans, Wallet, Inbox, Notifications, the
                 assistant, your profile and Settings.
               </li>
               <li>
-                <strong>Agent Mode.</strong> A separate workspace at{" "}
+                <strong>The agent workspace.</strong> A separate workspace at{" "}
                 <code>/agent</code> for listings, the calendar, bookings, earnings,
                 reviews and verification. You switch into it once your application is
                 approved.
@@ -441,9 +440,9 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               A handle is your address on Vallo. Claim one and your public page lives at{" "}
-              <code>/u/your-handle</code>: your name, your area, your occupation, any
-              standing you have earned, and tabs for what you have posted, replied to
-              and shared. An agent gets a Properties tab and a Reviews tab instead.
+              <code>/u/your-handle</code>: your name, your area, any standing you have
+              earned, your occupation and home town only if you switch each one on
+              under Privacy, and tabs for what you have posted, replied to and shared. An agent gets a Properties tab and a Reviews tab instead.
             </p>
             <p>
               Handles are lowercase letters, digits and underscores, three to twenty
@@ -889,9 +888,9 @@ export const CHAPTERS: DocChapter[] = [
               stays inside the platform where it can be protected.
             </p>
             <p>
-              The rent market has its own front door at{" "}
-              <Link href="/rent" className={A}>
-                /rent
+              The rent market is{" "}
+              <Link href="/search?market=rent" className={A}>
+                search, set to Rent
               </Link>
               . Never hand over cash at an inspection, and never pay into an account
               number somebody sends you. Read{" "}
@@ -1131,7 +1130,7 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               On the Stays side the same list is called{" "}
-              <Link href="/trips" className={A}>
+              <Link href="/bookings?side=stays&from=stays" className={A}>
                 Trips
               </Link>
               , and it is arranged by date rather than by status: what is happening
@@ -1812,7 +1811,7 @@ export const CHAPTERS: DocChapter[] = [
               <Link href="/agent/verification" className={A}>
                 Verification
               </Link>{" "}
-              in Agent Mode.
+              in the agent workspace.
             </p>
           </>
         ),

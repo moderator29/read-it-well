@@ -91,8 +91,8 @@ describe("the console map", () => {
   it("orphans no working desk: every route folder under app/admin is on the map", () => {
     const hrefs = new Set(ADMIN_NAV.map((d) => d.href));
     const desks = [
-      "agents", "alerts", "audit", "bookings", "businesses", "escrow", "examples", "fees", "flags",
-      "kyc", "listings", "moderation", "money", "payments", "queue", "reference", "reports",
+      "agents", "alerts", "audit", "bookings", "businesses", "escrow", "examples", "fees",
+      "kyc", "listings", "money", "payments", "queue", "reference",
       "social", "standing", "stops", "support", "switches", "operations", "analytics", "settings", "supply",
     ];
     for (const desk of desks) expect(hrefs.has(`/admin/${desk}`)).toBe(true);
@@ -100,7 +100,7 @@ describe("the console map", () => {
   });
   it("lights a parent while one of its desks is open", () => {
     const moderation = ADMIN_PRIMARY.find((d) => d.key === "moderation")!;
-    expect(isSectionActive("/admin/flags", moderation)).toBe(true);
+    expect(isSectionActive("/admin/standing", moderation)).toBe(true);
     expect(isActiveHref("/admin", "/admin")).toBe(true);
     expect(isActiveHref("/admin/listings/abc", "/admin")).toBe(false);
     expect(currentDestination("/admin/audit")?.label).toBe("Audit log");

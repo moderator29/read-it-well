@@ -158,7 +158,6 @@ async function requestInspectionWork(
 
   revalidatePath(`/listing/${parsed.data.listingId}`);
   revalidatePath("/bookings");
-  revalidatePath("/inspections");
   if (thread.ok) revalidatePath(`/messages/${thread.data.conversationId}`);
   return ok({ id: data.id });
 }
@@ -221,7 +220,7 @@ export async function answerInspection(input: unknown): Promise<ActionResult<nul
 
   revalidatePath("/agent/dashboard");
   revalidatePath("/agent/inspections");
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   revalidatePath(`/listing/${existing.data.listing_id}`);
   return ok(null);
 }
@@ -251,7 +250,6 @@ export async function acceptProposedTime(input: unknown): Promise<ActionResult<n
   if (error) return fail(refusalMessage(error.message));
 
   revalidatePath("/bookings");
-  revalidatePath("/inspections");
   return ok(null);
 }
 
@@ -294,7 +292,6 @@ export async function closeInspection(input: unknown): Promise<ActionResult<null
   if (error) return fail(refusalMessage(error.message));
 
   revalidatePath("/bookings");
-  revalidatePath("/inspections");
   revalidatePath("/agent/dashboard");
   revalidatePath("/agent/inspections");
   return ok(null);
@@ -423,7 +420,6 @@ export async function saveInspectionReport(
   const saved = await readReport(db, inspectionId);
   if (!saved) return fail("We saved that but could not read it back. Refresh to see where it stands.");
 
-  revalidatePath("/inspections");
   revalidatePath("/bookings");
   revalidatePath("/agent/inspections");
   return ok(saved);
@@ -533,7 +529,7 @@ export async function addReportPhoto(input: unknown): Promise<ActionResult<Repor
     return fail(reportRefusal(error?.message ?? ""));
   }
 
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   revalidatePath("/agent/inspections");
   return ok({
     id: data.id,

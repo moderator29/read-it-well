@@ -18,7 +18,10 @@ What is live, verified against the database on 2026-08-09:
 The shipped codes are `verified_agent`, `first_listing`, `fast_responder`,
 `ten_stays`, `estate_specialist`, `photo_pro`, `vallo_elite` on the agent side,
 and `verified_member`, `first_stay`, `year_one`, `honest_reviewer`, `neighbour`,
-`guardian`, `local_guide`, `top_contributor` on the member side. The design below
+`local_guide`, `top_contributor` on the member side. `guardian` was also
+shipped and was deleted on 24 September 2026 (V-27, migration
+`20260924150000_v27_the_guardian_badge_is_deleted`): a public mark of who
+reports others broke the report sheet's promise that reporters are never named. The design below
 proposed nine agent badges and eight member badges; two agent ones
 (`Inspection Champion`, `Five Star Streak`) and one member one (`Connector`) were
 not built, and `top_contributor` was added as the manual-only grant.
@@ -95,7 +98,7 @@ member badge so nobody confuses "is an agent" with "is good at it".
 | Local Guide | `map-route` | Twenty five Helpful on Ask posts within one hub |
 | Honest Reviewer | `reviews` | Five reviews written after real completed stays |
 | Connector | `chat-duo` | Ten accepted link ups |
-| Guardian | `shield-home` | Three reports upheld by a moderator |
+| ~~Guardian~~ | `shield-home` | Deleted (V-27). Upheld reports stay a private triage input |
 | Year One | `gift-star` | One year since joining |
 
 Local Guide is the one to watch. It is scoped to a **single hub**, so it says

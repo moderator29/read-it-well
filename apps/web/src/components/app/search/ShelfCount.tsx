@@ -33,8 +33,10 @@ export function ShelfCount({
       ? t.moveIn.basisPrice
       : currentBasis === "move-in"
         ? t.moveIn.basisMoveIn
-        : currentBasis === "fees"
-          ? t.trustVisible.fees.sortBasis
+        : currentBasis === "listed"
+          ? t.shape.listed.basis
+          : currentBasis === "fees"
+            ? t.trustVisible.fees.sortBasis
           : null;
   const line =
     count === 0
@@ -90,7 +92,7 @@ export function ShelfCount({
         <details className="nf-shelf-sort shrink-0" data-testid="sort-control">
           <summary>
             <UiIcon name="sliders" size={14} />
-            {current.short ?? current.label}
+            {t.shape.sorts[current.key]}
             <UiIcon name="chevron-down" size={14} />
           </summary>
           <ul className="nf-shelf-sort__menu" aria-label={copy.sort}>
@@ -104,7 +106,7 @@ export function ShelfCount({
                     aria-current={active ? "true" : undefined}
                     className="nf-shelf-sort__item"
                   >
-                    {sort.label}
+                    {t.shape.sorts[sort.key]}
                     {active && <UiIcon name="verified" size={14} />}
                   </Link>
                 </li>

@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
-import { getLocale } from "@/lib/locale";
-import { HostShell } from "@/components/host/HostShell";
-import { StaysDoors } from "@/components/host/StaysDoors";
+import { permanentRedirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Add a workspace",
@@ -24,11 +21,9 @@ export const metadata: Metadata = {
  * them back. Asking somebody to sign in before they have been told what they
  * are signing up to is how a supply side stays empty.
  */
-export default async function HostStartPage() {
-  const t = getDictionary(await getLocale());
-  return (
-    <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
-      <StaysDoors />
-    </HostShell>
-  );
+/* V-75. ONE "Add a workspace" chooser with both groups. This address was the
+   second chooser, stays only, and it never mentioned the property doors; it
+   now opens the one chooser with the Stays group first. */
+export default function HostStartPage(): never {
+  permanentRedirect("/profile/setup?side=stays");
 }

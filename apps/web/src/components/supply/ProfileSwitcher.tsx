@@ -96,6 +96,21 @@ const KIND_ICON: Record<WorkspaceKind, UiIconName> = {
   console: "shield-stop",
 };
 
+/*
+ * THE DOCK'S OWN GLYPHS (V-75 review). The dock centre drew the same user,
+ * home and bed glyphs as the Profile, Home and Stays tabs beside it, so the
+ * control read as a second copy of a destination. Personal is the account's
+ * own photograph (a glyph no tab uses when there is none), and each workspace
+ * takes a glyph that no tab in either bar draws.
+ */
+const DOCK_ICON: Record<WorkspaceKind, UiIconName> = {
+  owner: "document",
+  agent: "key",
+  firm: "building-apartment",
+  host: "building-hotel",
+  console: "shield-stop",
+};
+
 export type ProfileSwitcherCopy = {
   title: string;
   personal: string;
@@ -106,6 +121,12 @@ export type ProfileSwitcherCopy = {
   empty: string;
   /** What the dock slot announces. */
   triggerLabel: string;
+  /**
+   * V-75. The two letters under the dock's centre glyph, per workspace kind,
+   * so the centre says WHICH workspace you are in rather than drawing the
+   * swap arrows, which read as the side flip.
+   */
+  short: Record<WorkspaceKind, string>;
   kinds: Record<WorkspaceKind, string>;
   /**
    * One word per standing the database can produce, INCLUDING `active`.
@@ -270,7 +291,25 @@ export function ProfileSwitcher({
          * Profile. The CONTAINER stays, and the container is what still says
          * this one is not a destination.
          */}
-        <UiIcon name="switch-profile" size="md" />
+        {current.kind === "personal" ? (
+          avatarUrl ? (
+            <RemoteImage
+              src={avatarUrl}
+              alt=""
+              width={24}
+              height={24}
+              sizes="24px"
+              className="nf-switch-mark__photo nf-switch-dock__photo"
+            />
+          ) : (
+            <UiIcon name="switch-profile" size="md" />
+          )
+        ) : (
+          <span className="nf-switch-dock__face">
+            <UiIcon name={DOCK_ICON[current.workspace.kind]} size="md" />
+            <span className="nf-switch-dock__caption">{copy.short[current.workspace.kind]}</span>
+          </span>
+        )}
       </span>
     </button>
   );

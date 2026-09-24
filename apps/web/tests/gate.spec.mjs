@@ -153,7 +153,7 @@ const PUBLIC_FILES = ["/robots.txt", "/sitemap.xml"];
  *
  * THE BROWSING SURFACES ARE IN THIS LIST NOW, and that is the whole of the
  * founder's item 8. `/search`, `/listing/*`, `/around`, `/stays`, `/stay/*`,
- * `/restaurants`, `/restaurant/*`, `/rent`, `/price`, `/u/*` and `/post/*`
+ * `/restaurants`, `/restaurant/*`, `/search?market=rent` (what `/rent` redirects to), `/price`, `/u/*` and `/post/*`
  * were open by a deliberate decision until 23 September.
  */
 const PRODUCT = [
@@ -168,7 +168,7 @@ const PRODUCT = [
   "/stay/anything",
   "/restaurants",
   "/restaurant/anything",
-  "/rent",
+  "/search?market=rent",
   "/price",
   "/price/area/anything",
   "/u",
@@ -182,10 +182,10 @@ const PRODUCT = [
   "/wallet",
   "/bookings",
   "/checkout/anything",
-  "/trips",
+  "/bookings?side=stays",
   "/host",
   "/escrow",
-  "/inspections",
+  "/bookings?kind=inspection",
   "/verification",
   "/assistant",
   "/stories",

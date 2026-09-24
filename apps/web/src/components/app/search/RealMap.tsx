@@ -4,6 +4,7 @@ import type { Listing, ListingKind } from "@/lib/listings/types";
 import { getLocale } from "@/lib/locale";
 import { MapCanvas, type MapCity } from "./MapCanvas";
 import { localityFor, spreadCoincident } from "./mapGeo";
+import { isModestExample } from "@/lib/listings/example-imagery";
 import type { MapListing } from "./mapTypes";
 
 /**
@@ -105,6 +106,7 @@ export async function RealMap({
       hue: listing.hue,
       verified: listing.verified,
       isDemo: listing.isDemo,
+      drawn: isModestExample(listing),
       lat: at.lat,
       lng: at.lng,
       byArea,

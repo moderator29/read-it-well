@@ -51,8 +51,11 @@ describe("the tenancy review (V-59)", () => {
 
   it("is reachable from the inspection card and shown on the listing page", () => {
     const root = join(__dirname, "..", "..");
-    const page = readFileSync(join(root, "app/(app)/inspections/page.tsx"), "utf8");
-    expect(page.match(/tenancyReview=\{tenancyFor\(row\)\}/g)?.length).toBe(2);
+    /* The inspections list lives on Plans since V-76; one sheet renderer
+       serves the open and the closed list. */
+    const board = readFileSync(join(root, "components/app/plans/InspectionsBoard.tsx"), "utf8");
+    expect(board.match(/tenancyReview=\{tenancyFor\(row\)\}/g)?.length).toBe(1);
+    expect(board).toContain("groups.closed.map(sheet)");
     const listing = readFileSync(join(root, "app/(app)/listing/[id]/page.tsx"), "utf8");
     expect(listing).toContain('data-testid="door-honesty"');
   });

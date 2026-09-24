@@ -96,7 +96,15 @@ export function queueHref(base: string, query: QueueQuery, over: Partial<QueueQu
   if (next.to) search.set("to", next.to);
   if (next.offset && next.offset > 0) search.set("offset", String(next.offset));
   const tail = search.toString();
-  return tail.length > 0 ? `${base}?${tail}` : base;
+  /* A lane of the unified queue carries its own `?tab=` (V-88). */
+  return tail.length > 0 ? `${base}${base.includes("?") ? "&" : "?"}${tail}` : base;
+}
+
+/** A base split into the path a GET form posts to and the fields it must keep. */
+export function formTarget(base: string): { action: string; keep: [string, string][] } {
+  const at = base.indexOf("?");
+  if (at === -1) return { action: base, keep: [] };
+  return { action: base.slice(0, at), keep: [...new URLSearchParams(base.slice(at + 1)).entries()] };
 }
 
 /** True when anything at all is narrowing this queue. */
@@ -187,7 +195,10 @@ export function QueueFilters({
         component. Apply and Clear live inside the disclosure with the
         dates, because they are what the dates need.
       */}
-      <form method="get" action={base}>
+      <form method="get" action={formTarget(base).action}>
+        {formTarget(base).keep.map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} />
+        ))}
         <details className="nf-admin-more" open={Boolean(query.from || query.to)}>
           <summary className="nf-admin-search">
             {searchable && (

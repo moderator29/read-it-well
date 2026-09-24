@@ -59,7 +59,14 @@ import { Button } from "@/components/ui/Button";
  * listing behind this screen is already showing the new review by the time the
  * guest taps through to it.
  */
-export function ReviewForm({ subject }: { subject: ReviewSubject }) {
+export function ReviewForm({
+  subject,
+  plansAction,
+}: {
+  subject: ReviewSubject;
+  /** Where "done" sends somebody, in the dictionary's words (V-76 review). */
+  plansAction: { label: string; href: string };
+}) {
   const router = useRouter();
   const [kept, setKept] = useState(false);
   const OUTBOX = useClientDictionary().platform.outbox;
@@ -88,7 +95,7 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
             href: `/listing/${state.data.listingId}`,
             tone: "primary",
           },
-          { label: "See your stays", href: "/bookings", tone: "quiet" },
+          { label: plansAction.label, href: plansAction.href, tone: "quiet" },
         ]}
       />
     );

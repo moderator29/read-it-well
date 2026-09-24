@@ -62,6 +62,6 @@ export async function answerTruthQuestions(
     return fail(FAILED);
   }
 
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   return ok({ reportOpened: parsed.data.answers.offPlatformAsk === "yes" });
 }

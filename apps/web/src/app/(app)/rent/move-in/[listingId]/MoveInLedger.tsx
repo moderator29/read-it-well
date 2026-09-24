@@ -1,3 +1,4 @@
+import { isModestExample } from "@/lib/listings/example-imagery";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -61,7 +62,7 @@ export function MoveInLedger({
       {/* ------------------------------------------------ the listing */}
       <Link href={`/listing/${listing.id}`} className="nf-ledger-card flex gap-sm">
         <span className="relative block h-24 w-28 shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]">
-          <MediaFrame hue={listing.hue} kind={listing.kind} sizes="112px" />
+          <MediaFrame hue={listing.hue} kind={listing.kind} drawn={isModestExample(listing)} sizes="112px" />
           {photo && <Image src={photo} alt="" fill sizes="112px" className="object-cover" />}
         </span>
         <span className="min-w-0 flex-1">

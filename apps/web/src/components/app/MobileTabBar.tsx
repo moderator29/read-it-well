@@ -115,9 +115,10 @@ export const TAB_BAR_ROUTES = [
   "/messages",
   "/notifications",
   "/bookings",
-  "/trips",
+  /* "/inspections" keeps the dock on the V-35 gate page under it; the bare
+     path and "/trips" redirect to Plans (V-76). "/crypto" left with the
+     crypto market (V-83), parked on a branch. */
   "/inspections",
-  /* "/crypto" left with the crypto market (V-83), parked on a branch. */
   "/restaurants",
   "/assistant",
   /*
