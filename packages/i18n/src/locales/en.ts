@@ -20,6 +20,7 @@ import { complianceEn } from "./compliance.en";
 import { complianceThresholdEn } from "./compliance-7.en";
 import { compliancePepEn } from "./compliance-pep.en";
 import { complianceRiskEn } from "./compliance-risk.en";
+import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -6254,6 +6255,7 @@ export const en = {
   complianceThreshold: complianceThresholdEn,
   compliancePep: compliancePepEn,
   complianceRisk: complianceRiskEn,
+  complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
 
 };
 

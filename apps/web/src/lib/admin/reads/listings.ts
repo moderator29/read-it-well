@@ -462,6 +462,8 @@ export type MandateRow = {
   signedOn: string | null;
   expiresOn: string | null;
   hasDocument: boolean;
+  /** SCUML item 17: replaced by an approved renewal; history, so no consent control. */
+  supersededAt?: string | null;
   status: MandateStatus;
   rejectionReason: string | null;
   reviewedAt: string | null;
@@ -477,7 +479,7 @@ export type MandateQueue = {
 };
 
 const MANDATE_COLUMNS =
-  "id, listing_id, kind, principal_name, principal_phone, exclusive, signed_on, expires_on, document_id, review_status, rejection_reason, reviewed_at, created_at, listings ( title, reference )";
+  "id, listing_id, kind, principal_name, principal_phone, exclusive, signed_on, expires_on, document_id, review_status, rejection_reason, reviewed_at, created_at, superseded_at, listings ( title, reference )";
 
 type MandateDbRow = {
   id: string;
@@ -492,6 +494,8 @@ type MandateDbRow = {
   review_status: MandateStatus;
   rejection_reason: string | null;
   reviewed_at: string | null;
+  /** SCUML item 17 (20260924171100): replaced by an approved renewal. */
+  superseded_at?: string | null;
   created_at: string;
   listings: { title: string; reference: string | null } | null;
 };
@@ -510,6 +514,7 @@ export function toMandateRow(row: MandateDbRow): MandateRow {
     signedOn: row.signed_on,
     expiresOn: row.expires_on,
     hasDocument: row.document_id !== null,
+    supersededAt: row.superseded_at ?? null,
     status: row.review_status,
     rejectionReason: row.rejection_reason,
     reviewedAt: row.reviewed_at,

@@ -195,6 +195,8 @@ export type ListingSummary = {
   updatedAt: string;
   submittedAt: string | null;
   reviewNotes: string | null;
+  /** SCUML item 17: owner, agent or firm. Optional so older fixtures still type. */
+  listingRole?: "owner" | "agent" | "firm" | null;
 };
 
 /** Everything the wizard needs to reopen a draft exactly as it was left. */
@@ -295,7 +297,7 @@ const LISTING_SELECT =
   "sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, " +
   "stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, " +
   "state_code, city, area, address, landmark, bedrooms, bathrooms, submitted_at, " +
-  "review_notes, updated_at, power_grid, power_backup, power_backup_hours, water_supply, " +
+  "review_notes, listing_role, updated_at, power_grid, power_backup, power_backup_hours, water_supply, " +
   "prepaid_meter, listing_photos(id, storage_path, position), " +
   "listing_videos(id, storage_path, poster_path, duration_seconds, position), " +
   "listing_amenities(amenities(code)), " +
@@ -371,6 +373,8 @@ type ListingWithChildren = {
   bathrooms: number;
   submitted_at: string | null;
   review_notes: string | null;
+  /** SCUML item 17: who the lister is on this listing; an agent or firm files a mandate. */
+  listing_role?: "owner" | "agent" | "firm" | null;
   updated_at: string;
   power_grid: PowerGrid | null;
   power_backup: PowerBackup | null;
@@ -485,6 +489,7 @@ function toSummary(row: ListingWithChildren): ListingSummary {
     updatedAt: row.updated_at,
     submittedAt: row.submitted_at,
     reviewNotes: row.review_notes,
+    listingRole: row.listing_role ?? null,
   };
 }
 

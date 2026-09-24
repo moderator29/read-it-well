@@ -481,6 +481,17 @@ function ListingRow({
             Charges at the door
           </Link>
         )}
+        {/* SCUML item 17: an agent or firm listing goes live once the owner confirms the mandate. */}
+        {listing.listingRole && listing.listingRole !== "owner" && (
+          <Link
+            href={`/agent/listings/${listing.id}/mandate`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            data-testid="listing-mandate"
+          >
+            <UiIcon name="document" size={16} />
+            Owner&apos;s mandate
+          </Link>
+        )}
         {duplicateCopy && <DuplicateListing listingId={listing.id} copy={duplicateCopy} />}
         {/* V-71: a published listing's Status picture and the lister's own link. */}
         {statusLabel && listing.status === "PUBLISHED" && (

@@ -658,6 +658,9 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_escrow_book_the_float | pg_cron `5 3 * * *` | daily 04:05 | | books the day's escrow float snapshot as a liability (`private.escrow_float_snapshot_take`) |
 | vallo_sweep_price_check_events | pg_cron `40 3 * * *` | daily 04:40 | | deletes price check events older than 24 months (the retention schedule, run) |
 | vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
+| vallo_scuml17_mandate_grace_sweep | pg_cron `25 5 * * *` | daily 06:25 | | SCUML item 17: after the grace date, takes down agent and firm listings without a current mandate and tells the agent why |
+| vallo_scuml17_mandate_expiry_reminders | pg_cron `30 5 * * *` | daily 06:30 | | SCUML item 17: tells an agent 30 days and again 7 days before a mandate runs out, once each, unless a renewal is already waiting |
+| vallo_scuml17_purge_stale_mandates | pg_cron `35 5 * * *` | daily 06:35 | | SCUML item 17: deletes waiting or refused mandates of listings that never went live, five years after they were last touched |
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
 | vallo_landlord_not_reconfirmed | pg_cron `35 4 * * *` | daily 05:35 | | marks a listing Not reconfirmed after a delivered owner question goes 21 days unanswered, and clears every mark while the line is off (V-31) |
 | vallo_owner_heartbeat | pg_cron `15 8 * * *` | daily 09:15 | | asks a lister who says they own the flat, in the app, whether it is still available, once a fortnight (V-31); a no-op while `landlord_line` is off |
@@ -667,7 +670,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_notify_void_shares | pg_cron `25 7 * * *` | daily 08:25 | | tells a flatmate once when a move-in they paid a share of fell through (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-13 Vercel Cron jobs and 26 pg_cron jobs in all. The numbers are derived,
+13 Vercel Cron jobs and 29 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

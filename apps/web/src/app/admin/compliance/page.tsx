@@ -7,6 +7,7 @@ import type { ComplianceLane } from "./_lanes/lane";
 import { ThresholdLane } from "./_lanes/ThresholdLane";
 import { riskLane } from "./_lanes/RiskLane";
 import { pepLane } from "./_lanes/PepLane";
+import { beneficialOwnershipLane } from "./_lanes/BeneficialOwnershipLane";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export const dynamic = "force-dynamic";
 const LANES: ComplianceLane[] = [
   ThresholdLane,
   riskLane, // SCUML item 15
+  beneficialOwnershipLane, // SCUML item 17
   pepLane, // SCUML item 20
 ];
 

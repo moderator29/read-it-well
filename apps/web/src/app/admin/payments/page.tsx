@@ -13,6 +13,8 @@ import { fill } from "../_components/copy";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { SweepHolds } from "./SweepHolds";
 import { LookupPanel } from "./LookupPanel";
+import { ActingFor, ActingForLookup } from "../_components/ActingFor";
+import { readActingForParams } from "@/lib/compliance/beneficial-ownership";
 import { getPaymentsDesk } from "@/lib/admin/reads/payments";
 import { readPage } from "@/lib/admin/reads/money-derive";
 import { LiveRefresh } from "../_components/LiveRefresh";
@@ -72,6 +74,7 @@ export default async function AdminPaymentsPage({
   const term = (Array.isArray(rawTerm) ? rawTerm[0] : rawTerm)?.trim() ?? "";
 
   const flat = flatParams(params);
+  const acting = readActingForParams(params, "transaction");
   const [read, lookup, flow] = await Promise.all([
     getPaymentHealth(STALE_HOLD_MINUTES),
     term.length > 0 ? findAdminSubject(term) : Promise.resolve(null),
@@ -341,6 +344,12 @@ export default async function AdminPaymentsPage({
         ui={ui}
         locale={locale}
       />
+
+      {/* SCUML item 17: who the lister behind a transaction was acting for. */}
+      <ui.Section title={t.complianceBeneficialOwnership.lane.lookupTitle} hint={t.complianceBeneficialOwnership.lane.lookupHint}>
+        <ActingForLookup action="/admin/payments" kind={acting.kind} id={acting.id} locale={locale} />
+        {acting.id.length > 0 && <ActingFor kind={acting.kind} id={acting.id} locale={locale} />}
+      </ui.Section>
     </div>
   );
 }
