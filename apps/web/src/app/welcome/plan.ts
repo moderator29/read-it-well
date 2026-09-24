@@ -23,7 +23,7 @@ import { isAuthDoor } from "@/components/app/welcome/first-run-seen";
  *
  * The device's seen-once cookie no longer suppresses this screen. It is
  * still written, because sign up and sign in use it to decide whether a
- * first-time visitor detours through here (scope requests W1, W2).
+ * first-time visitor detours through here.
  */
 export type FirstRunPlan =
   | { kind: "guest"; next: string | null }

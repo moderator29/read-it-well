@@ -187,15 +187,11 @@ describe("every declared parent is a place that exists", () => {
 describe("every preview deck serves its own index", () => {
   const PREVIEW = join(APP, "(dev)", "preview");
 
-  /**
-   * THE ONE EXCEPTION, NAMED RATHER THAN HIDDEN IN A PREDICATE.
-   *
-   * `session-b` is not a deck. It is the namespace holding Session B's fifteen
-   * decks, and its tree is theirs under lead ruling R-G, so Session A does not
-   * write a file into it. R23 in `docs/BUILD_07_LEDGER.md` asks them for the
-   * index. **When that lands, this list goes back to empty and stays empty.**
+  /*
+   * No exceptions. `session-b` was one (a namespace of decks with no index of
+   * its own) and now serves `/preview/session-b`, so every directory that
+   * holds a screen is asked, with nothing named around the rule.
    */
-  const NOT_MINE_TO_WRITE = new Set(["session-b"]);
 
   /** Every directory under the preview tree, deck-relative, excluding `_` ones. */
   function decks(dir: string, prefix: string[], out: string[]) {
@@ -228,7 +224,6 @@ describe("every preview deck serves its own index", () => {
   it("serves a page at every directory that has screens under it", () => {
     const missing: string[] = [];
     for (const deck of decks(PREVIEW, [], [])) {
-      if (NOT_MINE_TO_WRITE.has(deck)) continue;
       const dir = join(PREVIEW, ...deck.split("/"));
       if (!holdsARoute(dir)) continue;
       if (!existsSync(join(dir, "page.tsx"))) missing.push(`/preview/${deck}`);
@@ -236,13 +231,12 @@ describe("every preview deck serves its own index", () => {
     expect(missing).toEqual([]);
   });
 
-  it("names nothing in the exception list that has since been fixed", () => {
-    /* The half that stops the exception outliving its reason. A deck that grew
-       its own index must leave this list, or the list quietly becomes a place
-       things are hidden. */
-    const stale = [...NOT_MINE_TO_WRITE].filter((deck) =>
-      existsSync(join(PREVIEW, ...deck.split("/"), "page.tsx")),
-    );
-    expect(stale).toEqual([]);
+  it("names every session-b deck on the session-b index", async () => {
+    const { SESSION_B_DECKS } = await import("@/app/(dev)/preview/session-b/decks");
+    const onDisk = readdirSync(join(PREVIEW, "session-b"), { withFileTypes: true })
+      .filter((e) => e.isDirectory() && !e.name.startsWith("_") && holdsARoute(join(PREVIEW, "session-b", e.name)))
+      .map((e) => e.name)
+      .sort();
+    expect(SESSION_B_DECKS.map(([slug]) => slug).sort()).toEqual(onDisk);
   });
 });

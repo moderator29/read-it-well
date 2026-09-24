@@ -1,6 +1,6 @@
 /**
  * The shapes the review desks' panels are built against: the return types of
- * Session B's own reads in `lib/admin/reads/**`, re-exported here so the
+ * the console's own reads in `lib/admin/reads/**`, re-exported here so the
  * presentational parts depend on a shape and never on a query. Nothing in
  * this folder reads the database.
  */

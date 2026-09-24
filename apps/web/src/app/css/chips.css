@@ -383,7 +383,7 @@
    * way, as small rounded rectangles with a clear straight side.
    *
    * V5 found this and scoped it under `.nf-agent`, `.nf-host` and `.nf-admin`,
-   * which was the right thing for a worker to do with a class it does not own.
+   * which was the safe thing to do from outside the class's own file.
    * It is fixed at the root here instead, because the landing, the cards and
    * the profile draw the same class and were still drawing capsules.
    */
@@ -716,10 +716,10 @@
 
 /*
  * =========================================================================
- * THE RENDERS' CAPSULES AND THE REGISTER'S SURFACES (Build 06, G1).
+ * THE RENDERS' CAPSULES AND THE REGISTER'S SURFACES.
  *
  * Everything in this block is a NEW class. Nothing above changes, because
- * fourteen workers are standing on it. The chip keeps its rectangle by
+ * most of the product's screens are standing on it. The chip keeps its rectangle by
  * default; `.nf-chip--pill` KEEPS ITS NAME AND HAS LOST ITS CAPSULE, on the
  * founder's shape law of 19 September, which overrides the amended radius law
  * this comment used to cite (ledger section 8). The rest are the register's
@@ -855,7 +855,7 @@
 
   /*
    * The filter sheet's header and footer, as classes the Sheet primitive
-   * wears. The sheet's own material stays in overlays.css (the lead's); these
+   * wears. The sheet's own material stays in overlays.css; these
    * are the two rows inside it: title with the glass close square, and the
    * Reset / Apply pair pinned under the body with a scrim so the list
    * dissolves into it rather than hitting a seam.

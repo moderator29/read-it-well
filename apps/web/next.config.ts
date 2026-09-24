@@ -2,17 +2,33 @@ import type { NextConfig } from "next";
 
 /**
  * The Supabase storage hostname, taken from the public project URL. Returns
- * an empty string when the URL is missing or malformed, so a build without
- * keys never throws and simply serves the seed catalogue.
+ * an empty string when the URL is ABSENT, so a build without keys never throws
+ * and simply serves the seed catalogue.
+ *
+ * DOC-P2-02: a URL that is SET but unusable fails the build instead of being
+ * treated as absent. It used to return "" for a malformed value too, which
+ * silently dropped the Supabase image host from the allowlist in exactly the
+ * build that had a value: production. A typo in the Vercel variable is now a
+ * red deploy with this message, not a site whose listing photos quietly stop
+ * going through the optimiser.
  */
 const supabaseImageHost = (() => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
   if (url.length === 0) return "";
+  let parsed: URL;
   try {
-    return new URL(url).hostname;
+    parsed = new URL(url);
   } catch {
-    return "";
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL is set but is not a URL (${JSON.stringify(url.slice(0, 80))}). Expected https://<project>.supabase.co`,
+    );
   }
+  if (parsed.protocol !== "https:" && parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1") {
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL must be https (got ${parsed.protocol}//${parsed.hostname}). Expected https://<project>.supabase.co`,
+    );
+  }
+  return parsed.hostname;
 })();
 
 const nextConfig: NextConfig = {

@@ -515,11 +515,11 @@
 
   /*
    * THE AURORA WITH ITS PHOTOGRAPH. Founder ruling 6 in DESIGN_DIRECTION
-   * (photography ships now) and G3's second work in BUILD_06_LEDGER 2.0.
+   * (photography ships now).
    *
    * The sign-in render, `55A56F21` in the references folder, stands the auth
    * card in front of a blue aurora that is a PLATE, a photograph of light, and
-   * not two blurred circles. The lead filed it as `/brand/photos/bg-blue-wave`
+   * not two blurred circles. It is filed as `/brand/photos/bg-blue-wave`
    * in three files: the 1920 JPEG at 25KB, a 640 twin at 7KB and a WebP at
    * 13KB. The auth layout and the welcome stage already mount the JPEG
    * through next/image under the CSS aurora. This is the same plate for the

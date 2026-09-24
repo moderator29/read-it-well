@@ -882,9 +882,9 @@
 
 /*
  * =========================================================================
- * THE RENDERS' CONTROLS (Build 06, G1). Every rule below is a new class;
+ * THE RENDERS' CONTROLS. Every rule below is a new class;
  * `.nf-field`, `.nf-icon-btn` and `.nf-skeleton` above keep their default
- * look, because every worker's screen is standing on them.
+ * look, because every existing screen is standing on them.
  * ========================================================================= */
 @layer components {
   /* ------------------------------------------------- field, glass well */

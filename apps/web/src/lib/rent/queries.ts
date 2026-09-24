@@ -216,7 +216,7 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
  * which already carries rent money because a rent charge rides the booking
  * rails. So this is dead code rather than the earnings-side reader it was
  * written for, and the accurate sentence is worth more than the flattering
- * one until the lead decides whether to delete it.
+ * one until it is deleted or used.
  *
  * What it alone can still answer, if a surface ever wants it: WHICH tenancy a
  * settled figure belongs to, from the lister's side (`side: "lister"`, under

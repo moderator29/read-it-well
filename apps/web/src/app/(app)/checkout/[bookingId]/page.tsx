@@ -84,7 +84,7 @@ export default async function CheckoutPage({
           state="confirmed"
           mark="shield-check"
           verdict="Sign in to pay for this stay"
-          consequence="Your booking and its dates are kept safe. Sign in and you land straight back here."
+          consequence="Your booking and its dates are kept. Sign in and you land straight back here."
           actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
         />
       </Shell>

@@ -339,7 +339,7 @@ export function contentSecurityPolicy(nonce: string): string {
      * The consequence is the fault this whole file has produced three times
      * today in different clothes: a page that renders, looks broken, and
      * explains nothing. An unstyled dev page is indistinguishable from a
-     * stylesheet somebody has just broken, so it costs a worker an hour and
+     * stylesheet somebody has just broken, so it costs a developer an hour and
      * then costs the next one another.
      *
      * `NODE_ENV` is `production` in the build that ships and `test` under

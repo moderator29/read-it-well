@@ -11,7 +11,7 @@ import { isInspectionHref } from "./live";
  *
  * `public.inspection_requests` is NOT in the `supabase_realtime` publication
  * (checked by read-only SQL, 22 September), so this page cannot listen to the
- * row itself; adding it is Session B scope request I2. What IS published is
+ * row itself; adding the table to the publication would allow it. What IS published is
  * `public.notifications`, and every change of state on an inspection already
  * writes one to the party who did not make it (`private.notify_inspection_change`,
  * href `/inspections` or `/agent/inspections`). So this listens for this

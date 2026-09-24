@@ -15,7 +15,7 @@
  * under Authentication -> Email Templates, or via the Management API. The
  * dashboard takes HTML only; the .txt is the readable source of each message
  * and the text part for the day the Send Email Hook replaces SMTP (see
- * AUTH_EMAILS.md). Today a regeneration does not reach production by itself.
+ * docs/email/AUTH_EMAILS.md). Today a regeneration does not reach production by itself.
  *
  * Run: node scripts/build-auth-emails.mjs
  *
@@ -76,7 +76,7 @@
  * - English. The product dictionary carries four locales (en, ha, ig, yo) and
  *   is English-first; Supabase renders one template per action with no locale
  *   input, so these are written once, in English, like the transactional
- *   catalogue. See AUTH_EMAILS.md, "The language question".
+ *   catalogue. See docs/email/AUTH_EMAILS.md, "The language question".
  */
 
 import { mkdirSync, writeFileSync, statSync } from "node:fs";

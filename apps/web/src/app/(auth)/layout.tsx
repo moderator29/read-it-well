@@ -16,8 +16,8 @@ import { AuthBackBar } from "./AuthBackBar";
  * recovery all read as the same object; only the card's contents change.
  * `app/css/auth.css` is the whole surface.
  *
- * THE ART IS THE RENDER'S OWN, on the founder's instruction of 22 September
- * (`docs/SESSION_B_SCOPE.md` section 9). Two crops, cut by
+ * THE ART IS THE RENDER'S OWN, on the founder's instruction of 22 September.
+ * Two crops, cut by
  * `scripts/design/session-b-crops.mjs` into `public/brand/session-b/signin/`:
  * the STAGE (the render with its painted card, lockup and slogan lifted out:
  * sky, light curtains, horizon, glass plinth, mirror floor) and the LOCKUP

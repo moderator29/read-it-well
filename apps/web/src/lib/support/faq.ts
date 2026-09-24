@@ -76,7 +76,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "verified-badge",
     keywords: ["verif", "badge", "trust", "kyc", "identity", "real listing", "genuine"],
     answer:
-      "The blue verified badge means the person behind the listing has passed ID and address checks on Vallo. Every listing on Vallo was put up by a real person here, so the badge is about how far up the verification ladder that person has climbed, never about where the listing came from.",
+      "The blue verified badge means a person at Vallo has checked the ID of the person behind the listing. Every real listing on Vallo was put up by a real person here, and examples say they are examples, so the badge is about how far up the verification ladder that person has climbed, never about where the listing came from.",
   },
   {
     id: "where-listings-come-from",

@@ -8,7 +8,7 @@ import { ORDER } from "./segments";
  *
  * The founder's approved headline is "Rent, buy or stay. Without the
  * runaround." It uses the landing search control's own three verbs, and
- * HANDOFF 09 section 2.1 is explicit about why: the headline teaches the
+ * the product rule is explicit about why: the headline teaches the
  * control and the control proves the headline, so if one changes the other
  * changes in the same commit. A rule written in a comment is a rule somebody
  * eventually edits past. This is the same rule with a build behind it.

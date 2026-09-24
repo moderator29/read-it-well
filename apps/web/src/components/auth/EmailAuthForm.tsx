@@ -179,7 +179,7 @@ export function EmailAuthForm({
 
       {!isSignUp && accountMethod === "google" && (
         <div className="nf-auth__notice mb-md" role="status">
-          <p>{t.auth.accountUsesGoogle}</p>
+          <p>{googleReady ? t.auth.accountUsesGoogle : t.auth.accountUsesGoogleOff}</p>
           {googleReady && (
             <form action={startGoogleOAuth} className="mt-sm">
               {next ? <input type="hidden" name="next" value={next} /> : null}

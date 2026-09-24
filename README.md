@@ -99,7 +99,7 @@ The wallet (`supabase/migrations/20260728202225_wallet.sql`, `lib/wallet/`):
 - **Only the service role writes money.** Clients have no write policies on either wallet table. Owners read their own rows and admins read all of them.
 - **A reconciliation job checks the ledger.** `/api/paystack/reconcile` runs hourly. It asks Paystack what was actually charged and posts anything the webhook missed.
 
-There is escrow machinery for held payments (`lib/escrow/`, `docs/adr/0001-...`). Who holds that money has not been decided. The product describes the effect of a hold, not its custodian, and the purpose gate refuses every purpose except the agency fee. [`docs/WITHDRAWAL_PATH.md`](docs/WITHDRAWAL_PATH.md) traces a withdrawal from end to end.
+There is escrow machinery for held payments (`lib/escrow/`, `docs/adr/0001-...`). Who holds that money has not been decided. The product describes the effect of a hold, not its custodian, and the purpose gate refuses every purpose except the agency fee. [`docs/wallet/WITHDRAWAL_PATH.md`](docs/wallet/WITHDRAWAL_PATH.md) traces a withdrawal from end to end.
 
 ### Where things live
 
@@ -174,7 +174,7 @@ The template is [`apps/web/.env.example`](apps/web/.env.example). [`docs/ENVIRON
 | `PAYSTACK_SECRET_KEY` | Server only. Checkout, transfers and webhook signature checks (HMAC SHA-512). It is the only Paystack variable | Paystack dashboard |
 | `RECONCILE_CRON_SECRET` | Server only. The bearer secret that `lib/cron/auth.ts` checks on every cron route | Generate it yourself (`openssl rand -hex 32`) |
 | `CRON_SECRET` | Not read by our code. Vercel sends it as the bearer on cron calls. **It must equal `RECONCILE_CRON_SECRET`, and the name must be spelled exactly** | Set in Vercel |
-| `YELLOWCARD_API_BASE`, `YELLOWCARD_API_KEY`, `YELLOWCARD_API_SECRET` | Server only. Crypto top-ups (`lib/payments/yellowcard.ts`, [`docs/wallet/CRYPTO_DEPOSITS.md`](docs/wallet/CRYPTO_DEPOSITS.md)). **Missing from `.env.example`** | Yellow Card |
+| `YELLOWCARD_API_BASE`, `YELLOWCARD_API_KEY`, `YELLOWCARD_API_SECRET` | Server only. Crypto top-ups (`lib/payments/yellowcard.ts`, [`docs/wallet/CRYPTO_DEPOSITS.md`](docs/wallet/CRYPTO_DEPOSITS.md)). | Yellow Card |
 | `NEXT_PUBLIC_NGN_USD_RATE` | Naira per US dollar. The wallet's currency toggle appears only when this is set. There is deliberately no default rate | The operator |
 
 ### Email
@@ -210,7 +210,7 @@ A push transport with no credentials keeps its queue rows until a key arrives. [
 | `NEXT_PUBLIC_MAPTILER_KEY` | Commercial map tiles. Without it the map uses CARTO basemaps, which are licensed for non-commercial use only | MapTiler |
 | `COINGECKO_API_KEY`, `COINGECKO_PLAN` | Server only. Market data for the display-only Crypto surface. `COINGECKO_PLAN` is `demo` or `pro` | CoinGecko |
 | `SENTRY_DSN` | Server only. The server forwards errors to Sentry. There is deliberately no `NEXT_PUBLIC_` twin | Sentry |
-| `CSP_ENFORCE` | `true` blocks CSP violations. Any other value, including unset, only reports them | The operator |
+| `CSP_ENFORCE` | Leave it unset: the policy enforces by default. Only the literal `false` steps back to report-only (`lib/security/csp.ts`) | The operator |
 
 ### Site copy and links
 
@@ -226,7 +226,8 @@ A push transport with no credentials keeps its queue rows until a key arrives. [
 | Name | Purpose |
 |---|---|
 | `NF_DATA_SOURCE` | Listing data source. Leave it unset. Setting it to `api` selects a source that is not implemented |
-| `VALLO_INSPECTION_REPORTS` | Set it to `0` to turn off inspection report storage (`lib/inspections/report-flag.ts`). Defaults to on. **Missing from `.env.example`** |
+| `VALLO_INSPECTION_REPORTS` | Set it to `0` to turn off inspection report storage (`lib/inspections/report-flag.ts`). Defaults to on |
+| `VALLO_PREVIEW_HARNESS` | Local only. `1` opens the `(dev)/preview` and `/gallery` fixture harnesses on a local `next start`; they answer not-found on Vercel regardless |
 
 ### Build and tooling (not read by the running app)
 
@@ -287,7 +288,7 @@ Vercel and Node set `NODE_ENV`, `NEXT_RUNTIME`, `VERCEL_ENV`, `VERCEL_URL`, `VER
 └── .github/workflows/ci.yml     CI
 ```
 
-The ten UUID-named PNGs at the repository root are design renders. Scripts in `scripts/design/` still read them by those paths. They will move to `docs/design/references/` once that work is finished. `AUTH_EMAILS.md` at the root will move to `docs/email/`.
+The governing design renders are in `docs/design/references/`, indexed by `docs/design/CATALOGUE.md`; the four admin console renders are in `docs/design/references/admin/`. `docs/design/proofs/` is where the screenshot scripts write, and git ignores it.
 
 ---
 
@@ -295,7 +296,7 @@ The ten UUID-named PNGs at the repository root are design renders. Scripts in `s
 
 There is one hosted Supabase project (`uccixoonmbhrnyczyigt`, eu-west-1, Postgres 17). `supabase/migrations/` holds about 300 SQL files, and together they are the schema. No workflow for running a full local Supabase stack from them is documented or checked here. Treat the files as the record of what the hosted database has applied.
 
-Rules, taken from how the project works and the incidents recorded in `docs/PLATFORM_STATUS.md` and `docs/RECOMMENDATIONS.md`:
+Rules, taken from how the project works and the incidents recorded in `docs/archive/PLATFORM_STATUS.md` and `docs/RECOMMENDATIONS.md`:
 
 1. **Name files `<version>_<what_it_does>.sql`.** `version` is a 14-digit UTC timestamp (`YYYYMMDDHHMMSS`). The description is snake_case and says what the change does, for example `20260922221500_spendable_arithmetic_lives_in_one_place.sql`.
 2. **The version must match the applied version.** `supabase_migrations.schema_migrations` is keyed on `version`, not on the name. The Supabase `apply_migration` API stamps the version from the server clock, so apply first, then name or rename the file to the version recorded in the database.
@@ -358,7 +359,7 @@ The supply and verification vocabulary in the prompts comes from `lib/supply/rol
 
 - [`docs/README.md`](docs/README.md) is the index of the live documentation, grouped by purpose.
 - [`docs/PRODUCT.md`](docs/PRODUCT.md) covers what the product is, who it serves and the vocabulary. Read it first.
-- [`docs/PLATFORM_STATUS.md`](docs/PLATFORM_STATUS.md) is the latest measured status.
+- [`docs/THE_AUDIT.md`](docs/THE_AUDIT.md) is the latest checked state of the platform, finding by finding, and section 11 lists what only the founder can do.
 - [`docs/RECOMMENDATIONS.md`](docs/RECOMMENDATIONS.md) is the register of open findings. Code comments cite its IDs (for example `W-1`, `T-4`).
 - [`docs/ARCHITECTURE_DECISIONS.md`](docs/ARCHITECTURE_DECISIONS.md) and [`docs/adr/`](docs/adr/) hold the decision records.
 - [`docs/archive/`](docs/archive/) holds retired documents and the scaffolding from earlier build sessions (handoffs, ledgers, audits). They are kept for history and govern nothing.

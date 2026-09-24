@@ -56,9 +56,9 @@ import { TierBadge } from "@/components/trust/TierBadge";
  * Inspection Report (glass, disabled until it can be sent). Containers,
  * plates and buttons are the shared layer (Panel, IconPlate, Button).
  *
- * THE REPORT (eight rooms and notes) writes through Session A's
- * `saveInspectionReport` (I1, applied 23 September) and nothing of this
- * surface's own; photos wait on Session A's `addReportPhoto` (I1b). Behind ONE flag
+ * THE REPORT (eight rooms and notes) writes through
+ * `saveInspectionReport` and nothing of this surface's own; photos go through
+ * `addReportPhoto`. Behind ONE flag
  * (`reportLive`, `lib/inspections/report-flag.ts`). A tick is drawn only from
  * what the action read back from the database, never optimistically. With
  * the flag off the rows draw, the circles are not pressable, and a plain line
@@ -117,7 +117,7 @@ const OUTCOME_LABEL: Record<InspectionOutcome, string> = {
   no_deal: "Inspected, no deal",
 };
 
-/* The drawn words: short, so the three sit in one row (lead ruling R-F). */
+/* The drawn words: short, so the three sit in one row (rule R-F). */
 const OUTCOME_SHORT: Record<InspectionOutcome, string> = {
   inspected: "Inspected",
   deal_done: "Deal done",
@@ -209,7 +209,7 @@ export function InspectionSheet({
    * A tick is drawn only from what the action read back, never
    * optimistically. The notes travel with EVERY call: the action writes
    * `notes ?? null` on each save, so a tick sent without them would clear
-   * what was typed (request I5 to Session A).
+   * what was typed.
    */
   function saveReport(body: { items?: { item: RoomItem; checked: boolean }[]; submit?: boolean }) {
     setError(null);
@@ -230,9 +230,9 @@ export function InspectionSheet({
   }
 
   /*
-   * A photo into the report: a signed path from Session A's
+   * A photo into the report: a signed path from
    * `createInspectionPhotoUpload`, the upload straight from the browser to the
-   * private bucket, then Session A's `addReportPhoto` records the row (I1b).
+   * private bucket, then `addReportPhoto` records the row.
    * The count moves only when that row came back.
    */
   async function addPhoto(file: File) {
@@ -562,7 +562,7 @@ export function InspectionSheet({
 
           {/*
             Add Photos, as the render draws it (the render's own camera). With
-            the report on it uploads into the report through Session A's I1b
+            the report on it uploads into the report through the report photo
             actions; with it off it opens the conversation, the one photo path
             an inspection then has.
           */}

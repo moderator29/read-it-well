@@ -1,6 +1,6 @@
 /*
-  The notifications screen, moved out of home.css on 23 September (platform
-  sweep, lead ruling) so the settings group can sweep it. Imported by
+  The notifications screen, moved out of home.css on 23 September so the
+  settings group can sweep it. Imported by
   LiveNotifications.tsx and the route's loading.tsx, so globals.css is not
   touched. The block below is unchanged from home.css; the sweep edits follow.
 */
@@ -29,7 +29,7 @@
      calling it acceptable: "a single digit still reads as a disc, because 14px
      of corner on a 24px box clamps to half the box". A disc at one digit and a
      rounded rectangle at two is the content choosing the shape, which is the
-     thing the lead's count-badge ruling closes. `--nf-radius-xs` is 6px on a
+     thing the count-badge rule (one plate shape whatever the number) closes. `--nf-radius-xs` is 6px on a
      24px box and draws the same plate whatever the number. */
   .nf-notif__count {
     display: inline-grid;

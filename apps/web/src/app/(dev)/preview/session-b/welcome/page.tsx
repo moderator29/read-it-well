@@ -4,7 +4,7 @@ import { FirstRun } from "@/components/app/welcome/FirstRun";
 import { WelcomeStage } from "@/components/app/welcome/WelcomeStage";
 
 /**
- * Get started, on fixture props, for the proofs and the sweep (lead ruling
+ * Get started, on fixture props, for the proofs and the sweep (rule
  * R-G). Behind the preview gate in `(dev)/preview/layout.tsx`.
  *
  *   /preview/session-b/welcome                  a member who has not answered

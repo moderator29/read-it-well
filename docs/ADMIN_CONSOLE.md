@@ -6,7 +6,7 @@ comes from, what each action does, who may take it, what it changes, and what th
 desk cannot do. The last part records the options that were considered and
 rejected, with the reasons.
 
-Owned by Session B (`docs/SESSION_B_SCOPE.md`). The queries and actions behind
+Owned by Session B (`docs/archive/SESSION_B_SCOPE.md`). The queries and actions behind
 the desks live in `apps/web/src/lib/admin/**`, which the other session owns;
 where a desk needs something that layer does not return yet, the gap is named
 here and raised as a request in the scope file.
@@ -61,7 +61,7 @@ which:
 |---|---|
 | Figures, a chart or rows | Read from the database just now. Every number came back from a query; none is typed into the page. |
 | A quiet panel with a title such as "No money has moved yet in this range" | The read worked and there is genuinely nothing to count. On 22 September that is the normal state: no real listing is live, no booking has been made, no money has been collected. |
-| "Not recorded" (on a figure) or "Not wired yet" (on a panel) | The platform does not record this yet. The panel names the request in `docs/SESSION_B_SCOPE.md` that would start recording it. It is not a fault of the platform or of your data. |
+| "Not recorded" (on a figure) or "Not wired yet" (on a panel) | The platform does not record this yet. The panel names the request in `docs/archive/SESSION_B_SCOPE.md` that would start recording it. It is not a fault of the platform or of your data. |
 | "Unavailable" or "This did not load" | A read failed. Nothing has changed; the page re-reads every minute, or reload. If it persists, check Operations for a failed job or a locked-out scheduler. |
 
 **The console never draws a number the database did not return.** A change
@@ -625,6 +625,7 @@ a fall is emerald. The line is alerts raised per day.
 
 | Job | Scheduler | When (Lagos) | Allowed silence | What it does |
 |---|---|---|---|---|
+| canary | Vercel Cron `*/5 * * * *` | every 5 min | 1 h | reads the published catalogue as the public role against the service role's count, and pages a person when it is refused, short or empty (`lib/ops/catalogue-canary.ts`) |
 | email-outbox | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | sends the queued emails in `email_outbox` |
 | hold-sweep | Vercel Cron `5 * * * *` | hourly at :05 | 3 h | releases wallet holds past their window |
 | paystack-reconcile | Vercel Cron `10 * * * *` | hourly at :10 | 3 h | matches Paystack charges to the ledger |
@@ -648,13 +649,13 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
 
-8 Vercel Cron jobs and 14 pg_cron jobs in all. The numbers are derived,
+9 Vercel Cron jobs and 14 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by
 `lib/admin/reads/jobs.test.ts` to every `cron.schedule` the migrations leave
 in place. The same test holds this table and the sentence above to both
-lists, so a new job fails the build until it is written down here.
+lists, so a new job fails `npm test` (and CI) until it is written down here.
 
 The Vercel jobs' schedules come from `apps/web/vercel.json` (a test fails if
 the console's copy drifts from it) and their allowances from `WATCHED_JOBS` in

@@ -61,7 +61,7 @@ export default function CareersPage() {
         icon="reviews"
         chip="Careers at Vallo"
         title="Build Nigeria's property marketplace"
-        lede="We are a small team building one app with two sides: Property for renting, buying and selling, and Vallo Stays for hotels, apartments, guest houses, resorts and restaurant tables. One account, one naira wallet, four languages, and every listing put up by a person we have checked. If that sounds like your kind of problem, we want to hear from you."
+        lede="We are a small team building one app with two sides: Property for renting, buying and selling, and Vallo Stays for hotels, apartments, guest houses, resorts and restaurant tables. One account, one naira wallet, four languages, and every real listing put up by a person we approved. If that sounds like your kind of problem, we want to hear from you."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">

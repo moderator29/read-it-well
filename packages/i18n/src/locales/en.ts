@@ -1,7 +1,7 @@
 import type { CountForms } from "../plural";
-/* Price Check lives in its own module: `en.ts` is 4,900 lines, three workers
-   write to it in the same hour, and this namespace was lost to a concurrent
-   overwrite once already. One import and one line is the smallest footprint a
+/* Price Check lives in its own module: `en.ts` is 4,900 lines, many changes
+   touch it at once, and this namespace was lost to a concurrent overwrite
+   once already. One import and one line is the smallest footprint a
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
 
@@ -42,6 +42,20 @@ export const en = {
    * en-GB formatter. These two are here because a sentence that wraps a counted
    * noun cannot be pluralised without also owning the words around it.
    */
+  /*
+   * The example disclosure and what an example cannot do (UX-09, UI-P2-01).
+   * `statement` is the agreed sentence (`EXAMPLE_STATEMENT` in
+   * lib/listings/syndication.ts, which a test keeps equal to it).
+   */
+  examples: {
+    statement:
+      "This is an example listing. No such property is available. Vallo has not verified anything on this page.",
+    stayNotBookable: "Nothing here can be booked or paid for. Search for a real place with a host you can reach.",
+    browseStays: "Browse real stays",
+    roomsExample: "These rooms are an example of how a stay looks on Vallo. None of them can be booked.",
+    restaurantNotBookable: "Nothing here can be booked or held. Search for a real restaurant you can reach.",
+    browseRestaurants: "Browse real restaurants",
+  },
   reserve: {
     /** The confirmation moment. Both counts arrive already pluralised. */
     confirmedRange: "{from} to {to}, {nights} for {guests}.",
@@ -202,8 +216,8 @@ export const en = {
     switchToStays: "Switch to Stays",
     switchToProperty: "Switch to Property",
     /* The founder's wording, 23 September: it is "Flip", not "Flip coin".
-       The KEY is left as `flipCoin` on purpose. Four locale files are written
-       by several workers in the same hour and the standing rule on this
+       The KEY is left as `flipCoin` on purpose. Four locale files change
+       together and the standing rule on this
        package is add keys, never restructure; renaming a key is a restructure
        and this change is about the word a person reads. */
     flipCoin: "Flip",
@@ -255,7 +269,7 @@ export const en = {
     tripsEmptyTitle: "No trips yet",
     tripsEmptyBody: "Book a stay or a table and it lands here with its confirmation and its conversation.",
     findStay: "Find a stay",
-    /* Build 05, FE-5: the date spine on /trips. */
+    /* The date spine on /trips. */
     tripsToday: "Today",
     tripsPast: "Past trips",
     tripsNothingAhead: "Nothing ahead right now. Your past trips are below.",
@@ -267,7 +281,7 @@ export const en = {
   },
   nav: {
     /* The two sides. Added 18 September 2026 with the flip; Trips is the
-       Stays side's name for its bookings surface (HANDOFF_05 section 2). */
+       Stays side's name for its bookings surface. */
     stays: "Stays",
     exploreStays: "Explore stays",
     trips: "Trips",
@@ -403,7 +417,7 @@ export const en = {
     walletRow: "Balance, cards and transactions",
     inspectionsRow: "Scheduled and past inspections",
     /*
-     * The account page itself (`/profile`, Session B). Row values carry the
+     * The account page itself (`/profile`). Row values carry the
      * figure in `{count}`; the Switch role line names only the roles the
      * account holds, joined by the two patterns below.
      */
@@ -506,7 +520,7 @@ export const en = {
          * `title1` names the same three actions as the segments of the landing
          * search control, and that is not a coincidence to be tidied away:
          * the headline teaches the control and the control proves the
-         * headline (HANDOFF 09 section 2.1). The headline reads them rent,
+         * headline. The headline reads them rent,
          * buy, stay and the control draws them buy, rent, stay, which is the
          * founder's own wording of each kept as he approved it: the rule is
          * the same three words, never the same sequence. The segments are
@@ -530,7 +544,7 @@ export const en = {
         title1: "Rent, buy or stay.",
         title2: "Without the runaround.",
         subtitle:
-          "Verified homes, land, hotels and shortlets across Nigeria. See what you will actually pay before you call anybody, and deal with the owner directly where there is one.",
+          "Homes, land, hotels and shortlets across Nigeria, with the person behind each listing named. See what you will actually pay before you call anybody, and deal with the owner directly where there is one.",
         explore: "Explore Properties",
         stays: "Explore Stays",
         /* "Popular Cities" was the label and popularity is a claim: nothing
@@ -559,9 +573,9 @@ export const en = {
       },
       stats: {
         overline: "Real people. Real places.",
-        title: "Checked listings. Real people. Serious property.",
+        title: "Reviewed listings. Named people. Serious property.",
         listings: "Listings",
-        agents: "Verified agents",
+        agents: "Approved agents",
         cities: "Cities",
         states: "States",
       },
@@ -631,7 +645,7 @@ export const en = {
            returns nothing at all when the platform cannot answer, so the band
            prints no figures rather than a nought dressed as a fact. The line
            said "every count on this page" and pointed at an empty space. */
-        body: "Both sides of Vallo, one account. Any figure on this page is read from the platform as the page loads, and where there is nothing true to print, nothing is printed.",
+        body: "Both sides of Vallo, one account. Where there is nothing true to show, nothing is shown.",
         join: "Join Vallo today",
         thirdParty: "Third party",
         thirdPartyTitle: "Partner inventory, always labelled",
@@ -723,10 +737,10 @@ export const en = {
         android: "Google Play",
         androidSub: "GET IT ON",
         rightTitle: "Property and stays, now on mobile.",
+        /* STORE-06 / UI-07: "Full access to all features" and "Secure and
+           fast" were claims nothing backs, and they are gone. */
         points: {
-          all: "Full access to all features",
           notify: "Instant notifications",
-          fast: "Secure and fast",
           design: "Beautiful, intuitive design",
         },
       },
@@ -779,8 +793,8 @@ export const en = {
      * LEDGER. "Real Estate reimagined!" is the OLD positioning line, and this
      * comment used to say so in those words. The new one is "Rent, buy or
      * stay. Without the runaround." A slogan beside a wordmark is a brand
-     * decision rather than a copy fix, so it is not changed here on a worker's
-     * initiative; splitting the key is what lets it change in one line when he
+     * decision rather than a copy fix, so it is not changed here as a copy
+     * edit; splitting the key is what lets it change in one line when he
      * rules, without dragging the auth screen along by accident.
      */
     slogan: "Real Estate reimagined!",
@@ -818,8 +832,8 @@ export const en = {
        * key here, including the "Real Estate, / reimagined." headline and the
        * "Nigeria's real estate marketplace" overline, is dead copy carrying
        * the OLD POSITIONING and is left rather than deleted only because the
-       * three other locales mirror this shape and a namespace removal is not
-       * one worker's to make in a tree thirteen people are editing. IF YOU
+       * three other locales mirror this shape and a namespace removal is a
+       * change to all four at once, not a copy edit. IF YOU
        * ARE ABOUT TO COPY A LINE OUT OF HERE, DO NOT. The position is
        * "Rent, buy or stay. Without the runaround." and it lives in
        * `landing.face.hero` above.
@@ -931,7 +945,7 @@ export const en = {
       title: "Questions, answered",
       items: [
         {
-          q: "Is my money safe?",
+          q: "How is my money handled?",
           a: "Payments run in naira through a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm.",
         },
         {
@@ -1072,8 +1086,8 @@ export const en = {
        * FOR THE WRONG PERSON.
        *
        * It read "Become an agent". Most of the supply this platform now wants
-       * is landlords who are not agents and never will be, and HANDOFF 09
-       * section 6A.2 names that label as the defect: the only door was marked
+       * is landlords who are not agents and never will be, and that label was
+       * the defect: the only door was marked
        * for the one visitor who was least likely to be standing at it. The
        * destination already changed under it. `/agents` redirects to
        * `/profile?switch=owner`, which opens the chooser with the owner door
@@ -1150,9 +1164,13 @@ export const en = {
     signInSub: "Sign in to your Vallo account",
     signUpSub: "Create your Vallo account in a minute",
     /* The password step, when the address typed on the chooser is not an
-       email-and-password account. Sign-in only; Session B ledger section 3. */
+       email-and-password account. Sign-in only. */
     accountUsesGoogle:
       "This address signs in with Google, so there is no password to type. Continue with Google to get in.",
+    /* Google sign-in is switched off (STORE-02). A person whose account was
+       made with Google still has a way in: a password, set by reset. */
+    accountUsesGoogleOff:
+      "This address was set up with Google, which Vallo no longer uses to sign in. Type your password below. If you never set one, choose Forgot password and we will email you a link to set it.",
     accountNotFound: "No account uses this address yet.",
     accountCreate: "Create one with it",
   },
@@ -1437,7 +1455,7 @@ export const en = {
     place: {
       label: "Where you are",
       noteSet:
-        "This is the city home opens on. Your occupation comes from the platform's own list of 749, so it can be searched on.",
+        "This is the city home opens on.",
       noteUnset: "Set these and home opens where you are.",
       noteSignedOut: "Sign in to keep your state and local government with your account.",
       lga: "Local government",
@@ -1493,11 +1511,6 @@ export const en = {
 
     security: {
       label: "Security",
-      signOutNote:
-        "This is your only session, so there is nothing else to sign out. Once accounts launch, this control ends every session on every device at once.",
-      appLock: "Biometric app lock",
-      appLockSub:
-        "Ask for fingerprint or face unlock when the app opens, on devices that support it.",
       signedInOn: "Signed in on",
       thisDevice: "This device",
       /* Browser and platform names are proper nouns and stay as they are; only
@@ -1506,7 +1519,6 @@ export const en = {
       deviceOn: "{browser} on {os}",
       unknownBrowser: "Browser",
       unknownOs: "this device",
-      signOutEverywhere: "Sign out everywhere",
     },
 
     /*
@@ -1577,10 +1589,6 @@ export const en = {
 
     data: {
       label: "Your data",
-      exportNote:
-        "Right now everything Vallo knows about you lives in this browser, and nothing has left this device. Full data export ships with the launch release.",
-      download: "Download my data",
-      downloadSub: "A copy of everything Vallo holds about you.",
       clear: "Clear local data",
       clearAgain: "Tap again to confirm",
       clearSub:
@@ -1734,7 +1742,7 @@ export const en = {
 
     about: {
       label: "About",
-      note: "Preferences kept on this device stay on this device. Account preferences are protected with row level security, so only you can read or change your own row.",
+      note: "Preferences kept on this device stay on this device. Only you can see or change your account preferences.",
       help: "Help",
       helpSub: "Get an answer from a person",
       terms: "Terms",
@@ -1957,7 +1965,7 @@ export const en = {
     },
     join: {
       title: "Join the Vallo Agent Community",
-      body: "List properties, connect with verified guests, manage bookings and earn.",
+      body: "List properties, connect with guests, manage bookings and earn.",
       start: "Start application",
       resume: "Continue application",
       whatYouGet: "What you get",
@@ -1968,7 +1976,7 @@ export const en = {
          about reach is no claim about size. */
       benefitReach: "Reach guests who chose Vallo",
       benefitTools: "Professional listing and booking tools",
-      benefitEarn: "Track earnings and get paid securely",
+      benefitEarn: "Track earnings and see what you are owed",
     },
     apply: {
       title: "Become an Agent",
@@ -2290,6 +2298,8 @@ export const en = {
         "Add at least {min} photos, up to {max}. The first one is the cover, so lead with the wide shot that sells the place.",
       tooNarrow: "Photos must be at least {width}px wide so they look sharp on every screen.",
       choose: "Choose photos",
+      /* STORE-04: the app's own camera, shown only inside the native app. */
+      takePhoto: "Take a photo",
       addMore: "Add more photos",
       uploading: "Uploading",
       progress: "{count} of {min} needed",
@@ -2451,13 +2461,13 @@ export const en = {
         "Sign in to your agent account to start a listing, or apply in about two minutes if you are new here.",
       points: {
         verified: {
-          title: "Verified supply only",
+          title: "A named person behind every listing",
           body:
-            "Every listing is checked by hand, so the badge on your property means something to guests.",
+            "The verified tick appears only once a person here has checked your ID, so it means something to guests.",
         },
         inside: {
           title: "Guests reach you inside Vallo",
-          body: "Chats, inspections and payments stay on the platform, where they are protected.",
+          body: "Chats, inspections and payments stay on the platform, where there is a record of them.",
         },
         keep: {
           title: "You keep what you charge",
@@ -2658,10 +2668,10 @@ export const en = {
    */
   agentEarnings: {
     title: "Earnings",
-    lede: "What has settled from your stays, taken straight from the ledger.",
+    lede: "Earnings from your completed stays.",
     unconfigured: "We cannot reach your earnings right now. Nothing has been lost.",
     unavailable:
-      "We could not read the ledger just now, so no figure is shown rather than a wrong one. Reload in a moment.",
+      "We could not load your earnings just now, so no figure is shown rather than a wrong one. Reload in a moment.",
     totals: {
       yourShare: "Your share, settled",
       guestsPaid: "Guests paid",
@@ -2889,6 +2899,10 @@ export const en = {
        */
       pot_hold: "Moved to a pot",
       pot_release: "Taken from a pot",
+      /* V-33: rent settles to the lister at the moment of charge. Left out of
+         ha, ig and yo for the same reason as the two pot words above. */
+      payment_in: "Rent received",
+      payment_in_return: "Rent refunded to tenant",
     },
     entryStatus: {
       PENDING: "Going through",
@@ -2899,10 +2913,10 @@ export const en = {
     /**
      * The wallet home to its governing render: the balance card, the four
      * tiles, quick actions, recent transactions and the trust strip. Added
-     * 18 September 2026 (Build 06, E).
+     * 18 September 2026.
      */
     home: {
-      /* Session B, wallet home (22 September 2026): the tiles' label, the
+      /* Wallet home (22 September 2026): the tiles' label, the
          quick-action cards that fit one line each at 390px, the settings link. */
       actionsLabel: "Wallet actions",
       quickSend: "Send",
@@ -3732,8 +3746,8 @@ export const en = {
     },
 
     /*
-     * The money desks: money, escrow, supply and payments (Session B,
-     * admin-money). English only; the other three locales fall back through
+     * The money desks: money, escrow, supply and payments.
+     * English only; the other three locales fall back through
      * `withFallback` until a native speaker writes them. Placeholders in
      * braces are filled by the console. The desk titles are `shell.nav`.
      */
@@ -3943,7 +3957,7 @@ export const en = {
     },
 
     escrow: {
-      lede: "Secure transactions. Fair outcomes.",
+      lede: "Disputes, decided on the record.",
       /* The escrow ruling control (`_components/MoneyDecisions.tsx`), English
          only; the other locales fall back to it. */
       rulingControl: {
@@ -4336,8 +4350,8 @@ export const en = {
     },
 
     /*
-     * The console shell, overview, operations and analytics (Session B,
-     * admin-shell). Additive: nothing above is changed. Placeholders in
+     * The console shell, overview, operations and analytics.
+     * Additive: nothing above is changed. Placeholders in
      * braces are filled by the console.
      */
     shell: {
@@ -4643,7 +4657,7 @@ export const en = {
 
   /**
    * /inspections: every inspection this person asked for or was asked to show.
-   * Added 18 September 2026 (Build 05, FE-1).
+   * Added 18 September 2026.
    */
   inspectionsPage: {
     title: "Inspections",
@@ -4663,7 +4677,7 @@ export const en = {
   /**
    * The context banner at the top of a conversation. One sentence about the
    * thing the chat is for, and the one or two controls that belong to it.
-   * Added 18 September 2026 (Build 05, FE-1).
+   * Added 18 September 2026.
    */
   threads: {
     /*
@@ -4745,10 +4759,10 @@ export const en = {
 
   /**
    * /wallet/send: a whole page for sending to another Vallo wallet.
-   * Added 18 September 2026 (Build 05, FE-2).
+   * Added 18 September 2026.
    */
   walletSend: {
-    /* Session B, send money to 77A54EA3 (22 September 2026). The three
+    /* Send money, to 77A54EA3 (22 September 2026). The three
        reassurance lines are the only claims on the page and each is true
        of the code and the terms (lib/legal/terms.tsx section 15). */
     availableBalance: "Available Balance",
@@ -4817,7 +4831,7 @@ export const en = {
 
   /**
    * /wallet/receive: your handle, your address, a request to share.
-   * Added 18 September 2026 (Build 05, FE-2).
+   * Added 18 September 2026.
    */
   walletReceive: {
     title: "Receive money",
@@ -4850,7 +4864,7 @@ export const en = {
 
   /**
    * /settings/payments: "Payment methods". Cards you pay with, accounts you
-   * are paid into. Added 18 September 2026 (Build 05, FE-3).
+   * are paid into. Added 18 September 2026.
    */
   paymentsPage: {
     title: "Payment methods",
@@ -4918,7 +4932,7 @@ export const en = {
 
   /**
    * /stay/[id]: the stay detail showcase. Rooms as rows, rates behind them,
-   * the total as the headline. Added 18 September 2026 (Build 05, FE-4).
+   * the total as the headline. Added 18 September 2026.
    */
   stayDetail: {
     aboutTitle: "About this place",
@@ -4973,12 +4987,12 @@ export const en = {
 
   /**
    * /restaurant/[id]: the dedicated restaurant surface, where the reservation
-   * is the page. Added 18 September 2026 (Build 05, FE-11).
+   * is the page. Added 18 September 2026.
    */
   restaurantPage: {
     fallbackTitle: "Restaurant",
-    /* The restaurant face on the one detail anatomy, added 19 September 2026
-       (Build 06, F3). Every one of these labels a column the venue filled in
+    /* The restaurant face on the one detail anatomy, added 19 September 2026.
+       Every one of these labels a column the venue filled in
        itself; a venue that filled none of them draws none of them. */
     aboutTitle: "About this restaurant",
     cuisine: "Cuisine",
@@ -5007,7 +5021,7 @@ export const en = {
   },
 
   /**
-   * The catalogue and stays surfaces (F3, Build 06): the property card, the
+   * The catalogue and stays surfaces: the property card, the
    * results shelf and its filter sheet, the listing detail, the move-in
    * ledger, stays home and the stay detail. Added 18 September 2026.
    */
@@ -5101,7 +5115,7 @@ export const en = {
       seeAll: "See all",
       photos: "{count} photos",
       morePhotos: "+{count}",
-      /** The detail anatomy of B047A0CE, added 19 September 2026 (Build 06, F3). */
+      /** The detail anatomy of B047A0CE, added 19 September 2026. */
       aboutThisProperty: "About this property",
       verifiedHost: "Verified host",
       selectDate: "Select date",
@@ -5133,12 +5147,12 @@ export const en = {
     },
     /**
      * A TENANCY IS NOT A STAY, so it has its own words. Added 19 September
-     * 2026 (Build 06, F3) when rent charges stopped being dropped from
+     * 2026 when rent charges stopped being dropped from
      * /bookings. Nothing here counts nights or guests, and nothing here says
      * check in: a tenancy has a move-in day and a rent period.
      */
     /**
-     * The trips hub (/bookings). Added 19 September 2026 (Build 06, F3): the
+     * The trips hub (/bookings). Added 19 September 2026: the
      * screen shipped with its tabs, its three empty states, its controls and
      * its explainer as English literals inside the component, so three of the
      * four languages this platform ships in read the record of their own
@@ -5193,7 +5207,7 @@ export const en = {
       step1Title: "Choose your dates",
       step1Body: "Pick check-in and check-out on a live calendar.",
       step2Title: "Confirm and pay",
-      step2Body: "Secure payment in naira. You are never charged early.",
+      step2Body: "Payment in naira through Paystack. You are never charged early.",
       step3Title: "Enjoy your stay",
       step3Body: "Check-in details arrive right here and by email.",
     },
@@ -5250,7 +5264,7 @@ export const en = {
   /**
    * /crypto: the market surface. Display only: prices, movers, pairs and
    * the way to fund the wallet with crypto. No trading, no custody, no
-   * advice. Added 18 September 2026 (Build 06, E).
+   * advice. Added 18 September 2026.
    */
   crypto: {
     title: "Crypto",
@@ -5304,7 +5318,7 @@ export const en = {
   /**
    * TRACK H: what a tenant will actually pay.
    *
-   * HANDOFF 09 section 4. The cost block on the listing detail page and the
+   * The cost block on the listing detail page and the
    * move-in sort in search read every word from here. The honesty rule is in
    * the copy itself: a cost nobody declared says so in words, because zero is
    * a claim and silence is not the same claim.
@@ -5401,7 +5415,7 @@ export const en = {
    */
   directHome: {
     heroTitle: "Find your next home",
-    heroLede: "Rent, buy or invest in verified properties across Nigeria.",
+    heroLede: "Rent, buy or sell property across Nigeria.",
     heroSearch: "Search by location, property type",
     filters: "Filters",
     featured: "Featured properties",
@@ -5409,7 +5423,7 @@ export const en = {
     parkingMany: "{count} parking",
     buy: "Buy",
     rent: "Rent",
-    manage: "Manage",
+    manage: "List a property",
     invest: "Invest",
     investNote: "Properties presented for their yield. Vallo sells no investment product.",
     stays: {
@@ -5423,8 +5437,8 @@ export const en = {
       shortletsNote: "Feels like home",
       restaurants: "Restaurants",
       restaurantsNote: "Great food",
-      nearby: "Nearby",
-      nearbyNote: "Discover local",
+      nearby: "Local talk",
+      nearbyNote: "What people say",
     },
     dock: {
       /* The raised centre slot. The sheet it opens is B1's; this is the word
@@ -5474,9 +5488,8 @@ export const en = {
    * `docs/research/UI_UNIQUENESS_AND_ADMIN_RESEARCH.md` section 2.9 counted
    * seventeen user visible English literals sitting in TSX. They are gathered
    * here rather than spread into `social`, `nav`, `admin` and `stays`, because
-   * three groups are editing this file this week and two agents have already
-   * collided in it: one namespace added at the end is a change another worker's
-   * diff cannot silently swallow.
+   * one namespace added at the end is a change that a concurrent edit
+   * elsewhere in this file cannot silently swallow.
    *
    * `QueueFilters.tsx:141` already states the principle these close:
    * "A control that is half translated is worse than one that is not, because
@@ -5577,8 +5590,8 @@ export const en = {
    * other.
    *
    * No statutory figure, penalty or percentage appears anywhere in this
-   * namespace. HANDOFF 09 section 7 gates the LASRERA and tenancy numbers on
-   * a lawyer's confirmation, so what ships is the behaviour, which needs no
+   * namespace. The LASRERA and tenancy numbers wait on a lawyer's
+   * confirmation, so what ships is the behaviour, which needs no
    * citation.
    */
   supply: {

@@ -13,8 +13,7 @@ import { previewHarnessIsOpen } from "@/lib/preview-harness";
  * can go through. His fifth point on the shape ruling is that every proof is
  * retaken on a server that actually hydrates, and `next dev` does not hydrate
  * reliably on this box; `next start` does, and `next start` is production, so
- * the harness 404ed on the only server a proof counts from. Four sweep workers
- * hit the same wall within the hour.
+ * the harness 404ed on the only server a proof counts from.
  *
  * `previewHarnessIsOpen` carries the reasoning and, more to the point, carries
  * a test. The short version: an explicit opt in, AND never on Vercel whatever

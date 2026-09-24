@@ -13,7 +13,7 @@ import { savedCardMoment, type SavedCardPhase } from "@/components/app/payments/
 import type { PaymentMethod } from "@/lib/payments/methods";
 import type { ChargeSavedCardOutcome } from "@/lib/payments/charge-saved-card";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { failureConsequence } from "./payment-copy";
+import { failureConsequence, STAY_PAID_SHEET_CONSEQUENCE } from "./payment-copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
@@ -581,7 +581,7 @@ export function PayPanel({
         verdict="Payment sent"
         fact={fact}
         locale={view.locale}
-        consequence="The agent has been paid and these dates are yours."
+        consequence={STAY_PAID_SHEET_CONSEQUENCE}
         actions={[
           { label: "See your stays", href: "/bookings", tone: "primary" },
           { label: "Back to the stay", href: `/listing/${view.listingId}`, tone: "quiet" },
@@ -680,8 +680,8 @@ export function PayPanel({
         A FAILED PAYMENT IS ROSE, IT CARRIES THE AMOUNT, AND IT SAYS WHETHER
         THE CARD WAS CHARGED.
 
-        It was already rose and already `role="alert"`, which was the lead's
-        own fix, and it was still 13px of text on a plain card with no heading,
+        It was already rose and already `role="alert"`, from an earlier fix,
+        and it was still 13px of text on a plain card with no heading,
         no amount and no statement about the money. A person who has just tried
         to pay rent is asking one question and it was not being answered.
       */}

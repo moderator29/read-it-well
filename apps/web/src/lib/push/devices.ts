@@ -38,7 +38,8 @@ import type { PushPlatform } from "./schema";
  * object rather than about the observer. A column-level grant would be
  * tighter. It is not changed from here: narrowing a live grant is a privilege
  * change on a shared table, and it belongs in a migration somebody has read,
- * not in a settings screen. Written up in `docs/BUILD_07_LEDGER.md`.
+ * not in a settings screen. The proposal is written up in
+ * `docs/archive/BUILD_07_LEDGER.md`.
  */
 
 export type PushDeviceRow = {

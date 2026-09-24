@@ -64,3 +64,11 @@ assets/brand-cut/
 scripts/ownerA-*.mjs
 scripts/ownerb-*.mjs
 apps/web/src/app/(app)/ownerb-preview/
+
+# Screenshot and measurement runs written by scripts/design/, scripts/probes/
+# state-colours.mjs and the apps/web/tests/*-live.spec.mjs harnesses. They are
+# local output, never documentation: 640 MB of them were once committed here.
+docs/design/proofs/
+
+# CI test report (DOC-P2-04)
+vitest-junit.xml

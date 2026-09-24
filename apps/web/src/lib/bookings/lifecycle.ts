@@ -215,6 +215,10 @@ const uuidList = z.array(z.string().uuid());
 const holdSweepResultSchema = z.object({
   released: uuidList,
   paid_pending: uuidList,
+  /* OPS-02: holds spared because a payment started in the last two hours.
+     Optional so the sweep still parses against the database before and after
+     the migration that adds it. */
+  payment_in_flight: uuidList.optional(),
   ttl_hours: z.number().int().nonnegative(),
 });
 

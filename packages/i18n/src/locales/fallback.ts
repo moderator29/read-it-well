@@ -4,7 +4,7 @@ import { en, type Dictionary } from "./en";
  * A translation may be incomplete; a build may not break because of it.
  *
  * Every dictionary used to be typed as the whole `Dictionary`, so the moment
- * a worker added a namespace to English and had not yet reached the other
+ * a namespace was added to English and not yet to the other
  * three files, the production build failed on a type error in a translation
  * file (Vercel, 18 September 2026, `catalogue` missing in `ha`). A missing
  * translation is a copy gap to be closed by a speaker; it is not a reason for

@@ -1,0 +1,123 @@
+-- ESC-03 and SUP-P2-02: holding a calendar costs something. Three unconfirmed
+-- stays per guest and one per listing, at most 90 nights; OPS-02 (b): the hold
+-- sweep spares a hold whose payment started in the last two hours, never past
+-- its TTL plus two hours, and releases a stale one; two host declines do not
+-- start a guest's cooldown, two lapsed holds do; a rent move-in date already
+-- held answers date_taken. Rolls back.
+do $$
+declare
+  member uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
+  lister uuid := 'e0000000-0000-4000-8000-000000000001';
+  s1 uuid := 'ed000000-0000-4000-8000-000000000003';
+  s2 uuid := 'ed000000-0000-4000-8000-000000000037';
+  s3 uuid := 'ed000000-0000-4000-8000-000000000039';
+  s4 uuid := 'ed000000-0000-4000-8000-000000000018';
+  rental uuid := 'ed000000-0000-4000-8000-000000000007';
+  lagos date := (now() at time zone 'Africa/Lagos')::date;
+  claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated')::text;
+  b uuid; b_old uuid; b_paying uuid; b_capped uuid; d1 uuid; d2 uuid; host uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'; insp uuid; r jsonb; st text;
+begin
+  update public.listings set is_demo = false, status = 'PUBLISHED' where id in (s1, s2, s3, s4);
+  set local role authenticated;
+  perform set_config('request.jwt.claims', claims, true);
+  -- CONTROL: three unconfirmed stays on three listings.
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (s1, member, lagos + 10, lagos + 12, 2, 1, 2, 2, 'PENDING'),
+         (s2, member, lagos + 10, lagos + 12, 2, 1, 2, 2, 'PENDING'),
+         (s3, member, lagos + 10, lagos + 12, 2, 1, 2, 2, 'PENDING');
+  -- REFUSAL: a fourth unconfirmed stay.
+  begin
+    insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+    values (s4, member, lagos + 10, lagos + 12, 2, 1, 2, 2, 'PENDING');
+    raise exception 'PROBE_FAIL esc-03: a fourth hold was accepted';
+  exception when check_violation then
+    if sqlerrm not like 'booking_hold_limit%' then raise; end if;
+  end;
+  -- REFUSAL: a second hold on the same listing.
+  begin
+    insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+    values (s1, member, lagos + 20, lagos + 22, 2, 1, 2, 2, 'PENDING');
+    raise exception 'PROBE_FAIL esc-03: a second hold on one listing was accepted';
+  exception when check_violation then
+    if sqlerrm not like 'booking_hold_limit%' then raise; end if;
+  end;
+  reset role;
+  delete from public.bookings where guest_id = member;
+  set local role authenticated;
+  perform set_config('request.jwt.claims', claims, true);
+  -- REFUSAL: a year held in one go (SUP-P2-02).
+  begin
+    insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+    values (s4, member, lagos + 1, lagos + 366, 365, 0, 0, 0, 'PENDING');
+    raise exception 'PROBE_FAIL sup-p2-02: 365 nights accepted';
+  exception when check_violation then
+    if sqlerrm not like 'booking_too_long%' then raise; end if;
+  end;
+  reset role;
+
+  -- OPS-02: the sweep spares a hold whose payment started in the last two
+  -- hours, and releases one whose attempt is older.
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status, created_at)
+  values (s1, member, lagos + 30, lagos + 31, 1, 1, 1, 1, 'PENDING', now() - interval '49 hours') returning id into b_paying;
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status, created_at)
+  values (s2, member, lagos + 30, lagos + 31, 1, 1, 1, 1, 'PENDING', now() - interval '49 hours') returning id into b_old;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, created_at) values
+    (b_paying, 'paystack', 'probe-m7-paying', 1, 'PENDING', now() - interval '1 hour'),
+    (b_old, 'paystack', 'probe-m7-old', 1, 'PENDING', now() - interval '3 hours');
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status, created_at)
+  values (s3, member, lagos + 30, lagos + 31, 1, 1, 1, 1, 'PENDING', now() - interval '51 hours') returning id into b_capped;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, created_at) values
+    (b_capped, 'paystack', 'probe-m7-capped', 1, 'PENDING', now() - interval '30 minutes');
+  r := private.expire_booking_holds(interval '48 hours', 500);
+  select status::text into st from public.bookings where id = b_paying;
+  if st <> 'PENDING' then raise exception 'PROBE_FAIL ops-02: a hold with a payment in flight was released (%)', r; end if;
+  select status::text into st from public.bookings where id = b_old;
+  if st <> 'CANCELLED' then raise exception 'PROBE_FAIL ops-02: a stale hold was kept (%)', r; end if;
+  select status::text into st from public.bookings where id = b_capped;
+  if st <> 'CANCELLED' then raise exception 'PROBE_FAIL esc-03: a fresh checkout kept a hold past its cap (%)', r; end if;
+
+  -- Two holds the HOST declined do not start the guest's cooldown.
+  delete from public.transactions where booking_id in (b_paying, b_old, b_capped);
+  delete from public.booking_state_events where booking_id in (b_paying, b_old, b_capped);
+  delete from public.bookings where id in (b_paying, b_old, b_capped);
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (s4, member, lagos + 60, lagos + 61, 1, 1, 1, 1, 'CANCELLED') returning id into d1;
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (s4, member, lagos + 62, lagos + 63, 1, 1, 1, 1, 'CANCELLED') returning id into d2;
+  insert into public.booking_state_events (booking_id, from_status, to_status, actor_id, note) values
+    (d1, 'PENDING', 'CANCELLED', host, 'declined'), (d2, 'PENDING', 'CANCELLED', host, 'declined');
+  set local role authenticated;
+  perform set_config('request.jwt.claims', claims, true);
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (s4, member, lagos + 64, lagos + 65, 1, 1, 1, 1, 'PENDING') returning id into b;
+  reset role;
+  delete from public.bookings where id = b;
+  -- ...but two the guest let lapse do.
+  update public.booking_state_events set actor_id = null where booking_id in (d1, d2);
+  set local role authenticated;
+  perform set_config('request.jwt.claims', claims, true);
+  begin
+    insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+    values (s4, member, lagos + 66, lagos + 67, 1, 1, 1, 1, 'PENDING');
+    raise exception 'PROBE_FAIL esc-03: the cooldown did not start after two lapsed holds';
+  exception when check_violation then
+    if sqlerrm not like 'booking_rate_limit%' then raise; end if;
+  end;
+  reset role;
+
+  -- ESC-03 amendment: a rent move-in date held by a stay answers date_taken.
+  update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
+         rent_amount_minor = 150000000, rent_period = 'year', rate_minor = 0, rate_period = null
+   where id = rental;
+  perform set_config('vallo.rent_charge', 'true', true);
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (rental, lister, lagos + 40, lagos + 41, 1, 1, 1, 1, 'CONFIRMED');
+  perform set_config('vallo.rent_charge', '', true);
+  insert into public.inspection_requests (listing_id, requester_id, lister_id, state, requested_at, slot_at)
+  values (rental, member, lister, 'CONFIRMED', now(), now() + interval '1 day') returning id into insp;
+  r := private.open_rent_charge(member, insp, lagos + 40);
+  if r->>'status' <> 'date_taken' then raise exception 'PROBE_FAIL esc-03: rent on a held date answered %', r; end if;
+  r := private.open_rent_charge(member, insp, lagos + 42);
+  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL esc-03: rent control %', r; end if;
+  raise exception 'PROBE_OK esc-03';
+end $$;

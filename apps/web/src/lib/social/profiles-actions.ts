@@ -279,7 +279,9 @@ function describeWriteFailure(
   const code = error?.code ?? "";
   const message = error?.message ?? "";
 
-  if (code === "RM001" || code === "RM002" || code === "RM003") {
+  // RM004 is the content scanner (SEC-05) refusing a handle on the
+  // objectionable-content list; its message is written for a person too.
+  if (code === "RM001" || code === "RM002" || code === "RM003" || code === "RM004") {
     return ["That handle will not work.", { handle: message }];
   }
   if (code === "23505") {

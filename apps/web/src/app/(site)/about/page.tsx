@@ -92,7 +92,7 @@ export default function AboutPage() {
           <div className="nf-panel nf-panel--card block p-card-lg">
             <h2 className="nf-overline">Our mission</h2>
             <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
-              To make finding a place in Nigeria as safe and simple as messaging a
+              To make finding a place in Nigeria as simple as messaging a
               friend, whether it is a flat for the year, a house to buy, a hotel room
               for Friday or a table for six, so that nobody pays for a room that does
               not exist, queues for an agent who never shows, or settles for less

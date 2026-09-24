@@ -244,7 +244,7 @@ export type BrandIconObject = (typeof BRAND_ICONS)[number];
  * with no outcome.
  *
  * THE FILES ARE STILL ON DISK AND THAT IS DELIBERATE. `glass/light/**` is
- * commissioned artwork; deleting it is not this session's call, and it is
+ * commissioned artwork; deleting it is the founder's call, and it is
  * inert where it sits because nothing references it. `brand-icon-assets.test.ts`
  * records that it is retained and unused so the next reader does not file it as
  * a wiring bug. `escrow-hold` stays withheld there for its own, separate

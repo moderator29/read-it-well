@@ -5,7 +5,7 @@ import { join } from "node:path";
 /**
  * The founder's rule of 23 September: an account's email address can never be
  * changed. This card draws the email as a fixed fact and never writes it.
- * (The server refusal is Session A's: scope request EMAIL-LOCK.)
+ * (The server refuses the change as well; this test covers the card.)
  */
 const source = readFileSync(
   join(process.cwd(), "src/components/app/account/ProfileIdentityCard.tsx"),

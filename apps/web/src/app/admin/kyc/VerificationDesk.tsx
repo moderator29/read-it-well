@@ -19,7 +19,7 @@ import type { RungKind, VerificationSummary } from "../_review/contracts";
  * Verification, 8E9602E2 panel 2: four KPI cards, the identity verification
  * queue, the Verification funnel, the rung results and Recent verifications.
  *
- * Presentational. The queue rows come from Session A's `getKycQueue`; the four
+ * Presentational. The queue rows come from `getKycQueue`; the four
  * cards, the funnel, the rung results and Recent verifications from
  * `getVerificationSummary` (lib/admin/reads/verification.ts), exact counts
  * and complete windows. When that read fails the panels say so.

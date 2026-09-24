@@ -5,8 +5,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentRegisterForm } from "@/components/supply/AgentRegisterForm";
 
-/* Back to the declared parent (`route-parents.ts`), Session A's R14: this
-   route declared one and drew no control, so Android back closed the app. */
+/* Back to the declared parent (`route-parents.ts`): this route declared one and drew no control, so Android back closed the app. */
 const BACK = parentOf("/profile/setup/agent");
 
 export const metadata: Metadata = {

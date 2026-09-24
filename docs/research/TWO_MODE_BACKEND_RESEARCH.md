@@ -13,9 +13,9 @@ resorts, shortlets, restaurants), and his ruling that the old partner-feed
 hybrid engine moves from core scope to an optional later widener: "I don't
 even think we need the old hybrid system, let's build the new one in new
 style". Reconciled throughout against
-`docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md`,
+`docs/archive/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md`,
 `docs/research/MARKETPLACE_ARCHITECTURE_RESEARCH.md`, `docs/API_INVENTORY.md`,
-`docs/HANDOFF_04_MARKETPLACE.md` section 2 and `RECOMMENDATIONS.md` section 0
+`docs/archive/HANDOFF_04_MARKETPLACE.md` section 2 and `RECOMMENDATIONS.md` section 0
 (MK-01 to MK-68), all read in full except as the honesty log states.
 
 House rules honoured here and binding on everything proposed: additive-only

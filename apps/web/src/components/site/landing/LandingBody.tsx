@@ -54,10 +54,15 @@ export function LandingBody({
   t,
   locale,
   data,
+  native = false,
 }: {
   t: Dictionary;
   locale: Locale;
   data: LandingData;
+  /** Rendering for a native shell: the "take Vallo with you" band, with its
+      store badges and its "installs from your browser" line, is left out
+      (STORE-06, App Store 2.3.10). */
+  native?: boolean;
 }) {
   const first = data.cards[0] ?? null;
   return (
@@ -82,7 +87,7 @@ export function LandingBody({
       <HowVallo t={t} />
       <CategoryGrid t={t} counts={data.counts} />
       <StaysBand t={t} />
-      <AppBand t={t} locale={locale} listing={first} />
+      {native ? null : <AppBand t={t} locale={locale} listing={first} native={native} />}
     </main>
   );
 }

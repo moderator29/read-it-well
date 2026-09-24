@@ -46,8 +46,8 @@ export default async function InboxPage() {
             <PageHeader title="Inbox" />
           </div>
           <p className="nf-panel nf-panel--card nf-body p-card sm:p-cell text-center text-[var(--nf-content-muted)]">
-            Messaging is paused for maintenance. Your conversations are safe and nothing has
-            been lost. Try again in a few minutes.
+            Messaging is paused for maintenance. Your conversations are stored on
+            your account, not on this device. Try again in a few minutes.
           </p>
         </div>
       );

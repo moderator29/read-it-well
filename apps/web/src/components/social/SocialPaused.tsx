@@ -18,9 +18,9 @@ import { SOCIAL_OFF_BODY, SOCIAL_OFF_TITLE } from "@/lib/social/flag";
  *
  * `docs/SOCIAL_DESIGN.md` section 7.7 asks for the tab to be absent rather than
  * for a broken page. The tab lives in `AppRail` and `MobileTabBar`, which are
- * shared files this scope does not own, so the tab is still there and it leads
+ * shared files, so the tab is still there and it leads
  * here rather than anywhere broken. That is the honest half, and the other half
- * is one condition in two files the lead holds.
+ * is one condition in those two files.
  */
 export function SocialPaused({
   title = "Around",

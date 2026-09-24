@@ -5,7 +5,8 @@ import { FIRST_RUN_COOKIE } from "@/components/app/welcome/first-run-seen";
 import { signInFirstRunRedirect } from "./first-run-gate";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getProviderStates } from "@/lib/auth/providers";
+import { resolveProviderStates } from "@/lib/auth/providers";
+import { requestSurface } from "@/lib/auth/surface";
 import { AuthChoices } from "@/components/auth/AuthChoices";
 
 export const metadata: Metadata = {
@@ -34,6 +35,10 @@ const NOTICES: Record<string, string> = {
    * enough to read as a bug.
    */
   "sign-in-required": "Sign in to open that. It takes a moment, and new accounts are free.",
+  /* STORE-P2-04: a stranger who has opened a great many catalogue pages in a
+     few minutes (`anon_catalogue` in the proxy). */
+  "catalogue-paced":
+    "You have opened a lot of pages in a few minutes. Sign in to keep browsing, or come back in a few minutes.",
 };
 
 export default async function SignInPage({
@@ -56,11 +61,13 @@ export default async function SignInPage({
   const next = typeof params.next === "string" ? params.next : undefined;
   const noticeText = notice ? NOTICES[notice] : undefined;
 
+  const surface = await requestSurface();
   return (
     <AuthChoices
       mode="sign-in"
       t={t}
-      providers={getProviderStates()}
+      providers={await resolveProviderStates(surface)}
+      surface={surface}
       notice={noticeText}
       next={next}
     />

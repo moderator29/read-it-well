@@ -42,7 +42,7 @@ Ten audit areas each ran twice. In pass one an agent audited its own area. In pa
   - Everything said about the iOS and Android shells comes from reading source.
   - The microphone crash (STORE-P2-03) and the offline screen (STORE-01) are unproven on hardware.
 - **Payments:** no real payment. Paystack's hosted pages were not driven.
-- **Vercel:** its connection returned 404 for the Vallo project. `EMAIL_REPLY_TO`, `SENTRY_DSN` and the production Anthropic key could not be confirmed as set.
+- **Vercel:** its connection returned 404 for the Vallo project. **Confirmed after the audit (founder's read of Vercel, 23 September):** `EMAIL_REPLY_TO`, `SENTRY_DSN` and `NEXT_PUBLIC_SUPPORT_EMAIL` are **NOT SET**. `ANTHROPIC_API_KEY` is set (production and preview). `FCM_*` is set on production only, so preview correctly reports Android push unconfigured (environment, not a defect). VAPID, `RESEND_API_KEY`, both Paystack keys, `CRON_SECRET` and `RECONCILE_CRON_SECRET` are set.
 - **Permission blocks:** two probes were refused by this session's permission policy.
   - A signed-out API read of the member directory (UX-24). Its exposure is proven from the catalogue but not over the wire.
   - Some signed-in PostgREST writes. Their conclusions rest on rolled-back SQL probes run as the `authenticated` role instead.
@@ -2171,7 +2171,7 @@ So today, a stranger can put a "verified" hotel into the stays catalogue in abou
   - Use the same regex in `outbox-delivery.test.ts` and `templates.test.ts` (`.not.toMatch(PRIVATE_ADDRESS)`).
   - Rewrite the ledger lines to describe the rule without spelling the address, so the sweep can include docs.
   - Add a post-build check in CI: `grep -rEi 'vallospaces?ltd@gmail' apps/web/.next && exit 1`.
-  - **EMAIL_REPLY_TO:** `lib/email/client.ts:105` uses `EMAIL_REPLY_TO` if set; otherwise no `reply_to` is sent and a user's reply goes to the From address, default `Vallo <hello@vallospaces.com>` (`client.ts:25`). I could **not** check Vercel: the Vercel MCP connection sees only team `boosthubservice-2204s-projects` with one project, `v0-viticulture-labs-app`, and zero env vars; the Vallo project is not visible. MX for vallospaces.com was also unreachable (dns.google blocked by the egress proxy). If there is no MX for `vallospaces.com` or `hello@` is not routed, every user reply to every Vallo email bounces. UNVERIFIED; see FOR THE FOUNDER.
+  - **EMAIL_REPLY_TO:** `lib/email/client.ts:105` uses `EMAIL_REPLY_TO` if set; otherwise no `reply_to` is sent and a user's reply goes to the From address, default `Vallo <hello@vallospaces.com>` (`client.ts:25`). I could **not** check Vercel: the Vercel MCP connection sees only team `boosthubservice-2204s-projects` with one project, `v0-viticulture-labs-app`, and zero env vars; the Vallo project is not visible. MX for vallospaces.com was also unreachable (dns.google blocked by the egress proxy). If there is no MX for `vallospaces.com` or `hello@` is not routed, every user reply to every Vallo email bounces. **Confirmed after the audit (founder's read of Vercel, 23 September):** `EMAIL_REPLY_TO` is NOT SET in Vercel, so no `reply_to` is sent and replies go to the From address; with no MX (OPS-06) they reach no one. See FOR THE FOUNDER.
 - **EFFORT:** 1 hour.
 - **PASS TWO:** SEVERITY CHANGED MEDIUM→LOW. Confirmed: 0 hits for the no-s spelling in the tree, and the with-s spelling appears only in the three tests and the ledger. No leak exists; it is a decorative guard, which makes it craft rather than a risk.
 
@@ -2405,7 +2405,7 @@ So today, a stranger can put a "verified" hotel into the stays catalogue in abou
 
 - **Live direct invocation of server actions over HTTP** (the POST with a `Next-Action` id). I did not harvest action ids from bundles. Server-action authorization rests on the full static table (appendix) plus manual reading of every service-role action, and the underlying data-layer refusals were proved live over PostgREST. Pass two should drive the UI in a real browser as the member against admin-owned ids for 3–4 service-role actions.
 - **Supabase Auth settings:** secure email/password change, JWT expiry, auth rate limits, redirect-URL allowlist, CAPTCHA and whether email confirmation is required. They are not readable with the read-only role, and I did not probe email change live because it could alter a QA account's address. The host-header route (`authOrigin()` trusts `x-forwarded-host`, `lib/site.ts:53-66`) is only as safe as that allowlist.
-- **Vercel env vars:** `EMAIL_REPLY_TO`, `NEXT_PUBLIC_SUPPORT_EMAIL` and so on. The connected Vercel team does not contain the Vallo project.
+- **Vercel env vars:** `EMAIL_REPLY_TO`, `NEXT_PUBLIC_SUPPORT_EMAIL` and so on. The connected Vercel team does not contain the Vallo project. **Confirmed after the audit (founder's read of Vercel, 23 September):** both are NOT SET.
 - **DNS** (MX/SPF/DMARC for replies) and HSTS preload status: egress was blocked.
 - **RLS was not audited table by table** beyond the tables named here. That is another agent's area; SEC-01's column-grant query should be run across every table.
 - **Credential stuffing and brute force** were not exercised. **iOS home-screen and Capacitor cookie-store behaviour** is taken from code comments (`proxy.ts` VAPID note: "a home screen web app keeps its own cookie store") and not tested on a device.
@@ -2418,7 +2418,7 @@ So today, a stranger can put a "verified" hotel into the stays catalogue in abou
 
 1. **SEC-01 is live now.** Approve the column-grant migration today.
 2. **Email-can-never-change (SEC-15):** decide whether an audited, staff-only, identity-verified email move is allowed. Without one, a user who loses their Gmail loses their wallet.
-3. **Support inbox:** confirm `EMAIL_REPLY_TO` in Vercel Production (names only) and that `hello@vallospaces.com` actually receives mail. Also confirm the real private address, so the SEC-11 guard can be written with a regex covering both spellings, never the literal.
+3. **Support inbox:** `EMAIL_REPLY_TO` is confirmed NOT SET in Vercel Production; set it once a mailbox exists, and confirm that `hello@vallospaces.com` actually receives mail. Also confirm the real private address, so the SEC-11 guard can be written with a regex covering both spellings, never the literal.
 4. **Discrimination policy (SEC-06):** should "married couples only", "students only" and gender-only (e.g. "ladies only" for a shared female flat) be held for review or allowed? Add marital status to /standards?
 5. **Abuse list tuning (SEC-05):** approve demoting `loli`, `paki`, `coon`, `wog` and "i will deal with you".
 6. **Vendor for NIN verification:** gates the real fix to multi-account abuse (per `docs/ONE_PERSON_MANY_ACCOUNTS.md`), which is unchanged by this audit.
@@ -4176,7 +4176,7 @@ Nothing is used for tracking and nothing is sold. Everything is linked to the us
 | Product interaction (App activity) | follows, reactions, saves | App functionality | No |
 | User ID (Identifiers) | Supabase uid | App functionality | No |
 | Device ID: push token (Identifiers / Device IDs) | `push_tokens` | Notifications | FCM and APNs (processors) |
-| Crash data (Diagnostics), not linked (scrubbed) | Sentry relay, only when `SENTRY_DSN` is set (UNVERIFIED whether it is set in prod) | App functionality | Sentry (processor) |
+| Crash data (Diagnostics), not linked (scrubbed) | Sentry relay, only when `SENTRY_DSN` is set (confirmed NOT SET in production, so nothing is sent today) | App functionality | Sentry (processor) |
 
 Play security answers: encrypted in transit, yes (HTTPS, HSTS). Deletion can be requested, yes (in-app and at `/delete-account`).
 
@@ -4233,8 +4233,8 @@ Play security answers: encrypted in transit, yes (HTTPS, HSTS). Deletion can be 
 - No native build, simulator or device was run. There is no Xcode and no Android SDK in this container. Every native claim is from source.
 - The WKWebView service-worker limit is stated from known WebKit behaviour, not tested on a device.
 - I did not press "Delete my account" and did not execute any purge SQL (by instruction).
-- I did not send a message to `/assistant`, so whether the production Anthropic key is set is UNVERIFIED.
-- Whether `SENTRY_DSN` is set in production is UNVERIFIED: the Vercel env listing returned 404 for the project under the team I tried.
+- I did not send a message to `/assistant`. **Confirmed after the audit (founder's read of Vercel, 23 September):** `ANTHROPIC_API_KEY` is set on production and preview.
+- `SENTRY_DSN` is NOT SET in production (Confirmed after the audit (founder's read of Vercel, 23 September)). Crash reports are not sent anywhere today.
 - I did not test Google sign-in end to end (it would need the native app).
 - I did not check the ha, ig or yo locales for store-policy wording.
 - I did not audit iPad layouts.
@@ -4349,7 +4349,7 @@ Pass one: "No DANGER NOW item. Zero bookings or real payments have ever happened
   - *Pass-one fix, retained:* 
     1. Add an `after insert on public.risk_alerts for each row when (new.severity = 'high')` trigger that enqueues an `email_outbox` row, and later a push, to an ops address (a founder-supplied `OPS_ALERT_EMAIL`). Dedupe per kind per hour. The outbox already exists and retries.
     2. Sign up for an external uptime monitor (Better Stack or UptimeRobot, free tier) that hits a NEW public `/api/health/catalogue` route. Build that route to run the real catalogue read AS ANON (the publishable key, `select id from listings where status='PUBLISHED' limit 1`) plus one `auth/v1/health` call, returning 503 if either fails. That makes it a check that fails for the same reason the feature would. Also point the monitor at `/` and `/sign-in`.
-    3. Confirm `SENTRY_DSN` is set in Production and set a Sentry alert rule for new issues to email the founder.
+    3. Set `SENTRY_DSN` in Production (confirmed NOT SET on 23 September) and set a Sentry alert rule for new issues to email the founder.
     4. Add a Vercel Log Drain, or at least turn on Vercel's "Deployment failed" and function-error notifications.
   - *Pass-two amendments:*
     - A trigger that enqueues into `email_outbox` cannot page on the failures that matter most: if Vercel is down, the outbox drain (a Vercel cron) is down too. The page must leave through something that does not depend on the app.
@@ -4399,7 +4399,7 @@ Pass one: "No DANGER NOW item. Zero bookings or real payments have ever happened
   ```
 - **WHY IT MATTERS:**
   - Gmail and Yahoo require a DMARC record for bulk senders and weigh its absence for everyone. Sign-up confirmations and password resets landing in spam mean users who cannot finish sign-up, which a store reviewer will also hit.
-  - With no MX, every reply to a booking email bounces unless `EMAIL_REPLY_TO` is set to a mailbox on another domain. Whether it is set in production is UNVERIFIED (I cannot read Vercel envs). Agent 4 owns the spelling of that address; I only note the wiring (`lib/email/client.ts:108-131`, used at `:187`).
+  - With no MX, every reply to a booking email bounces unless `EMAIL_REPLY_TO` is set to a mailbox on another domain. **Confirmed after the audit (founder's read of Vercel, 23 September):** it is NOT SET, so today every reply bounces. Agent 4 owns the spelling of that address; I only note the wiring (`lib/email/client.ts:108-131`, used at `:187`).
   - Without DMARC, anyone can send mail as `@vallospaces.com` (phishing "Vallo payment" emails) with no policy telling receivers to reject it.
 - **THE FIX:**
   1. Add TXT `_dmarc.vallospaces.com` = `v=DMARC1; p=none; rua=mailto:dmarc@<a mailbox you read>; fo=1`. Move it to `p=quarantine` after 2 to 4 weeks of clean reports.
@@ -4644,7 +4644,7 @@ Pass one: "No DANGER NOW item. Zero bookings or real payments have ever happened
 | **Termii** | Not shipped (`docs/ENVIRONMENT.md:105`) | — | — | No SMS/phone OTP exists. |
 | **Firebase FCM / APNs / WebPush** | `lib/push/transport/{fcm,apns,webpush}.ts` | 10 s (fcm.ts:204, webpush.ts:396). APNs has a timeout path (apns.ts:224). | `lib/push/drain.ts:72-75`: 4 queue attempts, 3 per device | Push is lost after the caps, and `push_queue_health` records it. Sound. |
 | **Anthropic** | `app/api/assistant/route.ts:697-705`, `app/api/support/route.ts:~257`, `lib/social/bot-actions.ts:189-190` | Assistant and support: **only `req.signal`** (client abort), no server timeout (OPS-18). Bot: 20 s. | None | A slow upstream holds a streaming function open until Vercel's max duration. |
-| **Sentry** | `lib/observability/report.ts` (a hand-rolled envelope POST) | 2 s | 60 s dedupe | Silent `{sent:false}` when `SENTRY_DSN` is unset. **Whether it is set in production is UNVERIFIED** (I cannot read Vercel env vars). |
+| **Sentry** | `lib/observability/report.ts` (a hand-rolled envelope POST) | 2 s | 60 s dedupe | Silent `{sent:false}` when `SENTRY_DSN` is unset. **It is NOT SET in production** (confirmed by the founder's read of Vercel, 23 September), so every call is a silent no-op. |
 | **Yellow Card / CoinGecko** | `lib/payments/yellowcard.ts:61`, `lib/crypto/upstream.ts:18` | 15 s / 8 s | None | Typed errors. |
 
 No dependency has a circuit breaker. Nothing retries with backoff inside a request, which I think is acceptable for a request-scoped app. The retry burden sits on crons and outboxes, which exist.
@@ -4702,7 +4702,7 @@ No dependency has a circuit breaker. Nothing retries with backoff inside a reque
 
 **Pass two (A10) did not cover:**
 
-- Vercel env vars (`SENTRY_DSN`, `EMAIL_REPLY_TO`, `RESEND_API_KEY`) and the Vercel plan. The connection returns 404 for the project even though it lists it.
+- Vercel env vars (`SENTRY_DSN`, `EMAIL_REPLY_TO`, `RESEND_API_KEY`) and the Vercel plan. The connection returns 404 for the project even though it lists it. **Confirmed after the audit (founder's read of Vercel, 23 September):** `SENTRY_DSN` and `EMAIL_REPLY_TO` NOT SET; `RESEND_API_KEY` set. The plan is still unverified.
 - The throttled 3G timings (OPS-10) and the signed-in soft-404 (OPS-17) were not re-run.
 - Supabase Free-tier quota figures are from general knowledge and were not read from their pricing page today.
 - The 306 applied migrations versus 304 files were not diffed (belongs to Agent 3).
@@ -4713,8 +4713,8 @@ No dependency has a circuit breaker. Nothing retries with backoff inside a reque
 
 1. **Connect the right accounts to the tooling**, or tell us the Vercel project and Supabase ref are under another login. Two areas (production errors and backups) could not be audited because of this.
 2. **Supabase plan and backups:** confirm Pro plus PITR, and book one restore drill (OPS-07).
-3. **Pick an alerts inbox or phone** (for example `ops@`) and sign up for an uptime monitor (Better Stack or UptimeRobot, free). Confirm `SENTRY_DSN` is set and that Sentry emails you (OPS-03).
-4. **DNS:** add DMARC, and choose a mailbox provider so `hello@` and `support@vallospaces.com` can receive mail. Set `EMAIL_REPLY_TO` (OPS-06).
+3. **Pick an alerts inbox or phone** (for example `ops@`) and sign up for an uptime monitor (Better Stack or UptimeRobot, free). Set `SENTRY_DSN` (it is not set) and make Sentry email you (OPS-03).
+4. **DNS:** add DMARC, and choose a mailbox provider so `hello@` and `support@vallospaces.com` can receive mail. Set `EMAIL_REPLY_TO`, which is not set today (OPS-06).
 5. **Region:** approve moving functions to `dub1` (OPS-09).
 6. **Sharing vs closed platform:** decide whether WhatsApp and Facebook crawlers may see a listing's title, price and cover photo (OPS-16).
 7. **Process:** protect `main` and have sessions deploy via previews. Migrations go through a staging branch (OPS-08).
@@ -5314,7 +5314,7 @@ Verdict key: **T** = true as far as I checked. **P** = partly true (specific fal
 |---|---|---|
 | `/checkout` with no booking id (QA member) | CORRECTLY EMPTY | Redirects to `/stays`. The QA member has no booking; zero bookings exist. So I could not axe-audit a real payment panel. |
 | `/search` and `/stays` signed out | NOT EMPTY, REDIRECTED | Redirects to `/welcome?next=/sign-in?...notice=sign-in-required`. Whether browsing must require sign-in is a product decision; flagged to the relevant agent, not filed here. |
-| `email_outbox`, escrow and push drains "green over nothing" | CORRECTLY EMPTY | Per the docs and the brief. I did not re-query. |
+| `email_outbox`, escrow and push drains "green over nothing" | CORRECTLY EMPTY | Per the docs and the brief. I did not re-query. **Update, measured 23:47 UTC on 23 September:** `email_outbox` holds 5 rows, all SENT (15:57 to 20:39 UTC), 0 PENDING. The first was sent after a real sign-up, so the email path is proven end to end against a real event. `push_tokens` holds 1 row: a web token created at 23:07:53 and revoked at 23:08:21, a test enrolment rather than a user's device. No push delivery has been proven. |
 
 *Pass-two note:* the signed-out redirect on `/search` and `/stays` is now filed as STORE-P2-04 (HIGH) in the stores area.
 
@@ -5427,7 +5427,7 @@ Each area section has its own detailed NOT COVERED list. These are the gaps that
 - **Two probes were blocked by this session's permission policy and were not repeated:**
   - the signed-out API read of `social_profiles` (UX-24);
   - some signed-in PostgREST inserts (DB-01 and SUP-01 used rolled-back SQL instead).
-- **Vercel settings were not visible.** Environment variables, runtime logs, the plan and the production branch are all unverified. The Vercel connection lists the project but returns 404 on it. So `EMAIL_REPLY_TO`, `SENTRY_DSN`, `ANTHROPIC_API_KEY` and `NEXT_PUBLIC_SUPPORT_EMAIL` could not be confirmed.
+- **Vercel settings were not visible.** Environment variables, runtime logs, the plan and the production branch are all unverified. The Vercel connection lists the project but returns 404 on it. So `EMAIL_REPLY_TO`, `SENTRY_DSN`, `ANTHROPIC_API_KEY` and `NEXT_PUBLIC_SUPPORT_EMAIL` could not be confirmed during the audit. **Confirmed after the audit (founder's read of Vercel, 23 September):** `EMAIL_REPLY_TO`, `SENTRY_DSN` and `NEXT_PUBLIC_SUPPORT_EMAIL` are NOT SET; `ANTHROPIC_API_KEY` is set.
 - **DNS was checked only partly.** It was queried from one resolver; the sandbox blocks DNS-over-HTTPS. DMARC and MX are absent, and SPF and DKIM are present (OPS-06). Inbox placement, meaning Gmail's Promotions tab, was not measured, because no mail was sent to a seeded inbox.
 - **Load was not tested.** Statements about what breaks at 1,000, 10,000 and 100,000 listings come from query plans, code reading and the 200-row cap in search. No synthetic load was generated.
 - **No restore test.** There is nothing to restore on the Free plan (OPS-07).
@@ -5478,7 +5478,7 @@ Each area section has its own detailed NOT COVERED list. These are the gaps that
 
 ## 10. THE REPOSITORY CLEANUP (AGENTS 11 AND 12)
 
-**The goal.** A developer hired tomorrow should think a serious team built this. What was done is below, and so is what could not be done yet because two build sessions are still running.
+**The goal.** A developer hired tomorrow should think a serious team built this. What was done is below, and so is what was held while two build sessions were still running (both have since closed, and the held work is done: see the end of this section).
 
 **Removed.** All of it is still in git history at `85c5471`.
 - **Build-proof screenshots:** 565 files in 35 run folders under `docs/design/proofs/`, 439.6 MB in all. These were artefacts of the build process, not design documentation. The scripts that made them still exist:
@@ -5558,6 +5558,15 @@ When all of that is done, `docs/` should be about 155 MB, nearly all of it the g
   - The `EMAIL_FROM` default differs between `.env.example` (`hello@vallo.ng`) and `DEPLOY.md` (`hello@vallospaces.com`).
 - 24 image links in the held `BUILD_07_LEDGER.md` now point at deleted `proofs/imgc` shots. They still resolve in history at `85c5471`.
 
+**Completed after both build sessions closed (fix pass, 23 September, after 22:25 UTC).** Everything held above has been done:
+- **Root PNGs.** The six byte-identical copies (`2A49E2F7`, `50E032EA`, `55A56F21`, `6AF37222`, `77A54EA3`, `F6A8A482`, md5 re-checked) were deleted from the root. The four admin renders were viewed and moved to `docs/design/references/admin/`: `5EAA44CB` → `admin-01-overview.png`, `C1D98B3C` → `admin-02-listings-review-money.png`, `8E9602E2` → `admin-03-escrow-verification-supply.png`, `01F7DFC7` → `admin-04-moderation-operations-analytics.png`. `CATALOGUE.md` maps the short ids to the new names. `scripts/design/session-b-crops.mjs`, `session-b-shots/admin-money.mjs` and `admin-review-shots.mjs`, the three `public/brand/session-b/*/SOURCES.md` and every comment that said "repository root" now point at `docs/design/references/`.
+- **Archived** to `docs/archive/` (each with a row in its README): `SESSION_B_SCOPE`, `BUILD_SESSION_B_LEDGER`, `BUILD_05_LEDGER`, `BUILD_07_LEDGER`, `HANDOFF_04`, `_05`, `_07`, `_08`, `_09`, `SESSIONS_CLOSE_OUT`, `BUILT_VS_PROVEN`, `PROMPTS_*`, `PROOF_RUN_*`, `PLATFORM_SURVEY_*`, `FOUNDER_ARTWORK_NEEDED`, `REFERENCE_UPLOADS_*`, `TRACK_G_STATE`, `design/SWEEP.md` (generated from the proofs, which are gone), `PLATFORM_STATUS.md` (a cycle report of one moment; correcting 1,375 lines to today would duplicate this audit) and `FOUNDER_OPEN_ITEMS.md` (its still-open items are folded into section 11 below).
+- **Moved:** `AUTH_EMAILS.md` → `docs/email/AUTH_EMAILS.md` (the two code comments and `WHAT_SENDS.md` updated); `WITHDRAWAL_PATH.md` → `docs/wallet/`.
+- **Kept:** `docs/research/`, with a new `README.md` saying it is evidence, not documentation, because code comments and `check-deep-links.mjs` cite it by path.
+- **Deleted:** `docs/design/proofs/session-b/` (≈202 MB). `docs/design/proofs/` is now in `.gitignore`; the scripts that write there still run and their output stays local.
+- **Comments:** every hit of the section's grep was read and rewritten by hand to describe the code (about 180 files, comment-only). The design rules the comments cite as R-A to R-G are now written down in `docs/DESIGN_DIRECTION.md` section 1.1. Left on purpose: "worker" where it means the service worker, a drain worker or a test worker; "this session" where it means a browser session; two lint messages in `eslint-rules/server-actions-export-only-actions.mjs` and three admin-facing strings that still name the build sessions (code, not comments; recorded as a separate finding).
+- **Size:** `docs/` was 387 MB in the fix worktree before this pass and is **162 MB** after (151 MB of it the governing references, including the four admin renders that moved in from the root).
+
 ## 11. TO THE FOUNDER
 
 Everything I would have said out loud is here.
@@ -5585,8 +5594,8 @@ Everything I would have said out loud is here.
    - **What to do:**
      - Choose a mailbox provider (Google Workspace or Zoho) for `hello@` and `support@vallospaces.com`.
      - Add MX and a DMARC record (`p=none` first, then `quarantine`).
-     - Set `EMAIL_REPLY_TO` in Vercel Production to `support@vallospaces.com`. I could not read Vercel's env vars, so I do not know whether it is set today. The code only uses it if it is set (`lib/email/client.ts:105`).
-     - Set `NEXT_PUBLIC_SUPPORT_EMAIL` to the same address.
+     - Set `EMAIL_REPLY_TO` in Vercel Production to `support@vallospaces.com`. It is **not set today** (founder's read of Vercel, 23 September). The code only uses it if it is set (`lib/email/client.ts:105`).
+     - Set `NEXT_PUBLIC_SUPPORT_EMAIL` to the same address (also not set today).
 7. **The support address spelling.**
    - **What I found:** the repository's guards protect the *with-s* spelling, in three test files only. The *no-s* spelling, which you say is the real private address, appears nowhere in the tree, in the full git history, in the database or on the live pages. So nothing is leaking today, but nothing would catch it either.
    - **The fix, in SEC-11:**
@@ -5599,6 +5608,12 @@ Everything I would have said out loud is here.
     - **Where it stands:** no licence was added. The README says all rights are reserved until the company decides.
     - **For a private commercial codebase:** the usual choice is no open-source licence at all, with a short proprietary notice ("Copyright VALLO SPACES LTD. All rights reserved."), which I would recommend.
     - **If you ever intend to open any part of it:** say so, and we will pick one deliberately.
+
+**Carried from your working list** (`docs/archive/FOUNDER_OPEN_ITEMS.md`, archived 23 September; only what is still open and not already above):
+- **Rotate the Firebase service account key.** A private key for project `vallo-44059` was pasted into a working session on 23 September. Firebase console → Project settings → Service accounts → Generate new private key; then Google Cloud → IAM → Service accounts → the `firebase-adminsdk` account → Keys → delete the key whose id begins `79a7286`; then replace `FCM_SERVICE_ACCOUNT_JSON` in Vercel Production with the new file's contents and redeploy. Nothing has yet proved that the FCM credential authenticates; the first real push will.
+- **Turn on Secure Email Change** (Supabase Dashboard → Authentication → Providers → Email). It does not forbid a change (the code does that), but with it on a stolen session alone cannot move an address.
+- **Leaked password protection** needs the Supabase Pro plan; it is not a free toggle. It comes with the Pro upgrade in item 4.
+- **Deleting an account frees its email address** for a new sign-up, which resets the one-person-one-mailbox link `account_identities` records. Decide whether that stays.
 
 **Decisions only you can make.**
 - **Sign in with Apple, or hide Google on iOS for v1?** I would ship Sign in with Apple. It is a day's work with Supabase, and it removes the argument permanently.
@@ -5636,7 +5651,7 @@ Everything I would have said out loud is here.
   - `information_schema` reported that `anon` had *no* grants on `social_profiles`. `has_table_privilege` says it has SELECT. The view reports about the observer, exactly the blind light you warned about.
   - The reconciliation job cannot tell "no reply" from "aged out" (MON-13).
 - **Fixes can be worse than the finding.** Three agents independently proposed the same fix for self-publishing. It would have stopped every admin decision on the platform, and only the adversarial pass caught it. Keep the two-pass rule for fixes too.
-- **Two build sessions are pushing to `main` with CI dead.** Until billing is restored and `main` is protected, every push goes to production untested.
+- **Two build sessions were pushing to `main` with CI dead.** Both have since closed (the last close-out was written at 22:25 UTC on 23 September). Until billing is restored and `main` is protected, every push still goes to production untested.
 
 **What this audit means for the git history.** 945 of the 1,021 commits carry a `Co-Authored-By` trailer naming an AI model. No amount of file cleaning changes that. Removing them would mean rewriting every commit in history, which would invalidate every clone and every open branch. You have been told and have chosen to leave it. History was not rewritten.
 

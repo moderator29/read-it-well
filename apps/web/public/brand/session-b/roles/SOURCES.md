@@ -171,7 +171,7 @@ the slicer grows a retouch step, take those four from this folder rather than
 re-cutting them raw.
 
 ```js
-  /* roles/: the platform identity pack (Session B, docs/SESSION_B_SCOPE.md section 10). */
+  /* roles/: the platform identity pack (Session B, docs/archive/SESSION_B_SCOPE.md section 10). */
   "home-buy-tile": {
     render: "roles/GOVERNING-01-switch-home-sheet-drawer.png",
     box: { left: 77, top: 387, width: 75, height: 76 },

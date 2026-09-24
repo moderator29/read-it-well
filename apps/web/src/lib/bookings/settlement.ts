@@ -11,21 +11,18 @@ import type { AdminClient } from "../wallet/ledger";
  * two callers, because two implementations of settlement is two chances to
  * disagree about money.
  *
- * WHAT MAKES IT IDEMPOTENT. Two keys, both in the database:
+ * WHAT MAKES IT IDEMPOTENT, AND SAFE AGAINST A SECOND PAYMENT. The decision is
+ * the database's, in `private.settle_booking_charge`, under the payer's wallet
+ * lock and then the booking's: an attempt already SUCCESSFUL or REFUNDED moves
+ * nothing; the first charge that matches an open booking settles it and writes
+ * one ledger row; any other charge the processor has taken (the booking is
+ * already paid, is cancelled or finished, or the amount is not its price) is
+ * returned to the payer's wallet in the same transaction (MON-05, OPS-02).
  *
- *  1. `transactions.provider_ref` is UNIQUE, and the flip to SUCCESSFUL is a
- *     conditional update guarded on the row not already being SUCCESSFUL. Only
- *     one caller can win that update, so only one caller writes the ledger.
- *     A replay reads back zero moved rows and stops.
- *  2. The booking transition is guarded on `status = 'PENDING'`, so a booking
- *     already CONFIRMED is never moved again and its calendar write happens
- *     exactly once.
- *
- * Key 1 is the one that makes this safe to call repeatedly. Key 2 is only about
- * the status: a stay can be CONFIRMED and still unpaid, because a host accepting
- * a request-to-book stay confirms it without any money arriving. So "did the
- * status change" is not the same question as "did money move on this call", and
- * a receipt must be gated on the second one. Anything past Key 1 moved money.
+ * A stay can be CONFIRMED and still unpaid, because a host accepting a
+ * request-to-book stay confirms it without any money arriving. So "did the
+ * status change" is not the same question as "did money move on this call",
+ * and a receipt must be gated on `outcome: "settled"`, never on `confirmed`.
  *
  * THE COMMERCIAL RULE. The platform charges nothing (docs/MASTER_TODO.md
  * section 5b), so every ledger row reads: gross is the booking total,
@@ -142,143 +139,102 @@ export type ChargeSettlement =
       amountMinor: number;
       ledger: ChargeDecomposition;
     }
+  /**
+   * MON-05 / OPS-02. The processor took the money but it could not be applied
+   * to the booking: the booking was already paid, is no longer open, has a
+   * check-in that passed while unconfirmed, or the amount is not its price.
+   * The database has already credited the whole amount to the payer's wallet,
+   * marked the attempt REFUNDED and raised an alert. Nothing is announced.
+   */
+  | { outcome: "returned-to-wallet"; bookingId: string; reason: string; amountMinor: number }
   /** The reference was already settled. Nothing moved, nothing to announce. */
   | { outcome: "already-settled"; bookingId: string | null }
   /** No transaction carries this reference and no booking was named for it. */
   | { outcome: "unknown-reference" };
 
-type TransactionRow = {
-  id: string;
-  booking_id: string;
-  amount_minor: number;
-};
-
-/** Read the attempt this reference belongs to, or null when there is none. */
-async function readAttempt(
-  admin: AdminClient,
-  reference: string,
-): Promise<TransactionRow | null> {
-  const { data, error } = await admin
-    .from("transactions")
-    .select("id, booking_id, amount_minor")
-    .eq("provider_ref", reference)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data ?? null;
+/** Read what `public.settle_booking_charge` answered. Throws on a shape it did not promise. */
+export function readSettlement(data: unknown): ChargeSettlement {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new Error("settle_booking_charge answered no object");
+  }
+  const r = data as Record<string, unknown>;
+  const bookingId = typeof r.booking_id === "string" ? r.booking_id : null;
+  const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  switch (r.outcome) {
+    case "settled": {
+      if (!bookingId) throw new Error("settle_booking_charge settled no booking");
+      const l = (typeof r.ledger === "object" && r.ledger !== null ? r.ledger : {}) as Record<string, unknown>;
+      return {
+        outcome: "settled",
+        bookingId,
+        confirmed: r.confirmed === true,
+        amountMinor: num(r.amount_minor),
+        ledger: {
+          grossMinor: num(l.grossMinor),
+          platformFeeMinor: num(l.platformFeeMinor),
+          agentShareMinor: num(l.agentShareMinor),
+          processorFeeMinor: num(l.processorFeeMinor),
+          netSettlementMinor: num(l.netSettlementMinor),
+        },
+      };
+    }
+    case "returned-to-wallet":
+      if (!bookingId) throw new Error("settle_booking_charge returned no booking");
+      return {
+        outcome: "returned-to-wallet",
+        bookingId,
+        reason: typeof r.reason === "string" ? r.reason : "unknown",
+        amountMinor: num(r.amount_minor),
+      };
+    case "already-settled":
+      return { outcome: "already-settled", bookingId };
+    case "unknown-reference":
+      return { outcome: "unknown-reference" };
+    default:
+      throw new Error(`settle_booking_charge answered ${String(r.outcome)}`);
+  }
 }
 
 /**
  * Settle a successful charge against its booking. Safe to call any number of
- * times with the same reference: see the two keys documented at the top.
+ * times with the same reference.
+ *
+ * MON-05. This used to be four separate writes with no lock (flip the attempt,
+ * write the ledger, move the booking, write the history), keyed on the
+ * reference alone, so a second successful charge on the same booking was
+ * recorded as a second success and a charge landing on a cancelled booking was
+ * kept. It is now one call to `public.settle_booking_charge`, which decides
+ * everything under the booking's lock in one transaction: the first matching
+ * charge settles it; any other charge the processor has taken goes back to the
+ * payer's wallet. It never raises for a charge that moved money, so the
+ * webhook can always answer 200.
  *
  * `fallbackBookingId` heals the one case where the processor knows about a
- * charge this platform has no attempt row for (the row write landed but the
- * response was lost, or a delivery raced the insert). It comes from the
- * payment metadata the checkout action set, never from a request body a client
- * controls, and it only ever creates the PENDING row the settlement then
+ * charge this platform has no attempt row for. It comes from the payment
+ * metadata the checkout action set, never from a request body a client
+ * controls, and it only ever creates the PENDING attempt the settlement then
  * moves.
  */
 export async function settleBookingCharge(
   admin: AdminClient,
   params: {
     reference: string;
-    /** Kobo the processor actually charged, used only to heal a missing row. */
+    /** Kobo the processor actually charged. */
     amountMinor: number;
     /** Kobo the processor kept, when it said. Absent means zero. */
     processorFeeMinor?: number | null;
     fallbackBookingId?: string | null;
   },
 ): Promise<ChargeSettlement> {
-  let attempt = await readAttempt(admin, params.reference);
-
-  if (!attempt) {
-    const bookingId = params.fallbackBookingId ?? null;
-    if (!bookingId) return { outcome: "unknown-reference" };
-    await admin.from("transactions").upsert(
-      {
-        booking_id: bookingId,
-        provider: "paystack",
-        provider_ref: params.reference,
-        amount_minor: Math.max(0, Math.trunc(params.amountMinor)),
-        status: "PENDING",
-      },
-      { onConflict: "provider_ref", ignoreDuplicates: true },
-    );
-    attempt = await readAttempt(admin, params.reference);
-    if (!attempt) return { outcome: "unknown-reference" };
-  }
-
-  // Key 1. Exactly one caller wins this update; a replay moves no rows. FAILED
-  // is included because a processor that first said no and then said yes has
-  // moved real money, and the ledger must follow the money.
-  const won = await admin
-    .from("transactions")
-    .update({ status: "SUCCESSFUL" })
-    .eq("provider_ref", params.reference)
-    .in("status", ["PENDING", "FAILED"])
-    .select("id, booking_id, amount_minor");
-  if (won.error) throw new Error(won.error.message);
-
-  const row = won.data?.[0];
-  if (!row) return { outcome: "already-settled", bookingId: attempt.booking_id };
-
-  const ledger = decomposeCharge(row.amount_minor, params.processorFeeMinor);
-  const ledgerWrite = await admin.from("ledger_entries").insert({
-    booking_id: row.booking_id,
-    transaction_id: row.id,
-    gross_minor: ledger.grossMinor,
-    platform_fee_minor: ledger.platformFeeMinor,
-    agent_share_minor: ledger.agentShareMinor,
-    processor_fee_minor: ledger.processorFeeMinor,
-    net_settlement_minor: ledger.netSettlementMinor,
+  const fee = params.processorFeeMinor;
+  const { data, error } = await admin.rpc("settle_booking_charge", {
+    p_reference: params.reference,
+    p_amount_minor: Math.max(0, Math.trunc(params.amountMinor)),
+    ...(typeof fee === "number" && Number.isFinite(fee) ? { p_processor_fee_minor: Math.trunc(fee) } : {}),
+    ...(params.fallbackBookingId ? { p_fallback_booking: params.fallbackBookingId } : {}),
   });
-  // A unique violation here means a concurrent caller wrote this entry first
-  // (the one-entry-per-transaction index in the pending migration). The money
-  // is accounted for either way, so that is a no-op, not an error.
-  if (ledgerWrite.error && ledgerWrite.error.code !== "23505") {
-    throw new Error(ledgerWrite.error.message);
-  }
-
-  // Key 2. Only a booking still PENDING transitions, so the state event, the
-  // calendar write and the caller's confirmation email happen exactly once.
-  const moved = await admin
-    .from("bookings")
-    .update({ status: "CONFIRMED" })
-    .eq("id", row.booking_id)
-    .eq("status", "PENDING")
-    .select("id, listing_id, guest_id, check_in, check_out, nights, total_minor");
-  if (moved.error) throw new Error(moved.error.message);
-
-  const booking = moved.data?.[0] ?? null;
-  if (booking) {
-    await admin.from("booking_state_events").insert({
-      booking_id: booking.id,
-      from_status: "PENDING",
-      to_status: "CONFIRMED",
-      note: "Payment received, so the stay is confirmed.",
-    });
-    await writeBookedNights(admin, booking.listing_id, booking.check_in, booking.check_out);
-  } else {
-    // The booking did not move, and by this point that cannot mean a replay:
-    // Key 1 above already turned every replay back. It means the stay was
-    // CONFIRMED before the money arrived, which is exactly what a request-to-book
-    // stay looks like once the host has accepted it. The payment is still this
-    // call's own work, so it belongs in the history rather than vanishing.
-    await admin.from("booking_state_events").insert({
-      booking_id: row.booking_id,
-      from_status: "CONFIRMED",
-      to_status: "CONFIRMED",
-      note: "Payment received. The host had already accepted this stay.",
-    });
-  }
-
-  return {
-    outcome: "settled",
-    bookingId: row.booking_id,
-    confirmed: booking !== null,
-    amountMinor: row.amount_minor,
-    ledger,
-  };
+  if (error) throw new Error(error.message);
+  return readSettlement(data);
 }
 
 /**

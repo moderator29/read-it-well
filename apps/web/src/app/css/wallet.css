@@ -1105,7 +1105,7 @@
   /* 77A54EA3's form panel and its rows measure a 10px corner, which is the
      shared `--nf-container-radius`; they take it from the panel tokens. */
 
-  /* ------------------------------------- round three: lead rulings R-A to R-C */
+  /* ------------------------------------- rules R-A to R-C, DESIGN_DIRECTION 1.1 */
 
   /*
    * TYPE AT THE RENDER'S SIZE, WITH THE 11PX FLOOR (R-A); CONTROLS AT THE
@@ -1113,7 +1113,7 @@
    * WIDTH (R-C). Every size below is measured off the governing render at
    * 1.71 image px per CSS px, font size = measured text width divided by the
    * string's width in ems (cross-checked against cap height / 0.73). The
-   * measurements are in docs/BUILD_SESSION_B_LEDGER.md sections 4 and 5.
+   * measurements are in docs/archive/BUILD_SESSION_B_LEDGER.md sections 4 and 5.
    * Stated once, here, after the rules they overrule, so the earlier values
    * read as the base and this block as the ruling.
    */
@@ -1289,7 +1289,7 @@
 }
 
 @layer components {
-  /* The person tier mark (Session A's TierBadge) beside a name: the mark
+  /* The person tier mark (TierBadge) beside a name: the mark
      alone, spaced off the name it belongs to. */
   .nf-send-name-tier {
     margin-inline-start: var(--nf-space-2xs);

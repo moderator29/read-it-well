@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
  * /crypto GOES DARK FOR VERSION ONE, AND IT IS A `notFound()` RATHER THAN AN
  * ENVIRONMENT GATE. THIS IS DEFERRED, NOT CANCELLED.
  *
- * The ruling, from HANDOFF 08 section 5.2: a token price table inside a
+ * The product ruling: a token price table inside a
  * property application invites the content aggregator refusal on Apple and
  * the Cryptocurrency Exchanges and Software Wallets declarations on both
  * stores, for zero launch value.
@@ -15,7 +15,7 @@ import { notFound } from "next/navigation";
  * conversation this ruling exists to avoid having. `notFound()` is the route
  * not existing.
  *
- * B6 IN `HANDOFF_05` IS DEFERRED, NOT CANCELLED. The proxy work stops; it is
+ * THE CRYPTO PRICE PROXY IS DEFERRED, NOT CANCELLED. The proxy work stops; it is
  * not deleted, and neither is anything under `components/app/crypto/`, the
  * Yellow Card client, `/api/crypto/*` or the preview surfaces under
  * `(dev)/preview/e/`. All of it still builds and still has its tests. Turning

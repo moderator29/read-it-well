@@ -48,8 +48,8 @@ remapped, so a reference to "P-1, a P0" still reads correctly.
 ## 0. The marketplace consolidation, 18 September 2026
 
 **The platform's direction widened: Property, Stays, Restaurants, one
-marketplace.** `docs/HANDOFF_04_MARKETPLACE.md` is the charter and
-`docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md` is the build brief. This
+marketplace.** `docs/archive/HANDOFF_04_MARKETPLACE.md` is the charter and
+`docs/archive/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md` is the build brief. This
 section consolidates the register against that direction, per the map in
 `docs/research/MARKETPLACE_ARCHITECTURE_RESEARCH.md` section 4. **Where a row
 below in this file disagrees with this section, this section wins**; the build
@@ -1203,7 +1203,7 @@ was the previous RECOMMENDATIONS.md, and `git show` on any commit before
 | `W-2` | Nothing is rate limited on the money surfaces | OPEN |  |
 | `E-6` | What the escrow UI must never say | NEW |  |
 | `LG-1` | The landing page claims NDPA compliance as a fact | OPEN |  |
-| `T-1` | 83 browser specs, 8 vitest files, and no CI runs any of them | OPEN |  |
+| `T-1` | 83 browser specs, 8 vitest files, and no CI runs any of them | PARTLY CLOSED (23 Sep 2026): CI runs typecheck, lint, the vitest suite (242 files) and the build; the node browser specs are still run by nobody (THE_AUDIT DOC-09) |  |
 | `CASE-1` | A funding was paid for and the wallet showed zero | OPEN |  |
 | `N-6` | There is still no Buy or Sell anywhere in the navigation | OPEN |  |
 | `P-8` | A sale listing must be a different page, and nothing decides what it says | NEW |  |

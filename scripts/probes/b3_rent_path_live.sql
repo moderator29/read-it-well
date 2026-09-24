@@ -1,5 +1,5 @@
 -- B3 rent-path probe for the LIVE project: the in-product rent step, end to
--- end, run by the lead through the Supabase MCP AFTER the b3 migration is
+-- end, run through the Supabase MCP AFTER the b3 migration is
 -- applied, inside ONE transaction that ends in ROLLBACK. Nothing here is ever
 -- persisted: the three auth users, the agent, the two listings, the four
 -- inspections, the wallet and its deposit, the booking, the charge, the

@@ -36,7 +36,7 @@ import { PERSON } from "../../_fixtures/people";
 import { BANK_ACCOUNTS, NOTIFICATIONS, PAYMENT_CARDS } from "../../f4/fixtures";
 
 /**
- * The settings sweep's proof harness (ruling R-G): the real settings
+ * The settings sweep's proof harness (rule R-G): the real settings
  * components, signed in, on fixture props, so the before and after shots in
  * `docs/design/proofs/session-b/sweep-settings/` can be re-run. FIXTURE
  * PROPS, NOT DATA: the person, the cards, the devices and the notifications

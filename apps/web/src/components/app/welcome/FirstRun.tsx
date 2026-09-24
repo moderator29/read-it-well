@@ -15,7 +15,7 @@ import { rememberFirstRunSeen, withPassedFlag } from "./first-run-seen";
 import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
 
 /**
- * Get started, to its governing image (`2A49E2F7` at the repository root).
+ * Get started, to its governing image (`2A49E2F7` in docs/design/references/).
  *
  * FOUR SLIDES ON ONE STAGE, the render's four dots:
  *   1. Two worlds. One platform.  Property and Stays, and the coin between.

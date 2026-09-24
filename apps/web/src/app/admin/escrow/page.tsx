@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
  * total and the reconciliation check, escrow by purpose and recent activity.
  *
  * THE DISPUTE QUEUE IS STILL THE POINT OF THIS PAGE, so every dispute on the
- * platform is drawn first, never paged, with the evidence and Session A's
+ * platform is drawn first, never paged, with the evidence and the
  * ruling control (`resolveEscrow`) in the same frame.
  *
  * WHERE EVERY FIGURE COMES FROM: `getEscrowDesk` (`lib/admin/reads/escrow.ts`)

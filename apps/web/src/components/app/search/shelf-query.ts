@@ -14,7 +14,7 @@ import {
 /**
  * The results shelf's query: the address-bar contract plus the market.
  *
- * `DiscoveryQuery` (lib, not this worker's to edit) carries everything the
+ * `DiscoveryQuery` (lib, shared with the other discovery surfaces) carries everything the
  * filter sheet asks except which market a person is in: to let or for sale.
  * The repository and `matchesFacts` both honour `intent` already, so the
  * shelf reads one more parameter, `market`, carries it on every link it

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { chooseBack, parentOf } from "@/lib/nav/resolve";
 
 /**
- * Session A's R14: `/profile/setup` in its four states declares a parent in
+ * `/profile/setup` in its four states declares a parent in
  * `route-parents.ts` and drew no back control, so Android back closed the app.
  * Each page now mounts the shared `BackButton` with the declared parent.
  */

@@ -6,8 +6,8 @@ import type { AccommodationPhoto } from "@/lib/stays/accommodation-photos";
  * draws the same hotel.
  *
  * NOTHING HERE IS A COUNT OR A PRICE THE DATABASE WOULD HAVE TO PRODUCE. The
- * names are a plausible Abuja hotel and the photographs are the lead's own
- * filed plates from `public/brand/photos`, which is what the seed uses too.
+ * names are a plausible Abuja hotel and the photographs are the filed
+ * plates from `public/brand/photos`, which is what the seed uses too.
  */
 
 export const C2_OWNER = "00000000-0000-4000-8000-0000000c2010";

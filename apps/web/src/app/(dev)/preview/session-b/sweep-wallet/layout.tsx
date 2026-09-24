@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { PERSON } from "../../_fixtures/people";
 
 /**
- * Session B wallet-family sweep harness (the platform sweep, R-G): the real wallet and send
+ * Wallet-family sweep harness: the real wallet and send
  * components on fixture props, inside the real consumer chrome, so every
  * proof in docs/design/proofs/session-b/wallet and /send can be re-shot and
  * re-swept. Fixture-backed: never the proof of the wiring, only of the look.

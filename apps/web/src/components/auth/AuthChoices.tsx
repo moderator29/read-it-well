@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
-import type { ProviderId, ProviderState } from "@/lib/auth/providers";
-import { startGoogleOAuth } from "@/lib/auth/actions";
+import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/providers";
+import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
+import { AppleMark, NativeAppleSignIn } from "./NativeAppleSignIn";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -36,10 +37,14 @@ export function AuthChoices({
   providers,
   notice,
   next,
+  surface = "web",
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
   providers: ProviderState[];
+  /** Which surface the server rendered for. The redirect doors are drawn
+      only on the website; inside a shell they cannot complete (STORE-03). */
+  surface?: SignInSurface;
   /** A message from the auth callback, for example an expired link. */
   notice?: string | undefined;
   /**
@@ -53,7 +58,8 @@ export function AuthChoices({
   const isSignUp = mode === "sign-up";
   const configured = (id: ProviderId) => providers.find((p) => p.id === id)?.configured ?? false;
   const emailReady = configured("email");
-  const googleReady = configured("google");
+  const googleReady = configured("google") && surface === "web";
+  const appleReady = configured("apple");
   const emailRoute = isSignUp ? "/sign-up/email" : "/sign-in/email";
 
   return (
@@ -129,6 +135,28 @@ export function AuthChoices({
               {t.auth.continueWithGoogle}
             </button>
           </form>
+        </>
+      )}
+
+      {appleReady && (
+        <>
+          {!googleReady && (
+            <div className="nf-auth__rule" aria-hidden="true">
+              {t.auth.orDivider}
+            </div>
+          )}
+          {surface === "ios-native" ? (
+            <NativeAppleSignIn label={t.auth.continueWithApple} next={next} />
+          ) : surface === "web" ? (
+            <form action={startAppleOAuth} className={googleReady ? "mt-sm" : undefined}>
+              {next ? <input type="hidden" name="next" value={next} /> : null}
+              <input type="hidden" name="intent" value={mode} />
+              <button type="submit" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
+                <AppleMark />
+                {t.auth.continueWithApple}
+              </button>
+            </form>
+          ) : null}
         </>
       )}
 

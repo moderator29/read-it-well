@@ -1,3 +1,4 @@
+import { inForceCaption, rateStartLabel } from "@/lib/admin/fee-dates";
 import type { Metadata } from "next";
 import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -222,7 +223,7 @@ function FeeSection({
       </p>
       <p className="nf-caption mt-inline-tight">
         {live
-          ? `In force since ${ui.when(live.effectiveFrom)}`
+          ? inForceCaption(live.effectiveFrom, ui.when)
           : "Nothing is being charged, because no rate exists at all. That is a bug rather than a decision."}
       </p>
 
@@ -242,7 +243,7 @@ function FeeSection({
               )}
             </span>
             <span className="nf-caption shrink-0 text-right">
-              <span className="block">{ui.when(rate.effectiveFrom)}</span>
+              <span className="block">{rateStartLabel(rate.effectiveFrom, ui.when)}</span>
               {rate.setByName && <span className="block">{rate.setByName}</span>}
             </span>
           </li>

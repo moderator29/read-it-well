@@ -33,7 +33,7 @@ import { GalleryBoard } from "./GalleryBoard";
  * build is retaken on a server that actually hydrates, `next dev` does not
  * hydrate reliably on this box, and `next start` IS production. A bare
  * `NODE_ENV` check therefore 404s the board on the only server a proof counts
- * from, which is exactly the wall four sweep workers hit on `/preview` before
+ * from, which is exactly the wall the screenshot sweeps hit on `/preview` before
  * that layout was changed. This route was the last one still holding the old
  * shape, found by walking it: `scripts/design/proof-nav.mjs` could not reach
  * the board to prove its back control drew.
