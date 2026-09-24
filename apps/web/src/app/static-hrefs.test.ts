@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 
 /**
  * UI-02: /profile linked to /reviews, which no route serves, and every member
- * landed on a 404. Every literal in-app href in a component (`href="/..."`)
+ * landed on a 404. Every literal in-app destination (`href="/..."`,
+ * `href: "/..."` in link lists, `router.push`/`replace` and `redirect`)
  * must resolve to a page or route handler under src/app (route groups
  * ignored, dynamic segments matching anything) or a literal redirect in
  * next.config.ts.
@@ -60,16 +61,29 @@ describe("literal in-app links", () => {
     expect(resolves("/reviews")).toBe(false);
   });
 
-  it("every href=\"/...\" in a component has a page behind it", () => {
+  it("every literal in-app destination has a page behind it", () => {
     const dead: string[] = [];
-    for (const file of walk(SRC).filter((f) => /\.tsx$/.test(f) && !/\.test\.tsx$/.test(f))) {
+    const seen = { href: 0, object: 0, navigation: 0 };
+    const patterns = [
+      /\bhref=["'](\/[^"'#?]*)(?:[?#][^"']*)?["']/g,
+      /\bhref:\s*["'](\/[^"'#?]*)(?:[?#][^"']*)?["']/g,
+      /\b(?:router\.(?:push|replace)|redirect|permanentRedirect)\(\s*["'](\/[^"'#?]*)(?:[?#][^"']*)?["']/g,
+    ];
+    for (const file of walk(SRC).filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))) {
       const text = readFileSync(file, "utf8");
-      for (const m of text.matchAll(/\bhref=["'](\/[^"'#?]*)(?:[?#][^"']*)?["']/g)) {
-        const href = m[1] ?? "";
-        if (href.startsWith("//") || PUBLIC_FILES.has(`/${href.split("/")[1]}`)) continue;
-        if (!resolves(href) && !REDIRECTS.has(href)) dead.push(`${relative(SRC, file)}: ${href}`);
-      }
+      patterns.forEach((re, kind) => {
+        for (const m of text.matchAll(re)) {
+          seen[(["href", "object", "navigation"] as const)[kind]!] += 1;
+          const href = m[1] ?? "";
+          if (href.startsWith("//") || PUBLIC_FILES.has(`/${href.split("/")[1]}`)) continue;
+          if (!resolves(href) && !REDIRECTS.has(href)) dead.push(`${relative(SRC, file)}: ${href}`);
+        }
+      });
     }
+    // The scan itself reaches all three shapes, so a regex that silently stops matching fails here.
+    expect(seen.href).toBeGreaterThan(50);
+    expect(seen.object).toBeGreaterThan(10);
+    expect(seen.navigation).toBeGreaterThan(10);
     expect(dead).toEqual([]);
   });
 });

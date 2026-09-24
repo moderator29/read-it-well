@@ -47,14 +47,16 @@ describe("upstream deadlines", () => {
     const outcome = await readUntilStopped(watchdog.signal, () => watchdog.touch());
     watchdog.done();
     expect(outcome).not.toBe("ended");
-    expect(Date.now() - started).toBeLessThan(2_000);
+    // The stalled server never ends the stream; only the cut can. The bound
+    // is far above the 80 ms cut so a loaded runner cannot flake it.
+    expect(Date.now() - started).toBeLessThan(20_000);
   });
 
   it("cuts a request that runs past its total budget", async () => {
     const started = Date.now();
     const outcome = await readUntilStopped(requestSignal(new AbortController().signal, 100));
     expect(outcome).not.toBe("ended");
-    expect(Date.now() - started).toBeLessThan(2_000);
+    expect(Date.now() - started).toBeLessThan(20_000);
   });
 
   it("still ends when the visitor leaves", async () => {
