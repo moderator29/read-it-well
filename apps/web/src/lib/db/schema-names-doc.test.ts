@@ -18,6 +18,43 @@ const MIGRATIONS = readdirSync(join(ROOT, "supabase", "migrations"))
   .sort()
   .map((name) => readFileSync(join(ROOT, "supabase", "migrations", name), "utf8"));
 
+/** Tables with a `*_minor` column that hold a price or a setting, not a movement of money. */
+const PRICES_NOT_MOVEMENTS = new Set([
+  "bookings", // the price of a stay; what was paid is in transactions
+  "listings",
+  "catalogue_entries",
+  "room_types",
+  "rate_plans",
+  "rate_calendar",
+  "fee_rates",
+  "price_check_shares",
+  "bot_invocations",
+  "bot_settings",
+]);
+
+/**
+ * The newest definition of a function in each of `private` and `public`,
+ * joined. A public wrapper often delegates to its private twin, so the write
+ * may be in either.
+ */
+function latestBody(fn: string): string | null {
+  const bodies: string[] = [];
+  for (const schema of ["private", "public"]) {
+    for (let i = MIGRATIONS.length - 1; i >= 0; i -= 1) {
+      const sql = MIGRATIONS[i] ?? "";
+      const at = sql.search(new RegExp(`function\\s+${schema}\\.${fn}\\s*\\(`, "i"));
+      if (at === -1) continue;
+      const open = /as\s+(\$[a-z_]*\$)/i.exec(sql.slice(at));
+      if (!open) continue;
+      const from = at + open.index + open[0].length;
+      const close = sql.indexOf(open[1] ?? "$$", from);
+      bodies.push(sql.slice(from, close === -1 ? undefined : close));
+      break;
+    }
+  }
+  return bodies.length > 0 ? bodies.join("\n") : null;
+}
+
 /** The Row block of one public table in the generated types. */
 function row(table: string): string {
   const start = TYPES.indexOf(`\n      ${table}: {\n        Row: {`);
@@ -52,14 +89,41 @@ describe("docs/schema/NAMES.md matches the schema", () => {
     expect(listingStatusTables.sort()).toEqual(["accommodations", "businesses", "catalogue_entries", "listings", "room_types"]);
   });
 
-  it("names every money table, and every function it says writes one exists", () => {
-    const money = [...TYPES.matchAll(/\n      (\w+): \{\n        Row: \{/g)]
+  it("names every table that carries money", () => {
+    const tables = TYPES.slice(TYPES.indexOf("    Tables: {"), TYPES.indexOf("    Views: {"));
+    const carrying = [...tables.matchAll(/\n      (\w+): \{\n        Row: \{([\s\S]*?)\n        \}/g)]
+      .filter((m) => /\n\s+\w+_minor: /.test(m[2] ?? ""))
       .map((m) => m[1] ?? "")
-      .filter((table) => /ledger|revenue|escrow|^transactions$|wallet_entries/.test(table))
-      .filter((table) => !/_(events|disputes|evidence|holds|reviews|rules)$/.test(table));
-    for (const table of money) expect(DOC, `money table ${table} is on the page`).toContain(`| \`${table}\``);
-    for (const fn of [...DOC.matchAll(/`(settle_booking_charge|pay_booking_from_wallet|settle_rent_charge_to_lister|escrow_settle|escrow_reverse_ruling)`/g)].map((m) => m[1])) {
-      expect(MIGRATIONS.some((sql) => new RegExp(`function (public|private)\\.${fn}\\(`).test(sql)), `${fn} is defined in a migration`).toBe(true);
+      .filter((table) => !PRICES_NOT_MOVEMENTS.has(table));
+    const named = [...DOC.matchAll(/^\| `(\w+)` \|/gm)].map((m) => m[1]);
+    for (const table of carrying) expect(named, `money table ${table} is on the page`).toContain(table);
+  });
+
+  it("each database function the page names as a writer really writes that table", () => {
+    const money = DOC.slice(DOC.indexOf("## The money tables"));
+    const rows = [...money.matchAll(/^\| `(\w+)` \|[^|]*\|([^|]*)\|$/gm)];
+    expect(rows.length).toBeGreaterThan(10);
+    let checked = 0;
+    for (const [, table, writers] of rows) {
+      for (const fn of [...(writers ?? "").matchAll(/`([a-z_]+)`/g)].map((m) => m[1] ?? "")) {
+        const body = latestBody(fn);
+        expect(body, `${fn} is defined in a migration`).not.toBeNull();
+        expect(body, `${fn} writes ${table}`).toMatch(new RegExp(`(insert\\s+into|update)\\s+(public\\.)?${table}\\b`, "i"));
+        checked += 1;
+      }
     }
+    expect(checked).toBeGreaterThan(20);
+  });
+
+  it("a rent charge credits the lister from the ledger row, by trigger, as the page says", () => {
+    expect(MIGRATIONS.some((sql) => /create trigger ledger_entries_settle_rent_to_lister\s+after insert on public\.ledger_entries[\s\S]{0,120}settle_rent_charge_to_lister/i.test(sql))).toBe(true);
+    expect(DOC).toContain("`ledger_entries_settle_rent_to_lister`");
+  });
+
+  it("the app writes the rows the page says it writes", () => {
+    const app = (p: string) => readFileSync(join(ROOT, "apps", "web", "src", p), "utf8");
+    expect(app("lib/bookings/checkout.ts")).toMatch(/from\("transactions"\)\.insert\(/);
+    expect(app("lib/bookings/settlement.ts")).toMatch(/markChargeFailed[\s\S]*from\("transactions"\)[\s\S]{0,80}\.update\(/);
+    expect(app("lib/wallet/pot-actions.ts")).toMatch(/\.from\("wallet_pots"\)\s*\.insert\(/);
   });
 });
