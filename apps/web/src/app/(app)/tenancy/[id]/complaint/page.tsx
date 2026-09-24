@@ -6,7 +6,6 @@ import { getTenancyFile } from "@/lib/tenancy/queries";
 import { lagosToday } from "@/lib/rent/schema";
 import { addDays } from "@/lib/tenancy/model";
 import { RESPOND_WITHIN_DAYS, type LetterFacts } from "@/lib/tenancy/letter";
-import { formatReceiptCode } from "@/lib/receipts/code";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { ROOM_COPY, ROOM_ITEMS } from "@/lib/inspections/report";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -57,8 +56,8 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
   const day = (value: string) => formatMoneyDate(value, locale) ?? value;
   const host = (await headers()).get("host");
   const origin = host ? `https://${host}` : null;
-  const code = file.receiptCode ? formatReceiptCode(file.receiptCode.code) : null;
-  const verifyUrl = code && origin ? `${origin}/r/${code}` : null;
+  const hint = file.receiptCode?.hint ?? null;
+  const verifyUrl = hint && origin ? `${origin}/r` : null;
   const caution = file.caution;
   const owed = caution !== null && caution.outstandingMinor > 0;
   const letterOpen = owed && caution !== null && today > caution.dueOn;
@@ -79,7 +78,6 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
           disputed: caution.deductions
             .filter((line) => line.answer === "disputed")
             .map((line) => `${ROOM_COPY[line.item].title}: ${line.amount}`),
-          receiptCode: code,
           verifyUrl,
           today: day(today),
         }
@@ -135,7 +133,7 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
             ))}
           </ul>
           <p className="nf-caption mt-xs">
-            {code && verifyUrl ? copy.verify.replace("{code}", code).replace("{url}", verifyUrl) : copy.noCode}
+            {hint && verifyUrl ? copy.verify.replace("{hint}", hint).replace("{url}", verifyUrl) : copy.noCode}
           </p>
         </Section>
 

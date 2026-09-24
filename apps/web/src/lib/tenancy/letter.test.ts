@@ -13,8 +13,7 @@ const facts: LetterFacts = {
   dueOn: "Thu 2 Dec 2027",
   respondBy: "Sat 1 Jan 2028",
   disputed: ["Kitchen: ₦40,000"],
-  receiptCode: "VR-ABCDE-FGHJK",
-  verifyUrl: "https://vallospaces.com/r/VR-ABCDE-FGHJK",
+  verifyUrl: "https://vallospaces.com/r",
   today: "Sun 2 Jan 2028",
 };
 
@@ -25,7 +24,7 @@ describe("demandLetter", () => {
     expect(body).toContain("₦500,000 is still owed");
     expect(body).toContain("by Sat 1 Jan 2028");
     expect(body).toContain("- Kitchen: ₦40,000");
-    expect(body).toContain("VR-ABCDE-FGHJK");
+    expect(body).toContain("checked at https://vallospaces.com/r");
     expect(body).toContain("To Musa Okafor,");
   });
   it("never names an address, and marks the tenant's own words as theirs", () => {
@@ -34,7 +33,7 @@ describe("demandLetter", () => {
     expect(body).not.toMatch(/street|close|avenue|road/i);
   });
   it("leaves out empty parts", () => {
-    const { body } = demandLetter({ ...facts, disputed: [], receiptCode: null, listerName: null }, "   ");
+    const { body } = demandLetter({ ...facts, disputed: [], verifyUrl: null, listerName: null }, "   ");
     expect(body).not.toContain("disputed");
     expect(body).not.toContain("receipt code");
     expect(body).not.toContain("In my own words");

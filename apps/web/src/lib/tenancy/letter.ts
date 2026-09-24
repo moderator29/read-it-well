@@ -28,8 +28,11 @@ export type LetterFacts = {
   respondBy: string;
   /** Lines the tenant disputed, already formatted: "Kitchen: ₦20,000". */
   disputed: string[];
-  /** The receipt code a reader can check at /r, when the tenant made one. */
-  receiptCode: string | null;
+  /**
+   * The check page (/r), when the tenant has a working receipt code. Vallo
+   * keeps only a fingerprint of the code, so the letter points at the page and
+   * the tenant gives the code themselves.
+   */
   verifyUrl: string | null;
   /** Written today, as a date label. */
   today: string;
@@ -56,8 +59,8 @@ export function demandLetter(facts: LetterFacts, personal?: string | null): { su
     "",
     `Please pay ${facts.outstanding} to my Vallo wallet from the tenancy file, or send me an itemised statement of any further deduction with the evidence for it, by ${facts.respondBy}.`,
   );
-  if (facts.receiptCode && facts.verifyUrl) {
-    lines.push("", `The payment can be checked with receipt code ${facts.receiptCode} at ${facts.verifyUrl}.`);
+  if (facts.verifyUrl) {
+    lines.push("", `The payment can be checked at ${facts.verifyUrl} with the receipt code I can give you.`);
   }
   const own = personal?.trim();
   if (own) lines.push("", "In my own words:", own.slice(0, 1500));
