@@ -1,5 +1,6 @@
 -- DB-18: the two functions the advisor named run with a pinned search_path
--- and still answer as before.
+-- and still answer as before; verification_is_required answers for any user
+-- id, so only the service role may call it.
 do $$
 declare
   n int;
@@ -12,6 +13,13 @@ begin
   if public.badge_tier(true, false)::text <> 'platinum' or public.badge_tier(false, true)::text <> 'gold'
      or public.badge_tier(false, false)::text <> 'none' then
     raise exception 'PROBE_FAIL db-18: badge_tier answers differently';
+  end if;
+  if has_function_privilege('authenticated', 'public.verification_is_required(uuid)', 'EXECUTE')
+     or has_function_privilege('anon', 'public.verification_is_required(uuid)', 'EXECUTE') then
+    raise exception 'PROBE_FAIL db-18: a client can ask verification_is_required about anybody';
+  end if;
+  if not has_function_privilege('service_role', 'public.verification_is_required(uuid)', 'EXECUTE') then
+    raise exception 'PROBE_FAIL db-18: the service role lost verification_is_required';
   end if;
   raise exception 'PROBE_OK db-18';
 end
