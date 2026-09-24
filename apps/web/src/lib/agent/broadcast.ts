@@ -276,6 +276,13 @@ function countFrom(text: string): number | null {
 
 /** Nigerian mobile numbers, with or without +234, spaced or dashed. */
 const PHONE = /(?:\+?234[\s-]?|\b0)[789][01](?:[\s-]?\d){8}\b/g;
+/**
+ * The contact words that lead up to a number ("Call 0803...", "WhatsApp or
+ * call: +234..."). They go WITH the number, so stripping the number does not
+ * leave a lone "Call" behind to be reported as wording of its own.
+ */
+const CONTACT_LEAD =
+  /(?:\b(?:call|whatsapp|text|dm|contact|tel|phone|reach)\b[\s:.,/&-]*(?:or\s+|and\s+)?)+(?:(?:me|us)\s+)?(?:on\s+|via\s+)?(?=(?:\+?234|0)[789][01])/gi;
 /** A ten digit NUBAN standing alone, which is an account number, not a price. */
 const ACCOUNT = /\b\d{10}\b/g;
 /** Phrases that belong to WhatsApp and to nothing on a listing. */
@@ -431,6 +438,7 @@ export function parseBroadcast(message: string): BroadcastParse {
 
   /* 1. Strip what must never be carried, and say what it was. */
   let text = message.replace(/\r/g, "");
+  text = text.replace(CONTACT_LEAD, "");
   for (const m of text.matchAll(PHONE)) notCarried.push({ kind: "phone", text: m[0].trim() });
   text = text.replace(PHONE, " ");
   for (const m of text.matchAll(ACCOUNT)) notCarried.push({ kind: "account", text: m[0] });

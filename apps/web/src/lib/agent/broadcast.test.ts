@@ -89,6 +89,8 @@ describe("fifteen real-shaped broadcasts", () => {
       cautionDepositNaira: 10_000_000,
     });
     expect(r.notCarried).toEqual(expect.arrayContaining([{ kind: "phone", text: "08031234567" }]));
+    /* The contact word goes with the number: no lone "Call" is reported. */
+    expect(r.notCarried.some((n) => /^call$/i.test(n.text))).toBe(false);
     assertDraftable(r);
   });
 
