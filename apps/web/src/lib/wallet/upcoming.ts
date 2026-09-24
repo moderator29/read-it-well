@@ -41,8 +41,17 @@ export async function readUpcoming(now: Date = new Date()): Promise<UpcomingItem
   try {
     const [tenancies, obligations, escrows, stays] = await Promise.all([
       loose.from("rent_payments").select("id, booking_id, move_in, rent_period, rent_minor").eq("tenant_id", me),
-      loose.from("caution_obligations").select("id, rent_payment_id, tenant_id, lister_id, amount_minor, due_on"),
-      loose.from("escrows").select("id, state, amount_minor, payer_id, auto_release_at").in("state", ["HELD", "RELEASE_REQUESTED", "DISPUTED"]),
+      // The reader's own cautions only: staff can read every caution under
+      // RLS, and a wallet strip is about the reader's money.
+      loose
+        .from("caution_obligations")
+        .select("id, rent_payment_id, tenant_id, lister_id, amount_minor, due_on")
+        .or(`tenant_id.eq.${me},lister_id.eq.${me}`),
+      // A disputed held payment has no date to release on, so it is not "coming up".
+      loose
+        .from("escrows")
+        .select("id, state, amount_minor, payer_id, auto_release_at")
+        .in("state", ["HELD", "RELEASE_REQUESTED"]),
       loose
         .from("bookings")
         .select("id, check_in, total_minor, status")
@@ -65,8 +74,35 @@ export async function readUpcoming(now: Date = new Date()): Promise<UpcomingItem
     }
     const rentBookings = new Set(tenancyRows.map((row) => String(row.booking_id)));
 
+    // A renewal the tenant has said they are leaving is not coming up; one
+    // with a confirmed renewal figure shows that figure.
+    const tenancyIds = tenancyRows.map((row) => String(row.id));
+    const [answersRead, offersRead] = tenancyIds.length
+      ? await Promise.all([
+          loose.from("tenancy_renewal_answers").select("rent_payment_id, answer").in("rent_payment_id", tenancyIds),
+          loose
+            .from("tenancy_renewal_offers")
+            .select("rent_payment_id, rent_minor, service_minor, agency_minor, legal_minor, agreement_minor, offered_at")
+            .in("rent_payment_id", tenancyIds)
+            .order("offered_at", { ascending: false }),
+        ])
+      : [{ data: [], error: null }, { data: [], error: null }];
+    const leaving = new Set(
+      rows(answersRead.data)
+        .filter((row) => row.answer === "leaving")
+        .map((row) => String(row.rent_payment_id)),
+    );
+    const latestOffer = new Map<string, number>();
+    for (const row of rows(offersRead.data)) {
+      const key = String(row.rent_payment_id);
+      if (latestOffer.has(key)) continue;
+      const parts = [row.rent_minor, row.service_minor, row.agency_minor, row.legal_minor, row.agreement_minor].map((v) => int(v) ?? 0);
+      latestOffer.set(key, parts.reduce((sum, part) => sum + part, 0));
+    }
+
     for (const row of tenancyRows) {
-      const rent = int(row.rent_minor);
+      if (leaving.has(String(row.id))) continue;
+      const rent = latestOffer.get(String(row.id)) ?? int(row.rent_minor);
       const moveIn = dayOf(row.move_in);
       if (!paid.has(String(row.booking_id)) || rent === null || !moveIn) continue;
       const period = (row.rent_period ?? "year") as RentPeriod;
@@ -112,7 +148,7 @@ export async function readUpcoming(now: Date = new Date()): Promise<UpcomingItem
           const voidRead = await loose.rpc("tenancy_is_void", { p_rent_payment: String(row.rent_payment_id) });
           if (!voidRead.error && voidRead.data === true) continue;
           items.push({
-            kind: row.tenant_id === me ? "caution_owed_to_you" : "caution_you_owe",
+            kind: row.lister_id === me ? "caution_you_owe" : "caution_owed_to_you",
             on: due,
             amountMinor: reading.outstandingMinor,
             href: `/tenancy/${row.rent_payment_id}`,
@@ -130,7 +166,9 @@ export async function readUpcoming(now: Date = new Date()): Promise<UpcomingItem
         const share = !read.error && read.data && typeof read.data === "object" ? (read.data as Row) : null;
         const amount = share ? int(share.share_minor) : null;
         const due = share ? dayOf(share.move_in) : null;
-        if (!share || share.paid_at || share.void === true || amount === null || !due) continue;
+        if (!share || share.paid_at || share.void === true || share.payable !== true || share.answer === "declined" || amount === null || !due) {
+          continue;
+        }
         items.push({ kind: "share", on: due, amountMinor: amount, href: `/rent/share/${row.id}`, id: `share-${row.id}` });
       }
     }
