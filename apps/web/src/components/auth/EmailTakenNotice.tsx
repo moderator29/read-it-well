@@ -41,6 +41,7 @@ export function EmailTakenNotice({
   /** The address typed on the chooser, so it is not typed twice. */
   initialEmail?: string;
 }) {
+  const a = t.authFlow;
   const [status, setStatus] = useState<EmailStatus>("unknown");
   const [email, setEmail] = useState(initialEmail);
 
@@ -82,30 +83,28 @@ export function EmailTakenNotice({
         >
           {status === "google" ? (
             <>
-              That address is already signed up, with Google. Use{" "}
-              <span className="font-semibold text-[var(--nf-content-primary)]">
-                Continue with Google
-              </span>{" "}
-              on the{" "}
+              {a.takenGoogleLead}{" "}
+              <span className="font-semibold text-[var(--nf-content-primary)]">{a.continueWithGoogle}</span>{" "}
+              {a.takenGoogleOn}{" "}
               <Link href="/sign-in" className="font-semibold underline underline-offset-4">
-                sign in screen
+                {a.signInScreen}
               </Link>
-              , not a password.
+              {a.takenGoogleTail}
             </>
           ) : (
             <>
-              That address is already signed up.{" "}
+              {a.takenLead}{" "}
               <Link href="/sign-in" className="font-semibold underline underline-offset-4">
-                Sign in instead
+                {a.signInInstead}
               </Link>
-              , or{" "}
+              {a.takenOr}{" "}
               <Link
                 href="/forgot-password"
                 className="font-semibold underline underline-offset-4"
               >
-                reset the password
+                {a.resetPassword}
               </Link>{" "}
-              if you cannot remember it.
+              {a.takenTail}
             </>
           )}
         </p>

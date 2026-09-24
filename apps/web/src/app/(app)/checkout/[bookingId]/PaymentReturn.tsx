@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Locale } from "@vallo/i18n";
+import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
 import { settleCardPayment } from "@/lib/bookings/checkout";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { failureConsequence } from "./payment-copy";
@@ -39,7 +39,7 @@ import { failureConsequence } from "./payment-copy";
  * ---------------------------------------------------------------------------
  * AND IT HAD NO TIMEOUT.
  *
- * If `settleCardPayment` hangs, "Confirming your payment" ran forever. On a
+ * If `settleCardPayment` hangs, c.confirmingPayment ran forever. On a
  * Lagos network that is ordinary rather than an edge case, and a person
  * staring at a frozen payment screen for two minutes assumes the worst and
  * rings their bank. There is a soft message at ten seconds and a terminal
@@ -63,7 +63,7 @@ export function PaymentReturn({
   currency,
   subject,
   locale,
-  /** Where "Try again" goes. The checkout screen this sits on. */
+  /** Where c.tryAgain goes. The checkout screen this sits on. */
   retryHref,
 }: {
   reference: string;
@@ -73,6 +73,7 @@ export function PaymentReturn({
   locale?: Locale;
   retryHref: string;
 }) {
+  const c = getDictionary(locale ?? DEFAULT_LOCALE).checkout;
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
   const [open, setOpen] = useState(true);
   const router = useRouter();
@@ -138,13 +139,13 @@ export function PaymentReturn({
            dismisses this and taps Pay again may pay twice. It stops blocking
            the moment the wait becomes a terminal state below. */
         blocking
-        verdict="Confirming your payment"
+        verdict={c.confirmingPayment}
         fact={fact}
         locale={locale}
         consequence={
           phase.kind === "slow"
-            ? "This is taking longer than usual. Your card has not been charged twice and nothing has been lost. Stay here."
-            : "Checking with the payment service. This usually takes a few seconds."
+            ? c.returnSlow
+            : c.returnChecking
         }
       />
     );
@@ -156,16 +157,16 @@ export function PaymentReturn({
         open={open}
         onOpenChange={setOpen}
         state="received"
-        verdict="Payment received"
+        verdict={c.paymentReceived}
         fact={fact}
         locale={locale}
         consequence={
           phase.confirmed
-            ? "Your stay is confirmed and the dates are yours."
-            : "This payment was already recorded, so your stay is confirmed."
+            ? c.stayConfirmed
+            : c.alreadyRecorded
         }
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
+          { label: c.seeStays, href: "/bookings", tone: "primary" },
           { label: "Close", onClick: () => setOpen(false), tone: "quiet" },
         ]}
       />
@@ -178,13 +179,13 @@ export function PaymentReturn({
         open={open}
         onOpenChange={setOpen}
         state="pending"
-        verdict="Still checking"
+        verdict={c.stillChecking}
         fact={fact}
         locale={locale}
-        consequence="We have not heard back from the payment service. Do not pay again. Your stay appears under your stays the moment it settles, and the reference above is what support will trace it by."
+        consequence={c.returnStalled}
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
-          { label: "Get help", href: "/help", tone: "quiet" },
+          { label: c.seeStays, href: "/bookings", tone: "primary" },
+          { label: c.getHelp, href: "/help", tone: "quiet" },
         ]}
       />
     );
@@ -195,7 +196,7 @@ export function PaymentReturn({
       open={open}
       onOpenChange={setOpen}
       state="failed"
-      verdict="Payment not confirmed"
+      verdict={c.paymentNotConfirmed}
       fact={fact}
       locale={locale}
       /* Filtered rather than interpolated. See `payment-copy`: the envelope
@@ -204,11 +205,11 @@ export function PaymentReturn({
          not the server gave a reason worth showing. */
       consequence={failureConsequence(
         phase.message,
-        "Your card has not been charged. If money did leave your account, it returns within 24 hours.",
+        c.returnFailed,
       )}
       actions={[
-        { label: "Try again", href: retryHref, tone: "primary" },
-        { label: "Get help", href: "/help", tone: "quiet" },
+        { label: c.tryAgain, href: retryHref, tone: "primary" },
+        { label: c.getHelp, href: "/help", tone: "quiet" },
       ]}
     />
   );

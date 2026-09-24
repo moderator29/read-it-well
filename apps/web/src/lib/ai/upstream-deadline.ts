@@ -16,9 +16,35 @@
 export const TOTAL_MS = 50_000;
 export const IDLE_MS = 15_000;
 
+/**
+ * The clock the deadlines run on. The routes use the real one; a test hands
+ * in a clock it advances by hand, so a cut is proved by an exact tick rather
+ * than by racing a wall clock on a busy machine.
+ */
+export type DeadlineTimers = {
+  setTimeout: (run: () => void, ms: number) => unknown;
+  clearTimeout: (handle: unknown) => void;
+};
+
+const REAL_TIMERS: DeadlineTimers = {
+  /* Unref'd, as `AbortSignal.timeout` is, so a pending budget never holds the process open. */
+  setTimeout: (run, ms) => {
+    const handle = setTimeout(run, ms);
+    handle.unref?.();
+    return handle;
+  },
+  clearTimeout: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
+};
+
 /** The visitor's signal, plus the request's total budget. */
-export function requestSignal(client: AbortSignal, totalMs: number = TOTAL_MS): AbortSignal {
-  return AbortSignal.any([client, AbortSignal.timeout(totalMs)]);
+export function requestSignal(
+  client: AbortSignal,
+  totalMs: number = TOTAL_MS,
+  timers: DeadlineTimers = REAL_TIMERS,
+): AbortSignal {
+  const budget = new AbortController();
+  timers.setTimeout(() => budget.abort(new Error("the request ran past its budget")), totalMs);
+  return AbortSignal.any([client, budget.signal]);
 }
 
 /**
@@ -26,18 +52,18 @@ export function requestSignal(client: AbortSignal, totalMs: number = TOTAL_MS): 
  * `touch()`. Call `touch()` for every event received and `done()` when the
  * round ends, so no timer outlives it.
  */
-export function roundWatchdog(outer: AbortSignal, idleMs: number = IDLE_MS) {
+export function roundWatchdog(outer: AbortSignal, idleMs: number = IDLE_MS, timers: DeadlineTimers = REAL_TIMERS) {
   const idle = new AbortController();
-  const arm = () => setTimeout(() => idle.abort(new Error("upstream went quiet")), idleMs);
+  const arm = () => timers.setTimeout(() => idle.abort(new Error("upstream went quiet")), idleMs);
   let timer = arm();
   return {
     signal: AbortSignal.any([outer, idle.signal]),
     touch() {
-      clearTimeout(timer);
+      timers.clearTimeout(timer);
       timer = arm();
     },
     done() {
-      clearTimeout(timer);
+      timers.clearTimeout(timer);
     },
   };
 }

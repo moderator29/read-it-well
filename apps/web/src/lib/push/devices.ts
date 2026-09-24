@@ -3,6 +3,7 @@ import "server-only";
 import { resolveSession } from "@/lib/actions/session";
 import { sessionWhen, type SessionWhen } from "@/lib/security/when";
 import type { PushPlatform } from "./schema";
+import { countOf } from "@vallo/i18n";
 
 /**
  * THE DEVICES A PERSON CAN BE REACHED ON, READ FOR THEIR OWN EYES.
@@ -117,7 +118,7 @@ export function whenPhrase(when: SessionWhen): string {
     case "now":
       return "Just now";
     case "minutes":
-      return when.minutes === 1 ? "1 minute ago" : `${when.minutes} minutes ago`;
+      return countOf(when.minutes, "minutesAgo");
     case "today":
       return `Today at ${when.time}`;
     case "yesterday":

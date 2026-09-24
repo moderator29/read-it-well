@@ -1,4 +1,4 @@
-import { en, type Dictionary } from "./locales/en";
+import { en, type Dictionary, type UnitNoun } from "./locales/en";
 import { yo } from "./locales/yo";
 import { ha } from "./locales/ha";
 import { ig } from "./locales/ig";
@@ -6,7 +6,7 @@ import { suppliedKeys } from "./locales/fallback";
 import { matchAcceptLanguage } from "./negotiate";
 import type { CountForms, PluralForms } from "./plural";
 
-export type { Dictionary };
+export type { Dictionary, UnitNoun };
 export { suppliedKeys };
 export type { CountForms, PluralForms };
 export {
@@ -236,6 +236,25 @@ export function plural(
 ): string {
   const category = rulesFor(locale).select(count);
   const template = forms[category] ?? forms.other;
+  return template.replace(/\{count\}/g, formatNumber(count, locale));
+}
+
+/**
+ * A counted phrase from the dictionary's `units` table: `countOf(3,
+ * "bedrooms", "en")` is "3 bedrooms". The one door every component uses
+ * instead of writing `n === 1 ? "x" : "xs"` itself.
+ */
+export function countOf(count: number, noun: UnitNoun, locale: Locale = DEFAULT_LOCALE): string {
+  const dictionary = getDictionary(locale);
+  /*
+   * A unit the locale has not translated is English text, so it takes
+   * English's categories: a Yoruba page still reads "1 bed" rather than the
+   * "1 beds" Yoruba's single category would pick from English forms. The
+   * number itself is always formatted for the page's locale.
+   */
+  const translated = locale === "en" || suppliedKeys(dictionary).has(`units.${noun}.other`);
+  const forms = dictionary.units[noun];
+  const template = forms[rulesFor(translated ? locale : "en").select(count)] ?? forms.other;
   return template.replace(/\{count\}/g, formatNumber(count, locale));
 }
 

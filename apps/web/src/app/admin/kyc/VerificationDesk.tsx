@@ -14,6 +14,7 @@ import {
 } from "../_review/parts";
 import { formatDuration, percentChange } from "../_review/metrics";
 import type { RungKind, VerificationSummary } from "../_review/contracts";
+import { countOf } from "@vallo/i18n";
 
 /**
  * Verification, 8E9602E2 panel 2: four KPI cards, the identity verification
@@ -117,7 +118,7 @@ export function VerificationDesk(props: VerificationDeskProps) {
             s
               ? s.decisionsThisWeek === 0
                 ? "No decisions in the last seven days."
-                : `Upload to decision, over ${s.decisionsThisWeek} ${s.decisionsThisWeek === 1 ? "decision" : "decisions"} in the last seven days.`
+                : `Upload to decision, over ${countOf(s.decisionsThisWeek, "decisions")} in the last seven days.`
               : undefined
           }
         />

@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
 import { signInWithAppleIdToken } from "@/lib/auth/actions";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * SIGN IN WITH APPLE INSIDE THE iOS SHELL (STORE-02).
@@ -72,6 +73,7 @@ function randomNonce(): string {
 }
 
 export function NativeAppleSignIn({ label, next }: { label: string; next?: string | undefined }) {
+  const a = useClientDictionary().authFlow;
   const router = useRouter();
   const available = useSyncExternalStore(noSubscribe, pluginAvailable, () => false);
   const [busy, setBusy] = useState(false);
@@ -97,7 +99,7 @@ export function NativeAppleSignIn({ label, next }: { label: string; next?: strin
       });
       const idToken = result.response?.identityToken;
       if (!idToken) {
-        setMessage("Apple did not finish signing you in. Try again, or use your email address.");
+        setMessage(a.appleUnfinished);
         return;
       }
       const outcome = await signInWithAppleIdToken({ idToken, nonce, next });
@@ -110,7 +112,7 @@ export function NativeAppleSignIn({ label, next }: { label: string; next?: strin
     } catch {
       /* A cancelled sheet rejects too; the person chose not to, and a quiet
          line is the right answer to that. */
-      setMessage("Apple sign-in did not finish. You can try again or use your email address.");
+      setMessage(a.appleFailed);
     } finally {
       setBusy(false);
     }

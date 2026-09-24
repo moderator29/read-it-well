@@ -62,7 +62,7 @@ export function ReceiveCard({
   const link = walletRequestLink({
     origin,
     handle,
-    amountNaira: amountOk && kobo !== null ? Math.round(kobo / 100) : null,
+    amountMinor: amountOk && kobo !== null ? kobo : null,
     note,
   });
 

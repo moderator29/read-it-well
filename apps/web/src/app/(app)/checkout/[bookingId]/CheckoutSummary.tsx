@@ -14,7 +14,7 @@ import { Panel } from "@/components/ui/Panel";
  * the guest and night counts pick their form through `Intl.PluralRules`.
  */
 export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: Locale }) {
-  const counts = getDictionary(locale).counts;
+  const { counts, checkout: c } = getDictionary(locale);
   return (
     <Panel aria-labelledby="nf-checkout-summary" variant="card">
       <h2 id="nf-checkout-summary" className="nf-h3">
@@ -29,13 +29,13 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
 
       <dl className="mt-md grid gap-xs border-t border-[var(--nf-panel-hair)] pt-md">
         <div className="flex items-start justify-between gap-md">
-          <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">Dates</dt>
+          <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{c.dates}</dt>
           <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
             {view.dateRange}
           </dd>
         </div>
         <div className="flex items-start justify-between gap-md">
-          <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">Guests</dt>
+          <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{c.guests}</dt>
           <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
             {plural(view.guests, counts.guests, locale)} &middot; {plural(view.nights, counts.nights, locale)}
           </dd>
@@ -53,21 +53,21 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
       </dl>
 
       <div className="mt-md border-t border-[var(--nf-panel-hair)] pt-md">
-        <p className="nf-overline text-[var(--nf-content-muted)]">Total to pay</p>
+        <p className="nf-overline text-[var(--nf-content-muted)]">{c.totalToPay}</p>
         <p className="mt-2xs">
           <Amount
             minorUnits={view.totalMinor}
             locale={locale}
             currency={view.currency}
             showFraction
-            suffix="in full"
+            suffix={c.inFull}
             className="text-[clamp(2.5rem,10vw,3.75rem)] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
             secondaryClassName="text-[0.34em] font-bold text-[var(--nf-content-muted)]"
           />
         </p>
         {view.platformTakesNothing && (
           <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-            Vallo adds nothing of its own to this total. Every naira goes to the stay.
+            {c.takesNothing}
           </p>
         )}
       </div>

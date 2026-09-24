@@ -17,6 +17,7 @@ import {
 } from "@/lib/host/stays-setup";
 import { StaysCountRow, StaysNote, StaysPlate, StaysRow } from "./StaysParts";
 import type { StaysStepProps } from "./types";
+import { countOf } from "@vallo/i18n";
 
 /**
  * TABLES AND HOURS. `GOVERNING-11` screen four.
@@ -49,7 +50,7 @@ import type { StaysStepProps } from "./types";
 /** One row of the week, as the screen holds it while it is being edited. */
 type DayRow = { weekday: number; label: string; on: boolean; opens: string; closes: string };
 
-export function TablesStep({ draft, pending, run, setNotice, advance }: StaysStepProps) {
+export function TablesStep({ draft, pending, run, setNotice, advance, locale }: StaysStepProps) {
   /*
    * THE WEEK IS AN ARRAY IN THE DRAWN ORDER AND NOT A MAP KEYED BY WEEKDAY.
    * `WEEK_FROM_MONDAY` already carries the order the render lists and the
@@ -97,7 +98,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance }: StaysSte
       () => {
         setNotice({
           tone: "ok",
-          text: `${openDays.length} day${openDays.length === 1 ? "" : "s"} saved, seating ${sending}.`,
+          text: `${countOf(openDays.length, "days", locale)} saved, seating ${sending}.`,
         });
         advance();
       },
@@ -251,7 +252,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance }: StaysSte
       <StaysNote>
         {openDays.length === 0
           ? "A restaurant needs at least one open day before the application can be sent."
-          : `Saving writes ${openDays.length} day${openDays.length === 1 ? "" : "s"} and replaces whatever week was on record.`}
+          : `Saving writes ${countOf(openDays.length, "days", locale)} and replaces whatever week was on record.`}
       </StaysNote>
     </>
   );

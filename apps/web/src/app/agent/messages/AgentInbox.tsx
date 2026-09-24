@@ -3,6 +3,7 @@ import type { AgentInbox as Inbox, AgentThread } from "@/lib/agent/messages-quer
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
+import { countOf } from "@vallo/i18n";
 
 /**
  * The host inbox.
@@ -22,7 +23,7 @@ function waitLabel(hours: number): string {
   if (hours < 1) return "just now";
   if (hours < 24) return `${hours}h waiting`;
   const days = Math.floor(hours / 24);
-  return days === 1 ? "1 day waiting" : `${days} days waiting`;
+  return countOf(days, "daysWaiting");
 }
 
 function ThreadRow({ thread }: { thread: AgentThread }) {

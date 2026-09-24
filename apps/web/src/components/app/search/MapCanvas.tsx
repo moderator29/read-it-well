@@ -21,6 +21,7 @@ import {
   type ScreenPoint,
 } from "./mapGeo";
 import type { MapCopy, MapListing } from "./mapTypes";
+import { countOf } from "@vallo/i18n";
 
 /**
  * The discovery map.
@@ -560,10 +561,8 @@ export function MapCanvas({
   );
 
   // -------------------------------------------------------------------- copy
-  const countNoun = visible.length === 1 ? "place" : "places";
-  const countLabel = areaBox
-    ? `${visible.length} ${countNoun} in this area`
-    : `${visible.length} ${countNoun} on this map`;
+  const counted = countOf(visible.length, "places", locale);
+  const countLabel = areaBox ? `${counted} in this area` : `${counted} on this map`;
   const hiddenLabel = marks.hidden > 0 ? ` (${marks.hidden} not drawn at this zoom)` : "";
   // Without the engine there is nothing to recentre, so the success line must
   // not claim the map moved.

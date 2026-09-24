@@ -3,6 +3,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Listing } from "@/lib/listings/types";
 import type { ListingAccessView } from "@/lib/listings/access-queries";
 import { ICON, TYPE } from "@/components/app/Screen";
+import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n";
 
 /**
  * Light, water, and getting through the gate.
@@ -69,10 +70,12 @@ const WATER_LABEL: Record<string, { label: string; detail: string }> = {
 };
 
 export function ListingUtilities({
+  locale = DEFAULT_LOCALE,
   utilities,
   access,
   bookingConfirmed,
 }: {
+  locale?: Locale;
   utilities: Listing["utilities"];
   /** The real gate details, or null when the caller may not see them. */
   access: ListingAccessView | null;
@@ -92,7 +95,7 @@ export function ListingUtilities({
 
   const runs =
     backup && backup !== "no backup" && typeof hours === "number"
-      ? `${backup}, running ${hours} ${hours === 1 ? "hour" : "hours"} a day`
+      ? `${backup}, running ${countOf(hours, "hours", locale)} a day`
       : backup;
 
   const powerLine = grid
@@ -219,22 +222,23 @@ function Row({
   value: React.ReactNode;
 }) {
   /*
-   * DOC-21: a row of a <dl> may be a <div>, but that <div> may hold only
-   * <dt> and <dd>. The icon and an inner wrapper used to sit between them
-   * (axe `definition-list`, `dlitem`), so assistive tech read the terms as
-   * orphans. The grid now places the icon, and the <dt> carries it while
-   * dissolving into the grid (`display: contents`), so the layout is unchanged
-   * and the structure is legal.
+   * A row of a <dl> may be a <div>, but that <div> may hold only <dt> and
+   * <dd>. The icon and an inner wrapper used to sit between them (axe
+   * `definition-list`, `dlitem`), so assistive tech read the terms as orphans.
+   * The icon now floats inside the <dt> and the <dd> is its own formatting
+   * context beside it, which keeps the two-column look. Both stay real boxes:
+   * older WebKit (the iOS app's web view) drops the role of an element with
+   * `display: contents`.
    */
   return (
-    <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-sm py-md first:pt-0">
-      <dt className="contents">
-        <span aria-hidden="true" className="row-span-2 block h-10 w-10 shrink-0">
+    <div className="flow-root py-md first:pt-0">
+      <dt className={TYPE.label}>
+        <span aria-hidden="true" className="float-left mr-sm block h-10 w-10">
           <BrandIcon name={icon} fill />
         </span>
-        <span className={`col-start-2 ${TYPE.label}`}>{term}</span>
+        {term}
       </dt>
-      <dd className="col-start-2 mt-2xs min-w-0">
+      <dd className="mt-2xs min-w-0 overflow-hidden">
         {answered ? (
           value
         ) : (

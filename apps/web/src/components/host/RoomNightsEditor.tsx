@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
@@ -79,8 +79,8 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
         tone: "ok",
         text:
           unitsNumber === 0
-            ? `Closed for ${result.data.nights} night${result.data.nights === 1 ? "" : "s"}.`
-            : `${unitsNumber} on sale for ${result.data.nights} night${result.data.nights === 1 ? "" : "s"}.`,
+            ? `Closed for ${countOf(result.data.nights, "nights", locale)}.`
+            : `${unitsNumber} on sale for ${countOf(result.data.nights, "nights", locale)}.`,
       });
       router.refresh();
     });
@@ -96,7 +96,7 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
         <span className="min-w-0">
           <h2 className="nf-host-group__title">{room.name}</h2>
           <span className={`block ${TYPE.rowMeta}`}>
-            {room.unitsTotal} room{room.unitsTotal === 1 ? "" : "s"} · sleeps {room.sleeps}
+            {countOf(room.unitsTotal, "rooms", locale)} · sleeps {room.sleeps}
             {room.lowestRateMinor !== null
               ? ` · from ${formatMoney(room.lowestRateMinor, locale)} a night`
               : ""}
@@ -118,7 +118,7 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
           ? "This room has no rate, so it cannot go on the shelf and nothing below will put it there. Add a rate to it in your application."
           : room.nightsOnSale === 0
             ? "No nights are on sale, so a guest searching with dates will not find this room. Open a run of nights below."
-            : `Bookable on ${room.nightsOnSale} night${room.nightsOnSale === 1 ? "" : "s"} from today${room.lastNightOnSale ? `, out to ${room.lastNightOnSale}` : ""}.`}
+            : `Bookable on ${countOf(room.nightsOnSale, "nights", locale)} from today${room.lastNightOnSale ? `, out to ${room.lastNightOnSale}` : ""}.`}
       </p>
 
       <div className="mt-md grid grid-cols-2 gap-sm">

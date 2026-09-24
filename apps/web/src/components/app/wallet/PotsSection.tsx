@@ -221,6 +221,8 @@ function MoveSheet({
     EMPTY,
   );
   const router = useRouter();
+  /* MON-18. One key for the life of this sheet: a double tap is one move. */
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
     if (state.ok) {
@@ -237,6 +239,7 @@ function MoveSheet({
     >
       <form action={formAction} noValidate className="mx-auto w-full max-w-md space-y-row">
         <input type="hidden" name="potId" value={pot.id} />
+        <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <p className={TYPE.rowMeta}>
           {direction === "in" ? (
             "This comes out of your available balance and stays yours."

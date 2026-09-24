@@ -54,6 +54,7 @@ import {
   type Block,
   type ReceiptRow,
 } from "./render";
+import { countOf } from "@vallo/i18n";
 
 /**
  * What every message function returns.
@@ -83,13 +84,13 @@ function partyLine(adults?: number, children?: number): string | null {
   const little = typeof children === "number" && children > 0 ? children : 0;
   if (grownUps === 0 && little === 0) return null;
   const parts: string[] = [];
-  if (grownUps > 0) parts.push(`${grownUps} ${grownUps === 1 ? "adult" : "adults"}`);
-  if (little > 0) parts.push(`${little} ${little === 1 ? "child" : "children"}`);
+  if (grownUps > 0) parts.push(countOf(grownUps, "adults"));
+  if (little > 0) parts.push(countOf(little, "children"));
   return parts.join(" and ");
 }
 
 function nightsLine(nights: number): string {
-  return `${nights} ${nights === 1 ? "night" : "nights"}`;
+  return countOf(nights, "nights");
 }
 
 /**
