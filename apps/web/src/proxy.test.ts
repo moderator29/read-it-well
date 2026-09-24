@@ -254,6 +254,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/inventory-drift",
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
+  "/api/cron/store-readiness",
+  "/api/cron/new-match-alerts",
   "/api/csp-report",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",

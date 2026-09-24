@@ -8,6 +8,8 @@
     { "path": "/api/cron/complete-stays", "schedule": "30 2 * * *" },
     { "path": "/api/cron/inventory-drift", "schedule": "45 2 * * *" },
     { "path": "/api/cron/account-purge", "schedule": "15 3 * * *" },
-    { "path": "/api/cron/saved-search-alerts", "schedule": "40 7 * * *" }
+    { "path": "/api/cron/saved-search-alerts", "schedule": "40 7 * * *" },
+    { "path": "/api/cron/store-readiness", "schedule": "0 5 * * *" },
+    { "path": "/api/cron/new-match-alerts", "schedule": "*/5 * * * *" }
   ]
 }

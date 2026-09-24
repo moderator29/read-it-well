@@ -238,6 +238,8 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/inventory-drift",
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
+  "/api/cron/store-readiness",
+  "/api/cron/new-match-alerts",
   "/api/csp-report",
   "/api/push/key",
   "/api/paystack/reconcile",
