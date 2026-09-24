@@ -3,6 +3,7 @@ import "server-only";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
+import { reviewIneligibility, type ReviewIneligibility } from "./eligibility";
 import { getListingRepository } from "../listings/repository";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -51,7 +52,7 @@ export type ReviewRead =
   | { state: "missing" }
   | { state: "unavailable" }
   /** The stay exists but cannot be reviewed, and we say plainly why. */
-  | { state: "not-eligible"; subject: ReviewSubject; reason: "cancelled" | "unconfirmed" | "not-finished" }
+  | { state: "not-eligible"; subject: ReviewSubject; reason: ReviewIneligibility }
   | { state: "already-reviewed"; subject: ReviewSubject; review: ListingReview }
   | { state: "ready"; subject: ReviewSubject };
 
@@ -178,15 +179,20 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
       };
     }
 
-    if (booking.status === "CANCELLED") {
-      return { state: "not-eligible", subject, reason: "cancelled" };
-    }
-    if (booking.status !== "CONFIRMED") {
-      return { state: "not-eligible", subject, reason: "unconfirmed" };
-    }
-    if (booking.check_out > lagosToday()) {
-      return { state: "not-eligible", subject, reason: "not-finished" };
-    }
+    // A rent charge is carried on a bookings row; it is a tenancy, not a stay.
+    const { data: rentCharge, error: rentError } = await session.supabase
+      .from("rent_payments")
+      .select("id")
+      .eq("booking_id", booking.id)
+      .limit(1)
+      .maybeSingle();
+    if (rentError) return { state: "unavailable" };
+
+    const reason = reviewIneligibility(
+      { status: booking.status, checkOut: booking.check_out, isTenancy: rentCharge !== null },
+      lagosToday(),
+    );
+    if (reason) return { state: "not-eligible", subject, reason };
 
     return { state: "ready", subject };
   } catch {
