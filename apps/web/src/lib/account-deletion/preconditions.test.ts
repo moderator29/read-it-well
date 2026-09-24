@@ -97,12 +97,15 @@ describe("the preconditions", () => {
 });
 
 describe("reading the database's answer", () => {
-  it("takes the seven numbers", () => {
+  it("takes the ten numbers", () => {
     expect(
       readingFrom({
         blocked: true,
         wallet_balance_minor: 250_00,
         wallet_held_minor: 0,
+        pot_balance_minor: 5_000,
+        rent_refunds_owed_minor: 0,
+        rent_refunds_due_minor: 7_500,
         active_bookings: 2,
         active_reservations: 0,
         pending_payouts: 1,
@@ -112,6 +115,9 @@ describe("reading the database's answer", () => {
     ).toEqual({
       walletBalanceMinor: 25_000,
       walletHeldMinor: 0,
+      potBalanceMinor: 5_000,
+      rentRefundsOwedMinor: 0,
+      rentRefundsDueMinor: 7_500,
       activeBookings: 2,
       activeReservations: 0,
       pendingPayouts: 1,
@@ -131,5 +137,18 @@ describe("reading the database's answer", () => {
     expect(readingFrom("no")).toEqual(EMPTY_READING);
     expect(readingFrom([1, 2])).toEqual(EMPTY_READING);
     expect(readingFrom({ wallet_balance_minor: {} })).toEqual(EMPTY_READING);
+  });
+});
+
+describe("MON-09 / STORE-12: money in a pot or a rent refund blocks deletion", () => {
+  it("names the pot and both directions of rent refund", async () => {
+    const { blockersFrom } = await import("./preconditions");
+    const kinds = blockersFrom({
+      ...EMPTY_READING,
+      potBalanceMinor: 1,
+      rentRefundsOwedMinor: 1,
+      rentRefundsDueMinor: 1,
+    }).map((b) => b.kind);
+    expect(kinds).toEqual(["pot-balance", "rent-refunds-owed", "rent-refunds-due"]);
   });
 });

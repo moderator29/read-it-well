@@ -21,6 +21,7 @@ import {
   type AdminClient,
 } from "@/lib/wallet/ledger";
 import { recordMoneyAudit, recordWebhookDelivery } from "@/lib/wallet/audit";
+import { creditReversedWithdrawal, reversalReference } from "@/lib/wallet/withdrawal-reversal";
 import { bestEffortEmail, sendMessage } from "@/lib/email/client";
 import { walletFunded } from "@/lib/email/messages";
 import { contactForUser } from "@/lib/email/recipients";
@@ -448,6 +449,9 @@ async function handleTransferEvent(
   const settled = await settleWithdrawal(admin, reference, outcome);
   // Null means nothing moved, which is what a replayed delivery looks like:
   // stay silent rather than tell someone twice that their money came back.
+  // MON-03: except a reversal of a transfer that had already paid out, whose
+  // money is back with the platform and goes back to the member.
+  if (!settled && outcome === "REVERSED") return handleReversalAfterPayout(admin, reference);
   if (!settled) return verdict("duplicate", "withdrawal_not_pending", 200);
 
   const ownerId = await walletOwnerId(admin, settled.walletId);
@@ -481,6 +485,41 @@ async function handleTransferEvent(
   return verdict("posted", `withdrawal_${outcome.toLowerCase()}`, 200, {
     amountMinor: settled.amountMinor,
     walletId: settled.walletId,
+    userId: ownerId,
+  });
+}
+
+/**
+ * MON-03. `transfer.reversed` for a withdrawal already COMPLETED: credit the
+ * member back once (creditReversedWithdrawal) and tell the desk, because a
+ * bank reversing a transfer it had confirmed is worth a person's attention.
+ * A FAILED or REVERSED hold is a replay and credits nothing.
+ */
+async function handleReversalAfterPayout(admin: AdminClient, reference: string): Promise<Verdict> {
+  const credit = await creditReversedWithdrawal(admin, reference);
+  if (credit.state === "not_completed") return verdict("duplicate", "withdrawal_not_pending", 200);
+  if (credit.state === "duplicate") return verdict("duplicate", "reversal_already_credited", 200);
+
+  const ownerId = await walletOwnerId(admin, credit.walletId);
+  await recordMoneyAudit(admin, {
+    actor: { kind: "webhook" },
+    action: "wallet.withdrawal.reversed_after_payout",
+    reference,
+    amountMinor: credit.amountMinor,
+    walletId: credit.walletId,
+    subjectUserId: ownerId,
+    outcome: "REVERSED",
+  });
+  await recordAlert({
+    kind: "wallet.withdrawal_reversed_after_payout",
+    severity: "critical",
+    subjectKind: "wallet_entry",
+    subjectId: reference,
+    detail: { amount_minor: credit.amountMinor, credited_as: reversalReference(reference) },
+  });
+  return verdict("posted", "withdrawal_reversed_after_payout", 200, {
+    amountMinor: credit.amountMinor,
+    walletId: credit.walletId,
     userId: ownerId,
   });
 }

@@ -190,6 +190,7 @@ export function VerifyCodeForm({
           is already typed, and a refusal on one does not clear the other. */}
       <form action={resendAction} className="mt-5 text-center">
         <input type="hidden" name="email" value={address} />
+        {next ? <input type="hidden" name="next" value={next} /> : null}
         <Button type="submit" variant="ghost" size="sm" loading={resending}>
           {a.sendAnother}
         </Button>

@@ -95,6 +95,10 @@ export const BOT_REFUSALS: Record<"off" | "month" | "day" | "person", string> = 
 };
 
 export const BOT_COPY = {
+  /* STORE-07: the summoner's post would be sent to Anthropic, so it is not
+     until they have agreed to how the assistant works. Nothing is posted. */
+  consent:
+    "Vallo AI only answers people who have agreed to how it works. Open the assistant once to see what is sent, and to whom, before asking it here.",
   /** When the model is reachable but says nothing useful. */
   empty:
     "I could not find anything solid on that. Somebody who actually lives around here will know better than me.",

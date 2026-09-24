@@ -861,7 +861,9 @@
     flex: none;
     width: 2.5rem;
     height: 2.5rem;
-    overflow: hidden;
+    /* UI-09: no overflow clip here. It cut `.nf-tap`'s 44px ::after back to
+       40, so a thumb landing just off the circle missed; the photograph is
+       rounded by its own radius instead. */
     border-radius: var(--nf-radius-circle);
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
@@ -876,6 +878,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: inherit;
   }
   .nf-app-header__brand {
     display: inline-flex;

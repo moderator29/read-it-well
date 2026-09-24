@@ -13,6 +13,7 @@ import { readReportsFor } from "@/lib/inspections/report-queries";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { ButtonLink } from "@/components/ui/Button";
 import { isOpen } from "@/lib/inspections/types";
+import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 
 export const metadata: Metadata = {
   title: "Inspections",
@@ -46,7 +47,7 @@ export default async function AgentInspectionsPage() {
           title="Inspections live behind an approved profile"
           body="Once your Listing or selling profile is approved, every request to inspect one of your properties arrives here with a state on it that the other side can see too."
           action={
-            <ButtonLink href="/profile/setup/owner" variant="primary" size="lg">
+            <ButtonLink href={SUPPLY_DOOR_HREF} variant="primary" size="lg">
               Set up this profile
             </ButtonLink>
           }

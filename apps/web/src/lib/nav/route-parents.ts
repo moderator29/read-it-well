@@ -326,6 +326,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/examples": "/admin",
   "/admin/fees": "/admin",
   "/admin/flags": "/admin",
+  "/admin/account-recovery": "/admin",
   "/admin/kyc": "/admin",
   "/admin/listings": "/admin",
   "/admin/listings/[id]": "/admin/listings",
@@ -462,6 +463,7 @@ export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
  * because a thing nobody wrote down is a thing nobody checked.
  */
 export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
+  "/api/account/export": "the member's own data as a JSON download, not a page.",
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",

@@ -44,6 +44,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [ONBOARDING_A_RESTAURANT.md](ONBOARDING_A_RESTAURANT.md) | What to collect from a restaurant owner, and why |
 | [security/GRANT_STATE.md](security/GRANT_STATE.md) | The grant state of the live database |
 | [safety/BLOCKED_TERMS_PROPOSAL.md](safety/BLOCKED_TERMS_PROPOSAL.md) | A proposed starter list for the abuse filter |
+| [SUBJECT_ACCESS.md](SUBJECT_ACCESS.md) | How a person gets a copy of their data: the self-serve export and the by-request route |
 | [RETENTION_SCHEDULE.md](RETENTION_SCHEDULE.md) | Data retention and destruction schedule (Nigeria Data Protection Act 2023) |
 
 ## Mobile

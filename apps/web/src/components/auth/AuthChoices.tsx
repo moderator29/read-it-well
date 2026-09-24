@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import type { Dictionary } from "@vallo/i18n";
 import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/providers";
 import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
@@ -162,7 +163,7 @@ export function AuthChoices({
 
       <p className="nf-auth__swap">
         {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
-        <Link href={isSignUp ? "/sign-in" : "/sign-up"}>
+        <Link href={withNext(isSignUp ? "/sign-in" : "/sign-up", next)}>
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>
       </p>
@@ -173,7 +174,7 @@ export function AuthChoices({
           redirect and was prefetched on every render of this card. */}
       {isSignUp && (
         <p className="nf-auth__swap mt-xs">
-          <Link href={`/welcome?next=${encodeURIComponent("/sign-up")}`} prefetch={false}>
+          <Link href={`/welcome?next=${encodeURIComponent(withNext("/sign-up", next))}`} prefetch={false}>
             {t.welcomeCards.label}
           </Link>
         </p>

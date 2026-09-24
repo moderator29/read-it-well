@@ -15,7 +15,7 @@ import {
 import { recordAlert } from "@/lib/alerts";
 import { recordTermsAcceptance } from "@/lib/legal/acceptance";
 import { TERMS_VERSION } from "@/lib/legal/versions";
-import { termsRefusal } from "./terms-gate";
+import { ageConfirmed, ageRefusal, termsRefusal } from "./terms-gate";
 import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
 import {
@@ -142,6 +142,8 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
      stood in front of it was reading markup as text. */
   const refusal = termsRefusal(field(formData, "termsVersion"));
   if (refusal) errors.acceptTerms = refusal;
+  const underAge = ageRefusal(field(formData, "ageConfirmed"));
+  if (underAge) errors.ageConfirmed = underAge;
 
   if (!hearAbout) errors.hearAbout = "Tell us where you heard about us.";
   else if (!HEAR_ABOUT_VALUES.includes(hearAbout))
@@ -389,7 +391,8 @@ export async function signUpWithEmail(
     email,
     password: field(formData, "password"),
     options: {
-      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      /* UX-02: the email link lands where the form was going, as the code does. */
+      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
       data: {
         first_name: firstName,
         surname,
@@ -460,7 +463,9 @@ export async function signUpWithEmail(
   if (data.user) {
     const submitted = field(formData, "termsVersion").trim();
     if (submitted === TERMS_VERSION) {
-      await recordTermsAcceptance(data.user.id, "signup_email");
+      await recordTermsAcceptance(data.user.id, "signup_email", {
+        ageConfirmed: ageConfirmed(field(formData, "ageConfirmed")),
+      });
     }
   }
 
@@ -823,7 +828,7 @@ export async function resendSignUpCode(
     type: "signup",
     email,
     options: {
-      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
     },
   });
 
@@ -1046,6 +1051,16 @@ export async function updatePassword(
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { ok: false, message: authMessage(error.message) };
+
+  /*
+   * SEC-08: a new password ends every OTHER session. A reset is what somebody
+   * does after losing a phone, and the thief's session used to keep working
+   * after it. `scope: 'others'` revokes every refresh token but this one, so
+   * those devices cannot mint a new access token. A failure here does not undo
+   * the password change; the devices screen can still end them one by one.
+   */
+  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
+  if (othersError) console.warn("[auth] password changed; ending other sessions failed:", othersError.message);
 
   // The password changed under the session the link created, so every cached
   // render of the signed-out shell has to go.

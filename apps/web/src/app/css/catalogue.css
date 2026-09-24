@@ -1083,17 +1083,27 @@
   .nf-spec-tile > svg {
     color: var(--nf-brand-secondary);
   }
+  /*
+   * UI-06: five tiles squeezed onto one line at 390 came to about 55px each,
+   * and `overflow-wrap: anywhere` then broke words at any letter ("Parkin g",
+   * "Backu p power"). The row now wraps: a tile is at least a third of the
+   * row, so five tiles sit three and two, and a word breaks at a
+   * hyphenation point; only a word longer than the whole tile (a long
+   * translation or figure) breaks mid-letter rather than spilling out.
+   */
   .nf-spec-row--fit {
+    flex-wrap: wrap;
     margin-inline: 0;
     padding-inline: 0;
   }
   .nf-spec-row--fit .nf-spec-tile {
-    flex: 1 1 0;
+    flex: 1 1 calc((100% - 2 * var(--nf-space-xs)) / 3);
     min-width: 0;
     padding-inline: var(--nf-space-xs);
     font-size: var(--nf-text-overline);
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   .nf-spec-row--fit .nf-spec-tile > span {
     display: block;

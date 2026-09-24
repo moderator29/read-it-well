@@ -80,3 +80,30 @@ describe("recording an acceptance", () => {
     expect(seam.alert).not.toHaveBeenCalled();
   });
 });
+
+describe("STORE-19: the 18-or-over statement", () => {
+  it("is written as its own row beside the terms receipt", async () => {
+    const { recordTermsAcceptance, AGE_DOCUMENT, AGE_VERSION } = await import("./acceptance");
+    await recordTermsAcceptance("u1", "signup_email", { ageConfirmed: true });
+    const rows = seam.upsert.mock.calls.flatMap((call) => call[0] as { document: string; version: string }[]);
+    expect(rows).toContainEqual(expect.objectContaining({ user_id: "u1", document: AGE_DOCUMENT, version: AGE_VERSION }));
+    expect(rows.map((row) => row.document)).toEqual(expect.arrayContaining(["terms", "privacy"]));
+  });
+
+  it("a failed age row never costs the terms receipt, and raises an alert", async () => {
+    const { recordTermsAcceptance, AGE_DOCUMENT } = await import("./acceptance");
+    seam.upsert.mockImplementation(async (rows: { document: string }[]) =>
+      rows.some((row) => row.document === AGE_DOCUMENT) ? { error: { message: "check" } } : { error: null },
+    );
+    await recordTermsAcceptance("u1", "signup_email", { ageConfirmed: true });
+    expect(seam.upsert).toHaveBeenCalledTimes(2);
+    expect(seam.alert).toHaveBeenCalledTimes(1);
+  });
+
+  it("is not written when the person did not make it", async () => {
+    const { recordTermsAcceptance, AGE_DOCUMENT } = await import("./acceptance");
+    await recordTermsAcceptance("u1", "signup_email");
+    const rows = seam.upsert.mock.calls.flatMap((call) => call[0] as { document: string }[]);
+    expect(rows.some((row) => row.document === AGE_DOCUMENT)).toBe(false);
+  });
+});

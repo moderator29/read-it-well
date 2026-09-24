@@ -86,6 +86,12 @@ function blockerCopy(
       };
     case "wallet-held":
       return { line: phrase(copy.blockerWalletHeld, { amount }), cta: copy.blockerWalletHeldCta };
+    case "pot-balance":
+      return { line: phrase(copy.blockerPotBalance, { amount }), cta: copy.blockerWalletBalanceCta };
+    case "rent-refunds-owed":
+      return { line: phrase(copy.blockerRentRefundsOwed, { amount }), cta: copy.blockerWalletBalanceCta };
+    case "rent-refunds-due":
+      return { line: phrase(copy.blockerRentRefundsDue, { amount }), cta: copy.blockerWalletBalanceCta };
     case "pending-payouts":
       return {
         line: phrase(

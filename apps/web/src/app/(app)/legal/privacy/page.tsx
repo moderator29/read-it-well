@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PRIVACY_SECTIONS } from "@/lib/legal/privacy";
+import { PRIVACY_SECTIONS, PRIVACY_UPDATED } from "@/lib/legal/privacy";
 import { LegalDocument } from "../LegalDocument";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export default function AppPrivacyPage() {
     <LegalDocument
       title="Privacy policy"
       intro="How Vallo collects, uses and protects your personal data, and the rights the Nigeria Data Protection Act 2023 gives you over it."
-      updated="28 July 2026"
+      updated={PRIVACY_UPDATED}
       sections={PRIVACY_SECTIONS}
       otherHref="/legal/terms"
       otherLabel="Terms of service"

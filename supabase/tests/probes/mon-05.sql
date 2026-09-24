@@ -3,7 +3,8 @@
 -- matching charge settles and confirms; a replay moves nothing; a second
 -- charge, a charge on a cancelled booking and a wrong amount go back to the
 -- payer's wallet with an alert; a customer-borne fee is accepted; a paid
--- booking is refunded in parts in any status, bounded cumulatively; a
+-- booking is refunded in parts in any status, bounded cumulatively across both
+-- refund doors; a
 -- card-paid rent charge credits the lister once, gross less the fee, and a
 -- refund of it takes that back. API roles cannot call either door. Rolls back.
 do $$
@@ -12,7 +13,7 @@ declare
   admin  uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
   stay   uuid := 'ed000000-0000-4000-8000-000000000003';
   lagos  date := (now() at time zone 'Africa/Lagos')::date;
-  rate bigint; mw uuid; b1 uuid; b2 uuid; b3 uuid; b4 uuid; b5 uuid; rb uuid; lw uuid; insp uuid; rtotal bigint; lbal0 bigint;
+  rate bigint; mw uuid; b1 uuid; b2 uuid; b3 uuid; b4 uuid; b5 uuid; rb uuid; b6 uuid; lw uuid; insp uuid; rtotal bigint; lbal0 bigint;
   lister uuid := 'e0000000-0000-4000-8000-000000000001'; rental uuid := 'ed000000-0000-4000-8000-000000000007'; r jsonb; n int; bal bigint; st text;
 begin
   update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
@@ -112,6 +113,21 @@ begin
   if private.wallet_spendable_locked(mw) - bal <> rate * 2 then raise exception 'PROBE_FAIL mon-p2-02: refunds landed %', private.wallet_spendable_locked(mw) - bal; end if;
   select status::text into st from public.bookings where id = b1;
   if st <> 'COMPLETED' then raise exception 'PROBE_FAIL mon-p2-02: refund moved the status to %', st; end if;
+
+  -- MON-P2-02: the two refund doors share one bound. A goodwill part refund
+  -- through the new door, then refund-and-cancel for the whole price through
+  -- the old one, is refused; the remainder is allowed.
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (stay, member, lagos + 80, lagos + 82, 2, rate, rate * 2, rate * 2, 'PENDING') returning id into b6;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status) values (b6, 'paystack', 'probe-b2-H', rate * 2, 'PENDING');
+  r := private.settle_booking_charge('probe-b2-H', rate * 2, 0, null);
+  if r->>'outcome' <> 'settled' then raise exception 'PROBE_FAIL mon-05: two-door setup %', r; end if;
+  r := private.refund_booking_payment(admin, b6, 1000, 'probe-b2-ref-h1', 'goodwill', 'part refund');
+  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL mon-p2-02: goodwill %', r; end if;
+  r := private.refund_and_cancel_booking(admin, b6, rate * 2, 'probe-b2-ref-h2', 'not_as_listed', 'whole price');
+  if r->>'status' <> 'over_refund' then raise exception 'PROBE_FAIL mon-p2-02: two doors refunded more than was paid %', r; end if;
+  r := private.refund_and_cancel_booking(admin, b6, rate * 2 - 1000, 'probe-b2-ref-h3', 'not_as_listed', 'the rest');
+  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL mon-p2-02: the remainder %', r; end if;
 
   -- V-33 with MON-05: a card-paid rent charge settled by the function credits
   -- the lister once, gross less the fee; a second charge goes back to the payer.

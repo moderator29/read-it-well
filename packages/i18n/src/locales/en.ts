@@ -1353,6 +1353,10 @@ export const en = {
       "I agree to the Terms, the Privacy Policy and the Community Rules, and I understand that abusive content gets an account removed.",
     acceptRead: "Read them:",
     acceptRequired: "Please tick the box to continue. It is how we record what you agreed to.",
+    /* STORE-19: the Terms require 18 or over, so sign-up asks, and the
+       server refuses an account without the answer. */
+    ageLabel: "I am 18 or older.",
+    ageRequired: "Vallo is for adults. Tick the box to confirm you are 18 or older.",
     termsLink: "Terms",
     privacyLink: "Privacy Policy",
     rulesLink: "Community Rules",
@@ -1634,6 +1638,24 @@ export const en = {
    * languages.
    */
   settings: {
+    /**
+     * SEC-15: a request by support to move this account to another email
+     * address, shown to its owner while it is cooling off, with the one
+     * action that matters: stop it.
+     */
+    addressMove: {
+      title: "A request to move your account to another email address",
+      body: "Our support team opened a request to move this account to {address}. It completes no earlier than {when}.",
+      afterNotice: "72 hours after we email this address about it",
+      ifYou: "If you asked for this, there is nothing to do.",
+      cancel: "This was not me, cancel it",
+      cancelled: "Cancelled. Your account stays at this address.",
+    },
+    /** SEC-15: the 7-day hold after support moved this account to a new address. */
+    moneyHold: {
+      title: "Money cannot leave your account until {when}",
+      body: "Support moved this account to a new email address. For 7 days after that, withdrawals, wallet sends, wallet payments and new or changed bank accounts are paused, so nobody who took the account over can empty it. Money coming in, and paying by card, work as normal.",
+    },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Manage your account, preferences and payment methods.",
@@ -1779,6 +1801,15 @@ export const en = {
      * asks "do you recognise this?" about a row that was never about the reader
      * is worse than one that admits it does not know.
      */
+    /* OPS-12: the member's own data, downloaded as JSON from /api/account/export. */
+    dataExport: {
+      label: "A copy of your data",
+      action: "Download your data",
+      sub: "Your account, profile, bookings, wallet, messages you sent and more, as one JSON file.",
+      note: "It is made when you ask and holds only your own records. Files you uploaded are listed, not included. For anything it leaves out, contact support.",
+      signedOut: "Sign in to download the data held on your account.",
+    },
+
     devices: {
       rowLabel: "Devices and sessions",
       rowNote:
@@ -1792,7 +1823,7 @@ export const en = {
       intro:
         "Every device holding a live sign-in to this account. If one of these is not you, end it and change your password straight after.",
       caveat:
-        "Ending a session stops that device from getting a new key. The key it is already holding keeps working until it runs out, so there can be a short gap. If a device is in somebody else's hands, change your password as well: that is the step that ends every key at once.",
+        "Ending a session stops that device from getting a new key. The key it is already holding keeps working until it runs out, so there can be a short gap. If a device is in somebody else's hands, change your password as well: that signs every other device out and makes the old password useless.",
 
       thisDevice: "This device",
       signedInAt: "Signed in {when}",
@@ -1806,11 +1837,17 @@ export const en = {
       deviceUnknownSub:
         "This sign-in is older than the change that started recording which device it came from.",
       deviceUnrecognised: "Unrecognised device",
+      unrecordedGroupOne: "1 older sign-in whose device was not recorded",
+      unrecordedGroupMany: "{count} older sign-ins whose device was not recorded",
+      unrecordedGroupSub:
+        "These started before Vallo recorded which device a sign-in came from, so there is nothing to recognise them by. Sign out everywhere else ends all of them.",
+      endEverywhere: "Sign out everywhere, this device included",
+      endEverywhereSub: "Ends every session on this account, the one you are using now as well. You will need to sign in again here.",
 
       endThis: "Sign out this device",
       endCurrent: "Sign out of this browser",
       endOthers: "Sign out everywhere else",
-      endOthersSub: "Ends every session except the one you are using right now.",
+      endOthersSub: "Ends every session except this one. You stay signed in on this device.",
       endOthersNone: "Nothing else is signed in, so there is nothing to end.",
       confirm: "Tap again to confirm",
       working: "Ending it",
@@ -1904,7 +1941,7 @@ export const en = {
       losesContent: "Your posts, comments, stories, saved items, interests and drafts.",
       losesDevices: "Every device you are signed in on, and every notification.",
       losesFiles:
-        "Every file you have uploaded, including any identity or host documents.",
+        "Every file you have uploaded, including any host documents. If you were approved as an agent, your identification is kept for five years, as the money laundering rules require, and then destroyed.",
       /* The founder's ruling of 19 September: a future event is cancelled with
          notice to everyone attending, never left with a host who has gone.
          Named here so nobody discovers it afterwards, which is the whole
@@ -1957,6 +1994,11 @@ export const en = {
       blockerWalletBalanceCta: "Withdraw it",
       blockerWalletHeld: "{amount} of yours is held in escrow.",
       blockerWalletHeldCta: "Open my wallet",
+      /* STORE-12 / MON-09: money in a pot, and rent refunds either way. The
+         deletion is also re-checked for these on the day it runs. */
+      blockerPotBalance: "{amount} of yours is set aside in a savings pot.",
+      blockerRentRefundsOwed: "You owe {amount} in rent refunds to people who paid you.",
+      blockerRentRefundsDue: "{amount} in rent refunds is owed to you.",
       blockerPendingPayouts: "You have {count} withdrawal that has not settled.",
       blockerPendingPayoutsPlural: "You have {count} withdrawals that have not settled.",
       blockerPendingPayoutsCta: "Open my wallet",
@@ -2185,8 +2227,8 @@ export const en = {
       personalDesc: "Discover and book amazing places across Nigeria.",
       agentDesc: "Manage your listings, bookings, customers and earnings.",
       verifiedAgent: "Verified Agent",
-      visitor: "Not signed in as an agent",
-      signInToWorkspace: "Sign in",
+      noWorkspace: "You are not listing yet",
+      applyToList: "Apply to list",
       workspaceLabel: "Agent workspace",
       notApproved: "Your agent application is still under review.",
     },
@@ -2299,6 +2341,21 @@ export const en = {
         "This is on our side, not yours. Nothing you have submitted is lost. Try again in a few minutes.",
       reviewedOn: "Decided on",
       reviewerNote: "What the reviewer said",
+      respond: {
+        title: "Answer the reviewer",
+        body: "Write what they asked for, add a document if it helps, and send it back. A person reads it again.",
+        answerLabel: "Your answer",
+        answerHint: "Up to 2,000 characters.",
+        attachIdentityTitle: "An identity document",
+        attachAddressTitle: "Proof of address",
+        attachBody: "Optional. A photo or a PDF, up to 10 MB.",
+        send: "Send it back",
+        sending: "Sending",
+        sent: "Sent back. It is with the reviewer again.",
+        needSomething: "Write an answer or add a document before you send it back.",
+        notWaiting: "This application is not waiting on you any more. Refresh to see where it stands.",
+        failed: "We could not send this just now. Nothing you wrote was lost, so please try again.",
+      },
     },
     dashboard: {
       title: "Agent Dashboard",
@@ -2699,7 +2756,7 @@ export const en = {
           body: "Vallo charges you nothing to list. Your price is your price.",
         },
       },
-      apply: "Become an agent",
+      apply: "Apply to list",
       signIn: "Sign in",
       how: "How listing works",
     },
@@ -3659,6 +3716,7 @@ export const en = {
         terms: "Terms",
         applied: "Applied",
         lastNote: "Last reviewer note",
+        applicantAnswer: "Applicant's answer",
         lastReviewed: "Last reviewed",
       },
       asIndividual: "Applying as an individual",
@@ -4559,13 +4617,13 @@ export const en = {
         floor: "Ten minutes is the floor. Anything shorter would fail withdrawals that are still on their way.",
         nothing: "Nothing is stuck at that window",
         review: { one: "Review 1 hold", other: "Review {count} holds" },
-        willRelease: "This will release {amount} across {withdrawals}.",
+        willRelease: "This will check {withdrawals} ({amount}) with Paystack.",
         withdrawals: { one: "1 held withdrawal", other: "{count} held withdrawals" },
         consequence:
-          "Each one is marked failed and the money returns to the owner's spendable balance. Nobody is paid by this. Anyone who still wants their withdrawal has to start it again.",
-        release: "Release {amount}",
+          "Vallo asks Paystack about each hold first. A transfer that paid out is marked complete. One that failed, was reversed or never reached Paystack is released to the owner's spendable balance, and they start it again if they still want it. One Paystack cannot answer for yet is left as it is. Nobody is paid by this.",
+        release: "Check and settle {amount}",
         cancel: "Cancel",
-        nothingNeeded: "Nothing needed releasing. Every hold had already settled.",
+        nothingNeeded: "Nothing was released. Every hold had settled, paid out, or is still waiting on Paystack.",
         released: {
           one: "Released 1 hold, with your name on the record.",
           other: "Released {count} holds, with your name on the record.",
@@ -4953,7 +5011,7 @@ export const en = {
       keep: "Keep it",
       proposeTitle: "Offer another time",
       proposeBody: "They can take it in one tap. The time they asked for stays on the record.",
-      proposeWhen: "When you can do it",
+      proposeWhen: "When you can do it (Lagos time)",
       proposeNote: "A line for them, if you want one",
       proposeSend: "Send this time",
       outcomeTitle: "How did it go?",
@@ -5278,6 +5336,8 @@ export const en = {
       search: "Search",
       filters: "Filters",
       anyMarket: "Any market",
+      marketRent: "Rent",
+      marketBuy: "Buy",
       beds: "{count}+ bed",
       bedsAny: "Beds",
       price: "Price",

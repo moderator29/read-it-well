@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { AcceptTerms } from "./AcceptTerms";
+import { withNext } from "@/lib/auth/next-link";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import type { AuthFormState, EmailStatus } from "@/lib/auth/form-state";
@@ -128,6 +129,8 @@ export function EmailAuthForm({
    */
   const [accepted, setAccepted] = useState(false);
   const [acceptError, setAcceptError] = useState(false);
+  const [adult, setAdult] = useState(false);
+  const [adultError, setAdultError] = useState(false);
 
   /*
    * "1 of 4" is a sentence, not a format. Yoruba, Hausa and Igbo do not all
@@ -165,7 +168,7 @@ export function EmailAuthForm({
           both find it first, and it names where it goes rather than saying
           "back" to somebody who arrived here on a deep link. */}
       <Link
-        href={isSignUp ? "/sign-up" : "/sign-in"}
+        href={withNext(isSignUp ? "/sign-up" : "/sign-in", next)}
         className="nf-tap nf-auth__aside -ml-1 mb-sm inline-flex items-center gap-xs text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
       >
         <UiIcon name="arrow-left" size={16} />
@@ -208,12 +211,24 @@ export function EmailAuthForm({
       <form
         action={formAction}
         onSubmit={(e) => {
+          /* UX-14: the action is dispatched here rather than by `<form
+             action>`, because React resets a form after a `<form action>`
+             submission completes, refusal included. Controlled text fields
+             survive that; the terms tick and the "where did you hear" select
+             did not, so a person fixing one named error was refused again on
+             two answers they had given. A dispatch from here is not followed
+             by a reset, so every answer stays. `action` above still serves a
+             submit made before the page has hydrated. */
+          e.preventDefault();
           /* Sign up only. Signing in is not the moment somebody agrees to
              anything: they agreed when they made the account. */
-          if (isSignUp && !accepted) {
-            e.preventDefault();
-            setAcceptError(true);
+          if (isSignUp && (!accepted || !adult)) {
+            setAcceptError(!accepted);
+            setAdultError(!adult);
+            return;
           }
+          const data = new FormData(e.currentTarget);
+          startTransition(() => formAction(data));
         }}
         className={isSignUp ? "text-left" : "space-y-md text-left"}
         noValidate
@@ -403,6 +418,12 @@ export function EmailAuthForm({
                that comes back unchanged with no visible reason reads as
                broken. */
             showError={acceptError || Boolean(state.fieldErrors?.acceptTerms)}
+            adult={adult}
+            onAdultChange={(next) => {
+              setAdult(next);
+              if (next) setAdultError(false);
+            }}
+            showAdultError={adultError || Boolean(state.fieldErrors?.ageConfirmed)}
           />
         )}
 
@@ -426,7 +447,7 @@ export function EmailAuthForm({
 
       <p className="nf-auth__swap">
         {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
-        <Link href={isSignUp ? "/sign-in" : "/sign-up"}>
+        <Link href={withNext(isSignUp ? "/sign-in" : "/sign-up", next)}>
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>
       </p>

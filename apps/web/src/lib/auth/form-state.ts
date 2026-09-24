@@ -36,7 +36,9 @@ export type AuthField =
   /* The agreement tick on sign-up. It is in the union because the SERVER
      refuses a sign-up that does not carry the current terms version, and a
      server refusal has to be able to land on the control it is about. */
-  | "acceptTerms";
+  | "acceptTerms"
+  /* The 18-or-over tick on sign-up (STORE-19), refused by the server too. */
+  | "ageConfirmed";
 
 export type AuthFormState = {
   ok: boolean;

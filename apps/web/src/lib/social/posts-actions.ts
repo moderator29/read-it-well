@@ -42,6 +42,7 @@ import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 import { getAreaFeed, getEverywhereFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
 import { parseFeedCursor } from "./posts-cursor";
 import { blockUserSafely, unblockUserSafely } from "../safety/blocks-actions";
+import { DB_LIMIT_CODE, DB_LIMIT_MESSAGE, dbLimitRefusal } from "@/lib/security/db-limit";
 
 function paced(seconds: number): string {
   return `You have done that a few times already. Try again ${retryIn(seconds)}.`;
@@ -69,6 +70,8 @@ function messageForPostError(code: string | undefined, fallback: string): string
       return POST_FAILURE.notInArea;
     case "23514":
       return "That will not post. Check the length and try again.";
+    case DB_LIMIT_CODE:
+      return DB_LIMIT_MESSAGE;
     default:
       return fallback;
   }
@@ -544,7 +547,7 @@ export async function reportPost(input: {
       : parsed.data.reason,
   });
 
-  if (error) return fail(POST_FAILURE.down);
+  if (error) return fail(dbLimitRefusal(error) ?? POST_FAILURE.down);
   return ok(null);
 }
 
@@ -595,7 +598,7 @@ export async function reportProfile(input: {
       : parsed.data.reason,
   });
 
-  if (error) return fail(POST_FAILURE.down);
+  if (error) return fail(dbLimitRefusal(error) ?? POST_FAILURE.down);
   return ok(null);
 }
 

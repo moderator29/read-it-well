@@ -31,6 +31,7 @@ import { lagosToday } from "../bookings/schema";
 import { contentRefusal } from "../safety/content-refusal";
 import { isFeatureEnabled } from "../flags";
 import { reviewInputSchema } from "./schema";
+import { dbLimitRefusal } from "../security/db-limit";
 
 /* Reviews belong to the bookings loop, so they pause with it rather than
    carrying a second switch that an incident responder would have to remember. */
@@ -98,6 +99,8 @@ export async function submitReview(
     // no held state, so it is refused with a sentence the person can act on.
     const refused = contentRefusal(insertError);
     if (refused) return fail(refused, { body: refused });
+    const limited = dbLimitRefusal(insertError);
+    if (limited) return fail(limited);
     if (insertError.code === "23505") {
       return fail("You have already reviewed this stay. Thank you for that.");
     }

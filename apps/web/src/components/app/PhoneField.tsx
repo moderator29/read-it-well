@@ -132,10 +132,10 @@ export function PhoneField({
           type="tel"
           inputMode="tel"
           autoComplete={autoComplete}
-          /* Ten digits plus two spaces. A paste longer than this is still
-             accepted, because `maskNational` trims it to the ten that matter
-             rather than silently keeping the wrong end. */
-          maxLength={12}
+          /* No maxLength (UX-12): browsers clip a paste or an autofill to
+             maxlength BEFORE onChange, so "+234 803 123 4567" arrived as
+             "+234 803 123". `maskNational` strips 234 or 0 and keeps the ten
+             digits that matter, which is the only limit the field needs. */
           value={maskNational(value)}
           onChange={(event) => onChange(maskNational(event.target.value))}
           placeholder="803 123 4567"

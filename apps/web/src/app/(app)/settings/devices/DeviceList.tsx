@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { endOtherSessions, endSession } from "@/lib/security/sessions-actions";
+import { signOutEverywhere } from "@/lib/profile/actions";
 
 /**
  * The list, and the two buttons that end things.
@@ -47,6 +48,8 @@ export type DeviceListCopy = {
   endOthers: string;
   endOthersSub: string;
   endOthersNone: string;
+  endEverywhere: string;
+  endEverywhereSub: string;
   confirm: string;
   working: string;
   endedOne: string;
@@ -57,12 +60,20 @@ export type DeviceListCopy = {
 
 type Outcome = { tone: "done" | "problem"; message: string } | null;
 
+/** Sessions with no recorded device, shown as one line rather than one card each. */
+export type FoldedSessions = { label: string; sub: string; lastSeen: string };
+
 export function DeviceList({
   rows,
+  folded,
+  othersCount,
   readable,
   copy,
 }: {
   rows: DeviceRow[];
+  folded: FoldedSessions | null;
+  /** Every non-current session, listed or folded: what "everywhere else" ends. */
+  othersCount: number;
   /** False when the read itself failed. Not the same as an empty list. */
   readable: boolean;
   copy: DeviceListCopy;
@@ -71,7 +82,7 @@ export function DeviceList({
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [pending, startTransition] = useTransition();
 
-  const others = rows.filter((row) => !row.isCurrent).length;
+  const others = othersCount;
 
   const run = (key: string, work: () => Promise<Outcome>) => {
     if (armed !== key) {
@@ -114,6 +125,18 @@ export function DeviceList({
         tone: "done",
         message: result.data.ended === 0 ? copy.endedNone : copy.endedOthers,
       };
+    });
+
+  /* SEC-08: the explicit "every device, this one too". Signing out from
+     settings ends only this device; this is where ending all of them lives. */
+  const endEverywhere = () =>
+    run("everywhere", async () => {
+      const result = await signOutEverywhere();
+      if (!result.ok) return { tone: "problem", message: result.error };
+      /* A full load, for the same reason as ending the current session above:
+         the proxy must see cookies that no longer resolve. */
+      window.location.assign("/sign-in?notice=sign-in-required");
+      return null;
     });
 
   return (
@@ -191,6 +214,14 @@ export function DeviceList({
         ))}
       </ul>
 
+      {folded && (
+        <div className="nf-panel nf-panel--card block p-card" data-testid="devices-folded">
+          <p className="nf-body font-semibold text-content">{folded.label}</p>
+          <p className="nf-caption mt-row text-muted">{folded.sub}</p>
+          {folded.lastSeen && <p className="nf-body-sm mt-row text-content-2">{folded.lastSeen}</p>}
+        </div>
+      )}
+
       <div className="nf-panel nf-panel--card block p-card">
         <p className="nf-body font-semibold text-content">{copy.endOthers}</p>
         <p className="nf-body-sm mt-row text-content-2">
@@ -206,6 +237,22 @@ export function DeviceList({
           }`}
         >
           {armed === "others" ? copy.confirm : copy.endOthers}
+        </button>
+      </div>
+
+      <div className="nf-panel nf-panel--card block p-card">
+        <p className="nf-body font-semibold text-content">{copy.endEverywhere}</p>
+        <p className="nf-body-sm mt-row text-content-2">{copy.endEverywhereSub}</p>
+        <button
+          type="button"
+          onClick={endEverywhere}
+          disabled={pending}
+          data-testid="devices-end-everywhere"
+          className={`nf-btn nf-btn--sm mt-group w-full ${
+            armed === "everywhere" ? "nf-btn--danger" : "nf-btn--glass"
+          }`}
+        >
+          {armed === "everywhere" ? copy.confirm : copy.endEverywhere}
         </button>
       </div>
 
