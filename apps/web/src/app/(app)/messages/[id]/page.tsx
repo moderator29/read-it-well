@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { ShowMePanel } from "@/components/app/messages/ShowMePanel";
+import { readShowMe } from "@/lib/messages/show-me-queries";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -191,6 +193,9 @@ export default async function ConversationPage({
           })
         : null;
 
+    /* V-69: a listing thread's clip asks, when the flag is open. */
+    const showMe = context.kind === "listing" ? await readShowMe(session.supabase, id) : null;
+
     return (
       <ThreadView
         live
@@ -251,6 +256,18 @@ export default async function ConversationPage({
         personLine={counterpartFactsLine}
         recordLine={counterpartRecordLine}
         recordLabel={t.trustVisible.record.title}
+        showMe={
+          showMe ? (
+            <ShowMePanel
+              conversationId={thread.conversationId}
+              role={role}
+              requests={showMe}
+              copy={t.shape.showMe}
+              locale={locale}
+              now={renderedAt()}
+            />
+          ) : null
+        }
         personLabel={t.trustVisible.person.label}
         accountCopy={t.trustVisible.account}
         agreement={
@@ -293,4 +310,9 @@ export default async function ConversationPage({
       />
     </div>
   );
+}
+
+/** The server's clock, read once per request, outside render purity rules. */
+function renderedAt(): string {
+  return new Date().toISOString();
 }
