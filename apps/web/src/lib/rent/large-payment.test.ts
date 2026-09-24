@@ -18,7 +18,13 @@ describe("payRoutes", () => {
   });
 
   it("always offers a wallet that already covers the total, whatever its size", () => {
-    expect(payRoutes(3_630_000_000, true)).toMatchObject({ walletOffered: true });
+    expect(payRoutes(3_630_000_000, 3_630_000_000)).toMatchObject({ walletOffered: true });
+  });
+
+  it("offers the top-up when only the shortfall fits under the ceiling", () => {
+    expect(payRoutes(3_630_000_000, 3_000_000_000)).toMatchObject({ walletOffered: true });
+    expect(payRoutes(3_630_000_000, 3_630_000_000 - MAX_MOVE_KOBO)).toMatchObject({ walletOffered: true });
+    expect(payRoutes(3_630_000_000, 3_630_000_000 - MAX_MOVE_KOBO - 1)).toMatchObject({ walletOffered: false });
   });
 
   it("treats a non-amount as nothing to route", () => {

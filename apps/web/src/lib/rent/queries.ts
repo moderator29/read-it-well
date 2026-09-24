@@ -244,7 +244,7 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
         quotedOnDisplay: quote ? formatMoneyDate(quote.quoted_at, locale) : null,
         remainderMinor: ledger.remainderMinor,
         remainderDisplay: money(ledger.remainderMinor),
-        routes: payRoutes(ledger.totalMinor, walletBalanceMinor >= ledger.totalMinor && ledger.totalMinor > 0),
+        routes: payRoutes(ledger.totalMinor, walletBalanceMinor),
       },
     };
   } catch {

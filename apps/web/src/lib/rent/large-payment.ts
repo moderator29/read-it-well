@@ -34,11 +34,18 @@ export type PayRoutes = {
   walletLimitMinor: number;
 };
 
-export function payRoutes(totalMinor: number, walletCovers = false): PayRoutes {
+/**
+ * `balanceMinor` is the wallet's spendable balance. The top-up route needs
+ * only the SHORTFALL to fit under the ceiling, not the whole total: a tenant
+ * holding ₦30m against a ₦36.3m move-in tops up ₦6.3m, one movement.
+ */
+export function payRoutes(totalMinor: number, balanceMinor = 0): PayRoutes {
   const total = Number.isSafeInteger(totalMinor) && totalMinor > 0 ? totalMinor : 0;
+  const balance = Number.isSafeInteger(balanceMinor) && balanceMinor > 0 ? balanceMinor : 0;
+  const walletCovers = total > 0 && balance >= total;
   return {
     leadWithTransfer: total > LARGE_PAYMENT_KOBO,
-    walletOffered: walletCovers || total <= MAX_MOVE_KOBO,
+    walletOffered: walletCovers || total - balance <= MAX_MOVE_KOBO,
     walletLimitMinor: MAX_MOVE_KOBO,
   };
 }
