@@ -18,6 +18,7 @@
  * Removing an account is a soft delete. There is no delete policy.
  */
 
+import { moneyHoldRefusal } from "../wallet/money-hold";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -236,6 +237,8 @@ async function addBankAccountWork(
     .single();
 
   if (error || !created) {
+    const held = moneyHoldRefusal(error);
+    if (held) return fail(held);
     // 23505 is the per-person unique NUBAN among live rows.
     if (error?.code === "23505") {
       return fail(

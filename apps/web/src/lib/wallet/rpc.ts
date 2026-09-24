@@ -117,7 +117,7 @@ type RpcCaller = {
 export type WalletRpcResult =
   | { outcome: "ok"; data: unknown }
   | { outcome: "missing"; reason: string }
-  | { outcome: "failed"; reason: string };
+  | { outcome: "failed"; reason: string; code?: string | null; message?: string | null };
 
 /**
  * PostgREST's code for "no function matches that name and argument list". It
@@ -166,7 +166,7 @@ export async function callMoneyRpc(
       }
       const reason = error.message ?? error.code ?? "rpc_error";
       logMoney({ surface, outcome: "failed", reason: `rpc_error:${fn}:${reason}`, ...context });
-      return { outcome: "failed", reason };
+      return { outcome: "failed", reason, code: error.code ?? null, message: error.message ?? null };
     }
     return { outcome: "ok", data };
   } catch (error) {

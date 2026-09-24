@@ -28,6 +28,7 @@
  * email failure can change what the ledger says or what the caller is told.
  */
 
+import { moneyHoldRefusal } from "./money-hold";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -617,7 +618,7 @@ async function withdrawWork(
   );
 
   if (held.outcome === "failed") {
-    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    return fail(moneyHoldRefusal(held) ?? "The withdrawal could not be recorded. Your balance is untouched. Please try again.");
   }
 
   if (held.outcome === "ok") {
@@ -879,7 +880,10 @@ async function withdrawToSavedAccount(
   );
 
   if (held.outcome !== "ok") {
-    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    return fail(
+      (held.outcome === "failed" ? moneyHoldRefusal(held) : null) ??
+        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
+    );
   }
   const status = readMoneyStatus(held.data);
   if (status.status === "insufficient") {
@@ -1168,7 +1172,7 @@ async function transferToUserWork(
   );
 
   if (call.outcome === "failed") {
-    return fail("The transfer could not be completed. Your balance is untouched. Please try again.");
+    return fail(moneyHoldRefusal(call) ?? "The transfer could not be completed. Your balance is untouched. Please try again.");
   }
 
   if (call.outcome === "ok") {

@@ -1,12 +1,13 @@
 -- SEC-15: staff-assisted email recovery. A member and an admin cannot open
 -- one; a super admin can, only with the NIN on an approved identity on file,
--- never for their own account. TWO PEOPLE: the opener cannot begin, and only
--- the one who began can finish. The old address must have been told, and the
--- 72 hours count from that notice. On completion every session ends and
--- money cannot leave for 7 days (withdrawal and send entries, new or
--- repointed payout accounts; removing one still works). Every step writes
--- audit_log; the owner can cancel. The auth row change itself is the
--- server's (service role) and is not exercised here.
+-- never for their own account, and never for one being closed or banned.
+-- TWO PEOPLE: the opener cannot begin, and only the one who began can
+-- finish. The old address must have been told, and the 72 hours count from
+-- that notice. On completion every session ends and money cannot leave for
+-- 7 days (withdrawal, send, wallet payment and escrow hold entries; new or
+-- repointed payout accounts); credits pass and removing an account still
+-- works. Every step writes audit_log; the owner can cancel. The auth row
+-- change itself is the server's (service role) and is not exercised here.
 -- A second super admin is granted inside the transaction only. Rolls back.
 do $$
 declare
@@ -68,6 +69,31 @@ begin
   exception when sqlstate '42501' then refused := true;
   end;
   if not refused then raise exception 'PROBE_FAIL sec-15: a super admin opened a recovery for themselves'; end if;
+
+  -- An account being closed, or banned, is refused even with the right NIN.
+  reset role;
+  insert into public.account_deletion_requests (user_id, status, purge_after)
+  values (member, 'SCHEDULED', now() + interval '30 days');
+  set local role authenticated;
+  refused := false;
+  begin
+    perform public.admin_open_email_recovery(member, 'new.probe@example.invalid', '12345678901', 'ticket PROBE-1');
+  exception when sqlstate 'RM040' then refused := true;
+  end;
+  if not refused then raise exception 'PROBE_FAIL sec-15: an account being closed was opened for a move'; end if;
+  reset role;
+  delete from public.account_deletion_requests where user_id = member and status = 'SCHEDULED';
+  update auth.users set banned_until = now() + interval '1 day' where id = member;
+  set local role authenticated;
+  refused := false;
+  begin
+    perform public.admin_open_email_recovery(member, 'new.probe@example.invalid', '12345678901', 'ticket PROBE-1');
+  exception when sqlstate 'RM040' then refused := true;
+  end;
+  if not refused then raise exception 'PROBE_FAIL sec-15: a banned account was opened for a move'; end if;
+  reset role;
+  update auth.users set banned_until = null where id = member;
+  set local role authenticated;
 
   -- CONTROL: the right NIN opens it.
   req := public.admin_open_email_recovery(member, 'New.Probe@Example.invalid', '12345678901', 'ticket PROBE-1');
@@ -139,8 +165,9 @@ begin
    where entity_id = member::text and action like 'account.email_recovery.%' and metadata ->> 'request_id' = req::text;
   if n <> 3 then raise exception 'PROBE_FAIL sec-15: % audit rows for the request, expected 3', n; end if;
 
-  -- The money hold: a withdrawal or a send entry is refused, and so is a new
-  -- payout account; money coming in is not.
+  -- The money hold: money out of the wallet (withdrawal, send, payment,
+  -- escrow hold) is refused, and so is a new payout account; money coming in
+  -- is not.
   insert into public.wallets (user_id) values (member) on conflict (user_id) do nothing;
   select w.id into wallet from public.wallets w where w.user_id = member;
   refused := false;
@@ -157,8 +184,27 @@ begin
   exception when sqlstate 'RM050' then refused := true;
   end;
   if not refused then raise exception 'PROBE_FAIL sec-15: a send left during the hold'; end if;
+  refused := false;
+  begin
+    insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
+    values (wallet, 'payment', 'debit', 100, 'PROBE-SEC15-P', 'COMPLETED');
+  exception when sqlstate 'RM050' then refused := true;
+  end;
+  if not refused then raise exception 'PROBE_FAIL sec-15: a wallet payment left during the hold'; end if;
+  refused := false;
+  begin
+    insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
+    values (wallet, 'escrow_hold', 'debit', 100, 'PROBE-SEC15-E', 'COMPLETED');
+  exception when sqlstate 'RM050' then refused := true;
+  end;
+  if not refused then raise exception 'PROBE_FAIL sec-15: an escrow hold left during the hold'; end if;
+  -- Money coming in is never held.
   insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
   values (wallet, 'deposit', 'credit', 100, 'PROBE-SEC15-D', 'PENDING');
+  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
+  values (wallet, 'refund', 'credit', 100, 'PROBE-SEC15-R', 'COMPLETED');
+  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
+  values (wallet, 'escrow_release', 'credit', 100, 'PROBE-SEC15-X', 'COMPLETED');
 
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);

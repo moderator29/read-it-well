@@ -30,6 +30,7 @@
  * Every amount is integer kobo, end to end (Master Rule 50).
  */
 
+import { moneyHoldRefusal } from "../wallet/money-hold";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -559,7 +560,7 @@ async function payWithWalletWork(
       target_booking: booking.id,
       payment_reference: reference,
     });
-    if (error) return fail(SERVICE_DOWN_MESSAGE);
+    if (error) return fail(moneyHoldRefusal(error) ?? SERVICE_DOWN_MESSAGE);
     outcome = readOutcome(data);
   } catch {
     return fail(SERVICE_DOWN_MESSAGE);

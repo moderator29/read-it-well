@@ -3,6 +3,35 @@ import "server-only";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { createClient } from "../supabase/server";
 
+/**
+ * SEC-15: the end of the 7-day money hold on the signed-in person's account,
+ * formatted, or null when there is none. Read through their own client (the
+ * owner policy on account_money_holds).
+ */
+export async function loadMoneyHoldUntil(locale: Locale): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return null;
+    const { data } = await supabase
+      .from("account_money_holds" as never)
+      .select("hold_until")
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+    const until = (data as { hold_until?: string } | null)?.hold_until;
+    if (!until || new Date(until).getTime() <= Date.now()) return null;
+    return formatDate(new Date(until), locale, {
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Africa/Lagos",
+    });
+  } catch {
+    return null;
+  }
+}
+
 /** `earliest` is null until the old address has been told; the clock starts then. */
 export type PendingMove = {
   id: string;

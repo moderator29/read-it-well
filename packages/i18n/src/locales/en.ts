@@ -1403,6 +1403,11 @@ export const en = {
       cancel: "This was not me, cancel it",
       cancelled: "Cancelled. Your account stays at this address.",
     },
+    /** SEC-15: the 7-day hold after support moved this account to a new address. */
+    moneyHold: {
+      title: "Money cannot leave your account until {when}",
+      body: "Support moved this account to a new email address. For 7 days after that, withdrawals, wallet sends, wallet payments and new or changed bank accounts are paused, so nobody who took the account over can empty it. Money coming in, and paying by card, work as normal.",
+    },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Manage your account, preferences and payment methods.",

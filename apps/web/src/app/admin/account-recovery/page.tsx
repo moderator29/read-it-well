@@ -35,8 +35,11 @@ export default async function AccountRecoveryPage() {
         NIN the person gives, which must match an approved identity on file, and the old address is
         told at once. The 72 hours count from that notice; if it did not go, send it again. After
         them, a different super admin from the one who opened it completes the move, which signs the
-        account out everywhere and holds money leaving it for 7 days. Any admin, or the owner from
-        their settings, can cancel before then. Every step is in the audit log.
+        account out everywhere. For 7 days after the move no money can leave the account: no
+        withdrawals, no wallet sends, no wallet payments or held payments, and no new or changed bank
+        accounts. Card payments and money coming in are not held. The owner sees the end date in their
+        settings. Any admin, or the owner, can cancel a request before it completes. Every step is in
+        the audit log.
       </p>
       {error ? (
         <p className="mt-md text-[length:var(--nf-text-body-sm)]">The requests could not be read just now.</p>

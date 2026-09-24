@@ -36,6 +36,9 @@ const when = (iso: string | null) =>
       }).format(new Date(iso))
     : "—";
 
+/** The 7-day money hold starts at the move (admin_finish_email_recovery). */
+const holdEnd = (iso: string) => new Date(new Date(iso).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
 function Result({ state }: { state: { ok: boolean; error?: string } | null }) {
   if (!state) return null;
   return (
@@ -132,6 +135,11 @@ export function RecoveryDesk({ rows, isSuperAdmin }: { rows: RecoveryRow[]; isSu
               Old address told: {row.opened_notice_at ? when(row.opened_notice_at) : "not yet"}
               {row.completed_notice_at ? ` · told of the move ${when(row.completed_notice_at)}` : ""}
             </p>
+            {row.status === "completed" && row.completed_at && (
+              <p className="mt-3xs">
+                {`Money held until ${when(holdEnd(row.completed_at))}: no withdrawals, sends, wallet payments or bank account changes.`}
+              </p>
+            )}
             {row.last_error && <p className="mt-3xs">Last attempt failed: {row.last_error}</p>}
             {row.cancel_reason && <p className="mt-3xs">Cancelled: {row.cancel_reason}</p>}
             <RowActions row={row} isSuperAdmin={isSuperAdmin} />
