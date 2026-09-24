@@ -37,6 +37,7 @@ import {
   type ServiceForm,
   type ServiceRow,
 } from "../listings/service";
+import { UNIT_COLUMNS, readUnit, unitFormOf, type UnitFacts, type UnitForm, type UnitRow } from "../listings/unit-shape";
 
 /**
  * Server-side reads for the agent supply loop.
@@ -257,6 +258,8 @@ export type WizardDraft = {
   compound?: CompoundForm;
   /** V-68: the service charge's answers, as the wizard's controls hold them. */
   service?: ServiceForm;
+  /** V-66: the unit's shape, as the wizard's controls hold it. */
+  unit?: UnitForm;
   /** Never public. Read from public.listing_access, which only the host,
       an admin and a guest with a CONFIRMED booking may select from. */
   access: {
@@ -520,6 +523,7 @@ async function toDraft(
     prepaidMeter: row.prepaid_meter ?? false,
     compound: compoundFormOf(await readCompoundFor(supabase, row.id)),
     service: serviceFormOf(await readServiceFor(supabase, row.id)),
+    unit: unitFormOf(await readUnitFor(supabase, row.id)),
     access: {
       estateName: row.listing_access?.estate_name ?? "",
       gateDirections: row.listing_access?.gate_directions ?? "",
@@ -568,6 +572,17 @@ async function readServiceFor(
       .maybeSingle();
     if (error || !data) return null;
     return readService(data as unknown as ServiceRow);
+  } catch {
+    return null;
+  }
+}
+
+/** V-66: the unit's shape for one draft, by its own read. */
+async function readUnitFor(supabase: SupabaseClient<Database>, listingId: string): Promise<UnitFacts | null> {
+  try {
+    const { data, error } = await supabase.from("listings").select(UNIT_COLUMNS).eq("id", listingId).maybeSingle();
+    if (error || !data) return null;
+    return readUnit(data as unknown as UnitRow);
   } catch {
     return null;
   }

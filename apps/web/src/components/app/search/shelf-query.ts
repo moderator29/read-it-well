@@ -1,5 +1,6 @@
 import type { ListingIntent, ListingKind, ListingSearchFilter } from "@/lib/listings/types";
 import { rentMeansTenancy } from "@/lib/listings/filter";
+import type { ParsedWords } from "@/lib/listings/query-parse";
 import {
   activeFilterCount,
   clearedFilters,
@@ -96,6 +97,36 @@ export function staySideHref(kind: ListingKind | undefined, q: string | undefine
   if (q) params.set("q", q);
   return `/stays/search?${params.toString()}`;
 }
+
+/**
+ * The search box's words, read into filters (V-66). What the person typed
+ * wins over what the address already held, because they just said it; shapes
+ * and areas are added to, and the text left is only what was not read.
+ */
+export function applyWords(query: ShelfQuery, words: ParsedWords): ShelfQuery {
+  const next: ShelfQuery = { ...query };
+  delete next.q;
+  if (words.rest) next.q = words.rest;
+  if (words.bedrooms !== undefined) next.bedrooms = words.bedrooms;
+  if (words.maxMinor !== undefined) next.maxMinor = words.maxMinor;
+  if (words.minMinor !== undefined) next.minMinor = words.minMinor;
+  if (words.intent) next.intent = words.intent;
+  if (words.ownerDirect && !next.listerRoles.includes("owner")) next.listerRoles = [...next.listerRoles, "owner"];
+  if (words.shapes.length > 0) next.shapes = [...new Set([...(next.shapes ?? []), ...words.shapes])];
+  if (words.withBq) next.withBq = true;
+  if (words.areas.length > 0) next.areas = [...new Set([...(next.areas ?? []), ...words.areas])].slice(0, 4);
+  return next;
+}
+
+/** The address after the words were read, carrying what was said for the "Read as" line. */
+export function wordsHref(query: ShelfQuery, said: string): string {
+  const href = toShelfHref(query);
+  const joiner = href.includes("?") ? "&" : "?";
+  return `${href}${joiner}${SAID_PARAM}=${encodeURIComponent(said.slice(0, 120))}`;
+}
+
+/** Not part of the query: a one-time note of what the search box said. */
+export const SAID_PARAM = "said";
 
 export function shelfActiveCount(query: ShelfQuery): number {
   return activeFilterCount(query) + (query.intent ? 1 : 0);

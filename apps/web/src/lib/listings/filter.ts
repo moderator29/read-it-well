@@ -2,6 +2,7 @@ import type { ListingIntent, PricePeriod } from "./pricing";
 import { matchesCompound, type Compound } from "./compound";
 import { matchesService, type ServiceFacts } from "./service";
 import { cashAtDoor, upfrontMonths } from "./upfront";
+import { matchesUnit, type UnitFacts } from "./unit-shape";
 
 
 /**
@@ -109,6 +110,8 @@ export type ListingFacts = {
   compound?: Compound;
   /** V-68, under the Listing's own name. */
   service?: ServiceFacts;
+  /** V-66, under the Listing's own name. */
+  unit?: UnitFacts;
   /** V-65: the move-in total and the shortest tenancy, under the Listing's own names. */
   moveInCostMinor?: number;
   minimumTenancyMonths?: number;
@@ -158,6 +161,7 @@ export function factsOf(l: Listing): ListingFacts {
     ...(l.pricePeriod !== undefined ? { pricePeriod: l.pricePeriod } : {}),
     ...(l.compound !== undefined ? { compound: l.compound } : {}),
     ...(l.service !== undefined ? { service: l.service } : {}),
+    ...(l.unit !== undefined ? { unit: l.unit } : {}),
     ...(l.moveInCostMinor !== undefined ? { moveInCostMinor: l.moveInCostMinor } : {}),
     ...(l.minimumTenancyMonths !== undefined ? { minimumTenancyMonths: l.minimumTenancyMonths } : {}),
     bedrooms: l.bedrooms,
@@ -314,6 +318,8 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
   if (!matchesCompound(facts.compound, filter)) return false;
   /* V-68: Serviced and gated estate, strict in the same way. */
   if (!matchesService(facts.service, filter)) return false;
+  /* V-66: the shape chips and "With BQ", strict in the same way. */
+  if (!matchesUnit(facts.unit, filter)) return false;
 
   if (filter.waterSupply && filter.waterSupply.length > 0) {
     // OR, not AND: one column, one value. See the note on the filter type.
@@ -335,6 +341,11 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
 export function matchesFilter(l: Listing, filter: ListingSearchFilter = {}): boolean {
   const q = filter.q?.trim().toLowerCase();
   if (q && !haystack(l).includes(q)) return false;
+  /* V-66: any one of the areas will do, each read like the free text. */
+  if (filter.areas && filter.areas.length > 0) {
+    const hay = haystack(l);
+    if (!filter.areas.some((area) => hay.includes(area))) return false;
+  }
   return matchesFacts(l, filter);
 }
 

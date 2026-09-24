@@ -8,6 +8,9 @@ import { ShelfCount } from "@/components/app/search/ShelfCount";
 import {
   clearedShelf,
   parseShelfQuery,
+  applyWords,
+  wordsHref,
+  SAID_PARAM,
   staySideHref,
   shelfActiveCount,
   shelfFilter,
@@ -38,6 +41,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
 import { LastVisitProvider } from "@/components/app/search/LastVisit";
 import { RecordViews } from "@/components/app/search/RecordViews";
+import { ReadAs } from "@/components/app/search/ReadAs";
+import { parseWords } from "@/lib/listings/query-parse";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -155,6 +160,14 @@ export default async function SearchPage({
   /* A stay typed on the Property side is sent to the Stays side, words kept (V-67). */
   const staySide = staySideHref(query.kind, query.q);
   if (staySide) redirect(staySide);
+  /* V-66: WhatsApp shorthand becomes filters, once. What is left over reads
+     nothing, so this never redirects twice. */
+  if (query.q) {
+    const words = parseWords(query.q);
+    if (words.recognised) redirect(wordsHref(applyWords(query, words), query.q));
+  }
+  const saidRaw = raw[SAID_PARAM];
+  const said = typeof saidRaw === "string" && saidRaw.trim() ? saidRaw.trim().slice(0, 120) : null;
 
   const repo = getListingRepository();
   /* Three reads: the results, the pool the sheet counts against (the whole
@@ -281,6 +294,7 @@ export default async function SearchPage({
         openFilters={raw.filters === "open"}
         leading={<BackButton fallback="/" />}
       />
+      <ReadAs query={query} said={said} locale={locale} copy={t.shape.unit} />
 
       <h1 className="sr-only">
         {query.q ? `Results for ${query.q}` : query.kind ? `Explore ${noun.many}` : "Explore properties"}

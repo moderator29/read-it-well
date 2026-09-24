@@ -8,7 +8,7 @@ import {
   toShelfHref,
   type ShelfQuery,
 } from "@/components/app/search/shelf-query";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 
 /**
  * A SAVED SEARCH, AS A VALUE. The vocabulary the actions, the list screen, the
@@ -220,6 +220,10 @@ export function summariseSearch(
   if (query.maxUpfront !== undefined) {
     chips.push(query.maxUpfront === 12 ? "One year upfront at most" : `${query.maxUpfront} months upfront at most`);
   }
+  /* V-66: the shapes and areas, in the words the dictionary uses. */
+  for (const shape of query.shapes ?? []) chips.push(getDictionary(locale).shape.unit.shapes[shape]);
+  if (query.withBq) chips.push(getDictionary(locale).shape.unit.filterBq);
+  for (const area of query.areas ?? []) chips.push(sentence(area));
   for (const code of query.amenities) chips.push(amenityWord(code));
 
   return chips;

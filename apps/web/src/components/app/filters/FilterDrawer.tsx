@@ -14,6 +14,8 @@ import {
   type ListingFacts,
 } from "@/lib/listings/filter";
 
+import { UNIT_SHAPES, takesShape, type UnitShape } from "@/lib/listings/unit-shape";
+
 /* V-65: the drawer's one upfront choice, "One year upfront at most". */
 const ONE_YEAR = 12;
 import {
@@ -92,6 +94,9 @@ type Draft = {
   gatedEstate: boolean;
   /** V-65: at most this many months up front; absent means not asked. */
   maxUpfront?: number;
+  /** V-66: the shapes the reader will take, any of them. */
+  shapes: UnitShape[];
+  withBq: boolean;
 };
 
 function draftFrom(query: ShelfQuery): Draft {
@@ -117,6 +122,8 @@ function draftFrom(query: ShelfQuery): Draft {
     servicedOnly: query.servicedOnly,
     gatedEstate: query.gatedEstate,
     ...(query.maxUpfront !== undefined ? { maxUpfront: query.maxUpfront } : {}),
+    shapes: query.shapes ?? [],
+    withBq: query.withBq === true,
   };
 }
 
@@ -161,6 +168,11 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
   if (draft.guests > 0) next.guests = draft.guests;
   /* The upfront limit only means something on the Rent market's tenancies. */
   if (draft.maxUpfront !== undefined && rentMeansTenancy(draft)) next.maxUpfront = draft.maxUpfront;
+  /* V-66: shapes only mean something for homes; areas are the address's own. */
+  const homes = !draft.kind || takesShape(draft.kind);
+  if (homes && draft.shapes.length > 0) next.shapes = draft.shapes;
+  if (homes && draft.withBq) next.withBq = true;
+  if (base.areas && base.areas.length > 0) next.areas = base.areas;
   return next;
 }
 
@@ -318,6 +330,7 @@ export function FilterDrawer({
   sortCopy,
   serviceCopy,
   cashCopy,
+  unitCopy,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -337,6 +350,8 @@ export function FilterDrawer({
   serviceCopy: Dictionary["shape"]["service"];
   /** V-65: on the Rent market the budget is the cash at the door. */
   cashCopy: Dictionary["shape"]["cash"];
+  /** V-66: the unit shapes' words, for the shape chips. */
+  unitCopy: Dictionary["shape"]["unit"];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
@@ -453,6 +468,24 @@ export function FilterDrawer({
     }
     return { serviced, gated };
   }, [facts, draft.servicedOnly, draft.gatedEstate]);
+
+  /* V-66: the shapes the pool holds, in the list's order, plus any already
+     chosen, so a chip never offers an empty result by construction. */
+  const shapeOptions = useMemo(() => {
+    const present = new Set<UnitShape>(draft.shapes);
+    let bq = draft.withBq;
+    for (const fact of facts) {
+      if (fact.unit?.shape) present.add(fact.unit.shape);
+      if (fact.unit?.hasBq) bq = true;
+    }
+    return { shapes: UNIT_SHAPES.filter((shape) => present.has(shape)), bq };
+  }, [facts, draft.shapes, draft.withBq]);
+  const toggleShape = useCallback((shape: UnitShape) => {
+    setDraft((current) => ({
+      ...current,
+      shapes: UNIT_SHAPES.filter((s) => (s === shape ? !current.shapes.includes(s) : current.shapes.includes(s))),
+    }));
+  }, []);
 
   const pending = useMemo(() => queryFrom(query, draft), [query, draft]);
   const matchCount = useMemo(() => {
@@ -614,6 +647,48 @@ export function FilterDrawer({
                     ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind) })),
                   ]}
                 />
+              </Group>
+            )}
+
+            {/* ------------------------------------------ shape (V-66) */}
+            {(!draft.kind || takesShape(draft.kind)) && (shapeOptions.shapes.length > 0 || shapeOptions.bq) && (
+              <Group
+                id="filter-shape"
+                title={unitCopy.filterTitle}
+                clearLabel={copy.clear}
+                onClear={
+                  draft.shapes.length > 0 || draft.withBq
+                    ? () => setDraft((current) => ({ ...current, shapes: [], withBq: false }))
+                    : undefined
+                }
+              >
+                {shapeOptions.shapes.length > 0 && (
+                  <div className="flex flex-wrap gap-xs" role="group">
+                    {shapeOptions.shapes.map((shape) => (
+                      <button
+                        key={shape}
+                        type="button"
+                        aria-pressed={draft.shapes.includes(shape)}
+                        data-testid={`filter-shape-${shape}`}
+                        onClick={() => toggleShape(shape)}
+                        className="nf-filters__tile"
+                      >
+                        {unitCopy.shapes[shape]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {shapeOptions.bq && (
+                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
+                    <SwitchRow
+                      icon="key"
+                      label={unitCopy.filterBq}
+                      checked={draft.withBq}
+                      testId="filter-bq"
+                      onChange={(next) => setDraft((current) => ({ ...current, withBq: next }))}
+                    />
+                  </div>
+                )}
               </Group>
             )}
 

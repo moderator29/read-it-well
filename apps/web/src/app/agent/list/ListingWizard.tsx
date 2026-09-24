@@ -71,6 +71,8 @@ import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
 import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/listings/compound";
 import { EMPTY_SERVICE_FORM, servicePayload, type ServiceForm } from "@/lib/listings/service";
 import { ServiceQuestions } from "@/components/agent/ServiceQuestions";
+import { UnitQuestions } from "@/components/agent/UnitQuestions";
+import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -193,6 +195,8 @@ type Values = {
   compound: CompoundForm;
   /** V-68: the service charge's answers. */
   service: ServiceForm;
+  /** V-66: the unit's shape, en-suite rooms and BQ. */
+  unit: UnitForm;
   estateName: string;
   gateDirections: string;
   securityPhone: string;
@@ -263,6 +267,7 @@ const EMPTY: Values = {
   prepaidMeter: false,
   compound: EMPTY_COMPOUND_FORM,
   service: EMPTY_SERVICE_FORM,
+  unit: EMPTY_UNIT_FORM,
   estateName: "",
   gateDirections: "",
   securityPhone: "",
@@ -320,6 +325,7 @@ function valuesFrom(draft: WizardDraft): Values {
     prepaidMeter: draft.prepaidMeter,
     compound: draft.compound ?? EMPTY_COMPOUND_FORM,
     service: draft.service ?? EMPTY_SERVICE_FORM,
+    unit: draft.unit ?? EMPTY_UNIT_FORM,
     estateName: draft.access.estateName,
     gateDirections: draft.access.gateDirections,
     securityPhone: draft.access.securityPhone,
@@ -772,6 +778,7 @@ export function ListingWizard({
   moveInCopy,
   compoundCopy,
   serviceCopy,
+  unitCopy,
   locale,
   userId,
   states,
@@ -793,6 +800,8 @@ export function ListingWizard({
   compoundCopy: Dictionary["shape"]["compound"];
   /** V-68: the service charge questions. */
   serviceCopy: Dictionary["shape"]["service"];
+  /** V-66: the unit shape question. */
+  unitCopy: Dictionary["shape"]["unit"];
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];
@@ -976,6 +985,7 @@ export function ListingWizard({
         tenure: values.tenure === "" ? null : values.tenure,
         bedrooms: values.bedrooms,
         bathrooms: values.bathrooms,
+        unitShape: values.unit.shape === "" ? null : values.unit.shape,
         amenityCount: chosenAmenities.length,
         photoCount: photos.length,
         hasCover: photos.length > 0,
@@ -1047,6 +1057,8 @@ export function ListingWizard({
         return g.bedrooms;
       case "bathrooms":
         return g.bathrooms;
+      case "unitShape":
+        return unitCopy.wizardRequired;
       default:
         return fallback;
     }
@@ -1188,6 +1200,7 @@ export function ListingWizard({
       prepaidMeter: values.prepaidMeter,
       ...compoundPayload(values.compound),
       ...servicePayload(values.service),
+      ...unitPayload(values.unit, values.bedrooms),
     });
 
     if (!result.ok) {
@@ -1682,6 +1695,17 @@ export function ListingWizard({
               short-stay model, for the reason recorded before: asking for a
               number nothing stores is asking somebody to type into a void.
             */}
+            {/* ------------------------------------ the shape (V-66) */}
+            {takesShape(values.propertyType) && (
+              <UnitQuestions
+                copy={unitCopy}
+                value={values.unit}
+                bedrooms={values.bedrooms}
+                error={fieldErrors.unitShape}
+                onChange={(next) => set("unit", next)}
+              />
+            )}
+
             <div>
               <span className="nf-label">{copy.drawn.rooms.title}</span>
               <div className="nf-lw-facts">

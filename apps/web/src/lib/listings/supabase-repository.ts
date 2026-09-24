@@ -6,6 +6,7 @@ import { honestExamplePhotos } from "./example-imagery";
 import { rentMeansTenancy } from "./filter";
 import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "./compound";
 import { SERVICE_COLUMNS, readService, type ServiceFacts, type ServiceRow } from "./service";
+import { UNIT_COLUMNS, readUnit, type UnitFacts, type UnitRow } from "./unit-shape";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -1058,20 +1059,44 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     getListerNames(supabase, rows.map((r) => r.id)),
   ]);
   const ids = rows.map((r) => r.id);
-  const [compounds, services] = await Promise.all([
+  const [compounds, services, units] = await Promise.all([
     getCompoundFacts(supabase, ids),
     getServiceFacts(supabase, ids),
+    getUnitFacts(supabase, ids),
   ]);
   return rows.map((row) => {
     const listing = mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames);
     const compound = compounds.get(row.id);
     const service = services.get(row.id);
+    const unit = units.get(row.id);
     return {
       ...listing,
       ...(compound ? { compound } : {}),
       ...(service ? { service } : {}),
+      ...(unit ? { unit } : {}),
     };
   });
+}
+
+/**
+ * THE UNIT'S SHAPE (V-66), READ ON ITS OWN for the reason `getCompoundFacts`
+ * gives: without migration `20260924150600` the read errors, which means no
+ * shapes, and never costs the catalogue.
+ */
+async function getUnitFacts(supabase: Client, ids: string[]): Promise<Map<string, UnitFacts>> {
+  const out = new Map<string, UnitFacts>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase.from("listings").select(`id, ${UNIT_COLUMNS}`).in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (UnitRow & { id: string })[]) {
+      const unit = readUnit(row);
+      if (unit) out.set(row.id, unit);
+    }
+  } catch {
+    /* No shapes is the honest answer to a read that failed. */
+  }
+  return out;
 }
 
 /**
@@ -1237,6 +1262,14 @@ export class SupabaseListingRepository implements ListingRepository {
         for (const group of freeTextGroups(term, await getStateNames())) {
           query = query.or(group);
         }
+      }
+      /* V-66: any of the areas, as ONE or-group. Each area contributes the
+         group for its first word, which every row matching the whole area
+         also matches, so SQL stays a superset of what `matchesFilter` keeps. */
+      if (filter.areas && filter.areas.length > 0) {
+        const stateNames = await getStateNames();
+        const parts = filter.areas.flatMap((area) => freeTextGroups(area, stateNames).slice(0, 1));
+        if (parts.length === filter.areas.length) query = query.or(parts.join(","));
       }
 
       if (filter.intent) {

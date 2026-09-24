@@ -36,6 +36,7 @@ import {
   type CompoundPayload,
 } from "../listings/compound";
 import { serviceColumns, type ServicePayload } from "../listings/service";
+import { unitColumns, type UnitPayload } from "../listings/unit-shape";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import {
@@ -365,6 +366,9 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     if (!(await writeService(gate.supabase, value.id, gate.agentId, value))) {
       return fail(SAVE_FAILED_MESSAGE);
     }
+    if (!(await writeUnit(gate.supabase, value.id, gate.agentId, value))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
 
     refreshAgentSurfaces();
     return ok({ id: value.id, status: existing.status });
@@ -395,6 +399,9 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     return fail(SAVE_FAILED_MESSAGE);
   }
   if (!(await writeService(gate.supabase, created.id, gate.agentId, value))) {
+    return fail(SAVE_FAILED_MESSAGE);
+  }
+  if (!(await writeUnit(gate.supabase, created.id, gate.agentId, value))) {
     return fail(SAVE_FAILED_MESSAGE);
   }
 
@@ -469,6 +476,48 @@ async function writeService(
     .eq("id", listingId)
     .eq("agent_id", agentId);
   return !error || isMissingColumnError(error);
+}
+
+/**
+ * THE UNIT'S SHAPE (V-66), by its own update for the reason `writeCompound`
+ * gives. A check violation (more en-suite rooms than bedrooms) is a failure.
+ */
+async function writeUnit(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  agentId: string,
+  value: {
+    unitShape?: UnitPayload["unitShape"] | undefined;
+    ensuiteCount?: UnitPayload["ensuiteCount"] | undefined;
+    hasBq?: UnitPayload["hasBq"] | undefined;
+  },
+): Promise<boolean> {
+  const row = unitColumns({
+    ...(value.unitShape !== undefined ? { unitShape: value.unitShape } : {}),
+    ...(value.ensuiteCount !== undefined ? { ensuiteCount: value.ensuiteCount } : {}),
+    ...(value.hasBq !== undefined ? { hasBq: value.hasBq } : {}),
+  });
+  if (Object.keys(row).length === 0) return true;
+  const { error } = await supabase
+    .from("listings")
+    .update(row as never)
+    .eq("id", listingId)
+    .eq("agent_id", agentId);
+  return !error || isMissingColumnError(error);
+}
+
+/** V-66: the shape for the submit gate. Undefined when the column cannot be read. */
+async function readUnitShape(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+): Promise<string | null | undefined> {
+  try {
+    const { data, error } = await supabase.from("listings").select("unit_shape").eq("id", listingId).maybeSingle();
+    if (error || !data) return undefined;
+    return ((data as { unit_shape?: string | null }).unit_shape ?? null);
+  } catch {
+    return undefined;
+  }
 }
 
 /** Kobo as naira text, for one error sentence. Integer division, never a float. */
@@ -1076,9 +1125,10 @@ export async function submitListing(input: {
     return fail("This listing has already been through review. Return it to a draft to change it.");
   }
 
-  const [photoRes, amenityRes] = await Promise.all([
+  const [photoRes, amenityRes, unitShape] = await Promise.all([
     gate.supabase.from("listing_photos").select("id, position").eq("listing_id", listingId),
     gate.supabase.from("listing_amenities").select("amenity_id").eq("listing_id", listingId),
+    readUnitShape(gate.supabase, listingId),
   ]);
 
   const photos = photoRes.data ?? [];
@@ -1098,6 +1148,7 @@ export async function submitListing(input: {
     tenure: listing.tenure,
     bedrooms: listing.bedrooms,
     bathrooms: listing.bathrooms,
+    ...(unitShape !== undefined ? { unitShape } : {}),
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
     hasCover: photos.some((p) => p.position === 0),

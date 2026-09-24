@@ -22,6 +22,7 @@ import { ListerRoleLine } from "@/components/app/listing/ListerRoleLine";
 import { isNewSince, listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
 import { useLastVisit } from "@/components/app/search/LastVisit";
 import { cashAtDoor, upfrontText } from "@/lib/listings/upfront";
+import { unitLine } from "@/lib/listings/unit-shape";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -260,6 +261,10 @@ export function ListingCard({
    * A card that is not two-up (the saved board, the rent shelf, the wide
    * card) has the width for all three and keeps them.
    */
+  /* V-66: "2 bed flat, both en-suite, with BQ" in place of "2 beds 2 baths
+     +1", when the lister named the shape. Null otherwise, and the facts row
+     stands as it was. */
+  const shapeLine = unitLine(listing.bedrooms, listing.unit, t.shape.unit);
   const factLimit = dense ? 2 : 3;
   const shown = ranked.slice(0, factLimit);
   const spilled = ranked.slice(factLimit, 3);
@@ -454,7 +459,14 @@ export function ListingCard({
             </>
           )}
 
-          {shown.length > 0 && (
+          {shapeLine ? (
+            <p className="nf-pcard__facts" data-testid="card-shape">
+              <span className="nf-pcard__fact min-w-0 items-start whitespace-normal">
+                <UiIcon name="house" size={11} className="mt-3xs shrink-0" />
+                <span className="break-words">{shapeLine}</span>
+              </span>
+            </p>
+          ) : shown.length > 0 && (
             <ul className="nf-pcard__facts" data-testid="card-facts">
               {shown.map((fact) => (
                 <li key={fact.key} className="nf-pcard__fact">

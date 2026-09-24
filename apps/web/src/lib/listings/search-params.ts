@@ -1,5 +1,6 @@
 import { LISTING_ROLES, type ListingRole } from "@/lib/supply/roles";
 import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSupply } from "./types";
+import { UNIT_SHAPES, shapeFromSlug, shapeSlug, type UnitShape } from "./unit-shape";
 
 /**
  * The discovery URL contract.
@@ -33,6 +34,11 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *   parking    "inside": the lister said a car parks inside the compound (V-28)
  *   serviced   "1": Serviced, derived from what the charge covers (V-68)
  *   estate     "gated": a gated estate with controlled entry (V-68)
+ *   shape      comma separated unit shapes, ANY of which will do:
+ *              "self-contain", "mini-flat", "flat", "duplex", ... (V-66)
+ *   bq         "1": a boys' quarters comes with it (V-66)
+ *   area       comma separated areas, ANY of which will do: "yaba,akoka",
+ *              what "Yaba/Akoka" in the search box becomes (V-66)
  *   upfront    months: at most this many months of rent asked for up front,
  *              "12" is the drawer's "One year upfront at most" (V-65)
  *
@@ -175,6 +181,12 @@ export type DiscoveryQuery = {
   gatedEstate: boolean;
   /** V-65: at most this many months of rent up front. Absent means not asked. */
   maxUpfront?: number;
+  /** V-66: unit shapes, any of which will do. Absent or empty: not asked. */
+  shapes?: UnitShape[];
+  /** V-66: a boys' quarters comes with it. Strict. */
+  withBq?: boolean;
+  /** V-66: areas, any of which will do. Absent or empty: not asked. */
+  areas?: string[];
 };
 
 /**
@@ -328,6 +340,27 @@ function readRoles(value: string | string[] | undefined): ListingRole[] {
   return LISTING_ROLES.filter((role) => asked.has(role));
 }
 
+/** V-66: shapes as the address bar spells them, unknown words dropped, in the list's order. */
+function readShapes(value: string | string[] | undefined): UnitShape[] {
+  const raw = first(value);
+  if (typeof raw !== "string") return [];
+  const asked = new Set(raw.split(",").map((part) => shapeFromSlug(part)).filter((s): s is UnitShape => s !== null));
+  return UNIT_SHAPES.filter((shape) => asked.has(shape));
+}
+
+/** V-66: at most four areas, each a short run of letters, digits and spaces. */
+function readAreas(value: string | string[] | undefined): string[] {
+  const raw = first(value);
+  if (typeof raw !== "string") return [];
+  const out: string[] = [];
+  for (const part of raw.split(",")) {
+    const clean = part.toLowerCase().replace(/[^a-z0-9 '-]/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+    if (clean && !out.includes(clean)) out.push(clean);
+    if (out.length === 4) break;
+  }
+  return out;
+}
+
 /** Category, accepting the two legacy aliases older links still carry. */
 export function parseKind(type: string | undefined): ListingKind | undefined {
   if (!type) return undefined;
@@ -382,6 +415,11 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
   if (guests !== undefined) query.guests = guests;
   const upfront = readInt(params.upfront, 1, MAX_UPFRONT_MONTHS);
   if (upfront !== undefined) query.maxUpfront = upfront;
+  const shapes = readShapes(params.shape);
+  if (shapes.length > 0) query.shapes = shapes;
+  if (readFlag(params.bq)) query.withBq = true;
+  const areas = readAreas(params.area);
+  if (areas.length > 0) query.areas = areas;
 
   return query;
 }
@@ -408,6 +446,9 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
   if (query.servicedOnly) filter.servicedOnly = true;
   if (query.gatedEstate) filter.gatedEstate = true;
   if (query.maxUpfront !== undefined) filter.maxUpfrontMonths = query.maxUpfront;
+  if (query.shapes && query.shapes.length > 0) filter.shapes = query.shapes;
+  if (query.withBq) filter.withBq = true;
+  if (query.areas && query.areas.length > 0) filter.areas = query.areas;
   return filter;
 }
 
@@ -433,6 +474,8 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
 export function toPoolFilter(query: DiscoveryQuery): ListingSearchFilter {
   const filter: ListingSearchFilter = {};
   if (query.q) filter.q = query.q;
+  /* V-66: areas are where, like the text, so the drawer counts inside them. */
+  if (query.areas && query.areas.length > 0) filter.areas = query.areas;
   return filter;
 }
 
@@ -464,6 +507,9 @@ export function toSearchHref(query: DiscoveryQuery): string {
   if (query.servicedOnly) params.set("serviced", "1");
   if (query.gatedEstate) params.set("estate", "gated");
   if (query.maxUpfront !== undefined) params.set("upfront", String(query.maxUpfront));
+  if (query.shapes && query.shapes.length > 0) params.set("shape", query.shapes.map(shapeSlug).join(","));
+  if (query.withBq) params.set("bq", "1");
+  if (query.areas && query.areas.length > 0) params.set("area", query.areas.join(","));
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
@@ -503,6 +549,8 @@ export function clearedFilters(query: DiscoveryQuery): DiscoveryQuery {
   };
   if (query.q) cleared.q = query.q;
   if (query.kind) cleared.kind = query.kind;
+  /* Areas are where, like the text, and the drawer does not own them. */
+  if (query.areas) cleared.areas = query.areas;
   return cleared;
 }
 
@@ -534,5 +582,9 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   if (query.servicedOnly) count += 1;
   if (query.gatedEstate) count += 1;
   if (query.maxUpfront !== undefined) count += 1;
+  // One thing each: the shapes the reader will take, and where.
+  if (query.shapes && query.shapes.length > 0) count += 1;
+  if (query.withBq) count += 1;
+  if (query.areas && query.areas.length > 0) count += 1;
   return count;
 }

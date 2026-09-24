@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { PARKING_TYPES, WASTE_DISPOSALS } from "@/lib/listings/compound";
 import { ESTATE_TYPES, SERVICE_COVERS } from "@/lib/listings/service";
+import { UNIT_SHAPES, takesShape } from "@/lib/listings/unit-shape";
 
 import {
   BUILD_CONDITION_VALUES,
@@ -703,6 +704,12 @@ export const draftInputSchema = z.object({
   serviceChargeCovers: z.array(z.enum(SERVICE_COVERS)).max(SERVICE_COVERS.length).nullable().optional(),
   serviceChargeReconciled: z.boolean().nullable().optional(),
   estateType: z.enum(ESTATE_TYPES).nullable().optional(),
+
+  /* V-66. The unit's shape, en-suite rooms and BQ; null clears, undefined
+     leaves alone. En-suite rooms are capped at the bedrooms by the database. */
+  unitShape: z.enum(UNIT_SHAPES).nullable().optional(),
+  ensuiteCount: z.number().int().min(0, "Enter 0 or more rooms.").max(20, "Enter 20 or fewer rooms.").nullable().optional(),
+  hasBq: z.boolean().nullable().optional(),
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;
@@ -853,6 +860,11 @@ export type SubmitSubject = {
   tenure: LandTenure | null | undefined;
   bedrooms: number | null | undefined;
   bathrooms: number | null | undefined;
+  /**
+   * V-66: the unit's shape. Undefined means it could not be read (a database
+   * without the column) and is not asked for; null means unanswered.
+   */
+  unitShape?: string | null | undefined;
   amenityCount: number;
   photoCount: number;
   /** True when a photo sits at position 0, which is the cover. */
@@ -968,6 +980,16 @@ export function submitRequirements(subject: SubmitSubject): GateRequirement[] {
     }
   }
 
+  /* V-66: a home to let or sell says its shape. Stays, shops, offices and
+     plots have none. Skipped when the shape could not be read at all. */
+  if (
+    subject.unitShape !== undefined &&
+    !subject.unitShape &&
+    subject.propertyType &&
+    takesShape(subject.propertyType)
+  ) {
+    unmet.push({ field: "unitShape", message: "Choose the shape of the home." });
+  }
   if ((subject.bedrooms ?? -1) < 0) {
     unmet.push({ field: "bedrooms", message: "Say how many bedrooms the property has." });
   }

@@ -3,6 +3,7 @@
 import type { ListingRole } from "@/lib/supply/roles";
 import type { Compound } from "./compound";
 import type { ServiceFacts } from "./service";
+import type { UnitFacts, UnitShape } from "./unit-shape";
 import type {
   BuildCondition,
   Furnishing,
@@ -171,6 +172,8 @@ export type Listing = {
   compound?: Compound;
   /** V-68: what the service charge covers, how it is charged, the gate. Absent: unanswered. */
   service?: ServiceFacts;
+  /** V-66: the unit's shape, en-suite rooms and BQ. Absent: unanswered. */
+  unit?: UnitFacts;
   furnished?: Furnishing;
   /**
    * WHAT A BUYER ACTUALLY PAYS, in kobo, as the lister stated it.
@@ -481,6 +484,16 @@ export type ListingSearchFilter = {
    * the door, see `budgetFigure`.
    */
   maxUpfrontMonths?: number;
+  /** V-66: unit shapes, any of which will do. Strict: an unshaped listing matches none. */
+  shapes?: UnitShape[];
+  /** V-66: a boys' quarters comes with it. Strict. */
+  withBq?: boolean;
+  /**
+   * V-66: areas, ANY of which will do, each matched like the free text (a
+   * substring of title, area, city, state or kind). "Yaba/Akoka" in the search
+   * box becomes two of these.
+   */
+  areas?: string[];
 };
 
 /**

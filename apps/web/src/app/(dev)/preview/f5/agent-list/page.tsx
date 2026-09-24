@@ -142,6 +142,7 @@ export default async function PreviewAgentList({
         moveInCopy={t.moveIn}
         compoundCopy={t.shape.compound}
         serviceCopy={t.shape.service}
+        unitCopy={t.shape.unit}
         locale={locale}
         userId={null}
         states={STATE_CODES.map((code) => ({ code, name: code }))}
