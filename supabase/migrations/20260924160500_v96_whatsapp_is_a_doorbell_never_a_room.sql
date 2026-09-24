@@ -64,6 +64,9 @@ create table if not exists public.whatsapp_inbound_seen (
 alter table public.whatsapp_inbound_seen enable row level security;
 revoke all on table public.whatsapp_inbound_seen from public, anon, authenticated;
 
+comment on table public.whatsapp_inbound_seen is
+  'V-96. One row per inbound WhatsApp message already handled, keyed by the first 32 hex of the SHA-256 of Meta''s message id (never the id). Inserted on conflict do nothing by /api/whatsapp/inbound; swept after seven days by the drain. Service role only.';
+
 comment on table public.whatsapp_queue is
   'V-96. One doorbell per row: an event and one path into Vallo, never content. Written by the notifications trigger when the whatsapp_doorbell flag is on and the person opted in; service role only.';
 

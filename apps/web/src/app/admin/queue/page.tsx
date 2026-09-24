@@ -94,6 +94,8 @@ const DESK_TABS = new Set<TabKey>(["reports", "flags", "held"]);
    view only. */
 type Lane = "all" | "late" | "mine" | "free" | "spam";
 const LANES: Lane[] = ["all", "late", "mine", "free", "spam"];
+/* "Probably not a person" only ever holds support tickets, so its chip is
+   offered on All and Support only. */
 
 const TABS: { key: TabKey; label: string; href: string }[] = [
   { key: "all", label: "All", href: "/admin/queue" },
@@ -124,7 +126,8 @@ export default async function AdminQueuePage({
   const tabRaw = Array.isArray(params.tab) ? params.tab[0] : params.tab;
   const tab: TabKey = TABS.some((entry) => entry.key === tabRaw) ? (tabRaw as TabKey) : "all";
   const laneRaw = Array.isArray(params.lane) ? params.lane[0] : params.lane;
-  const lane: Lane = LANES.includes(laneRaw as Lane) ? (laneRaw as Lane) : "all";
+  const laneWanted: Lane = LANES.includes(laneRaw as Lane) ? (laneRaw as Lane) : "all";
+  const lane: Lane = laneWanted === "spam" && tab !== "all" && tab !== "tickets" ? "all" : laneWanted;
   const one = (key: string) => {
     const raw = params[key];
     return Array.isArray(raw) ? raw[0] : raw;
@@ -162,7 +165,7 @@ export default async function AdminQueuePage({
           {tab !== "held" && (
             <QueueTabs
               label={desk.lanesLabel}
-              tabs={LANES.map((key) => ({
+              tabs={LANES.filter((key) => key !== "spam" || tab === "all" || tab === "tickets").map((key) => ({
                 key,
                 label: desk.lanes[key],
                 href: viewHref({ tab, q: query.q || undefined, lane: key === "all" ? undefined : key }),
@@ -463,7 +466,7 @@ export default async function AdminQueuePage({
       {/* V-89: lanes. */}
       <QueueTabs
         label={desk.lanesLabel}
-        tabs={LANES.map((key) => ({
+        tabs={LANES.filter((key) => key !== "spam" || tab === "all" || tab === "tickets").map((key) => ({
           key,
           label: desk.lanes[key],
           href: viewHref({ tab: keep.tab || undefined, q: keep.q || undefined, lane: key === "all" ? undefined : key }),
