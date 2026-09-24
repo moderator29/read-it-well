@@ -78,6 +78,9 @@ export const complianceEn = {
     listedDob: "Listed date of birth: {value}",
     listedNationality: "Listed nationality: {value}",
     listedNone: "The list gives no date of birth or nationality for this entry.",
+    commonTitle: "Common name, check identifiers",
+    commonLede:
+      "Close matches that rest only on names many Nigerians carry. They are matches all the same: compare the date of birth, nationality and documents before deciding. Nothing is held while a match is open.",
     confirmedTitle: "Confirmed matches",
     moneyHeld: "Money on this account is held now.",
     moneyNotHeld: "No hold is in force on this account right now. If the match stands, propose it again on this desk or ask the Compliance Officer; the claims below show what each desk asked for.",

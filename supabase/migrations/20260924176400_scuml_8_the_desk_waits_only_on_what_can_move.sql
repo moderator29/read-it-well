@@ -3,7 +3,7 @@
  * REMEMBERS WHO DECIDED IT, AND A DECISION'S TIME IS FROZEN.
  *
  * Builds on 20260924176000 to 176300 and on builder 3's hold claims
- * (20260924173200, 173300). The calls to `private.hold_claim_set` and
+ * (20260924173200). The calls to `private.hold_claim_set` and
  * `private.hold_claim_clear` keep their shape: builder 3's recompute
  * underneath decides how a claim becomes the row.
  *

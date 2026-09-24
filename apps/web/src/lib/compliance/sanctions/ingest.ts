@@ -45,8 +45,9 @@ export function activatesItself(
   inForce: number | null,
   complete = true,
 ): "yes" | "upload" | "shrunk" | "unverified" {
-  if (origin === "upload") return "upload";
+  /* Whatever its origin, a file that does not prove it is whole can never be activated. */
   if (!complete) return "unverified";
+  if (origin === "upload") return "upload";
   if (inForce !== null && entries < SHRINK_FLOOR * inForce) return "shrunk";
   return "yes";
 }

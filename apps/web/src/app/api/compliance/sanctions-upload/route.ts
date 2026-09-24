@@ -19,7 +19,9 @@ import { siteUrl } from "@/lib/site";
  *   - a request whose Origin is not this site's is refused (a staff member's
  *     cookie must not load a list from another page).
  * The version loads INACTIVE; a different staff member activates it on the
- * desk (`sanctions_list_activate`).
+ * desk (`sanctions_list_activate`). A file that does not prove it is whole
+ * (a Nigeria file with no END row) is answered `incomplete`: it can never be
+ * activated, so it is not "waiting".
  */
 
 export const runtime = "nodejs";
@@ -75,6 +77,10 @@ export async function POST(request: Request): Promise<NextResponse<Answer>> {
   if (!admin) return NextResponse.json({ ok: false, error: "failed" }, { status: 503 });
   const result = await ingestList(admin as never, uploadSource(source, await file.text()), access.user.id);
   revalidatePath("/admin/compliance");
+  /* Loaded but never activatable (a Nigeria file with no END row): say so, never "waiting". */
+  if (result.state === "waiting" && result.why === "unverified") {
+    return NextResponse.json({ ok: false, error: "incomplete" }, { status: 422 });
+  }
   if (result.state === "waiting") return NextResponse.json({ ok: true, message: `waiting:${result.entries}` });
   if (result.state === "loaded") return NextResponse.json({ ok: true, message: `loaded:${result.entries}` });
   if (result.state === "same") return NextResponse.json({ ok: true, message: "same" });

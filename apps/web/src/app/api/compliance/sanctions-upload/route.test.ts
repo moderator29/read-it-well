@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const seam = vi.hoisted(() => ({ admin: true, ingested: 0 }));
+const seam = vi.hoisted(() => ({ admin: true, ingested: 0, why: "upload" as string }));
 vi.mock("@/lib/admin/guard", () => ({
   requireAdmin: async () => (seam.admin ? { state: "admin", user: { id: "staff-1" } } : { state: "not-admin" }),
 }));
@@ -10,7 +10,7 @@ vi.mock("@/lib/wallet/ledger", () => ({ getAdminClient: () => ({}) }));
 vi.mock("@/lib/compliance/sanctions/ingest", () => ({
   ingestList: async () => {
     seam.ingested += 1;
-    return { state: "waiting", versionId: "v1", entries: 3, why: "upload" };
+    return { state: "waiting", versionId: "v1", entries: 3, why: seam.why };
   },
 }));
 
@@ -28,6 +28,7 @@ const upload = (origin: string | null, bytes = 10) => {
 beforeEach(() => {
   seam.admin = true;
   seam.ingested = 0;
+  seam.why = "upload";
 });
 
 describe("POST /api/compliance/sanctions-upload (SCUML items 8, 9)", () => {
@@ -46,5 +47,13 @@ describe("POST /api/compliance/sanctions-upload (SCUML items 8, 9)", () => {
     const response = await POST(upload("https://www.vallospaces.com"));
     expect(await response.json()).toEqual({ ok: true, message: "waiting:3" });
     expect(seam.ingested).toBe(1);
+  });
+
+  it("answers incomplete, not waiting, for a file that cannot prove it is whole", async () => {
+    const { POST } = await import("./route");
+    seam.why = "unverified";
+    const response = await POST(upload("https://www.vallospaces.com"));
+    expect(response.status).toBe(422);
+    expect(await response.json()).toEqual({ ok: false, error: "incomplete" });
   });
 });

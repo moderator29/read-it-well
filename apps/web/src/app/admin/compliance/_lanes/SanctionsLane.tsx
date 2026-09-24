@@ -38,8 +38,33 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
     return <ui.QueueUnavailable />;
   }
   const sourceName = (s: "un" | "ng") => (s === "un" ? c.sourceUn : c.sourceNg);
-  const openHits = desk.hits.filter((hit) => hit.status === "open");
+  /* A close match on common names only is still a hit, in its own lower group. */
+  const openHits = desk.hits.filter((hit) => hit.status === "open" && !hit.commonName);
+  const commonHits = desk.hits.filter((hit) => hit.status === "open" && hit.commonName);
   const confirmedHits = desk.hits.filter((hit) => hit.status === "confirmed");
+
+  const openHit = (hit: SanctionsHit) => (
+    <li key={hit.id} className="nf-panel nf-panel--card nf-admin-card p-card" data-testid="sanctions-hit">
+      <p className="nf-body font-semibold text-content">
+        {hit.kind === "exact" ? c.exact : fill(c.fuzzy, { score: hit.score.toFixed(2) })}
+      </p>
+      <p className="nf-body mt-inline">{fill(c.screenedAs, { name: hit.screenedName })}</p>
+      <p className="nf-body">
+        {fill(c.against, { name: hit.matchedName, reference: `${sourceName(hit.source)} ${hit.reference}` })}
+      </p>
+      <ListingFacts hit={hit} c={c} />
+      <p className="nf-caption mt-inline">
+        {fill(c.why, { trigger: c.trigger[hit.trigger as keyof Dictionary["compliance"]["sanctions"]["trigger"]] ?? hit.trigger })}{" "}
+        · {ui.when(hit.createdAt)}
+      </p>
+      <SanctionsDecision copy={c} hit={hit} me={desk.me} />
+      <p className="nf-caption mt-row">
+        <Link href={strHref(hit)} className="text-[var(--nf-content-link)] underline underline-offset-2">
+          {c.strOffer}
+        </Link>
+      </p>
+    </li>
+  );
 
   return (
     <div className="nf-admin-stack">
@@ -80,35 +105,22 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
 
       <section>
         <h2 className="nf-h4">{c.hitsTitle}</h2>
-        {openHits.length === 0 ? (
+        {openHits.length === 0 && commonHits.length > 0 ? null : openHits.length === 0 ? (
           <ui.QueueEmpty title={c.hitsEmpty} body={c.hitsEmptyBody} everHadRows={desk.recent.length > 0} />
         ) : (
           <ul className="mt-row nf-admin-stack">
-            {openHits.map((hit) => (
-              <li key={hit.id} className="nf-panel nf-panel--card nf-admin-card p-card" data-testid="sanctions-hit">
-                <p className="nf-body font-semibold text-content">
-                  {hit.kind === "exact" ? c.exact : fill(c.fuzzy, { score: hit.score.toFixed(2) })}
-                </p>
-                <p className="nf-body mt-inline">{fill(c.screenedAs, { name: hit.screenedName })}</p>
-                <p className="nf-body">
-                  {fill(c.against, { name: hit.matchedName, reference: `${sourceName(hit.source)} ${hit.reference}` })}
-                </p>
-                <ListingFacts hit={hit} c={c} />
-                <p className="nf-caption mt-inline">
-                  {fill(c.why, { trigger: c.trigger[hit.trigger as keyof Dictionary["compliance"]["sanctions"]["trigger"]] ?? hit.trigger })}{" "}
-                  · {ui.when(hit.createdAt)}
-                </p>
-                <SanctionsDecision copy={c} hit={hit} me={desk.me} />
-                <p className="nf-caption mt-row">
-                  <Link href={strHref(hit)} className="text-[var(--nf-content-link)] underline underline-offset-2">
-                    {c.strOffer}
-                  </Link>
-                </p>
-              </li>
-            ))}
+            {openHits.map(openHit)}
           </ul>
         )}
       </section>
+
+      {commonHits.length > 0 && (
+        <section data-testid="sanctions-common-group">
+          <h2 className="nf-h4">{c.commonTitle}</h2>
+          <p className="nf-caption">{c.commonLede}</p>
+          <ul className="mt-row nf-admin-stack">{commonHits.map(openHit)}</ul>
+        </section>
+      )}
 
       {confirmedHits.length > 0 && (
         <section>

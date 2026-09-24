@@ -56,7 +56,9 @@ say nothing more on the phone, in support or by email.
    replace a newer one already in force. The file limit is 4 MB. The desk
    lists only versions someone can still activate: an older version (a newer
    one is in force) or one that cannot prove it is whole is not waiting, and
-   activating it is refused. Load the whole file again instead.
+   activating it is refused. Load the whole file again instead. An upload
+   without its END row is answered at once: "This file does not prove it is
+   whole".
 6. **De-listing.** When a new version no longer carries the reference of a
    confirmed match, the desk flags it. Consider a release (below).
 
@@ -66,12 +68,20 @@ say nothing more on the phone, in support or by email.
    close match places a hold, because a name is not an identity.
    How a close match is found: each word of the list name must be paired
    with a different word of ours (one to one) that is the same after
-   transliteration folding, has the same consonants, or differs by at most
-   15% of its letters. A shared "Abdul" does not count; the rest of the word
-   must match. Short list names (three words or fewer) need every word; longer
-   ones need two thirds by rarity, including one uncommon word. A list name
-   made only of names common in Nigeria, found inside a longer name of ours,
-   is recorded on the screening but raises no match.
+   transliteration folding (Mohammed/Muhammad, Abdurrahman/Abdulrahman,
+   Aliyu/Aliu, Ould/Wuld), differs by at most 15% of its letters, or has the
+   same consonants from the same first letter with the letters mostly in place
+   (Yousef/Yusuf, Khaled/Khalid). Names that only share consonants stay apart
+   (Karim/Akram, Muhammad/Mahmud); so do Hassan and Hussein, which are two
+   names. "Abdul Rahman" is read as Abdulrahman, and Abdullah, Abdullahi and
+   Abdallah are one name, but a shared "Abdul" alone never counts. Short list
+   names (three words or fewer) need every word; longer ones need two thirds
+   by rarity, including one uncommon word unless the whole of a three-word or
+   longer name of ours is in the listing.
+   **Common names.** A close match resting only on names many Nigerians carry
+   is still a match: it appears under "Common name, check identifiers", after
+   the others. Decide it the same way, on the date of birth, nationality and
+   documents. An exact match is never put in that group.
 2. **Check it.** Compare the list entry's date of birth, nationality and
    aliases with what Vallo holds: the NIN name on an agent application, the
    bank-resolved account name, and the documents.

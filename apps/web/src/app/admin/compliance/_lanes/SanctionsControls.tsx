@@ -43,7 +43,9 @@ export function SanctionsUpload({ copy }: { copy: Copy }) {
             : copy.uploadDone.replace("{count}", answer.message.replace("loaded:", ""))
         : answer.error === "too_large"
           ? copy.uploadTooLarge
-          : copy.uploadFailed;
+          : answer.error === "incomplete"
+            ? copy.refusedIncomplete
+            : copy.uploadFailed;
   return (
     <form action={act} className="mt-group">
       <h3 className="nf-overline">{copy.upload}</h3>
