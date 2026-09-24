@@ -5,12 +5,12 @@
  * THE MESSAGE. One question, the four character reply code printed beside
  * every option, and the link to the same question in Vallo's own chrome. The
  * place is "2 bedroom apartment in Ikeja GRA", built by the database from
- * facts only: bedrooms and type from their columns, and a neighbourhood from a
- * closed list, else the city, else the state. Nothing the lister typed (the
- * area field, the title) ever reaches it, so nothing a landlord forwards
- * identifies a door. The agent is named by their public display name only, because the
- * landlord needs to know which agent we mean and the agent's name is already
- * on the listing.
+ * facts only: bedrooms and type from their columns, and a neighbourhood from
+ * the shared closed list, else the state's name. Never the city, never the
+ * area as typed, never the title, and never the agent's display name or firm
+ * name either (rule 10: all of those are text a lister typed), so nothing a
+ * landlord forwards identifies a door. The database returns no lister name,
+ * and the message falls back to its no-agent wording.
  *
  * The naira sign pushes an SMS into the UCS-2 alphabet (70 characters a
  * segment rather than 160), so a rent message is two or three segments. That

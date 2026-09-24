@@ -44,11 +44,11 @@ export type LandlordRpcArgs = {
   landlord_line_requeue: Record<string, never>;
   landlord_line_claim: { p_ask: string };
   reopen_listing: { p_listing: string; p_note: string };
-  closed_listing_count: Record<string, never>;
   /* Batch 2: migration 20260924110400. */
   owner_heartbeats_open: Record<string, never>;
   owner_heartbeat_answer: { p_listing: string };
   agent_lookup: { p_query: string };
+  refund_agent_check_slot: { p_bucket: string; p_window_seconds: number };
   agent_lookup_opt_in: { p_phone: string | null };
   my_agent_lookup: Record<string, never>;
   safety_share_create: { p_inspection: string; p_minutes: number };
