@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { ReportSheet } from "@/components/app/ReportSheet";
 import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
@@ -395,7 +395,7 @@ export function StayDetailView({
               <span className={`block ${TYPE.rowTitle}`}>{BUSINESS_LABEL[businessKind] ?? "Hotel"}</span>
               <span className={`mt-3xs block ${TYPE.rowMeta}`}>
                 {detail.roomTypes.length > 0
-                  ? `${detail.roomTypes.length} ${detail.roomTypes.length === 1 ? "room type" : "room types"}`
+                  ? countOf(detail.roomTypes.length, "roomTypes", locale)
                   : copy.noRoomsYet}
                 {detail.checkInFrom ? ` · ${copy.checkIn} ${detail.checkInFrom.slice(0, 5)}` : ""}
                 {detail.checkOutBy ? ` · ${copy.checkOut} ${detail.checkOutBy.slice(0, 5)}` : ""}

@@ -56,7 +56,7 @@ export default async function RoomCheckoutPage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Checkout" subtitle={detail?.accommodation.name} fallback={backHref} />
+      <PageHeader title={t.checkout.title} subtitle={detail?.accommodation.name} fallback={backHref} />
 
       {detail && room && plan && (
         <Panel variant="card" aria-labelledby="nf-room-pick" data-testid="room-pick">
@@ -123,7 +123,7 @@ export default async function RoomCheckoutPage({
 
       <p className={`flex items-start gap-inline ${TYPE.caption}`}>
         <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
-        <span>You pay only for a booking you have made, and only the total shown here.</span>
+        <span>{t.checkout.onlyYourBooking}</span>
       </p>
     </div>
   );

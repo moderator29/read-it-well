@@ -1,6 +1,6 @@
 import { inForceCaption, rateStartLabel } from "@/lib/admin/fee-dates";
 import type { Metadata } from "next";
-import { formatMoney, getDictionary } from "@vallo/i18n";
+import { countOf, formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getFeeConsole, type FeeRateView } from "@/lib/admin/money-queries";
 import { getRevenueSummary, REVENUE_WINDOW_DAYS } from "@/lib/admin/revenue-queries";
@@ -157,7 +157,7 @@ function Earned({
                 <span className="nf-caption block">
                   {line.entries === 0
                     ? "Nothing booked in this window"
-                    : `${line.entries === 1 ? "1 entry" : `${line.entries} entries`}`}
+                    : countOf(line.entries, "entries")}
                 </span>
               </span>
               <span className="nf-numeric nf-body shrink-0 font-bold">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Panel } from "@/components/ui/Panel";
 import { IconPlate } from "@/components/ui/IconPlate";
@@ -101,6 +101,7 @@ export function HoldCountdown({
   expiresAt: string;
   locale: Locale;
 }) {
+  const c = getDictionary(locale).checkout;
   const target = Date.parse(expiresAt);
   // First paint matches the server: no clock reading during hydration, so the
   // markup cannot disagree with itself.
@@ -143,7 +144,7 @@ export function HoldCountdown({
             expired ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-muted)]"
           }`}
         >
-          {expired ? "Hold has run out" : "Your dates are held"}
+          {expired ? c.holdRunOut : c.holdHeld}
         </p>
 
         {view.kind === "unknown" ? (
@@ -155,9 +156,7 @@ export function HoldCountdown({
           </p>
         ) : expired ? (
           <p className="mt-3xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-            These dates are no longer held and somebody else can book them. If the stay is still
-            open, paying now still confirms it. If it has already been released, the payment is
-            refused before anything is charged.
+            {c.holdExpired}
           </p>
         ) : view.kind === "near" ? (
           /* The last hour, and only the last hour. `aria-live="off"` because a
@@ -167,11 +166,11 @@ export function HoldCountdown({
             aria-live="off"
             className="nf-numeric mt-3xs text-[length:var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
           >
-            {pad(view.m)}m {pad(view.s)}s left
+            {c.holdLeft.replace("{minutes}", pad(view.m)).replace("{seconds}", pad(view.s))}
           </p>
         ) : (
           <p className="mt-3xs text-[length:var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]">
-            Until {view.until}
+            {c.holdUntil.replace("{time}", view.until)}
           </p>
         )}
       </div>

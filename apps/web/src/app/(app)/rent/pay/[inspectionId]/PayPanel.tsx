@@ -23,6 +23,7 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { getDictionary } from "@vallo/i18n";
 
 /**
  * The three ways to pay the rent.
@@ -116,6 +117,7 @@ export function PayPanel({
    */
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
+  const c = getDictionary(view.locale).checkout;
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
@@ -242,14 +244,14 @@ export function PayPanel({
   const panel = (
     <section aria-labelledby="nf-rent-pay">
       <h2 id="nf-rent-pay" className="nf-h3">
-        How would you like to pay?
+        {c.howToPay}
       </h2>
       <ul className="mt-block grid gap-row">
         {savedCardsOffered && (
           <Option
             icon="card-lock"
-            title="Pay with a saved card"
-            body="The card you saved, charged straight away. Your card details still never touch Vallo."
+            title={c.savedCardTitle}
+            body={c.savedCardBody}
             action={
               <div>
                 <SavedCardPicker
@@ -266,7 +268,7 @@ export function PayPanel({
                   disabled={busy || chosenCard === null}
                   loading={phase.kind === "saved-card-charging"}
                 >
-                  Pay with this card
+                  {c.payWithThisCard}
                 </Button>
               </div>
             }
@@ -275,8 +277,8 @@ export function PayPanel({
         {view.cardAvailable ? (
           <Option
             icon="card-lock"
-            title="Pay by card"
-            body="A secure page in naira, then straight back here. Your card details never touch Vallo."
+            title={c.cardTitle}
+            body={c.cardBody}
             action={
               <Button
                 variant="primary"
@@ -285,23 +287,23 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
               >
-                Pay by card
+                {c.payByCard}
               </Button>
             }
           />
         ) : (
           <Option
             icon="card-lock"
-            title="Pay by card"
-            body="Card payment is not available right now."
-            note="Nothing has been charged. Pay from your wallet, or try the card again from here."
+            title={c.cardTitle}
+            body={c.cardUnavailable}
+            note={c.cardUnavailableRentNote}
           />
         )}
         {view.walletCovers ? (
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
-            body={`Your wallet holds ${view.walletBalanceDisplay}. Paying from it settles the rent straight away.`}
+            title={c.walletTitle}
+            body={c.walletCoversRent.replace("{balance}", view.walletBalanceDisplay)}
             action={
               <Button
                 variant="secondary"
@@ -310,19 +312,19 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "wallet-paying"}
               >
-                Pay from my wallet
+                {c.payFromWallet}
               </Button>
             }
           />
         ) : (
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
-            body={`Your wallet holds ${view.walletBalanceDisplay}, and the move-in total comes to ${view.totalDisplay}.`}
-            note="Add money to your wallet first, or pay by card."
+            title={c.walletTitle}
+            body={c.walletShortRent.replace("{balance}", view.walletBalanceDisplay).replace("{total}", view.totalDisplay)}
+            note={c.walletShortNote}
             action={
               <ButtonLink href="/wallet" variant="secondary" full trailingIcon="arrow-right">
-                Open my wallet
+                {c.openWallet}
               </ButtonLink>
             }
           />
@@ -335,7 +337,7 @@ export function PayPanel({
       />
       <ActionBar>
         <p className="flex min-w-0 flex-1 flex-col">
-          <span className="nf-caption text-[var(--nf-content-muted)]">Move-in total</span>
+          <span className="nf-caption text-[var(--nf-content-muted)]">{c.moveInTotal}</span>
           <span className="min-w-0">
             <Amount
               minorUnits={view.totalMinor}
@@ -355,7 +357,7 @@ export function PayPanel({
             loading={phase.kind === "card-starting"}
             className="shrink-0"
           >
-            Pay by card
+            {c.payByCard}
           </Button>
         ) : view.walletCovers ? (
           <Button
@@ -365,21 +367,18 @@ export function PayPanel({
             loading={phase.kind === "wallet-paying"}
             className="shrink-0"
           >
-            Pay from my wallet
+            {c.payFromWallet}
           </Button>
         ) : (
           <ButtonLink href="/wallet" variant="primary" className="shrink-0">
-            Add money
+            {c.addMoney}
           </ButtonLink>
         )}
       </ActionBar>
 
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
         <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
-        <span>
-          Money moves inside Vallo, so the tenancy and the payment stay attached to each other.
-          Keep every conversation and every payment on the platform.
-        </span>
+        <span>{c.onPlatformRent}</span>
       </p>
     </section>
   );

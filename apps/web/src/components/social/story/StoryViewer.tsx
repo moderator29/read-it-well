@@ -23,6 +23,8 @@ import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
 import { STORY_COPY } from "@/lib/social/stories-schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Toast, useToast } from "@/components/ui/Toast";
+import { countOf } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * A story, full bleed.
@@ -57,6 +59,7 @@ export function StoryViewer({
   signedIn: boolean;
   viewerFollows: boolean;
 }) {
+  const locale = useClientLocale();
   const router = useRouter();
   const [liked, setLiked] = useState(story.liked);
   const [likeCount, setLikeCount] = useState(story.likeCount);
@@ -459,7 +462,7 @@ export function StoryViewer({
           >
             <span>
               {story.commentCount > 0
-                ? `${story.commentCount} ${story.commentCount === 1 ? "comment" : "comments"}`
+                ? countOf(story.commentCount, "comments", locale)
                 : STORY_COPY.addComment}
             </span>
             {/* This opens the comments. It was drawing the share arrow, which

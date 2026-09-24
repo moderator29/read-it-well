@@ -11,6 +11,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { panelClass } from "@/components/ui/Panel";
 import type { BadgeTier } from "@/lib/trust/badge-tier";
+import { countOf } from "@vallo/i18n";
 
 /**
  * A post.
@@ -247,9 +248,9 @@ function ActionRow({
       <AuthGate action="post">
         <button type="button" className="nf-post__act nf-post__act--reply" onClick={onReply}>
           <UiIcon name="chat-bubble" size={16} />
-          <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
+          <span className="nf-numeric" aria-hidden="true">{compact(post.replyCount, locale)}</span>
           <span className="sr-only">
-            {post.replyCount === 1 ? "reply" : "replies"}, reply to this
+            {countOf(post.replyCount, "replies", locale)}, reply to this
           </span>
         </button>
       </AuthGate>

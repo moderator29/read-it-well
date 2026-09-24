@@ -154,7 +154,7 @@ export function ListingCard({
       : listing.area || listing.city;
 
   const price = cardPrice(listing);
-  const facts = cardFacts(listing, t);
+  const facts = cardFacts(listing, t, locale);
   const power = cardUtility(listing);
   const marketKey = cardMarket(listing);
   const market =

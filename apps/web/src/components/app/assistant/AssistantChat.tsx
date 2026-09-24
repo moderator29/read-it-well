@@ -13,6 +13,7 @@ import {
   getDictionary,
   type Dictionary,
   type Locale,
+  plural,
 } from "@vallo/i18n";
 import type {
   AssistantListingItem,
@@ -869,14 +870,14 @@ function ThreadListingCard({
     facts.push({
       key: "beds",
       icon: "bed",
-      label: `${listing.bedrooms} ${listing.bedrooms === 1 ? t.common.bed : t.common.beds}`,
+      label: plural(listing.bedrooms, t.units.beds, locale),
     });
   }
   if (listing.bathrooms !== undefined && listing.bathrooms > 0) {
     facts.push({
       key: "baths",
       icon: "bath",
-      label: `${listing.bathrooms} ${listing.bathrooms === 1 ? t.common.bath : t.common.baths}`,
+      label: plural(listing.bathrooms, t.units.baths, locale),
     });
   }
   if (listing.sizeSqm !== undefined && listing.sizeSqm > 0) {

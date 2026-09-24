@@ -12,6 +12,7 @@ import { RENT_PAID_PAGE_CONSEQUENCE } from "@/app/(app)/checkout/[bookingId]/pay
 import { PayPanel } from "./PayPanel";
 import { RentSummary } from "./RentSummary";
 import { chargeRentSavedCardFor } from "./saved-card-action";
+import { getDictionary } from "@vallo/i18n";
 
 export const metadata: Metadata = { title: "Pay the rent" };
 
@@ -203,10 +204,11 @@ export default async function RentPayPage({
   );
 }
 
-function Shell({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
+async function Shell({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
+  const c = getDictionary(await getLocale()).checkout;
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Pay the rent" subtitle={subtitle ?? "The move-in total, paid inside Vallo"} fallback="/inspections" />
+      <PageHeader title={c.rentTitle} subtitle={subtitle ?? c.rentSubtitle} fallback="/inspections" />
       {children}
     </div>
   );

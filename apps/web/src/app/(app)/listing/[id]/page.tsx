@@ -3,7 +3,7 @@ import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
-import { getDictionary, type Locale, formatRating } from "@vallo/i18n";
+import { getDictionary, intlTag, plural, type Locale, formatRating } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import {
@@ -377,11 +377,7 @@ export default async function ListingDetailPage({
     .filter((a): a is string => Boolean(a));
   const amenitySentence =
     amenityPhrases.length > 0
-      ? ` Amenities include ${
-          amenityPhrases.length === 1
-            ? amenityPhrases[0]
-            : `${amenityPhrases.slice(0, -1).join(", ")} and ${amenityPhrases[amenityPhrases.length - 1]}`
-        }.`
+      ? ` Amenities include ${new Intl.ListFormat(intlTag.en, { type: "conjunction" }).format(amenityPhrases)}.`
       : "";
 
   /*
@@ -424,7 +420,7 @@ export default async function ListingDetailPage({
     const closing: string[] = [];
     const capacity = capacityOf(listing);
     if (capacity !== null) {
-      closing.push(`It sleeps up to ${capacity} ${capacity === 1 ? "guest" : "guests"}.`);
+      closing.push(`It sleeps up to ${plural(capacity, t.units.guests, locale)}.`);
     }
     if (listing.reviewCount > 0) {
       closing.push(
@@ -599,7 +595,7 @@ export default async function ListingDetailPage({
       value:
         listing.parkingSpaces === 0
           ? "None"
-          : `${formatNumber(listing.parkingSpaces, locale)} ${listing.parkingSpaces === 1 ? "space" : "spaces"}`,
+          : plural(listing.parkingSpaces, t.units.spaces, locale),
     });
   }
   if (listing.floor !== undefined) {
@@ -621,9 +617,7 @@ export default async function ListingDetailPage({
   if (listing.minimumTenancyMonths !== undefined) {
     facts.push({
       label: "Minimum tenancy",
-      value: `${formatNumber(listing.minimumTenancyMonths, locale)} ${
-        listing.minimumTenancyMonths === 1 ? "month" : "months"
-      }`,
+      value: plural(listing.minimumTenancyMonths, t.units.months, locale),
     });
   }
 
@@ -938,6 +932,7 @@ export default async function ListingDetailPage({
                     <ListingAmenityTiles amenities={listing.amenities} />
                   ) : (
                     <ListingAmenities
+                      locale={locale}
                       bedrooms={listing.bedrooms}
                       bathrooms={listing.bathrooms}
                       amenities={listing.amenities}
@@ -955,6 +950,7 @@ export default async function ListingDetailPage({
                       divided
                     >
                       <ListingUtilities
+                        locale={locale}
                         utilities={listing.utilities}
                         access={access}
                         bookingConfirmed={bookingConfirmed}

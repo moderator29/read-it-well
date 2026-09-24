@@ -17,6 +17,7 @@ import { PaymentReturn } from "./PaymentReturn";
 import { chargeSavedCardFor } from "./saved-card-action";
 import { listPaymentMethods } from "@/lib/payments/methods-actions";
 import type { PaymentMethod } from "@/lib/payments/methods";
+import { getDictionary } from "@vallo/i18n";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -50,6 +51,7 @@ export default async function CheckoutPage({
   const { bookingId } = await params;
   const { paid, reference } = await searchParams;
   const locale = await getLocale();
+  const c = getDictionary(locale).checkout;
   const read = await getCheckoutView(bookingId, locale);
 
   const settling =
@@ -173,7 +175,7 @@ export default async function CheckoutPage({
             <SegmentedProgress
               steps={3}
               current={2}
-              label="Step 2 of 3: review and pay"
+              label={c.step}
             />
           </div>
         </Reveal>
@@ -232,22 +234,18 @@ export default async function CheckoutPage({
                  be a fiction. What this guest needs to know is that the stay is
                  theirs and the money is what is outstanding. */
               <HoldNote>
-                The agent has accepted these dates, so the stay is yours. All that is left is
-                paying for it, and your dates are not counting down while you do.
+                {c.acceptedNote}
               </HoldNote>
             ) : view.status === "COMPLETED" ? (
               <HoldNote>
-                These dates have already passed and the stay is recorded as taken. Nothing is
-                counting down. The total below is what is still outstanding on it.
+                {c.completedNote}
               </HoldNote>
             ) : (
               /* NO_SHOW. Said without accusing the reader of anything: the
                  record is the agent's and the guest may well disagree with it,
                  so the route to a person comes before the route to a payment. */
               <HoldNote>
-                The agent recorded that this stay was not taken up, so nothing is counting down. If
-                this total is still owed, paying settles it. If that does not match what happened,
-                get help before you pay.
+                {c.noShowNote}
               </HoldNote>
             )}
           </Reveal>
@@ -304,8 +302,7 @@ export default async function CheckoutPage({
             <BrandIcon name="naira-hand" fill tile={false} />
           </span>
           <span>
-            Amounts are naira, recorded to the kobo. A payment is only ever recorded once, however
-            many times a page is reloaded.
+            {c.recordedOnce}
           </span>
         </p>
       </Reveal>
@@ -332,18 +329,19 @@ function HoldNote({ children }: { children: React.ReactNode }) {
 }
 
 /** The page frame, shared by every state so the chrome never jumps. */
-function Shell({
+async function Shell({
   children,
   subtitle,
 }: {
   children: React.ReactNode;
   subtitle?: string;
 }) {
+  const c = getDictionary(await getLocale()).checkout;
   return (
     <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
-        <PageHeader title="Checkout" subtitle={subtitle} fallback="/bookings" />
+        <PageHeader title={c.title} subtitle={subtitle} fallback="/bookings" />
       </div>
       {children}
     </div>

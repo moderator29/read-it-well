@@ -1,7 +1,7 @@
 import { PersonTier } from "@/app/admin/_components/PersonTier";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import type { ListingReviewView } from "@/lib/admin/queries";
@@ -168,7 +168,7 @@ export function ListingReview(props: ListingReviewProps) {
               value={
                 listing.facts.parkingSpaces === null
                   ? null
-                  : `${listing.facts.parkingSpaces} ${listing.facts.parkingSpaces === 1 ? "space" : "spaces"}`
+                  : countOf(listing.facts.parkingSpaces, "spaces")
               }
             />
             <Fact
@@ -253,9 +253,7 @@ export function ListingReview(props: ListingReviewProps) {
             ) : (
               <>
                 <p className="nf-rv-msg" style={{ marginBottom: "var(--nf-space-xs)" }}>
-                  {listing.amenityCount === 1
-                    ? "1 amenity chosen."
-                    : `${listing.amenityCount} amenities chosen.`}
+                  {countOf(listing.amenityCount, "amenitiesChosen")}
                 </p>
                 <p className="nf-rv-panel__note">Their names could not be read just now.</p>
               </>

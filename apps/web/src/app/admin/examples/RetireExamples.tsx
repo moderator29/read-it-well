@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { retireExampleListings } from "@/lib/admin/payments-actions";
 import type { ExampleListingView } from "@/lib/admin/examples-queries";
+import { countOf } from "@vallo/i18n";
 
 /**
  * Taking the example properties off the catalogue.
@@ -89,7 +90,7 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
                 flex row with a gap, so two children put the gap AND the
                 literal space between the words: the button read
                 "Review  all 2 examples". */}
-            {live.length === 1 ? "Review 1 example" : `Review all ${live.length} examples`}
+            {`Review ${live.length > 1 ? "all " : ""}${countOf(live.length, "examples")}`}
           </Button>
         </div>
       )}
@@ -105,9 +106,9 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
       {confirming && (
         <div className="mt-group rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] p-card-sm">
           <p className="nf-body font-semibold text-content">
-            This will take {live.length === 1 ? "1 example property" : `${live.length} example properties`}
+            This will take {countOf(live.length, "exampleProperties")}
             {cities.size > 0 &&
-              ` across ${cities.size === 1 ? "1 city" : `${cities.size} cities`}`}{" "}
+              ` across ${countOf(cities.size, "cities")}`}{" "}
             off the public catalogue.
           </p>
           <p className="nf-body-sm mt-row text-content-2">
@@ -134,7 +135,7 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
 
           <div className="mt-group flex flex-wrap gap-inline">
             <Button type="button" variant="danger" loading={pending} onClick={run}>
-              {live.length === 1 ? "Retire 1 example" : `Retire ${live.length} examples`}
+              {`Retire ${countOf(live.length, "examples")}`}
             </Button>
             <Button
               type="button"
@@ -157,7 +158,7 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
         <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">
           {done === 0
             ? "Nothing changed. They were already off the catalogue."
-            : `${done === 1 ? "1 example is" : `${done} examples are`} off the catalogue, with your name on the record.`}
+            : `${countOf(done, "examplesAre")} off the catalogue, with your name on the record.`}
         </p>
       )}
     </div>

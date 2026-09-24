@@ -2,6 +2,7 @@
 
 import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The moment between tapping and being inside, and the bar under it.
@@ -25,19 +26,13 @@ import { ButtonLink } from "@/components/ui/Button";
  */
 export type AuthMoment = "sign-in" | "sign-up";
 
-const WORDS: Record<AuthMoment, { title: string; body: string }> = {
-  "sign-up": {
-    title: "Verifying your email",
-    body: "One moment. We are confirming your address and opening your account.",
-  },
-  "sign-in": {
-    title: "Signing you in",
-    body: "One moment. We are checking it is you and opening your account.",
-  },
-};
 
 export function VerifyingPanel({ moment = "sign-up" }: { moment?: AuthMoment }) {
-  const words = WORDS[moment];
+  const a = useClientDictionary().authFlow;
+  const words =
+    moment === "sign-up"
+      ? { title: a.verifyingTitle, body: a.verifyingBody }
+      : { title: a.signingInTitle, body: a.signingInBody };
   return (
     <div className="w-full max-w-[24rem] text-center" data-testid="verifying" aria-live="polite">
       <span className="flex justify-center">
@@ -64,21 +59,19 @@ export function VerifyingPanel({ moment = "sign-up" }: { moment?: AuthMoment }) 
         {moment === "sign-up" ? (
           <>
             <p className="mt-7 leading-relaxed text-[var(--nf-content-secondary)]">
-              This step needs JavaScript to finish. The same email carries a six digit code, and
-              entering it needs nothing but the form.
+              {a.noScriptSignUp}
             </p>
             <ButtonLink href="/sign-up/verify" variant="primary" size="lg" className="mt-5">
-              Enter the code instead
+              {a.enterCodeInstead}
             </ButtonLink>
           </>
         ) : (
           <>
             <p className="mt-7 leading-relaxed text-[var(--nf-content-secondary)]">
-              This step needs JavaScript to finish. Signing in with your email address and
-              password needs nothing but the form.
+              {a.noScriptSignIn}
             </p>
             <ButtonLink href="/sign-in/email" variant="primary" size="lg" className="mt-5">
-              Sign in with your email
+              {a.signInWithYourEmail}
             </ButtonLink>
           </>
         )}

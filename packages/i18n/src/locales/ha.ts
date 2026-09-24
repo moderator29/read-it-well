@@ -24,6 +24,14 @@ export const ha: Dictionary = withFallback({
     party: "{adults}, {children}",
   },
 
+  /* The counted nouns shared with `counts`; every other unit is still English. */
+  units: {
+    nights: { one: "dare ɗaya", other: "darare {count}" },
+    guests: { one: "baƙo ɗaya", other: "baƙi {count}" },
+    adults: { one: "babba ɗaya", other: "manya {count}" },
+    children: { one: "yaro ɗaya", other: "yara {count}" },
+  },
+
   reserve: {
     confirmedRange: "{from} zuwa {to}, {nights} don {guests}.",
     capacityNote: "Wannan wurin yana ɗaukar har {guests}.",

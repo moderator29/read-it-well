@@ -51,6 +51,7 @@ import {
   reserveInputSchema,
 } from "./schema";
 import { releaseBookedNights, writeBookedNights } from "./settlement";
+import { countOf } from "@vallo/i18n";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -212,12 +213,10 @@ export async function reserve(
      when they came to accept it. Name the number, because "those dates do not
      work" leaves the guest guessing which way to move. */
   if (nights < minStayNights) {
-    const nightWord = minStayNights === 1 ? "night" : "nights";
+    const minimum = countOf(minStayNights, "nights");
     return fail(
-      `This place takes bookings of ${minStayNights} ${nightWord} or more. Add ${
-        minStayNights - nights === 1 ? "another night" : `${minStayNights - nights} more nights`
-      } and you are set.`,
-      { checkOut: `Minimum stay is ${minStayNights} ${nightWord}.` },
+      `This place takes bookings of ${minimum} or more. Add ${countOf(minStayNights - nights, "moreNights")} and you are set.`,
+      { checkOut: `Minimum stay is ${minimum}.` },
     );
   }
 
@@ -228,10 +227,10 @@ export async function reserve(
      guests do not work" leaves the guest guessing which way to move. */
   const party = input.adults + input.children;
   if (maxGuests !== null && party > maxGuests) {
-    const guestWord = maxGuests === 1 ? "guest" : "guests";
+    const capacity = countOf(maxGuests, "guests");
     return fail(
-      `This place takes up to ${maxGuests} ${guestWord}, and you have asked for ${party}. Lower the party size, or find a bigger place from search.`,
-      { adults: `Up to ${maxGuests} ${guestWord} in total.` },
+      `This place takes up to ${capacity}, and you have asked for ${party}. Lower the party size, or find a bigger place from search.`,
+      { adults: `Up to ${capacity} in total.` },
     );
   }
 

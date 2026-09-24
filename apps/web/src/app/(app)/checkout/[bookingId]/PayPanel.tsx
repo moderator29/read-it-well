@@ -21,6 +21,7 @@ import { Panel } from "@/components/ui/Panel";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { getDictionary } from "@vallo/i18n";
 
 /**
  * The two ways to pay.
@@ -182,6 +183,7 @@ export function PayPanel({
    */
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
+  const c = getDictionary(view.locale).checkout;
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
@@ -323,7 +325,7 @@ export function PayPanel({
   const panel = (
     <section aria-labelledby="nf-checkout-pay">
       <h2 id="nf-checkout-pay" className="nf-h3">
-        How would you like to pay?
+        {c.howToPay}
       </h2>
       <ul className="mt-block grid gap-row">
         {/*
@@ -340,8 +342,8 @@ export function PayPanel({
         {savedCardsOffered && (
           <Option
             icon="card-lock"
-            title="Pay with a saved card"
-            body="The card you saved, charged straight away. Your card details still never touch Vallo."
+            title={c.savedCardTitle}
+            body={c.savedCardBody}
             action={
               <div>
                 <SavedCardPicker
@@ -358,7 +360,7 @@ export function PayPanel({
                   disabled={busy || chosenCard === null}
                   loading={phase.kind === "saved-card-charging"}
                 >
-                  Pay with this card
+                  {c.payWithThisCard}
                 </Button>
               </div>
             }
@@ -367,8 +369,8 @@ export function PayPanel({
         {view.cardAvailable ? (
           <Option
             icon="card-lock"
-            title="Pay by card"
-            body="A secure page in naira, then straight back here. Your card details never touch Vallo."
+            title={c.cardTitle}
+            body={c.cardBody}
             action={
               /*
                 THE AMOUNT IS NOT IN THE LABEL, AND IT WAS OVERFLOWING.
@@ -395,32 +397,32 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
               >
-                Pay by card
+                {c.payByCard}
               </Button>
             }
           />
         ) : (
           <Option
             icon="card-lock"
-            title="Pay by card"
+            title={c.cardTitle}
             /* "Card payment switches on the moment payment keys land" was
                infrastructure jargon, printed to somebody trying to pay. This
                says what is true, what it costs them, and what to do instead. */
-            body="Card payment is not available right now."
+            body={c.cardUnavailable}
             /* "…or try again SHORTLY" is gone, and it was the last time this
                product named a schedule in a refusal on the money path. It is a
                milder relative of the banned "coming soon": a promise about a
                time nobody here can keep, told to somebody holding a card. The
                sentence loses the word and keeps the instruction, which is the
                only part the reader could act on anyway. */
-            note="Your dates stay held and nothing has been charged. Pay from your wallet, or try the card again from here."
+            note={c.cardUnavailableStayNote}
           />
         )}
         {view.walletCovers ? (
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
-            body={`Your wallet holds ${view.walletBalanceDisplay}. Paying from it confirms this stay straight away.`}
+            title={c.walletTitle}
+            body={c.walletCoversStay.replace("{balance}", view.walletBalanceDisplay)}
             action={
               <Button
                 variant="secondary"
@@ -429,19 +431,19 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "wallet-paying"}
               >
-                Pay from my wallet
+                {c.payFromWallet}
               </Button>
             }
           />
         ) : (
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
-            body={`Your wallet holds ${view.walletBalanceDisplay}, and this stay comes to ${view.totalDisplay}.`}
-            note="Add money to your wallet first, or pay by card."
+            title={c.walletTitle}
+            body={c.walletShortStay.replace("{balance}", view.walletBalanceDisplay).replace("{total}", view.totalDisplay)}
+            note={c.walletShortNote}
             action={
               <ButtonLink href="/wallet" variant="ghost" full trailingIcon="arrow-right">
-                Open my wallet
+                {c.openWallet}
               </ButtonLink>
             }
           />
@@ -475,7 +477,7 @@ export function PayPanel({
       />
       <ActionBar>
         <p className="flex min-w-0 flex-1 flex-col">
-          <span className="nf-caption text-[var(--nf-content-muted)]">Total to pay</span>
+          <span className="nf-caption text-[var(--nf-content-muted)]">{c.totalToPay}</span>
           <span className="min-w-0">
             <Amount
               minorUnits={view.totalMinor}
@@ -495,7 +497,7 @@ export function PayPanel({
             loading={phase.kind === "card-starting"}
             className="shrink-0"
           >
-            Pay by card
+            {c.payByCard}
           </Button>
         ) : view.walletCovers ? (
           <Button
@@ -505,24 +507,21 @@ export function PayPanel({
             loading={phase.kind === "wallet-paying"}
             className="shrink-0"
           >
-            Pay from my wallet
+            {c.payFromWallet}
           </Button>
         ) : (
           /* Neither method can complete this payment right now, so the bar
              offers the one step that would change that rather than a disabled
              button that answers nothing. */
           <ButtonLink href="/wallet" variant="primary" className="shrink-0">
-            Add money
+            {c.addMoney}
           </ButtonLink>
         )}
       </ActionBar>
 
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
         <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
-        <span>
-          Money moves inside Vallo, so the stay and the payment stay attached to each other. Keep
-          every conversation and every payment on the platform.
-        </span>
+        <span>{c.onPlatformStay}</span>
       </p>
     </section>
   );

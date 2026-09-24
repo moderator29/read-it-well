@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PersonTier } from "@/app/admin/_components/PersonTier";
 import type { BadgeTier } from "@/lib/admin/reads/badges";
-import { formatDate, formatMoney, plural, type Locale, type Dictionary } from "@vallo/i18n";
+import { countOf, formatDate, formatMoney, plural, type Locale, type Dictionary } from "@vallo/i18n";
 import type { BookingsDesk as BookingsDeskData } from "@/lib/admin/reads/bookings";
 import { BOOKING_STATUSES } from "@/lib/admin/bookings-queries";
 import { LiveRefresh } from "../_components/LiveRefresh";
@@ -89,7 +89,7 @@ export function BookingsDesk({
 
       <div className="nf-md-grid nf-md-grid--main">
         <VolumePanel desk={desk} locale={locale} />
-        <Panel title="By status" hint={c ? `${c.total} ${c.total === 1 ? "stay" : "stays"} ever` : undefined}>
+        <Panel title="By status" hint={c ? `${countOf(c.total, "stays", locale)} ever` : undefined}>
           {c ? (
             <>
             <StatusBar
@@ -126,7 +126,7 @@ export function BookingsDesk({
         searchPlaceholder="A listing, a guest's name, or a booking id"
       />
 
-      <Panel title="Stays" hint={desk ? `${desk.table.total} ${desk.table.total === 1 ? "stay" : "stays"}` : undefined}>
+      <Panel title="Stays" hint={desk ? countOf(desk.table.total, "stays", locale) : undefined}>
         {!desk ? (
           <Waiting title="Stays could not be read" body="Every stay with its guest, dates, money and status. The read did not answer just now." />
         ) : (

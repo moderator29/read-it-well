@@ -1,4 +1,4 @@
-import type { Dictionary, Locale } from "@vallo/i18n";
+import { plural, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
@@ -73,18 +73,18 @@ export function ListingMoveInBlock({
           <span className="nf-numeric">
             {listing.bedrooms > 0 && (
               <span className="block">
-                {listing.bedrooms} {listing.bedrooms === 1 ? t.common.bed : t.common.beds}
+                {plural(listing.bedrooms, t.units.beds, locale)}
                 {listing.bathrooms > 0 && (
                   <>
                     {" · "}
-                    {listing.bathrooms} {listing.bathrooms === 1 ? t.common.bath : t.common.baths}
+                    {plural(listing.bathrooms, t.units.baths, locale)}
                   </>
                 )}
               </span>
             )}
             {listing.toilets !== undefined && listing.toilets > 0 && (
               <span className="block text-[var(--nf-content-muted)]">
-                {listing.toilets} {listing.toilets === 1 ? "toilet" : "toilets"}
+                {plural(listing.toilets, t.units.toilets, locale)}
               </span>
             )}
           </span>

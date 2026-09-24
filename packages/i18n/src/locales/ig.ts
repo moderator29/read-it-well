@@ -25,6 +25,14 @@ export const ig: Dictionary = withFallback({
     party: "{adults}, {children}",
   },
 
+  /* The counted nouns shared with `counts`; every other unit is still English. */
+  units: {
+    nights: { other: "abalị {count}" },
+    guests: { other: "ọbịa {count}" },
+    adults: { other: "okenye {count}" },
+    children: { other: "nwa {count}" },
+  },
+
   reserve: {
     confirmedRange: "{from} ruo {to}, {nights} maka {guests}.",
     capacityNote: "Ebe a na-anabata ruo {guests}.",

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { addAccommodationDraft } from "@/lib/host/actions";
 import { StaysHero, StaysNote, StaysPlate, StaysRow, StaysStepper } from "./StaysParts";
 import type { StaysStepProps } from "./types";
+import { countOf } from "@vallo/i18n";
 
 /**
  * YOUR HOTEL. `GOVERNING-10` screen one, and `GOVERNING-09` screen four.
@@ -41,6 +42,7 @@ import type { StaysStepProps } from "./types";
  * marks, four lit and one hollow, the plate, the label, is the render.
  */
 export function HotelStep({
+  locale,
   draft,
   set,
   pending,
@@ -153,7 +155,7 @@ export function HotelStep({
               type="button"
               role="radio"
               aria-checked={stars === n}
-              aria-label={`${n} star${n === 1 ? "" : "s"}`}
+              aria-label={countOf(n, "stars", locale)}
               onClick={() => setStars(stars === n ? null : n)}
               className="grid h-11 w-9 place-items-center"
             >
