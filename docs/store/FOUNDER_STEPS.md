@@ -70,3 +70,42 @@ marks every run with them.
 - Then `npm run check:deep-links --workspace @vallo/web` must print "both
   association files are real", and the `continue-on-error: true` line under
   "Deep links (founder values)" in `.github/workflows/ci.yml` can be deleted.
+
+## 4. The reviewer account (STORE-10)
+
+Both stores need a login a reviewer can use. The script creates one account,
+accepts the Terms and Privacy versions the app serves today (it reads them
+from `apps/web/src/lib/legal/versions.ts`), and proves the login works.
+
+```
+SEED_REVIEWER_EMAIL=appreview@vallospaces.com SEED_REVIEWER_PASSWORD='<12+ characters>' \
+NEXT_PUBLIC_SUPABASE_URL=https://uccixoonmbhrnyczyigt.supabase.co \
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<the publishable key> SUPABASE_SERVICE_ROLE_KEY=<service role key> \
+node scripts/seed/store-reviewer.mjs --dry-run
+```
+
+Run it once with `--dry-run`, then again without it. Paste the address and
+password into App Store Connect → App Review Information → Sign-In
+Information, and into Play Console → App content → App access. **Run it again
+after any change to PRIVACY_VERSION or TERMS_VERSION**, so the reviewer is
+not asked to accept again halfway through a review.
+
+## 5. The sign-in wall (STORE-P2-04)
+
+Your decision. `VALLO_PUBLIC_CATALOGUE=on` in Vercel (Production), then
+redeploy. Strangers can then read search, stays, restaurants and each
+listing. Profiles, messages and money stay behind sign-in either way. Unset
+it to close the catalogue again.
+
+## 6. The native build, on a Mac (STORE-04, STORE-15)
+
+1. `npm ci`, then `CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync --workspace @vallo/web`.
+   This refuses until section 3 is done; use `cap:sync:dev` for a test build.
+2. Open `apps/web/ios/App/App.xcodeproj`. In Signing & Capabilities add Push
+   Notifications and Associated Domains (Xcode adopts `App/App.entitlements`).
+3. In Vercel: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY` (from an APNs
+   `.p8` key), and `APNS_PRODUCTION=true` for App Store builds.
+4. Put the Firebase Android API key into `apps/web/android/app/google-services.json`
+   (`current_key`). It is not a secret.
+5. Record 30 seconds for the review notes: a push arriving, the share sheet on
+   a listing, and "Take a photo" in the listing wizard.
