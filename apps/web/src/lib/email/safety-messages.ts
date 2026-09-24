@@ -23,7 +23,7 @@ export type ScamRecallData = {
 
 const WHY: Record<ScamRecallData["category"], string> = {
   off_platform_payment: "for asking people to pay outside Vallo",
-  scam: "for a scam",
+  scam: "for breaking Vallo's safety rules",
 };
 
 export function scamRecall(data: ScamRecallData): EmailMessage {

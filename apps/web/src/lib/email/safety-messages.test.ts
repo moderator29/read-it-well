@@ -16,7 +16,7 @@ describe("the scam recall email (V-60)", () => {
 
   it("says nothing about a listing it does not have", () => {
     const mail = scamRecall({ category: "scam" });
-    expect(mail.text.replace(/\s+/g, " ")).toContain("An account you talked to was stopped by Vallo for a scam.");
+    expect(mail.text.replace(/\s+/g, " ")).toContain("An account you talked to was stopped by Vallo for breaking Vallo's safety rules.");
   });
 
   it("is reached: the registry builds it from the exact payload the database writes, and drops an unknown category", () => {
@@ -29,6 +29,6 @@ describe("the scam recall email (V-60)", () => {
       "utf8",
     );
     expect(sql).toContain("'safety.scam_recall'");
-    expect(sql).toContain("jsonb_build_object('listing_title', who.listing_title, 'category', p_category)");
+    expect(sql).toContain("jsonb_build_object('listing_title', who.listing_title, 'category', cat,");
   });
 });

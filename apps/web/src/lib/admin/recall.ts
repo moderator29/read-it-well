@@ -8,6 +8,8 @@ import type { Dictionary } from "@vallo/i18n";
 export type RecallPreview = {
   audience: number;
   lifted: boolean;
+  /** Derived from upheld reports in the database; null means no recall is possible. */
+  category: "off_platform_payment" | "scam" | null;
   /** The recall already sent for this stop, if there was one. */
   sent: { at: string; to: number; category: string } | null;
 };
@@ -19,9 +21,10 @@ export function recallPreviewFrom(data: unknown): RecallPreview | null {
   if (typeof r.audience !== "number") return null;
   const sent =
     typeof r.sent_at === "string"
-      ? { at: r.sent_at, to: typeof r.sent_to === "number" ? r.sent_to : 0, category: String(r.category ?? "") }
+      ? { at: r.sent_at, to: typeof r.sent_to === "number" ? r.sent_to : 0, category: String(r.sent_category ?? "") }
       : null;
-  return { audience: r.audience, lifted: r.lifted === true, sent };
+  const category = r.category === "off_platform_payment" || r.category === "scam" ? r.category : null;
+  return { audience: r.audience, lifted: r.lifted === true, category, sent };
 }
 
 export function recallSendFrom(
@@ -34,6 +37,7 @@ export function recallSendFrom(
   if (status === "forbidden") return { ok: false, message: desk.recallForbidden };
   if (status === "lifted") return { ok: false, message: desk.recallLifted };
   if (status === "already") return { ok: false, message: desk.recallAlready };
+  if (status === "no_upheld_report") return { ok: false, message: desk.recallNoReport };
   return { ok: false, message: desk.recallFailed };
 }
 
@@ -41,4 +45,9 @@ export function recallSendFrom(
 export function willTell(audience: number, desk: Dictionary["trustVisible"]["desk"]): string {
   if (audience <= 0) return desk.recallNobody;
   return audience === 1 ? desk.recallWillTellOne : desk.recallWillTell.replace("{count}", String(audience));
+}
+
+/** The reason phrase for a derived category. */
+export function recallReason(category: "off_platform_payment" | "scam", desk: Dictionary["trustVisible"]["desk"]): string {
+  return category === "off_platform_payment" ? desk.recallReasonPay : desk.recallReasonRules;
 }

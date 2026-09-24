@@ -300,9 +300,9 @@ export const trustVisibleEn = {
     /** V-60: recalling a stop for fraud. */
     recallTitle: "Tell the people this account talked to",
     recallLede: "Everybody who had a conversation or an inspection with this account in the 60 days before the stop is told, by notification and email. The account, the reason written above and whoever reported it are never named.",
-    recallWhy: "Why it was stopped",
-    recallOffPlatform: "Asking people to pay outside Vallo",
-    recallScam: "A scam",
+    /** `{reason}` is one of the two reason phrases below. */
+    recallBecause: "The upheld reports say this account was stopped {reason}.",
+    recallNoReport: "No upheld report of paying outside Vallo or a scam stands against this account, so there is nothing to recall. Uphold the report first.",
     recallCount: "Count who would be told",
     recallCounting: "Counting",
     /** `{count}` people. */
@@ -317,6 +317,12 @@ export const trustVisibleEn = {
     recallLifted: "This stop has been lifted, so nobody can be told it stands.",
     recallFailed: "That did not go through. Nothing was sent. Try again in a moment.",
     recallForbidden: "Only Vallo staff can recall a stop.",
+    /** The words every recipient reads. `{listing}` is the title they talked about, `{reason}` a reason phrase. */
+    recallTitle2: "An account you talked to has been stopped",
+    recallBodyAbout: "An account you talked to about {listing} was stopped by Vallo {reason}. If you paid them anything, tell us now: open the conversation and report it.",
+    recallBodyPlain: "An account you talked to was stopped by Vallo {reason}. If you paid them anything, tell us now.",
+    recallReasonPay: "for asking people to pay outside Vallo",
+    recallReasonRules: "for breaking Vallo's safety rules",
     recallAlready: "This stop has already been recalled. Nobody is told twice.",
     /** V-63: the moderation lane's safety holds. */
     holdsTitle: "Safety holds",

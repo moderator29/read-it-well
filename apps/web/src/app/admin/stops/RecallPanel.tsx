@@ -3,13 +3,15 @@
 import { useState, useTransition } from "react";
 import { getDictionary } from "@vallo/i18n";
 import { previewRecall, sendRecall } from "@/lib/admin/recall-actions";
-import { willTell, type RecallPreview } from "@/lib/admin/recall";
+import { recallReason, willTell, type RecallPreview } from "@/lib/admin/recall";
 
 /**
  * V-60 ON THE STOPS DESK: recall a standing stop for fraud.
  *
- * Three deliberate steps, because this is loud: choose why, count who would be
- * told ("This will tell 14 people"), then confirm. Nothing is sent until the
+ * Two deliberate steps, because this is loud: count who would be told ("This
+ * will tell 14 people", with the reason the upheld reports give), then
+ * confirm. There is no choosing why: without an upheld fraud report against
+ * the account the panel says so and offers nothing. Nothing is sent until the
  * third press. A stop already recalled shows when and to how many, and a
  * lifted stop cannot be recalled at all. The desk reads English.
  */
@@ -22,7 +24,6 @@ function day(iso: string): string {
 }
 
 export function RecallPanel({ suspensionId }: { suspensionId: string }) {
-  const [category, setCategory] = useState<"off_platform_payment" | "scam">("off_platform_payment");
   const [preview, setPreview] = useState<RecallPreview | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -39,7 +40,7 @@ export function RecallPanel({ suspensionId }: { suspensionId: string }) {
   function send() {
     setMessage(null);
     startTransition(async () => {
-      const result = await sendRecall({ suspensionId, category });
+      const result = await sendRecall({ suspensionId });
       if (result.ok) {
         const today = day(new Date().toISOString());
         setMessage({
@@ -73,21 +74,15 @@ export function RecallPanel({ suspensionId }: { suspensionId: string }) {
         </p>
       ) : (
         <div className="mt-row grid gap-xs">
-          <label className="grid gap-3xs nf-body-sm text-[var(--nf-content-secondary)]">
-            {desk.recallWhy}
-            <select
-              value={category}
-              onChange={(event) => {
-                setCategory(event.target.value as typeof category);
-              }}
-              className="nf-field min-h-[44px] w-full"
-            >
-              <option value="off_platform_payment">{desk.recallOffPlatform}</option>
-              <option value="scam">{desk.recallScam}</option>
-            </select>
-          </label>
-          {preview ? (
+          {preview && preview.category === null ? (
+            <p role="status" className="nf-body-sm text-[var(--nf-content-secondary)]" data-testid="recall-no-report">
+              {desk.recallNoReport}
+            </p>
+          ) : preview && preview.category ? (
             <>
+              <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+                {desk.recallBecause.replace("{reason}", recallReason(preview.category, desk))}
+              </p>
               <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]" data-testid="recall-count">
                 {willTell(preview.audience, desk)}
               </p>
