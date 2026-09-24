@@ -34,6 +34,7 @@ const ledger = vi.hoisted(() => ({
 }));
 
 const audit = vi.hoisted(() => ({ recordMoneyAudit: vi.fn(async () => {}) }));
+const alerts = vi.hoisted(() => ({ recordAlert: vi.fn(async () => ({ ok: true, id: null, deduplicated: false })) }));
 
 vi.mock("../payments/paystack", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../payments/paystack")>();
@@ -46,6 +47,7 @@ vi.mock("./ledger", async (importOriginal) => {
 });
 
 vi.mock("./audit", () => audit);
+vi.mock("../alerts/record", () => alerts);
 
 const { reconcileFundingReference } = await import("./reconciliation");
 const { FUND_PREFIX } = await import("../payments/references");
@@ -89,6 +91,24 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
   vi.clearAllMocks();
+});
+
+describe("a recovery is a missed webhook (MON-P2-03)", () => {
+  beforeEach(() => alerts.recordAlert.mockClear());
+
+  it("raises one critical alert naming the reference when the reconciler posts a credit", async () => {
+    await reconcileFundingReference(ADMIN, REFERENCE, ACTOR);
+    expect(alerts.recordAlert).toHaveBeenCalledTimes(1);
+    expect(alerts.recordAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "payment.webhook.missed", severity: "critical", subjectId: REFERENCE }),
+    );
+  });
+
+  it("raises nothing when the ledger already had the credit", async () => {
+    ledger.recordFunding.mockResolvedValue("duplicate");
+    await reconcileFundingReference(ADMIN, REFERENCE, ACTOR);
+    expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
 });
 
 describe("reconcileFundingReference", () => {
