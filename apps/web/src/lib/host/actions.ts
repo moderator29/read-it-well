@@ -31,6 +31,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { withBusinessPrivate } from "../supabase/private-fields";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -42,7 +43,7 @@ import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
 import { documentPathBelongsTo, missingFrom, type HostType } from "./onboarding";
 import { HOST_PHOTO_BUCKET, MAX_BUSINESS_PHOTOS, nextPhotoPosition } from "./photos";
 import { MAX_NIGHTS_IN_ONE_ACT, nightsBetween } from "../stays/inventory";
-import { getMyHostDraft } from "./queries";
+import { readMyHostDraft } from "./queries";
 import { orderFacilities } from "./facilities";
 import {
   accommodationDraftSchema,
@@ -158,15 +159,27 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
 
-  const { data: existing, error: readError } = await session.supabase
+  const { data: existingPublic, error: readError } = await session.supabase
     .from("businesses")
-    .select("id, status, name, kind, host_type, consents")
+    .select("id, status, name, kind, host_type")
     .eq("owner_id", session.user.id)
     .in("status", ["DRAFT", "MORE_INFO_REQUIRED", "SUBMITTED"])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  /* Consents are private to the owner, read through the definer. A draft
+     whose consents cannot be read is not saved, so they are never
+     overwritten with blanks. */
+  let existing: (typeof existingPublic & { consents: unknown }) | null = null;
+  if (existingPublic) {
+    try {
+      const [merged] = await withBusinessPrivate(session.supabase, [existingPublic], ["consents"] as const);
+      existing = merged ?? null;
+    } catch {
+      return fail(SERVICE_DOWN_MESSAGE);
+    }
+  }
   if (existing && !EDITABLE.includes(existing.status)) return fail(NOT_EDITABLE_MESSAGE);
 
   /* A restaurant host runs a restaurant, and a restaurant business is what the
@@ -341,7 +354,9 @@ export async function submitHostApplication(): Promise<ActionResult<{ businessId
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const draft = await getMyHostDraft();
+  const read = await readMyHostDraft();
+  if (read.state === "unavailable") return fail(SERVICE_DOWN_MESSAGE);
+  const draft = read.draft;
   if (!draft.businessId) return fail(NO_DRAFT_MESSAGE);
   if (draft.status === "SUBMITTED") {
     return fail("This application is already with our team. We will write to you when it is read.");
