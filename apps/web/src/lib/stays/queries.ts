@@ -1,4 +1,5 @@
 import "server-only";
+import { pointSelect } from "../supabase/public-point";
 
 import { isSupabaseConfigured } from "../supabase/env";
 import { staysClient } from "./db";
@@ -59,6 +60,11 @@ const STAY_BUSINESS_COLUMNS = "id, name, slug, kind, source, is_demo";
 const RESTAURANT_BUSINESS_COLUMNS =
   "id, owner_id, agent_id, kind, name, slug, description, source, status, state_code, city, area, latitude, longitude, is_demo, published_at";
 
+/** The stays client is a loose cast of the server client; it carries `auth`. */
+function asAuth(client: unknown): Parameters<typeof pointSelect>[0] {
+  return client as Parameters<typeof pointSelect>[0];
+}
+
 /** A finite number, whatever the driver handed back, or null. Never NaN. */
 function finiteOrNull(value: unknown): number | null {
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
@@ -111,7 +117,8 @@ export async function getStayDetail(accommodationId: string): Promise<StayDetail
          `listings` always has. A star here would be refused outright and the
          stay page would answer not-found for every property. */
       .from("accommodations")
-      .select(ACCOMMODATION_PUBLIC_COLUMNS)
+      /* NEW-A4-01: a signed-out visitor reads the public point. */
+      .select(await pointSelect(asAuth(supabase), ACCOMMODATION_PUBLIC_COLUMNS))
       .eq("id", accommodationId)
       .maybeSingle();
     if (!accommodation) return null;
@@ -240,7 +247,7 @@ export async function getRestaurantDetail(
          `tin` and the representative's phone number and would be refused
          outright, so the page would answer not-found for every venue. */
       .from("businesses")
-      .select(RESTAURANT_BUSINESS_COLUMNS)
+      .select(await pointSelect(asAuth(supabase), RESTAURANT_BUSINESS_COLUMNS))
       .eq("id", businessId)
       .eq("kind", "restaurant")
       .maybeSingle();
@@ -285,7 +292,12 @@ export async function listRestaurants(
     const supabase = await staysClient();
     let query = supabase
       .from("businesses")
-      .select("id, name, slug, area, city, state_code, source, is_demo, latitude, longitude")
+      .select(
+        await pointSelect(
+          asAuth(supabase),
+          "id, name, slug, area, city, state_code, source, is_demo, latitude, longitude",
+        ),
+      )
       .eq("kind", "restaurant")
       .eq("status", "PUBLISHED")
       .order("published_at", { ascending: false })

@@ -487,6 +487,9 @@ function WithdrawForm({
 }) {
   const [state, formAction, pending] = useActionState(withdraw, WITHDRAW_INITIAL);
   const wait = useMoneyWait(pending);
+  /* MON-01: one key per open sheet, so a second tap (or a retry after a
+     dropped connection) replays the first answer instead of paying twice. */
+  const [idempotencyKey] = useState(mintIdempotencyKey);
   const router = useRouter();
   const [amount, setAmount] = useState("");
 
@@ -568,6 +571,7 @@ function WithdrawForm({
 
   return (
     <form action={formAction} noValidate className="space-y-row">
+      <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
       {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}
       <AmountField
         value={amount}

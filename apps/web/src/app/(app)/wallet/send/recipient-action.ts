@@ -2,7 +2,9 @@
 
 import { resolveSession } from "@/lib/actions/session";
 import { consume, subjectForUser } from "@/lib/security/rate-limit";
-import { displayNameFor, findUserByEmail, getAdminClient, type AdminClient } from "@/lib/wallet/ledger";
+import { displayNameFor, getAdminClient, type AdminClient } from "@/lib/wallet/ledger";
+import { resolveRecipientId } from "@/lib/wallet/handle-recipient";
+import { parseRecipientInput } from "@/lib/wallet/recipient-input";
 
 /* The recipient's published tier from `public.person_badge`, or none. */
 export type BadgeTier = "gold" | "platinum" | null;
@@ -36,15 +38,15 @@ export type RecipientLookup =
   /** Could not ask (signed out, unconfigured, paced). The send decides. */
   | { state: "unknown"; reason: string };
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export async function lookupRecipient(rawEmail: string): Promise<RecipientLookup> {
-  const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase().slice(0, 254) : "";
-  if (!EMAIL_RE.test(email)) return { state: "unknown", reason: "" };
+export async function lookupRecipient(rawRecipient: string): Promise<RecipientLookup> {
+  const target = parseRecipientInput(rawRecipient);
+  if (!target) return { state: "unknown", reason: "" };
 
   const session = await resolveSession();
   if (session.state !== "signed-in") return { state: "unknown", reason: "" };
-  if ((session.user.email ?? "").toLowerCase() === email) return { state: "self" };
+  if (target.kind === "email" && (session.user.email ?? "").toLowerCase() === target.email) {
+    return { state: "self" };
+  }
 
   const admin = getAdminClient();
   if (!admin) return { state: "unknown", reason: "" };
@@ -59,17 +61,20 @@ export async function lookupRecipient(rawEmail: string): Promise<RecipientLookup
   });
   if (!pace.allowed) return { state: "unknown", reason: `Try again ${pace.retryIn}.` };
 
-  const recipient = await findUserByEmail(email);
-  if (!recipient) return { state: "none" };
-  if (recipient.id === session.user.id) return { state: "self" };
+  /* A handle resolves as the viewer (blocks respected) and yields an id
+     only; the answer names the person, never the address behind a handle. */
+  const recipientId = await resolveRecipientId(target);
+  if (!recipientId) return { state: "none" };
+  if (recipientId === session.user.id) return { state: "self" };
+  const fallbackName = target.kind === "handle" ? `@${target.handle}` : target.email;
 
   let name: string | null = null;
   try {
-    name = await displayNameFor(admin, recipient.id);
+    name = await displayNameFor(admin, recipientId);
   } catch {
     /* A missing display name is not a reason to hide that the account exists. */
   }
-  return { state: "found", name: name ?? email, tier: await badgeTierFor(admin, recipient.id) };
+  return { state: "found", name: name ?? fallbackName, tier: await badgeTierFor(admin, recipientId) };
 }
 
 /**

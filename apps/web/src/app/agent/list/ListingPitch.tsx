@@ -2,6 +2,7 @@ import type { Dictionary } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
+import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 
 /**
  * What a visitor sees at /agent/list when they are not an approved agent.
@@ -64,7 +65,7 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
       </RowList>
 
       <div className="mt-block flex flex-col gap-md">
-        <ButtonLink href="/profile/setup/owner" variant="primary">
+        <ButtonLink href={SUPPLY_DOOR_HREF} variant="primary">
           {copy.apply}
         </ButtonLink>
         {!signedIn && (

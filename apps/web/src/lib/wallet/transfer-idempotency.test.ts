@@ -88,6 +88,22 @@ vi.mock("./rpc", () => ({
   readMoneyStatus: money.readMoneyStatus,
 }));
 vi.mock("./repository", () => ({ readStatement: vi.fn() }));
+/* The viewer's own client. "blocked" is the handle social_profiles_select
+   hides from this viewer, so it reads as nobody. */
+vi.mock("../supabase/server", () => ({
+  createClient: async () => ({
+    from: () => ({
+      select: () => ({
+        eq: (_col: string, handle: string) => ({
+          maybeSingle: async () => ({
+            data: handle === "kofi" ? { user_id: "user-2" } : null,
+            error: null,
+          }),
+        }),
+      }),
+    }),
+  }),
+}));
 vi.mock("../actions/session", () => ({
   NOT_CONFIGURED_MESSAGE: "unconfigured",
   SIGNED_OUT_MESSAGE: "signed out",
@@ -277,5 +293,28 @@ describe("sending money twice on one tap moves it once", () => {
        what the withdrawal forms still look like today. */
     expect(moves).toHaveLength(2);
     expect(rpc.callSecurityRpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("sending to an @handle", () => {
+  it("resolves the handle as the payer and moves the money to that account", async () => {
+    const { transferToUser } = await import("./actions");
+    const sent = await transferToUser(
+      { ok: true, data: null },
+      form({ recipientEmail: "@Kofi", amount: "5000", idempotencyKey: "handle-send" }),
+    );
+    expect(sent.ok).toBe(true);
+    expect(moves).toHaveLength(1);
+    expect(money.callMoneyRpc.mock.calls[0]?.[3]).toMatchObject({ recipient_user: "user-2" });
+  });
+
+  it("refuses a handle the payer cannot see, and moves nothing", async () => {
+    const { transferToUser } = await import("./actions");
+    const sent = await transferToUser(
+      { ok: true, data: null },
+      form({ recipientEmail: "@blocked", amount: "5000", idempotencyKey: "blocked-send" }),
+    );
+    expect(sent.ok).toBe(false);
+    expect(moves).toHaveLength(0);
   });
 });

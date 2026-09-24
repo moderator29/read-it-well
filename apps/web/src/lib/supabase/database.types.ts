@@ -290,6 +290,7 @@ export type Database = {
       agent_applications: {
         Row: {
           account_name: string | null
+          applicant_response: string | null
           account_number: string | null
           agency_fee_bps: number | null
           agree_terms: boolean
@@ -332,6 +333,7 @@ export type Database = {
         }
         Insert: {
           account_name?: string | null
+          applicant_response?: string | null
           account_number?: string | null
           agency_fee_bps?: number | null
           agree_terms?: boolean
@@ -374,6 +376,7 @@ export type Database = {
         }
         Update: {
           account_name?: string | null
+          applicant_response?: string | null
           account_number?: string | null
           agency_fee_bps?: number | null
           agree_terms?: boolean

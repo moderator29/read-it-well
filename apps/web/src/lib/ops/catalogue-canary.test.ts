@@ -11,7 +11,7 @@ vi.mock("../supabase/env", () => ({
   SUPABASE_ANON_KEY: "sb_publishable_example",
 }));
 
-const { probeCatalogue, catalogueCanary } = await import("./catalogue-canary");
+const { probeCatalogue, catalogueCanary, CANARY_CARD_SELECT } = await import("./catalogue-canary");
 
 type Result = { count?: number | null; data?: unknown; error?: unknown };
 
@@ -97,5 +97,15 @@ describe("catalogueCanary (the cron job)", () => {
       client({ count: 0 }) as never,
     );
     expect(later.alert).toMatchObject({ kind: "canary.catalogue_empty", severity: "warning" });
+  });
+});
+
+describe("the canary's card read (NEW-A4-01)", () => {
+  it("names the public point, never an exact coordinate anon is denied", () => {
+    const entries = CANARY_CARD_SELECT.split(/[\n,]/).map((part) => part.trim());
+    expect(entries).not.toContain("latitude");
+    expect(entries).not.toContain("longitude");
+    expect(entries).toContain("latitude:latitude_public");
+    expect(entries).toContain("longitude:longitude_public");
   });
 });
