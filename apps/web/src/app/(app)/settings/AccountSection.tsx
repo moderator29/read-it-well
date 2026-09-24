@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { RowLink, RowValue, RowButton, SettingsGroup } from "@/components/app/account/rows";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
+import { clearOutbox } from "@/lib/offline/outbox";
+import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
 import { DeleteAccountPanel } from "./DeleteAccountPanel";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
@@ -66,6 +68,8 @@ export function AccountSection({
          nor their shortlist. */
       await clearPacks();
       await clearShelf();
+      await clearOutbox();
+      clearAllInflight();
       router.replace("/");
       router.refresh();
     });

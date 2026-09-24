@@ -17,6 +17,10 @@ import {
   unsaveStay,
 } from "@/lib/saved/places-actions";
 import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
+import { enqueue, makeEntry } from "@/lib/offline/outbox";
+import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+
+const OUTBOX_COPY = getDictionary(DEFAULT_LOCALE).platform.outbox;
 
 /**
  * The heart, on anything that shows a listing.
@@ -214,7 +218,34 @@ export function useSaveControl(
     setOverride(next);
     setNote(null);
 
+    /* V-40: no signal is not a failure. The intent is kept on the phone and
+       sent, as the state wanted, when the connection comes back. */
+    const keepForLater = async () => {
+      const entry = place
+        ? makeEntry("save_place", `${place.kind}:${place.id}`, next, Date.now())
+        : makeEntry("save_listing", listingId, next, Date.now());
+      if (entry && (await enqueue(entry))) {
+        say(next ? OUTBOX_COPY.savedWaiting : OUTBOX_COPY.removedWaiting);
+        return;
+      }
+      setOverride(!next);
+      say(OUTBOX_COPY.couldNotKeep, "error");
+    };
+
     startTransition(async () => {
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        await keepForLater();
+        return;
+      }
+      try {
+        await sendNow();
+      } catch {
+        /* The request never came back: the network dropped under it. */
+        await keepForLater();
+      }
+    });
+
+    async function sendNow(): Promise<void> {
       if (place) {
         /* The place shelf. Save and unsave are separate intents rather than a
            toggle, exactly as the actions are written: a double tap or a stale
@@ -262,7 +293,7 @@ export function useSaveControl(
       const settled = result.data.mode === "db" ? result.data.saved : next;
       setOverride(settled);
       say(settled ? "Saved" : "Removed");
-    });
+    }
   }, [listingId, pending, place, saved, say]);
 
   return { saved, note, pending, toggle };

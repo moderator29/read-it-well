@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { forgetPacksKeepQueue } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
+import { clearOutbox } from "@/lib/offline/outbox";
+import { clearAllInflight } from "@/lib/offline/inflight";
 
 /**
  * THE WAY IN FORGETS WHAT THE LAST PERSON LEFT ON THE PHONE. V-35, V-77.
@@ -36,6 +38,9 @@ export function ForgetOnSignOut() {
       if (cancelled || signedIn) return;
       await forgetPacksKeepQueue();
       await clearShelf();
+      /* V-40: another person's queued saves and payment notes go too. */
+      await clearOutbox();
+      clearAllInflight();
     })();
     return () => {
       cancelled = true;

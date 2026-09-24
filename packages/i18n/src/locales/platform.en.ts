@@ -261,6 +261,27 @@ export const platformEn = {
     what: "the field speed figures",
   },
 
+  /* V-40: the outbox and the payments that lost their connection. */
+  outbox: {
+    savedWaiting: "Saved. Waiting for signal",
+    removedWaiting: "Removed. Waiting for signal",
+    couldNotKeep: "You are offline, and this phone could not keep that for later.",
+    sentTitle: "Sent now that you have signal",
+    failedTitle: "Something you did offline did not go through",
+    failedItem: "Saving a place: {reason}",
+    close: "Close",
+  },
+  inflight: {
+    paidVerdict: "Your payment went through",
+    paidBody: "The payment that lost its connection reached us. Reference {reference}.",
+    failedVerdict: "Your payment did not go through",
+    failedBody: "Nothing was taken for reference {reference}. You can pay again.",
+    pendingVerdict: "Paystack has not told us yet",
+    pendingBody: "We are checking reference {reference} every minute. Do not pay again until this changes.",
+    history: "See your history",
+    close: "Close",
+  },
+
   /* V-96: WhatsApp is a doorbell. The auto-reply is the only thing Vallo
      ever says on WhatsApp unprompted by an event; the safety line is drawn
      only when the number is configured. */

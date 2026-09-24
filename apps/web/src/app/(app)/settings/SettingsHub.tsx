@@ -13,6 +13,8 @@ import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
+import { clearOutbox } from "@/lib/offline/outbox";
+import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut, updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -326,6 +328,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
                  nor their shortlist. */
               await clearPacks();
               await clearShelf();
+              await clearOutbox();
+              clearAllInflight();
               router.replace("/");
               router.refresh();
             });
