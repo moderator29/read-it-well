@@ -55,6 +55,23 @@ export const SIDE_HOME: Record<Side, string> = {
 const STAYS_PATHS = /^\/(stays|stay|restaurants|restaurant|trips|host)(\/|$)/;
 const PROPERTY_PATHS = /^\/(home|search|agent|listing|rent|inspections)(\/|$)/;
 
+/**
+ * Plans (`/bookings`) belongs to neither side, so the cookie decides, EXCEPT
+ * when the address says which half it is showing: `?side=stays`,
+ * `?side=property` or `?kind=inspection` (the Property diary). Then the
+ * address wins, like every other side-owned URL (V-76 review).
+ */
+export function sideOfPlansQuery(
+  pathname: string,
+  params: { get(name: string): string | null },
+): Side | null {
+  if (!/^\/bookings(\/|$)/.test(pathname)) return null;
+  const side = params.get("side");
+  if (side === "stays") return "stays";
+  if (side === "property" || params.get("kind") === "inspection") return "property";
+  return null;
+}
+
 export function sideOfPath(pathname: string): Side | null {
   if (STAYS_PATHS.test(pathname)) return "stays";
   if (PROPERTY_PATHS.test(pathname)) return "property";

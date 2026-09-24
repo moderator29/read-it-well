@@ -63,6 +63,6 @@ comment on column public.listings.service_charge_reconciled is
 comment on column public.listings.estate_type is
   'gated_estate (controlled entry), gated_compound (a gateman) or open_street. The estate name stays private in listing_access (V-68).';
 comment on column public.listings.is_serviced is
-  'Generated: true only when the service charge covers diesel, water and security. The only source of the word Serviced on Vallo (V-68).';
+  'Generated: true only when a service charge is stated and it covers diesel, water and security. The only source of the word Serviced on Vallo (V-68).';
 
 commit;

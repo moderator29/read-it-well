@@ -101,8 +101,13 @@ export function upfrontText(months: number, copy: UpfrontCopy): string {
 }
 
 /** "2 years", "18 months": the demand as a length, for the lister's-demand line. */
-export function upfrontDuration(months: number, copy: { durationYears: string; durationMonths: string }): string {
-  return months % 12 === 0
-    ? copy.durationYears.replace("{n}", String(months / 12))
-    : copy.durationMonths.replace("{n}", String(months));
+export function upfrontDuration(
+  months: number,
+  copy: { durationYear: string; durationYears: string; durationMonth: string; durationMonths: string },
+): string {
+  if (months % 12 === 0) {
+    const years = months / 12;
+    return years === 1 ? copy.durationYear : copy.durationYears.replace("{n}", String(years));
+  }
+  return months === 1 ? copy.durationMonth : copy.durationMonths.replace("{n}", String(months));
 }

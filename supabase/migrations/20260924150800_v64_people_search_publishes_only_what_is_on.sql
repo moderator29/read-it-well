@@ -35,7 +35,9 @@ as $$
   left join public.occupations o on o.code = p.occupation_code
   left join public.local_governments lg on lg.code = p.lga_code
   left join public.states s on s.code = lg.state_code
-  where p.id = any (coalesce(p_users[1:60], array[]::uuid[]));
+  where p.id = any (coalesce(p_users[1:60], array[]::uuid[]))
+    /* Nobody a block touches in either direction (review). */
+    and not private.blocked_with(p.id);
 $$;
 
 revoke execute on function public.profile_public_facts_many(uuid[]) from public, anon;

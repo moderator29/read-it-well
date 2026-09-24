@@ -59,7 +59,7 @@ export type PeopleDirectory =
       /** What was searched for, echoed back so the page can say so. */
       query: string;
       /** Which routes actually matched, so the page can say why these people. */
-      matchedOn: ("name" | "occupation" | "place")[];
+      matchedOn: "name"[];
       people: PersonRow[];
     };
 

@@ -1,6 +1,8 @@
 import "server-only";
 
 import { after } from "next/server";
+import { headers } from "next/headers";
+import { isPrefetchRequest } from "@/lib/http/prefetch";
 import { resolveSession } from "@/lib/actions/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -21,6 +23,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function RecordViews({ seen = [], opened = null }: { seen?: string[]; opened?: string | null }) {
   const ids = seen.slice(0, 20);
   if (ids.length === 0 && !opened) return null;
+  /* A prefetch (a hovered card, a link scrolled into view) is nobody looking. */
+  const requestHeaders = await headers();
+  if (isPrefetchRequest((name) => requestHeaders.get(name))) return null;
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
   const viewer = session.user.id;

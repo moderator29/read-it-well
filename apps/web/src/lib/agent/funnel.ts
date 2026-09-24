@@ -35,7 +35,7 @@ export type FunnelRow = {
 export type Funnel = { rows: FunnelRow[]; compared: number };
 
 /** Fewer similar listings than this and there is no median worth printing. */
-export const MIN_PEERS = 3;
+export const MIN_PEERS = 5;
 
 /** The raw rows `listing_funnel` returns. */
 export type FunnelRpcRow = {

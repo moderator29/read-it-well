@@ -125,7 +125,7 @@ export default async function BookingDetailPage({
         icon="calendar-check"
         title={copy.detailMissingTitle}
         body={copy.detailMissingBody}
-        action={<EmptyActions primary={{ label: copy.openBookings, href: "/bookings" }} />}
+        action={<EmptyActions primary={{ label: copy.openBookings, href: "/bookings?side=stays" }} />}
         data-testid="booking-missing"
       />,
     );

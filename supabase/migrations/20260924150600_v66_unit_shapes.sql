@@ -75,14 +75,14 @@ create or replace function private.clamp_ensuite_to_bedrooms()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 begin
   if new.ensuite_count is not null and new.ensuite_count > coalesce(new.bedrooms, 0) then
     new.ensuite_count := coalesce(new.bedrooms, 0);
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function private.clamp_ensuite_to_bedrooms() from public, anon, authenticated;
 
 drop trigger if exists listings_clamp_ensuite on public.listings;

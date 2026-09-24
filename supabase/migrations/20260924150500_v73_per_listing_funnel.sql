@@ -27,7 +27,7 @@
  * calling it with ids of their choosing; it is also capped at 300 calls per
  * person per day. `listing_funnel` works over a fixed seven days, compares
  * only with OTHER listers' listings, and returns no median unless at least
- * three such listings exist, so no lister can read one rival's counts.
+ * five such listings exist, so no lister can read one rival's counts.
  *
  * Example listings are never counted (they must never feed a real aggregate),
  * and a lister opening their own listing is not a view.
@@ -60,7 +60,7 @@ create table if not exists public.listing_view_marks (
 );
 
 comment on table public.listing_view_marks is
-  'V-73: one day of memory so a count is of unique viewers. Holds a hash of viewer and day, never an id, and rows older than yesterday are deleted by record_listing_views.';
+  'V-73: one day of memory so a count is of unique viewers. Holds an HMAC of the viewer under a salt that lives one Lagos day, never an id; private.purge_view_marks deletes every row from before today, hourly, with the salt.';
 
 /* One random salt per Lagos day, and a per-person daily call count. */
 create table if not exists private.view_salts (
@@ -101,6 +101,11 @@ declare
   used integer;
 begin
   if p_viewer is null then
+    return;
+  end if;
+  /* Staff reading the catalogue are not renters looking (review). */
+  if private.has_role(p_viewer, 'admin'::public.app_role)
+     or private.has_role(p_viewer, 'super_admin'::public.app_role) then
     return;
   end if;
 
@@ -176,7 +181,7 @@ revoke all on function private.purge_view_marks() from public, anon, authenticat
 /*
  * One listing's last seven days, and the median of similar listings (same
  * property type and city, published, not examples, and NOT the same lister's)
- * beside each stage, only when at least three such listings exist. Answers
+ * beside each stage, only when at least five such listings exist. Answers
  * only the listing's own lister or staff, and nothing for anybody else.
  */
 create or replace function public.listing_funnel(p_listing uuid)
@@ -244,7 +249,7 @@ begin
   others as (select * from per where id <> p_listing),
   enough as (select count(*)::integer as n from others)
   select v.stage, v.mine::bigint,
-         case when (select n from enough) >= 3 then v.med else null end,
+         case when (select n from enough) >= 5 then v.med else null end,
          (select n from enough)
     from (
       select 'seen' as stage, (select seen from me) as mine, (select percentile_cont(0.5) within group (order by seen) from others)::numeric as med, 1 as ord
@@ -259,7 +264,7 @@ end;
 $$;
 
 comment on function public.listing_funnel(uuid) is
-  'V-73: one listing''s last seven days (seen, opened, saved, enquired, viewing booked, viewed) beside the median of other listers'' published, non-example listings of the same type in the same city, null unless at least three exist. Answers only the listing''s lister or staff.';
+  'V-73: one listing''s last seven days (seen, opened, saved, enquired, viewing booked, viewed) beside the median of other listers'' published, non-example listings of the same type in the same city, null unless at least five exist. Answers only the listing''s lister or staff.';
 
 revoke execute on function public.record_listing_views(uuid, uuid[], uuid) from public, anon, authenticated;
 grant execute on function public.record_listing_views(uuid, uuid[], uuid) to service_role;

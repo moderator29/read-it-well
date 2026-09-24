@@ -11,7 +11,7 @@ import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
-import { sideOfPath, SIDE_HOME, type Side } from "@/lib/side.constants";
+import { sideOfPath, sideOfPlansQuery, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
 import { SideSync } from "./SideSync";
 import { ProfileSwitcher, type ProfileSwitcherCopy } from "@/components/supply/ProfileSwitcher";
@@ -114,10 +114,11 @@ export function AppShell({
   /* Five navigation rows are the same pathname with a different `type`, so the
      rail needs that one parameter to tell them apart. Everything else about
      the query is ignored, so /search?q=Lekki still lights Explore. */
-  const activeType = useSearchParams().get("type");
+  const searchParams = useSearchParams();
+  const activeType = searchParams.get("type");
   const [drawer, setDrawer] = useState(preview?.drawer ?? false);
 
-  const effectiveSide: Side = sideOfPath(active) ?? side;
+  const effectiveSide: Side = sideOfPath(active) ?? sideOfPlansQuery(active, searchParams) ?? side;
   const immersive = isImmersiveRoute(active);
   const edgeToEdge = /^\/(listing|stay|restaurant)\/[^/]+$/.test(active);
 

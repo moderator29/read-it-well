@@ -803,6 +803,7 @@ export function ListingWizard({
   serviceCopy,
   unitCopy,
   floodCopy,
+  floodOpen = false,
   remainderCopy,
   moneyMapCopy,
   locale,
@@ -830,6 +831,8 @@ export function ListingWizard({
   unitCopy: Dictionary["shape"]["unit"];
   /** V-41: the flooding question. */
   floodCopy: Dictionary["shape"]["neighbours"];
+  /** V-41 is behind a fail-closed flag; the question shows only when it is on. */
+  floodOpen?: boolean;
   /** V-13: the sentence that refuses an unexplained remainder in the total. */
   remainderCopy?: Dictionary["afterTheGate"]["remainder"];
   /** V-46: the captions that say who each move-in line is paid to. */
@@ -2281,11 +2284,13 @@ export function ListingWizard({
             />
 
             {/* ------------------------------------- flooding (V-41) */}
-            <FloodQuestion
-              copy={floodCopy}
-              value={values.flooding}
-              onChange={(next) => set("flooding", next)}
-            />
+            {floodOpen && (
+              <FloodQuestion
+                copy={floodCopy}
+                value={values.flooding}
+                onChange={(next) => set("flooding", next)}
+              />
+            )}
 
             {/* ---------------------------------------- the compound (V-28) */}
             <CompoundQuestions

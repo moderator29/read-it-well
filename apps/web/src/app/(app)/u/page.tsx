@@ -105,11 +105,11 @@ export default async function PeoplePage({
         {searching ? `People matching ${view.query}` : "People who just arrived"}
       </p>
 
-      {/* Why these people, said plainly. A search for "Ikeja" that quietly also
-          matched an occupation looks like a broken search unless it says so. */}
+      {/* People are found by name and handle only (V-64): occupation and
+          place are a member's own facts and are searched by nobody. */}
       {searching && view.people.length > 0 ? (
         <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-          Searched by {matchLabel(view.matchedOn)}.
+          Searched by name and handle.
         </p>
       ) : null}
 
@@ -218,19 +218,3 @@ export default async function PeoplePage({
   );
 }
 
-/**
- * "name and handle", "name and handle, and what people do", and so on.
- *
- * Written out rather than printed as a list of three words, because the line
- * under a search result is a sentence somebody reads once and it should read
- * like one. Never truncated and never abbreviated: the label is the meaning of
- * the results below it.
- */
-function matchLabel(matched: ("name" | "occupation" | "place")[]): string {
-  const parts = matched.map((key) =>
-    key === "name" ? "name and handle" : key === "occupation" ? "what people do" : "where they are",
-  );
-  if (parts.length === 0) return "name and handle";
-  if (parts.length === 1) return parts[0] as string;
-  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-}

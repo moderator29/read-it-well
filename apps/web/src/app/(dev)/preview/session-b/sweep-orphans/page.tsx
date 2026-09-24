@@ -206,7 +206,7 @@ function View({ v, s }: { v: string; s?: string }) {
         <Frame title="Review your stay">
           <ReviewSubjectPanel subject={REVIEW_SUBJECT} />
           <div className="mt-block">
-            <ReviewForm subject={REVIEW_SUBJECT} />
+            <ReviewForm subject={REVIEW_SUBJECT} plansAction={{ label: t.shape.plans.seeStays, href: "/bookings?side=stays" }} />
           </div>
         </Frame>
       );

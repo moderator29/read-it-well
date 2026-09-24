@@ -15,8 +15,9 @@ describe("the per-listing funnel (V-73)", () => {
     expect(funnelFrom([])).toBeNull();
   });
 
-  it("prints no median from fewer than three similar listings", () => {
+  it("prints no median from fewer than five similar listings", () => {
     expect(funnelFrom(rows({}, 2))?.rows[0]?.median).toBeNull();
+    expect(funnelFrom(rows({}, 4))?.rows[0]?.median).toBeNull();
     expect(funnelFrom(rows({}, 5, null))?.rows[0]?.median).toBeNull();
   });
 

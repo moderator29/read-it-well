@@ -198,6 +198,7 @@ export default async function RentPayPage({
           subject={view.title}
           locale={locale}
           retryHref={`/rent/pay/${inspectionId}`}
+          plansAction={{ label: getDictionary(locale).shape.plans.seePlans, href: "/bookings?side=property" }}
         />
       )}
 

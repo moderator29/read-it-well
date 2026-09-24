@@ -97,6 +97,9 @@ export const shapeEn = {
     emptyStays: "Book a stay or a table and it lands here, dated, with what you can still do about it.",
     findPlace: "Find a place",
     findStay: "Find a stay",
+    /* V-76 review: where a finished stay or payment sends somebody. */
+    seeStays: "See your stays",
+    seePlans: "See your plans",
   },
   /** V-26: the shelf's market chip when the rent market is chosen. */
   market: {
@@ -118,7 +121,7 @@ export const shapeEn = {
       booked: "Viewing booked",
       viewed: "Viewed",
     },
-    noMedian: "Fewer than three similar homes are live in this city, so there is nothing fair to compare with yet.",
+    noMedian: "Fewer than five similar homes from other listers are live in this city, so there is nothing fair to compare with yet.",
     fixLabel: "One thing to do:",
     fixes: {
       "not-seen": "Nobody was shown this in results this week. Check the price, the area and the property type are filled in, so it answers the searches renters make.",
@@ -167,6 +170,7 @@ export const shapeEn = {
     cardLede: "One tap, counted for {area} only and never shown with your name.",
     results: {
       ok: "Counted. Thank you.",
+      off: "Answers are not being counted yet.",
       "signed-out": "Sign in to answer.",
       "not-member": "Join {area} to answer for it.",
       "too-new": "You can answer for {area} 14 days after joining it.",
@@ -230,6 +234,35 @@ export const shapeEn = {
     upTo: "Up to {amount}",
     from: "{amount} and above",
   },
+  /** V-43: commute by the clock, not by the kilometre. */
+  commute: {
+    line: "About {low} to {high} min in the {peak} rush to {anchor}.",
+    lineVia: "About {low} to {high} min in the {peak} rush to {anchor}, via {route}.",
+    am: "morning",
+    pm: "evening",
+    guide: "From our route guide.",
+    residents: "Reported by {n} residents, last 30 days.",
+    filterTitle: "Where do you go every day?",
+    anywhere: "Nowhere in particular",
+    within: "Under {n} minutes at the morning rush",
+    withinHint: "Only homes whose area has a time to this place, from our route guide or from residents.",
+    reportTitle: "How long did it take you?",
+    reportLede: "One number, counted for {area} only and never shown with your name.",
+    reportAnchor: "To",
+    reportMinutes: "Minutes, door to door",
+    reportSend: "Count it",
+    results: {
+      ok: "Counted. Thank you.",
+      "signed-out": "Sign in to answer.",
+      "not-member": "Join {area} to answer for it.",
+      "too-new": "You can answer for {area} 14 days after joining it.",
+      "bad-minutes": "Enter the minutes, from 5 to 300.",
+      "bad-anchor": "Choose where you went.",
+      "off-peak": "Journeys are counted in the rush hours: 5am to noon and 3pm to 10pm, Lagos time.",
+      already: "Already counted for today. Thank you.",
+      failed: "That did not save. Try again.",
+    },
+  },
   /** V-65: on the Rent market the budget is the cash at the door. */
   cash: {
     budgetTitle: "How much can you move in with?",
@@ -241,7 +274,9 @@ export const shapeEn = {
     upfrontYear: "One year upfront",
     upfrontYears: "{n} years upfront",
     listerAsks: "The lister asks for {duration} of rent up front: {amount} in all.",
+    durationYear: "one year",
     durationYears: "{n} years",
+    durationMonth: "one month",
     durationMonths: "{n} months",
     savedBudget: "Up to {amount} to move in",
     savedUpfrontYear: "One year upfront at most",

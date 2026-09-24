@@ -31,11 +31,32 @@
  *                       now, for the one-tap card.
  *
  * BORN LOCKED: area_pulses has RLS on and no grants; only the three functions
- * touch it. No existing table or policy is changed; `flooding` is an additive
+ * touch it.
+ *
+ * OFF UNTIL THE FOUNDER TURNS IT ON (review): every function checks the
+ * fail-closed `feature_flags` row 'neighbours_account' and does nothing
+ * (refuses, or returns no rows) unless it exists and says true. To open it:
+ *   update public.feature_flags set enabled = true where key = 'neighbours_account'; No existing table or policy is changed; `flooding` is an additive
  * nullable column written by the agent's own update.
  */
 
 begin;
+
+insert into public.feature_flags (key, enabled, note)
+values ('neighbours_account', false, 'V-41: residents'' light, water and flood reports beside the lister''s claim. Off until the founder opens it.')
+on conflict (key) do nothing;
+
+/* True only when the flag row exists and says true. */
+create or replace function private.neighbours_account_open()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((select f.enabled from public.feature_flags f where f.key = 'neighbours_account'), false);
+$$;
+revoke all on function private.neighbours_account_open() from public, anon, authenticated;
 
 alter table public.listings
   add column if not exists flooding text;
@@ -129,6 +150,9 @@ declare
   caller uuid := auth.uid();
   joined timestamptz;
 begin
+  if not private.neighbours_account_open() then
+    return 'off';
+  end if;
   if caller is null then
     return 'signed-out';
   end if;
@@ -173,6 +197,7 @@ as $$
      where ar.state_code = p_state
        and lower(btrim(ar.area)) = lower(btrim(p_area))
        and ar.status = 'ACTIVE'
+       and private.neighbours_account_open()
      order by (ar.kind = 'AREA') desc, ar.created_at
      limit 1
   ),
@@ -216,6 +241,7 @@ as $$
     from public.area_members m
     join public.areas ar on ar.id = m.area_id
    where m.user_id = auth.uid() and ar.status = 'ACTIVE'
+     and private.neighbours_account_open()
    order by m.joined_at;
 $$;
 

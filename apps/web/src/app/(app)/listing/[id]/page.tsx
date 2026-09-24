@@ -31,6 +31,7 @@ import { ListingService } from "@/components/app/listing/ListingService";
 import { RecordViews } from "@/components/app/search/RecordViews";
 import { ListingNeighbours } from "@/components/app/listing/ListingNeighbours";
 import { readFlooding, readNeighbours } from "@/lib/around/pulse-queries";
+import { flagIsOn, NEIGHBOURS_FLAG } from "@/lib/flags/read";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -370,7 +371,8 @@ export default async function ListingDetailPage({
      change. */
   /* V-41: the neighbours' account, for a home to let or sell. Read with the
      caller's session; the summary function applies its own threshold. */
-  const neighboursOn = (isRental || isSale) && session.state === "signed-in";
+  const neighboursOn =
+    (isRental || isSale) && session.state === "signed-in" && (await flagIsOn(NEIGHBOURS_FLAG));
   const [access, bookingConfirmed, neighbours, flooding] = await Promise.all([
     readListingAccess(listing.id),
     session.state === "signed-in"

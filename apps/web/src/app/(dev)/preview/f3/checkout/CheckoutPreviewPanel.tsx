@@ -12,6 +12,7 @@ export function CheckoutPreviewPanel() {
         view={CHECKOUT}
         savedCards={SAVED_CARDS}
         chargeSavedCard={async () => fail("Nothing is charged from the preview harness.")}
+        plansAction={{ label: "See your stays", href: "/bookings?side=stays" }}
       />
     </div>
   );

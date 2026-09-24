@@ -32,7 +32,7 @@ export function isPulseAnswer(kind: PulseKind, answer: string): boolean {
 }
 
 /** What the database says back to a pulse. Every value has words on screen. */
-export const PULSE_RESULTS = ["ok", "signed-out", "not-member", "too-new", "bad-answer", "lister", "already", "failed"] as const;
+export const PULSE_RESULTS = ["ok", "off", "signed-out", "not-member", "too-new", "bad-answer", "lister", "already", "failed"] as const;
 export type PulseResult = (typeof PULSE_RESULTS)[number];
 
 export function readPulseResult(value: unknown): PulseResult {

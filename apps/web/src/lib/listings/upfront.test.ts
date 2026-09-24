@@ -125,8 +125,10 @@ describe("the upfront address", () => {
 
 describe("upfrontDuration", () => {
   it("names the demand as a length", () => {
-    const copy = { durationYears: "{n} years", durationMonths: "{n} months" };
+    const copy = { durationYear: "one year", durationYears: "{n} years", durationMonth: "one month", durationMonths: "{n} months" };
     expect(upfrontDuration(24, copy)).toBe("2 years");
     expect(upfrontDuration(18, copy)).toBe("18 months");
+    expect(upfrontDuration(12, copy)).toBe("one year");
+    expect(upfrontDuration(1, copy)).toBe("one month");
   });
 });
