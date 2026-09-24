@@ -1212,7 +1212,7 @@ async function transferToUserWork(
      an address nobody uses. */
   const pace = await paceRecipientLookup(session.user.id);
   if (!pace.allowed) {
-    return fail(`You have checked a lot of recipients in a short time. Try again ${pace.retryIn}. Your balance is untouched.`);
+    return fail(`You have looked up a lot of recipients in a short time. Try again ${pace.retryIn}. Your balance is untouched.`);
   }
   const recipientId = target ? await resolveRecipientId(target, session.user.id) : null;
   const recipient = recipientId ? { id: recipientId } : null;

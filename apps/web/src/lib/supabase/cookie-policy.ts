@@ -21,7 +21,9 @@ import { parseCookieHeader, serializeCookieHeader, type CookieOptions } from "@s
  *
  * `HttpOnly` stays off: the browser client (uploads, realtime) reads the
  * session from these cookies. Moving that behind the server is its own piece
- * of work (SEC-07 pass two).
+ * of work (SEC-07 pass two). Until then, Safari and WKWebView may cap a
+ * cookie last written by script at 7 days (ITP); the next server-side
+ * rotation restores 30, so it only shortens a gap of 7 to 30 days on iOS.
  *
  * A removal (maxAge 0) stays a removal.
  */
@@ -41,8 +43,19 @@ export function withAuthCookiePolicy(
   };
 }
 
-/** On the server: Secure in production. */
-export function serverCookiesSecure(): boolean {
+/**
+ * On the server: Secure when the request came over HTTPS, as the browser side
+ * decides from `location.protocol`. The protocol is the proxy's
+ * `request.nextUrl.protocol`, or `x-forwarded-proto` in a server action or
+ * page (Vercel sets it). A production build opened over plain http (a phone
+ * on the LAN, a live-reload shell) therefore keeps its session, where a
+ * NODE_ENV rule would have set a Secure cookie the browser then dropped.
+ * Only when the request says nothing does it fall back to production = Secure.
+ */
+export function serverCookiesSecure(protocol?: string | null): boolean {
+  const proto = protocol?.split(",")[0]?.trim().replace(/:$/, "").toLowerCase();
+  if (proto === "https") return true;
+  if (proto === "http") return false;
   return process.env.NODE_ENV === "production";
 }
 

@@ -2,9 +2,11 @@
 -- ESC-15: the sweeper pays out a due escrow even when another due row cannot
 -- settle, and moves that row out of its queue (DISPUTED, "Paused by Vallo").
 -- ESC-05: a payee whose agent account is suspended is not paid automatically;
--- with the payouts switch off the sweeper pays nothing and confirm by both
--- sides pays nothing, and the money stays held; an admin may switch payouts
--- off but not back on.
+-- with the payouts switch off no payout door pays (the sweeper, confirm by
+-- both sides, the payer's inspection completing a confirmation, the
+-- platform's escrow_release) and the money stays held; an admin may switch
+-- payouts off but not back on. The inspection door also refuses a suspended
+-- payee.
 -- ESC-09: a dispute older than 48 hours raises an alert; a proposal nobody
 -- funded in 14 days is cancelled.
 do $$
@@ -13,8 +15,10 @@ declare
   admin  constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
   lister constant uuid := 'e0000000-0000-4000-8000-000000000001';   -- payee
   lister_agent constant uuid := 'e0000000-0000-4000-8000-000000000002';
-  mw uuid; lw uuid;
-  a uuid; b uuid; c uuid; d uuid; e2 uuid; f uuid; g uuid;
+  listing constant uuid := 'ed000000-0000-4000-8000-000000000003';  -- the lister's
+  listing2 constant uuid := 'ed000000-0000-4000-8000-000000000007'; -- also the lister's
+  mw uuid; lw uuid; cv uuid; cv2 uuid;
+  a uuid; b uuid; c uuid; d uuid; e2 uuid; f uuid; g uuid; h uuid; i uuid;
   n int; st text; r jsonb; why text;
 begin
   insert into public.feature_flags (key, enabled) values ('held_payments_payouts', true)
@@ -66,6 +70,7 @@ begin
     raise exception 'PROBE_FAIL esc-05: a plain admin resumed payouts';
   exception when insufficient_privilege then null; end;
   reset role;
+  perform set_config('request.jwt.claims', '', true);
 
   -- With payouts paused, the sweeper and confirm pay nothing; the money stays held.
   update public.escrows set auto_release_at = now() - interval '1 hour' where id = d;
@@ -79,11 +84,51 @@ begin
   if r->>'status' <> 'payouts_paused' then raise exception 'PROBE_FAIL esc-05: confirm while paused %', r; end if;
   select state::text into st from public.escrows where id = e2;
   if st <> 'HELD' then raise exception 'PROBE_FAIL esc-05: confirm while paused moved e to %', st; end if;
-  -- Resumed, the confirmed escrow is paid by the next sweep.
+  -- The payer's inspection completing a confirmation pays nothing while paused.
+  update public.listings set is_demo = false where id = listing;
+  insert into public.escrows (payer_id, payee_id, purpose, amount_minor, opened_by, listing_id)
+  values (member, lister, 'agency_fee', 100000, member, listing) returning id into h;
+  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status, metadata)
+  values (mw, 'escrow_hold', 'debit', 100000, 'rm-esc-' || h || '-hold', 'COMPLETED', jsonb_build_object('escrow_id', h));
+  update public.escrows set state = 'FUNDED', funded_at = now() where id = h;
+  update public.escrows set state = 'HELD', held_at = now(), auto_release_at = now() + interval '10 days',
+                            payee_confirmed_at = now() where id = h;
+  insert into public.conversations (guest_id, agent_id, context_kind, listing_id)
+  values (member, lister, 'listing', listing) returning id into cv;
+  insert into public.inspection_confirmations (conversation_id, user_id, listing_id) values (cv, member, listing);
+  select state::text into st from public.escrows where id = h and payer_confirmed_at is not null;
+  if st is distinct from 'HELD' then raise exception 'PROBE_FAIL esc-05: inspection while paused left h %', st; end if;
+  select count(*) into n from public.audit_log where action = 'escrow.payout_paused' and entity_id = h::text
+     and metadata ->> 'door' = 'inspection';
+  if n <> 1 then raise exception 'PROBE_FAIL esc-05: the inspection door left no payout_paused row'; end if;
+  -- The platform's release pays nothing while paused.
+  r := public.escrow_release(d, lister, 'probe-esc05-platform-release');
+  if r->>'status' <> 'payouts_paused' then raise exception 'PROBE_FAIL esc-05: platform release while paused %', r; end if;
+
+  -- Resumed, the confirmed escrows are paid by the next sweep.
   update public.feature_flags set enabled = true where key = 'held_payments_payouts';
   n := private.escrow_sweep_timeouts();
   select state::text into st from public.escrows where id = e2;
   if st <> 'RELEASED' then raise exception 'PROBE_FAIL esc-05: confirmed escrow not paid after resuming (%)', st; end if;
+  select state::text into st from public.escrows where id = h;
+  if st <> 'RELEASED' then raise exception 'PROBE_FAIL esc-05: inspection-confirmed escrow not paid after resuming (%)', st; end if;
+
+  -- The inspection door does not pay a suspended payee.
+  update public.listings set is_demo = false where id = listing2;
+  insert into public.escrows (payer_id, payee_id, purpose, amount_minor, opened_by, listing_id)
+  values (member, lister, 'agency_fee', 100000, member, listing2) returning id into i;
+  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status, metadata)
+  values (mw, 'escrow_hold', 'debit', 100000, 'rm-esc-' || i || '-hold', 'COMPLETED', jsonb_build_object('escrow_id', i));
+  update public.escrows set state = 'FUNDED', funded_at = now() where id = i;
+  update public.escrows set state = 'HELD', held_at = now(), auto_release_at = now() + interval '10 days',
+                            payee_confirmed_at = now() where id = i;
+  insert into public.agent_suspensions (agent_id, reason, suspended_by) values (lister_agent, 'probe', admin);
+  insert into public.conversations (guest_id, agent_id, context_kind, listing_id)
+  values (member, lister, 'listing', listing2) returning id into cv2;
+  insert into public.inspection_confirmations (conversation_id, user_id, listing_id) values (cv2, member, listing2);
+  select state::text, dispute_reason into st, why from public.escrows where id = i;
+  if st <> 'DISPUTED' or why not like '%suspended%' then raise exception 'PROBE_FAIL esc-05: inspection paid a suspended payee (% %)', st, why; end if;
+  update public.agent_suspensions set lifted_at = now(), lifted_by = admin where agent_id = lister_agent and lifted_at is null;
 
   -- ESC-09.
   insert into public.escrows (payer_id, payee_id, purpose, amount_minor, opened_by)

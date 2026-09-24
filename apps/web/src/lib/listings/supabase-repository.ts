@@ -1171,6 +1171,10 @@ export class SupabaseListingRepository implements ListingRepository {
           "listing_intent",
           filter.intent as Database["public"]["Enums"]["listing_intent"],
         );
+        /* UX-07: the rent market is tenancies. A row that leads with a nightly
+           or per-head rate is a stay or a table (headlinePrice checks the rate
+           first), so it is narrowed out here; matchesFacts decides the rest. */
+        if (filter.intent === "rent") query = query.or("rate_minor.is.null,rate_minor.lte.0");
       }
 
       /*

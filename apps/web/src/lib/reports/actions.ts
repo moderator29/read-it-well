@@ -24,6 +24,7 @@ import { fail, formDataToObject, ok, validate, type ActionResult } from "../acti
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { REPORT_CATEGORY_COPY, reportInputSchema } from "./schema";
+import { dbLimitRefusal } from "../security/db-limit";
 
 const ALREADY_MESSAGE =
   "You have already reported this, and it is with our team. We will not make you say it twice.";
@@ -77,7 +78,7 @@ export async function reportSomething(
     if (error) {
       if (error.code === "23505") return fail(ALREADY_MESSAGE);
       if (error.code === "23514") return fail("Pick one of the reasons listed.");
-      return fail(SERVICE_DOWN_MESSAGE);
+      return fail(dbLimitRefusal(error) ?? SERVICE_DOWN_MESSAGE);
     }
 
     return ok({ targetId, category });

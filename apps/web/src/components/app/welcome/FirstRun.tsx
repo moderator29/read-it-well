@@ -13,6 +13,7 @@ import { InterestChoices } from "./InterestChoices";
 import { WelcomeScene, type SceneCentre } from "./WelcomeScene";
 import { rememberFirstRunSeen, withPassedFlag } from "./first-run-seen";
 import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
+import { destinationOf, withNext } from "@/lib/auth/next-link";
 
 /**
  * Get started, to its governing image (`2A49E2F7` in docs/design/references/).
@@ -352,7 +353,10 @@ export function FirstRun({
   const onLast = index === lastIndex;
 
   /* The three doors, keeping whatever the person was on their way to. */
-  const signUpHref = next && /^\/sign-up(?:[/?#]|$)/.test(next) ? next : "/sign-up";
+  /* UX-02: a gate's `/sign-in?next=/listing/abc` becomes
+     `/sign-up?next=/listing/abc`, so a new account still arrives there. */
+  const signUpHref =
+    next && /^\/sign-up(?:[/?#]|$)/.test(next) ? next : withNext("/sign-up", destinationOf(next));
   const signInHref = next && /^\/sign-in(?:[/?#]|$)/.test(next) ? next : "/sign-in";
   const signInFirst = signInHref !== "/sign-in";
 

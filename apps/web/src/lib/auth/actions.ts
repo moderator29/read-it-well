@@ -391,7 +391,8 @@ export async function signUpWithEmail(
     email,
     password: field(formData, "password"),
     options: {
-      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      /* UX-02: the email link lands where the form was going, as the code does. */
+      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
       data: {
         first_name: firstName,
         surname,
@@ -827,7 +828,7 @@ export async function resendSignUpCode(
     type: "signup",
     email,
     options: {
-      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
     },
   });
 

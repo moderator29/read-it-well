@@ -77,7 +77,8 @@
   .nf-site-footer-link {
     display: inline-flex;
     align-items: center;
-    min-height: 2.5rem;
+    /* UI-09: a 44px target, the floor every other control here keeps. */
+    min-height: 2.75rem;
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
