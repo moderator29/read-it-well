@@ -33,6 +33,8 @@ const supabaseImageHost = (() => {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  /* SEC-17: no `X-Powered-By: Next.js` on every response. */
+  poweredByHeader: false,
 
   /**
    * Where the build output goes. `.next` unless something asks otherwise.

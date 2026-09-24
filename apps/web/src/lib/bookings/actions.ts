@@ -393,12 +393,15 @@ export async function cancel(
   const parsed = validate(cancelInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  // Ownership is proven by reading through the guest's own RLS client: a
-  // booking that is not theirs simply does not come back.
+  // Ownership is proven by reading through the caller's own RLS client AND
+  // as the guest. RLS alone also shows the booking to its host and to admins,
+  // and the cancel below is service-role work, so without the guest filter a
+  // host could cancel through the guest's path (SEC-17).
   const { data: booking, error: readError } = await session.supabase
     .from("bookings")
     .select("id, listing_id, status, check_in, check_out")
     .eq("id", parsed.data.bookingId)
+    .eq("guest_id", session.user.id)
     .maybeSingle();
 
   if (readError) return fail(SERVICE_DOWN_MESSAGE);
