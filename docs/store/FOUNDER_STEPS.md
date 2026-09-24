@@ -10,6 +10,12 @@ website and in the iPhone app, the moment Supabase reports the Apple provider
 enabled (the sign-in screens ask Supabase every five minutes). You need an
 Apple Developer account (organisation, VALLO SPACES LTD) first.
 
+> **Do not enable it in Supabase yet.** An account made with Apple does not
+> pass through the sign-up form, so today it records no agreement to the Terms
+> and no 18-or-over statement (NEW-A4-04). That has to be closed in code first,
+> and it is on the engineering list. Until then, email is the only way in, which
+> is also the recorded decision.
+
 1. **Apple Developer → Certificates, Identifiers & Profiles → Identifiers →
    the App ID `com.vallospaces.app`.** Tick **Sign In with Apple**, save.
 2. **Identifiers → + → Services IDs.** Identifier `com.vallospaces.signin`
@@ -97,18 +103,71 @@ redeploy. Strangers can then read search, stays, restaurants and each
 listing. Profiles, messages and money stay behind sign-in either way. Unset
 it to close the catalogue again.
 
-## 6. The native build, on a Mac (STORE-04, STORE-15)
+## 6. The native build and native push, on a Mac (STORE-04, STORE-15)
 
-1. `npm ci`, then `CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync --workspace @vallo/web`.
-   This refuses until section 3 is done; use `cap:sync:dev` for a test build.
-2. Open `apps/web/ios/App/App.xcodeproj`. In Signing & Capabilities add Push
-   Notifications and Associated Domains (Xcode adopts `App/App.entitlements`).
-3. In Vercel: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY` (from an APNs
-   `.p8` key), and `APNS_PRODUCTION=true` for App Store builds.
-4. Put the Firebase Android API key into `apps/web/android/app/google-services.json`
-   (`current_key`). It is not a secret.
-5. Record 30 seconds for the review notes: a push arriving, the share sheet on
-   a listing, and "Take a photo" in the listing wizard.
+**Where it stands, measured on 24 September 2026:**
+- The push plugin IS in both native projects (`ios/App/CapApp-SPM/Package.swift`,
+  `android/capacitor.settings.gradle`) and in the lockfile.
+- The server has both transports (`lib/push/transport/apns.ts`, `fcm.ts`).
+- The iPhone home-screen web push path is proven on the server.
+- **No native notification has ever reached a device.**
+- The four things only you can supply are listed below.
+- Until they exist, the drain simply leaves native rows queued, so nothing is
+  lost by waiting. `describeCredentials()` in `lib/push/credentials.ts` names
+  whatever is missing.
+
+**Android (Firebase, free):**
+1. Firebase console → a project → add an Android app with package
+   `com.vallospaces.app`.
+2. Download `google-services.json` into `apps/web/android/app/`, replacing the
+   placeholder. Today `current_key` reads
+   `PASTE_THE_ANDROID_API_KEY_FROM_FIREBASE_HERE`, and the release build refuses
+   on purpose until it is replaced. The file is not a secret; commit it.
+3. Project settings → Service accounts → Generate new private key. In Vercel
+   (Production), set `FCM_PROJECT_ID` and `FCM_SERVICE_ACCOUNT_JSON` (the whole
+   JSON, one line). **This one is a secret.**
+
+**iPhone (APNs, needs the 99 USD Apple Developer membership):**
+4. Certificates, Identifiers & Profiles:
+   - On the App ID `com.vallospaces.app`, enable Push Notifications, Sign in
+     with Apple and Associated Domains.
+   - Under Keys, create a key with Apple Push Notifications service. The `.p8`
+     downloads **once**.
+5. In Vercel (Production), set:
+   - `APNS_KEY_ID`, `APNS_TEAM_ID`, and `APNS_PRIVATE_KEY` (the `.p8` contents);
+   - `APNS_PRODUCTION=true` for TestFlight and App Store builds. A development
+     build's sandbox token sent to the production gateway fails with
+     BadDeviceToken.
+   - `APNS_BUNDLE_ID` is optional. It defaults to `com.vallospaces.app`.
+
+**The build:**
+6. Run `npm ci`, then
+   `CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync --workspace @vallo/web`.
+   This refuses until section 3 (deep links) is done. Use `cap:sync:dev` for a
+   test build.
+7. Open `apps/web/ios/App/App.xcodeproj`. In Signing & Capabilities, add Push
+   Notifications, Sign in with Apple and Associated Domains. Xcode adopts
+   `App/App.entitlements`.
+   - `aps-environment` reads `development` in the file. Archiving for
+     distribution signs it as `production` from the distribution profile.
+     Check the archive's entitlements once.
+8. For Android, run `./gradlew bundleRelease`. It writes
+   `app/build/outputs/bundle/release/app-release.aab`, which is what Play
+   accepts; an APK is not. Enrol in Play App Signing on the first upload.
+
+**The proof, before submission:**
+9. On a real iPhone and a real Android phone, both signed in:
+   - Turn on notifications in Settings → Notifications and check a row
+     appears in `/settings/devices`.
+   - Have the other QA account send a message, and watch it arrive with the
+     app closed.
+10. Record 30 seconds for the review notes: a push arriving, the share sheet
+    on a listing, and "Take a photo" in the listing wizard.
+
+**Still owed, and small:**
+- Android shows the browser's generic mark in the status bar, because there is
+  no monochrome Vallo notification icon. The fix is one 72×72 white-on-transparent
+  PNG, which goes with the icon work in section 8.
 
 ## 7. Account deletion: two things only you can settle (SEC-13, STORE-P2-02)
 
@@ -127,3 +186,25 @@ it to close the catalogue again.
    - Include the Vault in any backup or restore plan. A restored database
      without the key can no longer match erased mailboxes.
    - Never rotate the key without re-hashing every erased row.
+
+## 8. The icon master, for the designer (STORE-18)
+
+The stores accept today's icon, so this is craft, not a blocker. The current
+art is a rounded tile with its own glowing border, drawn inside a square
+(`public/brand/vallo-icon.png`). Each OS then applies its own mask, and the
+result is a ring and dark corners inside Apple's squircle, and a small tile on
+Android. What to commission, as files:
+
+| File | Size | What it is |
+|---|---|---|
+| `vallo-icon-master.png` | 1024×1024, RGB, **no alpha** | The mark on the navy ground `#010118`, **full bleed**. No drawn tile, border, rounded corners or glow at the edge: the OS draws the shape. Keep the mark inside the centre 80%. No wordmark (at 60 px it is texture). |
+| `vallo-icon-foreground.png` | 432×432, **transparent** | The mark alone, for Android's adaptive icon. Keep it inside the centre 66% (the part every launcher mask keeps). |
+| `vallo-icon-monochrome.png` | 432×432, transparent, one flat colour | The same mark as a silhouette. Android 13 themed icons use it, and so does the status-bar notification icon (a 72×72 export of it, white on transparent). |
+| `splash-mark.png` | 1024×1024, transparent | The mark only. It is centred on exactly `#010118`, so no square shows around it. |
+
+Then run `node scripts/build-native-icons.mjs` and `npx @capacitor/assets
+generate`. Put back the full-bleed Android background (the note in the script
+says how; `lib/theme/native-chrome.test.ts` fails until it is back), and check:
+- on an iPhone home screen, no ring inside the rounded shape;
+- on a Pixel with circle and squircle masks, the mark is whole and not tiny;
+- the splash shows no visible square.
