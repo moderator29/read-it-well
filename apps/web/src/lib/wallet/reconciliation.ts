@@ -12,6 +12,7 @@ import {
 } from "../payments/paystack";
 import { isBookingReference, isFundReference } from "../payments/references";
 import { recordMoneyAudit, type MoneyActor } from "./audit";
+import { recordAlert } from "../alerts/record";
 import {
   findUserByEmail,
   recordFunding,
@@ -69,6 +70,25 @@ export const DEFAULT_SWEEP_HOURS = 48;
  * Paystack about it. Below this, the transfer is simply in flight.
  */
 export const WITHDRAWAL_HOLD_TIMEOUT_MINUTES = 30;
+
+/**
+ * MON-01. How old a hold must be before "Paystack does not know this
+ * reference" (a 404 on verify) is read as "the transfer never started" and the
+ * hold is released. A transfer whose initiate call timed out may still have
+ * been accepted, and a just-created transfer can take a moment to be readable;
+ * releasing on a 404 inside that window would give the member their money
+ * back while the bank pays it out as well. Thirty minutes is far above both
+ * (Paystack's read-after-write lag is seconds, the initiate timeout is well
+ * under a minute), and it holds whatever age the caller asks the sweep to
+ * start from.
+ */
+export const NEVER_STARTED_MIN_AGE_MINUTES = 30;
+
+/**
+ * MON-01. A withdrawal still PENDING after this long, whatever Paystack says,
+ * is somebody's money held with no outcome, and an operator is told.
+ */
+export const WITHDRAWAL_STUCK_ALERT_MINUTES = 24 * 60;
 
 /* ------------------------------------------------------- one reference */
 
@@ -703,6 +723,27 @@ export type HoldSweepReport = {
  * being kind='withdrawal' and status='PENDING'. One statement, so a webhook
  * arriving mid-sweep and this sweeper cannot both settle the same hold.
  */
+/**
+ * MON-01. One high alert per stuck withdrawal (recordAlert folds a repeat into
+ * the open row), so the desk sees a member's money held with no outcome
+ * instead of the sweep logging it every run for ever.
+ */
+async function alertIfStuck(
+  reference: string,
+  amountMinor: number,
+  ageMinutes: number,
+  lastAnswer: string,
+): Promise<void> {
+  if (ageMinutes < WITHDRAWAL_STUCK_ALERT_MINUTES) return;
+  await recordAlert({
+    kind: "wallet.withdrawal_stuck",
+    severity: "critical",
+    subjectKind: "wallet_entry",
+    subjectId: reference,
+    detail: { age_minutes: ageMinutes, amount_minor: amountMinor, last_answer: lastAnswer },
+  });
+}
+
 export async function sweepStaleWithdrawalHolds(
   admin: AdminClient,
   options?: { olderThanMinutes?: number; apply?: boolean; actor?: MoneyActor },
@@ -785,8 +826,12 @@ export async function sweepStaleWithdrawalHolds(
       // and the hold is an orphan. This is the exact case the timeout exists
       // for: withdraw() posted the hold and then could not reach the processor.
       if (error instanceof PaystackError && error.status === 404) {
-        verdict = "FAILED";
-        reason = "transfer_never_started";
+        if (ageMinutes >= NEVER_STARTED_MIN_AGE_MINUTES) {
+          verdict = "FAILED";
+          reason = "transfer_never_started";
+        } else {
+          reason = "transfer_not_yet_readable";
+        }
       } else {
         logMoney({
           surface: "withdraw",
@@ -796,11 +841,13 @@ export async function sweepStaleWithdrawalHolds(
           amountMinor: hold.amount_minor,
         });
         resolutions.push({ ...base, action: "failed", reason: failureReason(error) });
+        await alertIfStuck(hold.reference, hold.amount_minor, ageMinutes, failureReason(error));
         continue;
       }
     }
 
     if (verdict === null) {
+      await alertIfStuck(hold.reference, hold.amount_minor, ageMinutes, reason);
       logMoney({
         surface: "withdraw",
         outcome: "received",

@@ -75,7 +75,7 @@ describe("callMoneyRpc", () => {
     expect(result.outcome).toBe("missing");
   });
 
-  it("reports missing when only the message says so, with no code", async () => {
+  it("reports failed, NOT missing, when only the message says so, with no code (MON-12)", async () => {
     const result = await callMoneyRpc(
       clientReturning({
         data: null,
@@ -85,7 +85,20 @@ describe("callMoneyRpc", () => {
       "escrow_hold",
       {},
     );
-    expect(result.outcome).toBe("missing");
+    expect(result.outcome).toBe("failed");
+  });
+
+  it("reports failed, NOT missing, for a relation missing inside a function that ran (MON-12)", async () => {
+    const result = await callMoneyRpc(
+      clientReturning({
+        data: null,
+        error: { code: "42P01", message: 'relation "public.wallet_ledger" does not exist' },
+      }),
+      "withdraw",
+      "hold_wallet_withdrawal",
+      {},
+    );
+    expect(result.outcome).toBe("failed");
   });
 
   it("reports failed, NOT missing, for an error the function itself raised", async () => {

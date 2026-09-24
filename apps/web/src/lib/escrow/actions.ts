@@ -120,6 +120,13 @@ const REFUSALS: Record<string, string> = {
    */
   demo_listing:
     "This property is an example of what the catalogue will hold, so nothing can be arranged against it.",
+  /* ESC-08: the database's own gate (the switch and the custody decision). */
+  held_payments_closed: "Held payments are not available at the moment, so nothing was moved.",
+  /* ESC-05: both sides agreed, and the money stays held until payouts resume. */
+  payouts_paused:
+    "Your confirmation is recorded. Payouts are paused for a moment, so the money stays held and is paid out as soon as they resume.",
+  paused_for_review:
+    "Your confirmation is recorded. Our team needs to check something before this is paid out, so the money stays held. We will be in touch.",
 };
 
 function refusalFor(status: string): string {

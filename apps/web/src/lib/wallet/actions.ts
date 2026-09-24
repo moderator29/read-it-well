@@ -29,7 +29,7 @@
  */
 
 import { moneyHoldRefusal } from "./money-hold";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
@@ -68,7 +68,13 @@ import {
 } from "../payments/yellowcard";
 import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
-import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
+import {
+  CONFLICT_MESSAGE,
+  IN_FLIGHT_MESSAGE,
+  UNGUARDED_REFUSAL_MESSAGE,
+  withGuardedIdempotency,
+  withIdempotency,
+} from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
 import { lookupBank, resolveBankAccountName, sameAccountName } from "../payments/bank-resolve";
 import { recordMoneyAudit } from "./audit";
@@ -77,14 +83,13 @@ import {
   displayNameFor,
   ensureWalletId,
   getAdminClient,
-  postEntry,
   annotateEntry,
   recordFunding,
   setEntryStatus,
   type AdminClient,
 } from "./ledger";
 import { callMoneyRpc, readMoneyStatus } from "./rpc";
-import { resolveRecipientId } from "./handle-recipient";
+import { paceRecipientLookup, resolveRecipientId } from "./handle-recipient";
 import { parseRecipientInput } from "./recipient-input";
 import { readStatement } from "./repository";
 import { chargeSavedCard } from "../payments/charge-saved-card";
@@ -707,55 +712,22 @@ async function withdrawWork(
     });
   } else {
     /*
-     * THE FALLBACK. See the identical note in transferToUser: the public
-     * wrapper is not applied yet, and refusing every withdrawal would be a
-     * worse answer than running the path that already shipped. It says so on
-     * the money channel every time, and it goes the day
-     * public.hold_wallet_withdrawal lands.
+     * MON-12. No unlocked fallback. public.hold_wallet_withdrawal is the only
+     * way a withdrawal hold is placed, as it is for the saved-account door: a
+     * balance read followed by a separate insert let two withdrawals in a
+     * deploy window both pass the check and overdraw the wallet.
      */
     logMoney({
       surface: "withdraw",
       outcome: "unconfigured",
-      reason: "atomic_hold_unavailable_using_unlocked_path",
+      reason: "atomic_hold_unavailable_refused",
       reference,
       amountMinor,
       userId: session.user.id,
     });
-    try {
-      const walletId = await ensureWalletId(admin, session.user.id);
-      const available = await availableBalanceMinor(admin, walletId);
-      if (amountMinor > available) {
-        return fail(
-          `Your available balance is ${nairaExact(available)}, so this withdrawal of ${nairaExact(amountMinor)} cannot go through.`,
-          { amount: "There is not enough in your wallet for this amount." },
-        );
-      }
-
-      await postEntry(admin, {
-        walletId,
-        kind: "withdrawal",
-        direction: "debit",
-        amountMinor,
-        reference,
-        status: "PENDING",
-        metadata: holdMetadata,
-      });
-
-      await recordMoneyAudit(admin, {
-        actor: { kind: "user", userId: session.user.id },
-        action: "wallet.withdrawal.hold_placed",
-        reference,
-        amountMinor,
-        subjectUserId: session.user.id,
-        walletId,
-        outcome: "posted",
-        detail: { bank_code: bank.code, account_last4: accountLast4, atomic: false },
-      });
-    } catch {
-      return fail(
-        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
-      );
-    }
+    return fail(
+      "Withdrawals are not available for a moment. Your balance is untouched. Please try again shortly.",
+    );
   }
 
   let transferAttempted = false;
@@ -1167,17 +1139,49 @@ export async function transferToUser(
   const key = formDataToObject(formData)["idempotencyKey"] ?? null;
   if (session.state !== "signed-in" || !key) return transferToUserWork(_prev, formData);
 
-  const run = await withIdempotency<ActionResult<TransferReceipt | null>>(
+  const run = await withGuardedIdempotency<ActionResult<TransferReceipt | null>>(
     {
       scope: TRANSFER_SCOPE,
       key,
       subject: subjectForUser(session.user.id),
       shouldRecord: (result) => result.ok,
+      /* MON-11: a replay that asks for something else is a conflict, and a
+         key store that cannot be asked is a refusal, not an unguarded send. */
+      fingerprint: transferFingerprint(formData),
+      failClosed: true,
     },
     () => transferToUserWork(_prev, formData),
   );
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  if (run.status === "conflict") return fail(CONFLICT_MESSAGE);
+  if (run.status === "unavailable") return fail(UNGUARDED_REFUSAL_MESSAGE);
   return run.result;
+}
+
+/** What a send asks for, canonically: who, how much, and the note. */
+function transferFingerprint(formData: FormData): string {
+  const raw = formDataToObject(formData);
+  const canonical = JSON.stringify([
+    String(raw["recipientEmail"] ?? "").trim().toLowerCase(),
+    String(raw["amount"] ?? "").trim(),
+    String(raw["note"] ?? "").trim(),
+  ]);
+  return createHash("sha256").update(canonical).digest("hex");
+}
+
+/**
+ * MON-11. The transfer's ledger references come from the payer and the key,
+ * so a retry that outlives the key store's window (or a process that died
+ * after the transfer committed) meets the database's unique reference and is
+ * a duplicate for ever, never a second transfer. Without a key they are fresh.
+ */
+function transferPairId(userId: string, key: string | undefined): string {
+  if (!key) return randomUUID();
+  const hex = createHash("sha256").update(`wallet.transfer:${userId}:${key}`).digest("hex");
+  // Shaped as a version-5-style uuid so every reader of the reference parses it.
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-${((parseInt(hex.slice(16, 18), 16) & 0x3f) | 0x80)
+    .toString(16)
+    .padStart(2, "0")}${hex.slice(18, 20)}-${hex.slice(20, 32)}`;
 }
 
 /** One scope for the send door, matching the two funding doors' shape. */
@@ -1203,7 +1207,14 @@ async function transferToUserWork(
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
   const target = parseRecipientInput(parsed.data.recipientEmail);
-  const recipientId = target ? await resolveRecipientId(target) : null;
+  /* NEW-A2-04: the send shares the lookup's budget, so the two doors together
+     cannot walk a list of addresses; and a blocked person reads exactly like
+     an address nobody uses. */
+  const pace = await paceRecipientLookup(session.user.id);
+  if (!pace.allowed) {
+    return fail(`You have checked a lot of recipients in a short time. Try again ${pace.retryIn}. Your balance is untouched.`);
+  }
+  const recipientId = target ? await resolveRecipientId(target, session.user.id) : null;
   const recipient = recipientId ? { id: recipientId } : null;
   if (!recipient) {
     return fail(
@@ -1221,7 +1232,7 @@ async function transferToUserWork(
   }
 
   const amountMinor = parsed.data.amount;
-  const pairId = randomUUID();
+  const pairId = transferPairId(session.user.id, parsed.data.idempotencyKey);
   const outReference = `${P2P_PREFIX}${pairId}-out`;
   const inReference = `${P2P_PREFIX}${pairId}-in`;
 
