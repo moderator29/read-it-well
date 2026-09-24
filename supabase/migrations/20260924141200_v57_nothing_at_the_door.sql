@@ -153,8 +153,8 @@ drop trigger if exists arrival_charge_snapshots_frozen on public.arrival_charge_
 create trigger arrival_charge_snapshots_frozen before update on public.arrival_charge_snapshots
   for each row execute function private.door_charge_reports_frozen();
 
--- Nor is either deleted on its own. A row goes only with what it hangs off
--- (its listing or property, its booking), when the cascade has already
+-- Nor is any of the three deleted on its own. A row goes only with what it
+-- hangs off (its listing or property, its booking), when the cascade has already
 -- removed that parent; a declaration a paid booking froze is held by the
 -- restrict on the snapshot's reference.
 create or replace function private.arrival_record_delete_guard()
@@ -164,7 +164,7 @@ security definer
 set search_path to 'pg_catalog', 'public'
 as $function$
 begin
-  if tg_table_name = 'arrival_charge_snapshots' then
+  if tg_table_name in ('arrival_charge_snapshots', 'door_charge_reports') then
     if not exists (select 1 from public.bookings b where b.id = old.booking_id) then
       return old;
     end if;
@@ -180,6 +180,9 @@ revoke all on function private.arrival_record_delete_guard() from public, anon, 
 
 drop trigger if exists arrival_charge_declarations_kept on public.arrival_charge_declarations;
 create trigger arrival_charge_declarations_kept before delete on public.arrival_charge_declarations
+  for each row execute function private.arrival_record_delete_guard();
+drop trigger if exists door_charge_reports_kept on public.door_charge_reports;
+create trigger door_charge_reports_kept before delete on public.door_charge_reports
   for each row execute function private.arrival_record_delete_guard();
 drop trigger if exists arrival_charge_snapshots_kept on public.arrival_charge_snapshots;
 create trigger arrival_charge_snapshots_kept before delete on public.arrival_charge_snapshots

@@ -234,6 +234,16 @@ export const afterTheGateEn = {
   },
   arrival: {
     /** V-57. The host's declaration and the guest's line. */
+    /** What the declare and report doors say when they refuse, by status. */
+    words: {
+      serviceDown: "That did not go through. Nothing was changed. Try again in a moment.",
+      not_found: "We could not find that on your account.",
+      incomplete: "Answer all five: an amount, or none.",
+      not_a_paid_stay: "Only a paid stay can be reported here.",
+      not_arrived: "You can report this from your check-in day.",
+      bad_amount: "Enter the amount you were asked for, or leave it blank.",
+      already_reported: "You have already reported this stay. Support has it.",
+    },
     title: "Charges at the door",
     lede: "Say every charge a guest could be asked for when they arrive, with an amount, or none. A charge not on this page is not owed, and guests are told so. A stay cannot be published until all five are answered.",
     keys: {

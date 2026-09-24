@@ -3,6 +3,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { parseNairaToKobo } from "../agent/listings-schema";
@@ -13,16 +15,12 @@ import { ARRIVAL_KEYS, ARRIVAL_UNITS, type ArrivalAnswer, type ArrivalKey } from
  * asked at the door. Both are one call to a definer door on the caller's own
  * session; the database checks ownership, completeness and the paid stay.
  */
-const SERVICE_DOWN = "That did not go through. Nothing was changed. Try again in a moment.";
-const WORDS: Record<string, string> = {
-  not_found: "We could not find that on your account.",
-  incomplete: "Answer all five: an amount, or none.",
-  bad_target: SERVICE_DOWN,
-  not_a_paid_stay: "Only a paid stay can be reported here.",
-  not_arrived: "You can report this from your check-in day.",
-  bad_amount: "Enter the amount you were asked for, or leave it blank.",
-  already_reported: "You have already reported this stay. Support has it.",
-};
+/** The refusals, by status, from the dictionary; bad_target is never the person's doing. */
+async function words(): Promise<{ say: (status: string | null | undefined) => string; down: string; of: Record<string, string> }> {
+  const copy = getDictionary(await getLocale()).afterTheGate.arrival.words;
+  const of: Record<string, string> = { ...copy, bad_target: copy.serviceDown };
+  return { say: (status) => of[status ?? ""] ?? copy.serviceDown, down: copy.serviceDown, of };
+}
 
 const answerSchema = z.union([
   z.object({ none: z.literal(true) }),
@@ -34,6 +32,7 @@ export async function declareArrivalCharges(input: {
   accommodationId?: string | null;
   answers: Record<string, unknown>;
 }): Promise<ActionResult<null>> {
+  const w = await words();
   const parsed = validate(
     z.object({
       listingId: z.uuid().nullable().optional(),
@@ -42,16 +41,16 @@ export async function declareArrivalCharges(input: {
     }),
     input,
   );
-  if (!parsed.ok) return fail(WORDS.incomplete as string);
+  if (!parsed.ok) return fail(w.of.incomplete as string);
   const charges: Partial<Record<ArrivalKey, ArrivalAnswer>> = {};
   for (const key of ARRIVAL_KEYS) {
     const answer = parsed.data.answers[key];
-    if (!answer) return fail(WORDS.incomplete as string);
+    if (!answer) return fail(w.of.incomplete as string);
     if ("none" in answer) {
       charges[key] = { none: true };
     } else {
       const minor = parseNairaToKobo(answer.naira);
-      if (minor === null || minor <= 0) return fail(WORDS.incomplete as string);
+      if (minor === null || minor <= 0) return fail(w.of.incomplete as string);
       charges[key] = { minor, per: answer.per };
     }
   }
@@ -65,19 +64,20 @@ export async function declareArrivalCharges(input: {
       p_charges: charges,
     });
     const status = !error && data && typeof data === "object" ? String((data as Record<string, unknown>).status) : null;
-    if (status !== "ok") return fail(WORDS[status ?? ""] ?? SERVICE_DOWN);
+    if (status !== "ok") return fail(w.say(status));
     revalidatePath("/host/arrival");
     return ok(null);
   } catch {
-    return fail(SERVICE_DOWN);
+    return fail(w.down);
   }
 }
 
 export async function reportDoorCharge(input: { bookingId: string; askedNaira?: string }): Promise<ActionResult<null>> {
+  const w = await words();
   const parsed = validate(z.object({ bookingId: z.uuid(), askedNaira: z.string().optional() }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const asked = parsed.data.askedNaira?.trim() ? parseNairaToKobo(parsed.data.askedNaira) : null;
-  if (parsed.data.askedNaira?.trim() && (asked === null || asked <= 0)) return fail(WORDS.bad_amount as string);
+  if (parsed.data.askedNaira?.trim() && (asked === null || asked <= 0)) return fail(w.of.bad_amount as string);
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -87,10 +87,10 @@ export async function reportDoorCharge(input: { bookingId: string; askedNaira?: 
       p_asked: asked,
     });
     const status = !error && data && typeof data === "object" ? String((data as Record<string, unknown>).status) : null;
-    if (status !== "ok") return fail(WORDS[status ?? ""] ?? SERVICE_DOWN);
+    if (status !== "ok") return fail(w.say(status));
     revalidatePath(`/bookings/${parsed.data.bookingId}`);
     return ok(null);
   } catch {
-    return fail(SERVICE_DOWN);
+    return fail(w.down);
   }
 }
