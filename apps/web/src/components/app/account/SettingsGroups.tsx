@@ -248,16 +248,6 @@ export function PrivacyCard({ t }: { t: Dictionary }) {
 
   return (
     <SettingsGroup label={copy.label} note={copy.note}>
-      <RowSelect
-        icon="user"
-        label={copy.whoCanSeeMe}
-        value={settings.profileVisibility}
-        options={[
-          { value: "everyone", label: copy.everyone },
-          { value: "private", label: copy.onlyMe },
-        ]}
-        onChange={(next) => set("profileVisibility", next)}
-      />
       <RowSwitch
         icon="verified"
         label={copy.readReceipts}

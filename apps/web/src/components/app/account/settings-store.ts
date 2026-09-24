@@ -17,7 +17,6 @@ export const SETTINGS_KEY = "nf_settings";
 
 export type TextSize = "s" | "m" | "l";
 export type DistanceUnit = "km" | "mi";
-export type ProfileVisibility = "everyone" | "private";
 
 export type NfSettings = {
   reduceMotion: boolean;
@@ -26,7 +25,6 @@ export type NfSettings = {
   notifyEmail: boolean;
   notifySms: boolean;
   notifyWhatsapp: boolean;
-  profileVisibility: ProfileVisibility;
   readReceipts: boolean;
   personalisedRecs: boolean;
   defaultCity: string;
@@ -50,7 +48,6 @@ export const SETTINGS_DEFAULTS: NfSettings = {
   notifyEmail: true,
   notifySms: false,
   notifyWhatsapp: true,
-  profileVisibility: "everyone",
   readReceipts: true,
   personalisedRecs: true,
   defaultCity: "",

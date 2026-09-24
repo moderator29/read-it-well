@@ -159,6 +159,8 @@ export function AccountPrivacyCard({
   initialDataSaver: boolean;
 }) {
   const [hideActivity, setHideActivity] = useState(initialPrivacy.hideActivity);
+  const [showOccupation, setShowOccupation] = useState(initialPrivacy.showOccupation);
+  const [showHomeTown, setShowHomeTown] = useState(initialPrivacy.showHomeTown);
   const [dataSaver, setDataSaver] = useState(initialDataSaver);
   const { save, error, saved, pending } = useSettingsSaver();
   const copy = t.settings.notify;
@@ -174,6 +176,31 @@ export function AccountPrivacyCard({
           const previous = hideActivity;
           setHideActivity(next);
           save({ privacy: { hideActivity: next } }, () => setHideActivity(previous));
+        }}
+        disabled={pending}
+      />
+      {/* V-64: private by default, one switch per fact. */}
+      <RowSwitch
+        icon="user"
+        label={t.shape.profile.showOccupation}
+        sub={t.shape.profile.showOccupationSub}
+        checked={showOccupation}
+        onChange={(next) => {
+          const previous = showOccupation;
+          setShowOccupation(next);
+          save({ privacy: { showOccupation: next } }, () => setShowOccupation(previous));
+        }}
+        disabled={pending}
+      />
+      <RowSwitch
+        icon="location"
+        label={t.shape.profile.showHomeTown}
+        sub={t.shape.profile.showHomeTownSub}
+        checked={showHomeTown}
+        onChange={(next) => {
+          const previous = showHomeTown;
+          setShowHomeTown(next);
+          save({ privacy: { showHomeTown: next } }, () => setShowHomeTown(previous));
         }}
         disabled={pending}
       />

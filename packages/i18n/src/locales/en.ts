@@ -1470,10 +1470,7 @@ export const en = {
 
     privacy: {
       label: "Privacy",
-      note: "Who can see me covers your name and reviews on listings.",
-      whoCanSeeMe: "Who can see me",
-      everyone: "Everyone",
-      onlyMe: "Only me",
+      note: "Your occupation and home town are private unless you turn them on under Privacy.",
       readReceipts: "Read receipts",
       readReceiptsSub: "Let hosts see when you have read their messages.",
       personalised: "Personalised recommendations",

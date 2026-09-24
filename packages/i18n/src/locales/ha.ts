@@ -965,10 +965,6 @@ export const ha: Dictionary = withFallback({
 
     privacy: {
       label: "Sirri",
-      note: "Wa zai iya ganina ya shafi sunanka da sharhinka a kan kadarori.",
-      whoCanSeeMe: "Wa zai iya ganina",
-      everyone: "Kowa",
-      onlyMe: "Ni kaɗai",
       readReceipts: "Alamar karantawa",
       readReceiptsSub: "Bari masu gida su ga lokacin da ka karanta saƙonninsu.",
       personalised: "Shawarwarin da suka dace da kai",

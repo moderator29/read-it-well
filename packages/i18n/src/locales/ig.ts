@@ -962,10 +962,6 @@ export const ig: Dictionary = withFallback({
 
     privacy: {
       label: "Nzuzo",
-      note: "Onye nwere ike ịhụ m metụtara aha gị na nyocha gị n'elu ihe ndepụta.",
-      whoCanSeeMe: "Onye nwere ike ịhụ m",
-      everyone: "Onye ọ bụla",
-      onlyMe: "Naanị m",
       readReceipts: "Akara ọgụgụ",
       readReceiptsSub: "Mee ka ndị nwe ụlọ hụ mgbe ị gụrụ ozi ha.",
       personalised: "Ndụmọdụ dabara gị",

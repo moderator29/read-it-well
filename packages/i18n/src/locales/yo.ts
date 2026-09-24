@@ -960,10 +960,6 @@ export const yo: Dictionary = withFallback({
 
     privacy: {
       label: "Àṣírí",
-      note: "Ta ni ó lè rí mi kàn orúkọ rẹ àti àtúnyẹ̀wò rẹ lórí àwọn àtòjọ.",
-      whoCanSeeMe: "Ta ni ó lè rí mi",
-      everyone: "Gbogbo ènìyàn",
-      onlyMe: "Èmi nìkan",
       readReceipts: "Ìjẹ́rìí kíkà",
       readReceiptsSub: "Jẹ́ kí àwọn olùgbàlejò rí ìgbà tí o ka ìránṣẹ́ wọn.",
       personalised: "Àbá tí ó bá ọ mu",
