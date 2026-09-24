@@ -154,7 +154,8 @@ grant select on public.rent_payment_shares to authenticated;
 
 /* A share is void only when the whole move-in fell through: the booking was
    CANCELLED, or the full total was refunded or reversed. A partial refund
-   leaves the tenancy standing and the shares with it. */
+   leaves the tenancy standing and the shares with it. The same test as
+   private.tenancy_void (V-36), named here for the doors that read it. */
 create or replace function private.rent_share_void(p_rent_payment uuid)
 returns boolean
 language sql
@@ -162,13 +163,7 @@ stable
 security definer
 set search_path to ''
 as $function$
-  select exists (
-    select 1 from public.rent_payments rp join public.bookings b on b.id = rp.booking_id
-     where rp.id = p_rent_payment
-       and (b.status = 'CANCELLED'
-            or coalesce((select sum(r.refund_minor) from public.booking_refunds r where r.booking_id = b.id), 0) >= rp.total_minor
-            or coalesce((select sum(o.amount_minor) from public.rent_refunds_owed o where o.booking_id = b.id), 0) >= rp.total_minor)
-  );
+  select private.tenancy_void(p_rent_payment);
 $function$;
 
 revoke all on function private.rent_share_void(uuid) from public, anon, authenticated;

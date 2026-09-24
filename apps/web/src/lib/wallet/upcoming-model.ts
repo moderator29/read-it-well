@@ -36,3 +36,17 @@ export function mergeUpcoming(items: UpcomingItem[], today: string): UpcomingIte
     .filter((item) => Number.isSafeInteger(item.amountMinor) && item.amountMinor > 0)
     .sort((a, b) => (a.on === b.on ? ORDER[a.kind] - ORDER[b.kind] || a.id.localeCompare(b.id) : a.on < b.on ? -1 : 1));
 }
+
+/**
+ * V-86. A flatmate's share is coming up only once they accepted it, while it
+ * is unpaid, payable and not void, with a whole amount and a move-in day.
+ * An invitation not yet answered, or declined, is not money they owe.
+ */
+export function shareComingUp(
+  share: { answer?: unknown; paid_at?: unknown; void?: unknown; payable?: unknown } | null,
+  amountMinor: number | null,
+  due: string | null,
+): boolean {
+  if (!share || amountMinor === null || !due) return false;
+  return share.answer === "accepted" && !share.paid_at && share.void !== true && share.payable === true;
+}

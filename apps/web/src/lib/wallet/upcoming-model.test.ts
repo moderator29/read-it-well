@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mergeUpcoming, type UpcomingItem } from "./upcoming-model";
+import { mergeUpcoming, shareComingUp, type UpcomingItem } from "./upcoming-model";
 
 const item = (kind: UpcomingItem["kind"], on: string, amountMinor = 100, id = kind): UpcomingItem => ({
   kind,
@@ -23,5 +23,23 @@ describe("mergeUpcoming", () => {
   });
   it("keeps today and refuses a malformed day", () => {
     expect(mergeUpcoming([item("held", "2026-09-24"), item("stay", "24/09/2026")], "2026-09-24")).toHaveLength(1);
+  });
+});
+
+describe("shareComingUp", () => {
+  const open = { answer: "accepted", paid_at: null, void: false, payable: true };
+  it("shows an accepted, unpaid, payable share", () => {
+    expect(shareComingUp(open, 100, "2026-10-01")).toBe(true);
+  });
+  it("hides a share not yet answered, or declined", () => {
+    expect(shareComingUp({ ...open, answer: null }, 100, "2026-10-01")).toBe(false);
+    expect(shareComingUp({ ...open, answer: "declined" }, 100, "2026-10-01")).toBe(false);
+  });
+  it("hides a paid, void or closed share, and one with no amount or day", () => {
+    expect(shareComingUp({ ...open, paid_at: "2026-09-01" }, 100, "2026-10-01")).toBe(false);
+    expect(shareComingUp({ ...open, void: true }, 100, "2026-10-01")).toBe(false);
+    expect(shareComingUp({ ...open, payable: false }, 100, "2026-10-01")).toBe(false);
+    expect(shareComingUp(open, null, "2026-10-01")).toBe(false);
+    expect(shareComingUp(open, 100, null)).toBe(false);
   });
 });

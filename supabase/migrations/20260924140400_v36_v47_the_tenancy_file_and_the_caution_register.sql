@@ -118,7 +118,10 @@ grant execute on function private.caution_return_days() to authenticated;
 grant execute on function private.tenancy_party(uuid) to authenticated;
 grant execute on function private.is_staff() to authenticated;
 
-/* A tenancy is void when its charge was cancelled, refunded or reversed. */
+/* A tenancy is void only when the whole move-in fell through: its booking was
+   CANCELLED, or refunds or reversals reach the full total. A partial refund
+   (a fee handed back, say) leaves the tenancy, its caution and its shares
+   standing. V-86's rent_share_void is this same test. */
 create or replace function private.tenancy_void(p_rent_payment uuid)
 returns boolean
 language sql
@@ -131,8 +134,8 @@ as $function$
       join public.bookings b on b.id = rp.booking_id
      where rp.id = p_rent_payment
        and (b.status = 'CANCELLED'
-            or exists (select 1 from public.booking_refunds r where r.booking_id = b.id and r.refund_minor > 0)
-            or exists (select 1 from public.rent_refunds_owed o where o.booking_id = b.id))
+            or coalesce((select sum(r.refund_minor) from public.booking_refunds r where r.booking_id = b.id), 0) >= rp.total_minor
+            or coalesce((select sum(o.amount_minor) from public.rent_refunds_owed o where o.booking_id = b.id), 0) >= rp.total_minor)
   );
 $function$;
 

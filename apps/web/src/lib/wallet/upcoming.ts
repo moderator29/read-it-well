@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import { lagosToday } from "../rent/schema";
 import { cautionState, tenancyEnd, type RentPeriod } from "../tenancy/model";
-import { mergeUpcoming, type UpcomingItem } from "./upcoming-model";
+import { mergeUpcoming, shareComingUp, type UpcomingItem } from "./upcoming-model";
 
 /**
  * V-84. The "Coming up" read for the wallet: rent renewals and cautions from
@@ -166,9 +166,7 @@ export async function readUpcoming(now: Date = new Date()): Promise<UpcomingItem
         const share = !read.error && read.data && typeof read.data === "object" ? (read.data as Row) : null;
         const amount = share ? int(share.share_minor) : null;
         const due = share ? dayOf(share.move_in) : null;
-        if (!share || share.paid_at || share.void === true || share.payable !== true || share.answer !== "accepted" || amount === null || !due) {
-          continue;
-        }
+        if (!shareComingUp(share, amount, due) || amount === null || !due) continue;
         items.push({ kind: "share", on: due, amountMinor: amount, href: `/rent/share/${row.id}`, id: `share-${row.id}` });
       }
     }
