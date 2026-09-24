@@ -98,6 +98,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
      * projection row means no shield.
      */
     hostVerified: detail.catalogue?.verified === true,
+    isExample: accommodation.is_demo === true || detail.business.is_demo === true,
     /*
      * THE RATING IS THE PROJECTION'S, AND TODAY THE PROJECTION HAS NONE.
      *

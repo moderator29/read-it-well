@@ -65,9 +65,13 @@ export function ExampleNotice({
       screen's own, which sits above the fold and is set a step larger. */
   variant = "card",
   className,
+  statement = EXAMPLE_STATEMENT,
 }: {
   variant?: "card" | "page";
   className?: string;
+  /** The sentence in the reader's language (`t.examples.statement`); the
+      English constant when a caller has no dictionary to hand. */
+  statement?: string;
 }) {
   const page = variant === "page";
   return (
@@ -100,7 +104,7 @@ export function ExampleNotice({
         size={ICON.inline}
         className="mt-3xs shrink-0 text-[var(--nf-state-warning)]"
       />
-      <span>{EXAMPLE_STATEMENT}</span>
+      <span>{statement}</span>
     </p>
   );
 }

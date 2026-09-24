@@ -140,8 +140,8 @@ export function ListingReviews({
       ) : (
         <p className={`mt-group flex items-start gap-inline ${TYPE.body}`}>
           <UiIcon name="star" size={ICON.inline} className="mt-3xs shrink-0" />
-          Written reviews from verified stays will appear here once guests share
-          them on Vallo.
+          Written reviews from stays booked and finished on Vallo will appear here
+          once guests share them.
         </p>
       )}
     </div>

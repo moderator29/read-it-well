@@ -71,7 +71,7 @@ export default async function RentPayPage({
           state="confirmed"
           mark="shield-check"
           verdict="Sign in to pay the rent"
-          consequence="Your inspection is kept safe. Sign in and you land straight back here."
+          consequence="Your inspection is kept. Sign in and you land straight back here."
           actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
         />
       </Shell>
