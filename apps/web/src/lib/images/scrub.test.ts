@@ -57,12 +57,12 @@ describe("scrubbing a photograph's metadata on the server", () => {
   });
 
   it("leaves a clean photograph alone", async () => {
-    const clean = await sharp({ create: { width: 8, height: 8, channels: 3, background: "#123456" } }).png().toBuffer();
+    const clean = await sharp({ create: { width: 8, height: 8, channels: 3, background: { r: 18, g: 52, b: 86 } } }).png().toBuffer();
     expect(await scrubImage(clean)).toEqual({ ok: true, changed: false, format: "png" });
   });
 
   it("refuses what is not a JPEG, PNG or WebP, whatever it was declared as", async () => {
-    const gif = await sharp({ create: { width: 4, height: 4, channels: 3, background: "#000" } }).gif().toBuffer();
+    const gif = await sharp({ create: { width: 4, height: 4, channels: 3, background: { r: 0, g: 0, b: 0 } } }).gif().toBuffer();
     expect(await scrubImage(gif)).toEqual({ ok: false, reason: "unsupported-format" });
     expect(await scrubImage(Buffer.from("not an image at all"))).toEqual({ ok: false, reason: "not-an-image" });
   });

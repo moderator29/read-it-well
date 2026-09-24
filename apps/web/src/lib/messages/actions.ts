@@ -212,6 +212,9 @@ export async function startConversation(input: {
         .maybeSingle();
       if (raced) return ok({ conversationId: raced.id });
     }
+    // SEC-P2-02: the database holds the same daily count, and it does not fail
+    // open. 54000 is that limit; say so rather than "try again".
+    if (insertError?.code === "54000") return fail(newConversationLimitMessage("tomorrow"));
     return fail("We could not open this conversation just now. Please try again.");
   }
 
