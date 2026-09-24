@@ -14,7 +14,10 @@ import { savedCardMoment, type SavedCardPhase } from "@/components/app/payments/
 import type { PaymentMethod } from "@/lib/payments/methods";
 import type { ChargeSavedCardOutcome } from "@/lib/payments/charge-saved-card";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { failureConsequence } from "@/app/(app)/checkout/[bookingId]/payment-copy";
+import {
+  failureConsequence,
+  RENT_PAID_SHEET_CONSEQUENCE,
+} from "@/app/(app)/checkout/[bookingId]/payment-copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
@@ -37,8 +40,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * One idempotency key is minted per method per mount, so the second of two
  * taps on a flaky connection replays the first answer instead of paying
  * twice. The pending, stalled, failed and paid states are the checkout's own
- * result sheets, with tenancy words: "the agent has been paid and the keys
- * are yours to collect", never "these dates are yours".
+ * result sheets, with tenancy words ("arrange the keys"), never "these dates
+ * are yours", and never a claim that anybody has been paid out (V-33).
  */
 
 function newKey(): string {
@@ -423,7 +426,7 @@ export function PayPanel({
         verdict="Rent paid"
         fact={fact}
         locale={view.locale}
-        consequence="The agent has been paid and the move-in is recorded. Arrange the keys with them in your thread."
+        consequence={RENT_PAID_SHEET_CONSEQUENCE}
         actions={[
           { label: "Open the thread", href: "/messages", tone: "primary" },
           { label: "Back to the listing", href: `/listing/${view.listingId}`, tone: "quiet" },

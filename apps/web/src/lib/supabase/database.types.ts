@@ -6541,6 +6541,17 @@ export type Database = {
         }
         Returns: Json
       }
+      refund_booking_payment: {
+        Args: {
+          acting_admin: string
+          decision_note?: string
+          reason_code: string
+          refund_amount: number
+          refund_reference: string
+          target_booking: string
+        }
+        Returns: Json
+      }
       reinstate_agent: {
         Args: { acting_admin: string; note?: string; target_agent: string }
         Returns: Json
@@ -6586,6 +6597,15 @@ export type Database = {
       }
       schedule_account_deletion: {
         Args: { p_days: number; p_restore_code_hash: string; p_user: string }
+        Returns: Json
+      }
+      settle_booking_charge: {
+        Args: {
+          p_amount_minor: number
+          p_fallback_booking?: string
+          p_processor_fee_minor?: number
+          p_reference: string
+        }
         Returns: Json
       }
       set_fee_rate: {
@@ -6952,6 +6972,8 @@ export type Database = {
         | "escrow_refund"
         | "pot_hold"
         | "pot_release"
+        | "payment_in"
+        | "payment_in_return"
       wallet_entry_status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED"
       water_supply:
         | "TREATED_MAINS"
@@ -7341,6 +7363,8 @@ export const Constants = {
         "escrow_refund",
         "pot_hold",
         "pot_release",
+        "payment_in",
+        "payment_in_return",
       ],
       wallet_entry_status: ["PENDING", "COMPLETED", "FAILED", "REVERSED"],
       water_supply: [

@@ -32,7 +32,9 @@ export type OpenRentChargeOutcome = {
     | "not_a_rental"
     | "no_lister"
     | "own_listing"
-    | "no_amount";
+    | "no_amount"
+    /* ESC-03: a stay already holds the move-in date. */
+    | "date_taken";
   rent_payment_id?: string;
   booking_id?: string;
   total_minor?: number;

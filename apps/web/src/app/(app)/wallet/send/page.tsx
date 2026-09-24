@@ -1,3 +1,5 @@
+import { handleFromRecipientParam } from "@/lib/wallet/request-link";
+import { emailForHandle } from "@/lib/wallet/handle-recipient";
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -39,6 +41,17 @@ export default async function WalletSendPage({
   const userId = session.state === "signed-in" ? session.user.id : null;
   const t = getDictionary(locale);
   const copy = t.walletSend;
+  /* A request names its requester by handle (lib/wallet/request-link.ts). The
+     address it stands for is resolved here, for a signed-in payer only, so
+     it never has to travel in a shared link. */
+  const requestedHandle = handleFromRecipientParam(params.to);
+  const initialRecipient = requestedHandle
+    ? userId
+      ? ((await emailForHandle(requestedHandle)) ?? "")
+      : ""
+    : typeof params.to === "string"
+      ? params.to.slice(0, 254)
+      : "";
 
   return (
     <div className="nf-money mx-auto max-w-2xl">
@@ -69,7 +82,7 @@ export default async function WalletSendPage({
           copy={copy}
           homeCopy={t.wallet.home}
           userId={userId}
-          initialEmail={typeof params.to === "string" ? params.to.slice(0, 254) : ""}
+          initialEmail={initialRecipient}
           initialAmount={typeof params.amount === "string" ? params.amount.slice(0, 20) : ""}
           initialNote={typeof params.note === "string" ? params.note.slice(0, 140) : ""}
         />

@@ -48,6 +48,13 @@ export const KIND_ICON: Record<WalletEntryKind, UiIconName> = {
    */
   pot_hold: "arrow-up",
   pot_release: "arrow-down",
+  /*
+   * V-33. A tenant's move-in payment arriving in the lister's wallet at the
+   * moment of charge, and the same money leaving again when support refunds
+   * the tenant. Arrows, because the money went somewhere.
+   */
+  payment_in: "arrow-down",
+  payment_in_return: "arrow-up",
 };
 
 /*

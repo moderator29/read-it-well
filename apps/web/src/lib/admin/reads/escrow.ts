@@ -186,8 +186,13 @@ export async function getEscrowDesk(filter: EscrowDeskFilter): Promise<AdminRead
       state: "ok",
       data: {
         pipeline,
+        /* ESC-01: a DISPUTED row that was never funded holds nothing. */
         heldMinor: all.rows
-          .filter((r) => ["HELD", "RELEASE_REQUESTED", "DISPUTED"].includes(r.state))
+          .filter(
+            (r) =>
+              ["HELD", "RELEASE_REQUESTED"].includes(r.state) ||
+              (r.state === "DISPUTED" && r.funded_at !== null),
+          )
           .reduce((s, r) => s + r.amount_minor, 0),
         openCount: all.rows.filter((r) => ["INITIATED", "FUNDED", "HELD", "RELEASE_REQUESTED"].includes(r.state)).length,
         disputes: disputeRows.map((r) => toView(r, names)),
