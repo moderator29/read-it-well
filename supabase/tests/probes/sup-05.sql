@@ -8,9 +8,17 @@ declare
   admin constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
   app uuid;
   doc uuid;
+  others_doc uuid;
+  others_listing uuid;
   n int;
   r record;
 begin
+  -- Somebody else's listing and document, for the two ownership refusals.
+  select id into others_listing from public.listings limit 1;
+  insert into public.agent_documents (uploader_id, kind, storage_path)
+  values (admin, 'identity', admin::text || '/probe-sup-05/other.jpg')
+  returning id into others_doc;
+
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
 
@@ -31,6 +39,14 @@ begin
   end if;
 
   -- CONTROL: the registration forms' insert (status SUBMITTED), RETURNING.
+  -- A reference is the sequence's: a supplied one is replaced.
+  insert into public.agent_applications (user_id, status, supply_role, full_name, agree_terms, reference)
+  values (member, 'SUBMITTED', 'owner', 'Probe SUP-05 ref', true, 'VL-AGT-99999')
+  returning id into app;
+  if (select reference from public.agent_applications where id = app) = 'VL-AGT-99999' then
+    raise exception 'PROBE_FAIL sup-05: applicant chose their own reference';
+  end if;
+
   insert into public.agent_applications (user_id, status, supply_role, full_name, agree_terms, submitted_at)
   values (member, 'SUBMITTED', 'owner', 'Probe SUP-05', true, now())
   returning id into app;
@@ -68,6 +84,19 @@ begin
   if r.st <> 'pending' or r.reviewed_by is not null then
     raise exception 'PROBE_FAIL sup-05: applicant document kept a decision: %', row_to_json(r);
   end if;
+
+  -- REFUSALS: a document filed against somebody else's listing, or
+  -- replacing somebody else's document.
+  begin
+    insert into public.agent_documents (uploader_id, kind, storage_path, listing_id)
+    values (member, 'mandate', member::text || '/probe-sup-05/mandate.pdf', others_listing);
+    raise exception 'PROBE_FAIL sup-05: document attached to another lister''s listing';
+  exception when insufficient_privilege then null; end;
+  begin
+    insert into public.agent_documents (application_id, uploader_id, kind, storage_path, supersedes_id)
+    values (app, member, 'identity', member::text || '/probe-sup-05/id2.jpg', others_doc);
+    raise exception 'PROBE_FAIL sup-05: document superseded somebody else''s';
+  exception when insufficient_privilege then null; end;
 
   -- CONTROL: the answer and the send-back.
   update public.agent_applications
