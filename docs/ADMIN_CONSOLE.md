@@ -633,7 +633,7 @@ a fall is emerald. The line is alerts raised per day.
 | inventory-drift | Vercel Cron `45 2 * * *` | daily 03:45 | 26 h | checks room inventory against bookings |
 | account-purge | Vercel Cron `15 3 * * *` | daily 04:15 | 26 h | honours account deletions after thirty days |
 | saved-search-alerts | Vercel Cron `40 7 * * *` | daily 08:40 | 26 h | tells people about new matches for saved searches |
-| new-match-alerts | Vercel Cron `*/5 * * * *` | every 5 min | 2 h | tells people within minutes about a listing just published, three times a day at most; the rest wait for the morning digest (V-15) |
+| new-match-alerts | Vercel Cron `0,5,10,15,20,25,30,35,45,50,55 * * * *` | every 5 min except :40, so it never runs beside the 07:40 digest | 2 h | tells people within minutes about a listing just published, three times a day at most; the rest wait for the morning digest (V-15) |
 | store-readiness | Vercel Cron `0 5 * * *` | daily 06:00 | 26 h | runs the Store tab's checks against production and raises an alert when one is red (V-52) |
 | vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |

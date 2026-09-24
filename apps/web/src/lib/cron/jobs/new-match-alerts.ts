@@ -78,6 +78,10 @@ export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
     .limit(SEARCH_BATCH);
   if (readError) throw new Error(`saved_searches: ${readError.message}`);
   const subjects = (rows ?? []).map(subjectOf);
+  /* A full page means there may be alerting searches this run did not read.
+     The queue rows stay open for the next run, which reads the searches this
+     one did not advance (the page is ordered by watermark, oldest first). */
+  const moreSearches = (rows ?? []).length >= SEARCH_BATCH;
 
   const candidates: AlertCandidate[] = [];
   if (subjects.length > 0) {
@@ -118,6 +122,7 @@ export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
 
   const counts = {
     queued: queueIds.length,
+    unfinished: moreSearches ? 1 : 0,
     searches: subjects.length,
     candidates: candidates.length,
     notices: split.send.length,
@@ -169,10 +174,13 @@ export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
     if (error) stuck = error.message;
   }
 
-  const { error: doneError } = await db
-    .from("listing_match_queue")
-    .update({ processed_at: stamp })
-    .in("listing_id", queueIds);
+  /* Mark the queue done only when every alerting search was read and every
+     candidate fitted in one page; otherwise the next run repeats, which the
+     watermarks make harmless. */
+  const complete = !moreSearches && candidates.length < CANDIDATE_LIMIT;
+  const { error: doneError } = complete
+    ? await db.from("listing_match_queue").update({ processed_at: stamp }).in("listing_id", queueIds)
+    : { error: null };
 
   if (stuck || doneError) {
     return {
