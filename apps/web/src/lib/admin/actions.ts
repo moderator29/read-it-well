@@ -809,6 +809,9 @@ export async function setTicketStatus(input: {
 
 /** ------------------------------------------------------------ kill switches */
 
+const HELD_PAYMENTS_OPEN_IS_TWO_PERSON =
+  "Held payments open only when two super admins approve it, and only once custody is decided. This switch can close them but not open them.";
+
 export async function toggleFeatureFlag(input: {
   key: string;
   enabled: boolean;
@@ -818,6 +821,11 @@ export async function toggleFeatureFlag(input: {
 
   const parsed = validate(toggleFeatureFlagSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  /* AML-19. Opening held payments is a two-person act in the database
+     (public.control_request), never a single switch. Closing it stays here. */
+  if (parsed.data.key === "held_payments" && parsed.data.enabled) {
+    return fail(HELD_PAYMENTS_OPEN_IS_TWO_PERSON);
+  }
 
   const { data: flag, error: readError } = await access.supabase
     .from("feature_flags")

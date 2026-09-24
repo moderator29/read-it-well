@@ -105,6 +105,8 @@ function rulingRefusal(status: string): string {
       return "Another super admin has proposed the opposite ruling. Talk it through; nothing moves until two of you agree.";
     case "needs_a_different_super_admin":
       return "A ruling is reversed by a super admin who neither proposed nor approved it.";
+    case "settlement_missing":
+      return "The payment this ruling made cannot be found in the ledger, so it cannot be reversed here. Nothing was changed.";
     case "shortfall":
       return "The person this ruling paid no longer has that much in their balance, so it cannot be reversed yet. Nothing was changed.";
     case "not_disputed":
@@ -138,15 +140,17 @@ const reverseRulingSchema = z.object({
 });
 
 /**
- * ESC-07. Reversing an applied ruling: a super admin who neither proposed nor
- * approved it. The database marks the settlement credit reversed (refusing if
- * that would overdraw the person it paid), removes any commission, and puts
- * the escrow back in dispute to be ruled on again.
+ * ESC-07 and AML-19. Reversing an applied ruling takes two super admins. The
+ * first records the reversal and its reason. A second, who neither proposed
+ * nor approved the ruling, applies it with that reason word for word. The
+ * database then marks the settlement credit reversed (refusing if that would
+ * overdraw the person it paid), removes any commission, and puts the escrow
+ * back in dispute to be ruled on again.
  */
 export async function reverseEscrowRuling(input: {
   rulingId: string;
   note: string;
-}): Promise<ActionResult<null>> {
+}): Promise<ActionResult<EscrowRulingOutcome>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return fail(ADMIN_FORBIDDEN_MESSAGE);
 
@@ -162,13 +166,20 @@ export async function reverseEscrowRuling(input: {
     const status = readStatus(data);
     if (status === "ok") {
       revalidatePath("/admin/escrow");
-      return ok(null);
+      return ok({ outcome: "applied", message: "The ruling is reversed and both people have been told." });
+    }
+    if (status === "awaiting_second_approval") {
+      revalidatePath("/admin/escrow");
+      return ok({ outcome: "awaiting_second_approval", message: REVERSAL_AWAITING_SECOND_APPROVAL });
     }
     return fail(rulingRefusal(status));
   } catch {
     return fail(SERVICE_DOWN);
   }
 }
+
+const REVERSAL_AWAITING_SECOND_APPROVAL =
+  "Recorded as a proposal. A second super admin, who neither made nor approved the ruling, has to reverse it too before anything changes.";
 
 /* --------------------------------------------------------------- fee rates */
 
