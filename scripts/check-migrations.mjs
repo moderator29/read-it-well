@@ -103,7 +103,7 @@ export function checkText(name, raw, columns) {
       continue;
     }
     for (const helper of LOAD_BEARING) {
-      if (new RegExp(`on\\s+function\\s+private\\.${helper}\\b`).test(statement)) {
+      if (new RegExp(`on\\s+function\\s+"?private"?\\s*\\.\\s*"?${helper}"?\\b`).test(statement)) {
         problems.push(["M1", `revokes private.${helper} from anon; RLS on listings needs it (20260730021956)`]);
       }
     }
@@ -173,18 +173,17 @@ export const KNOWN = new Map([
   ["20260804143149_stories_are_their_own_thing.sql:M3", "RLS enabled in 20260804143318"],
 ]);
 
-function main(argv) {
-  const since = argv.includes("--since") ? argv[argv.indexOf("--since") + 1] : null;
-  const base = argv.includes("--base") ? argv[argv.indexOf("--base") + 1] : null;
-  const repository = readFileSync(REPOSITORY, "utf8");
-  const columns = listingColumns(repository);
-  if (columns.length < 20) {
-    console.error(`migrations: could not read LISTING_SELECT (${columns.length} columns); refusing to pass blind`);
-    process.exit(2);
-  }
-
+/**
+ * Run M1 to M5 over every file (or every file from `since`), returning the
+ * failures and which tolerated historic findings were actually hit. A KNOWN
+ * entry that no longer occurs is itself a failure: the list may only shrink,
+ * and it shrinks by deleting the entry, not by it going quietly stale.
+ */
+export function scan({ since = null } = {}) {
+  const columns = listingColumns(readFileSync(REPOSITORY, "utf8"));
   const files = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort();
   const failures = [];
+  const hit = new Set();
   const seen = new Map();
   let checked = 0;
   for (const file of files) {
@@ -194,10 +193,29 @@ function main(argv) {
     if (since && stamp < since) continue;
     checked += 1;
     for (const [rule, message] of checkText(file, readFileSync(join(DIR, file), "utf8"), columns)) {
-      const known = KNOWN.get(`${file}:${rule}`);
-      if (known) continue;
+      const key = `${file}:${rule}`;
+      if (KNOWN.has(key)) {
+        hit.add(key);
+        continue;
+      }
       failures.push([file, rule, message]);
     }
+  }
+  if (!since) {
+    for (const key of KNOWN.keys()) {
+      if (!hit.has(key)) failures.push([key.split(":")[0], "KNOWN", "a tolerated finding no longer occurs; delete it from KNOWN"]);
+    }
+  }
+  return { columns, checked, failures, hit };
+}
+
+function main(argv) {
+  const since = argv.includes("--since") ? argv[argv.indexOf("--since") + 1] : null;
+  const base = argv.includes("--base") ? argv[argv.indexOf("--base") + 1] : null;
+  const { columns, checked, failures, hit } = scan({ since });
+  if (columns.length < 20) {
+    console.error(`migrations: could not read LISTING_SELECT (${columns.length} columns); refusing to pass blind`);
+    process.exit(2);
   }
 
   if (base) {
@@ -222,7 +240,7 @@ function main(argv) {
     process.exit(1);
   }
   console.log(
-    `migrations: clean - ${checked} file(s) checked against M1 to M5${base ? " and M6" : ""}, ${columns.length} catalogue columns read from LISTING_SELECT, ${KNOWN.size} tolerated historic finding(s). Reads text only: SQL built at runtime is not seen.`,
+    `migrations: clean - ${checked} file(s) checked against M1 to M5${base ? " and M6" : ""}, ${columns.length} catalogue columns read from LISTING_SELECT, ${hit.size} tolerated historic finding(s) hit, each named in KNOWN. Reads text only: SQL built at runtime is not seen.`,
   );
 }
 

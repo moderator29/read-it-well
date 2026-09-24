@@ -15,6 +15,8 @@ const GATE = join(ROOT, "scripts", "check-migrations.mjs");
 type Gate = {
   checkText: (name: string, sql: string, columns: string[]) => [string, string][];
   listingColumns: (source: string) => string[];
+  scan: (options?: { since?: string | null }) => { failures: unknown[]; hit: Set<string> };
+  KNOWN: Map<string, string>;
 };
 let gate: Gate;
 
@@ -29,6 +31,9 @@ const rules = (sql: string, name = NEW) => gate.checkText(name, sql, COLUMNS).ma
 describe("M1: the load-bearing helpers", () => {
   it("fails a revoke of owns_listing from anon, which was half of the outage", () => {
     expect(rules("revoke execute on function private.owns_listing(uuid) from public, anon;")).toContain("M1");
+  });
+  it("reads quoted identifiers too", () => {
+    expect(rules('revoke execute on function "private"."owns_listing"(uuid) from anon;')).toContain("M1");
   });
   it("fails a revoke of every private function from anon", () => {
     expect(rules("revoke execute on all functions in schema private from anon;")).toContain("M1");
@@ -86,9 +91,11 @@ describe("the live tree", () => {
     expect(columns.length).toBeGreaterThan(40);
     expect(columns).toContain("listing_role");
   });
-  it("passes today, with only the three named historic findings tolerated", () => {
+  it("passes today, and every tolerated historic finding is actually hit on its own file", () => {
+    const result = gate.scan();
+    expect(result.failures).toEqual([]);
+    expect([...result.hit].sort()).toEqual([...gate.KNOWN.keys()].sort());
     const out = execFileSync("node", [GATE], { cwd: ROOT, encoding: "utf8" });
     expect(out).toMatch(/migrations: clean/);
-    expect(out).toMatch(/3 tolerated historic/);
   });
 });
