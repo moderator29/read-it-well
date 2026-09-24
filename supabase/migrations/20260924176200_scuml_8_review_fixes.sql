@@ -13,10 +13,10 @@
  *   match whose list reference is no longer on the new version raises a row
  *   in `sanctions_delisting_flags` for the desk.
  *
- *   A CONFIRMED MATCH CAN BE RELEASED, BY TWO PEOPLE. `sanctions_release_propose`
- *   and `sanctions_release_approve` (item 19). Release moves the hit to
- *   `released` and, when the person has no other confirmed match, ends the
- *   hold.
+ *   A CONFIRMED MATCH CAN BE RELEASED, BY TWO PEOPLE (item 19): a `release`
+ *   decision, proposed with `sanctions_hit_propose` and approved with
+ *   `sanctions_hit_approve`. Release moves the hit to `released` and, when the
+ *   person has no other confirmed match, ends the hold.
  *
  *   A PROPOSAL CAN BE REJECTED (`sanctions_hit_reject`): anyone but the
  *   proposer stamps it rejected, and the match is open for a new proposal.

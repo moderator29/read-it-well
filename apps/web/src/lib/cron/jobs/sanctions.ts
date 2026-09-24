@@ -23,8 +23,9 @@ import type { AdminClient } from "../rpc";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = any;
 
-export function listsVerdict(results: { source: string; result: IngestResult }[]): JobVerdict {
+export function listsVerdict(results: { source: string; result: IngestResult }[], waiting = 0): JobVerdict {
   const counts = {
+    waiting,
     sources: results.length,
     loaded: results.filter((r) => r.result.state === "loaded").length,
     same: results.filter((r) => r.result.state === "same").length,
@@ -41,13 +42,27 @@ export function listsVerdict(results: { source: string; result: IngestResult }[]
       alert: { kind: "sanctions.list_refresh_failed", severity: "warning", detail: { sources: broken, scuml_item: 9 } },
     };
   }
+  if (waiting > 0) {
+    /* A version loaded and not activated screens nobody: somebody must look. */
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: { kind: "sanctions.list_waiting", severity: "warning", detail: { waiting, scuml_item: 9 } },
+    };
+  }
   return { outcome: "ok", counts, detail, alert: null };
 }
 
 export async function sanctionsLists(admin: AdminClient, sources: ListSource[] = configuredSources()): Promise<JobVerdict> {
   const results: { source: string; result: IngestResult }[] = [];
   for (const source of sources) results.push({ source: source.source, result: await ingestList(admin as Loose, source) });
-  return listsVerdict(results);
+  const { count, error } = await (admin as Loose)
+    .from("sanctions_list_versions")
+    .select("id", { count: "exact", head: true })
+    .is("activated_at", null)
+    .gt("entry_count", 0);
+  return listsVerdict(results, error ? 0 : Number(count) || 0);
 }
 
 export function screenVerdict(counts: DrainCounts): JobVerdict {

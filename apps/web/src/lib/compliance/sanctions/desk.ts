@@ -9,7 +9,17 @@
 
 export type SanctionsList = { source: "un" | "ng"; activatedAt: string; entries: number; origin: string };
 export type PendingDecision = { id: string; decision: "clear" | "confirm" | "release"; note: string; proposedBy: string; proposedAt: string };
-export type WaitingList = { id: string; source: "un" | "ng"; entries: number; previousEntries: number | null; origin: string; loadedBy: string | null; loadedAt: string };
+export type WaitingList = {
+  id: string;
+  source: "un" | "ng";
+  entries: number;
+  previousEntries: number | null;
+  origin: string;
+  loadedBy: string | null;
+  loadedAt: string;
+  /** For a short URL list: who proposed it, waiting on a different person. */
+  proposedBy: string | null;
+};
 export type SanctionsHit = {
   id: string;
   personId: string;
@@ -27,6 +37,8 @@ export type SanctionsHit = {
   nationalities: string[];
   /** A confirmed match whose reference left a newer list version (item 9). */
   delisted: boolean;
+  /** Whether a hold on the person's money is actually in force right now. */
+  moneyHeld: boolean;
   pending: PendingDecision | null;
 };
 export type RecentScreening = { id: string; subject: "person" | "transaction"; trigger: string; outcome: string; at: string };
@@ -72,6 +84,7 @@ export function readSanctionsDesk(data: unknown, error: unknown): SanctionsDesk 
       datesOfBirth: Array.isArray(raw.datesOfBirth) ? raw.datesOfBirth.filter(str) : [],
       nationalities: Array.isArray(raw.nationalities) ? raw.nationalities.filter(str) : [],
       delisted: raw.delisted === true,
+      moneyHeld: raw.moneyHeld === true,
       pending:
         p && str(p.id) && (p.decision === "clear" || p.decision === "confirm" || p.decision === "release") && str(p.proposedBy)
           ? { id: p.id, decision: p.decision, note: str(p.note) ? p.note : "", proposedBy: p.proposedBy, proposedAt: str(p.proposedAt) ? p.proposedAt : "" }
@@ -94,6 +107,7 @@ export function readSanctionsDesk(data: unknown, error: unknown): SanctionsDesk 
         origin: str(l.origin) ? l.origin : "",
         loadedBy: str(l.loadedBy) ? l.loadedBy : null,
         loadedAt: str(l.loadedAt) ? l.loadedAt : "",
+        proposedBy: str(l.proposedBy) ? l.proposedBy : null,
       })),
     hits,
     recent: (d.recent as Record<string, unknown>[])

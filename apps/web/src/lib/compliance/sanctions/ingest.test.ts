@@ -67,6 +67,7 @@ describe("loading a list version (SCUML items 8 and 9)", () => {
     expect(activatesItself("url", 90, 100)).toBe("yes");
     expect(activatesItself("url", 3, null)).toBe("yes");
     expect(activatesItself("upload", 500, 100)).toBe("upload");
+    expect(activatesItself("url", 100, 100, false)).toBe("unverified");
   });
 
   it("loads the Nigeria fixture through the URL source, with no live fetch", async () => {

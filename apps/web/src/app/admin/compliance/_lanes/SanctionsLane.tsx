@@ -120,6 +120,9 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
                 <p className="nf-body">
                   {fill(c.against, { name: hit.matchedName, reference: `${sourceName(hit.source)} ${hit.reference}` })}
                 </p>
+                <p className="nf-caption" role="status">
+                  {hit.moneyHeld ? c.moneyHeld : c.moneyNotHeld}
+                </p>
                 {hit.delisted && (
                   <p className="nf-caption" role="alert">
                     {c.delisted}

@@ -98,4 +98,15 @@ describe("the screening run's seams (SCUML item 8)", () => {
     expect(counts).toMatchObject({ failed: 0, screened: 1, exact: 1, hits: 1 });
     expect(writes.some((w) => w.table === "sanctions_screen_queue" && (w.payload as { done_at?: string }).done_at)).toBe(true);
   });
+
+  it("never records a failed read as clear or no_name: the row is failed and left for the next run", async () => {
+    const { drainScreenQueue } = await import("./screen");
+    const { admin, writes } = fake((table, op) =>
+      table === "profiles" ? { data: null, error: { code: "57014" } } : lists(table, op),
+    );
+    const counts = await drainScreenQueue(admin as never, new Date("2026-09-24T12:00:00Z"));
+    expect(counts).toMatchObject({ failed: 1, screened: 0 });
+    expect(writes.some((w) => w.table === "sanctions_screenings")).toBe(false);
+    expect(writes.some((w) => w.table === "sanctions_screen_queue" && (w.payload as { done_at?: string }).done_at)).toBe(false);
+  });
 });

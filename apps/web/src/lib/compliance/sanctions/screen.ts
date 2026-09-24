@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createMatcher, outcomeOf, type ListedName, type NameMatch } from "./match";
+import { createMatcher, outcomeOf, type ListedName, type NameMatch, type PersonFacts } from "./match";
 
 /**
  * THE SCREENING RUN. SCUML items 8 and 9.
@@ -36,6 +36,7 @@ type Admin = { from: (table: string) => any; rpc: (fn: string, args?: Record<str
 
 type QueueRow = {
   id: number;
+  enqueued_at: string;
   subject_kind: "person" | "transaction";
   person_id: string | null;
   transaction_kind: "card_payment" | "wallet_entry" | "rent_payment" | "escrow" | "ledger_entry" | "business_transfer" | null;
@@ -43,7 +44,8 @@ type QueueRow = {
   trigger: string;
 };
 
-export type Party = { personId: string | null; names: string[] };
+/** A person on a screening: the names we hold, and any date of birth or nationality (none held today). */
+export type Party = { personId: string | null; names: string[]; facts?: PersonFacts };
 
 export type ScreeningRecord = {
   outcome: "clear" | "exact" | "fuzzy" | "no_list" | "no_name";
@@ -53,76 +55,102 @@ export type ScreeningRecord = {
 };
 
 /** Pure: the screening a set of parties gets against one matcher. */
-export function screenParties(parties: readonly Party[], matcher: ((names: readonly string[]) => NameMatch[]) | null): ScreeningRecord {
+export function screenParties(
+  parties: readonly Party[],
+  matcher: ((names: readonly string[], facts?: PersonFacts) => NameMatch[]) | null,
+): ScreeningRecord {
   const namesScreened = [...new Set(parties.flatMap((p) => p.names.map((n) => n.trim()).filter(Boolean)))];
   if (!matcher) return { outcome: "no_list", best: null, namesScreened, matches: [] };
   if (namesScreened.length === 0) return { outcome: "no_name", best: null, namesScreened, matches: [] };
-  const matches = parties.flatMap((party) => matcher(party.names).map((m) => ({ ...m, personId: party.personId })));
+  const matches = parties.flatMap((party) => matcher(party.names, party.facts).map((m) => ({ ...m, personId: party.personId })));
   const { outcome, best } = outcomeOf(matches);
   return { outcome, best, namesScreened, matches };
+}
+
+/**
+ * Every read must answer. A read that failed is thrown, so the row is counted
+ * failed and left undone: a failure is never recorded as `clear` or
+ * `no_name`.
+ */
+type Answer<T> = { data: T; error: unknown };
+async function must<T>(query: PromiseLike<Answer<T>>): Promise<T> {
+  const { data, error } = await query;
+  if (error) throw new Error("sanctions screening read failed");
+  return data;
 }
 
 const joinName = (...parts: (string | null | undefined)[]) => parts.map((p) => (p ?? "").trim()).filter(Boolean).join(" ");
 
 async function namesForPerson(admin: Admin, userId: string): Promise<string[]> {
   const names: string[] = [];
-  const { data: profile } = await admin.from("profiles").select("first_name, surname, display_name").eq("id", userId).maybeSingle();
+  const profile = await must<{ first_name: string | null; surname: string | null; display_name: string | null } | null>(
+    admin.from("profiles").select("first_name, surname, display_name").eq("id", userId).maybeSingle(),
+  );
   if (profile) names.push(joinName(profile.first_name, profile.surname), profile.display_name ?? "");
-  const { data: applications } = await admin.from("agent_applications").select("full_name, account_name, business_name").eq("user_id", userId);
+  const applications = await must<{ full_name: string | null; account_name: string | null; business_name: string | null }[] | null>(
+    admin.from("agent_applications").select("full_name, account_name, business_name").eq("user_id", userId),
+  );
   for (const a of applications ?? []) names.push(a.full_name ?? "", a.account_name ?? "", a.business_name ?? "");
-  const { data: banks } = await admin.from("bank_accounts").select("resolved_account_name").eq("user_id", userId);
+  const banks = await must<{ resolved_account_name: string | null }[] | null>(
+    admin.from("bank_accounts").select("resolved_account_name").eq("user_id", userId),
+  );
   for (const b of banks ?? []) names.push(b.resolved_account_name ?? "");
-  const { data: agents } = await admin.from("agents").select("id").eq("user_id", userId);
-  const agentIds = (agents ?? []).map((a: { id: string }) => a.id);
+  const agents = await must<{ id: string }[] | null>(admin.from("agents").select("id").eq("user_id", userId));
+  const agentIds = (agents ?? []).map((a) => a.id);
   if (agentIds.length > 0) {
-    const { data: payouts } = await admin.from("payout_accounts").select("account_name, resolved_account_name").in("agent_id", agentIds);
+    const payouts = await must<{ account_name: string | null; resolved_account_name: string | null }[] | null>(
+      admin.from("payout_accounts").select("account_name, resolved_account_name").in("agent_id", agentIds),
+    );
     for (const p of payouts ?? []) names.push(p.account_name ?? "", p.resolved_account_name ?? "");
   }
   return [...new Set(names.map((n) => n.trim()).filter((n) => n.length > 1))];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = Record<string, any> | null;
+
 async function partiesFor(admin: Admin, row: QueueRow): Promise<Party[]> {
   if (row.subject_kind === "person" && row.person_id) {
     return [{ personId: row.person_id, names: await namesForPerson(admin, row.person_id) }];
   }
+  const one = (table: string, columns: string) => must<Row>(admin.from(table).select(columns).eq("id", row.transaction_id).maybeSingle());
   const people = async (...ids: (string | null | undefined)[]): Promise<Party[]> => {
     const out: Party[] = [];
     for (const id of [...new Set(ids.filter((x): x is string => typeof x === "string"))]) out.push({ personId: id, names: await namesForPerson(admin, id) });
     return out;
   };
   if (row.transaction_kind === "rent_payment") {
-    const { data } = await admin.from("rent_payments").select("tenant_id, lister_id").eq("id", row.transaction_id).maybeSingle();
+    const data = await one("rent_payments", "tenant_id, lister_id");
     return data ? people(data.tenant_id, data.lister_id) : [];
   }
   if (row.transaction_kind === "escrow") {
-    const { data } = await admin.from("escrows").select("payer_id, payee_id").eq("id", row.transaction_id).maybeSingle();
+    const data = await one("escrows", "payer_id, payee_id");
     return data ? people(data.payer_id, data.payee_id) : [];
   }
   if (row.transaction_kind === "business_transfer") {
-    const { data } = await admin.from("business_transfers").select("from_user_id, to_user_id").eq("id", row.transaction_id).maybeSingle();
+    const data = await one("business_transfers", "from_user_id, to_user_id");
     return data ? people(data.from_user_id, data.to_user_id) : [];
   }
   if (row.transaction_kind === "card_payment" || row.transaction_kind === "ledger_entry") {
-    const table = row.transaction_kind === "card_payment" ? "transactions" : "ledger_entries";
-    const { data: tx } = await admin.from(table).select("booking_id").eq("id", row.transaction_id).maybeSingle();
+    const tx = await one(row.transaction_kind === "card_payment" ? "transactions" : "ledger_entries", "booking_id");
     if (!tx?.booking_id) return [];
-    const { data: booking } = await admin.from("bookings").select("guest_id, guest_name, listing_id").eq("id", tx.booking_id).maybeSingle();
+    const booking = await must<Row>(admin.from("bookings").select("guest_id, guest_name, listing_id").eq("id", tx.booking_id).maybeSingle());
     if (!booking) return [];
     const parties: Party[] = [];
     if (booking.guest_id) {
       parties.push({ personId: booking.guest_id, names: [...(await namesForPerson(admin, booking.guest_id)), booking.guest_name ?? ""].filter(Boolean) });
     }
-    const { data: listing } = await admin.from("listings").select("agent_id").eq("id", booking.listing_id).maybeSingle();
+    const listing = await must<Row>(admin.from("listings").select("agent_id").eq("id", booking.listing_id).maybeSingle());
     if (listing?.agent_id) {
-      const { data: agent } = await admin.from("agents").select("user_id").eq("id", listing.agent_id).maybeSingle();
+      const agent = await must<Row>(admin.from("agents").select("user_id").eq("id", listing.agent_id).maybeSingle());
       if (agent?.user_id) parties.push({ personId: agent.user_id, names: await namesForPerson(admin, agent.user_id) });
     }
     return parties;
   }
   if (row.transaction_kind === "wallet_entry") {
-    const { data: entry } = await admin.from("wallet_entries").select("wallet_id, kind, metadata").eq("id", row.transaction_id).maybeSingle();
+    const entry = await one("wallet_entries", "wallet_id, kind, metadata");
     if (!entry) return [];
-    const { data: wallet } = await admin.from("wallets").select("user_id").eq("id", entry.wallet_id).maybeSingle();
+    const wallet = await must<Row>(admin.from("wallets").select("user_id").eq("id", entry.wallet_id).maybeSingle());
     const parties: Party[] = [];
     if (wallet?.user_id) parties.push({ personId: wallet.user_id, names: await namesForPerson(admin, wallet.user_id) });
     const payee = entry.kind === "withdrawal" && typeof entry.metadata?.account_name === "string" ? entry.metadata.account_name : null;
@@ -151,12 +179,22 @@ export async function currentLists(admin: Admin): Promise<Lists | null> {
     for (let from = 0; ; from += 1000) {
       const { data: page, error: pageError } = await admin
         .from("sanctions_entries")
-        .select("id, source, reference, primary_name, names_normalised")
+        .select("id, source, reference, primary_name, names_normalised, dates_of_birth, nationalities")
         .eq("version_id", versionId)
         .order("reference", { ascending: true })
         .range(from, from + 999);
       if (pageError) return null;
-      for (const e of page ?? []) listed.push({ entryId: e.id, source: e.source, reference: e.reference, primaryName: e.primary_name, names: e.names_normalised });
+      for (const e of page ?? []) {
+        listed.push({
+          entryId: e.id,
+          source: e.source,
+          reference: e.reference,
+          primaryName: e.primary_name,
+          names: e.names_normalised,
+          datesOfBirth: e.dates_of_birth ?? [],
+          nationalities: e.nationalities ?? [],
+        });
+      }
       if (!page || page.length < 1000) break;
     }
   }
@@ -214,8 +252,9 @@ export async function drainScreenQueue(admin: Admin, now: Date = new Date(), lim
         counts.failed += 1;
         continue;
       }
+      /* A close match whose facts disagree is on the screening, not the queue. */
       const hits = record.matches
-        .filter((m) => m.personId)
+        .filter((m) => m.personId && m.raise)
         .map((m) => ({
           screening_id: screening.id,
           person_id: m.personId,
@@ -240,7 +279,9 @@ export async function drainScreenQueue(admin: Admin, now: Date = new Date(), lim
         }
         counts.hits += Array.isArray(raised) ? raised.length : 0;
       }
-      await admin.from("sanctions_screen_queue").update({ done_at: now.toISOString() }).eq("id", row.id);
+      /* Done only if nobody queued this row again while it was being screened
+         (a list change bumps enqueued_at): otherwise it stays for the next run. */
+      await admin.from("sanctions_screen_queue").update({ done_at: now.toISOString() }).eq("id", row.id).eq("enqueued_at", row.enqueued_at);
       counts.screened += 1;
       if (record.outcome === "clear") counts.clear += 1;
       else if (record.outcome === "exact") counts.exact += 1;

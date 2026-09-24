@@ -27,7 +27,7 @@ type Admin = { from: (table: string) => any };
 
 export type IngestResult =
   | { state: "loaded"; versionId: string; entries: number }
-  | { state: "waiting"; versionId: string; entries: number; why: "upload" | "shrunk" }
+  | { state: "waiting"; versionId: string; entries: number; why: "upload" | "shrunk" | "unverified" }
   | { state: "same" }
   | { state: "refused"; reason: string }
   | { state: "failed"; reason: string };
@@ -35,9 +35,18 @@ export type IngestResult =
 const CHUNK = 500;
 export const SHRINK_FLOOR = 0.9;
 
-/** Does a new version activate by itself? Only from a URL, and only when it is not short. */
-export function activatesItself(origin: "url" | "upload", entries: number, inForce: number | null): "yes" | "upload" | "shrunk" {
+/**
+ * Does a new version activate by itself? Only from a URL, only when the file
+ * proves it is whole, and only when it is not short.
+ */
+export function activatesItself(
+  origin: "url" | "upload",
+  entries: number,
+  inForce: number | null,
+  complete = true,
+): "yes" | "upload" | "shrunk" | "unverified" {
   if (origin === "upload") return "upload";
+  if (!complete) return "unverified";
   if (inForce !== null && entries < SHRINK_FLOOR * inForce) return "shrunk";
   return "yes";
 }
@@ -96,7 +105,7 @@ export async function ingestList(admin: Admin, source: ListSource, loadedBy: str
   if (inForceError) return { state: "failed", reason: "read" };
   const inForce = Array.isArray(inForceRows) && inForceRows[0] ? Number(inForceRows[0].entry_count) : null;
   const entries = parsed.entries.length;
-  const verdict = activatesItself(source.origin, entries, inForce);
+  const verdict = activatesItself(source.origin, entries, inForce, parsed.complete);
 
   const { error: activateError } = await admin
     .from("sanctions_list_versions")

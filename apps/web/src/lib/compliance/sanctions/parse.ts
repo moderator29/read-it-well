@@ -18,8 +18,11 @@ import { normaliseName } from "./match";
  * stable machine format we can rely on, so the officer loads it as CSV with a
  * header row: reference, name, aliases (separated by ";"), date_of_birth
  * (";" for several), nationality (";"), listed_on, and optionally type
- * (individual or entity). If the Committee publishes a feed, it is one more
- * parser here.
+ * (individual or entity). A last row `END,<count>` states how many entries
+ * the file carries: a count that does not match is refused as truncated, and
+ * a file with no such row is read but marked NOT COMPLETE, so it never
+ * activates by itself (it waits for staff, like an upload). If the Committee
+ * publishes a feed, it is one more parser here.
  */
 
 export type ParsedEntry = {
@@ -33,7 +36,8 @@ export type ParsedEntry = {
   listedOn: string | null;
 };
 
-export type ParseResult = { ok: true; entries: ParsedEntry[] } | { ok: false; reason: string };
+/** `complete`: the file proves it is whole (the UN closing tag, the NG END row). */
+export type ParseResult = { ok: true; entries: ParsedEntry[]; complete: boolean } | { ok: false; reason: string };
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
 
@@ -141,7 +145,7 @@ export function parseUnConsolidated(xml: string): ParseResult {
     const made = entry("entity", first(body, "REFERENCE_NUMBER"), first(body, "FIRST_NAME"), aliases, [], [], isoDate(first(body, "LISTED_ON")));
     if (made) entries.push(made);
   }
-  return entries.length > 0 ? { ok: true, entries } : { ok: false, reason: "no_entries" };
+  return entries.length > 0 ? { ok: true, entries, complete: true } : { ok: false, reason: "no_entries" };
 }
 
 /** RFC 4180-ish: quoted fields, doubled quotes, commas and newlines inside quotes. */
@@ -183,7 +187,11 @@ export function parseNigeriaCsv(text: string): ParseResult {
   const col = (name: string) => header.indexOf(name);
   if (col("reference") < 0 || col("name") < 0) return { ok: false, reason: "missing_reference_or_name_column" };
   const entries: ParsedEntry[] = [];
-  for (const cells of rows.slice(1)) {
+  let body = rows.slice(1);
+  const last = body[body.length - 1];
+  const trailer = last && (last[0] ?? "").trim().toUpperCase() === "END" ? Number((last[1] ?? "").trim()) : null;
+  if (trailer !== null) body = body.slice(0, -1);
+  for (const cells of body) {
     const cell = (name: string) => (col(name) >= 0 ? cells[col(name)] : undefined);
     const type = (cell("type") ?? "").trim().toLowerCase();
     const made = entry(
@@ -197,7 +205,8 @@ export function parseNigeriaCsv(text: string): ParseResult {
     );
     if (made) entries.push(made);
   }
-  return entries.length > 0 ? { ok: true, entries } : { ok: false, reason: "no_entries" };
+  if (trailer !== null && (!Number.isInteger(trailer) || trailer !== entries.length)) return { ok: false, reason: "truncated" };
+  return entries.length > 0 ? { ok: true, entries, complete: trailer !== null } : { ok: false, reason: "no_entries" };
 }
 
 export function parseList(source: "un" | "ng", text: string): ParseResult {

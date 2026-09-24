@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
 import {
   activateSanctionsList,
   approveSanctionsDecision,
   proposeSanctionsDecision,
   rejectSanctionsDecision,
-  uploadSanctionsList,
   type DeskAnswer,
 } from "@/lib/compliance/sanctions/actions";
 import type { SanctionsHit, WaitingList } from "@/lib/compliance/sanctions/desk";
@@ -15,9 +15,23 @@ import { Button } from "@/components/ui/Button";
 
 type Copy = Dictionary["compliance"]["sanctions"];
 
-/** Load a list file (SCUML items 8, 9). A new version re-screens everyone. */
+/** Load a list file (SCUML items 8, 9) through the upload route; it waits for a second person. */
 export function SanctionsUpload({ copy }: { copy: Copy }) {
-  const [answer, act, pending] = useActionState<DeskAnswer | null, FormData>(uploadSanctionsList, null);
+  const router = useRouter();
+  const [answer, setAnswer] = useState<DeskAnswer | null>(null);
+  const [pending, start] = useTransition();
+  const act = (form: FormData) =>
+    start(async () => {
+      const file = form.get("file");
+      if (file instanceof File && file.size > 4 * 1024 * 1024) {
+        setAnswer({ ok: false, error: "too_large" });
+        return;
+      }
+      const response = await fetch("/api/compliance/sanctions-upload", { method: "POST", body: form }).catch(() => null);
+      const body = (await response?.json().catch(() => null)) as DeskAnswer | null;
+      setAnswer(body ?? { ok: false, error: "failed" });
+      router.refresh();
+    });
   const said =
     answer === null
       ? null
@@ -27,7 +41,9 @@ export function SanctionsUpload({ copy }: { copy: Copy }) {
           : answer.message.startsWith("waiting:")
             ? copy.uploadWaiting.replace("{count}", answer.message.replace("waiting:", ""))
             : copy.uploadDone.replace("{count}", answer.message.replace("loaded:", ""))
-        : copy.uploadFailed;
+        : answer.error === "too_large"
+          ? copy.uploadTooLarge
+          : copy.uploadFailed;
   return (
     <form action={act} className="mt-group">
       <h3 className="nf-overline">{copy.upload}</h3>
@@ -71,7 +87,7 @@ function useDeskRun(failed: string) {
 /** A waiting list version, activated by somebody other than who loaded it (items 9 and 19). */
 export function SanctionsActivate({ copy, list, me }: { copy: Copy; list: WaitingList; me: string }) {
   const { error, pending, run } = useDeskRun(copy.decisionFailed);
-  if (list.loadedBy === me) return <p className="nf-caption mt-inline">{copy.ownUpload}</p>;
+  if (list.loadedBy === me || list.proposedBy === me) return <p className="nf-caption mt-inline">{copy.ownUpload}</p>;
   return (
     <div className="mt-inline">
       <Button variant="secondary" loading={pending} onClick={() => run(() => activateSanctionsList({ versionId: list.id }))}>

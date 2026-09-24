@@ -56,12 +56,7 @@ const nextConfig: NextConfig = {
 
   // Workspace packages ship raw TypeScript, so Next compiles them in place.
   transpilePackages: ["@vallo/design-tokens", "@vallo/i18n"],
-  /*
-   * SCUML items 8 and 9: staff upload the UN Consolidated List (a few MB of
-   * XML) through a server action on /admin/compliance. The default 1 MB body
-   * limit refused it. 8 MB is what `uploadSanctionsList` accepts, no more.
-   */
-  experimental: { serverActions: { bodySizeLimit: "8mb" } },
+
 
   // Three image sources, all explicitly allowed through the optimiser and
   // nothing else: the seed catalogue's Unsplash photography, the Supabase

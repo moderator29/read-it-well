@@ -2,41 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../../admin/guard";
-import { getAdminClient } from "../../wallet/ledger";
-import { ingestList } from "./ingest";
-import { uploadSource } from "./sources";
 
 /**
  * THE SANCTIONS DESK'S ACTIONS. SCUML items 8, 9 and 19.
  *
  * Staff only (`requireAdmin`). Proposals and approvals go through the
  * definer functions under the operator's own session, which check the role
- * again and enforce the two-person rule in the database; the upload uses the
- * service role after the admin check, because list tables are born locked.
+ * again and enforce the two-person rule in the database. The file upload is
+ * a route handler (`/api/compliance/sanctions-upload`), not an action, so the
+ * app's server-action body limit stays at its default.
  */
 
 export type DeskAnswer = { ok: true; message: string } | { ok: false; error: string };
-
-/* The same figure as next.config's serverActions bodySizeLimit. */
-const MAX_UPLOAD = 8 * 1024 * 1024;
-
-export async function uploadSanctionsList(_prev: DeskAnswer | null, form: FormData): Promise<DeskAnswer> {
-  const access = await requireAdmin();
-  if (access.state !== "admin") return { ok: false, error: "forbidden" };
-  const source = form.get("source");
-  const file = form.get("file");
-  if ((source !== "un" && source !== "ng") || !(file instanceof File) || file.size === 0 || file.size > MAX_UPLOAD) {
-    return { ok: false, error: "failed" };
-  }
-  const admin = getAdminClient();
-  if (!admin) return { ok: false, error: "failed" };
-  const result = await ingestList(admin as never, uploadSource(source, await file.text()), access.user.id);
-  revalidatePath("/admin/compliance");
-  if (result.state === "waiting") return { ok: true, message: `waiting:${result.entries}` };
-  if (result.state === "loaded") return { ok: true, message: `loaded:${result.entries}` };
-  if (result.state === "same") return { ok: true, message: "same" };
-  return { ok: false, error: "failed" };
-}
 
 type Rpc = { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> };
 

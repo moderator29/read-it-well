@@ -8,6 +8,7 @@ describe("the sanctions jobs' verdicts (SCUML items 8 and 9)", () => {
     expect(listsVerdict([]).outcome).toBe("ok");
     const v = listsVerdict([{ source: "un", result: { state: "refused", reason: "no_entries" } }]);
     expect(v.alert?.kind).toBe("sanctions.list_refresh_failed");
+    expect(listsVerdict([], 1).alert).toMatchObject({ kind: "sanctions.list_waiting", detail: { waiting: 1 } });
   });
 
   it("raises matches as counts only, and an unreadable list as critical", () => {

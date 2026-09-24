@@ -22,11 +22,23 @@
  * Yusuf" land on the same letters. Exact still means the unfolded names are
  * the same words; a match only through folding is fuzzy.
  *
+ * ABBREVIATIONS AND ARTICLES. "Mohd", "Muhd", "Mhd" and "Md" read as
+ * Muhammad; a standalone "al"/"el" is dropped and a joined one split off
+ * ("Alhassan" and "Al Hassan" are the same word).
+ *
  * NEVER ON ONE WORD OR ON PART OF A LISTING. A single-word name from our side
- * is never matched, exact or not: one word is not a person. And the words we
- * hold must cover at least two thirds of the LISTED name's words (each
- * listed word counted when one of ours is close to it), so "Musa Ibrahim"
- * does not match a four-word listing that merely contains both.
+ * is never matched, exact or not: one word is not a person. The LISTED
+ * name's words must be covered by ours: every one of them for a listing of
+ * three words or fewer, and at least two thirds for a longer one, where each
+ * word counts by how RARE it is across the lists (a covered "Muhammad" is
+ * worth little, a covered "Danjuma" a lot).
+ *
+ * A CLOSE MATCH NEEDS THE FACTS NOT TO DISAGREE. A fuzzy match becomes a
+ * queue item only when the listing's date of birth or nationality is
+ * consistent with ours or unknown on either side (`factsAllowHit`);
+ * otherwise it is recorded on the screening and not raised. An exact match
+ * is always raised. Vallo holds no date of birth or nationality for most
+ * people today, so in practice every close match is raised.
  *
  * A match is a reason for a person to look, never a verdict. See the
  * escalation path in the migration header and docs/COMPLIANCE_RUNBOOK.md.
@@ -38,6 +50,20 @@ const HONORIFICS = new Set([
   "mr", "mrs", "ms", "miss", "dr", "prof", "chief", "alhaji", "alhaja", "hajia", "sheikh", "shaykh",
   "mallam", "malam", "engr", "barr", "rev", "pastor", "sir", "lady", "hon", "mal",
 ]);
+
+const ABBREVIATIONS: Record<string, string> = { mohd: "muhammad", muhd: "muhammad", mhd: "muhammad", md: "muhammad" };
+
+/** Abbreviations expanded, and "al"/"el" articles dropped or split off. */
+function expandWords(words: string[]): string[] {
+  const out: string[] = [];
+  for (const raw of words) {
+    const word = ABBREVIATIONS[raw] ?? raw;
+    if (word === "al" || word === "el") continue;
+    const joined = /^(?:al|el)([a-z]{3,})$/.exec(word);
+    out.push(joined ? joined[1]! : word);
+  }
+  return out;
+}
 
 /** One word folded to a rough sound, for scoring and indexing only. */
 export function foldWord(word: string): string {
@@ -53,9 +79,7 @@ export function foldWord(word: string): string {
 
 /** A normalised name, every word folded (word order kept sorted). */
 export function foldName(normalised: string): string {
-  return normalised
-    .split(" ")
-    .filter(Boolean)
+  return expandWords(normalised.split(" ").filter(Boolean))
     .map(foldWord)
     .sort()
     .join(" ");
@@ -141,26 +165,47 @@ function wordScore(a: string[], b: string[]): number {
 
 const WORD_CLOSE = 0.88;
 const MIN_COVERAGE = 2 / 3;
+const SHORT_LISTING = 3;
 
-/** The share of the LISTED name's words that one of ours is close to. */
-function listedCoverage(ours: string[], listed: string[]): number {
+export type WordWeight = (foldedWord: string) => number;
+const EVEN: WordWeight = () => 1;
+
+/** The weighted share of the LISTED name's words that one of ours is close to. */
+function listedCoverage(ours: string[], listed: string[], weight: WordWeight): number {
   let covered = 0;
-  for (const word of listed) if (ours.some((mine) => jaroWinkler(mine, word) >= WORD_CLOSE)) covered += 1;
-  return listed.length === 0 ? 0 : covered / listed.length;
+  let total = 0;
+  for (const word of listed) {
+    const w = weight(word);
+    total += w;
+    if (ours.some((mine) => jaroWinkler(mine, word) >= WORD_CLOSE)) covered += w;
+  }
+  return total === 0 ? 0 : covered / total;
+}
+
+/** Rarity weights from the lists themselves: log(1 + N / df) per folded word. */
+export function rarityWeights(listed: readonly { names: string[] }[]): WordWeight {
+  const df = new Map<string, number>();
+  for (const entry of listed) {
+    const words = new Set(entry.names.flatMap((name) => foldName(name).split(" ").filter(Boolean)));
+    for (const word of words) df.set(word, (df.get(word) ?? 0) + 1);
+  }
+  const n = Math.max(1, listed.length);
+  return (word) => Math.log(1 + n / (df.get(word) ?? 1));
 }
 
 /**
  * 0..1 for a screened name against a listed one, both already normalised
  * (`screened` is ours, `listed` is the list's). Scored on folded words.
  */
-export function nameScore(screened: string, listed: string): number {
+export function nameScore(screened: string, listed: string, weight: WordWeight = EVEN): number {
   if (!screened || !listed) return 0;
   const a = foldName(screened);
   const b = foldName(listed);
   const aw = a.split(" ");
   const bw = b.split(" ");
   if (aw.length < 2 || bw.length < 2) return 0;
-  if (listedCoverage(aw, bw) < MIN_COVERAGE) return 0;
+  const coverage = listedCoverage(aw, bw, weight);
+  if (bw.length <= SHORT_LISTING ? coverage < 1 : coverage < MIN_COVERAGE) return 0;
   if (a === b) return 1;
   return Math.max(editRatio(a, b), wordScore(aw, bw));
 }
@@ -172,7 +217,26 @@ export type ListedName = {
   primaryName: string;
   /** Normalised primary name and aliases (`sanctions_entries.names_normalised`). */
   names: string[];
+  datesOfBirth?: string[];
+  nationalities?: string[];
 };
+
+/** What we hold about the person, when we hold it. */
+export type PersonFacts = { dateOfBirth?: string | null; nationality?: string | null };
+
+/**
+ * May a close match be raised? Yes when the facts are consistent or unknown
+ * on either side; no only when a known fact on both sides disagrees.
+ */
+export function factsAllowHit(listed: Pick<ListedName, "datesOfBirth" | "nationalities">, facts: PersonFacts = {}): boolean {
+  const ourYear = (facts.dateOfBirth ?? "").slice(0, 4);
+  const theirDobs = listed.datesOfBirth ?? [];
+  if (/^\d{4}$/.test(ourYear) && theirDobs.length > 0 && !theirDobs.some((d) => d.slice(0, 4) === ourYear)) return false;
+  const ours = (facts.nationality ?? "").trim().toLowerCase();
+  const theirs = (listed.nationalities ?? []).map((n) => n.trim().toLowerCase());
+  if (ours && theirs.length > 0 && !theirs.includes(ours)) return false;
+  return true;
+}
 
 export type NameMatch = {
   entryId: string;
@@ -182,6 +246,8 @@ export type NameMatch = {
   score: number;
   screenedName: string;
   matchedName: string;
+  /** False when a known date of birth or nationality disagrees: recorded, not raised. */
+  raise: boolean;
 };
 
 /**
@@ -195,7 +261,11 @@ export type NameMatch = {
  * Returns every listed entry that one of the screened names matches, at most
  * one match per (entry, screened name), exact before fuzzy, best score first.
  */
-export function createMatcher(listed: readonly ListedName[], threshold = FUZZY_THRESHOLD): (screened: readonly string[]) => NameMatch[] {
+export function createMatcher(
+  listed: readonly ListedName[],
+  threshold = FUZZY_THRESHOLD,
+): (screened: readonly string[], facts?: PersonFacts) => NameMatch[] {
+  const weight = rarityWeights(listed);
   const byPrefix = new Map<string, Set<number>>();
   listed.forEach((entry, index) => {
     for (const name of entry.names) {
@@ -209,7 +279,7 @@ export function createMatcher(listed: readonly ListedName[], threshold = FUZZY_T
     }
   });
 
-  return (screened) => {
+  return (screened, facts = {}) => {
     const out: NameMatch[] = [];
     const mine = [...new Set(screened.map((s) => s.trim()).filter(Boolean))].map((raw) => ({ raw, norm: normaliseName(raw) }));
     for (const person of mine) {
@@ -222,11 +292,20 @@ export function createMatcher(listed: readonly ListedName[], threshold = FUZZY_T
         let best: NameMatch | null = null;
         for (const name of entry.names) {
           const exact = person.norm === name;
-          const score = exact ? 1 : Math.min(nameScore(person.norm, name), 0.999);
+          const score = exact ? 1 : Math.min(nameScore(person.norm, name, weight), 0.999);
           if (score < threshold) continue;
           const kind = exact ? "exact" : "fuzzy";
           if (!best || score > best.score) {
-            best = { entryId: entry.entryId, source: entry.source, reference: entry.reference, kind, score, screenedName: person.raw, matchedName: entry.primaryName };
+            best = {
+              entryId: entry.entryId,
+              source: entry.source,
+              reference: entry.reference,
+              kind,
+              score,
+              screenedName: person.raw,
+              matchedName: entry.primaryName,
+              raise: kind === "exact" || factsAllowHit(entry, facts),
+            };
           }
         }
         if (best) out.push({ ...best, score: Math.round(best.score * 1000) / 1000 });

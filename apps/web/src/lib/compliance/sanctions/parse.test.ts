@@ -49,6 +49,14 @@ describe("reading the Nigeria Sanctions List (SCUML item 8)", () => {
     expect(result.entries[0]).toMatchObject({ reference: "FXN.001", aliases: ["Q. A. Tesk", "Quorvin Tesk"], datesOfBirth: ["1975-01-09"] });
     expect(result.entries[1]).toMatchObject({ kind: "entity", primaryName: "Brightwater Holdings, Fixture" });
     expect(parseList("ng", "name\nx")).toEqual({ ok: false, reason: "missing_reference_or_name_column" });
+    expect(result.complete).toBe(true);
+  });
+
+  it("refuses an END count that does not match, and marks a file without one incomplete", () => {
+    const whole = fixture("nigeria-sanctions.fixture.csv");
+    expect(parseNigeriaCsv(whole.replace("END,2", "END,3"))).toEqual({ ok: false, reason: "truncated" });
+    const bare = parseNigeriaCsv(whole.replace("END,2\n", ""));
+    expect(bare.ok && bare.complete).toBe(false);
   });
 
   it("reads doubled quotes and newlines inside a quoted field", () => {
