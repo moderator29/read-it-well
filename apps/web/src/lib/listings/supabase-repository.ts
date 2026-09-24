@@ -665,11 +665,17 @@ async function getReviewStats(
      row read below, which is V-58's own and caps at JOIN_ROW_LIMIT. The
      OPS-11 function over the bare table, `listing_review_stats`, is never
      called: it would count the withheld reviews back in. */
-  const { data, error } = await (supabase.rpc as unknown as ReviewStatsRpc)("listing_review_counted_stats", {
-    p_listing_ids: listingIds,
-  });
-  if (error || !data) return getReviewStatsFromRows(supabase, listingIds);
-  for (const row of data) {
+  /* The function answers at most 1000 ids and returns nothing past that, with
+     no error, so the ids go in chunks it will answer (review). */
+  const rows: { listing_id: string; rating_avg: number | string; review_count: number }[] = [];
+  for (let at = 0; at < listingIds.length; at += REVIEW_STATS_CHUNK) {
+    const { data, error } = await (supabase.rpc as unknown as ReviewStatsRpc)("listing_review_counted_stats", {
+      p_listing_ids: listingIds.slice(at, at + REVIEW_STATS_CHUNK),
+    });
+    if (error || !data) return getReviewStatsFromRows(supabase, listingIds);
+    rows.push(...data);
+  }
+  for (const row of rows) {
     const count = Number(row.review_count);
     if (!(count > 0)) continue;
     stats.set(row.listing_id, {
@@ -679,6 +685,9 @@ async function getReviewStats(
   }
   return stats;
 }
+
+/** The most ids `listing_review_counted_stats` answers in one call. */
+const REVIEW_STATS_CHUNK = 1000;
 
 type ReviewStatsRpc = (
   fn: "listing_review_counted_stats",
