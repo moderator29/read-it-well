@@ -115,8 +115,6 @@ export const TAB_BAR_ROUTES = [
   "/messages",
   "/notifications",
   "/bookings",
-  "/trips",
-  "/inspections",
   "/crypto",
   "/restaurants",
   "/assistant",

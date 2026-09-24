@@ -203,8 +203,6 @@ export const ig: Dictionary = withFallback({
     restaurantsEmptyBody: "Ụlọ nri na-abata Vallo site n'aka ndị nwe ha. Mgbe otu dị gị nso depụtara, ọ ga-apụta ebe a.",
     tripsTitle: "Njem",
     tripsLine: "Ebe obibi na ndebe gị, site n'ụbọchị.",
-    tripsEmptyTitle: "Enwebeghị njem",
-    tripsEmptyBody: "Debe ebe obibi ma ọ bụ tebụl, ọ ga-abata ebe a na nkwenye ya na mkparịta ụka ya.",
     findStay: "Chọta ebe obibi",
     tripsToday: "Taa",
     tripsPast: "Njem gara aga",
@@ -220,8 +218,6 @@ export const ig: Dictionary = withFallback({
        Stays side's name for its bookings surface (HANDOFF_05 section 2). */
     stays: "Ebe obibi",
     exploreStays: "Chọọ ebe obibi",
-    trips: "Njem",
-    inspections: "Nyocha",
     home: "Ụlọ",
     hotels: "Họtel",
     apartments: "Ụlọ obibi",
@@ -309,12 +305,10 @@ export const ig: Dictionary = withFallback({
     myBookingsSub: "Lee ndebe ụlọ na nke ebe obibi gị",
     savedSub: "Ụlọ, ụlọ oriri na ebe ndị i chekwara",
     walletSub: "Jikwaa ego gị, kaadị na azụmahịa gị",
-    inspectionsSub: "Lee nyocha a haziri na nke gara aga",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ndebe ụlọ na ebe obibi",
     savedRow: "Ụlọ, ụlọ oriri na ebe",
     walletRow: "Ego, kaadị na azụmahịa",
-    inspectionsRow: "Nyocha a haziri na nke gara aga",
     /* The account page (`/profile`). Igbo draft, awaiting a native speaker's review. */
     accountPage: {
       upcoming: "{count} na-abịa",
@@ -2900,17 +2894,11 @@ export const ig: Dictionary = withFallback({
      until a native reviewer rewrites them. */
   inspectionsPage: {
     title: "Nyocha ụlọ",
-    lede: "Every inspection you asked for or were asked to host. Both of you see the same state on the same request.",
     openTitle: "Mepere emepe",
     openDescription: "Your move first, then what is booked in, then what is waiting on them.",
     closedTitle: "Emechiri emechi",
     readFailed:
       "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
-    emptyTitle: "Enwebeghị nyocha a haziri",
-    emptyBody:
-      "Request an inspection from a property's page and it lands here, with the answer beside it the moment it comes.",
-    emptyAction: "Chọta ebe",
-    loading: "Na-ebubata nyocha gị",
   },
 
   threads: {
@@ -3392,15 +3380,6 @@ export const ig: Dictionary = withFallback({
       upcoming: "Na-abịa",
       completed: "Emechara",
       cancelled: "Akagburu",
-      emptyUpcomingTitle: "E debeghị ihe ọ bụla",
-      emptyUpcomingBody:
-        "Mgbe ị debere ebe, ọ ga-apụta ebe a ya na ụbọchị gị, mkpokọta gị na ihe niile ị chọrọ n'ụbọchị ahụ.",
-      emptyCompletedTitle: "Enweghị ebe obibi emechara",
-      emptyCompletedBody:
-        "Ebe obibi na-abịa ebe a mgbe ị pụsịrị, ebe ahụ kwa ka ị ga-edetụ nyocha gị.",
-      emptyCancelledTitle: "Akagbughị ihe ọ bụla",
-      emptyCancelledBody:
-        "Anyị na-edobe ndebe akagburu ebe a ka ị nwee ndekọ mgbe niile, ọbụlagodi mgbe ụbọchị ahụ gafere.",
       findPlace: "Chọta ebe",
       payNow: "Kwụọ ugbu a",
       cancel: "Kagbuo",
@@ -3417,11 +3396,6 @@ export const ig: Dictionary = withFallback({
         "Ebe obibi ọ bụla ị debere jikọrọ na akaụntụ gị, ya mere naanị nke gị ka anyị na-egosi gị. Banye, ihe ọ bụla e ji akaụntụ a debe ga-apụta ebe a.",
       signIn: "Banye",
       findStay: "Chọta ebe obibi",
-      inspectionsTitle: "Nyocha gị",
-      inspectionsBody: "Onye depụtara ụlọ ahụ na-ahụ otu ọnọdụ ahụ ị na-ahụ.",
-      alsoOnTrips: "Ebe obibi gị na tebul gị, n'usoro ha ga-eme, dị na Njem.",
-      openTrips: "Mepee Njem",
-      alsoOnBookings: "Mgbazinye na nyocha dị na Ndebe.",
       openBookings: "Mepee Ndebe",
       detailMissingTitle: "Ndebe ahụ adịghị ebe a",
       detailMissingBody:

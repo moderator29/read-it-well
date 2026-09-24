@@ -168,6 +168,18 @@ const nextConfig: NextConfig = {
        * `/search?market=rent&q=Yaba` and a shared link keeps its words.
        */
       { source: "/rent", destination: "/search?market=rent", permanent: true },
+      /*
+       * `/trips` AND `/inspections`, FOLDED INTO PLANS (V-76).
+       *
+       * Three lists (`/bookings`, `/trips`, `/inspections`) whose empty
+       * states were signposts to each other are one page at `/bookings`,
+       * titled Plans. The two old addresses land on the half they held, and
+       * their own query rides along: `/inspections?changed=<id>` still opens
+       * the inspection a thread just answered, and `/trips?justBooked=<id>`
+       * still marks the stay checkout confirmed.
+       */
+      { source: "/trips", destination: "/bookings?side=stays", permanent: true },
+      { source: "/inspections", destination: "/bookings?kind=inspection", permanent: true },
     ];
   },
 

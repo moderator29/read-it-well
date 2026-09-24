@@ -58,7 +58,7 @@ export default async function RentPayPage({
           mark="card-lock"
           verdict="We cannot reach payment right now"
           consequence="This is on our side, not yours. Nothing has been charged and your inspection is unchanged. Try again in a few minutes."
-          actions={[{ label: "See your inspections", href: "/inspections", tone: "primary" }]}
+          actions={[{ label: "See your inspections", href: "/bookings?kind=inspection", tone: "primary" }]}
         />
       </Shell>
     );
@@ -86,7 +86,7 @@ export default async function RentPayPage({
           mark="seal-cross"
           verdict="We could not find that inspection"
           consequence="It may have been withdrawn, or it belongs to another account. Your inspections are all in one place."
-          actions={[{ label: "See your inspections", href: "/inspections", tone: "primary" }]}
+          actions={[{ label: "See your inspections", href: "/bookings?kind=inspection", tone: "primary" }]}
         />
       </Shell>
     );
@@ -100,7 +100,7 @@ export default async function RentPayPage({
           mark="alert-triangle"
           verdict="The payment step did not open"
           consequence="Nothing has been charged. Try again in a few minutes."
-          actions={[{ label: "See your inspections", href: "/inspections", tone: "primary" }]}
+          actions={[{ label: "See your inspections", href: "/bookings?kind=inspection", tone: "primary" }]}
         />
       </Shell>
     );
@@ -129,7 +129,7 @@ export default async function RentPayPage({
           verdict="Waiting on the lister"
           consequence="Nothing can be paid until the lister accepts your inspection. You will be told the moment they do, and this page opens then."
           actions={[
-            { label: "See your inspections", href: "/inspections", tone: "primary" },
+            { label: "See your inspections", href: "/bookings?kind=inspection", tone: "primary" },
             { label: "Back to the listing", href: `/listing/${read.listingId}`, tone: "quiet" },
           ]}
         />
@@ -205,7 +205,7 @@ export default async function RentPayPage({
 function Shell({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Pay the rent" subtitle={subtitle ?? "The move-in total, paid inside Vallo"} fallback="/inspections" />
+      <PageHeader title="Pay the rent" subtitle={subtitle ?? "The move-in total, paid inside Vallo"} fallback="/bookings?kind=inspection" />
       {children}
     </div>
   );

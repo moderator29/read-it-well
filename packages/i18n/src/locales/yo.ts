@@ -201,8 +201,6 @@ export const yo: Dictionary = withFallback({
     restaurantsEmptyBody: "Àwọn ilé oúnjẹ ń wá sórí Vallo nípasẹ̀ àwọn olówó wọn. Nígbà tí ọ̀kan bá ṣe àkọsílẹ̀ nítòsí rẹ, yóò farahàn níbí.",
     tripsTitle: "Ìrìn àjò",
     tripsLine: "Ibùgbé àti ìfipamọ́ rẹ, ní ọjọ́.",
-    tripsEmptyTitle: "Kò sí ìrìn àjò síbẹ̀",
-    tripsEmptyBody: "Gba ibùgbé tàbí tábìlì, yóò sì dé síbí pẹ̀lú ìfẹ̀rí àti ìjíròrò rẹ̀.",
     findStay: "Wá ibùgbé",
     tripsToday: "Òní",
     tripsPast: "Àwọn ìrìn àjò tí ó kọjá",
@@ -218,8 +216,6 @@ export const yo: Dictionary = withFallback({
        Stays side's name for its bookings surface (HANDOFF_05 section 2). */
     stays: "Ibùgbé",
     exploreStays: "Ṣàwárí ibùgbé",
-    trips: "Ìrìn àjò",
-    inspections: "Àyẹ̀wò",
     home: "Ilé",
     hotels: "Hòtẹ́lì",
     apartments: "Fúláàtì",
@@ -307,12 +303,10 @@ export const yo: Dictionary = withFallback({
     myBookingsSub: "Wo ìfipamọ́ ilé àti ibùgbé rẹ",
     savedSub: "Àwọn ilé, hótẹ́ẹ̀lì àti ibi tí o fipamọ́",
     walletSub: "Ṣàkóso owó rẹ, káàdì àti àwọn ìṣòwò",
-    inspectionsSub: "Wo àwọn àyẹ̀wò tí a ṣètò àti tí ó ti kọjá",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ìfipamọ́ ilé àti ibùgbé",
     savedRow: "Ilé, hótẹ́ẹ̀lì àti ibi",
     walletRow: "Owó, káàdì àti ìṣòwò",
-    inspectionsRow: "Àyẹ̀wò tí a ṣètò àti tí ó kọjá",
     /* The account page (`/profile`). Yoruba draft, awaiting a native speaker's review. */
     accountPage: {
       upcoming: "{count} tó ń bọ̀",
@@ -2911,17 +2905,11 @@ export const yo: Dictionary = withFallback({
      until a native reviewer rewrites them (see the note at the top of this file). */
   inspectionsPage: {
     title: "Àyẹ̀wò ilé",
-    lede: "Every inspection you asked for or were asked to host. Both of you see the same state on the same request.",
     openTitle: "Ṣí sílẹ̀",
     openDescription: "Your move first, then what is booked in, then what is waiting on them.",
     closedTitle: "Ti parí",
     readFailed:
       "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
-    emptyTitle: "Kò sí àyẹ̀wò tí a ṣètò síbẹ̀",
-    emptyBody:
-      "Request an inspection from a property's page and it lands here, with the answer beside it the moment it comes.",
-    emptyAction: "Wá ibi kan",
-    loading: "Ń gbé àyẹ̀wò rẹ wọlé",
   },
 
   threads: {
@@ -3403,15 +3391,6 @@ export const yo: Dictionary = withFallback({
       upcoming: "Tó ń bọ̀",
       completed: "Tí ó parí",
       cancelled: "Tí a fagilé",
-      emptyUpcomingTitle: "Kò sí ìfipamọ́ kankan síbẹ̀",
-      emptyUpcomingBody:
-        "Nígbà tí o bá fi ibì kan pamọ́, yóò hàn níbí pẹ̀lú àwọn ọjọ́ rẹ, àpapọ̀ owó rẹ àti gbogbo ohun tí o nílò ní ọjọ́ náà.",
-      emptyCompletedTitle: "Kò sí ibùgbé tí ó parí síbẹ̀",
-      emptyCompletedBody:
-        "Ibùgbé máa ń wá síbí lẹ́yìn tí o bá jáde, ibẹ̀ ni o sì ti lè fi àtúnyẹ̀wò rẹ sílẹ̀.",
-      emptyCancelledTitle: "Kò sí èyí tí a fagilé",
-      emptyCancelledBody:
-        "A ń pa àwọn ìfipamọ́ tí a fagilé mọ́ síbí kí o lè ní àkọsílẹ̀ nígbà gbogbo, àní lẹ́yìn tí àwọn ọjọ́ bá ti kọjá.",
       findPlace: "Wá ibì kan",
       payNow: "San nísinsìnyí",
       cancel: "Fagilé",
@@ -3428,11 +3407,6 @@ export const yo: Dictionary = withFallback({
         "Gbogbo ibùgbé tí o bá fi pamọ́ ni a so mọ́ àkántì rẹ, torí náà tìrẹ nìkan ni a ń fi hàn ọ́. Wọlé, ohunkóhun tí a fi àkántì yìí pamọ́ yóò sì hàn níbí.",
       signIn: "Wọlé",
       findStay: "Wá ibi ìgbọ́bùgbé",
-      inspectionsTitle: "Àwọn àyẹ̀wò rẹ",
-      inspectionsBody: "Ẹni tó kọ ilé náà sílẹ̀ rí ipò kan náà tí ìwọ rí.",
-      alsoOnTrips: "Àwọn ibùgbé àti tábìlì rẹ, ní ètò bí wọ́n ṣe ń ṣẹlẹ̀, wà ní Ìrìnàjò.",
-      openTrips: "Ṣí Ìrìnàjò",
-      alsoOnBookings: "Àwọn háyà àti àyẹ̀wò wà ní Ìfipamọ́.",
       openBookings: "Ṣí Ìfipamọ́",
       detailMissingTitle: "Ìfipamọ́ yẹn kò sí níbí",
       detailMissingBody:

@@ -82,7 +82,6 @@ const LIVE = [
   ["l-post", "/post/07de48f8-6fdf-4983-b2af-b1eaa990f8a8"],
   ["l-story-missing", `/stories/${MISSING}`],
   ["l-story-new", "/stories/new"],
-  ["l-inspections", "/inspections"],
   ["l-application", "/profile/application"],
   ["l-setup-role", "/profile/setup/professional"],
   ["l-setup-agent", "/profile/setup/agent"],

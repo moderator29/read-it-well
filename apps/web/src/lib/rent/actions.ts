@@ -132,7 +132,7 @@ export async function startRentPayment(input: {
   }
 
   revalidatePath(`/rent/pay/${parsed.data.inspectionId}`);
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   return ok({
     inspectionId: parsed.data.inspectionId,
     bookingId: outcome.booking_id,

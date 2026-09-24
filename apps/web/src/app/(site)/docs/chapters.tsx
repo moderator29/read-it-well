@@ -142,7 +142,7 @@ export const CHAPTERS: DocChapter[] = [
                   Restaurants
                 </Link>{" "}
                 and{" "}
-                <Link href="/trips" className={A}>
+                <Link href="/bookings?side=stays" className={A}>
                   Trips
                 </Link>
                 . Prices are per night, against dates and a party size.
@@ -1130,7 +1130,7 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               On the Stays side the same list is called{" "}
-              <Link href="/trips" className={A}>
+              <Link href="/bookings?side=stays" className={A}>
                 Trips
               </Link>
               , and it is arranged by date rather than by status: what is happening

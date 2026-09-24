@@ -253,8 +253,6 @@ export const en = {
     restaurantsEmptyBody: "Restaurants come onto Vallo through their owners. When one near you lists, it appears here.",
     tripsTitle: "Trips",
     tripsLine: "Your stays and reservations, by date.",
-    tripsEmptyTitle: "No trips yet",
-    tripsEmptyBody: "Book a stay or a table and it lands here with its confirmation and its conversation.",
     findStay: "Find a stay",
     /* Build 05, FE-5: the date spine on /trips. */
     tripsToday: "Today",
@@ -271,8 +269,6 @@ export const en = {
        Stays side's name for its bookings surface (HANDOFF_05 section 2). */
     stays: "Stays",
     exploreStays: "Explore stays",
-    trips: "Trips",
-    inspections: "Inspections",
     home: "Home",
     hotels: "Hotels",
     apartments: "Apartments",
@@ -385,11 +381,10 @@ export const en = {
   socialProfile: {
     /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
     belongings: "Belongings",
-    myBookings: "My Bookings",
-    myBookingsSub: "View your property and stays bookings",
+    myBookings: "Plans",
+    myBookingsSub: "Inspections, move-ins, stays and tables",
     savedSub: "Your saved properties, hotels and places",
     walletSub: "Manage your balance, cards and transactions",
-    inspectionsSub: "View your scheduled and past inspections",
     /*
      * The same four rows, said in one line each.
      *
@@ -401,7 +396,6 @@ export const en = {
     myBookingsRow: "Property and stays bookings",
     savedRow: "Saved properties and places",
     walletRow: "Balance, cards and transactions",
-    inspectionsRow: "Scheduled and past inspections",
     /*
      * The account page itself (`/profile`, Session B). Row values carry the
      * figure in `{count}`; the Switch role line names only the roles the
@@ -4628,17 +4622,11 @@ export const en = {
    */
   inspectionsPage: {
     title: "Inspections",
-    lede: "Every inspection you asked for or were asked to host. Both of you see the same state on the same request.",
     openTitle: "Open",
     openDescription: "Your move first, then what is booked in, then what is waiting on them.",
     closedTitle: "Closed",
     readFailed:
       "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
-    emptyTitle: "Nothing booked to see yet",
-    emptyBody:
-      "Request an inspection from a property's page and it lands here, with the answer beside it the moment it comes.",
-    emptyAction: "Find a place",
-    loading: "Loading your inspections",
   },
 
   /**
@@ -5129,15 +5117,6 @@ export const en = {
       upcoming: "Upcoming",
       completed: "Completed",
       cancelled: "Cancelled",
-      emptyUpcomingTitle: "Nothing booked yet",
-      emptyUpcomingBody:
-        "When you reserve a place, it appears here with your dates, your total and everything you need on the day.",
-      emptyCompletedTitle: "No completed stays yet",
-      emptyCompletedBody:
-        "A stay moves here after checkout, and that is where you can leave a review of it.",
-      emptyCancelledTitle: "Nothing cancelled",
-      emptyCancelledBody:
-        "Cancelled bookings are kept here so you always have the record, even after the dates have gone.",
       findPlace: "Find a place",
       payNow: "Pay now",
       cancel: "Cancel",
@@ -5154,14 +5133,9 @@ export const en = {
         "Every stay you book is tied to your account, so we only ever show you your own. Sign in and anything booked with this account appears here.",
       signIn: "Sign in",
       findStay: "Find somewhere to stay",
-      inspectionsTitle: "Your inspections",
-      inspectionsBody: "Whoever listed the property sees the same state you do.",
       /* The two halves of the record, each saying where the other half is
          (R3 finding F-08). Written as one sentence and a link rather than a
          second navigation block. */
-      alsoOnTrips: "Your stays and tables, in the order they happen, are on Trips.",
-      openTrips: "Open Trips",
-      alsoOnBookings: "Tenancies and inspections are on Bookings.",
       openBookings: "Open Bookings",
       /* One booking's own page, which a shared card opens (R2 finding R2-2).
          "Not yours" and "not there" say the same thing on purpose: naming the
