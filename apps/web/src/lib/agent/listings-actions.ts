@@ -1076,11 +1076,11 @@ export async function unpublishListing(input: {
   return ok(null);
 }
 
-/** Delete a draft outright, with its photos. Anything further along stays. */
 /** Why a draft with bookings or table requests on record is kept. */
 const DRAFT_KEPT_FOR_ITS_RECORDS_MESSAGE =
   "This draft has bookings or table requests on record, with their conversations, so it is kept rather than deleted. As a draft it stays hidden from everybody but you.";
 
+/** Delete a draft outright, with its photos. Anything further along stays. */
 export async function deleteListing(input: {
   listingId: string;
 }): Promise<ActionResult<null>> {
