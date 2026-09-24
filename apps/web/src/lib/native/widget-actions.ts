@@ -18,7 +18,7 @@ import { getAdminClient } from "../wallet/ledger";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = any;
 
-export async function mintWidgetToken(label: unknown): Promise<{ token: string } | { error: "failed" }> {
+export async function mintWidgetToken(label: unknown): Promise<{ token: string; id: string } | { error: "failed" }> {
   const session = await resolveSession();
   const admin = getAdminClient() as Loose;
   if (session.state !== "signed-in" || !admin) return { error: "failed" };
@@ -26,8 +26,12 @@ export async function mintWidgetToken(label: unknown): Promise<{ token: string }
   const hash = createHash("sha256").update(token).digest("hex");
   const name = typeof label === "string" ? label.trim().slice(0, 40) || null : null;
   try {
-    const { error } = await admin.from("widget_tokens").insert({ user_id: session.user.id, token_hash: hash, label: name });
-    if (error) return { error: "failed" };
+    const { data: made, error } = await admin
+      .from("widget_tokens")
+      .insert({ user_id: session.user.id, token_hash: hash, label: name })
+      .select("id")
+      .single();
+    if (error || !made) return { error: "failed" };
     /* Three live at most: a fourth phone retires the oldest. */
     const { data } = await admin
       .from("widget_tokens")
@@ -37,9 +41,36 @@ export async function mintWidgetToken(label: unknown): Promise<{ token: string }
       .order("created_at", { ascending: false });
     const extra = Array.isArray(data) ? (data as { id: string }[]).slice(3).map((r) => r.id) : [];
     if (extra.length > 0) await admin.from("widget_tokens").update({ revoked_at: new Date().toISOString() }).in("id", extra);
-    return { token };
+    return { token, id: (made as { id: string }).id };
   } catch {
     return { error: "failed" };
+  }
+}
+
+/**
+ * Is the token this phone's widget holds still good? The widget's own 401 is
+ * seen by the native side, not here, so the app asks on start: revoked (sign
+ * out everywhere, a hold, a deletion request), expired or unknown means the
+ * widget is dead, and the app clears its marker and mints afresh. Null when
+ * it cannot be read, which changes nothing.
+ */
+export async function widgetTokenLive(id: unknown): Promise<boolean | null> {
+  const session = await resolveSession();
+  const admin = getAdminClient() as Loose;
+  if (session.state !== "signed-in" || !admin || typeof id !== "string" || id.length > 64) return null;
+  try {
+    const { data, error } = await admin
+      .from("widget_tokens")
+      .select("id")
+      .eq("id", id)
+      .eq("user_id", session.user.id)
+      .is("revoked_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+    if (error) return null;
+    return data !== null;
+  } catch {
+    return null;
   }
 }
 

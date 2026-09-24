@@ -100,7 +100,8 @@ begin
                         coalesce(left(nullif(btrim(p.surname), ''), 1) || '.', '')), '')
                    from public.profiles p where p.id = v_insp.other),
       'role', case when v_insp.as_renter then 'renter' else 'lister' end,
-      'href', '/inspections'
+      /* Where each side keeps its inspections. */
+      'href', case when v_insp.as_renter then '/bookings?kind=inspection' else '/agent/inspections' end
     );
   end if;
   if v_has_book then
@@ -167,7 +168,9 @@ begin
 end
 $$;
 
-/* end_other_sessions, exactly as before, and the widgets too. */
+/* end_other_sessions, copied verbatim from the live definition (read with
+   pg_get_functiondef on 24 September 2026), with one line added: the widgets
+   go too. */
 create or replace function public.end_other_sessions()
 returns jsonb
 language plpgsql
@@ -183,12 +186,15 @@ begin
     return jsonb_build_object('status', 'forbidden');
   end if;
 
+  -- `is distinct from` rather than `<>`, because a null current_session must
+  -- not make the predicate null and quietly spare every row. A caller whose
+  -- token carries no session claim wants everything gone, and gets it.
   delete from auth.sessions s
    where s.user_id = actor
      and s.id is distinct from current_session;
   get diagnostics removed = row_count;
 
-  perform private.revoke_widget_tokens_for(actor);
+  perform private.revoke_widget_tokens_for(actor);  -- V-98, the one added line
 
   return jsonb_build_object('status', 'ok', 'ended', removed);
 end;

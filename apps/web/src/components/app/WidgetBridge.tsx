@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { handWidgetToken } from "@/lib/native/widget";
-import { mintWidgetToken } from "@/lib/native/widget-actions";
+import { mintWidgetToken, widgetTokenLive } from "@/lib/native/widget-actions";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -15,7 +15,7 @@ export function WidgetBridge() {
     void (async () => {
       const { data } = await createClient().auth.getSession().catch(() => ({ data: { session: null } }));
       const userId = data.session?.user.id;
-      if (userId) await handWidgetToken(userId, () => mintWidgetToken("This phone"));
+      if (userId) await handWidgetToken(userId, () => mintWidgetToken("This phone"), widgetTokenLive);
     })();
   }, []);
   return null;

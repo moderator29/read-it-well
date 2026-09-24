@@ -14,9 +14,13 @@ import { getAdminClient } from "@/lib/wallet/ledger";
  * or "nothing". Never an address, an amount or a reference.
  *
  * A public API path, because a widget has no session; the token is the
- * authorisation, and an unknown, revoked or expired one gets a 401. A
- * hundred and twenty a minute per address FIRST (so a stream of made-up
- * tokens cannot each open a fresh bucket), then sixty per token. A limiter
+ * authorisation, and an unknown, revoked or expired one gets a 401. Six
+ * hundred a minute per address FIRST (so a stream of made-up tokens cannot
+ * each open a fresh bucket), then sixty per token. Six hundred, not fewer,
+ * because Nigerian mobile networks put thousands of phones behind one
+ * carrier-grade NAT address, and a widget refreshing every fifteen minutes
+ * on each of them must not starve the rest; a guesser still gets no more
+ * than 600 tries a minute per address against 256-bit tokens. A limiter
  * that cannot count refuses: this route is public. Never cached.
  */
 
@@ -26,7 +30,7 @@ export const dynamic = "force-dynamic";
 const HEADERS = { "cache-control": "no-store" };
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const byIp = await consume({ bucket: "widget_next_up_ip", subject: subjectForIp(ipFromHeaders(request.headers)), limit: 120, windowSeconds: 60 });
+  const byIp = await consume({ bucket: "widget_next_up_ip", subject: subjectForIp(ipFromHeaders(request.headers)), limit: 600, windowSeconds: 60 });
   if (!byIp.allowed || byIp.degraded) {
     return NextResponse.json({ ok: false, reason: "slow_down" }, { status: 429, headers: HEADERS });
   }

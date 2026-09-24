@@ -37,19 +37,25 @@ async function plugin(): Promise<WidgetPlugin | null> {
   return Capacitor.registerPlugin<WidgetPlugin>("ValloWidget");
 }
 
+/* The marker is "<user id>:<token id>": whose token, and which one. */
 export async function handWidgetToken(
   userId: string,
-  mint: () => Promise<{ token: string } | { error: string }>,
+  mint: () => Promise<{ token: string; id: string } | { error: string }>,
+  live: (tokenId: string) => Promise<boolean | null>,
 ): Promise<"handed" | "skipped"> {
   if (typeof window === "undefined" || !looksNative() || !userId) return "skipped";
-  if (readMarker() === userId) return "skipped";
+  const [markedUser, markedToken] = (readMarker() ?? "").split(":");
+  if (markedUser === userId && markedToken) {
+    /* The widget's token was revoked (a 401 for the widget): mint afresh. */
+    if ((await live(markedToken).catch(() => null)) !== false) return "skipped";
+  }
   const widget = await plugin().catch(() => null);
   if (!widget) return "skipped";
   const minted = await mint().catch(() => ({ error: "failed" }));
   if (!("token" in minted)) return "skipped";
   try {
     await widget.setToken({ token: minted.token, origin: window.location.origin });
-    window.localStorage.setItem(HANDED, userId);
+    window.localStorage.setItem(HANDED, `${userId}:${minted.id}`);
     return "handed";
   } catch {
     return "skipped";
