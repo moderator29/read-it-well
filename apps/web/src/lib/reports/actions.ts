@@ -21,6 +21,7 @@
  */
 
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
+import { phoneGateFor } from "../phone-otp/gate";
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { REPORT_CATEGORY_COPY, reportInputSchema } from "./schema";
@@ -46,6 +47,12 @@ export async function reportSomething(
   const parsed = validate(reportInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { targetType, targetId, category, details } = parsed.data;
+
+  /* V-50: the first report that is not about immediate danger needs a
+     confirmed phone, when the flag is on. A report that somebody is unsafe
+     is never delayed by a code. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "report", category);
+  if (phoneGate) return fail(phoneGate);
 
   const verdict = await consume({
     bucket: "report",

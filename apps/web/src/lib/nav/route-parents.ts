@@ -303,6 +303,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/payments": "/settings",
   "/settings/place": "/settings",
   "/settings/privacy": "/settings",
+  "/settings/phone": "/settings",
   "/legal/privacy": "/settings",
   "/legal/terms": "/settings",
 
