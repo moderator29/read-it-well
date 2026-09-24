@@ -1,6 +1,6 @@
 import type { Dictionary } from "@vallo/i18n";
 import type { Listing, PowerBackup, PowerGrid } from "@/lib/listings/types";
-import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
+import { PERIOD_SUFFIX_SHORT, isTenancyPeriod } from "@/lib/listings/pricing";
 
 /**
  * What a property card says, decided away from how it looks.
@@ -287,4 +287,29 @@ export function cardUtility(listing: Listing): string | null {
      answer that survives an outage, which is the half people ask about. */
   if (backup) return `Backup ${backup}`;
   return null;
+}
+
+/* ---------------------------------------------------------------- message */
+
+/**
+ * Where a card's Message agent control goes, or null when it has none (V-26).
+ *
+ * The deleted `/rent` shelf put Message agent under every rental card, and it
+ * was the one good idea on that page: a tenancy has no Reserve, so talking to
+ * the lister IS the next step. It moved onto the tenancy card on `/search`.
+ *
+ * Only a tenancy (a rent period of month, quarter or year, not a sale) carries
+ * it, because a stay's next step is its dates and a sale's is its own page.
+ * NEVER ON AN EXAMPLE: the lister of an example listing is an institutional
+ * account with nobody behind it, and the database refuses the conversation.
+ *
+ * The address is `/messages/new?listing=`, the bridge every Message agent
+ * control on the platform already uses: it opens the existing thread about
+ * this listing or starts one, and carries the listing into it.
+ */
+export function cardMessageHref(listing: Listing): string | null {
+  if (listing.isDemo) return null;
+  if (listing.intent === "sale") return null;
+  if (!isTenancyPeriod(listing.pricePeriod)) return null;
+  return `/messages/new?listing=${encodeURIComponent(listing.id)}`;
 }

@@ -124,7 +124,7 @@ export async function reviewMessageFlag(input: {
     // The flag is genuinely reviewed either way.
   }
 
-  revalidatePath("/admin/flags");
+  revalidatePath("/admin/queue");
   revalidatePath("/admin");
   return ok(null);
 }
@@ -244,7 +244,7 @@ export async function resolveReport(input: {
     // Best effort.
   }
 
-  revalidatePath("/admin/reports");
+  revalidatePath("/admin/queue");
   revalidatePath("/admin");
   return ok(null);
 }
@@ -377,7 +377,7 @@ export async function reviewAgentApplication(input: {
                verification queue has not seen a document. The body already
                said the true thing; the title now does too. */
             title: "Your agent application is approved",
-            body: "Agent Mode is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
+            body: "Your agent workspace is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
           }
         : decision === "reject"
           ? {
@@ -506,7 +506,7 @@ export async function reviewListing(input: {
 
   const { data: listing, error: readError } = await access.supabase
     .from("listings")
-    .select("id, title, status, agent_id, reference, agents ( user_id )")
+    .select("id, title, status, agent_id, reference, published_at, agents ( user_id )")
     .eq("id", listingId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
@@ -544,7 +544,11 @@ export async function reviewListing(input: {
       reviewer_id: access.user.id,
       reviewed_at: now,
       review_notes: notes,
-      ...(decision === "publish" ? { published_at: now } : {}),
+      /* The FIRST time it went live, kept (V-22, batch 1 review finding 4):
+         a listing sent back to draft and published again is not new, and
+         "Listed today", the Newest sort, the New mark and saved-search alerts
+         all read this column. */
+      ...(decision === "publish" && !listing.published_at ? { published_at: now } : {}),
     })
     .eq("id", listing.id);
   if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);

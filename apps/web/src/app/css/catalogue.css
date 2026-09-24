@@ -188,6 +188,23 @@
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
+  /* V-22: the listed age, and the New mark in front of it. The mark is a
+     word first and a tint second, so it reads without its colour. */
+  .nf-pcard__age {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-3xs);
+  }
+  /* V-26: Message agent at the foot of a tenancy card, outside the link. */
+  .nf-pcard__action {
+    padding: 0 var(--nf-space-xs) var(--nf-space-xs);
+  }
+  .nf-pcard__new {
+    padding: 0 var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+  }
   /* Beds, baths and the floor area on one hairline row under a divider, as
      the render draws them. They wrap rather than clip on the narrowest
      cards: a fact cut in half states a different fact. */

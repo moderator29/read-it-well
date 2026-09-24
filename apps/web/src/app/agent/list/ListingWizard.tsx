@@ -16,7 +16,7 @@ import {
   setListingAccess,
   submitListing,
 } from "@/lib/agent/listings-actions";
-import type { WizardDraft } from "@/lib/agent/listings-queries";
+import type { OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
 import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
@@ -73,6 +73,14 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
+import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
+import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/listings/compound";
+import { EMPTY_SERVICE_FORM, servicePayload, type ServiceForm } from "@/lib/listings/service";
+import { ServiceQuestions } from "@/components/agent/ServiceQuestions";
+import { UnitQuestions } from "@/components/agent/UnitQuestions";
+import { FloodQuestion } from "@/components/agent/FloodQuestion";
+import type { Flooding } from "@/lib/around/pulse";
+import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -191,6 +199,14 @@ type Values = {
   powerBackupHours: string;
   waterSupply: WaterSupply | "";
   prepaidMeter: boolean;
+  /** V-28: the compound's five answers; "" is unanswered. */
+  compound: CompoundForm;
+  /** V-68: the service charge's answers. */
+  service: ServiceForm;
+  /** V-66: the unit's shape, en-suite rooms and BQ. */
+  unit: UnitForm;
+  /** V-41: the lister's flooding answer; "" is unanswered. */
+  flooding: Flooding | "";
   estateName: string;
   gateDirections: string;
   securityPhone: string;
@@ -259,6 +275,10 @@ const EMPTY: Values = {
   powerBackupHours: "",
   waterSupply: "",
   prepaidMeter: false,
+  compound: EMPTY_COMPOUND_FORM,
+  service: EMPTY_SERVICE_FORM,
+  unit: EMPTY_UNIT_FORM,
+  flooding: "",
   estateName: "",
   gateDirections: "",
   securityPhone: "",
@@ -314,6 +334,10 @@ function valuesFrom(draft: WizardDraft): Values {
     powerBackupHours: draft.powerBackupHours,
     waterSupply: draft.waterSupply,
     prepaidMeter: draft.prepaidMeter,
+    compound: draft.compound ?? EMPTY_COMPOUND_FORM,
+    service: draft.service ?? EMPTY_SERVICE_FORM,
+    unit: draft.unit ?? EMPTY_UNIT_FORM,
+    flooding: draft.flooding ?? "",
     estateName: draft.access.estateName,
     gateDirections: draft.access.gateDirections,
     securityPhone: draft.access.securityPhone,
@@ -808,10 +832,24 @@ function FromMessageMark({
 
 /* ------------------------------------------------------------- the wizard */
 
+/**
+ * True when a group's saved answers could not be read AND the lister has not
+ * touched the empty form standing in for them. Such a group is left out of
+ * the save rather than written back as nulls (review 13).
+ */
+function untouchedUnread(unread: readonly OwnAnswers[], group: OwnAnswers, value: unknown, empty: unknown): boolean {
+  return unread.includes(group) && JSON.stringify(value) === JSON.stringify(empty);
+}
+
 export function ListingWizard({
   copy,
   reference,
   moveInCopy,
+  compoundCopy,
+  serviceCopy,
+  unitCopy,
+  floodCopy,
+  floodOpen = false,
   remainderCopy,
   moneyMapCopy,
   locale,
@@ -852,6 +890,16 @@ export function ListingWizard({
      breakdown GOVERNING-08 screen two draws is the searcher's block turned
      round to face the agent, and it has to read in exactly the same words. */
   moveInCopy: Dictionary["moveIn"];
+  /** V-28: the compound's five questions. */
+  compoundCopy: Dictionary["shape"]["compound"];
+  /** V-68: the service charge questions. */
+  serviceCopy: Dictionary["shape"]["service"];
+  /** V-66: the unit shape question. */
+  unitCopy: Dictionary["shape"]["unit"];
+  /** V-41: the flooding question. */
+  floodCopy: Dictionary["shape"]["neighbours"];
+  /** V-41 is behind a fail-closed flag; the question shows only when it is on. */
+  floodOpen?: boolean;
   /** V-13: the sentence that refuses an unexplained remainder in the total. */
   remainderCopy?: Dictionary["afterTheGate"]["remainder"];
   /** V-46: the captions that say who each move-in line is paid to. */
@@ -877,6 +925,8 @@ export function ListingWizard({
     Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
   );
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
+  /* The answer groups whose saved values could not be read (review 13). */
+  const unread = useMemo(() => initial?.unread ?? [], [initial]);
   const [photos, setPhotos] = useState<Photo[]>(initial?.photos ?? []);
   const [chosenAmenities, setChosenAmenities] = useState<string[]>(initial?.amenityCodes ?? []);
   /* The walkthroughs already attached to this draft. Every layer behind them
@@ -1114,6 +1164,7 @@ export function ListingWizard({
         tenure: values.tenure === "" ? null : values.tenure,
         bedrooms: values.bedrooms,
         bathrooms: values.bathrooms,
+        unitShape: values.unit.shape === "" ? null : values.unit.shape,
         amenityCount: chosenAmenities.length,
         photoCount: photos.length,
         hasCover: photos.length > 0,
@@ -1189,6 +1240,8 @@ export function ListingWizard({
         return g.bedrooms;
       case "bathrooms":
         return g.bathrooms;
+      case "unitShape":
+        return unitCopy.wizardRequired;
       case "totalMoveIn":
         return remainderCopy && moveInRemainderMinor > 0
           ? fill(remainderCopy.gate, { amount: formatMoney(moveInRemainderMinor, locale) })
@@ -1387,6 +1440,13 @@ export function ListingWizard({
       powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
       waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
       prepaidMeter: values.prepaidMeter,
+      /* A group whose saved answers could not be read, and which the lister
+         has not touched, is left out: sending its empty form would write
+         nulls over answers this screen never saw (review 13). */
+      ...(untouchedUnread(unread, "compound", values.compound, EMPTY_COMPOUND_FORM) ? {} : compoundPayload(values.compound)),
+      ...(untouchedUnread(unread, "service", values.service, EMPTY_SERVICE_FORM) ? {} : servicePayload(values.service)),
+      ...(untouchedUnread(unread, "unit", values.unit, EMPTY_UNIT_FORM) ? {} : unitPayload(values.unit, values.bedrooms)),
+      ...(untouchedUnread(unread, "flood", values.flooding, "") ? {} : { flooding: values.flooding === "" ? null : values.flooding }),
     });
 
     if (!result.ok) {
@@ -1419,7 +1479,7 @@ export function ListingWizard({
     if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
-  }, [canPersist, chosenAmenities, listingId, values]);
+  }, [canPersist, chosenAmenities, listingId, values, unread]);
 
   function go(next: number) {
     const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
@@ -1889,6 +1949,17 @@ export function ListingWizard({
               short-stay model, for the reason recorded before: asking for a
               number nothing stores is asking somebody to type into a void.
             */}
+            {/* ------------------------------------ the shape (V-66) */}
+            {takesShape(values.propertyType) && (
+              <UnitQuestions
+                copy={unitCopy}
+                value={values.unit}
+                bedrooms={values.bedrooms}
+                error={fieldErrors.unitShape}
+                onChange={(next) => set("unit", next)}
+              />
+            )}
+
             <div>
               <span className="nf-label">
                 {copy.drawn.rooms.title}
@@ -2425,6 +2496,33 @@ export function ListingWizard({
               onCheckedChange={(v) => set("prepaidMeter", v)}
             />
             {mark("prepaidMeter")}
+
+            {/* ------------------------ the service charge and the gate (V-68) */}
+            {/* What the charge covers is asked only where a charge is stated on
+                a home to let or sell (batch 4 review); the gate always is. */}
+            <ServiceQuestions
+              copy={serviceCopy}
+              value={values.service}
+              onChange={(next) => set("service", next)}
+              chargeMinor={(tenancy || forSale) ? parseNairaToKobo(values.serviceChargeNaira) : null}
+            />
+
+            {/* ------------------------------------- flooding (V-41) */}
+            {floodOpen && (
+              <FloodQuestion
+                copy={floodCopy}
+                value={values.flooding}
+                onChange={(next) => set("flooding", next)}
+              />
+            )}
+
+            {/* ---------------------------------------- the compound (V-28) */}
+            <CompoundQuestions
+              copy={compoundCopy}
+              value={values.compound}
+              onChange={(next) => set("compound", next)}
+              flatsError={fieldErrors.flatsInCompound}
+            />
 
             {/* ------------------------------------------------ the gate */}
             <div className="nf-panel nf-panel--card block p-card">

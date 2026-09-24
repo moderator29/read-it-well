@@ -52,8 +52,8 @@ export const MARKETS: Market[] = [
      `type`, which IS parsed, which is why only these two were wrong. */
   { key: "rent", icon: "keys-home", href: "/search?market=rent" },
   { key: "buy", icon: "home-check", href: "/search?market=buy" },
-  { key: "shortlet", icon: "shortlet", href: "/search?type=shortlet" },
-  { key: "hotel", icon: "hotel", href: "/search?type=hotel" },
+  { key: "shortlet", icon: "shortlet", href: "/stays/search?type=shortlet" },
+  { key: "hotel", icon: "hotel", href: "/stays/search?type=hotel" },
   { key: "villa", icon: "villa", href: "/search?type=villa" },
   { key: "apartment", icon: "serviced-apartment", href: "/search?type=apartment" },
   { key: "restaurant", icon: "concierge-bell", href: "/search?type=restaurant" },

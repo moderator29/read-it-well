@@ -99,8 +99,8 @@ try {
   );
 
   // ------------------------------------------------ rental listing detail
-  console.log("/rent, then the first rental's detail page");
-  await page.goto(`${BASE_URL}/rent`, { waitUntil: "load" });
+  console.log("/search?market=rent, then the first rental's detail page");
+  await page.goto(`${BASE_URL}/search?market=rent`, { waitUntil: "load" });
   await page.waitForTimeout(WAIT);
 
   const rentalHref = await page

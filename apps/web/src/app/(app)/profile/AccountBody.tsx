@@ -69,14 +69,12 @@ export type AccountRowsCopy = {
   myBookingsSub: string;
   savedSub: string;
   walletSub: string;
-  inspections: string;
-  inspectionsSub: string;
 };
 
 type Tab = "account" | "posts";
 
 type Belonging = {
-  key: "bookings" | "saved" | "wallet" | "inspections";
+  key: "bookings" | "saved" | "wallet";
   href: string;
   /** The render's own object, cropped from `50E032EA` into the glass pack. */
   object: BrandIconName;
@@ -188,13 +186,6 @@ export function AccountBody({
       object: "wallet-tile",
       title: copy.wallet,
       sub: copy.walletSub,
-    },
-    {
-      key: "inspections",
-      href: "/inspections",
-      object: "shield-check-tile",
-      title: copy.inspections,
-      sub: copy.inspectionsSub,
     },
   ];
 

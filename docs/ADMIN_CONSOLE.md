@@ -301,12 +301,14 @@ by title, city or date to reach older ones.
 
 ## 5. Moderation
 
-**Where:** `/admin/moderation`. Built to `01F7DFC7` panel 1.
+**Where:** the Held lane of the unified queue, `/admin/queue?tab=held` (V-88: `/admin/moderation` redirects there). Built to `01F7DFC7` panel 1. The lanes are addressed with `?tab=`, not the `?lane=` the V-88 entry wrote, because the queue already named its tabs that way.
 
-Two kinds of work in one table. **Reports** are what members filed about a
-listing, a post, a story or a person (`reports`). **Held items** are what the
-safety scan stopped before anybody saw them: posts, stories, story comments
-and bios (`status = 'HELD'`).
+The Held lane lists only what the safety scan stopped before anybody saw it:
+posts, stories, story comments, bios and events (`status = 'HELD'`), and its
+count on the queue tab counts exactly those. **Reports** (what members filed
+about a listing, a post, a story or a person) are the Reports lane, where the
+reason chips (Payment outside, Scam, Unsafe and the rest) filter with
+`?tab=reports&reason=<category>`.
 
 - **Reason tabs**: All, then the eight reasons a member can choose (payment
   off the platform, scam, unsafe, not as described, unavailable, offensive,
@@ -640,6 +642,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
+| vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
 | vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
 | vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
@@ -659,7 +662,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_remind_renewals | pg_cron `20 7 * * *` | daily 08:20 | | tells tenants and listers a tenancy ends in 90, 60 or 30 days (V-93) |
 | vallo_notify_void_shares | pg_cron `25 7 * * *` | daily 08:25 | | tells a flatmate once when a move-in they paid a share of fell through (V-86) |
 
-11 Vercel Cron jobs and 22 pg_cron jobs in all. The numbers are derived,
+11 Vercel Cron jobs and 23 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by
@@ -852,7 +855,7 @@ Owned by admin-money; handbook section 12.
   what it applies to (rule 15).
 - **Rejected** editing a rate in place: a new row keeps the history true.
 
-### 15.7 Message flags (Moderation > Message flags, `/admin/flags`)
+### 15.7 Message flags (the Flags lane, `/admin/queue?tab=flags`; `/admin/flags` redirects there, V-88)
 
 - **Shows** messages the safety scan flagged (`message_flags`), with the
   surrounding thread lines and each party's role, filterable by status.
@@ -864,7 +867,7 @@ Owned by admin-money; handbook section 12.
 - **Rejected** deleting the message: evidence is kept; the scan's decision
   is reviewed, not erased.
 
-### 15.8 Reports (Moderation > Reports, `/admin/reports`)
+### 15.8 Reports (the Reports lane, `/admin/queue?tab=reports`; `/admin/reports` redirects there, V-88)
 
 - **Shows** reports people filed (`reports`), with category, target and the
   response clock (`REPORT_RESPONSE_HOURS`, overdue count via
@@ -1024,7 +1027,7 @@ back to Waiting when they resubmit.
 (not the lister's to let, a scam, a duplicate). Write why, press Reject, press
 it again to confirm. The lister is told and may still edit and resubmit.
 
-**Deciding a report.** `/admin/moderation`. Work top down: waiting items are
+**Deciding a report.** The Reports lane, `/admin/queue?tab=reports`, narrowed by reason with `&reason=` if you like. Work top down: waiting items are
 oldest first. Open the row, read the reporter's words and open what was
 reported. Start review if it will take time (the reporter's report now shows
 as in review under your name). Resolve when you have acted (for a listing,

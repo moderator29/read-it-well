@@ -198,7 +198,6 @@ export async function reserveTable(
 
   revalidatePath(target.kind === "business" ? `/restaurant/${target.id}` : `/listing/${target.id}`);
   revalidatePath("/bookings");
-  revalidatePath("/trips");
   return ok({ reservationId: data.id, status: "PENDING", conversationId });
 }
 
@@ -272,7 +271,6 @@ export async function respondToReservation(
    */
   revalidatePath("/agent/bookings");
   revalidatePath("/bookings");
-  revalidatePath("/trips");
   return ok(null);
 }
 
@@ -325,6 +323,5 @@ export async function cancelReservation(
   }
 
   revalidatePath("/bookings");
-  revalidatePath("/trips");
   return ok(null);
 }

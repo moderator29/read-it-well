@@ -44,6 +44,8 @@ export type MapListing = {
    * this type and it is the only one that changes what the card MEANS.
    */
   isDemo: boolean;
+  /** A modest example: draw its kind, never a scene photograph (`example-imagery.ts`). */
+  drawn?: boolean;
   lat: number;
   lng: number;
   /**

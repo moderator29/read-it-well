@@ -4,9 +4,14 @@ import { firstRunNext } from "@/components/app/welcome/first-run-seen";
 
 describe("sign-in meets first run once (request W2)", () => {
   it("sends a device that has never seen first run to /welcome, carrying the sign-in address", () => {
-    expect(signInFirstRunRedirect({ cookie: undefined, params: {} })).toBe(
-      "/welcome?next=%2Fsign-in",
+    expect(signInFirstRunRedirect({ cookie: undefined, params: { next: "/search" } })).toBe(
+      "/welcome?next=%2Fsign-in%3Fnext%3D%252Fsearch",
     );
+  });
+
+  it("never shows the carousel to a Sign in tapped on purpose (V-18)", () => {
+    expect(signInFirstRunRedirect({ cookie: undefined, params: {} })).toBeNull();
+    expect(signInFirstRunRedirect({ cookie: undefined, params: { next: "" } })).toBeNull();
   });
 
   it("keeps next and the notice, so the person lands back where they were going", () => {
@@ -36,6 +41,8 @@ describe("sign-in meets first run once (request W2)", () => {
   });
 
   it("treats any other cookie value as not seen", () => {
-    expect(signInFirstRunRedirect({ cookie: "yes", params: {} })).toBe("/welcome?next=%2Fsign-in");
+    expect(signInFirstRunRedirect({ cookie: "yes", params: { next: "/home" } })).toBe(
+      "/welcome?next=%2Fsign-in%3Fnext%3D%252Fhome",
+    );
   });
 });

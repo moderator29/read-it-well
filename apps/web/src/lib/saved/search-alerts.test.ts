@@ -87,6 +87,17 @@ describe("filterFor", () => {
 });
 
 describe("planAlerts", () => {
+  it("does not judge a search saved for a stay category, and says which", () => {
+    const hotel = canonicalSearch({ type: "hotel" });
+    const plan = planAlerts(
+      [search({ id: "stay", params: hotel.params, href: hotel.href }), search()],
+      [candidate("2026-09-20T10:00:00.000Z", { kind: "apartment", bedrooms: 2 })],
+      "/saved/searches",
+    );
+    expect(plan.staySide).toEqual(["stay"]);
+    expect(plan.matchedIds).not.toContain("stay");
+  });
+
   it("tells nobody anything when nothing went up", () => {
     const plan = planAlerts([search()], [], "/saved/searches");
     expect(plan.notices).toEqual([]);
@@ -108,6 +119,21 @@ describe("planAlerts", () => {
     expect(plan.notices[0]!.matches).toBe(2);
     expect(plan.matchedListings).toBe(2);
     expect(plan.notices[0]!.title).toContain("2 new places");
+  });
+
+  it("never alerts a rent-market search to a nightly stay its shelf would not show (V-26)", () => {
+    const rent = canonicalSearch({ market: "rent" });
+    const plan = planAlerts(
+      [search({ params: rent.params, href: rent.href })],
+      [
+        candidate(NOON, { id: "shortlet", kind: "shortlet", pricePeriod: "night" }),
+        candidate(NOON, { id: "flat", kind: "apartment", pricePeriod: "year" }),
+      ],
+      "/saved/searches",
+    );
+    expect(plan.notices).toHaveLength(1);
+    expect(plan.notices[0]!.matches).toBe(1);
+    expect(plan.matchedListings).toBe(1);
   });
 
   it("never reports a place that went up before the watermark", () => {

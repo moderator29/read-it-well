@@ -53,7 +53,7 @@ const JOURNEYS = [
   /* ------------------------------------------------------------- shells -- */
   { name: "home", url: "/home", source: "product" },
   { name: "saved", url: "/saved", source: "product" },
-  { name: "trips", url: "/trips", source: "product" },
+  { name: "plans", url: "/bookings?side=stays", source: "product" },
   { name: "bookings", url: "/bookings", source: "product" },
   { name: "messages", url: "/messages", source: "product" },
   { name: "notifications", url: "/notifications", source: "product" },

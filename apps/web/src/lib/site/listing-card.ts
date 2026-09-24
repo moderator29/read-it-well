@@ -12,6 +12,8 @@ import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
  * guessed) and what the badge says (`verified` only when the record says the
  * lister was checked by a person; otherwise the market, which is a fact).
  */
+import { isModestExample } from "@/lib/listings/example-imagery";
+
 export type MiniListing = {
   id: string;
   href: string;
@@ -25,6 +27,8 @@ export type MiniListing = {
   kind: ListingKind;
   verified: boolean;
   market: string;
+  /** A modest example: draw its kind, never a scene photograph (`example-imagery.ts`). */
+  drawn?: boolean;
 };
 
 export function toMiniListing(listing: Listing, t: Dictionary): MiniListing {
@@ -50,5 +54,6 @@ export function toMiniListing(listing: Listing, t: Dictionary): MiniListing {
     kind: listing.kind,
     verified: listing.verified,
     market,
+    drawn: isModestExample(listing),
   };
 }

@@ -1,5 +1,6 @@
 import { LISTING_ROLES, type ListingRole } from "@/lib/supply/roles";
 import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSupply } from "./types";
+import { UNIT_SHAPES, shapeFromSlug, shapeSlug, type UnitShape } from "./unit-shape";
 
 /**
  * The discovery URL contract.
@@ -13,7 +14,9 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *   q          free text
  *   type       category, one of the real ListingKind values
  *              (legacy aliases: "property" is apartment, "rent" is rental)
- *   sort       recommended | top-rated | price-asc | price-desc | move-in-asc
+ *   sort       recommended | newest | price-asc | price-desc | move-in-asc
+ *              (top-rated is gone, V-67: a tenancy cannot be reviewed today, so
+ *              it ordered on nothing; an old link reads as recommended)
  *   view       list | map
  *   min, max   budget bounds in WHOLE NAIRA, the one place naira appears
  *   beds       minimum bedrooms
@@ -27,6 +30,20 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *              "mains", "borehole", "storage", "tanker"
  *   by         comma separated supply kinds, ANY of which will do:
  *              "owner", "agent", "firm"
+ *   landlord   "away": the lister said the landlord lives elsewhere (V-28)
+ *   parking    "inside": the lister said a car parks inside the compound (V-28)
+ *   serviced   "1": Serviced, derived from what the charge covers (V-68)
+ *   estate     "gated": a gated estate with controlled entry (V-68)
+ *   shape      comma separated unit shapes, ANY of which will do:
+ *              "self-contain", "mini-flat", "flat", "duplex", ... (V-66)
+ *   bq         "1": a boys' quarters comes with it (V-66)
+ *   area       comma separated areas, ANY of which will do: "yaba,akoka",
+ *              what "Yaba/Akoka" in the search box becomes (V-66)
+ *   noflood    "1": no flooding reported, by the lister or residents (V-41)
+ *   to         a landmark slug: where the reader goes every day (V-43)
+ *   within     minutes: at most this long at the morning rush to `to` (V-43)
+ *   upfront    months: at most this many months of rent asked for up front,
+ *              "12" is the drawer's "One year upfront at most" (V-65)
  *
  * The two utility parameters use opposite set logic on purpose, and the URL
  * says so by naming one after a requirement and one after a source. Backup
@@ -46,7 +63,7 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
 
 export type SortKey =
   | "recommended"
-  | "top-rated"
+  | "newest"
   | "price-asc"
   | "price-desc"
   | "move-in-asc"
@@ -70,13 +87,15 @@ export type SortKey =
  * shelf prints that sentence under the count. Nothing may be added here
  * without answering that question.
  */
-export type SortBasis = "price" | "move-in" | "rating" | "mixed" | "fees";
+export type SortBasis = "price" | "move-in" | "rating" | "listed" | "mixed" | "fees";
 
 /* `short` is what the closed sort control prints when the full label would
    push the result count off a 390px row (seen on the V-12 visual pass). */
 export const SORTS: { key: SortKey; label: string; basis: SortBasis; short?: string }[] = [
   { key: "recommended", label: "Recommended", basis: "mixed" },
-  { key: "top-rated", label: "Top rated", basis: "rating" },
+  /* V-22. The date each listing went live, which nobody can buy a fresh copy
+     of on Vallo because there is no push-up to buy (V-06). */
+  { key: "newest", label: "Newest", basis: "listed" },
   { key: "price-asc", label: "Price: low to high", basis: "price" },
   { key: "price-desc", label: "Price: high to low", basis: "price" },
   { key: "move-in-asc", label: "Move-in cost: low to high", basis: "move-in" },
@@ -163,6 +182,26 @@ export type DiscoveryQuery = {
    * an address bar, so unlike water they need no second spelling.
    */
   listerRoles: ListingRole[];
+  /** V-28. Strict: an unanswered listing never satisfies either. */
+  landlordAway: boolean;
+  parkingInside: boolean;
+  /** V-68. Strict: an unanswered listing never satisfies either. */
+  servicedOnly: boolean;
+  gatedEstate: boolean;
+  /** V-65: at most this many months of rent up front. Absent means not asked. */
+  maxUpfront?: number;
+  /** V-66: unit shapes, any of which will do. Absent or empty: not asked. */
+  shapes?: UnitShape[];
+  /** V-66: a boys' quarters comes with it. Strict. */
+  withBq?: boolean;
+  /** V-66: areas, any of which will do. Absent or empty: not asked. */
+  areas?: string[];
+  /** V-41: only homes with no flooding reported (positive evidence only). */
+  noFlood?: boolean;
+  /** V-43: the landmark the reader goes to every day, by slug. */
+  to?: string;
+  /** V-43: at most this many minutes at the morning rush to `to`. */
+  within?: number;
 };
 
 /**
@@ -216,6 +255,8 @@ export function koboToNaira(kobo: number): number {
 const MAX_TEXT = 120;
 const MAX_ROOMS = 20;
 const MAX_GUESTS = 30;
+/** Five years is past any tenancy demand this market has seen; above it is noise. */
+const MAX_UPFRONT_MONTHS = 60;
 const MAX_NAIRA = 999_999_999;
 const MAX_AMENITIES = 20;
 
@@ -314,6 +355,27 @@ function readRoles(value: string | string[] | undefined): ListingRole[] {
   return LISTING_ROLES.filter((role) => asked.has(role));
 }
 
+/** V-66: shapes as the address bar spells them, unknown words dropped, in the list's order. */
+function readShapes(value: string | string[] | undefined): UnitShape[] {
+  const raw = first(value);
+  if (typeof raw !== "string") return [];
+  const asked = new Set(raw.split(",").map((part) => shapeFromSlug(part)).filter((s): s is UnitShape => s !== null));
+  return UNIT_SHAPES.filter((shape) => asked.has(shape));
+}
+
+/** V-66: at most four areas, each a short run of letters, digits and spaces. */
+function readAreas(value: string | string[] | undefined): string[] {
+  const raw = first(value);
+  if (typeof raw !== "string") return [];
+  const out: string[] = [];
+  for (const part of raw.split(",")) {
+    const clean = part.toLowerCase().replace(/[^a-z0-9 '-]/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+    if (clean && !out.includes(clean)) out.push(clean);
+    if (out.length === 4) break;
+  }
+  return out;
+}
+
 /** Category, accepting the two legacy aliases older links still carry. */
 export function parseKind(type: string | undefined): ListingKind | undefined {
   if (!type) return undefined;
@@ -347,6 +409,10 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
     powerBandA: power.bandA,
     waterSupply: readWater(params.water),
     listerRoles: readRoles(params.by),
+    landlordAway: readText(params.landlord) === "away",
+    parkingInside: readText(params.parking) === "inside",
+    servicedOnly: readFlag(params.serviced),
+    gatedEstate: readText(params.estate) === "gated",
   };
 
   const q = readText(params.q);
@@ -362,6 +428,18 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
   if (bathrooms !== undefined) query.bathrooms = bathrooms;
   const guests = readInt(params.guests, 1, MAX_GUESTS);
   if (guests !== undefined) query.guests = guests;
+  const upfront = readInt(params.upfront, 1, MAX_UPFRONT_MONTHS);
+  if (upfront !== undefined) query.maxUpfront = upfront;
+  const shapes = readShapes(params.shape);
+  if (shapes.length > 0) query.shapes = shapes;
+  if (readFlag(params.bq)) query.withBq = true;
+  const areas = readAreas(params.area);
+  if (areas.length > 0) query.areas = areas;
+  if (readFlag(params.noflood)) query.noFlood = true;
+  const to = readText(params.to);
+  if (to && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(to) && to.length <= 140) query.to = to;
+  const within = readInt(params.within, 10, 240);
+  if (within !== undefined && query.to) query.within = within;
 
   return query;
 }
@@ -383,6 +461,15 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
   if (query.powerBandA) filter.powerBandA = true;
   if (query.waterSupply.length > 0) filter.waterSupply = query.waterSupply;
   if (query.listerRoles.length > 0) filter.listerRoles = query.listerRoles;
+  if (query.landlordAway) filter.landlordAway = true;
+  if (query.parkingInside) filter.parkingInside = true;
+  if (query.servicedOnly) filter.servicedOnly = true;
+  if (query.gatedEstate) filter.gatedEstate = true;
+  if (query.maxUpfront !== undefined) filter.maxUpfrontMonths = query.maxUpfront;
+  if (query.shapes && query.shapes.length > 0) filter.shapes = query.shapes;
+  if (query.withBq) filter.withBq = true;
+  if (query.areas && query.areas.length > 0) filter.areas = query.areas;
+  if (query.noFlood) filter.noFlood = true;
   return filter;
 }
 
@@ -408,6 +495,8 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
 export function toPoolFilter(query: DiscoveryQuery): ListingSearchFilter {
   const filter: ListingSearchFilter = {};
   if (query.q) filter.q = query.q;
+  /* V-66: areas are where, like the text, so the drawer counts inside them. */
+  if (query.areas && query.areas.length > 0) filter.areas = query.areas;
   return filter;
 }
 
@@ -434,6 +523,17 @@ export function toSearchHref(query: DiscoveryQuery): string {
     params.set("water", query.waterSupply.map(waterSlug).join(","));
   }
   if (query.listerRoles.length > 0) params.set("by", query.listerRoles.join(","));
+  if (query.landlordAway) params.set("landlord", "away");
+  if (query.parkingInside) params.set("parking", "inside");
+  if (query.servicedOnly) params.set("serviced", "1");
+  if (query.gatedEstate) params.set("estate", "gated");
+  if (query.maxUpfront !== undefined) params.set("upfront", String(query.maxUpfront));
+  if (query.shapes && query.shapes.length > 0) params.set("shape", query.shapes.map(shapeSlug).join(","));
+  if (query.withBq) params.set("bq", "1");
+  if (query.areas && query.areas.length > 0) params.set("area", query.areas.join(","));
+  if (query.noFlood) params.set("noflood", "1");
+  if (query.to) params.set("to", query.to);
+  if (query.to && query.within !== undefined) params.set("within", String(query.within));
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
@@ -466,9 +566,15 @@ export function clearedFilters(query: DiscoveryQuery): DiscoveryQuery {
     powerBandA: false,
     waterSupply: [],
     listerRoles: [],
+    landlordAway: false,
+    parkingInside: false,
+    servicedOnly: false,
+    gatedEstate: false,
   };
   if (query.q) cleared.q = query.q;
   if (query.kind) cleared.kind = query.kind;
+  /* Areas are where, like the text, and the drawer does not own them. */
+  if (query.areas) cleared.areas = query.areas;
   return cleared;
 }
 
@@ -495,5 +601,17 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   // One thing again: the reader set who they want to deal with, however many
   // kinds they ticked.
   if (query.listerRoles.length > 0) count += 1;
+  if (query.landlordAway) count += 1;
+  if (query.parkingInside) count += 1;
+  if (query.servicedOnly) count += 1;
+  if (query.gatedEstate) count += 1;
+  if (query.maxUpfront !== undefined) count += 1;
+  // One thing each: the shapes the reader will take.
+  if (query.shapes && query.shapes.length > 0) count += 1;
+  if (query.withBq) count += 1;
+  /* Areas are not counted: like the search text they are where, Clear all
+     keeps them, and a badge must not say 1 after everything was cleared. */
+  if (query.within !== undefined) count += 1;
+  if (query.noFlood) count += 1;
   return count;
 }

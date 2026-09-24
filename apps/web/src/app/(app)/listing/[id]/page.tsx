@@ -24,7 +24,18 @@ import {
   type PricePeriod,
   type RentPeriod,
 } from "@/lib/listings/pricing";
-import { formatNumber } from "@vallo/i18n";
+import { formatDate, formatNumber } from "@vallo/i18n";
+import { listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
+import { isTenancyPeriod } from "@/lib/listings/pricing";
+import { isModestExample } from "@/lib/listings/example-imagery";
+import { ListingCompound } from "@/components/app/listing/ListingCompound";
+import { ListingService } from "@/components/app/listing/ListingService";
+import { RecordViews } from "@/components/app/search/RecordViews";
+import { ListingNeighbours } from "@/components/app/listing/ListingNeighbours";
+import { readFlooding, readNeighbours } from "@/lib/around/pulse-queries";
+import { flagIsOn, NEIGHBOURS_FLAG, SHOW_ME_FLAG } from "@/lib/flags/read";
+import { readCommutesFrom } from "@/lib/listings/commute-queries";
+import { commuteLine } from "@/lib/listings/commute";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -308,9 +319,17 @@ export default async function ListingDetailPage({
    */
   const messageHref = `/messages/new?listing=${listing.id}`;
 
-  // Rentals are annual tenancies: no Reserve control anywhere on the page.
-  // The path is message the agent, inspect the property, then pay.
-  const isRental = listing.kind === "rental";
+  // Rentals are tenancies: no Reserve control anywhere on the page. The path
+  // is message the agent, inspect the property, then pay.
+  //
+  // A TENANCY IS DECIDED BY THE PERIOD, NOT THE CATEGORY (batch 1 review,
+  // finding 5). This was `kind === "rental"`, which is 8 of the 40 example
+  // tenancies: a flat or a house let by the year has kind apartment or home,
+  // so it fell into the nightly branch and drew a date range picker and Check
+  // availability for an annual let, and led with the rent. `isTenancyPeriod`
+  // is the one predicate the card, the rent market and Message agent use.
+  const isRental =
+    listing.kind === "rental" || (listing.intent !== "sale" && isTenancyPeriod(listing.pricePeriod));
 
   /* A restaurant is ours to take a booking for, and it is NOT a stay. Without
      this it fell into the nightly branch and drew a date range picker, a
@@ -357,11 +376,27 @@ export default async function ListingDetailPage({
      booking on this listing. A refusal and an absence are the same answer here
      on purpose, so nobody can learn whether a code exists by watching the page
      change. */
-  const [access, bookingConfirmed] = await Promise.all([
+  /* V-41: the neighbours' account, for a home to let or sell. Read with the
+     caller's session; the summary function applies its own threshold. */
+  const showMeOpen = await flagIsOn(SHOW_ME_FLAG);
+  /* V-43: rush-hour bands from this area (nothing when the flag is off). */
+  const commute =
+    (isRental || isSale) && !listing.isDemo
+      ? await readCommutesFrom({ stateCode: listing.stateCode, area: listing.area, city: listing.city })
+      : { anchors: 0, rows: [] };
+  const neighboursOn =
+    (isRental || isSale) && session.state === "signed-in" && (await flagIsOn(NEIGHBOURS_FLAG));
+  const [access, bookingConfirmed, neighbours, flooding] = await Promise.all([
     readListingAccess(listing.id),
     session.state === "signed-in"
       ? hasConfirmedBooking(session.supabase, listing.id, session.user.id)
       : Promise.resolve(false),
+    neighboursOn && session.state === "signed-in"
+      ? readNeighbours(session.supabase, listing.stateCode, listing.area)
+      : Promise.resolve({ state: "unavailable" } as const),
+    neighboursOn && session.state === "signed-in"
+      ? readFlooding(session.supabase, listing.id)
+      : Promise.resolve(undefined),
   ]);
 
   // An area is only worth naming when it says something the city does not.
@@ -487,6 +522,17 @@ export default async function ListingDetailPage({
    * who liked this place is to look for a real one.
    */
   const isExample = listing.isDemo;
+
+  /* V-22: the listed age, from the same pure rule the card uses. */
+  const ageNow = new Date();
+  const age = isExample ? null : listedAge(listing.publishedAt, ageNow);
+  const listedLine = age
+    ? listedAgeText(
+        age,
+        t.shape.listed,
+        age.kind === "stale" ? formatDate(age.since, locale, staleMonthOptions(age.since, ageNow)) : "",
+      )
+    : null;
 
   /* The footer of 9E8B56ED on a tenancy: Calculate breakdown (the move-in
      ledger) and Book inspection (the real request, in the panel below). A
@@ -718,6 +764,8 @@ export default async function ListingDetailPage({
 
         {/* Nothing rendered. Puts this place in the recently-viewed memory the
             search page offers back, whichever way it was reached. */}
+        {/* V-73: this listing was opened (counted once per person per day). */}
+        <RecordViews opened={listing.id} />
         <RecordVisit
           id={listing.id}
           title={listing.title}
@@ -735,6 +783,7 @@ export default async function ListingDetailPage({
           hue={listing.hue}
           kind={listing.kind}
           photos={listing.photos}
+          drawn={isModestExample(listing)}
           initialSaved={initialSaved}
           backFallback="/home"
           mark={{
@@ -826,6 +875,42 @@ export default async function ListingDetailPage({
                       disclosure lands before the belief the figure forms. */}
                   {listing.isDemo && <ExampleNotice variant="page" className="mt-row" />}
 
+                  {/*
+                    THE MOVE-IN TOTAL LEADS ON A TENANCY, AS IT DOES ON THE CARD.
+
+                    This row used to print the yearly rent in the big figure and
+                    the move-in block sat three rows lower, so the page led with
+                    the number every competitor leads with and the card led with
+                    the one this product exists to print (PRODUCT.md section 5:
+                    "the card leads with the total move-in cost and the rent is
+                    the secondary line"). The founder read the two side by side
+                    and saw them disagree. On a tenancy the move-in block now
+                    takes this place, with the rent beneath the total inside it,
+                    and the rent headline is not drawn a second time. Every other
+                    market keeps its headline figure here.
+                  */}
+                  {isRental && !isSale && (
+                    <div className="mt-md" data-testid="detail-lead-move-in">
+                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
+                    </div>
+                  )}
+
+                  {/* V-69: ask for one clip before crossing Lagos. Behind the
+                      show_me flag; never on an example, which has nobody to
+                      film anything. */}
+                  {showMeOpen && isRental && !isSale && !listing.isDemo && (
+                    <div className="mt-sm" data-testid="detail-show-me">
+                      <ButtonLink
+                        href={`/messages/new?listing=${listing.id}&then=showme`}
+                        variant="secondary"
+                        className="w-full"
+                      >
+                        {t.shape.showMe.entry}
+                      </ButtonLink>
+                      <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{t.shape.showMe.entryHint}</p>
+                    </div>
+                  )}
+
                   {/* V-31: what the OWNER said about availability, or nothing.
                       Streams on its own and never holds the page. */}
                   {isRental && !isSale && (
@@ -835,7 +920,7 @@ export default async function ListingDetailPage({
                   )}
 
                   <div className="nf-detail-price-row mt-md">
-                    {listing.priceMinor > 0 && (
+                    {listing.priceMinor > 0 && !(isRental && !isSale) && (
                       <p className="nf-detail-price" data-testid="detail-price">
                         <Amount
                           minorUnits={listing.priceMinor}
@@ -853,6 +938,14 @@ export default async function ListingDetailPage({
                       </span>
                     )}
                   </div>
+
+                  {/* How old it is (V-22). Never on an example, which
+                      illustrates a flat that does not exist. */}
+                  {listedLine && (
+                    <p className={`mt-inline-tight ${TYPE.body}`} data-testid="detail-listed-age">
+                      {listedLine}
+                    </p>
+                  )}
 
                   {/* The spec pairs live inside the Move-in panel's own box on
                       a tenancy, exactly as the render draws them, so the
@@ -897,10 +990,20 @@ export default async function ListingDetailPage({
                     className="mt-md"
                   />
 
-                  {/* The Nigerian number, on a tenancy: the total to move in. */}
-                  {isRental && !isSale && (
+                  {/* The move-in total leads above the price row on a tenancy (see above). */}
+
+                  {/* The compound's answers (V-28); absent when none was given. */}
+                  {listing.compound && (
                     <div className="mt-md">
-                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
+                      <ListingCompound compound={listing.compound} copy={t.shape.compound} />
+                    </div>
+                  )}
+
+                  {/* What the service charge covers, and Serviced only when
+                      the database derived it (V-68). */}
+                  {listing.service && (
+                    <div className="mt-md">
+                      <ListingService service={listing.service} copy={t.shape.service} />
                     </div>
                   )}
 
@@ -1023,18 +1126,55 @@ export default async function ListingDetailPage({
                 </Section>
 
                 {/* ------------------------- 7. LIGHT, WATER AND THE GATE */}
-                {listing.utilities && (
+                {(listing.utilities || neighbours.state !== "unavailable" || flooding !== undefined) && (
                   <Reveal>
                     <Section
                       title="Light, water and getting in"
-                      description="The three things worth knowing before you commit, answered by the agent."
+                      description="The three things worth knowing before you commit: what the agent says, and what residents report where enough have answered."
                       divided
                     >
-                      <ListingUtilities
-                        utilities={listing.utilities}
-                        access={access}
-                        bookingConfirmed={bookingConfirmed}
-                      />
+                      {listing.utilities && (
+                        <ListingUtilities
+                          utilities={listing.utilities}
+                          access={access}
+                          bookingConfirmed={bookingConfirmed}
+                        />
+                      )}
+                      {/* V-41: the lister's flooding answer, and what residents
+                          report, beside the claims above. */}
+                      <div className="mt-md">
+                        <ListingNeighbours
+                          neighbours={neighbours}
+                          flooding={flooding}
+                          area={listing.area || listing.city}
+                          copy={t.shape.neighbours}
+                        />
+                      </div>
+                    </Section>
+                  </Reveal>
+                )}
+
+                {/* ------------------------- V-43. GETTING TO WORK FROM HERE */}
+                {commute.anchors > 0 && (
+                  <Reveal>
+                    <Section
+                      title={t.shape.commute.locationTitle}
+                      description={t.shape.commute.locationLede.replace("{area}", listing.area || listing.city)}
+                      divided
+                    >
+                      {commute.rows.length > 0 ? (
+                        <ul className="flex flex-col gap-sm" data-testid="listing-commute">
+                          {commute.rows.map((row) => (
+                            <li key={row.anchor.id} className="nf-body-sm break-words text-[var(--nf-content-secondary)]">
+                              {commuteLine(row.bands, row.anchor.name, t.shape.commute)}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="nf-caption text-[var(--nf-content-muted)]">
+                          {t.shape.commute.locationNone.replace("{area}", listing.area || listing.city)}
+                        </p>
+                      )}
                     </Section>
                   </Reveal>
                 )}
