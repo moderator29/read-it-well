@@ -52,6 +52,7 @@ import { EmptyState } from "@/components/app/Screen";
 import { LastVisitProvider } from "@/components/app/search/LastVisit";
 import { RecordViews } from "@/components/app/search/RecordViews";
 import { ReadAs } from "@/components/app/search/ReadAs";
+import { floodClearFor } from "@/lib/around/flood-facts";
 import { readAnchors, readCommutes } from "@/lib/listings/commute-queries";
 import { commuteLine, originKey, withinCommute, type CommuteBand } from "@/lib/listings/commute";
 import { parseWords } from "@/lib/listings/query-parse";
@@ -206,12 +207,16 @@ export default async function SearchPage({
   const repo = getListingRepository();
   /* Three reads: the results, the pool the sheet counts against (the whole
      catalogue for the current text), and the whole catalogue for the map. */
-  const [rawResults, pool, whole] = await Promise.all([
+  /* V-41: "No flooding reported" is judged on facts this page reads, not in
+     the repository's SQL, so the repository is asked without it and the
+     results are narrowed below, once the flood facts are in. */
+  const { noFlood: wantsNoFlood, ...shelfAsked } = shelfFilter(query);
+  const [rawResults, rawPool, whole] = await Promise.all([
     /* The move-in ordering is pushed into the read, because the read has a row
        ceiling: sorting afterwards alone would order the newest rows rather
        than the cheapest ones to move into. See `ListingSearchOptions.order`. */
     repo.search(
-      shelfFilter(query),
+      shelfAsked,
       query.sort === "move-in-asc" ? { order: "move-in" } : query.sort === "newest" ? { order: "newest" } : {},
     ),
     repo.search(shelfPoolFilter(query)),
@@ -219,7 +224,14 @@ export default async function SearchPage({
        not become a city's "from" price on this map (V-67 review). */
     repo.search({ propertySide: true }),
   ]);
-  const sorted = sortListings(rawResults, query.sort);
+  const floodClear = await floodClearFor([...rawResults, ...rawPool]);
+  const judged = (l: Listing): Listing =>
+    floodClear && floodClear.has(l.id) ? { ...l, floodClear: floodClear.get(l.id)! } : l;
+  const pool = rawPool.map(judged);
+  const floodNarrowed = rawResults
+    .map(judged)
+    .filter((l) => !wantsNoFlood || l.floodClear === true);
+  const sorted = sortListings(floodNarrowed, query.sort);
 
   /*
    * V-10: THIS SEARCH AS A DEMAND CELL. A neighbourhood from the closed list

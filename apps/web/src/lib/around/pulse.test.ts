@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isFloodSeason, isPulseAnswer, kindLine, nextQuestion, readPulseResult, summarise } from "./pulse";
+import { isFloodClear, isFloodSeason, isPulseAnswer, kindLine, nextQuestion, readPulseResult, summarise } from "./pulse";
 
 const rows = [
   { area_name: "Yaba", kind: "light", answer: "most", reports: 11, members: 9, window_days: 30 },
@@ -48,5 +48,36 @@ describe("the neighbours' account (V-41)", () => {
     expect(readPulseResult("hello")).toBe("failed");
     expect(isPulseAnswer("flood", "road")).toBe(true);
     expect(isPulseAnswer("flood", "most")).toBe(false);
+  });
+});
+
+describe("No flooding reported (V-41 drawer)", () => {
+  const dry = { kind: "flood" as const, counts: [{ answer: "none", reports: 7 }], total: 7, members: 7, windowDays: 365 };
+  const wet = { kind: "flood" as const, counts: [{ answer: "none", reports: 4 }, { answer: "road", reports: 3 }], total: 7, members: 7, windowDays: 365 };
+  it("passes on the lister's no, or on residents who all said no", () => {
+    expect(isFloodClear("none", undefined)).toBe(true);
+    expect(isFloodClear(null, dry)).toBe(true);
+  });
+  it("fails on any report of water, from either side", () => {
+    expect(isFloodClear("none", wet)).toBe(false);
+    expect(isFloodClear("road", dry)).toBe(false);
+  });
+  it("never reads silence as dry", () => {
+    expect(isFloodClear(null, undefined)).toBe(false);
+    expect(isFloodClear(undefined, undefined)).toBe(false);
+  });
+});
+
+describe("the noflood address and filter", () => {
+  it("round-trips and judges only annotated facts", async () => {
+    const { parseDiscoveryQuery, toFilter, toSearchHref } = await import("@/lib/listings/search-params");
+    const { matchesFacts } = await import("@/lib/listings/filter");
+    const q = parseDiscoveryQuery({ noflood: "1" });
+    expect(toSearchHref(q)).toContain("noflood=1");
+    const filter = toFilter(q);
+    const base = { kind: "apartment", priceMinor: 1, bedrooms: 1, bathrooms: 1, amenities: [], instantBook: false, verified: false, isDemo: false } as const;
+    expect(matchesFacts({ ...base, amenities: [] }, filter)).toBe(false);
+    expect(matchesFacts({ ...base, amenities: [], floodClear: false }, filter)).toBe(false);
+    expect(matchesFacts({ ...base, amenities: [], floodClear: true }, filter)).toBe(true);
   });
 });

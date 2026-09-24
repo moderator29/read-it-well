@@ -114,6 +114,8 @@ export type ListingFacts = {
   unit?: UnitFacts;
   /** The listing's title, so a shape filter can keep an unshaped listing whose title says it. */
   title?: string;
+  /** V-41: annotated by the search page from the flood reads; absent means not judged. */
+  floodClear?: boolean;
   /** V-65: the move-in total and the shortest tenancy, under the Listing's own names. */
   moveInCostMinor?: number;
   minimumTenancyMonths?: number;
@@ -165,6 +167,7 @@ export function factsOf(l: Listing): ListingFacts {
     ...(l.service !== undefined ? { service: l.service } : {}),
     ...(l.unit !== undefined ? { unit: l.unit } : {}),
     title: l.title,
+    ...(l.floodClear !== undefined ? { floodClear: l.floodClear } : {}),
     ...(l.moveInCostMinor !== undefined ? { moveInCostMinor: l.moveInCostMinor } : {}),
     ...(l.minimumTenancyMonths !== undefined ? { minimumTenancyMonths: l.minimumTenancyMonths } : {}),
     bedrooms: l.bedrooms,
@@ -323,6 +326,8 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
   if (!matchesService(facts.service, filter)) return false;
   /* V-66: the shape chips and "With BQ", strict in the same way. */
   if (!matchesUnit(facts.unit, filter, facts.title)) return false;
+  /* V-41: strict, positive evidence only (see `isFloodClear`). */
+  if (filter.noFlood && facts.floodClear !== true) return false;
 
   if (filter.waterSupply && filter.waterSupply.length > 0) {
     // OR, not AND: one column, one value. See the note on the filter type.

@@ -142,6 +142,7 @@ export function ShelfBar({
           unitCopy={t.shape.unit}
           anchors={anchors}
           commuteCopy={t.shape.commute}
+          noFloodLabel={{ label: t.shape.neighbours.filterNoFlood, hint: t.shape.neighbours.filterNoFloodHint }}
           feesBasis={t.trustVisible.fees.sortBasis}
           openOnMount={openFilters}
         />

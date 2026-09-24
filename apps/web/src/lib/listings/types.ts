@@ -180,6 +180,8 @@ export type Listing = {
   service?: ServiceFacts;
   /** V-66: the unit's shape, en-suite rooms and BQ. Absent: unanswered. */
   unit?: UnitFacts;
+  /** V-41: set by the search page from the flood reads; absent means not judged. */
+  floodClear?: boolean;
   furnished?: Furnishing;
   /**
    * WHAT A BUYER ACTUALLY PAYS, in kobo, as the lister stated it.
@@ -521,6 +523,11 @@ export type ListingSearchFilter = {
    * box becomes two of these.
    */
   areas?: string[];
+  /**
+   * V-41: only listings with no flooding reported. Judged on facts the page
+   * annotates (`floodClear`), never in the repository's SQL.
+   */
+  noFlood?: boolean;
 };
 
 /**

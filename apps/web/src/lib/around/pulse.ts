@@ -130,3 +130,18 @@ export function nextQuestion(
   if (area.flood && isFloodSeason(now)) return { kind: "flood" };
   return { none: "done" };
 }
+
+/**
+ * "No flooding reported" (V-41's drawer filter): true only on POSITIVE
+ * evidence and nothing against it. The lister said the road does not flood,
+ * or residents' flood answers (past the five-member threshold) are all "no";
+ * and neither the lister nor any resident reported the road or the compound
+ * going under. Silence is not evidence, so an area nobody answered for and a
+ * lister who did not say do not pass: the claims rule.
+ */
+export function isFloodClear(lister: Flooding | null | undefined, residents: KindSummary | undefined): boolean {
+  if (lister === "road" || lister === "compound") return false;
+  const wet = residents ? residents.counts.some((c) => c.answer !== "none" && c.reports > 0) : false;
+  if (wet) return false;
+  return lister === "none" || (residents !== undefined && residents.total > 0);
+}

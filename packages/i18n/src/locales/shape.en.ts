@@ -180,6 +180,8 @@ export const shapeEn = {
       failed: "That did not save. Try again.",
     },
     done: "Nothing to ask right now. You will be asked again in a few days.",
+    filterNoFlood: "No flooding reported",
+    filterNoFloodHint: "The lister says the road does not flood, or residents who answered all said no, and nobody reported water.",
     wizardTitle: "Flooding",
     wizardLabel: "In heavy rain, does water cut off the road or enter the compound?",
     wizardHint: "Renters see your answer beside what residents report. Leave it unanswered and the page says you have not said.",

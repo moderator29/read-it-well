@@ -98,6 +98,8 @@ type Draft = {
   /** V-66: the shapes the reader will take, any of them. */
   shapes: UnitShape[];
   withBq: boolean;
+  /** V-41: no flooding reported. */
+  noFlood: boolean;
   /** V-43: the anchor's slug, and whether the rush-hour limit is on. */
   to: string;
   withinOn: boolean;
@@ -128,6 +130,7 @@ function draftFrom(query: ShelfQuery): Draft {
     ...(query.maxUpfront !== undefined ? { maxUpfront: query.maxUpfront } : {}),
     shapes: query.shapes ?? [],
     withBq: query.withBq === true,
+    noFlood: query.noFlood === true,
     to: query.to ?? "",
     withinOn: query.within !== undefined,
   };
@@ -179,6 +182,7 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
   if (homes && draft.shapes.length > 0) next.shapes = draft.shapes;
   if (homes && draft.withBq) next.withBq = true;
   if (base.areas && base.areas.length > 0) next.areas = base.areas;
+  if (draft.noFlood) next.noFlood = true;
   if (draft.to) {
     next.to = draft.to;
     if (draft.withinOn) next.within = RUSH_WITHIN;
@@ -332,6 +336,7 @@ export function FilterDrawer({
   feesBasis,
   anchors = [],
   commuteCopy,
+  noFloodLabel,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -356,6 +361,8 @@ export function FilterDrawer({
   /** V-43: the anchors a renter can pick, and the words for the group. */
   anchors?: Anchor[];
   commuteCopy: Dictionary["shape"]["commute"];
+  /** V-41: the "No flooding reported" switch's words. */
+  noFloodLabel?: { label: string; hint: string };
   /** V-12: the sentence under the "Lowest fees on top of rent" order. */
   feesBasis?: string;
 }) {
@@ -458,6 +465,8 @@ export function FilterDrawer({
   }, [facts, draft.landlordAway, draft.parkingInside]);
 
   /* V-68. The same rule for Serviced and the gated estate. */
+  /* V-41: offered only when the page could judge flooding (flag on). */
+  const floodJudged = useMemo(() => facts.some((fact) => fact.floodClear !== undefined), [facts]);
   const serviceOptions = useMemo(() => {
     let serviced = draft.servicedOnly;
     let gated = draft.gatedEstate;
@@ -673,6 +682,27 @@ export function FilterDrawer({
                     />
                   </div>
                 )}
+              </Group>
+            )}
+
+            {/* -------------------------- no flooding reported (V-41) */}
+            {(floodJudged || draft.noFlood) && noFloodLabel && (
+              <Group
+                id="filter-flood"
+                title={noFloodLabel.label}
+                clearLabel={copy.clear}
+                onClear={draft.noFlood ? () => setDraft((current) => ({ ...current, noFlood: false })) : undefined}
+              >
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
+                  <SwitchRow
+                    icon="sun"
+                    label={noFloodLabel.label}
+                    hint={noFloodLabel.hint}
+                    checked={draft.noFlood}
+                    testId="filter-no-flood"
+                    onChange={(next) => setDraft((current) => ({ ...current, noFlood: next }))}
+                  />
+                </div>
               </Group>
             )}
 
