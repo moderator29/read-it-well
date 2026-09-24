@@ -365,7 +365,7 @@ export const frontDoorEn = {
   },
   demand: {
     title: "What renters looked for",
-    lede: "Searches on Vallo over the last four whole weeks, counted by neighbourhood and never by person. A line appears only when at least five different people asked for the same thing. This week is added when it ends.",
+    lede: "Searches on Vallo in the last complete four-week period, counted by neighbourhood and never by person. A line appears only when at least five different people asked for the same thing in that period. The current period is added when it ends.",
     what: "{rooms} {market} in {area}{budget}",
     rooms: "{count}+ bedroom homes",
     studio: "Self contains",
@@ -382,6 +382,7 @@ export const frontDoorEn = {
     manyMatch: "{count} real listings on Vallo match today.",
     empty: "No neighbourhood has five people searching for the same thing yet. As more people search, the gaps will show here.",
     unavailable: "We could not read the demand board just now. Nothing is wrong with your listings.",
+    approvedOnly: "The demand board opens once your lister profile is approved.",
     listCta: "List a home that fits",
   },
   status: {
