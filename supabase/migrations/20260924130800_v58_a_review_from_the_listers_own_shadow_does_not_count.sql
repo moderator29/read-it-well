@@ -127,7 +127,10 @@ grant all on public.weight_withheld to service_role;
 
 /* The reviews a reader may see, less the withheld ones, always with their own.
    A definer view so the register stays unreadable; the first condition
-   restates `reviews_select` exactly, because a definer view does not run it. */
+   restates `reviews_select`, because a definer view does not run it, and adds
+   one arm: a server read as the service role sees every listing's reviews, as
+   it does on the table, so a server-side average never loses the ratings of a
+   paused or unpublished listing. The withheld filter still applies to it. */
 create or replace view public.reviews_counted as
   select r.id, r.listing_id, r.booking_id, r.author_id, r.rating, r.body, r.author_label, r.created_at
     from public.reviews r
@@ -136,7 +139,8 @@ create or replace view public.reviews_counted as
           or (select auth.uid()) = r.author_id
           or private.owns_listing(r.listing_id)
           or private.has_role((select auth.uid()), 'admin'::public.app_role)
-          or private.has_role((select auth.uid()), 'super_admin'::public.app_role))
+          or private.has_role((select auth.uid()), 'super_admin'::public.app_role)
+          or (select auth.role()) = 'service_role')
      and ((select auth.uid()) = r.author_id
           or not exists (select 1 from public.weight_withheld w
                           where w.kind = 'review' and w.subject_id = r.id));
@@ -146,6 +150,13 @@ comment on view public.reviews_counted is
 
 revoke all on public.reviews_counted from public, anon, authenticated;
 grant select on public.reviews_counted to anon, authenticated;
+
+/* A view's function calls are checked against the reader, and the service
+   role has never been granted these two, so without this a server read of the
+   view is refused outright. The service role bypasses row security anyway;
+   this gives it nothing it could not already read. */
+grant execute on function private.owns_listing(uuid) to service_role;
+grant execute on function private.has_role(uuid, public.app_role) to service_role;
 
 create or replace function public.weight_withheld_reasons()
 returns table (kind text, subject_id uuid, reasons text[], stamped_at timestamptz)

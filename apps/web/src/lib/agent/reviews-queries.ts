@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { readCountedReviews } from "../reviews/weight";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { getAgentContext } from "./listings-queries";
 
@@ -91,12 +93,16 @@ export async function getAgentReviews(locale: Locale): Promise<AgentReviewsRead>
       };
     }
 
-    const { data, error } = await context.supabase
-      .from("reviews")
-      .select("id, listing_id, rating, body, author_label, created_at")
-      .in("listing_id", [...titles.keys()])
-      .order("created_at", { ascending: false })
-      .limit(REVIEW_LIMIT);
+    /* V-58: the host's summary leaves out reviews written from their own
+       shadow, through the counted view, as every public average does. */
+    const { data, error } = await readCountedReviews<ReviewRow>((table) =>
+      (context.supabase as unknown as SupabaseClient)
+        .from(table)
+        .select("id, listing_id, rating, body, author_label, created_at")
+        .in("listing_id", [...titles.keys()])
+        .order("created_at", { ascending: false })
+        .limit(REVIEW_LIMIT),
+    );
     if (error) return { state: "unavailable" };
 
     const rows = (data ?? []) as ReviewRow[];
