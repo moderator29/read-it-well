@@ -10,8 +10,41 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * the card rather than inside it so the shared card component is untouched and
  * every other surface that draws a card draws exactly what it drew before.
  * Icon and words, never colour alone.
+ *
+ * V-37: when the shelf has collapsed the copies of one property into this card,
+ * a line above says how many offers it carries; the listing page compares them.
  */
 export function LandlordCardLine({
+  notReconfirmed,
+  confirmed,
+  copy,
+  offerCount = 1,
+  offersCopy,
+}: {
+  notReconfirmed: boolean;
+  confirmed: string | null;
+  copy: Dictionary["landlord"]["listing"];
+  /** V-37: how many published offers this card stands for, once collapsed. */
+  offerCount?: number;
+  /** "Offered by {n} agents". */
+  offersCopy?: string;
+}) {
+  const offers =
+    offerCount > 1 && offersCopy ? (
+      <p className="mt-2xs flex items-center gap-2xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-secondary)]" data-testid="card-offer-count">
+        <UiIcon name="grid" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+        {offersCopy.replace("{n}", String(offerCount))}
+      </p>
+    ) : null;
+  return (
+    <>
+      {offers}
+      <AvailabilityLine notReconfirmed={notReconfirmed} confirmed={confirmed} copy={copy} />
+    </>
+  );
+}
+
+function AvailabilityLine({
   notReconfirmed,
   confirmed,
   copy,

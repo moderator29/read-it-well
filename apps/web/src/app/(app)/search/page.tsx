@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { readListingFactsFor } from "@/lib/landlord/queries";
-import { ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
+import { collapseByProperty, ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
 import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import Link from "next/link";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
@@ -37,6 +37,7 @@ import { BackButton } from "@/components/site/BackButton";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
+import { looksCheckable } from "@/lib/doors/agent-check";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -232,8 +233,12 @@ export default async function SearchPage({
   const notReconfirmed = new Set(
     [...landlordFacts].filter(([, facts]) => facts.notReconfirmed).map(([id]) => id),
   );
+  /* V-37: the copies of one property become one card that says how many
+     offers it carries. A code hit is the one listing the person asked for and
+     is never collapsed. */
+  const collapsed = codeHit ? { listings: shelf, offerCounts: new Map<string, number>() } : collapseByProperty(shelf, landlordFacts);
   /* The one listing the code named, or the ordinary shelf. */
-  const listings = sinkNotReconfirmed(shelf, notReconfirmed);
+  const listings = sinkNotReconfirmed(collapsed.listings, notReconfirmed);
   const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
@@ -306,6 +311,19 @@ export default async function SearchPage({
       {codeRead.state === "code" && codeRead.explicit && !codeHit && (
         <p data-testid="reference-miss" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
           {t.listingReference.noneCarry}
+        </p>
+      )}
+      {/* V-61: A NUMBER OR A VALLO AGENT CODE IN THE SEARCH BOX is somebody
+          holding an advert. One line sends them to the check, carrying what
+          they typed; the results underneath are untouched. */}
+      {looksCheckable(query.q) && (
+        <p data-testid="search-check-agent" className="nf-caption mt-inline">
+          <Link
+            href={`/check?q=${encodeURIComponent((query.q ?? "").slice(0, 40))}`}
+            className="inline-flex min-h-11 items-center text-[var(--nf-content-secondary)] underline underline-offset-2"
+          >
+            {t.trustDoors.check.inSearch.replace("{query}", (query.q ?? "").trim().slice(0, 40))}
+          </Link>
         </p>
       )}
       {codeRead.state === "impossible" && (
@@ -437,6 +455,8 @@ export default async function SearchPage({
                     notReconfirmed={notReconfirmed.has(l.id)}
                     confirmed={ownerConfirmedLine(t.landlord.listing, landlordFacts.get(l.id)?.ownerConfirmedAt, landlordNow)}
                     copy={t.landlord.listing}
+                    offerCount={collapsed.offerCounts.get(l.id) ?? 1}
+                    offersCopy={t.landlord.offers.card}
                   />
                 </li>
               ))}

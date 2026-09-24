@@ -6,6 +6,9 @@ import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import { MandateConsent } from "@/app/admin/listings/MandateConsent";
 import { ownerConfirmedLine } from "@/lib/landlord/facts";
 import { PreviewClose } from "./PreviewClose";
+import { SafetySharePanel } from "@/app/(site)/s/[token]/SafetySharePanel";
+import { AgentLookupCard } from "@/components/app/doors/AgentLookupCard";
+import { SafetyShareControl } from "@/components/app/doors/SafetyShareControl";
 
 /**
  * THE LANDLORD LINE, DRAWN WITH FIXTURES. V-31, V-32, V-37, V-48.
@@ -140,6 +143,40 @@ export default function PreviewLandlord() {
 
       <h2 className="nf-h3 mt-section">Closing a rental</h2>
       <PreviewClose copy={copy.close} />
+
+      <h2 className="nf-h3 mt-section">The agent&apos;s own code (V-61)</h2>
+      <div className="mx-auto mt-md max-w-xl">
+        <AgentLookupCard copy={t.trustDoors.agentCard} code="VA-7K3MP" hint="123" />
+      </div>
+
+      <h2 className="nf-h3 mt-section">Going to an inspection alone (V-62)</h2>
+      <div className="mx-auto mt-md grid max-w-xl gap-md">
+        <SafetyShareControl
+          inspectionId="00000000-0000-4000-8000-000000000003"
+          title="2 bedroom flat"
+          slotAt="2026-09-27T13:00:00Z"
+          locale="en"
+          copy={t.trustDoors.safetyShare}
+          initial="none"
+        />
+        <div className="nf-panel nf-panel--card">
+          <SafetySharePanel
+            locale="en"
+            copy={t.trustDoors.safetyShare}
+            view={{
+              state: "live",
+              firstName: "Ada",
+              area: "Ikoyi",
+              agentName: "Chidi Okeke",
+              identityCheckedAt: "2026-08-12T10:00:00Z",
+              slotAt: "2026-09-24T13:00:00Z",
+              expectedBackAt: "2026-09-24T14:00:00Z",
+              checkedInAt: null,
+              overdue: true,
+            }}
+          />
+        </div>
+      </div>
     </main>
   );
 }

@@ -142,6 +142,7 @@ export const landlordEn = {
 
   offers: {
     title: "{n} offers on this property",
+    card: "Offered by {n} agents",
     lede: "Vallo matched these listings to one property. Each lister sets their own move-in total, so compare them here.",
     thisOne: "This listing",
     moveIn: "To move in",
@@ -187,6 +188,15 @@ export const landlordEn = {
     failed: "The listing was not closed. Nothing has changed. Please try again.",
     noRent:
       "No rent has been paid through Vallo for this listing, so it cannot be closed as let through Vallo. Choose Let elsewhere instead.",
+  },
+
+  owner: {
+    prompt: "Is this still available?",
+    body: "You listed it as the owner, so we ask you every two weeks. Answering keeps it in its place in search; three weeks without an answer moves it to the end. If it has been let, close it instead.",
+    yes: "Yes, still available",
+    let: "It has been let",
+    thanks: "Thank you. We will ask again in about two weeks.",
+    failed: "That answer did not reach us. Nothing has changed. Please try again.",
   },
 
   admin: {

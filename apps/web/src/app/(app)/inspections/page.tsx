@@ -15,6 +15,9 @@ import {
   readInspectionsForRequester,
 } from "@/lib/inspections/queries";
 import { readListingFacts } from "./facts";
+import { SafetyShareControl } from "@/components/app/doors/SafetyShareControl";
+import { shareableInspections } from "@/lib/doors/safety";
+import { readMySafetyShares } from "@/lib/doors/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -71,12 +74,16 @@ export default async function InspectionsPage({
     ...tagSide(shown.inspections, "lister"),
   ]);
   const all = [...groups.open, ...groups.closed];
-  const [facts, reports] = await Promise.all([
+  /* V-62: the renter's own confirmed inspections, from now until the page for
+     each would close, each with "Tell someone where I am going". */
+  const goingAlone = shareableInspections(groups.open);
+  const [facts, reports, shares] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
       locale,
     ),
     readReportsFor(all.map((row) => row.id)),
+    readMySafetyShares(goingAlone.map((row) => row.id)),
   ]);
   const reportLive = reportStorageLive();
   const empty = all.length === 0;
@@ -112,6 +119,23 @@ export default async function InspectionsPage({
       ) : (
         <Reveal>
           <Stack>
+            {goingAlone.length > 0 && (
+              <Section title={t.trustDoors.safetyShare.stripTitle}>
+                <div className="grid gap-sm" data-testid="safety-strip">
+                  {goingAlone.map((row) => (
+                    <SafetyShareControl
+                      key={row.id}
+                      inspectionId={row.id}
+                      title={row.listingTitle}
+                      slotAt={row.slotAt ?? row.requestedAt}
+                      locale={locale}
+                      copy={t.trustDoors.safetyShare}
+                      initial={shares[row.id] ? (shares[row.id]!.checkedIn ? "done" : "shared") : "none"}
+                    />
+                  ))}
+                </div>
+              </Section>
+            )}
             {groups.open.length > 0 && (
               <Section title={copy.openTitle} description={copy.openDescription}>
                 <div className="nf-ix-list">

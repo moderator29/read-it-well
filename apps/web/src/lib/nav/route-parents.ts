@@ -137,6 +137,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/help": "/",
   "/privacy": "/",
   "/safety": "/",
+  "/check": "/",
   "/standards": "/",
   "/styleguide": "/",
   "/terms": "/",
@@ -494,4 +495,6 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/home-or-landing": "307 to `/` or `/home`, decided by the caller's cookies.",
   "/landlord/[token]":
     "a landlord's single-use reply page, opened from an SMS by somebody with no account; there is nowhere inside the platform for it to go back to.",
+  "/s/[token]":
+    "the page a renter's trusted contact opens from a link the renter sent; the contact has no account and nowhere inside the platform to go back to.",
 };

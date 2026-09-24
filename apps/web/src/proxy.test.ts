@@ -239,6 +239,10 @@ const EXPECTED_PUBLIC = new Set([
   /* V-31 and V-32: the landlord's reply page, a door for somebody with no
      account, opened by a single-use token and showing the area only. */
   "/landlord/[token]",
+  /* V-61: the agent check, open to a renter with no account. V-62: the page a
+     renter's trusted contact opens by a token, the area only. */
+  "/check",
+  "/s/[token]",
   /* No network, and which home. */
   "/home-or-landing",
   "/offline",

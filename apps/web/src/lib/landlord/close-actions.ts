@@ -66,3 +66,23 @@ export async function closeListingWithReason(input: {
   const closed = typeof (data as { closed?: unknown } | null)?.closed === "number" ? (data as { closed: number }).closed : 1;
   return ok({ closed });
 }
+
+/**
+ * V-31 FOR AN OWNER LISTING: the owner answers "still available".
+ *
+ * The answer stops the 21 day clock. It becomes the public "Owner confirmed
+ * available" line only when staff have dated `ownership_verified_at`, which
+ * `owner_heartbeat_answer` decides and reports back as `public`.
+ */
+export async function answerOwnerHeartbeat(input: { listingId: string }): Promise<ActionResult<{ public: boolean }>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  const id = z.string().uuid().safeParse(input.listingId);
+  if (!id.success) return fail("That answer did not reach us. Nothing has changed. Please try again.");
+
+  const { data, error } = await callLandlordRpc(session.supabase, "owner_heartbeat_answer", { p_listing: id.data });
+  if (error) return fail("That answer did not reach us. Nothing has changed. Please try again.");
+  revalidatePath("/agent/listings");
+  return ok({ public: (data as { public?: unknown } | null)?.public === true });
+}

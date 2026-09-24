@@ -49,6 +49,15 @@ export type LandlordRpcArgs = {
   landlord_line_claim: { p_ask: string };
   reopen_listing: { p_listing: string; p_note: string };
   closed_listing_count: Record<string, never>;
+  /* Batch 2: migration 20260924110400. */
+  owner_heartbeats_open: Record<string, never>;
+  owner_heartbeat_answer: { p_listing: string };
+  agent_lookup: { p_query: string };
+  agent_lookup_opt_in: { p_phone: string | null };
+  my_agent_lookup: Record<string, never>;
+  safety_share_create: { p_inspection: string; p_minutes: number };
+  safety_share_done: { p_inspection: string };
+  safety_share_read: { p_token: string };
 };
 
 export type LandlordRpcName = keyof LandlordRpcArgs;

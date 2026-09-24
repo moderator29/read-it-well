@@ -263,6 +263,21 @@ export async function readClosedReasons(ids: readonly string[]): Promise<Record<
   }
 }
 
+/** V-31 for owner listings: the caller's listings with an open "still available?" question. Empty on failure. */
+export async function readOpenOwnerHeartbeats(): Promise<string[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const db = await createClient();
+    const { data, error } = await callLandlordRpc(db, "owner_heartbeats_open", {});
+    if (error || !Array.isArray(data)) return [];
+    return data.flatMap((row) =>
+      row && typeof (row as { listing_id?: unknown }).listing_id === "string" ? [(row as { listing_id: string }).listing_id] : [],
+    );
+  } catch {
+    return [];
+  }
+}
+
 /** V-48, for the console: how many listings are closed, or null. Staff only. */
 export async function readClosedListingCount(): Promise<number | null> {
   if (!isSupabaseConfigured()) return null;

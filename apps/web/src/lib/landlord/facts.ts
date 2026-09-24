@@ -97,6 +97,8 @@ export type ListingFacts = {
   ownerConfirmedAt: string | null;
   notReconfirmed: boolean;
   offerCount: number;
+  /** The property a reviewer joined this listing to (V-37), or null. */
+  propertyId: string | null;
 };
 
 /** Read `listing_landlord_facts` rows into a map, dropping anything malformed. */
@@ -111,6 +113,7 @@ export function readListingFacts(rows: unknown): Map<string, ListingFacts> {
       ownerConfirmedAt: typeof row.owner_confirmed_at === "string" ? row.owner_confirmed_at : null,
       notReconfirmed: row.not_reconfirmed === true,
       offerCount: typeof row.offer_count === "number" && row.offer_count > 0 ? row.offer_count : 1,
+      propertyId: typeof row.property_id === "string" ? row.property_id : null,
     });
   }
   return out;
@@ -124,4 +127,37 @@ export function readListingFacts(rows: unknown): Map<string, ListingFacts> {
  */
 export function requestNow(): number {
   return Date.now();
+}
+
+/**
+ * V-37 ON THE SEARCH SHELF: ONE CARD PER PROPERTY.
+ *
+ * Four agents on one flat were four cards, and a renter could not tell four
+ * flats from one. A reviewer has joined them to one property, so the shelf now
+ * keeps the FIRST copy in whatever order the page chose (cheapest first when
+ * the renter sorted by move-in cost, which is the copy they would pick anyway)
+ * and drops the rest, and the kept card says how many offers there are. The
+ * listing page then shows every offer side by side with its own move-in total.
+ *
+ * A listing on no property, or whose facts did not load, is never collapsed:
+ * a failed read leaves the shelf exactly as it was.
+ */
+export function collapseByProperty<T extends { id: string }>(
+  listings: readonly T[],
+  facts: ReadonlyMap<string, ListingFacts>,
+): { listings: T[]; offerCounts: Map<string, number> } {
+  const seen = new Set<string>();
+  const kept: T[] = [];
+  const offerCounts = new Map<string, number>();
+  for (const listing of listings) {
+    const fact = facts.get(listing.id);
+    const property = fact?.propertyId ?? null;
+    if (property) {
+      if (seen.has(property)) continue;
+      seen.add(property);
+      if (fact && fact.offerCount > 1) offerCounts.set(listing.id, fact.offerCount);
+    }
+    kept.push(listing);
+  }
+  return { listings: kept, offerCounts };
 }

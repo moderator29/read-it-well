@@ -24,6 +24,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { CloseListingSheet } from "./CloseListingSheet";
+import { OwnerAskStrip } from "./OwnerAskStrip";
 
 /**
  * The agent's listings workspace.
@@ -296,6 +297,8 @@ function ListingRow({
   closedReason,
   closeCopy,
   onCloseListing,
+  ownerAsk = false,
+  ownerCopy,
 }: {
   t: WorkspaceCopy;
   /* The listing code's own namespace, shared with the search page and the
@@ -312,6 +315,9 @@ function ListingRow({
   closeCopy?: CloseCopy | undefined;
   /** V-48: opens the close sheet. Present only where closing replaces taking down. */
   onCloseListing?: ((listing: ListingSummary) => void) | undefined;
+  /** V-31: the owner of this listing has an open "still available?" question. */
+  ownerAsk?: boolean;
+  ownerCopy?: Dictionary["landlord"]["owner"] | undefined;
 }) {
   const editable = EDITABLE.includes(listing.status) && !closedReason;
   const live = listing.status === "PUBLISHED" || listing.status === "APPROVED";
@@ -432,6 +438,10 @@ function ListingRow({
         </p>
       )}
 
+      {ownerAsk && ownerCopy && live && !closedReason && (
+        <OwnerAskStrip listingId={listing.id} copy={ownerCopy} onLet={() => onCloseListing?.(listing)} />
+      )}
+
       <div className="flex flex-wrap items-center gap-x-md gap-y-xs border-t border-[var(--nf-border-subtle)] px-md py-sm">
         {editable && (
           <Link
@@ -515,6 +525,8 @@ export function ListingsWorkspace({
   query = "",
   closed = {},
   closeCopy,
+  ownerAsks = [],
+  ownerCopy,
 }: {
   t: WorkspaceCopy;
   reference: Dictionary["listingReference"];
@@ -525,6 +537,9 @@ export function ListingsWorkspace({
   /** V-48: closed listings and why, keyed by id. Absent draws what it drew before. */
   closed?: Record<string, string>;
   closeCopy?: CloseCopy;
+  /** V-31: listings whose owner has an open "still available?" question. */
+  ownerAsks?: string[];
+  ownerCopy?: Dictionary["landlord"]["owner"];
 }) {
   /* The bar's search lands here with `?q=`, so it is a real narrowing and
      not a field that does nothing. */
@@ -660,6 +675,8 @@ export function ListingsWorkspace({
                     onDelete={scheduleDelete}
                     closeCopy={closeCopy}
                     onCloseListing={closeCopy ? setClosing : undefined}
+                    ownerAsk={ownerAsks.includes(listing.id)}
+                    ownerCopy={ownerCopy}
                   />
                 ),
               )}
