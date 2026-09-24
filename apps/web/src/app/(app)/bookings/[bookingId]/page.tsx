@@ -9,6 +9,8 @@ import { EmptyActions } from "@/components/app/EmptyActions";
 import { TenancyCard } from "@/components/app/bookings/TenancyCard";
 import { BookingDetailCard } from "./BookingDetailCard";
 import { BookingMoneyRecord } from "@/components/app/after-gate/BookingMoneyRecord";
+import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
+import { DoorChargeReport } from "@/components/stays/DoorChargeReport";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
 export const metadata: Metadata = {
@@ -143,6 +145,15 @@ export default async function BookingDetailPage({
         cancelled={booking.status === "CANCELLED"}
         locale={locale}
       />
+      {/* V-57: what the host declared at the door, and the report if asked for more. */}
+      {booking.status !== "CANCELLED" && (
+        <div className="mt-lg grid gap-md">
+          <ArrivalChargesLine listingId={booking.listingId} locale={locale} />
+          {(booking.status === "CONFIRMED" || booking.status === "COMPLETED") && (
+            <DoorChargeReport bookingId={booking.id} copy={t.afterTheGate.arrival} />
+          )}
+        </div>
+      )}
     </>,
   );
 }
