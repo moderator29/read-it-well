@@ -8,6 +8,10 @@ import type { StatusTone } from "@/components/ui/StatusPill";
 import { DocumentDecision } from "../_components/MoneyDecisions";
 import { DocumentViewer } from "../_components/DocumentViewer";
 import { CredentialForm } from "./CredentialForm";
+import { getDictionary } from "@vallo/i18n";
+
+/* V-49 and V-87 copy on this card. The desk reads English. */
+const DESK = getDictionary("en").trustVisible.desk;
 
 /* The document vocabulary, staged in `components/app/untranslated.ts` with the
    rest of this owner's untranslated copy. These are NOT the F2-060 fault: that
@@ -106,10 +110,13 @@ export function SubjectCard({
           data-testid="payout-name-suggestion"
         >
           <span className="font-semibold text-[var(--nf-content-primary)]">
-            Payout name check (suggestion):{" "}
-            {subject.payoutNameCheck.match ? "the names match" : "the names do not match"}
+            {DESK.payoutLabel}{" "}
+            {subject.payoutNameCheck.match ? DESK.payoutMatch : DESK.payoutDiffer}
           </span>
-          . Bank holder {subject.payoutNameCheck.holder}; on record {subject.payoutNameCheck.onRecord}.{" "}
+          .{" "}
+          {DESK.payoutNames
+            .replace("{holder}", subject.payoutNameCheck.holder)
+            .replace("{onRecord}", subject.payoutNameCheck.onRecord)}{" "}
           {subject.payoutNameCheck.reason}.
         </p>
       )}

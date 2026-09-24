@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { getDictionary } from "@vallo/i18n";
 
 import { isNin, isVnin, ninHmac, normaliseVnin } from "./nin";
 import { identityProvider, stubProvider } from "./provider";
-import { LIVENESS_PASS, runVninCheck, type VninCheckDeps } from "./vnin-check";
+import { runVninCheck, type VninCheckDeps } from "./vnin-check";
 import { payoutSuggestion } from "@/lib/admin/kyc-queries";
 
 /**
@@ -29,7 +30,7 @@ function deps(fixture: Parameters<typeof stubProvider>[0], recordAnswer = "passe
   return { d, recorded };
 }
 
-const CLEAN = { ok: true as const, nin: "12345678901", legalName: "OKEKE CHIDI EMMANUEL", reference: "agg-1", liveness: 0.95 };
+const CLEAN = { ok: true as const, nin: "12345678901", legalName: "OKEKE CHIDI EMMANUEL", reference: "agg-1" };
 
 describe("the NIN is handled, never kept", () => {
   it("accepts a sixteen-character virtual NIN, forgiving spaces and case", () => {
@@ -69,12 +70,10 @@ describe("runVninCheck", () => {
     expect(recorded[0]!.note).toContain("Chidi Okeke");
   });
 
-  it("sends a low liveness score to a person even when the name matches", async () => {
-    const { d } = deps({ [TOKEN]: { ...CLEAN, liveness: LIVENESS_PASS - 0.01 } });
-    expect(await runVninCheck(d, { userId: "u", vnin: TOKEN, applicationName: "Chidi Okeke" })).toEqual({
-      status: "pending",
-      reason: "liveness",
-    });
+  it("claims no liveness: nothing about a face is recorded or decided", async () => {
+    const { d, recorded } = deps({ [TOKEN]: CLEAN });
+    await runVninCheck(d, { userId: "u", vnin: TOKEN, applicationName: "Chidi Okeke" });
+    expect(JSON.stringify(recorded).toLowerCase()).not.toContain("liveness");
   });
 
   it("reports a NIN already matched elsewhere as pending, as the database answers", async () => {
@@ -122,6 +121,7 @@ describe("the payout desk suggestion", () => {
 
   it("is drawn on the desk as a suggestion", () => {
     const card = readFileSync(join(__dirname, "../../app/admin/kyc/SubjectCard.tsx"), "utf8");
-    expect(card).toContain("Payout name check (suggestion)");
+    expect(card).toContain("DESK.payoutLabel");
+    expect(getDictionary("en").trustVisible.desk.payoutLabel).toBe("Payout name check (suggestion):");
   });
 });

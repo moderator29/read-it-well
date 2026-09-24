@@ -1,5 +1,6 @@
-import { businessNamesMatch, namesMatch } from "@/lib/identity/name-match";
 import "server-only";
+
+import { businessNamesMatch, namesMatch } from "@/lib/identity/name-match";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Constants, type Database } from "../supabase/database.types";

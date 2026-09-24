@@ -92,7 +92,6 @@ export async function verifyIdentityWithVnin(
           p_legal_name: r.legalName,
           p_nin_hmac: r.ninHmac,
           p_provider_ref: r.reference,
-          p_liveness: r.liveness,
           p_matched: r.matched,
           p_note: r.note,
         });

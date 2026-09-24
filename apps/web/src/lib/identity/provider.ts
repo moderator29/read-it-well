@@ -11,9 +11,13 @@
  *   stub          for tests: answers from a fixture table keyed by token.
  *
  * THE ONE SWAP. Implement `IdentityProvider` for the chosen aggregator (the
- * vNIN lookup and the liveness match to the NIMC photograph), return it from
+ * vNIN lookup), return it from
  * `identityProvider()` when its key is present, set VALLO_NIN_HMAC_KEY, and
  * turn the flag on.
+ *
+ * NO SELFIE, SO NO LIVENESS. No screen captures one, so the interface does
+ * not pretend to carry a score; a face match is a later addition with its own
+ * capture step.
  *
  * WHAT A PROVIDER RETURNS AND WHAT HAPPENS TO IT. The NIN comes back so it can
  * be HMACed at once (`nin.ts`) and then dropped: it is never stored, logged or
@@ -28,14 +32,12 @@ export type VninAnswer =
       legalName: string;
       /** The aggregator's own reference for this check, for the audit trail. */
       reference: string;
-      /** 0 to 1: how closely the selfie matched the NIMC photograph. */
-      liveness: number;
     }
   | { ok: false; reason: "unconfigured" | "not_found" | "expired" | "failed" };
 
 export interface IdentityProvider {
   readonly name: string;
-  verifyVnin(input: { vnin: string; selfie?: Blob | null }): Promise<VninAnswer>;
+  verifyVnin(input: { vnin: string }): Promise<VninAnswer>;
 }
 
 export const unconfiguredProvider: IdentityProvider = {
