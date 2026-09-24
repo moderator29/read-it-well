@@ -24,6 +24,24 @@ describe("Next stamps the nonce on a layout's own script", () => {
     expect(script.slice(0, 400)).toContain("nonce: ctx.nonce");
   });
 
+  /*
+   * UI-12 is this same finding (A06's report of `11-v4cdswovuj.js`). The
+   * build uses the INSTALLED Next, which the lockfile pins, not the range in
+   * package.json, so the installed version is what is checked. Main's
+   * lockfile still pins 16.2.12, and production (dpl_BSh7…, checked on 24
+   * September with scripts/check-script-nonces.mjs) still serves that one
+   * tag bare; it goes when the release branch deploys.
+   */
+  it("the installed Next, which the build uses, has that fix (UI-12)", () => {
+    const installed = (JSON.parse(readFileSync(join(nextRoot, "package.json"), "utf8")) as { version: string }).version;
+    const [major, minor] = installed.split(".").map(Number);
+    expect(major! > 16 || (major === 16 && minor! >= 3), installed).toBe(true);
+    const lock = JSON.parse(readFileSync(join(nextRoot, "..", "..", "package-lock.json"), "utf8")) as {
+      packages: Record<string, { version?: string }>;
+    };
+    expect(lock.packages["node_modules/next"]?.version).toBe(installed);
+  });
+
   it("the app asks for a Next with that fix", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { dependencies: Record<string, string> };
     const [major, minor] = (pkg.dependencies.next ?? "").replace(/^[^\d]*/, "").split(".").map(Number);
