@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { formatDate, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { hrefForListing } from "@/lib/listings/href";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -21,6 +21,7 @@ import { panelClass } from "@/components/ui/Panel";
 import { ListerRoleLine } from "@/components/app/listing/ListerRoleLine";
 import { isNewSince, listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
 import { useLastVisit } from "@/components/app/search/LastVisit";
+import { cashAtDoor, upfrontText } from "@/lib/listings/upfront";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -166,6 +167,8 @@ export function ListingCard({
       : listing.area || listing.city;
 
   const price = cardPrice(listing);
+  /* V-65: the months of rent asked for up front, for the line under the rent. */
+  const cash = cashAtDoor(listing);
   const facts = cardFacts(listing, t);
   const power = cardUtility(listing);
   const marketKey = cardMarket(listing);
@@ -435,6 +438,19 @@ export function ListingCard({
                   secondaryClassName={fractionClass(price.rentMinor, "text-[length:var(--nf-text-overline)] font-semibold")}
                 />
               </p>
+              {/* V-65. How much rent is asked for at the start, and when that
+                  is several years, what that means at the door. */}
+              {cash && (
+                <p className="nf-pcard__sub break-words" data-testid="card-upfront">
+                  {upfrontText(cash.upfrontMonths, t.shape.cash)}
+                  {cash.restated && (
+                    <>
+                      {". "}
+                      {t.shape.cash.atDoor.replace("{amount}", formatMoney(cash.minor, locale, listing.currency))}
+                    </>
+                  )}
+                </p>
+              )}
             </>
           )}
 

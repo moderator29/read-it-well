@@ -217,6 +217,9 @@ export function summariseSearch(
   if (query.parkingInside) chips.push("Parking inside the compound");
   if (query.servicedOnly) chips.push("Serviced");
   if (query.gatedEstate) chips.push("Gated estate");
+  if (query.maxUpfront !== undefined) {
+    chips.push(query.maxUpfront === 12 ? "One year upfront at most" : `${query.maxUpfront} months upfront at most`);
+  }
   for (const code of query.amenities) chips.push(amenityWord(code));
 
   return chips;

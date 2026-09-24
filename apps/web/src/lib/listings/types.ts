@@ -474,6 +474,13 @@ export type ListingSearchFilter = {
   servicedOnly?: boolean;
   /** V-68: only listings in a gated estate with controlled entry. Strict. */
   gatedEstate?: boolean;
+  /**
+   * V-65: at most this many months of rent asked for up front (the larger of
+   * one rent period and the shortest tenancy). Strict: not a tenancy, no match.
+   * On the Rent market the budget bounds above are judged against the cash at
+   * the door, see `budgetFigure`.
+   */
+  maxUpfrontMonths?: number;
 };
 
 /**

@@ -33,6 +33,8 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *   parking    "inside": the lister said a car parks inside the compound (V-28)
  *   serviced   "1": Serviced, derived from what the charge covers (V-68)
  *   estate     "gated": a gated estate with controlled entry (V-68)
+ *   upfront    months: at most this many months of rent asked for up front,
+ *              "12" is the drawer's "One year upfront at most" (V-65)
  *
  * The two utility parameters use opposite set logic on purpose, and the URL
  * says so by naming one after a requirement and one after a source. Backup
@@ -171,6 +173,8 @@ export type DiscoveryQuery = {
   /** V-68. Strict: an unanswered listing never satisfies either. */
   servicedOnly: boolean;
   gatedEstate: boolean;
+  /** V-65: at most this many months of rent up front. Absent means not asked. */
+  maxUpfront?: number;
 };
 
 /**
@@ -224,6 +228,8 @@ export function koboToNaira(kobo: number): number {
 const MAX_TEXT = 120;
 const MAX_ROOMS = 20;
 const MAX_GUESTS = 30;
+/** Five years is past any tenancy demand this market has seen; above it is noise. */
+const MAX_UPFRONT_MONTHS = 60;
 const MAX_NAIRA = 999_999_999;
 const MAX_AMENITIES = 20;
 
@@ -374,6 +380,8 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
   if (bathrooms !== undefined) query.bathrooms = bathrooms;
   const guests = readInt(params.guests, 1, MAX_GUESTS);
   if (guests !== undefined) query.guests = guests;
+  const upfront = readInt(params.upfront, 1, MAX_UPFRONT_MONTHS);
+  if (upfront !== undefined) query.maxUpfront = upfront;
 
   return query;
 }
@@ -399,6 +407,7 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
   if (query.parkingInside) filter.parkingInside = true;
   if (query.servicedOnly) filter.servicedOnly = true;
   if (query.gatedEstate) filter.gatedEstate = true;
+  if (query.maxUpfront !== undefined) filter.maxUpfrontMonths = query.maxUpfront;
   return filter;
 }
 
@@ -454,6 +463,7 @@ export function toSearchHref(query: DiscoveryQuery): string {
   if (query.parkingInside) params.set("parking", "inside");
   if (query.servicedOnly) params.set("serviced", "1");
   if (query.gatedEstate) params.set("estate", "gated");
+  if (query.maxUpfront !== undefined) params.set("upfront", String(query.maxUpfront));
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
@@ -523,5 +533,6 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   if (query.parkingInside) count += 1;
   if (query.servicedOnly) count += 1;
   if (query.gatedEstate) count += 1;
+  if (query.maxUpfront !== undefined) count += 1;
   return count;
 }

@@ -129,6 +129,18 @@ export const shapeEn = {
     viewsCounted:
       "Views are counted per listing above: different signed-in people who saw or opened it, once each per day, with no names kept. There is still no conversion rate, because a rate over a week this young would be noise.",
   },
+  /** V-65: on the Rent market the budget is the cash at the door. */
+  cash: {
+    budgetTitle: "How much can you move in with?",
+    budgetBasis:
+      "Budget is the total to move in: rent, fees, caution and service charge, with every year of rent the lister asks for up front.",
+    oneYearAtMost: "One year upfront at most",
+    upfrontMonth: "One month upfront",
+    upfrontMonths: "{n} months upfront",
+    upfrontYear: "One year upfront",
+    upfrontYears: "{n} years upfront",
+    atDoor: "{amount} at the door with all the rent asked up front",
+  },
   /** V-68: what the service charge buys, and the word Serviced, derived. */
   service: {
     title: "What the service charge covers",

@@ -6,7 +6,16 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { hasBackupPower, matchesFacts, type ListingFacts } from "@/lib/listings/filter";
+import {
+  budgetFigure,
+  hasBackupPower,
+  matchesFacts,
+  rentMeansTenancy,
+  type ListingFacts,
+} from "@/lib/listings/filter";
+
+/* V-65: the drawer's one upfront choice, "One year upfront at most". */
+const ONE_YEAR = 12;
 import {
   WATER_SOURCES,
   type ListingIntent,
@@ -81,6 +90,8 @@ type Draft = {
   parkingInside: boolean;
   servicedOnly: boolean;
   gatedEstate: boolean;
+  /** V-65: at most this many months up front; absent means not asked. */
+  maxUpfront?: number;
 };
 
 function draftFrom(query: ShelfQuery): Draft {
@@ -105,6 +116,7 @@ function draftFrom(query: ShelfQuery): Draft {
     parkingInside: query.parkingInside,
     servicedOnly: query.servicedOnly,
     gatedEstate: query.gatedEstate,
+    ...(query.maxUpfront !== undefined ? { maxUpfront: query.maxUpfront } : {}),
   };
 }
 
@@ -147,6 +159,8 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
   if (draft.bedrooms > 0) next.bedrooms = draft.bedrooms;
   if (draft.bathrooms > 0) next.bathrooms = draft.bathrooms;
   if (draft.guests > 0) next.guests = draft.guests;
+  /* The upfront limit only means something on the Rent market's tenancies. */
+  if (draft.maxUpfront !== undefined && rentMeansTenancy(draft)) next.maxUpfront = draft.maxUpfront;
   return next;
 }
 
@@ -303,6 +317,7 @@ export function FilterDrawer({
   compoundCopy,
   sortCopy,
   serviceCopy,
+  cashCopy,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -320,6 +335,8 @@ export function FilterDrawer({
   sortCopy: Dictionary["shape"]["sorts"];
   /** V-68: the service charge's words, for its two filters. */
   serviceCopy: Dictionary["shape"]["service"];
+  /** V-65: on the Rent market the budget is the cash at the door. */
+  cashCopy: Dictionary["shape"]["cash"];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
@@ -446,15 +463,20 @@ export function FilterDrawer({
   /* THE PRICE CONTROL IS SCALED TO THE MARKET (V-67). It ran from nothing to
      the dearest sale on the shelf, so a renter's whole market was the first
      sliver of the track. Only the chosen market's prices set the ceiling. */
+  /* V-65: on the Rent market the figure is the cash at the door, so the
+     track is scaled to the dearest door price rather than the dearest rent. */
+  const cashMarket = rentMeansTenancy(draft);
   const bounds = useMemo(() => {
+    const market = { ...(draft.intent ? { intent: draft.intent } : {}), ...(draft.kind ? { kind: draft.kind } : {}) };
     let high: number | undefined;
     for (const fact of facts) {
-      if (fact.priceMinor <= 0) continue;
       if (draft.intent && (fact.intent ?? "rent") !== draft.intent) continue;
-      if (high === undefined || fact.priceMinor > high) high = fact.priceMinor;
+      const figure = budgetFigure(fact, market);
+      if (figure === null) continue;
+      if (high === undefined || figure > high) high = figure;
     }
     return { high };
-  }, [facts, draft.intent]);
+  }, [facts, draft.intent, draft.kind]);
   const scale = useMemo(() => sliderScale(bounds.high), [bounds.high]);
 
   const noun = draft.kind ? KIND_NOUN[draft.kind] : { one: "place", many: "places" };
@@ -624,7 +646,7 @@ export function FilterDrawer({
             {/* --------------------------------------------------- price */}
             <Group
               id="filter-price"
-              title={copy.priceRange}
+              title={cashMarket ? cashCopy.budgetTitle : copy.priceRange}
               clearLabel={copy.clear}
               onClear={
                 draft.minNaira || draft.maxNaira
@@ -688,6 +710,28 @@ export function FilterDrawer({
               </div>
               {sliderMax >= scale.ceiling && (
                 <p className="nf-filters__hint mt-inline-tight">{copy.noUpperLimit}</p>
+              )}
+              {cashMarket && (
+                <>
+                  <p className="nf-filters__hint mt-inline-tight" data-testid="filter-cash-basis">
+                    {cashCopy.budgetBasis}
+                  </p>
+                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
+                    <SwitchRow
+                      icon="wallet"
+                      label={cashCopy.oneYearAtMost}
+                      checked={draft.maxUpfront !== undefined}
+                      testId="filter-upfront"
+                      onChange={(next) =>
+                        setDraft((current) => {
+                          const { maxUpfront: _dropped, ...rest } = current;
+                          void _dropped;
+                          return next ? { ...rest, maxUpfront: ONE_YEAR } : rest;
+                        })
+                      }
+                    />
+                  </div>
+                </>
               )}
             </Group>
 

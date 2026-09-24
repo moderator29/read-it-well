@@ -1268,13 +1268,21 @@ export class SupabaseListingRepository implements ListingRepository {
        * budget but whose nightly rate does not is filtered out in memory. SQL
        * narrows, the matcher decides, and the two cannot disagree.
        */
-      const wantsBudget =
-        filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
+      /*
+       * V-65: on the Rent market the budget is the cash at the door, which is
+       * never less than one period's rent. So a rent CEILING is still a safe
+       * narrowing (cash within budget implies rent within budget), but a rent
+       * FLOOR is not (a 2m rent can be 4m at the door), and the floor is left
+       * to `matchesFacts` alone.
+       */
+      const cashBudget = rentMeansTenancy(filter);
+      const sqlMin = cashBudget ? undefined : filter.minPriceMinor;
+      const wantsBudget = sqlMin !== undefined || filter.maxPriceMinor !== undefined;
       if (wantsBudget) {
         const bounds = (column: string) => {
           const parts = [`${column}.gt.0`];
-          if (filter.minPriceMinor !== undefined) {
-            parts.push(`${column}.gte.${filter.minPriceMinor}`);
+          if (sqlMin !== undefined) {
+            parts.push(`${column}.gte.${sqlMin}`);
           }
           if (filter.maxPriceMinor !== undefined) {
             parts.push(`${column}.lte.${filter.maxPriceMinor}`);

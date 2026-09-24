@@ -1,4 +1,5 @@
 import type { ListingIntent, ListingKind, ListingSearchFilter } from "@/lib/listings/types";
+import { rentMeansTenancy } from "@/lib/listings/filter";
 import {
   activeFilterCount,
   clearedFilters,
@@ -73,6 +74,9 @@ export function shelfFilter(query: ShelfQuery): ListingSearchFilter {
   const filter = toFilter(query);
   if (query.intent) filter.intent = query.intent;
   filter.propertySide = true;
+  /* V-65: an upfront limit carried into another market by a link is dropped,
+     not applied strictly to listings that have no upfront demand at all. */
+  if (filter.maxUpfrontMonths !== undefined && !rentMeansTenancy(filter)) delete filter.maxUpfrontMonths;
   return filter;
 }
 

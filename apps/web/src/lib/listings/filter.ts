@@ -1,6 +1,7 @@
 import type { ListingIntent, PricePeriod } from "./pricing";
 import { matchesCompound, type Compound } from "./compound";
 import { matchesService, type ServiceFacts } from "./service";
+import { cashAtDoor, upfrontMonths } from "./upfront";
 
 
 /**
@@ -13,6 +14,11 @@ import { matchesService, type ServiceFacts } from "./service";
  * narrowing those to tenancies would empty them. Exported so the repository's
  * SQL and `matchesFacts` apply exactly the same rule.
  */
+export function rentMeansTenancy(filter: { intent?: ListingIntent; kind?: ListingKind }): boolean {
+  if (filter.intent !== "rent") return false;
+  return filter.kind !== "shortlet" && filter.kind !== "hotel";
+}
+
 /** A night or a head: a stay, a hotel room or a table, never the Property side's (V-67). */
 export function isStayPeriod(period: PricePeriod): boolean {
   return period === "night" || period === "guest";
@@ -29,9 +35,21 @@ export const PROPERTY_KINDS: readonly ListingKind[] = [
   "land",
 ];
 
-export function rentMeansTenancy(filter: { intent?: ListingIntent; kind?: ListingKind }): boolean {
-  if (filter.intent !== "rent") return false;
-  return filter.kind !== "shortlet" && filter.kind !== "hotel";
+/**
+ * The figure a budget is judged against (V-65, cash in hand).
+ *
+ * On the Rent market it is the cash at the door: the move-in total, restated
+ * for every whole period of rent the lister demands up front. A tenancy that
+ * states no move-in figure has no cash figure, and null never passes a budget,
+ * because unstated is not cheap. Everywhere else it is the headline price.
+ * The drawer's bounds and count, the server and the alerts all ask here.
+ */
+export function budgetFigure(
+  facts: Pick<ListingFacts, "intent" | "pricePeriod" | "priceMinor" | "moveInCostMinor" | "minimumTenancyMonths">,
+  filter: { intent?: ListingIntent; kind?: ListingKind },
+): number | null {
+  if (rentMeansTenancy(filter)) return cashAtDoor(facts)?.minor ?? null;
+  return facts.priceMinor > 0 ? facts.priceMinor : null;
 }
 import type { ListingRole } from "@/lib/supply/roles";
 import type { Listing, ListingKind, ListingSearchFilter } from "./types";
@@ -91,6 +109,9 @@ export type ListingFacts = {
   compound?: Compound;
   /** V-68, under the Listing's own name. */
   service?: ServiceFacts;
+  /** V-65: the move-in total and the shortest tenancy, under the Listing's own names. */
+  moveInCostMinor?: number;
+  minimumTenancyMonths?: number;
   bedrooms: number;
   bathrooms: number;
   /** The host's declared capacity, where the source carries one. */
@@ -137,6 +158,8 @@ export function factsOf(l: Listing): ListingFacts {
     ...(l.pricePeriod !== undefined ? { pricePeriod: l.pricePeriod } : {}),
     ...(l.compound !== undefined ? { compound: l.compound } : {}),
     ...(l.service !== undefined ? { service: l.service } : {}),
+    ...(l.moveInCostMinor !== undefined ? { moveInCostMinor: l.moveInCostMinor } : {}),
+    ...(l.minimumTenancyMonths !== undefined ? { minimumTenancyMonths: l.minimumTenancyMonths } : {}),
     bedrooms: l.bedrooms,
     bathrooms: l.bathrooms,
     ...(l.maxGuests !== undefined ? { maxGuests: l.maxGuests } : {}),
@@ -224,10 +247,18 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
 
   const wantsBudget = filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
   if (wantsBudget) {
-    // A price of zero is "we were not given an amount", not "free".
-    if (facts.priceMinor <= 0) return false;
-    if (filter.minPriceMinor !== undefined && facts.priceMinor < filter.minPriceMinor) return false;
-    if (filter.maxPriceMinor !== undefined && facts.priceMinor > filter.maxPriceMinor) return false;
+    // A price of zero is "we were not given an amount", not "free". On the
+    // Rent market the figure is the cash at the door (V-65).
+    const figure = budgetFigure(facts, filter);
+    if (figure === null) return false;
+    if (filter.minPriceMinor !== undefined && figure < filter.minPriceMinor) return false;
+    if (filter.maxPriceMinor !== undefined && figure > filter.maxPriceMinor) return false;
+  }
+  /* V-65: at most this many months of rent asked for up front. Strict: a
+     listing that is not a tenancy has no upfront demand to judge. */
+  if (filter.maxUpfrontMonths !== undefined) {
+    const months = upfrontMonths(facts.pricePeriod, facts.minimumTenancyMonths);
+    if (months === null || months > filter.maxUpfrontMonths) return false;
   }
 
   if (filter.bedrooms !== undefined && facts.bedrooms < filter.bedrooms) return false;
