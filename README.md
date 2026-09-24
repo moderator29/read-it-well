@@ -278,6 +278,7 @@ Vercel and Node set `NODE_ENV`, `NEXT_RUNTIME`, `VERCEL_ENV`, `VERCEL_URL`, `VER
 │   ├── migrations/              the schema, one file per applied migration (356)
 │   │   └── pending/             not applied: drafts waiting for a decision
 │   ├── tests/probes/            the database regression tests (one DO block each, see below)
+│   ├── tests/pending/           probes for the two grant steps waiting to go again
 │   ├── templates/               generated auth email templates
 │   ├── config.toml              Supabase CLI config
 │   └── README.md                auth email templates: how to generate and apply them
@@ -327,20 +328,22 @@ node scripts/db-probes/run.mjs --check        # the contract only, no database
 
 It needs `psql` and the `postgres` user on the session pooler (port 5432), because the probes build fixtures as the owner and then `set role`. Without a connection string, the same files can be run through the Supabase MCP `apply_migration`: the expected result is an error that contains `PROBE_OK <id>`, and because it failed, nothing is recorded.
 
-### The post-release steps (applied)
+### The post-release steps
 
-Six fixes were split in two, so the database would not get ahead of the code production ran. Step 1 of each was applied with the fix; step 2 waited for the audited release, which reached `main` and deployed on 2026-09-24. All six step-2 migrations were then applied to live that day, each checked with its probe:
+Six fixes were split in two, so the database would not get ahead of the code production ran. The audited release reached `main` and deployed on 2026-09-24, and the six step-2 migrations were then applied to live:
 
-| Migration | What it does | Probe |
+| Migration | What it does | State |
 |---|---|---|
-| `20260924070606_m10_mon02_age_only_hold_releasers_retired.sql` | The two age-only withdrawal-hold releasers can no longer be called (MON-02) | none (no API role holds EXECUTE) |
-| `20260924070608_m5b_one_successful_payment_per_booking.sql` | A unique index: one successful payment per booking (MON-05) | none (the index) |
-| `20260924070623_new_a4_01_step2_anon_reads_only_the_public_point.sql` | A signed-out caller reads a property's point to about a kilometre, never the exact coordinates | `tests/probes/new-a4-01-step2.sql` |
-| `20260924070725_db10_step2_signed_in_members_read_only_the_public_columns.sql` | `authenticated` loses SELECT on the private columns of listings, businesses and accommodations, so no signed-in `select *` on those tables may be added | `tests/probes/db-10-step2.sql` |
-| `20260924070810_db05_step2_bank_and_payout_accounts_are_filed_by_the_server.sql` | Only the server files bank and payout accounts; the DB-06 allowlist now reads `('bank_accounts', 'u')` and `('payout_accounts', 'du')` | `tests/probes/db-05-step2.sql` |
-| `20260924070835_m12b_drop_pot_balance_column_after_release.sql` | `wallet_pots.balance_minor` is gone; a pot's balance is read from the ledger (MON-08) | none |
+| `20260924070606_m10_mon02_age_only_hold_releasers_retired.sql` | The two age-only withdrawal-hold releasers can no longer be called (MON-02) | Live |
+| `20260924070608_m5b_one_successful_payment_per_booking.sql` | A unique index: one successful payment per booking (MON-05) | Live |
+| `20260924070810_db05_step2_bank_and_payout_accounts_are_filed_by_the_server.sql` | Only the server files bank and payout accounts. The DB-06 allowlist now reads `('bank_accounts', 'u')` and `('payout_accounts', 'du')`. Probe: `tests/probes/db-05-step2.sql` | Live |
+| `20260924070623_new_a4_01_step2_anon_reads_only_the_public_point.sql` | A signed-out caller reads a property's point to about a kilometre | **Grant half reverted** by `20260924071045`: the deployed listing page still selects `latitude` and `longitude` as a signed-out reader. The dispatchers stay |
+| `20260924070725_db10_step2_signed_in_members_read_only_the_public_columns.sql` | `authenticated` loses SELECT on the private columns | **Reverted** by `20260924071045`: the deployed listing page still selects `ownership_verified_at` and `mandate_verified_at` through the member's own client |
+| `20260924070835_m12b_drop_pot_balance_column_after_release.sql` | `wallet_pots.balance_minor` dropped; a pot's balance comes from the ledger | **Column restored** by `20260924071133`: a deployed read still selects it. The m12b functions stay |
 
-The files left in `pending/` (the B4 digit scrub, the M6 bookings extension, and the M8 landmarks seed with `LANDMARKS.md`) wait for the founder's decision, not for a release.
+Before the two grant steps go again, the listing page's reads must stop selecting those columns through the caller's own client. Then apply the grant half again and run `tests/pending/db-10-step2.sql` and `tests/pending/new-a4-01-step2.sql` (expect `PROBE_OK`). The column drop goes again once nothing reads `wallet_pots.balance_minor`.
+
+The other files in `pending/` (the B4 digit scrub, the M6 bookings extension and the M8 landmarks seed with `LANDMARKS.md`) wait for the founder's decision, not for a release.
 
 To change the auth email templates, edit `scripts/build-auth-emails.mjs` and regenerate them (`supabase/README.md`).
 
