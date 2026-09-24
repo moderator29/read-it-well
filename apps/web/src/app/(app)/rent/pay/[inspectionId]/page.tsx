@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { PaymentReturn } from "@/app/(app)/checkout/[bookingId]/PaymentReturn";
 import { PayPanel } from "./PayPanel";
+import { AgencyHoldLines } from "@/components/app/after-gate/AgencyHoldLines";
 import { RentSummary } from "./RentSummary";
 import { chargeRentSavedCardFor } from "./saved-card-action";
 
@@ -195,6 +196,15 @@ export default async function RentPayPage({
       <Reveal>
         <RentSummary view={view} />
       </Reveal>
+
+      {/* V-56: renders nothing unless rent_agency_hold and held_payments are both on. */}
+      <AgencyHoldLines
+        totalMinor={view.totalMinor}
+        agencyMinor={view.agencyMinor}
+        moveIn={view.moveIn}
+        agentName={null}
+        locale={locale}
+      />
 
       <div className="mt-lg">
         <PayPanel

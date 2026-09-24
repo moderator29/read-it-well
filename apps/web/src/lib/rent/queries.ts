@@ -45,6 +45,8 @@ export type RentPayView = {
   totalStated: boolean;
   totalMinor: number;
   totalDisplay: string;
+  /** V-56: the agency fee line in kobo, or null when none was stated. */
+  agencyMinor: number | null;
   currency: string;
   locale: Locale;
   /** The bookings row carrying the money, once the charge is open. */
@@ -227,6 +229,7 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
         totalStated: ledger.stated,
         totalMinor: ledger.totalMinor,
         totalDisplay: money(ledger.totalMinor),
+        agencyMinor: ledger.lines.find((line) => line.key === "agency")?.minor ?? null,
         currency,
         locale,
         bookingId: charge?.booking_id ?? null,

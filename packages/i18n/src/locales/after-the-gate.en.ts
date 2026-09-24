@@ -251,6 +251,14 @@ export const afterTheGateEn = {
     shareMissingBody: "It may belong to another account, or it was removed.",
     split: "Split with flatmates",
   },
+  holds: {
+    /** V-56, drawn only when the agency hold is switched on. */
+    theAgent: "the agent",
+    paidNow: "{amount} paid to {name} now",
+    setAside: "{amount} set aside until you have the keys. Paid out on {date} unless you raise a problem.",
+    /** V-92, drawn only when the stay caution hold is switched on. */
+    stayCaution: "{amount} caution: stays in your wallet, set aside. Released to you automatically on {date} unless the host reports damage with photos before then.",
+  },
   comingUp: {
     /** V-84, on /wallet. */
     heading: "Coming up",
