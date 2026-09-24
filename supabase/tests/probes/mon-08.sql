@@ -36,6 +36,12 @@ begin
   -- A non-owner reaching the function itself learns nothing either.
   perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
   if private.pot_balance_minor(pot) <> 0 then raise exception 'PROBE_FAIL mon-08: a stranger read the balance'; end if;
+  -- The view is read-only, even for the owner.
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  begin
+    update public.wallet_pot_balances set name = 'renamed through the view' where id = pot;
+    raise exception 'PROBE_FAIL mon-08: the owner wrote through the balance view';
+  exception when insufficient_privilege then null; end;
   reset role;
   set local role anon;
   begin
