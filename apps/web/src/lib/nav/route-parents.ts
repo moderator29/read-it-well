@@ -383,6 +383,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/settings": "/agent/dashboard",
   "/agent/portfolio": "/agent/dashboard",
   "/agent/verification": "/agent/dashboard",
+  "/agent/firm": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
   "/host": "/home",
