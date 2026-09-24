@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "./database.types";
+import { browserCookieMethods } from "./cookie-policy";
 import { requireSupabasePublicEnv } from "./env";
 
 /**
@@ -24,5 +25,7 @@ export function createClient() {
      * implicit-flow fragment on its own and hands it to the server action.
      */
     auth: { detectSessionInUrl: false },
+    /* SEC-07: Secure on https and a 30-day sliding lifetime (./cookie-policy.ts). */
+    cookies: browserCookieMethods(),
   });
 }

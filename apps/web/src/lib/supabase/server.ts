@@ -3,6 +3,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
 import { forwardedAgentHeaders } from "./agent";
+import { serverCookiesSecure, withAuthCookiePolicy } from "./cookie-policy";
 import type { Database } from "./database.types";
 import { requireSupabasePublicEnv } from "./env";
 
@@ -44,7 +45,7 @@ export async function createClient() {
       setAll(cookiesToSet) {
         try {
           for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
+            cookieStore.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure()));
           }
         } catch {
           // Called from a server component where cookies cannot be set. The
