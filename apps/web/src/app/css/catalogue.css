@@ -2004,15 +2004,18 @@
   .nf-stay-card__rating > svg {
     color: var(--nf-brand-secondary);
   }
+  /*
+   * DOC-21: the chips wrap instead of scrolling. The row sits inside the
+   * card's link, so it cannot take keyboard focus of its own (a focusable
+   * element inside a link), and a scroller nobody can reach by keyboard hid
+   * its last chip from anyone not swiping (axe `scrollable-region-focusable`,
+   * six nodes on /stays). Four chips at most, so two short rows at worst.
+   */
   .nf-stay-card__chips {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--nf-space-xs);
     margin-top: var(--nf-space-xs);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .nf-stay-card__chips::-webkit-scrollbar {
-    display: none;
   }
   .nf-stay-card__chip {
     display: inline-flex;

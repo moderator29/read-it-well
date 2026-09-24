@@ -85,7 +85,11 @@ export function AppBand({
         </Reveal>
 
         <Reveal delay={60}>
-          <div className="nf-landing-phones" aria-hidden="true">
+          {/* DOC-21: `inert` as well as `aria-hidden`. The phones are a
+              picture of the app, but the listing card drawn inside them
+              holds a real link, and aria-hidden alone left that link in the
+              tab order, focusable and unannounced (axe `aria-hidden-focus`). */}
+          <div className="nf-landing-phones" aria-hidden="true" inert>
             <div className="nf-landing-phone nf-landing-phone--back">
               <div className="nf-landing-phone-screen">
                 <Image

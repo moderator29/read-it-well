@@ -36,22 +36,50 @@ import { fileURLToPath } from "node:url";
  * `react-server` at. Every module under test here is a server module; nothing
  * in this suite renders a component or calls a client hook.
  */
+const shared = {
+  "@": fileURLToPath(new URL("./src", import.meta.url)),
+  "server-only": fileURLToPath(new URL("../../node_modules/server-only/empty.js", import.meta.url)),
+};
+
 export default defineConfig({
-  resolve: {
-    conditions: ["react-server", "node", "import", "default"],
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "server-only": fileURLToPath(
-        new URL("../../node_modules/server-only/empty.js", import.meta.url),
-      ),
-      react: fileURLToPath(
-        new URL("../../node_modules/react/react.react-server.js", import.meta.url),
-      ),
-    },
-  },
   test: {
-    environment: "node",
-    include: ["src/**/*.test.ts"],
     retry: 0,
+    projects: [
+      {
+        resolve: {
+          conditions: ["react-server", "node", "import", "default"],
+          alias: {
+            ...shared,
+            react: fileURLToPath(
+              new URL("../../node_modules/react/react.react-server.js", import.meta.url),
+            ),
+          },
+        },
+        test: {
+          name: "unit",
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+          retry: 0,
+        },
+      },
+      /*
+       * THE COMPONENT PROJECT. `*.dom.test.tsx` renders a client component to
+       * HTML with the ordinary (client) React build, loads it into a real
+       * Chromium and runs axe-core over it (`src/lib/a11y/axe.ts`). The
+       * react-server alias above cannot render hooks, which is exactly why
+       * these files live in their own project with no React alias at all.
+       */
+      {
+        resolve: { alias: shared },
+        esbuild: { jsx: "automatic" },
+        test: {
+          name: "dom",
+          environment: "node",
+          include: ["src/**/*.dom.test.tsx"],
+          retry: 0,
+          testTimeout: 30_000,
+        },
+      },
+    ],
   },
 });

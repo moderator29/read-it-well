@@ -48,6 +48,8 @@ export function DocumentUploader({
 }) {
   const spec = DOCUMENT_SPECS[kind];
   const inputId = useId();
+  const titleId = `${inputId}-title`;
+  const hintId = `${inputId}-hint`;
   const input = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,9 +67,11 @@ export function DocumentUploader({
 
   return (
     <section className="nf-panel nf-panel--card block p-md sm:p-lg">
-      <h3 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{spec.title}</h3>
+      {/* DOC-20: an h2 under the step's h1 (it was an h3, which skipped a
+          level), and the name the file input below is labelled by. */}
+      <h2 id={titleId} className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{spec.title}</h2>
 
-      <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p id={hintId} className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {spec.qualifies}
       </p>
 
@@ -83,6 +87,10 @@ export function DocumentUploader({
         type="file"
         accept={ACCEPTED_MIME.join(",")}
         className="sr-only"
+        /* DOC-20: the control had no accessible name, so a screen reader
+           announced an unnamed file picker on the step that gates trust. */
+        aria-labelledby={titleId}
+        aria-describedby={hintId}
         onChange={(event) => pick(event.target.files?.[0])}
       />
 
@@ -102,7 +110,7 @@ export function DocumentUploader({
           {/* Replace, not just remove. The person is here to supply a document,
               so the useful control is the one that gets them to a better
               photograph rather than back to an empty box. */}
-          <Button variant="secondary" size="sm" onClick={() => input.current?.click()}>
+          <Button variant="secondary" size="sm" aria-describedby={titleId} onClick={() => input.current?.click()}>
             {REPLACE}
           </Button>
         </div>
@@ -113,6 +121,7 @@ export function DocumentUploader({
           full
           className="mt-md"
           leadingIcon="plus"
+          aria-describedby={titleId}
           onClick={() => input.current?.click()}
         >
           {CHOOSE}
