@@ -303,6 +303,11 @@ export async function reviewAgentApplication(input: {
       review_notes: notes,
     })
     .eq("id", application.id);
+  /* V-90: an application matching an identity stopped for fraud is decided by
+     a senior reviewer; the database says which identity and when. */
+  if (updateError && updateError.code === "42501" && (updateError.message ?? "").includes("senior reviewer")) {
+    return fail(updateError.message);
+  }
   if (updateError) return fail(SERVICE_DOWN);
 
   try {

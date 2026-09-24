@@ -347,6 +347,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/social": "/admin",
   "/admin/standing": "/admin",
   "/admin/stops": "/admin",
+  "/admin/people/[id]": "/admin/stops",
   "/admin/supply": "/admin",
   "/admin/support": "/admin",
   "/admin/switches": "/admin",
