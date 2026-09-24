@@ -170,11 +170,12 @@ export function ListingGallery({
       <div
         ref={track}
         onScroll={onScroll}
-        /* DOC-21: a scroller a keyboard could not reach (axe
+        /* A scroller a keyboard could not reach (axe
            `scrollable-region-focusable`). Focusable and named, so the arrow
-           keys move through the photographs. */
+           keys move through the photographs. A group, not a region: the
+           section around it is already the landmark. */
         tabIndex={0}
-        role="region"
+        role="group"
         aria-label={t.a11y.photoGallery.replace("{title}", title)}
         className="nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] lg:aspect-[2/1]"
       >

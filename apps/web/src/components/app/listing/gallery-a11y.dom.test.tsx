@@ -27,7 +27,11 @@ describe.skipIf(!hasBrowser && !process.env.CI)("ListingGallery (axe)", () => {
         photos={["https://images.unsplash.com/photo-a", "https://images.unsplash.com/photo-b", "https://images.unsplash.com/photo-c"]}
       />,
     );
-    expect(html).toMatch(/role="region"[^>]*aria-label="Photographs of Two bedroom flat, Yaba/);
+    /* Named for what it holds, with no instructions in the name (they would
+       be announced on every focus), and a group rather than a second region
+       inside the gallery's own labelled section. */
+    expect(html).toMatch(/role="group"[^>]*aria-label="Photographs of Two bedroom flat, Yaba"/);
+    expect(html).not.toContain('role="region"');
     const css = `.nf-scroll-x > div{flex:0 0 390px;height:200px}`;
     expect(await axe(html, { rules: ["scrollable-region-focusable", "aria-allowed-attr", "aria-prohibited-attr"], css })).toEqual([]);
   });
