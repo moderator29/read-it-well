@@ -1,3 +1,5 @@
+import { plural, type Locale, type PluralForms } from "@vallo/i18n";
+
 /**
  * "SHOW ME" (V-69): a renter asks the lister for one specific clip in the
  * thread, and the clip arrives with the time it was sent.
@@ -21,6 +23,7 @@ export const SHOW_ME_RESULTS = [
   "off",
   "signed-out",
   "not-yours",
+  "example",
   "blocked",
   "bad-item",
   "too-many",
@@ -60,13 +63,18 @@ export function showMeState(request: Pick<ShowMeRequest, "status" | "expiresAt">
   return Date.parse(request.expiresAt) > now.getTime() ? "open" : "expired";
 }
 
-/** "1 hour 10 minutes", "25 minutes", "2 days": how long after the ask a clip came. */
-export function elapsedText(fromIso: string, toIso: string, copy: { minutes: string; hours: string; days: string }): string {
+/** "25 minutes", "1 hour", "2 days": how long after the ask a clip came, pluralised per locale. */
+export function elapsedText(
+  fromIso: string,
+  toIso: string,
+  forms: { minutes: PluralForms; hours: PluralForms; days: PluralForms },
+  locale: Locale,
+): string {
   const minutes = Math.max(1, Math.round((Date.parse(toIso) - Date.parse(fromIso)) / 60_000));
-  if (minutes < 60) return copy.minutes.replace("{n}", String(minutes));
+  if (minutes < 60) return plural(minutes, forms.minutes, locale);
   const hours = Math.round(minutes / 60);
-  if (hours < 48) return copy.hours.replace("{n}", String(hours));
-  return copy.days.replace("{n}", String(Math.round(hours / 24)));
+  if (hours < 48) return plural(hours, forms.hours, locale);
+  return plural(Math.round(hours / 24), forms.days, locale);
 }
 
 /** A clip's storage path: inside the request's own folder, which the database checks. */

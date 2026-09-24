@@ -209,7 +209,9 @@ export default async function SearchPage({
      catalogue for the current text), and the whole catalogue for the map. */
   /* V-41: "No flooding reported" is judged on facts this page reads, not in
      the repository's SQL, so the repository is asked without it and the
-     results are narrowed below, once the flood facts are in. */
+     results are narrowed below, once the flood facts are in. Like every
+     in-memory filter here it narrows what the read returned, so it works
+     within the repository's row ceiling, not past it. */
   const { noFlood: wantsNoFlood, ...shelfAsked } = shelfFilter(query);
   const [rawResults, rawPool, whole] = await Promise.all([
     /* The move-in ordering is pushed into the read, because the read has a row
@@ -225,12 +227,17 @@ export default async function SearchPage({
     repo.search({ propertySide: true }),
   ]);
   const floodClear = await floodClearFor([...rawResults, ...rawPool]);
+  /* Fail closed (review): with no flood facts (flag off, signed out, a read
+     that failed) "No flooding reported" is not a filter at all: no narrowing,
+     no switch, no count. */
+  if (!floodClear && query.noFlood) delete query.noFlood;
+  const noFloodApplies = Boolean(wantsNoFlood && floodClear);
   const judged = (l: Listing): Listing =>
     floodClear && floodClear.has(l.id) ? { ...l, floodClear: floodClear.get(l.id)! } : l;
   const pool = rawPool.map(judged);
   const floodNarrowed = rawResults
     .map(judged)
-    .filter((l) => !wantsNoFlood || l.floodClear === true);
+    .filter((l) => !noFloodApplies || l.floodClear === true);
   const sorted = sortListings(floodNarrowed, query.sort);
 
   /*
@@ -344,8 +351,16 @@ export default async function SearchPage({
    */
   const anchors = await readAnchors();
   const anchor = query.to ? (anchors.find((a) => a.slug === query.to) ?? null) : null;
+  /* An anchor that does not resolve (unknown, or the flag off) is not a
+     filter: it leaves the query, so no count or chip claims it (review). */
+  if (query.to && !anchor) {
+    delete query.to;
+    delete query.within;
+  }
   const commutes = anchor ? await readCommutes(anchor.id, ranked) : new Map<string, CommuteBand[]>();
   const commuteOf = (l: Listing): CommuteBand[] => {
+    /* An example has no real journey to it (review). */
+    if (l.isDemo) return [];
     const key = originKey(l.stateCode, l.area);
     return key ? (commutes.get(key) ?? []) : [];
   };

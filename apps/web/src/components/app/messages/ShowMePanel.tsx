@@ -36,10 +36,11 @@ function durationOf(file: File): Promise<number | null> {
 
 /**
  * "Show me" in a listing thread (V-69). The renter asks for one thing from a
- * short list; the lister answers each open ask with a clip from their phone.
- * Each answered clip plays in place with the time it was sent and how long
- * after the ask; an ask left 48 hours says it ran out. There is no in-app
- * camera, so nothing here claims the clip was captured in Vallo.
+ * short list; the lister answers each open ask with a clip uploaded from their
+ * phone. An answered clip plays in place with the Lagos time it was sent and
+ * how long after the ask, worded for whoever is reading; an ask left 48 hours
+ * says it ran out. There is no in-app camera, so nothing here claims the clip
+ * was captured in Vallo.
  */
 export function ShowMePanel({
   conversationId,
@@ -68,7 +69,14 @@ export function ShowMePanel({
   const fileFor = useRef<string | null>(null);
   const input = useRef<HTMLInputElement | null>(null);
   const at = new Date(now);
-  const time = (iso: string) => formatDate(new Date(iso), locale, { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" });
+  const time = (iso: string) =>
+    formatDate(new Date(iso), locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "numeric",
+      month: "short",
+      timeZone: "Africa/Lagos",
+    });
 
   const ask = (item: ShowMeItem) =>
     startTransition(async () => {
@@ -167,16 +175,15 @@ export function ShowMePanel({
                   <strong>{what}</strong>
                   <span className="text-[var(--nf-content-muted)]"> · {copy.askedAt.replace("{time}", time(request.createdAt))}</span>
                 </p>
-                {state === "answered" && request.answeredAt && (
+                {/* Only a clip that can be played gets a "Sent" line (review). */}
+                {state === "answered" && request.answeredAt && request.clipUrl && (
                   <>
-                    {request.clipUrl && (
-                      /* A clip the renter asked for; it has no captions to offer. */
-                      <video className="mt-xs w-full rounded-[var(--nf-radius-md)]" controls preload="none" src={request.clipUrl} />
-                    )}
+                    {/* A clip the renter asked for; it has no captions to offer. */}
+                    <video className="mt-xs w-full rounded-[var(--nf-radius-md)]" controls preload="none" src={request.clipUrl} />
                     <p className="nf-caption mt-2xs text-[var(--nf-content-secondary)]">
-                      {copy.sentAt
+                      {(role === "host" ? copy.sentAtHost : copy.sentAt)
                         .replace("{time}", time(request.answeredAt))
-                        .replace("{after}", elapsedText(request.createdAt, request.answeredAt, copy.elapsed))}
+                        .replace("{after}", elapsedText(request.createdAt, request.answeredAt, copy.elapsed, locale))}
                     </p>
                   </>
                 )}

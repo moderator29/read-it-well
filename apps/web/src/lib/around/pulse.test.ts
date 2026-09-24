@@ -80,4 +80,8 @@ describe("the noflood address and filter", () => {
     expect(matchesFacts({ ...base, amenities: [], floodClear: false }, filter)).toBe(false);
     expect(matchesFacts({ ...base, amenities: [], floodClear: true }, filter)).toBe(true);
   });
+  it("never narrows the drawer's pool (review)", async () => {
+    const { parseDiscoveryQuery, toPoolFilter } = await import("@/lib/listings/search-params");
+    expect(toPoolFilter(parseDiscoveryQuery({ noflood: "1", q: "yaba" })).noFlood).toBeUndefined();
+  });
 });

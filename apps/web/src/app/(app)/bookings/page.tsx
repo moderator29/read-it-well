@@ -51,9 +51,11 @@ const OPEN_INSPECTION = new Set(["REQUESTED", "CONFIRMED", "PROPOSED"]);
  *                 board, both sides of it, with every control it had
  *   Stays         the date spine: stays and tables, with pay, review and cancel
  *
- * A filter (All / Property / Stays) opens on the side the shell is on.
- * `/trips` and `/inspections` redirect here (`next.config.ts`) with
- * `?side=stays` and `?kind=inspection`; `?changed=<id>` still expands the
+ * A filter (All / Property / Stays) opens on the side the shell is on; its
+ * `?side=` never moves the shell. `/trips` and `/inspections` redirect here
+ * (`next.config.ts`) with `?side=stays&from=stays` and
+ * `?kind=inspection&from=property`, and only `from=` picks the shell
+ * (`sideOfPlansQuery`); `?changed=<id>` still expands the
  * inspection a thread just answered, and `?justBooked=<id>` still marks the
  * stay checkout just confirmed. Each kind keeps its own detail route; only
  * the lists merged.

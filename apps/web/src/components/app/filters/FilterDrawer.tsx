@@ -686,7 +686,7 @@ export function FilterDrawer({
             )}
 
             {/* -------------------------- no flooding reported (V-41) */}
-            {(floodJudged || draft.noFlood) && noFloodLabel && (
+            {floodJudged && noFloodLabel && (
               <Group
                 id="filter-flood"
                 title={noFloodLabel.label}

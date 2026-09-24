@@ -54,7 +54,8 @@ export function readBands(rows: readonly CommuteRow[] | null | undefined): Commu
   const out: CommuteBand[] = [];
   for (const row of rows ?? []) {
     if (row.peak !== "am" && row.peak !== "pm") continue;
-    if (!(row.low_min > 0) || !(row.high_min >= row.low_min)) continue;
+    /* A band must be a range: equal ends are a single number (review). */
+    if (!(row.low_min > 0) || !(row.high_min > row.low_min)) continue;
     out.push({
       peak: row.peak,
       lowMin: row.low_min,

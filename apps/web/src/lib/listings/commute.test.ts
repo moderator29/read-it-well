@@ -17,6 +17,10 @@ describe("commute by the clock (V-43)", () => {
     { peak: "am", low_min: 90, high_min: 30, route_label: null, source: "guide", reports: 0 },
   ];
 
+  it("drops a band with no width", () => {
+    expect(readBands([{ peak: "am", low_min: 150, high_min: 150, route_label: null, source: "residents", reports: 5 }])).toEqual([]);
+  });
+
   it("reads bands, morning first, dropping a band whose range is backwards", () => {
     const bands = readBands(rows);
     expect(bands.map((b) => b.peak)).toEqual(["am", "pm"]);

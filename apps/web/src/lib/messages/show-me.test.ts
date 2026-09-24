@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { clipPath, elapsedText, isShowMeItem, readShowMeResult, showMeState } from "./show-me";
 
-const copy = { minutes: "{n} minutes", hours: "{n} hours", days: "{n} days" };
+const copy = {
+  minutes: { one: "{count} minute", other: "{count} minutes" },
+  hours: { one: "{count} hour", other: "{count} hours" },
+  days: { one: "{count} day", other: "{count} days" },
+};
 
 describe("Show me (V-69)", () => {
   it("knows the items and the database's words", () => {
@@ -19,9 +23,10 @@ describe("Show me (V-69)", () => {
   });
 
   it("says how long after the ask a clip came, never a claim about where it was filmed", () => {
-    expect(elapsedText("2026-09-24T10:00:00Z", "2026-09-24T10:25:00Z", copy)).toBe("25 minutes");
-    expect(elapsedText("2026-09-24T10:00:00Z", "2026-09-24T13:10:00Z", copy)).toBe("3 hours");
-    expect(elapsedText("2026-09-22T10:00:00Z", "2026-09-24T10:00:00Z", copy)).toBe("2 days");
+    expect(elapsedText("2026-09-24T10:00:00Z", "2026-09-24T10:25:00Z", copy, "en")).toBe("25 minutes");
+    expect(elapsedText("2026-09-24T10:00:00Z", "2026-09-24T13:10:00Z", copy, "en")).toBe("3 hours");
+    expect(elapsedText("2026-09-24T10:00:00Z", "2026-09-24T11:00:00Z", copy, "en")).toBe("1 hour");
+    expect(elapsedText("2026-09-22T10:00:00Z", "2026-09-24T10:00:00Z", copy, "en")).toBe("2 days");
   });
 
   it("keeps a clip inside its request's folder", () => {

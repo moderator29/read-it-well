@@ -17,6 +17,14 @@ export async function readShowMe(
 ): Promise<ShowMeRequest[] | null> {
   if (!(await flagIsOn(SHOW_ME_FLAG))) return null;
   try {
+    /* An example listing's thread has nothing real to film: no panel (review). */
+    const { data: convo } = await supabase
+      .from("conversations")
+      .select("listing_id, listings(is_demo)")
+      .eq("id", conversationId)
+      .maybeSingle();
+    const listing = (convo as unknown as { listings: { is_demo: boolean } | null } | null)?.listings;
+    if (!convo || !listing || listing.is_demo) return null;
     const { data, error } = await supabase
       .from("show_me_requests" as never)
       .select("id, item, note, status, created_at, expires_at, answered_at, clip_path, clip_seconds")

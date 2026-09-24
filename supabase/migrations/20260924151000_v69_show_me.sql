@@ -45,6 +45,9 @@ as $$
   select coalesce((select f.enabled from public.feature_flags f where f.key = 'show_me'), false);
 $$;
 revoke all on function private.show_me_open() from public, anon, authenticated;
+/* The storage policies below run as the uploader, so they must be able to
+   ask the flag (review: without this every upload was refused). */
+grant execute on function private.show_me_open() to authenticated;
 
 create table if not exists public.show_me_requests (
   id              uuid primary key default gen_random_uuid(),
@@ -75,7 +78,8 @@ grant select on public.show_me_requests to authenticated;
 create policy show_me_requests_parties_read on public.show_me_requests
   for select to authenticated
   using (
-    exists (
+    private.show_me_open()
+    and exists (
       select 1 from public.conversations c
        where c.id = conversation_id
          and (c.guest_id = (select auth.uid()) or c.agent_id = (select auth.uid()))
@@ -113,6 +117,10 @@ begin
     from public.conversations c where c.id = p_conversation;
   if convo.id is null or convo.guest_id is distinct from caller or convo.listing_id is null then
     return 'not-yours';
+  end if;
+  /* An example listing has nothing real to film (review). */
+  if exists (select 1 from public.listings l where l.id = convo.listing_id and l.is_demo) then
+    return 'example';
   end if;
   if private.blocked_with(convo.agent_id) then
     return 'blocked';
@@ -183,6 +191,13 @@ begin
   if p_path is null or split_part(p_path, '/', 1) <> p_request::text then
     return 'bad-path';
   end if;
+  /* The clip must exist, uploaded by the caller (review). */
+  if not exists (
+    select 1 from storage.objects o
+     where o.bucket_id = 'show-me-clips' and o.name = p_path and o.owner_id = caller::text
+  ) then
+    return 'bad-path';
+  end if;
   if p_seconds is null or p_seconds < 1 or p_seconds > 30 then
     return 'too-long';
   end if;
@@ -221,10 +236,25 @@ create policy show_me_clips_answerer_writes on storage.objects
     )
   );
 
+/* The answerer may take back an upload while the ask is still open (a wrong
+   file, a retry); once answered the clip stays. */
+create policy show_me_clips_answerer_deletes on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'show-me-clips'
+    and owner_id = (select auth.uid())::text
+    and exists (
+      select 1 from public.show_me_requests r
+       where r.id::text = (storage.foldername(name))[1]
+         and r.status = 'open'
+    )
+  );
+
 create policy show_me_clips_parties_read on storage.objects
   for select to authenticated
   using (
     bucket_id = 'show-me-clips'
+    and private.show_me_open()
     and exists (
       select 1
         from public.show_me_requests r

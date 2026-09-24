@@ -19,9 +19,10 @@
  *                    peak window it was made in. Born locked.
  *
  * `commute_for` answers ONE origin, ONE anchor: per window, the residents'
- * interquartile range once five different members reported in the last 30
- * days (source 'residents', with the count), else the guide's band (source
- * 'guide'), else nothing. Never a single number, always a range and a window.
+ * interquartile range of each member's own median, once five different
+ * members reported in the last 30 days and the range has width (source
+ * 'residents', with the count), else the guide's band with its named route
+ * (source 'guide'), else nothing. Never a single number, always a range and a window.
  * No third-party routing API is called anywhere: free-flow engines are wrong
  * for Lagos, and a live call would send the member's anchor to a third party.
  *
@@ -165,14 +166,25 @@ as $$
      where r.anchor_id = p_anchor
        and r.created_at > now() - interval '30 days'
   ),
-  residents as (
-    select r.peak,
-           round(percentile_cont(0.25) within group (order by r.minutes))::integer as low_min,
-           round(percentile_cont(0.75) within group (order by r.minutes))::integer as high_min,
-           count(distinct r.user_id)::integer as reports
+  /* One figure per member first (their median), so one person reporting
+     every day cannot become the range (review). */
+  per_member as (
+    select r.peak, r.user_id, percentile_cont(0.5) within group (order by r.minutes) as minutes
       from recent r
-     group by r.peak
-    having count(distinct r.user_id) >= 5
+     group by r.peak, r.user_id
+  ),
+  residents_raw as (
+    select m.peak,
+           round(percentile_cont(0.25) within group (order by m.minutes))::integer as low_min,
+           round(percentile_cont(0.75) within group (order by m.minutes))::integer as high_min,
+           count(*)::integer as reports
+      from per_member m
+     group by m.peak
+    having count(*) >= 5
+  ),
+  /* A range with no width is not a range: the guide stands instead. */
+  residents as (
+    select * from residents_raw where high_min > low_min
   ),
   guide as (
     select b.peak, b.low_min, b.high_min, b.route_label
@@ -184,7 +196,8 @@ as $$
   select w.peak,
          coalesce(res.low_min, g.low_min),
          coalesce(res.high_min, g.high_min),
-         g.route_label,
+         /* The named route belongs to the guide, never to residents' times. */
+         case when res.peak is null then g.route_label end,
          case when res.peak is not null then 'residents' else 'guide' end,
          coalesce(res.reports, 0)
     from (values ('am'), ('pm')) as w(peak)

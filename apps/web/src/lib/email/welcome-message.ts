@@ -177,7 +177,7 @@ const VERIFY: Step = {
 const SEE_IT: Step = {
   title: "Ask, then go and see it",
   body: "Message the lister from the listing and keep your questions in writing. When you are ready, request an inspection and see the place in person before any money moves.",
-  link: { label: "Your plans", path: "/bookings", query: "kind=inspection" },
+  link: { label: "Your plans", path: "/bookings", query: "kind=inspection&from=property" },
 };
 
 const VERSIONS: Record<SignupRole | "general", Version> = {
@@ -217,7 +217,7 @@ const VERSIONS: Record<SignupRole | "general", Version> = {
       {
         title: "See it in person",
         body: "Message the seller inside Vallo, keep every answer in writing, and inspect the property before you commit to anything.",
-        link: { label: "Your plans", path: "/bookings", query: "kind=inspection" },
+        link: { label: "Your plans", path: "/bookings", query: "kind=inspection&from=property" },
       },
     ],
     note: PAY_INSIDE,

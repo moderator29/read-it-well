@@ -497,7 +497,6 @@ export function toPoolFilter(query: DiscoveryQuery): ListingSearchFilter {
   if (query.q) filter.q = query.q;
   /* V-66: areas are where, like the text, so the drawer counts inside them. */
   if (query.areas && query.areas.length > 0) filter.areas = query.areas;
-  if (query.noFlood) filter.noFlood = true;
   return filter;
 }
 

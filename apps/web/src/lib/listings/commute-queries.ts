@@ -50,14 +50,19 @@ export async function readCommutes(
     const session = await resolveSession();
     if (session.state !== "signed-in") return out;
     const rpc = session.supabase as unknown as Rpc;
-    await Promise.all(
-      [...pairs].slice(0, 30).map(async ([key, pair]) => {
-        const { data, error } = await rpc.rpc("commute_for", { p_state: pair.state, p_area: pair.area, p_anchor: anchorId });
-        if (error || !Array.isArray(data)) return;
-        const bands = readBands(data as CommuteRow[]);
-        if (bands.length > 0) out.set(key, bands);
-      }),
-    );
+    /* Every distinct origin on the page, ten calls at a time (review: no
+       silent cut). A page holds at most a few dozen areas. */
+    const all = [...pairs];
+    for (let i = 0; i < all.length; i += 10) {
+      await Promise.all(
+        all.slice(i, i + 10).map(async ([key, pair]) => {
+          const { data, error } = await rpc.rpc("commute_for", { p_state: pair.state, p_area: pair.area, p_anchor: anchorId });
+          if (error || !Array.isArray(data)) return;
+          const bands = readBands(data as CommuteRow[]);
+          if (bands.length > 0) out.set(key, bands);
+        }),
+      );
+    }
   } catch {
     /* No commute shown is the honest answer to a read that failed. */
   }
