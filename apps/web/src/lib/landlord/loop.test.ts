@@ -101,7 +101,7 @@ function fakeDatabase(opts: { open: boolean }) {
             purpose: a.purpose,
             reason: a.purpose === "rent" ? "rent_paid" : "fortnightly",
             place: "2 bedroom apartment in Ikeja GRA",
-            lister_name: "Chidi Okeke",
+            lister_name: null,
             total_minor: a.totalMinor,
             review_status: m.consent.reviewStatus,
             consented_at: m.consent.consentedAt,
