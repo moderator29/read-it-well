@@ -29,6 +29,14 @@ import { siteUrl } from "@/lib/site";
  * every listing is an example, so every address under `/areas` is a 404 and
  * the sitemap lists none. That is correct, and it grows with supply.
  *
+ * STATED PLAINLY: IT IS A SOFT 404. `(site)/loading.tsx` streams, so the
+ * response has already begun with status 200 by the time `notFound()` runs;
+ * the body is the not-found page and Next adds `noindex` to it (and
+ * `generateMetadata` below says `noindex` itself for a null page), but the
+ * status line says 200. Nothing is indexed and nothing thin is shown; a true
+ * 404 status would need this segment to stop streaming, which is a shell
+ * decision outside V-82 and is left to the audit.
+ *
  * The figures are `area_asking_summary`'s, the same read the in-app area
  * report makes, worded by `shareLines`, the same words as a share card, and
  * followed by the Price Check disclaimer in full, because a figure that has
