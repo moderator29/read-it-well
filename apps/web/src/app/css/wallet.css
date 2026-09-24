@@ -1295,3 +1295,23 @@
     margin-inline-start: var(--nf-space-2xs);
   }
 }
+
+/* MON-16. A printed receipt is the receipt alone: everything else on the page
+   is hidden, and so are its own buttons. */
+@media print {
+  body:has(.nf-receipt) * {
+    visibility: hidden;
+  }
+  .nf-receipt,
+  .nf-receipt * {
+    visibility: visible;
+  }
+  .nf-receipt {
+    position: absolute;
+    inset: 0 0 auto 0;
+    box-shadow: none;
+  }
+  .nf-receipt-actions {
+    display: none;
+  }
+}
