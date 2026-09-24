@@ -234,6 +234,8 @@ begin
       from a
       join public.inspection_requests r on r.lister_id = a.user_id
      where r.state in ('CONFIRMED'::public.inspection_state, 'COMPLETED'::public.inspection_state)
+       /* A viewing with the lister's own shadow proves nothing about keeping one. */
+       and cardinality(private.shares_identity_with(r.requester_id, a.user_id)) = 0
        and r.slot_at > now() - interval '12 months'
        and r.slot_at <= now() - interval '1 day'
   )
@@ -344,7 +346,7 @@ returns table (
   described integer, described_of integer, lets integer, kept integer, kept_of integer, stopped boolean
 )
 language plpgsql
-stable
+volatile
 security definer
 set search_path = ''
 as $$

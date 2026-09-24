@@ -373,7 +373,7 @@ export const trustVisibleEn = {
     lookupMissingBody: "Check the code with the person who gave it to you. Record codes start VR- and never contain 0, 1, I, L, O or U.",
     lookupLimited: "You have looked up a lot of codes in the last hour. Try again later.",
     lookupFailed: "The Record did not load. Try again.",
-    lookupEmpty: "This lister is new to Vallo, so nothing has been counted yet.",
+    lookupEmpty: "Too few to count yet.",
     search: "Back to search",
   },
   /** V-63: "I feel unsafe", one sheet, the actions in order. */
