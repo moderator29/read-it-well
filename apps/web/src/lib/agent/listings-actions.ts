@@ -408,27 +408,25 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     .single();
 
   if (error || !created) return fail(SAVE_FAILED_MESSAGE);
-  if (!(await writeCompound(gate.supabase, created.id, gate.agentId, value))) {
-    return fail(SAVE_FAILED_MESSAGE);
-  }
-  if (!(await writeService(gate.supabase, created.id, gate.agentId, value))) {
-    return fail(SAVE_FAILED_MESSAGE);
-  }
-  if (!(await writeUnit(gate.supabase, created.id, gate.agentId, value))) {
-    return fail(SAVE_FAILED_MESSAGE);
-  }
-  if (!(await writeFlooding(gate.supabase, created.id, gate.agentId, value.flooding))) {
-    return fail(SAVE_FAILED_MESSAGE);
-  }
-  if (
-    value.broadcastUnconfirmed !== undefined &&
-    value.broadcastUnconfirmed.length > 0 &&
-    !(await writeBroadcastMarks(gate.supabase, created.id, value.broadcastUnconfirmed))
-  ) {
-    /* V-09: a draft whose unchecked figures were not recorded could be sent
-       for review unchecked. The new draft is taken back and the save fails. */
-    await gate.supabase.from("listings").delete().eq("id", created.id).eq("agent_id", gate.agentId);
-    return fail(SAVE_FAILED_MESSAGE);
+  /* Every follow-up write belongs to the draft just made. If any fails, the
+     draft is taken back and the save fails, so a retry starts clean and no
+     half-written draft (above all one whose unchecked figures were not
+     recorded, V-09) is left behind. The marks go first. */
+  const followUps = [
+    () =>
+      value.broadcastUnconfirmed !== undefined && value.broadcastUnconfirmed.length > 0
+        ? writeBroadcastMarks(gate.supabase, created.id, value.broadcastUnconfirmed)
+        : Promise.resolve(true),
+    () => writeCompound(gate.supabase, created.id, gate.agentId, value),
+    () => writeService(gate.supabase, created.id, gate.agentId, value),
+    () => writeUnit(gate.supabase, created.id, gate.agentId, value),
+    () => writeFlooding(gate.supabase, created.id, gate.agentId, value.flooding),
+  ];
+  for (const write of followUps) {
+    if (!(await write())) {
+      await gate.supabase.from("listings").delete().eq("id", created.id).eq("agent_id", gate.agentId);
+      return fail(SAVE_FAILED_MESSAGE);
+    }
   }
 
   refreshAgentSurfaces();
