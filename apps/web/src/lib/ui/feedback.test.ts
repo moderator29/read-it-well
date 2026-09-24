@@ -73,8 +73,13 @@ describe("planFeedback", () => {
   });
 });
 
-describe("the website pays nothing for native haptics", () => {
-  it("never imports a Capacitor package statically, only lazily behind looksNative", async () => {
+/*
+ * A SOURCE GUARD, NOT BUNDLE PROOF. It reads feedback.ts as text and checks
+ * the import is lazy and sits behind the native gate; it does not build the
+ * app or inspect a chunk, so it cannot show what the browser downloads.
+ */
+describe("source guard: feedback.ts imports Capacitor only lazily", () => {
+  it("has no static Capacitor import, and the lazy one sits behind looksNative", async () => {
     const { readFileSync } = await import("node:fs");
     const { fileURLToPath } = await import("node:url");
     const source = readFileSync(fileURLToPath(new URL("./feedback.ts", import.meta.url)), "utf8");
