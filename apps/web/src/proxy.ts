@@ -13,6 +13,7 @@ import {
   ANON_CATALOGUE_LIMIT,
   ANON_CATALOGUE_WINDOW_SECONDS,
   isPublicCataloguePath,
+  PUBLIC_CATALOGUE_API_PATHS,
   publicCatalogueEnabled,
 } from "@/lib/catalogue/public-access";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
@@ -255,8 +256,11 @@ export function isPublicPath(
   if (PUBLIC_PATHS.has(path)) return true;
   /* STORE-P2-04: the founder's switch, VALLO_PUBLIC_CATALOGUE. It can only
      ADD the six read-only catalogue segments; it cannot open an account
-     surface or an API route (`lib/catalogue/public-access.ts`). */
+     surface, and of the API only the map's pins, which the search page calls
+     and which carry their own per-address limit
+     (`lib/catalogue/public-access.ts`). */
   if (options.publicCatalogue && isPublicCataloguePath(path)) return true;
+  if (options.publicCatalogue && PUBLIC_CATALOGUE_API_PATHS.has(path)) return true;
   /* An API path is decided by its WHOLE path and never by its first segment,
      because `api` is not a public tree: exactly sixteen endpoints under it
      answer a caller with no session and the rest do not. */

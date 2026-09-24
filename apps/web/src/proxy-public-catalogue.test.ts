@@ -25,6 +25,7 @@ const CATALOGUE = ["/search", "/stays", "/stays/search", "/restaurants", "/listi
 const ALWAYS_GATED = ["/u/somebody", "/messages", "/messages/new?listing=abc", "/wallet", "/bookings", "/saved", "/home", "/settings"];
 
 async function visit(path: string, env: Record<string, string>) {
+  vi.unstubAllEnvs();
   vi.resetModules();
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://project.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
@@ -65,9 +66,12 @@ describe("switch ON: the catalogue reads, nothing else opens", () => {
     expect(bounced(await visit(path, { VALLO_PUBLIC_CATALOGUE: "on" }))).toBe(true);
   });
 
-  it("the map's data route stays closed", async () => {
-    const response = await visit("/api/map/listings", { VALLO_PUBLIC_CATALOGUE: "1" });
-    expect(response.status).toBe(401);
+  it("opens the map's pins, which the search page calls, and no other API route", async () => {
+    expect((await visit("/api/map/listings", { VALLO_PUBLIC_CATALOGUE: "1" })).status).toBe(200);
+    expect((await visit("/api/map/listings", {})).status).toBe(401);
+    for (const path of ["/api/assistant", "/api/push/register", "/api/documents/abc", "/api/crypto/quote"]) {
+      expect((await visit(path, { VALLO_PUBLIC_CATALOGUE: "1" })).status).toBe(401);
+    }
   });
 
   it("counts a stranger's reads per address and refuses past the limit", async () => {

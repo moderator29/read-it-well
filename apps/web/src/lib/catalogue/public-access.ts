@@ -15,7 +15,8 @@
  * action stays gated WHATEVER THIS SAYS, because the proxy only ever adds
  * these six first segments to the open set: `/u` and people search, messages
  * (including `/messages/new?listing=`, which creates a thread on GET), saved,
- * bookings, wallet, checkout, settings and every API route.
+ * bookings, wallet, checkout, settings and every API route except the map's
+ * pins (`PUBLIC_CATALOGUE_API_PATHS`).
  *
  * What a signed-out reader can see on those pages is decided by the database,
  * not by this switch: the `anon` role holds no SELECT on
@@ -45,7 +46,14 @@ export function publicCatalogueEnabled(
   return /^(1|true|on)$/i.test((env.VALLO_PUBLIC_CATALOGUE ?? "").trim());
 }
 
-/** Is this path one the switch opens? Matched on the first segment. */
+/**
+ * The one data route those pages call from the browser: the map's pins in a
+ * bounding box. It carries its own per-address limit (`map_bounds`), and it
+ * returns what the catalogue pages already show. No other API route opens.
+ */
+export const PUBLIC_CATALOGUE_API_PATHS: ReadonlySet<string> = new Set(["/api/map/listings"]);
+
+/** Is this a page the switch opens? Matched on the first segment. */
 export function isPublicCataloguePath(path: string): boolean {
   if (path === "/api" || path.startsWith("/api/")) return false;
   const [, first = ""] = path.split("/");
