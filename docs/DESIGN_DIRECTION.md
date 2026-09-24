@@ -66,7 +66,8 @@ lists the off-brand details that must be translated rather than copied.
    squares and reserving the circle for avatars. It is not a preference and
    it is not reopened by a render that disagrees: where a render draws a
    capsule, that is a render mistake and rule 3 above governs it.
-   `apps/web/scripts/check-css-tokens.mjs` rule 10 fails the build on a pill
+   `apps/web/scripts/check-css-tokens.mjs` rule 10 (part of `npm run lint`,
+   which CI runs; the Vercel build does not) fails on a pill
    radius on a control, in the stylesheets and in TSX, so drift cannot
    reopen it either.
 
@@ -200,7 +201,7 @@ everywhere.
    dark state until the key lands, display-only (no trading, no advice
    copy). No new colour: price-up is emerald, price-down is rose.
 5. **Icons: the blue glass objects everywhere content icons appear.** The
-   repo's glass pack (103 objects + light twins) is the source. Where a
+   repo's glass pack (the dark objects in `public/brand/glass/`) is the source. Where a
    render uses a glass object we do not have (catalogue lists them), CROP
    it from the reference PNG, alpha-key it with the existing
    `scripts/cut-icon-ground.mjs` pipeline, file it through
@@ -228,10 +229,9 @@ everywhere.
 
 A surface closes only when ALL of these hold:
 1. Screenshot at 390px dark matches the governing image's composition,
-   depth and mood side by side (the worker attaches the comparison to the
-   ledger note).
-2. The light theme is designed, not derived: same anatomy on paper per the
-   existing light law.
+   depth and mood side by side, with the comparison kept with the change.
+2. Dark only: there is no light theme to verify
+   (`docs/design/LIGHT_MODE_REMOVED.md`).
 3. Every control on the screen is FUNCTIONAL end to end (the ONE LAW):
    real action, real data, real state change, notification where deserved.
    Nothing ships as a picture of a feature.

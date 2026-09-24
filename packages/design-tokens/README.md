@@ -50,7 +50,7 @@ The one case CSS genuinely cannot reach is `color-mix()` inside an SVG
 `stop-color`, and a `<canvas>` that has to paint a brand colour. Neither exists
 in the product today. When one does, add back only what that case needs, give it
 the consumer in the same change, and have `scripts/check-css-tokens.mjs` guard
-it: that script already fails the build on a `var(--nf-*)` in this package that
+it: that script (part of `npm run lint`, run in CI) already fails on a `var(--nf-*)` in this package that
 resolves to nothing, which is the check the old mirror never had.
 
 ## One loose end

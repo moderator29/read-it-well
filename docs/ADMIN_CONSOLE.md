@@ -654,7 +654,7 @@ not remembered: the Vercel list is `VERCEL_JOBS` in
 database list is `PG_CRON_JOBS` in the same file, held equal by
 `lib/admin/reads/jobs.test.ts` to every `cron.schedule` the migrations leave
 in place. The same test holds this table and the sentence above to both
-lists, so a new job fails the build until it is written down here.
+lists, so a new job fails `npm test` (and CI) until it is written down here.
 
 The Vercel jobs' schedules come from `apps/web/vercel.json` (a test fails if
 the console's copy drifts from it) and their allowances from `WATCHED_JOBS` in

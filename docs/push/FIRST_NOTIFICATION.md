@@ -56,7 +56,7 @@ That last check is done by the deployment itself, arithmetically, from the two
 halves. It is not a guess.
 
 **Locally instead of on Vercel**, `apps/web/.env.local` takes the same two
-variables and `apps/web/.env.local.example` has them with the same notes.
+variables and `apps/web/.env.example` has them with the same notes.
 A LOCAL pair may be a different pair: nothing on your machine shares
 subscriptions with production, so generating one for local work is safe and
 costs nothing. `.env.local` is not in the repository and must never be.

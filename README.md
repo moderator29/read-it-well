@@ -174,7 +174,7 @@ The template is [`apps/web/.env.example`](apps/web/.env.example). [`docs/ENVIRON
 | `PAYSTACK_SECRET_KEY` | Server only. Checkout, transfers and webhook signature checks (HMAC SHA-512). It is the only Paystack variable | Paystack dashboard |
 | `RECONCILE_CRON_SECRET` | Server only. The bearer secret that `lib/cron/auth.ts` checks on every cron route | Generate it yourself (`openssl rand -hex 32`) |
 | `CRON_SECRET` | Not read by our code. Vercel sends it as the bearer on cron calls. **It must equal `RECONCILE_CRON_SECRET`, and the name must be spelled exactly** | Set in Vercel |
-| `YELLOWCARD_API_BASE`, `YELLOWCARD_API_KEY`, `YELLOWCARD_API_SECRET` | Server only. Crypto top-ups (`lib/payments/yellowcard.ts`, [`docs/wallet/CRYPTO_DEPOSITS.md`](docs/wallet/CRYPTO_DEPOSITS.md)). **Missing from `.env.example`** | Yellow Card |
+| `YELLOWCARD_API_BASE`, `YELLOWCARD_API_KEY`, `YELLOWCARD_API_SECRET` | Server only. Crypto top-ups (`lib/payments/yellowcard.ts`, [`docs/wallet/CRYPTO_DEPOSITS.md`](docs/wallet/CRYPTO_DEPOSITS.md)). | Yellow Card |
 | `NEXT_PUBLIC_NGN_USD_RATE` | Naira per US dollar. The wallet's currency toggle appears only when this is set. There is deliberately no default rate | The operator |
 
 ### Email
@@ -210,7 +210,7 @@ A push transport with no credentials keeps its queue rows until a key arrives. [
 | `NEXT_PUBLIC_MAPTILER_KEY` | Commercial map tiles. Without it the map uses CARTO basemaps, which are licensed for non-commercial use only | MapTiler |
 | `COINGECKO_API_KEY`, `COINGECKO_PLAN` | Server only. Market data for the display-only Crypto surface. `COINGECKO_PLAN` is `demo` or `pro` | CoinGecko |
 | `SENTRY_DSN` | Server only. The server forwards errors to Sentry. There is deliberately no `NEXT_PUBLIC_` twin | Sentry |
-| `CSP_ENFORCE` | `true` blocks CSP violations. Any other value, including unset, only reports them | The operator |
+| `CSP_ENFORCE` | Leave it unset: the policy enforces by default. Only the literal `false` steps back to report-only (`lib/security/csp.ts`) | The operator |
 
 ### Site copy and links
 
@@ -226,7 +226,8 @@ A push transport with no credentials keeps its queue rows until a key arrives. [
 | Name | Purpose |
 |---|---|
 | `NF_DATA_SOURCE` | Listing data source. Leave it unset. Setting it to `api` selects a source that is not implemented |
-| `VALLO_INSPECTION_REPORTS` | Set it to `0` to turn off inspection report storage (`lib/inspections/report-flag.ts`). Defaults to on. **Missing from `.env.example`** |
+| `VALLO_INSPECTION_REPORTS` | Set it to `0` to turn off inspection report storage (`lib/inspections/report-flag.ts`). Defaults to on |
+| `VALLO_PREVIEW_HARNESS` | Local only. `1` opens the `(dev)/preview` and `/gallery` fixture harnesses on a local `next start`; they answer not-found on Vercel regardless |
 
 ### Build and tooling (not read by the running app)
 
