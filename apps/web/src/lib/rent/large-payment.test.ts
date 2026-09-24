@@ -12,9 +12,13 @@ describe("payRoutes", () => {
     expect(payRoutes(LARGE_PAYMENT_KOBO + 1)).toMatchObject({ leadWithTransfer: true, walletOffered: true });
   });
 
-  it("does not offer the wallet above its own ceiling", () => {
+  it("withdraws only the top-up route above the ceiling", () => {
     expect(payRoutes(MAX_MOVE_KOBO)).toMatchObject({ walletOffered: true });
     expect(payRoutes(3_630_000_000)).toMatchObject({ leadWithTransfer: true, walletOffered: false });
+  });
+
+  it("always offers a wallet that already covers the total, whatever its size", () => {
+    expect(payRoutes(3_630_000_000, true)).toMatchObject({ walletOffered: true });
   });
 
   it("treats a non-amount as nothing to route", () => {
