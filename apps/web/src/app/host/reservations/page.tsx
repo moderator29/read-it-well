@@ -120,7 +120,7 @@ export function HostTablesBody({
         <EmptyState
           icon="concierge-bell"
           title="No tables yet"
-          body="When somebody asks for a table at your venue it appears here, with their name, the party and the time on the Lagos clock. A table costs the guest nothing and costs you nothing, and nothing is held for anybody until you accept it."
+          body="When somebody asks for a table at your venue it appears here, with their name, party and time on the Lagos clock. It costs nobody anything, and nothing is held until you accept."
           action={
             <ButtonLink href="/host" variant="secondary" size="lg">
               Your venue

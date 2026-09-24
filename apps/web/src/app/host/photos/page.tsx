@@ -213,7 +213,7 @@ export function HostPhotosBody({
           <EmptyState
             icon="camera"
             title="Save the property first"
-            body="Photographs of a hotel or a shortlet hang on the property itself, so the application asks for its name and its pin first. Open the application, save the property, and the photographs go up on the same step."
+            body="Photographs hang on the property itself, so the application asks for its name and pin first. Save the property there, and the photographs go up on the same step."
             action={
               <ButtonLink href="/host/apply" variant="primary" size="lg">
                 Open the application

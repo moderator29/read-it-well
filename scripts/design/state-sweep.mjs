@@ -46,12 +46,14 @@ const NEEDING = new Set(
 const FLOOR = 50;
 /**
  * THE RATCHET. The wrappers still migrating onto the kit carry copy written
- * before the rules were: on 24 September 2026, ten long titles and bodies on
- * the wallet, host and agent screens. They are listed, not failed, and this
+ * before the rules were: ten long titles and bodies on 24 September 2026, and
+ * three after the host, agent and feed lines were rewritten the same day. The
+ * three left are on the wallet screens, which are the audit session's to
+ * change. They are listed, not failed, and this
  * number may only go down: a new problem on a wrapper fails the sweep, and so
  * does any problem at all on a `<State>` call site. Lower it as each is fixed.
  */
-const LEGACY_BUDGET = 10;
+const LEGACY_BUDGET = 3;
 
 if (!TITLE_MAX || !BODY_MAX || BANNED.length < 5 || EMPTY_LABELS.size < 3 || NEEDING.size < 2) {
   console.error("state sweep: could not read the rules from lib/design/voice.ts; the sweep would check nothing.");
