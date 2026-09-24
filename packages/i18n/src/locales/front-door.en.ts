@@ -446,6 +446,8 @@ export const frontDoorEn = {
       condition: "Condition",
       went_elsewhere: "Went elsewhere",
       no_response: "No response",
+      /** Reasons given fewer than five times in an area, folded together. */
+      other: "Other reasons",
     },
     filterLabel: "Enquiries by stage",
     waiting: "Waiting on you",
@@ -487,8 +489,9 @@ export const frontDoorEn = {
     funnelEmpty: "No enquiries yet. When a renter messages you about a listing, it is counted here.",
     lostTitle: "Why enquiries were lost, by area",
     lostNote:
-      "From every lister on Vallo in the last 12 weeks. An area appears once five enquiries there were lost. No listing, lister or renter is named.",
-    lostEmpty: "No area has five lost enquiries yet, so there is nothing to show without pointing at somebody.",
+      "From every lister on Vallo in the last 12 weeks. An area appears only once enquiries there were lost by at least three different listers across at least five homes, and a reason is named only where five enquiries give it. No listing, lister or renter is named.",
+    lostEmpty: "No area has enough lost enquiries from enough different listers yet, so there is nothing to show without pointing at somebody.",
+    lostApprovedOnly: "Why enquiries are lost opens once your lister profile is approved.",
     lostRow: "{count} of {total}",
     unreachable: "We could not read this just now. Try again in a moment.",
   },

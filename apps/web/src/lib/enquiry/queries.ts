@@ -45,19 +45,20 @@ export type LostByArea = {
   stateCode: string | null;
   area: string;
   total: number;
-  reasons: { reason: LostReason; count: number }[];
+  reasons: { reason: LostReason | "other"; count: number }[];
 };
 
 /** Lost reasons by area, k = 5 applied by the database. Null on a failed read. */
-export async function readLostReasonsByArea(weeks = 12): Promise<LostByArea[] | null> {
+export async function readLostReasonsByArea(weeks = 12): Promise<LostByArea[] | null | "approved_only"> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
   try {
     const rpc = session.supabase.rpc.bind(session.supabase) as unknown as Rpc;
     const { data, error } = await rpc("lost_reasons_by_area", { p_weeks: weeks });
+    if ((error as { code?: string } | null)?.code === "42501") return "approved_only";
     if (error || !Array.isArray(data)) return null;
     const areas = new Map<string, LostByArea>();
-    for (const row of data as { state_code: string | null; area: string; reason: LostReason; lost: number; area_lost: number }[]) {
+    for (const row of data as { state_code: string | null; area: string; reason: LostReason | "other"; lost: number; area_lost: number }[]) {
       const key = `${row.state_code ?? ""}|${row.area}`;
       const entry = areas.get(key) ?? { stateCode: row.state_code, area: row.area, total: Number(row.area_lost), reasons: [] };
       entry.reasons.push({ reason: row.reason, count: Number(row.lost) });
