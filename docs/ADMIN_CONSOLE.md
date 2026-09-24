@@ -649,7 +649,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
 | vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
-| vallo_hold_claims_sweep | pg_cron `*/15 * * * *` | every 15 min | | recomputes every person with a live compliance hold claim, so pending STR and sanctions claims take over once a "this was not me" hold ends (`private.hold_claims_sweep`, SCUML items 6 and 8) |
+| vallo_hold_claims_sweep | pg_cron `* * * * *` | every minute | | recomputes every person with a live compliance hold claim, so pending STR and sanctions claims take over within a minute of a "this was not me" hold ending; skips and cleans up deleted accounts (`private.hold_claims_sweep`, SCUML items 6 and 8) |
 | vallo_str_nudge_overdue | pg_cron `17 * * * *` | hourly at :17 | | reminds staff of a Suspicious Transaction Report case past its clock, once a day per case (`private.str_nudge_overdue`, SCUML item 6) |
 | vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
 | vallo_escrow_age_watch | pg_cron `41 * * * *` | hourly at :41 | | alerts on a dispute older than 48 hours and cancels a proposal nobody funded in 14 days (`private.escrow_age_watch`, ESC-09) |

@@ -18,26 +18,37 @@
 --       it), then recomputes the row.
 --   private.hold_claim_clear(user, owner)
 --       deletes only that desk's claim, then recomputes the row.
---   private.hold_rows(user_id, written_until)
---       the end hold_recompute last wrote to each person's row.
+--   private.hold_rows(user_id, written_until, absorbed_until)
+--       the end hold_recompute last wrote to each person's row, and the end
+--       of any unregistered plain freeze it absorbed, so a shorter freeze
+--       outlives an STR claim laid over it and that claim's clear.
 --   private.hold_recompute(user)
 --       the row follows the latest live claim:
 --         a live hold with a NON-plain reason (a "this was not me" hold) is
 --           NOT TOUCHED AT ALL: not relabelled, not lengthened, not ended. The
 --           claims wait, pending, until it ends;
---         a live `plain` row whose end this model did not write and which runs
---           later than every claim is a freeze not registered as a claim, and
---           is left alone;
+--         a live `plain` row whose end this model did not write is a freeze
+--           not registered as a claim: it is never shortened, and its end is
+--           remembered (absorbed_until) so the row never drops below it while
+--           it is live;
 --         otherwise a live `plain` row is set to the latest live claim, and
 --           ended (hold_until = now()) when no claim is live;
+--         nothing is written when nothing would change;
 --         `plain` is written only when a hold is created or replaces one that
 --           has ended.
 --   private.hold_claims_sweep()
 --       recomputes every person with a live claim, so pending claims take
---       over once a "this was not me" hold ends. Run every 15 minutes by
---       pg_cron (`vallo_hold_claims_sweep`); public.hold_claims_sweep() is the
---       same, as a service-role-only wrapper. Returns how many people it
---       recomputed.
+--       over once a "this was not me" hold ends. Run EVERY MINUTE by pg_cron
+--       (`vallo_hold_claims_sweep`); public.hold_claims_sweep() is the same,
+--       as a service-role-only wrapper. Returns how many people it
+--       recomputed. It skips people whose account is gone, deletes their
+--       claims and rows, and one person's failure is a warning, never the
+--       end of the run.
+--
+--   THE REMAINING WINDOW. Between a "this was not me" hold ending and the
+--   next sweep, up to 60 seconds, a person with a pending compliance claim is
+--   not held. Hand-off to the audit: adding `or exists (a live
+--   private.hold_claims row)` to private.money_hold_until would close it.
 --   Execute on all four is granted to nobody; only definer functions call
 --   them.
 --
@@ -70,9 +81,10 @@ comment on table private.hold_claims is
 revoke all on private.hold_claims from public, anon, authenticated;
 
 create table if not exists private.hold_rows (
-  user_id        uuid primary key,
-  written_until  timestamptz,
-  written_at     timestamptz not null default now()
+  user_id         uuid primary key,
+  written_until   timestamptz,
+  absorbed_until  timestamptz,
+  written_at      timestamptz not null default now()
 );
 
 comment on table private.hold_rows is
@@ -90,11 +102,13 @@ declare
   v_latest timestamptz;
   v_row public.account_money_holds%rowtype;
   v_written timestamptz;
+  v_absorbed timestamptz;
   v_new timestamptz;
 begin
   select max(c.until) into v_latest from private.hold_claims c where c.user_id = p_user and c.until > now();
   select * into v_row from public.account_money_holds h where h.user_id = p_user for update;
-  select w.written_until into v_written from private.hold_rows w where w.user_id = p_user;
+  select w.written_until, w.absorbed_until into v_written, v_absorbed from private.hold_rows w where w.user_id = p_user;
+  if v_absorbed is not null and v_absorbed <= now() then v_absorbed := null; end if;
 
   if v_row.user_id is null then
     if v_latest is null then return; end if;
@@ -103,16 +117,19 @@ begin
     v_new := v_latest;
   elsif v_row.hold_until > now() and v_row.reason <> 'plain' then
     /* Somebody else's live hold (a "this was not me" hold): not touched at
-       all. The claims stay pending and take over when it ends. */
+       all. The claims stay pending and the sweep hands over when it ends. */
     return;
   elsif v_row.hold_until > now() then
-    /* A live plain row this model did not write, running later than every
-       claim: a freeze not yet registered as a claim. Left alone. */
-    if v_written is distinct from v_row.hold_until and (v_latest is null or v_row.hold_until > v_latest) then
-      return;
+    /* A live plain row this model did not write is an unregistered freeze:
+       remember its end, and never go below it while it is live. */
+    if v_written is distinct from v_row.hold_until then
+      v_absorbed := greatest(v_absorbed, v_row.hold_until);
     end if;
     v_new := coalesce(v_latest, now());
-    update public.account_money_holds set hold_until = v_new where user_id = p_user;
+    if v_absorbed is not null then v_new := greatest(v_new, v_absorbed); end if;
+    if v_new is distinct from v_row.hold_until then
+      update public.account_money_holds set hold_until = v_new where user_id = p_user;
+    end if;
   elsif v_latest is not null then
     /* A hold that has ended is replaced by the pending claims. */
     update public.account_money_holds set hold_until = v_latest, reason = 'plain' where user_id = p_user;
@@ -121,9 +138,14 @@ begin
     return;
   end if;
 
-  insert into private.hold_rows (user_id, written_until, written_at)
-  values (p_user, v_new, now())
-  on conflict (user_id) do update set written_until = excluded.written_until, written_at = now();
+  /* Nothing written when nothing changed: the row's triggers stay quiet. */
+  if v_written is distinct from v_new
+     or v_absorbed is distinct from (select w.absorbed_until from private.hold_rows w where w.user_id = p_user) then
+    insert into private.hold_rows (user_id, written_until, absorbed_until, written_at)
+    values (p_user, v_new, v_absorbed, now())
+    on conflict (user_id) do update
+      set written_until = excluded.written_until, absorbed_until = excluded.absorbed_until, written_at = now();
+  end if;
 end;
 $$;
 
@@ -137,9 +159,22 @@ declare
   u uuid;
   n integer := 0;
 begin
-  for u in select distinct c.user_id from private.hold_claims c where c.until > now() loop
-    perform private.hold_recompute(u);
-    n := n + 1;
+  /* An account that is gone takes its claims and its row record with it; the
+     compliance record of the hold stays in str_holds and the audit log. */
+  delete from private.hold_claims c where not exists (select 1 from auth.users a where a.id = c.user_id);
+  delete from private.hold_rows w where not exists (select 1 from auth.users a where a.id = w.user_id);
+
+  for u in
+    select distinct c.user_id from private.hold_claims c
+     where c.until > now() and exists (select 1 from auth.users a where a.id = c.user_id)
+  loop
+    begin
+      perform private.hold_recompute(u);
+      n := n + 1;
+    exception when others then
+      /* One person can never stop everyone else's hold being kept. */
+      raise warning 'hold_claims_sweep: % could not be recomputed: %', u, sqlerrm;
+    end;
   end loop;
   return n;
 end;
@@ -361,7 +396,11 @@ begin
 
   /* Only this desk's claim is cleared. Any other claim (a sanctions freeze)
      keeps the money held; the row follows what is left. */
-  if private.hold_claim_clear(r.user_id, 'str') then
+  /* 'released' only when money can move: a row still live after the clear
+     (another claim, a not_me hold, a relabel by email recovery, an
+     unregistered freeze) is reported as other_hold. */
+  if private.hold_claim_clear(r.user_id, 'str')
+     and not exists (select 1 from public.account_money_holds h where h.user_id = r.user_id and h.hold_until > now()) then
     v_outcome := 'released';
   else
     v_outcome := 'other_hold';
@@ -419,12 +458,20 @@ begin
      or has_function_privilege('service_role', 'private.hold_claim_clear(uuid, text)', 'execute') then
     bad := bad || ' [a claim can be set from outside]';
   end if;
+  if has_table_privilege('authenticated', 'private.hold_rows', 'select') then bad := bad || ' [hold rows are readable]'; end if;
+  if has_function_privilege('authenticated', 'private.hold_claims_sweep()', 'execute')
+     or has_function_privilege('anon', 'private.hold_claims_sweep()', 'execute')
+     or has_function_privilege('authenticated', 'public.hold_claims_sweep()', 'execute')
+     or has_function_privilege('anon', 'public.hold_claims_sweep()', 'execute') then
+    bad := bad || ' [a member can run the sweep]';
+  end if;
   if bad <> '' then raise exception 'READ-BACK FAILED:%', bad; end if;
 end;
 $readback$;
 
-/* Pending claims take over within 15 minutes of a "this was not me" hold
-   ending. Scheduled with the rest of this migration, in its transaction. */
+/* Pending claims take over within a minute of a "this was not me" hold
+   ending (the window is stated in the header). Scheduled with the rest of
+   this migration, in its transaction. */
 select cron.unschedule('vallo_hold_claims_sweep')
  where exists (select 1 from cron.job where jobname = 'vallo_hold_claims_sweep');
-select cron.schedule('vallo_hold_claims_sweep', '*/15 * * * *', 'select private.hold_claims_sweep();');
+select cron.schedule('vallo_hold_claims_sweep', '* * * * *', 'select private.hold_claims_sweep();');

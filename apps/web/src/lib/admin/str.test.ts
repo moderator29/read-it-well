@@ -179,15 +179,17 @@ describe("SCUML item 6: what the database holds to", () => {
     expect(own).toContain("create table if not exists private.hold_claims");
     expect(own).toContain("owner    text not null check (owner in ('str', 'sanctions'))");
     expect(own).toContain("v_until := private.hold_claim_set(c.subject_id, 'str', v_until, actor);");
-    expect(own).toContain("if private.hold_claim_clear(r.user_id, 'str') then");
+    expect(own).toContain("if private.hold_claim_clear(r.user_id, 'str')");
     expect(own).toContain("elsif v_row.hold_until > now() and v_row.reason <> 'plain' then");
     expect(own).toContain("if r.requested_by = actor then return 'same_person'; end if;");
     /* A live non-plain hold is not touched; the claims wait, and the job takes over. */
     expect(own).not.toMatch(/reason <> 'plain' then\s+if v_latest/);
     expect(own).toContain("create or replace function private.hold_claims_sweep()");
     expect(own).toContain("grant execute on function public.hold_claims_sweep() to service_role;");
-    expect(own).toContain("select cron.schedule('vallo_hold_claims_sweep', '*/15 * * * *', 'select private.hold_claims_sweep();');");
+    expect(own).toContain("select cron.schedule('vallo_hold_claims_sweep', '* * * * *', 'select private.hold_claims_sweep();');");
     /* A plain freeze this model did not write, later than every claim, is left alone. */
-    expect(own).toContain("if v_written is distinct from v_row.hold_until and (v_latest is null or v_row.hold_until > v_latest) then");
+    expect(own).toContain("v_absorbed := greatest(v_absorbed, v_row.hold_until);");
+    expect(own).toContain("raise warning 'hold_claims_sweep: % could not be recomputed: %', u, sqlerrm;");
+    expect(own).toContain("and not exists (select 1 from public.account_money_holds h where h.user_id = r.user_id and h.hold_until > now()) then");
   });
 });
