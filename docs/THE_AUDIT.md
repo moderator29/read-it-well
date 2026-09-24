@@ -5666,13 +5666,8 @@ This section was added on 24 September 2026, when the fixing closed. The full re
 - **Post-release database steps, applied after the deploy:**
   - Live: m10 (the two age-only hold releasers are retired), m5b (one successful payment per booking) and DB-05 step 2 (only the server files bank and payout accounts).
   - Rolled back within two minutes: the grant halves of DB-10 step 2 and NEW-A4-01 step 2 (20260924071045), and m12b's column drop (20260924071133 restored `wallet_pots.balance_minor` at 0; no pot exists, so nothing was lost).
-  - Why they were rolled back: **a separate deployment of the other session's V-03 branch (`claude/vallo-hundred-recommendations-xclnva`, 69da7aef) reads the production database.** Its listing select names `ownership_verified_at`, `mandate_verified_at` and the exact point, so its reads failed 401/403 as soon as those grants went. The release's own reads were proven safe under both grant changes in a rolled-back run. A new guard test (`revoked-columns.test.ts`) refuses any select like V-03's.
-  - A pots read against the dropped column also failed (07:09 UTC). Its source was not traced in this session; it may be the same deployment.
-- **To finish the held steps:**
-  1. Find that V-03 deployment in Vercel and stop it, or point it at a non-production database.
-  2. Keep 69da7aef out of `main` until its select passes the guard test.
-  3. Re-apply the two grant blocks and run `supabase/tests/pending/db-10-step2.sql` and `new-a4-01-step2.sql` (expect `PROBE_OK`).
-  4. Drop the pot column again only once nothing reads it.
+  - Why they were rolled back, corrected: there is no rogue deployment. The failing reads came from ordinary preview builds of the recommendations branch (`claude/vallo-hundred-recommendations-xclnva`), one per push. A preview reads the production database only when something requests a page from it, most likely that session's own proof scripts running while the grants changed. The branch's listing select names `ownership_verified_at`, `mandate_verified_at` and the exact point. Nothing needs switching off.
+  - The fix is order. The recommendations branch merges to `main` first. Then every read of the columns about to be revoked or dropped is checked in the merged tree. Then the three steps go back on, one at a time, watching production for two minutes after each. Agent 1's guard test (`revoked-columns.test.ts`) refuses a select like the branch's while the grants stand.
 - **Do not open the held-payments gate** until you have confirmed the deploy shows payout dates as whole Lagos days (ESC-11).
 - **Set Vercel's install command to `npm ci`**, so production installs exactly the tested tree.
 
@@ -5710,7 +5705,7 @@ This section was added on 24 September 2026, when the fixing closed. The full re
   - One refused sign-up, to confirm the terms tick and the "where did you hear" answer survive (UX-14). This was proven in Chromium from a bundle; the live preview was not checked because the permission policy refused a local server.
   - One print of a receipt from both the receipt page and the receipt sheet (MON-16).
 
-- **The QA account ids.** The two QA accounts' ids appear in the database probes and in some tests (65 files on `main`). They are not logins, but your credentials rule names them. Decide whether they stay, or whether the probes look the accounts up at run time. The last gated merge (f99b1a28 and later) waits on this answer.
+- **The QA account ids: answered and closed.** The two QA accounts' user ids stay in the probes and tests. An id is an identifier, not a credential; the password is the credential, and it is not in the repository. The held merges went to `main` on your word (d3b8b47a).
 
 **Decisions only you can make.** Each has a recommended default where one exists, and nothing is blocked while you decide.
 - **The no-show money rule (ESC-04).** Recommended: the host keeps the first night. The rest returns to the guest's wallet automatically 48 hours after the no-show is recorded, unless the guest disputes first. The service fee is not refunded. One migration follows your answer.
@@ -5740,8 +5735,6 @@ This section was added on 24 September 2026, when the fixing closed. The full re
 - **Flagged messages.** Whether digits in flagged messages are scrubbed. Today this would touch 0 rows.
 - **KYC retention.** Confirm the five-year AML retention period for approved agents' identity records with counsel. The destruction job runs daily and acts only after an account's deletion has finished (SEC-13).
 - **Account deletion in the dashboard.** Deleting a user who has conversations or an agent row in the Supabase dashboard is now refused, because their counterparts' records are kept (DB-16). Accounts are deleted through the app's purge, which anonymises in place.
-
-**Merged but not on `main` yet** (gated and waiting on the ids decision above): Agent 4's SUP sweep (SUP-10, 11, 13, 14, 16 and 17, plus SUP-04 with its five-page allow-list) and SUP-09. SUP-09 and SUP-12 are already live in the database.
 
 **What was not done, and why.** The full list is in THE_AUDIT_FIXES.md.
 - **SEC-16, a sweep of unreferenced public uploads.** It is destructive and needs a full reference map first.
