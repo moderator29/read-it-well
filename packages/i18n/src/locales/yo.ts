@@ -3330,7 +3330,6 @@ export const yo: Dictionary = withFallback({
       backupPower: "Iná àfikún",
       bandA: "Láìnì Band A",
       water: "Ibi tí omi ti ń wá",
-      instant: "Ìfipamọ́ lẹ́sẹ̀kẹsẹ̀",
       verifiedOnly: "Èyí tí a fọwọ́sí nìkan",
       trust: "Ìfipamọ́ àti ìgbẹ́kẹ̀lé",
       location: "Ibi",

@@ -1,4 +1,4 @@
-import type { ListingIntent, ListingSearchFilter } from "@/lib/listings/types";
+import type { ListingIntent, ListingKind, ListingSearchFilter } from "@/lib/listings/types";
 import {
   activeFilterCount,
   clearedFilters,
@@ -62,14 +62,35 @@ export function toShelfViewHref(query: ShelfQuery, view: ViewKey): string {
   return href.includes("?") ? `${href}&view=list` : `${href}?view=list`;
 }
 
+/*
+ * THE PROPERTY SHELF HOLDS NO STAYS (V-67). `/search` is the Property side's
+ * shelf, and a Wuse shortlet, an Ikeja hotel room and a table used to open it.
+ * Both the results and the pool the drawer counts against carry
+ * `propertySide`, so the drawer never offers a kind or a price the shelf will
+ * not show.
+ */
 export function shelfFilter(query: ShelfQuery): ListingSearchFilter {
   const filter = toFilter(query);
   if (query.intent) filter.intent = query.intent;
+  filter.propertySide = true;
   return filter;
 }
 
 export function shelfPoolFilter(query: ShelfQuery): ListingSearchFilter {
-  return toPoolFilter(query);
+  return { ...toPoolFilter(query), propertySide: true };
+}
+
+/**
+ * Where a stay category typed on the Property side belongs (V-67), or null.
+ * Hotels and shortlets are the Stays side's search, with the same words;
+ * restaurants have their own shelf.
+ */
+export function staySideHref(kind: ListingKind | undefined, q: string | undefined): string | null {
+  if (kind === "restaurant") return "/restaurants";
+  if (kind !== "hotel" && kind !== "shortlet") return null;
+  const params = new URLSearchParams({ type: kind });
+  if (q) params.set("q", q);
+  return `/stays/search?${params.toString()}`;
 }
 
 export function shelfActiveCount(query: ShelfQuery): number {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
 import { ShelfBar } from "@/components/app/search/ShelfBar";
@@ -7,6 +8,7 @@ import { ShelfCount } from "@/components/app/search/ShelfCount";
 import {
   clearedShelf,
   parseShelfQuery,
+  staySideHref,
   shelfActiveCount,
   shelfFilter,
   shelfPoolFilter,
@@ -97,11 +99,6 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
         return right > left ? 1 : -1;
       });
       break;
-    case "top-rated":
-      out.sort(
-        (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount || byVerification(a, b),
-      );
-      break;
     /*
      * THE NUMBER A NIGERIAN TENANT ACTUALLY SHOPS ON.
      *
@@ -154,6 +151,9 @@ export default async function SearchPage({
   const t = getDictionary(locale);
   const raw = await searchParams;
   const query: ShelfQuery = parseShelfQuery(raw);
+  /* A stay typed on the Property side is sent to the Stays side, words kept (V-67). */
+  const staySide = staySideHref(query.kind, query.q);
+  if (staySide) redirect(staySide);
 
   const repo = getListingRepository();
   /* Three reads: the results, the pool the sheet counts against (the whole

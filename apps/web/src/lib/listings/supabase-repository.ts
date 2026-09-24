@@ -1210,7 +1210,10 @@ export class SupabaseListingRepository implements ListingRepository {
            which is the column `headlinePrice` reads to call a row a rate.
            `rentMeansTenancy` and `isTenancyPeriod` hold the same rule for
            the drawer's count and the alerts. */
-        if (rentMeansTenancy(filter)) query = query.or("rate_minor.is.null,rate_minor.lte.0");
+      }
+      /* V-26 and V-67 ask the same question of the same column. */
+      if (filter.propertySide || rentMeansTenancy(filter)) {
+        query = query.or("rate_minor.is.null,rate_minor.lte.0");
       }
 
       /*

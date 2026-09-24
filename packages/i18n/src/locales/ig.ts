@@ -3319,7 +3319,6 @@ export const ig: Dictionary = withFallback({
       backupPower: "Ọkụ nkwado",
       bandA: "Eriri Band A",
       water: "Ebe mmiri si abịa",
-      instant: "Ndebe ozugbo",
       verifiedOnly: "Naanị ndị enyochara",
       trust: "Ndebe na ntụkwasị obi",
       location: "Ebe",

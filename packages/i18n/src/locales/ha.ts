@@ -3315,7 +3315,6 @@ export const ha: Dictionary = withFallback({
       backupPower: "Wutar ajiya",
       bandA: "Layin Band A",
       water: "Inda ruwa ke fitowa",
-      instant: "Ajiye nan take",
       verifiedOnly: "Tabbatattu kawai",
       trust: "Ajiyewa da aminci",
       location: "Wuri",

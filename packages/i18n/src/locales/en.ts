@@ -5043,7 +5043,6 @@ export const en = {
       backupPower: "Backup power",
       bandA: "Band A feeder",
       water: "Where the water comes from",
-      instant: "Instant book",
       verifiedOnly: "Verified only",
       trust: "Booking and trust",
       location: "Location",

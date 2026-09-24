@@ -359,7 +359,6 @@ export function FilterDrawer({
    */
   const marketOptions = useMemo(() => {
     const sale = facts.some((fact) => fact.intent === "sale") || draft.intent === "sale";
-    const shortlet = facts.some((fact) => fact.kind === "shortlet") || draft.kind === "shortlet";
     const options: { value: Market; label: string; icon: UiIconName }[] = [];
     /*
      * BUY IS THE HOUSE AND RENT IS THE KEY, and these two were the other way
@@ -373,9 +372,9 @@ export function FilterDrawer({
      */
     if (sale) options.push({ value: "sale", label: "Buy", icon: "home" });
     options.push({ value: "rent", label: "Rent", icon: "key" });
-    if (shortlet) options.push({ value: "shortlet", label: "Shortlet", icon: "calendar-booking" });
+    /* No Shortlet: a shortlet is a stay and lives on the Stays side (V-67). */
     return options;
-  }, [facts, draft.intent, draft.kind]);
+  }, [facts, draft.intent]);
 
   /* Which of the three the draft currently stands on. A shortlet is a rent
      with a kind, so it is read before the bare intent. */
@@ -424,14 +423,18 @@ export function FilterDrawer({
     return facts.filter((fact) => matchesFacts(fact, filter)).length;
   }, [facts, pending]);
 
+  /* THE PRICE CONTROL IS SCALED TO THE MARKET (V-67). It ran from nothing to
+     the dearest sale on the shelf, so a renter's whole market was the first
+     sliver of the track. Only the chosen market's prices set the ceiling. */
   const bounds = useMemo(() => {
     let high: number | undefined;
     for (const fact of facts) {
       if (fact.priceMinor <= 0) continue;
+      if (draft.intent && (fact.intent ?? "rent") !== draft.intent) continue;
       if (high === undefined || fact.priceMinor > high) high = fact.priceMinor;
     }
     return { high };
-  }, [facts]);
+  }, [facts, draft.intent]);
   const scale = useMemo(() => sliderScale(bounds.high), [bounds.high]);
 
   const noun = draft.kind ? KIND_NOUN[draft.kind] : { one: "place", many: "places" };
@@ -853,13 +856,6 @@ export function FilterDrawer({
               }
             >
               <div className="divide-y divide-[var(--nf-panel-hair)]">
-                <SwitchRow
-                  icon="sparkle"
-                  label={copy.instant}
-                  checked={draft.instantBook}
-                  testId="filter-instant"
-                  onChange={(next) => setDraft((current) => ({ ...current, instantBook: next }))}
-                />
                 <SwitchRow
                   icon="verified"
                   label={copy.verifiedOnly}

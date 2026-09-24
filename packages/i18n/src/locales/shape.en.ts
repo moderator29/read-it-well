@@ -41,7 +41,6 @@ export const shapeEn = {
   sorts: {
     recommended: "Recommended",
     newest: "Newest",
-    "top-rated": "Top rated",
     "price-asc": "Price: low to high",
     "price-desc": "Price: high to low",
     "move-in-asc": "Move-in cost: low to high",

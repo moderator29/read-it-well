@@ -1,6 +1,6 @@
 import type { ListingIntent, PricePeriod } from "./pricing";
 import { matchesCompound, type Compound } from "./compound";
-import { isTenancyPeriod } from "./pricing";
+
 
 /**
  * Whether the rent market narrows to tenancies for this filter (V-26).
@@ -12,6 +12,22 @@ import { isTenancyPeriod } from "./pricing";
  * narrowing those to tenancies would empty them. Exported so the repository's
  * SQL and `matchesFacts` apply exactly the same rule.
  */
+/** A night or a head: a stay, a hotel room or a table, never the Property side's (V-67). */
+export function isStayPeriod(period: PricePeriod): boolean {
+  return period === "night" || period === "guest";
+}
+
+/** The kinds the Property side offers, in the drawer's order (V-67). */
+export const PROPERTY_KINDS: readonly ListingKind[] = [
+  "apartment",
+  "home",
+  "villa",
+  "rental",
+  "shop",
+  "office",
+  "land",
+];
+
 export function rentMeansTenancy(filter: { intent?: ListingIntent; kind?: ListingKind }): boolean {
   if (filter.intent !== "rent") return false;
   return filter.kind !== "shortlet" && filter.kind !== "hotel";
@@ -194,7 +210,11 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
   if (filter.intent && (facts.intent ?? "rent") !== filter.intent) return false;
   /* The rent market is tenancies. A nightly shortlet is let too, but it is a
      stay, and it lives on the Stays side (V-26, V-67). */
-  if (rentMeansTenancy(filter) && facts.pricePeriod !== undefined && !isTenancyPeriod(facts.pricePeriod)) {
+  if (
+    (filter.propertySide || rentMeansTenancy(filter)) &&
+    facts.pricePeriod !== undefined &&
+    isStayPeriod(facts.pricePeriod)
+  ) {
     return false;
   }
 

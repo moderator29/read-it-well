@@ -458,6 +458,11 @@ export type ListingSearchFilter = {
    * a borehole and treated mains as an AND would match nothing, every time.
    */
   waterSupply?: WaterSupply[];
+  /**
+   * V-67: the Property side's shelf. Leaves out everything let by the night
+   * or by the head (stays, hotel rooms, tables), which live on the Stays side.
+   */
+  propertySide?: boolean;
   /** V-28: only listings whose lister said the landlord lives elsewhere. Strict. */
   landlordAway?: boolean;
   /** V-28: only listings whose lister said the parking is inside the compound. Strict. */

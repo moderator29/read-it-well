@@ -13,7 +13,9 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *   q          free text
  *   type       category, one of the real ListingKind values
  *              (legacy aliases: "property" is apartment, "rent" is rental)
- *   sort       recommended | newest | top-rated | price-asc | price-desc | move-in-asc
+ *   sort       recommended | newest | price-asc | price-desc | move-in-asc
+ *              (top-rated is gone, V-67: a tenancy cannot be reviewed today, so
+ *              it ordered on nothing; an old link reads as recommended)
  *   view       list | map
  *   min, max   budget bounds in WHOLE NAIRA, the one place naira appears
  *   beds       minimum bedrooms
@@ -49,7 +51,6 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
 export type SortKey =
   | "recommended"
   | "newest"
-  | "top-rated"
   | "price-asc"
   | "price-desc"
   | "move-in-asc";
@@ -77,7 +78,6 @@ export const SORTS: { key: SortKey; label: string; basis: SortBasis }[] = [
   /* V-22. The date each listing went live, which nobody can buy a fresh copy
      of on Vallo because there is no push-up to buy (V-06). */
   { key: "newest", label: "Newest", basis: "listed" },
-  { key: "top-rated", label: "Top rated", basis: "rating" },
   { key: "price-asc", label: "Price: low to high", basis: "price" },
   { key: "price-desc", label: "Price: high to low", basis: "price" },
   { key: "move-in-asc", label: "Move-in cost: low to high", basis: "move-in" },
