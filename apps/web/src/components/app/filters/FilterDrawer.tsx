@@ -15,7 +15,7 @@ import {
 } from "@/lib/listings/filter";
 
 import { UNIT_SHAPES, takesShape, type UnitShape } from "@/lib/listings/unit-shape";
-import { RUSH_WITHIN, type Anchor } from "@/lib/listings/commute";
+import { RUSH_WITHIN, commuteCount, type Anchor } from "@/lib/listings/commute";
 
 /* V-65: the drawer's one upfront choice, "One year upfront at most". */
 const ONE_YEAR = 12;
@@ -499,16 +499,13 @@ export function FilterDrawer({
   /* V-43: the pool carries bands to the anchor the shelf was loaded with, so
      "within" is counted only for that anchor; a newly chosen one is counted
      after Apply, and the sheet says so. */
-  const commuteCountable = draft.withinOn && draft.to !== "" && draft.to === (query.to ?? "");
-  const commutePending = draft.withinOn && draft.to !== "" && !commuteCountable;
+  const commute = commuteCount(draft, query.to);
+  const commutePending = commute.pending;
   const matchCount = useMemo(() => {
     const filter = shelfFilter(pending);
-    return facts.filter(
-      (fact) =>
-        matchesFacts(fact, filter) &&
-        (!commuteCountable || (fact.commuteAmHigh !== undefined && fact.commuteAmHigh <= RUSH_WITHIN)),
-    ).length;
-  }, [facts, pending, commuteCountable]);
+    const counted = commuteCount({ to: draft.to, withinOn: draft.withinOn }, query.to);
+    return facts.filter((fact) => matchesFacts(fact, filter) && counted.passes(fact.commuteAmHigh)).length;
+  }, [facts, pending, draft.to, draft.withinOn, query.to]);
 
   /* THE PRICE CONTROL IS SCALED TO THE MARKET (V-67). A fixed range per
      market (`PRICE_BOUNDS`), the Rent scale when no market is chosen, so the

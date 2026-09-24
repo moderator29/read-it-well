@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clipPath, elapsedText, isShowMeItem, readShowMeResult, showMeState, sizeText } from "./show-me";
+import { clipPath, elapsedText, isShowMeItem, playLabel, readShowMeResult, showMeState, sizeText } from "./show-me";
 
 const copy = {
   minutes: { one: "{count} minute", other: "{count} minutes" },
@@ -40,5 +40,12 @@ describe("sizeText", () => {
     expect(sizeText(2_400_000)).toBe("2.4 MB");
     expect(sizeText(640_000)).toBe("640 KB");
     expect(sizeText(12)).toBe("1 KB");
+    expect(sizeText(999_999)).toBe("1.0 MB");
+  });
+  it("builds the play label from what is known, never the claimed length", () => {
+    const copy = { play: "Play the clip", playWithSize: "Play the clip, {size}" };
+    expect(playLabel(2_400_000, copy)).toBe("Play the clip, 2.4 MB");
+    expect(playLabel(null, copy)).toBe("Play the clip");
+    expect(playLabel(0, copy)).toBe("Play the clip");
   });
 });

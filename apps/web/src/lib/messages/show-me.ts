@@ -61,8 +61,19 @@ export type ShowMeRequest = {
 
 /** "2.4 MB", "640 KB": a clip's weight, for the data saver line. */
 export function sizeText(bytes: number): string {
-  if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
-  return `${Math.max(1, Math.round(bytes / 1000))} KB`;
+  const kb = Math.max(1, Math.round(bytes / 1000));
+  /* 999,999 bytes rounds to 1000 KB; say it in MB instead (review). */
+  if (kb >= 1000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
+  return `${kb} KB`;
+}
+
+/**
+ * The data saver's play label, from parts: the size only when storage says
+ * it, and never the length, which is the uploader's claim and not proven
+ * (review). "Play the clip, 2.4 MB", or just "Play the clip".
+ */
+export function playLabel(bytes: number | null, copy: { play: string; playWithSize: string }): string {
+  return bytes && bytes > 0 ? copy.playWithSize.replace("{size}", sizeText(bytes)) : copy.play;
 }
 
 /** What a request is now, at `now`: waiting, answered, or expired unanswered. */

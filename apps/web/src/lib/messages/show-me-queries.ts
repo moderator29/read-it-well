@@ -14,7 +14,7 @@ import { isShowMeItem, type ShowMeRequest } from "./show-me";
 export async function readShowMe(
   supabase: SupabaseClient<Database>,
   conversationId: string,
-): Promise<ShowMeRequest[] | null> {
+): Promise<{ requests: ShowMeRequest[]; canAsk: boolean } | null> {
   if (!(await flagIsOn(SHOW_ME_FLAG))) return null;
   try {
     /* An example listing's thread has nothing real to film: no panel (review). */
@@ -28,6 +28,8 @@ export async function readShowMe(
        asks already in this thread must stay readable (review). */
     const listing = (convo as unknown as { listings: { is_demo: boolean } | null } | null)?.listings;
     if (!convo || listing?.is_demo === true) return null;
+    /* A listing the renter can no longer see: past asks stay, no new one. */
+    const canAsk = listing !== null && listing !== undefined;
     const { data, error } = await supabase
       .from("show_me_requests" as never)
       .select("id, item, note, status, created_at, expires_at, answered_at, clip_path, clip_seconds")
@@ -76,7 +78,9 @@ export async function readShowMe(
         clipBytes,
       });
     }
-    return out;
+    /* Nothing asked and nothing can be: no panel at all. */
+    if (!canAsk && out.length === 0) return null;
+    return { requests: out, canAsk };
   } catch {
     return null;
   }
