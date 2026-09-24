@@ -83,7 +83,7 @@ const RESTAURANT_MESSAGE =
   "This place takes table reservations rather than overnight stays. Reserve a table from the listing.";
 
 const UNKNOWN_LISTING_MESSAGE =
-  "We could not find this listing. It may no longer be available. Explore other stays from search.";
+  "This listing no longer exists. Explore other stays from search.";
 
 const GENERIC_RESERVE_MESSAGE =
   "We could not place this booking just now. Nothing was charged. Please try again.";
@@ -543,7 +543,7 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     const [{ data: listing }, { data: roles }] = await Promise.all([
       admin
         .from("listings")
-        .select("agent_id, agents!inner(user_id)")
+        .select("agent_id, agents!listings_agent_id_fkey!inner(user_id)")
         .eq("id", booking.listing_id)
         .maybeSingle(),
       admin

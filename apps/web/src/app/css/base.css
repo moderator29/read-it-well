@@ -139,7 +139,14 @@ body {
  * layout is just wider than the screen and the browser lets you drag it.
  */
 html {
-  overflow-x: clip;
+  /*
+   * `hidden` on the root, not `clip`. Only the root's value reaches the
+   * viewport, and WebKit and older Android WebViews do not carry `clip` there,
+   * so a phone could still pan or zoom out sideways past a wide child. On the
+   * root, `hidden` is not a sticky-breaking scroll container: the viewport is
+   * the scroller either way. `body` keeps `clip` for the sticky reason above.
+   */
+  overflow-x: hidden;
   /* UI-19: no rubber-band past the ends. By spec only the root element's
      overscroll-behavior applies to the viewport; on `body` it did nothing. */
   overscroll-behavior-y: none;

@@ -77,7 +77,7 @@ export type ExamplesConsole = {
 };
 
 const EXAMPLE_COLUMNS =
-  "id, title, status, city, rent_amount_minor, sale_price_minor, created_at, demo_retire_after, agents ( display_name )";
+  "id, title, status, city, rent_amount_minor, sale_price_minor, created_at, demo_retire_after, agents!listings_agent_id_fkey( display_name )";
 
 type ExampleRow = {
   id: string;
