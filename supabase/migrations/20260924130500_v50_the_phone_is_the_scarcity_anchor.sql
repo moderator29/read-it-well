@@ -211,6 +211,7 @@ begin
      where t.listing_id = new.listing_id
        and t.answered_at > now() - interval '30 days'
        and (t.available = 'no' or t.property_matched = 'no')
+       and t.weight_withheld_reason is null
        and (not phones_on or cp.phone is not null)
        and t.answered_at > coalesce(
              (select max(al.created_at) from public.audit_log al

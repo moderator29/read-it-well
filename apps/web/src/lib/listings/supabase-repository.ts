@@ -1,5 +1,6 @@
 import "server-only";
 
+import { withheldReviewIds, withoutWithheld } from "../reviews/weight";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { memo } from "../cache/memo";
 import type { Database } from "../supabase/database.types";
@@ -664,13 +665,15 @@ async function getReviewStats(
 ): Promise<Map<string, { rating: number; count: number }>> {
   const stats = new Map<string, { rating: number; count: number }>();
   if (listingIds.length === 0) return stats;
-  const { data, error } = await supabase
+  const { data: rows, error } = await supabase
     .from("reviews")
-    .select("listing_id, rating")
+    .select("id, listing_id, rating")
     .in("listing_id", listingIds)
     .limit(JOIN_ROW_LIMIT);
-  if (error || !data) return stats;
-  warnIfTruncated(data.length, "reviews", listingIds.length);
+  if (error || !rows) return stats;
+  warnIfTruncated(rows.length, "reviews", listingIds.length);
+  /* V-58: a review from the lister's own shadow is not in the average. */
+  const data = withoutWithheld(rows, await withheldReviewIds(supabase, rows.map((row) => row.id)));
 
   const totals = new Map<string, { sum: number; count: number }>();
   for (const row of data) {

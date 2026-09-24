@@ -74,7 +74,11 @@ create table if not exists public.inspection_truth (
   property_matched text not null check (property_matched in ('yes', 'no', 'not_sure')),
   available        text not null check (available in ('yes', 'no', 'not_sure')),
   off_platform_ask text not null check (off_platform_ask in ('yes', 'no', 'not_sure')),
-  answered_at      timestamptz not null default now()
+  answered_at      timestamptz not null default now(),
+  /* V-58 stamps this when the renter shares an identity key (a mailbox, a
+     phone, a device, a card, a bank account) with the lister. The answer is
+     kept and carries no weight: every count below reads only null rows. */
+  weight_withheld_reason text[]
 );
 
 comment on table public.inspection_truth is
@@ -197,6 +201,8 @@ begin
     raise exception 'no such inspection' using errcode = 'foreign_key_violation';
   end if;
   new.answered_at := now();
+  /* Never the caller's to set: V-58's trigger decides it. */
+  new.weight_withheld_reason := null;
   return new;
 end;
 $$;
@@ -242,6 +248,7 @@ begin
      where t.listing_id = new.listing_id
        and t.answered_at > now() - interval '30 days'
        and (t.available = 'no' or t.property_matched = 'no')
+       and t.weight_withheld_reason is null
        /* Only answers since the listing was last paused by this rule: a
           lister who reconfirmed starts from zero. */
        and t.answered_at > coalesce(
@@ -298,6 +305,7 @@ create or replace view public.listing_truth_summary as
     select distinct on (t.listing_id, t.respondent_id)
            t.listing_id, t.respondent_id, t.agent_matched, t.property_matched, t.answered_at
       from public.inspection_truth t
+     where t.weight_withheld_reason is null
      order by t.listing_id, t.respondent_id, t.answered_at desc
   )
   select x.listing_id,
@@ -334,6 +342,7 @@ as $$
       from public.inspection_truth t
      where t.listing_id = p_listing
        and t.answered_at > now() - interval '30 days'
+       and t.weight_withheld_reason is null
        and private.owns_listing(p_listing)
      order by t.respondent_id, t.answered_at desc
   )

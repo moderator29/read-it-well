@@ -1,5 +1,6 @@
 import "server-only";
 
+import { withheldReviewIds, withoutWithheld } from "./weight";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
@@ -72,13 +73,15 @@ export async function getListingReviews(
   if (!isSupabaseConfigured() || !UUID_RE.test(listingId)) return [];
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const { data: rows, error } = await supabase
       .from("reviews")
       .select("id, rating, body, author_label, created_at")
       .eq("listing_id", listingId)
       .order("created_at", { ascending: false })
       .limit(limit);
-    if (error || !data) return [];
+    if (error || !rows) return [];
+    /* V-58: a review from the lister's own shadow is kept and not shown. */
+    const data = withoutWithheld(rows, await withheldReviewIds(supabase, rows.map((row) => row.id)));
 
     // The hosts' answers, in one keyed read. review_responses_select mirrors
     // reviews_select, so anyone who can see the review can see the answer.
@@ -218,14 +221,16 @@ export async function getPlatformReviews(
   if (!isSupabaseConfigured()) return [];
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const { data: rows, error } = await supabase
       .from("reviews")
       .select("id, rating, body, author_label, created_at")
       .not("body", "is", null)
       .neq("body", "")
       .order("created_at", { ascending: false })
       .limit(limit);
-    if (error || !data) return [];
+    if (error || !rows) return [];
+    /* V-58: a review from the lister's own shadow is never quoted. */
+    const data = withoutWithheld(rows, await withheldReviewIds(supabase, rows.map((row) => row.id)));
     return data.map((row) => ({
       id: row.id,
       rating: Number(row.rating) || 0,
