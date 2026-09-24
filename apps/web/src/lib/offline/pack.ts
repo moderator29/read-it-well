@@ -170,6 +170,8 @@ export function livePacks(values: readonly unknown[], now: number, owner: string
 export type CheckinResult = "shown" | "match" | "mismatch" | "skipped";
 
 export type QueuedCheckin = {
+  /** V-35: the account that recorded it; only that account ever sends it. */
+  ownerId: string;
   inspectionId: string;
   result: CheckinResult;
   observedAt: string;
@@ -179,12 +181,13 @@ export function asCheckin(value: unknown): QueuedCheckin | null {
   if (!value || typeof value !== "object") return null;
   const v = value as Record<string, unknown>;
   if (typeof v.inspectionId !== "string" || !UUID.test(v.inspectionId)) return null;
+  if (typeof v.ownerId !== "string" || !UUID.test(v.ownerId)) return null;
   if (v.result !== "shown" && v.result !== "match" && v.result !== "mismatch" && v.result !== "skipped") {
     return null;
   }
   const observedAt = iso(v.observedAt);
   if (!observedAt) return null;
-  return { inspectionId: v.inspectionId, result: v.result, observedAt };
+  return { ownerId: v.ownerId, inspectionId: v.inspectionId, result: v.result, observedAt };
 }
 
 /** The key a queued check-in is stored under, so a double tap is one row. */

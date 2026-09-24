@@ -200,6 +200,12 @@ export function HostStandingBody({
                     <Link href={`/host/photos?business=${business.id}`} className="nf-chip">
                       Photographs
                     </Link>
+                    {/* V-57: every charge a guest can be asked for at the door. */}
+                    {business.kind !== "restaurant" && (
+                      <Link href={`/host/arrival?business=${business.id}`} className="nf-chip">
+                        Charges at the door
+                      </Link>
+                    )}
                   </div>
                 </Row>
               ))}

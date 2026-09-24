@@ -111,6 +111,7 @@ export async function answerDelegation(input: unknown): Promise<DelegationAnswer
 const checkinSchema = z
   .array(
     z.object({
+      ownerId: id,
       inspectionId: id,
       result: z.enum(["shown", "match", "mismatch", "skipped"]),
       observedAt: z.string().datetime({ offset: true }),
@@ -131,6 +132,8 @@ export async function recordCheckins(input: unknown): Promise<{ settled: QueuedC
   if (session.state !== "signed-in") return { settled: [] };
   const settled: QueuedCheckin[] = [];
   for (const checkin of parsed.data) {
+    /* V-35: somebody else's check-in is not this session's to send. */
+    if (checkin.ownerId !== session.user.id) continue;
     try {
       const { data, error } = (await loose(session.supabase).rpc("record_inspection_checkin", {
         p_inspection: checkin.inspectionId,

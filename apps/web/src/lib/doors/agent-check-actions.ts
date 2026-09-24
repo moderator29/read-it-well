@@ -7,17 +7,18 @@ import { callLandlordRpc } from "../landlord/rpc";
 import { consume, ipFromHeaders, subjectForIp } from "../security/rate-limit";
 import { getAdminClient } from "../wallet/ledger";
 import { normalisePhone } from "../phone";
-import { readCheckQuery, readCheckResult, type CheckResult } from "./agent-check";
+import { readCheckQuery, readCheckResult, reservationWindowStart, type CheckResult } from "./agent-check";
 
 /**
  * V-61. THE CHECK, AND THE LIMIT THAT KEEPS IT FROM BEING A PHONE BOOK.
  *
  * `public.agent_lookup` is callable by the service role only, so this action
- * is the one door to it, and it spends two limits before every lookup: ten an
- * hour from one address, and three thousand an hour across the platform. The
- * second is the one that matters against somebody with many addresses: a
- * lookup open to the world is otherwise ninety million guesses from a list of
- * every registered number. Both limits refuse in words and record nothing.
+ * is the one door to it. Every lookup spends a per-address allowance and
+ * reserves a slot in a platform-wide budget of three thousand misses an hour
+ * (one for numbers, one for codes), given back on a hit, so the space cannot
+ * be walked from many addresses and "limited" never reveals a match. Every
+ * limit fails closed when the limiter is down, refuses in words and records
+ * nothing.
  *
  * Signed out by design. A renter holding a flyer has no account yet.
  */
@@ -29,6 +30,13 @@ export type CheckOutcome =
 
 const FAILED = "We could not check just now. This is on our side. Nothing was recorded. Try again in a few minutes.";
 
+/** The platform-wide miss budgets: one for numbers, one for codes. */
+const MISS_BUDGET = {
+  phone: { bucket: "agent_check_phone_miss", limit: 3000 },
+  code: { bucket: "agent_check_code_miss", limit: 3000 },
+} as const;
+const HOUR = 3600;
+
 export async function checkAgent(
   _prev: ActionResult<CheckOutcome> | null,
   form: FormData,
@@ -38,17 +46,51 @@ export async function checkAgent(
   if (!query) return ok({ state: "unreadable" });
 
   const ip = ipFromHeaders(await headers());
-  const perAddress = await consume({ bucket: "agent_check", subject: subjectForIp(ip), limit: 10, windowSeconds: 3600 });
-  if (!perAddress.allowed) return ok({ state: "limited", retryIn: perAddress.retryIn });
-  const global = await consume({ bucket: "agent_check_global", subject: "platform", limit: 3000, windowSeconds: 3600 });
-  if (!global.allowed) return ok({ state: "limited", retryIn: global.retryIn });
-
   const admin = getAdminClient();
   if (!admin) return fail(FAILED);
+
+  /* 1. THE ADDRESS'S OWN ALLOWANCE. Codes are cheaper to allow than numbers
+     (a code names one agent; numbers are what a phone book is walked by), and
+     both FAIL CLOSED: if the limiter cannot answer, nothing is looked up. */
+  const perAddress =
+    query.kind === "code"
+      ? await consume({ bucket: "agent_check_code", subject: subjectForIp(ip), limit: 60, windowSeconds: HOUR })
+      : await consume({ bucket: "agent_check_phone", subject: subjectForIp(ip), limit: 30, windowSeconds: HOUR });
+  if (!perAddress.allowed) return ok({ state: "limited", retryIn: perAddress.retryIn });
+  if (perAddress.degraded) return fail(FAILED);
+
+  /* 2. THE PLATFORM-WIDE MISS BUDGET, RESERVED BEFORE THE LOOKUP. A slot is
+     taken first and given back on a hit, so the answer "limited" never tells
+     anybody whether the query would have matched, and while the budget is
+     spent EVERY lookup of that kind is refused, hit or miss. Somebody with
+     many addresses cannot walk the space; real agents' names cost nothing. */
+  const budget = MISS_BUDGET[query.kind];
+  /* The window the slot is taken in, named now, so a lookup that returns
+     after the hour turns gives the slot back where it was taken. */
+  const reservedWindow = reservationWindowStart(Date.now(), HOUR);
+  const reserved = await consume({ bucket: budget.bucket, subject: "platform", limit: budget.limit, windowSeconds: HOUR });
+  if (!reserved.allowed) return ok({ state: "limited", retryIn: reserved.retryIn });
+  if (reserved.degraded) return fail(FAILED);
+
+  const giveBack = async () => {
+    try {
+      await callLandlordRpc(admin, "refund_agent_check_slot", { p_bucket: budget.bucket, p_window_start: reservedWindow });
+    } catch {
+      /* A slot not given back only makes the budget stricter. */
+    }
+  };
+
   const { data, error } = await callLandlordRpc(admin, "agent_lookup", { p_query: query.value });
-  if (error) return fail(FAILED);
+  if (error) {
+    await giveBack();
+    return fail(FAILED);
+  }
   const result = readCheckResult(data, query);
-  if (!result) return fail(FAILED);
+  if (!result) {
+    await giveBack();
+    return fail(FAILED);
+  }
+  if (result.found) await giveBack();
   return ok({ state: "result", query: query.value, result });
 }
 

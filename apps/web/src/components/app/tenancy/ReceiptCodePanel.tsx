@@ -21,13 +21,16 @@ export function ReceiptCodePanel({
   copy,
 }: {
   tenancyId: string;
-  live: { id: string; code: string } | null;
+  /** The live code's id and last two characters; the code itself is never stored. */
+  live: { id: string; hint: string } | null;
   copy: Dictionary["afterTheGate"]["receipt"];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [note, setNote] = useState<string | null>(null);
-  const link = live ? `${typeof window === "undefined" ? "" : window.location.origin}/r/${formatReceiptCode(live.code)}` : "";
+  // The code as minted, held only in this page: it is shown once.
+  const [fresh, setFresh] = useState<string | null>(null);
+  const link = fresh ? `${typeof window === "undefined" ? "" : window.location.origin}/r/${formatReceiptCode(fresh)}` : "";
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>, done?: string) {
     setNote(null);
@@ -46,10 +49,11 @@ export function ReceiptCodePanel({
     <div className="nf-panel nf-panel--card block p-md" data-testid="tenancy-receipt">
       <h3 className="nf-h4">{copy.heading}</h3>
       <p className="nf-body-sm mt-xs text-[var(--nf-content-secondary)]">{copy.lede}</p>
-      {live ? (
+      {fresh ? (
         <div className="mt-md grid gap-sm">
           <p className="nf-caption">{copy.code}</p>
-          <p className="nf-h3 nf-numeric tracking-wide">{formatReceiptCode(live.code)}</p>
+          <p className="nf-h3 nf-numeric tracking-wide">{formatReceiptCode(fresh)}</p>
+          <p className="nf-caption">{copy.onlyOnce}</p>
           <div className="grid gap-sm sm:grid-cols-2">
             <Button
               variant="primary"
@@ -93,15 +97,47 @@ export function ReceiptCodePanel({
             variant="ghost"
             full
             disabled={pending}
-            onClick={() => run(() => revokeReceiptCode({ tenancyId, codeId: live.id }), copy.revoked)}
+            onClick={() => {
+              setFresh(null);
+              if (live) run(() => revokeReceiptCode({ tenancyId, codeId: live.id }), copy.revoked);
+            }}
           >
             {copy.revoke}
           </Button>
         </div>
       ) : (
-        <Button className="mt-md" variant="secondary" full disabled={pending} onClick={() => run(() => createReceiptCode({ tenancyId }))}>
-          {copy.make}
-        </Button>
+        <div className="mt-md grid gap-sm">
+          {live && <p className="nf-body-sm">{copy.liveHint.replace("{hint}", live.hint)}</p>}
+          <Button
+            variant="secondary"
+            full
+            disabled={pending}
+            onClick={() => {
+              setNote(null);
+              start(async () => {
+                const result = await createReceiptCode({ tenancyId });
+                if (!result.ok) {
+                  setNote(result.error ?? copy.failed);
+                  return;
+                }
+                setFresh(result.data.code);
+                router.refresh();
+              });
+            }}
+          >
+            {live ? copy.makeNew : copy.make}
+          </Button>
+          {live && (
+            <Button
+              variant="ghost"
+              full
+              disabled={pending}
+              onClick={() => run(() => revokeReceiptCode({ tenancyId, codeId: live.id }), copy.revoked)}
+            >
+              {copy.revoke}
+            </Button>
+          )}
+        </div>
       )}
       {note && (
         <p className="nf-caption mt-sm" role="status">

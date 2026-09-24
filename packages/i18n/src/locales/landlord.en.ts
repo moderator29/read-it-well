@@ -34,11 +34,9 @@
 export const landlordEn = {
   sms: {
     vacancy:
-      "Vallo: is your {place} still available to let{agentPart}? Reply 1 {code} if yes, 2 {code} if it is let, 3 {code} if you have not instructed this agent. Or answer here: {link}",
-    vacancyAgent: ", listed by {agent}",
+      "Vallo: is your {place} still available to let? Reply 1 {code} if yes, 2 {code} if it is let, 3 {code} if you have not asked anyone to let it. Or answer here: {link}",
     rent:
-      "Vallo: a tenant has paid {total} for your {place}{agentPart}. Reply 1 {code} if that is right, 2 {code} if it is not what you agreed. Every figure is here: {link}",
-    rentAgent: " through {agent}",
+      "Vallo: a tenant has paid {total} for your {place}. Reply 1 {code} if that is right, 2 {code} if it is not what you agreed. Every figure is here: {link}",
   },
 
   reply: {
@@ -46,18 +44,14 @@ export const landlordEn = {
     chip: "For the owner",
     loading: "Opening your question",
     vacancyTitle: "Is your {place} still available?",
-    vacancyLede:
-      "{agent} has listed it to let on Vallo. You are the one person who knows for certain, so we ask you rather than the agent.",
     vacancyLedeNoAgent:
       "It is listed to let on Vallo. You are the one person who knows for certain, so we ask you rather than the agent.",
     yes: "Yes, it is still available",
     let: "No, it has been let",
-    notInstructed: "I have not instructed this agent",
+    notInstructed: "I have not asked anyone to let it",
     whatHappens:
-      "If it has been let, every listing of it on Vallo comes down straight away. If you have not instructed this agent, the listing is closed and our team calls you back.",
+      "If it has been let, every listing of it on Vallo comes down straight away. If you have not asked anyone to let it, the listing is closed and our team calls you back.",
     rentTitle: "A tenant has paid rent for your {place}",
-    rentLede:
-      "{total} was paid through {agent} on Vallo, for a tenancy from {moveIn}. These are the figures the tenant was charged, to the kobo.",
     rentLedeNoAgent:
       "{total} was paid on Vallo, for a tenancy from {moveIn}. These are the figures the tenant was charged, to the kobo.",
     rows: {
@@ -192,7 +186,7 @@ export const landlordEn = {
 
   owner: {
     prompt: "Is this still available?",
-    body: "You listed it as the owner, so we ask you every two weeks. Answering keeps it in its place in search; three weeks without an answer moves it to the end. If it has been let, close it instead.",
+    body: "You listed it as the owner, so we ask you every two weeks. Answering keeps it in its place in search. Three weeks without an answer moves it to the end of search, and it stops taking inspection requests until you answer. If it has been let, close it instead.",
     yes: "Yes, still available",
     let: "It has been let",
     thanks: "Thank you. We will ask again in about two weeks.",

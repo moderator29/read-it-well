@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { callLandlordRpc } from "../landlord/rpc";
@@ -53,31 +54,26 @@ export async function readSafetyShareByToken(token: string): Promise<SafetyShare
 }
 
 /**
- * V-62: which of these inspections the caller has already shared, and whether
- * they have checked in, so "I'm done" survives a reload. Row-level security
- * returns only the caller's own shares. Empty on failure.
+ * V-62: the caller's shares that are still live (not stopped, not revoked,
+ * not past their own expiry), by inspection, with whether they checked in.
+ * Row-level security returns only the caller's own. Empty on failure.
  */
-export async function readMySafetyShares(
-  inspectionIds: readonly string[],
-): Promise<Record<string, { checkedIn: boolean }>> {
-  if (!isSupabaseConfigured() || inspectionIds.length === 0) return {};
+export async function readMyLiveSafetyShares(): Promise<Record<string, { checkedIn: boolean; expiresAt: string }>> {
+  if (!isSupabaseConfigured()) return {};
   try {
-    const db = await createClient();
-    const { data, error } = await (db.from("inspection_safety_shares" as never) as unknown as {
-      select: (cols: string) => {
-        in: (col: string, values: readonly string[]) => {
-          is: (col: string, value: null) => PromiseLike<{ data: { inspection_id?: unknown; checked_in_at?: unknown }[] | null; error: unknown }>;
-        };
-      };
-    })
-      .select("inspection_id, checked_in_at")
-      .in("inspection_id", inspectionIds.slice(0, 100))
-      .is("revoked_at", null);
+    const db = (await createClient()) as unknown as SupabaseClient;
+    const { data, error } = await db
+      .from("inspection_safety_shares")
+      .select("inspection_id, checked_in_at, expires_at")
+      .is("revoked_at", null)
+      .is("stopped_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .limit(100);
     if (error || !Array.isArray(data)) return {};
-    const out: Record<string, { checkedIn: boolean }> = {};
-    for (const row of data) {
-      if (typeof row.inspection_id !== "string") continue;
-      out[row.inspection_id] = { checkedIn: typeof row.checked_in_at === "string" };
+    const out: Record<string, { checkedIn: boolean; expiresAt: string }> = {};
+    for (const row of data as { inspection_id?: unknown; checked_in_at?: unknown; expires_at?: unknown }[]) {
+      if (typeof row.inspection_id !== "string" || typeof row.expires_at !== "string") continue;
+      out[row.inspection_id] = { checkedIn: typeof row.checked_in_at === "string", expiresAt: row.expires_at };
     }
     return out;
   } catch {

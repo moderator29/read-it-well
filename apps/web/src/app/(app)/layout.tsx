@@ -1,6 +1,8 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { VitalsReporter } from "@/components/app/VitalsReporter";
 import { DataMeterRecorder } from "@/components/app/DataMeterRecorder";
+import { OfflineTray } from "@/components/app/OfflineTray";
+import { WidgetBridge } from "@/components/app/WidgetBridge";
 import { getLocale } from "@/lib/locale";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
@@ -96,6 +98,10 @@ export default async function AppLayout({
       <DataMeterRecorder />
       {/* V-80: one page view in ten reports its own speed, anonymously. */}
       <VitalsReporter />
+      {/* V-40: what was done offline is sent, and what was paid is resolved. */}
+      <OfflineTray />
+      {/* V-98: the home-screen widget's token, in the native app only. */}
+      <WidgetBridge />
       {children}
     </AppShell>
   );

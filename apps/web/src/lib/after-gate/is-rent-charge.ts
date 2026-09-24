@@ -22,3 +22,21 @@ export async function isRentChargeBooking(bookingId: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * The same question with the failure kept apart: "rent" when a rent charge
+ * points at the booking, "stay" when none does, null when it could not be
+ * read. A surface that must not show stay terms on a tenancy renders nothing
+ * on null rather than guess.
+ */
+export async function bookingChargeKind(bookingId: string): Promise<"rent" | "stay" | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  try {
+    const { data, error } = await session.supabase.from("rent_payments").select("id").eq("booking_id", bookingId).limit(1);
+    if (error || !Array.isArray(data)) return null;
+    return data.length > 0 ? "rent" : "stay";
+  } catch {
+    return null;
+  }
+}

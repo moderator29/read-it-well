@@ -12,6 +12,7 @@ import { afterTheGateEn } from "./after-the-gate.en";
 import { trustVisibleEn } from "./trust-visible.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
+import { arrivalCheckEn } from "./arrival-check.en";
 /* The platform and the craft (devices, sign-in alert, wallet hold, feedback),
    in its own module for the same reason as Price Check. */
 import { platformEn } from "./platform.en";
@@ -3024,6 +3025,8 @@ export const en = {
         reviewing: "In review",
         resolved: "Resolved",
         dismissed: "Dismissed",
+        /* V-89: the reporter took it back. */
+        withdrawn: "Withdrawn by the reporter",
         pending: "Awaiting reply",
         closed: "Closed",
         DRAFT: "Draft",
@@ -5817,6 +5820,7 @@ export const en = {
   landlord: landlordEn,
 
   trustDoors: trustDoorsEn,
+  arrivalCheck: arrivalCheckEn,
 
   platform: platformEn,
 

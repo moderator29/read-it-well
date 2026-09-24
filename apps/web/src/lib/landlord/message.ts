@@ -5,12 +5,12 @@
  * THE MESSAGE. One question, the four character reply code printed beside
  * every option, and the link to the same question in Vallo's own chrome. The
  * place is "2 bedroom apartment in Ikeja GRA", built by the database from
- * facts only: bedrooms and type from their columns, and a neighbourhood from a
- * closed list, else the city, else the state. Nothing the lister typed (the
- * area field, the title) ever reaches it, so nothing a landlord forwards
- * identifies a door. The agent is named by their public display name only, because the
- * landlord needs to know which agent we mean and the agent's name is already
- * on the listing.
+ * facts only: bedrooms and type from their columns, and a neighbourhood from
+ * the shared closed list, else the state's name. Never the city, never the
+ * area as typed, never the title, and never the agent's display name or firm
+ * name either (rule 10: all of those are text a lister typed), so nothing a
+ * landlord forwards identifies a door. The database returns no lister name,
+ * and the message falls back to its no-agent wording.
  *
  * The naira sign pushes an SMS into the UCS-2 alphabet (70 characters a
  * segment rather than 160), so a rent message is two or three segments. That
@@ -47,17 +47,15 @@ function fillTemplate(template: string, values: Record<string, string>): string 
   return template.replace(/\{(\w+)\}/g, (whole, key: string) => values[key] ?? whole);
 }
 
-export type VacancyTemplates = { vacancy: string; vacancyAgent: string };
-export type RentTemplates = { rent: string; rentAgent: string };
+export type VacancyTemplates = { vacancy: string };
+export type RentTemplates = { rent: string };
 
 export function composeVacancyMessage(
   copy: VacancyTemplates,
-  input: { place: string; agent: string | null; code: string; link: string },
+  input: { place: string; code: string; link: string },
 ): string {
-  const agentPart = input.agent ? fillTemplate(copy.vacancyAgent, { agent: input.agent }) : "";
   return fillTemplate(copy.vacancy, {
     place: input.place,
-    agentPart,
     code: input.code,
     link: input.link,
   });
@@ -65,12 +63,10 @@ export function composeVacancyMessage(
 
 export function composeRentMessage(
   copy: RentTemplates,
-  input: { place: string; agent: string | null; total: string; code: string; link: string },
+  input: { place: string; total: string; code: string; link: string },
 ): string {
-  const agentPart = input.agent ? fillTemplate(copy.rentAgent, { agent: input.agent }) : "";
   return fillTemplate(copy.rent, {
     place: input.place,
-    agentPart,
     total: input.total,
     code: input.code,
     link: input.link,
@@ -91,11 +87,14 @@ export type ParsedReply =
  * read with certainty.
  */
 export function parseReply(text: string): ParsedReply | null {
-  /* A STOP anywhere in the text is a stop, and it wins over any digit beside
-     it: "2 stop", "Please stop texting me" and "STOP." are all withdrawals of
-     consent, and misreading one as an answer would keep messaging somebody who
-     asked us not to. Checked before any length limit for the same reason. */
-  if (/\b(STOP|STOPALL|UNSUBSCRIBE|QUIT|CANCEL|END)\b/i.test(text)) return { kind: "stop" };
+  /* STOP or UNSUBSCRIBE anywhere in the text is a stop, and it wins over any
+     digit beside it: "2 stop", "Please stop texting me" and "STOP." are all
+     withdrawals of consent, and misreading one as an answer would keep
+     messaging somebody who asked us not to. END, CANCEL and QUIT are ordinary
+     words ("cancel the viewing", "the end of the month"), so they count only
+     when they are the whole reply. Checked before any length limit. */
+  if (/\b(STOP|STOPALL|UNSUBSCRIBE)\b/i.test(text)) return { kind: "stop" };
+  if (/^\s*(QUIT|CANCEL|END)\s*[.!]*\s*$/i.test(text)) return { kind: "stop" };
   const cleaned = text.trim().toUpperCase().replace(/[.,!]+$/g, "");
   if (cleaned.length === 0 || cleaned.length > 40) return null;
 

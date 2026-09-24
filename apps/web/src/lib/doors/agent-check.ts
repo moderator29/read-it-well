@@ -38,6 +38,8 @@ export type CheckResult =
       displayName: string | null;
       role: "agent" | "owner" | "firm" | null;
       code: string | null;
+      /** Last three digits of the registered number, on a code answer only. */
+      hint: string | null;
       identityCheckedAt: string | null;
       handle: string | null;
     }
@@ -58,6 +60,7 @@ export function readCheckResult(raw: unknown, asked: CheckQuery): CheckResult | 
     displayName: str(row.display_name),
     role: role === "agent" || role === "owner" || role === "firm" ? role : null,
     code: str(row.code),
+    hint: asked.kind === "code" && typeof row.hint === "string" && /^[0-9]{3}$/.test(row.hint) ? row.hint : null,
     identityCheckedAt: str(row.identity_checked_at),
     handle: str(row.handle),
   };
@@ -66,4 +69,14 @@ export function readCheckResult(raw: unknown, asked: CheckQuery): CheckResult | 
 /** Does a search box query look like something /check can answer? */
 export function looksCheckable(raw: string | undefined | null): boolean {
   return raw ? readCheckQuery(raw) !== null : false;
+}
+
+/**
+ * The start of the fixed rate-limit window `nowMs` falls in, as the database
+ * computes it (`floor(epoch / window) * window`), in ISO form. The agent check
+ * names it when it reserves a slot, so the refund goes back to that window.
+ */
+export function reservationWindowStart(nowMs: number, windowSeconds: number): string {
+  const seconds = Math.floor(nowMs / 1000 / windowSeconds) * windowSeconds;
+  return new Date(seconds * 1000).toISOString();
 }

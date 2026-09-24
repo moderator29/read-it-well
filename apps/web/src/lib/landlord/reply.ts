@@ -13,9 +13,9 @@
  *
  * Nothing in the model can carry an address, because the read never returns
  * one: `place` and `area` are built by the database from facts only (a
- * neighbourhood from a closed list, else the city, else the state, and the
- * bedrooms and type), never from what the lister typed, and the lister is
- * their public display name.
+ * neighbourhood from the shared closed list, else the state's name, and the
+ * bedrooms and type), never from what the lister typed. The lister's name is
+ * text they typed too, so the read returns none and the page says "the agent".
  */
 
 export type ReplyState = "open" | "used" | "expired" | "unknown" | "closed" | "failed";
@@ -38,7 +38,6 @@ export type QuestionView = {
   state: "open" | "used" | "expired";
   purpose: "vacancy" | "rent";
   place: string;
-  listerName: string | null;
   askedAt: string | null;
   answeredAt: string | null;
   answer: string | null;
@@ -89,7 +88,6 @@ export function readReply(raw: unknown): ReplyView {
     state,
     purpose,
     place,
-    listerName: s(row.lister_name),
     askedAt: s(row.asked_at),
     answeredAt: s(row.answered_at),
     answer: s(row.answer),

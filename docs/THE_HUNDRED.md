@@ -3049,3 +3049,56 @@ Everything the four of us wanted to say to you, since none of it goes in chat.
 ### Handed to the audit session
 
 The walk found things that are broken rather than missing. They are not recommendations and are listed here only so they are not lost: signed-out `/search` and `/listing` contradicting `docs/PRODUCT.md` section 4 (which predates the 23 September ruling and should be updated to match it); a stay's sticky price not following the dates in its URL; amenity chips breaking mid-word at 390px and the pinned action bar overlapping the tab strip on listing detail; the wallet balance odometer reading every digit 0 to 9 to a screen reader; "In force since 1 Jan 1970" on `/admin/fees`; the payment request link on `/wallet/receive` carrying the member's email address; "Continue with Google" still on sign-in against the recorded decision; the objectionable-content filter alert open because `blocked_terms` holds no rows; `/stories/new` saying "It stays up" where a story is defined as a post that expires; "Firm rosters could not be read" on `/admin/supply`; and the agent dashboard telling a signed-in member "Not signed in as an agent".
+
+### From the build (24 September)
+
+The hundred were built by six builders, each change attacked by a second agent before merge. The ledger is `docs/THE_HUNDRED_BUILD.md`; every V-number has its final state there. What needs you:
+
+**Switches, each one statement, each off today.** Every flag reads a `feature_flags` row and anything but `true` is off.
+
+| Flag | What it opens | Waits on |
+|---|---|---|
+| `landlord_line` | V-31, V-32: the landlord confirms vacancy and countersigns rent | Question 2: consent sentence, SMS aggregator, WhatsApp number |
+| `phone_confirmation` | V-50: phone confirmed at three moments | Question 7 and an SMS vendor |
+| `vnin_identity` | V-49: NIMC match and payout-name matching | Question 4: the identity vendor contract |
+| `truth_autopause`, `truth_public_count` | V-05: the four truth questions act and are counted in public | Your sign-off on the auto-pause rule |
+| `whatsapp_doorbell` | V-96: five WhatsApp bells, each only a link into Vallo | Number, Meta credentials, five approved templates |
+| `neighbours_account` | V-41: resident pulses and the flood filter | Question 16 |
+| `commute_by_the_clock` | V-43: rush-hour commute bands | A person must write the route guide and approve the landmark list first |
+| `show_me` | V-69: the renter asks the lister for a short clip | None; your call |
+| `listing_board`, `broadcast_model` | V-08 board, V-09 paste reader modes | Question 12 |
+| `rent_agency_hold`, `stay_caution_hold` | V-56, V-92 | These do not switch anything on yet: the money split they would gate is the audit session's (questions 8 and 9) |
+
+To turn one on: `update public.feature_flags set enabled = true where key = '<flag>';`
+
+**Other steps only you can take.**
+- **V-16:** add `"regions": ["dub1"]` under `$schema` in `vercel.json`, once Paystack and Yellow Card are confirmed not to allowlist US addresses.
+- **Upholding a fraud report** needs a `super_admin`, and the console has none. Grant one.
+- **Example photographs:** the example catalogue still carries the old lister name. Rename it "Vallo Examples" and replace the villa photographs with honest ones.
+- **Estate names:** Banana Island, Parkview, Chevron, Magodo and Omole were taken off the public neighbourhood list, because an estate name narrows a home to a gate. Say if you want any of them mapped to a neighbourhood instead.
+
+**Migrations.** About seventy new files, none applied. Each was proven against the live schema by a probe that ends in a deliberate raise. They apply after the merge is on `main`, in timestamp order, with two exceptions:
+- `20260924130000` (the anon date grant) goes before or with the code.
+- `20260924130300` (agent trust without the score) and `130800` go after the code is live.
+
+The audit session applies them, because it owns the live schema.
+
+**What is honest about what is left.**
+- **Native work:** the Face ID plugin, the Android and iOS widgets and the in-app camera were not built here. There is no SDK on this machine.
+- **Waiting on the audit's money schema:** renewal payment, the host payout hold after an arrival report, the confirmation-email arrival line and the listing submit gate for the four shots. The audit also owns those files.
+- **V-44** waits on a licensed lending partner.
+- **The firm coordinator role** waits on the audit's `admit_firm_member`.
+- **A known limit, written into its migration:** a renter held by a safety report may infer who reported them from repeated refusals on one lister's listings.
+
+**Handed to the audit session.**
+- `updatePassword` accepts any signed-in session without the current password. The money lock refuses a password changed in the last day because of it.
+- `subjectForIp` should group IPv6 by /64.
+- `social_profiles` still exposes occupation, local government and state codes to any signed-in member.
+- `open_rent_charge` charges one period, not the months demanded.
+- The stays settlement sweep should skip bookings where `private.arrival_report_open` is true.
+- `sharp` is declared only at the repository root.
+- The state sweep and the check scripts are not in `npm run lint`.
+- The wallet screens hold the last three over-long state lines.
+- **New money paths to review:** `return_caution`, `return_rent_share` and `pay_rent_share`. All three go through `private.transfer_between_wallets` unchanged, behind the account hold and the money lock.
+- **One audit-owned function redefined:** `end_other_sessions`, copied verbatim with one added line that revokes widget tokens.
+- **Proof scripts and the production database:** screen proofs taken against preview URLs read production. The last round of proofs overlapped the audit's grants and may explain the 403s it rolled back.

@@ -116,6 +116,11 @@ export type ListingFacts = {
   title?: string;
   /** V-41: annotated by the search page from the flood reads; absent means not judged. */
   floodClear?: boolean;
+  /**
+   * V-43: the morning band's upper end, in minutes, to the anchor the shelf
+   * is showing (`to=`). Only the drawer's count reads it; absent means no band.
+   */
+  commuteAmHigh?: number;
   /** V-65: the move-in total and the shortest tenancy, under the Listing's own names. */
   moveInCostMinor?: number;
   minimumTenancyMonths?: number;

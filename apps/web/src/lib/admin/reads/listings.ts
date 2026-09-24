@@ -66,11 +66,14 @@ export async function getListingStatusCounts(): Promise<Read<ListingStatusCounts
   try {
     const reads = LISTING_STATUSES.flatMap((status) =>
       [false, true].map(async (demo) => {
-        const { count, error } = await db
+        const base = db
           .from("listings")
           .select("id", { count: "exact", head: true })
           .eq("status", status)
           .eq("is_demo", demo);
+        /* V-48: a closed listing is SUSPENDED underneath and is not counted
+           as a suspension. */
+        const { count, error } = await (status === "SUSPENDED" ? base.is("closed_at", null) : base);
         if (error) throw error;
         return { status, demo, count: count ?? 0 };
       }),

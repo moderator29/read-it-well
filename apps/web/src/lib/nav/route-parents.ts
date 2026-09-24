@@ -210,7 +210,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/record/[code]": "/search",
   "/settings/passport": "/settings",
   "/rent/pay/[inspectionId]": "/bookings",
+  "/rent/share/[id]": "/wallet",
   "/tenancy/[id]": "/bookings",
+  "/tenancy/[id]/complaint": "/tenancy/[id]",
+  "/host/arrival": "/host",
+  "/agent/listings/[listingId]/arrival": "/agent/listings",
   /*
    * PRICE CHECK. Both entries reproduce what the two pages already pass to
    * `PageHeader` as a fallback, which is the honest reading of the surface
@@ -357,6 +361,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/social": "/admin",
   "/admin/standing": "/admin",
   "/admin/stops": "/admin",
+  "/admin/people/[id]": "/admin/stops",
   "/admin/supply": "/admin",
   "/admin/support": "/admin",
   "/admin/switches": "/admin",
@@ -497,6 +502,8 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/csp-report": "the browser's policy violation report.",
   "/api/documents/[id]": "a signed document stream, not a page.",
   "/api/landlord/inbound": "the SMS aggregator's inbound webhook, bearer token.",
+  "/api/whatsapp/inbound": "Meta's WhatsApp webhook (V-96), signed with the app secret.",
+  "/api/plans/next": "the home-screen widget's next-up read (V-98), device-bound bearer token.",
   "/api/map/listings": "JSON read for the map.",
   "/api/paystack/reconcile": "processor reconciliation.",
   "/api/paystack/webhook": "processor webhook.",

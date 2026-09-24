@@ -1208,11 +1208,19 @@ export async function getListingSubmissions(
         /* One row more than the page, so `takePage` can tell "there is another
            page" from "this is the last one" with no second count query. */
         .range(page.from, page.to),
-      narrow(
-        admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(decidedStatuses)),
-      )
-        .order("reviewed_at", { ascending: false, nullsFirst: false })
-        .limit(10),
+      (() => {
+        const decidedQuery = narrow(
+          admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(decidedStatuses)),
+        );
+        /* V-48: a closed listing is SUSPENDED underneath and is neither a
+           suspension nor a reviewer's decision, so the decided list (the
+           Suspended tab and the All tab's "recently decided" alike) leaves it
+           out in the query itself, before the limit, never after it. */
+        return decidedQuery
+          .is("closed_at", null)
+          .order("reviewed_at", { ascending: false, nullsFirst: false })
+          .limit(10);
+      })(),
     ]);
     if (waiting.error || decided.error) return UNAVAILABLE;
 

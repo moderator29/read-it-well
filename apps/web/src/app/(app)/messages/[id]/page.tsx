@@ -316,7 +316,8 @@ export default async function ConversationPage({
             <ShowMePanel
               conversationId={thread.conversationId}
               role={role}
-              requests={showMe}
+              requests={showMe.requests}
+              canAsk={showMe.canAsk}
               copy={t.shape.showMe}
               locale={locale}
               now={renderedAt()}

@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n";
+import { getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
+import { parseNairaToKobo } from "@/lib/agent/listings-schema";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { ROOM_COPY, ROOM_ITEMS, type RoomItem } from "@/lib/inspections/report";
@@ -59,7 +61,15 @@ export function DeductionAnswer({
           size="sm"
           variant="secondary"
           disabled={pending}
-          onClick={() => run(() => answerCautionDeduction({ tenancyId, deductionId, answer: "accepted" }))}
+          onClick={() =>
+            run(() =>
+              answerCautionDeduction({
+                tenancyId,
+                deductionId,
+                answer: "accepted",
+              })
+            )
+          }
         >
           {copy.accept}
         </Button>
@@ -67,13 +77,24 @@ export function DeductionAnswer({
           size="sm"
           variant="ghost"
           disabled={pending}
-          onClick={() => run(() => answerCautionDeduction({ tenancyId, deductionId, answer: "disputed" }))}
+          onClick={() =>
+            run(() =>
+              answerCautionDeduction({
+                tenancyId,
+                deductionId,
+                answer: "disputed",
+              })
+            )
+          }
         >
           {copy.dispute}
         </Button>
       </div>
       {error && (
-        <p className="nf-caption mt-xs text-[var(--nf-state-error)]" role="alert">
+        <p
+          className="nf-caption mt-xs text-[var(--nf-state-error)]"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -99,7 +120,11 @@ export function ProposeDeduction({
   const [note, setNote] = useState("");
 
   if (photos.length === 0) {
-    return <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.proposeNeedsPhoto}</p>;
+    return (
+      <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+        {copy.proposeNeedsPhoto}
+      </p>
+    );
   }
 
   return (
@@ -108,13 +133,29 @@ export function ProposeDeduction({
       data-testid="caution-propose"
       onSubmit={(event) => {
         event.preventDefault();
-        run(() => proposeCautionDeduction({ tenancyId, obligationId, item, amountNaira: amount, photoId, note }));
+        run(() =>
+          proposeCautionDeduction({
+            tenancyId,
+            obligationId,
+            item,
+            amountNaira: amount,
+            photoId,
+            note,
+          })
+        );
       }}
     >
-      <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.proposeHelp}</p>
+      <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+        {copy.proposeHelp}
+      </p>
       <Field label={copy.proposeItem}>
         {(control) => (
-          <select {...control} className="nf-field" value={item} onChange={(e) => setItem(e.target.value as RoomItem)}>
+          <select
+            {...control}
+            className="nf-field"
+            value={item}
+            onChange={(e) => setItem(e.target.value as RoomItem)}
+          >
             {ROOM_ITEMS.map((room) => (
               <option key={room} value={room}>
                 {ROOM_COPY[room].title}
@@ -136,7 +177,12 @@ export function ProposeDeduction({
       </Field>
       <Field label={copy.proposePhoto}>
         {(control) => (
-          <select {...control} className="nf-field" value={photoId} onChange={(e) => setPhotoId(e.target.value)}>
+          <select
+            {...control}
+            className="nf-field"
+            value={photoId}
+            onChange={(e) => setPhotoId(e.target.value)}
+          >
             {photos.map((photo) => (
               <option key={photo.id} value={photo.id}>
                 {photo.label}
@@ -147,10 +193,22 @@ export function ProposeDeduction({
       </Field>
       <Field label={copy.proposeNote} error={error ?? undefined}>
         {(control) => (
-          <input {...control} className="nf-field" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
+          <input
+            {...control}
+            className="nf-field"
+            maxLength={500}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
         )}
       </Field>
-      <Button type="submit" variant="secondary" full loading={pending} disabled={pending}>
+      <Button
+        type="submit"
+        variant="secondary"
+        full
+        loading={pending}
+        disabled={pending}
+      >
         {copy.proposeSubmit}
       </Button>
     </form>
@@ -163,6 +221,7 @@ export function ReturnCaution({
   outstanding,
   outstandingNaira,
   copy,
+  locale,
 }: {
   tenancyId: string;
   obligationId: string;
@@ -171,34 +230,95 @@ export function ReturnCaution({
   /** The same amount as plain naira, to prefill the field. */
   outstandingNaira: string;
   copy: Copy;
+  locale: Locale;
 }) {
-  const { pending, error, run } = useRun();
+  const router = useRouter();
+  // V-81: the phone lock for exactly this obligation and amount, read the way the server reads it.
+  const lock = useMoneyStepUp(locale);
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState(outstandingNaira);
+  // One key per drawn form: a double tap or a retry of this form is the
+  // same transfer, and the database moves the money once.
+  const [key, setKey] = useState(() => crypto.randomUUID());
+  const [sent, setSent] = useState<string | null>(null);
   return (
-    <form
-      className="grid gap-md"
-      data-testid="caution-return"
-      onSubmit={(event) => {
-        event.preventDefault();
-        run(() => returnCaution({ tenancyId, obligationId, amountNaira: amount }));
-      }}
-    >
-      <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.returnHelp.replace("{outstanding}", outstanding)}</p>
-      <Field label={copy.returnAmount} error={error ?? undefined}>
-        {(control) => (
-          <input
-            {...control}
-            className="nf-field"
-            inputMode="decimal"
-            autoComplete="off"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
+    <>
+      {lock.sheet}
+      <form
+        className="grid gap-md"
+        data-testid="caution-return"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setError(null);
+          start(async () => {
+            const result = await lock.guard(
+              {
+                kind: "caution_return",
+                target: obligationId,
+                amountKobo: parseNairaToKobo(amount),
+              },
+              (stepUp) =>
+                returnCaution({
+                  tenancyId,
+                  obligationId,
+                  amountNaira: amount,
+                  idempotencyKey: key,
+                  stepUp,
+                })
+            );
+            if (result === null) {
+              setError(getDictionary(locale).platform.moneyLock.notConfirmed);
+              return;
+            }
+            if (!result.ok) {
+              setError(result.error ?? null);
+              return;
+            }
+            setSent(copy.returnSent);
+            setAmount("");
+            setKey(crypto.randomUUID());
+            router.refresh();
+          });
+        }}
+      >
+        <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+          {copy.returnHelp.replace("{outstanding}", outstanding)}
+        </p>
+        {sent && (
+          <p
+            className="nf-body-sm text-[var(--nf-state-success)]"
+            role="status"
+            data-testid="caution-return-sent"
+          >
+            {sent}
+          </p>
         )}
-      </Field>
-      <Button type="submit" variant="primary" full loading={pending} disabled={pending || amount.trim().length === 0}>
-        {copy.returnSubmit}
-      </Button>
-    </form>
+        <Field label={copy.returnAmount} error={error ?? undefined}>
+          {(control) => (
+            <input
+              {...control}
+              className="nf-field"
+              inputMode="decimal"
+              autoComplete="off"
+              value={amount}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                setSent(null);
+              }}
+            />
+          )}
+        </Field>
+        <Button
+          type="submit"
+          variant="primary"
+          full
+          loading={pending}
+          disabled={pending || amount.trim().length === 0}
+        >
+          {copy.returnSubmit}
+        </Button>
+      </form>
+    </>
   );
 }

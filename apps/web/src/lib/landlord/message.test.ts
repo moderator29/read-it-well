@@ -17,31 +17,29 @@ describe("the message a landlord is sent", () => {
   it("asks the vacancy question with the code beside every option and the link", () => {
     const body = composeVacancyMessage(landlordEn.sms, {
       place: "2 bedroom apartment in Ikeja GRA",
-      agent: "Chidi Okeke",
       code: "K7RX",
       link: `https://www.vallospaces.com${replyPath(TOKEN)}`,
     });
-    expect(body).toContain("is your 2 bedroom apartment in Ikeja GRA still available to let, listed by Chidi Okeke?");
+    expect(body).toContain("is your 2 bedroom apartment in Ikeja GRA still available to let?");
     expect(body.match(/K7RX/g)).toHaveLength(3);
     expect(body).toContain(`/landlord/${TOKEN}`);
     expect(body).not.toMatch(/\{\w+\}/);
   });
 
-  it("drops the agent clause rather than printing a placeholder", () => {
-    const body = composeVacancyMessage(landlordEn.sms, { place: "flat in Yaba", agent: null, code: "ACDE", link: "x" });
+  it("never names the agent: the name is text a lister typed (rule 10)", () => {
+    const body = composeVacancyMessage(landlordEn.sms, { place: "flat in Yaba", code: "ACDE", link: "x" });
     expect(body).toContain("is your flat in Yaba still available to let?");
-    expect(body).not.toContain("listed by");
+    expect(`${landlordEn.sms.vacancy} ${landlordEn.sms.rent}`).not.toMatch(/\{agent|listed by|through \{/);
   });
 
   it("states the rent total it was handed and the two answers", () => {
     const body = composeRentMessage(landlordEn.sms, {
       place: "2 bedroom apartment in Ikeja GRA",
-      agent: "Chidi Okeke",
       total: "₦2,800,000",
       code: "K7RX",
       link: "https://x/landlord/t",
     });
-    expect(body).toContain("a tenant has paid ₦2,800,000 for your 2 bedroom apartment in Ikeja GRA through Chidi Okeke.");
+    expect(body).toContain("a tenant has paid ₦2,800,000 for your 2 bedroom apartment in Ikeja GRA.");
     expect(body).toContain("Reply 1 K7RX if that is right, 2 K7RX if it is not what you agreed.");
   });
 
@@ -77,12 +75,13 @@ describe("reading what a landlord typed back", () => {
     ["1 K7RX STOP", { kind: "stop" }],
     ["unsubscribe", { kind: "stop" }],
     ["quit.", { kind: "stop" }],
-    ["The END", { kind: "stop" }],
+    ["END", { kind: "stop" }],
+    ["cancel", { kind: "stop" }],
   ])("reads %j", (text, expected) => {
     expect(parseReply(text)).toEqual(expected);
   });
 
-  it.each(["4", "yes", "1 2", "12", "1 KBOX", "", "please call me", "1 K7RXX", "stopping by later is fine? 1"])("refuses to guess at %j", (text) => {
+  it.each(["4", "yes", "1 2", "12", "1 KBOX", "", "please call me", "1 K7RXX", "stopping by later is fine? 1", "The END", "cancel the viewing, 1", "end of month 2"])("refuses to guess at %j", (text) => {
     expect(parseReply(text)).toBeNull();
   });
 

@@ -149,7 +149,7 @@ begin
     (listing_id, owner_user, place_name, city, state_code, bedrooms, property_type,
      asking_min_minor, asking_max_minor, rent_period)
   values
-    (l.id, (select auth.uid()), private.listing_place_name(l.id), nullif(btrim(l.city), ''), l.state_code,
+    (l.id, (select auth.uid()), private.listing_place_name(l.id), null, l.state_code,
      l.bedrooms, l.property_type, p_min_minor, p_max_minor, coalesce(l.rent_period, 'year'::public.rent_period))
   returning id into inv;
 
