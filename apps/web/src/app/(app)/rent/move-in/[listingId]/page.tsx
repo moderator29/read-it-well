@@ -9,6 +9,7 @@ import { inspectionAccepted } from "@/lib/rent/queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { MoveInLedger } from "./MoveInLedger";
 import { areaComparison, isTenancy, ledgerLines } from "./ledger-model";
+import { unexplainedRemainder } from "@/lib/rent/ledger";
 import { RequestInspection } from "@/components/app/inspections/RequestInspection";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -61,9 +62,25 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
     listing.isDemo ? Promise.resolve(null) : readOpenInspectionFor(listing.id),
   ]);
 
-  const lines = ledgerLines(listing, t, locale);
+  const named = ledgerLines(listing, t, locale);
   const stated = listing.moveInCostStated === true && (listing.moveInCostMinor ?? 0) > 0;
-  const total = stated ? listing.moveInCostMinor! : lines.reduce((sum, line) => sum + line.minor, 0);
+  const total = stated ? listing.moveInCostMinor! : named.reduce((sum, line) => sum + line.minor, 0);
+  /* V-13. What the stated total asks for beyond the rows above it is a row
+     of its own, in words, so the gap is never folded silently into the sum. */
+  const remainder = unexplainedRemainder(total, named.map((line) => line.minor), stated);
+  const lines =
+    remainder > 0
+      ? [
+          ...named,
+          {
+            key: "remainder",
+            icon: "info" as const,
+            label: t.afterTheGate.remainder.line,
+            hint: t.afterTheGate.remainder.note,
+            minor: remainder,
+          },
+        ]
+      : named;
   const comparison = areaComparison(listing, peers);
 
   /* The one real path. An accepted inspection (lib/rent's own rule) opens

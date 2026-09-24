@@ -103,6 +103,16 @@ data is still held and the notice currently implies it is not.
 | Bookings, reservations, refunds | `public.bookings`, `public.reservations`, `public.booking_refunds` | Booking completion or cancellation | **6 years [C]** | Redact the subject, keep the record |
 | Wallet and ledger entries, transactions, escrows | `public.wallet_entries`, `public.ledger_entries`, `public.transactions`, `public.escrows` | Entry date | **6 years [C]** | Redact, never purge |
 | Platform revenue, fee rates | `public.platform_revenue`, `public.fee_rates` | Entry date | **6 years [C]** | Keep, no personal data |
+| Tenancy evidence: the rent charge, the move-in quote, the promise snapshot, the caution register (obligation, deductions, answers, returns), the move-in and move-out reports and their photos, and pins | `public.rent_payments`, `public.move_in_quotes`, `public.tenancy_snapshots`, `public.caution_obligations`, `public.caution_deductions`, `public.caution_deduction_answers`, `public.caution_returns`, `public.tenancy_reports`, `public.tenancy_report_items`, `public.tenancy_report_photos`, `public.tenancy_pins`, the `tenancy-evidence` bucket, the viewing report (`public.inspection_report*`) of the inspection behind the charge | **Tenancy end** (move-in plus one rent period) | **6 years [C]** | Keep until tenancy end plus six years, then redact the subject. V-47 |
+| Refund requests | `public.refund_requests` | Booking completion or cancellation | **6 years [C]** | Redact the subject, keep the record. V-24 |
+
+**Tenancy evidence runs from the end of the tenancy, not from the payment.**
+A multi-year tenancy is argued about years after the move-in money moved, and
+six years is the ordinary limitation period for a contract claim. A message
+either party pinned to the tenancy (`public.tenancy_pins`) is tenancy evidence:
+any message purge must ask `private.message_is_tenancy_evidence(message_id)`
+and skip a message for which it answers true, whatever the three-year thread
+rule in 3.4 says.
 
 **A ledger is never purged.** Company accounting records carry a statutory
 retention period and a financial record with a hole in it is worse than one that
@@ -114,7 +124,7 @@ question 2 in section 7.
 
 | Data | Where it lives | Trigger | Period | Action |
 | --- | --- | --- | ---: | --- |
-| Messages, conversations | `public.messages`, `public.conversations` | Last message in the conversation | 3 years [L] | Purge |
+| Messages, conversations | `public.messages`, `public.conversations` | Last message in the conversation | 3 years [L] | Purge, except a message pinned to a tenancy (3.3) |
 | Message attachments | `public.message_attachments` rows and the `message-attachments` bucket | Last message in the conversation | 3 years [L] | Purge, objects before rows |
 | Flagged messages and the reason for the flag | `public.message_flags` | Flag resolution | 3 years [L] | Purge |
 | Support tickets and their replies | `public.support_tickets`, `public.support_ticket_messages` | Ticket closure | 3 years [L] | Purge |

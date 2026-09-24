@@ -1,5 +1,6 @@
 "use client";
 
+import { DuplicateListing } from "./DuplicateListing";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -294,6 +295,9 @@ function ListingRow({
   error,
   onAction,
   onDelete,
+  boardLabel,
+  duplicateCopy,
+  statusLabel,
   closedReason,
   closeCopy,
   onCloseListing,
@@ -301,6 +305,12 @@ function ListingRow({
   ownerCopy,
 }: {
   t: WorkspaceCopy;
+  /** V-08: the board action's words, when the board is switched on. */
+  boardLabel?: string;
+  /** V-29: "List another like this". */
+  duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
+  /** V-71: "Share to Status". */
+  statusLabel?: string;
   /* The listing code's own namespace, shared with the search page and the
      public listing page so one set of words governs the code everywhere. */
   reference: Dictionary["listingReference"];
@@ -461,6 +471,29 @@ function ListingRow({
           <UiIcon name="calendar-booking" size={16} />
           Calendar
         </Link>
+        {duplicateCopy && <DuplicateListing listingId={listing.id} copy={duplicateCopy} />}
+        {/* V-71: a published listing's Status picture and the lister's own link. */}
+        {statusLabel && listing.status === "PUBLISHED" && (
+          <Link
+            href={`/agent/listings/${listing.id}/status`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            data-testid="listing-status"
+          >
+            <UiIcon name="share" size={16} />
+            {statusLabel}
+          </Link>
+        )}
+        {/* V-08: a board needs a code, and a code needs a published listing. */}
+        {boardLabel && listing.reference && listing.status === "PUBLISHED" && (
+          <Link
+            href={`/agent/listings/${listing.id}/board`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            data-testid="listing-board"
+          >
+            <UiIcon name="document" size={16} />
+            {boardLabel}
+          </Link>
+        )}
         {editable && (
           <button
             type="button"
@@ -523,6 +556,9 @@ export function ListingsWorkspace({
   listings: all,
   locale,
   query = "",
+  boardLabel,
+  duplicateCopy,
+  statusLabel,
   closed = {},
   closeCopy,
   ownerAsks = [],
@@ -534,6 +570,15 @@ export function ListingsWorkspace({
   locale: Locale;
   /** The top bar's search term. Narrows by title; empty shows everything. */
   query?: string;
+  /**
+   * V-08, "Print or paint your board". Present only while
+   * `feature_flags.listing_board` is on; absent, no row draws the action.
+   */
+  boardLabel?: string;
+  /** V-29, "List another like this". Absent in harnesses, which then draw no action. */
+  duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
+  /** V-71, "Share to Status". */
+  statusLabel?: string;
   /** V-48: closed listings and why, keyed by id. Absent draws what it drew before. */
   closed?: Record<string, string>;
   closeCopy?: CloseCopy;
@@ -673,6 +718,9 @@ export function ListingsWorkspace({
                     error={errors[listing.id]}
                     onAction={(kind, target) => setSheet({ kind, listing: target })}
                     onDelete={scheduleDelete}
+                    boardLabel={boardLabel}
+                    duplicateCopy={duplicateCopy}
+                    statusLabel={statusLabel}
                     closeCopy={closeCopy}
                     onCloseListing={closeCopy ? setClosing : undefined}
                     ownerAsk={ownerAsks.includes(listing.id)}

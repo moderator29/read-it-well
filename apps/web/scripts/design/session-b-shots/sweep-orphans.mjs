@@ -54,7 +54,7 @@ const HARNESS = [
   ["h-picker", `${H}picker`],
   ["h-picker-states", `${H}picker&s=none`],
   ...[
-    "place", "manage", "place-new", "places", "bookings", "review", "crypto", "coin", "kyc",
+    "place", "manage", "place-new", "places", "bookings", "review", "kyc",
     "rent", "saved", "saved-searches", "post", "story-new", "story", "inspections",
   ].map((k) => [`h-loading-${k}`, `${H}loading-${k}`]),
   ["h-setup-agent", "/preview/b1b/agent"],
@@ -73,8 +73,6 @@ const LIVE = [
   ["l-bookings", "/bookings"],
   ["l-booking-missing", `/bookings/${MISSING}`],
   ["l-review-missing", `/bookings/${MISSING}/review`],
-  ["l-crypto", "/crypto"],
-  ["l-crypto-coin", "/crypto/bitcoin"],
   ["l-verification", "/verification"],
   ["l-rent", "/rent"],
   ["l-rent-pay-missing", `/rent/pay/${MISSING}`],

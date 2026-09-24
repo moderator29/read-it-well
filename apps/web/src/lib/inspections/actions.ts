@@ -7,6 +7,7 @@ import { resolveSession } from "../actions/session";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { startConversation } from "../messages/actions";
 import { INSPECTION_OUTCOMES, type InspectionState } from "./types";
+import { phoneGateFor } from "../phone-otp/gate";
 
 /**
  * MOVING AN INSPECTION.
@@ -75,6 +76,11 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
   if (session.state !== "signed-in") {
     return fail("Sign in to arrange an inspection.");
   }
+
+  /* V-50: the first inspection request needs a confirmed phone, when the
+     phone_confirmation flag is on. Null, and nothing read, when it is off. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "inspection");
+  if (phoneGate) return fail(phoneGate);
 
   /* Before the write, so the person reads the truth rather than a constraint
      violation. The trigger refuses again underneath: this is the courtesy and

@@ -25,8 +25,6 @@ import LoadingProposeArea from "@/app/(app)/around/new/loading";
 import LoadingAroundSettings from "@/app/(app)/around/settings/loading";
 import LoadingBookings from "@/app/(app)/bookings/loading";
 import LoadingReview from "@/app/(app)/bookings/[bookingId]/review/loading";
-import LoadingCrypto from "@/app/(app)/crypto/loading";
-import LoadingCoin from "@/app/(app)/crypto/[id]/loading";
 import LoadingVerification from "@/app/(app)/verification/loading";
 import LoadingRent from "@/app/(app)/rent/loading";
 import LoadingSaved from "@/app/(app)/saved/loading";
@@ -47,6 +45,7 @@ import {
   PICKER_TREE,
   PROPOSALS,
   RENT_VIEW,
+  RENT_VIEW_LARGE,
   REVIEW,
   REVIEW_SUBJECT,
   SAVED_SEARCHES,
@@ -88,8 +87,6 @@ const LOADING: Record<string, { route: string; view: () => ReactNode }> = {
   "loading-places": { route: "/around/settings", view: () => <LoadingAroundSettings /> },
   "loading-bookings": { route: "/bookings", view: () => <LoadingBookings /> },
   "loading-review": { route: "/bookings/b/review", view: () => <LoadingReview /> },
-  "loading-crypto": { route: "/crypto", view: () => <LoadingCrypto /> },
-  "loading-coin": { route: "/crypto/c", view: () => <LoadingCoin /> },
   "loading-kyc": { route: "/verification", view: () => <LoadingVerification /> },
   "loading-rent": { route: "/rent", view: () => <LoadingRent /> },
   "loading-saved": { route: "/saved", view: () => <LoadingSaved /> },
@@ -246,9 +243,18 @@ function View({ v, s }: { v: string; s?: string }) {
     case "rent-pay":
       return (
         <Frame title="Pay the rent">
-          <RentSummary view={RENT_VIEW} />
+          <RentSummary view={s === "large" ? RENT_VIEW_LARGE : RENT_VIEW} />
           <div className="mt-lg">
-            <PayPanel view={s === "wallet" ? { ...RENT_VIEW, walletCovers: true, cardAvailable: false } : RENT_VIEW} />
+            <PayPanel
+              view={
+                s === "wallet"
+                  ? { ...RENT_VIEW, walletCovers: true, cardAvailable: false }
+                  : s === "large"
+                    ? RENT_VIEW_LARGE
+                    : RENT_VIEW
+              }
+              payCopy={getDictionary(locale).afterTheGate.pay}
+            />
           </div>
         </Frame>
       );

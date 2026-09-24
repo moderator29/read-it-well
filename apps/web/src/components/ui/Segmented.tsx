@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { feedback } from "@/lib/ui/feedback";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
@@ -178,7 +179,12 @@ export function Segmented<T extends string>({
             aria-selected={semantics === "tabs" ? selected : undefined}
             aria-checked={semantics === "radio" ? selected : undefined}
             tabIndex={semantics === "tabs" ? (selected ? 0 : -1) : 0}
-            onClick={() => onChange(o.value)}
+            onClick={() => {
+              /* V-30: a choice taken is felt as `select`, once, and only
+                 when it changes something. */
+              if (o.value !== value) feedback("select");
+              onChange(o.value);
+            }}
             className={[
               /*
                * `min-w-0` IS THE WHOLE FIX AND IT IS THE SAME FIX IN THREE

@@ -8,6 +8,7 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { TenancyCard } from "@/components/app/bookings/TenancyCard";
 import { BookingDetailCard } from "./BookingDetailCard";
+import { BookingMoneyRecord } from "@/components/app/after-gate/BookingMoneyRecord";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
 export const metadata: Metadata = {
@@ -130,5 +131,18 @@ export default async function BookingDetailPage({
     );
   }
 
-  return shell(<BookingDetailCard booking={booking} locale={locale} />);
+  return shell(
+    <>
+      <BookingDetailCard booking={booking} locale={locale} />
+      {/* V-20 and V-24: the terms this stay was paid under, and every refund
+          with the date it is due by. Nothing at all for an unpaid stay. */}
+      <BookingMoneyRecord
+        bookingId={booking.id}
+        checkIn={booking.checkIn}
+        checkOut={booking.checkOut}
+        cancelled={booking.status === "CANCELLED"}
+        locale={locale}
+      />
+    </>,
+  );
 }

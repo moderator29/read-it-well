@@ -206,7 +206,12 @@ export default async function RentPayPage({
       </Reveal>
 
       <div className="mt-lg">
-        <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} />
+        <PayPanel
+          view={view}
+          savedCards={savedCards}
+          chargeSavedCard={chargeSavedCard}
+          payCopy={getDictionary(locale).afterTheGate.pay}
+        />
       </div>
     </Shell>
   );

@@ -170,7 +170,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
             { code: "FAST_REPLIES", name: "Fast replies", objectName: "chat-ring" },
           ]}
           place={{ lga: "Eti-Osa", state: "Lagos", label: "Eti-Osa, Lagos" }}
-          trust={{ score: 92, completedDeals: 41, responseTime: "2 hrs", reviewCount: 28, averageRating: 4.8 }}
+          trust={{ completedDeals: 41, responseTime: "2 hrs", reviewCount: 28, averageRating: 4.8 }}
           joinedLabel="March 2025"
           follow={<FollowButton handle={PERSON.handle} initialFollowing={false} signedIn labels={t.socialProfile} />}
           share={<ProfileShare handle={PERSON.handle} displayLabel={PERSON.name} />}

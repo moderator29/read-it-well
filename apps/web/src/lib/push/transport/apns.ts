@@ -190,6 +190,10 @@ export async function sendApns(target: PushTarget, payload: PushPayload): Promis
       "mutable-content": 1,
     },
     href: payload.href,
+    /* V-53: carried for the shell's tap router; iOS draws no buttons until a
+       notification category is registered natively, which needs the Apple
+       account (APNs is behind the native_push_apns flag until then). */
+    actions: payload.actions ?? [],
   });
 
   return new Promise<ProviderReply>((resolve) => {

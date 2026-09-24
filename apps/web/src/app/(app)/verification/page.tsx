@@ -6,6 +6,8 @@ import { getOwnLadder } from "@/lib/agent/verification-queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { KycFlow } from "@/components/verification/KycFlow";
+import { VninPanel } from "@/components/verification/VninPanel";
+import { vninIdentityOn } from "@/lib/identity/flag";
 import {
   KycStatus,
   type KycStatusView,
@@ -54,6 +56,14 @@ export default async function VerificationPage({
 }) {
   const locale = await getLocale();
   const context = await getAgentContext();
+  /* V-49: the vNIN route, only when its flag is on and Vallo's NIMC merchant
+     code is configured. Otherwise nothing is drawn and the photo route is the
+     only one, exactly as before. */
+  const merchantCode = process.env.VALLO_NIMC_MERCHANT_CODE?.trim() ?? "";
+  const vnin =
+    merchantCode !== "" && (await vninIdentityOn()) ? (
+      <VninPanel copy={getDictionary(locale).trustVisible.vnin} merchantCode={merchantCode} />
+    ) : null;
   const ladder = await getOwnLadder(context);
   const params = await searchParams;
   const asked = Array.isArray(params.resubmit)
@@ -187,6 +197,7 @@ export default async function VerificationPage({
             <span className="mt-inline-tight block">{whatWasSaid}</span>
           </p>
         )}
+        {vnin}
         <KycFlow submit={submitVerification} />
       </div>
     );
@@ -213,7 +224,8 @@ export default async function VerificationPage({
               the scene is not repeated here because there is no status object
               for it to sit behind. */}
           <PageHeader title="Verification" fallback="/profile" />
-          <KycFlow submit={submitVerification} />
+          {vnin}
+        <KycFlow submit={submitVerification} />
         </>
       )}
     </div>

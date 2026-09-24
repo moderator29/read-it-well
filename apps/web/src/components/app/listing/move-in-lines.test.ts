@@ -93,10 +93,16 @@ describe("moveInLines", () => {
     expect(line(moveInLines(listing({ priceMinor: 0 }), copy), "rent").minor).toBeUndefined();
   });
 
-  it("says who keeps each cost, and never guesses", () => {
-    const rows = moveInLines(listing({}), copy);
-    expect(line(rows, "rent").keeper).toBe(copy.keptByLister);
-    expect(line(rows, "agency").keeper).toBe(copy.keptByAgent);
-    expect(line(rows, "service").keeper).toBe(copy.keptByEstate);
+  it("says who keeps each cost only from the money map, and never guesses (V-46)", () => {
+    // No map, no caption: "Paid to the landlord" was a claim with no record.
+    expect(moveInLines(listing({}), copy).every((row) => row.keeper === undefined)).toBe(true);
+    const map = {
+      ctx: { listerRole: "agent" as const, listerName: "Musa", mandateVerified: false, ownershipVerified: false },
+      copy: getDictionary("en").afterTheGate.moneyMap,
+    };
+    const rows = moveInLines(listing({}), copy, map);
+    expect(line(rows, "rent").keeper).toBe("Paid to Musa. No landlord is on record for this listing.");
+    expect(line(rows, "agency").keeper).toBe("Kept by Musa");
+    expect(line(rows, "service").keeper).toBe("Paid to Musa for the estate");
   });
 });

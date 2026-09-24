@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { readPayeeContext } from "@/lib/after-gate/payee";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -97,6 +98,7 @@ export default async function ListingUnderReviewPage({
     );
   }
 
+  const payeeCtx = found.intent === "sale" ? null : await readPayeeContext(found.id);
   /* V-48: a closed listing is SUSPENDED underneath and is not a decision; it
      shows how it closed, and staff may reopen it with a reason. */
   const closedReason = (await readClosedReasons([found.id]))[found.id] ?? null;
@@ -121,7 +123,11 @@ export default async function ListingUnderReviewPage({
           dark: dark.url,
           credit: dark.credits.map((credit) => credit.label).join(", "),
         }}
-        keepers={{ moveIn: t.moveIn, purchase: t.purchase }}
+        keepers={{
+          moveIn: t.moveIn,
+          purchase: t.purchase,
+          payee: payeeCtx ? { ctx: payeeCtx, copy: t.afterTheGate.moneyMap } : null,
+        }}
         exampleNote={
           extra?.isDemo ? (
             <p className="nf-rv-unwired" role="note">

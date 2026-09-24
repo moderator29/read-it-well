@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { getDictionary, DEFAULT_LOCALE } from "@vallo/i18n";
 import { SiteHead } from "@/components/site/SiteHead";
 import { ButtonSpecimens } from "./ButtonSpecimens";
+import { FeedbackSpecimens } from "./FeedbackSpecimens";
 import { Chip } from "@/components/ui/Chip";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { Skeleton, SkeletonText, SkeletonCard } from "@/components/ui/Skeleton";
@@ -229,6 +231,13 @@ export default function StyleguidePage() {
         blurb="Six variants and three heights, 44, 48 and 56px. No other button heights exist on this platform. Every one of these is the real primitive and every one of them works: press a specimen and it copies the line that draws it, and the two states have a switch each rather than a frozen picture."
       >
         <ButtonSpecimens />
+      </Section>
+
+      <Section
+        title="Feedback"
+        blurb="Five kinds and nothing else. A settled payment must feel different from a tap, and a refusal different from both. The native app uses the system's own patterns, Android web a distinct pulse per kind, and iOS web nothing, because it has no vibration. A button press is silent; the outcome is felt when the result sheet opens."
+      >
+        <FeedbackSpecimens copy={getDictionary(DEFAULT_LOCALE).platform.feedback} />
       </Section>
 
       <Section

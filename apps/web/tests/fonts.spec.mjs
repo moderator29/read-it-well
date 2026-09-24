@@ -51,18 +51,21 @@ function check(name, condition, detail) {
    swap the display face to Inter in tokens.css, so Poppins never paints on
    them and the vietnamese subset does. */
 const EXPECTED = {
+  /* V-78: English draws the naira from the 1.2KB inter-naira and no longer
+     preloads the 85KB inter-latin-ext; Hausa keeps latin-ext for its hooked
+     letters. */
   en: [
-    "inter-latin", "inter-latin-ext",
+    "inter-latin", "inter-naira",
     "poppins-600-latin", "poppins-600-latin-ext",
     "poppins-700-latin", "poppins-700-latin-ext",
   ],
   ha: [
-    "inter-latin", "inter-latin-ext",
+    "inter-latin", "inter-latin-ext", "inter-naira",
     "poppins-600-latin", "poppins-600-latin-ext",
     "poppins-700-latin", "poppins-700-latin-ext",
   ],
-  yo: ["inter-latin", "inter-latin-ext", "inter-vietnamese"],
-  ig: ["inter-latin", "inter-latin-ext", "inter-vietnamese"],
+  yo: ["inter-latin", "inter-latin-ext", "inter-vietnamese", "inter-naira"],
+  ig: ["inter-latin", "inter-latin-ext", "inter-vietnamese", "inter-naira"],
 };
 
 /* One glyph per orthography this platform ships, plus the currency. Every one
@@ -188,7 +191,7 @@ console.log("\nDelivery");
 
 const ctx = await browser.newContext();
 const page = await ctx.newPage();
-for (const name of ["inter-latin", "inter-latin-ext", "inter-vietnamese", "poppins-600-latin", "poppins-600-latin-ext", "poppins-700-latin", "poppins-700-latin-ext"]) {
+for (const name of ["inter-latin", "inter-latin-ext", "inter-vietnamese", "inter-naira", "poppins-600-latin", "poppins-600-latin-ext", "poppins-700-latin", "poppins-700-latin-ext"]) {
   const res = await page.request.get(`${BASE_URL}/fonts/${name}.woff2`);
   const cache = res.headers()["cache-control"] ?? "";
   check(

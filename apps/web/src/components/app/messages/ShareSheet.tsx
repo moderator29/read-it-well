@@ -39,6 +39,7 @@ export function ShareSheet({
   id,
   title,
   onShareElsewhere,
+  elsewhereBody,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,6 +50,12 @@ export function ShareSheet({
   title: string;
   /** The OS sheet, or the clipboard. Owned by the caller, which has the URL. */
   onShareElsewhere: () => void;
+  /**
+   * What "Share elsewhere" sends, when the caller shares something other
+   * than its own address. A listing sends its share door (V-07), a public
+   * card with the area and the move-in total, and the row says so.
+   */
+  elsewhereBody?: string;
 }) {
   const noun = kind === "booking" ? "booking" : kind === "stay" ? "stay" : "property";
 
@@ -92,7 +99,7 @@ export function ShareSheet({
               Share elsewhere
             </span>
             <span className="nf-caption block">
-              The link, for anywhere off Vallo.
+              {elsewhereBody ?? "The link, for anywhere off Vallo."}
             </span>
           </span>
           <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />

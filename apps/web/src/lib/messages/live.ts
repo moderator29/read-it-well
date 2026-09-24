@@ -71,6 +71,8 @@ export type LiveThreadMessage = {
   /** Preformatted Lagos "HH:MM". */
   timeLabel: string;
   imageUrl: string | null;
+  /** The row's own timestamp. V-04's account card reads it for its one-minute "checking" window. */
+  createdAt?: string;
 };
 
 export type LiveThreadData = {
@@ -543,6 +545,7 @@ export async function loadThread(
         body: m.body,
         timeLabel: lagosTimeLabel(m.created_at),
         imageUrl: path ? (urlByPath.get(path) ?? null) : null,
+        createdAt: m.created_at,
       };
     }),
   };
