@@ -17,6 +17,7 @@ import {
   type RentPeriod,
   type ReportStatus,
 } from "./model";
+import { attributeCaution, leadShare } from "./shares";
 import { daysUntil, exitAccountOpen, relistOpen, relistOpensOn, renewalCarriesFees, renewalTotal, rentChange } from "./renewal";
 
 /**
@@ -110,6 +111,8 @@ export type TenancyFile = {
   pins: { id: string; body: string; date: string }[];
   /** V-93 and V-38: the renewal clock, the relist and the exit account. */
   renewal: TenancyRenewal;
+  /** V-86: flatmates' shares of the move-in, the lead's as the remainder. */
+  flatmates: TenancyFlatmates;
   /** V-55: the tenant's live receipt code, when they have made one. */
   receiptCode: { id: string; code: string } | null;
 };
@@ -137,6 +140,13 @@ export type TenancyRenewal = {
   exitOpen: boolean;
   exitAnswered: boolean;
   /** A read failed: the section says so instead of offering controls. */
+  unavailable: boolean;
+};
+
+export type TenancyFlatmates = {
+  rows: { id: string; name: string | null; share: string; paid: boolean; cautionPart: string | null }[];
+  leadShare: string;
+  leadCautionPart: string | null;
   unavailable: boolean;
 };
 
@@ -452,6 +462,36 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       unavailable: Boolean(offerRead.error || answerRead.error || exitRead.error),
     };
 
+    /* ---------------------------------------------------------- flatmates */
+    const contributorsRead = await loose.from("rent_payment_contributors").select("id, user_id, share_minor").eq("rent_payment_id", id).order("added_at");
+    const contributorRows = contributorsRead.error ? [] : rows(contributorsRead.data);
+    const coShares = contributorRows.flatMap((row) => {
+      const share = kobo(row.share_minor);
+      return share === null ? [] : [{ id: String(row.id), userId: String(row.user_id), shareMinor: share }];
+    });
+    const [sharePaidRead, namesRead] = coShares.length
+      ? await Promise.all([
+          loose.from("rent_share_payments").select("contributor_id").in("contributor_id", coShares.map((row) => row.id)),
+          db.from("profiles").select("id, first_name").in("id", coShares.map((row) => row.userId)),
+        ])
+      : [{ data: [], error: null }, { data: [], error: null }];
+    const sharePaid = new Set(rows(sharePaidRead.data).map((row) => String(row.contributor_id)));
+    const firstNames = new Map(rows(namesRead.data).map((row) => [String(row.id), str(row.first_name)]));
+    const cautionMinor = rp.caution_minor ?? 0;
+    const attributed = attributeCaution(cautionMinor, rp.total_minor, coShares);
+    const flatmates: TenancyFlatmates = {
+      rows: coShares.map((row) => ({
+        id: row.id,
+        name: firstNames.get(row.userId) ?? null,
+        share: money(row.shareMinor),
+        paid: sharePaid.has(row.id),
+        cautionPart: cautionMinor > 0 ? money(attributed.byId[row.id] ?? 0) : null,
+      })),
+      leadShare: money(leadShare(rp.total_minor, coShares)),
+      leadCautionPart: cautionMinor > 0 ? money(attributed.lead) : null,
+      unavailable: Boolean(contributorsRead.error || sharePaidRead.error),
+    };
+
     /* ---------------------------------------------------------- promise */
     const snap = snapshotRead.error ? null : (snapshotRead.data as Row | null);
     const snapListing = snap && typeof snap.listing === "object" && snap.listing !== null ? (snap.listing as Row) : null;
@@ -494,6 +534,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         reports,
         pins,
         renewal,
+        flatmates,
         receiptCode: (() => {
           const row = codeRead.error ? null : rows(codeRead.data)[0];
           const codeId = row ? str(row.id) : null;

@@ -1,0 +1,80 @@
+import type { Metadata } from "next";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { formatMoney, getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import { resolveSession } from "@/lib/actions/session";
+import { formatMoneyDate } from "@/lib/money/dates";
+import { PageHeader } from "@/components/app/PageHeader";
+import { EmptyState, Section, TYPE } from "@/components/app/Screen";
+import { PayShare } from "@/components/app/tenancy/FlatmateControls";
+
+/** A private record. Never indexed. */
+export const metadata: Metadata = { title: "Your share", robots: { index: false, follow: false } };
+
+export const dynamic = "force-dynamic";
+
+/**
+ * V-86. A flatmate's share of a move-in, and the one control that pays it.
+ *
+ * Read through `my_rent_share`, which answers only the flatmate the share
+ * belongs to and names the area, never the address. A share that is not the
+ * reader's answers exactly as one that does not exist.
+ */
+export default async function RentSharePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const locale = await getLocale();
+  const copy = getDictionary(locale).afterTheGate.flatmates;
+  const shell = (children: React.ReactNode) => (
+    <div className="mx-auto max-w-2xl">
+      <PageHeader title={copy.shareTitle} fallback="/wallet" />
+      {children}
+    </div>
+  );
+  const missing = shell(<EmptyState icon="calendar-home" title={copy.shareMissingTitle} body={copy.shareMissingBody} data-testid="share-missing" />);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return missing;
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return missing;
+  let row: Record<string, unknown> | null = null;
+  let failed = false;
+  try {
+    const { data, error } = await (session.supabase as unknown as SupabaseClient).rpc("my_rent_share", { p_contributor: id });
+    failed = Boolean(error);
+    row = !error && typeof data === "object" && data !== null ? (data as Record<string, unknown>) : null;
+  } catch {
+    failed = true;
+  }
+  if (failed) {
+    return shell(<EmptyState icon="calendar-home" title={copy.shareMissingTitle} body={copy.unavailable} data-testid="share-unavailable" />);
+  }
+  const share = Number(row?.share_minor);
+  const total = Number(row?.total_minor);
+  if (!row || !Number.isSafeInteger(share) || !Number.isSafeInteger(total)) return missing;
+
+  const area = [row.area, row.city].filter((part): part is string => typeof part === "string" && part.length > 0).join(", ");
+  const moveIn = typeof row.move_in === "string" ? (formatMoneyDate(row.move_in, locale) ?? row.move_in) : null;
+  const paidAt = typeof row.paid_at === "string" ? formatMoneyDate(row.paid_at, locale) : null;
+  const lead = typeof row.lead === "string" ? row.lead : null;
+
+  return shell(
+    <Section>
+      <div className="grid gap-md" data-testid="rent-share">
+        <p className="nf-body nf-numeric font-semibold">
+          {copy.shareLine
+            .replace("{share}", formatMoney(share, locale))
+            .replace("{total}", formatMoney(total, locale))
+            .replace("{area}", area)}
+        </p>
+        {moveIn && <p className={TYPE.rowMeta}>{copy.shareDue.replace("{date}", moveIn)}</p>}
+        <p className={TYPE.body}>{lead ? copy.shareLead.replace("{name}", lead) : copy.shareLeadUnknown}</p>
+        {row.void === true ? (
+          <p className={TYPE.body}>{copy.shareVoid}</p>
+        ) : paidAt ? (
+          <p className="nf-body-sm text-[var(--nf-state-success)]">{copy.sharePaid.replace("{date}", paidAt)}</p>
+        ) : (
+          <PayShare contributorId={id} label={copy.sharePay.replace("{share}", formatMoney(share, locale))} />
+        )}
+      </div>
+    </Section>,
+  );
+}

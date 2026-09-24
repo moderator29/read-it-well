@@ -122,6 +122,19 @@ export async function readUpcoming(now: Date = new Date()): Promise<UpcomingItem
       }
     }
 
+    // V-86: a flatmate's unpaid share of a move-in, due by the move-in day.
+    const mine = await loose.from("rent_payment_contributors").select("id").eq("user_id", me);
+    if (!mine.error) {
+      for (const row of rows(mine.data)) {
+        const read = await loose.rpc("my_rent_share", { p_contributor: String(row.id) });
+        const share = !read.error && read.data && typeof read.data === "object" ? (read.data as Row) : null;
+        const amount = share ? int(share.share_minor) : null;
+        const due = share ? dayOf(share.move_in) : null;
+        if (!share || share.paid_at || share.void === true || amount === null || !due) continue;
+        items.push({ kind: "share", on: due, amountMinor: amount, href: `/rent/share/${row.id}`, id: `share-${row.id}` });
+      }
+    }
+
     // Held payments the reader paid into, until they release.
     if (!escrows.error) {
       for (const row of rows(escrows.data)) {

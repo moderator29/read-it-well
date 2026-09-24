@@ -111,9 +111,19 @@ export function TenancyCard({
           </span>
         </p>
         {tenancy.payable ? (
-          <ButtonLink href={tenancy.href} variant="primary" size="sm" className="shrink-0">
-            {copy.pay}
-          </ButtonLink>
+          <div className="flex shrink-0 flex-col items-end gap-2xs">
+            <ButtonLink href={tenancy.href} variant="primary" size="sm">
+              {copy.pay}
+            </ButtonLink>
+            {/* V-86: flatmates' shares live in the tenancy file. */}
+            <Link
+              href={`${tenancy.fileHref}#flatmates`}
+              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              data-testid="tenancy-split-link"
+            >
+              {t.afterTheGate.flatmates.split}
+            </Link>
+          </div>
         ) : (
           /* V-47. A paid tenancy opens its own file; an unpaid one that can no
              longer be paid still points at the listing. */

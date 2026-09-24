@@ -10,6 +10,7 @@ import { DeductionAnswer, ProposeDeduction, ReturnCaution } from "@/components/a
 import { koboToNairaInput } from "@/lib/agent/listings-schema";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
 import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";
+import { AddFlatmate, RemoveFlatmate } from "@/components/app/tenancy/FlatmateControls";
 import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
 
 /** A private record. Never indexed, never in a tab title. */
@@ -67,10 +68,14 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
   }
 
   const file = read.file;
+  const mates = t.afterTheGate.flatmates;
   return shell(
     <Stack>
       <TenancyHead file={file} copy={copy} />
       <MoneySection file={file} copy={copy} />
+      {!file.void && file.viewer !== "staff" && (file.viewer === "tenant" || file.flatmates.rows.length > 0) && (
+        <FlatmatesSection file={file} copy={mates} />
+      )}
       {file.viewer === "tenant" && file.paid && (
         <Section>
           <ReceiptCodePanel tenancyId={file.id} live={file.receiptCode} copy={t.afterTheGate.receipt} />
@@ -282,6 +287,54 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
           )}
         </div>
       )}
+    </Section>
+  );
+}
+
+function FlatmatesSection({ file, copy }: { file: TenancyFile; copy: ReturnType<typeof getDictionary>["afterTheGate"]["flatmates"] }) {
+  const mates = file.flatmates;
+  if (mates.unavailable) {
+    return (
+      <Section title={copy.heading} divided>
+        <p className={TYPE.body}>{copy.unavailable}</p>
+      </Section>
+    );
+  }
+  return (
+    <Section title={copy.heading} description={copy.lede} divided>
+      <div id="flatmates" className="grid gap-md" data-testid="tenancy-flatmates">
+        {mates.rows.length > 0 && (
+          <ul className="grid gap-sm">
+            {mates.rows.map((row) => (
+              <li key={row.id} className="nf-card flex flex-wrap items-start justify-between gap-sm p-card">
+                <div className="min-w-0">
+                  <p className="nf-body-sm nf-numeric font-semibold">
+                    {copy.row.replace("{name}", row.name ?? copy.someone).replace("{share}", row.share)}
+                  </p>
+                  <p className="nf-caption mt-2xs">{row.paid ? copy.paid : copy.unpaid}</p>
+                  {row.cautionPart && (
+                    <p className="nf-caption mt-2xs nf-numeric">{copy.cautionPart.replace("{amount}", row.cautionPart)}</p>
+                  )}
+                </div>
+                {file.viewer === "tenant" && !row.paid && (
+                  <RemoveFlatmate tenancyId={file.id} contributorId={row.id} copy={copy} />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {file.viewer === "tenant" && (
+          <>
+            <p className="nf-body-sm nf-numeric font-semibold">{copy.lead.replace("{share}", mates.leadShare)}</p>
+            {mates.leadCautionPart && mates.rows.length > 0 && (
+              <p className="nf-caption nf-numeric">{copy.leadCautionPart.replace("{amount}", mates.leadCautionPart)}</p>
+            )}
+            <div className="nf-panel nf-panel--card block p-md">
+              <AddFlatmate tenancyId={file.id} copy={copy} />
+            </div>
+          </>
+        )}
+      </div>
     </Section>
   );
 }

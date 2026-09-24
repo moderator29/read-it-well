@@ -7,7 +7,7 @@
  * held payment, a paid stay. Past items and zero amounts are dropped; the rest
  * are sorted soonest first, ties broken by kind so the order is stable.
  */
-export type UpcomingKind = "renewal" | "caution_owed_to_you" | "caution_you_owe" | "held" | "stay";
+export type UpcomingKind = "renewal" | "caution_owed_to_you" | "caution_you_owe" | "share" | "held" | "stay";
 
 export type UpcomingItem = {
   kind: UpcomingKind;
@@ -20,10 +20,11 @@ export type UpcomingItem = {
 
 const ORDER: Record<UpcomingKind, number> = {
   caution_you_owe: 0,
-  caution_owed_to_you: 1,
-  renewal: 2,
-  held: 3,
-  stay: 4,
+  share: 1,
+  caution_owed_to_you: 2,
+  renewal: 3,
+  held: 4,
+  stay: 5,
 };
 
 /** How many the strip shows before "See all". */
