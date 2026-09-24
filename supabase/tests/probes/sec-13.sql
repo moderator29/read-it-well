@@ -11,6 +11,8 @@ declare
   again  constant uuid := 'd5ec1300-0000-4000-8000-00000000000d';
   admin  constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
   member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
+  lone   constant uuid := 'e5ec1300-0000-4000-8000-00000000000e';
+  req_l  uuid;
   req_a  uuid;
   app_c  uuid;
   app_a  uuid;
@@ -280,6 +282,25 @@ begin
      or not exists (select 1 from public.email_outbox where id = o_new)
      or not exists (select 1 from public.email_outbox where id = o_fail) then
     raise exception 'PROBE_FAIL sec-13: the outbox prune did not keep 90 days of delivered mail and every failure';
+  end if;
+
+  -- 6. An agents row without an approved or suspended application keeps
+  -- nothing: retention keys on the approved application only.
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
+                          created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+  values (lone, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+          'probe.lone.sec13@example.invalid', '', now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
+  insert into public.agents (user_id, display_name) values (lone, 'Probe Lone');
+  insert into public.agent_applications (user_id, status, full_name, id_type, id_number)
+  values (lone, 'REJECTED', 'Probe Lone', 'nin', '44444444444');
+  insert into public.agent_documents (uploader_id, kind, storage_path) values (lone, 'identity', lone::text || '/id.jpg');
+  insert into public.account_deletion_requests (user_id, purge_after) values (lone, now() - interval '1 minute') returning id into req_l;
+  res := public.purge_account_rows(req_l);
+  if (res ->> 'purged')::boolean is not true or (res -> 'counts' ->> 'kyc_retained')::boolean is not false
+     or not (res -> 'storage' ? 'agent-documents')
+     or exists (select 1 from public.agent_documents where uploader_id = lone)
+     or exists (select 1 from public.agent_applications where user_id = lone and (id_number is not null or kyc_retain_until is not null)) then
+    raise exception 'PROBE_FAIL sec-13: an agents row without an approved application was kept: %', res;
   end if;
 
   raise exception 'PROBE_OK sec-13';
