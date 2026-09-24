@@ -13,7 +13,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { CheckoutSummary } from "./CheckoutSummary";
 import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
-import { isRentChargeBooking } from "@/lib/after-gate/is-rent-charge";
+import { bookingChargeKind, isRentChargeBooking } from "@/lib/after-gate/is-rent-charge";
 import { HoldCountdown } from "./HoldCountdown";
 import { PayPanel } from "./PayPanel";
 import { PaymentReturn } from "./PaymentReturn";
@@ -294,7 +294,7 @@ export default async function CheckoutPage({
         by then the schedule is support's business and there is a person on it.
       */}
       {/* V-57: what the host declared at the door, and the sentence for the gate. */}
-      {view.status !== "CANCELLED" && !(await isRentChargeBooking(view.bookingId)) && (
+      {view.status !== "CANCELLED" && (await bookingChargeKind(view.bookingId)) === "stay" && (
         <div className="mt-lg">
           <ArrivalChargesLine listingId={view.listingId} bookingId={view.bookingId} locale={view.locale} />
         </div>

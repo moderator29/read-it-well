@@ -11,7 +11,8 @@ import { BookingDetailCard } from "./BookingDetailCard";
 import { BookingMoneyRecord } from "@/components/app/after-gate/BookingMoneyRecord";
 import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
 import { DoorChargeReport } from "@/components/stays/DoorChargeReport";
-import { isRentChargeBooking } from "@/lib/after-gate/is-rent-charge";
+import { bookingChargeKind } from "@/lib/after-gate/is-rent-charge";
+import { lagosToday } from "@/lib/rent/schema";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
 export const metadata: Metadata = {
@@ -148,11 +149,12 @@ export default async function BookingDetailPage({
       />
       {/* V-57: what the host declared at the door (as frozen at payment), and
           the report if asked for more. A stay only: a rent charge is settled
-          in its own agreement, and every other bookings row is a nightly stay. */}
-      {booking.status !== "CANCELLED" && !(await isRentChargeBooking(booking.id)) && (
+          in its own agreement, and every other bookings row is a nightly stay.
+          A failed read shows neither. The report opens on the check-in day. */}
+      {booking.status !== "CANCELLED" && (await bookingChargeKind(booking.id)) === "stay" && (
         <div className="mt-lg grid gap-md">
           <ArrivalChargesLine listingId={booking.listingId} bookingId={booking.id} locale={locale} />
-          {(booking.status === "CONFIRMED" || booking.status === "COMPLETED") && (
+          {(booking.status === "CONFIRMED" || booking.status === "COMPLETED") && booking.checkIn.slice(0, 10) <= lagosToday() && (
             <DoorChargeReport bookingId={booking.id} copy={t.afterTheGate.arrival} />
           )}
         </div>

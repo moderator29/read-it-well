@@ -23,7 +23,9 @@
 -- (`arrival_charge_snapshots`, by a trigger on `transactions` that never
 -- raises inside the settlement, exactly as V-20 freezes cancellation terms),
 -- and the booking shows its own copy for ever, readable by its guest even if
--- the listing is later suspended or edited.
+-- the listing is later suspended or edited. Neither table can be edited or
+-- deleted on its own, and stays paid before this migration are backfilled
+-- with a snapshot that says nothing was declared.
 --
 -- THE DOOR REPORT. A guest with a paid, confirmed or completed stay whose
 -- check-in day has come taps "I was asked for money at the door": one row per
@@ -80,7 +82,7 @@ create index if not exists arrival_charge_declarations_accommodation_idx on publ
 /* The declaration as it stood when a stay was paid, on the booking. */
 create table if not exists public.arrival_charge_snapshots (
   booking_id     uuid primary key references public.bookings(id) on delete cascade,
-  declaration_id uuid references public.arrival_charge_declarations(id) on delete set null,
+  declaration_id uuid references public.arrival_charge_declarations(id) on delete restrict,
   charges        jsonb check (charges is null or private.arrival_charges_valid(charges)),
   frozen_at      timestamptz not null default now()
 );
@@ -151,6 +153,38 @@ drop trigger if exists arrival_charge_snapshots_frozen on public.arrival_charge_
 create trigger arrival_charge_snapshots_frozen before update on public.arrival_charge_snapshots
   for each row execute function private.door_charge_reports_frozen();
 
+-- Nor is either deleted on its own. A row goes only with what it hangs off
+-- (its listing or property, its booking), when the cascade has already
+-- removed that parent; a declaration a paid booking froze is held by the
+-- restrict on the snapshot's reference.
+create or replace function private.arrival_record_delete_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'pg_catalog', 'public'
+as $function$
+begin
+  if tg_table_name = 'arrival_charge_snapshots' then
+    if not exists (select 1 from public.bookings b where b.id = old.booking_id) then
+      return old;
+    end if;
+  elsif not exists (select 1 from public.listings l where l.id = old.listing_id)
+        and not exists (select 1 from public.accommodations a where a.id = old.accommodation_id) then
+    return old;
+  end if;
+  raise exception 'public.% is append-only', tg_table_name using errcode = '42501';
+end;
+$function$;
+
+revoke all on function private.arrival_record_delete_guard() from public, anon, authenticated;
+
+drop trigger if exists arrival_charge_declarations_kept on public.arrival_charge_declarations;
+create trigger arrival_charge_declarations_kept before delete on public.arrival_charge_declarations
+  for each row execute function private.arrival_record_delete_guard();
+drop trigger if exists arrival_charge_snapshots_kept on public.arrival_charge_snapshots;
+create trigger arrival_charge_snapshots_kept before delete on public.arrival_charge_snapshots
+  for each row execute function private.arrival_record_delete_guard();
+
 /* ------------------------------------------------------------ frozen at payment */
 
 create or replace function private.freeze_arrival_charges_on_payment()
@@ -200,6 +234,18 @@ drop trigger if exists transactions_freeze_arrival_charges on public.transaction
 create trigger transactions_freeze_arrival_charges
   after insert or update of status on public.transactions
   for each row execute function private.freeze_arrival_charges_on_payment();
+
+-- Stays already paid before this migration get a snapshot saying nothing was
+-- declared at payment, which is true: no declaration existed. Their booking
+-- page then says "not declared" for good, rather than showing whatever the
+-- host declares later.
+insert into public.arrival_charge_snapshots (booking_id, declaration_id, charges)
+select distinct t.booking_id, null::uuid, null::jsonb
+  from public.transactions t
+ where t.status = 'SUCCESSFUL'
+   and t.booking_id is not null
+   and not exists (select 1 from public.rent_payments rp where rp.booking_id = t.booking_id)
+on conflict (booking_id) do nothing;
 
 /* ------------------------------------------------------------ the doors */
 

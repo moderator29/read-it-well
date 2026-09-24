@@ -19,6 +19,7 @@ const WORDS: Record<string, string> = {
   incomplete: "Answer all five: an amount, or none.",
   bad_target: SERVICE_DOWN,
   not_a_paid_stay: "Only a paid stay can be reported here.",
+  not_arrived: "You can report this from your check-in day.",
   bad_amount: "Enter the amount you were asked for, or leave it blank.",
   already_reported: "You have already reported this stay. Support has it.",
 };
