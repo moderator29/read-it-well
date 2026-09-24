@@ -41,6 +41,8 @@ describe("STORE-16: a title that looks like a street address gets a warning", ()
     "Block 5 flat",
     "5 bedroom detached house in Banana Island",
     "3 bedroom flat on Ajose Adeogun Street",
+    "3 Bedroom Flat Admiralty Way",
+    "4 BEDROOM Duplex Lekki Road",
   ])("says nothing about %s", (title) => {
     expect(looksLikeStreetAddress(title)).toBe(false);
   });

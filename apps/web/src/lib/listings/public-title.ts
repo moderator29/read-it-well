@@ -44,8 +44,11 @@ const STREET_ADDRESS = new RegExp(
   String.raw`(?:^|[\s,(])\d{1,4}[A-Za-z]?(?!\s*${COUNT_WORD}\b)(?:,)?\s+(?:[A-Z][\w'.-]*\s+){1,4}(?:Street|St|Road|Rd|Close|Avenue|Ave|Crescent|Cres|Drive|Dr|Lane|Ln|Way|Boulevard|Blvd)\b\.?`,
 );
 
+/** "3 Bedroom", "5 MINUTES": a count in any case, removed before the test. */
+const COUNTED = new RegExp(String.raw`\d{1,4}\s*${COUNT_WORD}\b`, "gi");
+
 export function looksLikeStreetAddress(title: string): boolean {
-  return STREET_ADDRESS.test(title);
+  return STREET_ADDRESS.test(title.replace(COUNTED, " "));
 }
 
 export const STREET_IN_TITLE_WARNING =

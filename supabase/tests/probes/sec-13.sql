@@ -19,6 +19,7 @@ declare
   o_fail uuid;
   pot    uuid;
   app_old uuid;
+  app_m  uuid;
   due_j  jsonb;
   req_r  uuid;
   req_c  uuid;
@@ -198,6 +199,11 @@ begin
   -- 3b. Five years on, the retained record is destroyed, and only the
   -- service role can do it.
   update public.agent_applications set kyc_retain_until = now() - interval '1 minute' where id = app_a;
+  -- Not before the deletion has finished.
+  if (public.destroy_expired_kyc(agent) ->> 'destroyed')::boolean then
+    raise exception 'PROBE_FAIL sec-13: a record was destroyed before its account''s purge finished';
+  end if;
+  update public.account_deletion_requests set status = 'PURGED' where id = req_a;
   due_j := public.due_kyc_destructions(500);
   if not exists (select 1 from jsonb_array_elements(due_j -> 'users') u
                   where u ->> 'user_id' = agent::text
@@ -220,6 +226,22 @@ begin
                  where user_id = agent and (id_number is not null or full_name is not null or kyc_retain_until is not null))
      or not exists (select 1 from public.audit_log where action = 'account.kyc.destroyed' and entity_id = agent::text) then
     raise exception 'PROBE_FAIL sec-13: the expired record was not destroyed: %', res;
+  end if;
+
+  -- 3c. A member cannot schedule the destruction of their own record: the
+  -- applicant guard forces kyc_retain_until on insert and on update.
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  insert into public.agent_applications (user_id, status, kyc_retain_until)
+  values (member, 'DRAFT', now() - interval '1 day') returning id into app_m;
+  update public.agent_applications set kyc_retain_until = now() - interval '1 day' where id = app_m;
+  reset role;
+  perform set_config('request.jwt.claims', '', true);
+  if (select kyc_retain_until from public.agent_applications where id = app_m) is not null then
+    raise exception 'PROBE_FAIL sec-13: a member set kyc_retain_until';
+  end if;
+  if (public.destroy_expired_kyc(member) ->> 'destroyed')::boolean then
+    raise exception 'PROBE_FAIL sec-13: a live member''s record was destroyed';
   end if;
 
   -- 4. Staff can see that a new account uses an erased mailbox; a member cannot ask.
