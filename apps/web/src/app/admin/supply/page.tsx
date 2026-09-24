@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { DemandBoard } from "@/components/agent/DemandBoard";
+import { readDemandBoard } from "@/lib/demand/queries";
 import { getLocale } from "@/lib/locale";
 import { flatParams } from "../money/_desk/Desk";
 import { readPage } from "@/lib/admin/reads/money-derive";
@@ -48,9 +51,10 @@ export default async function AdminSupplyPage({
     page: readPage(params.page),
   };
 
-  const [read, roster] = await Promise.all([
+  const [read, roster, demand] = await Promise.all([
     getSupplyDesk({ ...filter, pageSize: SUPPLY_PAGE_SIZE }),
     getFirmRosters(filter.examples),
+    readDemandBoard(4),
   ]);
   const supply = read.state === "ok" ? read.data : null;
   const tiers = await getBadgeTiers([
@@ -59,6 +63,10 @@ export default async function AdminSupplyPage({
   ]);
 
   return (
-    <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} rosters={roster.state === "ok" ? roster.data : null} tiers={tiers} now={new Date().getTime()} />
+    <>
+      <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} rosters={roster.state === "ok" ? roster.data : null} tiers={tiers} now={new Date().getTime()} />
+      {/* V-10: the recruiting map. Where demand sits that supply does not. */}
+      <DemandBoard rows={demand} copy={getDictionary(locale).frontDoor.demand} locale={locale} />
+    </>
   );
 }

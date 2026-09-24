@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { RecordDemand } from "@/components/app/search/RecordDemand";
+import { demandCell } from "@/lib/demand/cell";
 import Link from "next/link";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
@@ -158,6 +160,20 @@ export default async function SearchPage({
   const sorted = sortListings(rawResults, query.sort);
 
   /*
+   * V-10: THIS SEARCH AS A DEMAND CELL. A neighbourhood from the closed list
+   * (the typed words are read and dropped), the market, a bedroom minimum, a
+   * budget band and whether it found fewer than three REAL homes. Example
+   * listings are not supply, so they are not counted as results here either.
+   */
+  const demand = demandCell({
+    q: query.q,
+    intent: query.intent,
+    bedrooms: query.bedrooms,
+    maxMinor: query.maxMinor,
+    results: rawResults.filter((listing) => !listing.isDemo).length,
+  });
+
+  /*
    * WHICH OF THESE ARE ALREADY ON THE SHORTLIST.
    *
    * The card used to draw its heart from the device store alone, so a
@@ -244,6 +260,7 @@ export default async function SearchPage({
 
   return (
     <>
+      <RecordDemand cell={demand} />
       {/*
         THE WAY BACK, ON THE BAR'S OWN ROW.
 

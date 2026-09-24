@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { DemandBoard } from "@/components/agent/DemandBoard";
+import { readDemandBoard } from "@/lib/demand/queries";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -71,7 +73,10 @@ export default async function Page() {
    * page falls through to the same "we could not read this" rendering rather
    * than to an error boundary.
    */
-  const analytics = await readAgentAnalytics(context).catch(() => null);
+  const [analytics, demand] = await Promise.all([
+    readAgentAnalytics(context).catch(() => null),
+    readDemandBoard(4),
+  ]);
 
   return (
     <AgentShell
@@ -108,6 +113,9 @@ export default async function Page() {
           {t.agentAnalytics.unavailable}
         </p>
       )}
+
+      {/* V-10: what renters asked for and could not find, by neighbourhood. */}
+      <DemandBoard rows={demand} copy={t.frontDoor.demand} locale={locale} listHref="/agent/list" />
     </AgentShell>
   );
 }
