@@ -391,6 +391,13 @@ export const frontDoorEn = {
     listCta: "List a home that fits",
   },
   status: {
+    /** The share-door revoke control (V-07 carry-over). */
+    revoke: "Close this link",
+    revokeConfirm: "Close it",
+    revokeNote: "Anyone who opens the old link sees that it does not open anything. A new link is made for you, and its count starts again.",
+    revoked: "Closed. This is your new link.",
+    revokeFailed: "We could not close the link. Nothing changed, so try again.",
+    cancel: "Keep it",
     action: "Share to Status",
     title: "Share to Status",
     lede: "A picture for your WhatsApp Status, and your own link. People who arrive through your link and enquire are counted as yours.",
