@@ -276,9 +276,8 @@ Vercel and Node set `NODE_ENV`, `NEXT_RUNTIME`, `VERCEL_ENV`, `VERCEL_URL`, `VER
 │   └── i18n/                    dictionaries for en, yo, ha, ig; plural rules; money formatting
 ├── supabase/
 │   ├── migrations/              the schema, one file per applied migration (356)
-│   │   └── pending/             not applied: post-release steps and drafts waiting for a decision
+│   │   └── pending/             not applied: drafts waiting for a decision
 │   ├── tests/probes/            the database regression tests (one DO block each, see below)
-│   ├── tests/pending/           the probes for the pending post-release steps
 │   ├── templates/               generated auth email templates
 │   ├── config.toml              Supabase CLI config
 │   └── README.md                auth email templates: how to generate and apply them
@@ -328,17 +327,20 @@ node scripts/db-probes/run.mjs --check        # the contract only, no database
 
 It needs `psql` and the `postgres` user on the session pooler (port 5432), because the probes build fixtures as the owner and then `set role`. Without a connection string, the same files can be run through the Supabase MCP `apply_migration`: the expected result is an error that contains `PROBE_OK <id>`, and because it failed, nothing is recorded.
 
-### After the release is deployed: the pending steps
+### The post-release steps (applied)
 
-Some fixes are split in two. Step 1 is applied and is compatible with the code that production runs today. Step 2 would break production until the release that no longer needs the old access is live, so it waits in `supabase/migrations/pending/`. **Apply these only after the release branch is merged and deployed**, one at a time, then move its probe from `supabase/tests/pending/` into `supabase/tests/probes/` and run it (expect `PROBE_OK`):
+Six fixes were split in two, so the database would not get ahead of the code production ran. Step 1 of each was applied with the fix; step 2 waited for the audited release, which reached `main` and deployed on 2026-09-24. All six step-2 migrations were then applied to live that day, each checked with its probe:
 
-| Step 2 | What it does | Its probe | Also |
-|---|---|---|---|
-| `new_a4_01_step2_anon_reads_only_the_public_point.sql` | A signed-out caller reads a property's point to about a kilometre, never the exact coordinates | `tests/pending/new-a4-01-step2.sql` | Deployed first, or signed-out reads go blank |
-| `db10_step2_signed_in_members_read_only_the_public_columns.sql` | `authenticated` loses SELECT on the private columns of listings, businesses and accommodations | `tests/pending/db-10-step2.sql` | After it, no signed-in `select *` on those tables |
-| `db05_step2_bank_and_payout_accounts_are_filed_by_the_server.sql` | Members and agents can no longer insert bank or payout accounts; only the server files them | `tests/pending/db-05-step2.sql` | Then change the DB-06 probe's allowlist as the file says |
+| Migration | What it does | Probe |
+|---|---|---|
+| `20260924070606_m10_mon02_age_only_hold_releasers_retired.sql` | The two age-only withdrawal-hold releasers can no longer be called (MON-02) | none (no API role holds EXECUTE) |
+| `20260924070608_m5b_one_successful_payment_per_booking.sql` | A unique index: one successful payment per booking (MON-05) | none (the index) |
+| `20260924070623_new_a4_01_step2_anon_reads_only_the_public_point.sql` | A signed-out caller reads a property's point to about a kilometre, never the exact coordinates | `tests/probes/new-a4-01-step2.sql` |
+| `20260924070725_db10_step2_signed_in_members_read_only_the_public_columns.sql` | `authenticated` loses SELECT on the private columns of listings, businesses and accommodations, so no signed-in `select *` on those tables may be added | `tests/probes/db-10-step2.sql` |
+| `20260924070810_db05_step2_bank_and_payout_accounts_are_filed_by_the_server.sql` | Only the server files bank and payout accounts; the DB-06 allowlist now reads `('bank_accounts', 'u')` and `('payout_accounts', 'du')` | `tests/probes/db-05-step2.sql` |
+| `20260924070835_m12b_drop_pot_balance_column_after_release.sql` | `wallet_pots.balance_minor` is gone; a pot's balance is read from the ledger (MON-08) | none |
 
-Apply each through the migration API, then save the file under the version the server stamps (rule 2) and delete it from `pending/`. The other files in `pending/` (the B4 digit scrub, the M6 bookings extension and the M8 landmarks seed with `LANDMARKS.md`) wait for the founder's decision, not for a release.
+The files left in `pending/` (the B4 digit scrub, the M6 bookings extension, and the M8 landmarks seed with `LANDMARKS.md`) wait for the founder's decision, not for a release.
 
 To change the auth email templates, edit `scripts/build-auth-emails.mjs` and regenerate them (`supabase/README.md`).
 

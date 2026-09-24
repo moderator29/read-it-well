@@ -1,5 +1,5 @@
--- DB-05 STEP 2 probe. Moves to tests/probes/ when step 2
--- (migrations/pending/db05_step2...) is applied after the release.
+-- DB-05 STEP 2 probe. Step 2 was applied on 2026-09-24, after the release deployed,
+-- as 20260924070810_db05_step2_bank_and_payout_accounts_are_filed_by_the_server.sql; PROBE_OK against live that day.
 -- A member's or agent's own client files no bank or payout account; the
 -- service role does; the owner still chooses the default and removes.
 do $$
@@ -45,6 +45,6 @@ begin
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-05 step 2: payout remove rows=%', n; end if;
 
-  raise exception 'PROBE_OK db-05 step 2';
+  raise exception 'PROBE_OK db-05-step2';
 end
 $$;

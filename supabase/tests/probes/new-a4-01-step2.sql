@@ -1,5 +1,5 @@
--- NEW-A4-01 STEP 2 probe. Moves to tests/probes/ when step 2
--- (migrations/pending/new_a4_01_step2...) is applied after the release.
+-- NEW-A4-01 STEP 2 probe. Step 2 was applied on 2026-09-24, after the release deployed,
+-- as 20260924070623_new_a4_01_step2_anon_reads_only_the_public_point.sql; PROBE_OK against live that day.
 -- A signed-out caller never reads an exact point. anon cannot
 -- select the exact columns of listings, accommodations, businesses or
 -- catalogue_entries, cannot call the exact search bodies, and the public
@@ -88,6 +88,6 @@ begin
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL new-a4-01: owner unpublish rows=%', n; end if;
 
-  raise exception 'PROBE_OK new-a4-01';
+  raise exception 'PROBE_OK new-a4-01-step2';
 end
 $$;

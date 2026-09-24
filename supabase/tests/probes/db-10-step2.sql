@@ -1,5 +1,5 @@
--- DB-10 STEP 2 probe. Moves to tests/probes/ when step 2
--- (migrations/pending/db10_step2...) is applied after the release.
+-- DB-10 STEP 2 probe. Step 2 was applied on 2026-09-24, after the release deployed,
+-- as 20260924070725_db10_step2_signed_in_members_read_only_the_public_columns.sql; PROBE_OK against live that day.
 -- A signed-in member who is not the lister, owner or staff cannot read the
 -- private columns from the tables; the lister's and owner's own screens and
 -- writes still work (the public read plus the definer door; the wizard's
@@ -77,6 +77,6 @@ begin
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-10: admin decision rows=%', n; end if;
 
-  raise exception 'PROBE_OK db-10 step 2';
+  raise exception 'PROBE_OK db-10-step2';
 end
 $$;
