@@ -39,7 +39,14 @@ const schema = z.object({
 
 type NormsRpc = (
   fn: "area_fee_norms",
-  args: { p_state_code: string; p_city: string | null; p_area: string; p_property_type: string; p_bedrooms: number | null },
+  args: {
+    p_state_code: string;
+    p_city: string | null;
+    p_area: string;
+    p_property_type: string;
+    p_bedrooms: number;
+    p_intent: "rent" | "sale";
+  },
 ) => PromiseLike<{ data: unknown; error: unknown }>;
 
 type SignedIn = Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>;
@@ -53,7 +60,10 @@ async function readFeeNorms(subject: GuideSubject, session: SignedIn): Promise<F
       p_city: subject.city,
       p_area: subject.area,
       p_property_type: subject.propertyType,
-      p_bedrooms: subject.bedrooms,
+      /* The same group the range is read from: guideFromRows takes the
+         row for bedrooms ?? 0, and the listers are counted from exactly it. */
+      p_bedrooms: subject.bedrooms ?? 0,
+      p_intent: subject.intent,
     });
     if (error || !Array.isArray(data) || data.length === 0) return null;
     const row = data[0] as Record<string, unknown>;
