@@ -44,9 +44,9 @@ export function AccountHoldNotice({
       <div className="min-w-0">
         <p className="nf-body font-semibold text-content">{copy.title}</p>
         <p className="nf-body-sm mt-row text-content-2">
-          {/* A compliance hold names no cause and no date (no tipping off). */}
-          {hold.reason === "review"
-            ? copy.bodyReview
+          {/* A plain hold names no cause and no date (no tipping off). */}
+          {hold.reason === "plain"
+            ? copy.bodyPlain
             : (hold.reason === "not_me" ? copy.bodyNotMe : copy.bodyOther).replace("{until}", until)}
         </p>
       </div>

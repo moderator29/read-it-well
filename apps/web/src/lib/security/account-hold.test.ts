@@ -78,9 +78,9 @@ describe("formatHoldUntil", () => {
   });
 });
 
-describe("a compliance hold (SCUML item 8)", () => {
-  it("reads as review, so the member is told no cause and no date", () => {
+describe("a plain hold (SCUML items 6 and 8)", () => {
+  it("reads as plain, so the member is told no cause and no date", () => {
     const later = new Date(NOW + 86_400_000).toISOString();
-    expect(holdFromRows([{ hold_until: later, reason: "compliance_review" }], NOW)).toEqual({ state: "held", until: later, reason: "review" });
+    expect(holdFromRows([{ hold_until: later, reason: "plain" }], NOW)).toEqual({ state: "held", until: later, reason: "plain" });
   });
 });

@@ -24,6 +24,7 @@
  * it would sign the sender out of their own browser, which is theirs to do.
  */
 
+import { holdReasonOf } from "./not-me-copy";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -45,7 +46,7 @@ export type NotMeResult = {
   /** True when a press from an older session lengthened a hold already in force. */
   holdExtended: boolean;
   /** Why the hold that stands was placed: this person's own press, or support. */
-  holdReason: "not_me" | "other" | null;
+  holdReason: "not_me" | "plain" | "other" | null;
   /** The press signed everything else out, but the hourly limit left the hold alone. */
   rateLimited: boolean;
 };
@@ -83,7 +84,7 @@ export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
       holdUntil: typeof answer.hold_until === "string" ? answer.hold_until : null,
       holdPlaced: answer.hold_placed === true,
       holdExtended: answer.hold_extended === true,
-      holdReason: answer.hold_reason === "not_me" ? "not_me" : answer.hold_reason ? "other" : null,
+      holdReason: holdReasonOf(answer.hold_reason),
       rateLimited,
     });
   } catch {

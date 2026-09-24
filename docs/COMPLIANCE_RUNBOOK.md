@@ -12,7 +12,7 @@ The desk is `/admin/compliance`, one tab per obligation.
 A person whose name matched a list, who is under review, or about whom a report
 is filed sees nothing different, and is told nothing that names sanctions, a
 list, a review or a report. If money is held, they see only the neutral line
-"Nothing can leave this wallet for now" (hold reason `compliance_review`). Staff
+"Nothing can leave this wallet for now" (hold reason `plain`, which names nothing, and no date). Staff
 say nothing more on the phone, in support or by email.
 
 ## SCUML items 8 and 9: sanctions screening
@@ -56,8 +56,8 @@ say nothing more on the phone, in support or by email.
 4. **A second staff member approves.** The person who proposed cannot approve
    their own proposal (item 19); the database refuses it.
 5. **If it is the same person, the approval freezes the account.** It places
-   the audit's own hold, `account_money_holds` with reason `compliance_review`,
-   for ten years or until lifted. No money leaves and no payout account
+   the audit's own hold, `account_money_holds`,
+   for ten years or until lifted, under the reason code `plain`, which names nothing (the member can read it). No money leaves and no payout account
    changes.
 6. **Report it.**
    - Open the STR from the match ("Open a suspicious transaction report", SCUML

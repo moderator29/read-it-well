@@ -26,12 +26,14 @@
 import { formatDate, type Locale } from "@vallo/i18n";
 
 /*
- * `review`: a hold staff placed after two of them agreed (SCUML item 8, a
- * confirmed sanctions match, reason `compliance_review`). The member is told
- * that money cannot leave, and nothing about why or until when: naming the
- * cause would tip them off, which the Money Laundering Act forbids.
+ * `plain`: a hold whose reason code names nothing (no review, no compliance,
+ * no staff), because the member can read the row. Staff place it after two of
+ * them agree (SCUML item 8, a confirmed sanctions match; item 6, an STR). The
+ * member is told that money cannot leave, and nothing about why or until
+ * when: naming the cause, or a date years away, would tip them off, which the
+ * Money Laundering Act forbids.
  */
-export type HoldReason = "not_me" | "review" | "other";
+export type HoldReason = "not_me" | "plain" | "other";
 
 export type AccountHold =
   | { state: "none" }
@@ -53,7 +55,7 @@ export function holdFromRows(rows: unknown, now: number): AccountHold {
       latest = at;
       found = {
         until: row.hold_until,
-        reason: row.reason === "not_me" ? "not_me" : row.reason === "compliance_review" ? "review" : "other",
+        reason: row.reason === "not_me" ? "not_me" : row.reason === "plain" ? "plain" : "other",
       };
     }
   }
