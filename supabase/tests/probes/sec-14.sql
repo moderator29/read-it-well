@@ -56,7 +56,7 @@ begin
   -- CONTROLS: an ordinary edit beside the existing name; real names that only resemble it.
   update public.profiles set first_name = 'Ada', nickname = 'Ada B' where id = member;
   if not found then raise exception 'PROBE_FAIL sec-14: control failed, the member could not edit beside an existing name'; end if;
-  update public.profiles set surname = 'Cavallo', nickname = 'Tunde Official' where id = member;
+  update public.profiles set surname = 'Cavallo', nickname = 'Tunde Official', first_name = 'Vallory' where id = member;
   if not found then raise exception 'PROBE_FAIL sec-14: control failed, a real name was refused'; end if;
 
   -- REFUSAL: the consent record.
@@ -72,8 +72,10 @@ begin
   exception when others then refused := sqlstate; end;
   if refused is distinct from '42501' then raise exception 'PROBE_FAIL sec-14: the member rewrote created_at (%)', coalesce(refused, 'updated'); end if;
 
-  -- REFUSAL: names that speak for Vallo, however written.
-  foreach h in array array['Vallo Support', 'V a l l o', 'V.a.l.l.o', 'ValloSupport', 'vallo_hq', 'Moderator'] loop
+  -- REFUSAL: names that speak for Vallo, however written: spaced, run
+  -- together, in Cyrillic or full-width look-alikes, or with digits for letters.
+  foreach h in array array['Vallo Support', 'V a l l o', 'V.a.l.l.o', 'ValloSupport', 'vallo_hq', 'Moderator',
+                            'Vаllo', 'Ваllo', 'Ｖａｌｌｏ', 'Vall0', 'Va11o'] loop
     refused := null;
     begin
       update public.profiles set nickname = h where id = member;
