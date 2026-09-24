@@ -817,6 +817,7 @@ export function ThreadView({
         onConfirmInspection={() => void handleConfirmInspection()}
         onClose={closeSheet}
         passportShare={live ? passportShare : null}
+        unsafeAsLister={context?.kind === "listing" && role === "host"}
       />
 
       {/* ------------------------------------------------- context banner */}

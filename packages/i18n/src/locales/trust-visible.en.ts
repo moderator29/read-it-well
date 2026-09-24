@@ -389,9 +389,15 @@ export const trustVisibleEn = {
     call: "Call 112",
     callHint: "Nigeria's emergency number. If you are in danger, call now.",
     leave: "Leave and block",
-    leaveHint: "They can no longer message you and Vallo is told. If you have written to them here, their new inspection requests to you pause while a person here looks.",
+    leaveHint: "They can no longer message you and Vallo is told.",
     tell: "Tell Vallo",
-    tellHint: "A person here reads it {clock}. If you have written to them here, their new inspection requests to you pause until then.",
+    tellHint: "A person here reads it {clock}.",
+    /**
+     * Added to either hint only when the person filing is the lister in this
+     * thread or on this inspection: a hold pauses the other person's requests
+     * to them, which means nothing to a renter filing about a lister.
+     */
+    pauseHint: "If you have written to them here, their new inspection requests to you pause while a person here looks.",
     working: "One moment",
     /** `{clock}` is the promised time, e.g. "within 4 hours". */
     told: "Vallo has it. A person here reads it {clock}. Vallo does not tell them who reported them.",
@@ -400,9 +406,8 @@ export const trustVisibleEn = {
     notAParty: "This is not a conversation you are part of.",
     signedOut: "Sign in to tell Vallo. If you are in danger, call 112 now.",
     close: "Close",
-    held: "Inspection requests to this lister are paused while Vallo looks at a safety report.",
     /** After filing, when the hold was placed. */
-    heldNote: "Their new inspection requests to you are paused while a person here looks. If they try, they are told requests are paused, never who asked.",
+    heldNote: "Their new inspection requests to you are paused while a person here looks.",
   },
   /** V-63: the report sheet's promise, read from the category's own clock. */
   report: {

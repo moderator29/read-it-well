@@ -70,6 +70,7 @@ export function ThreadOptionsSheet({
   onConfirmInspection,
   onClose,
   passportShare = null,
+  unsafeAsLister = false,
 }: {
   open: boolean;
   conversationId: string;
@@ -96,6 +97,8 @@ export function ThreadOptionsSheet({
   onClose: () => void;
   /** V-100: the renter's own passport switch for this thread. Null draws nothing. */
   passportShare?: { enabled: boolean; shared: boolean } | null;
+  /** V-63: the viewer is the lister on this listing thread. */
+  unsafeAsLister?: boolean;
 }) {
   const dictionary = useClientDictionary();
   const [confirmingBlock, setConfirmingBlock] = useState(false);
@@ -246,6 +249,7 @@ export function ThreadOptionsSheet({
               conversationId={conversationId}
               trigger="row"
               afterLeave="/messages"
+              filerIsLister={unsafeAsLister}
             />
           )}
           <ReportSheet

@@ -76,25 +76,11 @@ $$;
 
 revoke all on function private.has_open_safety_hold(uuid, uuid) from public, anon, authenticated;
 
-/* Am I held against the lister of this listing? Answers for the caller only,
-   so it cannot be used to learn whether somebody else was reported. */
-create or replace function public.safety_hold_open(p_listing uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select coalesce(private.has_open_safety_hold(
-           (select auth.uid()),
-           (select a.user_id from public.listings l join public.agents a on a.id = l.agent_id where l.id = p_listing)), false);
-$$;
-
-comment on function public.safety_hold_open(uuid) is
-  'V-63. True while the caller is on an open safety hold filed by the lister of this listing. Never answers about anybody else.';
-
-revoke all on function public.safety_hold_open(uuid) from public, anon;
-grant execute on function public.safety_hold_open(uuid) to authenticated;
+/* NO READ OF ONE'S OWN HOLD. An earlier draft let a person ask "am I held
+   against this listing's lister?", and the answer named the filer: only the
+   lister of that listing could have filed it. A held request is refused below
+   exactly as a listing that is not taking requests is refused, so nothing a
+   held person can see tells them a report exists, or who made it. */
 
 create or replace function public.feel_unsafe(p_conversation uuid, p_inspection uuid, p_block boolean)
 returns jsonb
@@ -292,8 +278,11 @@ begin
      stops anybody receiving a request, and never follows the held person to
      other listers. */
   if private.has_open_safety_hold(new.requester_id, new.lister_id) then
-    raise exception 'inspection requests are paused while Vallo looks at a safety report'
-      using errcode = 'P0001', hint = 'safety_hold';
+    /* Word for word what the insert policy says when it refuses a listing
+       that is not taking requests, with no hint: the held person reads the
+       same sentence as anybody else turned away, and learns nothing. */
+    raise exception 'new row violates row-level security policy for table "inspection_requests"'
+      using errcode = '42501';
   end if;
   return new;
 end;
@@ -312,6 +301,7 @@ begin
   if has_table_privilege('authenticated', 'private.safety_holds', 'select') then bad := bad || ' [holds are readable]'; end if;
   if has_function_privilege('anon', 'public.feel_unsafe(uuid, uuid, boolean)', 'execute') then bad := bad || ' [anon can file]'; end if;
   if has_function_privilege('authenticated', 'private.has_open_safety_hold(uuid, uuid)', 'execute') then bad := bad || ' [holds can be tested for anyone]'; end if;
+  if to_regprocedure('public.safety_hold_open(uuid)') is not null then bad := bad || ' [a held person can ask about their own hold]'; end if;
   if bad <> '' then raise exception 'READ-BACK FAILED:%', bad; end if;
 end;
 $readback$;

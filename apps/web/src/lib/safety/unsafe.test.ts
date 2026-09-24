@@ -49,16 +49,20 @@ describe("I feel unsafe (V-63)", () => {
     expect(action).not.toContain("phoneGateFor");
     expect(action).toContain('rpc("feel_unsafe"');
     const inspections = read("lib/inspections/actions.ts");
-    expect(inspections).toContain('rpc("safety_hold_open", { p_listing: parsed.data.listingId })');
+    /* No read of one's own hold, and no sentence of its own: a held request
+       reads as any listing not taking requests. */
+    expect(inspections).not.toContain("safety_hold_open");
+    expect(inspections).not.toContain("safety_hold");
   });
 });
 
 describe("the hold, after review (V-63)", () => {
-  it("never tests a hold for anybody but the caller, and pauses only the person asking", () => {
+  it("never lets a held person learn of the hold, and pauses only the person asking", () => {
     const sql = read("../../../supabase/migrations/20260924131400_v63_i_feel_unsafe.sql");
-    expect(sql).toContain("create or replace function public.safety_hold_open(p_listing uuid)");
-    expect(sql).not.toContain("public.safety_hold_open(p_user uuid)");
+    expect(sql).not.toContain("create or replace function public.safety_hold_open");
     expect(sql).toContain("if private.has_open_safety_hold(new.requester_id, new.lister_id) then");
+    expect(sql).toContain(`raise exception 'new row violates row-level security policy for table "inspection_requests"'`);
+    expect(sql).not.toContain("hint = 'safety_hold'");
     expect(sql).toContain("escalated := report is not null and previous is distinct from 'unsafe';");
     expect(sql).not.toContain("h.held_id in (new.requester_id, new.lister_id)");
     expect(sql).toContain("expires_at  timestamptz not null default now() + interval '72 hours'");
@@ -75,7 +79,21 @@ describe("the hold, after review (V-63)", () => {
   it("tells the filer the truth about what the other person reads", () => {
     const copy = getDictionary("en").trustVisible.unsafe;
     expect(copy.openerHint).not.toMatch(/not told/);
-    expect(copy.heldNote).toContain("never who asked");
-    expect(read("components/app/safety/UnsafeSheet.tsx")).toContain("result.data.held ? `${said} ${copy.heldNote}` : said");
+    /* No promise of anonymity the product cannot keep. */
+    expect(copy.heldNote).not.toMatch(/never who|not told|anonym/i);
+    expect("held" in copy).toBe(false);
+    const sheet = read("components/app/safety/UnsafeSheet.tsx");
+    expect(sheet).toContain("result.data.held && filerIsLister ? `${said} ${copy.heldNote}` : said");
+  });
+
+  it("speaks of paused requests only to a lister", () => {
+    const copy = getDictionary("en").trustVisible.unsafe;
+    expect(copy.leaveHint).not.toMatch(/inspection/);
+    expect(copy.tellHint).not.toMatch(/inspection/);
+    expect(copy.pauseHint).toMatch(/inspection requests to you pause/);
+    const sheet = read("components/app/safety/UnsafeSheet.tsx");
+    expect(sheet).toContain("filerIsLister ? `${copy.leaveHint} ${copy.pauseHint}` : copy.leaveHint");
+    expect(read("components/app/inspections/InspectionSheet.tsx")).toContain('filerIsLister={side === "lister"}');
+    expect(read("app/(app)/messages/[id]/ThreadView.tsx")).toContain('unsafeAsLister={context?.kind === "listing" && role === "host"}');
   });
 });

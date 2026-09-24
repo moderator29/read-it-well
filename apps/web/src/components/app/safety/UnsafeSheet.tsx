@@ -19,11 +19,11 @@ import { responseTimeFor } from "@/lib/trust/standards";
  *   Tell Vallo        tells Vallo on the four-hour clock and changes nothing
  *                     else.
  *
- * Either one pauses the other person's OWN new inspection requests when this
- * person has written to them in the thread, and the sheet says so only when
- * it happened. The other person is never told who reported them; if they try
- * to arrange a viewing they read that requests are paused, which the sheet
- * says too rather than promising they are told nothing.
+ * Either one pauses the other person's OWN new inspection requests to this
+ * person when this person has written to them in the thread. The sheet says
+ * so only to a lister (the only side a pause means anything to) and only when
+ * it happened. A held request is refused in the same words as any listing not
+ * taking requests, and the sheet promises nothing beyond that.
  *
  * "Tell someone" (the trusted-contact check-in, V-62) is not drawn: it does
  * not exist on this branch, and a row that does nothing is worse than none.
@@ -39,6 +39,7 @@ export function UnsafeSheet({
   trigger,
   onOpen,
   afterLeave,
+  filerIsLister = false,
 }: {
   copy: Dictionary["trustVisible"]["unsafe"];
   conversationId?: string;
@@ -48,11 +49,18 @@ export function UnsafeSheet({
   onOpen?: () => void;
   /** Where to go once they have left and blocked, e.g. the inbox. */
   afterLeave?: string;
+  /**
+   * True when the person filing is the lister here. Only then can a hold pause
+   * anything they would notice (the other person's requests to them), so only
+   * then does the sheet say so.
+   */
+  filerIsLister?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const clock = responseTimeFor("unsafe").phrase;
+  const tellHint = copy.tellHint.replace("{clock}", clock);
 
   function file(block: boolean) {
     setNote(null);
@@ -66,7 +74,7 @@ export function UnsafeSheet({
         return;
       }
       const said = (block ? copy.left : copy.told).replace("{clock}", clock);
-      setNote({ ok: true, text: result.data.held ? `${said} ${copy.heldNote}` : said });
+      setNote({ ok: true, text: result.data.held && filerIsLister ? `${said} ${copy.heldNote}` : said });
       if (block && afterLeave) window.setTimeout(() => window.location.assign(afterLeave), 2500);
     });
   }
@@ -134,7 +142,7 @@ export function UnsafeSheet({
               >
                 {pending ? copy.working : copy.leave}
               </button>
-              <p className="nf-caption text-[var(--nf-content-muted)]">{copy.leaveHint}</p>
+              <p className="nf-caption text-[var(--nf-content-muted)]">{filerIsLister ? `${copy.leaveHint} ${copy.pauseHint}` : copy.leaveHint}</p>
 
               <button
                 type="button"
@@ -145,7 +153,7 @@ export function UnsafeSheet({
               >
                 {pending ? copy.working : copy.tell}
               </button>
-              <p className="nf-caption text-[var(--nf-content-muted)]">{copy.tellHint.replace("{clock}", clock)}</p>
+              <p className="nf-caption text-[var(--nf-content-muted)]">{filerIsLister ? `${tellHint} ${copy.pauseHint}` : tellHint}</p>
             </>
           )}
 

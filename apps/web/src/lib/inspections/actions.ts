@@ -8,8 +8,6 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { startConversation } from "../messages/actions";
 import { INSPECTION_OUTCOMES, type InspectionState } from "./types";
 import { phoneGateFor } from "../phone-otp/gate";
-import { getDictionary } from "@vallo/i18n";
-import { getLocale } from "../locale";
 
 /**
  * MOVING AN INSPECTION.
@@ -95,20 +93,11 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
     .maybeSingle();
   if (listing?.is_demo) return fail(EXAMPLE_LISTING_MESSAGE);
 
-  /* V-63: while a safety report about this person is waiting for a
-     moderator, they cannot ask for a viewing. The database refuses the insert
-     too (for either party); this is the sentence. */
-  let held: unknown = false;
-  try {
-    ({ data: held } = await (session.supabase as unknown as {
-      rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown }>;
-    }).rpc("safety_hold_open", { p_listing: parsed.data.listingId }));
-  } catch {
-    /* A read that fails is not a hold; the trigger still refuses a held
-       person's insert, so nothing is let through. */
-    held = false;
-  }
-  if (held === true) return fail(getDictionary(await getLocale()).trustVisible.unsafe.held);
+  /* V-63: a person on a safety hold is refused by the database, in the same
+     words as a listing that is not taking requests (the row-level security
+     branch below). There is deliberately no earlier check and no sentence of
+     its own: either would tell the held person a report exists, and who
+     made it. */
 
   const { data, error } = await session.supabase
     .from("inspection_requests")
@@ -135,11 +124,6 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
     const message = error?.message ?? "";
     if (/example/i.test(message)) {
       return fail(EXAMPLE_LISTING_MESSAGE);
-    }
-    /* V-63: the requester is on a safety hold (the courtesy check above can
-       miss it by a moment). A hold only ever pauses the person asking. */
-    if ((error as { hint?: string } | null)?.hint === "safety_hold") {
-      return fail(getDictionary(await getLocale()).trustVisible.unsafe.held);
     }
     if (message.includes("inspection_requests_parties_differ")) {
       return fail("This is your own property, so there is nothing to arrange.");

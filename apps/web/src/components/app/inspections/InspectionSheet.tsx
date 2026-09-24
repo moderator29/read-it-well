@@ -418,7 +418,7 @@ export function InspectionSheet({
         )}
 
         {/* V-63: one control, whichever side of the viewing this person is. */}
-        {unsafe && <UnsafeSheet copy={unsafe} inspectionId={inspection.id} trigger="button" />}
+        {unsafe && <UnsafeSheet copy={unsafe} inspectionId={inspection.id} trigger="button" filerIsLister={side === "lister"} />}
 
         {/* ------------------------------------------ V-05, the truth questions */}
         {truth && (
