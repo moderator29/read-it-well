@@ -19,6 +19,10 @@ import type { Database } from "../supabase/database.types";
 
 export type RentPaymentRow = Database["public"]["Tables"]["rent_payments"]["Row"];
 
+/** SUP-09. What a tenant reads when another tenant has already paid for the home. */
+export const ALREADY_LET_MESSAGE =
+  "This home has already been let to another tenant, so it can no longer be paid for. Nothing was taken from you.";
+
 /** What `public.open_rent_charge` answers. */
 export type OpenRentChargeOutcome = {
   status:
@@ -34,7 +38,9 @@ export type OpenRentChargeOutcome = {
     | "own_listing"
     | "no_amount"
     /* ESC-03: a stay already holds the move-in date. */
-    | "date_taken";
+    | "date_taken"
+    /* SUP-09: another tenant has already paid the move-in total on this home. */
+    | "already_let";
   rent_payment_id?: string;
   booking_id?: string;
   total_minor?: number;

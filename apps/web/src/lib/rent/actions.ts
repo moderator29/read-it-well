@@ -31,7 +31,7 @@ import { payWithSavedCard } from "../bookings/checkout";
 import { isFeatureEnabled } from "../flags";
 import type { ChargeSavedCardOutcome } from "../payments/charge-saved-card";
 import { getAdminClient } from "../wallet/ledger";
-import { readOpenOutcome } from "./db";
+import { ALREADY_LET_MESSAGE, readOpenOutcome } from "./db";
 import { lagosToday, rentPaymentIdSchema, startRentPaymentSchema, whyNotMoveIn } from "./schema";
 
 const PAUSED_MESSAGE = "Payments are paused for maintenance. Please try again in a little while.";
@@ -123,6 +123,8 @@ export async function startRentPayment(input: {
       return fail("This is your own listing, so there is no rent for you to pay on it.");
     case "move_in_past":
       return fail("The move-in date has passed. Pick today or later.", { moveIn: "Pick today or later." });
+    case "already_let":
+      return fail(ALREADY_LET_MESSAGE);
     case "date_taken":
       return fail("That move-in date is already taken on this listing. Pick another day.", {
         moveIn: "Pick another day.",

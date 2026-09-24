@@ -53,6 +53,7 @@ import { bookingReference, isBookingReference } from "../payments/references";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { bookingPaymentSubject } from "./payment-subject";
 import { checkoutReturnPath } from "../rent/return-path";
+import { ALREADY_LET_MESSAGE } from "../rent/db";
 import { guardMoney } from "../security/money-limits";
 import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet/ledger";
 import { announceConfirmedStay } from "./arrival";
@@ -582,6 +583,7 @@ async function payWithWalletWork(
   if (outcome.status === "not_pending") return fail(CONFIRMED_MESSAGE);
   if (outcome.status === "not_found") return fail(NOT_FOUND_MESSAGE);
   if (outcome.status === "already_paid") return fail(ALREADY_PAID_MESSAGE);
+  if (outcome.status === "already_let") return fail(ALREADY_LET_MESSAGE);
   if (outcome.status !== "ok" && outcome.status !== "duplicate") return fail(SERVICE_DOWN_MESSAGE);
 
   // Everything committed together or not at all. Reading the balance back is
