@@ -297,6 +297,27 @@ export const trustVisibleEn = {
     photoNoReference: "a listing with no code",
     photosNotCompared: "These photographs have not been compared: hashing needs the server's storage key, which this environment does not have.",
     photosFailed: "The comparison could not be read just now. Try again before deciding.",
+    /** V-60: recalling a stop for fraud. */
+    recallTitle: "Tell the people this account talked to",
+    recallLede: "Everybody who had a conversation or an inspection with this account in the 60 days before the stop is told, by notification and email. The account, the reason written above and whoever reported it are never named.",
+    recallWhy: "Why it was stopped",
+    recallOffPlatform: "Asking people to pay outside Vallo",
+    recallScam: "A scam",
+    recallCount: "Count who would be told",
+    recallCounting: "Counting",
+    /** `{count}` people. */
+    recallWillTellOne: "This will tell 1 person.",
+    recallWillTell: "This will tell {count} people.",
+    recallNobody: "Nobody talked to this account in the 60 days before the stop, so there is nobody to tell.",
+    recallConfirm: "Tell them",
+    recallSending: "Telling them",
+    /** `{count}` people, `{date}` a date. */
+    recallSent: "Told {count} people on {date}.",
+    recallSentOne: "Told 1 person on {date}.",
+    recallLifted: "This stop has been lifted, so nobody can be told it stands.",
+    recallFailed: "That did not go through. Nothing was sent. Try again in a moment.",
+    recallForbidden: "Only Vallo staff can recall a stop.",
+    recallAlready: "This stop has already been recalled. Nobody is told twice.",
   },
   /** V-34: the Vallo Record, counted facts, never a score. */
   record: {

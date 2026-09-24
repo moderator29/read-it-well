@@ -1,0 +1,118 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { getDictionary } from "@vallo/i18n";
+import { previewRecall, sendRecall } from "@/lib/admin/recall-actions";
+import { willTell, type RecallPreview } from "@/lib/admin/recall";
+
+/**
+ * V-60 ON THE STOPS DESK: recall a standing stop for fraud.
+ *
+ * Three deliberate steps, because this is loud: choose why, count who would be
+ * told ("This will tell 14 people"), then confirm. Nothing is sent until the
+ * third press. A stop already recalled shows when and to how many, and a
+ * lifted stop cannot be recalled at all. The desk reads English.
+ */
+const desk = getDictionary("en").trustVisible.desk;
+
+function day(iso: string): string {
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(
+    new Date(iso),
+  );
+}
+
+export function RecallPanel({ suspensionId }: { suspensionId: string }) {
+  const [category, setCategory] = useState<"off_platform_payment" | "scam">("off_platform_payment");
+  const [preview, setPreview] = useState<RecallPreview | null>(null);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function count() {
+    setMessage(null);
+    startTransition(async () => {
+      const result = await previewRecall({ suspensionId });
+      if (result.ok) setPreview(result.data);
+      else setMessage({ ok: false, text: result.error });
+    });
+  }
+
+  function send() {
+    setMessage(null);
+    startTransition(async () => {
+      const result = await sendRecall({ suspensionId, category });
+      if (result.ok) {
+        const today = day(new Date().toISOString());
+        setMessage({
+          ok: true,
+          text:
+            result.data.recipients === 1
+              ? desk.recallSentOne.replace("{date}", today)
+              : desk.recallSent.replace("{count}", String(result.data.recipients)).replace("{date}", today),
+        });
+        setPreview(null);
+      } else {
+        setMessage({ ok: false, text: result.error });
+      }
+    });
+  }
+
+  const sent = preview?.sent ?? null;
+
+  return (
+    <section className="mt-block" data-testid="recall-panel" aria-label={desk.recallTitle}>
+      <h4 className="nf-overline text-[var(--nf-content-muted)]">{desk.recallTitle}</h4>
+      <p className="mt-inline-tight nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">{desk.recallLede}</p>
+
+      {sent ? (
+        <p role="status" className="mt-row nf-body-sm text-[var(--nf-content-primary)]">
+          {(sent.to === 1 ? desk.recallSentOne : desk.recallSent.replace("{count}", String(sent.to))).replace("{date}", day(sent.at))}
+        </p>
+      ) : preview?.lifted ? (
+        <p role="status" className="mt-row nf-body-sm text-[var(--nf-content-secondary)]">
+          {desk.recallLifted}
+        </p>
+      ) : (
+        <div className="mt-row grid gap-xs">
+          <label className="grid gap-3xs nf-body-sm text-[var(--nf-content-secondary)]">
+            {desk.recallWhy}
+            <select
+              value={category}
+              onChange={(event) => {
+                setCategory(event.target.value as typeof category);
+              }}
+              className="nf-field min-h-[44px] w-full"
+            >
+              <option value="off_platform_payment">{desk.recallOffPlatform}</option>
+              <option value="scam">{desk.recallScam}</option>
+            </select>
+          </label>
+          {preview ? (
+            <>
+              <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]" data-testid="recall-count">
+                {willTell(preview.audience, desk)}
+              </p>
+              {preview.audience > 0 && (
+                <button type="button" onClick={send} disabled={pending} className="nf-btn nf-btn--danger nf-btn--sm">
+                  {pending ? desk.recallSending : desk.recallConfirm}
+                </button>
+              )}
+            </>
+          ) : (
+            <button type="button" onClick={count} disabled={pending} className="nf-btn nf-btn--secondary nf-btn--sm">
+              {pending ? desk.recallCounting : desk.recallCount}
+            </button>
+          )}
+        </div>
+      )}
+
+      {message && (
+        <p
+          role={message.ok ? "status" : "alert"}
+          className={`mt-inline nf-body-sm ${message.ok ? "text-[var(--nf-content-primary)]" : "text-[var(--nf-state-error)]"}`}
+        >
+          {message.text}
+        </p>
+      )}
+    </section>
+  );
+}

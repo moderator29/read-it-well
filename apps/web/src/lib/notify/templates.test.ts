@@ -97,6 +97,7 @@ const TEMPLATES_THE_TRIGGERS_WRITE = [
   "inspection.scheduled",
   "verification.rung_passed",
   "listing.new_enquiry",
+  "safety.scam_recall",
 ] as const;
 
 /** One real payload per template, of the shape its own trigger composes. */
@@ -158,6 +159,8 @@ const PAYLOADS: Record<(typeof TEMPLATES_THE_TRIGGERS_WRITE)[number], Payload> =
     listing_id: LISTING,
     enquirer_id: PAYEE,
   },
+  /* `public.scam_recall_send` (V-60) writes the listing title and the category. */
+  "safety.scam_recall": { listing_title: "Two bedroom flat in Ikeja GRA", category: "off_platform_payment" },
 };
 
 describe("the registry covers every template a trigger writes", () => {

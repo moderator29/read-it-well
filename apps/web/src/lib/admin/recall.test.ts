@@ -1,0 +1,47 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { getDictionary } from "@vallo/i18n";
+
+import { recallPreviewFrom, recallSendFrom, willTell } from "./recall";
+
+const desk = getDictionary("en").trustVisible.desk;
+
+describe("recalling a stop (V-60)", () => {
+  it("reads the preview, with and without a recall already sent", () => {
+    expect(recallPreviewFrom([{ audience: 14, sent_at: null, sent_to: null, category: null, lifted: false }])).toEqual({
+      audience: 14,
+      lifted: false,
+      sent: null,
+    });
+    expect(
+      recallPreviewFrom([{ audience: 14, sent_at: "2026-10-04T09:00:00Z", sent_to: 14, category: "scam", lifted: false }])?.sent,
+    ).toEqual({ at: "2026-10-04T09:00:00Z", to: 14, category: "scam" });
+    expect(recallPreviewFrom([])).toBeNull();
+    expect(recallPreviewFrom([{ audience: "14" }])).toBeNull();
+  });
+
+  it("says how many people before anything is sent", () => {
+    expect(willTell(14, desk)).toBe("This will tell 14 people.");
+    expect(willTell(1, desk)).toBe("This will tell 1 person.");
+    expect(willTell(0, desk)).toBe(desk.recallNobody);
+  });
+
+  it("treats only a clear send as sent", () => {
+    expect(recallSendFrom({ status: "sent", recipients: 3 }, desk)).toEqual({ ok: true, recipients: 3 });
+    expect(recallSendFrom({ status: "already" }, desk)).toEqual({ ok: false, message: desk.recallAlready });
+    expect(recallSendFrom({ status: "lifted" }, desk)).toEqual({ ok: false, message: desk.recallLifted });
+    expect(recallSendFrom({ status: "forbidden" }, desk)).toEqual({ ok: false, message: desk.recallForbidden });
+    expect(recallSendFrom({ status: "sent" }, desk).ok).toBe(false);
+    expect(recallSendFrom(null, desk).ok).toBe(false);
+  });
+
+  it("is on the stops desk, under a standing stop, and sends only from its confirm button", () => {
+    const desk_ = readFileSync(join(__dirname, "../../app/admin/stops/StopsDesk.tsx"), "utf8");
+    expect(desk_).toContain("<RecallPanel suspensionId={stop.id} />");
+    const panel = readFileSync(join(__dirname, "../../app/admin/stops/RecallPanel.tsx"), "utf8");
+    expect(panel.match(/sendRecall\(/g)?.length).toBe(1);
+    expect(panel).toContain("onClick={send}");
+    expect(panel.indexOf("willTell(preview.audience, desk)")).toBeLessThan(panel.indexOf("onClick={send}"));
+  });
+});
