@@ -33,6 +33,9 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
   select count(*) into n from public.wallet_pot_balances where id = pot;
   if n <> 0 then raise exception 'PROBE_FAIL mon-08: another member read the pot'; end if;
+  -- A non-owner reaching the function itself learns nothing either.
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  if private.pot_balance_minor(pot) <> 0 then raise exception 'PROBE_FAIL mon-08: a stranger read the balance'; end if;
   reset role;
   set local role anon;
   begin
