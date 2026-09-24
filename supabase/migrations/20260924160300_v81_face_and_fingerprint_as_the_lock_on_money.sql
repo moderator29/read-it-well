@@ -135,19 +135,17 @@ select cron.schedule('vallo_purge_money_step_ups', '45 2 * * *', 'select private
 
 do $$
 begin
-  if exists (
-    select 1 from information_schema.role_table_grants
-     where table_schema = 'public'
-       and table_name in ('money_challenges', 'money_step_ups')
-       and grantee in ('anon', 'authenticated', 'PUBLIC')
-  ) then
+  /* has_table_privilege answers for the named role (a grant to PUBLIC
+     included, a column grant not); information_schema's grant views answer
+     only for the observer and pass by seeing nothing. */
+  if has_table_privilege('anon', 'public.money_challenges', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('authenticated', 'public.money_challenges', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('anon', 'public.money_step_ups', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('authenticated', 'public.money_step_ups', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') then
     raise exception 'a V-81 service table is not born locked';
   end if;
-  if exists (
-    select 1 from information_schema.role_table_grants
-     where table_schema = 'public' and table_name = 'money_credentials'
-       and grantee in ('anon', 'authenticated', 'PUBLIC')
-  ) then
+  if has_table_privilege('anon', 'public.money_credentials', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('authenticated', 'public.money_credentials', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') then
     raise exception 'money_credentials carries a table-level grant; it should be a column list';
   end if;
   if has_column_privilege('authenticated', 'public.money_credentials', 'public_key_spki', 'SELECT')

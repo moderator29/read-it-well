@@ -5,7 +5,7 @@ import { BackButton } from "@/components/site/BackButton";
 import { parentOf } from "@/lib/nav/resolve";
 
 /**
- * The way back on the auth screens (Session A's R14).
+ * The way back on the auth screens.
  *
  * Every screen in this group declares a parent in `lib/nav/route-parents.ts`
  * (`/sign-in` and `/sign-up` to `/welcome`, the email steps to their chooser,

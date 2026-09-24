@@ -1,5 +1,7 @@
 # R1 VISUAL AUDIT — 19 September 2026
 
+> The screenshots this file cites under `docs/design/proofs/` were removed from the tree; they are in git history at `77cf90ad`.
+
 _Transcribed by the lead. R1 could not write files, so this is its report verbatim from the line below._
 ---
 

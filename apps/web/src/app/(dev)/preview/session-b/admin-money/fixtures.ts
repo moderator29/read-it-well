@@ -1,5 +1,5 @@
 /*
- * FIXTURES FOR THE MONEY DESKS' PROOF HARNESS (lead ruling R-G: proofs are
+ * FIXTURES FOR THE MONEY DESKS' PROOF HARNESS (rule R-G: proofs are
  * reproducible). Two states: "live" mirrors the rows the production database
  * held when read on 22 and 23 September (one wallet, a completed 1,000 naira
  * top-up on 9 August and a failed withdrawal on 10 August, no escrows, no

@@ -2,6 +2,7 @@ import { formatNumber, type Dictionary, type Locale, formatRating } from "@vallo
 import type { ListingReview } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
+import { ReportSheet } from "@/components/app/ReportSheet";
 
 /**
  * Reviews.
@@ -50,6 +51,8 @@ export function ListingReviews({
   reviews,
   locale,
   t,
+  signedIn,
+  tenancy = false,
 }: {
   rating: number;
   reviewCount: number;
@@ -57,13 +60,25 @@ export function ListingReviews({
   reviews: ListingReview[];
   locale: Locale;
   t: Dictionary;
+  /**
+   * Whether the reader is signed in. When given, every written review carries
+   * its own report control (STORE-P2-01); a surface that does not pass it
+   * (a static preview) draws none.
+   */
+  signedIn?: boolean;
+  /** UX-21: a tenancy is lived in, not stayed at; its empty state says so. */
+  tenancy?: boolean;
 }) {
   if (reviewCount === 0 && reviews.length === 0) {
     return (
       <EmptyState
         icon="reviews"
         title="No reviews yet"
-        body="Nobody has stayed here through Vallo yet. A review appears once a guest actually has, and never before."
+        body={
+          tenancy
+            ? "Tenants can review a place after they move in, and a review appears only once one has."
+            : "Nobody has stayed here through Vallo yet. A review appears once a guest actually has, and never before."
+        }
         data-testid="reviews-empty"
       />
     );
@@ -95,6 +110,16 @@ export function ListingReviews({
                 <span className={TYPE.caption}>{review.when}</span>
               </p>
               {review.body && <p className={`mt-row ${TYPE.body}`}>{review.body}</p>}
+              {signedIn !== undefined && (
+                <div className="mt-row" data-testid="review-report">
+                  <ReportSheet
+                    targetType="review"
+                    targetId={review.id}
+                    targetLabel={`A review by ${review.author}`}
+                    signedIn={signedIn}
+                  />
+                </div>
+              )}
               {/* The host's answer, indented under the review it answers. One
                   per review, and it can never alter a word of the review
                   itself: it is a separate row in a separate table. */}
@@ -122,8 +147,8 @@ export function ListingReviews({
       ) : (
         <p className={`mt-group flex items-start gap-inline ${TYPE.body}`}>
           <UiIcon name="star" size={ICON.inline} className="mt-3xs shrink-0" />
-          Written reviews from verified stays will appear here once guests share
-          them on Vallo.
+          Written reviews from stays booked and finished on Vallo will appear here
+          once guests share them.
         </p>
       )}
     </div>

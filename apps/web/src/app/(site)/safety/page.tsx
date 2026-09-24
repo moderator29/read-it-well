@@ -6,6 +6,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { NEVER_ASK, NO_FEES_LINE, RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
+import { WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
 import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { e164 } from "@/lib/notify/whatsapp";
 
@@ -46,7 +47,7 @@ const PAYING_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Money comes back to your wallet first",
-    body: "A refund lands in your Vallo wallet, which is the fastest route we have, and you move it to your bank from there whenever you want. One wallet serves both sides, so it does not matter which one the money came from.",
+    body: `A refund lands in your Vallo wallet, which is the fastest route we have. ${WALLET_MONEY_USES} One wallet serves both sides, so it does not matter which one the money came from.`,
   },
   {
     title: "A table costs nothing to hold",

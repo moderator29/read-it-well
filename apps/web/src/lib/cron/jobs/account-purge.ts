@@ -1,6 +1,7 @@
 import "server-only";
 
 import { PURGE_BATCH_LIMIT } from "../../account-deletion/constants";
+import { destroyExpiredKyc } from "../../account-deletion/kyc-retention";
 import { runAccountPurges } from "../../account-deletion/purge";
 import { purgeDeps } from "../../account-deletion/service";
 import { spreadIds, type JobVerdict } from "../../bookings/lifecycle";
@@ -27,11 +28,33 @@ import type { AdminClient } from "../rpc";
  * request ids, which are opaque uuids and not people.
  */
 export async function accountPurge(admin: AdminClient): Promise<JobVerdict> {
-  const result = await runAccountPurges(purgeDeps(admin), PURGE_BATCH_LIMIT);
+  const deps = purgeDeps(admin);
+  const result = await runAccountPurges(deps, PURGE_BATCH_LIMIT);
+  /* The same run ends any retained AML record whose five years are up. */
+  const kyc = await destroyExpiredKyc(deps, PURGE_BATCH_LIMIT);
 
-  const counts = { due: result.due, purged: result.purged, retried: result.retried };
-  const detail = { due: result.due, purged: result.purged, retried: result.retried };
+  const counts = {
+    due: result.due,
+    purged: result.purged,
+    retried: result.retried,
+    kyc_due: kyc.due,
+    kyc_destroyed: kyc.destroyed,
+    kyc_retried: kyc.retried,
+  };
+  const detail = { ...counts };
 
+  if (result.retried === 0 && kyc.retried > 0) {
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: {
+        kind: "cron.kyc_retention.unfinished",
+        severity: "warning",
+        detail: { retried: kyc.retried, ...spreadIds("user", kyc.failures) },
+      },
+    };
+  }
   if (result.retried === 0) return { outcome: "ok", counts, detail, alert: null };
 
   return {

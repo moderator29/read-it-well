@@ -56,7 +56,7 @@ const GLASS = [
 ];
 
 /*
- * THE REGISTER, ON THE FOUR GROUNDS. Build 06.
+ * THE REGISTER, ON THE FOUR GROUNDS.
  *
  * DESIGN_DIRECTION makes the reference renders the law of the frontend, and
  * tokens.css, glass.css, ambient.css and symbols.css gained the rungs the

@@ -21,4 +21,10 @@ describe("a demand cell in words", () => {
     );
     expect(demandCounts({ searches: 5, unmet: 5, realSupply: 3 }, copy)).toContain("3 real listings");
   });
+
+  it("leaves the shortfall out when the board withholds it", () => {
+    expect(demandCounts({ searches: 7, unmet: null, realSupply: 0 }, copy)).toBe(
+      "7 people searched. No real listing on Vallo matches today.",
+    );
+  });
 });

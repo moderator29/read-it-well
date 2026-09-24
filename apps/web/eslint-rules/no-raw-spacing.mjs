@@ -236,4 +236,6 @@ export const noRawSpacing = {
   },
 };
 
-export default { rules: { "no-raw-spacing": noRawSpacing } };
+const plugin = { rules: { "no-raw-spacing": noRawSpacing } };
+
+export default plugin;

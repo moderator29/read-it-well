@@ -1,3 +1,4 @@
+import { initial } from "@/lib/text/initial";
 import Image from "next/image";
 import Link from "next/link";
 import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n";
@@ -108,7 +109,7 @@ export function ProfileHeader({
   const copy = t.socialProfile;
   const visible = t.trustVisible.profile;
   const name = profile.displayLabel || `@${profile.handle}`;
-  const monogram = (profile.displayLabel || profile.handle).charAt(0).toUpperCase();
+  const monogram = initial(profile.displayLabel || profile.handle);
   /*
    * One badge, not a stack of them. Somebody who looks after four areas would
    * otherwise push the name off a 390px line, and the fifth badge tells a

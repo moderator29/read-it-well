@@ -43,9 +43,11 @@ export default function Error({
       <p className="nf-system__overline">Something went wrong</p>
       <h1 className="nf-system__title">This screen did not load</h1>
       <p className="nf-system__body">
-        Something on our side stopped part way through. Nothing you were doing
-        was lost, and trying again usually settles it. If it keeps happening,
-        tell support and quote the reference.
+        Something stopped part way through. Anything you had typed on this
+        screen may need typing again, and trying again usually settles it.{" "}
+        {error.digest
+          ? "If it keeps happening, tell support and quote the reference below."
+          : "If it keeps happening, tell support what you were doing when it stopped."}
       </p>
 
       {error.digest && (

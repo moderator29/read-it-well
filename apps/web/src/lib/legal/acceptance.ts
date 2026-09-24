@@ -49,14 +49,15 @@ type AcceptanceWriter = {
 export async function recordTermsAcceptance(
   userId: string,
   source: AcceptanceSource,
+  options: { ageConfirmed?: boolean } = {},
 ): Promise<void> {
   if (!userId) return;
+  if (options.ageConfirmed) await recordAgeConfirmation(userId, source);
 
   try {
     /* Structurally typed rather than regenerated, for the reason written out
-       in `lib/admin/legal-queries.ts`: `database.types.ts` is a generated file
-       every worker in this tree has open, and one table is not worth the
-       collision. The shape below is the shape the migration creates. */
+       in `lib/admin/legal-queries.ts`: `database.types.ts` is a generated file,
+       and one table is not worth regenerating all of it. The shape below is the shape the migration creates. */
     const admin = createAdminClient() as unknown as AcceptanceWriter;
     const { error } = await admin.from("terms_acceptances").upsert(
       ACCEPTED_AT_SIGNUP.map((accepted) => ({
@@ -86,3 +87,35 @@ export async function recordTermsAcceptance(
     });
   }
 }
+
+/**
+ * STORE-19: the person's own statement that they are 18 or over, kept beside
+ * the terms receipt as document `age_18_or_over`, version `18+`.
+ *
+ * Its own write, so that a failure here can never cost the terms receipt, and
+ * its own alert, so a missing row is seen rather than assumed.
+ */
+async function recordAgeConfirmation(userId: string, source: AcceptanceSource): Promise<void> {
+  try {
+    const admin = createAdminClient() as unknown as AcceptanceWriter;
+    const { error } = await admin.from("terms_acceptances").upsert(
+      [{ user_id: userId, document: AGE_DOCUMENT, version: AGE_VERSION, source }],
+      { onConflict: "user_id,document,version", ignoreDuplicates: true },
+    );
+    if (error) throw new Error(error.message);
+  } catch {
+    await recordAlert({
+      kind: "legal.acceptance.unrecorded",
+      severity: "warning",
+      detail: { source, documents: [`${AGE_DOCUMENT}@${AGE_VERSION}`] },
+      subjectId: userId,
+      subjectKind: "user",
+    }).catch(() => {
+      // Nothing further to do: the alert writer is itself best effort.
+    });
+  }
+}
+
+/** The age statement's document name and version in `terms_acceptances`. */
+export const AGE_DOCUMENT = "age_18_or_over";
+export const AGE_VERSION = "18+";

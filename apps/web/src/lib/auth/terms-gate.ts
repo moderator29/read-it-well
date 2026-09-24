@@ -46,6 +46,25 @@ import { TERMS_VERSION } from "@/lib/legal/versions";
  * ACCOUNT WAS CREATED.
  */
 
+/**
+ * STORE-19: THE TERMS SAY 18 OR OVER, SO SIGN-UP ASKS.
+ *
+ * The form posts `ageConfirmed=18+` only from a ticked box, and the server
+ * refuses an account without it, for the same reason as the version below:
+ * a browser check alone is not a check. What is recorded is the person's own
+ * statement, beside the terms receipt; nothing here verifies an age.
+ */
+export const AGE_CONFIRMED_VALUE = "18+";
+export const AGE_NOT_CONFIRMED_MESSAGE = "Vallo is for adults. Tick the box to confirm you are 18 or older.";
+
+export function ageConfirmed(submitted: string | null | undefined): boolean {
+  return (submitted ?? "").trim() === AGE_CONFIRMED_VALUE;
+}
+
+export function ageRefusal(submitted: string | null | undefined): string | null {
+  return ageConfirmed(submitted) ? null : AGE_NOT_CONFIRMED_MESSAGE;
+}
+
 /** The one message a person sees when the agreement is missing or stale. */
 export const TERMS_NOT_ACCEPTED_MESSAGE =
   "Please tick the box to say you agree to the terms, the privacy notice and the rules.";

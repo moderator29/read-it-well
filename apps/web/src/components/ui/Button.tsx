@@ -43,7 +43,7 @@ import { feedback } from "@/lib/ui/feedback";
  * Stays beside Explore Properties, Contact Hotel beside View booking details,
  * Reset beside Apply. Same glass, but with the BRAND edge and a lit rim, so
  * it reads as part of the same lit object as the primary rather than as a
- * neutral plate next to it. Two workers reached for `variant="glass"` before
+ * neutral plate next to it. Two screens reached for `variant="glass"` before
  * it existed, which is the clearest sign a vocabulary is missing a word.
  */
 export type ButtonVariant =
@@ -186,6 +186,8 @@ function buttonClass({
  */
 function pulse(enabled: boolean) {
   if (!enabled) return;
+  /* STORE-04 and V-30: inside the app the native haptic engine takes the tap
+     (iOS has no `navigator.vibrate`); `feedback` chooses the channel. */
   feedback("select");
 }
 

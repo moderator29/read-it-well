@@ -21,11 +21,15 @@
  * agent row. None of them is restated here, because a rule enforced twice
  * drifts in one of the two places.
  *
- * Every write goes through the agent's own RLS-bound client. The service role
- * is never used: a payout account written as the service role would bypass the
- * ownership check that is the entire point.
+ * Adding an account is the one write made with the service role, for the
+ * agent row the signed-in session resolves to (never an id from the form):
+ * the agent's own client holds no INSERT, so a direct API call cannot file a
+ * NUBAN under a name the bank did not give. Choosing the default and removing
+ * an account go through the agent's own RLS-bound client, which may change
+ * nothing but `is_default`.
  */
 
+import { moneyHoldRefusal } from "../wallet/money-hold";
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE } from "../actions/session";
@@ -124,7 +128,16 @@ export async function addPayoutAccount(
     return fail(SERVICE_DOWN_MESSAGE);
   }
 
-  const { data: created, error: insertError } = await context.supabase
+  /* Written by the service role, for the agent row the session resolved to:
+     an agent's own client holds no INSERT on payout_accounts, so the name on
+     a payout account is only ever the bank's answer above. */
+  let writer: ReturnType<typeof createAdminClient>;
+  try {
+    writer = createAdminClient();
+  } catch {
+    return fail(SERVICE_DOWN_MESSAGE);
+  }
+  const { data: created, error: insertError } = await writer
     .from("payout_accounts")
     .insert({
       agent_id: context.agent.id,
@@ -140,6 +153,8 @@ export async function addPayoutAccount(
     .single();
 
   if (insertError) {
+    const held = moneyHoldRefusal(insertError);
+    if (held) return fail(held);
     // 23505 is the per-agent unique NUBAN.
     if (insertError.code === "23505") {
       return fail(

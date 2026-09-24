@@ -1,4 +1,5 @@
 import "server-only";
+import { settleBookingCharge } from "../bookings/settlement";
 
 import { failureReason, logMoney } from "../payments/observability";
 import {
@@ -11,6 +12,7 @@ import {
 } from "../payments/paystack";
 import { isBookingReference, isFundReference } from "../payments/references";
 import { recordMoneyAudit, type MoneyActor } from "./audit";
+import { recordAlert } from "../alerts/record";
 import {
   findUserByEmail,
   recordFunding,
@@ -18,6 +20,8 @@ import {
   walletOwnerId,
   type AdminClient,
 } from "./ledger";
+import { processorFeeMetadata } from "./funding-fee";
+import { creditReversedWithdrawal, reversalReference } from "./withdrawal-reversal";
 
 /**
  * Reconciliation. The permanent answer to "the processor took the money and
@@ -68,6 +72,25 @@ export const DEFAULT_SWEEP_HOURS = 48;
  * Paystack about it. Below this, the transfer is simply in flight.
  */
 export const WITHDRAWAL_HOLD_TIMEOUT_MINUTES = 30;
+
+/**
+ * MON-01. How old a hold must be before "Paystack does not know this
+ * reference" (a 404 on verify) is read as "the transfer never started" and the
+ * hold is released. A transfer whose initiate call timed out may still have
+ * been accepted, and a just-created transfer can take a moment to be readable;
+ * releasing on a 404 inside that window would give the member their money
+ * back while the bank pays it out as well. Thirty minutes is far above both
+ * (Paystack's read-after-write lag is seconds, the initiate timeout is well
+ * under a minute), and it holds whatever age the caller asks the sweep to
+ * start from.
+ */
+export const NEVER_STARTED_MIN_AGE_MINUTES = 30;
+
+/**
+ * MON-01. A withdrawal still PENDING after this long, whatever Paystack says,
+ * is somebody's money held with no outcome, and an operator is told.
+ */
+export const WITHDRAWAL_STUCK_ALERT_MINUTES = 24 * 60;
 
 /* ------------------------------------------------------- one reference */
 
@@ -263,6 +286,7 @@ export async function reconcileFundingReference(
         paid_at: charge.paidAt,
         purpose: "wallet_fund",
         recovered_by: "reconciliation",
+        ...processorFeeMetadata(charge.feesMinor),
       },
     });
   } catch (error) {
@@ -301,6 +325,9 @@ export async function reconcileFundingReference(
     outcome: posted,
     detail: { resolution: owner.how, channel: charge.channel },
   });
+  if (posted === "posted") {
+    await alertWebhookMissed(trimmed, charge.amountMinor, "funding", "reconciliation", charge.paidAt);
+  }
 
   return {
     outcome: posted === "posted" ? "recovered" : "already_posted",
@@ -318,7 +345,7 @@ export type LedgerGap = {
   reference: string;
   amountMinor: number;
   paidAt: string | null;
-  /** "funding" is ours to post. "booking" is reported and never posted here. */
+  /** "funding" and, on an applied run, "booking" are posted here (OPS-02). */
   family: "funding" | "booking";
   /** What we did about it on this run. */
   action: "posted" | "reported" | "unmatched" | "failed";
@@ -374,7 +401,9 @@ async function settledTransactionReferences(
       .from("transactions")
       .select("provider_ref, status")
       .in("provider_ref", slice)
-      .eq("status", "SUCCESSFUL");
+      /* REFUNDED is handled too: the charge was returned to the payer's
+         wallet by the settlement (MON-05), so it is not a gap. */
+      .in("status", ["SUCCESSFUL", "REFUNDED"]);
     if (error) throw new Error(error.message);
     for (const row of data ?? []) {
       if (row.provider_ref) found.add(row.provider_ref);
@@ -426,6 +455,7 @@ async function postGapFunding(
         paid_at: charge.paidAt,
         purpose: "wallet_fund",
         recovered_by: "sweep",
+        ...processorFeeMetadata(charge.feesMinor),
       },
     });
     logMoney({
@@ -445,6 +475,9 @@ async function postGapFunding(
       outcome: posted,
       detail: { resolution: owner.how, found_by: "sweep" },
     });
+    if (posted === "posted") {
+      await alertWebhookMissed(charge.reference, charge.amountMinor, "funding", "sweep", charge.paidAt);
+    }
     return { ...base, action: "posted", reason: posted };
   } catch (error) {
     logMoney({
@@ -465,13 +498,15 @@ async function postGapFunding(
  * `apply: false` reports and changes nothing, which is what a first run on a
  * live database should always be. `apply: true` posts the funding gaps.
  *
- * BOOKING GAPS ARE REPORTED AND NEVER POSTED HERE, on purpose. Settling a
- * booking charge does far more than write a ledger row: it confirms the stay,
- * closes calendar nights and emails the guest and the host. A sweeper doing
- * that unattended at three in the morning, possibly for dates that have already
- * passed, is a worse outcome than a loud report naming the reference. The
- * report says exactly which references need lib/bookings/settlement.ts run
- * against them, and that is a decision with a human in it.
+ * BOOKING GAPS ARE SETTLED ON AN APPLIED RUN (OPS-02). They used to be only
+ * reported, because settling confirms a stay and closes nights, and a sweeper
+ * doing that unattended for dates already passed was worse than a report.
+ * Meanwhile the hold sweep released the booking and the guest's money sat at
+ * the processor. The settlement now makes that call safely in the database:
+ * a charge that matches an open booking settles it; a booking that is
+ * cancelled, finished, already paid, past its check-in while unconfirmed, or
+ * priced differently gets the money back in the payer's wallet, with an alert.
+ * It sends no email from here; a confirmed guest sees the stay in Bookings.
  */
 export async function sweepUnrecordedCharges(
   admin: AdminClient,
@@ -564,30 +599,87 @@ export async function sweepUnrecordedCharges(
 
   for (const charge of booking) {
     if (knownBooking.has(charge.reference)) continue;
-    // Reported, never posted. See the note on this function.
-    logMoney({
-      surface: "reconcile",
-      outcome: "failed",
-      reason: "booking_charge_unsettled",
-      reference: charge.reference,
-      amountMinor: charge.amountMinor,
-    });
-    await recordMoneyAudit(admin, {
-      actor,
-      action: "wallet.booking.unsettled",
-      reference: charge.reference,
-      amountMinor: charge.amountMinor,
-      outcome: "reported",
-      detail: { found_by: "sweep" },
-    });
-    gaps.push({
-      reference: charge.reference,
-      amountMinor: charge.amountMinor,
-      paidAt: charge.paidAt,
-      family: "booking",
-      action: "reported",
-      reason: "needs_booking_settlement",
-    });
+    /*
+     * OPS-02. Settled here, not only reported. The settlement decides under
+     * the booking's lock: an open booking whose price the charge matches is
+     * confirmed, and anything else (cancelled by the hold sweep, already
+     * paid, check-in passed, wrong amount) is returned to the payer's wallet
+     * with an alert. So a charge whose webhook and return both went missing
+     * no longer sits at the processor while the hold is released.
+     */
+    if (!apply) {
+      logMoney({
+        surface: "reconcile",
+        outcome: "failed",
+        reason: "booking_charge_unsettled",
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+      });
+      await recordMoneyAudit(admin, {
+        actor,
+        action: "wallet.booking.unsettled",
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        outcome: "reported",
+        detail: { found_by: "sweep" },
+      });
+      gaps.push({
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        paidAt: charge.paidAt,
+        family: "booking",
+        action: "reported",
+        reason: "dry_run",
+      });
+      continue;
+    }
+    const metaBooking = charge.metadata["booking_id"];
+    try {
+      const settlement = await settleBookingCharge(admin, {
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        /* MON-14: the fee the list reported, as the webhook would have passed it. */
+        processorFeeMinor: charge.feesMinor ?? null,
+        fallbackBookingId: typeof metaBooking === "string" ? metaBooking : null,
+      });
+      await recordMoneyAudit(admin, {
+        actor,
+        action: "wallet.booking.charge_settled",
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        outcome: settlement.outcome,
+        detail: { found_by: "sweep" },
+      });
+      /* Only a settlement this run made: already-settled means the webhook
+         got there first, and an unknown reference is not ours to page on. */
+      if (settlement.outcome === "settled" || settlement.outcome === "returned-to-wallet") {
+        await alertWebhookMissed(charge.reference, charge.amountMinor, "booking", "sweep", charge.paidAt);
+      }
+      gaps.push({
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        paidAt: charge.paidAt,
+        family: "booking",
+        action: settlement.outcome === "unknown-reference" ? "unmatched" : "posted",
+        reason: settlement.outcome,
+      });
+    } catch (error) {
+      logMoney({
+        surface: "reconcile",
+        outcome: "failed",
+        reason: `booking_settle_failed:${failureReason(error)}`,
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+      });
+      gaps.push({
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        paidAt: charge.paidAt,
+        family: "booking",
+        action: "failed",
+        reason: failureReason(error),
+      });
+    }
   }
 
   logMoney({
@@ -647,6 +739,59 @@ export type HoldSweepReport = {
  * being kind='withdrawal' and status='PENDING'. One statement, so a webhook
  * arriving mid-sweep and this sweeper cannot both settle the same hold.
  */
+/** MON-P2-03. How long a webhook may take before a recovery counts as a miss. */
+export const WEBHOOK_GRACE_MINUTES = 15;
+
+/**
+ * MON-P2-03. A charge the reconciler had to post is proof the primary path
+ * (the Paystack webhook, or the redirect) did not: one critical alert per
+ * reference, so a webhook that is not registered or not arriving is seen the
+ * first time it matters instead of being healed quietly every hour.
+ */
+export async function alertWebhookMissed(
+  reference: string,
+  amountMinor: number,
+  family: "funding" | "booking",
+  foundBy: "reconciliation" | "sweep",
+  paidAt: string | null,
+  now: number = Date.now(),
+): Promise<void> {
+  /* A charge paid moments before the run may simply have its webhook still
+     in flight: the reconciler posting it first is a race, not a miss. Only a
+     charge older than the grace is proof the webhook did not arrive. A charge
+     with no paid time is treated as old. */
+  const paid = paidAt ? Date.parse(paidAt) : Number.NaN;
+  if (Number.isFinite(paid) && now - paid < WEBHOOK_GRACE_MINUTES * 60_000) return;
+  await recordAlert({
+    kind: "payment.webhook.missed",
+    severity: "critical",
+    subjectKind: "payment_reference",
+    subjectId: reference,
+    detail: { amount_minor: amountMinor, family, found_by: foundBy },
+  });
+}
+
+/**
+ * MON-01. One high alert per stuck withdrawal (recordAlert folds a repeat into
+ * the open row), so the desk sees a member's money held with no outcome
+ * instead of the sweep logging it every run for ever.
+ */
+async function alertIfStuck(
+  reference: string,
+  amountMinor: number,
+  ageMinutes: number,
+  lastAnswer: string,
+): Promise<void> {
+  if (ageMinutes < WITHDRAWAL_STUCK_ALERT_MINUTES) return;
+  await recordAlert({
+    kind: "wallet.withdrawal_stuck",
+    severity: "critical",
+    subjectKind: "wallet_entry",
+    subjectId: reference,
+    detail: { age_minutes: ageMinutes, amount_minor: amountMinor, last_answer: lastAnswer },
+  });
+}
+
 export async function sweepStaleWithdrawalHolds(
   admin: AdminClient,
   options?: { olderThanMinutes?: number; apply?: boolean; actor?: MoneyActor },
@@ -729,8 +874,12 @@ export async function sweepStaleWithdrawalHolds(
       // and the hold is an orphan. This is the exact case the timeout exists
       // for: withdraw() posted the hold and then could not reach the processor.
       if (error instanceof PaystackError && error.status === 404) {
-        verdict = "FAILED";
-        reason = "transfer_never_started";
+        if (ageMinutes >= NEVER_STARTED_MIN_AGE_MINUTES) {
+          verdict = "FAILED";
+          reason = "transfer_never_started";
+        } else {
+          reason = "transfer_not_yet_readable";
+        }
       } else {
         logMoney({
           surface: "withdraw",
@@ -740,11 +889,13 @@ export async function sweepStaleWithdrawalHolds(
           amountMinor: hold.amount_minor,
         });
         resolutions.push({ ...base, action: "failed", reason: failureReason(error) });
+        await alertIfStuck(hold.reference, hold.amount_minor, ageMinutes, failureReason(error));
         continue;
       }
     }
 
     if (verdict === null) {
+      await alertIfStuck(hold.reference, hold.amount_minor, ageMinutes, reason);
       logMoney({
         surface: "withdraw",
         outcome: "received",
@@ -819,6 +970,129 @@ export async function sweepStaleWithdrawalHolds(
   };
 }
 
+/* ------------------------------------------------- paid withdrawals */
+
+/** NEW-A2-05. How far back the daily check re-asks about paid withdrawals.
+    A bank can send a transfer back days after it confirmed it. */
+export const PAID_VERIFY_DAYS = 7;
+/** NEW-A2-05. The UTC hour of the daily check: 23:00 UTC is midnight in Lagos. */
+export const PAID_VERIFY_UTC_HOUR = 23;
+const PAID_VERIFY_LIMIT = 100;
+
+/** True for the one hourly run a day that also re-checks paid withdrawals. */
+export function isPaidVerifyHour(now: Date = new Date()): boolean {
+  return now.getUTCHours() === PAID_VERIFY_UTC_HOUR;
+}
+
+export type PaidVerifyReport = {
+  checked: number;
+  /** Paid withdrawals Paystack now reports reversed, credited back or to credit. */
+  reversed: Array<{ reference: string; amountMinor: number; credited: boolean }>;
+  failures: number;
+  skipped: boolean;
+};
+
+/**
+ * NEW-A2-05. A COMPLETED withdrawal whose bank later sends the money back is
+ * credited by the webhook (`transfer.reversed`, MON-03). When that delivery is
+ * lost the member's balance stays short and nothing else would notice. Once a
+ * day this asks Paystack about each withdrawal paid in the last week that has
+ * no reversal credit yet (newest first, up to 100), and posts the same credit, audit and critical
+ * alert the webhook would have. creditReversedWithdrawal is keyed on the
+ * reversal reference, so a webhook arriving at the same time posts once.
+ */
+export async function verifyPaidWithdrawals(
+  admin: AdminClient,
+  options?: { days?: number; apply?: boolean; actor?: MoneyActor },
+): Promise<PaidVerifyReport> {
+  const days = Math.max(1, options?.days ?? PAID_VERIFY_DAYS);
+  const apply = options?.apply ?? false;
+  const actor: MoneyActor = options?.actor ?? { kind: "sweep" };
+  const empty: PaidVerifyReport = { checked: 0, reversed: [], failures: 0, skipped: false };
+  if (!isPaystackConfigured()) return { ...empty, skipped: true };
+
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await admin
+    .from("wallet_entries")
+    .select("reference, amount_minor")
+    .eq("kind", "withdrawal")
+    .eq("status", "COMPLETED")
+    .gte("created_at", since)
+    /* Newest first: past the cap it is the oldest that go unasked, and a
+       recent payout is the likeliest to still come back. */
+    .order("created_at", { ascending: false })
+    .limit(PAID_VERIFY_LIMIT);
+  if (error) {
+    logMoney({ surface: "withdraw", outcome: "failed", reason: `paid_verify_read_failed:${error.message}` });
+    return { ...empty, failures: 1 };
+  }
+  const paid = data ?? [];
+  if (paid.length === 0) return empty;
+
+  const { data: credited, error: creditedError } = await admin
+    .from("wallet_entries")
+    .select("reference")
+    .in(
+      "reference",
+      paid.map((row) => reversalReference(row.reference)),
+    );
+  if (creditedError) {
+    logMoney({ surface: "withdraw", outcome: "failed", reason: `paid_verify_read_failed:${creditedError.message}` });
+    return { ...empty, failures: 1 };
+  }
+  const alreadyCredited = new Set((credited ?? []).map((row) => row.reference));
+
+  const report: PaidVerifyReport = { ...empty };
+  for (const row of paid) {
+    if (alreadyCredited.has(reversalReference(row.reference))) continue;
+    report.checked += 1;
+    try {
+      const transfer = await verifyTransfer(row.reference);
+      if (transfer.status !== "reversed") continue;
+      if (!apply) {
+        report.reversed.push({ reference: row.reference, amountMinor: row.amount_minor, credited: false });
+        continue;
+      }
+      const credit = await creditReversedWithdrawal(admin, row.reference);
+      if (credit.state === "not_completed") continue;
+      report.reversed.push({ reference: row.reference, amountMinor: credit.amountMinor, credited: true });
+      if (credit.state === "duplicate") continue;
+      const ownerId = await walletOwnerId(admin, credit.walletId);
+      await recordMoneyAudit(admin, {
+        actor,
+        action: "wallet.withdrawal.reversed_after_payout",
+        reference: row.reference,
+        amountMinor: credit.amountMinor,
+        walletId: credit.walletId,
+        subjectUserId: ownerId,
+        outcome: "REVERSED",
+        detail: { found_by: "paid_verify" },
+      });
+      await recordAlert({
+        kind: "wallet.withdrawal_reversed_after_payout",
+        severity: "critical",
+        subjectKind: "wallet_entry",
+        subjectId: row.reference,
+        detail: {
+          amount_minor: credit.amountMinor,
+          credited_as: reversalReference(row.reference),
+          found_by: "paid_verify",
+        },
+      });
+    } catch (error) {
+      report.failures += 1;
+      logMoney({
+        surface: "withdraw",
+        outcome: "failed",
+        reason: `paid_verify_failed:${failureReason(error)}`,
+        reference: row.reference,
+        amountMinor: row.amount_minor,
+      });
+    }
+  }
+  return report;
+}
+
 /* ------------------------------------------------------------ overdrawn */
 
 export type OverdrawnWallet = {
@@ -883,6 +1157,8 @@ export type MoneyReconciliationReport = {
   charges: SweepReport;
   holds: HoldSweepReport;
   overdrawn: OverdrawnWallet[];
+  /** NEW-A2-05. Null on the hours the daily paid-withdrawal check does not run. */
+  paid: PaidVerifyReport | null;
   /** True when anything at all needs a human. */
   needsAttention: boolean;
 };
@@ -893,7 +1169,7 @@ export type MoneyReconciliationReport = {
  */
 export async function runMoneyReconciliation(
   admin: AdminClient,
-  options?: { hours?: number; apply?: boolean; actor?: MoneyActor },
+  options?: { hours?: number; apply?: boolean; actor?: MoneyActor; verifyPaid?: boolean },
 ): Promise<MoneyReconciliationReport> {
   const actor: MoneyActor = options?.actor ?? { kind: "sweep" };
   const charges = await sweepUnrecordedCharges(admin, {
@@ -906,13 +1182,21 @@ export async function runMoneyReconciliation(
     actor,
   });
   const overdrawn = await findOverdrawnWallets(admin);
+  const paid =
+    (options?.verifyPaid ?? isPaidVerifyHour())
+      ? await verifyPaidWithdrawals(admin, {
+          ...(options?.apply === undefined ? {} : { apply: options.apply }),
+          actor,
+        })
+      : null;
 
   const needsAttention =
     charges.unavailable ||
     charges.gaps.length > 0 ||
     holds.unavailable ||
     holds.resolutions.some((r) => r.action === "failed" || r.action === "released") ||
-    overdrawn.length > 0;
+    overdrawn.length > 0 ||
+    (paid !== null && (paid.reversed.length > 0 || paid.failures > 0));
 
-  return { charges, holds, overdrawn, needsAttention };
+  return { charges, holds, overdrawn, paid, needsAttention };
 }

@@ -1,8 +1,9 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { BRAND_DOMAIN, BRAND_ORIGIN } from "./brand-domain";
+import { PRIVATE_ADDRESS } from "./security/private-address";
 
 /**
  * THE DOMAIN CANNOT DRIFT AGAIN.
@@ -24,6 +25,19 @@ import { BRAND_DOMAIN, BRAND_ORIGIN } from "./brand-domain";
 
 const REPO = join(__dirname, "..", "..", "..", "..");
 const read = (p: string) => readFileSync(join(REPO, p), "utf8");
+
+/** Every file under `dir`, whatever its extension. */
+function filesUnder(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name !== "node_modules" && entry.name !== ".next") filesUnder(path, out);
+    } else {
+      out.push(path);
+    }
+  }
+  return out;
+}
 
 describe("the brand domain, and the native files that must agree with it", () => {
   it("is a bare host with no scheme, no path and no trailing dot", () => {
@@ -64,16 +78,31 @@ describe("the brand domain, and the native files that must agree with it", () =>
   /*
    * The founder's private address exists for the bank and the regulators. It
    * must never reach a public surface, a legal document or any app copy, and
-   * a grep is the only thing that can hold that line as the copy grows.
+   * a scan is the only thing that can hold that line as the copy grows.
+   *
+   * SEC-11: the guard used to look for one spelling in three files, and the
+   * real address is the OTHER spelling. It now matches both spellings
+   * (`PRIVATE_ADDRESS`) in every file under apps/web/src and every email
+   * template (supabase/templates). Neither spelling is written out anywhere in
+   * this repository, this file included.
    */
-  it("keeps the private address off every public surface", () => {
-    for (const path of [
-      "apps/web/src/lib/email/client.ts",
-      "apps/web/src/lib/support-email.ts",
-      "apps/web/src/lib/brand-domain.ts",
-    ]) {
-      expect(read(path), `${path} names the private address`).not.toContain("vallospacesltd@gmail.com");
-    }
+  it("keeps the private address, in either spelling, out of every source file and email template", () => {
+    const files = [
+      ...filesUnder(join(REPO, "apps/web/src")),
+      ...filesUnder(join(REPO, "supabase/templates")),
+    ];
+    expect(files.length).toBeGreaterThan(1000);
+    const carrying = files.filter((file) => PRIVATE_ADDRESS.test(readFileSync(file, "utf8")));
+    expect(carrying).toEqual([]);
+  });
+
+  it("the guard matches both spellings and nothing else", () => {
+    const at = "@" + "gmail.com";
+    expect(PRIVATE_ADDRESS.test(`vallospaces${"ltd"}${at}`)).toBe(true);
+    expect(PRIVATE_ADDRESS.test(`vallospace${"ltd"}${at}`)).toBe(true);
+    expect(PRIVATE_ADDRESS.test("VALLOSPACESLTD" + at)).toBe(true);
+    expect(PRIVATE_ADDRESS.test("hello@vallospaces.com")).toBe(false);
+    expect(PRIVATE_ADDRESS.test("support@vallospaces.com")).toBe(false);
   });
 });
 

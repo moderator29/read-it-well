@@ -1,6 +1,5 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -11,6 +10,7 @@ import { logMoney } from "../payments/observability";
 import { getAdminClient } from "./ledger";
 import { callMoneyRpc, readMoneyStatus } from "./rpc";
 import { nairaAmountSchema } from "./schema";
+import { potMoveReference } from "./pot-reference";
 
 /**
  * Savings pots: create one, put money in, take money out.
@@ -48,8 +48,6 @@ import { nairaAmountSchema } from "./schema";
  * money back out is one call and needs nobody's permission.
  */
 
-const POT_PREFIX = "rm-pot-";
-
 const NOT_ENABLED =
   "Savings pots are not switched on for this account yet. Your balance is untouched.";
 
@@ -71,6 +69,8 @@ const createSchema = z.object({
 const moveSchema = z.object({
   potId: z.string().uuid("Pick a pot."),
   amount: nairaAmountSchema,
+  /* MON-18. One key per move sheet, so a double tap is one move. */
+  idempotencyKey: z.string().uuid().optional(),
 });
 
 /* ------------------------------------------------------------------ create */
@@ -106,10 +106,10 @@ export async function createPot(
   /*
    * Created through the SIGNED-IN SESSION rather than the service role.
    *
-   * The insert policy is `user_id = auth.uid() and balance_minor = 0`, so RLS
-   * both decides ownership and refuses a pot that tries to be born holding
-   * money. Using the admin client here would bypass exactly the check that
-   * makes this safe.
+   * The insert policy checks `user_id = auth.uid()`, so RLS decides ownership. A
+   * pot holds exactly what the ledger's pot entries say (MON-08), so a pot
+   * cannot be born holding money whatever a row claims. Using the admin
+   * client here would bypass the ownership check.
    */
   const inserter = session.supabase as unknown as {
     from: (table: string) => {
@@ -172,7 +172,12 @@ async function move(formData: FormData, direction: "in" | "out"): Promise<Action
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
-  const reference = `${POT_PREFIX}${randomUUID()}`;
+  const reference = potMoveReference(session.user.id, {
+    key: parsed.data.idempotencyKey,
+    direction,
+    potId: parsed.data.potId,
+    amountMinor: parsed.data.amount,
+  });
   const fn = direction === "in" ? "move_into_pot" : "move_out_of_pot";
 
   const result = await callMoneyRpc(

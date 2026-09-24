@@ -104,5 +104,18 @@
 	-->
 	<key>aps-environment</key>
 	<string>development</string>
+
+	<!--
+		SIGN IN WITH APPLE (STORE-02). Inert with the rest of this file until
+		the App ID `com.vallospaces.app` has the Sign In with Apple capability
+		ticked in the Apple Developer portal. The app only draws the button
+		when Supabase reports the Apple provider enabled AND the running
+		binary carries the `SignInWithApple` plugin, so this entitlement being
+		present early changes nothing a person can see.
+	-->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>

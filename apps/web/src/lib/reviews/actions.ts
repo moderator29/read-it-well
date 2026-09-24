@@ -5,7 +5,8 @@
  *
  * The insert goes through the guest's OWN RLS-bound client. That is the whole
  * design: reviews_insert_own decides that the booking is theirs, that it is
- * CONFIRMED, that it has actually checked out, and that the review is being
+ * CONFIRMED or COMPLETED, that it has actually checked out, that it is not a
+ * tenancy, and that the review is being
  * attached to the listing the booking was for. The unique booking_id decides
  * that a stay is reviewed once. Neither rule is restated here, because a rule
  * enforced in two places drifts in one of them. The service role is never used:
@@ -30,8 +31,23 @@ import {
   SIGNED_OUT_MESSAGE,
 } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
+import { contentRefusal } from "../safety/content-refusal";
 import { isFeatureEnabled } from "../flags";
+import { reviewIneligibility, type ReviewIneligibility } from "./eligibility";
 import { reviewInputSchema } from "./schema";
+import { dbLimitRefusal } from "../security/db-limit";
+
+/* The sentence for each reason the database would refuse the review. */
+const INELIGIBLE_MESSAGES: Record<ReviewIneligibility, string> = {
+  cancelled: "This stay was cancelled, so there is nothing to review.",
+  unconfirmed:
+    "This stay is still awaiting the host, so it cannot be reviewed yet. You can write one once the host has accepted and the stay has finished.",
+  "not-finished": "You can share a review once the stay has finished. Enjoy the rest of it.",
+  "no-show":
+    "This stay was recorded as not attended, so it cannot be reviewed. If that is not right, contact support from your bookings.",
+  tenancy:
+    "A tenancy is not reviewed as a stay. Your move-in and rent are on the tenancy page, and support can help with anything about the home.",
+};
 
 /* Reviews belong to the bookings loop, so they pause with it rather than
    carrying a second switch that an incident responder would have to remember. */
@@ -82,17 +98,20 @@ async function submitReviewWork(
     );
   }
 
-  if (booking.status === "CANCELLED") {
-    return fail("This stay was cancelled, so there is nothing to review.");
-  }
-  if (booking.status !== "CONFIRMED") {
-    return fail(
-      "This stay is still awaiting the host, so it cannot be reviewed yet. You can write one once the host has accepted and the stay has finished.",
-    );
-  }
-  if (booking.check_out > lagosToday()) {
-    return fail("You can share a review once the stay has finished. Enjoy the rest of it.");
-  }
+  // A rent charge is carried on a bookings row; it is a tenancy, not a stay.
+  const { data: rentCharge, error: rentError } = await session.supabase
+    .from("rent_payments")
+    .select("id")
+    .eq("booking_id", booking.id)
+    .limit(1)
+    .maybeSingle();
+  if (rentError) return fail(SERVICE_DOWN_MESSAGE);
+
+  const reason = reviewIneligibility(
+    { status: booking.status, checkOut: booking.check_out, isTenancy: rentCharge !== null },
+    lagosToday(),
+  );
+  if (reason) return fail(INELIGIBLE_MESSAGES[reason]);
 
   const body = parsed.data.body && parsed.data.body.length > 0 ? parsed.data.body : null;
 
@@ -106,6 +125,12 @@ async function submitReviewWork(
 
   if (insertError) {
     // 23505 is the unique booking_id: the stay is already reviewed.
+    // RM004: the content scanner refused the wording (SEC-05). A review has
+    // no held state, so it is refused with a sentence the person can act on.
+    const refused = contentRefusal(insertError);
+    if (refused) return fail(refused, { body: refused });
+    const limited = dbLimitRefusal(insertError);
+    if (limited) return fail(limited);
     if (insertError.code === "23505") {
       return fail("You have already reviewed this stay. Thank you for that.");
     }

@@ -13,7 +13,7 @@ import nfServerActions from "./eslint-rules/server-actions-export-only-actions.m
  * FOUR NOW, AND THE FOURTH IS NOT A DESIGN RULE. `nf/no-raw-colour`,
  * `nf/no-raw-spacing` and `nf/no-arbitrary-font-size` guard the token system;
  * `nf/server-actions-export-only-actions` guards the one defect class that
- * only `next build` can see (BUILD_06_LEDGER section 7.0). It is registered
+ * only `next build` can see. It is registered
  * here rather than in its own config so there is one namespace to read.
  *
  * THREE, AND FOR A LONG TIME THIS LINE SAID "BOTH". `nf/no-arbitrary-font-size`
@@ -428,7 +428,7 @@ const config = [
    * than about the design system.
    *
    * `export type { FeedMode };` inside a "use server" module took production
-   * down for twenty minutes on 19 September (BUILD_06_LEDGER section 7.0).
+   * down for twenty minutes on 19 September 2026.
    * TypeScript erases a type re-export, so `tsc --noEmit` was silent; it is
    * not a runtime value, so the whole test suite was silent; the CSS checker
    * has nothing to say about it. `next build` was the only gate that saw it,

@@ -187,7 +187,13 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
     // the same arithmetic the checkout view and the wallet ledger use.
     const [balanceRead, heldRead] = await Promise.all([
       session.supabase.from("wallet_balances").select("balance_minor").eq("user_id", session.user.id).maybeSingle(),
-      session.supabase.from("wallet_entries").select("amount_minor").eq("status", "PENDING").eq("direction", "debit"),
+      /* SEC-02. The caller's own wallet: an admin reads every entry. */
+      session.supabase
+        .from("wallet_entries")
+        .select("amount_minor, wallets!inner(user_id)")
+        .eq("wallets.user_id", session.user.id)
+        .eq("status", "PENDING")
+        .eq("direction", "debit"),
     ]);
     const settledBalance = balanceRead.data?.balance_minor ?? 0;
     let held = 0;
@@ -263,7 +269,7 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
  * which already carries rent money because a rent charge rides the booking
  * rails. So this is dead code rather than the earnings-side reader it was
  * written for, and the accurate sentence is worth more than the flattering
- * one until the lead decides whether to delete it.
+ * one until it is deleted or used.
  *
  * What it alone can still answer, if a surface ever wants it: WHICH tenancy a
  * settled figure belongs to, from the lister's side (`side: "lister"`, under

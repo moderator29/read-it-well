@@ -1,6 +1,6 @@
 /**
  * The feed and the plus bloom: every proof and the side-by-sides, from the
- * committed harness `/preview/session-b/feed` (fixture props, ruling R-G).
+ * committed harness `/preview/session-b/feed` (fixture props, rule R-G).
  *
  *   cd apps/web && npx next build && VALLO_PREVIEW_HARNESS=1 npx next start -p 3185
  *   node scripts/design/session-b-shots/feed.mjs [--base http://127.0.0.1:3185] [--out dir]

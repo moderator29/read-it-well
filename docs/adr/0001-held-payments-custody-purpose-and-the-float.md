@@ -48,7 +48,7 @@ in front of whoever reviews the change.
 "Held in escrow by Vallo" would be a public claim about a regulated activity,
 made by a company whose objects clause **deliberately omits every payment and
 escrow word** because including them demanded N500,000,000 of share capital
-(`docs/HANDOFF_01_COMPANY.md`). `apps/web/src/lib/legal/terms.tsx` currently
+(`docs/archive/HANDOFF_01_COMPANY.md`). `apps/web/src/lib/legal/terms.tsx` currently
 tells a reader that Vallo does not hold their money. A screen saying otherwise
 would contradict the contract on the same domain.
 

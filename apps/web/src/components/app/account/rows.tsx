@@ -560,3 +560,28 @@ export function Sheet({
     </>
   );
 }
+
+/**
+ * A row that downloads a file from our own origin. A plain anchor, never a
+ * `Link`: the target is an API route, and a client-side navigation or a
+ * prefetch of it would be a wasted (or, for an export, a costly) request.
+ */
+export function RowDownload({
+  href,
+  icon,
+  label,
+  sub,
+  testId,
+}: {
+  href: string;
+  icon?: UiIconName;
+  label: ReactNode;
+  sub?: ReactNode;
+  testId?: string;
+}) {
+  return (
+    <a href={href} download className="nf-srow" data-testid={testId}>
+      <RowInner icon={icon} label={label} sub={sub} trailing={Chevron} />
+    </a>
+  );
+}

@@ -18,7 +18,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * open case still works, so the guard has not simply closed the door on
  * everybody. The database half is the restrictive policy in
  * `supabase/migrations/20260919140000_b3_a_block_holds_on_an_attachment_too.sql`,
- * whose probe the lead runs.
+ * which has its own database probe.
  */
 
 const GUEST = "11111111-1111-4111-8111-111111111111";

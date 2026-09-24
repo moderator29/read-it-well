@@ -30,6 +30,18 @@ const MIGRATION = readFileSync(
   "utf8",
 );
 
+/* The purge function's current definition (SEC-13): the destroy list is
+   checked against this, the latest `create or replace` of purge_account_rows. */
+const PURGE_MIGRATION = readFileSync(
+  fileURLToPath(
+    new URL(
+      "../../../../../supabase/migrations/20260924020602_the_purge_erases_what_it_promises_and_never_money.sql",
+      import.meta.url,
+    ),
+  ),
+  "utf8",
+);
+
 const REQUEST_MIGRATION = readFileSync(
   fileURLToPath(
     new URL(
@@ -69,16 +81,29 @@ function executable(sql: string): string {
 }
 
 const BODY = executable(MIGRATION);
+const PURGE_BODY = executable(PURGE_MIGRATION);
 const TRANSFER_BODY = executable(TRANSFER_MIGRATION);
 const CLOSE_BODY = executable(CLOSE_MIGRATION);
 
 describe("the destroy list and the migration agree", () => {
   it("deletes from every table the ledger says is destroyed", () => {
     for (const entry of DESTROYED_TABLES) {
-      expect(BODY, `${entry.table} is on the destroy list`).toContain(
+      expect(PURGE_BODY, `${entry.table} is on the destroy list`).toContain(
         `delete from public.${entry.table}`,
       );
     }
+  });
+
+  it("the current purge keeps every table the ledger says is kept, and sweeps every bucket", () => {
+    for (const entry of RETAINED_TABLES) {
+      expect(PURGE_BODY).not.toContain(`delete from public.${entry.table} `);
+      expect(PURGE_BODY).not.toContain(`delete from public.${entry.table}\n`);
+    }
+    for (const bucket of STORAGE_BUCKETS.filter((b) => b !== "message-attachments")) {
+      expect(PURGE_BODY, `${bucket} is swept`).toContain(`'${bucket}'`);
+    }
+    expect(PURGE_BODY).not.toContain("delete from public.messages");
+    expect(PURGE_BODY).not.toContain("delete from auth.users");
   });
 
   it("keeps every table the ledger says is kept, and never deletes from one", () => {

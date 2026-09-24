@@ -1,4 +1,4 @@
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, type Locale } from "@vallo/i18n";
 import type { ListingReviewView } from "@/lib/admin/queries";
 import { ListingDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
@@ -267,9 +267,7 @@ export function ListingCard({
       {listing.videos.length > 0 && (
         <div className="mt-sm">
           <p className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
-            {listing.videos.length === 1
-              ? "Walkthrough video"
-              : `Walkthrough videos (${listing.videos.length})`}
+            {countOf(listing.videos.length, "walkthroughVideos")}
           </p>
           <ul className="mt-2xs flex flex-wrap gap-xs">
             {listing.videos.map((video, index) => (
@@ -371,9 +369,7 @@ export function ListingCard({
           value={
             listing.facts.parkingSpaces === null
               ? null
-              : listing.facts.parkingSpaces === 1
-                ? "1 space"
-                : `${listing.facts.parkingSpaces} spaces`
+              : countOf(listing.facts.parkingSpaces, "spaces")
           }
         />
         <ui.DetailRow

@@ -259,8 +259,9 @@ describe("the walk back", () => {
 /**
  * THE COPY LAW FOR THIS TRACK, AND IT IS A GATE RATHER THAN A HABIT.
  *
- * `docs/BUILD_07_LEDGER.md` section 5 holds the LASRERA penalties, the two
- * titling percentages and the ESVARBON section number for a lawyer, because
+ * The LASRERA penalties, the two titling percentages and the ESVARBON section
+ * number are held in `docs/archive/BUILD_07_LEDGER.md` section 5 for a lawyer,
+ * because
  * every one of them reaches this repository through a search index's summary
  * rather than through a primary source. Not one of them may be printed until
  * that closes. `roles.ts` already holds the door copy to this rule; this holds

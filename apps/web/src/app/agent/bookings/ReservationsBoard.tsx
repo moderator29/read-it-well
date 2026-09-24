@@ -7,6 +7,8 @@ import type { HostReservation, HostReservationBoard } from "@/lib/agent/reservat
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { countOf, type Locale } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * Tonight's tables, and the requests still waiting on an answer.
@@ -49,12 +51,10 @@ function whenLabel(iso: string): string {
   });
 }
 
-function waitedLabel(hours: number): string {
+function waitedLabel(hours: number, locale: Locale): string {
   if (hours < 1) return "just now";
-  if (hours === 1) return "1 hour ago";
-  if (hours < 24) return `${hours} hours ago`;
-  const days = Math.floor(hours / 24);
-  return days === 1 ? "yesterday" : `${days} days ago`;
+  if (hours < 24) return `${countOf(hours, "hours", locale)} ago`;
+  return countOf(Math.floor(hours / 24), "daysAgo", locale);
 }
 
 function Decision({ reservationId }: { reservationId: string }) {
@@ -107,6 +107,7 @@ function ReservationCard({
   reservation: HostReservation;
   decidable: boolean;
 }) {
+  const locale = useClientLocale();
   const tone =
     reservation.status === "CONFIRMED"
       ? "success"
@@ -125,7 +126,7 @@ function ReservationCard({
               : "Declined"}
         </StatusPill>
         <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-          asked {waitedLabel(reservation.hoursWaiting)}
+          asked {waitedLabel(reservation.hoursWaiting, locale)}
         </span>
       </div>
 
@@ -139,7 +140,7 @@ function ReservationCard({
           {reservation.guestName}
         </span>
         <span className="tabular-nums">
-          {reservation.partySize} {reservation.partySize === 1 ? "guest" : "guests"}
+          {countOf(reservation.partySize, "guests", locale)}
         </span>
         <span className="text-[var(--nf-content-muted)]">{reservation.listingTitle}</span>
       </p>

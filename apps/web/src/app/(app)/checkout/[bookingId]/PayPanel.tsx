@@ -187,6 +187,7 @@ export function PayPanel({
    */
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
+  const c = getDictionary(view.locale).checkout;
   const router = useRouter();
   /* V-81: paying from the wallet asks for the phone lock, when there is one. */
   const moneyLock = useMoneyStepUp(view.locale);
@@ -303,7 +304,7 @@ export function PayPanel({
     setPhase({
       kind: "error",
       message: result.ok
-        ? "The secure payment page could not be opened."
+        ? c.pageNotOpened
         : result.error,
     });
   };
@@ -328,14 +329,14 @@ export function PayPanel({
     }
     setPhase({
       kind: "error",
-      message: result.ok ? "The payment could not be completed." : result.error,
+      message: result.ok ? c.notCompleted : result.error,
     });
   };
 
   const panel = (
     <section aria-labelledby="nf-checkout-pay">
       <h2 id="nf-checkout-pay" className="nf-h3">
-        How would you like to pay?
+        {c.howToPay}
       </h2>
       <ul className="mt-block grid gap-row">
         {/*
@@ -352,8 +353,8 @@ export function PayPanel({
         {savedCardsOffered && (
           <Option
             icon="card-lock"
-            title="Pay with a saved card"
-            body="The card you saved, charged straight away. Your card details still never touch Vallo."
+            title={c.savedCardTitle}
+            body={c.savedCardBody}
             action={
               <div>
                 <SavedCardPicker
@@ -370,7 +371,7 @@ export function PayPanel({
                   disabled={busy || chosenCard === null}
                   loading={phase.kind === "saved-card-charging"}
                 >
-                  Pay with this card
+                  {c.payWithThisCard}
                 </Button>
               </div>
             }
@@ -379,8 +380,8 @@ export function PayPanel({
         {view.cardAvailable ? (
           <Option
             icon="card-lock"
-            title="Pay by card"
-            body="A secure page in naira, then straight back here. Your card details never touch Vallo."
+            title={c.cardTitle}
+            body={c.cardBody}
             action={
               /*
                 THE AMOUNT IS NOT IN THE LABEL, AND IT WAS OVERFLOWING.
@@ -407,32 +408,32 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
               >
-                Pay by card
+                {c.payByCard}
               </Button>
             }
           />
         ) : (
           <Option
             icon="card-lock"
-            title="Pay by card"
+            title={c.cardTitle}
             /* "Card payment switches on the moment payment keys land" was
                infrastructure jargon, printed to somebody trying to pay. This
                says what is true, what it costs them, and what to do instead. */
-            body="Card payment is not available right now."
+            body={c.cardUnavailable}
             /* "…or try again SHORTLY" is gone, and it was the last time this
                product named a schedule in a refusal on the money path. It is a
                milder relative of the banned "coming soon": a promise about a
                time nobody here can keep, told to somebody holding a card. The
                sentence loses the word and keeps the instruction, which is the
                only part the reader could act on anyway. */
-            note="Your dates stay held and nothing has been charged. Pay from your wallet, or try the card again from here."
+            note={c.cardUnavailableStayNote}
           />
         )}
         {view.walletCovers ? (
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
-            body={`Your wallet holds ${view.walletBalanceDisplay}. Paying from it confirms this stay straight away.`}
+            title={c.walletTitle}
+            body={c.walletCoversStay.replace("{balance}", view.walletBalanceDisplay)}
             action={
               <Button
                 variant="secondary"
@@ -441,19 +442,19 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "wallet-paying"}
               >
-                Pay from my wallet
+                {c.payFromWallet}
               </Button>
             }
           />
         ) : (
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
-            body={`Your wallet holds ${view.walletBalanceDisplay}, and this stay comes to ${view.totalDisplay}.`}
-            note="Add money to your wallet first, or pay by card."
+            title={c.walletTitle}
+            body={c.walletShortStay.replace("{balance}", view.walletBalanceDisplay).replace("{total}", view.totalDisplay)}
+            note={c.walletShortNote}
             action={
               <ButtonLink href="/wallet" variant="ghost" full trailingIcon="arrow-right">
-                Open my wallet
+                {c.openWallet}
               </ButtonLink>
             }
           />
@@ -487,7 +488,7 @@ export function PayPanel({
       />
       <ActionBar>
         <p className="flex min-w-0 flex-1 flex-col">
-          <span className="nf-caption text-[var(--nf-content-muted)]">Total to pay</span>
+          <span className="nf-caption text-[var(--nf-content-muted)]">{c.totalToPay}</span>
           <span className="min-w-0">
             <Amount
               minorUnits={view.totalMinor}
@@ -507,7 +508,7 @@ export function PayPanel({
             loading={phase.kind === "card-starting"}
             className="shrink-0"
           >
-            Pay by card
+            {c.payByCard}
           </Button>
         ) : view.walletCovers ? (
           <Button
@@ -517,24 +518,21 @@ export function PayPanel({
             loading={phase.kind === "wallet-paying"}
             className="shrink-0"
           >
-            Pay from my wallet
+            {c.payFromWallet}
           </Button>
         ) : (
           /* Neither method can complete this payment right now, so the bar
              offers the one step that would change that rather than a disabled
              button that answers nothing. */
           <ButtonLink href="/wallet" variant="primary" className="shrink-0">
-            Add money
+            {c.addMoney}
           </ButtonLink>
         )}
       </ActionBar>
 
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
         <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
-        <span>
-          Money moves inside Vallo, so the stay and the payment stay attached to each other. Keep
-          every conversation and every payment on the platform.
-        </span>
+        <span>{c.onPlatformStay}</span>
       </p>
     </section>
   );
@@ -591,15 +589,15 @@ export function PayPanel({
         open={phase.kind === "wallet-paid"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="sent"
-        verdict="Payment sent"
+        verdict={c.paymentSent}
         fact={fact}
         locale={view.locale}
-        consequence="The agent has been paid and these dates are yours."
+        consequence={c.paidStay}
         actions={[
           { label: plansAction.label, href: plansAction.href, tone: "primary" },
-          { label: "Back to the stay", href: `/listing/${view.listingId}`, tone: "quiet" },
+          { label: c.backToStay, href: `/listing/${view.listingId}`, tone: "quiet" },
         ]}
-        footnote="Paid inside Vallo, recorded to the kobo."
+        footnote={c.paidFootnote}
       />
 
       <ResultSheet
@@ -612,21 +610,21 @@ export function PayPanel({
         blocking
         verdict={
           phase.kind === "wallet-paying"
-            ? "Paying from your wallet"
+            ? c.payingFromWallet
             : phase.kind === "saved-card-charging"
               ? savedCardMoment({ kind: "charging" }, view.totalDisplay).verdict
-              : "Opening your payment page"
+              : c.openingPaymentPage
         }
         fact={fact}
         locale={view.locale}
         consequence={
           slow
-            ? "This is taking longer than usual. Nothing has moved yet and nothing has been charged. Stay here."
+            ? c.slowNothingMoved
             : phase.kind === "wallet-paying"
-              ? "Nothing leaves your wallet until this completes."
+              ? c.walletUntilComplete
               : phase.kind === "saved-card-charging"
                 ? savedCardMoment({ kind: "charging" }, view.totalDisplay).consequence
-                : "Nothing has been charged yet."
+                : c.nothingChargedYet
         }
       />
 
@@ -650,7 +648,7 @@ export function PayPanel({
         consequence={savedCardMoment(hostedPhase, view.totalDisplay).consequence}
         actions={[
           {
-            label: "Continue to your bank",
+            label: c.continueToBank,
             onClick: () => {
               /* The bank's own authentication page renders inside the checkout
                  iframe, on this page, under the same reference. Every 3-D
@@ -667,7 +665,7 @@ export function PayPanel({
             },
             tone: "primary",
           },
-          { label: "Pay another way", onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
+          { label: c.payAnotherWay, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
         ]}
       />
 
@@ -675,17 +673,17 @@ export function PayPanel({
         open={phase.kind === "stalled"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="pending"
-        verdict="We have not heard back"
+        verdict={c.notHeardBack}
         fact={fact}
         locale={view.locale}
         consequence={
           phase.kind === "stalled" && phase.method === "wallet"
-            ? "Your wallet balance has not changed. Check your stays before you try again, so you do not pay twice."
-            : "Your card has not been charged. Check your stays before you try again, so you do not pay twice."
+            ? c.stalledWalletStay
+            : c.stalledCardStay
         }
         actions={[
           { label: plansAction.label, href: plansAction.href, tone: "primary" },
-          { label: "Try again", onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
+          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
         ]}
       />
 
@@ -693,8 +691,8 @@ export function PayPanel({
         A FAILED PAYMENT IS ROSE, IT CARRIES THE AMOUNT, AND IT SAYS WHETHER
         THE CARD WAS CHARGED.
 
-        It was already rose and already `role="alert"`, which was the lead's
-        own fix, and it was still 13px of text on a plain card with no heading,
+        It was already rose and already `role="alert"`, from an earlier fix,
+        and it was still 13px of text on a plain card with no heading,
         no amount and no statement about the money. A person who has just tried
         to pay rent is asking one question and it was not being answered.
       */}
@@ -702,7 +700,7 @@ export function PayPanel({
         open={phase.kind === "error"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="failed"
-        verdict="Payment not completed"
+        verdict={c.paymentNotCompleted}
         fact={fact}
         locale={view.locale}
         /* THE SERVER'S STRING NO LONGER REACHES THE READER UNFILTERED. Every
@@ -713,11 +711,11 @@ export function PayPanel({
            prose a person wrote, and always leaves the money sentence standing. */
         consequence={failureConsequence(
           phase.kind === "error" ? phase.message : null,
-          "Nothing has been taken from your card or your wallet.",
+          c.nothingTaken,
         )}
         actions={[
-          { label: "Try again", onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
-          { label: "Get help", href: "/help", tone: "quiet" },
+          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
+          { label: c.getHelp, href: "/help", tone: "quiet" },
         ]}
       />
 

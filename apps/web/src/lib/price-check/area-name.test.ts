@@ -96,8 +96,14 @@ describe("a card built from a row that was stored before today's guard", () => {
     expect(shareLines(row("Lekki Phase 1"), COPY, "en", "Lagos").headline).toBe(
       "3 bedroom flats in Lekki Phase 1",
     );
+    /* Rule 10: an estate is not on the closed neighbourhood list, so the
+       card says the state. */
     expect(shareLines(row("1004 Estate"), COPY, "en", "Lagos").headline).toBe(
-      "3 bedroom flats in 1004 Estate",
+      "3 bedroom flats in Lagos",
+    );
+    /* Free text in a stored row prints the state, whatever its shape. */
+    expect(shareLines(row("Chief Ade's compound"), COPY, "en", "Lagos").headline).toBe(
+      "3 bedroom flats in Lagos",
     );
   });
 

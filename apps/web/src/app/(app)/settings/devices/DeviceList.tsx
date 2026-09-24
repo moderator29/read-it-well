@@ -1,5 +1,6 @@
 "use client";
 
+import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { useState, useTransition } from "react";
 import { plural, type Locale, type PluralForms } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -7,6 +8,7 @@ import { Disclosure } from "@/components/app/Disclosure";
 import { endOtherSessions, endSession } from "@/lib/security/sessions-actions";
 import { endSessionGroup } from "@/lib/security/device-alert-actions";
 import { NotMePanel, type NotMeCopy } from "./NotMePanel";
+import { signOutEverywhere } from "@/lib/profile/actions";
 
 /**
  * The list, and the buttons that end things.
@@ -71,6 +73,8 @@ export type DeviceListCopy = {
   endOthers: string;
   endOthersSub: string;
   endOthersNone: string;
+  endEverywhere: string;
+  endEverywhereSub: string;
   confirm: string;
   working: string;
   endedOne: string;
@@ -165,6 +169,20 @@ export function DeviceList({
         tone: "done",
         message: result.data.ended === 0 ? copy.endedNone : copy.endedOthers,
       };
+    });
+
+  /* SEC-08: the explicit "every device, this one too". Signing out from
+     settings ends only this device; this is where ending all of them lives. */
+  const endEverywhere = () =>
+    run("everywhere", async () => {
+      const result = await signOutEverywhere();
+      if (!result.ok) return { tone: "problem", message: result.error };
+      /* SUP-16: a listing draft never outlives the session that wrote it. */
+      clearListingDrafts();
+      /* A full load, for the same reason as ending the current session above:
+         the proxy must see cookies that no longer resolve. */
+      window.location.assign("/sign-in?notice=sign-in-required");
+      return null;
     });
 
   return (
@@ -322,6 +340,21 @@ export function DeviceList({
         copy={notMeCopy}
         locale={locale}
       />
+      <div className="nf-panel nf-panel--card block p-card">
+        <p className="nf-body font-semibold text-content">{copy.endEverywhere}</p>
+        <p className="nf-body-sm mt-row text-content-2">{copy.endEverywhereSub}</p>
+        <button
+          type="button"
+          onClick={endEverywhere}
+          disabled={pending}
+          data-testid="devices-end-everywhere"
+          className={`nf-btn nf-btn--sm mt-group w-full ${
+            armed === "everywhere" ? "nf-btn--danger" : "nf-btn--glass"
+          }`}
+        >
+          {armed === "everywhere" ? copy.confirm : copy.endEverywhere}
+        </button>
+      </div>
 
       {/* The honest line, under the buttons rather than over them, because it
           is what somebody needs after they have acted rather than a warning

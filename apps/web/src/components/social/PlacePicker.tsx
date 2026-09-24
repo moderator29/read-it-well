@@ -11,6 +11,8 @@ import {
   type OpenPlace,
   type PlaceTree,
 } from "@/lib/social/places-schema";
+import { countOf } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The way in.
@@ -56,6 +58,7 @@ export function PlacePicker({
   signedIn: boolean;
   initialStateCode: string | null;
 }) {
+  const locale = useClientLocale();
   const router = useRouter();
   const [pendingCode, setPendingCode] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -271,7 +274,7 @@ export function PlacePicker({
                     className="nf-chip nf-enter__chip"
                     onClick={() => chooseState(state.code)}
                     data-state-code={state.code}
-                    aria-label={`${state.name}, ${state.count} local government${state.count === 1 ? "" : "s"}`}
+                    aria-label={`${state.name}, ${countOf(state.count, "localGovernments", locale)}`}
                   >
                     {state.name}
                   </button>
@@ -301,12 +304,12 @@ export function PlacePicker({
                          anybody who holds the chip. */
                       aria-label={
                         already
-                          ? `${lga.name}, ${stateName}. ${PLACE_COPY.alreadyOpen}, ${already.memberCount} ${already.memberCount === 1 ? "member" : "members"}.`
+                          ? `${lga.name}, ${stateName}. ${PLACE_COPY.alreadyOpen}, ${countOf(already.memberCount, "members", locale)}.`
                           : `${lga.name}, ${stateName}. ${PLACE_COPY.notOpenYet}`
                       }
                       title={
                         already
-                          ? `${already.memberCount} ${already.memberCount === 1 ? "member" : "members"}`
+                          ? countOf(already.memberCount, "members", locale)
                           : undefined
                       }
                       onClick={() => enter(lga, code)}
@@ -338,7 +341,7 @@ export function PlacePicker({
         {selectedState
           ? PLACE_COPY.lgaHint(selectedState.name, results.lgas.length)
           : query.trim().length > 0
-            ? `${results.total.toLocaleString("en-NG")} match${results.total === 1 ? "" : "es"} across Nigeria.`
+            ? `${countOf(results.total, "matches", locale)} across Nigeria.`
             : `${tree.length} states and territories. Every one of the 774 local governments is behind them.`}
       </p>
     </section>

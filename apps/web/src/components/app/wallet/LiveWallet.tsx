@@ -27,8 +27,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
  * only lets a person receive their own rows. The filter keeps the socket
  * quiet; the policy is the guard.
  *
- * When the ledger table joins the publication (scope request 2 in
- * docs/SESSION_B_SCOPE.md), a PENDING row, which notifies nobody, will also
+ * When the ledger table joins the `supabase_realtime` publication, a PENDING row, which notifies nobody, will also
  * be seen live; until then a pending withdrawal shows on the next read.
  */
 export function LiveWallet({ userId }: { userId: string | null }) {

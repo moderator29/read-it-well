@@ -1,0 +1,59 @@
+-- SUP-P2-01: firm_members must be readable through RLS without 42P17: by
+-- staff (the admin supply desk's firm roster), by a member (their own row),
+-- and by a principal (their firm's roster). A plain member sees nobody
+-- else's row. The QA member and QA admin are made agents inside the
+-- transaction; nothing is left behind.
+do $$
+declare
+  member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
+  admin constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
+  agent uuid;
+  principal_agent uuid;
+  firm uuid;
+  firm2 uuid;
+  n int;
+begin
+  insert into public.agents (user_id, display_name) values (member, 'Probe SUP-P2-01 staff') returning id into agent;
+  insert into public.agents (user_id, display_name) values (admin, 'Probe SUP-P2-01 principal') returning id into principal_agent;
+  insert into public.businesses (owner_id, kind, name, slug, status)
+  values (admin, 'agency', 'Probe SUP-P2-01 firm', 'probe-sup-p2-01-' || gen_random_uuid(), 'DRAFT') returning id into firm;
+  insert into public.firm_members (firm_id, agent_id, member_role, status)
+  values (firm, principal_agent, 'principal', 'active'), (firm, agent, 'staff', 'active');
+  -- A second firm where the NON-admin member is the principal, so the
+  -- principal policy is proved on its own (the admin also passes as staff).
+  insert into public.businesses (owner_id, kind, name, slug, status)
+  values (member, 'agency', 'Probe SUP-P2-01 firm two', 'probe-sup-p2-01-b-' || gen_random_uuid(), 'DRAFT') returning id into firm2;
+  insert into public.firm_members (firm_id, agent_id, member_role, status)
+  values (firm2, agent, 'principal', 'active'), (firm2, principal_agent, 'staff', 'active');
+
+  set local role authenticated;
+
+  -- CONTROL: the admin's roster read (lib/admin/reads/supply.ts getFirmRosters).
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  begin
+    select count(*) into n from public.firm_members where firm_id = firm;
+  exception when others then
+    raise exception 'PROBE_FAIL sup-p2-01: admin roster read: % %', sqlstate, sqlerrm;
+  end;
+  if n <> 2 then raise exception 'PROBE_FAIL sup-p2-01: admin/principal sees rows=% (want 2)', n; end if;
+
+  -- A staff member sees their own row only.
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  begin
+    select count(*) into n from public.firm_members where firm_id = firm;
+  exception when others then
+    raise exception 'PROBE_FAIL sup-p2-01: member read: % %', sqlstate, sqlerrm;
+  end;
+  if n <> 1 then raise exception 'PROBE_FAIL sup-p2-01: staff member sees rows=% (want 1)', n; end if;
+  -- ...and, as a non-admin principal, the whole roster of their own firm.
+  select count(*) into n from public.firm_members where firm_id = firm2;
+  if n <> 2 then raise exception 'PROBE_FAIL sup-p2-01: non-admin principal sees rows=% (want 2)', n; end if;
+
+  -- A stranger sees none of it.
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  select count(*) into n from public.firm_members where firm_id in (firm, firm2);
+  if n <> 0 then raise exception 'PROBE_FAIL sup-p2-01: stranger sees rows=%', n; end if;
+
+  raise exception 'PROBE_OK sup-p2-01';
+end
+$$;

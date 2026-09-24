@@ -1,5 +1,5 @@
 /**
- * THE LANDING RULE, BY ADDRESS (lead ruling R-E).
+ * THE LANDING RULE, BY ADDRESS (rule R-E).
  *
  * "Entering the console lands on the overview, every time, before any
  * desk", and that includes arriving by address: a typed or bookmarked desk

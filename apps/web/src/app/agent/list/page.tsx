@@ -136,6 +136,7 @@ export default async function Page({
         broadcastCopy={t.frontDoor.broadcast}
         guideCopy={t.frontDoor.guide}
         initialUnconfirmed={unconfirmed}
+        demandCopy={t.frontDoor.demand}
       />
     </AgentShell>
   );

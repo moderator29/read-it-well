@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { marketOf } from "@/lib/listings/market";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
@@ -58,7 +59,11 @@ export const dynamic = "force-dynamic";
  */
 async function readShelf(kinds: readonly ListingKind[], perKind: number): Promise<Listing[]> {
   const repo = getListingRepository();
-  const rows = await Promise.all(kinds.map((kind) => repo.search({ kind }, { limit: perKind })));
+  /* UX-10: only listings actually let by the night are stays, so each kind
+     is read a little deeper and filtered before it is interleaved. */
+  const rows = (await Promise.all(kinds.map((kind) => repo.search({ kind }, { limit: perKind * 4 })))).map(
+    (group) => group.filter((listing) => marketOf(listing) === "stay").slice(0, perKind),
+  );
   const seen = new Set<string>();
   const merged: Listing[] = [];
   for (let i = 0; i < perKind; i += 1) {

@@ -52,8 +52,7 @@ import { WalletTiles } from "@/components/app/wallet/WalletTiles";
  * money opens the funding sheet (a saved card or the hosted Paystack window),
  * History is the statement. The render's Swap, Buy Airtime and Pay Bills are
  * products Vallo does not sell and are not drawn; every refusal and
- * substitution is recorded where it is made and in the Session B ledger,
- * section 4. The withdraw sheet is still reachable by `?action=withdraw` and
+ * substitution is recorded where it is made. The withdraw sheet is still reachable by `?action=withdraw` and
  * is not drawn as a tile while bank payouts do not complete.
  *
  * The eye is remembered on this device (`balance-mask.ts`), and the send
@@ -493,6 +492,9 @@ function WithdrawForm({
   const moneyLock = useMoneyStepUp(locale, (form) => intentFromForm("withdraw", form));
   useLockRecovery(moneyLock, state);
   const wait = useMoneyWait(pending);
+  /* MON-01: one key per open sheet, so a second tap (or a retry after a
+     dropped connection) replays the first answer instead of paying twice. */
+  const [idempotencyKey] = useState(mintIdempotencyKey);
   const router = useRouter();
   const [amount, setAmount] = useState("");
 
@@ -581,6 +583,7 @@ function WithdrawForm({
         moneyLock.pass(event);
       }}
     >
+      <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
       <input type="hidden" name="stepUp" value={moneyLock.token} />
       {moneyLock.sheet}
       {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}

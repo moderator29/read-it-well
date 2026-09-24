@@ -5,7 +5,8 @@ import { FIRST_RUN_COOKIE } from "@/components/app/welcome/first-run-seen";
 import { signInFirstRunRedirect } from "./first-run-gate";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getProviderStates } from "@/lib/auth/providers";
+import { resolveProviderStates } from "@/lib/auth/providers";
+import { requestSurface } from "@/lib/auth/surface";
 import { AuthChoices } from "@/components/auth/AuthChoices";
 import { arrivalOf } from "@/app/welcome/plan";
 import { wallHeading } from "@/components/app/welcome/wall-heading";
@@ -23,20 +24,8 @@ export const metadata: Metadata = {
  * They land on the chooser rather than the form because every one of them is
  * about getting in at all, not about the email route specifically.
  */
-const NOTICES: Record<string, string> = {
-  "link-expired":
-    "That link has expired or was already used. Sign in below, or ask for a new link.",
-  "link-invalid": "That link was incomplete. Sign in below and it will work as normal.",
-  unconfigured: "We cannot reach accounts right now. Nothing you typed was lost.",
-  "signed-out": "You are signed out. Sign in whenever you are ready.",
-  /*
-   * Sent by the middleware when somebody reaches a product address without a
-   * session. It names the reason rather than dropping them on a bare form,
-   * because arriving at a sign-in screen you did not ask for is confusing
-   * enough to read as a bug.
-   */
-  "sign-in-required": "Sign in to open that. It takes a moment, and new accounts are free.",
-};
+/* The sentences are `authFlow.notices` in the dictionary, keyed by the
+   notice name the callback and the middleware send. */
 
 export default async function SignInPage({
   searchParams,
@@ -62,17 +51,21 @@ export default async function SignInPage({
      "that" was. The same pure heading first run uses names it. */
   const arrival = notice === "sign-in-required" && next ? arrivalOf(next) : null;
   const wall = arrival ? wallHeading(arrival.reason, t.shape.wall) : null;
+  /* The key comes from the URL, so only the table's own keys count
+     (`?notice=constructor` must not reach the prototype). */
   const noticeText = wall
     ? `${wall.titleA} ${wall.titleB}. ${wall.body}`
-    : notice
-      ? NOTICES[notice]
+    : notice && Object.hasOwn(t.authFlow.notices, notice)
+      ? t.authFlow.notices[notice]
       : undefined;
 
+  const surface = await requestSurface();
   return (
     <AuthChoices
       mode="sign-in"
       t={t}
-      providers={getProviderStates()}
+      providers={await resolveProviderStates(surface)}
+      surface={surface}
       notice={noticeText}
       next={next}
     />

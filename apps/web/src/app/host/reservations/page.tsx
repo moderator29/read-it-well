@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
@@ -102,9 +102,7 @@ export function HostTablesBody({
           <p className={`mt-row ${TYPE.bodyLg}`}>
             {board.requests.length === 0
               ? "Nothing is waiting on you."
-              : board.requests.length === 1
-                ? "One request is waiting on your answer."
-                : `${board.requests.length} requests are waiting on your answer.`}
+              : countOf(board.requests.length, "requestsWaiting")}
           </p>
         </div>
       </div>

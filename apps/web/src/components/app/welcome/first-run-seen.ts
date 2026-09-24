@@ -89,8 +89,7 @@ export function isAuthDoor(next: string | null): boolean {
 
 /**
  * Where a page sends a first-time visitor so they meet first run, keeping
- * the address they asked for. For `sign-in` and `sign-up` to call (see the
- * request in `docs/SESSION_B_SCOPE.md`): `redirect(firstRunHref("/sign-up"))`
+ * the address they asked for. For `sign-in` and `sign-up` to call: `redirect(firstRunHref("/sign-up"))`
  * when the cookie is absent and the `welcomed` flag is not set.
  */
 export function firstRunHref(next: string): string {

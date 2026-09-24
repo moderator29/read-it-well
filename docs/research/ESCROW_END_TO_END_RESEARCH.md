@@ -16,7 +16,7 @@ That decision overrides two standing rules of this project, and the override is
 recorded here rather than left to be discovered:
 
 1. **Build rule 11**, `docs/BUILD_06_LEDGER.md:39` and
-   `docs/HANDOFF_04_MARKETPLACE.md:515-516`: "Escrow is promised nowhere until
+   `docs/archive/HANDOFF_04_MARKETPLACE.md:515-516`: "Escrow is promised nowhere until
    it operates. Copy never contradicts the terms of service."
 2. **The absolute stop list**, `docs/BUILD_06_LEDGER.md:80-87`:
    "merchant-of-record exposure or any float". Escrow is float. Holding a
@@ -454,7 +454,7 @@ all-or-nothing, because `escrow_settle` is all-or-nothing.
   `isBookingReference` and `isFundReference`; the whole module is escrow-blind.
 - Any liability account, any segregated bank account, any float ledger.
 - Any feature flag, any rate limit, any verification gate.
-- Any concurrency probe of the escrow path. `docs/BUILD_05_LEDGER.md:204-210`
+- Any concurrency probe of the escrow path. `docs/archive/BUILD_05_LEDGER.md:204-210`
   and `scripts/probes/m5_oversell.sh` prove the oversell gate with two
   concurrent sessions against a real Postgres. **Nothing equivalent exists for
   escrow.**
@@ -1670,7 +1670,7 @@ scratch database dropped at the end and nothing touching the live project.
 the detail that the function text is extracted between markers and its sha256 is
 printed, so the probe cannot silently test a different body than the one that
 ships. The result is captured to a log beside the script
-(`docs/BUILD_05_LEDGER.md:204-210`).
+(`docs/archive/BUILD_05_LEDGER.md:204-210`).
 
 **Probe P-1, the escrow double-spend gate.** Wallet with exactly N kobo.
 Session A: BEGIN, `escrow_fund_from_wallet` for N, sleep 2, COMMIT. Session B,

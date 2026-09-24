@@ -3,6 +3,8 @@ import "server-only";
 import { createAdminClient } from "../supabase/admin";
 import type { Database } from "../supabase/database.types";
 import { isSupabaseConfigured } from "../supabase/env";
+import { reportError } from "../observability/report";
+import { pageHuman } from "../ops/page";
 
 /**
  * The one door into `risk_alerts` for anything that is not a human.
@@ -215,12 +217,58 @@ export async function recordAlert(input: AlertInput): Promise<AlertOutcome> {
       .single();
     if (error) {
       console.warn(`[alert] unrecorded severity=${input.severity} kind=${kind} reason=${error.code ?? "insert_failed"}`);
+      if (input.severity === "critical") await escalate(kind, title, description, admin, null);
       return { ok: false, reason: error.message ?? "insert_failed" };
     }
+    if (input.severity === "critical") await escalate(kind, title, description, admin, data?.id ?? null);
     return { ok: true, id: data?.id ?? null, deduplicated: false };
   } catch (error) {
     const reason = error instanceof Error ? error.message.slice(0, 200) : "threw";
     console.warn(`[alert] unrecorded severity=${input.severity} kind=${kind} reason=${reason}`);
     return { ok: false, reason };
+  }
+}
+
+/** A critical alert pages a human at most once an hour per title. */
+const PAGE_WINDOW_MS = 60 * 60 * 1_000;
+
+/**
+ * OPS-03: a critical alert leaves the building. It goes to Sentry (when
+ * `SENTRY_DSN` is set, so Sentry's own alert rules apply) and to a person
+ * through `lib/ops/page.ts`, unless the same title already paged within the
+ * hour. A failure to insert the row still pages: an alert that could not even
+ * be written is the one most worth hearing about.
+ *
+ * Best effort and never throws, like everything in this file.
+ */
+async function escalate(
+  kind: string,
+  title: string,
+  description: string,
+  admin: ReturnType<typeof createAdminClient>,
+  newId: string | null,
+): Promise<void> {
+  try {
+    let pagedRecently = false;
+    try {
+      let recent = admin
+        .from("risk_alerts")
+        .select("id", { count: "exact", head: true })
+        .eq("title", title)
+        .gte("created_at", new Date(Date.now() - PAGE_WINDOW_MS).toISOString());
+      if (newId) recent = recent.neq("id", newId);
+      const { count } = await recent;
+      pagedRecently = (count ?? 0) > 0;
+    } catch {
+      pagedRecently = false;
+    }
+    await reportError({
+      error: new Error(`alert ${kind}`),
+      level: "fatal",
+      context: { kind: `alert.${kind}`.slice(0, 120) },
+    });
+    if (!pagedRecently) await pageHuman({ kind, title, body: description });
+  } catch {
+    /* Escalation is best effort; the row, when it was written, stands. */
   }
 }

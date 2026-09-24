@@ -1,3 +1,4 @@
+import { RevokeDoor } from "./RevokeDoor";
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -96,6 +97,8 @@ export default async function StatusPage({ params }: { params: Promise<{ listing
               : copy.stats.replace("{opens}", String(stats.opens)).replace("{enquiries}", String(stats.enquiries))}
         </p>
         <p className="nf-caption text-[var(--nf-content-muted)]">{copy.note}</p>
+        {/* V-07 carry-over: close this door; the next load mints a new one. */}
+        <RevokeDoor token={read.token} copy={copy} />
       </div>
     </AgentShell>
   );

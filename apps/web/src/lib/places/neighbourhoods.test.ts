@@ -1,12 +1,12 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { NEIGHBOURHOODS, PLACE_ALIASES, PUBLIC_CITIES } from "./neighbourhoods";
+import { NEIGHBOURHOODS, PLACE_ALIASES } from "./neighbourhoods";
 
 /**
  * THE CLOSED LISTS EXIST TWICE, IN TS AND IN SQL, AND MUST NOT DRIFT.
- * `private.public_neighbourhood` and `private.public_city` carry the same
- * values (migration 20260924121300). This parses the newest migration that
+ * `private.public_neighbourhood` carries the same values (migration
+ * 20260924121300). This parses the newest migration that
  * defines each and compares the tuples with the lists here.
  */
 
@@ -37,11 +37,5 @@ describe("the closed lists in TS and in SQL", () => {
     const sqlAliases = tuples(block, "aliases(alias, area)").map(([a, n]) => `${a}|${n}`).sort();
     const tsAliases = Object.entries(PLACE_ALIASES).map(([a, n]) => `${a}|${n}`).sort();
     expect(sqlAliases).toEqual(tsAliases);
-  });
-
-  it("hold the same cities", () => {
-    const block = newestDefining("public_city");
-    const sqlCities = tuples(block, "cities(city, state_code)").map(([c, s]) => `${c}|${s}`).sort();
-    expect(sqlCities).toEqual(PUBLIC_CITIES.map((c) => `${c.city}|${c.stateCode}`).sort());
   });
 });

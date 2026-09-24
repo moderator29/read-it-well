@@ -1,0 +1,89 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { Button } from "@/components/ui/Button";
+import { sayRunningLate } from "@/lib/viewings/actions";
+import type { RouteLeg } from "@/lib/viewings/route";
+
+/**
+ * V-94: THE DAY AS A ROUTE. Booked viewings in time order, a heading each
+ * time the area changes, the minutes since the viewing before, and one tap
+ * to tell the next renter you are running fifteen minutes late (an ordinary
+ * message in their thread). States: no viewings that day, the route, sending,
+ * sent, and a failed send in words.
+ */
+
+type Copy = Dictionary["frontDoor"]["viewings"];
+
+export function SaturdayRoute({
+  dayLabel,
+  route,
+  next,
+  copy,
+  locale,
+}: {
+  dayLabel: string;
+  route: RouteLeg[];
+  /** The stop "running late" is sent to, decided on the server. */
+  next: RouteLeg | null;
+  copy: Copy;
+  locale: Locale;
+}) {
+  const [said, setSaid] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  const time = (iso: string) => formatDate(new Date(iso), locale, { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
+
+  return (
+    <section className="nf-panel nf-panel--card mt-lg p-card-sm" aria-labelledby="route-title" data-testid="viewing-route">
+      <h2 id="route-title" className="nf-h4 text-[var(--nf-content-primary)]">
+        {copy.routeTitle.replace("{day}", dayLabel)}
+      </h2>
+      <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]">{copy.routeNote}</p>
+      {route.length === 0 ? (
+        <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.routeEmpty}</p>
+      ) : (
+        <ol className="mt-group flex flex-col gap-row">
+          {route.map((leg) => (
+            <li key={leg.inspectionId}>
+              {leg.newArea && leg.area && <p className="nf-label">{leg.area}</p>}
+              <div className="flex items-baseline justify-between gap-sm">
+                <span className="nf-body-sm text-[var(--nf-content-primary)]">
+                  <span className="nf-numeric font-semibold">{time(leg.slotAt)}</span> {leg.listingTitle ?? ""}
+                  {leg.counterpartName ? `, ${leg.counterpartName}` : ""}
+                </span>
+                {leg.gapMinutes !== null && (
+                  <span className="nf-caption text-[var(--nf-content-muted)]">{copy.gap.replace("{minutes}", String(leg.gapMinutes))}</span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      {next && next.conversationId && (
+        <Button
+          variant="secondary"
+          className="mt-group"
+          loading={pending}
+          onClick={() => {
+            setError(null);
+            start(async () => {
+              const result = await sayRunningLate({ conversationId: next.conversationId, slotAt: next.slotAt });
+              if (!result.ok) setError(result.error);
+              else setSaid(copy.lateSent.replace("{name}", next.counterpartName ?? copy.someone));
+            });
+          }}
+        >
+          {copy.lateAction}
+        </Button>
+      )}
+      {said && <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]" role="status">{said}</p>}
+      {error && (
+        <p className="mt-inline nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}

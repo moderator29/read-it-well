@@ -7,6 +7,7 @@ import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { VerifyingPanel, type AuthMoment } from "./VerifyingPanel";
 import type { VerificationOutcome } from "@/lib/auth/form-state";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The moment after somebody taps the button in their email.
@@ -72,6 +73,7 @@ export function Verifying({
     next?: string | undefined;
   }) => Promise<VerificationOutcome>;
 }) {
+  const a = useClientDictionary().authFlow;
   const router = useRouter();
   const [failed, setFailed] = useState<Extract<VerificationOutcome, { ok: false }> | null>(null);
   /* Runs once. A second call would exchange a code that has already been
@@ -117,11 +119,28 @@ export function Verifying({
 
   if (failed) {
     const said =
-      failed.reason === "unconfigured"
-        ? "This platform is not holding its email keys yet, so nothing could be confirmed. Nothing is wrong with your account."
+      failed.reason === "provider-off"
+        ? a.providerOff
+        : failed.reason === "unconfigured"
+        ? a.unconfigured
         : failed.reason === "invalid"
-          ? "That link is missing the part that confirms who it belongs to. It may have been cut in half by an email client."
-          : "That link has expired or has already been used. Confirmation links are good for one visit.";
+          ? a.invalidLink
+          : a.expiredLink;
+
+    if (failed.reason === "provider-off") {
+      return (
+        <div className="w-full max-w-[26rem] text-center" data-testid="verify-failed" data-reason="provider-off">
+          <span className="flex justify-center">
+            <LogoMark size={44} title="Vallo" />
+          </span>
+          <h1 className="nf-h2 mt-md">{a.signInWithYourEmail}</h1>
+          <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
+          <ButtonLink href="/sign-in/email" variant="primary" size="lg" className="mt-lg">
+            {a.signInWithEmail}
+          </ButtonLink>
+        </div>
+      );
+    }
 
     return (
       <div className="w-full max-w-[26rem] text-center" data-testid="verify-failed">
@@ -131,20 +150,20 @@ export function Verifying({
         <span className="flex justify-center">
           <LogoMark size={44} title="Vallo" />
         </span>
-        <h1 className="nf-h2 mt-5">We could not confirm that link</h1>
+        <h1 className="nf-h2 mt-5">{a.linkFailedTitle}</h1>
         <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
         <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">
-          The same email carries a six digit code, and that one does not expire on opening.
+          {a.codeStillWorks}
         </p>
         <ButtonLink href="/sign-up/verify" variant="primary" size="lg" className="mt-7">
-          Enter the code instead
+          {a.enterCodeInstead}
         </ButtonLink>
         <p className="mt-5 text-[0.8125rem] text-[var(--nf-content-muted)]">
           <Link
             href="/sign-in"
             className="underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           >
-            Already confirmed? Sign in
+            {a.alreadyConfirmed}
           </Link>
         </p>
       </div>

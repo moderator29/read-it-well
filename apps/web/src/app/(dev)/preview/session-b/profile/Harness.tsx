@@ -9,7 +9,7 @@ import { PERSON } from "../../_fixtures/people";
 import { FEED_POSTS } from "../../f4/fixtures";
 
 /**
- * The profile's proof harness (ruling R-G): the real `AccountHero`,
+ * The profile's proof harness (rule R-G): the real `AccountHero`,
  * `AccountBody` and `SignedOutHero` on fixture props, so every shot in
  * `docs/design/proofs/session-b/profile/` and the shape sweep can be re-run.
  * FIXTURE PROPS, NOT DATA: the counts, the balance and the posts are invented

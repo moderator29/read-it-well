@@ -10,7 +10,7 @@ import type { Listing } from "./types";
  * boolean nothing set, so it was recency, which rewards reposting, sitting on
  * a column that was the lever a future sales conversation would reach for.
  * Every Nigerian portal's revenue is visibility; the date on a listing there
- * means the agent paid. The column is deleted (migration 20260924130400) and
+ * means the agent paid. The column is locked to false (migration 20260924130400) and
  * this replaces it: an order made only from facts about the listing, stated
  * in words on /standards, where the words are GENERATED FROM THE CONSTANTS
  * BELOW. The prose and the code read the same list, so they cannot drift: add

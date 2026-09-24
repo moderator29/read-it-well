@@ -11,7 +11,7 @@ import { FEED_PLACES, FEED_POSTS, FEED_STORIES, REVIEWABLE } from "./fixtures";
 
 /**
  * `/preview/session-b/feed`: the feed and the plus bloom, signed in, on the
- * real components with FIXTURE PROPS (ruling R-G). The live route is
+ * real components with FIXTURE PROPS (rule R-G). The live route is
  * `app/(app)/around/page.tsx`; this renders the same components in the same
  * order inside the same shell gutter, so a proof from here stands beside the
  * founder's `feed-plus-bloom-target.jpg`.

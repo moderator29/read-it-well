@@ -55,8 +55,11 @@ describe("nextPhotoPosition", () => {
 describe("rejectPhoto", () => {
   it("accepts what a phone produces", () => {
     expect(rejectPhoto({ type: "image/jpeg", size: 2_000_000 })).toBeNull();
-    expect(rejectPhoto({ type: "image/heic", size: 4_000_000 })).toBeNull();
     expect(rejectPhoto({ type: "image/webp", size: 10 })).toBeNull();
+  });
+
+  it("refuses HEIC, which the server cannot strip metadata from (SEC-04); iOS converts to JPEG at the picker", () => {
+    expect(rejectPhoto({ type: "image/heic", size: 4_000_000 })).toContain("JPG");
   });
 
   it("refuses a PDF, which the bucket would refuse too", () => {

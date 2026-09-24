@@ -207,7 +207,7 @@ async function readDisplayNames(
 }
 
 /**
- * The badge tier of each person, from `public.person_badge` (Session A's one
+ * The badge tier of each person, from `public.person_badge` (the one
  * source, readable by anon and authenticated). An absent row is no badge.
  * The view is newer than the generated types, so the client is widened for
  * this one read; the row is narrowed straight back through `badgeTierFrom`.

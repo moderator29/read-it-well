@@ -61,8 +61,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
  * It passed eight consecutive times on its own and failed inside the full
  * suite, which is the same defect wearing a different coat both times.
  *
- * FAULT ONE, A FIXED PORT. It listened on 8532. Five other workers run
- * servers in this tree, the port was taken, and `server.listen` emitted an
+ * FAULT ONE, A FIXED PORT. It listened on 8532. Other processes run
+ * servers on the same machine, the port was taken, and `server.listen` emitted an
  * `error` event that nothing was listening for, so the promise wrapped around
  * it NEVER SETTLED. A collision that should have been an instant failure
  * became a 120 second hook timeout. Both halves are fixed: the operating
@@ -79,37 +79,47 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
  * boundary. `clearShade` now requires the list to be empty on several
  * consecutive reads, so a late arrival is caught rather than inherited.
  *
- * ===========================================================================
- * WHY THIS POLLS AT ALL, ASKED PROPERLY RATHER THAN ASSUMED.
+ * FAULT THREE, UNDER LOAD: A PUSH STILL IN FLIGHT WHEN THE WAIT GAVE UP.
  *
- * Because the browser offers nothing else. It was measured, not guessed:
- * `ServiceWorker.deliverPushMessage` resolves BEFORE the worker's handler has
- * run, 0 times out of 12 was the notification already present when the call
- * resolved. The worker's `push` handler runs inside `event.waitUntil` and
- * nothing outside the worker can observe that settling; adding a `postMessage`
- * to `public/sw.js` for a test to listen to would be putting test-only code
- * in a shipped artefact.
+ * With five copies of the full suite on one four-core machine, one push was
+ * still not on the list 20 seconds after it was delivered. The log of the
+ * expired wait read [A booking, A listing] where "A follow" was due. The fold
+ * case then delivered its fourth push on top of the late third, ran past its
+ * 60 seconds, and, because a case that times out keeps running, its late
+ * pushes landed in the next case, which counted "5 things" where it had sent
+ * four. Two red tests, one cause: a wait that watched the list for an
+ * outcome instead of waiting for the handler that produces it.
  *
- * So the only observable is `registration.getNotifications()`, which is
- * eventually consistent, and the instrument polls it. THE BUDGET BELOW IS NOT
- * A TUNING KNOB. Every wait here completes in tens of milliseconds on an idle
- * machine; the budget is the point at which a genuine failure is REPORTED,
- * and it is generous because a test box running twenty workers schedules a
- * browser round trip whenever it feels like it. When it expires, the actual
- * contents of the list are asserted against the expectation and the
- * difference is printed. A timeout here is never reported as a pass, and
- * nothing is retried.
+ * `ServiceWorker.deliverPushMessage` resolves before the handler has run (0
+ * times out of 12 was the notification present when it resolved), and the
+ * handler runs inside `event.waitUntil`, which nothing outside the worker can
+ * see settle. So the page is told. The worker under test is served byte for
+ * byte at `/shipped-sw.js` and imported by a harness at `/sw.js` (`HARNESS`
+ * below) whose only addition wraps `ExtendableEvent.prototype.waitUntil` for
+ * push events and posts `pushHandled` to the page when the shipped handler's
+ * promise settles. Nothing test-only goes into `public/sw.js`.
+ *
+ * Every push is now delivered only after the previous one was handled, so
+ * nothing is in flight across a step or a case, and a case that has run out
+ * of time stops delivering (its `signal` is aborted). What is still polled is
+ * the one effect the handler does not wait for: `notification.close()`
+ * returns nothing, so a fold's closes reach the list just after the summary.
+ * That wait has a budget; when it expires the real list is asserted and
+ * printed. Nothing is retried.
  */
 
 /**
- * How long a wait may take before a failure is REPORTED. See the note at the
- * head: not a tuning knob, and not a retry. Idle, every wait here settles in
- * tens of milliseconds.
+ * How long one push may take to be handled before the case fails and names
+ * it. Idle, a push is handled in tens of milliseconds; this is where a push
+ * that never runs is reported, not a tuning knob.
  */
+const HANDLED_BUDGET_MS = 60_000;
+
+/** How long the list may take to show the closes of a handled push. */
 const SETTLE_BUDGET_MS = 20_000;
 
-/** Consecutive empty reads required before the shade is believed empty. */
-const QUIET_READS = 3;
+/** A case delivers at most five pushes, each with its own budget above. */
+const CASE_TIMEOUT_MS = 5 * HANDLED_BUDGET_MS;
 
 /**
  * A FRESH BROWSER PROFILE EVERY RUN, AND THIS IS NOT TIDINESS.
@@ -142,7 +152,32 @@ const CHROMIUM_CANDIDATES = [
  * A page that does nothing but exist, so the worker has a client to control
  * and a place from which `getNotifications()` can be called.
  */
-const PAGE = `<!doctype html><meta charset="utf-8"><title>Vallo notification proof</title>`;
+const PAGE = `<!doctype html><meta charset="utf-8"><title>Vallo notification proof</title>
+<script>
+window.__handled = [];
+navigator.serviceWorker.addEventListener("message", (event) => {
+  if (event.data && typeof event.data.pushHandled === "number") window.__handled.push(event.data);
+});
+</script>`;
+
+/**
+ * The worker the browser registers: the shipped file, imported unchanged,
+ * plus a report of when each push handler has settled. See fault three.
+ */
+const HARNESS = `
+const realWaitUntil = ExtendableEvent.prototype.waitUntil;
+let pushes = 0;
+ExtendableEvent.prototype.waitUntil = function (promise) {
+  if (this.type !== "push") return realWaitUntil.call(this, promise);
+  const seq = ++pushes;
+  const settled = Promise.resolve(promise).then(() => "ok", (error) => "error: " + error);
+  return realWaitUntil.call(this, settled.then(async (outcome) => {
+    const clients = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
+    for (const client of clients) client.postMessage({ pushHandled: seq, outcome });
+  }));
+};
+importScripts("/shipped-sw.js");
+`;
 
 type Displayed = {
   title: string;
@@ -173,13 +208,15 @@ let context: { close: () => Promise<void> } | null = null;
 let deliver: ((data: string) => Promise<void>) | null = null;
 let readShade: (() => Promise<Displayed[]>) | null = null;
 let clearShade: (() => Promise<void>) | null = null;
+/** Pushes delivered so far; the harness numbers the ones it handles the same way. */
+let delivered = 0;
 
 beforeAll(async () => {
   ready = preflight();
   if (!ready.ok) return;
 
   server = createServer((request, response) => {
-    if (request.url === "/sw.js") {
+    if (request.url === "/sw.js" || request.url === "/shipped-sw.js") {
       response.writeHead(200, {
         "Content-Type": "text/javascript; charset=utf-8",
         "Service-Worker-Allowed": "/",
@@ -187,7 +224,7 @@ beforeAll(async () => {
            cache, because the thing under test is the file on disk. */
         "Cache-Control": "no-store, no-cache, must-revalidate",
       });
-      response.end(SW_SOURCE);
+      response.end(request.url === "/sw.js" ? HARNESS : SW_SOURCE);
       return;
     }
     if (request.url === "/pwa/icon-192.png") {
@@ -205,7 +242,7 @@ beforeAll(async () => {
   });
   /* AN EPHEMERAL PORT, AND THE `error` EVENT WIRED TO THE REJECTION. Port 0
      asks the operating system for one that is free, so this cannot collide
-     with another worker's server; and a listen that fails now fails instead
+     with another process's server; and a listen that fails now fails instead
      of hanging. See fault one at the head for what the fixed port cost. */
   const port = await new Promise<number>((resolve, reject) => {
     const listening = server;
@@ -261,12 +298,42 @@ beforeAll(async () => {
     return;
   }
 
+  /*
+   * ONE PUSH AT A TIME, AND DONE MEANS HANDLED. The harness numbers each push
+   * the worker receives; this waits for the page to hear that number back,
+   * which is the shipped handler's own `waitUntil` promise settling. See
+   * fault three at the head.
+   */
   deliver = async (data: string) => {
+    delivered += 1;
+    const seq = delivered;
     await cdp.send("ServiceWorker.deliverPushMessage", {
       origin,
       registrationId: registrationId as unknown as string,
       data,
     });
+    await settle(seq);
+  };
+
+  const settle = async (seq: number) => {
+    if (seq === 0) return;
+    try {
+      await page.waitForFunction(
+        (n) => (window as unknown as { __handled: unknown[] }).__handled.length >= n,
+        seq,
+        { timeout: HANDLED_BUDGET_MS, polling: 25 },
+      );
+    } catch {
+      throw new Error(`push ${seq} was delivered and its handler had not settled after ${HANDLED_BUDGET_MS} ms`);
+    }
+    const outcome = await page.evaluate(
+      (n) =>
+        (window as unknown as { __handled: { pushHandled: number; outcome: string }[] }).__handled.find(
+          (entry) => entry.pushHandled === n,
+        )?.outcome ?? "missing",
+      seq,
+    );
+    if (outcome !== "ok") throw new Error(`push ${seq}: the shipped handler ended with ${outcome}`);
   };
 
   readShade = async () =>
@@ -289,35 +356,24 @@ beforeAll(async () => {
     }) as Promise<Displayed[]>;
 
   /*
-   * EMPTY, AND STILL EMPTY, WHICH IS NOT THE SAME THING.
-   *
-   * This is fault two at the head. An empty list is what you read after
-   * closing everything, and it is ALSO what you read while the previous
-   * case's notification is still in flight, because `showNotification`
-   * resolves inside the worker long after the call that caused it returned.
-   * The first version returned on the first empty read, inherited the
-   * straggler, and the fold then counted four things when it should have
-   * counted three. So the list has to be empty several reads running, and
-   * anything that turns up in between is closed and the count starts again.
+   * EMPTY BETWEEN CASES, WITH NOTHING STILL ON ITS WAY. Fault two was a
+   * notification from the previous case landing after the list had read
+   * empty. Every delivered push is first waited for (a case that timed out
+   * may have left one in flight), so once the list is closed and reads empty
+   * nothing else can arrive.
    */
   clearShade = async () => {
+    await settle(delivered);
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.ready;
+      for (const notification of await registration.getNotifications()) notification.close();
+    });
     const deadline = Date.now() + SETTLE_BUDGET_MS;
-    let quiet = 0;
     while (Date.now() < deadline) {
-      const present = (await readShade?.()) ?? [];
-      if (present.length === 0) {
-        quiet += 1;
-        if (quiet >= QUIET_READS) return;
-      } else {
-        quiet = 0;
-        await page.evaluate(async () => {
-          const registration = await navigator.serviceWorker.ready;
-          for (const notification of await registration.getNotifications()) notification.close();
-        });
-      }
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      if (((await readShade?.()) ?? []).length === 0) return;
+      await new Promise((resolve) => setTimeout(resolve, 25));
     }
-    throw new Error("the notification list would not settle empty between cases");
+    throw new Error("the notification list would not read empty after every row was closed");
   };
 }, 120_000);
 
@@ -332,35 +388,40 @@ afterAll(async () => {
 });
 
 /**
- * Deliver one push and read the shade back once it looks like `until`.
+ * Deliver one push, wait for its handler, and read the shade back once it
+ * looks like `until`.
  *
- * A PREDICATE RATHER THAN A SLEEP, and rather than a row count. The browser
- * builds the notification asynchronously, so a fixed wait is either a flake
- * or four seconds of nothing. A row count is not enough either: a push that
- * REPLACES an existing row leaves the count unchanged, so polling on the
- * count returns the row from before the push and the test passes on stale
- * state. That exact mistake was made here first and is why this comment is
- * long.
+ * A PREDICATE RATHER THAN A ROW COUNT. A push that REPLACES an existing row
+ * leaves the count unchanged, and a fold closes rows one at a time after the
+ * summary is up, so the list is read until it has the expected shape. When
+ * the predicate never holds, this returns what is on the list and the
+ * caller's assertions fail on the real contents. Nothing is retried.
  *
- * When the predicate never holds, this returns whatever is on the shade after
- * four seconds and the caller's assertions fail on it. A timeout must never
- * be reported as a pass; it is reported as the wrong shade, which is what it
- * is.
+ * A case that has run out of time (`signal` aborted) delivers nothing more,
+ * so a slow case cannot push into the next one.
  */
-async function push(payload: unknown, until: (shade: Displayed[]) => boolean): Promise<Displayed[]> {
+async function pushVia(
+  signal: AbortSignal,
+  payload: unknown,
+  until: (shade: Displayed[]) => boolean,
+): Promise<Displayed[]> {
+  if (signal.aborted) throw new Error("this case has run out of time; no further push is delivered");
   const body = typeof payload === "string" ? payload : JSON.stringify(payload);
   await deliver?.(body);
   const deadline = Date.now() + SETTLE_BUDGET_MS;
   let shade: Displayed[] = [];
-  while (Date.now() < deadline) {
+  while (Date.now() < deadline && !signal.aborted) {
     shade = (await readShade?.()) ?? [];
     if (until(shade)) return shade;
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
-  /* The budget expired. Return what is actually there so the caller's
-     assertions fail ON THE REAL CONTENTS and print the difference. A wait
-     that ran out is never reported as a pass and nothing is retried. */
   return shade;
+}
+
+/** Clears the list and hands the case its own `push`, bound to its signal. */
+async function begin(signal: AbortSignal) {
+  await clearShade?.();
+  return (payload: unknown, until: (shade: Displayed[]) => boolean) => pushVia(signal, payload, until);
 }
 
 /** The common case: wait for exactly this many rows. */
@@ -413,7 +474,7 @@ function hosted(context_: { skip: () => void }): boolean {
 describe("a real browser, running the shipped worker, building a real notification", () => {
   it("shows the sender's title, body and icon", async (testContext) => {
     if (!hosted(testContext)) return;
-    await clearShade?.();
+    const push = await begin(testContext.signal);
 
     const shade = await push(
       {
@@ -437,11 +498,11 @@ describe("a real browser, running the shipped worker, building a real notificati
     expect(shade[0]?.data?.href).toBe("/messages/9f2");
     expect(shade[0]?.renotify).toBe(false);
     expect(shade[0]?.requireInteraction).toBe(false);
-  }, 60_000);
+  }, CASE_TIMEOUT_MS);
 
   it("keeps money on the screen and lets it buzz again", async (testContext) => {
     if (!hosted(testContext)) return;
-    await clearShade?.();
+    const push = await begin(testContext.signal);
 
     const shade = await push(
       { title: "Withdrawal failed", body: "We could not pay out", href: "/wallet", tag: "vallo-wallet", urgent: true },
@@ -452,11 +513,11 @@ describe("a real browser, running the shipped worker, building a real notificati
     expect(shade[0]?.renotify).toBe(true);
     expect(shade[0]?.requireInteraction).toBe(true);
     expect(shade[0]?.data?.urgent).toBe(true);
-  }, 60_000);
+  }, CASE_TIMEOUT_MS);
 
   it("refuses a destination that leaves our origin", async (testContext) => {
     if (!hosted(testContext)) return;
-    await clearShade?.();
+    const push = await begin(testContext.signal);
 
     const shade = await push(
       { title: "Have a look", href: "https://evil.example/steal", tag: "vallo-listing" },
@@ -464,11 +525,11 @@ describe("a real browser, running the shipped worker, building a real notificati
     );
 
     expect(shade[0]?.data?.href).toBe("/notifications");
-  }, 60_000);
+  }, CASE_TIMEOUT_MS);
 
   it("still shows something when the payload is not readable", async (testContext) => {
     if (!hosted(testContext)) return;
-    await clearShade?.();
+    const push = await begin(testContext.signal);
 
     /* What an undecryptable push looks like from inside the worker. A browser
        that receives a push its worker does not display may substitute its own
@@ -478,11 +539,11 @@ describe("a real browser, running the shipped worker, building a real notificati
     expect(shade).toHaveLength(1);
     expect(shade[0]?.title).toBe("Vallo");
     expect(shade[0]?.data?.href).toBe("/notifications");
-  }, 60_000);
+  }, CASE_TIMEOUT_MS);
 
   it("replaces rather than stacks when the same tag arrives twice", async (testContext) => {
     if (!hosted(testContext)) return;
-    await clearShade?.();
+    const push = await begin(testContext.signal);
 
     await push({ title: "Amara replied", tag: "vallo-message", href: "/messages/9f2" }, rows(1));
     const shade = await push(
@@ -492,11 +553,11 @@ describe("a real browser, running the shipped worker, building a real notificati
 
     expect(shade).toHaveLength(1);
     expect(shade[0]?.title).toBe("Amara replied again");
-  }, 60_000);
+  }, CASE_TIMEOUT_MS);
 
   it("folds a fourth ordinary notification into one summary", async (testContext) => {
     if (!hosted(testContext)) return;
-    await clearShade?.();
+    const push = await begin(testContext.signal);
 
     await push({ title: "A booking", tag: "vallo-booking", href: "/bookings" }, rows(1));
     await push({ title: "A listing", tag: "vallo-listing", href: "/listings" }, rows(2));
@@ -510,11 +571,11 @@ describe("a real browser, running the shipped worker, building a real notificati
     expect(shade[0]?.title).toBe("Vallo");
     expect(shade[0]?.body).toBe("4 things happened while you were away");
     expect(shade[0]?.data?.href).toBe("/notifications");
-  }, 60_000);
+  }, CASE_TIMEOUT_MS);
 
   it("leaves an urgent notification standing when it folds the rest", async (testContext) => {
     if (!hosted(testContext)) return;
-    await clearShade?.();
+    const push = await begin(testContext.signal);
 
     await push({ title: "Withdrawal failed", tag: "vallo-wallet", href: "/wallet", urgent: true }, rows(1));
     await push({ title: "A booking", tag: "vallo-booking", href: "/bookings" }, rows(2));
@@ -532,5 +593,5 @@ describe("a real browser, running the shipped worker, building a real notificati
     expect(titles).toEqual(["Vallo", "Withdrawal failed"]);
     const summary = shade.find((row) => row.tag === "vallo-summary");
     expect(summary?.body).toBe("4 things happened while you were away");
-  }, 60_000);
+  }, CASE_TIMEOUT_MS);
 });

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
@@ -10,6 +10,10 @@ import { AgentInbox, type InboxFilter } from "./AgentInbox";
 import { readOpenQuestionsForLister } from "@/lib/availability/queries";
 import { readDeskStages } from "@/lib/enquiry/queries";
 import { stageFilter } from "@/lib/enquiry/stage";
+import { readBriefsForMe } from "@/lib/briefs/queries";
+import { readMyListings } from "@/lib/agent/listings-queries";
+import { BriefsDesk } from "@/components/agent/BriefsDesk";
+import Link from "next/link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -72,8 +76,29 @@ export default async function Page({
     );
   }
 
-  const [read, asked, stages] = await Promise.all([getAgentInbox(), readOpenQuestionsForLister(), readDeskStages()]);
   const profile = agentProfileFrom(context.agent);
+
+  /* V-95: the Briefs filter draws the briefs this lister may answer. */
+  if (filterParam === "briefs") {
+    const [briefs, mine] = await Promise.all([
+      readBriefsForMe(),
+      /* A failed read is null, which the desk shows as unreachable, never as
+         "no homes". */
+      readMyListings(context.supabase, context.agent.id).catch(() => null),
+    ]);
+    const homes = mine === null ? null : mine.filter((one) => one.status === "PUBLISHED").map((one) => ({ id: one.id, title: one.title }));
+    return (
+      <AgentShell t={t} locale={locale} active="/agent/messages" profile={profile}>
+        <h1 className="nf-h1">{t.agent.nav.messages}</h1>
+        <Link href="/agent/messages?filter=all" className="nf-link-quiet nf-body-sm text-[var(--nf-content-link)]">
+          {t.frontDoor.desk.all}
+        </Link>
+        <BriefsDesk briefs={briefs} homes={homes} copy={t.frontDoor.briefs} locale={locale} />
+      </AgentShell>
+    );
+  }
+
+  const [read, asked, stages] = await Promise.all([getAgentInbox(), readOpenQuestionsForLister(), readDeskStages()]);
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/messages" profile={profile}>
@@ -81,9 +106,7 @@ export default async function Page({
         <h1 className="nf-h1">{t.agent.nav.messages}</h1>
         <p className="mt-3xs text-[var(--nf-content-secondary)]">
           {read.state === "ready" && read.inbox.waitingCount > 0
-            ? `${read.inbox.waitingCount} ${
-                read.inbox.waitingCount === 1 ? "enquiry is" : "enquiries are"
-              } waiting on your reply. Guests book the agents who answer.`
+            ? `${countOf(read.inbox.waitingCount, "enquiriesAre", locale)} waiting on your reply. Guests book the agents who answer.`
             : "Every guest enquiry about your listings, oldest wait first."}
         </p>
       </div>
@@ -97,6 +120,7 @@ export default async function Page({
           stages={stages}
           stage={stageFilter(stageParam)}
           deskCopy={t.frontDoor.desk}
+          briefsLabel={t.frontDoor.briefs.deskFilter}
         />
       ) : (
         /* The same state, hand-rolled a second time in one file with different

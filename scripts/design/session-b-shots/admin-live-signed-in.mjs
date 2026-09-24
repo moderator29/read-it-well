@@ -1,7 +1,7 @@
 /*
  * LIVE PROOF, SIGNED IN AS THE QA ADMIN: THE CONSOLE AGAINST THE REAL PROJECT.
  *
- * Waits on Session A's QA accounts (BUILD_07 section 49). Credentials come
+ * Needs a QA admin account. Credentials come
  * from the environment only, never from the repository:
  *   QA_ADMIN_EMAIL, QA_ADMIN_PASSWORD   the admin (required)
  *   QA_MEMBER_EMAIL, QA_MEMBER_PASSWORD the member (optional: the non-admin door)
@@ -48,7 +48,7 @@ const record = (step, pass, detail, shot) => {
 // A deployed host is reached through the box's HTTPS proxy when one is set (its CA is in the browser's NSS store).
 const proxy = base.startsWith("https://") && process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
 // The proxy re-terminates TLS with its own CA; CHROMIUM_TRUST_SPKI pins exactly that CA's key (the
-// sweep workers' convention), rather than turning certificate checks off.
+// convention every shot script here follows), rather than turning certificate checks off.
 const args = process.env.CHROMIUM_TRUST_SPKI ? [`--ignore-certificate-errors-spki-list=${process.env.CHROMIUM_TRUST_SPKI}`] : [];
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium", proxy, args });
 

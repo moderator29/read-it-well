@@ -68,7 +68,12 @@ export default function DeleteAccountPage() {
                 <span className="font-semibold text-[var(--nf-content-primary)]">
                   3. Clear anything still open.
                 </span>{" "}
-                Your wallet has to be empty, your bookings and table reservations finished or
+                Your wallet has to be empty (spend it or send it to another Vallo member;
+                withdrawal to a bank is not available yet, so if you cannot do either,{" "}
+                <a href={SUPPORT_HREF} className="font-semibold underline">
+                  {SUPPORT_LABEL}
+                </a>{" "}
+                and we will settle it with you), your bookings and table reservations finished or
                 cancelled, any withdrawal settled, and any listing of yours unpublished or handed
                 to another agent. The screen names whichever of those applies to you and links
                 straight to the control that clears it.
@@ -111,8 +116,12 @@ export default function DeleteAccountPage() {
               Your profile, your photograph and cover picture, your posts, comments, stories and
               drafts, your saved items, interests and searches, your devices and notifications,
               your saved cards and bank accounts, and every file you have uploaded, including any
-              identity, agency or host documents. The files are removed from storage, not just the
-              records that point at them.
+              host documents. The files are removed from storage, not just the records that point
+              at them. An approved agent&rsquo;s identification (identity and agency documents, ID
+              number, name, address and payout details) is the exception: the money laundering
+              rules require it to be kept for five years after the account closes, readable only
+              by our staff, and then it is destroyed. An applicant who was not approved keeps
+              nothing.
             </p>
             <ul className="mt-sm grid gap-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)] sm:grid-cols-2">
               {DESTROYED_TABLES.map((entry) => (

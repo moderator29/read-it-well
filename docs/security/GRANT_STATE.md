@@ -157,7 +157,7 @@ eleven hours today.
 | `profiles` | `phone` | yes | **Closed by RLS.** Only `profiles_select_own` and `profiles_select_admin` exist, so this table is not the public social surface; `social_profiles` is. |
 | `support_tickets` | `email` | yes | **Closed by RLS.** Own plus admin. |
 | `listing_mandates` | `principal_phone` | yes | **Closed by RLS.** `private.owns_listing(listing_id)`, which is false for `anon`. |
-| `listing_access` | `security_phone` | yes | **Closed by RLS, and doubly.** The policy calls `private.can_see_listing_access(uuid)`, which `anon` cannot even evaluate; it is one of the three named entries in the `policy_callers_hold_execute` allowlist. An anonymous read raises 42501 rather than returning a row. |
+| `listing_access` | `security_phone` | yes | **Closed by RLS, and doubly.** The policy calls `private.can_see_listing_access(uuid)`, which `anon` cannot even evaluate; `supabase/tests/probes/db-20.sql` reports it as a live gap (DB-20). An anonymous read raises 42501 rather than returning a row. |
 | `bot_invocations` | `input_tokens`, `output_tokens` | yes | **Not personal data.** These are model token counts, matched by the name sweep and cleared by reading them. Policy is `auth.uid()` bound anyway. |
 | `bank_accounts` | `account_number`, `bank_code`, `bank_name`, `resolved_account_name` | no | **Closed twice.** `anon` holds nothing at all, and the policies are own plus admin. |
 | `business_verification_checks` | `reviewer_id` | no | `anon` holds nothing. Owner plus admin. |
@@ -206,15 +206,19 @@ screen can show, and **it is a product decision rather than a grant.** It is
 named here so it is a decision somebody took rather than something nobody
 noticed.
 
-### 4.2 The three allowlisted policy callers
+### 4.2 Policy callers anon cannot evaluate (no allowlist any more)
 
-`scripts/probes/policy_callers_hold_execute.sql` carries three pairs that are
-named rather than granted: `private.attachment_path_access(text)`,
-`private.can_see_listing_access(uuid)` and
-`private.escrow_evidence_path_access(text,boolean)`, each for `anon`. No
-shipping path reaches them anonymously today. **Each entry is deleted the day
-its grant is made or the day its table is closed to `anon`, and a new one fails
-the probe.**
+The old hand-run probe allowlisted three pairs for `anon`. Its replacement,
+`supabase/tests/probes/db-20.sql`, reads the functions from `pg_depend` and
+honours each policy's roles (`pg_policy.polroles`), so pairs anon never
+evaluates (`attachment_path_access`, `escrow_evidence_path_access`: their
+policies are `to authenticated`) are no longer counted, and it has no
+allowlist. On 23 September it reports exactly three live gaps, all `anon`:
+`private.can_see_listing_access(uuid)` on `listing_access.listing_access_select`
+and `private.inspection_photo_path_access(text,boolean)` on the two
+`inspection_photos_objects_party_*` policies on `storage.objects` (DB-04,
+DB-20). The fix is to scope those policies `to authenticated`; the probe stays
+red until then.
 
 ### 4.3 The 22 load-bearing `private` grants
 
@@ -392,9 +396,12 @@ Every one of the 293 rows in `schema_migrations` carries the same
 
 ## 8. The check that guards all of this
 
-`scripts/probes/policy_callers_hold_execute.sql`. Every RLS policy joined to
-whether the role that must evaluate it actually holds EXECUTE on the function
-it calls. **Run before and after every revoke in this session's work**, four
+`supabase/tests/probes/db-20.sql` (it replaced `scripts/probes/policy_callers_hold_execute.sql`,
+which matched function names as text and ignored policy roles). Every RLS policy
+joined, through `pg_depend`, to whether each role the policy applies to holds
+EXECUTE on each function it calls. It runs with every other probe through
+`scripts/db-probes/run.mjs` (CI job "Database probes"). The run recorded below
+is the old probe's. **Run before and after every revoke in this session's work**, four
 times in total, and identical every time:
 
 ```

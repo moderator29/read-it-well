@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AgentProfile } from "@/lib/agent/types";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import type { NoWorkspaceDoor } from "./agent-doors";
 
 /**
  * Shared Agent Mode navigation pieces.
@@ -29,7 +30,7 @@ export function AgentModePill({ label, className }: { label: string; className?:
   return (
     <span
       className={[
-        "inline-flex w-fit items-center gap-xs rounded-[var(--nf-radius-control)] px-sm py-2xs text-[length:var(--nf-text-overline)] font-bold",
+        "inline-flex w-fit items-center gap-xs rounded-[var(--nf-radius-xs)] px-sm py-2xs text-[length:var(--nf-text-overline)] font-bold",
         className ?? "",
       ].join(" ")}
       style={{
@@ -46,23 +47,23 @@ export function AgentModePill({ label, className }: { label: string; className?:
 /**
  * Agent identity card: avatar initial, display name, verified marker.
  *
- * A null profile is a real state, not a missing one. The workspace chrome is
- * reachable signed out, and it used to fill this card from a seed object
- * called "Demo Agent", status APPROVED, verified true, so a stranger opening
- * an agent route was addressed as an approved verified agent by name. The card
- * now says what is true instead, and offers the way in.
+ * A null profile is a real state, not a missing one. It used to be filled from
+ * a seed object called "Demo Agent", status APPROVED, verified true, so a
+ * stranger opening an agent route was addressed as an approved verified agent
+ * by name. The card now says what is true instead, and offers the way in.
+ * Whoever sees a null profile is signed in with no listing workspace yet; the
+ * door is `noWorkspaceDoor` (agent-doors.ts).
  */
+
 export function AgentIdentityCard({
   profile,
   verifiedLabel,
-  visitorLabel,
-  signInLabel,
+  door,
 }: {
   profile: AgentProfile | null;
   verifiedLabel: string;
-  /** What the card says when nobody is signed in as an agent. */
-  visitorLabel: string;
-  signInLabel: string;
+  /** What the card says and where it leads when there is no agent profile. */
+  door: NoWorkspaceDoor;
 }) {
   if (!profile) {
     return (
@@ -74,16 +75,15 @@ export function AgentIdentityCard({
           <UiIcon name="user" size={16} />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
-          {/* "Not signed in as an agent" is a sentence and it was ending at "Not
-              signed in as an ag" in the rail. It wraps. */}
+          {/* A sentence, and it was ending mid-word in the rail. It wraps. */}
           <span className="block text-[length:var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-secondary)]">
-            {visitorLabel}
+            {door.label}
           </span>
           <Link
-            href="/sign-in"
+            href={door.href}
             className="mt-3xs inline-block text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
-            {signInLabel}
+            {door.cta}
           </Link>
         </span>
       </div>

@@ -10,7 +10,7 @@ import { requireAdmin } from "../guard";
  * `agent_applications_select_admin`, `profiles_select_admin`); never the
  * service role.
  *
- * Session A's `getKycQueue` stays the source of the queue itself (grouped by
+ * `getKycQueue` stays the source of the queue itself (grouped by
  * person, with the documents, the ladder and the viewer's media shape). These
  * reads add what it cannot give honestly: exact totals (its `pendingCount` is
  * counted over a 300-document cap), decisions per day, decision times, the

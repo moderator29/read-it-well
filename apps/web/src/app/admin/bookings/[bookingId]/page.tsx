@@ -68,7 +68,10 @@ export default async function AdminBookingPage({
     return (
       <div className="nf-console">
         {backLink}
-        <ui.QueueEmpty title={copy.goneTitle} body={copy.goneBody} />
+        {/* UI-15: a record that is not there is not good news: the neutral
+            "no match" mark, never the success shield. */}
+        <h1 className="sr-only">{copy.goneTitle}</h1>
+        <ui.QueueEmpty title={copy.goneTitle} body={copy.goneBody} state="no-match" />
       </div>
     );
   }

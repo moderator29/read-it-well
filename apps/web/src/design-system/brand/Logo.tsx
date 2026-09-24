@@ -161,15 +161,18 @@ export function Logo({
         decoration to a reader and the picture to everyone else.
       */}
       <span className="nf-logo__text">
-        {/* V-78: the intrinsic size is the DRAWN size, not the file's 758 by
-            167, so the optimiser serves a 1x of about 96px and a 2x of 256px
-            instead of 828 and 1920 on every page for a 95px lockup. */}
+        {/* V-78 and OPS-10: `sizes` names the DRAWN width, so the optimiser
+            serves a file the size of the lockup instead of 828 or 1920 wide
+            on every page. */}
         <Image
           src="/brand/vallo-wordmark.png"
           alt=""
           aria-hidden="true"
-          width={Math.round((wordSize * 758) / 167)}
-          height={wordSize}
+          width={758}
+          height={167}
+          /* OPS-10: drawn at most about wordSize × 4.5 wide; without this the
+             optimiser served the 1920-wide version for a 78 px logo. */
+          sizes={`${Math.ceil((wordSize * 758) / 167)}px`}
           priority={priority}
           className="nf-logo__word"
           style={{ height: wordFontSize, width: "auto" }}

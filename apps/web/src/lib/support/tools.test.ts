@@ -54,7 +54,7 @@ function fakeDb(tables: Record<string, QueryResult | QueryResult[]>): SupabaseCl
       const settle = () => ({ data: picked.data ?? null, error: picked.error ?? null });
 
       const chain: Record<string, unknown> = {};
-      for (const method of ["select", "eq", "in", "order", "limit", "gte", "lte", "neq"]) {
+      for (const method of ["select", "eq", "in", "order", "limit", "gte", "lte", "neq", "or"]) {
         chain[method] = () => chain;
       }
       chain.maybeSingle = () => Promise.resolve(settle());

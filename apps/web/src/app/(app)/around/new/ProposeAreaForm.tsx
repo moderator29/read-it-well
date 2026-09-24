@@ -16,7 +16,7 @@ import {
   slugifyArea,
   type AreaKind,
 } from "@/lib/social/areas-schema";
-import { displayHost } from "@/lib/brand-domain";
+import { useDisplayHost } from "@/lib/ui/use-display-host";
 
 /**
  * Suggest a place.
@@ -38,6 +38,7 @@ export function ProposeAreaForm({
   signedIn: boolean;
 }) {
   const router = useRouter();
+  const host = useDisplayHost();
   const [pending, startTransition] = useTransition();
 
   const [name, setName] = useState("");
@@ -203,7 +204,7 @@ export function ProposeAreaForm({
         <p className="nf-panel nf-panel--card block px-sm py-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Its address will be{" "}
           <span className="nf-numeric text-[var(--nf-content-secondary)]">
-            {displayHost()}/around/{slug}
+            {host}/around/{slug}
           </span>
         </p>
       ) : null}

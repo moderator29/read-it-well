@@ -5,14 +5,13 @@ import type { InspectionOutcome, InspectionState } from "./types";
  *
  * F6A8A482 (and founder/inspection-target.jpg) draws eight rooms to tick, a
  * notes field and Add Photos, and a Submit that stays disabled until all
- * eight are ticked. Request I1 (Session A, applied 23 September, migration
- * 20260923135847) is the storage: `inspection_reports`,
+ * eight are ticked. Migration 20260923135847
+ * (applied 23 September) is the storage: `inspection_reports`,
  * `inspection_report_items`, `inspection_report_photos`, the private
  * `inspection-photos` bucket, and a trigger that refuses a submission with
  * fewer than eight ticks and moves the parent to COMPLETED in the same
- * transaction. The writes are Session A's `saveInspectionReport` and
- * `createInspectionPhotoUpload` and `addReportPhoto` (lib/inspections/actions.ts,
- * I1 and I1b).
+ * transaction. The writes are `saveInspectionReport`,
+ * `createInspectionPhotoUpload` and `addReportPhoto` (lib/inspections/actions.ts).
  *
  * This module is the screen's own view of a report and the rules for what
  * may be pressed. Pure, so it is tested rather than trusted.
@@ -83,10 +82,10 @@ export function canEditReport(live: boolean, state: InspectionState, report: Ins
  * also holds in the database). Without it: an outcome chosen, recorded
  * through the existing close action, the only record that exists then.
  *
- * With storage on there is no outcome on the report: I1 has no outcome
+ * With storage on there is no outcome on the report: the report has no outcome
  * column and the parent's outcome can be written only on its move to
- * COMPLETED, which the report's trigger makes. Request I1a asks Session A to
- * carry one through; until then the outcome choice is not drawn with storage
+ * COMPLETED, which the report's trigger makes. Until the report carries one
+ * through, the outcome choice is not drawn with storage
  * on, rather than drawn and dropped.
  */
 export function canSubmit(

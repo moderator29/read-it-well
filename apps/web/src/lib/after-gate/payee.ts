@@ -24,7 +24,12 @@ export async function readPayeeContext(listingId: string): Promise<PayeeContext 
   try {
     const { data, error } = await session.supabase
       .from("listings")
-      .select("listing_role, mandate_verified_at, ownership_verified_at, is_demo, agent_id")
+      /* The two review dates are not read here: DB-10 step 2 takes
+         `ownership_verified_at` and `mandate_verified_at` from
+         `authenticated`, and a select naming a revoked column fails the whole
+         read. Until a member-readable door for them exists, neither record is
+         claimed, which draws the neutral payee line and nothing false. */
+      .select("listing_role, is_demo, agent_id")
       .eq("id", listingId)
       .maybeSingle();
     if (error || !data) return null;
@@ -36,8 +41,8 @@ export async function readPayeeContext(listingId: string): Promise<PayeeContext 
     return {
       listerRole: (data.listing_role ?? undefined) as PayeeContext["listerRole"],
       listerName,
-      mandateVerified: !data.is_demo && data.mandate_verified_at !== null,
-      ownershipVerified: !data.is_demo && data.ownership_verified_at !== null,
+      mandateVerified: false,
+      ownershipVerified: false,
     };
   } catch {
     return null;
@@ -45,18 +50,8 @@ export async function readPayeeContext(listingId: string): Promise<PayeeContext 
 }
 
 export async function readPayeeRecords(listingId: string): Promise<{ mandateVerified: boolean; ownershipVerified: boolean }> {
-  const none = { mandateVerified: false, ownershipVerified: false };
-  const session = await resolveSession();
-  if (session.state !== "signed-in") return none;
-  try {
-    const { data, error } = await session.supabase
-      .from("listings")
-      .select("mandate_verified_at, ownership_verified_at, is_demo")
-      .eq("id", listingId)
-      .maybeSingle();
-    if (error || !data || data.is_demo) return none;
-    return { mandateVerified: data.mandate_verified_at !== null, ownershipVerified: data.ownership_verified_at !== null };
-  } catch {
-    return none;
-  }
+  /* See `readPayeeContext`: the two review dates are not member-readable
+     once DB-10 step 2 lands, so no record is claimed. */
+  void listingId;
+  return { mandateVerified: false, ownershipVerified: false };
 }

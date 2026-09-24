@@ -136,6 +136,6 @@ describe("the example listing disclosure", () => {
   it("states the full sentence on the listing detail page", () => {
     const page = read("app/(app)/listing/[id]/page.tsx");
     expect(page).toContain("ExampleNotice");
-    expect(page).toMatch(/isDemo\s*&&\s*<ExampleNotice/);
+    expect(page).toMatch(/isDemo\s*&&\s*\(?\s*<ExampleNotice/);
   });
 });

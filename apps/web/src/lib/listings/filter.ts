@@ -241,6 +241,13 @@ export function isVerifiedFirstParty(facts: ListingFacts): boolean {
  * Every bound is a minimum except the price ceiling, and every one of them is
  * skipped when it was not asked for, so an empty filter matches everything.
  */
+/** Stays, tables and experiences: priced per night or per head, never on a tenancy. */
+const NIGHTLY_KINDS: ReadonlySet<ListingKind> = new Set(["hotel", "shortlet", "restaurant", "experience"]);
+
+function isNightlyOrPerHead(facts: Pick<ListingFacts, "kind" | "pricePeriod">): boolean {
+  return facts.pricePeriod === "night" || facts.pricePeriod === "guest" || NIGHTLY_KINDS.has(facts.kind);
+}
+
 export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = {}): boolean {
   // The category, which lives here rather than in `matchesFilter` because the
   // drawer counts against facts alone and it is the drawer that now asks it.
@@ -259,6 +266,13 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
   ) {
     return false;
   }
+
+  // UX-07: "Rent" is the tenancy market. A place priced by the night or by
+  // the head, or a stay or a table by kind, is not let on a tenancy even
+  // though its intent column says rent, so it does not answer a search for a
+  // flat. `rentMeansTenancy` keeps the one exception above: the drawer's
+  // Shortlet and Hotel options, which ask for exactly those.
+  if (rentMeansTenancy(filter) && isNightlyOrPerHead(facts)) return false;
 
   const wantsBudget = filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
   if (wantsBudget) {

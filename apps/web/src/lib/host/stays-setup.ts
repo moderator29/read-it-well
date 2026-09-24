@@ -24,6 +24,7 @@
 
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
+import { countOf } from "@vallo/i18n";
 
 /* --------------------------------------------------------- the two branches */
 
@@ -425,9 +426,9 @@ export function clockLabel(value: string): string {
 export function noticeLabel(hours: number): string {
   if (hours > 0 && hours % 24 === 0) {
     const days = hours / 24;
-    return `${days} day${days === 1 ? "" : "s"}`;
+    return countOf(days, "days");
   }
-  return `${hours} hour${hours === 1 ? "" : "s"}`;
+  return countOf(hours, "hours");
 }
 
 /** "8:00 AM to 11:00 PM", the render's row, with a word rather than a dash. */

@@ -11,7 +11,9 @@ the code does not do yet, it is marked NOT BUILT and the work is in
 `RECOMMENDATIONS.md`.
 
 Last verified against the code and the live Supabase project
-`uccixoonmbhrnyczyigt` on 2026-08-09.
+`uccixoonmbhrnyczyigt` on 2026-08-09; sections 4, 7 and 8 corrected on
+2026-09-23. The checked, finding-by-finding state of the platform is
+`docs/THE_AUDIT.md`.
 
 ---
 
@@ -95,33 +97,58 @@ Four roles, in `public.app_role`: `user`, `agent`, `admin`, `super_admin`. A
 person can hold more than one. Roles are read through helpers in a private,
 non-exposed schema, never from a client.
 
-**The access rule: view only, then gate. This is now built.**
+**The access rule: sign in to see the platform. Founder's ruling, 23 September 2026.**
 
-A signed-out visitor can browse the product and cannot act in it. That line is
-drawn in two places and they have to agree:
+In the founder's words: "Nothing inside the platform is visible without
+signing up or signing in." This replaced the earlier "view only, then gate"
+rule, under which a stranger could browse the catalogue.
 
-- `apps/web/src/middleware.ts` decides whole routes. **Open to anybody:**
-  `search`, `listing`, `rent`, `around`, `u`, `post`, the marketing site, the
-  public `/privacy` and `/terms`, and `/agents` as the supplier pitch. **Behind a
-  session:** `assistant`, `bookings`, `checkout`, `home`, `legal`, `messages`,
-  `notifications`, `profile`, `saved`, `settings`, `stories`, `wallet`,
-  `welcome`, plus `admin` and `agent` which carry their own role checks, plus
-  the exact paths `/agents/apply`, `/agents/status` and `/styleguide`.
-- `components/auth/AuthGate.tsx` decides individual controls on a page a stranger
-  is allowed to read. Saving, messaging, requesting an inspection, paying and
-  listing all raise sign up or sign in.
+- `apps/web/src/proxy.ts` holds the door. **The list is inverted**: the OPEN
+  routes are the enumerated set (`PUBLIC_SEGMENTS` and `PUBLIC_PATHS`) and
+  every other route needs a session, so a new route is born locked. Open to
+  anybody: the landing page `/` and its company and support pages (`about`,
+  `careers`, `contact`, `docs`, `help`), every legal and policy page (`terms`,
+  `privacy`, `eula`, `cancellations`, `standards`, `safety`),
+  `delete-account` (a store requirement, and the only way back from a deletion
+  in progress), the sign-in and sign-up doors, `start` (the browser install
+  page), `welcome` (first run), `offline`, the `preview` and `gallery` fixture
+  harnesses (which answer not-found on Vercel regardless), and the webhook, cron and support API routes that authenticate themselves.
+  Everything else, including `search`, `listing`, `stays`, `restaurants`,
+  `around` and `u`, redirects to sign-in and carries the address back.
+- `apps/web/tests/gate.spec.mjs` walks the open list in a browser.
+- The proxy is not the only check: every server action resolves its own
+  session and every read is behind RLS.
 
-Two deliberate exceptions to "browsing is open", both correct: **stories** are
-gated because a story view is a write that counts viewers, and **`/legal/*`** is
-gated because it is only the in-product copy of documents whose canonical
-versions at `/privacy` and `/terms` are open.
+**What the ruling accepts, deliberately:** no listing is indexed by a search
+engine (`app/sitemap.ts` publishes no listing URL), a shared listing link
+unfurls as a sign-in page, and both app stores need reviewer credentials
+(`docs/STORE_SUBMISSION_NOTES.md`).
 
-Nothing yet asserts that the two layers agree. See RECOMMENDATIONS T-9.
+**The public catalogue flag, `VALLO_PUBLIC_CATALOGUE`.** Apple's guideline
+5.1.1(v) makes a catalogue behind a sign-in wall a likely rejection (THE_AUDIT
+STORE-P2-04). The flag is server-only and read by `proxy.ts` on every request,
+so switching it needs an environment change and a redeploy, not a code change.
+
+- **Off (the default):** unset, or any value other than `1`, `true` or `on`.
+  The ruling above holds exactly.
+- **On:** signed-out visitors can open `/search`, `/stays`, `/restaurants`,
+  `/listing/*`, `/stay/*` and `/restaurant/*` read-only. Anonymous page
+  requests are rate-limited per IP. `/u`, messages, the wallet, bookings and
+  every action stay behind sign-in either way, and an exact address is never
+  selected for a signed-out reader (the address columns are not granted to
+  anon).
+- **The native app starts on `/open`**, a public route: signed in goes to
+  `/home`; signed out goes to `/search` when the flag is on and to `/welcome`
+  when it is off.
+
+Whether to switch it on for a store submission is the founder's decision.
 
 **The roles.**
 
-- **Visitor, signed out.** Reads the catalogue, a listing, a place and a public
-  profile. Any action needing an account raises sign up or sign in.
+- **Visitor, signed out.** Sees the landing page, the company, support and
+  legal pages, and first run. Everything inside the platform raises sign in
+  (unless the public catalogue flag above is on, in which case they can read
+  the catalogue and a listing, and any action raises sign up or sign in).
 - **Member (`user`).** Books, pays, saves, messages, posts, reviews, earns member
   badges. Created by the signup trigger. **Never asked to verify their
   identity.** A person looking for somewhere to live does not upload a passport
@@ -275,7 +302,7 @@ collapse into one tick.**
    `apps/web/src/lib/legal/terms.tsx` was rewritten on 15 September to say in as
    many words that Vallo does not hold your money in escrow. **The wallet screen
    and the contract now say opposite things about where somebody's rent money
-   is.** That is the highest-priority item in `docs/FRONTEND_REVAMP.md`.
+   is.** That is the highest-priority item in `docs/archive/FRONTEND_REVAMP.md`.
 
    **The rule stands and is restated.** Escrow may not be mentioned to a user
    until the money can actually be held, released and disputed. See
@@ -302,19 +329,23 @@ Use these words. Do not invent synonyms.
 | **Agent** | A verified supplier who lists | Host, landlord, vendor, seller |
 | **Member** | A signed-in person who is not an agent | User, customer, guest, unless they are actually staying |
 | **Guest** | A member who has booked a stay | |
-| **Stay** | A nightly booking | Trip, reservation, unless it is a restaurant table |
+| **Stay** | A nightly booking | Reservation, unless it is a restaurant table. ("Trips" is the Stays surface that lists them, `/trips`.) |
 | **Reservation** | A restaurant table request | |
 | **Around** | The social layer | Feed, community, compound. A compound is a different thing in Nigerian property |
 | **Place** | A named area inside Around, backed by a local government | Hub, district, neighbourhood |
 | **Post** | Anything somebody writes in Around | Gist, talk, echo. The lexicon was tested and cut |
-| **Story** | A picture post that expires | |
+| **Story** | A picture post with a headline; it stays up until its author or a moderator takes it down (nothing expires it) | |
 | **Standing** | Badges and trust, as a whole | Reputation, score, karma |
 | **Stop** | An admin suspending an agent's ability to trade | Ban, block. Block is a member muting another member |
 | **The console** | `/admin` | Dashboard, backend, admin panel |
 | **Workspace** | Who you are being: Personal, or one of owner, agent, firm, hotel, shortlet, restaurant (`/agent/*`, `/host/*`). One "Add a workspace" chooser at `/profile/setup` | Profile, role, mode, portal, host dashboard. `apps/web/src/lib/i18n/workspace-terms.test.ts` fails on them in English UI copy |
 
-**Banned in UI copy, enforced by five specs:** `demo`, `sample`, `preview`,
-`not live`, `coming soon`, `lorem`. The ban exists because this repository once
+**Banned in UI copy:** `demo`, `sample`, `preview`, `not live`, `coming soon`,
+`lorem`. Enforced by the vitest scan in `apps/web/src/lib/copy/`
+(`banned-phrases.test.ts`), which runs with `npm test`. The synonyms in the
+"Not" column above are enforced by `BANNED_SYNONYMS` only where no product
+string still uses them; the rest join that list in the change that rewrites
+their copy (THE_AUDIT DOC-08). The ban exists because this repository once
 shipped twenty-three invented places, twenty-two of them carrying
 `verified: true` with fabricated ratings on addresses that do not exist. Any
 example content must say what it is in plain words and must never carry a trust
@@ -352,7 +383,7 @@ where. A slogan does none of that.
 attempt at it was. The three words are an i18n key, `landing.hero.line1/2/3`, the
 auth shell and the footer reach it through that key, it is translated into
 Yorùbá, Hausa and Igbo, and **it is reused as the titles of the three
-how-it-works steps**. `docs/FRONTEND_REVAMP.md` section 3 has the full inventory
+how-it-works steps**. `docs/archive/FRONTEND_REVAMP.md` section 3 has the full inventory
 and the three separate jobs it breaks into.
 
 ## 8. Language and theme
@@ -361,16 +392,16 @@ Four locales ship: English, Yorùbá, Hausa and Igbo. `en` is the typed source o
 truth; the other three are complete and awaiting native review. `Accept-Language`
 is negotiated, plurals go through `Intl.PluralRules`.
 
-**Dark is the default and the operating system does not override it.** Only an
-explicit stored choice moves the theme. Light mode is a designed paper twin:
-flat neutral canvas, white cards, neutral hairlines, brand blue only on active,
-focus and calls to action. Both are real themes and both must be verified.
+**Dark only.** The founder removed light mode on 23 September 2026
+(`docs/design/LIGHT_MODE_REMOVED.md`). The root forces dark, and `tokens.css`
+carries no `[data-theme="light"]` block and must not grow one back. There is
+no theme to verify other than dark.
 
 The brand is one blue family. Deep navy-black, dark neon blue, electric blue
 glow. Anchors: base `#010118`, glow `#0C39EF`, mid `#000F98`. **No orange, amber,
 gold, purple or magenta.** The only two hues outside the family are emerald for
-success and rose for error; the attention state is bright cyan. A lint rule now
-fails the build on a raw colour, and layer-1 token leakage in components and
+success and rose for error; the attention state is bright cyan. A lint check
+(`check-css-tokens.mjs`, part of `npm run lint`) fails on a raw colour, and layer-1 token leakage in components and
 stylesheets is zero.
 
 Because the palette is one hue, **colour alone may never be the only signal**.

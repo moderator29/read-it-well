@@ -74,7 +74,7 @@ export type SortKey =
 /**
  * THE FOUR SORTS ALL READ THE HEADLINE PRICE, AND THAT IS THE DEFECT.
  *
- * HANDOFF 09 section 4.2: a renter with six million naira was being shown four
+ * A renter with six million naira was being shown four
  * and a half million naira flats that need seven million to move into, because
  * every ordering this shelf offered read `priceMinor`. `move-in-asc` reads the
  * total move in cost instead, which is the number a Nigerian tenant actually

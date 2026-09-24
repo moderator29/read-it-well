@@ -7,7 +7,7 @@ import type { StayDetail } from "@/app/(app)/stay/[id]/detail-model";
 import type { StayCardData } from "@/components/app/stays/stay-card-model";
 
 /**
- * F3's fixtures for the preview harness (BUILD_06_LEDGER section 5).
+ * Catalogue and stays fixtures for the preview harness.
  *
  * Brand-neutral and fictional: invented streets, invented names, the
  * catalogue's own photography. Money is integer kobo. `isDemo` is false on

@@ -1,5 +1,7 @@
 "use client";
 
+import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
+import { initial } from "@/lib/text/initial";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -97,7 +99,7 @@ function ProfileRow({
       </Link>
     );
   }
-  const monogram = (person.name || person.email || "?").charAt(0).toUpperCase();
+  const monogram = initial(person.name || person.email);
   return (
     <Link href="/profile" className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
       <span className="nf-hub-profile__avatar" aria-hidden="true">
@@ -344,6 +346,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
                  nor their shortlist. */
               await clearPacks();
               await clearShelf();
+              /* SUP-16: a listing draft never outlives the session that wrote it. */
+              clearListingDrafts();
               await clearOutbox();
               await forgetWidget();
               clearAllInflight();

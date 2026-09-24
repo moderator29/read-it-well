@@ -1,3 +1,4 @@
+import { BANK_PAYOUTS_OPEN } from "../wallet/bank-payouts";
 import {
   appUrl,
   button,
@@ -196,9 +197,13 @@ function whatHappened(data: PaymentInstrumentData): string {
     case "card_removed":
       return `We removed ${thing} from your Vallo account. Nothing was charged.`;
     case "bank_added":
-      return `We added ${thing} for your payouts, after the bank confirmed the name on it.`;
+      return BANK_PAYOUTS_OPEN
+        ? `We added ${thing} for your payouts, after the bank confirmed the name on it.`
+        : `We added ${thing} to your Vallo account, after the bank confirmed the name on it. Withdrawals will go to it once bank payouts open.`;
     case "bank_default_changed":
-      return `Money you withdraw from Vallo now goes to ${thing}.`;
+      return BANK_PAYOUTS_OPEN
+        ? `Money you withdraw from Vallo now goes to ${thing}.`
+        : `Once bank payouts open, money you withdraw from Vallo will go to ${thing}.`;
     case "bank_removed":
       return `We removed ${thing} from your Vallo account. Your balance is untouched.`;
   }
