@@ -1,0 +1,175 @@
+/*
+ * TRACK M: THE INSIDE BREATHES TOO (25 September 2026).
+ *
+ * The founder asked for the platform's inner rooms to feel as alive as the
+ * landing page, with one motion language across them. This partial gives the
+ * shared building blocks one entrance each, so every screen that uses them
+ * gets it without a line of screen code:
+ *
+ *   page titles      arrive out of depth, the splash's letter technique
+ *                    applied to a whole heading
+ *   empty states     the picture, the sentence and the action rise in turn,
+ *                    and the picture keeps a slow float while you read
+ *   settings groups  each group rises a beat after the one above it
+ *   notifications    and inbox rows slide in, thirty milliseconds apart
+ *   the bell         swings once when something is waiting
+ *
+ * Transform, opacity and filter on the blocks themselves, never on a page
+ * root (see `.nf-page-stage` in shell-m.css for why). Every entrance waits for
+ * the splash through `--nf-splash-hold`, and every one has a reduced-motion
+ * answer at the foot, where they all stop.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  @keyframes nf-in-depth {
+    from {
+      opacity: 0;
+      transform: scale(1.04);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  @keyframes nf-in-rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-in-slide {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ----------------------------------------------------------- titles */
+
+  .nf-page-title {
+    transform-origin: left center;
+    animation: nf-in-depth var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: var(--nf-splash-hold, 0ms);
+  }
+
+  /* ------------------------------------------------------ empty states */
+
+  [data-state-kind="empty"] > * {
+    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  [data-state-kind="empty"] > :nth-child(1) {
+    animation:
+      nf-in-depth var(--nf-duration-deliberate) var(--nf-ease-entrance) both,
+      nf-in-float 6s var(--nf-ease-standard) var(--nf-duration-deliberate) infinite;
+  }
+  [data-state-kind="empty"] > :nth-child(2) { animation-delay: 90ms; }
+  [data-state-kind="empty"] > :nth-child(3) { animation-delay: 150ms; }
+  [data-state-kind="empty"] > :nth-child(n + 4) { animation-delay: 210ms; }
+  @keyframes nf-in-float {
+    0%,
+    100% {
+      transform: none;
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  /* ---------------------------------------------------- settings groups */
+
+  .nf-sgroup {
+    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-sgroup:nth-of-type(2) { animation-delay: 50ms; }
+  .nf-sgroup:nth-of-type(3) { animation-delay: 100ms; }
+  .nf-sgroup:nth-of-type(4) { animation-delay: 150ms; }
+  .nf-sgroup:nth-of-type(n + 5) { animation-delay: 200ms; }
+
+  /* ------------------------------------------- notifications and inbox */
+
+  .nf-notif__list > li,
+  [data-testid="inbox-row"] {
+    animation: nf-in-slide var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-notif__list > li:nth-child(2) { animation-delay: 30ms; }
+  .nf-notif__list > li:nth-child(3) { animation-delay: 60ms; }
+  .nf-notif__list > li:nth-child(4) { animation-delay: 90ms; }
+  .nf-notif__list > li:nth-child(5) { animation-delay: 120ms; }
+  .nf-notif__list > li:nth-child(6) { animation-delay: 150ms; }
+  .nf-notif__list > li:nth-child(n + 7) { animation-delay: 180ms; }
+
+  /* ------------------------------------------------------------ the bell */
+
+  /*
+   * One swing, from the top of the bell, when the unread dot is there. It
+   * plays when the header mounts, which is a page load, not every
+   * navigation: the header is the shell's and survives route changes.
+   */
+  .nf-app-header__btn:has(.nf-app-header__dot) svg {
+    transform-origin: 50% 12%;
+    animation: nf-in-swing 900ms var(--nf-ease-standard) calc(var(--nf-splash-hold, 0ms) + 500ms) both;
+  }
+  .nf-app-header__dot {
+    animation: nf-in-dot var(--nf-duration-slow) var(--nf-ease-spring) calc(var(--nf-splash-hold, 0ms) + 400ms) both;
+  }
+  @keyframes nf-in-swing {
+    0%,
+    100% {
+      transform: none;
+    }
+    15% {
+      transform: rotate(14deg);
+    }
+    35% {
+      transform: rotate(-11deg);
+    }
+    55% {
+      transform: rotate(7deg);
+    }
+    75% {
+      transform: rotate(-3deg);
+    }
+  }
+  @keyframes nf-in-dot {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  /* ------------------------------------------------------ reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-page-title,
+    [data-state-kind="empty"] > *,
+    [data-state-kind="empty"] > :nth-child(1),
+    .nf-sgroup,
+    .nf-notif__list > li,
+    [data-testid="inbox-row"],
+    .nf-app-header__btn:has(.nf-app-header__dot) svg,
+    .nf-app-header__dot {
+      animation: none;
+    }
+  }
+  /* Data saving: keep the entrances, drop the endless float and the blur. */
+  :root[data-save-data="on"] [data-state-kind="empty"] > :nth-child(1) {
+    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  :root[data-save-data="on"] .nf-page-title {
+    animation-name: nf-in-rise;
+  }
+}
