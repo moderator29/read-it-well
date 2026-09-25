@@ -120,9 +120,10 @@ export function AppRail({
         /*
           THE USER BLOCK. In the drawer it is the pump.fun-style head the
           founder chose on 25 September 2026 (Track M): no card and no box, the
-          face bare at the top of the panel, the name large under it, the
-          handle quiet, and "View profile" as a plain text link. One link
-          because it is one destination; the whole block is its tap target.
+          face bare at the top of the panel, the name large under it and the
+          handle quiet. One link because it is one destination; the whole
+          block is its tap target. (The "View profile" words under it went in
+          the founder's second round: the face and the name already say it.)
         */
         <Link
           href="/profile"
