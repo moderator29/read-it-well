@@ -11,6 +11,44 @@ Each track has one entry in the same shape:
 
 "Live" means applied to the Supabase project `uccixoonmbhrnyczyigt` and confirmed there. Credentials were used only as shell environment variables and never written to the repository.
 
+## Status at close
+
+**All twelve tracks shipped.** The branch is `claude/vallo-platform-rebuild-t4jh4b`, pushed.
+
+On the final merged tree:
+
+- typecheck, lint, the CSS gate, the claims gate and the regulated-words gate are clean;
+- 5,690 unit tests pass (1 skipped);
+- the production build succeeds;
+- the 390px device pass is clean on 23 routes.
+
+**Live database changes today, in order:**
+
+| Migration | Change |
+|---|---|
+| `20260925114741` | Custody flags off |
+| `20260925121219` | Split settlement, the Guarantee, agreements and claims |
+| `20260925130806` | Rent-to-wallet trigger off |
+| `20260925130904` | Custody unreachable from every app role |
+| `20260925133109`, `20260925133143` | Business threads |
+| `20260925133647` | Staff scopes and the handbook |
+| `20260925134322` | KYC as a staff scope |
+| `20260925140456` | The refund notification names the card |
+| `20260925140518` | The inspection confirmation stops feeding escrow |
+| `20260925141824` | No flag can turn custody back on |
+| `20260925142401` | Conversation archives |
+
+**What only the founder can do** (details in each track):
+
+1. Apply `supabase/migrations/pending/20260925120000_track_a1_...sql`, which moves the custody tables out and drops the functions. This environment's permission classifier refused it, and it was not retried.
+2. Create the Guarantee reserve subaccount in Paystack and set `PAYSTACK_GUARANTEE_SUBACCOUNT`. No payment opens without it.
+3. Set `YELLOWCARD_DIRECT_SETTLEMENT=confirmed` only after Yellow Card confirms direct naira settlement in writing.
+4. Upload the regenerated `supabase/templates/*.html` to Supabase Auth.
+5. Decide on the roughly 63 older migrations that were never applied live. If they are ever applied, apply A.1 first.
+6. Have a solicitor read the flagged Terms sections, and a native speaker the three translations.
+7. Run the Price Check share mint once with the service key set.
+8. Refund the ₦1,000 test deposit in Paystack if wanted.
+
 ---
 
 ## A. Money architecture: Vallo never holds customer money
@@ -387,6 +425,7 @@ The audit log viewer (`/admin/audit`), search (the console bar), the saved views
 ## Real-device pass (this session)
 
 - **Setup:** a production build (`next build` then `next start`), Chromium at 390×844, touch, DPR 2. Signed out, then signed in as the QA member.
-- **Routes:** `/terms`, `/disclaimer`, `/privacy`, `/help`, `/safety`, `/cancellations`, `/docs/money-and-the-guarantee`, `/docs/your-wallet` (redirects), `/wallet` (redirects to sign-in, then to `/agreements`), `/agreements`, `/settings/help`, `/legal/disclaimer`, the inspections list, `/admin` as a member (access screen) and `/home`.
-- **Results:** zero horizontal overflow on every route. The drawer shows Agreements and Help and support, with no Wallet row. The theme control switches to light.
+- **Routes:** `/terms`, `/disclaimer` (signed out and public), `/privacy`, `/help`, `/safety`, `/cancellations`, `/docs/money-and-the-guarantee`, `/docs/your-wallet` (redirects), `/wallet` (redirects through the door, then to `/agreements`), `/agreements`, `/settings`, `/settings/help`, `/settings/appearance`, `/legal/disclaimer`, the inspections list, `/messages` (Property and Stays tabs; Recent, Archived and Reported views), `/price`, `/admin` as a member (access screen) and `/home`.
+- **Results:** every route has zero horizontal overflow. No custody sentence remains except negations such as "There is no Vallo wallet". The drawer shows Agreements, Price Check and Help and support, with no Wallet row. The theme control switches the document to light.
+- **Found and fixed by this pass:** five surfaces still promised a Vallo wallet: the cancellation timeline, the tenancy caution return, the flatmates split, the tenancy letter and a support-chat suggestion.
 - **Limits:** preview deployments on `*.vercel.app` are blocked by this container's network policy, so the pass ran locally against the live database with the public key only. The admin desks, which need the service key, and Paystack could not be exercised end to end here.
