@@ -14,11 +14,16 @@ import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
  *   the labels   PROPERTY and STAYS were retouched out of the glass and are
  *                real text here, so they translate and read aloud.
  *   the coin     the drawn coin's body was retouched out and a CSS 3D coin
- *                stands exactly where it stood, and it turns. Its faces are
- *                THIS render's coin face, un-projected from its mid-turn
- *                ellipse to a circle (`coin-face.webp`), so at rest the coin
- *                turns it back to the pose it was drawn in.
+ *                stands exactly where it stood, and it turns. Its faces keep
+ *                THIS render's coin rim and glass, un-projected from its
+ *                mid-turn ellipse to a circle (`coin-face.webp`), so at rest
+ *                the coin turns it back to the pose it was drawn in.
  *                `prefers-reduced-motion` holds it at that pose.
+ *                THE EMBLEM IS VALLO'S OWN MARK (the founder, 25 September
+ *                2026: the render's generic building "is not our real
+ *                logo"). A sunk inner field covers the drawn emblem, and
+ *                `vallo-mark.png`, the same artwork `LogoMark` draws, stands
+ *                on it; the turn and the glow are unchanged (welcome.css).
  *   the objects  slide one carries the render's own house and hotel (the
  *                hotel's HOTEL sign retouched blank: no lettering in an
  *                object). Slides two to four use the same stage with the
@@ -49,12 +54,27 @@ export function WelcomeCoin() {
               style={{ "--nf-gs-layer": i - 7 } as React.CSSProperties}
             />
           ))}
-          <span className="nf-gs-coin__face nf-gs-coin__face--front">
-            <Image src="/brand/session-b/welcome/coin-face.webp" alt="" width={160} height={160} priority />
-          </span>
-          <span className="nf-gs-coin__face nf-gs-coin__face--back">
-            <Image src="/brand/session-b/welcome/coin-face.webp" alt="" width={160} height={160} />
-          </span>
+          {(["front", "back"] as const).map((side) => (
+            <span key={side} className={`nf-gs-coin__face nf-gs-coin__face--${side}`}>
+              <Image
+                src="/brand/session-b/welcome/coin-face.webp"
+                alt=""
+                width={160}
+                height={160}
+                priority={side === "front"}
+              />
+              <span className="nf-gs-coin__field" />
+              <Image
+                src="/brand/vallo-mark.png"
+                alt=""
+                width={614}
+                height={587}
+                sizes="96px"
+                priority={side === "front"}
+                className="nf-gs-coin__mark"
+              />
+            </span>
+          ))}
         </span>
       </span>
     </span>

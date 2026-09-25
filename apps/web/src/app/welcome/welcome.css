@@ -406,6 +406,51 @@
     width: 100%;
     height: 100%;
   }
+  /*
+   * VALLO'S OWN MARK ON THE COIN (the founder, 25 September 2026). The
+   * render's face carried a generic building; its rim and glass stay, and a
+   * sunk inner field, the way a struck coin has a field inside its rim,
+   * covers the drawn emblem (it spans 28 to 74 percent across, so a 70
+   * percent field clears it). The field is the face's own deep blue, lit
+   * from the upper left like the rest of the coin, with a fine bright ring
+   * where it meets the rim. The mark stands on it at a little over half the
+   * coin, with the same glow the coin already wears.
+   */
+  .nf-gs-coin__field {
+    position: absolute;
+    inset: 15%;
+    border-radius: var(--nf-radius-circle);
+    /* Deep navy, the ground the mark is drawn for (the same night it sits on
+       in the header), lifted towards the light at the upper left. The ring is
+       a soft band in the gradient rather than a hairline: the face is a 3D
+       plane seen at an angle, and a hard 1px line on it shimmers as it
+       turns. */
+    background:
+      radial-gradient(
+        circle,
+        transparent 0 91%,
+        color-mix(in srgb, var(--nf-content-on-brand) 42%, transparent) 95%,
+        transparent 99%
+      ),
+      radial-gradient(
+        circle at 38% 30%,
+        color-mix(in srgb, var(--nf-brand-primary-strong) 55%, var(--nf-surface-pin)) 0%,
+        color-mix(in srgb, var(--nf-brand-primary-strong) 22%, var(--nf-surface-pin)) 62%,
+        var(--nf-surface-pin) 100%
+      );
+    box-shadow:
+      inset 0 6px 12px color-mix(in srgb, var(--nf-surface-pin) 60%, transparent),
+      0 0 10px color-mix(in srgb, var(--nf-brand-primary) 45%, transparent);
+  }
+  .nf-gs-coin__face > img.nf-gs-coin__mark {
+    position: absolute;
+    left: 50%;
+    top: 51%;
+    width: 58%;
+    height: auto;
+    translate: -50% -50%;
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--nf-content-on-brand) 45%, transparent));
+  }
   .nf-gs-coin__face--front {
     transform: translateZ(8px);
   }
