@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BackButton } from "@/components/site/BackButton";
 
-const GROUPS = ["lead", "f1", "f2", "f3", "f4", "f5", "e", "o3", "p3", "c2"];
+const GROUPS = ["lead", "f1", "f2", "f3", "f4", "f5", "e", "o3", "p3", "c2", "email/welcome", "track-f", "track-j"];
 
 /**
  * The preview harness index.

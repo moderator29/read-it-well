@@ -103,6 +103,65 @@ export function appUrl(path: string): string {
 }
 
 /** Escape text for HTML. Every interpolated value passes through here. */
+/**
+ * EVERY SURFACE PAINTS ITS OWN GROUND, EXPLICITLY (track H, 25 September 2026).
+ *
+ * The shell's dark was carried by three layers: a `bgcolor` on the body and
+ * the card, inline `background:` shorthands, and the `rm-*` classes under a
+ * dark media query. Gmail strips the media query and runs its own dark pass,
+ * Outlook's Word engine reads `bgcolor` and not the shorthand, and a cell with
+ * no colour of its own takes whatever the client decides. So after a message
+ * is composed, this walks every body, table, row and cell and makes the colour
+ * explicit on each one, in BOTH forms every client honours:
+ *
+ *   - its own colour, from `background-color`, `background:` or `bgcolor`,
+ *     written out as a `bgcolor` attribute AND an inline `background-color`;
+ *   - or, where it has none, its container's colour, written the same way.
+ *
+ * So no cell ever relies on a class, and nothing inherits a white from the
+ * client. The mirror of this function lives in `scripts/build-auth-emails.mjs`
+ * (a Node script that cannot import TypeScript); `email-dark-paint.test.ts`
+ * checks the output of both.
+ */
+export function paintExplicit(html: string): string {
+  const stack: { tag: string; bg: string | null }[] = [];
+  const HEX = /#[0-9a-fA-F]{6}\b/;
+  return html.replace(/<(\/?)(body|table|tr|td)\b([^>]*)>/gi, (whole, close: string, rawTag: string, attrs: string) => {
+    const tag = rawTag.toLowerCase();
+    if (close) {
+      for (let i = stack.length - 1; i >= 0; i--) {
+        if (stack[i]!.tag === tag) {
+          stack.length = i;
+          break;
+        }
+      }
+      return whole;
+    }
+    const style = /\bstyle="([^"]*)"/i.exec(attrs)?.[1] ?? null;
+    const own =
+      (style && /background-color\s*:\s*(#[0-9a-fA-F]{6})/i.exec(style)?.[1]) ||
+      (style && /background\s*:\s*(#[0-9a-fA-F]{6})/i.exec(style)?.[1]) ||
+      /\bbgcolor="(#[0-9a-fA-F]{6})"/i.exec(attrs)?.[1] ||
+      null;
+    const inherited = [...stack].reverse().find((s) => s.bg)?.bg ?? null;
+    const bg = own ?? inherited;
+    stack.push({ tag, bg });
+    if (!bg || tag === "tr" || !HEX.test(bg)) return whole;
+    /* Appended, never prepended: every existing attribute keeps its place,
+       so a reader (or a test) looking for `<table role="presentation" ...`
+       still finds it. A trailing "/" of a self-closing form stays last. */
+    let next = attrs.replace(/\s*\/?\s*$/, "");
+    const selfClose = /\/\s*$/.test(attrs) ? " /" : "";
+    if (!/\bbgcolor="/i.test(next)) next += ` bgcolor="${bg}"`;
+    if (style === null) next += ` style="background-color:${bg};"`;
+    else if (!/background-color\s*:/i.test(style)) {
+      const sep = style.trim().length === 0 || style.trim().endsWith(";") ? "" : ";";
+      next = next.replace(/\bstyle="([^"]*)"/i, `style="$1${sep}background-color:${bg};"`);
+    }
+    return `<${rawTag}${next}${selfClose}>`;
+  });
+}
+
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -272,7 +331,7 @@ function htmlBlock(block: Block): string {
       const items = block.items
         .map(
           (item) =>
-            `<li style="margin:0 0 10px;padding-left:2px;">${escapeHtml(item)}</li>`,
+            `<li class="rm-body" style="margin:0 0 10px;padding-left:2px;color:${DARK.body};">${escapeHtml(item)}</li>`,
         )
         .join("\n                    ");
       return `<ul class="rm-body" style="margin:0 0 22px;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${DARK.body};">
@@ -617,5 +676,5 @@ export function compose(options: ComposeOptions): Composed {
       siteUrl(),
     ].join("\n") + "\n";
 
-  return { html, text };
+  return { html: paintExplicit(html), text };
 }

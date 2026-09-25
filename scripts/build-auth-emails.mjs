@@ -298,7 +298,7 @@ function htmlBlock(block) {
      */
     case "list": {
       const list = block.items
-        .map((item) => `<li style="margin:0 0 10px;">${item}</li>`)
+        .map((item) => `<li class="rm-body" style="margin:0 0 10px;color:${BODY};">${item}</li>`)
         .join("\n                        ");
       return `<ul class="rm-body" style="margin:0;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:15px;line-height:1.6;color:${BODY};">
                         ${list}
@@ -387,7 +387,7 @@ function textBlock(block) {
  */
 function factBand(title, lines) {
   const items = lines
-    .map((line) => `<li style="margin:0 0 8px;">${line}</li>`)
+    .map((line) => `<li class="rm-body" style="margin:0 0 8px;color:${BODY};">${line}</li>`)
     .join("\n                          ");
   // The band closes the card, so it carries the card's rim and its bottom
   // radius. The card above it drops both, which is why the two are written as
@@ -754,10 +754,54 @@ const templates = {
   },
 };
 
+/**
+ * EVERY SURFACE PAINTS ITS OWN GROUND, EXPLICITLY (track H). The mirror of
+ * `paintExplicit` in `apps/web/src/lib/email/render.ts`, which this Node script
+ * cannot import; `email-dark-paint.test.ts` checks the templates it writes.
+ * Each body, table and cell gets its own colour (or its container's) as a
+ * `bgcolor` attribute AND an inline `background-color`, so nothing relies on
+ * a class and nothing inherits a client's white.
+ */
+function paintExplicit(html) {
+  const stack = [];
+  const HEX = /#[0-9a-fA-F]{6}\b/;
+  return html.replace(/<(\/?)(body|table|tr|td)\b([^>]*)>/gi, (whole, close, rawTag, attrs) => {
+    const tag = rawTag.toLowerCase();
+    if (close) {
+      for (let i = stack.length - 1; i >= 0; i--) {
+        if (stack[i].tag === tag) {
+          stack.length = i;
+          break;
+        }
+      }
+      return whole;
+    }
+    const style = /\bstyle="([^"]*)"/i.exec(attrs)?.[1] ?? null;
+    const own =
+      (style && /background-color\s*:\s*(#[0-9a-fA-F]{6})/i.exec(style)?.[1]) ||
+      (style && /background\s*:\s*(#[0-9a-fA-F]{6})/i.exec(style)?.[1]) ||
+      /\bbgcolor="(#[0-9a-fA-F]{6})"/i.exec(attrs)?.[1] ||
+      null;
+    const inherited = [...stack].reverse().find((entry) => entry.bg)?.bg ?? null;
+    const bg = own ?? inherited;
+    stack.push({ tag, bg });
+    if (!bg || tag === "tr" || !HEX.test(bg)) return whole;
+    let next = attrs.replace(/\s*\/?\s*$/, "");
+    const selfClose = /\/\s*$/.test(attrs) ? " /" : "";
+    if (!/\bbgcolor="/i.test(next)) next += ` bgcolor="${bg}"`;
+    if (style === null) next += ` style="background-color:${bg};"`;
+    else if (!/background-color\s*:/i.test(style)) {
+      const sep = style.trim().length === 0 || style.trim().endsWith(";") ? "" : ";";
+      next = next.replace(/\bstyle="([^"]*)"/i, `style="$1${sep}background-color:${bg};"`);
+    }
+    return `<${rawTag}${next}${selfClose}>`;
+  });
+}
+
 mkdirSync(OUT_DIR, { recursive: true });
 for (const [name, spec] of Object.entries(templates)) {
   for (const [ext, render] of [
-    ["html", shellHtml],
+    ["html", (s) => paintExplicit(shellHtml(s))],
     ["txt", shellText],
   ]) {
     const file = `${name}.${ext}`;
