@@ -2003,6 +2003,22 @@
     }
   }
 
+  /* The motion setting's Calm and Off (lib/motion/gate.ts): no parallax, no
+     magnets, no tilt, no loops, the rail by chapter rather than by scroll. */
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-landing-hero .nf-hero-aurora, .nf-landing-hero .nf-landing-float, .nf-journey__rail-fill) {
+    animation: none;
+    translate: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-magnetic, .nf-bento__card) {
+    translate: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-bento__card {
+    transform: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-scene *, .nf-marquee__track, .nf-ngmap__sonar, .nf-scene__gleam::after) {
+    animation: none;
+  }
+
   /* --------------------------------- data saver and reduced motion */
 
   :root[data-save-data="on"] .nf-scene *,

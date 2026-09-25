@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { motionQuiet } from "@/lib/motion/gate";
+import { onMotionGate } from "@/components/motion/useMotionGate";
 
 /**
  * The bento's spotlight and tilt (Track M, second pass).
@@ -20,46 +22,69 @@ export function BentoFx({ children }: { children: ReactNode }) {
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const lite = document.documentElement.dataset.saveData === "on";
-    if (!fine || reduce || lite) return;
-    let frame = 0;
-    let last: { card: HTMLElement; x: number; y: number } | null = null;
-    const paint = () => {
-      frame = 0;
-      if (!last) return;
-      const { card, x, y } = last;
-      const box = card.getBoundingClientRect();
-      const px = (x - box.left) / box.width;
-      const py = (y - box.top) / box.height;
-      card.style.setProperty("--spot-x", `${(px * 100).toFixed(1)}%`);
-      card.style.setProperty("--spot-y", `${(py * 100).toFixed(1)}%`);
-      card.style.setProperty("--tilt-x", `${((0.5 - py) * 2 * MAX_TILT).toFixed(2)}deg`);
-      card.style.setProperty("--tilt-y", `${((px - 0.5) * 2 * MAX_TILT).toFixed(2)}deg`);
-    };
-    const move = (event: PointerEvent) => {
-      const card = (event.target as Element | null)?.closest?.(".nf-bento__card");
-      if (!(card instanceof HTMLElement)) return;
-      last = { card, x: event.clientX, y: event.clientY };
-      if (!frame) frame = requestAnimationFrame(paint);
-    };
-    const leave = (event: PointerEvent) => {
-      const card = (event.target as Element | null)?.closest?.(".nf-bento__card");
-      if (!(card instanceof HTMLElement)) return;
-      /* `pointerout` bubbles from every child; only leaving the card counts. */
-      if (event.relatedTarget instanceof Node && card.contains(event.relatedTarget)) return;
-      if (last?.card === card) last = null;
-      card.style.setProperty("--tilt-x", "0deg");
-      card.style.setProperty("--tilt-y", "0deg");
-    };
-    root.addEventListener("pointermove", move);
-    root.addEventListener("pointerout", leave);
-    return () => {
-      root.removeEventListener("pointermove", move);
-      root.removeEventListener("pointerout", leave);
-      cancelAnimationFrame(frame);
-    };
+    return onMotionGate(() => {
+      const fine = window.matchMedia(
+        "(hover: hover) and (pointer: fine)"
+      ).matches;
+      const lite = document.documentElement.dataset.saveData === "on";
+      if (!fine || motionQuiet() || lite) return;
+      let frame = 0;
+      let last: { card: HTMLElement; x: number; y: number } | null = null;
+      const paint = () => {
+        frame = 0;
+        if (!last) return;
+        const { card, x, y } = last;
+        const box = card.getBoundingClientRect();
+        const px = (x - box.left) / box.width;
+        const py = (y - box.top) / box.height;
+        card.style.setProperty("--spot-x", `${(px * 100).toFixed(1)}%`);
+        card.style.setProperty("--spot-y", `${(py * 100).toFixed(1)}%`);
+        card.style.setProperty(
+          "--tilt-x",
+          `${((0.5 - py) * 2 * MAX_TILT).toFixed(2)}deg`
+        );
+        card.style.setProperty(
+          "--tilt-y",
+          `${((px - 0.5) * 2 * MAX_TILT).toFixed(2)}deg`
+        );
+      };
+      const move = (event: PointerEvent) => {
+        const card = (event.target as Element | null)?.closest?.(
+          ".nf-bento__card"
+        );
+        if (!(card instanceof HTMLElement)) return;
+        last = { card, x: event.clientX, y: event.clientY };
+        if (!frame) frame = requestAnimationFrame(paint);
+      };
+      const leave = (event: PointerEvent) => {
+        const card = (event.target as Element | null)?.closest?.(
+          ".nf-bento__card"
+        );
+        if (!(card instanceof HTMLElement)) return;
+        /* `pointerout` bubbles from every child; only leaving the card counts. */
+        if (
+          event.relatedTarget instanceof Node &&
+          card.contains(event.relatedTarget)
+        )
+          return;
+        if (last?.card === card) last = null;
+        card.style.setProperty("--tilt-x", "0deg");
+        card.style.setProperty("--tilt-y", "0deg");
+      };
+      root.addEventListener("pointermove", move);
+      root.addEventListener("pointerout", leave);
+      return () => {
+        root.removeEventListener("pointermove", move);
+        root.removeEventListener("pointerout", leave);
+        cancelAnimationFrame(frame);
+        for (const card of root.querySelectorAll<HTMLElement>(
+          ".nf-bento__card"
+        )) {
+          card.style.removeProperty("--tilt-x");
+          card.style.removeProperty("--tilt-y");
+        }
+      };
+    });
   }, []);
 
   return (

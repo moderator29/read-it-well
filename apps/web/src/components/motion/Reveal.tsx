@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { motionQuiet } from "@/lib/motion/gate";
 
 /**
  * The Track M section reveal: rise 16px and fade, 520ms entrance, with the
@@ -52,7 +53,8 @@ export function MotionReveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    /* Reduced motion, or Calm and Off in the motion setting: never hidden. */
+    const reduce = motionQuiet();
     if (reduce || typeof IntersectionObserver === "undefined" || el.getBoundingClientRect().top < window.innerHeight) {
       el.dataset.seen = "true";
       return;

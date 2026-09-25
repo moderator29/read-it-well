@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motionQuiet } from "@/lib/motion/gate";
 
 /**
  * A real figure that counts up once, the first time it scrolls into view.
@@ -29,7 +30,7 @@ export function CountUp({
   useEffect(() => {
     const el = ref.current;
     if (!el || value <= 0) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (motionQuiet()) return;
     if (typeof IntersectionObserver === "undefined") return;
     if (el.getBoundingClientRect().top < window.innerHeight) return;
     setShown(0);

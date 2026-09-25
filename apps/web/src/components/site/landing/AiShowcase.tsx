@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@vallo/i18n";
-import { useHydrated, usePlayWhenVisible, useReducedMotion } from "@/components/motion/useInView";
+import { useHydrated, usePlayWhenVisible } from "@/components/motion/useInView";
+import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
@@ -53,7 +54,9 @@ export function AiShowcase({
   labels: { caption: string; replay: string; you: string; name: string; verified: string; script: string };
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const reduce = useReducedMotion();
+  /* Reduced motion, or the motion setting at Calm or Off: the finished first
+     conversation, no clock (lib/motion/gate.ts). */
+  const { quiet: reduce } = useMotionGate();
   const visible = usePlayWhenVisible(ref);
   const hydrated = useHydrated();
   /* Scripts run only once the page is interactive and the reader has not
