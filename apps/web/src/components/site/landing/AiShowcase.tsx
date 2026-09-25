@@ -102,7 +102,7 @@ export function AiShowcase({
   };
 
   return (
-    <div className="nf-ai-show" ref={ref}>
+    <div className="nf-ai-show" ref={ref} data-playing={live && visible ? "true" : "false"}>
       <div className="nf-ai-show-bar">
         <span className="nf-ai-show-caption">{labels.caption}</span>
         {live && (

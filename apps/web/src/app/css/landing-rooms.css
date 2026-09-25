@@ -50,8 +50,11 @@
       transform: none;
     }
   }
-  :root[data-save-data="on"] .nf-landing-title .nf-depth-word,
-  :root[data-motion-lite="on"] .nf-landing-title .nf-depth-word {
+  /* Every heading on the landing, not only the hero's, drops the blur on
+     data saver and on a slow device. Scoped to the landing: the same words
+     on the welcome screens are the threshold work's to decide. */
+  :root[data-save-data="on"] .nf-landing .nf-depth-word,
+  :root[data-motion-lite="on"] .nf-landing .nf-depth-word {
     animation-name: nf-depth-in-lite;
   }
 
@@ -794,6 +797,10 @@
     align-items: flex-start;
     margin-bottom: var(--nf-gap-block);
   }
+  /* A start-aligned head sits inside a split whose own gap spaces it. */
+  .nf-sec-head--start {
+    margin-bottom: 0;
+  }
   .nf-sec-head--center {
     align-items: center;
     text-align: center;
@@ -1451,7 +1458,7 @@
   }
   .nf-bento-gate[data-playing="false"] .nf-scene *,
   .nf-marquee[data-playing="false"] .nf-marquee__track,
-  .nf-ngmap [data-playing="false"] .nf-ngmap__sonar {
+  .nf-ai-show[data-playing="false"] .nf-ai-typing > span {
     animation-play-state: paused;
   }
 
@@ -1920,6 +1927,11 @@
     .nf-ngmap:not([data-seen]) .nf-ngmap__pin > * {
       opacity: 0;
     }
+  }
+  /* Off screen the sonar stops. After the rule above that starts it, and as
+     specific, because that rule's shorthand would otherwise set it running. */
+  .nf-ngmap[data-seen] [data-playing="false"] .nf-ngmap__sonar {
+    animation-play-state: paused;
   }
   @keyframes nf-pin-pop {
     from { opacity: 0; transform: scale(0.2); }
