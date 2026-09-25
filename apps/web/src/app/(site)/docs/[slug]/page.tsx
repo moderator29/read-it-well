@@ -5,6 +5,8 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CHAPTER_INDEX, chapterBySlug, chapterNeighbours } from "../chapters";
 import { OnThisPage } from "../OnThisPage";
+import { DepthWords } from "@/components/motion/DepthWords";
+import { MotionReveal } from "@/components/motion/Reveal";
 
 /**
  * One chapter.
@@ -73,7 +75,10 @@ export default async function DocChapterPage({
             <span className="nf-numeric block text-[0.6875rem] font-semibold tracking-[var(--nf-tracking-overline)] text-[var(--nf-content-muted)] uppercase">
               Chapter {chapter.number} of {CHAPTER_INDEX.length}
             </span>
-            <h1 className="nf-h1 mt-inline-tight">{chapter.title}</h1>
+            {/* The title arrives word by word out of depth (Track M). */}
+            <h1 className="nf-h1 mt-inline-tight">
+              <DepthWords text={chapter.title} />
+            </h1>
           </div>
         </div>
 
@@ -96,13 +101,18 @@ export default async function DocChapterPage({
           {/* ---------------------------------------------------- sections */}
           <div className="nf-panel nf-panel--card block nf-rise p-card" style={{ animationDelay: "80ms" }}>
             <div className="space-y-block">
+              {/* Each section rises in as it arrives, its heading word by word
+                  and its lists a step at a time (docs-motion.css); a section
+                  already on screen is simply there. */}
               {chapter.sections.map((section) => (
-                <section key={section.id} id={section.id} className="scroll-mt-28">
-                  <h2 className="nf-h3">{section.heading}</h2>
+                <MotionReveal as="section" key={section.id} id={section.id} className="nf-doc-section nf-depth-gate scroll-mt-28">
+                  <h2 className="nf-h3">
+                    <DepthWords text={section.heading} />
+                  </h2>
                   <div className="mt-row max-w-[68ch] space-y-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)] [&_code]:rounded-[var(--nf-radius-xs)] [&_code]:border [&_code]:border-[var(--nf-border-subtle)] [&_code]:bg-[var(--nf-surface-inset)] [&_code]:px-inline [&_code]:py-inline-tight [&_code]:text-[0.8125rem] [&_code]:break-words [&_code]:text-[var(--nf-content-primary)] [&_em]:font-medium [&_em]:text-[var(--nf-content-primary)] [&_em]:not-italic [&_li]:mt-inline [&_ol]:list-decimal [&_ol]:space-y-inline [&_ol]:pl-heading [&_strong]:font-semibold [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-inline [&_ul]:pl-heading">
                     {section.body}
                   </div>
-                </section>
+                </MotionReveal>
               ))}
             </div>
           </div>

@@ -237,6 +237,43 @@ const FAQS: Faq[] = [
     a: "Call your bank first and ask them to raise a dispute on the transfer, because a fast report is sometimes enough for them to place a lien on the receiving account. Then report it to us with the listing link, the account details and the messages. We cannot recover money that never came through Vallo, but we can remove the account and stop the same person reaching anybody else.",
   },
 
+  // ------------------------------------------------------ using the app
+  /*
+   * Track M, 25 September 2026: the questions the new parts of the app raise.
+   * Each answer says only what the screen does today; the long versions are
+   * the docs chapters on getting around, Price Check and the assistant.
+   */
+  {
+    category: "Using the app",
+    q: "What is the round button at the end of the dock?",
+    a: "It opens a tray with the places you reach most: messages, plans, saved, the assistant, agreements, Price Check, settings and help. Everything in it is also in the menu.",
+  },
+  {
+    category: "Using the app",
+    q: "Can I switch between light and dark?",
+    a: "Yes. Under Settings, then Appearance, then Theme, choose Light, Dark or System. System follows your phone or computer. The choice is kept on this device.",
+  },
+  {
+    category: "Using the app",
+    q: "Can I make the app move less?",
+    a: "Yes. Under Settings, then Appearance, then Motion, choose Cinematic, Standard, Calm or Off. Calm keeps short fades only, with no splash, no doors and nothing that loops, and Off stops movement altogether. If your phone asks for less motion, Vallo always follows it.",
+  },
+  {
+    category: "Using the app",
+    q: "What is Price Check?",
+    a: "It tells you what similar properties near a place are currently advertised for on Vallo, from the listings published there, and how sure that answer is. When there are too few nearby listings to say anything useful it tells you so rather than guessing. It is not what anybody has paid, and it is not advice.",
+  },
+  {
+    category: "Using the app",
+    q: "What can the AI assistant do, and what will it not do?",
+    a: "It searches the same listings you do, puts a few side by side, explains what moving in really costs and tells you what residents have written about an area, in English, Yorùbá, Hausa or Igbo. It never invents a listing or a price, never says a land title is good, and never suggests paying outside Vallo.",
+  },
+  {
+    category: "Using the app",
+    q: "Can I message a hotel or a restaurant before I book?",
+    a: "Where the business takes messages, its page carries a message button. The conversation goes to the business itself and stays in your inbox with your other conversations.",
+  },
+
   // ---------------------------------------------------------- languages
   {
     category: "Languages and accessibility",

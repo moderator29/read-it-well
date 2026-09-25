@@ -23,6 +23,8 @@ import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/post
 import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-schema";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
 import { SUPPLY_DOOR_HREF, doorsSentence } from "@/lib/supply/roles";
+import { AI_ASSISTANT, GETTING_AROUND, LISTING_ON_VALLO, MESSAGING_A_BUSINESS, PRICE_CHECK } from "./chapters-more";
+import { DocsFlow } from "./DocsFlow";
 
 /**
  * The documentation, as data.
@@ -69,7 +71,7 @@ const A = "font-semibold text-[var(--nf-content-link)] hover:underline";
 const MIN_MOVE = formatMoney(MIN_MOVE_KOBO);
 const MAX_MOVE = formatMoney(MAX_MOVE_KOBO);
 
-export const CHAPTERS: DocChapter[] = [
+const WRITTEN: DocChapter[] = [
   /* ------------------------------------------------------------------ 1 */
   {
     slug: "what-vallo-is",
@@ -931,6 +933,17 @@ export const CHAPTERS: DocChapter[] = [
         heading: "Reserve, and what the hold does",
         body: (
           <>
+            <DocsFlow
+              label="Booking a stay"
+              steps={[
+                { object: "calendar-grid", label: "Pick your dates" },
+                { object: "calendar-clock", label: "Reserve and hold" },
+                { object: "seal-check", label: "Accepted and approved" },
+                { object: "payment-sent", label: "Pay" },
+                { object: "luggage-check", label: "In your Trips" },
+              ]}
+            />
+
             <p>
               Pick your dates and your party, then tap Reserve. That writes a pending
               booking and holds those nights on the calendar so nobody else can take them
@@ -1257,6 +1270,22 @@ export const CHAPTERS: DocChapter[] = [
         heading: "How a payment is split",
         body: (
           <>
+            <DocsFlow
+              label="How one payment divides"
+              steps={[
+                { object: "payment-sent", label: "You pay" },
+                { object: "transfer-arrow", label: "Payment processor" },
+                {
+                  object: "bank-column",
+                  label: "Divided in one transaction",
+                  branch: [
+                    { object: "bank-column", label: "Their bank account" },
+                    { object: "shield-check", label: "Guarantee reserve" },
+                  ],
+                },
+              ]}
+            />
+
             <p>
               When you pay by card or bank transfer, the payment processor divides that one
               payment into three parts in the same transaction: the owner&rsquo;s or
@@ -1283,6 +1312,16 @@ export const CHAPTERS: DocChapter[] = [
         heading: "Before payment opens",
         body: (
           <>
+            <DocsFlow
+              label="Before payment opens"
+              steps={[
+                { object: "doc-home", label: "Inspection report" },
+                { object: "contract-sign", label: "Both of you confirm" },
+                { object: "seal-check", label: "Vallo approves" },
+                { object: "payment-sent", label: "Payment opens" },
+              ]}
+            />
+
             <p>{PAYMENT_GATE_SENTENCE}</p>
             <p>
               For a rental: you inspect the property and submit the inspection report, eight
@@ -1326,6 +1365,16 @@ export const CHAPTERS: DocChapter[] = [
         heading: "The Vallo Guarantee",
         body: (
           <>
+            <DocsFlow
+              label="A Guarantee claim"
+              steps={[
+                { object: "keys-handover", label: "Move in or check in" },
+                { object: "clock-check", label: "Claim within 72 hours" },
+                { object: "doc-review", label: "A person reviews it" },
+                { object: "payment-received", label: "Paid to your bank" },
+              ]}
+            />
+
             <p>{GUARANTEE_SENTENCE}</p>
             <p>{GUARANTEE_SCOPE}</p>
             <p>
@@ -1410,6 +1459,7 @@ export const CHAPTERS: DocChapter[] = [
           </>
         ),
       },
+      MESSAGING_A_BUSINESS,
       {
         id: "keep-it-here",
         heading: "Keep it on the platform",
@@ -1441,12 +1491,25 @@ export const CHAPTERS: DocChapter[] = [
         id: "inspections",
         heading: "Confirming an inspection",
         body: (
+          <>
+            <DocsFlow
+              label="An inspection"
+              steps={[
+                { object: "chat-duo", label: "Message the lister" },
+                { object: "calendar-check", label: "Agree a time" },
+                { object: "inspect-ring", label: "See it in person" },
+                { object: "doc-review", label: "Submit the report" },
+              ]}
+              caption={NO_INSPECTION_FEE}
+            />
+
           <p>
             After you have seen a property, confirm the inspection from inside the thread.
             It records that you went, that it matched, and when. For a longer let that
             confirmation is the step that should come before any money moves, and having
             it on record is what makes a later dispute solvable.
           </p>
+          </>
         ),
       },
       {
@@ -2422,6 +2485,23 @@ export const CHAPTERS: DocChapter[] = [
     ],
   },
 ];
+
+/*
+ * THE READING ORDER (Track M, the docs pass). The chapters above were written
+ * first; the ones the platform grew into since (`chapters-more.tsx`) slot in
+ * where a reader needs them, and the numbers are assigned from this order,
+ * so adding a chapter can never leave two chapters sharing a number.
+ */
+function after(list: DocChapter[], slug: string, ...more: DocChapter[]): DocChapter[] {
+  const at = list.findIndex((chapter) => chapter.slug === slug);
+  return at === -1 ? [...list, ...more] : [...list.slice(0, at + 1), ...more, ...list.slice(at + 1)];
+}
+
+export const CHAPTERS: DocChapter[] = after(
+  after(after(WRITTEN, "getting-started", GETTING_AROUND), "understanding-a-listing", PRICE_CHECK, AI_ASSISTANT),
+  "around",
+  LISTING_ON_VALLO,
+).map((chapter, index) => ({ ...chapter, number: index + 1 }));
 
 /* ------------------------------------------------------------------ index */
 
