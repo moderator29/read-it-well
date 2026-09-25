@@ -5382,7 +5382,12 @@ export const en = {
     parkingMany: "{count} parking",
     buy: "Buy",
     rent: "Rent",
-    manage: "List a property",
+    /* The home's four doors are one short word each (the founder, 25
+       September 2026: Buy, Rent, Pay, List). "Pay" opens Agreements, where
+       payment opens once an agreement is approved; the tile promises nothing
+       beyond the word. */
+    manage: "List",
+    pay: "Pay",
     invest: "Invest",
     investNote: "Properties presented for their yield. Vallo sells no investment product.",
     stays: {

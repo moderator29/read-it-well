@@ -824,44 +824,56 @@
     --nf-cat-cols: 2;
     gap: var(--nf-gap-row);
   }
+  /*
+   * THE DOORS ARE CONTAINERS (the founder, 25 September 2026). Four across on
+   * the property side: the shared panel card, the glass object in it, the one
+   * word under it, centred. Two across on the Stays side, below: the same
+   * card, the object and the word and its line to the left, as GOVERNING-09
+   * draws the Stays doors.
+   */
   .nf-cat-tile {
     display: grid;
     justify-items: center;
+    align-content: start;
     gap: var(--nf-space-2xs);
+    min-width: 0;
+    padding: var(--nf-space-sm) var(--nf-space-2xs) var(--nf-space-xs);
     text-align: center;
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  /* The plate the object stands on is the shared icon plate at its large
-     rung (`iconPlateClass({ size: "lg" })`, as GOVERNING-01 draws the four
-     lit squares). This rule only lets it fill the cell up to the rung. */
+  .nf-cat-tile:active {
+    transform: scale(0.98);
+  }
+  @media (hover: hover) {
+    .nf-cat-tile:hover {
+      border-color: var(--nf-selected-edges);
+    }
+  }
   .nf-cat-tile__plate {
     display: grid;
     place-items: center;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1 / 1;
-    max-width: 4.5rem;
-    padding: var(--nf-space-2xs);
-    transition: transform var(--nf-duration-press) var(--nf-ease-press);
-  }
-  .nf-cat-tile:active .nf-cat-tile__plate {
-    transform: scale(var(--nf-press-scale-sm));
+    width: 3rem;
+    height: 3rem;
   }
   .nf-cat-tile__label {
+    max-width: 100%;
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
+    line-height: 1.25;
     color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
   }
   .nf-cat-tile__meaning {
     font-size: var(--nf-text-caption);
     line-height: 1.35;
     color: var(--nf-content-muted);
   }
-  /* Two across, as GOVERNING-09 draws the Stays doors: each door is the
-     shared panel (`panelClass({ variant: "card" })`), the glass object
-     standing on the panel with no plate of its own, then the label and its
-     line under it, all to the left. */
+  /* Two across, as GOVERNING-09 draws the Stays doors: the object standing on
+     the card with no plate of its own, then the label and its line under it,
+     all to the left. */
   .nf-cat-row[data-columns="2"] .nf-cat-tile {
-    display: grid;
     justify-items: start;
     text-align: start;
     gap: var(--nf-space-3xs);
@@ -869,14 +881,51 @@
   }
   .nf-cat-row[data-columns="2"] .nf-cat-tile__plate {
     width: 4rem;
-    max-width: none;
-    padding: 0;
+    height: 4rem;
     margin-bottom: var(--nf-space-2xs);
   }
-  @media (hover: hover) {
-    .nf-cat-row[data-columns="2"] .nf-cat-tile:hover {
-      border-color: var(--nf-selected-edges);
+  @media (prefers-reduced-motion: reduce) {
+    .nf-cat-tile {
+      transition: none;
     }
+    .nf-cat-tile:active {
+      transform: none;
+    }
+  }
+
+  /*
+   * IN DAYLIGHT: a light card with a brand edge, a little smaller, and the
+   * object standing on it alone. The glass objects are drawn for the night
+   * and used to sit on a navy ground in light mode; on these doors there is
+   * no ground at all, so a door is white paper, a blue edge and a blue
+   * object.
+   */
+  :root[data-theme="light"] .nf-cat-tile:not(:where([data-theme="dark"] *)) {
+    padding: var(--nf-space-xs) var(--nf-space-3xs) var(--nf-space-2xs);
+    background: var(--nf-surface-primary);
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
+    box-shadow: 0 1px 2px var(--nf-shade-1);
+  }
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-cat-tile:not(:where([data-theme="dark"] *)):hover {
+      border-color: color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+    }
+  }
+  :root[data-theme="light"] .nf-cat-tile__plate:not(:where([data-theme="dark"] *)) {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  :root[data-theme="light"] .nf-cat-tile__plate :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
+    background: none;
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-cat-row[data-columns="2"] .nf-cat-tile:not(:where([data-theme="dark"] *)) {
+    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-sm);
+  }
+  :root[data-theme="light"] .nf-cat-row[data-columns="2"] .nf-cat-tile__plate:not(:where([data-theme="dark"] *)) {
+    width: 3.25rem;
+    height: 3.25rem;
+    margin-bottom: var(--nf-space-3xs);
   }
 
   /* ------------------------------------------------------ the featured band */

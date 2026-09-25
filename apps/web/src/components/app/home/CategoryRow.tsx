@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
-import { iconPlateClass } from "@/components/ui/IconPlate";
 
 /**
  * The category row, to `GOVERNING-01` screen one and `GOVERNING-09` screen
@@ -18,10 +17,17 @@ import { iconPlateClass } from "@/components/ui/IconPlate";
  * yet produce honestly. The render and the honesty rule agree, which is the
  * easiest kind of decision there is.
  *
- * THE SHAPE LAW: the plate is a rounded rectangle on the tile rung and the
- * object inside it is artwork rather than a control, so nothing here is a
- * capsule however it is measured. The drawn radius over the drawn short side
- * is 18 over 64, which is 0.28.
+ * EVERY DOOR IS A CONTAINER NOW (the founder, 25 September 2026): the shared
+ * panel card with the glass object standing in it and the word under it, on
+ * both sides. The four across on the property side used to be a lit icon
+ * plate with the word outside it; that plate turned into a navy square on
+ * white paper in light mode. In light the doors are also a little smaller,
+ * and the object stands on the card alone with no ground behind it
+ * (home.css).
+ *
+ * THE SHAPE LAW: the card is a rounded rectangle on the container radius and
+ * the object inside it is artwork rather than a control, so nothing here is a
+ * capsule however it is measured.
  */
 export type HomeCategory = {
   key: string;
@@ -50,19 +56,10 @@ export function CategoryRow({
           <li key={category.key} className="min-w-0">
             <Link
               href={category.href}
-              className={
-                columns === 2
-                  ? panelClass({ variant: "card", className: "nf-cat-tile nf-tap" })
-                  : "nf-cat-tile nf-tap"
-              }
+              className={panelClass({ variant: "card", className: "nf-cat-tile nf-tap" })}
               data-testid={`home-category-${category.key}`}
             >
-              <span
-                className={
-                  columns === 2 ? "nf-cat-tile__plate" : iconPlateClass({ size: "lg", className: "nf-cat-tile__plate" })
-                }
-                aria-hidden="true"
-              >
+              <span className="nf-cat-tile__plate" aria-hidden="true">
                 <BrandIcon name={category.icon} fill />
               </span>
               <span className="nf-cat-tile__label">{category.label}</span>

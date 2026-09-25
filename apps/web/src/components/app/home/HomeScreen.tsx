@@ -136,10 +136,20 @@ export function HomeScreen({
    * side must be all twinned or none, because the twin set is a property of
    * the ARTWORK and no call site can see it.
    */
+  /*
+   * FOUR DOORS, ONE WORD EACH: Buy, Rent, Pay, List (the founder, 25
+   * September 2026). Pay opens Agreements, which is where a payment is made:
+   * it opens there once both sides have confirmed the agreement and Vallo has
+   * approved it, so the tile says the one word and promises nothing more.
+   * Every object is a whole glass object; `manage-ring`, a faint ring around a
+   * line glyph, read as nothing on a phone, and List now carries the page
+   * with the house on it.
+   */
   const categories: HomeCategory[] = [
     { key: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check" },
     { key: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home" },
-    { key: "manage", label: copy.manage, href: manageHref, icon: "manage-ring" },
+    { key: "pay", label: copy.pay, href: "/agreements", icon: "naira-hand" },
+    { key: "manage", label: copy.manage, href: manageHref, icon: "doc-home" },
     /*
       UX-22 / STORE-05: NO INVEST TILE. It went to `/search?market=buy`, the
       same shelf as Buy, so it filtered nothing distinct and promised an
