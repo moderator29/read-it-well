@@ -134,6 +134,24 @@
   .nf-nav__glyph img {
     display: block;
   }
+  /*
+   * A LINE GLYPH BESIDE THE GLASS IS DRAWN LARGER, AND HEAVIER WITH IT (25
+   * September 2026: Settings read small and thin between the glass objects).
+   * A glass object's body fills about three quarters of its canvas, and so
+   * does a line glyph, but the glyph was drawn in a 24px box: beside the
+   * tray's 40px objects it stood about 40 percent shorter (a fifth shorter
+   * beside this slot's 30px ones), and a 1.5px line against a solid body
+   * read as a fraction of the weight. In this slot, and in the tray's below,
+   * the glyph is scaled as a drawing: nine tenths of the object's box, and
+   * its line grows with it, 1.7px here and 2.25px in the tray. This is a
+   * deliberate exception to the one weight (`UI_ICON_STROKE_PX`), and only
+   * where a line glyph stands in a column of glass objects: Settings, and any
+   * row whose destination has no glass twin.
+   */
+  .nf-nav .nf-nav__glyph > svg {
+    width: 1.6875rem;
+    height: 1.6875rem;
+  }
   .nf-nav--drawer .nf-nav__row--on {
     color: var(--nf-content-primary);
     font-weight: 650;
@@ -484,6 +502,12 @@
     height: 2.75rem;
     color: var(--nf-brand-secondary);
     transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  /* The tray's line glyph beside its 40px glass objects: the same rule as
+     the drawer's glyph slot above, at the tray's scale. */
+  .nf-dockmore__glyph > svg {
+    width: 2.25rem;
+    height: 2.25rem;
   }
   .nf-dockmore__item:hover .nf-dockmore__glyph {
     transform: translateY(-2px) scale(1.06);
