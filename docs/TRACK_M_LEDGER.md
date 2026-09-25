@@ -113,7 +113,7 @@ All scroll-driven pieces share one read-then-write scroll frame (`lib/motion/scr
 
 ## Verification
 
-- Every batch: typecheck, lint (including the CSS token gate, the claims gate and the valuation-word gate) and the full unit suite. The last full run was 5,713 passing, 1 skipped, over 499 files.
+- Every batch: typecheck, lint (including the CSS token gate, the claims gate and the valuation-word gate) and the full unit suite. The last full run was 5,751 passing, 1 skipped, over 501 files.
 - A production build on every batch.
 - Performance, from round two on: main-thread time on idle pages with the CPU slowed four times, read from the browser's own counters and traces.
 - Screenshots at 390px and 1440px, dark and light:
@@ -174,9 +174,16 @@ Two changes got it there:
 - Each light is now a short line painted once and moved by the compositor with `translate` and `scale` (`edge-m.css`). The round dock button's ring is turned whole.
 - React listens for `animationiteration` on its root and on every portal container, and while anything listens the browser wakes the main thread on every lap of every looping animation. Nothing in Vallo handles that event, so a before-paint script refuses that one listener type (`lib/motion/iteration-quiet.ts`). A test fails the day something in the app starts using it.
 
+**Every language on every page, gone.** The i18n package had one entry, and it imported all four dictionaries, so a client component that needed only `formatMoney`, or a back button that needed the word "Back", shipped every word of English, Yoruba, Hausa and Igbo to the browser: a 709 KB chunk (220 KB gzipped) on the landing page and nearly every route.
+- `@vallo/i18n/core` carries the locale list, the Intl tags and every formatter, `countOf` included, with no dictionary; 347 files moved to it.
+- The few words client components on the main routes read come from the root layout in a small client copy (`lib/i18n/client-copy`, about 7 KB), in the reader's language from the first paint.
+- Result on the build: 119 of 131 user-facing routes no longer load the chunk, including the landing page, Home, Search, Stays, Around, Settings, Profile, Saved, Messages, the listing, stay and restaurant pages, and sign-in and sign-up. Tests guard the light entry and the layouts' client code.
+
+**Prices in Yoruba, Hausa and Igbo.** Node writes the naira sign for these locales, while Chromium's trimmed locale data writes "NGN", and Node spaces the Hausa sign. So every price on those pages was a hydration mismatch: React discarded the server's HTML and redrew the page in the browser, and the reader saw "₦" turn into "NGN". Money is now built from one normalised set of parts (the narrow sign, no space beside it) in `formatMoney` and `<Amount>`. The four languages hydrate clean on the main routes.
+
 **Still worth doing, not started:**
 - The CSS bundle is 688 KB.
-- The client dictionaries chunk is about 700 KB, from the components that still read the whole dictionary on the client.
+- Twelve secondary routes still load the dictionaries: payments, checkout, tenancy, the agent and host desks, and the assistant. Payments were left alone by the Track M rule.
 - Search renders 64 cards on first load; paging them, or letting off-screen cards skip rendering, would cut its first paint further.
 - The landing's HTML is about 628 KB.
 
