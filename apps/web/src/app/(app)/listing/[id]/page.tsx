@@ -786,6 +786,7 @@ export default async function ListingDetailPage({
         {/* ------------------------------------------------------- 1. MEDIA */}
         <ListingGallery
           listingId={listing.id}
+          floatingBack={false}
           title={listing.title}
           shareTitle={publicListingTitle(listing)}
           hue={listing.hue}

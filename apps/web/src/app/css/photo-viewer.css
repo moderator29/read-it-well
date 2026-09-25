@@ -1,0 +1,80 @@
+/*
+ * The full-screen photo viewer (`components/app/listing/PhotoViewer.tsx`).
+ *
+ * Its own partial because it is one surface with three jobs the utility
+ * classes could not say cleanly: where its chrome sits against the notch, how
+ * the photograph follows a dismissing finger, and what the ground does while it
+ * does. Everything that moves is `transform` or `opacity`.
+ */
+@layer components {
+  .nf-photo-viewer {
+    /* The ground is its own layer so it can fade with the drag while the
+       photograph stays opaque on top of it. */
+    background: transparent;
+    isolation: isolate;
+  }
+  .nf-photo-viewer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--nf-surface-artwork);
+    opacity: var(--nf-viewer-fade, 1);
+  }
+  .nf-photo-viewer__track {
+    /* Sideways is the browser's snap scroll and a pinch still zooms; a
+       vertical drag is left to the viewer's own dismiss gesture. */
+    touch-action: pan-x pinch-zoom;
+    transform: translate3d(0, var(--nf-viewer-drag, 0px), 0) scale(var(--nf-viewer-scale, 1));
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-photo-viewer[data-dragging] .nf-photo-viewer__track {
+    transition: none;
+  }
+
+  /*
+   * THE CHROME SITS ON THE TOP EDGE, NOT BELOW IT.
+   *
+   * It was `nf-safe-top p-sm` on one element. `p-sm` is a Tailwind utility and
+   * utilities win over this layer, so the shorthand replaced the safe-area
+   * padding outright: on a notched phone the close control either sat under the
+   * clock or, in the shell that reports the inset, a full status bar plus a
+   * gutter down the photograph. Now the inset is honoured once and the gap
+   * under it is a small fixed 8px, and the counter is centred on the close
+   * control's row instead of hanging from its own top margin.
+   */
+  .nf-photo-viewer__chrome {
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--nf-space-xs));
+    padding-inline: max(var(--nf-space-sm), env(safe-area-inset-left, 0px))
+      max(var(--nf-space-sm), env(safe-area-inset-right, 0px));
+  }
+
+  /*
+   * The back control that stays after the photograph scrolls away
+   * (`ListingGallery`, stays and restaurants). Fixed, so appearing moves
+   * nothing; only opacity and a 4px slide animate.
+   */
+  .nf-floating-back {
+    position: fixed;
+    z-index: 30;
+    top: calc(env(safe-area-inset-top, 0px) + var(--nf-space-xs));
+    left: max(var(--nf-space-sm), env(safe-area-inset-left, 0px));
+    color: var(--nf-content-primary);
+    /* Over body copy rather than over a photograph, so the glass is nearly
+       opaque: text underneath must not read through the arrow. */
+    background: color-mix(in oklab, var(--nf-surface-elevated) 90%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft));
+    backdrop-filter: blur(var(--nf-glass-blur-soft));
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-floating-back[data-shown] {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}

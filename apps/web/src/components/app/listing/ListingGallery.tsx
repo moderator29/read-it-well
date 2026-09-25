@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { useBack } from "@/lib/nav/use-back";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
@@ -49,7 +49,14 @@ export function ListingGallery({
   shareKind = "listing",
   place,
   shareTitle,
+  floatingBack = true,
 }: {
+  /**
+   * A back control that stays on screen after the photograph has scrolled
+   * away. On by default; the property listing turns it off because its sticky
+   * section tabs carry their own (`ListingSectionTabs`).
+   */
+  floatingBack?: boolean;
   listingId: string;
   title: string;
   /**
@@ -146,6 +153,27 @@ export function ListingGallery({
      `lib/nav/route-parents.ts`.
   */
   const back = useBack(backFallback);
+
+  /*
+   * THE BACK CONTROL MUST NOT SCROLL AWAY WITH THE PHOTOGRAPH.
+   *
+   * These pages hide the dock, so once the hero left the screen there was no
+   * visible way off a stay or a restaurant at all. A second, fixed back
+   * control fades in when the hero's own leaves the viewport. It is fixed, so
+   * it moves nothing when it appears, and it is `inert` while hidden so
+   * keyboard and screen reader users meet exactly one back at a time.
+   */
+  const heroBack = useRef<HTMLDivElement | null>(null);
+  const [heroBackGone, setHeroBackGone] = useState(false);
+  useEffect(() => {
+    const node = heroBack.current;
+    if (!floatingBack || !node || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry) setHeroBackGone(!entry.isIntersecting);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [floatingBack]);
 
   return (
     <>
@@ -247,7 +275,7 @@ export function ListingGallery({
 
       {/* `nf-safe-top` is padding rather than an offset, so the glass controls
           clear the notch while the photography still runs behind it. */}
-      <div className="nf-safe-top pointer-events-none absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
+      <div ref={heroBack} className="nf-safe-top pointer-events-none absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
         <button
           type="button"
           onClick={back}
@@ -393,6 +421,22 @@ export function ListingGallery({
         </>
       )}
     </section>
+    {floatingBack && (
+      <button
+        type="button"
+        onClick={back}
+        aria-label={t.common.back}
+        aria-hidden={heroBackGone ? undefined : true}
+        tabIndex={heroBackGone ? undefined : -1}
+        inert={!heroBackGone}
+        data-nav-back=""
+        data-testid="floating-back"
+        data-shown={heroBackGone ? "" : undefined}
+        className="nf-floating-back grid h-11 w-11 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon"
+      >
+        <UiIcon name="arrow-left" size={16} />
+      </button>
+    )}
     {/*
       NO THUMBNAIL STRIP. The render has none: the hero is the photography
       and the counter says how many there are. Ours drew four tiles under

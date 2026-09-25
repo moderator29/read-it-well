@@ -1197,12 +1197,61 @@
     top: 0;
     z-index: 5;
     display: flex;
+    align-items: center;
     margin-inline: calc(var(--nf-pad-shell) * -1);
-    padding-inline: var(--nf-pad-shell);
+    /* The back slot takes the left gutter, so the row keeps its width. */
+    padding-inline: var(--nf-space-2xs) var(--nf-pad-shell);
+    /* Stuck to the top of a notched phone, the bar clears the clock itself. */
+    padding-top: env(safe-area-inset-top, 0px);
     background: var(--nf-surface-canvas);
     border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
   }
-  .nf-detail-tabs > a {
+  .nf-detail-tabs__sentinel {
+    display: block;
+    height: 0;
+  }
+  .nf-detail-tabs__row {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .nf-detail-tabs__row::-webkit-scrollbar {
+    display: none;
+  }
+  /* Always 44 by 44 and always in the row, so appearing moves nothing: only
+     its opacity and a 4px slide change. */
+  .nf-detail-tabs__back {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-content-primary);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-detail-tabs[data-stuck] .nf-detail-tabs__back {
+    opacity: 1;
+    transform: none;
+  }
+  .nf-detail-tabs__back:hover {
+    background: var(--nf-interactive-hover);
+  }
+  .nf-detail-tabs__back:active {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+  .nf-detail-tabs__back:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  .nf-detail-tabs__row > a {
     position: relative;
     display: inline-flex;
     flex: 1;
@@ -1215,17 +1264,17 @@
     white-space: nowrap;
     color: var(--nf-content-muted);
   }
-  .nf-detail-tabs > a:focus-visible {
+  .nf-detail-tabs__row > a:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: -2px;
   }
-  .nf-detail-tabs > a[aria-current="true"] {
+  .nf-detail-tabs__row > a[aria-current="true"] {
     color: var(--nf-content-primary);
   }
   /* The 2px rule under the standing tab. LEFT ROUND under the founder's shape
      law: it is a mark on the tab, not a control and not lettered, and the
      governing hero draws exactly this under Home. */
-  .nf-detail-tabs > a[aria-current="true"]::after {
+  .nf-detail-tabs__row > a[aria-current="true"]::after {
     content: "";
     position: absolute;
     inset: auto var(--nf-space-xs) 0;

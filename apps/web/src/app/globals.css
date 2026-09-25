@@ -77,6 +77,8 @@
 @import "./css/landing.css";
 @import "./css/site.css";
 @import "./css/catalogue.css";
+/* The full-screen photo viewer: its notch-aware chrome and swipe-to-dismiss. */
+@import "./css/photo-viewer.css";
 @import "./css/threads.css";
 @import "./css/admin.css";
 @import "./css/agent.css";
