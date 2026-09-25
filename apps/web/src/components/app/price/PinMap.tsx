@@ -92,6 +92,16 @@ export function PinMap({
      the reader's pan, zoom and pin are never lost to a switch. */
   const theme = useAppliedTheme();
   const tilesRef = useRef<{ layer: { remove(): void }; theme: string } | null>(null);
+  /* The theme as of the latest render. The first render after hydration
+     answers the server's "dark", and Leaflet loads asynchronously, so the map
+     reads this ref at the moment it adds its tiles rather than the value it
+     was mounted with; `tilesReady` then lets the swap below catch any change
+     that landed while Leaflet was still loading. */
+  const themeRef = useRef(theme);
+  const [tilesReady, setTilesReady] = useState(false);
+  useEffect(() => {
+    themeRef.current = theme;
+  }, [theme]);
 
   /* The credit belongs to whichever provider is actually serving tiles, and it
      travels WITH the tile URL rather than being written beside the map: a
@@ -129,7 +139,8 @@ export function PinMap({
       });
       mapRef.current = map;
 
-      const provider = tileProvider(theme);
+      const opened = themeRef.current;
+      const provider = tileProvider(opened);
       const tiles = leaflet.tileLayer(provider.url, { maxZoom: provider.maxZoom });
       tiles.on("tileerror", () => {
         if (!cancelled) setImagery("offline");
@@ -138,7 +149,8 @@ export function PinMap({
         if (!cancelled) setImagery("ready");
       });
       tiles.addTo(map);
-      tilesRef.current = { layer: tiles, theme };
+      tilesRef.current = { layer: tiles, theme: opened };
+      if (!cancelled) setTilesReady(true);
 
       /* `moveend` and not `move`: one coordinate per gesture rather than one
          per frame, so a pan does not fire sixty server-bound state updates. */
@@ -178,7 +190,7 @@ export function PinMap({
     return () => {
       cancelled = true;
     };
-  }, [theme]);
+  }, [theme, tilesReady]);
 
   const recentre = useCallback(() => {
     const map = mapRef.current;
