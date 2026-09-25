@@ -16,56 +16,28 @@
   /* ================================================ the hero intro */
 
   /*
-   * THE HEADLINE ARRIVES FROM DEPTH. Each word starts 1.12 times its size,
-   * blurred 8px and transparent, and comes forward to sharp, 70ms after the
-   * word before (six steps at most). The first word starts 80ms in, so the
-   * whole line has landed by about a second, and the search rises last at
-   * 700ms. Everything waits `--nf-splash-hold`, which the app-open door sets
-   * while it is on screen and which is zero otherwise.
+   * THE HEADLINE ARRIVES FROM DEPTH, through the shared `.nf-depth-word`
+   * (threshold.css): each word comes in large, blurred and faint and lands
+   * sharp, 70ms after the one before, after `--nf-splash-hold`. What the
+   * landing adds is below: the lit line keeps its bloom, data saver and slow
+   * devices lose the blur, and a second visit this session skips it.
+   *
+   * The lit line's ramp is painted on each word. Painting it once on the line
+   * and clipping it to the words does not survive the words being animated
+   * (each is its own layer while it moves, and the clip loses them), and the
+   * ramp is shallow enough that a word-length run of it reads the same.
    */
   .nf-depth-line {
     display: block;
   }
-  .nf-depth-w {
-    display: inline-block;
-    transform-origin: 50% 62%;
-    animation: nf-depth-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 80ms + var(--w, 0) * 70ms);
+  .nf-landing-title .nf-depth-line--accent {
+    filter: drop-shadow(0 0 22px var(--nf-glow-2));
   }
-  /* The lit line keeps its bloom: the glow is part of the keyframe so the
-     animation ends exactly on the resting look (landing.css). */
-  .nf-depth-line--accent .nf-depth-w {
-    animation-name: nf-depth-in-lit;
-  }
-  @keyframes nf-depth-in {
-    from {
-      opacity: 0;
-      filter: blur(8px);
-      transform: scale(1.12);
-    }
-    55% {
-      opacity: 1;
-    }
-    to {
-      opacity: 1;
-      filter: blur(0);
-      transform: none;
-    }
-  }
-  @keyframes nf-depth-in-lit {
-    from {
-      opacity: 0;
-      filter: blur(8px) drop-shadow(0 0 22px var(--nf-glow-2));
-      transform: scale(1.12);
-    }
-    55% {
-      opacity: 1;
-    }
-    to {
-      opacity: 1;
-      filter: blur(0) drop-shadow(0 0 22px var(--nf-glow-2));
-      transform: none;
-    }
+  .nf-depth-line--accent .nf-depth-word {
+    background: var(--nf-gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   /* Data saver and slow devices: the same arrival without the blur. */
   @keyframes nf-depth-in-lite {
@@ -78,8 +50,8 @@
       transform: none;
     }
   }
-  :root[data-save-data="on"] .nf-depth-w,
-  :root[data-motion-lite="on"] .nf-depth-w {
+  :root[data-save-data="on"] .nf-landing-title .nf-depth-word,
+  :root[data-motion-lite="on"] .nf-landing-title .nf-depth-word {
     animation-name: nf-depth-in-lite;
   }
 
@@ -107,14 +79,11 @@
 
   /* Once per visit: the second time the landing opens this session, the
      hero is simply there (the flag is set by the script in app/page.tsx). */
-  :root[data-intro="seen"] .nf-depth-w,
+  :root[data-intro="seen"] .nf-landing-title .nf-depth-word,
   :root[data-intro="seen"] .nf-landing-hero .nf-rise,
   :root[data-intro="seen"] .nf-landing-hero .nf-landing-float-wrap,
   :root[data-intro="seen"] .nf-depth-last {
     animation: none;
-  }
-  :root[data-intro="seen"] .nf-depth-line--accent .nf-depth-w {
-    filter: drop-shadow(0 0 22px var(--nf-glow-2));
   }
 
   /* ----------------------------------------------------- the aurora */
@@ -140,7 +109,9 @@
     position: absolute;
     border-radius: var(--nf-radius-circle);
     filter: blur(72px);
-    animation: 28s linear infinite both;
+    animation-duration: 28s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
   }
   .nf-hero-aurora[data-playing="false"] > span {
     animation-play-state: paused;
@@ -204,7 +175,7 @@
 
   .nf-landing-hero-badges {
     justify-content: center;
-    margin-top: var(--nf-gap-group);
+    margin-block: var(--nf-gap-group) var(--nf-gap-block);
   }
 
   /* ================================================== shared rooms */
@@ -365,6 +336,10 @@
     min-height: 2.75rem;
   }
   .nf-ai-show-caption {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: var(--nf-text-overline);
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -420,10 +395,17 @@
     border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: transparent;
+    white-space: nowrap;
     font-size: var(--nf-text-caption);
     font-weight: 650;
     color: var(--nf-content-primary);
     cursor: pointer;
+  }
+  /* On a phone the replay button is the one control; the pips go. */
+  @media (max-width: 26rem) {
+    .nf-ai-show-pip {
+      display: none;
+    }
   }
 
   /* The panel: a phone-proportioned glass pane with a fixed height, so a
@@ -431,7 +413,7 @@
   .nf-ai-show-panel {
     display: flex;
     flex-direction: column;
-    height: 30rem;
+    height: 33rem;
     overflow: hidden;
     border-radius: var(--nf-radius-2xl);
     border: var(--nf-border-width) solid var(--nf-panel-edge);
@@ -564,7 +546,7 @@
   }
   @media (max-width: 26rem) {
     .nf-ai-show-panel {
-      height: 31rem;
+      height: 34rem;
     }
     .nf-ai-show-thread {
       padding: var(--nf-space-sm);
@@ -725,6 +707,12 @@
     outline-offset: 3px;
   }
 
+  /* The closing room already ends on a section's worth of space, so the
+     footer does not add a second one beneath it. */
+  .nf-landing .nf-site-footer {
+    margin-top: 0;
+  }
+
   /* ======================================= category micro-motion */
 
   .nf-landing-cat-icon {
@@ -743,7 +731,6 @@
   /* ============================================ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-depth-w,
     .nf-depth-last,
     .nf-landing-hero .nf-landing-float-wrap,
     .nf-hero-aurora,
@@ -754,9 +741,6 @@
     .nf-ai-card[data-live],
     .nf-ai-note[data-live] {
       animation: none;
-    }
-    .nf-depth-line--accent .nf-depth-w {
-      filter: drop-shadow(0 0 22px var(--nf-glow-2));
     }
     .nf-protect-card,
     .nf-protect-card::after,

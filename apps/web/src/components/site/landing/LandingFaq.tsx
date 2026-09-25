@@ -2,45 +2,12 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
-  NO_CUSTODY_SENTENCE,
-  NO_INSPECTION_FEE,
-  PAYMENT_GATE_SENTENCE,
-  PAYOUT_ANSWER,
-  PRIVATE_FEE_NOTE,
-  REFUND_ROUTE,
-} from "@/lib/money/copy";
 import { structuredDataJson } from "@/lib/listings/syndication";
+import { faqItems } from "./faq-items";
 
 /**
- * EVERY MONEY ANSWER IS A CONSTANT FROM `lib/money/copy.ts`, joined and never
- * reworded. The dictionary carries only the question for these keys
- * (`landingRooms.faq`), so a change to how money works is one edit in one
- * file and the FAQ, the checkout and the help centre move together.
- */
-const MONEY_ANSWERS: Record<string, string> = {
-  pay: `${PAYMENT_GATE_SENTENCE} ${NO_CUSTODY_SENTENCE}`,
-  inspection: `${NO_INSPECTION_FEE} ${PRIVATE_FEE_NOTE}`,
-  guarantee: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE}`,
-  payout: PAYOUT_ANSWER,
-  refund: REFUND_ROUTE,
-};
-
-/** The question list with every answer resolved. Exported for the test. */
-export function faqItems(t: Dictionary): { key: string; q: string; a: string }[] {
-  return t.landingRooms.faq.items
-    .map((item) => ({
-      key: item.key,
-      q: item.q,
-      a: MONEY_ANSWERS[item.key] ?? ("a" in item ? (item.a ?? "") : ""),
-    }))
-    .filter((item) => item.q && item.a);
-}
-
-/**
- * The landing FAQ (Track M). Built on `<details>` and `<summary>`, so it opens
+ * The landing FAQ (Track M). Every money answer is a `lib/money/copy.ts`
+ * constant, verbatim (faq-items.ts). Built on `<details>` and `<summary>`, so it opens
  * and closes with scripts off and a keyboard gets it for free. The panel's
  * height eases over 240ms and the chevron turns half a circle
  * (landing-rooms.css); reduced motion is instant.

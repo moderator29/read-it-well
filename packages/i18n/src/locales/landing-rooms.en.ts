@@ -24,7 +24,7 @@ export const landingRoomsEn = {
   protect: {
     overline: "How Vallo protects you",
     title: "Three rules the product will not bend",
-    body: "Each one is a step in the product, not a line in a brochure. Nobody can skip it, including us.",
+    body: "Each one is a step in how Vallo works, not a line in a brochure.",
     gate: { title: "The agreement comes first" },
     guarantee: { title: "The Vallo Guarantee", more: "How the Guarantee works" },
     inspection: { title: "No inspection fee" },

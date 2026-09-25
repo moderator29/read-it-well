@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useState, useSyncExternalStore, type RefObject } from "react";
 
 /**
  * Whether an element is on screen, for the motion kit (Track M).
@@ -24,7 +24,7 @@ export function useInView(
     const el = ref.current;
     if (!el) return;
     if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
+      queueMicrotask(() => setInView(true));
       return;
     }
     const io = new IntersectionObserver(
@@ -63,13 +63,23 @@ export function usePlayWhenVisible(ref: RefObject<Element | null>): boolean {
 
 /** The reader's reduced-motion setting, live. False on the server. */
 export function useReducedMotion(): boolean {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const read = () => setReduce(mq.matches);
-    read();
-    mq.addEventListener("change", read);
-    return () => mq.removeEventListener("change", read);
-  }, []);
-  return reduce;
+  return useSyncExternalStore(subscribeReduce, readReduce, () => false);
+}
+
+const REDUCE = "(prefers-reduced-motion: reduce)";
+function subscribeReduce(onChange: () => void): () => void {
+  const mq = window.matchMedia(REDUCE);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+function readReduce(): boolean {
+  return window.matchMedia(REDUCE).matches;
+}
+
+/** True once the page is hydrated on the client; false in the server render. */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(noSubscribe, () => true, () => false);
+}
+function noSubscribe(): () => void {
+  return () => {};
 }

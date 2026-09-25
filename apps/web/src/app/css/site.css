@@ -56,7 +56,12 @@
   }
   @media (min-width: 1024px) {
     .nf-site-footer-grid {
-      grid-template-columns: 1.5fr repeat(4, minmax(0, 0.8fr)) 1.5fr;
+      /* Brand, the three link columns, then the newsletter. It was four link
+         tracks for three columns, so the newsletter fell into a narrow link
+         track, truncated its own field, and left a wide empty track at the
+         end (Track M footer tidy). */
+      grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 0.8fr)) minmax(0, 1.4fr);
+      column-gap: var(--nf-gap-block);
     }
   }
   .nf-site-footer-brand,

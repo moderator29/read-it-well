@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@vallo/i18n";
-import { usePlayWhenVisible, useReducedMotion } from "@/components/motion/useInView";
+import { useHydrated, usePlayWhenVisible, useReducedMotion } from "@/components/motion/useInView";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { ListingMini } from "./ListingMini";
@@ -54,26 +54,17 @@ export function AiShowcase({
   const ref = useRef<HTMLDivElement | null>(null);
   const reduce = useReducedMotion();
   const visible = usePlayWhenVisible(ref);
-  const [live, setLive] = useState(false);
-  const [index, setIndex] = useState(0);
-  const [t, setT] = useState(DONE);
-  /* Bumped on every fresh start, so the thread remounts and its entrances
-     play again. */
-  const [run, setRun] = useState(0);
-
+  const hydrated = useHydrated();
   /* Scripts run only once the page is interactive and the reader has not
      asked for less motion. Until then the panel is the finished first
      conversation, which is also what a crawler reads. */
-  useEffect(() => {
-    if (reduce) {
-      setLive(false);
-      setIndex(0);
-      setT(DONE);
-      return;
-    }
-    setLive(true);
-    setT(0);
-  }, [reduce]);
+  const live = hydrated && !reduce;
+  const [index, setIndex] = useState(0);
+  const [clockT, setT] = useState(0);
+  const t = live ? clockT : DONE;
+  /* Bumped on every fresh start, so the thread remounts and its entrances
+     play again. */
+  const [run, setRun] = useState(0);
 
   /* The clock. It only advances while the panel is on screen in a visible
      tab, so pausing is simply not ticking. The next script is chosen here,
@@ -97,7 +88,7 @@ export function AiShowcase({
     return () => window.clearInterval(id);
   }, [live, visible, scripts.length]);
 
-  const script = scripts[index] ?? scripts[0];
+  const script = (live ? scripts[index] : scripts[0]) ?? scripts[0];
   if (!script) return null;
   const words = script.reply.split(" ");
   const replyEnd = REPLY_AT + words.length * WORD_MS;

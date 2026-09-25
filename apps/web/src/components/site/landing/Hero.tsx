@@ -1,8 +1,8 @@
-import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { ButtonLink } from "@/components/ui/Button";
+import { DepthWords, wordCount } from "@/components/motion/DepthWords";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { photo } from "@/lib/site/photos";
@@ -90,15 +90,19 @@ export function Hero({
             ))}
           </ol>
           {/* THE DEPTH ARRIVAL (Track M). Each word comes forward from behind
-              the glass: blurred 8px, 1.12 times its size and transparent, then
-              sharp and settled, 70ms after the word before it. The whole
-              assembly is about 1.2 seconds, plays once per visit, and waits
-              for the app-open door when that is on screen. The words are
-              spans inside the line, so the line still reads as one string to
-              a screen reader and to `headline-coupling.test.ts`. */}
+              the glass, blurred, enlarged and transparent, then sharp and
+              settled, 70ms after the word before it: the shared DepthWords
+              (threshold.css), which already waits for the app-open door. On
+              the landing it plays once per visit and drops the blur on slow
+              devices (landing-rooms.css). The words are spans inside the
+              line, so the heading still reads as written. */}
           <h1 id="nf-landing-title" className="nf-landing-title nf-depth">
-            <DepthLine text={face.hero.title1} start={0} />
-            <DepthLine text={face.hero.title2} start={face.hero.title1.split(" ").length} accent />
+            <span className="nf-depth-line">
+              <DepthWords text={face.hero.title1} />
+            </span>
+            <span className="nf-depth-line nf-depth-line--accent">
+              <DepthWords text={face.hero.title2} start={wordCount(face.hero.title1)} />
+            </span>
           </h1>
           <p className="nf-rise nf-rise-3 nf-landing-sub">{face.hero.subtitle}</p>
           <div className="nf-rise nf-rise-4 flex flex-wrap items-center gap-row">
@@ -158,26 +162,3 @@ export function Hero({
   );
 }
 
-/**
- * One line of the headline as words that arrive from depth. `start` carries
- * the word count across lines, so the second line continues the first; the
- * index is capped at six in the stylesheet (no stagger past six steps).
- */
-function DepthLine({ text, start, accent = false }: { text: string; start: number; accent?: boolean }) {
-  const words = text.split(" ");
-  return (
-    <span className={accent ? "nf-depth-line nf-depth-line--accent" : "nf-depth-line"}>
-      {words.map((w, i) => (
-        <Fragment key={`${w}-${i}`}>
-          <span
-            className={accent ? "nf-depth-w nf-gradient-text" : "nf-depth-w"}
-            style={{ "--w": Math.min(start + i, 6) } as React.CSSProperties}
-          >
-            {w}
-          </span>
-          {i < words.length - 1 ? " " : null}
-        </Fragment>
-      ))}
-    </span>
-  );
-}
