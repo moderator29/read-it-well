@@ -178,6 +178,18 @@ Two changes got it there:
 - `@vallo/i18n/core` carries the locale list, the Intl tags and every formatter, `countOf` included, with no dictionary; 347 files moved to it.
 - The few words client components on the main routes read come from the root layout in a small client copy (`lib/i18n/client-copy`, about 7 KB), in the reader's language from the first paint.
 - Result on the build: 119 of 131 user-facing routes no longer load the chunk, including the landing page, Home, Search, Stays, Around, Settings, Profile, Saved, Messages, the listing, stay and restaurant pages, and sign-in and sign-up. Tests guard the light entry and the layouts' client code.
+- Measured on vallospaces.com after the deploy: the landing page's JavaScript went from 1,381 KB to 722 KB, and sign-in's from 1,368 KB to 705 KB.
+
+**What a tap downloads.** The per-page dictionary slices were checked by an import walker that also counted things that cannot read a dictionary in the browser: server actions (Settings carried the 57 KB `admin` namespace because a server action calls Supabase's `auth.admin.deleteUser`), `supabase.auth` calls, comments and types. With those skipped, the slices shrank:
+
+| Slice | Before | After |
+|---|---|---|
+| Settings screen | 137 KB | 47 KB |
+| Listing card | 104 KB | 55 KB |
+| Stay card | 45 KB | 8 KB |
+| Price Check | 42 KB | 13 KB |
+
+A tap to Settings now downloads 30 KB for its page where it was 105 KB, and a tap to Home 40 KB where it was 73 KB.
 
 **Prices in Yoruba, Hausa and Igbo.** Node writes the naira sign for these locales, while Chromium's trimmed locale data writes "NGN", and Node spaces the Hausa sign. So every price on those pages was a hydration mismatch: React discarded the server's HTML and redrew the page in the browser, and the reader saw "₦" turn into "NGN". Money is now built from one normalised set of parts (the narrow sign, no space beside it) in `formatMoney` and `<Amount>`. The four languages hydrate clean on the main routes.
 
