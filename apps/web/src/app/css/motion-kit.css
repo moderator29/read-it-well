@@ -201,6 +201,55 @@
     100% { opacity: 1; transform: translateY(0); }
   }
 
+  /* ------------------------------------------- glass object motion */
+
+  /*
+   * The platform's glass objects on a content surface (the founder's rule:
+   * never a line glyph there) each play one micro-motion, 620ms, when their
+   * host arrives and again on hover. On the wrapper, so the object inside
+   * is never distorted; transform only. The kinds are named in
+   * components/site/landing/glass-motion.ts.
+   */
+  .nf-feature-glass {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  .nf-feature-glass--sm {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .nf-glass-fx {
+    transform-origin: 50% 60%;
+  }
+  .nf-glass-fx[data-motion="swing"] {
+    transform-origin: 50% 0;
+  }
+  [data-reveal="in"] .nf-glass-fx[data-motion="rise"] { animation: nf-glass-rise var(--nf-duration-deliberate) var(--nf-ease-spring) 200ms both; }
+  [data-reveal="in"] .nf-glass-fx[data-motion="pop"] { animation: nf-glass-pop var(--nf-duration-deliberate) var(--nf-ease-spring) 200ms both; }
+  [data-reveal="in"] .nf-glass-fx[data-motion="tilt"] { animation: nf-glass-tilt var(--nf-duration-deliberate) var(--nf-ease-standard) 200ms both; }
+  [data-reveal="in"] .nf-glass-fx[data-motion="turn"] { animation: nf-glass-turn var(--nf-duration-deliberate) var(--nf-ease-standard) 200ms both; }
+  [data-reveal="in"] .nf-glass-fx[data-motion="swing"] { animation: nf-glass-swing var(--nf-duration-deliberate) var(--nf-ease-standard) 200ms both; }
+  @media (hover: hover) {
+    .nf-fx-host:hover .nf-glass-fx[data-motion="rise"] { animation: nf-glass-rise-b var(--nf-duration-deliberate) var(--nf-ease-spring) both; }
+    .nf-fx-host:hover .nf-glass-fx[data-motion="pop"] { animation: nf-glass-pop-b var(--nf-duration-deliberate) var(--nf-ease-spring) both; }
+    .nf-fx-host:hover .nf-glass-fx[data-motion="tilt"] { animation: nf-glass-tilt-b var(--nf-duration-deliberate) var(--nf-ease-standard) both; }
+    .nf-fx-host:hover .nf-glass-fx[data-motion="turn"] { animation: nf-glass-turn-b var(--nf-duration-deliberate) var(--nf-ease-standard) both; }
+    .nf-fx-host:hover .nf-glass-fx[data-motion="swing"] { animation: nf-glass-swing-b var(--nf-duration-deliberate) var(--nf-ease-standard) both; }
+  }
+  @keyframes nf-glass-rise { 0% { transform: translate3d(0, 8px, 0) scale(0.94); } 100% { transform: none; } }
+  @keyframes nf-glass-rise-b { 0% { transform: translate3d(0, 8px, 0) scale(0.94); } 100% { transform: none; } }
+  @keyframes nf-glass-pop { 0% { transform: scale(0.82); } 55% { transform: scale(1.08); } 100% { transform: none; } }
+  @keyframes nf-glass-pop-b { 0% { transform: scale(0.82); } 55% { transform: scale(1.08); } 100% { transform: none; } }
+  @keyframes nf-glass-tilt { 0% { transform: rotate(0); } 45% { transform: rotate(-9deg) translate3d(0, -3px, 0); } 100% { transform: none; } }
+  @keyframes nf-glass-tilt-b { 0% { transform: rotate(0); } 45% { transform: rotate(-9deg) translate3d(0, -3px, 0); } 100% { transform: none; } }
+  @keyframes nf-glass-turn { 0% { transform: rotate(0); } 50% { transform: rotate(-24deg); } 100% { transform: none; } }
+  @keyframes nf-glass-turn-b { 0% { transform: rotate(0); } 50% { transform: rotate(-24deg); } 100% { transform: none; } }
+  @keyframes nf-glass-swing { 0% { transform: rotate(0); } 30% { transform: rotate(10deg); } 65% { transform: rotate(-6deg); } 100% { transform: none; } }
+  @keyframes nf-glass-swing-b { 0% { transform: rotate(0); } 30% { transform: rotate(10deg); } 65% { transform: rotate(-6deg); } 100% { transform: none; } }
+
   /* ------------------------------------------- the assistant's hello */
 
   /* The bot settles in with the spring, after the app-open door. */
@@ -240,8 +289,9 @@
     .nf-m-chevron {
       transition: none;
     }
-    .nf-ai-hello-bot {
-      animation: none;
+    .nf-ai-hello-bot,
+    .nf-glass-fx {
+      animation: none !important;
     }
   }
   @media print {

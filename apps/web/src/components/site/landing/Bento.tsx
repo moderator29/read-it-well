@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { LoopGate } from "@/components/motion/LoopGate";
 import { MotionReveal } from "@/components/motion/Reveal";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BentoFx } from "./BentoFx";
 import { SectionHead } from "./SectionHead";
@@ -10,9 +11,12 @@ import { SectionHead } from "./SectionHead";
  * "Everything in one place": the bento (Track M, second pass).
  *
  * Seven doors into the product, in mixed sizes, each with one small live
- * scene drawn in CSS: the price tag swings, the calendar turns a page, the
- * assistant types, the Price Check bars settle, the shield draws its tick,
- * two messages trade places, the feed moves up a card. The scenes are slow,
+ * scene built on the platform's own glass objects: the keys swing on their
+ * tag by the house, the calendar turns, the assistant bobs while it types,
+ * the Price Check bars settle behind the report, the shield pops and a light
+ * crosses it, two messages trade places behind the chat, the people float.
+ * No line glyph illustrates anything here (the founder's rule for content
+ * surfaces). The scenes are slow,
  * run only while the grid is on screen (LoopGate), and stop entirely under
  * reduced motion and data saver.
  *
@@ -71,70 +75,68 @@ function SceneArt({ scene }: { scene: Scene }) {
     case "tag":
       return (
         <>
-          <span className="nf-scene__house">
-            <UiIcon name="house" size={40} />
+          <span className="nf-scene__obj">
+            <BrandIcon name="modern-house" size={96} />
           </span>
           <span className="nf-scene__tag">
-            <UiIcon name="price-tag" size={24} />
+            <BrandIcon name="keys-tag" size={48} />
           </span>
         </>
       );
     case "calendar":
       return (
-        <span className="nf-scene__cal">
-          <span className="nf-scene__cal-top" />
-          <span className="nf-scene__cal-page nf-scene__cal-page--under" />
-          <span className="nf-scene__cal-page nf-scene__cal-page--flip" />
-          <span className="nf-scene__cal-grid">
-            {Array.from({ length: 12 }, (_, i) => (
-              <i key={i} data-on={i === 6 || i === 7 ? "true" : undefined} />
-            ))}
-          </span>
+        <span className="nf-scene__obj nf-scene__obj--flip">
+          <BrandIcon name="calendar-check" size={112} />
         </span>
       );
     case "typing":
       return (
-        <span className="nf-scene__chat">
-          <span className="nf-scene__q" />
+        <>
+          <span className="nf-scene__obj nf-scene__obj--bob">
+            <BrandIcon name="bot" size={80} />
+          </span>
           <span className="nf-scene__dots">
             <i />
             <i />
             <i />
           </span>
-        </span>
+        </>
       );
     case "bars":
       return (
-        <span className="nf-scene__bars">
-          {[0.55, 0.8, 0.68, 0.92, 0.6].map((h, i) => (
-            <i key={i} style={{ "--h": h, "--bar-i": i } as React.CSSProperties} />
-          ))}
-        </span>
+        <>
+          <span className="nf-scene__bars" aria-hidden="true">
+            {[0.55, 0.8, 0.68, 0.92].map((h, i) => (
+              <i key={i} style={{ "--h": h, "--bar-i": i } as React.CSSProperties} />
+            ))}
+          </span>
+          <span className="nf-scene__obj nf-scene__obj--front">
+            <BrandIcon name="report-stats" size={80} />
+          </span>
+        </>
       );
     case "shield":
       return (
-        <span className="nf-scene__shield">
-          <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2.9 19.2 6v5.3c0 4.3-2.9 8-7.2 9.6-4.3-1.6-7.2-5.3-7.2-9.6V6Z" />
-            <g className="nf-scene__tick">
-              <path d="m8.7 11.8 2.3 2.3 4.3-4.4" />
-            </g>
-          </svg>
+        <span className="nf-scene__obj nf-scene__obj--pop nf-scene__gleam">
+          <BrandIcon name="shield-check" size={96} />
         </span>
       );
     case "messages":
       return (
-        <span className="nf-scene__msgs">
-          <span className="nf-scene__msg nf-scene__msg--a" />
-          <span className="nf-scene__msg nf-scene__msg--b" />
-        </span>
+        <>
+          <span className="nf-scene__msgs">
+            <span className="nf-scene__msg nf-scene__msg--a" />
+            <span className="nf-scene__msg nf-scene__msg--b" />
+          </span>
+          <span className="nf-scene__obj nf-scene__obj--front">
+            <BrandIcon name="chat-duo" size={80} />
+          </span>
+        </>
       );
     case "feed":
       return (
-        <span className="nf-scene__feed">
-          <i />
-          <i />
-          <i />
+        <span className="nf-scene__obj nf-scene__obj--bob">
+          <BrandIcon name="people-ring" size={88} />
         </span>
       );
   }
