@@ -19,7 +19,9 @@ export type TextSize = "s" | "m" | "l";
 export type DistanceUnit = "km" | "mi";
 
 export type NfSettings = {
-  reduceMotion: boolean;
+  /* `reduceMotion` STOOD HERE AND IS GONE (Track M). Its switch set a root
+     flag no stylesheet read; the motion setting in lib/motion/motion-pref.ts
+     replaced it and reads its old stored "on" as Calm. */
   textSize: TextSize;
   notifyPush: boolean;
   notifyEmail: boolean;
@@ -41,7 +43,6 @@ export type NfSettings = {
 };
 
 export const SETTINGS_DEFAULTS: NfSettings = {
-  reduceMotion: false,
   textSize: "m",
   notifyPush: true,
   notifyEmail: true,
@@ -189,21 +190,6 @@ export function useNfSettings() {
 }
 
 /* --------------------------------------------------- document side effects */
-
-/**
- * Motion preference lands on the root element so stylesheets can calm
- * animation app-wide. The legacy `nf_reduce_motion` flag is mirrored because
- * earlier builds of this device may still carry it.
- */
-export function applyReduceMotion(on: boolean): void {
-  if (on) document.documentElement.dataset.reduceMotion = "1";
-  else delete document.documentElement.dataset.reduceMotion;
-  try {
-    window.localStorage.setItem("nf_reduce_motion", on ? "1" : "0");
-  } catch {
-    // The document attribute above still applies for this session.
-  }
-}
 
 /**
  * Text size scales the root font size, so every rem-based measure in the app
