@@ -1,4 +1,4 @@
--- PENDING, NOT APPLIED. Track G (2): archive a conversation for yourself.
+-- Track G (2): archive a conversation for yourself. APPLIED LIVE 25 September 2026.
 --
 -- The inbox gains Recent / Archived / Reported. Archiving is PER PERSON: the
 -- guest archiving a thread must not hide it from the agent, so it cannot be a

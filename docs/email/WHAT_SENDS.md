@@ -311,3 +311,7 @@ on, and every row in the outbox has been sent (5 SENT, 0 PENDING at 23:47 UTC on
 The public address on every message is `hello@vallospaces.com`. The private
 gmail appears on no surface and in no email, and
 `lib/notify/outbox-delivery.test.ts` asserts that for every template.
+
+## The explicit-paint rule (Track H, 25 September 2026)
+
+Every message is passed through `paintExplicit` after it is built: every body, table and cell carries its colour as both a `bgcolor` attribute and an inline `background-color`, and every text element carries an inline colour. Gmail, Outlook and Apple Mail each drop or rewrite something different (classes, `<style>`, inheritance), so nothing may depend on them. `lib/email/email-dark-paint.test.ts` holds every catalogue message and auth template to it, with AA contrast. The auth templates in `supabase/templates` are built by the same step and must be uploaded to Supabase Auth after any change.

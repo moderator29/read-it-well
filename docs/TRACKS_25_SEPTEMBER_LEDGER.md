@@ -184,7 +184,15 @@ At 390px, signed out and signed in:
 
 ## D. The listing page: always a way out
 
-Shipped by the subagent: the photo viewer is a history entry, with swipe-down to dismiss, a safe-area close and a sticky back. The details are in the subagent's report, quoted in the Track D to J section below.
+Shipped by the subagent, all reproduced first at 390px:
+
+- **The problem:** the only back control scrolled away with the photo, so there was no way out once you scrolled.
+- **The viewer is a history entry.** Browser back, the iPhone edge swipe and Android back close it first.
+- **Dismissing:** swipe down to dismiss, with spring-back on a short drag. Under reduced motion it closes at the threshold without following the finger.
+- **The close control** sits at safe-area plus 8px.
+- **Back always shows:** a sticky 44px back once the section tabs stick on a property, and a fixed back on stays and restaurants.
+- **With no history,** back falls back to `/search`, `/stays` or `/restaurants`.
+- **Corrected in its own re-audit:** opening a photo from the "Show all" sheet did nothing, and a drag while zoomed in closed the viewer instead of panning.
 
 - **Proof:** `apps/web/tests/listing-exits.spec.mjs` passes twice, in normal and in reduced motion.
 
@@ -211,11 +219,82 @@ On this session's device pass, the control switched the document to `data-theme=
 
 ## G. Inbox tabs, the Recent / Archived / Reported view and Settings
 
-Pending the subagent's report.
+### What existed before
+
+- `/messages` had All, Primary and Requests. Threads had no side and no archive.
+- The Settings hub was one group of rows, plus a single switch that flipped four settings at once.
+- The theme page existed but was not linked from the hub.
+- `/disclaimer` sat behind sign-in.
+
+### Shipped
+
+**Inbox tabs.** Property and Stays are the top tabs, opening on the side the shell is on, each with its unread count.
+
+- `lib/messages/thread-side.ts` decides the side, and has tests.
+- Tables, stay bookings and hotel or restaurant threads go to Stays. A listing thread follows its listing.
+
+**Inbox views.** Recent / Requests / Archived / Reported fit at 390px.
+
+- **Archive is per person.** The table `conversation_archives` went live from this session (`20260925142401`):
+  - a person can insert only for a conversation they are a party to;
+  - archiving never hides a thread from the other side;
+  - a newer message brings the thread back to Recent.
+- **Reported** lists threads where you reported the conversation, one of its messages or the other person, read from the existing `reports` table.
+
+**Settings.** The hub has six groups, and every row opens a real page:
+
+| Group | Rows |
+|---|---|
+| Account | Account information, phone, renter passport |
+| Preferences | Notifications, appearance (with Light / Dark / System), language |
+| Privacy and security | |
+| Payments | `/settings/payments` |
+| Help and legal | Help, terms, privacy, disclaimer |
+| Log out | |
+
+The hub has no wallet row. `/disclaimer` is public.
+
+### Survived the re-audit
+
+- **The subagent's pass:** signed in at 390px in both themes, every hub link returns 200, with no wallet text and no overflow.
+- **Live RLS** on the archive table, as the QA member:
+  - reading their own rows: 200;
+  - archiving a thread that is not theirs: 403;
+  - anonymous read: 401.
+
+### Still open
+
+- The Recent / Archived / Reported labels are English strings with no dictionary keys yet.
+- The Hausa, Igbo and Yoruba text for the notification labels is the older wording.
 
 ## H. Emails that render dark everywhere, and a better welcome email
 
-Pending the subagent's report.
+### What existed before
+
+The email shell already had the colour-scheme metas, a bgcolor on the body and the card, dark CSS classes, and a welcome email with role-specific versions. Inner cells, panels and buttons relied on shorthand or inheritance.
+
+### Shipped
+
+- **Explicit paint.** A `paintExplicit` step runs after every message is built. Every body, table and cell gets both a `bgcolor` attribute and an inline `background-color`, and every text element carries an inline colour, so nothing depends on classes (Gmail, Outlook, Apple Mail).
+- The same step builds the five Supabase auth templates, which are regenerated in `supabase/templates`.
+- **The welcome email:**
+  - every shared line is in one `WELCOME_COPY` object, so it is refined by editing data;
+  - the layout follows the reference structure in Vallo's dark: a hero, three value cards, one button, the safety note, the footer;
+  - preview it at `/preview/email/welcome` (dev), per role, at 390 and 640px, beside the text version.
+
+### Survived the re-audit
+
+`email-dark-paint.test.ts` checks 39 catalogue messages and the 5 auth templates:
+
+- both metas are present;
+- every body, table and cell has a `bgcolor` and a `background-color`, and the two agree;
+- every text element has an inline colour;
+- AA contrast (4.5:1) against its own background.
+
+### Still open
+
+- It has been verified by tests and a Chromium render only, not in real Gmail, Outlook or Apple Mail clients.
+- **For the founder:** upload the regenerated `supabase/templates/*.html` to Supabase Auth; the auth emails only change once they are uploaded.
 
 ## I. Animation
 
@@ -292,7 +371,16 @@ The audit log viewer (`/admin/audit`), search (the console bar), the saved views
 
 ## L. Price Check in the nav
 
-Pending the subagent's report.
+- **What existed:** `/price` had no link anywhere in the product. Refusals already offered next actions. An answered check had only the share card and the comparables.
+- **Discoverability fix only:** "Price Check" is in the side nav, signed in and on the Property side, with a price-tag icon. It never says valuation, worth or value (the regulated-words gate is clean).
+- **New:** a "What next" block under an answered check:
+  - see listings in this area, as a filtered search (`lib/price-check/next-actions.ts`, tested);
+  - tell me about new listings here, which saves the search with alerts;
+  - the existing share card.
+
+  The subagent proved the alert live: it created a real saved search for the QA member, then deleted it through the app. It also fixed a 390px overflow in this block.
+- **Also:** the Price Check map now follows the theme, with no dark tiles in light.
+- **Still open, the share path:** the sheet opens at 390px, but minting a card needs the service role key, which neither agent's environment had. A bad `/s/` token shows the honest "This link does not open anything" page, and both fit 390px. **One run with the service key set is needed** to prove mint, link and open end to end.
 
 ---
 

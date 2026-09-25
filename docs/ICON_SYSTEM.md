@@ -298,3 +298,5 @@ notification to bell-alert, language to globe-pin, settings to doc-shield.
 ## Added 25 September 2026 (Tracks E and J)
 
 Line icons, all `currentColor`, added to `UiIcon`: `contrast` (the theme control), and for the property-type and space tiles `storefront`, `briefcase`, `land-plot`, `house-duplex`, `house-terrace`, `house-bungalow`, `tower-penthouse`, `door` and a plain `check` (the selected tick; the verified mark is never used as a tick). In light mode every glass PNG, the logo and the role-switch coin sit on one dark tile (`--nf-night-tile-*`, `app/css/light.css`), the ground the artwork was drawn for.
+
+Also added by Tracks G and L: `archive` (the inbox archive control) and `price-tag` (Price Check in the side navigation).
