@@ -11,6 +11,56 @@ Each track has one entry in the same shape:
 
 "Live" means applied to the Supabase project `uccixoonmbhrnyczyigt` and confirmed there. Credentials were used only as shell environment variables and never written to the repository.
 
+## Update, 25 September 2026, later the same day (founder follow-up)
+
+**A.1 is live** (`20260925163708`). The permission refusal did not recur. Two real SQL errors surfaced; each rolled the whole transaction back cleanly, and each was fixed in the file before re-applying:
+
+1. `2BP01 cannot drop function private.pot_balance_minor(uuid) because other objects depend on it`. The views `wallet_pot_balances` and `wallet_balances` are now dropped before the functions.
+2. `55000 record "p" is not assigned yet`. In the policy-cleanup loop, the loop variable shadowed the `pg_policy p` alias; it has been renamed.
+
+Its flag guard also keeps `wallet_pots`, which a later live migration had already added, so applying A.1 weakened nothing.
+
+Read back on live:
+
+- **Custody tables:** all 7 (escrows, escrow_evidence, escrow_rulings, escrow_float_snapshots, wallets, wallet_entries, wallet_pots) are in `retired_custody`, with zero grants and no schema usage for anon, authenticated or service_role.
+- **In `public`:** 0 custody relations remain.
+- **Functions:** 0 custody functions remain in public or private.
+- **Crons:** 0 escrow cron jobs.
+- **Event trigger:** `retired_custody_stays_retired` is enabled. Proof: creating `public.wallet_probe()` was refused with `custody_retired`.
+- **Rows kept:** the 2 wallet rows are kept for retention.
+
+**The unified queue can be claimed and assigned** (`20260925163931`, then `20260925164219`). Only the claim machinery was taken from backlog `20260924160400_v89_the_queue_becomes_a_desk.sql`:
+
+- `queue_claims`;
+- `queue_take`, `queue_release` and `queue_assign`;
+- `queue_operators`.
+
+Nothing else from that file or the rest of the backlog was applied. It was adapted to Track K:
+
+- the right to claim a kind comes from `private.staff_can` on that kind's scope (listing, application, report/flag, ticket);
+- the operators list reads `profiles` rather than the unapplied `private.person_name`.
+
+The app now makes these calls with the operator's own session.
+
+**Proved live as the QA admin** (`supabase/tests/track_k/live_queue_claims.mjs`):
+
+- the assign menu lists the operators;
+- take succeeds and the desk reads the claim back;
+- the member is refused on take and on assign, and reads no claims;
+- assigning to a non-operator is refused;
+- assigning to another operator succeeds, after which taking it back is refused as `taken` and releasing it is refused as `not_yours`;
+- assigning it back and releasing it both succeed;
+- every step is in `audit_log`.
+
+**Corrected during the live pass:** the first claims-read policy called a function API roles cannot execute (42501). It was fixed in `20260925164219`.
+
+**Proved locally** (`supabase/tests/track_k/queue_claims_probe.sql`):
+
+- a staff member holding only the moderation scope can take a report but not a listing;
+- nobody can be assigned a kind they cannot work.
+
+**Limit:** the UI click-through was not run. This container has no service key, so the queue page's reads show unavailable locally. The calls above are the exact RPCs the desk's server actions make with the operator's session.
+
 ## Status at close
 
 **All twelve tracks shipped.** The branch is `claude/vallo-platform-rebuild-t4jh4b`, pushed.
@@ -40,7 +90,7 @@ On the final merged tree:
 
 **What only the founder can do** (details in each track):
 
-1. Apply `supabase/migrations/pending/20260925120000_track_a1_...sql`, which moves the custody tables out and drops the functions. This environment's permission classifier refused it, and it was not retried.
+1. ~~Apply A.1.~~ Done: live as `20260925163708`, see the update above.
 2. Create the Guarantee reserve subaccount in Paystack and set `PAYSTACK_GUARANTEE_SUBACCOUNT`. No payment opens without it.
 3. Set `YELLOWCARD_DIRECT_SETTLEMENT=confirmed` only after Yellow Card confirms direct naira settlement in writing.
 4. Upload the regenerated `supabase/templates/*.html` to Supabase Auth.

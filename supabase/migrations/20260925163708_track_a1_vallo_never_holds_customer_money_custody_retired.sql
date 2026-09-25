@@ -107,7 +107,7 @@ set search_path to ''
 as $function$
 begin
   if tg_op <> 'DELETE'
-     and new.key in ('wallet', 'held_payments', 'held_payments_payouts')
+     and new.key in ('wallet', 'wallet_pots', 'held_payments', 'held_payments_payouts')
      and new.enabled then
     raise exception 'custody_retired: % is a retired custody switch and cannot be turned on', new.key
       using errcode = '42501',
@@ -231,6 +231,14 @@ begin
 end;
 $function$;
 
+-- ------------------------------------------------------------ 4a. the views
+-- First: wallet_pot_balances and wallet_balances depend on
+-- private.pot_balance_minor and private.wallet_balance, so they must go before
+-- those functions are dropped (the first live apply failed on exactly this,
+-- 2BP01, and rolled back cleanly).
+drop view if exists public.wallet_pot_balances;
+drop view if exists public.wallet_balances;
+
 -- --------------------------------------------- 4. the custody functions go
 drop function if exists public.escrow_admin_resolve(uuid, text, text);
 drop function if exists public.escrow_cancel_as(uuid, uuid, text);
@@ -308,10 +316,6 @@ drop function if exists private.bank_payouts_open();
 
 delete from private.platform_settings where key = 'custody_structure';
 
--- ------------------------------------------------------------ 5. the views
-drop view if exists public.wallet_pot_balances;
-drop view if exists public.wallet_balances;
-
 -- --------------------------------------------------- 6. the tables move out
 create schema if not exists retired_custody;
 revoke all on schema retired_custody from public, anon, authenticated, service_role;
@@ -332,12 +336,14 @@ begin
 end $$;
 
 do $$
-declare p record;
+declare pol record;
 begin
-  for p in select polname, polrelid::regclass as rel from pg_policy p
-            join pg_class c on c.oid = p.polrelid join pg_namespace n on n.oid = c.relnamespace
+  -- The loop variable is not called p: that name is the pg_policy alias in
+  -- its own query (the second live apply failed on this, 55000, rolled back).
+  for pol in select pp.polname, pp.polrelid::regclass as rel from pg_policy pp
+            join pg_class c on c.oid = pp.polrelid join pg_namespace n on n.oid = c.relnamespace
            where n.nspname = 'retired_custody' loop
-    execute format('drop policy %I on %s', p.polname, p.rel);
+    execute format('drop policy %I on %s', pol.polname, pol.rel);
   end loop;
 end $$;
 

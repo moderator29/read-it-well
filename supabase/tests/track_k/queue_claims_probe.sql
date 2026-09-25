@@ -1,0 +1,22 @@
+create table if not exists public.profiles (id uuid primary key, display_name text);
+insert into public.profiles values ('00000000-0000-4000-8000-00000000000b','Admin B'),('00000000-0000-4000-8000-00000000000c','Staff C') on conflict do nothing;
+-- staff C: regrant moderation and ack
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-00000000000a',false);
+select 'grant C moderation', public.admin_grant_staff('00000000-0000-4000-8000-00000000000c', array['moderation'], null)->>'status';
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-00000000000c',false);
+select 'C acks', public.staff_acknowledge_handbook('2026-09-25')->>'status';
+select '1 C takes a report', public.queue_take('report','11111111-1111-4111-8111-111111111111')->>'status';
+select '2 C takes a listing (not in scope)', public.queue_take('listing','22222222-2222-4222-8222-222222222222')->>'status';
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-00000000000b',false);
+select '3 admin B takes C''s live report', public.queue_take('report','11111111-1111-4111-8111-111111111111')->>'status';
+select '4 admin B takes a listing', public.queue_take('listing','22222222-2222-4222-8222-222222222222')->>'status';
+select '5 B assigns the listing to C (C cannot work listings)', public.queue_assign('listing','22222222-2222-4222-8222-222222222222','00000000-0000-4000-8000-00000000000c')->>'status';
+select '6 B assigns a flag to C', public.queue_assign('flag','33333333-3333-4333-8333-333333333333','00000000-0000-4000-8000-00000000000c')->>'status';
+select '7 B releases the listing', public.queue_release('listing','22222222-2222-4222-8222-222222222222')->>'status';
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-00000000000d',false);
+select '8 member takes a report', public.queue_take('report','44444444-4444-4444-8444-444444444444')->>'status';
+select '9 member lists operators', count(*) from public.queue_operators();
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-00000000000b',false);
+select '10 operators seen by B', string_agg(coalesce(name,'?'),', ') from public.queue_operators();
+select '11 claims', string_agg(kind||'->'||claimed_by::text, ', ' order by kind) from public.queue_claims;
+select '12 audit', string_agg(action, ',' order by created_at) from public.audit_log where action like 'queue.%';

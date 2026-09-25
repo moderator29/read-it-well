@@ -48,7 +48,7 @@ export async function loadDesk(itemIds: string[], reportIds: string[]): Promise<
       : Promise.resolve({ data: [], error: null }),
     reportIds.length > 0 ? db.rpc("admin_report_signals", { p_reports: reportIds.slice(0, 200) }) : Promise.resolve({ data: [], error: null }),
     db.from("admin_saved_views").select("id, owner, name, filters, shared").order("created_at", { ascending: false }).limit(30),
-    db.rpc("queue_operators"),
+    (access.userClient as unknown as Loose).rpc("queue_operators"),
   ]);
 
   const out: DeskReads = { ...empty, me: access.user.id };

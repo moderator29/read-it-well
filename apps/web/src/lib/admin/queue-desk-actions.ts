@@ -42,7 +42,7 @@ export async function takeRow(formData: FormData): Promise<void> {
   const item = readItemKey(formData.get("item"));
   let outcome = "failed";
   if (item) {
-    const { data, error } = await (access.supabase as unknown as Rpc).rpc("queue_take", { p_kind: item.kind, p_item: item.id });
+    const { data, error } = await (access.userClient as unknown as Rpc).rpc("queue_take", { p_kind: item.kind, p_item: item.id });
     const status = (data as { status?: string } | null)?.status;
     outcome = !error && status === "ok" ? "taken" : status === "taken" ? "held" : "failed";
   }
@@ -54,7 +54,7 @@ export async function releaseRow(formData: FormData): Promise<void> {
   const access = await requireAdmin("moderation");
   if (access.state !== "admin") redirect("/admin");
   const item = readItemKey(formData.get("item"));
-  if (item) await (access.supabase as unknown as Rpc).rpc("queue_release", { p_kind: item.kind, p_item: item.id });
+  if (item) await (access.userClient as unknown as Rpc).rpc("queue_release", { p_kind: item.kind, p_item: item.id });
   revalidatePath("/admin/queue");
   redirect(back(formData, { claim: "released" }));
 }
@@ -82,7 +82,10 @@ export async function bulkAct(formData: FormData): Promise<void> {
     kind === "listing" || kind === "application" ? ((reasons[kind] as Record<string, string>)[reasonKey] ?? null) : null;
   const assignee = String(formData.get("to") ?? "");
   const batchId = randomUUID();
-  const rpc = access.supabase as unknown as Rpc;
+  /* The claim doors decide on auth.uid(), so they are called with the
+     operator's own client, never the service client a scoped staff member's
+     reads use. */
+  const rpc = access.userClient as unknown as Rpc;
 
   /* Another operator's live claim is theirs: bulk skips it and says so. */
   const { data: claimRows, error: claimError } = await (access.supabase as unknown as {
