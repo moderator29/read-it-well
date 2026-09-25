@@ -1257,7 +1257,10 @@ export default async function ListingDetailPage({
 
                 {listing.photos.length > 1 && (
                   <Reveal>
-                    <Section title="Photos" divided>
+                    {/* No section title: the grid carries its own "Photos"
+                        heading beside "Show all", and the page drew the word
+                        twice in a row (Track M tidy). */}
+                    <Section divided>
                       <ListingPhotoGrid
                         photos={listing.photos}
                         hue={listing.hue}
