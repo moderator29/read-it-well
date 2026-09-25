@@ -98,6 +98,16 @@ export type UiIconName =
   | "sun"
   | "moon"
   | "contrast"
+  /* Property type and space, for the filter tiles (track J). */
+  | "storefront"
+  | "briefcase"
+  | "land-plot"
+  | "house-duplex"
+  | "house-terrace"
+  | "house-bungalow"
+  | "tower-penthouse"
+  | "door"
+  | "check"
   /* ---------------------------------- consolidated from inline SVG blocks.
      Each of these was hand-drawn at a call site, several of them more than
      once, at a stroke weight the platform does not use. */
@@ -724,6 +734,76 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
     </>
   ),
   moon: <path d="M20.2 13.6A8.4 8.4 0 0 1 10.4 3.8a8.4 8.4 0 1 0 9.8 9.8Z" />,
+  /* PROPERTY TYPE AND SPACE, drawn for the filter tiles (track J) on the
+     same 24 grid, round caps and joins, and the stroke weight every glyph
+     here reads from the svg. No fill and no ink of their own: currentColor,
+     so they take the tile's ink in both themes and in the selected state. */
+  storefront: (
+    <>
+      <path d="M4 9.5 5.3 4.9A1.3 1.3 0 0 1 6.5 4h11a1.3 1.3 0 0 1 1.2.9L20 9.5" />
+      <path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0" />
+      <path d="M5.6 12.2v7a1.3 1.3 0 0 0 1.3 1.3h10.2a1.3 1.3 0 0 0 1.3-1.3v-7" />
+      <path d="M10 20.5v-4.2h4v4.2" />
+    </>
+  ),
+  briefcase: (
+    <>
+      <rect x="3.5" y="7.5" width="17" height="12.5" rx="2" />
+      <path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5" />
+      <path d="M3.5 12.6h17" />
+    </>
+  ),
+  "land-plot": (
+    <>
+      <path d="M3.5 17.4 8 14.2l4.4 2.4 8.1-4.2" />
+      <path d="M3.5 20.5h17" />
+      <path d="M12.4 12.2V4.5l4.3 1.7-4.3 1.8" />
+    </>
+  ),
+  "house-duplex": (
+    <>
+      <path d="m4.5 10 7.5-6 7.5 6" />
+      <path d="M6.2 8.8v11.7h11.6V8.8" />
+      <path d="M6.2 14.2h11.6" />
+      <path d="M9.2 11.4h1.4M13.4 11.4h1.4" />
+      <path d="M10.7 20.5v-3.3h2.6v3.3" />
+    </>
+  ),
+  "house-terrace": (
+    <>
+      <path d="M2.8 11.2 6.5 7.6l3.7 3.6" />
+      <path d="M9.4 10.4 12 7.9l2.6 2.5" />
+      <path d="m13.8 11.2 3.7-3.6 3.7 3.6" />
+      <path d="M3.8 10.3v10.2h16.4V10.3" />
+      <path d="M6.5 20.5v-3.1M12 20.5v-3.1M17.5 20.5v-3.1" />
+    </>
+  ),
+  "house-bungalow": (
+    <>
+      <path d="M2.8 12.2 12 6.2l9.2 6" />
+      <path d="M4.8 11v9.5h14.4V11" />
+      <path d="M10.5 20.5v-4h3v4" />
+      <path d="M6.9 14.6h1.8M15.3 14.6h1.8" />
+    </>
+  ),
+  "tower-penthouse": (
+    <>
+      <path d="M7.5 20.5V9h9v11.5" />
+      <path d="M6.3 9 12 4.3 17.7 9" />
+      <path d="M4 20.5h16" />
+      <path d="M10.2 12.5h.9M13 12.5h.9M10.2 16h.9M13 16h.9" />
+    </>
+  ),
+  /* A plain tick for a SELECTED state. Deliberately not `verified`, which
+     is the human-checked mark and means one thing (Master Rule 12). */
+  check: <path d="m5.2 12.6 4.3 4.3 9.3-9.8" />,
+  door: (
+    <>
+      <path d="M6.5 20.5V4.8a1.3 1.3 0 0 1 1.3-1.3h8.4a1.3 1.3 0 0 1 1.3 1.3v15.7" />
+      <path d="M4.5 20.5h15" />
+      <path d="M14 12.4h.01" />
+    </>
+  ),
   /* "System": a disc split down the middle, the half that follows the
      device. Stroked like the other two so the three read as one set. */
   contrast: (

@@ -79,6 +79,8 @@
 @import "./css/catalogue.css";
 /* The full-screen photo viewer: its notch-aware chrome and swipe-to-dismiss. */
 @import "./css/photo-viewer.css";
+/* The filter drawer's icon tiles: property type and space. */
+@import "./css/filter-tiles.css";
 @import "./css/threads.css";
 @import "./css/admin.css";
 @import "./css/agent.css";

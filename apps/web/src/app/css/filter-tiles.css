@@ -1,0 +1,95 @@
+/*
+ * Icon tiles in the filter drawer: property type and space
+ * (`components/app/filters/IconTiles.tsx`, track J).
+ *
+ * Three to a row at 390px, the glyph above the word, a rounded rectangle on
+ * the control radius (the shape law: a control with text is never a
+ * capsule), at least 76px tall so the target is well over 44. Resting: the
+ * glass button material and a quiet ink. Chosen: the lit selected fill, the
+ * on-brand ink AND a tick in the corner, so the state never rests on colour.
+ * Every value is a layer-2 token, so both themes are the same rule.
+ */
+@layer components {
+  .nf-icon-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  @media (min-width: 40rem) {
+    .nf-icon-tiles {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .nf-icon-tile-option {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: var(--nf-space-2xs);
+    min-height: 4.75rem;
+    padding: var(--nf-space-sm) var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
+    color: var(--nf-content-secondary);
+    text-align: center;
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-icon-tile-option__glyph {
+    display: grid;
+    place-items: center;
+    color: var(--nf-brand-accent);
+  }
+  .nf-icon-tile-option__label {
+    max-inline-size: 100%;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .nf-icon-tile-option__tick {
+    position: absolute;
+    inset-block-start: var(--nf-space-2xs);
+    inset-inline-end: var(--nf-space-2xs);
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  @media (hover: hover) {
+    .nf-icon-tile-option:hover {
+      color: var(--nf-content-primary);
+      border-color: var(--nf-selected-edges);
+    }
+  }
+  .nf-icon-tile-option:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  .nf-icon-tile-option:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-icon-tile-option[aria-checked="true"] {
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-icon-tile-option[aria-checked="true"] .nf-icon-tile-option__glyph {
+    color: var(--nf-content-on-brand);
+  }
+  .nf-icon-tile-option[aria-checked="true"] .nf-icon-tile-option__tick {
+    opacity: 1;
+    transform: none;
+  }
+}

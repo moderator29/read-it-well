@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconTiles } from "./IconTiles";
 import { priceScale } from "@/lib/listings/price-bounds";
 import {
   hasBackupPower,
@@ -204,6 +205,40 @@ const AMENITY_ICON: Record<string, UiIconName> = {
   kitchen: "kitchen",
   ac: "sparkle",
   water: "sparkle",
+};
+
+/*
+ * THE GLYPH FOR EACH ANSWER in the property type and space tiles (track J).
+ * Every kind and every shape has one, from the UI glyph family only: these are
+ * controls, and the glass objects are for subjects, not for choices.
+ */
+const KIND_ICON: Record<ListingKind | "all", UiIconName> = {
+  all: "grid",
+  hotel: "building-hotel",
+  apartment: "building-apartment",
+  home: "house",
+  shortlet: "calendar-booking",
+  villa: "pool",
+  rental: "key",
+  shop: "storefront",
+  office: "briefcase",
+  land: "land-plot",
+  restaurant: "utensils",
+  experience: "ticket",
+};
+const SHAPE_ICON: Record<UnitShape, UiIconName> = {
+  self_contain: "door",
+  room_parlour: "bed",
+  mini_flat: "key",
+  flat: "building-apartment",
+  duplex: "house-duplex",
+  terrace: "house-terrace",
+  semi_detached: "home",
+  detached: "house",
+  bungalow: "house-bungalow",
+  maisonette: "house-duplex",
+  penthouse: "tower-penthouse",
+  boys_quarters: "door",
 };
 
 function Group({
@@ -636,14 +671,15 @@ export function FilterDrawer({
                 clearLabel={copy.clear}
                 onClear={draft.kind ? () => pickKind("all") : undefined}
               >
-                <Tiles
-                  columns={3}
+                <IconTiles<ListingKind | "all">
+                  label={copy.propertyType}
+                  mode="single"
                   testPrefix="filter-kind"
-                  value={draft.kind ?? "all"}
-                  onPick={pickKind}
+                  selected={[draft.kind ?? "all"]}
+                  onToggle={pickKind}
                   options={[
-                    { value: "all" as const, label: copy.all },
-                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind) })),
+                    { value: "all" as const, label: copy.all, icon: KIND_ICON.all },
+                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind), icon: KIND_ICON[kind] })),
                   ]}
                 />
               </Group>
@@ -662,20 +698,18 @@ export function FilterDrawer({
                 }
               >
                 {shapeOptions.shapes.length > 0 && (
-                  <div className="flex flex-wrap gap-xs" role="group">
-                    {shapeOptions.shapes.map((shape) => (
-                      <button
-                        key={shape}
-                        type="button"
-                        aria-pressed={draft.shapes.includes(shape)}
-                        data-testid={`filter-shape-${shape}`}
-                        onClick={() => toggleShape(shape)}
-                        className="nf-filters__tile"
-                      >
-                        {unitCopy.shapes[shape]}
-                      </button>
-                    ))}
-                  </div>
+                  <IconTiles<UnitShape>
+                    label={unitCopy.filterTitle}
+                    mode="multi"
+                    testPrefix="filter-shape"
+                    selected={draft.shapes}
+                    onToggle={toggleShape}
+                    options={shapeOptions.shapes.map((shape) => ({
+                      value: shape,
+                      label: unitCopy.shapes[shape],
+                      icon: SHAPE_ICON[shape],
+                    }))}
+                  />
                 )}
                 {shapeOptions.bq && (
                   <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
