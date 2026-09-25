@@ -3,6 +3,10 @@ import "@/app/css/price-check.css";
 import { getDictionary } from "@vallo/i18n";
 import { Section, Stack } from "@/components/app/Screen";
 import { AnsweredResult, ComparablesRail } from "@/components/app/price/ResultPanel";
+import { NextActions } from "@/components/app/price/NextActions";
+import { ShareAreaButton } from "@/components/app/price/ShareAreaButton";
+import { shareAreaCopy } from "@/components/app/price/share-copy";
+import { resolveSession } from "@/lib/actions/session";
 import type { Comparable } from "@/lib/price-check/types";
 
 /**
@@ -32,6 +36,9 @@ const COMPARABLES: Comparable[] = [
 export default async function PreviewPriceAnswered() {
   const t = getDictionary("en");
   const copy = t.priceCheck;
+  /* Track L: the next steps under the answer, with the real share control
+     and the real saved-search action, as the signed-in reader would get them. */
+  const signedIn = (await resolveSession()).state === "signed-in";
 
   return (
     <main className="nf-shell py-section">
@@ -62,6 +69,25 @@ export default async function PreviewPriceAnswered() {
               locale="en"
               copy={copy.result}
               intent="rent"
+            />
+          </Section>
+          <Section>
+            <NextActions
+              facts={{ intent: "rent", propertyType: "apartment", bedrooms: 3, area: "Lekki Phase 1", lgaName: "Eti-Osa", stateName: "Lagos" }}
+              copy={copy.next}
+              signedIn={signedIn}
+              share={
+                <ShareAreaButton
+                  stateCode="LA"
+                  lgaCode={null}
+                  area="Lekki Phase 1"
+                  propertyType="apartment"
+                  listingIntent="rent"
+                  bedrooms={3}
+                  figures={{ lowMinor: 770_000_000, midMinor: 800_000_000, highMinor: 830_000_000, listingCount: 9 }}
+                  copy={shareAreaCopy(t)}
+                />
+              }
             />
           </Section>
           <Section>
