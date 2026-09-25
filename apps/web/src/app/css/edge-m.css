@@ -1,0 +1,151 @@
+/*
+ * TRACK M: THE MOVING EDGE ON EVERY CONTAINER AND BUTTON (25 September 2026).
+ *
+ * The founder liked the light chasing round the logo plate ("the edges moving
+ * like a snake") and asked for it on all containers and buttons, in both
+ * themes: "a bit sparkling, blue on light mode and something like silver,
+ * something clean" at night. So one short light travels round the rim of each
+ * panel, door, button, the dock's capsule and its round button, the side
+ * menu's panel and the search bar's filter control:
+ *
+ *   light theme  a brand-blue light with a brighter blue head
+ *   dark theme   a silver light with a white head
+ *
+ * HOW. A ring cut from the element with a mask (the content box subtracted
+ * from the border box, 1.25px wide), filled with a conic gradient whose start
+ * angle is a registered custom property, so the light travels round the rim
+ * instead of jumping. Neighbouring elements start at different points of the
+ * lap, so a screen of cards does not flash in step.
+ *
+ * WHICH PSEUDO-ELEMENT. `::before` wherever it is free: panels, doors, the
+ * capsule, the round dock button, the drawer panel, the stays filter square
+ * and every full-size button. Small buttons keep their `::before` for the
+ * 44pt hit area, so the one small button that carries the light (the home
+ * search's filter) takes it on `::after` in place of its gloss.
+ *
+ * WHEN IT STOPS. Reduced motion, data saving, the Living backgrounds switch
+ * off, and the Calm and Off motion levels all remove the light: the rim
+ * simply is not drawn, and every element keeps its own border.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@property --nf-edge-a {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@layer components {
+  :root {
+    --nf-edge-mid: color-mix(in oklab, var(--nf-content-primary) 38%, transparent);
+    --nf-edge-hot: color-mix(in oklab, var(--nf-content-primary) 92%, transparent);
+    --nf-edge-glint: var(--nf-content-primary);
+  }
+  :root[data-theme="light"] {
+    --nf-edge-mid: color-mix(in oklab, var(--nf-brand-secondary) 55%, transparent);
+    --nf-edge-hot: var(--nf-brand-secondary);
+    --nf-edge-glint: var(--nf-brand-primary);
+  }
+  /* A night island inside a light page keeps the night's silver. */
+  :root[data-theme="light"] [data-theme="dark"] {
+    --nf-edge-mid: color-mix(in oklab, var(--nf-content-primary) 38%, transparent);
+    --nf-edge-hot: color-mix(in oklab, var(--nf-content-primary) 92%, transparent);
+    --nf-edge-glint: var(--nf-content-primary);
+  }
+
+  .nf-door {
+    position: relative;
+  }
+
+  .nf-panel::before,
+  .nf-door::before,
+  .nf-btn:not(.nf-btn--sm, .nf-btn--ghost, .nf-btn--danger-quiet, .nf-btn--link)::before,
+  .nf-tabbar::before,
+  .nf-dock-island::before,
+  .nf-drawer--left::before,
+  .nf-shelf-square::before,
+  .nf-hero-plate__filters::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: 1.25px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--nf-edge-a),
+      transparent 0deg 262deg,
+      var(--nf-edge-mid) 318deg,
+      var(--nf-edge-hot) 346deg,
+      var(--nf-edge-glint) 354deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(black 0 0) content-box,
+      linear-gradient(black 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(black 0 0) content-box exclude,
+      linear-gradient(black 0 0);
+    animation: nf-edge-run 7.5s linear infinite;
+  }
+  /* The home filter's ring replaces its gloss: it needs the whole of ::after. */
+  .nf-hero-plate__filters::after {
+    opacity: 1;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* Neighbours start at different points of the lap. */
+  .nf-panel:nth-child(3n + 2)::before,
+  .nf-door:nth-child(3n + 2)::before,
+  .nf-btn:nth-child(3n + 2)::before {
+    animation-delay: -2.5s;
+  }
+  .nf-panel:nth-child(3n)::before,
+  .nf-door:nth-child(3n)::before,
+  .nf-btn:nth-child(3n)::before {
+    animation-delay: -5s;
+  }
+  /* The large surfaces lap more slowly, so the light reads as a sheen. */
+  .nf-tabbar::before,
+  .nf-drawer--left::before {
+    animation-duration: 11s;
+  }
+
+  @keyframes nf-edge-run {
+    to {
+      --nf-edge-a: 360deg;
+    }
+  }
+
+  /* ---------------------------------------------------- when it stops */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-panel::before,
+    .nf-door::before,
+    .nf-btn:not(.nf-btn--sm)::before,
+    .nf-tabbar::before,
+    .nf-dock-island::before,
+    .nf-drawer--left::before,
+    .nf-shelf-square::before,
+    .nf-hero-plate__filters::after {
+      display: none;
+    }
+  }
+  :root:is([data-save-data="on"], [data-motion-ambient="off"], [data-motion="calm"], [data-motion="off"])
+    :is(
+      .nf-panel,
+      .nf-door,
+      .nf-btn:not(.nf-btn--sm),
+      .nf-tabbar,
+      .nf-dock-island,
+      .nf-drawer--left,
+      .nf-shelf-square
+    )::before,
+  :root:is([data-save-data="on"], [data-motion-ambient="off"], [data-motion="calm"], [data-motion="off"])
+    .nf-hero-plate__filters::after {
+    display: none;
+  }
+}

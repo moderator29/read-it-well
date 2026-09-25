@@ -284,7 +284,11 @@ export function AppShell({
               the dimmed app beside it, not a slab welded to the screen edge,
               and the safe areas are part of that geometry. Utilities here
               would outrank the component layer and pin it back to the edge. */}
-          <div className="nf-drawer nf-drawer--left absolute overflow-y-auto">
+          <div className="nf-drawer nf-drawer--left absolute">
+            {/* The panel draws the moving edge light (edge-m.css) and holds
+                still; this inner layer is what scrolls, so the light stays on
+                the panel's edge instead of scrolling away with the rows. */}
+            <div className="nf-drawer__scroll">
             <AppRail
               t={t}
               side={effectiveSide}
@@ -300,8 +304,8 @@ export function AppShell({
               signedIn={signedIn}
               variant="drawer"
               onNavigate={closeDrawer}
-              onClose={closeDrawer}
             />
+            </div>
           </div>
         </div>
       )}
@@ -372,7 +376,7 @@ export function AppShell({
               onClick={openDrawer}
               className="nf-tap nf-icon-btn nf-app-header__btn -ms-2xs lg:hidden"
             >
-              <UiIcon name="menu" size="md" />
+              <UiIcon name="menu" size={20} />
             </button>
             <Link
               href={SIDE_HOME[effectiveSide]}
@@ -382,12 +386,14 @@ export function AppShell({
               <Logo size={40} wordSize={19} responsive />
             </Link>
             {signedIn && (
-              /* UX-04: which side the app is on, always in view. The switch
-                 itself stays where it is (the drawer's flip and the top of
-                 the ⇄ sheet); this only says where you are. */
-              <span className="nf-side-tag lg:hidden" data-side-tag={effectiveSide}>
-                <span className="sr-only">{t.side.indicatorPrefix} </span>
-                {effectiveSide === "stays" ? t.side.staysName : t.side.propertyName}
+              /* UX-04, AND THE FOUNDER'S TRACK M CUT. Which side the app is on
+                 used to be a visible "Property" or "Stays" tag here; the
+                 founder took it out of the header ("remove the property text,
+                 and in stays remove the stays one too"). The accent, the dock
+                 and the switch already say which side you are on to the eye,
+                 so the words stay for a screen reader only. */
+              <span className="sr-only" data-side-tag={effectiveSide}>
+                {t.side.indicatorPrefix} {effectiveSide === "stays" ? t.side.staysName : t.side.propertyName}
               </span>
             )}
             <SignedOutActions t={t} className="ms-auto" />
@@ -406,7 +412,7 @@ export function AppShell({
                      push the group right. */
                   className="nf-tap nf-icon-btn nf-app-header__btn ms-auto"
                 >
-                  <UiIcon name="bell" size="md" />
+                  <UiIcon name="bell" size={20} />
                   {marked && <span aria-hidden="true" className="nf-app-header__dot" />}
                 </Link>
                 {/* NO AVATAR HERE (Track M, 25 September 2026). The founder
