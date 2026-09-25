@@ -193,12 +193,13 @@ A tap to Settings now downloads 30 KB for its page where it was 105 KB, and a ta
 
 **The shell's words, typed.** `AppShell` carried twelve whole namespaces (58 KB) in the HTML of every full in-app load. `ShellDictionary` is now a precise type carrying only the lines the shell draws (about 4 KB), and the shell and every component it hands `t` to take that type, so a read of anything not carried does not build. Full-page HTML, before and after: Home 383 KB to 278 KB, Settings 297 KB to 165 KB, Search 1,209 KB to 1,006 KB.
 
+**Search draws 24 first.** The grid drew every result at once (52 cards, a megabyte of HTML, 52 client cards to hydrate). It draws 24, and a "Show 24 more" link, prefetched as it scrolls into view, draws the next 24 in place with no loading state and no scroll jump. The count, map and filter drawer keep the whole list. Search's HTML went from 1,030 KB to 621 KB.
+
 **Prices in Yoruba, Hausa and Igbo.** Node writes the naira sign for these locales, while Chromium's trimmed locale data writes "NGN", and Node spaces the Hausa sign. So every price on those pages was a hydration mismatch: React discarded the server's HTML and redrew the page in the browser, and the reader saw "₦" turn into "NGN". Money is now built from one normalised set of parts (the narrow sign, no space beside it) in `formatMoney` and `<Amount>`. The four languages hydrate clean on the main routes.
 
 **Still worth doing, not started:**
 - The CSS bundle is 688 KB.
 - Twelve secondary routes still load the dictionaries: payments, checkout, tenancy, the agent and host desks, and the assistant. Payments were left alone by the Track M rule.
-- Search renders 64 cards on first load; paging them, or letting off-screen cards skip rendering, would cut its first paint further.
 - The landing's HTML is about 628 KB.
 
 ## Open
