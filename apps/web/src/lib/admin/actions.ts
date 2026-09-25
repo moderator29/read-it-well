@@ -64,7 +64,7 @@ export async function reviewMessageFlag(input: {
   flagId: string;
   resolution: "cleared" | "escalated";
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(reviewMessageFlagSchema, input);
@@ -198,7 +198,7 @@ export async function resolveReport(input: {
   /** V-89: a line the reporter sees; staff notes never reach them. */
   reporterNote?: string;
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(resolveReportSchema, input);
@@ -262,7 +262,7 @@ export async function reviewAgentApplication(input: {
   decision: "approve" | "reject" | "request_changes";
   notes?: string;
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("kyc_review");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(reviewAgentApplicationSchema, input);
@@ -553,7 +553,7 @@ export async function reviewListing(input: {
   decision: "approve" | "publish" | "reject" | "request_changes";
   notes?: string;
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(reviewListingSchema, input);
@@ -742,7 +742,7 @@ export async function replySupportTicket(input: {
   ticketId: string;
   body: string;
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("support");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(replySupportTicketSchema, input);
@@ -792,7 +792,7 @@ export async function setTicketStatus(input: {
   ticketId: string;
   status: "open" | "pending" | "resolved" | "closed";
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("support");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(setTicketStatusSchema, input);

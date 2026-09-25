@@ -142,7 +142,7 @@ function isTooOld(kind: string, issuedOn: string | null): boolean {
  * joins one, which is a schema question.
  */
 export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<KycQueue>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("kyc_review");
   if (access.state !== "admin") return UNAVAILABLE;
 
   const review = pickStatus(Constants.public.Enums.document_review_status, filter?.status);

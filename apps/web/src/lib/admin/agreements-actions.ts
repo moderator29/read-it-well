@@ -35,7 +35,7 @@ export async function decideAgreement(input: {
   decision: "approve" | "reject";
   reason?: string;
 }): Promise<ActionResult<{ status: string }>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("agreements");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const parsed = validate(
     z.object({
@@ -46,7 +46,7 @@ export async function decideAgreement(input: {
     input,
   );
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-  const { data, error } = await access.supabase.rpc("admin_decide_agreement" as never, {
+  const { data, error } = await access.userClient.rpc("admin_decide_agreement" as never, {
     p_agreement: parsed.data.agreementId,
     p_decision: parsed.data.decision,
     p_reason: parsed.data.reason ?? null,
@@ -75,7 +75,7 @@ export async function decideClaim(input: {
   amountNaira?: string;
   reason?: string;
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("guarantee");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const parsed = validate(
     z.object({
@@ -92,7 +92,7 @@ export async function decideClaim(input: {
     amount = parseNairaToKobo(parsed.data.amountNaira ?? "");
     if (amount === null || amount <= 0) return fail(CLAIM_WORDS.bad_amount!, { amountNaira: CLAIM_WORDS.bad_amount! });
   }
-  const { data, error } = await access.supabase.rpc("admin_decide_guarantee_claim" as never, {
+  const { data, error } = await access.userClient.rpc("admin_decide_guarantee_claim" as never, {
     p_claim: parsed.data.claimId,
     p_decision: parsed.data.decision,
     p_amount_minor: amount,
@@ -113,11 +113,11 @@ export async function decideClaim(input: {
 }
 
 export async function markClaimPaid(input: { claimId: string; reference: string }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("guarantee");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const parsed = validate(z.object({ claimId: uuid, reference: z.string().trim().min(4).max(100) }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-  const { data, error } = await access.supabase.rpc("admin_mark_guarantee_claim_paid" as never, {
+  const { data, error } = await access.userClient.rpc("admin_mark_guarantee_claim_paid" as never, {
     p_claim: parsed.data.claimId,
     p_bank_reference: parsed.data.reference,
   } as never);

@@ -41,7 +41,7 @@ export type ShellIdentity = {
   signedIn: boolean;
   /** An approved agent, so Agent Mode is a place they can actually go. */
   isAgent: boolean;
-  /** Staff, so the console is a place they can actually go. */
+  /** An admin or a scoped staff member, so the console is a place they can actually go. */
   isAdmin: boolean;
 };
 
@@ -73,7 +73,7 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
     const session = await resolveSession();
     if (session.state !== "signed-in") return GUEST;
 
-    const [profileResult, socialResult, unreadResult, agentResult, roleResult] = await Promise.all([
+    const [profileResult, socialResult, unreadResult, agentResult, roleResult, staffResult] = await Promise.all([
       session.supabase
         .from("profiles")
         .select("first_name, nickname, display_name, avatar_url")
@@ -103,6 +103,9 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
         .select("role")
         .eq("user_id", session.user.id)
         .in("role", ["admin", "super_admin"]),
+      /* Track K: a scoped staff member holds no admin role, but the console
+         is still a place they can go (their own desks and the handbook). */
+      session.supabase.rpc("my_staff_access" as never),
     ]);
 
     const profile = profileResult.data;
@@ -121,7 +124,11 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
       signedIn: true,
       // A read that failed is not a role. Both fail closed.
       isAgent: !agentResult.error && agentResult.data !== null,
-      isAdmin: !roleResult.error && (roleResult.data?.length ?? 0) > 0,
+      isAdmin:
+        (!roleResult.error && (roleResult.data?.length ?? 0) > 0) ||
+        (!staffResult.error &&
+          Array.isArray((staffResult.data as { scopes?: unknown } | null)?.scopes) &&
+          ((staffResult.data as { scopes: unknown[] }).scopes.length ?? 0) > 0),
     };
   } catch {
     return GUEST;

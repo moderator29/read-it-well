@@ -50,7 +50,7 @@ export type VerificationSummary = {
 };
 
 async function adminDb(): Promise<Db | null> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("kyc_review");
   return access.state === "admin" ? access.supabase : null;
 }
 

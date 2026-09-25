@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { requireAdmin } from "@/lib/admin/guard";
+import { requireAdmin, requireConsole } from "@/lib/admin/guard";
+import { StaffFrame } from "./_components/StaffFrame";
 import { getQueueCounts } from "@/lib/admin/queries";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { AccessScreen } from "./_components/AccessScreen";
@@ -40,7 +41,19 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const t = getDictionary(await getLocale());
   const access = await requireAdmin();
-  if (access.state !== "admin") return <AccessScreen t={t} state={access.state} />;
+  if (access.state !== "admin") {
+    /* Track K: a scoped staff member gets the restricted console, never the
+       operator's rail. Anybody else gets the access screen as before. */
+    const door = await requireConsole();
+    if (door.state !== "console") return <AccessScreen t={t} state={access.state} />;
+    const shell = await getShellIdentity();
+    const name = shell.userName && shell.userName !== "Guest" ? shell.userName : (door.user.email ?? "Staff");
+    return (
+      <StaffFrame staff={door.staff} name={name}>
+        {children}
+      </StaffFrame>
+    );
+  }
 
   const [counts, shell, jar, tiers] = await Promise.all([
     getQueueCounts(),

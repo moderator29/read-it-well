@@ -5,6 +5,7 @@ import {
   guaranteeClaimDecided,
   type AgreementEmailData,
 } from "../email/agreement-messages";
+import { staffAccessGranted } from "../email/staff-messages";
 import {
   inspectionScheduled,
   newDeviceSignIn,
@@ -338,6 +339,18 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
         reason: str(payload, "reason"),
         agreementId,
       });
+    },
+  },
+
+  /* ---------------------------------------------------------------- staff */
+
+  /* Written by public.admin_grant_staff (Track K). Names the exact access. */
+  "staff.access_granted": {
+    needs: () => ({}),
+    build: (payload, context) => {
+      const scopeWords = str(payload, "scope_words");
+      if (!scopeWords) return null;
+      return staffAccessGranted({ name: context.recipient.name, scopeWords });
     },
   },
 

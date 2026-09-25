@@ -38,7 +38,7 @@ export type DeskReads = {
 
 export async function loadDesk(itemIds: string[], reportIds: string[]): Promise<DeskReads> {
   const empty: DeskReads = { me: null, claims: new Map(), signals: new Map(), views: [], operators: [] };
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") return empty;
   const db = access.supabase as unknown as Loose;
 

@@ -77,6 +77,7 @@ const TEMPLATES_THE_TRIGGERS_WRITE = [
   "agreement.approved",
   "agreement.rejected",
   "guarantee.claim_decided",
+  "staff.access_granted",
   "security.password_changed",
   "security.new_device_sign_in",
   "inspection.scheduled",
@@ -101,6 +102,8 @@ const PAYLOADS: Record<(typeof TEMPLATES_THE_TRIGGERS_WRITE)[number], Payload> =
     amount_minor: 30_000_00,
     reason: "The cooker did not work at move-in, as the report shows.",
   },
+  /* `public.admin_grant_staff` (Track K) writes the scopes and their words. */
+  "staff.access_granted": { scopes: ["kyc_review", "support"], scope_words: "KYC review, Support" },
   "security.password_changed": { at: "2026-09-23T13:05:00.000Z" },
   "security.new_device_sign_in": {
     at: "2026-09-23T13:05:00.000Z",

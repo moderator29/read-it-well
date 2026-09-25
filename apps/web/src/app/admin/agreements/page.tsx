@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { formatMoney } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { requireAdmin } from "@/lib/admin/guard";
-import { readAgreementQueue } from "@/lib/admin/reads/agreements";
+import { readAgreementQueue, readGuaranteeDesk } from "@/lib/admin/reads/agreements";
+import { GuaranteeClaims } from "../money/GuaranteeDesk";
 import { PageHead, Panel } from "../_components/panels";
 import { AgreementQueue } from "./AgreementQueue";
 import "./agreements.css";
@@ -26,16 +27,39 @@ export const dynamic = "force-dynamic";
  */
 export default async function AgreementsDeskPage() {
   const locale = await getLocale();
-  const access = await requireAdmin();
-  if (access.state !== "admin") {
+  /* Track K: the agreement queue and the Guarantee claims are two scopes. An
+     admin holds both; a staff member sees only what was granted. */
+  const [access, claimsAccess] = await Promise.all([requireAdmin("agreements"), requireAdmin("guarantee")]);
+  if (access.state !== "admin" && claimsAccess.state !== "admin") {
     return (
       <div className="nf-console">
         <PageHead title="Agreements" lede="Your account cannot open this desk." />
       </div>
     );
   }
-  const queue = await readAgreementQueue(access.supabase);
   const now = requestTime();
+  const claimsDesk =
+    claimsAccess.state === "admin" && claimsAccess.isStaff
+      ? await readGuaranteeDesk(claimsAccess.supabase, claimsAccess.userClient)
+      : null;
+  const claimsPanel = claimsDesk ? (
+    <Panel title="Guarantee claims" id="claims">
+      {claimsDesk.state !== "ok" ? (
+        <p className="nf-body">The claims could not be read just now. Refresh to try again.</p>
+      ) : (
+        <GuaranteeClaims claims={claimsDesk.claims} locale={locale} />
+      )}
+    </Panel>
+  ) : null;
+  if (access.state !== "admin") {
+    return (
+      <div className="nf-console">
+        <PageHead title="Guarantee claims" lede="Decide each claim against the inspection report and the agreement. The claimant reads your reason." />
+        {claimsPanel}
+      </div>
+    );
+  }
+  const queue = await readAgreementQueue(access.supabase);
   return (
     <div className="nf-console">
       <PageHead
@@ -71,6 +95,7 @@ export default async function AgreementsDeskPage() {
           </Panel>
         </>
       )}
+      {claimsPanel}
     </div>
   );
 }

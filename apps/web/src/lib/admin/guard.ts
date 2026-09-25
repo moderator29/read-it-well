@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
+import { createAdminClient } from "../supabase/admin";
 
 /**
  * The single door into the admin console.
@@ -25,11 +26,72 @@ export type AdminAccess =
   | { state: "not-admin" }
   | {
       state: "admin";
+      /**
+       * The client the desk reads and writes with. For an admin it is their
+       * own RLS-bound client, exactly as before. For a scoped staff member it
+       * is the service client, handed out ONLY after the database said this
+       * person holds the scope asked for and has acknowledged the current
+       * handbook (Track K). Staff hold no admin role, so every admin RLS
+       * policy would refuse their own client.
+       */
       supabase: SupabaseClient<Database>;
+      /** The caller's own RLS-bound client, for functions that read auth.uid(). */
+      userClient: SupabaseClient<Database>;
       user: User;
       isAdmin: true;
       isSuperAdmin: boolean;
+      /** True when this door was passed on a staff scope, not an admin role. */
+      isStaff: boolean;
     };
+
+/**
+ * TRACK K: THE SCOPES A STAFF MEMBER CAN BE GIVEN. Mirrors
+ * `public.staff_scope`. Only a super admin grants them
+ * (`public.admin_grant_staff`), and a staff member holds no app_role at all.
+ */
+export const STAFF_SCOPES = [
+  "listing_approval",
+  "kyc_review",
+  "moderation",
+  "support",
+  "agreements",
+  "guarantee",
+] as const;
+export type StaffScope = (typeof STAFF_SCOPES)[number];
+
+export const STAFF_SCOPE_LABEL: Record<StaffScope, string> = {
+  listing_approval: "Listing approval",
+  kyc_review: "KYC review",
+  moderation: "Reports and moderation",
+  support: "Support",
+  agreements: "Agreement approval",
+  guarantee: "Guarantee claims",
+};
+
+export type StaffAccess = {
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  scopes: StaffScope[];
+  handbookVersion: string;
+  handbookAcknowledged: boolean;
+};
+
+/** What the signed-in person may do in the console, read from the database. */
+export async function readStaffAccess(supabase: SupabaseClient<Database>): Promise<StaffAccess | null> {
+  const { data, error } = await supabase.rpc("my_staff_access" as never);
+  if (error || !data || typeof data !== "object") return null;
+  const d = data as Record<string, unknown>;
+  const scopes = Array.isArray(d.scopes)
+    ? (d.scopes as unknown[]).filter((s): s is StaffScope => STAFF_SCOPES.includes(s as StaffScope))
+    : [];
+  return {
+    isAdmin: d.is_admin === true,
+    isSuperAdmin: d.is_super_admin === true,
+    scopes,
+    handbookVersion: typeof d.handbook_version === "string" ? d.handbook_version : "",
+    handbookAcknowledged: d.handbook_acknowledged === true,
+  };
+}
 
 /*
  * The same sentence `t.admin.access.unconfiguredBody` gives the screen, kept in
@@ -51,7 +113,15 @@ export const ADMIN_SIGNED_OUT_MESSAGE = "Sign in with your operations account to
 export const ADMIN_FORBIDDEN_MESSAGE =
   "This area is for the Vallo operations team. Your account does not carry that role.";
 
-export async function requireAdmin(): Promise<AdminAccess> {
+/**
+ * THE SINGLE DOOR, NOW WITH A SCOPE (Track K).
+ *
+ * Without a scope it is exactly the old door: admins and super admins only.
+ * With a scope it also admits a staff member who holds that scope and has
+ * acknowledged the current handbook, and nobody else. Refusal is the default:
+ * a desk that does not pass a scope is closed to every staff member.
+ */
+export async function requireAdmin(scope?: StaffScope): Promise<AdminAccess> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return { state: "unconfigured" };
   if (session.state === "signed-out") return { state: "signed-out" };
@@ -68,15 +138,55 @@ export async function requireAdmin(): Promise<AdminAccess> {
   const roles = new Set((data ?? []).map((row) => row.role));
   const isSuperAdmin = roles.has("super_admin");
   const isAdmin = isSuperAdmin || roles.has("admin");
-  if (!isAdmin) return { state: "not-admin" };
+  if (isAdmin) {
+    return {
+      state: "admin",
+      supabase: session.supabase,
+      userClient: session.supabase,
+      user: session.user,
+      isAdmin: true,
+      isSuperAdmin,
+      isStaff: false,
+    };
+  }
 
+  if (!scope) return { state: "not-admin" };
+  const staff = await readStaffAccess(session.supabase);
+  if (!staff || !staff.handbookAcknowledged || !staff.scopes.includes(scope)) return { state: "not-admin" };
+  let service: SupabaseClient<Database>;
+  try {
+    service = createAdminClient();
+  } catch {
+    return { state: "unconfigured" };
+  }
   return {
     state: "admin",
-    supabase: session.supabase,
+    supabase: service,
+    userClient: session.supabase,
     user: session.user,
     isAdmin: true,
-    isSuperAdmin,
+    isSuperAdmin: false,
+    isStaff: true,
   };
+}
+
+/**
+ * Who may be inside the console shell at all: an admin, or a staff member
+ * with at least one scope (the handbook gate is applied inside, so an
+ * unacknowledged member can reach the handbook and nothing else).
+ */
+export type ConsoleAccess =
+  | { state: "unconfigured" | "signed-out" | "not-admin" }
+  | { state: "console"; user: User; supabase: SupabaseClient<Database>; staff: StaffAccess };
+
+export async function requireConsole(): Promise<ConsoleAccess> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return { state: "unconfigured" };
+  if (session.state === "signed-out") return { state: "signed-out" };
+  const staff = await readStaffAccess(session.supabase);
+  if (!staff) return { state: "not-admin" };
+  if (!staff.isAdmin && !staff.isSuperAdmin && staff.scopes.length === 0) return { state: "not-admin" };
+  return { state: "console", user: session.user, supabase: session.supabase, staff };
 }
 
 /**

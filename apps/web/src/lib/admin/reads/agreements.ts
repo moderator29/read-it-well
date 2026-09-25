@@ -142,10 +142,18 @@ export type GuaranteeDesk =
     }
   | { state: "unavailable" };
 
-export async function readGuaranteeDesk(db: SupabaseClient<Database>): Promise<GuaranteeDesk> {
+/**
+ * `caller` is the operator's own client: `admin_guarantee_reserve` decides on
+ * auth.uid() through `private.staff_can`. `db` reads the rows; for a scoped
+ * staff member it is the service client the door handed out (Track K).
+ */
+export async function readGuaranteeDesk(
+  db: SupabaseClient<Database>,
+  caller: SupabaseClient<Database> = db,
+): Promise<GuaranteeDesk> {
   try {
     const [reserve, claims] = await Promise.all([
-      db.rpc("admin_guarantee_reserve" as never),
+      caller.rpc("admin_guarantee_reserve" as never),
       db.from("guarantee_claims").select("*").order("created_at", { ascending: false }).limit(200),
     ]);
     const r = (reserve.data ?? {}) as Record<string, unknown>;

@@ -244,6 +244,7 @@ const EVERY_PAYLOAD: Record<string, Payload> = {
     amount_minor: 50_000_00,
     reason: "The report shows the water was working; it was not at move-in.",
   },
+  "staff.access_granted": { scopes: ["kyc_review", "support"], scope_words: "KYC review, Support" },
   "security.password_changed": { at: "2026-09-23T13:05:00.000Z" },
   "security.new_device_sign_in": { at: "2026-09-23T13:05:00.000Z", device: "Chrome on Android" },
   "inspection.scheduled": {

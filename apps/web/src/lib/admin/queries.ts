@@ -7,6 +7,7 @@ import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
 import { documentMedia, type DocumentMedia } from "./documents";
 import { requireAdmin } from "./guard";
+import type { StaffScope } from "./guard";
 import {
   lagosDayEnd,
   lagosDayStart,
@@ -43,8 +44,8 @@ export type AdminRead<T> = { state: "ok"; data: T } | { state: "unavailable" };
 
 const UNAVAILABLE = { state: "unavailable" } as const;
 
-async function adminClient(): Promise<SupabaseClient<Database> | null> {
-  const access = await requireAdmin();
+async function adminClient(scope?: StaffScope): Promise<SupabaseClient<Database> | null> {
+  const access = await requireAdmin(scope);
   if (access.state !== "admin") return null;
   try {
     return createAdminClient();
@@ -225,7 +226,7 @@ export type FlagView = {
 export async function getMessageFlags(
   filter?: AdminQueueFilter,
 ): Promise<AdminRead<{ rows: FlagView[]; full: boolean }>> {
-  const admin = await adminClient();
+  const admin = await adminClient("moderation");
   if (!admin) return UNAVAILABLE;
 
   const term = (filter?.q ?? "").trim();
@@ -455,7 +456,7 @@ export type ReportView = {
 export async function getReports(
   filter?: AdminQueueFilter,
 ): Promise<AdminRead<{ rows: ReportView[]; full: boolean }>> {
-  const admin = await adminClient();
+  const admin = await adminClient("moderation");
   if (!admin) return UNAVAILABLE;
 
   const term = (filter?.q ?? "").trim();
@@ -688,7 +689,7 @@ export type ApplicationQueue = { waiting: ApplicationView[]; decided: Applicatio
 export async function getAgentApplications(
   filter?: AdminQueueFilter,
 ): Promise<AdminRead<ApplicationQueue>> {
-  const admin = await adminClient();
+  const admin = await adminClient("kyc_review");
   if (!admin) return UNAVAILABLE;
 
   /* Stripped of the characters PostgREST's `or` grammar reads as structure: a
@@ -1185,7 +1186,7 @@ export type ListingQueue = {
 export async function getListingSubmissions(
   filter?: AdminQueueFilter,
 ): Promise<AdminRead<ListingQueue>> {
-  const admin = await adminClient();
+  const admin = await adminClient("listing_approval");
   if (!admin) return UNAVAILABLE;
 
   const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
@@ -1319,7 +1320,7 @@ export type TicketView = {
 export async function getSupportTickets(
   filter?: AdminQueueFilter,
 ): Promise<AdminRead<{ rows: TicketView[]; full: boolean }>> {
-  const admin = await adminClient();
+  const admin = await adminClient("support");
   if (!admin) return UNAVAILABLE;
 
   const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
@@ -1373,7 +1374,7 @@ export async function getSupportTickets(
 export async function getTicketThread(
   ticketId: string,
 ): Promise<AdminRead<TicketMessageView[]>> {
-  const admin = await adminClient();
+  const admin = await adminClient("support");
   if (!admin) return UNAVAILABLE;
 
   try {

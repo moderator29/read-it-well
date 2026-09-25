@@ -40,7 +40,7 @@ export async function reviewKycDocument(input: {
   approve: boolean;
   reason?: string;
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("kyc_review");
   if (access.state !== "admin") return fail(ADMIN_FORBIDDEN_MESSAGE);
 
   const parsed = validate(reviewSchema, input);
@@ -70,7 +70,7 @@ export async function reviewKycDocument(input: {
      * supabase/migrations first, not the generated types, which nothing
      * regenerates automatically.
      */
-    const { data, error } = await access.supabase.rpc("review_kyc_document", {
+    const { data, error } = await access.userClient.rpc("review_kyc_document", {
       p_document: parsed.data.documentId,
       p_approve: parsed.data.approve,
       /* An approval carries no reason, and the function's argument is not
@@ -98,6 +98,7 @@ export async function reviewKycDocument(input: {
     if (status === "not_found") {
       return fail("That document is no longer here. Reload the page.");
     }
+    if (status === "own_document") return fail("This is your own document, so somebody else has to review it.");
     if (status === "forbidden") return fail(ADMIN_FORBIDDEN_MESSAGE);
     return fail(SERVICE_DOWN);
   } catch {

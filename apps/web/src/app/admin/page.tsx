@@ -1,3 +1,5 @@
+import { requireAdmin, requireConsole } from "@/lib/admin/guard";
+import { StaffHome } from "./_components/StaffFrame";
 import { getLocale } from "@/lib/locale";
 import { getQueueCounts, getRiskAlerts } from "@/lib/admin/queries";
 import { getJobHealth } from "@/lib/admin/reads/operations";
@@ -37,6 +39,13 @@ export default async function AdminOverviewPage({
 }: {
   searchParams: Promise<{ range?: string; next?: string }>;
 }) {
+  /* Track K: a staff member's front page is their own desks, not the
+     operator's overview (whose reads would all refuse them). */
+  const operator = await requireAdmin();
+  if (operator.state !== "admin") {
+    const door = await requireConsole();
+    return door.state === "console" ? <StaffHome staff={door.staff} /> : null;
+  }
   const locale = await getLocale();
   const params = await searchParams;
   const range = RANGES.find((r) => r === params.range) ?? "12m";

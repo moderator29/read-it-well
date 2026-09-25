@@ -37,7 +37,7 @@ function back(formData: FormData, extra: Record<string, string> = {}): string {
 }
 
 export async function takeRow(formData: FormData): Promise<void> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") redirect("/admin");
   const item = readItemKey(formData.get("item"));
   let outcome = "failed";
@@ -51,7 +51,7 @@ export async function takeRow(formData: FormData): Promise<void> {
 }
 
 export async function releaseRow(formData: FormData): Promise<void> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") redirect("/admin");
   const item = readItemKey(formData.get("item"));
   if (item) await (access.supabase as unknown as Rpc).rpc("queue_release", { p_kind: item.kind, p_item: item.id });
@@ -63,7 +63,7 @@ const VERBS = ["approve", "send_back", "assign", "take", "close_spam"] as const;
 type Verb = (typeof VERBS)[number];
 
 export async function bulkAct(formData: FormData): Promise<void> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") redirect("/admin");
 
   const verbRaw = formData.get("verb");
@@ -176,7 +176,7 @@ export async function bulkAct(formData: FormData): Promise<void> {
 }
 
 export async function saveView(formData: FormData): Promise<void> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") redirect("/admin");
   const name = String(formData.get("name") ?? "").trim().slice(0, 60);
   const filters = readViewFilters({ tab: formData.get("tab"), q: formData.get("q"), lane: formData.get("lane") });
@@ -190,7 +190,7 @@ export async function saveView(formData: FormData): Promise<void> {
 }
 
 export async function deleteView(formData: FormData): Promise<void> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") redirect("/admin");
   const id = String(formData.get("id") ?? "");
   if (/^[0-9a-f-]{36}$/i.test(id)) {

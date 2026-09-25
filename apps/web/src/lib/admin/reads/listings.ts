@@ -41,9 +41,12 @@ export const LISTING_STATUSES: readonly ListingStatus[] = [
   "SUSPENDED",
 ];
 
+/* Track K: the listing reads serve the listing desk and the KYC desk. */
 async function adminDb(): Promise<Db | null> {
-  const access = await requireAdmin();
-  return access.state === "admin" ? access.supabase : null;
+  const listing = await requireAdmin("listing_approval");
+  if (listing.state === "admin") return listing.supabase;
+  const kyc = await requireAdmin("kyc_review");
+  return kyc.state === "admin" ? kyc.supabase : null;
 }
 
 /* ------------------------------------------------------------ status counts */
