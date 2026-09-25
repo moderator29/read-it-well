@@ -60,10 +60,10 @@ export default function DocsHomePage() {
           <li key={chapter.slug}>
             <Link
               href={`/docs/${chapter.slug}`}
-              className="nf-panel nf-panel--card nf-card--interactive flex h-full flex-col p-card-sm"
+              className="nf-panel nf-panel--card nf-card--interactive nf-fx-host flex h-full flex-col p-card-sm"
             >
               <div className="flex items-start gap-row">
-                <span className="inline-grid h-11 w-11 shrink-0 place-items-center">
+                <span className="nf-glass-fx inline-grid h-11 w-11 shrink-0 place-items-center" data-motion="rise">
                   <BrandIcon name={chapter.icon} fill />
                 </span>
                 <div className="min-w-0">

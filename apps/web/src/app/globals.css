@@ -77,6 +77,8 @@
 @import "./css/landing.css";
 /* Track M: the landing rooms (hero depth, protection, AI showcase, FAQ). */
 @import "./css/landing-rooms.css";
+/* Track M: the documentation's motion (sections, flows, the contents rail). */
+@import "./css/docs-motion.css";
 @import "./css/site.css";
 @import "./css/catalogue.css";
 /* Track M: the list views (view toggle, map pill, card lift, heart, photos). */

@@ -1,36 +1,69 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
- * The right-hand rail: the headings of the chapter you are reading.
+ * The chapter's contents rail.
  *
- * Built from the same `sections` array the article renders, so a heading can
- * never appear in one and not the other. There is no scroll spy: a highlight
- * racing the reader down the page is a decoration, and on a phone it is a
- * scroll listener nobody asked to pay for.
- *
- * From `xl` up it sits to the right of the article and sticks. Below that it
- * folds behind one row, for the same reason the chapter rail does: eleven
- * headings is 480 pixels of list standing between somebody and the first
- * sentence of the chapter they opened. Folded, it costs one line and is still
- * there when they want it.
- *
- * It is placed after the chapter heading rather than before it, so the reading
- * order on a phone is title, what the chapter covers, then the contents.
+ * On a phone it is a disclosure under the chapter heading; from `xl` it is a
+ * sticky rail on the right. TRACK M ADDS WHERE YOU ARE: an observer on a thin
+ * band near the top of the viewport notices which section you are reading,
+ * that heading lights, and a marker slides down the rail's hairline to it in
+ * 240ms (transform only, docs-motion.css). The marker is written straight to
+ * the element, so scrolling never re-renders the list. Reduced motion, Calm
+ * and Off get the marker without the slide.
  */
 export function OnThisPage({ sections }: { sections: { id: string; heading: string }[] }) {
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState<string | null>(null);
   const panelId = useId();
+  const list = useRef<HTMLUListElement | null>(null);
+  const marker = useRef<HTMLSpanElement | null>(null);
 
-  // One heading is not a contents list, it is the chapter.
+  /* Which section is being read: the last one whose top has passed a line a
+     quarter of the way down the screen. */
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const targets = sections
+      .map((section) => document.getElementById(section.id))
+      .filter((el): el is HTMLElement => el !== null);
+    if (targets.length === 0) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        }
+      },
+      { threshold: 0, rootMargin: "-20% 0px -70% 0px" },
+    );
+    for (const target of targets) io.observe(target);
+    return () => io.disconnect();
+  }, [sections]);
+
+  /* The marker follows the lit heading. */
+  useEffect(() => {
+    const ul = list.current;
+    const bar = marker.current;
+    /* Measured in the wrapper, the links' offset parent. */
+    if (!ul || !bar) return;
+    const link = active ? ul.querySelector<HTMLElement>(`a[href="#${CSS.escape(active)}"]`) : null;
+    if (!link) {
+      bar.dataset.on = "false";
+      return;
+    }
+    const top = link.offsetTop;
+    const height = link.offsetHeight;
+    bar.style.transform = `translateY(${top}px) scaleY(${height})`;
+    bar.dataset.on = "true";
+  }, [active]);
+
   if (sections.length < 2) return null;
 
   return (
     <nav
       aria-label="On this page"
-      className="min-w-0 xl:sticky xl:top-24 xl:w-[196px] xl:shrink-0 xl:self-start"
+      className="nf-doc-rail min-w-0 xl:sticky xl:top-24 xl:w-[196px] xl:shrink-0 xl:self-start"
     >
       {/* --------------------------------------------------- phone opener */}
       <button
@@ -42,10 +75,10 @@ export function OnThisPage({ sections }: { sections: { id: string; heading: stri
       >
         <span className="flex items-center gap-inline">
           <UiIcon name="document" size={16} className="text-[var(--nf-content-muted)]" />
-          <span className="text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+          <span className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
             On this page
           </span>
-          <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {sections.length}
           </span>
         </span>
@@ -64,19 +97,25 @@ export function OnThisPage({ sections }: { sections: { id: string; heading: stri
           <UiIcon name="document" size={16} />
           On this page
         </p>
-        <ul className="mt-inline space-y-inline-tight border-l border-[var(--nf-border-subtle)]">
+        {/* The marker is a sibling of the list, not a child: a list may only
+            hold items. The wrapper is the offset parent both are measured in. */}
+        <div className="nf-doc-rail__wrap mt-inline">
+          <span ref={marker} className="nf-doc-rail__marker" aria-hidden="true" data-on="false" />
+          <ul ref={list} className="nf-doc-rail__list space-y-inline-tight border-l border-[var(--nf-border-subtle)]">
           {sections.map((section) => (
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
                 onClick={() => setOpen(false)}
-                className="nf-tap -ml-px flex min-h-11 items-center border-l-2 border-transparent py-inline pl-row text-[0.8125rem] leading-snug text-[var(--nf-content-secondary)] transition-colors hover:border-l-[var(--nf-brand-secondary)] hover:text-[var(--nf-content-primary)]"
+                aria-current={active === section.id ? "location" : undefined}
+                className="nf-doc-rail__link nf-tap -ml-px flex min-h-11 items-center border-l-2 border-transparent py-inline pl-row text-[length:var(--nf-text-caption)] leading-snug text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)]"
               >
                 {section.heading}
               </a>
             </li>
           ))}
-        </ul>
+          </ul>
+        </div>
       </div>
     </nav>
   );
