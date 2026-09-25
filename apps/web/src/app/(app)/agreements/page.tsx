@@ -24,7 +24,7 @@ export default async function AgreementsPage() {
     <main className="nf-page nf-md">
       <PageHeader title="Agreements" />
       <p className={`${TYPE.body} mt-inline`}>{PAYMENT_GATE_SENTENCE}</p>
-      <p className={`${TYPE.rowMeta} mt-inline`}>{NO_CUSTODY_SENTENCE}</p>
+      <p className={`${TYPE.rowMeta} mt-inline mb-block`}>{NO_CUSTODY_SENTENCE}</p>
       <Section title="Your agreements">
         {rows === null ? (
           <p className={TYPE.body}>Your agreements could not be read just now. Refresh to try again.</p>

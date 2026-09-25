@@ -25,3 +25,4 @@ out.push(["member my_staff_access", await rpc(member.token, "my_staff_access", {
 out.push(["member calls legacy grant_staff_role", await rpc(member.token, "grant_staff_role", { acting_admin: admin.id, target_email: "x@example.com", new_role: "super_admin" })]);
 out.push(["member calls wallet transfer (retired)", await rpc(member.token, "transfer_between_wallets", {})]);
 for (const [k, v] of out) console.log(`${k}: ${v.slice(0, 160)}`);
+// Track A: no flag can turn custody back on (run with the same env).
