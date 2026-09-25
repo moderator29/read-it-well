@@ -86,6 +86,19 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+ * AND THE SAME LINE FOR THE LIGHT THEME, reintroduced 25 September 2026. The
+ * scheme follows the THEME, not the operating system: a phone set to dark
+ * with Light chosen in Vallo gets light native pickers and scrollbars, and a
+ * dark subtree inside a light page (the auth stage) keeps dark ones.
+ */
+html[data-theme="light"] {
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

@@ -100,6 +100,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   { phrase: /\bprepare that (?:photo|picture) safely\b/i, mechanism: "the client-side re-encode before upload (strips metadata); a process, not a claim" },
   { phrase: /\btalking to an agent safely\b/i, mechanism: "advice heading in the docs, not a claim" },
   { phrase: /\brather than checked in passing\b|\bwhile it is checked\b|\brooms are checked\b/i, mechanism: "a process description (a database constraint; a report being read; the member's own checklist)" },
+  { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
   { phrase: /^completely safe$/i, mechanism: "an entry in the escrow copy guard's own banned-phrase list (lib/escrow/copy.ts), not copy" },
 
   /* Sentences deleted on the release branch by another change. */

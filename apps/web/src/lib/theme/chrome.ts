@@ -43,3 +43,11 @@
  */
 
 export const CHROME_COLOUR = "#010118";
+
+/**
+ * The browser chrome over the LIGHT theme (reintroduced 25 September 2026).
+ * The light canvas is white, so the bar is white and the page runs up into it
+ * without a seam. Written by the before-paint script and the theme control,
+ * never by the server, which cannot know a "system" choice.
+ */
+export const CHROME_COLOUR_LIGHT = "#FFFFFF";

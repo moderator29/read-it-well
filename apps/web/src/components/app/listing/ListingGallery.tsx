@@ -180,6 +180,9 @@ export function ListingGallery({
     <section
       aria-label={`${title} photos`}
       data-testid="listing-gallery"
+      /* The hero is a photograph: its controls, chips and scrims keep the
+         night material in both themes. */
+      data-theme="dark"
       /*
        * Full bleed at every breakpoint, and the cancel now takes the SAME VALUE
        * as the thing it cancels.

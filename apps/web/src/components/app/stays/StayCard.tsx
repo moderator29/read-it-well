@@ -69,7 +69,7 @@ export function StayCard({
       data-testid="stay-card"
     >
       {showSave && (
-        <div className="nf-pcard__controls">
+        <div className="nf-pcard__controls" data-theme="dark">
           <SaveButton saved={save.saved} pending={save.pending} onToggle={save.toggle} title={stay.title} surface="media" />
         </div>
       )}
@@ -79,7 +79,7 @@ export function StayCard({
         </p>
       )}
       <Link href={stay.href} className="flex h-full flex-col">
-        <div className="nf-pcard__media">
+        <div className="nf-pcard__media" data-theme="dark">
           <div className="nf-pcard__photo">
             <MediaFrame hue={stay.hue} index={index ?? 0} kind={stay.kind} sizes="(max-width: 640px) 100vw, 50vw" />
             {(stay.photo ?? stay.standIn) && (

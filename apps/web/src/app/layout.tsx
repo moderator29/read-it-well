@@ -1,15 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { prefersLessData } from "@/lib/save-data";
 import { NONCE_HEADER } from "@/lib/security/csp";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
+import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import "./globals.css";
 import { siteUrl } from "@/lib/site";
 import { CHROME_COLOUR } from "@/lib/theme/chrome";
+import { THEME_BOOT_SCRIPT, THEME_KEY, parseThemeChoice, serverTheme } from "@/lib/theme/theme";
 
 /*
  * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
@@ -247,12 +249,18 @@ export default async function RootLayout({
      writing `nonce="undefined"`, and no policy is being served on those paths
      either, so the two absences agree. */
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
+  /* The theme the person chose, from the cookie, so an explicit Light is
+     rendered light by the server and never flashes dark. "system" renders
+     dark here and the before-paint script below resolves it. */
+  const themeChoice = parseThemeChoice((await cookies()).get(THEME_KEY)?.value);
 
   return (
     <html
       lang={locale}
       dir={t.meta.dir}
       data-save-data={lessData ? "on" : undefined}
+      data-theme={serverTheme(themeChoice)}
+      data-theme-choice={themeChoice}
       suppressHydrationWarning
     >
       <head>
@@ -275,27 +283,11 @@ export default async function RootLayout({
       </head>
       <body>
         {/*
-          THE THEME SCRIPT THAT STOOD HERE IS GONE, and the absence is the
-          point rather than a tidy-up.
-
-          It read `nf_theme` from storage before first paint and, for a stored
-          "light" or a "system" that resolved to light, put `data-theme="light"`
-          on the root element and rewrote the `theme-color` meta. Every light
-          rule in the product keyed off that one attribute. The founder removed
-          light mode on 23 September 2026, so the attribute has nothing to turn
-          on: the light half of `tokens.css` is deleted, `light.css` is deleted,
-          and `html { color-scheme: dark }` in `base.css` is what now stops a
-          browser or an operating system set to light painting its own white
-          into the form controls, scrollbars and native pickers this stylesheet
-          cannot reach.
-
-          THE SCRIPT IS DELETED RATHER THAN MADE A NO-OP. A before-paint script
-          that still reads a storage key is a mechanism waiting for somebody to
-          give it a branch again, and this one ran on every route in the
-          product. `docs/design/LIGHT_MODE_REMOVED.md` is the record.
-
-          The two scripts below keep their `suppressHydrationWarning` for the
-          reason that follows, which was never about the theme.
+          THE THEME SCRIPT WAS DELETED ON 23 SEPTEMBER 2026 AND CAME BACK ON
+          THE 25TH, when the founder reversed the dark-only rule. It is the
+          first script below, and this time it has a server half: the cookie
+          is read above, so an explicit Light is rendered light and only a
+          "system" choice is resolved in the browser.
         */}
         {/*
           `suppressHydrationWarning` on both before-paint scripts, and it
@@ -327,6 +319,19 @@ export default async function RootLayout({
           shell still wins over the cookie for a side-owned URL, and the
           reconciler writes the cookie back the moment the shell mounts.
         */}
+        {/*
+          THE THEME, BEFORE PAINT. Light mode is back (25 September 2026, the
+          founder reversing the dark-only rule). The server already rendered
+          an explicit choice from the cookie; this resolves "system" against
+          the operating system and repairs a choice that only survived in
+          storage, then sets the browser chrome to match. See
+          `lib/theme/theme.ts`.
+        */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
+        />
         <script
           nonce={nonce}
           suppressHydrationWarning
@@ -381,6 +386,7 @@ export default async function RootLayout({
         {/* Film grain over everything, so surfaces feel physical, not printed. */}
         <div className="nf-grain" aria-hidden="true" />
         <ScrollToTop />
+        <ThemeSync />
         {/* Installs the offline shell after load, in production only. Renders nothing. */}
         <ServiceWorkerRegistrar />
         <a href="#main" className="nf-skip-link">

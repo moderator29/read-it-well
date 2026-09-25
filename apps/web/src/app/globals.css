@@ -92,7 +92,15 @@
 @import "./css/wallet.css";
 @import "./css/system.css";
 /*
- * `light.css` WAS IMPORTED HERE AND IS DELETED. The founder removed light mode
+ * THE LIGHT THEME'S SHAPE AND ARTWORK RULES, back in the slot `light.css`
+ * held before 23 September 2026 (reintroduced on the 25th): after every
+ * surface partial so its guarded rules win, before data-saver and touch so
+ * their opt-outs still win. The palette itself is in `tokens.css`.
+ */
+@import "./css/theme-control.css";
+@import "./css/light.css";
+/*
+ * `light.css` WAS IMPORTED HERE AND WAS DELETED (history). The founder removed light mode
  * from the platform on 23 September 2026. It was 1,200 lines of paper twins for
  * rules whose dark original is now the only one there is, so it is gone rather
  * than left unimported: an unimported stylesheet is a stylesheet somebody

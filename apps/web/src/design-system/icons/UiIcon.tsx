@@ -97,6 +97,7 @@ export type UiIconName =
   | "block"
   | "sun"
   | "moon"
+  | "contrast"
   /* ---------------------------------- consolidated from inline SVG blocks.
      Each of these was hand-drawn at a call site, several of them more than
      once, at a stroke weight the platform does not use. */
@@ -723,6 +724,15 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
     </>
   ),
   moon: <path d="M20.2 13.6A8.4 8.4 0 0 1 10.4 3.8a8.4 8.4 0 1 0 9.8 9.8Z" />,
+  /* "System": a disc split down the middle, the half that follows the
+     device. Stroked like the other two so the three read as one set. */
+  contrast: (
+    <>
+      <circle cx="12" cy="12" r="8.4" />
+      <path d="M12 3.6v16.8" />
+      <path d="M12 6.2a5.8 5.8 0 0 1 0 11.6" />
+    </>
+  ),
 
   /* Reveal a password. It was drawn inline in `components/auth/fields.tsx` at
      strokeWidth 1.7 and again in `the wallet balance card (since rebuilt)` at strokeWidth 2, as

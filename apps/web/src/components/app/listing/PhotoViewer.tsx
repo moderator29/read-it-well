@@ -312,6 +312,7 @@ function Lightbox({
       aria-label={`${title} photos`}
       tabIndex={-1}
       data-testid="listing-lightbox"
+      data-theme="dark"
       data-open={entered}
       data-dragging={drag > 0 ? "" : undefined}
       onTouchStart={onTouchStart}

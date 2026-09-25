@@ -1,12 +1,17 @@
 "use client";
 
 import { StatusBar, Style } from "@capacitor/status-bar";
-import { CHROME_COLOUR } from "@/lib/theme/chrome";
+import { CHROME_COLOUR, CHROME_COLOUR_LIGHT } from "@/lib/theme/chrome";
+import { THEME_EVENT, readAppliedTheme } from "@/lib/theme/theme-client";
 
 /**
  * Keep the system status bar in step with the page.
  *
- * THERE IS ONE THEME AND THIS FILE GOT SIMPLER ON 23 SEPTEMBER 2026, when the
+ * TWO THEMES AGAIN (light reintroduced 25 September 2026). The bar is
+ * repainted on the theme event `lib/theme/theme-client.ts` fires, not through
+ * a MutationObserver: one writer, one event. The history below is kept.
+ *
+ * THERE WAS ONE THEME AND THIS FILE GOT SIMPLER ON 23 SEPTEMBER 2026, when the
  * founder removed light mode. It used to watch `data-theme` on the root
  * element through a `MutationObserver` in a module of its own and repaint
  * whenever somebody switched, because an unmanaged bar left near-black chrome
@@ -37,27 +42,28 @@ import { CHROME_COLOUR } from "@/lib/theme/chrome";
  */
 
 async function paint(): Promise<void> {
+  const light = readAppliedTheme() === "light";
   try {
-    await StatusBar.setStyle({ style: Style.Dark });
+    /* Style.Light is DARK glyphs, for the white light theme. See the naming
+       trap above. */
+    await StatusBar.setStyle({ style: light ? Style.Light : Style.Dark });
   } catch {
     /* Nothing useful to do. The bar keeps whatever it had, which is at worst
        the value the config set at launch. */
   }
 
   try {
-    await StatusBar.setBackgroundColor({ color: CHROME_COLOUR });
+    await StatusBar.setBackgroundColor({ color: light ? CHROME_COLOUR_LIGHT : CHROME_COLOUR });
   } catch {
     /* iOS, and Android 15 and above. See the note in the header: on both of
        those the colour behind the bar comes from the page itself. */
   }
 }
 
-/**
- * Paint once. The teardown is kept in the signature, and is a no-op, because
- * every caller already stores and calls it and a signature change here would
- * be churn in files this has nothing to say about.
- */
+/** Paint now and again on every theme change; the teardown stops listening. */
 export function startStatusBar(): () => void {
   void paint();
-  return () => {};
+  const repaint = () => void paint();
+  window.addEventListener(THEME_EVENT, repaint);
+  return () => window.removeEventListener(THEME_EVENT, repaint);
 }
