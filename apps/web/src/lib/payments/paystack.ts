@@ -542,103 +542,10 @@ export function verifyWebhookSignature(rawBody: string, signature: string): bool
 
 /* --------------------------------------------------------------- transfers */
 
-export type TransferRecipient = {
-  recipientCode: string;
-};
-
-/** Register a NUBAN account as a transfer recipient, returning its code. */
-export async function createTransferRecipient(params: {
-  name: string;
-  accountNumber: string;
-  bankCode: string;
-}): Promise<TransferRecipient> {
-  const data = await request<{ recipient_code: string }>("/transferrecipient", {
-    method: "POST",
-    body: {
-      type: "nuban",
-      name: params.name,
-      account_number: params.accountNumber,
-      bank_code: params.bankCode,
-      currency: "NGN",
-    },
-  });
-  return { recipientCode: data.recipient_code };
-}
-
-export type InitiatedTransfer = {
-  transferCode: string;
-  reference: string;
-  /** Paystack's transfer state at initiation, e.g. pending, otp or success. */
-  status: string;
-};
-
-/**
- * Send money from the Paystack balance to a recipient. The caller supplies the
- * unique reference (rm-wd-<uuid>), which the webhook later settles against.
- */
-export async function initiateTransfer(params: {
-  amountMinor: number;
-  recipientCode: string;
-  reference: string;
-  reason?: string;
-}): Promise<InitiatedTransfer> {
-  if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
-    throw new PaystackError("The amount must be a positive integer number of kobo.");
-  }
-  const data = await request<{ transfer_code: string; reference: string; status: string }>(
-    "/transfer",
-    {
-      method: "POST",
-      body: {
-        source: "balance",
-        amount: params.amountMinor,
-        currency: "NGN",
-        recipient: params.recipientCode,
-        reference: params.reference,
-        ...(params.reason ? { reason: params.reason } : {}),
-      },
-    },
-  );
-  return {
-    transferCode: data.transfer_code,
-    reference: data.reference,
-    status: data.status,
-  };
-}
-
-export type VerifiedTransfer = {
-  /** Paystack's own word: success, failed, reversed, pending, otp, abandoned. */
-  status: string;
-  /** Integer kobo. */
-  amountMinor: number;
-  reference: string;
-};
-
-/**
- * What actually became of a transfer we started.
- *
- * The withdrawal sweeper cannot expire a PENDING hold on age alone. A hold
- * whose transfer really did pay out, and whose webhook was merely late or lost,
- * would be marked FAILED and the money handed back to a wallet it had already
- * left. So the sweeper asks the processor first and acts on the answer, and a
- * hold is only released when Paystack says the transfer failed, was reversed,
- * or does not exist at all.
- *
- * Throws PaystackError when the reference is unknown, which is the useful case:
- * a hold was posted and the transfer never started.
- */
-export async function verifyTransfer(reference: string): Promise<VerifiedTransfer> {
-  const data = await request<{
-    status: string;
-    amount: number;
-    reference: string;
-  }>(`/transfer/verify/${encodeURIComponent(reference)}`);
-  return {
-    status: data.status,
-    amountMinor: Number.isSafeInteger(data.amount) ? data.amount : 0,
-    reference: data.reference,
-  };
-}
+/* Track A, 25 September 2026: there are no transfers. Vallo never holds money,
+   so it never sends any: a lister is paid by the split at the moment of the
+   charge, and a person is refunded to their card. The transfer calls that
+   lived here are deleted so nothing can reach them. */
 
 /* -------------------------------------------------------------------- banks */
 

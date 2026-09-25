@@ -29,6 +29,7 @@
  * nothing but `is_default`.
  */
 
+import { ensurePayeeSubaccount } from "../payments/payee-subaccount";
 import { moneyHoldRefusal } from "@/lib/money/hold";
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
@@ -217,6 +218,8 @@ export async function addPayoutAccount(
       /* The account is saved. The rung can be recorded by hand from the
          verification queue, which shows the payout rung and its note. */
     }
+    /* Track A: the Paystack subaccount the lister's share settles to. */
+    await ensurePayeeSubaccount(writer, created.id);
   }
 
   revalidatePath("/agent/earnings");
@@ -256,6 +259,12 @@ export async function setDefaultPayoutAccount(
     return fail(
       "We could not find that account on your list. Reload the page to see the accounts you have.",
     );
+  }
+  /* Track A: the new default must be payable into. */
+  try {
+    await ensurePayeeSubaccount(createAdminClient(), parsed.data.accountId);
+  } catch {
+    /* Saved either way; a payment against a lister with no subaccount does not open. */
   }
 
   revalidatePath("/agent/earnings");

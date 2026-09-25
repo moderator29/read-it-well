@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { initiateTransfer, PaystackError, PaystackUnknownOutcome } from "./paystack";
+import { PaystackError, PaystackUnknownOutcome, refundTransaction } from "./paystack";
 
 /*
- * MON-01. A withdrawal whose transfer call timed out was marked FAILED and its
- * money handed back, even when Paystack had accepted the transfer. The client
- * now tells "did not happen" (an explicit refusal) apart from "we do not know"
- * (no answer, a 5xx, an unreadable 2xx), and only the first may release a hold.
+ * MON-01, kept for the one call that still moves money out: a refund. The
+ * client tells "did not happen" (an explicit refusal) apart from "we do not
+ * know" (no answer, a 5xx, an unreadable 2xx), and only the first may be
+ * recorded as failed. Track A retired the transfer calls this was first
+ * written against.
  */
-const transfer = () =>
-  initiateTransfer({ amountMinor: 100000, recipientCode: "RCP_x", reference: "rm-wd-test" });
+const transfer = () => refundTransaction({ reference: "rm-book-test", amountMinor: 100000 });
 
 function answer(status: number, body: unknown) {
   return vi.fn(async () =>
@@ -43,7 +43,7 @@ describe("Paystack outcome classification", () => {
   it("an explicit refusal is a known failure, not an unknown one", async () => {
     vi.stubGlobal(
       "fetch",
-      answer(400, { status: false, message: "You cannot initiate third party payouts as a starter business" }),
+      answer(400, { status: false, message: "Transaction has been fully reversed" }),
     );
     const error = await transfer().catch((e: unknown) => e);
     expect(error).toBeInstanceOf(PaystackError);
@@ -53,8 +53,8 @@ describe("Paystack outcome classification", () => {
   it("a success is a success", async () => {
     vi.stubGlobal(
       "fetch",
-      answer(200, { status: true, data: { transfer_code: "TRF_1", reference: "rm-wd-test", status: "pending" } }),
+      answer(200, { status: true, data: { id: 42, status: "pending" } }),
     );
-    await expect(transfer()).resolves.toMatchObject({ transferCode: "TRF_1" });
+    await expect(transfer()).resolves.toMatchObject({ refundId: "42", status: "pending" });
   });
 });

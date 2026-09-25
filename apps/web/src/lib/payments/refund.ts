@@ -3,7 +3,11 @@ import "server-only";
 import type { AdminClient } from "@/lib/supabase/service";
 import { recordMoneyAudit, type MoneyActor } from "@/lib/money/audit";
 import { failureReason, logMoney } from "./observability";
-import { PaystackError, refundTransaction } from "./paystack";
+import { PaystackError, PaystackUnknownOutcome, refundTransaction } from "./paystack";
+import { recordAlert } from "@/lib/alerts";
+
+/** The refund was sent and no answer came back: check Paystack before retrying. */
+export const UNKNOWN_OUTCOME = "unknown_outcome";
 
 /**
  * Money goes back the way it came: to the card or account, through Paystack.
@@ -40,6 +44,20 @@ export async function refundChargeToCard(
     });
     return { ok: true, refundId: refund.refundId };
   } catch (error) {
+    /* MON-01 for refunds: a timeout, a 5xx or an unreadable answer means we do
+       not know whether Paystack accepted the refund. Recording it as failed
+       would invite a second refund of the same charge, so it stays pending
+       and a person is told to check Paystack first. */
+    if (error instanceof PaystackUnknownOutcome) {
+      logMoney({ surface: "refund", outcome: "failed", reason: "unknown_outcome", reference: params.reference });
+      await recordAlert({
+        kind: "refund.outcome_unknown",
+        severity: "critical",
+        detail: { reference: params.reference, amount_minor: params.amountMinor ?? null, reason: params.reason },
+        subjectId: params.reference,
+      });
+      return { ok: false, reason: UNKNOWN_OUTCOME };
+    }
     const reason = error instanceof PaystackError ? error.message : failureReason(error);
     logMoney({ surface: "refund", outcome: "failed", reason, reference: params.reference });
     await recordMoneyAudit(admin, {
@@ -74,6 +92,8 @@ export async function submitBookingRefund(
     reason: params.reason,
     actor: params.actor,
   });
+  /* Unknown: leave the row pending; the alert above asks a person to check. */
+  if (!sent.ok && sent.reason === UNKNOWN_OUTCOME) return sent;
   await admin.rpc("record_processor_refund" as never, {
     p_refund: params.refundId,
     p_status: sent.ok ? "submitted" : "failed",
