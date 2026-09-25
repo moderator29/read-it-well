@@ -79,6 +79,8 @@
 @import "./css/landing-rooms.css";
 @import "./css/site.css";
 @import "./css/catalogue.css";
+/* Track M: the list views (view toggle, map pill, card lift, heart, photos). */
+@import "./css/list-views.css";
 /* The full-screen photo viewer: its notch-aware chrome and swipe-to-dismiss. */
 @import "./css/photo-viewer.css";
 /* The filter drawer's icon tiles: property type and space. */

@@ -1,0 +1,330 @@
+/*
+ * THE PROPERTY LIST VIEWS (Track M): the view toggle's sliding capsule, the
+ * sort and view tools on the count bar, the phone's floating Map / List pill,
+ * the results dimming while the next set loads, and the listing card's
+ * motion: a 2px lift with a stronger shadow on hover, 0.98 on press, the save
+ * heart's spring, and swipeable photographs.
+ *
+ * Timings are the plan's (docs/TRACK_M_MOTION_PLAN.md section 2): 160ms
+ * hover, 120ms press, 380ms spring, 240ms for the tools, 160ms for the
+ * results. The card's lift and press use the `translate` and `scale`
+ * properties, not `transform`, because the card's entrance (`nf-card-in`)
+ * holds `transform` with a fill and would otherwise swallow both.
+ */
+@layer components {
+  /* ------------------------------------------------------ view toggle */
+
+  .nf-viewtoggle {
+    --nf-view-pad: 4px;
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: var(--nf-view-pad);
+    flex-shrink: 0;
+  }
+  .nf-viewtoggle__thumb {
+    left: var(--nf-view-pad);
+    width: calc((100% - 2 * var(--nf-view-pad)) / 3);
+    transform: translateX(calc(var(--nf-view-i, 0) * 100%));
+  }
+  .nf-viewtoggle__link {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nf-content-muted);
+    transition: color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-viewtoggle--compact .nf-viewtoggle__link {
+    min-width: 2.75rem;
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-viewtoggle__link[data-on="true"] {
+    color: var(--nf-content-on-brand);
+  }
+  @media (hover: hover) {
+    .nf-viewtoggle__link:not([data-on="true"]):hover {
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-viewtoggle__link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The bar holds the toggle from 640px; the sort menu holds it below. */
+  .nf-shelf-tools {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    flex-shrink: 0;
+  }
+  .nf-viewtoggle--bar {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .nf-viewtoggle--bar {
+      display: inline-grid;
+    }
+    .nf-viewtoggle--menu {
+      display: none;
+    }
+    .nf-shelf-sort__menu li:has(> .nf-viewtoggle--menu) {
+      display: none;
+    }
+  }
+
+  /* ------------------------------------------------ the floating pill */
+
+  .nf-maplist-pill {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--nf-tabbar-clearance, 6rem) + var(--nf-space-2xs));
+    z-index: 30;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 3rem;
+    padding: 0 var(--nf-space-lg);
+    border-radius: var(--nf-radius-control);
+    translate: -50% 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    color: var(--nf-content-on-brand);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline), var(--nf-elev-3);
+    animation: nf-maplist-in var(--nf-duration-slow) var(--nf-ease-spring) backwards;
+    animation-delay: var(--nf-duration-base);
+  }
+  /* Over the map the pill stands above the map's own zoom and locate row. */
+  .nf-maplist-pill[data-to="list"] {
+    bottom: calc(var(--nf-tabbar-clearance, 6rem) + 3.75rem);
+  }
+  .nf-maplist-pill:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+  @keyframes nf-maplist-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (min-width: 640px) {
+    .nf-maplist-pill {
+      display: none;
+    }
+  }
+
+  /* ----------------------------------------------- results updating */
+
+  .nf-results-fade {
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-results-fade[data-updating="true"] {
+    opacity: 0.6;
+  }
+
+  /* ------------------------------------------------------ the card */
+
+  .nf-pcard {
+    transition:
+      translate var(--nf-duration-fast) var(--nf-ease-standard),
+      scale var(--nf-duration-press) var(--nf-ease-press),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-pcard:hover {
+      translate: 0 -2px;
+      box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
+    }
+  }
+  .nf-pcard:active {
+    transform: none;
+    scale: 0.98;
+  }
+
+  /* The heart's spring: only on the tap that saves (ListingCard.tsx). */
+  .nf-heart-pop[aria-pressed="true"] svg {
+    animation: nf-heart-pop var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-heart-pop {
+    0% {
+      transform: scale(0.6);
+    }
+    55% {
+      transform: scale(1.25);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* The photograph track. */
+  .nf-card-photos {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .nf-card-photos::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-card-photos__slide {
+    position: relative;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .nf-card-photos__dots {
+    position: absolute;
+    left: 50%;
+    bottom: var(--nf-space-xs);
+    z-index: 2;
+    display: flex;
+    gap: 4px;
+    translate: -50% 0;
+    pointer-events: none;
+  }
+  .nf-card-photos__dots > span {
+    width: 5px;
+    height: 5px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-media);
+    opacity: 0.45;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-card-photos__dots > span[data-on="true"] {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+  /* The market badge sits bottom left; the dots keep clear of it by sitting
+     centred, and on a two-up phone card they sit a little higher. */
+
+  /* The arrows: a pointer's way to the next photograph, over the photo,
+     shown while the card is hovered or focused. Never on touch, where the
+     swipe is the gesture. */
+  .nf-pcard__photonav {
+    position: absolute;
+    top: var(--nf-space-2xs);
+    left: var(--nf-space-2xs);
+    right: var(--nf-space-2xs);
+    z-index: 2;
+    aspect-ratio: 4 / 3;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: var(--nf-space-2xs);
+    pointer-events: none;
+  }
+  .nf-pcard--wide .nf-pcard__photonav {
+    aspect-ratio: 16 / 10;
+  }
+  @media (hover: hover) {
+    .nf-pcard__photonav {
+      display: flex;
+    }
+  }
+  .nf-pcard__photobtn {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    color: var(--nf-content-on-media);
+    box-shadow: var(--nf-btn-glass-shadow);
+    opacity: 0;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-pcard__photobtn:disabled {
+    visibility: hidden;
+  }
+  .nf-pcard:hover .nf-pcard__photobtn,
+  .nf-pcard__photobtn:focus-visible {
+    opacity: 1;
+  }
+  .nf-pcard__photobtn:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-content-on-media);
+    outline-offset: 2px;
+  }
+
+  /* --------------------------------------------- the rows view */
+
+  /* The card's link, as a class rather than utilities so the rows view can
+     turn it sideways (a utility would outrank this layer). */
+  .nf-pcard__link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* One wide card a row: the photograph on the left, the figures beside it,
+     from 640px. On a phone it is a full-width card, which already reads as a
+     list. */
+  @media (min-width: 640px) {
+    .nf-results--rows .nf-pcard__link {
+      flex-direction: row;
+      align-items: stretch;
+    }
+    .nf-results--rows .nf-pcard__media {
+      flex: 0 0 44%;
+      aspect-ratio: 4 / 3;
+      align-self: flex-start;
+    }
+    .nf-results--rows .nf-pcard__body {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    /* The heart and the tune sit on the photograph, not over the title. */
+    .nf-results--rows .nf-pcard__controls {
+      right: calc(56% + var(--nf-space-xs));
+    }
+    .nf-results--rows .nf-pcard__photonav {
+      right: auto;
+      width: calc(44% - var(--nf-space-2xs));
+    }
+  }
+
+  /* ------------------------------------------------ reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-viewtoggle__link,
+    .nf-pcard,
+    .nf-results-fade,
+    .nf-card-photos__dots > span,
+    .nf-pcard__photobtn {
+      transition: none;
+    }
+    .nf-pcard:hover,
+    .nf-pcard:active {
+      translate: none;
+      scale: none;
+    }
+    .nf-maplist-pill,
+    .nf-heart-pop[aria-pressed="true"] svg {
+      animation: none;
+    }
+  }
+}

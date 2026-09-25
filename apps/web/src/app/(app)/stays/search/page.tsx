@@ -12,6 +12,7 @@ import { StayFilterSheet } from "@/components/app/stays/StayFilterSheet";
 import { stayCardFromRow } from "@/components/app/stays/stay-card-model";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/Screen";
+import { ResultsFade } from "@/components/app/search/ResultsFade";
 import { ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
@@ -132,6 +133,8 @@ export default async function StaysSearchPage({
           className="mt-section-tight"
         />
       ) : (
+        /* Track M: the current stays dim while a new search is on its way. */
+        <ResultsFade>
         <ul className="mt-block grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3" data-testid="stay-results">
           {stays.map((stay, index) => (
             <li key={`${stay.id}-${index}`}>
@@ -146,6 +149,7 @@ export default async function StaysSearchPage({
             </li>
           ))}
         </ul>
+        </ResultsFade>
       )}
     </div>
   );
