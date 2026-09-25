@@ -15,6 +15,22 @@
  *   $L = :root[data-theme="light"] X:not(:where([data-theme="dark"] *))
  */
 
+/*
+ * THE SNAKE EDGE'S TWO ANGLES (Track M). Registered so they can be animated:
+ * an unregistered custom property only jumps from value to value, and the
+ * light has to travel round the rim, not teleport.
+ */
+@property --nf-snake-a {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --nf-snake-b {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 180deg;
+}
+
 @layer components {
   /* ------------------------------------------------------------------
    * The ambient night: artwork, blooms and film grain. On a white ground
@@ -46,6 +62,76 @@
       inset 0 0 0 1px var(--nf-night-tile-rim),
       0 1px 2px var(--nf-shade-1),
       0 4px 12px -4px var(--nf-night-tile-bloom);
+  }
+
+  /*
+   * THE SNAKE EDGE (Track M, 25 September 2026). The founder asked for the
+   * logo's wrapper in light mode to move at its edges, "like snakes, zigzag".
+   * Two short lights run round the plate's rim in opposite directions at two
+   * speeds, so they chase, cross and part again: a white-blue one clockwise,
+   * a deeper brand one against it. Drawn on a 1.5px ring cut out of the
+   * plate with a mask, so the plate and the logo inside it never move.
+   * Still under reduced motion and data saving; one lap under Calm.
+   */
+  :root[data-theme="light"] .nf-logo:not(:where([data-theme="dark"] *)) {
+    position: relative;
+    isolation: isolate;
+  }
+  :root[data-theme="light"] .nf-logo:not(:where([data-theme="dark"] *))::before,
+  :root[data-theme="light"] .nf-logo:not(:where([data-theme="dark"] *))::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: 1.5px;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(black 0 0) content-box,
+      linear-gradient(black 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(black 0 0) content-box exclude,
+      linear-gradient(black 0 0);
+  }
+  :root[data-theme="light"] .nf-logo:not(:where([data-theme="dark"] *))::before {
+    background: conic-gradient(
+      from var(--nf-snake-a),
+      transparent 0deg 250deg,
+      color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent) 305deg,
+      var(--nf-content-on-brand) 342deg,
+      transparent 360deg
+    );
+    animation: nf-snake-a 5.2s linear infinite;
+  }
+  :root[data-theme="light"] .nf-logo:not(:where([data-theme="dark"] *))::after {
+    background: conic-gradient(
+      from var(--nf-snake-b),
+      transparent 0deg 285deg,
+      var(--nf-brand-primary) 335deg,
+      transparent 360deg
+    );
+    animation: nf-snake-b 7.8s linear infinite;
+  }
+  @keyframes nf-snake-a {
+    to {
+      --nf-snake-a: 360deg;
+    }
+  }
+  @keyframes nf-snake-b {
+    to {
+      --nf-snake-b: -180deg;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-theme="light"] .nf-logo::before,
+    :root[data-theme="light"] .nf-logo::after {
+      animation: none;
+    }
+  }
+  :root[data-theme="light"][data-save-data="on"] .nf-logo::before,
+  :root[data-theme="light"][data-save-data="on"] .nf-logo::after {
+    animation: none;
   }
 
   /* ------------------------------------------------------------------

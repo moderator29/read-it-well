@@ -34,7 +34,7 @@ const when = (iso: string | null) =>
         hour: "2-digit",
         minute: "2-digit",
       }).format(new Date(iso))
-    : "—";
+    : "Not recorded";
 
 /** The 7-day money hold starts at the move (admin_finish_email_recovery). */
 const holdEnd = (iso: string) => new Date(new Date(iso).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();

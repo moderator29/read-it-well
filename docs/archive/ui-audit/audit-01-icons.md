@@ -1,4 +1,4 @@
-# Audit 01 — Icon system, end to end
+# Audit 01, Icon system, end to end
 
 > **SUPERSEDED 2026-08-09. Not a backlog, and every count in it needs re-measuring.**
 > This audit grades the codebase against `00-reference-brief.md`, which is retired
@@ -21,17 +21,17 @@ surface uses.
 
 ---
 
-## 1. WHAT EXISTS — honest inventory
+## 1. WHAT EXISTS, honest inventory
 
 ### 1.1 The six parallel icon systems
 
 | # | System | File | Technique | Glyphs | Live usages | Status |
 |---|---|---|---|---|---|---|
-| 1 | `UiIcon` | `design-system/icons/UiIcon.tsx` | stroked SVG, 24 grid, `currentColor` | **33** | **166 tags / 74 import sites** | LIVE — the workhorse |
-| 2 | `BrandIcon` | `design-system/icons/BrandIcon.tsx` | `next/image` → opaque RGB PNG | **57** | **110 tags / 65 import sites** | LIVE — the content family |
-| 3 | `TrustIcon` | `design-system/icons/TrustIcon.tsx` | gradient-filled SVG on lit tile | **6** | 4 usages / 2 import sites | LIVE — landing trust strip only |
-| 4 | `ProviderMarks` | `components/auth/ProviderMarks.tsx` | brand-coloured inline SVG | **3** | 3 usages | LIVE — auth only |
-| 5 | Assistant glyphs | `components/app/assistant/glyphs.tsx` | stroked SVG, 24 grid | **4** | 2 import sites | LIVE — **a private fork of system 1** |
+| 1 | `UiIcon` | `design-system/icons/UiIcon.tsx` | stroked SVG, 24 grid, `currentColor` | **33** | **166 tags / 74 import sites** | LIVE, the workhorse |
+| 2 | `BrandIcon` | `design-system/icons/BrandIcon.tsx` | `next/image` → opaque RGB PNG | **57** | **110 tags / 65 import sites** | LIVE, the content family |
+| 3 | `TrustIcon` | `design-system/icons/TrustIcon.tsx` | gradient-filled SVG on lit tile | **6** | 4 usages / 2 import sites | LIVE, landing trust strip only |
+| 4 | `ProviderMarks` | `components/auth/ProviderMarks.tsx` | brand-coloured inline SVG | **3** | 3 usages | LIVE, auth only |
+| 5 | Assistant glyphs | `components/app/assistant/glyphs.tsx` | stroked SVG, 24 grid | **4** | 2 import sites | LIVE, **a private fork of system 1** |
 | 6 | `Icon` / `Icon3D` / `glyphs.ts` | `design-system/icons/Icon.tsx`, `Icon3D.tsx`, `glyphs.ts` | gradient-filled 3D vector on tile | **36** (+31-name alias facade) | **0** | **DEAD CODE** |
 
 Plus a seventh, uncatalogued tier: **~13 one-off inline `<svg>` shapes** hand-drawn inside
@@ -43,16 +43,15 @@ baked gradient, baked photograph).
 
 ### 1.2 Dead weight on disk
 
-- `design-system/icons/Icon.tsx` (2.2 KB), `Icon3D.tsx` (7.1 KB), `glyphs.ts` (14.2 KB) —
-  **23.5 KB of source, zero imports.** Verified: no file outside
+- `design-system/icons/Icon.tsx` (2.2 KB), `Icon3D.tsx` (7.1 KB), `glyphs.ts` (14.2 KB), **23.5 KB of source, zero imports.** Verified: no file outside
   `design-system/icons/` references `Icon3D`, `glyphs`, or `icons/Icon`.
-- `app/globals.css:2864–2880` — light-theme rules for `.nf-icon3d__tile / __ring / __spec /
+- `app/globals.css:2864–2880`: light-theme rules for `.nf-icon3d__tile / __ring / __spec /
   __bloom`. **Dead CSS for a dead component.**
-- `public/icons/` — **31 PNGs, 1.32 MB, zero references** in `src/`. Verified by grep for
-  `/icons/` in all `.tsx/.ts/.css/.js` — every hit is an *import path* string
+- `public/icons/`: **31 PNGs, 1.32 MB, zero references** in `src/`. Verified by grep for
+  `/icons/` in all `.tsx/.ts/.css/.js`: every hit is an *import path* string
   (`@/design-system/icons/UiIcon`), never a URL. Still precached by the service worker:
   `public/sw.js:63` lists `"/icons/"` in `CACHEABLE_ASSET_PREFIXES`.
-- `public/icons/_manifest.json` — build metadata for the dead raster pack.
+- `public/icons/_manifest.json`: build metadata for the dead raster pack.
 
 ### 1.3 What ships in `public/`
 
@@ -80,14 +79,14 @@ Safari mask icon.
 Total `@keyframes` in `globals.css`: **47**. Of those, exactly **four** touch an icon,
 and all four are scoped to `.nf-icon-tile` (i.e. `BrandIcon` only):
 
-- `nf-ring` (`globals.css:424`) — bell wiggle, `data-state="alert"`. **Zero call sites use `state="alert"`.**
-- `nf-confirm-pop` (`globals.css:435`) — `data-state="confirmed"`. 3 call sites.
-- `nf-verify-pulse` (`globals.css:443`) — `data-state="verified"`. 2 call sites.
-- `nf-tile-sheen` (`globals.css:731`) — ambient specular sweep on every tile, on a 7 s loop.
+- `nf-ring` (`globals.css:424`), bell wiggle, `data-state="alert"`. **Zero call sites use `state="alert"`.**
+- `nf-confirm-pop` (`globals.css:435`), `data-state="confirmed"`. 3 call sites.
+- `nf-verify-pulse` (`globals.css:443`), `data-state="verified"`. 2 call sites.
+- `nf-tile-sheen` (`globals.css:731`), ambient specular sweep on every tile, on a 7 s loop.
 
 All four are `prefers-reduced-motion` gated (`globals.css:403`, `448`, `919`). Credit where due.
 
-**`UiIcon` — 166 usages, every tab bar, every rail row, every button — has zero animation of any kind.**
+**`UiIcon`: 166 usages, every tab bar, every rail row, every button, has zero animation of any kind.**
 
 ---
 
@@ -98,7 +97,7 @@ Severity key: **P0** = blocks "top-tier product studio" read / App Store credibi
 
 ---
 
-### Q1 — How many distinct glyphs? Are they geometrically consistent?
+### Q1, How many distinct glyphs? Are they geometrically consistent?
 
 **~116 distinct authored shapes across 6 systems + 13 inline one-offs.** Not consistent.
 Evidence below is measured, not asserted.
@@ -107,7 +106,7 @@ Evidence below is measured, not asserted.
 
 #### **F1 · P0 · The primary content family has 17 different optical scales**
 
-`public/brand/icons/` — 57 PNGs, all square, but at **17 distinct pixel dimensions**:
+`public/brand/icons/`: 57 PNGs, all square, but at **17 distinct pixel dimensions**:
 
 ```
 384px × 39 files      372px  user-verified      314px  shield-lock
@@ -126,7 +125,7 @@ tile (`BrandIcon.tsx:140–151`, `className="h-full w-full"` + `object-fit: cont
 than `bell-alert` (384 px canvas) in the same 44 px tile.** In `SettingsGroups.tsx:519`
 and `profile/page.tsx:100` these sit in the same grid, one row apart.
 
-The brief's requirement — "consistent … optical sizing … across the entire set" — fails on
+The brief's requirement, "consistent … optical sizing … across the entire set", fails on
 a measurable 50 % spread.
 
 ---
@@ -152,16 +151,16 @@ chevron-down       12.00 ×  6.00   12.5%   ← smallest
 
 Specific defects:
 
-- **`pool` breaks the safe area.** `UiIcon.tsx:101–102` — the wave paths run to
+- **`pool` breaks the safe area.** `UiIcon.tsx:101–102`: the wave paths run to
   `x = 21.80, y = 21.70`. With `strokeWidth 1.8` and round caps the stroke centre-line is
   0.9 units from the 24 edge on the right and bottom, so the glyph **touches the viewBox
   wall**. Every other glyph stops at ≤ 21.0. Rendered at 14 px (the most common size) the
   bottom wave clips.
-- **`sparkle` is 10 % of the grid too high.** `UiIcon.tsx:154` — bbox y-range 3.40→15.80,
+- **`sparkle` is 10 % of the grid too high.** `UiIcon.tsx:154`: bbox y-range 3.40→15.80,
   optical centre-y = **9.60**, not 12.0. It sits 2.4 units above every other glyph's
   baseline. Beside a text label it reads visibly floated.
-- **`location` hangs low.** `UiIcon.tsx:136` — bbox y-range 7.20→21.40, centre-y = **14.30**.
-  It is 2.3 units below centre while `sparkle` is 2.4 above — a **4.7-unit (20 % of grid)
+- **`location` hangs low.** `UiIcon.tsx:136`: bbox y-range 7.20→21.40, centre-y = **14.30**.
+  It is 2.3 units below centre while `sparkle` is 2.4 above, a **4.7-unit (20 % of grid)
   vertical disagreement between two glyphs in the same family.**
 - **`wifi` is the widest at 18.80** (`UiIcon.tsx:108`, `x = 2.60 → 21.40`) against
   `settings-gear` at 16.64. Nothing enforces a common optical square.
@@ -200,14 +199,14 @@ they render as heavy outlined blobs next to genuinely stroked neighbours:
 Meanwhile five glyphs mix fill *into* a stroked drawing via `fill="currentColor" stroke="none"`
 inner shapes: `wifi` dot (`:111`), `kitchen` knobs (`:124–125`), `wallet` dot (`:228`).
 And `building-apartment` (`:185`) uses **zero-length paths** `M6.9 13.1h.01M6.9 16.6h.01`
-that only render because of the round linecap — they vanish entirely if a caller ever passes
+that only render because of the round linecap, they vanish entirely if a caller ever passes
 a square cap or the glyph is exported.
 
 ---
 
-#### **F5 · P0 · One stroke width for every size — no optical-size compensation**
+#### **F5 · P0 · One stroke width for every size, no optical-size compensation**
 
-`UiIcon.tsx:267` — `strokeWidth = 1.8`, a **fixed value in a 24-unit viewBox**, at every
+`UiIcon.tsx:267`: `strokeWidth = 1.8`, a **fixed value in a 24-unit viewBox**, at every
 rendered size. Effective device stroke:
 
 | Rendered `size` | Usages | Effective stroke (CSS px) |
@@ -219,7 +218,7 @@ rendered size. Effective device stroke:
 | 24 | 2 | 1.80 px |
 | 30 | 4 | 2.25 px |
 
-**73 usages render sub-1px strokes** — soft, grey, half-antialiased on any 1× or 2× display,
+**73 usages render sub-1px strokes**: soft, grey, half-antialiased on any 1× or 2× display,
 and detail-dense glyphs (`building-apartment` carries 6 window pairs + 2 dots;
 `building-hotel` carries 6) collapse into mush at 12–14 px. This is precisely what SF Symbols'
 optical-size axis exists to prevent, and it's the single biggest reason the icon set will
@@ -230,7 +229,7 @@ Across the whole app the sweep found **16 distinct stroke-width values** in inli
 
 ---
 
-### Q2 — Filled / outline / duotone variants for active vs inactive?
+### Q2, Filled / outline / duotone variants for active vs inactive?
 
 #### **F6 · P0 · There are no variants. One static shape, everywhere.**
 
@@ -239,8 +238,8 @@ Across the whole app the sweep found **16 distinct stroke-width values** in inli
 
 The tab bar's entire "active" treatment is **a 0.2 stroke-unit thickening**:
 
-- `components/app/MobileTabBar.tsx:60` — `strokeWidth={isActive ? 2 : 1.8}`
-- `components/app/DesktopDock.tsx:41` — `strokeWidth={isActive ? 2 : 1.8}`
+- `components/app/MobileTabBar.tsx:60`: `strokeWidth={isActive ? 2 : 1.8}`
+- `components/app/DesktopDock.tsx:41`: `strokeWidth={isActive ? 2 : 1.8}`
 
 At `size={22}` that is a **0.18 CSS px difference**. It is invisible. The active state is
 carried *entirely* by the brand pill behind the icon (`nf-tab-pop__pill`, `globals.css:2102`)
@@ -254,7 +253,7 @@ icon-only."* Neither exists. The mobile tab bar is icon-only in **both** states
 the reference set moved away from.
 
 The desktop rail is the same: `AppRail.tsx:72–81` changes only text colour and passes
-`size={24}` while a className simultaneously forces `h-[22px] w-[22px]` — a size prop and a
+`size={24}` while a className simultaneously forces `h-[22px] w-[22px]`: a size prop and a
 CSS override fighting each other with no active glyph change.
 
 ---
@@ -263,12 +262,12 @@ CSS override fighting each other with no active glyph change.
 
 The save heart is filled by injecting fill into the stroked outline:
 
-- `components/app/listing/ListingActions.tsx:158–161` — `className={saved ? "text-[…] [&_path]:fill-current" : undefined}`
-- `app/(app)/saved/SavedBoard.tsx:213` — `className="[&_path]:fill-current"`
-- `components/app/search/MapDock.tsx:222` — same pattern
+- `components/app/listing/ListingActions.tsx:158–161`: `className={saved ? "text-[…] [&_path]:fill-current" : undefined}`
+- `app/(app)/saved/SavedBoard.tsx:213`: `className="[&_path]:fill-current"`
+- `components/app/search/MapDock.tsx:222`: same pattern
 
 The `<svg>` still carries `stroke="currentColor" strokeWidth={1.8}` (`UiIcon.tsx:283–284`),
-so the filled heart is the outline heart **plus 0.9 units of stroke on every edge** — it is
+so the filled heart is the outline heart **plus 0.9 units of stroke on every edge**: it is
 optically **~11 % larger** than the unfilled one. Toggling save makes the icon jump size.
 A real filled variant is a *different, tighter path*, not the outline with paint poured in.
 
@@ -277,7 +276,7 @@ Additionally `MapDock.tsx:223` and `ListingActions` use different active colours
 
 ---
 
-### Q3 — Icon animation / symbol effects?
+### Q3, Icon animation / symbol effects?
 
 #### **F8 · P0 · Zero symbol effects on the functional icon set**
 
@@ -290,7 +289,7 @@ send, star, speaker, all animated"*) versus what exists:
 
 | Reference effect | Status in NaijaFinds |
 |---|---|
-| Bell rings on new notification | `nf-ring` keyframe exists at `globals.css:424` — **zero call sites pass `state="alert"`**. Verified by grep. |
+| Bell rings on new notification | `nf-ring` keyframe exists at `globals.css:424`: **zero call sites pass `state="alert"`**. Verified by grep. |
 | Refresh rotates | **No refresh glyph exists.** `app/offline/RetryButton.tsx:43` is text-only: `"Reconnecting..."`. |
 | Spinner with radial segments | **No spinner exists anywhere.** Zero hits for `spinner`, `animate-spin`, or any loading glyph. |
 | Heart pulses + fills on save | Fill toggles instantly with no transition (`ListingActions.tsx:158`). No pulse. |
@@ -304,12 +303,12 @@ only to `BrandIcon` tiles and only at 5 call sites total
 `agents/status/StatusIcon.tsx:58`, plus the ambient sheen on all).
 
 `nf-tile-sheen` (`globals.css:706–733`) is an **infinite 7 s ambient loop on every icon tile
-on the page** — the brief explicitly wants motion tied to state change, not decoration.
+on the page**: the brief explicitly wants motion tied to state change, not decoration.
 On the profile grid (`profile/page.tsx:98–101`) that is 8 tiles sweeping continuously.
 
 ---
 
-### Q4 — Inline `<svg>` blobs bypassing the icon system
+### Q4, Inline `<svg>` blobs bypassing the icon system
 
 #### **F9 · P0 · 29 inline `<svg>` blocks across 18 feature files**
 
@@ -319,7 +318,7 @@ Full offender list (excluding legitimate data-visualisation SVGs, marked ✓):
 |---|---|---|---|
 | `components/site/ThemeToggle.tsx` | 45 | sun | **missing from `UiIcon`** |
 | `components/site/ThemeToggle.tsx` | 56 | moon | **missing from `UiIcon`** |
-| `components/auth/AuthPanel.tsx` | 397–408 | chevron-down `m6 9 6 6 6-6` | **duplicate — `UiIcon` has `chevron-down` at `UiIcon.tsx:140`** |
+| `components/auth/AuthPanel.tsx` | 397–408 | chevron-down `m6 9 6 6 6-6` | **duplicate, `UiIcon` has `chevron-down` at `UiIcon.tsx:140`** |
 | `components/auth/AuthPanel.tsx` | 543–557 | eye / eye-off | **missing from `UiIcon`** |
 | `components/site/LanguageSwitcher.tsx` | 52–63 | chevron-down `m6 9 6 6 6-6` | **third copy of the same chevron** |
 | `components/app/wallet/BalanceCard.tsx` | 221–235 | eye / eye-off | **second, geometrically different eye** |
@@ -351,27 +350,26 @@ Full offender list (excluding legitimate data-visualisation SVGs, marked ✓):
 one meaning.
 
 **The eye exists twice with different geometry:**
-`AuthPanel.tsx:554` — `M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z`,
+`AuthPanel.tsx:554`: `M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z`,
 pupil `r=2.9`, `strokeWidth=1.7`, `size=18`.
-`BalanceCard.tsx:232` — `M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z`,
+`BalanceCard.tsx:232`: `M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z`,
 pupil `r=2.6`, `strokeWidth=2`, `size=16`.
 Different bbox (2.5→21.5 vs 2→22), different pupil, different weight. Same function.
 
-**Root cause:** `UiIcon` is missing the 15 most ordinary UI glyphs in existence —
-`close`, `plus`, `minus`, `check`, `chevron-up/left/right`, `menu`, `eye`, `eye-off`,
+**Root cause:** `UiIcon` is missing the 15 most ordinary UI glyphs in existence, `close`, `plus`, `minus`, `check`, `chevron-up/left/right`, `menu`, `eye`, `eye-off`,
 `sun`, `moon`, `trash`, `info`, `image`, `refresh`, `send`, `spinner`, `arrow-up`,
 `arrow-down`, `phone`, `camera`, `copy`, `download`, `external-link`, `lock`, `filter`.
 Every inline blob above is a developer routing around that gap.
 
 ---
 
-### Q5 — Emoji used as UI icons
+### Q5, Emoji used as UI icons
 
 #### **F10 · P0 · One emoji in product chrome, four in shipped copy**
 
 | File | Line | Content |
 |---|---|---|
-| `components/auth/AuthPanel.tsx` | 63 | `` `${t.auth.welcomeBack} 👋` `` — **hard-coded, not translated, on the sign-in screen** |
+| `components/auth/AuthPanel.tsx` | 63 | `` `${t.auth.welcomeBack} 👋` ``: **hard-coded, not translated, on the sign-in screen** |
 | `packages/i18n/src/locales/en.ts` | 96 | `body: "Built with love ❤️"` |
 | `packages/i18n/src/locales/ha.ts` | 95 | `body: "An gina da so ❤️"` |
 | `packages/i18n/src/locales/ig.ts` | 95 | `body: "Ewuru ya na ịhụnanya ❤️"` |
@@ -379,8 +377,8 @@ Every inline blob above is a developer routing around that gap.
 
 `AuthPanel.tsx:63` is the worst of the five: it is on the **first authenticated screen a
 user sees**, the emoji is appended in JSX rather than living in the dictionary (so it cannot
-be removed per locale), and it renders in the platform emoji font — Apple Color Emoji on
-iOS, Noto Color Emoji on Android — meaning the same screen looks materially different on
+be removed per locale), and it renders in the platform emoji font, Apple Color Emoji on
+iOS, Noto Color Emoji on Android, meaning the same screen looks materially different on
 each. That is the definition of "not designed".
 
 The `❤️` in the four locale files sits on the landing trust strip, directly beside the
@@ -397,12 +395,12 @@ hand-drawn Africa vector in `TrustIcon.tsx:46–54`.
 
 Meanwhile `AgentMobileNav.tsx:111` and `assistant/glyphs.tsx:77` draw a real stroked ×.
 **Six close affordances, three implementations, three optical sizes.** The `&times;` glyph
-inherits Inter's metrics — different weight, different x-height alignment and different
+inherits Inter's metrics, different weight, different x-height alignment and different
 optical centring from a 24-grid stroked cross. It is a text character masquerading as an icon.
 
 ---
 
-### Q6 — Tinted icon tiles vs bare monochrome glyphs
+### Q6, Tinted icon tiles vs bare monochrome glyphs
 
 #### **F12 · P1 · One universal blue-white chip, no per-icon colour tint**
 
@@ -430,28 +428,27 @@ above) because `Icon3D` has zero call sites.
 The result: the design system's own colour semantics are unreachable, and every list row
 gets the same chip.
 
-Bare monochrome glyphs in list rows also persist where tiles would be right —
-e.g. `checkout/[bookingId]/PayPanel.tsx:157`, `admin/switches/page.tsx:94`,
+Bare monochrome glyphs in list rows also persist where tiles would be right, e.g. `checkout/[bookingId]/PayPanel.tsx:157`, `admin/switches/page.tsx:94`,
 `ListingReviews.tsx:56`, `ReservePanel.tsx:312` all place a naked `UiIcon` in a text row
 with an `mt-0.5` nudge.
 
 #### **F13 · P1 · `mix-blend-mode: multiply` makes `BrandIcon` unusable off a white tile**
 
 `globals.css:302` sets `.nf-brand-icon { mix-blend-mode: multiply }`, required because all
-57 PNGs are **colour-type 2 (RGB, no alpha channel)** — they are opaque white squares, not
+57 PNGs are **colour-type 2 (RGB, no alpha channel)**: they are opaque white squares, not
 cutouts. Multiply works only against the white `.nf-icon-tile` beneath.
 
 Four call sites pass `tile={false}`, removing that white ground:
 
-- `components/site/landing/PlatformConsole.tsx:51` — `h-6 w-6` (24 px) on a sunken panel
-- `app/(app)/checkout/[bookingId]/page.tsx:229` — `h-5 w-5` (**20 px**) inside `.nf-card`
-- `app/(app)/checkout/[bookingId]/page.tsx:250` — `h-5 w-5` (**20 px**) on the page canvas
-- `app/(app)/checkout/[bookingId]/PayPanel.tsx:228` — `fill` on a card
+- `components/site/landing/PlatformConsole.tsx:51`: `h-6 w-6` (24 px) on a sunken panel
+- `app/(app)/checkout/[bookingId]/page.tsx:229`: `h-5 w-5` (**20 px**) inside `.nf-card`
+- `app/(app)/checkout/[bookingId]/page.tsx:250`: `h-5 w-5` (**20 px**) on the page canvas
+- `app/(app)/checkout/[bookingId]/PayPanel.tsx:228`: `fill` on a card
 
 On the near-black canvas (`--nf-surface-canvas: #000010`) a multiply blend against near-black
 yields near-black: **the object effectively disappears**. And a photographic ceramic 3D object
 rendered at 20 px is unreadable mush regardless of blend mode. `BrandIcon.tsx:9–11` states
-the pack "reads beautifully from about 32px up" — these ship at 20.
+the pack "reads beautifully from about 32px up", these ship at 20.
 
 #### **F14 · P1 · `BrandIcon` used for navigation, against its own documented rule**
 
@@ -466,22 +463,22 @@ Agent" row at `lg:h-8 lg:w-8` (32 px), and `ModeSwitcher.tsx:49` at `size={26}`.
 
 ---
 
-### Q7 — Brand / provider marks
+### Q7, Brand / provider marks
 
 #### **F15 · P1 · Google mark is correct geometry but sits on the wrong container**
 
-`ProviderMarks.tsx:3–24` — the four-colour Google G is drawn with correct official hexes
+`ProviderMarks.tsx:3–24`: the four-colour Google G is drawn with correct official hexes
 (`#4285F4 #34A853 #FBBC05 #EA4335`) and correct path geometry. Good.
 
 But `AuthPanel.tsx:52` renders it inside `.nf-auth-row__mark`, which is
-`background: var(--nf-glass-fill)` (`globals.css:1513`) — **a translucent dark-blue glass
+`background: var(--nf-glass-fill)` (`globals.css:1513`), **a translucent dark-blue glass
 chip**. Google's Sign-In branding guidelines require the G on a **white or neutral-light
 square**, not a tinted translucent surface. On the dark theme the multicoloured G sits on
 navy glass; on light it sits on `--nf-surface-inset`. Neither is the sanctioned lockup.
 
 #### **F16 · P1 · Apple mark is `currentColor`, not a compliant Sign in with Apple button**
 
-`ProviderMarks.tsx:26–32` — `fill="currentColor"`, so the Apple logo takes
+`ProviderMarks.tsx:26–32`: `fill="currentColor"`, so the Apple logo takes
 `--nf-content-primary`. Correct geometry (it matches the official mark), but:
 
 - Apple's *Sign in with Apple* HIG mandates one of three button styles (black / white /
@@ -494,7 +491,7 @@ navy glass; on light it sits on `--nf-surface-inset`. Neither is the sanctioned 
 
 The product takes card payments through Paystack (`PayPanel.tsx`, `WalletDeck.tsx`,
 `api/paystack/webhook/route.ts`). Grep for `visa|mastercard|verve|paystack` in `.tsx`
-returns **no rendered mark anywhere** — the "Pay by card" option
+returns **no rendered mark anywhere**: the "Pay by card" option
 (`PayPanel.tsx:165–170`) is illustrated with the generic `BrandIcon name="card-lock"`
 photograph. The reference set (§1) explicitly calls out brand marks *"rendered at correct
 colour … rather than greyed-out generic shapes"*. Nigerian users expect to see Verve
@@ -512,13 +509,13 @@ supplied as an asset, not a re-drawn logo on a custom blue tile. Redrawing the m
 putting it on a `#0A84FF` gradient chip is a trademark-usage problem as much as a design one.
 
 `TrustIcon.tsx:104–119` also hard-codes a non-instance-unique gradient id
-(`id="nf-africa-fill"`) — the exact bug `Icon3D.tsx:109–117` documents at length and solves
+(`id="nf-africa-fill"`), the exact bug `Icon3D.tsx:109–117` documents at length and solves
 with `useId()`. If two `africa` tiles ever mount, or one mounts inside a `display:none`
 subtree, the fill silently blanks.
 
 ---
 
-### Q8 — Icon sizing scale
+### Q8, Icon sizing scale
 
 #### **F19 · P0 · No size scale exists. 23 distinct magic numbers in use.**
 
@@ -555,25 +552,25 @@ prop and the class contradict each other; the class wins; the prop is noise.
 
 ---
 
-### Q9 — Accessibility
+### Q9, Accessibility
 
 #### **F21 · P2 · The `label` API exists on every icon component and is used zero times**
 
-- `UiIcon.tsx:288–290` — correct pattern: `role="img"` + `aria-label` when `label` is passed,
+- `UiIcon.tsx:288–290`: correct pattern: `role="img"` + `aria-label` when `label` is passed,
   `aria-hidden="true"` otherwise.
-- `Icon3D.tsx:130–132`, `Icon.tsx:74`, `BrandIcon.tsx:110` — same contract.
+- `Icon3D.tsx:130–132`, `Icon.tsx:74`, `BrandIcon.tsx:110`: same contract.
 
 Grep for `<UiIcon … label=` → **0**. Grep for `<BrandIcon … label=` → **0**.
 Across 276 icon instances, **not one is ever given an accessible name.** Every icon in the
 product is decorative-by-default.
 
-This is *safe* — icon-only buttons are correctly labelled on the button
+This is *safe*, icon-only buttons are correctly labelled on the button
 (a programmatic scan of all `<button>` blocks containing an icon and no visible text found
 **0 unlabelled cases**; `MobileTabBar.tsx:47`, `ListingActions.tsx:151`, `SavedBoard.tsx:210`
 etc. all carry `aria-label`). But it means:
 
 - The `label` prop is dead API surface that will rot.
-- Status-bearing icons that are *not* in a button announce nothing — e.g. the verified
+- Status-bearing icons that are *not* in a button announce nothing, e.g. the verified
   shield at `ReservePanel.tsx:312` and `MapCanvas.tsx:602` conveys "verified listing" purely
   visually.
 
@@ -584,26 +581,26 @@ etc. all carry `aria-label`). But it means:
 
 Both are the decorative skyline placeholder. Screen readers announce an unnamed graphic.
 (Their three siblings at `ListingGallery.tsx:43`, `ListingCard.tsx:176`, `MapDock.tsx:141`
-do carry it — the same shape, inconsistently marked up, in the same product.)
+do carry it, the same shape, inconsistently marked up, in the same product.)
 
 #### **F23 · P2 · `DonutChart` labels a chart with `role="img"` but the arcs carry no data**
 
-`components/agent/charts/DonutChart.tsx:36` — `role="img" aria-label={centerLabel: centerValue}`
+`components/agent/charts/DonutChart.tsx:36`: `role="img" aria-label={centerLabel: centerValue}`
 announces only the centre figure, not the segment breakdown. Minor; flagged for completeness.
 
 ---
 
-### Q10 — App icon, favicon, maskable, splash
+### Q10, App icon, favicon, maskable, splash
 
 #### **F24 · P0 · There is no favicon**
 
 No `favicon.ico`, no `app/icon.tsx`, no `app/icon.png`, no `app/apple-icon.tsx`
 anywhere in the repo (verified by `find` for `favicon*|icon.*|apple-icon*` outside
-`node_modules`/`.next` — the only hit is `src/app/manifest.ts`).
+`node_modules`/`.next`: the only hit is `src/app/manifest.ts`).
 
 `layout.tsx:88–94` declares `icons.icon` pointing at `/pwa/icon-192.png` and
 `/pwa/icon-512.png`. **Neither is a favicon size.** Browsers will downscale a 192 px PNG
-to 16×16 for the tab — a detailed brand mark scaled 12:1 by the browser's own bilinear
+to 16×16 for the tab, a detailed brand mark scaled 12:1 by the browser's own bilinear
 filter. There is no 16/32/48 px artwork, no `.ico`, and no SVG favicon.
 
 #### **F25 · P1 · All PWA icons are indexed-palette PNGs**
@@ -616,14 +613,14 @@ pwa/apple-touch-icon.png  180×180  colour-type 3                             6 
 
 The brand mark is a gradient-heavy blue blob (`brand/rentme-logo.png` is 910×857 RGBA,
 710 KB). Quantising that to a ≤256-colour palette at 512 px produces **visible banding in
-the gradient** — on the Android launcher, the iOS home screen, and the PWA splash. A 512 px
+the gradient**: on the Android launcher, the iOS home screen, and the PWA splash. A 512 px
 app icon should be 24-bit RGBA; the 7 KB saving is not worth it.
 
 #### **F26 · P1 · No iOS splash screens**
 
 Zero `apple-touch-startup-image` links, and no splash artwork in `public/`.
 `layout.tsx:80–87` sets `appleWebApp.capable` + `statusBarStyle: "black-translucent"`, so
-an installed iOS PWA launches standalone — into an unbranded flash. Android is covered by
+an installed iOS PWA launches standalone, into an unbranded flash. Android is covered by
 `manifest.ts:36–37` (`background_color`/`theme_color` `#010118`); iOS is not.
 
 Reference §8 requires *"Real app icon, splash, PWA manifest, maskable icons"* and
@@ -640,7 +637,7 @@ without a card image. Adjacent to icon work; same asset pipeline.
   shortcuts with icons, `id`, `scope`, `lang: "en-NG"`, `dir`. The maskable comment at
   `:53–54` shows the 80 % safe zone was actually considered.
 - `layout.tsx:85–87` correctly emits `apple-mobile-web-app-capable` via `other` because
-  Next renders the standards name — a real, non-obvious bug that was already handled.
+  Next renders the standards name, a real, non-obvious bug that was already handled.
 - `viewport.themeColor` matches `manifest.background_color` matches
   `--nf-ink-950`. Three-way consistency.
 
@@ -652,7 +649,7 @@ Ordered by impact. Each is implementable as written.
 
 ---
 
-### R1 — Rebuild `UiIcon` as a variant-aware, optically-sized primitive
+### R1, Rebuild `UiIcon` as a variant-aware, optically-sized primitive
 
 Replace the flat `Record<UiIconName, ReactNode>` with a registry that carries an outline
 path, a filled path, and an optional duotone secondary layer per glyph.
@@ -662,7 +659,7 @@ path, a filled path, and an optional duotone secondary layer per glyph.
 export type GlyphDef = {
   /** Stroked construction, drawn on the 24 grid inside a 17×17 optical square. */
   outline: React.ReactNode;
-  /** Solid silhouette. A DIFFERENT, tighter path — never `outline` with fill added. */
+  /** Solid silhouette. A DIFFERENT, tighter path, never `outline` with fill added. */
   solid?: React.ReactNode;
   /** Optional secondary layer painted at 0.35 alpha for the duotone variant. */
   duo?: React.ReactNode;
@@ -701,7 +698,7 @@ map, verified`.
 
 ---
 
-### R2 — Add a size scale, delete 23 magic numbers
+### R2, Add a size scale, delete 23 magic numbers
 
 ```css
 /* packages/design-tokens/src/tokens.css */
@@ -725,11 +722,11 @@ numeric literal inside `UiIcon`/`BrandIcon`) so numbers cannot come back. Codemo
 existing 166 call sites: 11/12/13 → `"2xs"`, 14/15 → `"xs"`, 16/17 → `"sm"`,
 18/19/20 → `"md"`, 22/24/26 → `"lg"`, 30+ → `"xl"`.
 
-Remove the `size` + `className` contradiction at `AppRail.tsx:72–79` — pass `size="lg"` only.
+Remove the `size` + `className` contradiction at `AppRail.tsx:72–79`: pass `size="lg"` only.
 
 ---
 
-### R3 — Build the animated icon primitive the reference set headlines
+### R3, Build the animated icon primitive the reference set headlines
 
 Add a `symbolEffect` prop driven by CSS keyframes on an SVG-level class, gated on both
 `prefers-reduced-motion` and the app's own `data-reduce-motion` root flag
@@ -783,14 +780,14 @@ inside one `<svg>` rather than swapping elements, so there is no layout tick:
 
 | Surface | File:line | Effect |
 |---|---|---|
-| Mobile tab bar | `components/app/MobileTabBar.tsx:60` | `variant={isActive ? "solid" : "outline"}` + `symbolEffect="replace"` — replaces the invisible `strokeWidth ? 2 : 1.8` |
+| Mobile tab bar | `components/app/MobileTabBar.tsx:60` | `variant={isActive ? "solid" : "outline"}` + `symbolEffect="replace"`: replaces the invisible `strokeWidth ? 2 : 1.8` |
 | Desktop dock | `components/app/DesktopDock.tsx:41` | same |
-| Save heart | `ListingActions.tsx:158`, `SavedBoard.tsx:213`, `MapDock.tsx:222` | `variant={saved ? "solid" : "outline"} symbolEffect="pulse"` — **delete the `[&_path]:fill-current` hack**, which is what makes the icon change size |
+| Save heart | `ListingActions.tsx:158`, `SavedBoard.tsx:213`, `MapDock.tsx:222` | `variant={saved ? "solid" : "outline"} symbolEffect="pulse"`: **delete the `[&_path]:fill-current` hack**, which is what makes the icon change size |
 | Notification bell | `DesktopDock.tsx:21` (`icon: "bell"`), `NotificationsList.tsx` | `symbolEffect="wiggle"` gated on unread count > 0 |
 | Refresh / retry | `app/offline/RetryButton.tsx:39–43` | add a `refresh` glyph, `symbolEffect="rotate"` while `retrying` |
 
 **Add a real spinner** (currently none exists in the product): a 24-grid ring of 8 tapered
-radial segments with staggered `opacity` keyframes — the reference's "spinner has real radial
+radial segments with staggered `opacity` keyframes, the reference's "spinner has real radial
 segments", not a rotating `border-top`.
 
 **Delete or gate `nf-tile-sheen`** (`globals.css:706–733`). An infinite 7 s ambient sweep on
@@ -799,7 +796,7 @@ opt-in `shimmer` prop for hero tiles only.
 
 ---
 
-### R4 — Close the 26-glyph gap, then delete every inline blob
+### R4, Close the 26-glyph gap, then delete every inline blob
 
 Add to `UiIcon` and migrate the offenders in §F9 in the same commit:
 
@@ -814,7 +811,7 @@ Migration map:
 | `ThemeToggle.tsx:45,56` | `<UiIcon name="sun"/>` / `"moon"` |
 | `AuthPanel.tsx:397–408` | `<UiIcon name="chevron-down"/>` |
 | `LanguageSwitcher.tsx:52–63` | `<UiIcon name="chevron-down"/>` |
-| `AuthPanel.tsx:543–557`, `BalanceCard.tsx:221–235` | `<UiIcon name={off ? "eye-off" : "eye"}/>` — **one geometry, not two** |
+| `AuthPanel.tsx:543–557`, `BalanceCard.tsx:221–235` | `<UiIcon name={off ? "eye-off" : "eye"}/>`: **one geometry, not two** |
 | `MessageThread.tsx:138–151`, `ThreadView.tsx:379–392` | `<UiIcon name="info"/>` |
 | `MessageThread.tsx:277–291`, `ThreadView.tsx:592–606` | `<UiIcon name="image"/>` |
 | `AgentMobileNav.tsx:66–68` | `<UiIcon name="menu"/>` |
@@ -845,17 +842,17 @@ with an override allowlist for `design-system/icons/**` and `**/charts/**`.
 
 ---
 
-### R5 — Kill the emoji and the emoji-adjacent
+### R5, Kill the emoji and the emoji-adjacent
 
-- `components/auth/AuthPanel.tsx:63` — delete ` 👋`. If a warm greeting is wanted, it belongs
+- `components/auth/AuthPanel.tsx:63`: delete ` 👋`. If a warm greeting is wanted, it belongs
   in the dictionary as words, not as a platform-rendered colour glyph on the sign-in screen.
-- `packages/i18n/src/locales/{en,ha,ig,yo}.ts:95–96` — replace ` ❤️` with a
+- `packages/i18n/src/locales/{en,ha,ig,yo}.ts:95–96`: replace ` ❤️` with a
   `<UiIcon name="heart" variant="solid" size="xs"/>` rendered by the component, so it takes
   the brand colour and the icon grid instead of Apple Color Emoji.
 
 ---
 
-### R6 — Fix the `BrandIcon` asset pipeline
+### R6, Fix the `BrandIcon` asset pipeline
 
 Three defects, one root cause (the pack was auto-cropped and exported without alpha):
 
@@ -868,17 +865,17 @@ Three defects, one root cause (the pack was auto-cropped and exported without al
 3. **Enforce the minimum size in the component.** `BrandIcon.tsx` should warn (dev) or clamp
    when `size < 32`, and the four `tile={false}` call sites at 20–28 px
    (`PlatformConsole.tsx:51`, `checkout/page.tsx:229,250`, `PayPanel.tsx:228`) should switch
-   to `UiIcon` — a photograph at 20 px is never the right instrument.
+   to `UiIcon`: a photograph at 20 px is never the right instrument.
 4. **Stop using it for navigation.** `AgentNav.tsx:93`, `AppRail.tsx:119`,
    `ModeSwitcher.tsx:49` → `UiIcon` with `variant="solid"` on active, per the component's own
    documented rule at `BrandIcon.tsx:12–13`.
 
-Ship AVIF/WebP alongside — 3.11 MB of PNG for one icon family is heavy for the stated
+Ship AVIF/WebP alongside, 3.11 MB of PNG for one icon family is heavy for the stated
 "mid-range Android on a metered data bundle" audience (`manifest.ts:11–13`).
 
 ---
 
-### R7 — Revive the semantic tint, or delete the dead system
+### R7, Revive the semantic tint, or delete the dead system
 
 The `iconRamp` machinery (`packages/design-tokens/src/index.ts:100–115`) is exactly the
 "low-opacity tint of the icon's own colour" the brief asks for, and it is unreachable.
@@ -901,7 +898,7 @@ Add a `tone` prop to the tile and drive the chip from a CSS custom property:
 }
 ```
 
-Map the tones from the existing `defaultRamp` table in `Icon3D.tsx:49–91` — that work is
+Map the tones from the existing `defaultRamp` table in `Icon3D.tsx:49–91`: that work is
 already done, it just needs to move onto the live component. Wire it into
 `SettingsGroups.tsx:519` (`GroupCard`), `NotificationsList.tsx:143`, `profile/page.tsx:100`,
 `WalletActions.tsx:91`.
@@ -912,11 +909,11 @@ from `sw.js:63`.
 
 ---
 
-### R8 — Provider and payment marks
+### R8, Provider and payment marks
 
 - **Google**: give `.nf-auth-row__mark` a `--mark-ground` override so the Google row renders
   the G on `#FFFFFF` in both themes, per Google's Sign-In branding guidelines.
-- **Apple**: build a dedicated `SignInWithAppleButton` matching the HIG — black fill in dark
+- **Apple**: build a dedicated `SignInWithAppleButton` matching the HIG, black fill in dark
   theme / white with 1px `#000` outline in light, corner radius per spec, logo height at
   ~43 % of button height, minimum clear space. This is App Store review surface, not taste.
 - **Payments**: add `VisaMark`, `MastercardMark`, `VerveMark` and a `PaystackLockup` to
@@ -928,7 +925,7 @@ from `sw.js:63`.
 
 ---
 
-### R9 — Ship a real app-icon set
+### R9, Ship a real app-icon set
 
 ```
 app/icon.svg                 →  vector favicon, scales to any tab size
@@ -959,7 +956,7 @@ and is worth the ~40 KB.
 
 ---
 
-### R10 — Make icons announce when they carry meaning
+### R10, Make icons announce when they carry meaning
 
 `UiIcon`'s `aria` contract (`UiIcon.tsx:288–290`) is correct and should stay. But:
 
@@ -969,7 +966,7 @@ and is worth the ~40 KB.
   the trend arrows at `StatCard.tsx:58`.
 - Add `aria-hidden="true"` to `ListingOptionsSheet.tsx:99` and `ThreadOptionsSheet.tsx:117`
   (resolved for free by R4's shared `ListingPlaceholder`).
-- Keep the current default (`aria-hidden` when unlabelled) — it is the right call and it is
+- Keep the current default (`aria-hidden` when unlabelled), it is the right call and it is
   why the programmatic scan found zero unlabelled icon-only buttons.
 
 ---
@@ -993,7 +990,7 @@ and is worth the ~40 KB.
 | F13 | P1 | `mix-blend-mode: multiply` + alpha-less PNGs → `tile={false}` icons vanish on dark; two render at 20 px |
 | F14 | P1 | `BrandIcon` used as nav glyph at 3 sites, against its own documented rule (`BrandIcon.tsx:12`) |
 | F15 | P1 | Google mark on a translucent glass chip, not the sanctioned white ground |
-| F16 | P1 | Apple mark is not a compliant Sign in with Apple button — App Store review risk |
+| F16 | P1 | Apple mark is not a compliant Sign in with Apple button, App Store review risk |
 | F17 | P1 | No Visa / Mastercard / Verve / Paystack marks anywhere in checkout |
 | F18 | P2 | Store badges redrawn rather than official assets; `TrustIcon` has a non-unique gradient id |
 | F19 | **P0** | No size scale; 23 magic numbers, `UiIcon` alone at 14 sizes; 4 different component defaults |
@@ -1005,7 +1002,7 @@ and is worth the ~40 KB.
 | F25 | P1 | All PWA icons are indexed-palette → gradient banding on launcher and splash |
 | F26 | P1 | No iOS splash screens; installed PWA flashes unbranded |
 | F27 | P2 | No `opengraph-image` |
-| — | — | **Dead code**: `Icon.tsx` + `Icon3D.tsx` + `glyphs.ts` (23.5 KB, 0 imports), `globals.css:2864–2880`, `public/icons/` (31 files, 1.32 MB, 0 references, still precached by `sw.js:63`) |
+| none | none | **Dead code**: `Icon.tsx` + `Icon3D.tsx` + `glyphs.ts` (23.5 KB, 0 imports), `globals.css:2864–2880`, `public/icons/` (31 files, 1.32 MB, 0 references, still precached by `sw.js:63`) |
 
 **Total: 27 findings + 1 dead-code cluster. 9 P0, 12 P1, 7 P2.**
 
@@ -1015,18 +1012,18 @@ and is worth the ~40 KB.
 
 Stated so the recommendations are read as calibrated, not reflexive.
 
-- `Icon3D.tsx:109–117` — the per-instance `useId()` gradient-id fix, with a comment
+- `Icon3D.tsx:109–117`: the per-instance `useId()` gradient-id fix, with a comment
   explaining the `display:none` failure mode. That is senior work. (It should be ported to
   `TrustIcon`, which still has the bug.)
-- `BrandIcon.tsx:123–137` — the percentage-padding-resolves-against-the-containing-block
+- `BrandIcon.tsx:123–137`: the percentage-padding-resolves-against-the-containing-block
   explanation and the pixel-derived fix. A real, subtle bug, diagnosed and documented.
-- `manifest.ts` — well-formed, with `any`/`maskable` correctly separated and the 80 % safe
+- `manifest.ts`: well-formed, with `any`/`maskable` correctly separated and the 80 % safe
   zone actually considered (`:53–54`).
-- `layout.tsx:85–87` — correctly works around Next emitting `mobile-web-app-capable` instead
+- `layout.tsx:85–87`: correctly works around Next emitting `mobile-web-app-capable` instead
   of the apple-prefixed tag.
 - Every icon animation that exists is `prefers-reduced-motion` gated
   (`globals.css:403`, `448`, `919`, `2126`), and the product ships its own in-app reduce-motion
   setting on top.
-- Zero unlabelled icon-only buttons across the whole app — verified programmatically.
+- Zero unlabelled icon-only buttons across the whole app, verified programmatically.
 - Zero third-party icon libraries. No lucide, no heroicons, no react-icons. The set is
-  authored, which is the right foundation — it just needs the discipline applied to it.
+  authored, which is the right foundation, it just needs the discipline applied to it.

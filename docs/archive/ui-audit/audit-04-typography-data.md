@@ -1,4 +1,4 @@
-# Audit 04 — Type system, numerals, metrics, charts, data presentation
+# Audit 04, Type system, numerals, metrics, charts, data presentation
 
 > **SUPERSEDED 2026-08-09. Not a backlog, and every count in it needs re-measuring.**
 > This audit grades the codebase against `00-reference-brief.md`, which is retired
@@ -13,7 +13,7 @@ Yardstick: `PREMIUM_REFERENCE_BRIEF.md` §4.
 
 Verdict up front: **the platform has the *vocabulary* of a premium type system and almost
 none of the *grammar*.** There is a token scale, a `.nf-numeric` tabular class, an
-`.nf-hero-figure` two-tone primitive and an odometer — and then 768 hard-coded
+`.nf-hero-figure` two-tone primitive and an odometer, and then 768 hard-coded
 `text-[x.xxxrem]` literals, one single use of the two-tone primitive, a wallet ledger that
 isn't tabular, four charts total (three of which a real user never sees), and zero
 mixed-emphasis prose. The scale exists as documentation, not as a constraint.
@@ -27,8 +27,8 @@ mixed-emphasis prose. The scale exists as documentation, not as a constraint.
 `apps/web/src/app/layout.tsx:17-33`
 
 ```
-Inter   — next/font/google, subsets ["latin","latin-ext"], variable axis, display:"swap"
-Poppins — next/font/google, subsets ["latin","latin-ext"], weight ["500","600","700","800"], display:"swap"
+Inter, next/font/google, subsets ["latin","latin-ext"], variable axis, display:"swap"
+Poppins, next/font/google, subsets ["latin","latin-ext"], weight ["500","600","700","800"], display:"swap"
 ```
 
 Both are self-hosted by `next/font` (no external CDN, no render-blocking `<link>`),
@@ -47,7 +47,7 @@ decision and is the single best piece of type engineering in the repo.
 
 ### 1.2 The token scale
 
-`packages/design-tokens/src/tokens.css:245-260` — eleven size tokens
+`packages/design-tokens/src/tokens.css:245-260`: eleven size tokens
 (`display, hero, h1, h2, h3, h4, body-lg, body, body-sm, caption, overline`) plus four
 tracking tokens.
 
@@ -72,14 +72,13 @@ Usage counts: `nf-h1` 29, `nf-h2` 18, `nf-h3` 54, `nf-overline` 50, `nf-label` 2
 
 ### 1.4 Money
 
-- `packages/i18n/src/index.ts:48-61` `formatMoney(minorUnits, locale, currency, {compact})`
-  — integer kobo in, `Intl.NumberFormat` `style:"currency"`, `maximumFractionDigits:0`.
+- `packages/i18n/src/index.ts:48-61` `formatMoney(minorUnits, locale, currency, {compact})`: integer kobo in, `Intl.NumberFormat` `style:"currency"`, `maximumFractionDigits:0`.
   Correct, single-source, no floats. Locale tags `en-NG / yo-NG / ha-NG / ig-NG`
   (`index.ts:35-40`), all three resolve in Node ICU 78.
-- `apps/web/src/components/app/wallet/money.ts:12-20` `formatKoboExact` — integer split,
+- `apps/web/src/components/app/wallet/money.ts:12-20` `formatKoboExact`: integer split,
   returns `{whole, kobo}`. Genuinely correct kobo handling.
-- `apps/web/src/lib/payments/money.ts:13-18` `nairaExact` — server-copy twin.
-- `apps/web/src/lib/wallet/actions.ts:87-91` — a **third** copy of the same function.
+- `apps/web/src/lib/payments/money.ts:13-18` `nairaExact`: server-copy twin.
+- `apps/web/src/lib/wallet/actions.ts:87-91`: a **third** copy of the same function.
 
 ### 1.5 Charts
 
@@ -94,10 +93,10 @@ Four, all hand-rolled SVG, no library:
 
 ### 1.6 Metric hierarchy that does work
 
-- `app/admin/page.tsx:73-94` — icon+uppercase label → `text-[2rem]` value → muted lede. Correct three-part shape.
-- `components/agent/StatCard.tsx:47-71` — muted 12px label → 20/22px value → coloured signed delta + muted "vs last month".
-- `app/agent/earnings/EarningsWorkspace.tsx:26-47` `Tile` — icon → muted label → bold value.
-- `components/app/wallet/BalanceCard.tsx:132-171` — the only real two-tone numeral (see §2.1).
+- `app/admin/page.tsx:73-94`: icon+uppercase label → `text-[2rem]` value → muted lede. Correct three-part shape.
+- `components/agent/StatCard.tsx:47-71`: muted 12px label → 20/22px value → coloured signed delta + muted "vs last month".
+- `app/agent/earnings/EarningsWorkspace.tsx:26-47` `Tile`: icon → muted label → bold value.
+- `components/app/wallet/BalanceCard.tsx:132-171`: the only real two-tone numeral (see §2.1).
 
 ### 1.7 Section headers with trailing action
 
@@ -108,7 +107,7 @@ Four, all hand-rolled SVG, no library:
 
 ## 2. GAPS VS THE REFERENCE STANDARD
 
-### 2.1 Two-tone display numerals — essentially absent · **P0**
+### 2.1 Two-tone display numerals, essentially absent · **P0**
 
 The reference calls this "one of the strongest premium tells in the whole reference set."
 Across the entire platform there is **exactly one** two-tone numeral:
@@ -132,45 +131,45 @@ numeric fragment:
 
 | location | rendered | what the reference wants |
 |---|---|---|
-| `globals.css:1767-1783` `.nf-hero-figure` | primitive exists | — |
+| `globals.css:1767-1783` `.nf-hero-figure` | primitive exists | none |
 | `(app)/checkout/[bookingId]/page.tsx:178-181` | `₦190,000` + `in full` | its ONLY use, and the "unit" is prose |
 | `(app)/listing/[id]/page.tsx:326-332` | `₦90,000,000` @ **1.5rem** + `per year` | this is the hero price of a property page. 24px. |
-| `(app)/listing/[id]/ReservePanel.tsx:193-195` | 1.5rem flat | — |
-| `(app)/listing/[id]/RentalPanel.tsx:38-41` | 1.5rem flat | — |
+| `(app)/listing/[id]/ReservePanel.tsx:193-195` | 1.5rem flat | none |
+| `(app)/listing/[id]/RentalPanel.tsx:38-41` | 1.5rem flat | none |
 | `components/app/ListingCard.tsx:271-281` | `₦25,000` 19px + `/ night` 12px muted | value+word, currency+grouping all one weight |
-| `components/app/bookings/BookingsTabs.tsx:82-87` | `₦190,000` + `total` | — |
-| `components/agent/StatCard.tsx:50-52` | `value: string` prop — **cannot** two-tone | `85%` renders `%` at full weight |
+| `components/app/bookings/BookingsTabs.tsx:82-87` | `₦190,000` + `total` | none |
+| `components/agent/StatCard.tsx:50-52` | `value: string` prop, **cannot** two-tone | `85%` renders `%` at full weight |
 | `app/agent/dashboard/page.tsx:108,115` | `` `${d.occupancyPct}%` `` | `%` should be muted |
 | `app/agent/dashboard/page.tsx:249` | `{l.occupancyPct}%` | same |
 | `(app)/checkout/[bookingId]/HoldCountdown.tsx:78` | `{left.h}h {pad(m)}m {pad(s)}s` | `h/m/s` at full weight and full size. This is the literal "/8hrs" case. |
 | `components/site/landing/PlatformConsole.tsx:15-19,53` | `"36 + FCT"`, `"24/7"`, `"17+"` as single strings | `36`/`24`/`17` big, `+ FCT` / `/7` / `+` muted |
-| `components/site/landing/NumbersBand.tsx:31-33` | `Odometer suffix="/7"` | `Odometer.tsx:94` renders suffix in a bare `<span>` — same size, same colour |
-| `components/agent/charts/DonutChart.tsx:69-71` | `{count} ({pct}%)` | muted but same size — half-right |
+| `components/site/landing/NumbersBand.tsx:31-33` | `Odometer suffix="/7"` | `Odometer.tsx:94` renders suffix in a bare `<span>`: same size, same colour |
+| `components/agent/charts/DonutChart.tsx:69-71` | `{count} ({pct}%)` | muted but same size, half-right |
 | `components/app/listing/ListingReviews.tsx:45-52` | `4.8` 22px + `1,204 reviews` 14px | the `.8` should be the muted part |
 
 **`Odometer` cannot two-tone at all**: `components/site/Odometer.tsx:94` emits
 `{suffix && <span>{suffix}</span>}` with no class hook.
 
-### 2.2 Tabular figures — the one ledger on the platform is not tabular · **P0**
+### 2.2 Tabular figures, the one ledger on the platform is not tabular · **P0**
 
 `.nf-numeric` (`globals.css:107-112`) is applied 103 times, but the highest-value column
 of digits in the product misses it:
 
-- **`components/app/wallet/TransactionsSection.tsx:182-189`** — the right-aligned amount
+- **`components/app/wallet/TransactionsSection.tsx:182-189`**: the right-aligned amount
   column of the wallet ledger. `+₦50,000.00 / -₦8,500.00` stacked in a divided list.
   No `nf-numeric`. Digits will visibly jitter row to row. This is the single worst
   offender in the codebase.
-- `components/app/wallet/BalanceCard.tsx:181,189` — "In / Out, last 30 days" pair. Two
+- `components/app/wallet/BalanceCard.tsx:181,189`: "In / Out, last 30 days" pair. Two
   numbers side by side in a 2-col grid, no `nf-numeric`.
-- `components/app/wallet/BalanceCard.tsx:156-168` — the hero balance spans themselves.
-- `components/app/wallet/WalletActions.tsx:246-254` — the amount `<input>` has
+- `components/app/wallet/BalanceCard.tsx:156-168`: the hero balance spans themselves.
+- `components/app/wallet/WalletActions.tsx:246-254`: the amount `<input>` has
   `className="nf-field"` only, while `components/app/filters/FilterDrawer.tsx:383,403`
   correctly uses `nf-field nf-numeric`. Inconsistent.
-- `app/agent/earnings/EarningsWorkspace.tsx:116` — `{t.monthGross} {formatMoney(...)}` in
+- `app/agent/earnings/EarningsWorkspace.tsx:116`: `{t.monthGross} {formatMoney(...)}` in
   the phone card, no `nf-numeric`.
-- `(app)/listing/[id]/ReservePanel.tsx:267` — `₦25,000 × 3 nights` line, no `nf-numeric`.
+- `(app)/listing/[id]/ReservePanel.tsx:267`: `₦25,000 × 3 nights` line, no `nf-numeric`.
 - `(app)/search/page.tsx:281,348`, `components/app/filters/FilterDrawer.tsx:347`,
-  `(app)/listing/[id]/page.tsx:290` — result counts, no `nf-numeric`.
+  `(app)/listing/[id]/page.tsx:290`: result counts, no `nf-numeric`.
 
 **Tables** (only two exist, both agent-side) *are* tabular:
 `app/agent/dashboard/page.tsx:247-252`, `app/agent/earnings/EarningsWorkspace.tsx:137-141`.
@@ -187,7 +186,7 @@ Consequence: any `tracking-*` utility on an `.nf-numeric` element is **dead code
 ```
 An application reference ID deliberately asks for **+0.04em** and silently renders at
 **−0.02em**. IDs need positive tracking; this is backwards. The file's own comment at
-`globals.css:129-136` proves the authors understand the layering rule — `.nf-numeric` just
+`globals.css:129-136` proves the authors understand the layering rule, `.nf-numeric` just
 never got moved.
 
 Secondary: `.nf-numeric`'s blanket `letter-spacing:-0.02em` is applied to 10-11px
@@ -196,7 +195,7 @@ timestamps and badges (`components/app/messages/MessageThread.tsx:192,219` at
 tracking on 10px digits reduces legibility. Tracking should scale with size, not be one
 constant welded to the tabular class.
 
-### 2.3 Type scale — a scale exists, the product ignores it · **P0**
+### 2.3 Type scale, a scale exists, the product ignores it · **P0**
 
 Measured across `apps/web/src` `.tsx`:
 
@@ -207,7 +206,7 @@ Measured across `apps/web/src` `.tsx`:
 
 Top literals: `0.8125rem` ×236, `0.75rem` ×140, `0.875rem` ×121, `0.9375rem` ×88,
 `0.6875rem` ×34. Note `0.8125rem` **is** `--nf-text-caption` and `0.875rem` **is**
-`--nf-text-body` — the tokens are being retyped as magic numbers 357 times.
+`--nf-text-body`: the tokens are being retyped as magic numbers 357 times.
 
 Off-scale one-offs that exist nowhere in the token file:
 `0.78rem` ×14, `0.9rem` ×11, `0.9063rem` ×8, `0.8438rem` ×5, `0.72rem` ×5, `0.7rem` ×7,
@@ -215,7 +214,7 @@ Off-scale one-offs that exist nowhere in the token file:
 `1.7rem`, `1.8rem`, `2.1rem`, `2.6rem` ×2.
 
 Dead tokens (defined, never referenced anywhere): `--nf-text-hero`, `--nf-text-h4`,
-`--nf-text-body-sm` (which is byte-identical to `--nf-text-body` — `tokens.css:252-253`),
+`--nf-text-body-sm` (which is byte-identical to `--nf-text-body`: `tokens.css:252-253`),
 `--nf-tracking-normal`, `--nf-font-numeric` (0 usages).
 
 **No role carries a full recipe.** Only `display/h1/h2/h3/overline` bundle
@@ -230,7 +229,7 @@ with ad-hoc `tracking-tight` utilities that `.nf-numeric` then overrides (§2.2)
 2.25/2.6rem wallet balance gets `tracking-tight` = −0.025em rather than a display-grade
 −0.03em/−0.035em.
 
-### 2.4 Metric hierarchy — right shape, wrong magnitude · **P1**
+### 2.4 Metric hierarchy, right shape, wrong magnitude · **P1**
 
 The three-part shape is followed in `admin/page.tsx`, `StatCard.tsx`, `EarningsWorkspace`
 `Tile` and `PlatformConsole`. What is missing is **scale contrast**:
@@ -250,11 +249,11 @@ that reaches reference proportion is the admin overview tile.
 Also: `StatCard`'s `value: string` signature (`StatCard.tsx:31`) structurally prevents ever
 two-toning the unit. Any fix must change the prop shape.
 
-### 2.5 Mixed-emphasis paragraphs — zero · **P1**
+### 2.5 Mixed-emphasis paragraphs, zero · **P1**
 
 `<strong>` / `<b>` / `<em>` appear **13 times in the whole app**, all in
 `app/(site)/privacy/page.tsx:49-137`, and all as a bolded lead-in noun ("**Account data.**
-Your name, …") — the inverse of the pollen-advisory pattern, which bolds the *actionable
+Your name, …"), the inverse of the pollen-advisory pattern, which bolds the *actionable
 clause* mid-sentence and greys the connective words.
 
 Every advisory string in the product is a flat single-colour paragraph. Representative:
@@ -266,33 +265,33 @@ Every advisory string in the product is a flat single-colour paragraph. Represen
 The reference's tinted "Insights" card with a lightning icon and one emphasised sentence
 has no analogue anywhere.
 
-### 2.6 Fonts — payload waste and one real risk · **P1**
+### 2.6 Fonts, payload waste and one real risk · **P1**
 
 1. **Poppins ships two unused weights.** `layout.tsx:30` requests `["500","600","700","800"]`.
    Actual usage across the codebase: `600` (`.nf-h2`, `.nf-h3`) and `700`
    (`.nf-display`, `.nf-h1`, and `font-bold` at `NumbersBand.tsx:31` /
    `app/page.tsx:220`). **500 and 800 are never rendered.** With `subsets:["latin","latin-ext"]`
    that is 4 extra woff2 files preloaded on every page for nothing.
-2. **No FOIT risk** — `display:"swap"` on both; `next/font` self-hosts and injects
+2. **No FOIT risk**: `display:"swap"` on both; `next/font` self-hosts and injects
    metric-adjusted fallbacks, so CLS is mitigated. Correct.
 3. **FOUT does exist** on Poppins-set headings (Inter fallback → Poppins swap). Because
    `--nf-font-display` lists `var(--nf-font-inter)` second, the swap is Inter→Poppins,
-   which is a wider-to-narrower jump on an `-0.035em` display headline — visible reflow on
+   which is a wider-to-narrower jump on an `-0.035em` display headline, visible reflow on
    the landing hero. Cheap fix: preload only the weights actually used, and set
    `.nf-display` to `font-optical-sizing` / accept Inter as the display face on the hero.
 4. **Editorial display quality is not matched.** Reference 11 and 14 use "editorial serif
    or tight sans display". Poppins is a geometric sans with a very large x-height and
-   circular bowls — at `-0.035em` and `line-height:0.98` (`globals.css:1272-1274`) the
+   circular bowls, at `-0.035em` and `line-height:0.98` (`globals.css:1272-1274`) the
    round `o/e/a` will collide. Poppins is also *only* on headings; there is no display face
    for numerals at all (`--nf-font-numeric` is unused, `Odometer` and every price render in
    Inter). The references' huge numerals are the visual centre of the screen; here they are
    body-font-at-a-larger-size.
 5. **The `[lang]` fallback is only half-applied.** `tokens.css:274-277` swaps display to
-   Inter for `yo`/`ig`. Hausa (`ha`) keeps Poppins, but Hausa uses ɓ ɗ ƙ ƴ — those live in
+   Inter for `yo`/`ig`. Hausa (`ha`) keeps Poppins, but Hausa uses ɓ ɗ ƙ ƴ, those live in
    Latin Extended-B, which Poppins' `latin-ext` subset does carry, so this is defensible.
    Worth an explicit comment; right now the omission reads as an oversight.
 
-### 2.7 Charts — bare, and the real user sees none · **P1**
+### 2.7 Charts, bare, and the real user sees none · **P1**
 
 Feature matrix against the reference (sparkline w/ dotted grid, HR line chart with labelled
 axes and gradient fill, gradient bar columns, multi-arc gauge, four labelled mini progress
@@ -307,14 +306,14 @@ bars, seven ring badges):
 
 Specific defects:
 - **`components/app/wallet/BalanceCard.tsx:205`** hard-codes `stroke="rgb(56 189 248 / 0.9)"`
-  and `drop-shadow(0 0 5px rgb(56 189 248 / 0.75))` — a raw colour, violating the repo's
+  and `drop-shadow(0 0 5px rgb(56 189 248 / 0.75))`: a raw colour, violating the repo's
   own token rule (`tokens.css:4-11`), and it has no gradient fill while its two siblings do.
   Three sparklines, three different recipes.
 - **`components/agent/charts/AreaSparkline.tsx:49`** uses a **hard-coded gradient id**
   `"nf-spark-fill"`. Two sparklines on one page collide. `StatChart.tsx:30` at least keys
   the id by tone, but two `tone="brand"` charts still share one def.
 - Both line charts use `preserveAspectRatio="none"`, so the curve is horizontally stretched
-  and vertically squashed by whatever box it lands in — geometry is not shape-stable.
+  and vertically squashed by whatever box it lands in, geometry is not shape-stable.
   `vectorEffect="non-scaling-stroke"` rescues the stroke width but not the curve.
 - **No progress bars, meters or gauges exist at all.** `grep` for
   `role="progressbar"|aria-valuenow|nf-progress|nf-meter` returns zero across the repo.
@@ -329,7 +328,7 @@ Specific defects:
   explicitly documented as "an unlabeled ambient line rather than a claim"
   (`PlatformConsole.tsx:8-12`).
 
-### 2.8 Currency — correct arithmetic, inconsistent presentation · **P1**
+### 2.8 Currency, correct arithmetic, inconsistent presentation · **P1**
 
 Good: every amount is integer kobo; `formatMoney` is the only divider
 (`packages/i18n/src/index.ts:54`); `formatKoboExact` splits with integer maths; no float
@@ -351,7 +350,7 @@ Problems:
    ```
    No locale argument. This is a `"use client"` component that Next still SSRs, so the
    server (`en-US` default in most deploys) and a browser set to `de-DE` produce
-   `1,234,567` vs `1.234.567` — a hydration mismatch **and** grouping that disagrees with
+   `1,234,567` vs `1.234.567`: a hydration mismatch **and** grouping that disagrees with
    the `formatMoney` output sitting beside it. It is the wallet balance and the landing
    numbers band.
 3. **Quick-amount chips are hard-coded English-grouped strings.**
@@ -370,34 +369,33 @@ Problems:
    <p className="nf-numeric mt-0.5 truncate text-[1.0625rem] font-bold …">{value}</p>
    ```
    In a `grid-cols-2` on a 390px phone this box is ~150px. `₦12,500,000` at 17px bold does
-   not fit — the host's total earnings will render as `₦12,500,0…`. Truncating money is
+   not fit, the host's total earnings will render as `₦12,500,0…`. Truncating money is
    never acceptable.
 7. **`rating.toFixed(1)`** at `components/app/ListingCard.tsx:241`,
-   `components/app/listing/ListingReviews.tsx:47`, `(app)/listing/[id]/page.tsx:225` —
-   raw JS decimal, bypasses `Intl`. Cosmetically fine for `-NG` tags today but it is an
+   `components/app/listing/ListingReviews.tsx:47`, `(app)/listing/[id]/page.tsx:225`: raw JS decimal, bypasses `Intl`. Cosmetically fine for `-NG` tags today but it is an
    un-localised number.
 8. **Raw counts bypass `formatNumber`**: `EarningsWorkspace.tsx:95` `String(earnings.settledStays)`,
    `agent/dashboard/page.tsx:218,248` `{l.bookings}`, `app/admin/page.tsx:54,90`,
    `components/app/ListingCard.tsx:243` `({listing.reviewCount})`. No grouping above 999.
 
-### 2.9 Section headers — the pattern exists 5 times · **P2**
+### 2.9 Section headers, the pattern exists 5 times · **P2**
 
 `t.common.viewAll` at `agent/dashboard/page.tsx:150,274`,
 `RealDashboard.tsx:146,181`, `(app)/home/page.tsx:137`. Rendered as a 13px semibold
-`--nf-electric-300` link — correct, though the reference's version is *muted grey*, not
+`--nf-electric-300` link, correct, though the reference's version is *muted grey*, not
 brand-coloured.
 
 Sections that carry a heading and **no** trailing action, where one belongs:
 - `(app)/home/page.tsx:187` "Top experiences" (`nf-h2`, no action)
-- `components/app/wallet/TransactionsSection.tsx:100` "Transactions" — has filter chips instead, no "See all"
+- `components/app/wallet/TransactionsSection.tsx:100` "Transactions", has filter chips instead, no "See all"
 - `agent/earnings/EarningsWorkspace.tsx:100` "By month", `:148` "How this works"
 - `app/agent/dashboard/page.tsx:190` "Listing performance", `:262` "Booking sources", `:304` "Quick actions"
 - `app/admin/page.tsx:102` "How this works"
-- `components/app/listing/ListingReviews.tsx` — reviews block has no "See all reviews"
+- `components/app/listing/ListingReviews.tsx`: reviews block has no "See all reviews"
 
 `t.common.seeAll` exists in all four locale files and is referenced **0 times**. Dead key.
 
-### 2.10 Truncation and wrapping — one `line-clamp` in the entire app · **P0**
+### 2.10 Truncation and wrapping, one `line-clamp` in the entire app · **P0**
 
 ```
 grep -rn "line-clamp" apps/web/src  →  1 hit
@@ -406,20 +404,19 @@ grep -rn "line-clamp" apps/web/src  →  1 hit
 
 Everything else uses single-line `truncate` (38 files). Concrete breakages:
 
-- **`components/app/ListingCard.tsx:234-236`** — the listing title `<h3>` has *neither*
+- **`components/app/ListingCard.tsx:234-236`**: the listing title `<h3>` has *neither*
   `truncate` nor `line-clamp`. A long Nigerian listing title
   ("Fully Serviced 3 Bedroom Terrace Duplex with BQ, Chevron Drive, Lekki Phase 1") wraps
   to 3-4 lines and every card in that grid row grows with it. In a `grid` this desynchronises
   the price baseline across the row. Needs `line-clamp-2`.
-- **`components/app/bookings/BookingsTabs.tsx:51-53`** — booking title `truncate`d to one
+- **`components/app/bookings/BookingsTabs.tsx:51-53`**: booking title `truncate`d to one
   line. A booking card is 5.75rem tall with room for two; one-line truncation throws away
   information for no reason.
-- **`app/agent/dashboard/page.tsx:246`** — `<td className="py-2.5 font-medium">{l.title}</td>`
+- **`app/agent/dashboard/page.tsx:246`**: `<td className="py-2.5 font-medium">{l.title}</td>`
   in a `min-w-[34rem]` table with no width constraint and no truncation. A long title blows
   the column and forces horizontal scroll on desktop.
-- **`app/agent/earnings/EarningsWorkspace.tsx:42`** — money truncation (see §2.8.6).
-- **`components/app/wallet/TransactionsSection.tsx:178-180`** —
-  `{KIND_LABEL[kind]} · {entry.reference}` single-line truncated. The payment reference is
+- **`app/agent/earnings/EarningsWorkspace.tsx:42`**: money truncation (see §2.8.6).
+- **`components/app/wallet/TransactionsSection.tsx:178-180`**: `{KIND_LABEL[kind]} · {entry.reference}` single-line truncated. The payment reference is
   the one string a user needs to copy into a support ticket, and it is the part that gets cut.
 - **No `overflow-wrap: anywhere` / `hyphens` anywhere in `globals.css`.** A long unbroken
   token (a reference, a URL in a message, an email address in `DetailRow`) will overflow.
@@ -427,7 +424,7 @@ Everything else uses single-line `truncate` (38 files). Concrete breakages:
 - **No `text-wrap: balance`** on any headline, and **no `text-wrap: pretty`** on any body
   copy. Every `.nf-display` / `.nf-h1` will produce orphans.
 
-### 2.11 i18n — the type system is not stress-tested · **P1**
+### 2.11 i18n, the type system is not stress-tested · **P1**
 
 Measured over all 898 leaf strings in `packages/i18n/src/locales/*`. Worst inflation on
 short strings (the ones that sit in fixed-ish chrome):
@@ -452,7 +449,7 @@ Concrete overflow risks:
    `+12% idan aka kwatanta da watan da ya gabata` at 12px will wrap to three lines and
    unbalance every tile in the row. The `flex-wrap` at `:53` prevents overlap but not the
    ragged height.
-2. **`app/admin/page.tsx:76-78`** — `text-[0.75rem] font-semibold uppercase tracking-wide`
+2. **`app/admin/page.tsx:76-78`**: `text-[0.75rem] font-semibold uppercase tracking-wide`
    with no wrap control, sharing a flex row with a `nf-tag-pill`. Yoruba `"Ìròyìn ẹ̀sùn tí
    ó ṣí sílẹ̀"` uppercased at +tracking in a `grid-cols-2` tile will push the pill off.
    Uppercase + `tracking-wide` is the worst possible treatment for a 2.2× string.
@@ -460,14 +457,14 @@ Concrete overflow risks:
    on 11px text, used 50 times. Yoruba tone marks (`ọ̀`, `ẹ̀`, `ṣ`) render poorly uppercased
    and the +0.14em compounds the length. `text-transform:uppercase` on Yoruba is
    typographically wrong regardless of width.
-4. **`components/app/ListingCard.tsx:220-223`** — four `nf-badge` pills
+4. **`components/app/ListingCard.tsx:220-223`**: four `nf-badge` pills
    (Verified / Partner / Rent / Instant) in a single non-wrapping `flex gap-1.5` absolutely
    positioned at `left-3 top-3`. With Igbo `"Mgbazinye ụlọ"` + Igbo `"Tí fọwọ́sí"`-class
    strings, this row exceeds the card width and clips.
 5. **Fixed-width numeric boxes**: `components/app/filters/FilterDrawer.tsx:140`
    (`w-14`), `(app)/listing/[id]/ReservePanel.tsx:68` (`w-5`),
    `components/agent/ApplyWizard.tsx:210` (`h-8 w-8`). These hold digits only, so they are
-   safe — but `w-5` breaks at guest count ≥ 10.
+   safe, but `w-5` breaks at guest count ≥ 10.
 6. **Mitigating**: the mobile tab bar is icon-only (`MobileTabBar.tsx:44-56`, labels via
    `aria-label`), so the single worst i18n surface in most apps is immune here.
 
@@ -507,7 +504,7 @@ Recommended: `--nf-content-muted` light → `#5F666E` (≈6.0:1 on white, ≈5.5
 | 8 | Zero mixed-emphasis paragraphs in product copy | P1 |
 | 9 | Charts have no grid, axes, hover or tooltip; no progress/gauge exists | P1 |
 | 10 | Real agents see zero charts (charts are on the demo branch only) | P1 |
-| 11 | `Odometer` uses `toLocaleString()` with no locale — hydration + grouping | P1 |
+| 11 | `Odometer` uses `toLocaleString()` with no locale, hydration + grouping | P1 |
 | 12 | `₦` hard-coded in 5 places; `ha-NG` spacing disagrees with the ledger | P1 |
 | 13 | Compact `₦9M` and standard `₦9,000,000` for the same value on one screen | P1 |
 | 14 | Money value set to `truncate` in `EarningsWorkspace` Tile | P1 |
@@ -530,7 +527,7 @@ Recommended: `--nf-content-muted` light → `#5F666E` (≈6.0:1 on white, ≈5.5
 | 31 | Section-header trailing action used 5×; ~10 sections that want one lack it | P2 |
 | 32 | "View all" link is brand-blue, reference uses muted grey | P2 |
 
-**Total: 32 findings — 6 P0, 14 P1, 12 P2.**
+**Total: 32 findings, 6 P0, 14 P1, 12 P2.**
 
 ---
 
@@ -538,7 +535,7 @@ Recommended: `--nf-content-muted` light → `#5F666E` (≈6.0:1 on white, ≈5.5
 
 ### 4.1 Move `.nf-numeric` into `@layer components` and split the tracking
 
-`globals.css` — relocate lines 107-112 inside the `@layer components` block and drop the
+`globals.css`: relocate lines 107-112 inside the `@layer components` block and drop the
 blanket letter-spacing:
 
 ```css
@@ -577,7 +574,7 @@ and codemod the 357 occurrences of `text-[0.8125rem]` / `text-[0.875rem]` to
 `.nf-caption` / `.nf-callout`. Add an ESLint rule banning `text-[` with a rem literal in
 `.tsx` so the scale stays a constraint.
 
-### 4.3 The `<Amount>` primitive — ship this
+### 4.3 The `<Amount>` primitive, ship this
 
 New file `apps/web/src/design-system/type/Amount.tsx`. This is the component the reference
 is asking for: it takes **integer kobo**, never a string, splits the whole from the
@@ -697,7 +694,7 @@ Call sites this immediately replaces:
 (`size="display"`, `kobo="always"`), `WalletDeck.tsx:480-496`,
 `EarningsWorkspace.tsx:93-96,111,138-141`, `checkout/[bookingId]/page.tsx:178-181`.
 
-### 4.4 The `<Metric>` primitive — label → value → unit
+### 4.4 The `<Metric>` primitive, label → value → unit
 
 New file `apps/web/src/design-system/type/Metric.tsx`. Enforces the reference's
 small-grey-label → huge-value → small-grey-unit shape and, critically, accepts the value
@@ -801,7 +798,7 @@ hero, `<Metric size="sm">` to `ProfileIdentityCard.tsx:187-193` and `DonutChart`
 
 `components/site/Odometer.tsx`:
 - take a `locale: Locale` prop and use `formatNumber(value, locale)` instead of
-  `toLocaleString()` at `:32` — kills the hydration mismatch and aligns grouping with
+  `toLocaleString()` at `:32`: kills the hydration mismatch and aligns grouping with
   `formatMoney`;
 - give the suffix a class hook so `"/7"` and `"+"` can be muted:
   `{suffix && <span className="nf-odometer__suffix">{suffix}</span>}` with
@@ -823,7 +820,7 @@ That alone converts `NumbersBand.tsx` (`24/7`, `17+`) and `PlatformConsole.tsx`
   there is one sparkline recipe, and delete the hard-coded `rgb(56 189 248)`.
 - Build the two primitives the reference has and this app lacks: `<MeterBar>` (labelled
   mini progress bar, semantic colour, percentage riding on the fill) and `<ArcGauge>`
-  (multi-arc radial). Use `<MeterBar>` for occupancy/response rate — those are currently
+  (multi-arc radial). Use `<MeterBar>` for occupancy/response rate, those are currently
   bare percentages that would read far better as bars.
 - Wire `AreaSparkline` and `DonutChart` into `RealDashboard.tsx` so a real agent sees
   charts, or build `/agent/analytics` for real. Right now the polished charts exist only on
@@ -858,7 +855,7 @@ truncated.**
 - Delete the hard-coded `₦` at `BalanceCard.tsx:157,163`, `WalletDeck.tsx:470,492`,
   `WalletActions.tsx:267`; route everything through `<Amount>` / `formatMoney`.
 - Collapse the four `nairaExact`/`formatKoboExact` implementations into one exported from
-  `packages/i18n` — it is the same integer split in all four.
+  `packages/i18n`: it is the same integer split in all four.
 - Pick one notation per screen: `agent/dashboard/page.tsx:87` and `:130` must not disagree.
   Suggest compact only in dense table cells and never in a hero.
 - `layout.tsx:30` → `weight: ["600","700"]`. Removes 4 preloaded woff2 files.

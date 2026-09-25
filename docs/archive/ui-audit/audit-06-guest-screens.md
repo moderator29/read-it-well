@@ -1,4 +1,4 @@
-# Audit 06 — Guest-facing app screens (`apps/web/src/app/(app)/`)
+# Audit 06, Guest-facing app screens (`apps/web/src/app/(app)/`)
 
 > **SUPERSEDED 2026-08-09. Not a backlog, and every count in it needs re-measuring.**
 > This audit grades the codebase against `00-reference-brief.md`, which is retired
@@ -12,15 +12,15 @@ screens 3, 4, 5 (premium real-estate app), 7/10 (chat), 8 (wallet), 12 (grouped 
 
 Verdict up front: the codebase is **well-engineered and honestly written, but compositionally
 conventional**. Almost every screen is `sticky app header → padded content column → stacked
-`nf-card` blocks`. The reference language — immersive media hero, content sheet overlapping it
+`nf-card` blocks`. The reference language, immersive media hero, content sheet overlapping it
 with a large top radius, pinned blurred footer with a ghost+solid CTA pair, photo-thumbnail
-category chips, date/time chip sheets, designed empty states with real artwork — is present in
+category chips, date/time chip sheets, designed empty states with real artwork, is present in
 **one** place (`ListingGallery`'s floating circular glass controls) and absent everywhere else.
 
 Two systemic gaps dominate everything below:
 - **No loading states anywhere.** Zero `loading.tsx` files in the entire repo, zero `<Suspense>`
   boundaries in `app/` or `components/`. `.nf-skeleton` is defined at `app/globals.css:1621`
-  with a shimmer keyframe and a light-theme variant — and used **zero times** in any `.tsx`.
+  with a shimmer keyframe and a light-theme variant, and used **zero times** in any `.tsx`.
 - **No route-level error states in `(app)`.** Only the global `app/error.tsx` and
   `app/not-found.tsx` exist. Every guest route falls back to the app-wide boundary.
 
@@ -28,49 +28,49 @@ Two systemic gaps dominate everything below:
 
 # 1. Screen-by-screen inventory
 
-## 1.0 Shell — `components/app/AppShell.tsx`
+## 1.0 Shell, `components/app/AppShell.tsx`
 
 | Aspect | What it does |
 |---|---|
-| Chrome | `AppShell.tsx:90-121` — `nf-glass sticky top-0 z-40` header, fixed `h-[64px]`, on **every** non-immersive route |
-| Content | `AppShell.tsx:127` — `<div className="nf-shell py-8 sm:py-10">` — `nf-shell` is `max-width + padding-inline: 1.25rem` (`globals.css:2756-2766`) |
-| Immersive escape hatch | `AppShell.tsx:50` — only `/assistant` and `/messages/[id]` get the full-viewport treatment |
-| Tab bar | `MobileTabBar.tsx:31-33` — floating detached pill `inset-x-4 bottom-[max(0.9rem,env(safe-area-inset-bottom))]`, icon-only, `w-fit` — **this one matches the brief well** |
-| Active tab | `MobileTabBar.tsx:45-56` — colour + `nf-tab-pop__pill` change only. **No expand-into-labelled-capsule**, no sliding indicator (brief §2) |
+| Chrome | `AppShell.tsx:90-121`: `nf-glass sticky top-0 z-40` header, fixed `h-[64px]`, on **every** non-immersive route |
+| Content | `AppShell.tsx:127`: `<div className="nf-shell py-8 sm:py-10">`: `nf-shell` is `max-width + padding-inline: 1.25rem` (`globals.css:2756-2766`) |
+| Immersive escape hatch | `AppShell.tsx:50`: only `/assistant` and `/messages/[id]` get the full-viewport treatment |
+| Tab bar | `MobileTabBar.tsx:31-33`: floating detached pill `inset-x-4 bottom-[max(0.9rem,env(safe-area-inset-bottom))]`, icon-only, `w-fit`: **this one matches the brief well** |
+| Active tab | `MobileTabBar.tsx:45-56`: colour + `nf-tab-pop__pill` change only. **No expand-into-labelled-capsule**, no sliding indicator (brief §2) |
 
 **No screen except assistant/thread can ever be edge-to-edge**, because the shell unconditionally
 renders the 64px header and 1.25rem side padding above/around every page.
 
-## 1.1 Home — `app/(app)/home/page.tsx`
+## 1.1 Home, `app/(app)/home/page.tsx`
 
 - Composition: greeting `<h1>` (`:59-65`) → search form card (`:68-98`) → category rail (`:104-122`)
   → AI banner (`:126`) → recommended grid (`:130-160`) → agent promo (`:163-183`) → experiences rail
   (`:186-203`). **Conventional stacked cards. No hero media at all.**
-- Category chips: `:107-118` — `nf-card` tile, `<BrandIcon>` 3D glyph, text label. **No photo
+- Category chips: `:107-118`: `nf-card` tile, `<BrandIcon>` 3D glyph, text label. **No photo
   thumbnails inside the pill** (reference 5).
 - No segmented For Rent/For Sale control. No Sort pill. No Map toggle in the search bar.
 - Empty state `:141-150`: icon + `"Nothing to show here yet"` + `"Once listings are approved they
-  will appear in this space."` — **no CTA**.
+  will appear in this space."`: **no CTA**.
 - Search bar `:90-97`: submit is a solid pill; no map toggle, no filter icon in-bar (filter is a
   sibling `FilterLink` at `:99`).
 
-## 1.2 Search — `app/(app)/search/page.tsx`
+## 1.2 Search, `app/(app)/search/page.tsx`
 
-- Composition: nested sticky bar at `:147` `sticky top-16` — sits **below** the 64px app header,
+- Composition: nested sticky bar at `:147` `sticky top-16`: sits **below** the 64px app header,
   so the phone loses ~64px + ~180px (bar + categories + city chips + sort chips) of chrome before
   the first result.
-- Categories: `:201` → `filters/CategoryTiles.tsx:57-105` — `w-[5.5rem]` cards with `BrandIcon`
+- Categories: `:201` → `filters/CategoryTiles.tsx:57-105`: `w-[5.5rem]` cards with `BrandIcon`
   and an `ring-2` active state. **No photo thumbnails.**
-- Sort: `:229-254` — a whole horizontal row of 4 sort chips, always visible. Reference 5 uses a
+- Sort: `:229-254`: a whole horizontal row of 4 sort chips, always visible. Reference 5 uses a
   single compact **Sort pill** that opens a sheet.
-- View toggle: `:286` → `ViewToggle.tsx:20-42` — two `nf-chip` links inside an `nf-glass` pill.
+- View toggle: `:286` → `ViewToggle.tsx:20-42`: two `nf-chip` links inside an `nf-glass` pill.
   Correct idea, but the active state is a border/glow swap, **not a floating capsule that slides**
   (brief §5). It also lives in the results header, not inside the search bar.
 - Empty state `:319-352`: `nf-story-art` BrandIcon, `"No places matched"`, one sentence, one
   primary CTA, plus an honest "N waiting without them" line. **The best empty state in the app.**
-- Load more `:376`: `disabled={repo.isSeed}` — a permanently disabled button on the seed catalogue.
+- Load more `:376`: `disabled={repo.isSeed}`: a permanently disabled button on the seed catalogue.
 
-## 1.3 Listing detail — `app/(app)/listing/[id]/page.tsx` + `components/app/listing/*`
+## 1.3 Listing detail, `app/(app)/listing/[id]/page.tsx` + `components/app/listing/*`
 
 See §2 for the line-by-line comparison against reference 3. Inventory:
 - `ListingGallery` (`:267-274`), then `mt-6 grid lg:grid-cols-[1fr_21rem]` (`:276`).
@@ -79,7 +79,7 @@ See §2 for the line-by-line comparison against reference 3. Inventory:
 - Aside: sticky reserve panel from `lg` (`:382`).
 - `ListingStickyBar` at `:385-393`.
 
-## 1.4 Rent — `app/(app)/rent/page.tsx`
+## 1.4 Rent, `app/(app)/rent/page.tsx`
 
 - `PageScene` decorative art + `PageHeader` (`:52-55`), prose (`:58-61`), safety card (`:64-75`),
   `SceneBanner` (`:77-86`), city chips (`:88-109`), then a grid of `ListingCard` each with a
@@ -88,41 +88,41 @@ See §2 for the line-by-line comparison against reference 3. Inventory:
   back to `/rent` (the page you are already on).
 - No hero. No segmented control. No sort. No filters at all on this market.
 
-## 1.5 Checkout — `app/(app)/checkout/[bookingId]/`
+## 1.5 Checkout, `app/(app)/checkout/[bookingId]/`
 
-- Four honest pre-states as `MomentScreen` (`page.tsx:57-127`) — unconfigured / signed-out /
+- Four honest pre-states as `MomentScreen` (`page.tsx:57-127`), unconfigured / signed-out /
   missing / unavailable. **These are genuinely well designed** (`MomentScreen.tsx:35-46`, glow +
   badge + title + description + actions).
-- Summary card `page.tsx:137-189` — `<dl>` rows, then total using `nf-hero-figure` (`:178-181`)
+- Summary card `page.tsx:137-189`: `<dl>` rows, then total using `nf-hero-figure` (`:178-181`)
   with `<span className="nf-hero-figure__unit">in full</span>`. **The only correct two-tone hero
   numeral in the guest app.**
-- `HoldCountdown` (`:237`) — sunken panel + live clock. Good.
-- `PayPanel.tsx:162-224` — two option cards in a `<ul>`, each with its own full-width button.
+- `HoldCountdown` (`:237`), sunken panel + live clock. Good.
+- `PayPanel.tsx:162-224`: two option cards in a `<ul>`, each with its own full-width button.
   **No pinned blurred footer, no ghost+solid CTA pair.**
 
-## 1.6 Bookings — `app/(app)/bookings/`
+## 1.6 Bookings, `app/(app)/bookings/`
 
 - `PageScene` + `PageHeader` (`page.tsx:70-73`), then everything wrapped in **one** `nf-card`
   (`page.tsx:76`), then a "How booking works" 3-step strip (`page.tsx:85-102`).
-- `MyBookings.tsx:269-303` — 3 tabs with a 2px sliding underline. `:305-321` — a flat `<ul>` of
+- `MyBookings.tsx:269-303`: 3 tabs with a 2px sliding underline. `:305-321`: a flat `<ul>` of
   `BookingCard`. **No sticky section headers, no date grouping, no coloured context row.**
 - `BookingCard` `MyBookings.tsx:55-135`: 92px thumbnail, title, status badge, location, date range,
   guests/nights, then a footer row with total + Pay now / Cancel / View details.
 - Cancel sheet `MyBookings.tsx:169-235`: portalled, `rounded-t-3xl`, Escape + backdrop. **No drag
   handle, no detents** (brief §7).
-- Empty state `MyBookings.tsx:322-340` — see §5.
+- Empty state `MyBookings.tsx:322-340`: see §5.
 
-## 1.7 Wallet — `app/(app)/wallet/`
+## 1.7 Wallet, `app/(app)/wallet/`
 
 - `PageScene` + `PageHeader` → `BalanceCard` → `WalletDeck` → `TransactionsSection` → `SecurityNote`.
-- `BalanceCard.tsx:154-171` — `₦` + `<Odometer>` at `2.25rem/2.6rem` bold, kobo remainder at
+- `BalanceCard.tsx:154-171`: `₦` + `<Odometer>` at `2.25rem/2.6rem` bold, kobo remainder at
   `1.25rem` in secondary. Two-tone ✅ but ~40% smaller than the design system's own
   `nf-hero-figure` (`globals.css:1767`, `clamp(2.75rem, 11vw, 4.25rem)`).
 - In/out tiles `:176-193`, sparkline `:195-213`, eye toggle `:139-147`.
-- `WalletDeck` — three equal glass tiles (`WalletActions.tsx:76-96` shows the same shape).
+- `WalletDeck`: three equal glass tiles (`WalletActions.tsx:76-96` shows the same shape).
 - `TransactionsSection.tsx:103-116` filter chips ✅; `:120-130` day groups; `:164-201` entry rows.
 
-## 1.8 Messages — list, thread, new
+## 1.8 Messages, list, thread, new
 
 - List (signed out): `ConversationList.tsx:73-119`, one `nf-card` with `divide-y` rows.
 - List (signed in): `LiveThreadList.tsx:30-77`, same shape, but unread is a **count pill**
@@ -131,36 +131,36 @@ See §2 for the line-by-line comparison against reference 3. Inventory:
 - Thread: `ThreadView.tsx` (live + seed) and a near-duplicate legacy `MessageThread.tsx`.
   `PageHeader` (`:356`), scroller (`:413-516`), safety-education card (`:519-541`), attachment
   preview (`:544-567`), composer (`:568-629`).
-- `/messages/new` — a pure redirect bridge with two designed fallback cards
+- `/messages/new`: a pure redirect bridge with two designed fallback cards
   (`new/page.tsx:22-53`, `:77-99`).
 
-## 1.9 Notifications — `app/(app)/notifications/`
+## 1.9 Notifications, `app/(app)/notifications/`
 
-- Signed in: `LiveNotifications.tsx:131-193` — day-grouped under `<h2>` section labels (**not
+- Signed in: `LiveNotifications.tsx:131-193`: day-grouped under `<h2>` section labels (**not
   sticky**), rows with a tinted circular icon (`:143-148`), title/body/time, unread dot.
-- Signed out: `NotificationsList.tsx:134-177` — **flat, ungrouped list**, `when` is free text
+- Signed out: `NotificationsList.tsx:134-177`: **flat, ungrouped list**, `when` is free text
   (`"Today"`, `"3 days ago"`) rendered inside the row rather than as a trailing timestamp.
 - Two different notification designs (3D `BrandIcon` at `NotificationsList.tsx:142-144`
   vs tinted stroke-icon circle at `LiveNotifications.tsx:143-148`) for the same screen.
 
-## 1.10 Saved — `app/(app)/saved/`
+## 1.10 Saved, `app/(app)/saved/`
 
 - `PageScene` + `PageHeader` → count line (`SavedBoard.tsx:182-194`) → 2-col grid of the same
   `ListingCard` with an overlaid heart (`:204-214`) → undo chip in place of a removed card
   (`:217-233`). The undo-in-slot pattern is genuinely nice.
-- Empty state `:157-177` — see §5.
+- Empty state `:157-177`: see §5.
 
-## 1.11 Profile — `app/(app)/profile/page.tsx`
+## 1.11 Profile, `app/(app)/profile/page.tsx`
 
 - `PageHeader` → identity card → 2/3-col grid of 7 quick-action tiles (`:88-111`), each
   `BrandIcon` + label + `nf-count-badge` + sub-label. Clean, but a plain grid, no hero.
 
-## 1.12 Settings — `app/(app)/settings/page.tsx`
+## 1.12 Settings, `app/(app)/settings/page.tsx`
 
 - `PageHeader` → `space-y-4` stack of 9 `Reveal`-wrapped cards (`:48-112`). Purely conventional.
   No grouped small-caps section labels across the stack (each card carries its own `nf-overline`).
 
-## 1.13 Assistant — `app/(app)/assistant/page.tsx` → `AssistantChat.tsx`
+## 1.13 Assistant, `app/(app)/assistant/page.tsx` → `AssistantChat.tsx`
 
 - Immersive ✅ (`AppShell.tsx:50`), safe-area bottom ✅ (`AssistantChat.tsx:427`), empty state
   with suggestion chips (`:462-475`), streaming dots (`:547-566`), listing cards folded into
@@ -174,22 +174,22 @@ See §2 for the line-by-line comparison against reference 3. Inventory:
 
 | Reference 3 element | NaijaFinds | Verdict |
 |---|---|---|
-| Video/photo hero **under the status bar** | `ListingGallery.tsx:111` `-mx-5 -mt-8 sm:mx-0 sm:mt-0` — bleeds to the phone's side edges and pulls up 2rem, but `AppShell.tsx:90` still paints a 64px sticky glass header above it, and from `sm` up the gallery becomes an inset rounded box (`:116 sm:rounded-[var(--nf-radius-lg)]`) | ❌ Never under the status bar; never edge-to-edge on tablet/desktop |
-| Floating circular glass back / share / save | `ListingGallery.tsx:158-165` (back) + `ListingActions.tsx:137-162` (share, save) — `h-10 w-10 rounded-full border-white/25 bg-black/45 backdrop-blur-md`, `active:scale-90` | ✅ **The one place the reference language is fully realised** |
-| Content sheet overlapping the hero with a large top radius | `page.tsx:276` — `<div className="mt-6 grid …">`. A plain 1.5rem gap. **No sheet, no negative margin, no top radius, no overlap.** | ❌ P0 |
+| Video/photo hero **under the status bar** | `ListingGallery.tsx:111` `-mx-5 -mt-8 sm:mx-0 sm:mt-0`: bleeds to the phone's side edges and pulls up 2rem, but `AppShell.tsx:90` still paints a 64px sticky glass header above it, and from `sm` up the gallery becomes an inset rounded box (`:116 sm:rounded-[var(--nf-radius-lg)]`) | ❌ Never under the status bar; never edge-to-edge on tablet/desktop |
+| Floating circular glass back / share / save | `ListingGallery.tsx:158-165` (back) + `ListingActions.tsx:137-162` (share, save), `h-10 w-10 rounded-full border-white/25 bg-black/45 backdrop-blur-md`, `active:scale-90` | ✅ **The one place the reference language is fully realised** |
+| Content sheet overlapping the hero with a large top radius | `page.tsx:276`: `<div className="mt-6 grid …">`. A plain 1.5rem gap. **No sheet, no negative margin, no top radius, no overlap.** | ❌ P0 |
 | `FOR SALE` status pill on the hero | Nothing on the hero. Badges live in a wrapped row *below* the title (`page.tsx:283-319`): Verified / Partner / Instant Book, all `nf-badge` (`globals.css:1694-1715`) | ❌ P1 |
-| Huge two-tone price | `page.tsx:326-333` — `text-[1.5rem] font-bold` amount + `text-[0.875rem]` unit. That is 24px. `nf-hero-figure` exists (`globals.css:1767`) at up to 68px and is **not used here** | ❌ P0 — the brief calls two-tone display numerals "one of the strongest premium tells in the whole reference set" |
-| Spec row with bed/bath/sqft icons | `ListingAmenities.tsx:74-86` — a scrolling row of `nf-chip` pills, `icon + "3 bedrooms"`. Reference 3 uses an inline icon/value/label triple row, not chips. Also **no area/sqft field exists** on the `Listing` type | ⚠️ Partial |
+| Huge two-tone price | `page.tsx:326-333`: `text-[1.5rem] font-bold` amount + `text-[0.875rem]` unit. That is 24px. `nf-hero-figure` exists (`globals.css:1767`) at up to 68px and is **not used here** | ❌ P0, the brief calls two-tone display numerals "one of the strongest premium tells in the whole reference set" |
+| Spec row with bed/bath/sqft icons | `ListingAmenities.tsx:74-86`: a scrolling row of `nf-chip` pills, `icon + "3 bedrooms"`. Reference 3 uses an inline icon/value/label triple row, not chips. Also **no area/sqft field exists** on the `Listing` type | ⚠️ Partial |
 | Outline "Book a tour" pill | Rentals get `nf-btn--primary` "Message agent" (`RentalPanel.tsx:65-71`); stays get `nf-btn--primary` "Reserve" + `nf-btn--glass` "Message agent" (`ReservePanel.tsx:297-308`). No hairline-outline pill variant | ⚠️ Partial |
-| Description with **Show more** | `ListingAbout.tsx:30-49` — real disclosure, `line-clamp-4`, `aria-expanded`, chevron rotation. Label is "Read more"/"Show less" | ✅ |
+| Description with **Show more** | `ListingAbout.tsx:30-49`: real disclosure, `line-clamp-4`, `aria-expanded`, chevron rotation. Label is "Read more"/"Show less" | ✅ |
 | Photo gallery with **Show all** | **Does not exist.** `ListingGallery` is a single swipe track with a `n / N` counter (`:169-177`) and dots (`:201-213`). No grid, no "Show all N photos", no lightbox/fullscreen | ❌ P0 |
-| Pinned blurred footer, ghost + solid CTA pair | `ListingStickyBar.tsx:64-67` — `sticky bottom-20` (not fixed, not pinned to the edge), one `nf-card` (a glass *card*, not a footer bar), price on the left and **one** primary button on the right (`:89-107`). `lg:hidden` — desktop has no action bar at all | ❌ P0 |
-| Rating chip | `page.tsx:284-294` — inline `<span>` with a star glyph and text, no chip background | ❌ P2 |
+| Pinned blurred footer, ghost + solid CTA pair | `ListingStickyBar.tsx:64-67`: `sticky bottom-20` (not fixed, not pinned to the edge), one `nf-card` (a glass *card*, not a footer bar), price on the left and **one** primary button on the right (`:89-107`). `lg:hidden`: desktop has no action bar at all | ❌ P0 |
+| Rating chip | `page.tsx:284-294`: inline `<span>` with a star glyph and text, no chip background | ❌ P2 |
 | Scroll-linked hero collapse / title into header | None. `nf-parallax-soft` is defined at `globals.css:1007-1034` with a `view()` timeline and is **used zero times** anywhere in the repo | ❌ P1 |
 
 Additional listing-page gaps: no map/neighbourhood section, no house rules, no cancellation policy
 block, no similar-listings rail, no `<h2>` "Show all reviews" action (brief §4 asks for section
-headers paired with a muted trailing action — only home has one, at `home/page.tsx:133-138`).
+headers paired with a muted trailing action, only home has one, at `home/page.tsx:133-138`).
 
 ---
 
@@ -201,9 +201,9 @@ headers paired with a muted trailing action — only home has one, at `home/page
 | Segmented **For Rent / For Sale** | ❌ | Nowhere. `/rent` is a separate route; `kind=rental` is one of 8 category tiles (`CategoryTiles.tsx:19-28`) |
 | **Sort** pill | ❌ | `search/page.tsx:229-254` renders all 4 sorts as an always-visible chip row |
 | **Map** toggle inside the search bar | ❌ | `ViewToggle` sits in the results header (`search/page.tsx:286`), not in the bar |
-| Blue promo card | ⚠️ | `AiAssistantBanner.tsx:12-32` is a full-bleed image card — closest analogue, and good |
+| Blue promo card | ⚠️ | `AiAssistantBanner.tsx:12-32` is a full-bleed image card, closest analogue, and good |
 | Listing card **New** badge | ❌ | `ListingCard.tsx:203-224` has Verified / Partner / Rent / Instant only; no `createdAt` freshness signal |
-| Listing card **rating chip** | ❌ | `ListingCard.tsx:238-246` — bare inline text `★ 4.8 (24)`, no chip background |
+| Listing card **rating chip** | ❌ | `ListingCard.tsx:238-246`: bare inline text `★ 4.8 (24)`, no chip background |
 | Selected chip with a coloured ring | ⚠️ | `nf-chip--active` (`globals.css:1687-1692`) is a border + box-shadow glow, not a ring; `CategoryTiles.tsx:58` uses `ring-2` on cards |
 | Next chip **bleeding off the right edge** | ✅ | `nf-scroll-x` rows with `-mx-5 … px-5` do bleed correctly (`home/page.tsx:105`, `search/page.tsx:205`) |
 
@@ -215,27 +215,27 @@ Reference 4 is a glass sheet over the hero with **horizontal date chips and time
 selected ring, chips bleeding off-edge, and a full-width blue submit**.
 
 What exists instead (`ReservePanel.tsx`):
-- `:211-242` — two native `<input type="date">` in a `grid-cols-2`. Platform date pickers, not
+- `:211-242`: two native `<input type="date">` in a `grid-cols-2`. Platform date pickers, not
   chips. On iOS this is the wheel picker; nothing about it reads as designed.
-- `:250-260` — Adults/Children steppers in a bordered box. Fine, but plain.
-- `:263-277` — price breakdown `<dl>`.
-- `:297-308` — submit + "Message agent", full width, stacked. ✅ full-width submit.
-- `:135-186` — the success state (`nf-confirm-sweep`, confirmed calendar tile, pay/pay-later
+- `:250-260`: Adults/Children steppers in a bordered box. Fine, but plain.
+- `:263-277`: price breakdown `<dl>`.
+- `:297-308`: submit + "Message agent", full width, stacked. ✅ full-width submit.
+- `:135-186`: the success state (`nf-confirm-sweep`, confirmed calendar tile, pay/pay-later
   buttons) is the most choreographed moment in the whole guest app. Genuinely good.
 
 Missing entirely:
 - No chip-based date selection, no time-slot chips, no "next 14 days" horizontal strip.
 - No inspection/viewing time booking anywhere, despite "arrange an inspection" being the core
-  rental flow (`page.tsx:204`, `RentalPanel.tsx:19-22`) — it dead-ends at "Message agent".
+  rental flow (`page.tsx:204`, `RentalPanel.tsx:19-22`), it dead-ends at "Message agent".
 - No sheet/modal presentation: the panel is inline in the page flow (`page.tsx:352-354`).
 - No **segmented progress bar** across reserve → checkout → paid (brief §6 asks for one on any
   multi-step flow). The guest crosses three routes with no positional feedback.
-- Blocked dates are enforced (`page.tsx:120`, `StayDates`) but never **shown** — there is no
+- Blocked dates are enforced (`page.tsx:120`, `StayDates`) but never **shown**: there is no
   calendar surface on which to grey them out.
 
 ---
 
-# 5. Empty states — actual copy and markup
+# 5. Empty states, actual copy and markup
 
 The brief: *"full-bleed illustration or photograph, a real headline, one sentence of body, and a
 single primary CTA. Never a centred grey sentence."*
@@ -255,8 +255,8 @@ single primary CTA. Never a centred grey sentence."*
 | Home recommended | `home/page.tsx:141-150` | icon | "Nothing to show here yet" | ✅ | ❌ **none** | Weak |
 | Rent no-results | `rent/page.tsx:113-125` | icon | "No rentals matched" | ✅ | ⚠️ ghost CTA to the same page | Weak |
 | Listing reviews | `ListingReviews.tsx:24-37` | icon | "No reviews yet" | ✅ | ❌ none | Weak |
-| **Notifications (seed), filtered** | `NotificationsList.tsx:178-182` | ❌ | ❌ | — | ❌ | **Fail** |
-| **Messages maintenance** | `messages/page.tsx:32-35`, `messages/[id]/page.tsx:46-49` | ❌ | ❌ | — | ❌ | **Fail** |
+| **Notifications (seed), filtered** | `NotificationsList.tsx:178-182` | ❌ | ❌ | none | ❌ | **Fail** |
+| **Messages maintenance** | `messages/page.tsx:32-35`, `messages/[id]/page.tsx:46-49` | ❌ | ❌ | none | ❌ | **Fail** |
 
 The two failures are literally the anti-pattern the brief names. Verbatim:
 
@@ -280,8 +280,7 @@ Both are a centred grey sentence in a card. `MomentScreen` already exists
 
 Also inconsistent: the bookings empty copy is duplicated verbatim in two files with different
 tab keys (`MyBookings.tsx:30-34` `upcoming/completed/cancelled` vs `BookingsTabs.tsx:27-31`
-`upcoming/past/cancelled`), and neither has a headline —
-`"No upcoming trips yet. Your next adventure starts with a search."` is a body sentence doing a
+`upcoming/past/cancelled`), and neither has a headline, `"No upcoming trips yet. Your next adventure starts with a search."` is a body sentence doing a
 headline's job. Reference 11's designed empty state is *"No trips yet"* as a headline with the
 sentence beneath it.
 
@@ -317,21 +316,21 @@ No spinner glyph, no progress fill, no button-width lock (labels change width, s
 # 7. Error states
 
 - No `error.tsx` in `(app)` or any of its sub-routes. Only `app/error.tsx` and `app/not-found.tsx`.
-  A failed listing fetch, a Supabase timeout on `/wallet`, a broken `/bookings` read — all land on
+  A failed listing fetch, a Supabase timeout on `/wallet`, a broken `/bookings` read, all land on
   the app-wide boundary, losing the shell and any screen context.
 - `notFound()` is used correctly for unknown ids (`listing/[id]/page.tsx:93`,
   `messages/[id]/page.tsx:54,56,93`) but resolves to the same global 404.
 - Checkout is the exception and the model to copy: `checkout/[bookingId]/page.tsx:57-127` renders
   four distinct designed `MomentScreen` states. Nothing else in the guest app does this.
 - Inline errors are raw text, not designed:
-  - `ReservePanel.tsx:280-295` — a tinted box with `{state.error}` and a bare "Sign in" link.
-  - `PayPanel.tsx:152-160` — `role="alert"` card with a bell icon and one sentence. Closest to designed.
-  - `MyBookings.tsx:208-215` — `<p role="alert">` with a border and warning colour. No icon.
-  - `WalletActions.tsx:277-284` / `FieldError` — `text-[0.75rem]` red line. No icon, no field ring.
-  - `SavedBoard.tsx:235-239` — `text-[0.75rem]` red line under a card.
-  - `ListingActions.tsx:165-178` — a black `rounded-full` toast pill. Nice, but bespoke to this one
+  - `ReservePanel.tsx:280-295`: a tinted box with `{state.error}` and a bare "Sign in" link.
+  - `PayPanel.tsx:152-160`: `role="alert"` card with a bell icon and one sentence. Closest to designed.
+  - `MyBookings.tsx:208-215`: `<p role="alert">` with a border and warning colour. No icon.
+  - `WalletActions.tsx:277-284` / `FieldError`: `text-[0.75rem]` red line. No icon, no field ring.
+  - `SavedBoard.tsx:235-239`: `text-[0.75rem]` red line under a card.
+  - `ListingActions.tsx:165-178`: a black `rounded-full` toast pill. Nice, but bespoke to this one
     component; there is no shared toast system.
-- `ThreadView.tsx:447-458` — failed message shows "Not sent. Retry". Correct behaviour, plain styling.
+- `ThreadView.tsx:447-458`: failed message shows "Not sent. Retry". Correct behaviour, plain styling.
 
 ---
 
@@ -348,16 +347,16 @@ No spinner glyph, no progress fill, no button-width lock (labels change width, s
 | Unread pill | ⚠️ | `LiveThreadList.tsx:65-72` has a proper count pill; `ConversationList.tsx:108-113` has a 2px dot for the same screen |
 | Pink/highlighted unread group | ❌ | No visual grouping of unread rows |
 | Filter chips over the list | ❌ | The conversation list has no filters, no search, no tabs |
-| Timestamp placement | ⚠️ | Inside each bubble bottom-right (`ThreadView.tsx:443-445`, `:482-484`) — every single bubble carries one, which is noisy. No day separators inside the thread |
+| Timestamp placement | ⚠️ | Inside each bubble bottom-right (`ThreadView.tsx:443-445`, `:482-484`), every single bubble carries one, which is noisy. No day separators inside the thread |
 | Circular send button | ✅ | `ThreadView.tsx:621-628` `h-11 w-11 rounded-full`. But the glyph is `arrow-right` with `-rotate-90` (`:627`), not a send/paper-plane symbol |
 | Consecutive-message grouping | ❌ | Every message gets a full avatar + bubble + timestamp |
 | Read receipts / delivery ticks | ❌ | Only `"Sending"` / `"Not sent"` text states |
-| Typing indicator | ✅ | `ThreadView.tsx:490-515` — three breathing dots in a reply-shaped bubble, driven by a real broadcast. Excellent |
+| Typing indicator | ✅ | `ThreadView.tsx:490-515`: three breathing dots in a reply-shaped bubble, driven by a real broadcast. Excellent |
 | Three-pane desktop (ref 7) | ❌ | `/messages` is a single `max-w-2xl` column at every breakpoint (`messages/page.tsx:59`). Opening a thread replaces the list |
 
 Duplication risk: `components/app/messages/MessageThread.tsx` (318 lines) and
 `app/(app)/messages/[id]/ThreadView.tsx` (633 lines) are near-identical chat implementations.
-`MessageThread` appears to be dead — the route renders `ThreadView`. Two copies of the composer,
+`MessageThread` appears to be dead, the route renders `ThreadView`. Two copies of the composer,
 the bubble markup and the attachment preview will drift.
 
 ---
@@ -366,12 +365,12 @@ the bubble markup and the attachment preview will drift.
 
 | Reference 8 element | Present? | Evidence |
 |---|---|---|
-| Huge **two-tone** balance | ⚠️ | `BalanceCard.tsx:154-171` — two-tone is correct (₦ + whole naira bold, kobo in secondary at half size), but `2.25rem`/`2.6rem` where `nf-hero-figure` (`globals.css:1767`) would give up to `4.25rem`. The app's own hero-figure token is used on checkout but not on the wallet |
+| Huge **two-tone** balance | ⚠️ | `BalanceCard.tsx:154-171`: two-tone is correct (₦ + whole naira bold, kobo in secondary at half size), but `2.25rem`/`2.6rem` where `nf-hero-figure` (`globals.css:1767`) would give up to `4.25rem`. The app's own hero-figure token is used on checkout but not on the wallet |
 | **Dark / light button pair** | ❌ | `WalletDeck` / `WalletActions.tsx:76-96` render **three identical** `nf-card` tiles (Add money / Withdraw / Transfer). No primary/secondary contrast pair |
-| Filter chips | ✅ | `TransactionsSection.tsx:103-116` — All / Money in / Money out / Pending |
-| Transaction rows with icons | ✅ | `TransactionsSection.tsx:169-173` — 44px rounded-square tinted tile holding a `BrandIcon`. Matches brief §1's "tinted icon tiles" |
-| **Semantic green/red deltas** | ❌ | `TransactionsSection.tsx:184` — credits get `--nf-state-success`, debits get `--nf-content-primary` (plain white/black). The brief and reference 8 use red for outflow |
-| Sparkline | ⚠️ | `BalanceCard.tsx:195-213` — a bare `<polyline>`, hardcoded `stroke="rgb(56 189 248 / 0.9)"` with a drop-shadow. **No dotted grid, no gradient area fill, no axis labels, no hover readout.** The hardcoded sky-blue and the `drop-shadow` glow will look wrong on the light theme |
+| Filter chips | ✅ | `TransactionsSection.tsx:103-116`: All / Money in / Money out / Pending |
+| Transaction rows with icons | ✅ | `TransactionsSection.tsx:169-173`: 44px rounded-square tinted tile holding a `BrandIcon`. Matches brief §1's "tinted icon tiles" |
+| **Semantic green/red deltas** | ❌ | `TransactionsSection.tsx:184`: credits get `--nf-state-success`, debits get `--nf-content-primary` (plain white/black). The brief and reference 8 use red for outflow |
+| Sparkline | ⚠️ | `BalanceCard.tsx:195-213`: a bare `<polyline>`, hardcoded `stroke="rgb(56 189 248 / 0.9)"` with a drop-shadow. **No dotted grid, no gradient area fill, no axis labels, no hover readout.** The hardcoded sky-blue and the `drop-shadow` glow will look wrong on the light theme |
 | Brand/provider marks at correct colour | ❌ | Bank selection is a plain `<select>` of names (`WalletActions.tsx:162-176`); no bank logos anywhere |
 | Balance masking | ✅ | `BalanceCard.tsx:139-147` eye toggle. Nice touch, not in the reference |
 | Number roll-up on the metric | ✅ | `<Odometer>` at `BalanceCard.tsx:164` |
@@ -379,7 +378,7 @@ the bubble markup and the attachment preview will drift.
 Theme bug: `BalanceCard.tsx:144` (`border-white/15 bg-white/5`), `:177` and `:185`
 (`border-white/10 bg-white/[0.04]`) and `TransactionsSection.tsx:169`
 (`border-white/10 bg-white/[0.05]`) are all hardcoded white alphas. In the light theme these are
-invisible borders on a white card — the in/out tiles and the icon tiles lose their containers.
+invisible borders on a white card, the in/out tiles and the icon tiles lose their containers.
 Brief §8: "Dark and light both fully designed, not one as an afterthought."
 
 ---
@@ -389,7 +388,7 @@ Brief §8: "Dark and light both fully designed, not one as an afterthought."
 | Reference element | Bookings | Notifications (live) | Notifications (seed) | Wallet tx |
 |---|---|---|---|---|
 | Grouped under section headers | ❌ flat `<ul>` (`MyBookings.tsx:305-321`) | ✅ day groups (`LiveNotifications.tsx:131-136`) | ❌ flat (`NotificationsList.tsx:134`) | ✅ day groups (`TransactionsSection.tsx:120-123`) |
-| Headers **sticky** | — | ❌ plain `<h2>` | — | ❌ plain `<h3 className="nf-overline">` |
+| Headers **sticky** | none | ❌ plain `<h2>` | none | ❌ plain `<h3 className="nf-overline">` |
 | Coloured context row / category tag | ❌ | ❌ | ❌ | ❌ |
 | Avatar stacks | ❌ | ❌ | ❌ | ❌ |
 | Trailing timestamps | ❌ (date range is inline body text) | ⚠️ time under the body, not trailing (`:162-164`) | ⚠️ same (`:150`) | ❌ |
@@ -413,27 +412,27 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
   `MyBookings.tsx:63` fixed `h-[5.75rem] w-[5.75rem] sm:h-24 sm:w-32`.
 - **Zero blur placeholders.** `grep "blurDataURL\|placeholder=\"blur\""` → 0 results repo-wide.
   Mitigated by the painted gradient + skyline SVG behind every photo
-  (`ListingCard.tsx:173-184`, `ListingGallery.tsx:34-54`) — a good, branded, CLS-free substitute,
+  (`ListingCard.tsx:173-184`, `ListingGallery.tsx:34-54`), a good, branded, CLS-free substitute,
   but it pops rather than resolves.
 - `priority` is set only on the gallery lead pane (`ListingGallery.tsx:138`). The home hero
   region (`AiAssistantBanner.tsx:18-26`, a 1536×1024 PNG) is **not** prioritised and is the LCP
   candidate on `/home`.
 - `sizes` mismatch: `MyBookings.tsx:66` and `BookingsTabs.tsx:45` declare `sizes="128px"` for a box
-  that is 92px on phones — a ~40% oversized download on the most bandwidth-sensitive device.
+  that is 92px on phones, a ~40% oversized download on the most bandwidth-sensitive device.
 - **No lightbox / fullscreen gallery anywhere.** Tapping a listing photo does nothing; tapping a
   chat image does nothing.
 - `PageScene.tsx:45-52` loads a 900×900 decorative PNG on Bookings, Wallet, Saved, Rent and
-  Checkout — five screens each pulling a large decorative asset above the fold.
+  Checkout, five screens each pulling a large decorative asset above the fold.
 
 ---
 
 # 12. Scroll experience
 
-- `Reveal` (`components/site/Reveal.tsx`) — IntersectionObserver fade-up with stagger, used on
+- `Reveal` (`components/site/Reveal.tsx`), IntersectionObserver fade-up with stagger, used on
   nearly every screen, with a correct "already on screen means already revealed" guard (`:50-55`)
   and a reduced-motion path (`:38-43`). Solid.
-- `nf-gallery-kenburns` on the gallery lead pane (`ListingGallery.tsx:140`) — a slow drift. Nice.
-- `nf-card--interactive` cursor-lit glass + hover Ken Burns (`globals.css:225-251`) — desktop only.
+- `nf-gallery-kenburns` on the gallery lead pane (`ListingGallery.tsx:140`), a slow drift. Nice.
+- `nf-card--interactive` cursor-lit glass + hover Ken Burns (`globals.css:225-251`), desktop only.
 - **No parallax.** `nf-parallax-soft` with a `view()` timeline is defined at `globals.css:1007-1034`
   and used **zero times** in any `.tsx`.
 - **No scroll-linked hero collapse.** The listing hero does not shrink, the title does not migrate
@@ -441,8 +440,8 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
 - **No sticky sub-headers.** `search/page.tsx:147` is the only nested sticky, and it is a static
   block that never condenses as you scroll (it keeps its search bar + categories + cities + sorts
   at full height forever, eating ~240px of a 390px-wide phone's viewport).
-- Sheets have **no drag handle and no detents** — `MyBookings.tsx:183` (cancel), `FilterDrawer.tsx:331`
-  (full-screen), `ThreadOptionsSheet` — none are draggable (brief §7).
+- Sheets have **no drag handle and no detents**: `MyBookings.tsx:183` (cancel), `FilterDrawer.tsx:331`
+  (full-screen), `ThreadOptionsSheet`: none are draggable (brief §7).
 
 ---
 
@@ -457,23 +456,23 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
   `ReservePanel.tsx:62,71` steppers are `h-8 w-8` (32px); `ListingActions.tsx:144,155` and
   `ListingGallery.tsx:162` are `h-10 w-10` (40px); `ListingGallery.tsx:187,196` arrows are
   `h-9 w-9` (36px, desktop-only so acceptable); `PageHeader.tsx:53` back is `h-9 w-9` on phones
-  (36px) — that is the primary back affordance on nine screens.
+  (36px), that is the primary back affordance on nine screens.
 - Haptics: no `navigator.vibrate` anywhere.
-- Icon system: two families in play — `UiIcon` (stroked) and `BrandIcon` (3D objects). Mostly
+- Icon system: two families in play, `UiIcon` (stroked) and `BrandIcon` (3D objects). Mostly
   applied by a consistent rule (navigation/controls = UiIcon, content objects = BrandIcon), but
   there are hand-rolled inline `<svg>` one-offs sitting next to them:
   `ThreadView.tsx:379-393` (info circle), `:592-606` (photo), `BalanceCard.tsx:219-236` (eye),
   `FilterDrawer.tsx:136,151-154` (minus/plus). Brief §1 explicitly names this as a tell.
-- No filled/outline variant switching on the tab bar — `MobileTabBar.tsx:55` changes only
+- No filled/outline variant switching on the tab bar, `MobileTabBar.tsx:55` changes only
   `strokeWidth` (1.8 → 2) between inactive and active.
 - No symbol effects: the bell never rings, the heart never pulses on save
   (`ListingActions.tsx:157-161` just swaps a fill class), the send icon never flies.
 
 ---
 
-# Gaps vs the reference standard — ranked, with severity
+# Gaps vs the reference standard, ranked, with severity
 
-### P0 — blocks "designed by a top-tier product studio"
+### P0, blocks "designed by a top-tier product studio"
 
 | # | Gap | Evidence |
 |---|---|---|
@@ -485,35 +484,35 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
 | 6 | **Category chips carry no photo thumbnails** on either home or search | `home/page.tsx:112-114`, `CategoryTiles.tsx:61-63,91-93` |
 | 7 | **Two empty states are literally a centred grey sentence** | `NotificationsList.tsx:178-182`, `messages/page.tsx:32-35`, `messages/[id]/page.tsx:46-49` |
 | 8 | **Booking date selection is native `<input type="date">`**, not the chip sheet of reference 4 | `ReservePanel.tsx:211-242` |
-| 9 | **No route-level error boundaries in `(app)`** — every failure loses the shell | no `(app)/**/error.tsx`; only `app/error.tsx` |
+| 9 | **No route-level error boundaries in `(app)`**: every failure loses the shell | no `(app)/**/error.tsx`; only `app/error.tsx` |
 | 10 | **Hero never runs under the status bar**; a 64px glass header is welded above every guest screen, and `safe-area-inset-top` is unused repo-wide | `AppShell.tsx:90-121`; `grep safe-area-inset-top` → 0 |
 
-### P1 — visibly short of the bar
+### P1, visibly short of the bar
 
 | # | Gap | Evidence |
 |---|---|---|
 | 11 | No `FOR SALE`-style status pill on the listing hero | `listing/[id]/page.tsx:283-319` (badges below the title) |
 | 12 | No scroll-linked effects; `nf-parallax-soft` defined and unused | `globals.css:1007-1034`; 0 usages |
-| 13 | Wallet has no dark/light button pair — three identical tiles | `WalletActions.tsx:76-96`, `WalletDeck.tsx` TILES |
+| 13 | Wallet has no dark/light button pair, three identical tiles | `WalletActions.tsx:76-96`, `WalletDeck.tsx` TILES |
 | 14 | Wallet debits are not semantically red | `TransactionsSection.tsx:184` |
 | 15 | Sparkline is a bare polyline: no grid, no fill, no labels, hardcoded stroke that breaks in light theme | `BalanceCard.tsx:195-213` |
 | 16 | Hardcoded `white/…` alphas break the light theme on four wallet surfaces | `BalanceCard.tsx:144,177,185`, `TransactionsSection.tsx:169` |
 | 17 | No reply-quote blocks, no attachment icon row, no real avatars in chat | `ThreadView.tsx:40-47, 424-488, 586-607` |
 | 18 | Two different unread treatments on the same Messages screen (dot vs pill) | `ConversationList.tsx:108-113` vs `LiveThreadList.tsx:65-72` |
 | 19 | Two different Notifications designs for the same screen | `NotificationsList.tsx:142-144` vs `LiveNotifications.tsx:143-148` |
-| 20 | Bookings list is flat — no sticky section headers, no date grouping, no context row | `MyBookings.tsx:305-321` |
+| 20 | Bookings list is flat, no sticky section headers, no date grouping, no context row | `MyBookings.tsx:305-321` |
 | 21 | Grouped list headers exist but are not sticky | `LiveNotifications.tsx:134`, `TransactionsSection.tsx:123` |
 | 22 | No segmented progress bar across reserve → checkout → paid | none |
 | 23 | Active tab does not expand into a labelled capsule; no sliding indicator | `MobileTabBar.tsx:45-56` |
 | 24 | No `For Rent / For Sale` segmented control; no Sort pill; no Map toggle in the search bar | `search/page.tsx:229-254, 286` |
-| 25 | Search sticky bar never condenses — ~240px of permanent chrome on a phone | `search/page.tsx:147-255` |
+| 25 | Search sticky bar never condenses, ~240px of permanent chrome on a phone | `search/page.tsx:147-255` |
 | 26 | Four empty states have no CTA; two have no headline | `home/page.tsx:141-150`, `TransactionsSection.tsx:132-144`, `ListingReviews.tsx:24-37`, `MyBookings.tsx:322-340`, `BookingsTabs.tsx:191-209` |
 | 27 | Sheets have no drag handle and no detents | `MyBookings.tsx:183`, `FilterDrawer.tsx:331` |
-| 28 | `PageHeader` back button is 36px on phones — under the 44pt minimum, on nine screens | `PageHeader.tsx:53` |
+| 28 | `PageHeader` back button is 36px on phones, under the 44pt minimum, on nine screens | `PageHeader.tsx:53` |
 | 29 | Dead duplicate chat implementation will drift | `components/app/messages/MessageThread.tsx` (318 lines, unrendered) |
 | 30 | AI banner (LCP candidate on `/home`) is not `priority` | `AiAssistantBanner.tsx:18-26` |
 
-### P2 — polish
+### P2, polish
 
 | # | Gap | Evidence |
 |---|---|---|
@@ -535,13 +534,13 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
 | 46 | No map/neighbourhood, house rules, cancellation policy or similar-listings section on the money screen | `listing/[id]/page.tsx:276-379` |
 | 47 | No inspection/viewing time booking despite it being the core rental promise | `RentalPanel.tsx:65-71` dead-ends at Message agent |
 
-**Total: 47 findings — 10 P0, 20 P1, 17 P2.**
+**Total: 47 findings, 10 P0, 20 P1, 17 P2.**
 
 ---
 
 # Concrete upgrade recommendations per screen
 
-## Shell (`AppShell.tsx`) — unblocks everything else
+## Shell (`AppShell.tsx`), unblocks everything else
 1. Add an `immersive`-adjacent mode, e.g. `transparentHeader`, for `/listing/[id]` (and any future
    hero screen): render no header, let the page own its own floating controls. At minimum, add
    `pt-[env(safe-area-inset-top)]` to the header at `:90` and `h-[calc(64px+env(safe-area-inset-top))]`.
@@ -552,7 +551,7 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
    3-card grid for search/home; row skeletons for bookings/messages/notifications/wallet).
 4. Add `error.tsx` per route group reusing `MomentScreen` with a `Try again` action bound to `reset()`.
 
-## Listing detail — the money screen
+## Listing detail, the money screen
 5. Make the gallery a true hero: full-bleed at **all** breakpoints, no `sm:rounded`, extend under
    the status bar, `min-h-[52vh]`.
 6. Wrap everything after the gallery in a content sheet: `-mt-8 rounded-t-[2rem] bg-surface` with a
@@ -560,8 +559,8 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
 7. Put a status pill on the hero (`FOR RENT` / `FOR SALE` / `INSTANT BOOK`) as a tinted glass badge
    near the bottom-left of the media, above the sheet edge.
 8. Promote the price to `nf-hero-figure` with `nf-hero-figure__unit` for `/night`, `/year`,
-   `/guest` — exactly as `checkout/[bookingId]/page.tsx:178-181` already does.
-9. Rebuild the spec row as an icon/value/label triple strip (`🛏 3 Beds · 🛁 2 Baths · 📐 — m²`)
+   `/guest`: exactly as `checkout/[bookingId]/page.tsx:178-181` already does.
+9. Rebuild the spec row as an icon/value/label triple strip (`🛏 3 Beds · 🛁 2 Baths · 📐, m²`)
    with hairline dividers, not chips. Add an `areaSqm` field to `Listing` so the third slot is real.
 10. Add "Show all N photos" over the gallery's bottom-right, opening a full-screen grid → lightbox
     with pinch/swipe and the same counter.
@@ -569,7 +568,7 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
     `pb-[env(safe-area-inset-bottom)]`, price on the left, and a **ghost + solid CTA pair**
     ("Message agent" ghost, "Reserve" solid). Render it on desktop too.
 12. Add a scroll-linked collapse: fade the floating controls into a solid glass header and slide the
-    title in once the hero passes. `nf-parallax-soft` already exists — wire it to the gallery.
+    title in once the hero passes. `nf-parallax-soft` already exists, wire it to the gallery.
 13. Add the missing sections: neighbourhood map, house rules, cancellation policy, similar listings.
 14. Make "Reviews" and "Photos" headers carry a muted trailing "Show all".
 
@@ -591,8 +590,7 @@ undifferentiated list. There is no "3 nights in Lekki, in 12 days" urgency frami
 
 ## Booking / checkout
 24. Replace the two date inputs with a horizontal date-chip strip (14 days, off-edge bleed, blocked
-    dates greyed, selected chip with a coloured ring), presented in a glass sheet over the hero —
-    this is reference 4 and it is the single biggest flow upgrade available.
+    dates greyed, selected chip with a coloured ring), presented in a glass sheet over the hero, this is reference 4 and it is the single biggest flow upgrade available.
 25. Add an inspection/viewing time-slot chip row for rentals, so "arrange an inspection" is a real
     booking rather than a chat prompt.
 26. Add a 3-segment progress bar across Reserve → Pay → Confirmed at the top of both routes.

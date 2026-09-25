@@ -108,6 +108,9 @@
 @import "./css/threshold.css";
 /* Track M: the inner rooms breathe (titles, empty states, rows, the bell). */
 @import "./css/inner-m.css";
+/* Track M: the cinema kit (Truchet field, horizontal reel, vertical columns,
+   kinetic type, film HUD). */
+@import "./css/cinema.css";
 @import "./css/light.css";
 /*
  * `light.css` WAS IMPORTED HERE AND WAS DELETED (history). The founder removed light mode
@@ -122,3 +125,6 @@
  */
 @import "./css/data-saver.css";
 @import "./css/touch.css";
+/* Track M: the motion setting (cinematic, standard, calm, off). Last, so
+   "off" wins over every partial above it. */
+@import "./css/motion-pref.css";

@@ -10,6 +10,7 @@ import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import { BrandAssemble } from "@/components/motion/BrandAssemble";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
+import { MOTION_COOKIE, motionAttributes, parseMotion } from "@/lib/motion/motion-pref";
 import "./globals.css";
 import { siteUrl } from "@/lib/site";
 import { CHROME_COLOUR } from "@/lib/theme/chrome";
@@ -255,6 +256,9 @@ export default async function RootLayout({
      rendered light by the server and never flashes dark. "system" renders
      dark here and the before-paint script below resolves it. */
   const themeChoice = parseThemeChoice((await cookies()).get(THEME_KEY)?.value);
+  /* Track M: the motion preference, painted on the root by the server so the
+     first frame (and the splash decision below) already honours it. */
+  const motion = motionAttributes(parseMotion((await cookies()).get(MOTION_COOKIE)?.value));
 
   return (
     <html
@@ -263,6 +267,7 @@ export default async function RootLayout({
       data-save-data={lessData ? "on" : undefined}
       data-theme={serverTheme(themeChoice)}
       data-theme-choice={themeChoice}
+      {...motion}
       suppressHydrationWarning
     >
       <head>
@@ -371,6 +376,8 @@ export default async function RootLayout({
           assembles letter by letter, and a door opens on the page. It plays
           once per browser session, which on the native shell is once per cold
           start, and never under reduced motion, never with data saving on,
+          never when the motion setting is Calm or Off or the splash is
+          switched off,
           and never on the console, the auth callback or a shared link. It is
           decided here, before the first frame, because deciding it after
           hydration would show the page and then cover it.
@@ -380,7 +387,7 @@ export default async function RootLayout({
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html:
-              "try{var d=document.documentElement;if(!sessionStorage.getItem('nf_entered')&&d.dataset.saveData!=='on'&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&!/^\\/(admin|auth|api|offline|open|s|r)(\\/|$)/.test(location.pathname))d.dataset.splash='on';sessionStorage.setItem('nf_entered','1')}catch(e){}",
+              "try{var d=document.documentElement;if(!sessionStorage.getItem('nf_entered')&&d.dataset.saveData!=='on'&&d.dataset.motionSplash!=='off'&&d.dataset.motion!=='calm'&&d.dataset.motion!=='off'&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&!/^\\/(admin|auth|api|offline|open|s|r)(\\/|$)/.test(location.pathname))d.dataset.splash='on';sessionStorage.setItem('nf_entered','1')}catch(e){}",
           }}
         />
         {/*

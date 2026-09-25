@@ -29,7 +29,7 @@ from public.listings group by is_demo;
 listings, all sixty-four of them examples, all sixty-four published.
 
 `is_demo = false` sits inside `comparable_listings`, `comparable_supply_near`,
-`area_asking_summary`, `area_suggestions` and `area_utility_facts` — every read
+`area_asking_summary`, `area_suggestions` and `area_utility_facts`: every read
 stage one is built on. So the correct behaviour of every one of those functions
 today is to return nothing, and **that is what they do**.
 
@@ -54,8 +54,7 @@ beside itself, puts two rows in front of the predicate that differ in one
 column and asserts both answers, then flips that column on a row already in the
 set and watches it leave and come back. It ends in a deliberate
 `raise exception` so the whole transaction unwinds, and the rollback was
-verified afterwards by a separate read rather than assumed —
-`non_demo 0`, the estate back exactly as it was.
+verified afterwards by a separate read rather than assumed, `non_demo 0`, the estate back exactly as it was.
 
 ```
 1 control: both twins PUBLISHED and readable
@@ -69,7 +68,7 @@ verified afterwards by a separate read rather than assumed —
 ```
 
 Assertion 3 is the one no earlier test on this build had: **a non-demo listing
-can reach a comparable.** Assertion 4 is what makes 2 and 3 mean anything — the
+can reach a comparable.** Assertion 4 is what makes 2 and 3 mean anything, the
 row that left the set is the same row that was in it, so `is_demo` and nothing
 else decided. Assertion 6 is the rule's other half: examples are excluded from
 Price Check comparables and from statistics **only**, never from search, the
@@ -96,7 +95,7 @@ select count(*) from public.comparable_listings(
 ```
 
 Side B returning three proves the rest of the rule is satisfiable by rows that
-exist right now — the type matches, the intent matches, the bedroom band admits
+exist right now, the type matches, the intent matches, the bedroom band admits
 them, they are inside the radius, recent enough, priced above zero and share a
 rent cycle. Side A returning zero on that same set therefore proves
 `is_demo = false` is exactly and only what removes them. It is weaker than the
@@ -106,7 +105,7 @@ can be run by anyone with a read connection in one query.
 
 **The blind light is off, from both directions.**
 
-## 2. THE AREA REPORT FROM ASKING PRICES — BUILT, CORRECT, RETURNS NOTHING
+## 2. THE AREA REPORT FROM ASKING PRICES, BUILT, CORRECT, RETURNS NOTHING
 
 | Read | Result today |
 |---|---|
@@ -127,7 +126,7 @@ totals compares agents.
 
 ---
 
-## 3. THE NEIGHBOURHOOD POWER AND WATER FACTS — AND A SHIPPED COMMENT THAT TODAY FALSIFIES
+## 3. THE NEIGHBOURHOOD POWER AND WATER FACTS, AND A SHIPPED COMMENT THAT TODAY FALSIFIES
 
 `20260922222221_price_check_reports_what_places_are_asking.sql` says of
 `area_utility_facts`:
@@ -146,7 +145,7 @@ select * from public.area_utility_facts('LA','Lagos','Lekki Phase 1');
 
 The panel does not depend on the **gate** opening. It depends on **real supply
 existing**, because it excludes example listings for the same reason the prices
-do — an example listing's power supply is fiction, and a fact panel built from
+do, an example listing's power supply is fiction, and a fact panel built from
 fiction is an invented number with a picture beside it. That exclusion is right.
 The claim that this panel is therefore product value on launch day is not.
 
@@ -155,7 +154,7 @@ contradicted by production data. Worth a follow-up commit to the comment.**
 
 ---
 
-## 4. THE REFUSAL STATES WITH NOTIFY-ME — THE ONE PART THAT IS ACTUALLY PROVEN LIVE
+## 4. THE REFUSAL STATES WITH NOTIFY-ME, THE ONE PART THAT IS ACTUALLY PROVEN LIVE
 
 This is the item that works, and it works in the hardest case.
 
@@ -179,7 +178,7 @@ data.** The only stage one item of which that is true.
 
 ---
 
-## 5. THE MAP PIN LADDER — AND A RUNG THAT RETURNS NOTHING
+## 5. THE MAP PIN LADDER, AND A RUNG THAT RETURNS NOTHING
 
 ```sql
 select count(*) from public.area_suggestions('LA', null, 8);
@@ -195,14 +194,14 @@ an area we have not seen would refuse every area we have not seen.
 share-card write path (`shareAreaPrices`) refuses to mint a card for an area
 name this platform does not already hold real published listings in. That
 vocabulary is empty. **So no share card can be minted at all today.** The guard
-is correct and fails closed on purpose — refusing a card costs a person one tap,
+is correct and fails closed on purpose, refusing a card costs a person one tap,
 and the alternative is a forwarded artefact carrying an address. But nobody
 should read `price_check_shares` at zero rows as "the feature works and is
 unused". It is closed.
 
 ---
 
-## 6. INSTRUMENTATION — BUILT, WIRED, NEVER FIRED
+## 6. INSTRUMENTATION, BUILT, WIRED, NEVER FIRED
 
 ```sql
 select count(*) from public.price_check_events;  -- 0
@@ -223,7 +222,7 @@ is at zero. Every claim about what readers ask for is currently unevidenced.
 
 ```
 $ node apps/web/scripts/check-valuation-words.mjs
-valuation words: clean — 1750 files and every directory name scanned,
+valuation words: clean, 1750 files and every directory name scanned,
 0 regulated words outside the budgeted disclaimer surfaces, the standing
 disclaimer still says the word it disclaims, and the scan reached more than
 the 300 file floor.
@@ -243,11 +242,11 @@ arriving from a listing title or an admin-entered string would pass it.
 | Stage one item | Built | Proven live |
 |---|---|---|
 | Comparables rule excludes examples | yes | **yes, both sides, by a rolled-back probe with real inserts** (§1) |
-| Area report from asking prices | yes | no — 0 comparables, 0 summaries |
-| Neighbourhood power and water facts | yes | no — 0 listings, and its shipped rationale is falsified (§3) |
+| Area report from asking prices | yes | no, 0 comparables, 0 summaries |
+| Neighbourhood power and water facts | yes | no, 0 listings, and its shipped rationale is falsified (§3) |
 | Refusal states with notify-me | yes | **yes** (§4) |
-| Map pin ladder | yes | partly — the area rung returns nothing, and share is closed (§5) |
-| `price_check_events` instrumentation | yes | no — 0 rows ever (§6) |
+| Map pin ladder | yes | partly, the area rung returns nothing, and share is closed (§5) |
+| `price_check_events` instrumentation | yes | no, 0 rows ever (§6) |
 | The word `valuation` held out | yes | yes for source, no for runtime strings (§7) |
 
 Six of the seven are built. Two are proven. **The single unblocking action for

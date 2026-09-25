@@ -31,7 +31,12 @@ export function thresholdAllowed(): boolean {
   } catch {
     return false;
   }
-  return document.documentElement.dataset.saveData !== "on";
+  const root = document.documentElement;
+  /* The motion setting: Calm and Off have no thresholds, and the doors can be
+     switched off on their own. */
+  if (root.dataset.motion === "calm" || root.dataset.motion === "off") return false;
+  if (root.dataset.motionDoors === "off") return false;
+  return root.dataset.saveData !== "on";
 }
 
 export function playThreshold(kind: ThresholdKind): Promise<void> {

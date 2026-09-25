@@ -4,6 +4,7 @@ import type { CountForms, PluralForms } from "../plural";
    once already. One import and one line is the smallest footprint a
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
+import { reelEn } from "./reel.en";
 import { shapeEn } from "./shape.en";
 /* The front of the funnel (share door, area pages, store desk, broadcast,
    board): its own module for the same reason. */
@@ -1795,6 +1796,26 @@ export const en = {
       textLarge: "Large",
       reduceMotion: "Reduce motion",
       reduceMotionSub: "Calms entrance animations and hover movement across the app.",
+      /* Track M: the motion setting, four levels and three switches. */
+      motion: "Motion",
+      motionNote: "Kept on this device. If your phone asks for less motion, Vallo always follows it.",
+      motionPreview: "Preview",
+      motionCinematic: "Cinematic",
+      motionCinematicSub: "Everything, deeper and slower. Pages rise into place.",
+      motionStandard: "Standard",
+      motionStandardSub: "The way Vallo is designed to move.",
+      motionCalm: "Calm",
+      motionCalmSub: "Short fades only. No splash, no doors, nothing that loops.",
+      motionOff: "Off",
+      motionOffSub: "Nothing moves. Every screen appears finished.",
+      motionSplash: "Opening splash",
+      motionSplashSub: "The Vallo mark assembling when the app opens.",
+      motionDoors: "Door moments",
+      motionDoorsSub: "Walking through after you verify, and the doors closing when you sign out.",
+      motionAmbient: "Living backgrounds",
+      motionAmbientSub: "The slow light that drifts behind the pages.",
+      motionReplay: "Replay the opening",
+      motionNeedsMore: "Needs Standard or Cinematic",
       lessData: "Use less data",
       lessDataSub:
         "Stops the app loading a place before you have opened it, and asks for smaller photographs.",
@@ -5853,6 +5874,8 @@ export const en = {
   },
 
   priceCheck: priceCheckEn,
+  /* Track M: the cinematic landing bands. */
+  reel: reelEn,
   shape: shapeEn,
   frontDoor: frontDoorEn,
   afterTheGate: afterTheGateEn,

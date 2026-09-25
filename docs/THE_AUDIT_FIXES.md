@@ -30,7 +30,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 
 | Head | Typecheck | Lint | Unit and component tests | Build |
 |---|---|---|---|---|
-| e6b2b23c | tsc 0 | lint 0 errors, 333 warnings (cap 333) | vitest 342 files, 4613 passed, 1 skipped — three consecutive full runs, all green | next build exit 0 |
+| e6b2b23c | tsc 0 | lint 0 errors, 333 warnings (cap 333) | vitest 342 files, 4613 passed, 1 skipped, three consecutive full runs, all green | next build exit 0 |
 | e286837c | tsc 0 | lint 0 errors, 330 warnings | vitest 367 files, 4755 passed, 1 skipped, two consecutive runs | next build exit 0 |
 | 8033d764 | tsc 0 | lint 0 errors, 330 warnings | vitest 372 files, 4777 passed, 1 skipped | next build exit 0 |
 | 33694b5a | tsc 0 | lint 0 errors, 330 warnings | vitest 386 files, 4814 passed, 1 skipped | next build exit 0 |
@@ -54,9 +54,9 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 
 ## Agent 1: the live holes and the supply blockage
 
-### Ledger — Agent 1 (live holes and the supply blockage)
+### Ledger, Agent 1 (live holes and the supply blockage)
 
-### UX-24 — anon could read members' occupation / LGA / state / home area from social_profiles
+### UX-24, anon could read members' occupation / LGA / state / home area from social_profiles
 - STATE: FIXED (applied to live 20260923231826 after Agent 2 APPROVE)
 - RE-VERIFIED: live relacl `anon=arwd/postgres` (table-level SELECT; no column ACLs), so every column incl. occupation_code/lga_code/state_code/home_area_id readable by anon. Old-DB probe run: `PROBE_FAIL ux-24: anon read occupation_code`.
 - APP READS CHECKED: every `.from("social_profiles")` in apps/web/src on origin/main (e1395cf) and in fix/a1: all run behind the proxy's session gate (PUBLIC_SEGMENTS identical on both; no public route or /api route reads social_profiles; (dev)/preview harness uses fixtures and 404s in prod). PROFILE_COLUMNS (includes home_area_id) and people-queries (occupation/lga/state) run as authenticated only. No DB view reads the table; every function that does is SECURITY DEFINER.
@@ -72,8 +72,8 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - NOT IN SCOPE HERE: UX-24 steps 2-4 (privacy toggle, sign-up notice, /u shows name+handle only).
 - REVIEW: Agent 2 APPROVE (reviews/a1-batch1-by-a2.md); applied.
 
-### DB-01 — member self-publishes / self-verifies a business (+ accommodations, room_types)
-- STATE: FIXED — applied to live as 20260923232741 (amended v2, approved by Agent 2 in reviews/a1-batch1b-2-by-a2.md); the live function body's md5 matches the committed file (a1cd81b8…); `PROBE_OK db-01` against live. Commit a34eec76.
+### DB-01, member self-publishes / self-verifies a business (+ accommodations, room_types)
+- STATE: FIXED, applied to live as 20260923232741 (amended v2, approved by Agent 2 in reviews/a1-batch1b-2-by-a2.md); the live function body's md5 matches the committed file (a1cd81b8…); `PROBE_OK db-01` against live. Commit a34eec76.
 - RE-VERIFIED: old-DB probe `PROBE_FAIL db-01: member inserted a PUBLISHED business`. DB-01 step 7: businesses with tier>0 and no verification check = none (0 of 7).
 - CHANGE (pending): SECURITY INVOKER `private.guard_owner_write()` + BEFORE INSERT OR UPDATE triggers `*_00_guard_owner_write` on businesses, listings, accommodations, room_types (00 so they fire before derive_badge / assign_reference / fill_listing_role / sync triggers). Passes when current_user not in (authenticated, anon) (postgres, service_role, every definer function) or caller has admin/super_admin. Owner INSERT: status DRAFT|SUBMITTED only; moderator columns reset. Owner UPDATE: moderator column change → 42501; status: same / →DRAFT (not from SUSPENDED) / DRAFT|MORE_INFO_REQUIRED|REJECTED→SUBMITTED; submitted_at stamped by guard. Draft: scratchpad/work/fix-a1/db01_02_migration.sql
 - rate_plans / restaurant_profiles / service_windows: assessed, no status or moderator column; public visibility follows the parent business/room status, now guarded. No trigger added.
@@ -83,8 +83,8 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - TEST: supabase/tests/probes/db-01.sql (47a3c9a3)
 - REVIEW:
 
-### DB-02 — lister self-publishes / features / stamps a listing
-- STATE: FIXED — same migration 20260923232741; `PROBE_OK db-02` against live. Commit a34eec76.
+### DB-02, lister self-publishes / features / stamps a listing
+- STATE: FIXED, same migration 20260923232741; `PROBE_OK db-02` against live. Commit a34eec76.
 - RE-VERIFIED: old-DB probe `PROBE_FAIL db-02: owner inserted a PUBLISHED listing`.
 - Protected: featured, published_at, reviewed_at, reviewer_id, review_notes, address_verified_at, physically_inspected_at, ownership_verified_at, mandate_verified_at, verified_by, supply_verified_by, listing_fee_minor/rate_id/charged_at, is_demo, demo_retire_after, reference, listing_role, firm_id, agent_id. Insert resets listing_role to null so listings_fill_listing_role derives it; firm_id on owner insert refused (no owner path sets it; firms attached by staff).
 - WRITE PATHS: agent saveDraft insert/update (descriptive/price columns only), submitListing, unpublishListing, deleteListing; admin reviewListing as authenticated.
@@ -102,53 +102,53 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - LEGITIMATE OWNER WRITES CHECKED (grep of every insert/update/upsert/delete on the four tables in apps/web/src, identical on origin/main):
   - listings: saveDraft insert/update (gated EDITABLE in app), submitListing (EDITABLE→SUBMITTED), unpublishListing (APPROVED|PUBLISHED→DRAFT, status only), deleteListing (DRAFT only). No photo/cover/calendar/counter path writes the listings row (photos and amenities are child tables; calendar-actions reads only).
   - businesses: host saveHostDraft (EDITABLE only), submitHostApplication, closeBusiness (status→DRAFT only).
-  - accommodations: host addAccommodationDraft insert/update (editableBusiness gate), closeBusiness (PUBLISHED|APPROVED→DRAFT, status only, runs before the business goes to DRAFT — allowed as a status-only change).
+  - accommodations: host addAccommodationDraft insert/update (editableBusiness gate), closeBusiness (PUBLISHED|APPROVED→DRAFT, status only, runs before the business goes to DRAFT, allowed as a status-only change).
   - room_types: host addRoomTypeDraft insert, stays-setup upsert (editableBusiness gate).
   - Admin paths (requireAdmin, authenticated) pass by role. Every DB function/trigger writing these tables is SECURITY DEFINER.
 - EVIDENCE: rolled-back amended migration + probes: `PROBE_OK db-01`, `PROBE_OK db-02`. New refusals: submitted business/listing edit; live business rename, live property description, live room reprice, live room delete, live business delete; live listing rewrite (ATTACK A verbatim) and live listing delete. New controls: close then edit the still-PUBLISHED room under the draft business, edit after close/unpublish, delete a draft business. Rolled back: function absent, 0 probe rows, no migration row.
 - COMMITS: ba13376f (probes).
 - NOT CHANGED (ledgered): see NEW-A1-01, NEW-A1-02.
 
-### NEW-A1-01 — a live listing's photos, videos and amenities (and the stored photo bytes) change without re-review
+### NEW-A1-01, a live listing's photos, videos and amenities (and the stored photo bytes) change without re-review
 - SEVERITY: HIGH (latent: 0 real listers today). It bypasses moderation on public content, the same class as DB-02's ATTACK A. Proved on live after DB-02: `PROBE_FAIL new-a1-01: owner added a photo to a live listing`. A second vector the table rule alone would miss: storage policies let the owner UPDATE (overwrite) or DELETE any object under their uid folder, so the bytes behind an approved photo could be swapped in place.
-- STATE: FIXED — Agent 2 APPROVE (reviews/a1-batch2b-by-a2.md); applied to live as 20260923234045 with the reviewer's recommended indexes (listing_photos.storage_path, listing_videos.storage_path, listing_videos.poster_path); `PROBE_OK new-a1-01` against live; commit 62a7eac3. Was: Draft scratchpad/work/fix-a1/new_a1_01_migration.sql. It adds a SECURITY INVOKER guard_listing_child_write trigger (00-named, BEFORE I/U/D) on listing_photos, listing_videos and listing_amenities: API non-staff writes only while the parent listing is DRAFT, MORE_INFO_REQUIRED or REJECTED. It adds a definer private.listing_media_locked(name) (EXECUTE for authenticated, which the storage policies need). It re-creates the four owner storage UPDATE/DELETE policies on listing-photos and listing-videos with `and not listing_media_locked(name)`, keeping roles={authenticated}.
+- STATE: FIXED, Agent 2 APPROVE (reviews/a1-batch2b-by-a2.md); applied to live as 20260923234045 with the reviewer's recommended indexes (listing_photos.storage_path, listing_videos.storage_path, listing_videos.poster_path); `PROBE_OK new-a1-01` against live; commit 62a7eac3. Was: Draft scratchpad/work/fix-a1/new_a1_01_migration.sql. It adds a SECURITY INVOKER guard_listing_child_write trigger (00-named, BEFORE I/U/D) on listing_photos, listing_videos and listing_amenities: API non-staff writes only while the parent listing is DRAFT, MORE_INFO_REQUIRED or REJECTED. It adds a definer private.listing_media_locked(name) (EXECUTE for authenticated, which the storage policies need). It re-creates the four owner storage UPDATE/DELETE policies on listing-photos and listing-videos with `and not listing_media_locked(name)`, keeping roles={authenticated}.
 - APP FLOWS CHECKED: every listing photo, video and amenity write in listings-actions.ts is already gated on EDITABLE (LOCKED_MESSAGE). deleteListing deletes the listing row first, which cascades the photo rows as owner, then removes the storage objects, which are no longer referenced, so they are not locked. Uploads use INSERT; only ApplyWizard and UploadCard use upsert, and those write document buckets, not listing media.
 - NOT COVERED, by design: business_photos and accommodation_photos. The host flow files venue photographs at ANY status on purpose (lib/host/actions.ts ownedBusiness: "the moment a venue is APPROVED or PUBLISHED is exactly when its photographs arrive").
 - EVIDENCE (rolled back): `PROBE_OK new-a1-01`. Covered: draft controls; after publish, refusals of photo add, reorder and remove, amenity add and remove, and storage overwrite (rows=0); service-role removal still works; after unpublish, reorder and storage update work again. Note: listing_photos has no admin RLS policy, so staff remove photos through the service role (unchanged).
 - TEST: supabase/tests/probes/new-a1-01.sql (edfd0d26)
 
-### DB-03 follow-up — firm staff could DELETE another firm member's listing (reviewer note)
-- STATE: FIXED — Agent 2 APPROVE; applied to live as 20260923234031; `PROBE_OK db-03` against live (including firm-staff delete rows=0 and owner draft delete rows=1); commit 62a7eac3. It replaces listings_owner_all with listings_owner_select (agent OR active firm member) plus insert/update/delete policies for the lister alone.
+### DB-03 follow-up, firm staff could DELETE another firm member's listing (reviewer note)
+- STATE: FIXED, Agent 2 APPROVE; applied to live as 20260923234031; `PROBE_OK db-03` against live (including firm-staff delete rows=0 and owner draft delete rows=1); commit 62a7eac3. It replaces listings_owner_all with listings_owner_select (agent OR active firm member) plus insert/update/delete policies for the lister alone.
 - EVIDENCE: live now gives `PROBE_FAIL db-03: firm staff deleted the principal's listing rows=1`. With the split, rolled back, the whole db-03 probe returns `PROBE_OK db-03`: the app-shape insert…returning still works; firm staff update and delete touch 0 rows; the owner deletes their own draft.
 - TEST: supabase/tests/probes/db-03.sql (edfd0d26; the firm-staff update check accepts 0 rows or 42501, so the probe holds before and after the split)
 
-### DB-03 (+SUP-01) — every agent's first listing save refused 42501
-- STATE: FIXED — applied to live as 20260923232856 (Agent 2 APPROVE). `PROBE_OK db-03` against live with the exact PostgREST shape (WITH pgrst_source AS (INSERT … RETURNING *) SELECT id, status). Commit a34eec76. Live wizard end-to-end: see below.
+### DB-03 (+SUP-01), every agent's first listing save refused 42501
+- STATE: FIXED, applied to live as 20260923232856 (Agent 2 APPROVE). `PROBE_OK db-03` against live with the exact PostgREST shape (WITH pgrst_source AS (INSERT … RETURNING *) SELECT id, status). Commit a34eec76. Live wizard end-to-end: see below.
 - TEST: supabase/tests/probes/db-03.sql (runs on every deploy once Agent 3 wires the runner)
 
-### SUP-P2-01 — firm_members SELECT policy recursed (42P17); admin "Firm rosters could not be read"
-- STATE: FIXED — same migration 20260923232856. Old DB: `PROBE_FAIL sup-p2-01: admin roster read: 42P17 infinite recursion detected in policy for relation "firm_members"`. Live after: `PROBE_OK sup-p2-01` (admin 2 rows; staff member 1; NON-admin principal sees own firm's 2 — reviewer note taken; stranger 0).
+### SUP-P2-01, firm_members SELECT policy recursed (42P17); admin "Firm rosters could not be read"
+- STATE: FIXED, same migration 20260923232856. Old DB: `PROBE_FAIL sup-p2-01: admin roster read: 42P17 infinite recursion detected in policy for relation "firm_members"`. Live after: `PROBE_OK sup-p2-01` (admin 2 rows; staff member 1; NON-admin principal sees own firm's 2, reviewer note taken; stranger 0).
 - TEST: supabase/tests/probes/sup-p2-01.sql
 
-### UX-11 / SUP-15 (agent door part) — "Not signed in as an agent — Sign in" shown to a signed-in member
+### UX-11 / SUP-15 (agent door part), "Not signed in as an agent, Sign in" shown to a signed-in member
 - STATE: FIXED (code, commit 89900164). The identity card now reads "You are not listing yet" / "Apply to list" and links to /profile/setup. The pitch ("Become an agent" becomes "Apply to list"), dashboard and inspections doors go to /profile/setup instead of /profile/setup/owner. Keys agent.mode.visitor and signInToWorkspace are renamed noWorkspace and applyToList; ha/ig/yo reuse each locale's existing translation of notAgentTitle and applyCta, so no new wording was invented.
 - NOT DONE (out of this scope): FAQ copy, console logo → /home, role-aware approval title, and the duplicate-application guard.
 - TEST: apps/web/src/components/agent/agent-doors.test.ts (2 tests; JSX cannot render under this vitest config, so the door is a pure module the card consumes)
 - GATES (fix/a1 at 89900164): tsc clean; lint 0 errors (335 warnings, pre-existing); vitest 244 files, 3864 passed, 1 skipped.
 
 
-### NEW-A1-02 — service_windows / restaurant_profiles / rate_plans on a PUBLISHED business change without re-review
+### NEW-A1-02, service_windows / restaurant_profiles / rate_plans on a PUBLISHED business change without re-review
 - STATE: DEFERRED (operating hours, cuisines and rates are operational data an owner plausibly needs to change live; decide product rule first). No publish or verify column on these tables.
 
-### DB-03 live wizard end-to-end — BLOCKED at approval
+### DB-03 live wizard end-to-end, BLOCKED at approval
 - CREATED ON LIVE (record): agent_applications VL-AGT-10023. The QA member filed it through the real UI (/profile/setup/owner) on 2026-09-24 00:53 Lagos: SUBMITTED, supply_role owner, full_name "QA Member Probe Owner", phone +2348031234567, LA / la_lagos_mainland / Yaba, ownership_document none. There are no documents. The "application filed" notification went to the QA member.
 - The next step was approving it as the QA admin through /admin/agents (ApplicationDecision → reviewAgentApplication). The permission classifier refused it as a real-world transaction, so it was not done and not worked around.
-- STATE: FOUNDER — "VL-AGT-10023 (QA Member Probe Owner) is a test owner application filed through the real UI to prove listing creation end to end. Approve it at /admin/agents, then create one listing at /agent/list and delete the draft (or reject the application if you prefer not to run the proof)." DB-03 stays FIXED on the strength of the live probe.
+- STATE: FOUNDER, "VL-AGT-10023 (QA Member Probe Owner) is a test owner application filed through the real UI to prove listing creation end to end. Approve it at /admin/agents, then create one listing at /agent/list and delete the draft (or reject the application if you prefer not to run the proof)." DB-03 stays FIXED on the strength of the live probe.
 - DB-03 itself is proved on live by `PROBE_OK db-03`, using the exact PostgREST insert…returning shape.
 - Tooling note: Chromium in this sandbox needs the session proxy CAs trusted by key (`--ignore-certificate-errors-spki-list` with the two CCR CA SPKI hashes from /root/.ccr/ca-bundle.crt). TLS verification is not disabled.
 
-### SUP-05 (+ DB-08) — "Needs more information" was a dead end; an applicant could approve their own application
-- STATE: FIXED — Agent 2 APPROVE with one required change (reviews/a1-batch3-by-a2.md). Also taken: the two recommendations. agent_documents insert now requires `listing_id is null or private.owns_listing(listing_id)`; a client-supplied application `reference` is replaced by the sequence's (currval check, so a normal insert keeps its default); `supersedes_id` must be one of the uploader's own documents. Applied to live as 20260924001655; `PROBE_OK sup-05` against live (includes the three new attacks). Commits b6f928e8 (code) and 7a07b5ca (migration and probe). Note: sequences are not transactional, so the rolled-back probe runs consumed agent_ref_seq numbers (last_value 10038). That leaves gaps in VL-AGT references, which is cosmetic. The founder's application VL-AGT-10016 is NOT touched or approved; once the migration is live it becomes answerable.
+### SUP-05 (+ DB-08), "Needs more information" was a dead end; an applicant could approve their own application
+- STATE: FIXED, Agent 2 APPROVE with one required change (reviews/a1-batch3-by-a2.md). Also taken: the two recommendations. agent_documents insert now requires `listing_id is null or private.owns_listing(listing_id)`; a client-supplied application `reference` is replaced by the sequence's (currval check, so a normal insert keeps its default); `supersedes_id` must be one of the uploader's own documents. Applied to live as 20260924001655; `PROBE_OK sup-05` against live (includes the three new attacks). Commits b6f928e8 (code) and 7a07b5ca (migration and probe). Note: sequences are not transactional, so the rolled-back probe runs consumed agent_ref_seq numbers (last_value 10038). That leaves gaps in VL-AGT references, which is cosmetic. The founder's application VL-AGT-10016 is NOT touched or approved; once the migration is live it becomes answerable.
 - RE-VERIFIED: live VL-AGT-10016 | MORE_INFO_REQUIRED | owner | note "your  bvn" | 0 docs. The old DB probe gave `PROBE_FAIL sup-05: applicant filed an APPROVED application`.
 - CHANGE (pending migration):
   - New column `agent_applications.applicant_response` (≤ 2000 characters).
@@ -161,11 +161,11 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - COMPAT with deployed main: the registration inserts status SUBMITTED with no reviewer (it passes); main has no applicant update path; the admin review runs as admin role (it passes). The admin desk query on the release branch selects applicant_response, so the migration must land before that code.
 - NOT DONE: the duplicate-application guard (SUP-05 pass one / SUP-15). DB-08 is covered by this migration.
 
-### NEW-A1-03 — an uploader could file their own document as "approved" with themselves as the reviewer
+### NEW-A1-03, an uploader could file their own document as "approved" with themselves as the reviewer
 - SEVERITY: HIGH (KYC and supply-proof documents feed the verification ladder). agent_documents_insert_own checked only uploader and application; review_status, reviewed_by and reviewed_at were the uploader's to write (the decider CHECK is satisfied by their own uid).
-- STATE: FIXED — in 20260924001655 (guard trigger forcing pending, plus the listing-ownership and own-supersede rules). The probe asserts it (sup-05.sql).
+- STATE: FIXED, in 20260924001655 (guard trigger forcing pending, plus the listing-ownership and own-supersede rules). The probe asserts it (sup-05.sql).
 
-### Batch 3 cleanup — BEFORE state (read 2026-09-24 ~00:15 Lagos)
+### Batch 3 cleanup, BEFORE state (read 2026-09-24 ~00:15 Lagos)
 - risk_alerts (283 total). The three to delete, verified by timestamp and kind:
   - 32987f01-4ac2-47d5-8f35-c836bbe3c68f | 2026-09-23 20:49:00.727Z | medium | "Webhook: paystack, signature invalid" | webhook.paystack.signature_invalid {"http_status":401}
   - ad909d45-90da-4bd1-8a74-004de6a834cd | 2026-09-23 20:49:02.104Z | high | "Webhook: yellowcard, unconfigured" | webhook.yellowcard.unconfigured
@@ -175,7 +175,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - Conversation "Mini flat in Yaba" d140e186-9fa3-41f4-8234-32ef75a1060e (QA member as guest, created 20:29:04Z): it has **1 message**, so the order's condition (zero messages) is NOT met and it is LEFT IN PLACE.
 - auth.sessions with user_agent 'node' on the two QA uids created 2026-09-23 20:10–20:50Z: **64 rows** (148 'node' sessions on those uids in total; only the 64 in the window are in scope).
 
-### Batch 3 cleanup — DONE (migration 20260924001416, commit f03d48c3)
+### Batch 3 cleanup, DONE (migration 20260924001416, commit f03d48c3)
 - risk_alerts: 283 → 280. The three ids above are gone (0 left).
 - wallet_pots 47925737-…: 1 → 0.
 - auth.sessions 'node' on the QA uids in 20:10–20:50Z: 64 → 0. 'node' sessions on those uids in total: 148 → 84; the ones outside the window are untouched.
@@ -183,7 +183,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - Account purge ran authorised: audit_log `cron.account-purge.ok` at 2026-09-23 03:15:07Z {"due":0,"purged":0,"outcome":"ok","retried":0,"duration_ms":437}. The previous day's run (2026-09-22 03:15:07Z) was the "Cron: account purge, unauthorised" alert. Account purge is not a pg_cron job (no cron.job row matches); its own outcome record is audit_log.
 - Push token (Agent 4's REVOKED probe row): BEFORE, the QA member had 1 push_tokens row: a0be03aa-8042-47ae-98e7-e50a8bd976a8 | web | token https://web.push.apple.com/QA-PROBE-a4-1790204873130 | revoked 2026-09-23 23:08:21Z (by_person) | 0 push_deliveries. AFTER: 0 rows. Migration 20260924001807, commit (see git log).
 
-### NEW-A4-01 (with SUP-06 "coarsen the public point") — anon reads exact coordinates
+### NEW-A4-01 (with SUP-06 "coarsen the public point"), anon reads exact coordinates
 - SEVERITY: MEDIUM, latent (only example rows carry coordinates today). Nothing on deployed main reads these as anon, because everything is gated. With VALLO_PUBLIC_CATALOGUE on (Agent 4), signed-out /search, /stays, listing, stay and restaurant pages and /api/map/listings do.
 - RE-VERIFIED: anon held column SELECT on latitude, longitude and location in listings, accommodations and businesses, and TABLE-wide SELECT on catalogue_entries. Five anon-executable INVOKER RPCs read them: stays_search, listings_in_bounds, comparable_listings, comparable_supply_near, area_supply_census. Two of those return an exact distance_m, which triangulates a point.
 - STATE: AWAITING-REVIEW. The migration is proved rolled back (`PROBE_OK new-a4-01`) and NOT applied. Draft: scratchpad/work/fix-a1/new_a4_01_migration.sql.
@@ -209,7 +209,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - Merged the release branch into fix/a1 twice: fa90abb6 (one conflict in the listing repository, resolved by keeping both sides) and 988e5be2 (clean). Note: 988e5be2 is git's automatic merge message and lacks the two attribution lines; it is not amended, because history is not rewritten. Gates after the merge: tsc clean; vitest 294 files, 4223 passed, 1 skipped.
 - Account purge check CORRECTION (PENDING): the order is TODAY's run, 2026-09-24 03:15 UTC. The 03:15:07Z run recorded above is 2026-09-23's. It is 00:40 UTC now, so today's run has not happened yet; this is to be checked after 03:15 UTC (audit_log action cron.account-purge.* dated 2026-09-24).
 
-### NEW-A4-01 — after review (reviews/a1-batch4-by-a2.md)
+### NEW-A4-01, after review (reviews/a1-batch4-by-a2.md)
 - Review: the probe and 89900164 were APPROVED; the migration and b563e198 got CHANGES REQUIRED. (A) The catalogue canary read LISTING_SELECTS.card as anon. (B) Neither deploy order worked, so the migration had to be split.
 - (A) FIXED in 0603e7c7: lib/ops/catalogue-canary.ts reads `CANARY_CARD_SELECT = withPublicPoint(LISTING_SELECTS.card)`. A test asserts no bare latitude or longitude (catalogue-canary.test.ts, 10 tests).
 - (B) STEP 1 APPLIED to live as 20260924004755 (additive): the generated *_public columns, the anon grant on them, the _exact and _public twins, the guard_owner_write bookkeeping, and the reviewer's GiST indexes on location_public (listings partial; catalogue_entries). `PROBE_OK new-a4-01` on live. Over the wire as anon: `select=id,latitude:latitude_public,longitude:longitude_public` returns 200 {"latitude":6.45,"longitude":3.47}; `select=id,latitude` still returns 200 (6.4472), which is correct until step 2.
@@ -585,16 +585,16 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 
 ## Agent 2: money and escrow
 
-### Ledger — Agent 2 (money and escrow), branch fix/a2
+### Ledger, Agent 2 (money and escrow), branch fix/a2
 
-### V-33 step one — success screens told the payer "the agent has been paid"
+### V-33 step one, success screens told the payer "the agent has been paid"
 - STATE: FIXED (code; awaiting review)
 - CHANGED: apps/web/src/app/(app)/checkout/[bookingId]/payment-copy.ts (three constants), rent/pay/[inspectionId]/page.tsx:166, rent/pay/[inspectionId]/PayPanel.tsx:426 (+ its header comment), checkout/[bookingId]/PayPanel.tsx:584. Commit 41bf503d.
 - EVIDENCE IT NOW WORKS: grep of apps/web/src + packages/i18n for the phrase and variants: 0 occurrences outside tests. New copy: "The move-in total is paid and recorded to the kobo. Arrange the keys with the agent in your thread." / "Paid and recorded to the kobo, and these dates are yours." Claims no payout, true both before and after the V-33 DB change.
 - TEST THAT WOULD HAVE CAUGHT IT: apps/web/src/app/(app)/checkout/[bookingId]/payment-copy.test.ts, "the paid screens (V-33)" (constants must not match a payout-claim regex; a tree walk of apps/web/src and packages/i18n/src fails on "<agent|host|lister|landlord> has been paid"). Verified failing: the tree walk flagged a file containing the phrase before it was removed.
 - REVIEW:
 
-### V-33 proper — the live rent charge debited the tenant and credited nobody
+### V-33 proper, the live rent charge debited the tenant and credited nobody
 - STATE: AWAITING-REVIEW (migrations proved in rolled-back transactions, not applied)
 - DECISION: settle to the lister's WALLET at the moment of charge. Do NOT hold it.
   Reason: docs/adr/0001 §2 opens only `agency_fee` for holding and REFUSES `first_rent` and `rent_deposit`. The
@@ -638,7 +638,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
   never credited. MON-05 (batch 2) moves card settlement into one SQL function, which closes it.
 - REVIEW:
 
-### ESC-02 (+ SUP-03, DB-P2-01, SEC-P2-01) — guest writes the booking price; checkout charges it
+### ESC-02 (+ SUP-03, DB-P2-01, SEC-P2-01), guest writes the booking price; checkout charges it
 - STATE: AWAITING-REVIEW
 - RE-VERIFIED (old DB, rolled back): the member's direct insert of 3 nights at 1 kobo on a published stay listed at
   8,500,000/night → `PROBE_FAIL esc-02: 3-kobo booking stored total 3 (listing rate 8500000 x 3)`.
@@ -666,7 +666,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
   example-listing.test.ts "refuses a listing that is not live before it writes".
 - REVIEW:
 
-### ESC-P2-01 — any admin rewrites any booking's price and status over the API, with no record
+### ESC-P2-01, any admin rewrites any booking's price and status over the API, with no record
 - STATE: AWAITING-REVIEW (same migration m3)
 - CHANGE: `bookings_admin_all` (FOR ALL) is replaced by `bookings_admin_select` (SELECT). Checked origin/main: no
   admin screen writes bookings through the admin's own client. Every admin booking change goes through the
@@ -680,7 +680,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - TEST: supabase/tests/probes/esc-02.sql (the ESC-P2-01 section).
 - REVIEW:
 
-### ESC-01 — a ruling on a never-funded escrow mints money
+### ESC-01, a ruling on a never-funded escrow mints money
 - STATE: AWAITING-REVIEW
 - RE-VERIFIED (old DB, rolled back): an unfunded ₦5,000,000 proposal, disputed by the payer, then an admin refund →
   `PROBE_FAIL esc-01: phantom ruling credited 500000000 kobo (ok)`.
@@ -750,7 +750,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
   fee (charge = price + fee) is accepted as matching: the ledger records the price as gross and the fee as 0, so
   the lister's share is the price. Proved in the combined run.
 
-### MON-05 (+ OPS-01) — a booking paid twice; a late card charge on a cancelled booking kept silently
+### MON-05 (+ OPS-01), a booking paid twice; a late card charge on a cancelled booking kept silently
 - STATE: AWAITING-REVIEW
 - RE-VERIFIED: the old settlement.ts is four unlocked writes keyed on provider_ref (the code is unchanged from the
   finding). Live has no one-success-per-booking index.
@@ -782,7 +782,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - TESTS: supabase/tests/probes/mon-05.sql; apps/web/src/lib/bookings/settlement.test.ts.
 - REVIEW:
 
-### OPS-02 — a payment landing after the booking left PENDING recorded as "host accepted"; the sweep cancels a hold with a payment in flight
+### OPS-02, a payment landing after the booking left PENDING recorded as "host accepted"; the sweep cancels a hold with a payment in flight
 - STATE: AWAITING-REVIEW
 - (a) and (c) are covered by m5 (no "host accepted" note on a non-live booking; the money is returned and alerted;
   the amount is checked against the booking's listing-derived, now immutable, total).
@@ -802,7 +802,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - TESTS: supabase/tests/probes/esc-03.sql (sweep section), mon-05.sql.
 - REVIEW:
 
-### MON-P2-02 — a paid stay cannot be refunded once CANCELLED/NO_SHOW/COMPLETED; no partial refunds
+### MON-P2-02, a paid stay cannot be refunded once CANCELLED/NO_SHOW/COMPLETED; no partial refunds
 - STATE: AWAITING-REVIEW (DB and server action. The console button is DEFERRED: no UI yet)
 - CHANGE (m6_refund.sql): `private.refund_booking_payment` plus a service_role-only wrapper. Any status, bounded
   cumulatively (SUCCESSFUL charges − all booking_refunds), with the guest's refund credit, a negative ledger row and
@@ -816,7 +816,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - TESTS: supabase/tests/probes/mon-05.sql (the refund section).
 - REVIEW:
 
-### ESC-03 + SUP-P2-02 — free calendar squat; 365-night hold
+### ESC-03 + SUP-P2-02, free calendar squat; 365-night hold
 - STATE: AWAITING-REVIEW
 - CHANGE (m7_holds.sql, replacing m3's pricing function): at most 90 nights; at most 3 unconfirmed stays per guest
   and 1 per listing; a cooldown after 2 released unpaid holds on the same listing in 7 days; at most 10 bookings a
@@ -833,7 +833,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - TESTS: supabase/tests/probes/esc-03.sql; reserve-refusals.test.ts ("hold limits").
 - REVIEW:
 
-### MON-13 — reconciliation cannot alarm when the reconciler never replies
+### MON-13, reconciliation cannot alarm when the reconciler never replies
 - STATE: AWAITING-REVIEW
 - RE-VERIFIED (old function, rolled back): previous request 61 minutes old with no stored response →
   verdict `aged_out` (silent).
@@ -846,7 +846,7 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
 - TEST: supabase/tests/probes/mon-13.sql.
 - REVIEW:
 
-### MON-10 (+ DB-06, ESC-18) and MON-07 — Agent 3's red probes
+### MON-10 (+ DB-06, ESC-18) and MON-07, Agent 3's red probes
 - STATE: AWAITING-REVIEW (m9_mon10_mon07.sql)
 - MON-10: revoke INSERT/UPDATE/DELETE/TRUNCATE on ledger_entries, wallet_entries, wallets, transactions,
   rent_payments and booking_refunds from anon and authenticated. wallet_pots: anon loses all writes, authenticated
@@ -888,16 +888,16 @@ Compiled 2026-09-24 07:45 UTC from the six fixers' running ledgers.
   ships with the release). m5b (unique index) waits for the release.
 
 ### BATCH 2 AMENDMENT (after Agent 1's review, reviews/a2-batch2-by-a1.md)
-- m6: the two-door over-refund is closed in m2 (applied) — refund_and_cancel_booking bounds by paid − sum(booking_refunds)
+- m6: the two-door over-refund is closed in m2 (applied), refund_and_cancel_booking bounds by paid − sum(booking_refunds)
   and takes the wallet lock first; m6's door already did both. mon-05.sql adds the sequence (goodwill 1000 via the new
   door, then refund-and-cancel of the whole price → over_refund, then the remainder → ok).
-- m7 REQUIRED tweak: the 2-hour payment grace is capped absolutely — a hold is spared only while
+- m7 REQUIRED tweak: the 2-hour payment grace is capped absolutely, a hold is spared only while
   created_at > now() − (TTL + 2h). Also taken: the cooldown counts only cancellations written by the sweep (no actor)
   or by the guest, never a host decline; and the hold limits apply only to API callers inserting PENDING (the service
   role and definer paths are not squatting, and the probes insert as postgres).
 - m8 recommendation taken: at most one open "Money reconciliation:" alert per 24 hours (an outage is one row). The
   dead-job watchdog is DEFERRED: pg-cron-watch reads failed runs, not a job that stopped being scheduled; a check of
-  reconciliation_watch.last_requested_at belongs in that job (private schema, needs a small definer read) — NEW-A2-03 (LOW).
+  reconciliation_watch.last_requested_at belongs in that job (private schema, needs a small definer read), NEW-A2-03 (LOW).
 - Proofs (rolled back, live DB with m1–m5, m9 applied): `PROBE_OK m6 m7 amended (two-door bound, grace cap,
   decline-free cooldown)`; `PROBE_OK mon-13 ... alerts_added=1`.
 - Probes updated: mon-05.sql, esc-03.sql (3ca9bd5f), mon-13.sql.
@@ -1334,112 +1334,112 @@ FOUNDER items across my area:
 
 ## Agent 3: the pipeline, the tests and the blind lights
 
-### Ledger — Agent 3 (fix/a3): the pipeline, the tests and the blind lights
+### Ledger, Agent 3 (fix/a3): the pipeline, the tests and the blind lights
 
 #### BASELINE at 77cf90a (worktree /home/user/wt/a3, node v22.22.2, NO env vars set: no SUPABASE/SENTRY/NEXT_PUBLIC/DATABASE vars in the shell)
 IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6, sharp 0.35.4, @capacitor/push-notifications 8.1.2), NOT the lockfile tree (lock: next 16.2.12, sharp 0.35.3, no push-notifications entry). That drift is DOC-02.
 - `npm run typecheck`: exit 0, 1m15s, no output errors.
-- `npm run lint`: exit 0, 1m07s — eslint "✖ 335 problems (0 errors, 335 warnings)"; css tokens: clean; valuation words: clean (1809 files).
-- `npx vitest run` (apps/web): exit 0, 38.7s — Test Files 242 passed (242); Tests 3859 passed | 1 skipped (3860).
+- `npm run lint`: exit 0, 1m07s, eslint "✖ 335 problems (0 errors, 335 warnings)"; css tokens: clean; valuation words: clean (1809 files).
+- `npx vitest run` (apps/web): exit 0, 38.7s, Test Files 242 passed (242); Tests 3859 passed | 1 skipped (3860).
 - `npm run build`: exit 0 (GREEN), 2m00s wall (compile 47s, TypeScript 53s, 199 static pages), "▲ Next.js 16.3.6 (Turbopack)", "✓ Running next.config.ts took 4.1s". Zero lines matching warn/error/⚠ in the log (only route names containing "error"). Needed NO env vars. apps/web/tsconfig.json NOT rewritten (git status clean after).
 - Build is GREEN → no RED message sent to orchestrator.
 
 #### BATCH 1
 
-### DOC-01 — CI red on the lockfile, dead on billing, main unprotected
+### DOC-01, CI red on the lockfile, dead on billing, main unprotected
 - REVIEW: Agent 6: APPROVED.
-- STATE: FIXED (lockfile) + FOUNDER (billing, branch protection) — AWAITING-REVIEW
+- STATE: FIXED (lockfile) + FOUNDER (billing, branch protection), AWAITING-REVIEW
 - RE-VERIFIED at 77cf90a: clean export + `npm ci` → `npm error Missing: @capacitor/push-notifications@8.1.2 from lock file` (exit 1).
 - CHANGED: package-lock.json only, commit 74abba30 (`npm install --package-lock-only`; +10 lines: the workspace dependency line and the one package entry; nothing else moved).
 - EVIDENCE IT NOW WORKS: `npm ci` in a clean `git archive` export with the new lock → exit 0 in 18s.
 - TEST THAT WOULD HAVE CAUGHT IT: CI's own `npm ci` step (it did catch it; nobody could see CI). No unit test is meaningful for a lockfile.
 - FOUNDER (one step each, in order):
   1. GitHub → Settings → Billing and plans: settle the failed payment or raise the Actions spending limit above $0 (jobs have not started since 15:48Z on 23 Sep: "recent account payments have failed").
-  2. Branch protection for `main` (needs GitHub Pro/Team for a private repo; the rulesets API returned 403 "Upgrade to GitHub Pro or make this repository public"). Settings → Branches → Add branch protection rule → Branch name pattern `main`: tick "Require status checks to pass before merging" + "Require branches to be up to date", add required checks **`Typecheck, lint, test`** and **`Build`** ONLY (the deterministic jobs; do NOT require `Advisories (production dependencies)` — an unfixable new advisory or an audit-service outage must not block merges; add **`Database probes`** as required only once the PROBES_DATABASE_URL secret exists), tick "Do not allow bypassing the above settings"; leave "Allow force pushes" and "Allow deletions" UNticked. If Pro is not bought: Vercel → Project → Settings → Git → "Ignored Build Step"/Deployment Checks set to wait for the GitHub `Build` and `Typecheck, lint, test` checks.
+  2. Branch protection for `main` (needs GitHub Pro/Team for a private repo; the rulesets API returned 403 "Upgrade to GitHub Pro or make this repository public"). Settings → Branches → Add branch protection rule → Branch name pattern `main`: tick "Require status checks to pass before merging" + "Require branches to be up to date", add required checks **`Typecheck, lint, test`** and **`Build`** ONLY (the deterministic jobs; do NOT require `Advisories (production dependencies)`: an unfixable new advisory or an audit-service outage must not block merges; add **`Database probes`** as required only once the PROBES_DATABASE_URL secret exists), tick "Do not allow bypassing the above settings"; leave "Allow force pushes" and "Allow deletions" UNticked. If Pro is not bought: Vercel → Project → Settings → Git → "Ignored Build Step"/Deployment Checks set to wait for the GitHub `Build` and `Typecheck, lint, test` checks.
   3. Vercel → Project → Settings → Build and Deployment → Install Command: override to `npm ci` so Vercel and CI install the same tree.
 
-### DOC-02 — production ran Next 16.2.12 / sharp 0.35.3 from the lock; gates ran another tree
-- STATE: FIXED — AWAITING-REVIEW
+### DOC-02, production ran Next 16.2.12 / sharp 0.35.3 from the lock; gates ran another tree
+- STATE: FIXED, AWAITING-REVIEW
 - RE-VERIFIED: lock had next 16.2.12, sharp 0.35.3, nanoid 3.3.16; worktree node_modules had next 16.3.6, react 19.3.0 (drift). `npm audit --omit=dev` on the lock: 1 critical (next), 2 high.
-- CHANGED: commit fc23bba1 — apps/web `next` ^16.2.12→^16.3.6; root override `sharp` ^0.35.3→^0.35.4; nanoid 3.3.16→3.3.19 (in range, `npm update nanoid --package-lock-only`). Note: `npm install --package-lock-only` (and a full `npm install`) left the old root sharp@0.35.3 marked "invalid" against the override and nested a second next under apps/web; the stale next/sharp/@img/@next-swc entries were dropped and the lock regenerated → diff is 168/168 lines, version bumps only (next 16.2.12→16.3.6 ×10 incl. @next/swc-*, sharp/@img 0.35.3→0.35.4 ×17, @swc/helpers 0.5.15→0.5.23, nanoid).
-- EVIDENCE: `npm ls next sharp --package-lock-only` → next@16.3.6, sharp@0.35.4 deduped, no invalid. `npm audit --omit=dev --audit-level=high` → "found 0 vulnerabilities". Full `npm audit` (incl. dev tooling) still reports dev-only issues — not shipped. Worktree node_modules re-installed with `npm ci` (real dir, not a symlink) → next 16.3.6, react 19.2.8, sharp 0.35.4, supabase-js 2.110.9 = the lock = what Vercel ships.
-- Gates on a clean `npm ci` export of the lock tree (before DOC-P2-02): npm ci 14s; typecheck exit 0 (50s); lint exit 0, 0 errors / **333** warnings (335 on the drifted tree: the lockfile's eslint-config-next/react differ); vitest 241/242 files — the one failure was `no-committed-secrets.test.ts` running `git ls-files` in a non-git export (environmental; passes in the worktree); build exit 0 (1m26s) "▲ Next.js 16.3.6".
+- CHANGED: commit fc23bba1, apps/web `next` ^16.2.12→^16.3.6; root override `sharp` ^0.35.3→^0.35.4; nanoid 3.3.16→3.3.19 (in range, `npm update nanoid --package-lock-only`). Note: `npm install --package-lock-only` (and a full `npm install`) left the old root sharp@0.35.3 marked "invalid" against the override and nested a second next under apps/web; the stale next/sharp/@img/@next-swc entries were dropped and the lock regenerated → diff is 168/168 lines, version bumps only (next 16.2.12→16.3.6 ×10 incl. @next/swc-*, sharp/@img 0.35.3→0.35.4 ×17, @swc/helpers 0.5.15→0.5.23, nanoid).
+- EVIDENCE: `npm ls next sharp --package-lock-only` → next@16.3.6, sharp@0.35.4 deduped, no invalid. `npm audit --omit=dev --audit-level=high` → "found 0 vulnerabilities". Full `npm audit` (incl. dev tooling) still reports dev-only issues, not shipped. Worktree node_modules re-installed with `npm ci` (real dir, not a symlink) → next 16.3.6, react 19.2.8, sharp 0.35.4, supabase-js 2.110.9 = the lock = what Vercel ships.
+- Gates on a clean `npm ci` export of the lock tree (before DOC-P2-02): npm ci 14s; typecheck exit 0 (50s); lint exit 0, 0 errors / **333** warnings (335 on the drifted tree: the lockfile's eslint-config-next/react differ); vitest 241/242 files, the one failure was `no-committed-secrets.test.ts` running `git ls-files` in a non-git export (environmental; passes in the worktree); build exit 0 (1m26s) "▲ Next.js 16.3.6".
 - TEST THAT WOULD HAVE CAUGHT IT: CI job "Advisories (production dependencies)" (`npm audit --omit=dev --audit-level=high`), added in 483e9e34 and moved into its own NON-required job in 5fe7e6e4 after review; it fails on the old lock (critical next) and passes on the new.
 - REVIEW: Agent 6 (reviews/a3-batch1-by-a6.md): APPROVED.
 - NOTE: production changes Next minor (16.2.12→16.3.6) on the next deploy. Every local gate had already been running 16.3.6.
 
-### DOC-P2-02 — CI built a different next.config from production
-- STATE: FIXED — AWAITING-REVIEW (+ FOUNDER for two repository variables)
-- CHANGED: commit 483e9e34 — apps/web/next.config.ts (a SET but unusable NEXT_PUBLIC_SUPABASE_URL — not a URL, or not https — now throws at config load; ABSENT still builds the seed catalogue); .github/workflows/ci.yml Build job env: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SITE_URL from `vars.*` with the known public addresses as fallback, NEXT_PUBLIC_SUPABASE_ANON_KEY and NEXT_PUBLIC_MAPTILER_KEY from `vars.*` with a `::warning::` when missing; checks job gains `npm audit --omit=dev --audit-level=high`; header corrected (DOC-P2-01: lint AND build catch the "use server" re-export).
+### DOC-P2-02, CI built a different next.config from production
+- STATE: FIXED, AWAITING-REVIEW (+ FOUNDER for two repository variables)
+- CHANGED: commit 483e9e34, apps/web/next.config.ts (a SET but unusable NEXT_PUBLIC_SUPABASE_URL, not a URL, or not https, now throws at config load; ABSENT still builds the seed catalogue); .github/workflows/ci.yml Build job env: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SITE_URL from `vars.*` with the known public addresses as fallback, NEXT_PUBLIC_SUPABASE_ANON_KEY and NEXT_PUBLIC_MAPTILER_KEY from `vars.*` with a `::warning::` when missing; checks job gains `npm audit --omit=dev --audit-level=high`; header corrected (DOC-P2-01: lint AND build catch the "use server" re-export).
 - EVIDENCE: production-shaped local build (URL + publishable key + site URL, inline env) exit 0 in 1m26s, 199 pages; `NEXT_PUBLIC_SUPABASE_URL=uccixoonmbhrnyczyigt.supabase.co next build` → "Build error occurred Error: NEXT_PUBLIC_SUPABASE_URL is set but is not a URL" exit 1. Production's value cannot be malformed today (the whole Supabase client would be dead and the site works), so the throw cannot break the live deploy.
 - TEST THAT WOULD HAVE CAUGHT IT: apps/web/src/lib/images/next-config.test.ts (5 tests; loads the real config per env shape). Against the old next.config.ts: 2 failed ("fails the build on a value that is set but is not a URL", "…plain-http project URL"), 3 passed; against the new: 5/5.
 - FOUNDER: GitHub → repo → Settings → Secrets and variables → Actions → **Variables** tab → New repository variable: `NEXT_PUBLIC_SUPABASE_ANON_KEY` = the publishable key from Supabase → Settings → API Keys (the `sb_publishable_…` one; public, not a secret), and `NEXT_PUBLIC_MAPTILER_KEY` = the same value as in Vercel Production.
 
-- REVIEW (DOC-P2-02): Agent 6 CHANGES REQUIRED — move npm audit out of the required job. DONE in 5fe7e6e4 (own `audit` job, not required); orchestrator: no re-review needed.
+- REVIEW (DOC-P2-02): Agent 6 CHANGES REQUIRED, move npm audit out of the required job. DONE in 5fe7e6e4 (own `audit` job, not required); orchestrator: no re-review needed.
 
-### DOC-P2-01 — ci.yml header gives a false reason (A10 LOW)
+### DOC-P2-01, ci.yml header gives a false reason (A10 LOW)
 - STATE: FIXED in 483e9e34 (header now names lint `nf/server-actions-export-only-actions` and next build). No test (comment only).
 
 #### BATCH 2
 
-### DOC-03 (absorbs DOC-04) — no automated test reaches the database
-- STATE: FIXED (harness + CI job + 5 probes) — AWAITING-REVIEW; FOUNDER (the secret)
+### DOC-03 (absorbs DOC-04), no automated test reaches the database
+- STATE: FIXED (harness + CI job + 5 probes), AWAITING-REVIEW; FOUNDER (the secret)
 - RE-VERIFIED: `ls supabase/tests` → no such directory at 77cf90a; nothing invoked scripts/probes/policy_callers_hold_execute.sql.
 - CHANGED:
-  - `scripts/db-probes/run.mjs` — runner. Each probe goes to `psql` as `\set ON_ERROR_STOP 1; begin; set local statement_timeout='60s'; set local lock_timeout='5s'; <probe>; rollback;` on its own connection. PASS only when the output carries `PROBE_OK <file id>`; a PROBE_FAIL, any other error, a timeout, a probe that finished WITHOUT raising (rolled back by the explicit rollback), or a PROBE_OK naming another probe is FAIL. `--check` (shape only, no DB), `--list`, `--only a,b`, `--json out`, `--dir`. Exit 0/1/2. No new dependency (psql; the CI job installs postgresql-client if missing).
-  - `scripts/db-probes/contract.mjs` — the file contract + the judge (pure functions).
-  - `supabase/tests/README.md` — contract, shell/CI/MCP ways to run, founder step.
-  - `.github/workflows/ci.yml` — `checks` job gains "Database probe files keep the contract" (`run.mjs --check`); new `db-probes` job: runs when the `PROBES_DATABASE_URL` secret is present, otherwise a `::warning::` + step summary "Database probes did NOT run"; concurrency group `db-probes`, never cancelled mid-run; verdict JSON uploaded as an artifact.
+  - `scripts/db-probes/run.mjs`: runner. Each probe goes to `psql` as `\set ON_ERROR_STOP 1; begin; set local statement_timeout='60s'; set local lock_timeout='5s'; <probe>; rollback;` on its own connection. PASS only when the output carries `PROBE_OK <file id>`; a PROBE_FAIL, any other error, a timeout, a probe that finished WITHOUT raising (rolled back by the explicit rollback), or a PROBE_OK naming another probe is FAIL. `--check` (shape only, no DB), `--list`, `--only a,b`, `--json out`, `--dir`. Exit 0/1/2. No new dependency (psql; the CI job installs postgresql-client if missing).
+  - `scripts/db-probes/contract.mjs`: the file contract + the judge (pure functions).
+  - `supabase/tests/README.md`: contract, shell/CI/MCP ways to run, founder step.
+  - `.github/workflows/ci.yml`: `checks` job gains "Database probe files keep the contract" (`run.mjs --check`); new `db-probes` job: runs when the `PROBES_DATABASE_URL` secret is present, otherwise a `::warning::` + step summary "Database probes did NOT run"; concurrency group `db-probes`, never cancelled mid-run; verdict JSON uploaded as an artifact.
   - Retired `scripts/probes/policy_callers_hold_execute.sql` (git rm; its .log kept as history), replaced by `supabase/tests/probes/db-20.sql`; `docs/security/GRANT_STATE.md` §4.2/§8 and the listing_access row updated.
-- PROBES written (all run live through `apply_migration`; nothing recorded in schema_migrations — last 3 rows unchanged: 20260923180000, 20260923175739, 20260923175705):
-  - `db-20.sql` — policy → function EXECUTE for every role the policy applies to (pg_depend + polroles + table/column reachability; controls: pairs>0, some hold, the outage pair (anon, private.owns_listing, listings) is examined). LIVE TODAY: **PROBE_FAIL** "3 of 791 pairs": anon × private.inspection_photo_path_access on storage.objects inspection_photos_objects_party_insert/_read; anon × private.can_see_listing_access on listing_access_select. Proven GREEN in a rolled-back txn with the DB-04/DB-20 fix (`alter policy … to authenticated` ×3) → "PROBE_OK db-20: 788 pairs". Mutation: revoking EXECUTE on private.owns_listing from anon → PROBE_FAIL "17 of 788" (reproduces the 11-hour outage, 17 policies).
-  - `db-04-anon-storage-read.sql` — behavioural: authenticated control reads storage.objects; anon list-shaped reads must not raise 42501. LIVE: **PROBE_FAIL** "permission denied for function inspection_photo_path_access". With the DB-04 fix in a rolled-back txn: PROBE_OK.
-  - `mon-10-money-grants.sql` — anon/authenticated hold no INSERT/UPDATE/DELETE/TRUNCATE (table or column) on ledger_entries, wallet_entries, wallets, transactions, rent_payments, escrows, platform_revenue, fee_rates, audit_log, booking_refunds; anon no write on wallet_pots; CONTROL authenticated keeps wallet_pots INSERT/UPDATE and a member reads own wallets; behavioural `delete/update … where false` must be 42501. LIVE: **PROBE_FAIL** (6 tables fully writable by both roles + anon on wallet_pots). With MON-10's revoke in a rolled-back txn: PROBE_OK.
-  - `mon-07.sql` — see MON-07 below.
-  - `info-schema-guards.sql` — see blind lights below.
-- EXPECTED STATE: db-20, db-04-anon-storage-read, mon-10-money-grants and mon-07 are RED on live today; they turn green when the owners of DB-04/DB-20, MON-10 and MON-07 apply their fixes. The CI job will therefore be red once the secret is added until those land — that is the truth, not a harness fault.
+- PROBES written (all run live through `apply_migration`; nothing recorded in schema_migrations, last 3 rows unchanged: 20260923180000, 20260923175739, 20260923175705):
+  - `db-20.sql`: policy → function EXECUTE for every role the policy applies to (pg_depend + polroles + table/column reachability; controls: pairs>0, some hold, the outage pair (anon, private.owns_listing, listings) is examined). LIVE TODAY: **PROBE_FAIL** "3 of 791 pairs": anon × private.inspection_photo_path_access on storage.objects inspection_photos_objects_party_insert/_read; anon × private.can_see_listing_access on listing_access_select. Proven GREEN in a rolled-back txn with the DB-04/DB-20 fix (`alter policy … to authenticated` ×3) → "PROBE_OK db-20: 788 pairs". Mutation: revoking EXECUTE on private.owns_listing from anon → PROBE_FAIL "17 of 788" (reproduces the 11-hour outage, 17 policies).
+  - `db-04-anon-storage-read.sql`: behavioural: authenticated control reads storage.objects; anon list-shaped reads must not raise 42501. LIVE: **PROBE_FAIL** "permission denied for function inspection_photo_path_access". With the DB-04 fix in a rolled-back txn: PROBE_OK.
+  - `mon-10-money-grants.sql`: anon/authenticated hold no INSERT/UPDATE/DELETE/TRUNCATE (table or column) on ledger_entries, wallet_entries, wallets, transactions, rent_payments, escrows, platform_revenue, fee_rates, audit_log, booking_refunds; anon no write on wallet_pots; CONTROL authenticated keeps wallet_pots INSERT/UPDATE and a member reads own wallets; behavioural `delete/update … where false` must be 42501. LIVE: **PROBE_FAIL** (6 tables fully writable by both roles + anon on wallet_pots). With MON-10's revoke in a rolled-back txn: PROBE_OK.
+  - `mon-07.sql`: see MON-07 below.
+  - `info-schema-guards.sql`: see blind lights below.
+- EXPECTED STATE: db-20, db-04-anon-storage-read, mon-10-money-grants and mon-07 are RED on live today; they turn green when the owners of DB-04/DB-20, MON-10 and MON-07 apply their fixes. The CI job will therefore be red once the secret is added until those land, that is the truth, not a harness fault.
 - PEERS' PROBES: a1 (db-01, db-02, db-03, sup-p2-01, ux-24), a2 (esc-02, v-33), a5 (sec-05, sec-06) all pass `checkProbeSource` today, so the runner and the vitest contract test accept them when merged.
 - RUNNER PROVEN end to end against a local Postgres 16 (initdb in /var/tmp, roles anon/authenticated): good → PASS; PROBE_FAIL → FAIL with its message; no raise → FAIL "finished without raising" and its INSERT was rolled back (table count 0 after); syntax error → FAIL; pg_sleep(70) → FAIL "canceling statement due to statement timeout" at 60 s; PROBE_OK of another id → FAIL. `--check` refused files without PROBE_OK/PROBE_FAIL before contacting the DB.
 - TEST THAT WOULD HAVE CAUGHT IT: `apps/web/src/lib/db-probes/contract.test.ts` (the judge, the contract, every file in the folder; runs in the no-DB suite) + the `db-probes` CI job.
-- FOUNDER (one step): Supabase dashboard → project uccixoonmbhrnyczyigt → Connect → Session pooler → copy the URI with the DB password filled in → GitHub → repo → Settings → Secrets and variables → Actions → New repository secret `PROBES_DATABASE_URL`. (It is a production DB credential; workflows on same-repo branches and PRs can read it — acceptable only while every writer already has repo write access.) Then add "Database probes" to the required checks once the four RED probes above are green.
+- FOUNDER (one step): Supabase dashboard → project uccixoonmbhrnyczyigt → Connect → Session pooler → copy the URI with the DB password filled in → GitHub → repo → Settings → Secrets and variables → Actions → New repository secret `PROBES_DATABASE_URL`. (It is a production DB credential; workflows on same-repo branches and PRs can read it, acceptable only while every writer already has repo write access.) Then add "Database probes" to the required checks once the four RED probes above are green.
 - SECURITY NOTE: psql is given the URL as an argument (visible in the runner's process list only).
 
-### DB-20 — the policy-caller probe is manual, text-matching, role-blind
-- STATE: FIXED (the probe half) — AWAITING-REVIEW. The `listing_access_select … to authenticated` DB change is NOT made by me (DB owner); the probe is red until it is.
+### DB-20, the policy-caller probe is manual, text-matching, role-blind
+- STATE: FIXED (the probe half), AWAITING-REVIEW. The `listing_access_select … to authenticated` DB change is NOT made by me (DB owner); the probe is red until it is.
 - CHANGED/EVIDENCE: as db-20.sql above.
 
-### DB-04 — anon storage.objects reads die with 42501
+### DB-04, anon storage.objects reads die with 42501
 - STATE: PROBE ONLY (the three `alter policy … to authenticated` are the DB owner's; proven in a rolled-back txn to turn db-04-anon-storage-read and db-20 green). If nobody owns it, it is a 3-line migration I can apply after review.
 
-### MON-07 — the "spendable in one place" guard is decoration
-- STATE: GUARD FIXED as a probe — AWAITING-REVIEW; the `move_into_pot` rewrite belongs to the money owner.
+### MON-07, the "spendable in one place" guard is decoration
+- STATE: GUARD FIXED as a probe, AWAITING-REVIEW; the `move_into_pot` rewrite belongs to the money owner.
 - CHANGED: `supabase/tests/probes/mon-07.sql`: functions in public/private whose body has `(\w+.)?status = 'PENDING'` AND `(\w+.)?direction = 'debit'` (any order, any alias) AND `sum(`; must be exactly wallet_spendable_locked (control: that function must be found, so a blind pattern is red).
 - EVIDENCE: LIVE **PROBE_FAIL** "spendable is still computed outside private.wallet_spendable_locked in: move_into_pot(uuid,uuid,bigint,text)". Mutation (rolled back): a scratch SQL function with `x.direction = 'debit' and x.status = 'PENDING'` (alias + reversed order) is found.
 - The migration guard in 20260922221800 cannot be edited (applied); this probe supersedes it.
 
-### Blind light 1 — "no horizontal scroll" cannot fail under root overflow-x: clip (UI-P2-02)
-- STATE: FIXED (the check) — AWAITING-REVIEW
+### Blind light 1, "no horizontal scroll" cannot fail under root overflow-x: clip (UI-P2-02)
+- STATE: FIXED (the check), AWAITING-REVIEW
 - CHANGED: `apps/web/tests/_overflow.mjs` (`horizontalOverflow` runs in the page: visible elements crossing the viewport edge with no clipping/scrolling ancestor below the root; skips hidden, aria-hidden/inert, sr-only; outermost offender only); `apps/web/scripts/design/session-b-shots/sweep-orphans.mjs` now reports `ovf` from it.
 - TEST: `apps/web/src/lib/ui/horizontal-overflow.test.ts` (real Chromium via playwright-core; skipped only if no Chromium binary): on a root-clipped page the OLD check `scrollWidth <= innerWidth+1` is TRUE with a 2411px element and with a 200-char name (proves blindness), the new check reports them; rail/clipped card/sr-only/closed drawer are not counted. 5/5.
 - NOT DONE (deliberately, DOC-09 territory): the 37 `apps/web/tests/*.spec.mjs` sites that use the scrollWidth idiom; nothing runs those specs. They should import `overflowingElements` when DOC-09 gives them a runner.
 
-### Blind light 2 — money guard satisfied by a comment (DOC-07 `money-limits-call-sites`)
-- STATE: FIXED — AWAITING-REVIEW
+### Blind light 2, money guard satisfied by a comment (DOC-07 `money-limits-call-sites`)
+- STATE: FIXED, AWAITING-REVIEW
 - CHANGED: `apps/web/src/lib/security/money-limits-call-sites.test.ts` reads call sites off the TypeScript AST: a real `guardMoney("<action>", …)` call, awaited, bound, IMMEDIATELY followed by `if (!<name>.allowed) return`, and no RPC/table write/Paystack money call earlier in the same function. Fixture tests prove comment/string don't count and unawaited/unchecked/late guards are flagged.
-- EVIDENCE: mutation — replacing the real `guardMoney("transferToUser")` + check with a `// const limit = await guardMoney("transferToUser", …)` comment: OLD test 3/3 PASS (blind), NEW test FAILS "finds a real guardMoney call site for every action". All 21 live sites pass the stricter rules.
+- EVIDENCE: mutation, replacing the real `guardMoney("transferToUser")` + check with a `// const limit = await guardMoney("transferToUser", …)` comment: OLD test 3/3 PASS (blind), NEW test FAILS "finds a real guardMoney call site for every action". All 21 live sites pass the stricter rules.
 
-### Blind light 3 — the terminology ban tests an empty list (DOC-08)
-- STATE: FIXED — AWAITING-REVIEW
-- CHANGED: `BANNED_SYNONYMS` now holds the six PRODUCT.md §7 synonyms that no product string uses today (karma, admin panel, backend, host dashboard, portal/portals, vendor/vendors) — zero copy change needed; a new test asserts the list is non-empty and each pattern matches its own label. `docs/PRODUCT.md` Stay row no longer bans "Trip" (`/trips` is the Stays surface). The other synonyms (feed 178 hits, hub 66, gist 26, landlord 24, reputation 2, Host, user…) are live in copy and join the list with their copy fix.
+### Blind light 3, the terminology ban tests an empty list (DOC-08)
+- STATE: FIXED, AWAITING-REVIEW
+- CHANGED: `BANNED_SYNONYMS` now holds the six PRODUCT.md §7 synonyms that no product string uses today (karma, admin panel, backend, host dashboard, portal/portals, vendor/vendors), zero copy change needed; a new test asserts the list is non-empty and each pattern matches its own label. `docs/PRODUCT.md` Stay row no longer bans "Trip" (`/trips` is the Stays surface). The other synonyms (feed 178 hits, hub 66, gist 26, landlord 24, reputation 2, Host, user…) are live in copy and join the list with their copy fix.
 - EVIDENCE: new test against the old (empty) list: FAIL "has synonyms to look for"; with the list: 32/32.
 
-### Blind light 4 — grant guards through information_schema
-- STATE: FIXED — AWAITING-REVIEW
+### Blind light 4, grant guards through information_schema
+- STATE: FIXED, AWAITING-REVIEW
 - FOUND: two APPLIED migrations assert "born locked" via information_schema.role_table_grants: 20260923092729 (push_tokens; later re-checked by 20260923093123) and 20260923093115 (known_devices; never re-checked). No other SQL/TS/MJS guard uses the grant views.
 - CHANGED: `supabase/tests/probes/info-schema-guards.sql` re-makes both claims with has_table_privilege/has_any_column_privilege + behaviour (known_devices: nothing for anon/authenticated; push_tokens: authenticated SELECT only; control: member reads push_tokens). LIVE: PROBE_OK. Mutation (rolled back): `grant insert on known_devices to authenticated; grant delete on push_tokens to authenticated` → PROBE_FAIL naming both. `contract.test.ts` also fails on any SQL file (migrations, supabase/tests, scripts/probes) that reads grants through information_schema views outside the two applied files, with a control that the pattern still matches those two.
 
 ### Preview-deck guard (every preview directory with screens serves page.tsx)
-- STATE: FIXED — AWAITING-REVIEW. The guard already existed (`lib/nav/route-files.test.ts`, "every preview deck serves its own index") but carried an exception for `session-b`, the one directory without an index.
+- STATE: FIXED, AWAITING-REVIEW. The guard already existed (`lib/nav/route-files.test.ts`, "every preview deck serves its own index") but carried an exception for `session-b`, the one directory without an index.
 - CHANGED: `apps/web/src/app/(dev)/preview/session-b/page.tsx` + `decks.ts` (index of the 17 decks); exception removed; new test: the index names exactly the deck directories on disk.
 - EVIDENCE: with the exception removed and the page moved away: FAIL `expected [ '/preview/session-b' ] to deeply equal []`; with the page: 12/12.
 - NOTE: Agent 6's comment sweep edited the old exception comment in the same test; expect a trivial merge conflict (take this version).
@@ -1452,7 +1452,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - Gates at 6adb440b (worktree, lockfile tree): typecheck 0; lint 0 errors / 333 warnings; vitest 245 files, 3893 passed, 1 skipped; build exit 0 ("▲ Next.js 16.3.6", `ƒ /preview/session-b` in the route list); tsconfig.json not rewritten.
 - No migrations applied. No pending migrations of mine (the DB fixes the red probes need belong to DB-04/DB-20, MON-10 and MON-07's owners).
 
-### DB-04 + DB-20 (DB half) — scope the four PUBLIC policies to authenticated (assigned to a3 by the orchestrator)
+### DB-04 + DB-20 (DB half), scope the four PUBLIC policies to authenticated (assigned to a3 by the orchestrator)
 - STATE: AWAITING-REVIEW, PENDING MIGRATION (not applied)
 - MIGRATION (pending): scratchpad/work/fix-a3/db04_db20_migration.sql. It runs `alter policy … to authenticated` on inspection_photos_objects_party_read, _party_insert and _admin_read (storage.objects) and on listing_access_select (public.listing_access), then asserts that all 4 now have polroles = {authenticated}.
 - RE-VERIFIED LIVE: all four have polroles {-} (PUBLIC). db-20 FAIL 3/791; db-04-anon-storage-read FAIL 42501.
@@ -1461,7 +1461,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - AFTER APPLY: read schema_migrations for the version, then commit supabase/migrations/<version>_db04_db20_scope_policies_to_authenticated.sql; db-20 and db-04-anon-storage-read should then be PROBE_OK live.
 - MON-10 and MON-07 DB fixes → Agent 2 (orchestrator). My probes mon-10-money-grants.sql and mon-07.sql are their tests.
 
-### Batch 2 review (Agent 6, reviews/a3-batch2-by-a6.md) and amendments — commit f1ccdc3e
+### Batch 2 review (Agent 6, reviews/a3-batch2-by-a6.md) and amendments, commit f1ccdc3e
 - REVIEW: APPROVED db-20, the blind lights, the preview index and the DB-04/DB-20 migration. CHANGES REQUIRED on the runner: a NOTICE PROBE_OK with exit 0 passed. Note on CI: the job without the secret was green with a warning.
 - DONE:
   - judgeRun now requires a non-zero exit AND `PROBE_OK <id>` on an `ERROR:` line (the psql `psql:<stdin>:N:` prefix and the MCP "Failed to apply database migration:" prefix are allowed; a NOTICE that spells an ERROR line is not). contract.test.ts adds: notice-only exit 0 → FAIL; notice-spelled-ERROR then another error → FAIL; psql ERROR line exit 3 → PASS; same line exit 0 → FAIL. The reviewer's fake-01 now gives "FAIL fake-01 … finished without raising" against local PG.
@@ -1476,13 +1476,13 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 
 #### BATCH 3
 
-### OPS-04 — catalogue reads turn DB errors into "0 properties" silently
-- STATE: FIXED — AWAITING-REVIEW (commit c72dc92c)
+### OPS-04, catalogue reads turn DB errors into "0 properties" silently
+- STATE: FIXED, AWAITING-REVIEW (commit c72dc92c)
 - RE-VERIFIED: supabase-repository.ts had `if (error || !data) return []` / `catch { return [] }` in search, byId, byReference, loadListingsByIds and the amenity join.
 - CHANGED: `lib/listings/read-failure.ts` `catalogueReadFailed(surface, error)` logs `[catalogue] read failed surface=… code=…` and calls recordAlert critical `catalogue.read_failed` {surface, code}, subjectId = surface, so there is one open row per surface per 10 minutes. It is called on every error or throw in those 5 reads. `!data` with no error (a real empty result or a real not-found) returns as before with no alert. The UI is unchanged; the pages keep rendering.
 - TEST: `lib/listings/read-failure.test.ts` (5). Against the old repository: 4 failed, 1 passed.
 
-### OPS-03 — nothing pages a human
+### OPS-03, nothing pages a human
 - STATE: FIXED in the app (8adba9e5, 83fd4ec4). DB-side pager migration PENDING REVIEW (see below). FOUNDER steps below.
 - APP: `lib/ops/page.ts` `pageHuman` → OPS_ALERT_WEBHOOK_URL (https JSON POST {text,title}; ntfy works) and/or OPS_ALERT_EMAIL (Resend directly, not the outbox). With neither set it returns not_configured and logs one warning line. `recordAlert` → `escalate()` for severity critical: reportError to Sentry (level fatal, context kind `alert.<kind>`), plus pageHuman unless a same-title high row exists from the last hour. It still pages when the row insert failed.
 - TESTS: `lib/ops/page.test.ts` (5), `lib/alerts/escalate.test.ts` (4: pages with scrubbed text, no second page within the hour, pages when the insert fails, warning/info never page).
@@ -1491,39 +1491,39 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   - COMPATIBILITY: only admins can INSERT into risk_alerts directly (policy risk_alerts_admin_all). DB functions insert as definer. The trigger never raises. Deployed main's recordAlert uses the service role, so the trigger skips it.
 - FOUNDER (DEPLOY.md §8.1): (1) install ntfy, pick a long random topic, set Vercel Production `OPS_ALERT_WEBHOOK_URL=https://ntfy.sh/<topic>` (and/or `OPS_ALERT_EMAIL`), and run once in the Supabase SQL editor `select vault.create_secret('https://ntfy.sh/<topic>', 'vallo_ops_alert_webhook_url');` (2) UptimeRobot/Better Stack HTTP monitor on **https://www.vallospaces.com/api/health/catalogue**, every 5 min, alert on non-200, plus one on https://www.vallospaces.com/. (3) Sentry, below.
 
-### SENTRY_DSN — wire error reporting properly
+### SENTRY_DSN, wire error reporting properly
 - STATE: ALREADY WIRED (verified) + TEST ADDED + FOUNDER. `lib/observability/report.ts` (direct envelope POST, no SDK) reads SENTRY_DSN. Server errors come through `instrumentation.ts` onRequestError, browser errors through the error boundaries and `/api/client-error`, and now critical alerts through recordAlert. Unset, it is a silent no-op.
 - TEST: `lib/observability/report.test.ts` (5): no DSN → not_configured, no fetch, nothing printed; DSN set → one POST to `https://<host>/api/<project>/envelope/?sentry_key=…&sentry_version=7` with the environment and route tags; throttle; transport failure never throws and never prints the key; malformed DSN → unparseable.
 - FOUNDER: sentry.io → create a project (platform "Next.js", or "JavaScript"; the app needs no SDK) → Settings → Client Keys (DSN) → copy the DSN → Vercel → Project → Settings → Environment Variables → `SENTRY_DSN` = that DSN, for **Production** and **Preview** (server variable; do NOT add NEXT_PUBLIC_SENTRY_DSN) → redeploy → in Sentry, Alerts → create an alert rule "A new issue is created" → email me.
 
-### V-01 — the catalogue canary
-- STATE: FIXED — AWAITING-REVIEW (83fd4ec4)
+### V-01, the catalogue canary
+- STATE: FIXED, AWAITING-REVIEW (83fd4ec4)
 - CHANGED: `lib/ops/catalogue-canary.ts` (`probeCatalogue`: service-role published count as the control, then the publishable-key count and one row of `LISTING_SELECTS.card` with no session; fails on refused/errored reads, visible < control, or 0 published). `/api/cron/canary` (runCronJob, `*/5 * * * *` in vercel.json) raises a critical `canary.catalogue` alert, which pages. `/api/health/catalogue` is public, 200/503 plus a reason token, s-maxage=30, for the external monitor. Also registered in VERCEL_JOBS, WATCHED_JOBS (2 h allowance; the test floor is 2), proxy PUBLIC_API_PATHS + proxy.test EXPECTED_PUBLIC, route-parents NON_NAVIGABLE, and the ADMIN_CONSOLE job table (9 Vercel jobs).
 - TEST: `lib/ops/catalogue-canary.test.ts` (8): pass at 64/64; 42501 refusal; fewer visible; card select refused (a column without its grant); empty; unreachable; no-control mode; the cron verdict alert. LIVE: anon count via the publishable key is 64 of 64 and the card select returns rows (curl), so the canary is green on deploy.
 - NOTE: every published listing is an example today; the canary checks readability, not realness.
 
-### DOC-05 — the Paystack signature check has no real test
+### DOC-05, the Paystack signature check has no real test
 - STATE: FIXED (24206969). `lib/payments/webhook-signature.test.ts` (8) runs the real Paystack HMAC-SHA512/hex and Yellow Card HMAC-SHA256/base64 checks. Mutation: with timingSafeEqual replaced by a length check, 2 of these fail while `app/api/paystack/webhook/route.test.ts` stays green. Not done: the Yellow Card webhook ROUTE test (401/503/500) the finding also suggests.
 
-### DOC-P2-03 — nothing watches for advisories
+### DOC-P2-03, nothing watches for advisories
 - STATE: FIXED (8f6ec798). `.github/dependabot.yml` covers npm at `/` weekly (groups framework/supabase/capacitor/dev-tooling; toolchain majors ignored) and github-actions monthly. The npm audit job is in 5fe7e6e4. FOUNDER: GitHub → Settings → Code security → enable "Dependabot alerts" and "Dependabot security updates".
 - TEST: pipeline.test.ts "has a Dependabot config for the npm lockfile at the root".
 
-### OPS-08 — migration process check in CI
-- STATE: FIXED, the CI-check half (8f6ec798). Staging and expand/contract remain a process decision (needs Supabase branching, a paid plan) — DEFERRED to the founder.
+### OPS-08, migration process check in CI
+- STATE: FIXED, the CI-check half (8f6ec798). Staging and expand/contract remain a process decision (needs Supabase branching, a paid plan), DEFERRED to the founder.
 - CHANGED: `scripts/check-migrations.mjs` enforces 3 rules: names, unique versions, and no applied migration modified/renamed/deleted since `--base` (pending/ excluded). A CI step in `checks` runs it with `--base ${{ github.event.pull_request.base.sha || github.event.before }}`, and checkout uses fetch-depth 0. Today: "304 files, names and versions clean, none changed since 77cf90a".
 - TEST: `lib/ci/pipeline.test.ts` (7): the live folder passes; a bad name and a duplicate version fail; M/R/D fail, A passes, pending ignored; CI facts.
 
 ### Batch 3 gates at 8f6ec798 (worktree, lockfile tree)
 - typecheck 0; lint 0 errors / 333 warnings; vitest 252 files, 3940 passed, 1 skipped; build 0 (`ƒ /api/cron/canary`, `ƒ /api/health/catalogue` in the route list).
 
-### Batch 3 review (Agent 6, reviews/a3-batch3-by-a6.md) and amendments — commit 3d898f9c
+### Batch 3 review (Agent 6, reviews/a3-batch3-by-a6.md) and amendments, commit 3d898f9c
 - REVIEW: APPROVED the 5-minute cron (the plan is not Hobby), OPS-04, OPS-08, DOC-05 and the DB pager migration. CHANGES REQUIRED: (1) a paging storm when the DB is down; (2) canary `empty` paging hourly forever. RECOMMENDED: per-IP limit and no query-string cache busting on /api/health/catalogue.
 - DONE: (1) `pageHuman` keeps a per-instance Map<title, lastPagedAt> that pages once per title per hour whatever the DB says. Test: 20 alerts with one title → 1 webhook + 1 email, the 20th returns "throttled", a different title still pages. (2) `canary.catalogue_empty` is critical only if no such alert exists in the last 7 days, otherwise warning (non-paging). Test: first → critical, later → warning. (3) The health route sends 308 for any query string to the bare path and allows 30/min per IP via `consume` (429 + retry-after). Test: 4 cases.
 - OPS-03 DB PAGER APPLIED: server version **20260924001422** `ops03_high_alerts_written_by_the_database_page_a_person`, committed as supabase/migrations/20260924001422_….sql (same SQL). LIVE: ops-03 probe → "PROBE_OK ops-03: database high alerts page once an hour; medium and app-written rows do not". No vault secret exists yet (FOUNDER step), so it pages nobody until the founder runs `vault.create_secret`.
 - STATE: OPS-03 FIXED (app + DB; FOUNDER config pending). V-01 FIXED.
 
-### Small A10 items — commit f977a9b3
+### Small A10 items, commit f977a9b3
 - DOC-23 FIXED: concurrency group per push SHA on main, `cancel-in-progress` only for pull_request.
 - DOC-P2-04 FIXED: CI vitest writes a junit report (artifact `vitest-junit`); `retry: 0` explicit in vitest.config.ts; vitest-junit.xml gitignored.
 - DOC-18 FIXED (step 1 of the amended fix): `eslint . --max-warnings=333` (today's count on the lockfile tree). Rule promotion (step 2/3) NOT done. NOTE FOR INTEGRATION: if a merged branch adds warnings, lint goes red; lower or raise the number deliberately.
@@ -1535,7 +1535,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - DOC-13: the deep-link gate stays red until the founder supplies the Play SHA-256 fingerprints; adding it to CI now would make CI permanently red. FOUNDER: supply the fingerprints, then add `npm run check:deep-links --workspace @vallo/web` to the checks job.
 - DOC-09 (88 unrun browser specs, which includes moving their 37 scrollWidth checks onto tests/_overflow.mjs), DOC-06 (unit tests for rent/pot/bank-account actions), DOC-10/11/12/14/15/16 (docs; Agent 6's area), DOC-20/21/22 (a11y/i18n), DOC-24 (majors): not attempted.
 
-### DOC-05 addendum — commit 6d42c105
+### DOC-05 addendum, commit 6d42c105
 - The Yellow Card webhook ROUTE test is now done: `app/api/yellowcard/webhook/route.test.ts` (8) uses the real signature check. A signed completed delivery → 200 and credited once. Forged or unsigned → 401, nothing credited. Unconfigured, missing service role (critical alert) and a ledger throw → 500. Pending and foreign references → 200, not credited. DOC-05 STATE: FIXED.
 
 #### FINAL STATE (fix/a3 at 6d42c105)
@@ -1550,7 +1550,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 ### Merge and release-branch fix
 - `git merge repo-clean-work` → 9d21f0e1. The merged tree failed one test: `example-notice.test.ts`'s regex rejected parenthesised JSX. Fixed in b04f55f1 (`/isDemo\s*&&\s*\(?\s*<ExampleNotice/`).
 
-### DOC-06 — behavioural tests for the money and booking actions — commit 84f9464a
+### DOC-06, behavioural tests for the money and booking actions, commit 84f9464a
 - STATE: FIXED. `lib/testing/fake-supabase.ts` records every call and filter, so a test can assert which writes were and were not issued.
 - TESTS (58):
   - bookings cancel and confirm (15);
@@ -1564,7 +1564,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   - removing the NGN check;
   - taking the pot owner from the form.
 
-### DOC-20, DOC-21 — accessibility defects axe found live — commits c90286c6, 511171a7 (plus the dl row in b95a4054)
+### DOC-20, DOC-21, accessibility defects axe found live, commits c90286c6, 511171a7 (plus the dl row in b95a4054)
 - STATE: FIXED. Vitest now has two projects: `unit` and `dom` (`*.dom.test.tsx`, client React). `lib/a11y/axe.ts` runs axe-core in real Chromium; `strict` also counts axe's "incomplete" results.
 - FIXED:
   - DocumentUploader: the input is named by its h2, which fixes `label` and `heading-order`.
@@ -1582,7 +1582,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   - no instructions in the accessible name.
 - Agent 6 reverted its duplicate a774121d.
 
-### DOC-22 — i18n — commit b95a4054
+### DOC-22, i18n, commit b95a4054
 - STATE: FIXED for plurals app-wide, and for hard-coded copy on checkout, the rent payment and the sign-up/confirmation surfaces.
 - NOT DONE: hard-coded copy on the listing page and the rest of the app. It is not guarded yet and remains open.
 - PLURALS:
@@ -1596,7 +1596,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   - `lib/i18n/no-hardcoded-copy.test.ts`: covers checkout, rent/pay, (auth) and components/auth; 100 hits on the old code, 0 now.
 - TEST: `lib/count-of.test.ts` covers every unit in every locale, English inflection, the yo/ha/ig forms and the English-grammar fallback.
 
-### RED GATE (coordinator) — flaky proxy-session and service-worker browser test — commits 0a6dddf4, 428db8be
+### RED GATE (coordinator), flaky proxy-session and service-worker browser test, commits 0a6dddf4, 428db8be
 - ROOT CAUSE 1 (proxy-session): a fixed port, 33492. Two suites on one machine collide, and the unhandled EADDRINUSE fails the whole file at collection. Reproduced by holding the port, and by 3 concurrent full runs, 2 of which went red. FIX: an OS-assigned port with the error wired to the rejection, and realistic hook and case budgets.
 - ROOT CAUSE 2 (service worker): the test polled the notification list instead of waiting for the handler.
   - Under 5 concurrent suites, one push was not on the list 20 s after delivery (DIAG: [A booking, A listing] where "A follow" was due).
@@ -1621,10 +1621,10 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   - 47c0ec51, 0aa412bc, 749b08c3, 39860e40: APPROVE;
   - a774121d: CONFLICT with c90286c6, which the coordinator resolved in favour of c90286c6.
 
-### NEW-A3-01 — the 5 s default test budget was itself a flake source under load
+### NEW-A3-01, the 5 s default test budget was itself a flake source under load
 - STATE: FIXED in 428db8be. It is recorded here because more whole-tree scans will be added.
 
-### DOC-22 amendment (Agent 6's CHANGES REQUIRED) — commit bb9972e9; OPS-18 test — commit e98f16a9; merged at 75549d46
+### DOC-22 amendment (Agent 6's CHANGES REQUIRED), commit bb9972e9; OPS-18 test, commit e98f16a9; merged at 75549d46
 - **Copy guard widened.** It now fails on:
   - visible JSX text;
   - any spoken prop, now including verdict, consequence and footnote;
@@ -1654,7 +1654,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 
 #### FINAL SWEEP (A3)
 
-### DB-21 — misleading names — commit 1534f30e
+### DB-21, misleading names, commit 1534f30e
 - STATE: FIXED (docs and comments only; nothing live renamed).
 - CHANGED: `docs/schema/NAMES.md` covers:
   - `conversations.agent_id` is an auth user id;
@@ -1666,20 +1666,20 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - There is also a one-line pointer at the conversation insert.
 - TEST: `lib/db/schema-names-doc.test.ts` (4) checks every claim against the migrations and `database.types.ts`. Mutation: removing a money table or a listing_status table from the page turns it red.
 
-### UI-12 — nonce-less framework chunk — commit dd85e9cd
+### UI-12, nonce-less framework chunk, commit dd85e9cd
 - STATE: FIXED IN CODE via OPS-15 (3a66daac, Next 16.3 stamps the nonce). NOT YET LIVE.
 - VERIFIED on 24 Sep: `scripts/check-script-nonces.mjs https://www.vallospaces.com` still reports 1 bare script on /, /about, /sign-in and /welcome (`11-v4cdswovuj.js`). The cause is that main's lockfile pins Next 16.2.12. It clears when the release branch deploys; rerun the script after that deploy.
 - Build output: every app route is dynamic. The only prerendered HTML is `_global-error.html` (see NEW-A3-02).
 - TEST: `next-script-nonce.test.ts` now also checks that the INSTALLED Next is at least 16.3 and matches the lockfile.
 
-### UI-18 — hand-rolled sheets — commit 3d342152
+### UI-18, hand-rolled sheets, commit 3d342152
 - STATE: DEFERRED with a plan:
   1. Fix `Sheet` first (the A05 note).
   2. Port one overlay per change, each with a focus-trap and scroll-lock test. Order: ReportSheet, ChoicePicker, StayFilterSheet, FilterDrawer, DeleteAccountPanel, AgentMobileNav, MobileMenu, AssistantChat.
   3. Move `.nf-spec-tile` onto `nf-panel nf-panel--card`.
 - TEST: `components/ui/hand-rolled-sheets.test.ts` is a ratchet over the 8 files that draw the backdrop themselves. A new one fails, and a ported one must leave the list.
 
-### OPS-P2-02 — personal account names — commit c16ea777
+### OPS-P2-02, personal account names, commit c16ea777
 - STATE: FOUNDER. DEPLOY.md section 0 gives the exact steps:
   1. Create an ops@ company mailbox with 2FA.
   2. Supabase: create the VALLO SPACES LTD organisation with two owners, on Pro, then Project Settings → General → Transfer project.
@@ -1687,11 +1687,11 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   4. Fill in the ownership table.
 - TEST: `lib/ci/account-ownership-doc.test.ts` pins the runbook, and fails once the table is filled so that it is revisited then.
 
-### Agent 6's LOWs on DOC-22 final — commit 550c0d1d
+### Agent 6's LOWs on DOC-22 final, commit 550c0d1d
 - The sign-in notice lookup uses `Object.hasOwn`, so `?notice=constructor` no longer reaches the prototype. Test: `(auth)/sign-in/notice-lookup.test.ts`, all locales.
 - requestSignal's budget timer is not cleared on an early finish. It is unref'd, so this is harmless. Left as is.
 
-### NEW-A3-02 — the prerendered `_global-error.html` carries no nonce (LOW, not fixed)
+### NEW-A3-02, the prerendered `_global-error.html` carries no nonce (LOW, not fixed)
 - It is the one static page in the build, so its three chunk scripts cannot carry a per-request nonce. If the proxy serves it under the nonce CSP, its "Try again" is inert.
 - Owner: whoever takes the A05 error-boundary half of UX-27.
 
@@ -1713,15 +1713,15 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 
 ## Agent 4: the store, code side
 
-### Ledger — Agent 4 (store, code side) — branch fix/a4
+### Ledger, Agent 4 (store, code side), branch fix/a4
 
 #### Pre-batch: iPhone home-screen push registration (push_tokens = 0 rows)
-- Reproduced server half live (QA member, Chromium, iPhone UA): signed in, /settings/notifications, POST /api/push/register with a synthetic web subscription → `200 {"ok":true,"deviceRef":"10de827ed695"}`. The route, the proxy gate, the service-role upsert, the table constraints and grants all work. The probe row was then revoked through /api/push/revoke (`{"ok":true,"revoked":1}`); it remains in push_tokens as a REVOKED row for the QA member (token prefix `https://web.push.apple.com/QA-PROBE-a4-`) because execute_sql is read-only — orchestrator may delete it.
+- Reproduced server half live (QA member, Chromium, iPhone UA): signed in, /settings/notifications, POST /api/push/register with a synthetic web subscription → `200 {"ok":true,"deviceRef":"10de827ed695"}`. The route, the proxy gate, the service-role upsert, the table constraints and grants all work. The probe row was then revoked through /api/push/revoke (`{"ok":true,"revoked":1}`); it remains in push_tokens as a REVOKED row for the QA member (token prefix `https://web.push.apple.com/QA-PROBE-a4-`) because execute_sql is read-only, orchestrator may delete it.
 - Supabase edge logs 23 Sep: the settings page read push_tokens ~30 times between 16:32 and 20:57 UTC; no upsert (POST) ever reached PostgREST. So every real attempt failed in the CLIENT before the POST, or at the proxy with 401.
 - /api/push/key live: 200 configured:true (public since the earlier fix).
 - DIAGNOSIS: no iOS device or WebKit here, so the exact client step could not be observed. Hardened every client step that can die silently and made the next attempt name its own cause: failures now carry `step/errorName` shown to the person as "(Reference: subscribe/NotAllowedError.)"; `serviceWorker.register` and `serviceWorker.ready` bounded to 15 s (ready never rejects, so a worker that never activates left the button on "Just a moment" for ever); an already-granted permission is not re-requested; an existing subscription made against a different VAPID key is unsubscribed and replaced (it would register and then be refused on first send). The separate-cookie-store half: the PWA signs in separately (existing copy says so); Google sign-in could never complete in a standalone PWA (out-of-scope OAuth), which STORE-02's email-only change removes.
 
-### PUSH-PWA — iPhone home-screen push registration never reached the server
+### PUSH-PWA, iPhone home-screen push registration never reached the server
 - STATE: PARTIAL (server path proven live; client hardened + self-diagnosing; needs one tap on the founder's iPhone to confirm or to read the Reference)
 - CHANGED: apps/web/src/components/app/push/{enrol.ts,PushSetting.tsx,PushPrompt.tsx,enrol.test.ts}; commit 309588f3
 - EVIDENCE IT NOW WORKS: live register 200 (above); vitest enrol.test.ts 16/16; the 5 new tests fail on the old enrol.ts (swap run: 5 ×).
@@ -1729,25 +1729,25 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - FOUNDER: on the iPhone, open Vallo from the home screen, sign in with email + password INSIDE it, Settings → Notifications → Turn on. If it fails, send the "(Reference: …)" text.
 - REVIEW:
 
-### STORE-02 — Google offered, Sign in with Apple not (4.8); decision is email-only
+### STORE-02, Google offered, Sign in with Apple not (4.8); decision is email-only
 - STATE: FIXED (Google off + refused server-side) / FOUNDER (Apple credentials; Google off in the Supabase dashboard)
 - RE-VERIFY: live /auth/v1/settings → google:true, apple:false; code DEFAULT_SOCIALS=["google"]; auth.identities: 8 email, 1 google (the founder's own account, which has a password).
 - CHANGED: lib/auth/providers.ts (policy per surface; Apple on iff Supabase reports external.apple; Google only by `VALLO_SOCIAL_SIGN_IN=google` and web only; old NEXT_PUBLIC_AUTH_PROVIDERS ignored), lib/auth/surface.ts, lib/auth/actions.ts (startOAuth refuses per server policy + refuses any redirect provider in a shell; callback `refuseSwitchedOffProvider` signs out sessions made by a disallowed provider via amr + newest identity; new `signInWithAppleIdToken` for the iOS native sheet), components/auth/{AuthChoices,NativeAppleSignIn,EmailAuthForm,Verifying}.tsx, sign-in/sign-up/email pages, capacitor.config.ts (`appendUserAgent: "VALLO-NATIVE"`), ios App.entitlements (applesignin), en.ts accountUsesGoogleOff; commits f076a248, aa084b35 (string), 2c… (junction test)
 - EVIDENCE: providers.test.ts 11/11; provider-refusal.test.ts 7/7 (4 fail on old code: Google start not refused, Apple-on not started, native not refused, Google session not ended); native-ua.test.ts 1/1.
 - TEST THAT WOULD HAVE CAUGHT IT: apps/web/src/lib/auth/provider-refusal.test.ts, providers.test.ts
 - FOUNDER: docs/store/FOUNDER_STEPS.md §1 (Apple: App ID capability, Services ID, key, Supabase Apple provider with Client IDs `<servicesId>,com.vallospaces.app`) and §2 (Supabase → Providers → Google → Disable).
-- NOTE: native Apple needs `@capacitor-community/apple-sign-in` (7.1.0, peer core >=7) in the binary — added to package.json with the other plugins in BATCH 2 (single lockfile change). Until then the button is simply not drawn (`isPluginAvailable`).
+- NOTE: native Apple needs `@capacitor-community/apple-sign-in` (7.1.0, peer core >=7) in the binary, added to package.json with the other plugins in BATCH 2 (single lockfile change). Until then the button is simply not drawn (`isPluginAvailable`).
 - NOTE for Agent 6: PRODUCT.md §8 "NOT BUILT AS DESCRIBED" (Google/Apple) and §10 row N-4 are now built as described except Apple-behind-config.
 - REVIEW:
 
-### STORE-03 — Google cannot complete in the native apps; AASA/assetlinks placeholders
+### STORE-03, Google cannot complete in the native apps; AASA/assetlinks placeholders
 - STATE: FIXED (Google refused in shells; callback comments/logic re-based) / FOUNDER (Team ID, two SHA-256)
 - CHANGED: see STORE-02; AASA comment, AndroidManifest comment; check-deep-links wording.
 - EVIDENCE: provider-refusal "refuses every redirect provider inside a native shell".
 - TEST: provider-refusal.test.ts
 - REVIEW:
 
-### DOC-13 — deep-link gate red and in no gate
+### DOC-13, deep-link gate red and in no gate
 - STATE: FIXED (gated) / FOUNDER (values)
 - CHANGED: apps/web/package.json `cap:sync` = write-shell-config && check-deep-links (strict) && npx cap sync, `cap:sync:dev` (--warn); check emits `::error` annotations under GITHUB_ACTIONS; .github/workflows/ci.yml step "Deep links (founder values)" with continue-on-error (drop when values land); commit d9e6d935
 - EVIDENCE: `node scripts/check-deep-links.mjs` → exit 1 with the three placeholders named; native-sync-gate.test.ts 2/2.
@@ -1755,7 +1755,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - FOUNDER: docs/store/FOUNDER_STEPS.md §3.
 - REVIEW:
 
-### STORE-01 (+ UX-17) — developer offline card, retry reloads itself; "nothing was lost"
+### STORE-01 (+ UX-17), developer offline card, retry reloads itself; "nothing was lost"
 - STATE: FIXED (device test outstanding: airplane-mode cold start + warm toggle, needs a Mac/device)
 - RE-VERIFY: native-shell/index.html still read window.Capacitor.getConfig (absent in @capacitor/core 8.5.2).
 - CHANGED: native-shell/index.html (cards rewritten, script moved out), native-shell/shell.js (origin from build, probe then location.replace(origin+startPath), `online` auto-retry, "Still no connection" line), native-shell/shell-config.js (committed, production origin), native-shell/start-path.json, scripts/write-shell-config.mjs (fails if CAPACITOR_SERVER_URL unset/not https), package.json shell:config/cap:sync; app/error.tsx, (app)/error.tsx, global-error.tsx, offline/page.tsx (no "nothing was lost"; reference sentence only with a digest); UX-17 strings in en.ts and checkout/page.tsx; commit aa084b35
@@ -1764,7 +1764,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - LEFT: UX-17 "Version 0.1.0" (needs the native build's version; batch 2 native work) ; UX-27 reset-only retry is not in my list.
 - REVIEW:
 
-### STORE-06 (+ UI-07, UX-26) — store badges inside the app, linking to /start; unbackable claims
+### STORE-06 (+ UI-07, UX-26), store badges inside the app, linking to /start; unbackable claims
 - STATE: FIXED
 - DECISION (web landing): badges linking to /start are false → removed until real store URLs exist; each badge renders only for `https://apps.apple.com/...` / `https://play.google.com/store/apps/details?id=...`.
 - CHANGED: components/site/landing/{AppBand.tsx,store-badges.ts,LandingBody.tsx}, app/page.tsx (surface → AppBand omitted in shells), four locales (points.all/fast removed); commit b36e00e2
@@ -1772,54 +1772,54 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - TEST: apps/web/src/components/site/landing/store-badges.test.ts
 - REVIEW:
 
-### STORE-P2-03 — Take Video with no microphone string; camera string says never records video
+### STORE-P2-03, Take Video with no microphone string; camera string says never records video
 - STATE: FIXED (device check outstanding)
 - CHANGED: ios/App/App/Info.plist (NSMicrophoneUsageDescription added; camera string rewritten; stale "no crash reporting" comment corrected); commit d9e6d935
 - TEST: apps/web/src/lib/native/ios-project.test.ts
 - REVIEW:
 
-### STORE-13 — universal app (iPhone + iPad)
+### STORE-13, universal app (iPhone + iPad)
 - STATE: FIXED
 - CHANGED: project.pbxproj TARGETED_DEVICE_FAMILY = 1 (both configs); Info.plist UISupportedInterfaceOrientations~ipad removed; commit d9e6d935
 - TEST: apps/web/src/lib/native/ios-project.test.ts
 - REVIEW:
 
-#### Batch 1 review (Agent 5) amendments — 829025a6
+#### Batch 1 review (Agent 5) amendments, 829025a6
 - detectSessionInUrl:false on the browser client (lib/supabase/client.test.ts); 3 s timeout on /auth/v1/settings (fail closed); offline card claim "Your account is safe." → fact; CI comment precision. `/` already ƒ dynamic, live `cache-control: private, no-store`, `x-vercel-cache: MISS`.
 - REVIEW: batch 1 APPROVED after amendments (orchestrator "A4 BATCH 1 FINAL 829025a6"); integrated as 5f04075d.
 
 #### BATCH 2
 
-### STORE-04 (+ STORE-15 code half) — thin native case, push not in native projects, app opens on marketing page
+### STORE-04 (+ STORE-15 code half), thin native case, push not in native projects, app opens on marketing page
 - STATE: FIXED (code) / FOUNDER (APNs key + Apple account; Firebase Android API key into google-services.json; device test)
 - RE-VERIFY: Package.swift and capacitor.build.gradle listed 5 plugins, no push; start path `/`.
 - CHANGED: merged release branch (repo-clean-work) first so the lockfile diff is only the new plugins; `npm install @capacitor/share@^8.0.2 @capacitor/haptics@^8.0.2 @capacitor/camera@^8.2.4`; `CAPACITOR_SERVER_URL=https://www.vallospaces.com npx cap sync` (Capacitor 8.5.2, ran on Linux: SPM Package.swift + gradle regenerated; 9 plugins incl. push-notifications). capacitor.config `server.appStartPath` from native-shell/start-path.json = `/open`; native-shell/open/index.html (iOS `appStartFileURL` must exist or `fatalLoadError`); app/open/route.ts (session → /home, else /search if VALLO_PUBLIC_CATALOGUE on, else /welcome; 307 no-store; public segment). lib/native/device.ts (Share/Haptics/Camera by name via the bridge; website loads nothing); ListingActions share → native sheet; Button pulse → native haptic in the shell; save → success haptic; ListingWizard "Take a photo" (native only) → same upload path; ThreadView mounts PushPrompt("conversation_active") once a thread has the other side's message and this person sent one. Commits 4887d059, 5f68babd.
-- DROPPED: @capacitor-community/apple-sign-in 7.1.0 — its Package.swift requires capacitor-swift-pm `from: 7.0.0` (<8.0.0), which cannot resolve with Capacitor 8.5's exact 8.5.0 → iOS build would fail. Native Apple button stays hidden (isPluginAvailable) until a Capacitor-8 plugin exists; compliant because only email is offered (4.8 not triggered).
+- DROPPED: @capacitor-community/apple-sign-in 7.1.0, its Package.swift requires capacitor-swift-pm `from: 7.0.0` (<8.0.0), which cannot resolve with Capacitor 8.5's exact 8.5.0 → iOS build would fail. Native Apple button stays hidden (isPluginAvailable) until a Capacitor-8 plugin exists; compliant because only email is offered (4.8 not triggered).
 - EVIDENCE: device.test.ts 8/8 (web: nothing handled/loaded; shell: share sheet, cancel, missing plugin fallback, haptics, camera → image File); native-start.test.ts 5/5 (start path /open, capacitor.config hands it over, file exists in webDir, offline retry uses it, signed-out destination per switch); local prod build: /open → /search (switch on).
 - TEST: apps/web/src/lib/native/device.test.ts, native-start.test.ts
 - FOUNDER / MAC STEP: on the Mac, `npm ci && CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync --workspace @vallo/web` (refuses until deep-link values exist; use `cap:sync:dev` for a test build), open ios/App/App.xcworkspace, add capabilities Push Notifications (+ Associated Domains, Sign in with Apple when ready); APNS_KEY_ID/APNS_TEAM_ID/APNS_PRIVATE_KEY in Vercel; paste the Firebase Android API key into android/app/google-services.json. Record the 30-second review video: push arriving, share sheet, camera capture.
 - NOT DONE: biometric wallet lock (no plugin chosen; STORE-04 item 4), offline caching (item 7), native hide of the site header on `/` (not reached: the app starts on /open).
 - REVIEW:
 
-### STORE-P2-04 (THE SIGN-IN WALL) — one switch
+### STORE-P2-04 (THE SIGN-IN WALL), one switch
 - STATE: FIXED (switch built, default OFF = current behaviour) / FOUNDER (the decision: set `VALLO_PUBLIC_CATALOGUE=on` in Vercel to open)
 - CHANGED: lib/catalogue/public-access.ts, proxy.ts (`isPublicPath(path, {publicCatalogue})` can only add the six segments + /api/map/listings; anon catalogue page reads rate-limited per IP `anon_catalogue` 120/300 s → 429 + Retry-After), docs/PRODUCT.md §4 (flag only). Commits 8260759e, 150b66cd.
 - UX-24 coordination: /u and people search stay gated regardless; the switch opens no profile surface.
-- EVIDENCE: proxy-public-catalogue.test.ts 25/25 (OFF: all 7 catalogue paths → sign-in, "yes please" is not on; ON: 7 answer, 8 account paths still bounce, map 200 only when on, 4 other APIs 401, rate limit → 429). Local production build with the switch on and no session (Chromium): /search "64 properties found", /stays/search "69 stays", /restaurants, a rental listing, a stay, a restaurant — all 200, no 4xx responses, no error copy; /u/test, /messages, /wallet → sign-in. anon has no SELECT on listings/businesses/accommodations `address` (has_column_privilege).
+- EVIDENCE: proxy-public-catalogue.test.ts 25/25 (OFF: all 7 catalogue paths → sign-in, "yes please" is not on; ON: 7 answer, 8 account paths still bounce, map 200 only when on, 4 other APIs 401, rate limit → 429). Local production build with the switch on and no session (Chromium): /search "64 properties found", /stays/search "69 stays", /restaurants, a rental listing, a stay, a restaurant, all 200, no 4xx responses, no error copy; /u/test, /messages, /wallet → sign-in. anon has no SELECT on listings/businesses/accommodations `address` (has_column_privilege).
 - TEST: apps/web/src/proxy-public-catalogue.test.ts
 - REVIEW:
 
-### NEW-A4-01 — anon can read exact latitude/longitude on listings, accommodations, businesses (MEDIUM, latent)
+### NEW-A4-01, anon can read exact latitude/longitude on listings, accommodations, businesses (MEDIUM, latent)
 - has_column_privilege('anon', …, 'latitude'|'longitude'|'location') = true on all three. Today every row with coordinates is an example (5 + 64 + 7, is_demo), so nothing real is exposed; the first real shortlet host who drops a pin publishes their home's exact point to anyone with the publishable key, switch or no switch. Belongs with SUP-06's "coarsen the public point" amendment. Not fixed here (not live-exposed; different owner).
 
 ### Gates (batch 2, after merging release)
 - tsc 0 errors; lint 0 errors / 333 warnings; vitest 256 files, 3955 passed / 1 skipped; build exit 0 (tsconfig unchanged).
 
-#### Batch 2 review amendment — 58d42fbf (A4 BATCH 2 FINAL): only document loads count against the anon allowance; over the limit → 307 to sign-in with notice=catalogue-paced; cost noted in PRODUCT.md §4.
+#### Batch 2 review amendment, 58d42fbf (A4 BATCH 2 FINAL): only document loads count against the anon allowance; over the limit → 307 to sign-in with notice=catalogue-paced; cost noted in PRODUCT.md §4.
 
 #### BATCH 3
 
-### STORE-07 — Anthropic processing without disclosure or consent
+### STORE-07, Anthropic processing without disclosure or consent
 - STATE: FIXED (commit e6bf23b9)
 - RE-VERIFY: api/assistant, api/support and lib/social/bot-actions call api.anthropic.com with no consent check; privacy.tsx had 0 mentions.
 - CHANGED: lib/ai/consent.ts (AI_CONSENT_VERSION, disclosure words, cookie format, 403 refusal), lib/ai/consent-server.ts (hasAiConsent: device cookie or profiles.settings.aiConsent; fail closed), lib/ai/consent-actions.ts (recordAiConsent / withdrawAiConsent), lib/profile/schema.ts (aiConsent in settings, survives every other save), components/app/ai/AiConsentSheet.tsx (disclosure + "Prefer a person? … no AI" → /contact), AssistantChat + SupportChat (ask before sending, handle 403, decline → support chat answers from help pages + a person), /api/assistant and /api/support refuse 403 ai-consent-required BEFORE any Anthropic call, @vallo summon refuses privately; help, settings/help and assistant pages pass the server's answer. Privacy §12 names Anthropic (anchor #ai).
@@ -1827,7 +1827,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - TEST: apps/web/src/lib/ai/consent-routes.test.ts
 - REVIEW:
 
-### STORE-08 + SEC-13 (policy half) — privacy policy vs code
+### STORE-08 + SEC-13 (policy half), privacy policy vs code
 - STATE: FIXED (commits 105e17dc, 55e3e18f, 14b3bcdf)
 - CHANGED: lib/legal/privacy.tsx §2–7, 9, new §12 AI; PRIVACY_VERSION 2026-09-24 and page dates from PRIVACY_UPDATED; processors named with country (Supabase eu-west-1 Ireland from get_project; Vercel; Paystack; Resend; Anthropic; MapTiler; CARTO; FCM; APNs; Sentry when on; Unsplash for example photos). Termii, Google Places, LiteAPI: 0 references in src → not named. Analytics claim removed; the price-check step record (price_check_events) disclosed as the one usage record. §7 describes the FIXED purge (pending migration below).
 - docs/store/PRIVACY_LABELS.md: every Apple data type and every Play data type, question by question, with the table it comes from.
@@ -1836,24 +1836,24 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - REVIEW:
 
 ### SEC-13 purge half + STORE-P2-02 + ESC-06 + MON-09 + STORE-12 + SEC-10 amendment (assigned by the orchestrator)
-- STATE: AWAITING-REVIEW — migration PENDING: scratchpad/work/fix-a4/purge.sql (to be committed as supabase/migrations/<version>_the_purge_erases_what_it_promises_and_never_money.sql after apply; plan.ts DESTROYED_TABLES + plan.test.ts MIGRATION path updated in the same commit).
+- STATE: AWAITING-REVIEW, migration PENDING: scratchpad/work/fix-a4/purge.sql (to be committed as supabase/migrations/<version>_the_purge_erases_what_it_promises_and_never_money.sql after apply; plan.ts DESTROYED_TABLES + plan.test.ts MIGRATION path updated in the same commit).
 - RE-VERIFY (live, rolled back, `probe_sec_13_old_db`): an account with ₦2,500 in a savings pot: account_deletion_blockers.blocked = false, purge_account_rows → purged = true (money purged over); a clean account after purge still had push_tokens 1, known_devices 1, email_outbox 2, price_check_events 1; account_identities.email_canonical became the fake deleted address (the mailbox link was lost, not kept as plaintext as the audit thought, because the auth trigger rewrites it).
 - CHANGE (migration): account_identities_canonical_rule_check allows 'erased'; vault secret `account_identity_pepper` (created if missing); private.erased_identity_hash (HMAC-SHA256, 'erased:' prefix; EXECUTE revoked from public/anon/authenticated); private.deletion_money_blockers (wallet balance, held escrow, pots, pending payouts, rent refunds owed by them as lister and owed to them as guest via public.rent_refunds_owed, open bookings and reservations; revoked); public.account_deletion_blockers reads it (keeps its self-only guard, keys, grant; adds pot_balance_minor, rent_refunds_owed_minor, rent_refunds_due_minor); private.record_account_identity no longer overwrites an erased row; public.purge_account_rows re-checks money first and PARKS (stays SCHEDULED, purge_after +7 days, last_error, one deduped HIGH risk_alert, returns {purged:false, reason:'held_money'}), then deletes push_tokens, known_devices, email_outbox, price_check_events, price_check_watches, and replaces the mailbox with the keyed hash (row deleted if the hash cannot be made: never plaintext).
-- COMPATIBILITY with deployed main: purgeOne treats {purged:false} as a recorded failure (fail_account_purge only writes last_error on SCHEDULED/PURGING) and due_account_purges skips it until purge_after — no loop; account_deletion_blockers only gains keys (main's readingFrom ignores them; schedule_account_deletion refuses a pot-holder, main shows its generic blocked state). Status values unchanged (no new enum/check value).
+- COMPATIBILITY with deployed main: purgeOne treats {purged:false} as a recorded failure (fail_account_purge only writes last_error on SCHEDULED/PURGING) and due_account_purges skips it until purge_after, no loop; account_deletion_blockers only gains keys (main's readingFrom ignores them; schedule_account_deletion refuses a pot-holder, main shows its generic blocked state). Status values unchanged (no new enum/check value).
 - PROOF (pre-apply, rolled back): `probe_sec_13_proof` = whole migration + supabase/tests/probes/sec-13.sql → `PROBE_OK sec-13`. No schema_migrations row; no vault secret left (checked).
 - APP: preconditions.ts + DeleteAccountPanel + en.ts name the pot and both rent-refund directions (commit 377fd921; preconditions.test.ts 84/84 in the folder).
 - TEST: supabase/tests/probes/sec-13.sql (fails on the old DB: pot purged, rows left).
 - REVIEW:
 
-### STORE-10 — reviewer account
+### STORE-10, reviewer account
 - STATE: FIXED (script) / FOUNDER (run it)
 - CHANGED: scripts/seed/store-reviewer.mjs reads TERMS_VERSION/PRIVACY_VERSION from versions.ts (was a stale copy that would have mismatched today's bump), runs only as a script; docs/store/FOUNDER_STEPS.md §4 exact command. Commits 105e17dc, 0f277661, (types) last commit.
 - TEST: privacy-truth.test.ts "the reviewer seed accepts the versions the app serves".
 
-### NEW-A4-02 — any signed-in member can read the exact address of every published listing, business and stay (MEDIUM)
+### NEW-A4-02, any signed-in member can read the exact address of every published listing, business and stay (MEDIUM)
 - has_column_privilege('authenticated', listings|businesses|accommodations, 'address', 'SELECT') = true. anon cannot. The privacy notice now says exactly that. If the product rule is "address only after booking", this needs a column revoke + a definer read for booked guests (Agent 1's area). Not fixed.
 
-### NEW-A4-03 — purge handle collision (LOW)
+### NEW-A4-03, purge handle collision (LOW)
 - The purge rewrites the handle to 'd' + the first 19 hex chars of the uuid; two accounts sharing those 76 bits collide (unique violation, purge fails and retries). Negligible for random v4 uuids; seen only with hand-made probe ids.
 
 ### Gates (batch 3)
@@ -1875,7 +1875,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 
 ### (c) "emails kept for a short time" with no prune
 - STATE: FIXED (the notice was wrong about the mechanism's existence claim in the review, not the code): a prune exists and runs daily, `cron vallo_purge_email_outbox` 02:25 → `private.purge_email_outbox(90)` (migration 20260923100102): SENT/DROPPED after 90 days; FAILED kept until handled; PENDING/SENDING never. The notice now states exactly that.
-- PROBE: sec-13 step 5 (91-day SENT pruned, 1-day SENT kept, 400-day FAILED kept) — run live, PROBE_OK.
+- PROBE: sec-13 step 5 (91-day SENT pruned, 1-day SENT kept, 400-day FAILED kept), run live, PROBE_OK.
 
 ### (d) consent: the stored record decides for signed-in callers
 - STATE: FIXED. `hasAiConsent`: signed in → `profiles.settings.aiConsent` only; signed out → cookie. `recordAiConsent` returns ok:false when the account write fails; the sheet says so and sends nothing.
@@ -1887,50 +1887,50 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 
 #### Batch 4 (release branch merged first: 82beacfa), commits 53fee6f5..cb20ee14
 
-### STORE-17 — /preview answers 200 in production with the harness list in the payload
+### STORE-17, /preview answers 200 in production with the harness list in the payload
 - STATE: FIXED (53fee6f5)
 - RE-VERIFIED: the layout's notFound() runs after the root loading.tsx starts streaming (200, page streams alongside).
 - FIX: proxy rewrites /preview and /gallery to `/_harness-closed` (no route) when previewHarnessIsOpen is false (always on Vercel) → Next's not-found with a 404, nothing of the harness rendered.
 - TEST: proxy.test "STORE-17" (Vercel; Vercel + opt-in; dev; local proof server; RSC query; target matches no route). Fails on the old proxy (no rewrite header).
 
-### STORE-19 — Terms say 18+, sign-up never asked
+### STORE-19, Terms say 18+, sign-up never asked
 - STATE: FIXED (code e59b77ca) / AWAITING-REVIEW (migration scratchpad/work/fix-a4/store19.sql: widen terms_acceptances_document_check with 'age_18_or_over')
 - FIX: a separate "I am 18 or older." tick in AcceptTerms; the browser stops the submit; the SERVER refuses (`ageRefusal`, fieldErrors.ageConfirmed) before the provider is called; the statement is written to terms_acceptances (document age_18_or_over, version 18+, source signup_email) in its own write with its own alert.
 - COMPAT: deployed main never writes that document; widening a CHECK is additive.
 - TEST: terms-gate.test (5 refused answers never reach the provider; success records ageConfirmed:true); acceptance.test (own row; a failed age row never costs the terms rows; not written without the statement). Probe store-19.sql: old DB → 23514 check violation (shown); with the DDL in a rolled-back block → PROBE_OK store-19 (server writes; unknown document refused; member insert refused 42501).
 - FOUNDER: Play target audience 18+; Apple age rating choose 18+ (LISTING_COPY.md).
 
-### NEW-A4-04 — an account created through a social provider records no terms agreement and no age statement (MEDIUM, latent)
+### NEW-A4-04, an account created through a social provider records no terms agreement and no age statement (MEDIUM, latent)
 - STATE: DEFERRED (not cheap: needs a gate that holds a new social account until it agrees, on both the OAuth callback and the native Apple action) / FOUNDER (do not enable Apple in Supabase until closed; written into FOUNDER_STEPS §1)
 - EVIDENCE: `signInWithAppleIdToken` and `completeEmailVerification` (OAuth code path) call no `recordTermsAcceptance`; Apple switches on automatically when the Supabase provider is enabled. Google is refused server-side (decision: email only), Apple is off today, so nobody is affected yet.
 
-### STORE-16 — share sheet / tab title carry the lister's free-text title
+### STORE-16, share sheet / tab title carry the lister's free-text title
 - STATE: FIXED (ee3fe5e6)
 - FIX: `lib/listings/public-title.ts` publicListingTitle (kind + bedrooms + area, city) used for the share sheet (ListingGallery shareTitle), tab title, OG/Twitter titles and descriptions, JSON-LD name. Draft schema + submitRequirements refuse a title with a house number + street word.
 - TEST: public-title.test (structured title; 4 refused / 4 allowed titles incl. the live "…on Chevron Drive"); syndication.test (no free-text title in metadata or structured data).
 
-### STORE-18 — icon / splash / theme-color
+### STORE-18, icon / splash / theme-color
 - STATE: PARTIAL (9e8a1d83): FIXED the code halves (shell theme-color = CHROME_COLOUR #010118; Android adaptive background full bleed, both XMLs; generator note); FOUNDER (artwork: FOUNDER_STEPS §8 specifies the four master files, then regenerate and check on devices).
 - TEST: lib/theme/native-chrome.test.ts.
 
-### STORE-15 — push cannot be demonstrated
+### STORE-15, push cannot be demonstrated
 - STATE: FIXED (checklist, 9e8a1d83) / FOUNDER (the four credentials + device proof)
 - RE-VERIFIED: plugin IS synced (Package.swift, capacitor.settings.gradle, lockfile); google-services.json still the placeholder; aps-environment development in App.entitlements; server transports present. FOUNDER_STEPS §6 now lists every variable by its exact name (FCM_PROJECT_ID, FCM_SERVICE_ACCOUNT_JSON, APNS_KEY_ID/TEAM_ID/PRIVATE_KEY, APNS_PRODUCTION, optional APNS_BUNDLE_ID), the capabilities, and the device proof. Owed: a monochrome Android notification icon (§8).
 
-### STORE-20 — store listing copy
+### STORE-20, store listing copy
 - STATE: FIXED (draft, cb20ee14) / FOUNDER (approve; screenshots and feature graphic from the shipped build; create support@vallospaces.com and set NEXT_PUBLIC_SUPPORT_EMAIL)
 - docs/store/LISTING_COPY.md, each field within its limit; claims checked against code (move-in parts, price check, messaging, stays, tables, notification categories); wallet lines marked [IF]; "move money out" withheld until Paystack transfers are enabled (STORE-12).
 
-### STORE-14 — APK vs AAB
+### STORE-14, APK vs AAB
 - STATE: FIXED (docs, cb20ee14: MOBILE_READINESS + FOUNDER_STEPS §6 step 8) / DEFERRED (native CI job: belongs with DOC-01, needs a macOS runner and signing secrets).
 
-### STORE-09 — regulated wallet
+### STORE-09, regulated wallet
 - STATE: FOUNDER (legal position and account type; Terms §15 alignment is a legal text decision, not made here). PRIVACY_LABELS and LISTING_COPY answer "from what ships".
 
-### STORE-11 — real supply
+### STORE-11, real supply
 - STATE: FOUNDER (10–20 real listings before submission).
 
-### STORE-21 — "Invest" tile
+### STORE-21, "Invest" tile
 - STATE: merged into STORE-05 (Agent 5's).
 
 ### Biometric lock, offline catalogue caching
@@ -2020,13 +2020,13 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 
 #### Batch 5: A09 Ops leftovers (release merged before and after; head after the second merge)
 
-### OPS-09 — functions in iad1, DB in eu-west-1
+### OPS-09, functions in iad1, DB in eu-west-1
 - STATE: FIXED (436b2b79) / FOUNDER: confirm after deploy that `x-vercel-id` reads dub1.
 - FIX: `"regions": ["dub1"]` in apps/web/vercel.json, the documented project-level key (checked against Vercel's docs). DEPLOY.md says how to confirm it.
 - TEST: lib/ops/function-region.test.ts.
 - NOTE: the old PNG share card's deletion was staged and landed in this commit by mistake. The share card is missing in the commits between this one and ad5b1f8d; history cannot be rewritten.
 
-### OPS-10 — cold page weight (cheap wins only)
+### OPS-10, cold page weight (cheap wins only)
 - STATE: PARTIAL (237c4e36).
 - FIXED:
   - `images.formats` is AVIF then WebP.
@@ -2039,7 +2039,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   - The low-resolution example photos (content).
 - The same commit also carries the root metadata's canonical and og:url (OPS-16), because both changes are in layout.tsx.
 
-### OPS-11 — uncached landing fan-out
+### OPS-11, uncached landing fan-out
 - STATE: FIXED for the landing (e3ce9fc2) / DEFERRED: keyset pagination on /search, the SQL amenity AND-filter and review-stat columns (2–3 days; OPS-11 items 1–3).
 - FIX:
   - SupabaseListingRepository takes a client factory (default: the cookie client).
@@ -2048,7 +2048,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - MEASURED on a production build with live Supabase: / 0.85 s cold, then 0.17 s and 0.15 s.
 - TEST: landing-catalogue.test.ts (one read serves every visitor; sessionless client; the landing uses it).
 
-### OPS-14 — fire-and-forget email, no List-Unsubscribe
+### OPS-14, fire-and-forget email, no List-Unsubscribe
 - STATE: PARTIAL (c1275b80).
 - FIXED:
   - sendEmail retries 429, 5xx, timeout and unreachable twice (400 ms, then 1200 ms) with one Idempotency-Key per message, so it is delivered at most once. A refusal (4xx other than 429) is never retried.
@@ -2060,7 +2060,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   - One-click unsubscribe (List-Unsubscribe-Post), which needs a signed, sign-in-free endpoint and a signing secret.
   - A separate alerts subdomain (a DNS decision for the founder).
 
-### OPS-15 — one script without a nonce
+### OPS-15, one script without a nonce
 - STATE: FIXED by the release's Next 16.3.6 (3a66daac: proof, checker and guard test).
 - ROOT CAUSE:
   - The live deployment (built from main, whose lockfile has next 16.2.12) renders the root layout's own client chunk as `["$","script","script-0",{src,async}]` with no nonce. It is visible in the live RSC payload of /about (`11-v4cdswovuj.js?dpl=…`).
@@ -2071,7 +2071,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - TEST: lib/security/next-script-nonce.test.ts (the installed renderer passes the nonce; package.json asks for next ≥ 16.3).
 - FOUNDER / preview check: `node apps/web/scripts/check-script-nonces.mjs https://<preview-url>` must print no "lack the policy nonce" lines.
 
-### OPS-16 — share card
+### OPS-16, share card
 - STATE: FIXED (ad5b1f8d; canonical in 237c4e36) / FOUNDER: whether to exempt social crawlers on /listing/* (a product and privacy decision; the VALLO_PUBLIC_CATALOGUE switch already opens listings when turned on).
 - FIX:
   - The card is a 115 KB JPEG (was a 294 KB PNG), and the generator writes it.
@@ -2079,7 +2079,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
   - The proxy's public path list is updated.
 - TEST: lib/ops/share-card.test.ts.
 
-### OPS-17 — soft 404s
+### OPS-17, soft 404s
 - STATE: FIXED (ad5b1f8d).
 - FIX:
   - A signed-out request for an unknown first segment is a 404. lib/routing/known-routes.ts is held equal to src/app by its test; the two extra names are next.config redirects.
@@ -2105,7 +2105,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 
 #### After batch 5 (Agent 5 approved all seven)
 
-### UI-16 remainder — /stay and /restaurant soft 404s
+### UI-16 remainder, /stay and /restaurant soft 404s
 - STATE: FIXED (3131d54e).
 - The proxy's pre-render check (lib/routing/listing-exists.ts `detailIsMissing`) now covers:
   - /stay/<id>: an accommodation, or the PUBLISHED listing the page falls back to;
@@ -2117,7 +2117,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - Signed-in unknown paths: an unmatched route is already Next's native 404 (the audit's evidence). Nothing to change. Not re-measured signed in: that needs a session in this container.
 - NOT DONE: /messages/<missing> and /profile/setup/bogus. They are private pages whose not-found would need a per-user read in the proxy; recorded as DEFERRED.
 
-### OPS-11 item 1 — keyset pagination on /search: PLAN (not built)
+### OPS-11 item 1, keyset pagination on /search: PLAN (not built)
 1. **Cursor.** The catalogue order is `featured desc, published_at desc nulls last, created_at desc` (supabase-repository.ts:1302-1304). Add `id desc` as the final tiebreak and encode the last row's `(featured, published_at, created_at, id)` as an opaque base64url cursor.
 2. **Read.** Add `search(filter, { limit: 24, after?: cursor })`. PostgREST cannot express a row-value comparison across mixed directions in one filter, so do it in a SQL function `public.catalogue_page(filters jsonb, after jsonb, page_size int)`:
    - `security invoker`, so RLS is unchanged;
@@ -2212,40 +2212,40 @@ The device draft key is `nf_listing_draft:<userId>`, and clearListingDrafts() ru
 
 ## Agent 5: truth on screen and content safety
 
-### Ledger — Agent 5 (truth on screen, content safety)
+### Ledger, Agent 5 (truth on screen, content safety)
 
-### SEC-05 + STORE-P2-01 — objectionable-content filter on 2 of 8 surfaces; reviews/businesses not reportable
-- STATE: FIXED — migration 20260923235821_content_scanner_on_every_surface applied to live after Agent 4's approval of the amendment
+### SEC-05 + STORE-P2-01, objectionable-content filter on 2 of 8 surfaces; reviews/businesses not reportable
+- STATE: FIXED, migration 20260923235821_content_scanner_on_every_surface applied to live after Agent 4's approval of the amendment
 - RE-VERIFIED LIVE (2026-09-23): `blocked_terms` holds 133 rows in 12 categories (the handed claim "NO rows" is FALSE; A04's count stands). Only `scan_post` and `scan_social_profile` call `objectionable_pattern()`; `scan_message/review/review_response/story/story_comment/event` look only for 10-digit runs and payment words; no scan trigger on listings, businesses, accommodations, room_types or profile names. Old-DB demonstration (rolled back, `probe_a5_sec05_old_db`): spaced-slur post=LIVE, slur story comment=LIVE, "Mrs Loli Adeyemi is my landlady" post=HELD.
 - CHANGED:
-  - Pending migration: scratchpad/work/fix-a5/sec05.sql (to be committed as supabase/migrations/<version>_content_scanner_on_every_surface.sql after apply). It: adds `blocked_terms.action` (hold|flag); deletes `loli`, adds `lolicon`/`shotacon` + 8 more hold terms and 2 flag terms; demotes to FLAG (alert, content stays up) `coon, paki, wog, spic, chink, sambo, i will deal with you, call me on whatsapp, western union, moneygram` (real names/places/idioms/landmarks in Nigeria: Sambo is a surname, "spic and span", Western Union as a landmark); new `private.content_forms` (NFKD, accent strip, leetspeak in both 1->i and 1->l forms, edge punctuation stripped, spelled-out letters joined), `private.blocked_pattern(action)` (space in a term = optional space), `private.content_verdict(text)`, `private.open_content_alert` (dedupes open alerts), `private.content_writer_is_member()` (role GUC in authenticated/anon and not admin/super_admin — definer functions cannot use current_user; verified live that `current_setting('role')` stays 'authenticated' inside a definer). Rewrites the 8 scanners: posts/stories/story comments/events HOLD; reviews/host replies REFUSE with RM004 (no held state); messages open a risk alert (delivered, not dropped); handles/names REFUSE with RM004 for a member, and on the sign-up path (auth trigger) the public name becomes "Member" + alert so sign-up never breaks; bio no longer re-held on unrelated edits. New scan triggers `*_zz_content_scan` on listings, businesses, accommodations, room_types (see SEC-06 for the hold behaviour).
+  - Pending migration: scratchpad/work/fix-a5/sec05.sql (to be committed as supabase/migrations/<version>_content_scanner_on_every_surface.sql after apply). It: adds `blocked_terms.action` (hold|flag); deletes `loli`, adds `lolicon`/`shotacon` + 8 more hold terms and 2 flag terms; demotes to FLAG (alert, content stays up) `coon, paki, wog, spic, chink, sambo, i will deal with you, call me on whatsapp, western union, moneygram` (real names/places/idioms/landmarks in Nigeria: Sambo is a surname, "spic and span", Western Union as a landmark); new `private.content_forms` (NFKD, accent strip, leetspeak in both 1->i and 1->l forms, edge punctuation stripped, spelled-out letters joined), `private.blocked_pattern(action)` (space in a term = optional space), `private.content_verdict(text)`, `private.open_content_alert` (dedupes open alerts), `private.content_writer_is_member()` (role GUC in authenticated/anon and not admin/super_admin, definer functions cannot use current_user; verified live that `current_setting('role')` stays 'authenticated' inside a definer). Rewrites the 8 scanners: posts/stories/story comments/events HOLD; reviews/host replies REFUSE with RM004 (no held state); messages open a risk alert (delivered, not dropped); handles/names REFUSE with RM004 for a member, and on the sign-up path (auth trigger) the public name becomes "Member" + alert so sign-up never breaks; bio no longer re-held on unrelated edits. New scan triggers `*_zz_content_scan` on listings, businesses, accommodations, room_types (see SEC-06 for the hold behaviour).
   - Code commit 11326ced: REPORT_TARGETS += review, business, event; ReportSheet on every written review (ListingReviews), stay page, restaurant page (listing or business target). RM004 mapped to the database's sentence in lib/reviews/actions.ts, lib/agent/reviews-actions.ts, lib/profile/actions.ts, lib/social/profiles-actions.ts (new lib/safety/content-refusal.ts).
-- EVIDENCE IT NOW WORKS: proof `probe_a5_sec05_proof2` (whole migration + probe, rolled back) → `PROBE_OK sec-05`. 38-case matcher table: holds NIGGER, n1gger, "n i g g e r", n.i.g.g.e.r, Ñyamiri, chi1d porn, childporn, "call  girl", "whatsapp  me  directly", lolicon, f4ggot…; flags Coon Street, "I will deal with you…", "Call me on WhatsApp for inspection", Paki shop, Alhaji Sambo, "Spic and span", Western Union landmark, Wog Estate; clean: Mrs Loli Adeyemi, Scunthorpe, Pakistan embassy, spice market, raccoon, Lolita Estate, Kafiru Street, Igbo Efon, Nigerian names. Surfaces as the QA member through `authenticated`: clean post LIVE / spaced slur HELD; story clean LIVE / slur HELD; comment clean LIVE / slur HELD with reason; nickname "Loli" saved / slur refused RM004; handle slur refused RM004; bio slur HELD; DM threat delivered + 1 risk alert; review & host reply slur refused RM004 (live functions on scratch tables — a probe cannot mint a finished booking); event slur HELD; sign-up-path slur name → "Member". No migration row recorded; no function leaked.
+- EVIDENCE IT NOW WORKS: proof `probe_a5_sec05_proof2` (whole migration + probe, rolled back) → `PROBE_OK sec-05`. 38-case matcher table: holds NIGGER, n1gger, "n i g g e r", n.i.g.g.e.r, Ñyamiri, chi1d porn, childporn, "call  girl", "whatsapp  me  directly", lolicon, f4ggot…; flags Coon Street, "I will deal with you…", "Call me on WhatsApp for inspection", Paki shop, Alhaji Sambo, "Spic and span", Western Union landmark, Wog Estate; clean: Mrs Loli Adeyemi, Scunthorpe, Pakistan embassy, spice market, raccoon, Lolita Estate, Kafiru Street, Igbo Efon, Nigerian names. Surfaces as the QA member through `authenticated`: clean post LIVE / spaced slur HELD; story clean LIVE / slur HELD; comment clean LIVE / slur HELD with reason; nickname "Loli" saved / slur refused RM004; handle slur refused RM004; bio slur HELD; DM threat delivered + 1 risk alert; review & host reply slur refused RM004 (live functions on scratch tables, a probe cannot mint a finished booking); event slur HELD; sign-up-path slur name → "Member". No migration row recorded; no function leaked.
 - Gates (batch 1): typecheck 0 errors; lint 0 errors (335 warnings, pre-existing); vitest 244 files / 3893 passed / 1 skipped; build exit 0 (tsconfig unchanged).
 - TEST THAT WOULD HAVE CAUGHT IT: supabase/tests/probes/sec-05.sql; apps/web/src/lib/safety/user-generated-content.test.ts ("reporting reaches every public surface (STORE-P2-01)"); apps/web/src/lib/safety/content-refusal.test.ts
 - NOT DONE / NOTES: there is no event page in the app UI (events are not surfaced anywhere a member can view one), so no event report control is mounted; `event` is an accepted target for when one exists. Deployed main shows its generic "could not save" copy for an RM004 refusal until the release branch ships (nothing published; compatible). Seeded terms beyond the 12 added are founder's call (FOR THE FOUNDER #5 answered by this demotion list).
 - REVIEW: Agent 4 (a5-batch1-by-a4.md): 5 CHANGES REQUIRED. AMENDED (commit 32a7fb06 + migration v2 in scratchpad/work/fix-a5/sec05.sql): (1 HIGH) reviews/host replies now refuse only `abuse.*` (`content_verdict(text, 'abuse')`); `fraud.*` in a review/reply publishes and opens an alert; listings likewise hold only for abuse/tenant preference, scam wording → alert. (2) tenant-preference exclusions: boys' quarters/BQ, ladies' bar/salon/hairdresser/wear/toilet/hostel, "allowed in the rooms", "visitors after", Igbo Efon/Ora/Elerin/Ukwu. (3) normaliser: zero-width + soft hyphen stripped, 30 Cyrillic/Greek look-alikes mapped, runs of 3+ letters collapsed to 1 and 2 as extra forms, edge punctuation read before and after the leet map; new preference shapes: "X tenants not allowed / preferred / not welcome", "(we) prefer X", "strictly for X". (4) sec-06 re-proved against the LIVE owner guard (20260923232741): member DRAFT → reword → SUBMITTED (+1 alert); member publish branch kept only as defence in depth. (5) admin/server publish clears the scanner's own note (unless the admin wrote a new one). Proof `probe_a5_sec05_sec06_proof3` (whole v2 migration + both probe files as rolled-back temp functions): `RESULTS PROBE_OK sec-06 || PROBE_OK sec-05`; no migration row, nothing leaked. Matcher run `probe_a5_matcher_try2`: ALL PASS on 47 abuse cases + 7 scoped + 44 preference cases. AWAITING re-check.
 
-### SEC-06 — discriminatory tenant preferences
-- STATE: FIXED — same migration 20260923235821 (live)
+### SEC-06, discriminatory tenant preferences
+- STATE: FIXED, same migration 20260923235821 (live)
 - RE-VERIFIED: no scanner on listings; "No Igbo tenants", "Muslims only", "Married couples only" pass untouched today.
-- CHANGED: `private.discriminatory_phrase(text)` (ethnic groups, religions, marital/family status, gender, in "no X" / "X only" / "only X" shapes, on the normalised forms); `private.scan_catalogue_text()` on listings (title, description), businesses (name, description), accommodations (name, description, house_rules), room_types (name, description): for a member writer, a match (or a hold-tier abuse term) HOLDS FOR REVIEW — reason written to `review_notes` (shown to the lister in /agent/listings), a PUBLISHED/APPROVED row goes back to SUBMITTED, a DRAFT keeps its status (not pushed into the queue), one alert when it is submitted/live; rewording clears the note; admins (own authenticated client) and server writers are never held. Never refuses. Wizard: inline warning while typing (lib/safety/tenant-preference.ts mirrors the SQL; commit 11326ced).
+- CHANGED: `private.discriminatory_phrase(text)` (ethnic groups, religions, marital/family status, gender, in "no X" / "X only" / "only X" shapes, on the normalised forms); `private.scan_catalogue_text()` on listings (title, description), businesses (name, description), accommodations (name, description, house_rules), room_types (name, description): for a member writer, a match (or a hold-tier abuse term) HOLDS FOR REVIEW, reason written to `review_notes` (shown to the lister in /agent/listings), a PUBLISHED/APPROVED row goes back to SUBMITTED, a DRAFT keeps its status (not pushed into the queue), one alert when it is submitted/live; rewording clears the note; admins (own authenticated client) and server writers are never held. Never refuses. Wizard: inline warning while typing (lib/safety/tenant-preference.ts mirrors the SQL; commit 11326ced).
 - EVIDENCE: proof `probe_a5_sec06_proof2` → `PROBE_OK sec-06`: 12 positive + 13 negative cases (near the mosque, Igbo Efon, No family land dispute, Men's salon, Muslim prayer room, no single room available…); member DRAFT "No Igbo tenants" saved as DRAFT with note "Held for review: … ("no igbo") …"; member setting it PUBLISHED lands SUBMITTED with 1 open alert; rewording clears the note; admin publishing a "Ladies only" listing stays PUBLISHED. vitest tenant-preference.test.ts (same table) passes.
 - TEST THAT WOULD HAVE CAUGHT IT: supabase/tests/probes/sec-06.sql; apps/web/src/lib/safety/tenant-preference.test.ts
-- FOUNDER: add "marital status" to the /standards non-discrimination sentence (the hold note already names it) — one line of copy, a policy decision.
+- FOUNDER: add "marital status" to the /standards non-discrimination sentence (the hold note already names it), one line of copy, a policy decision.
 - REVIEW:
 
-### SEC-05 / STORE-P2-01 / SEC-06 — APPLIED
+### SEC-05 / STORE-P2-01 / SEC-06, APPLIED
 - Applied 2026-09-23 as version 20260923235821 `content_scanner_on_every_surface`; committed byte-identical (md5 d5789855b3ef20e6c89831aef9fa8e14; the MCP transport turned the `\u0300`-style regex escapes into the literal characters, which are the same regex, and the committed file carries them as recorded). Includes the LOW follow-up from the re-check: "Men only barbershop" is not a tenant preference.
 - Live probes after apply: `probe_sec_06` → PROBE_OK sec-06; `probe_sec_05` → PROBE_OK sec-05 (both against the live owner guard, nothing left behind).
 - Live smoke through PostgREST as the QA member: benign DM ("Hello, is this place still available for an inspection next week?") inserted, 0 risk alerts; PATCH nickname to a slur → HTTP error `RM004 "That name uses words our content standards do not allow."` (proves the role-GUC member detection under PostgREST). A live review cannot be written: the QA member has no booking (demo listings refuse transactions); the review path is proven by the probe on the live function.
 - blocked_terms now 144 rows (12 flag tier).
 - Commits: 11326ced, 32a7fb06, and the migration commit.
-- REVIEW: Agent 4 — APPROVED on re-check (a5-batch1-by-a4.md).
+- REVIEW: Agent 4, APPROVED on re-check (a5-batch1-by-a4.md).
 
 #### BATCH 2
 
-### UI-03 / STORE-05 / UX-03 / UX-22 — claims without a mechanism
+### UI-03 / STORE-05 / UX-03 / UX-22, claims without a mechanism
 - STATE: AWAITING-REVIEW (code, commit ae1a41f3)
 - RE-VERIFIED: live copy still had "Verified homes…" (landing lede), "Rent, buy or invest in verified properties" (home hero), /rent "Homes for real rent … Verified listings only" + "Every rental here is checked / Listings and agents are verified before they go live", agent pitch "Verified supply only / Every listing is checked by hand / where they are protected", "connect with verified guests", "get paid securely", landing stat "Verified agents" (platform_stats counts APPROVED agents, not verified), KYC and host consent text claiming a "processor" checks "identity and sanctions databases" (no such integration exists: grep for dojah/youverify/smile/prembly/sanctions = none), docs/careers/assistant/support/FAQ "every listing put up by a person we have checked" (false for the 64 examples), FAQ/support "passed ID and address checks" (the badge is tier 1, ID only).
 - CHANGED (en + ha/ig/yo where the string exists): all of the above removed or reworded; Invest tile removed (it went to the same /search?market=buy as Buy) and dropped from the hero; Manage → "List a property"; Nearby → "Local talk / What people say" (it opens the social feed); escrow lede → "Disputes, decided on the record."; "safe" reassurances on sign-in walls, payouts, messaging maintenance, auth error reworded to facts; "one protected place" → "one place, on the record"; saved-search chip "Checked listings" → "Verified only" (the filter's own name); listing about-text "The agent and this property were checked" → "A person at Vallo checked the ID of the agent behind this listing" (listing.verified = agent badge only); review empty state "verified stays" → "stays booked and finished on Vallo".
@@ -2254,31 +2254,31 @@ The device draft key is `nf_listing_draft:<userId>`, and clearListingDrafts() ru
 - TEST: batch 3's V-02 build check encodes the allowlist; placebo/example/story tests below.
 - REVIEW:
 
-### UX-09 + UI-P2-01 — example stays and restaurants unlabelled one tap deeper
+### UX-09 + UI-P2-01, example stays and restaurants unlabelled one tap deeper
 - STATE: AWAITING-REVIEW (commit ae1a41f3)
 - RE-VERIFIED: StayDetailView/RestaurantFace had no is_demo branch; "Book now" / "Request a table" drawn for examples; DetailAnatomy drew the person-with-tick for every host.
 - CHANGED: StayDetail.isExample (accommodation.is_demo || business.is_demo); RestaurantFace isExample (listing.isDemo or business.is_demo). Example → ExampleNotice under the name, availability card replaced by "Nothing here can be booked or paid for" + Browse real stays, rooms section says none can be booked, no Message button; example restaurant → notice + "Nothing here can be booked or held" instead of ReserveTable, no message link. Unverified host → BrandIcon person-card.
 - TEST: apps/web/src/app/(app)/stay/[id]/example-disclosure.test.ts (fails on old code: no isExample anywhere).
 - REVIEW:
 
-### THE DEAD BRAND — "Listed by RentMe Example Collection"
-- STATE: FIXED — applied as 20260924002102_the_example_collection_is_named_for_vallo (md5-identical file committed, 138ea05f); live `probe_dead_brand` → PROBE_OK; the 22 post ids are in the migration for a lossless reversal
+### THE DEAD BRAND, "Listed by RentMe Example Collection"
+- STATE: FIXED, applied as 20260924002102_the_example_collection_is_named_for_vallo (md5-identical file committed, 138ea05f); live `probe_dead_brand` → PROBE_OK; the 22 post ids are in the migration for a lossless reversal
 - BEFORE (live): agents e0000000-…0002 display_name "RentMe Example Collection" (is_demo, 64 listings); profiles e0000000-…0001 display_name same; social_profiles.display_label same (handle example_collect); 22 SYSTEM posts "…places were open on RentMe…". No function/cron re-seeds the name (pg_proc hits only the handle blocklist). No code fallback (apps/web/src has "RentMe" only in comments).
 - AFTER (proved in the rolled-back run): "Vallo Examples" on agent, profile and public identity; system posts say Vallo; anon reads no RentMe identity. Left alone on purpose: auth.users email / metadata of the example account (email is immutable by ruling; not shown), ai_messages / support tickets (people's own words).
 - TEST: supabase/tests/probes/dead-brand.sql (fails on today's live data at the first check).
 - REVIEW:
 
-### UX-P2-01 / UX-P2-02 (+ NEW-A5-01) — placebo controls
+### UX-P2-01 / UX-P2-02 (+ NEW-A5-01), placebo controls
 - STATE: AWAITING-REVIEW (commit ae1a41f3)
 - RE-VERIFIED: DataCard "Download my data" only set a note ("everything Vallo knows about you lives in this browser … ships with the launch release"); SecurityCard "Biometric app lock" wrote settings.appLock, read nowhere.
-- NEW-A5-01 (HIGH, fixed): "Sign out everywhere" in the same card only showed "This is your only session … Once accounts launch, this control ends every session" — false (accounts are live; /settings/devices lists sessions and `endOtherSessions` really ends them). Removed with the other two.
+- NEW-A5-01 (HIGH, fixed): "Sign out everywhere" in the same card only showed "This is your only session … Once accounts launch, this control ends every session", false (accounts are live; /settings/devices lists sessions and `endOtherSessions` really ends them). Removed with the other two.
 - CHANGED: the three rows and their copy removed in en/ha/ig/yo (settings.security.appLock/appLockSub/signOutEverywhere/signOutNote, settings.data.download/downloadSub/exportNote); appLock dropped from the settings store. Real session ending stays on /settings/devices (DevicesRow). Coordination: Agent 6 (OPS-12) builds the real export and adds its own control.
 - TEST: apps/web/src/components/app/account/placebo-controls.test.ts.
 - REVIEW:
 
 ### /stories/new "It stays up" (handed item)
 - STATE: FIXED (inverse of the handed item)
-- RE-VERIFIED: nothing expires a story — stories-schema.ts ("It is not ephemeral. Nothing expires it"), no cron job touches public.stories, the select policy has no time bound. "It stays up" is TRUE. The false statements were the glossary (docs/PRODUCT.md "A picture post that expires") and the takedown refusal ("It may have expired"). Both corrected.
+- RE-VERIFIED: nothing expires a story, stories-schema.ts ("It is not ephemeral. Nothing expires it"), no cron job touches public.stories, the select policy has no time bound. "It stays up" is TRUE. The false statements were the glossary (docs/PRODUCT.md "A picture post that expires") and the takedown refusal ("It may have expired"). Both corrected.
 - TEST: apps/web/src/lib/social/story-permanence.test.ts.
 - REVIEW:
 
@@ -2290,7 +2290,7 @@ Batch 2 gates: typecheck 0 errors; lint 0 errors (335 warnings, unchanged); vite
 
 #### BATCH 3
 
-### V-02 — the claims rule as a build check
+### V-02, the claims rule as a build check
 - STATE: AWAITING-REVIEW (commit 295c41fb)
 - CHANGED: apps/web/src/lib/trust/claims.ts (claim words; BACKED_CLAIMS allowlist, each entry naming its mechanism; negation and "a person checked the ID" rules; one `pendingRemoval` entry for "Secure and fast", already deleted on the release branch by STORE-06); apps/web/src/lib/trust/claims.test.ts (sweeps every string literal + JSX text under apps/web/src and the en/ha/ig/yo catalogues, excluding tests, (dev) previews and the staff console; fails on any unbacked claim and on any stale allowlist entry); apps/web/package.json `check:claims`, wired into `lint` and `prebuild` (so `npm run build` fails on a new unbacked claim). Also fixed while sweeping: /standards "Duplicate and stolen photographs are checked before anything is published" (no photo comparison exists) and docs "where it can be protected".
 - FAILS FIRST ON THE OLD COPY: the same test pointed at `git archive 77cf90a` reports 56 unbacked claims; 22 sentences that shipped are pinned as must-fail cases.
@@ -2298,82 +2298,82 @@ Batch 2 gates: typecheck 0 errors; lint 0 errors (335 warnings, unchanged); vite
 - TEST: apps/web/src/lib/trust/claims.test.ts
 - REVIEW: APPROVED by Agent 4 (a5-batch3-by-a4.md). Follow-up commit 7980a48e: header documents the one-line BACKED_CLAIMS remedy for a blocked hotfix build and that prebuild needs vitest (devDependencies); the scan now also reads supabase/templates (*.html, *.txt), native-shell/index.html, ios Info.plist and android strings.xml (none carries an unbacked claim; the only hits are CSS `safe-area` and an XML comment). /standards now names marital status in the non-discrimination sentence.
 
-### SEC-11 — the private-address guard
+### SEC-11, the private-address guard
 - STATE: AWAITING-REVIEW (commit fa393676)
 - RE-VERIFIED: the guards asserted `not.toContain(<with-s spelling>)` in 3 files (brand-domain.test.ts, outbox-delivery.test.ts ×3, templates.test.ts ×2) and the brand-domain scan read 3 files; the archived BUILD_06 ledger carried the with-s spelling twice; the no-s spelling appears nowhere.
 - CHANGED: `PRIVATE_ADDRESS = /vallospaces?ltd@/i` (lib/security/private-address.ts) used by all three tests; brand-domain now scans every file under apps/web/src and supabase/templates (>1000 files) and has a unit case proving both spellings (assembled at runtime) match and the public addresses do not; archive ledger mentions redacted. `git grep -iE "vallospaces?ltd@"` → 0 hits.
 - TEST: apps/web/src/lib/brand-domain.test.ts ("keeps the private address, in either spelling…", "the guard matches both spellings and nothing else").
 - REVIEW: APPROVED by Agent 4.
 
-### SEC-15 — staff-assisted email recovery
+### SEC-15, staff-assisted email recovery
 - STATE: DONE, LIVE. Migration 20260924012454_staff_assisted_email_recovery applied; committed file md5 aa536d505bb3c4279557f6f3e083f816 = md5(statements[1]). Commits a62ce69d, ec5494be, bbc05077.
 - RE-VERIFIED: no recovery path; the only NIN on file for anyone is agent_applications.id_number (id_type 'nin'); account_identities follows auth.users email by trigger.
 - CHANGED: table public.email_recovery_requests (RLS: admins read; no writes for anon/authenticated; one open request per user; notice timestamps); RPCs admin_open_email_recovery (super admin only, never own account, NIN must match an APPROVED application with id_type nin, eligible_at = +72h, audit row), admin_begin_email_recovery (super admin, not own account, refuses before eligible_at, audit), admin_finish_email_recovery (records ok/failed, audit), admin_cancel_email_recovery (any admin, reason required, audit). Server actions lib/admin/email-recovery-actions.ts (isSuperAdmin check before any call; auth.admin.updateUserById with email_confirm only between begin and finish; old address told on open and on completion, read from the request row); /admin/account-recovery desk; two security emails with fixtures; email-immutable.test allows exactly the purge and this file and pins the order of checks.
 - EVIDENCE: rolled-back proof `probe_a5_sec15_proof` (table + RPCs + probe) → PROBE_OK sec-15: member and admin refused 42501; member cannot insert or read rows; wrong NIN RM040; own account 42501; begin inside 72h RM041; after the window begin+finish → completed with 3 audit rows; admin cancel works. (The two nullable notice columns were added to the file after that run; the reviewer's re-run covers them.)
-- NOT DONE (FOUNDER): members without an approved NIN application have no identity on file, so they cannot be recovered by this path — the founder decides whether a selfie/ID-document check should be added for them. The audit's wallet-withdrawal hold after a move and ending the old sessions are not implemented (no admin API to end a user's sessions by id); both noted for the founder.
+- NOT DONE (FOUNDER): members without an approved NIN application have no identity on file, so they cannot be recovered by this path, the founder decides whether a selfie/ID-document check should be added for them. The audit's wallet-withdrawal hold after a move and ending the old sessions are not implemented (no admin API to end a user's sessions by id); both noted for the founder.
 - TEST: supabase/tests/probes/sec-15.sql; apps/web/src/lib/auth/email-immutable.test.ts.
 - REVIEW: CHANGES REQUIRED by Agent 4 (R1-R4, A1, A2). AMENDMENT (commit ec5494be; migration still PENDING scratchpad/work/fix-a5/sec15.sql):
   - R1 two people: begin refuses the super admin who opened (42501 "A different super admin from the one who opened it has to complete it."); finish refuses anyone but began_by. Rule: one super admin opens, a DIFFERENT super admin begins and finishes; neither can be the account's owner.
   - R2: begin refuses while opened_notice_at is null (RM041) and until greatest(eligible_at, opened_notice_at + 72h). The server stamps opened_notice_at only on the FIRST notice that went (`.is(column, null)`), so the desk's new "Send the notice again" action never restarts the clock; the notice states the real earliest time.
   - R3: finish(ok) deletes auth.sessions for the user (auth.refresh_tokens_session_id_fkey ON DELETE CASCADE, verified live); count recorded as sessions_ended in audit_log.
-  - R4: account_money_holds (7 days from the move, owner/admin read). Trigger private.refuse_money_out_during_hold (RM050) before insert on wallet_entries (debit withdrawal / transfer_out only) and before insert/update on bank_accounts and payout_accounts (update refused only when account_number or bank_code changes, so removal, default promotion and the recipient-code cache keep working — the live soft_deleting_promote_default / payout_accounts_promote_default triggers update rows). Triggers sit on the tables every door writes, so Agent 2's functions are untouched and deployed main keeps working.
+  - R4: account_money_holds (7 days from the move, owner/admin read). Trigger private.refuse_money_out_during_hold (RM050) before insert on wallet_entries (debit withdrawal / transfer_out only) and before insert/update on bank_accounts and payout_accounts (update refused only when account_number or bank_code changes, so removal, default promotion and the recipient-code cache keep working, the live soft_deleting_promote_default / payout_accounts_promote_default triggers update rows). Triggers sit on the tables every door writes, so Agent 2's functions are untouched and deployed main keeps working.
   - A1: admin_cancel_email_recovery also accepts the account owner (reason optional); owner SELECT policy; /settings/privacy shows the pending move with "This was not me, cancel it" (lib/auth/pending-address-move.ts, PendingAddressMove.tsx, en keys settings.addressMove).
   - A2: both notices carry a "Contact us" button to /contact and no longer say "reply to this email".
-  - FOUNDER/DEFERRED: a phone (SMS) notice to the number on file — no SMS transport exists.
+  - FOUNDER/DEFERRED: a phone (SMS) notice to the number on file, no SMS transport exists.
   - EVIDENCE: rolled-back apply_migration `probe_a5_sec15_proof3` (amended migration + amended probe) → PROBE_OK sec-15: no notice RM041; notice 71h ago RM041; opener begins 42501; second super admin begins; opener finishes 42501; seeded auth.sessions row gone after finish; 3 audit rows; withdrawal and transfer_out RM050, deposit allowed; member bank account insert RM050; repointing an existing account RM050; soft-deleting it allowed; owner cancels. Confirmed afterwards that neither table exists live and no probe migration was recorded.
 
 Batch 3 gates: typecheck 0; lint 0 errors (335 warnings); vitest 4020 passed / 1 skipped; build exit 0 (prebuild ran check:claims 37/37).
 Batch 3 amendment gates (after ec5494be, 7980a48e): typecheck 0; lint 0 errors (335 warnings); vitest 248 files, 4020 passed / 1 skipped; build exit 0.
 
-### SEC-15 — final (after Agent 4's RE-CHECK approval)
+### SEC-15, final (after Agent 4's RE-CHECK approval)
 - Taken before apply: (1) REQUIRED-LOW: admin_open_email_recovery refuses an account with a SCHEDULED/PURGING/PURGED deletion request or banned_until > now() (RM040). (2) The hold also covers wallet `payment` and `escrow_hold` debits (the live functions that write them: pay_booking_from_wallet, escrow_hold, escrow_fund_from_wallet_as, escrow_fund_proposal_as; escrow_settle only writes credits, so settlement is never stalled). Card payments do not debit the wallet. (3) RM050 mapped to the database's sentence (with the end date) in lib/wallet/actions.ts (both withdrawal doors, send), lib/escrow/actions.ts, lib/bookings/checkout.ts (pay from wallet), lib/payments/bank-accounts-actions.ts, lib/agent/payout-actions.ts via lib/wallet/money-hold.ts; callMoneyRpc now carries the SQLSTATE. Test lib/wallet/money-hold.test.ts. The desk states the hold and shows its end per completed request; Settings, Privacy shows "Money cannot leave your account until <date>" while a hold is active.
 - EVIDENCE: rolled-back proof probe_a5_sec15_proof4 → PROBE_OK; applied; live run probe_a5_sec15_live → PROBE_OK sec-15 (adds: closing and banned accounts refused; payment and escrow_hold debits RM050; deposit, refund and escrow_release credits pass). After: 0 requests, 0 holds, no probe migrations recorded.
 - FOUNDER/DEFERRED: phone (SMS) notice; recovery for members with no approved NIN on file.
 - Gates: tsc 0; lint 0 errors (335 warnings); vitest 4025 passed / 1 skipped (one earlier full run showed 1 failure that did not reproduce on rerun and no failure detail was captured; the JSON rerun is clean); build exit 0.
 
-#### BATCH 4 — A05 UX / A06 Interface remainder (commit f0601eb4; after merging repo-clean-work)
+#### BATCH 4, A05 UX / A06 Interface remainder (commit f0601eb4; after merging repo-clean-work)
 
-### UX-10 / UI-P2-03 (+ the routing half of UX-04) — the market decides the page
+### UX-10 / UI-P2-03 (+ the routing half of UX-04), the market decides the page
 - STATE: DONE (code f0601eb4, APPROVED by Agent 4; data migration applied as 20260924030039, file md5 b7ecc05d… = statements[1], commit in this batch; live probe PROBE_OK ui-p2-03)
 - RE-VERIFIED live: 15 apartments, 2 villas and 12 homes are yearly rentals (e.g. ed…3d villa ₦25m/year) routed by kind to /stay; the two per-head restaurants are titled "Restaurant unit in Bodija" / "Restaurant space in Jabi".
 - CHANGED: lib/listings/market.ts (`marketOf`: sale, tenancy by rent period, stay by nightly rate, dining/experience by per-head rate, kind as fallback); `hrefForListing(kind, id, facts)` routes by market (all 5 callers pass `marketFactsOf`); listing page: `isRental`/`isRestaurant`/pill by market (a yearly villa is "For rent", not bookable); /stay/<id> and /restaurant/<id> redirect a tenancy or sale to /listing/<id>; the Stays home shelf keeps only nightly stays, the Property home shelf only tenancies and sales. Data: the two example restaurants renamed "Restaurant in Jabi/Bodija" (pending).
 - EVIDENCE: rolled-back `probe_a5_uip203_proof` → PROBE_OK ui-p2-03 (fails on the live data before the rename).
 - TEST: lib/listings/market.test.ts (12), supabase/tests/probes/ui-p2-03.sql.
 
-### UX-04 — the side never turns silently
+### UX-04, the side never turns silently
 - STATE: AWAITING-REVIEW (f0601eb4)
 - CHANGED: `isDetailPath`; SideSync writes nf_side only off detail pages (the URL still paints the side); header `.nf-side-tag` names the side (sr-only "You are browsing"); the flip already used push. Plus the market routing above (yearly lets no longer open under /stay).
 - TEST: components/app/side-honesty.test.ts.
 
-### UX-05 — the workspace chooser shows all six doors
+### UX-05, the workspace chooser shows all six doors
 - STATE: AWAITING-REVIEW (f0601eb4)
 - CHANGED: two labelled groups ("Property: to rent or to sell" / "Stays and tables…"), the current side's first; `hrefFor(door)` routes by the door (moved to AddWorkspaceChooser.href.ts).
 - TEST: components/supply/add-workspace-groups.test.ts (renders the real component via lib/testing/render-client.ts, an esbuild bundle against the ordinary React build, because this suite aliases react to its server build).
 
-### UX-06 — minimal: the side switch at the top of the ⇄ sheet
+### UX-06, minimal: the side switch at the top of the ⇄ sheet
 - STATE: AWAITING-REVIEW (f0601eb4). The dock has no text labels by the founder's ruling, so no "Mode" label was added; moving the personal/working switch to the avatar is a founder IA decision (FOUNDER).
 - TEST: side-honesty.test.ts ("offers the side switch at the top").
 
-### UX-08 — dates picked on the stay itself
+### UX-08, dates picked on the stay itself
 - STATE: AWAITING-REVIEW (f0601eb4)
 - CHANGED: StayDatesForm (GET to /stay/<id>, date inputs min = Lagos today, guests 1–16); Check in/out/Guests/"Pick your dates" go to #stay-dates. NOT DONE: a dates row on /stays/search above the categories (the stay page no longer depends on it).
 - TEST: app/(app)/stay/[id]/stay-dates.test.ts.
 
-### UX-19 — Back closes an open sheet (web)
+### UX-19, Back closes an open sheet (web)
 - STATE: AWAITING-REVIEW (f0601eb4)
 - CHANGED: lib/ui/use-sheet-history.ts wired into Sheet (skipped inside Capacitor, where back-button.ts already closes overlays); a close takes its entry off one tick later, only if still on top, so a navigation made while closing is kept.
 - TEST: lib/ui/use-sheet-history.test.ts (real Chromium: Back closes and stays; close pops; close+navigate keeps the navigation).
 
-### UI-08 — feed text follows Text size
+### UI-08, feed text follows Text size
 - STATE: AWAITING-REVIEW (f0601eb4). All 19 px font-size/line-height values in social-feed.css → type-scale tokens or rem. TEST: app/social-feed-type.test.ts.
 
-### UI-10 — initials and long names
+### UI-10, initials and long names
 - STATE: AWAITING-REVIEW (f0601eb4). lib/text/initial.ts (grapheme-aware) used by 18 people-facing avatars; `.nf-people__name` shrinks and wraps. TEST: lib/text/initial.test.ts.
 
-### UI-17 — Appearance promised a theme
+### UI-17, Appearance promised a theme
 - STATE: AWAITING-REVIEW (f0601eb4). en "Text size, motion, data"; ha/ig/yo drop the theme word.
 
-### UX-15 / UX-25 — AI said plainly; the emails and prompts say what is true
+### UX-15 / UX-25, AI said plainly; the emails and prompts say what is true
 - STATE: AWAITING-REVIEW (f0601eb4)
 - CHANGED: SupportChat greets as "Vallo's AI support helper, not a person"; the card says "An AI helper"; Help row "FAQs, contact us" (en + ha/ig/yo); scripts/build-auth-emails.mjs + regenerated confirmation/invite (html+txt): no "every listing was put up by a real person", no "browse before you tell anybody"; examples "cannot be rented or booked"; support and assistant prompts: not a person, examples cannot be booked, `example: true` passed to the model; FAQ answer likewise. The LIVE auth templates are set in the Supabase dashboard (config.toml does not point at these files): FOUNDER step to paste the regenerated templates.
 - TEST: lib/email/auth-template-honesty.test.ts, lib/support/ai-disclosure.test.ts, faq.test.ts.
@@ -2391,7 +2391,7 @@ Batch 4 gates: tsc 0; lint 0 errors, 333 warnings (cap 333); vitest 1077 files, 
 
 - Batch 4 REVIEW: APPROVED by Agent 4 (a5-batch4-by-a4.md). LOW (checkout shell side) and the /about + terms advisory folded into batch 5. Note: supabase/templates are only the dashboard fallback; live auth mail comes from the hook (lib/email/messages.ts), so the founder paste step is low priority.
 
-#### BATCH 5 — the A05/A06 LOWs (commits 8f4251d0, merge 8c305b58, 4285aba4; on top of c3a1682b)
+#### BATCH 5, the A05/A06 LOWs (commits 8f4251d0, merge 8c305b58, 4285aba4; on top of c3a1682b)
 State: APPROVED by Agent 4 (a5-batch5-by-a4.md), no blocking findings. Notes: TERMS_VERSION must stay 2026-09-24 from the release on merge; a failed first send can leave an empty thread (hidden by the inbox filter, LOW); the sheet scroll behaviour still wants a device check.
 
 - UX-P2-03: /messages/new no longer writes. `findConversationForListing` looks (every check, no insert, no daily count); `FirstMessage` + `startConversationWithMessage` make the thread with the first message; an empty listing thread is hidden from both inboxes (only when the recent sweep was not cut off). TEST lib/messages/draft-thread.test.ts. Live: 8 conversations, 0 empty.
@@ -2422,13 +2422,13 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 
 #### BATCH 1: repository cleanup (THE_AUDIT section 10)
 
-### CLEAN-01 — root UUID PNGs
+### CLEAN-01, root UUID PNGs
 - STATE: AWAITING-REVIEW
 - CHANGED: deleted 6 root copies byte-identical (md5) to docs/design/references/{2A49E2F7,50E032EA,55A56F21,6AF37222,77A54EA3,F6A8A482}; moved 4 admin renders (each viewed) to docs/design/references/admin/admin-01-overview.png (5EAA44CB), admin-02-listings-review-money.png (C1D98B3C), admin-03-escrow-verification-supply.png (8E9602E2), admin-04-moderation-operations-analytics.png (01F7DFC7). Readers updated: scripts/design/session-b-crops.mjs (4 path.join/RENDER), scripts/design/session-b-shots/admin-money.mjs, admin-review-shots.mjs; apps/web/public/brand/session-b/{inspection,send,signin}/SOURCES.md; comments in admin.css, inspection.css, auth.css, welcome/page.tsx, welcome.css, FirstRun.tsx. CATALOGUE.md gains an admin section mapping short id -> file.
 - EVIDENCE: md5 pairs recorded in session; `git grep` for the 10 full UUID filenames outside docs/design/references and archive returns only references/ paths; check-css-tokens "0 comment paths that do not resolve".
 - TEST THAT WOULD HAVE CAUGHT IT: check-css-tokens comment-path rule (existing) + markdown link scan (run by hand: 0 broken links outside docs/archive).
 
-### CLEAN-02 — archive session scaffolding
+### CLEAN-02, archive session scaffolding
 - STATE: AWAITING-REVIEW
 - CHANGED: git mv to docs/archive/: SESSION_B_SCOPE, BUILD_SESSION_B_LEDGER, BUILD_05_LEDGER, BUILD_07_LEDGER, HANDOFF_04/05/07/08/09, SESSIONS_CLOSE_OUT, BUILT_VS_PROVEN, PROMPTS_2026-09-22, PROMPTS_THE_FINISH, PROOF_RUN_2026-09-22, PLATFORM_SURVEY_2026-09-22, FOUNDER_ARTWORK_NEEDED, REFERENCE_UPLOADS_2026-09-22, TRACK_G_STATE, design/SWEEP.md, PLATFORM_STATUS, FOUNDER_OPEN_ITEMS. docs/archive/README.md: rows for each; its "live documents" line now names THE_AUDIT instead of PLATFORM_STATUS.
 - DECISIONS: PLATFORM_STATUS archived (1,375-line cycle-4 report; correcting it to today would duplicate THE_AUDIT). FOUNDER_OPEN_ITEMS archived and folded: still-open items (Firebase key rotation, Secure Email Change, leaked-password needs Pro, delete-frees-address decision) added to THE_AUDIT section 11 "Carried from your working list". docs/research/ KEPT with new docs/research/README.md (evidence, not documentation) because code comments and apps/web/scripts/check-deep-links.mjs cite it by path.
@@ -2436,19 +2436,19 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - Inbound paths: every `docs/<archived>.md` in live files rewritten to `docs/archive/...` (research docs got path-only updates). Migrations and THE_AUDIT findings text untouched. apps/web/scripts/check-deep-links.mjs:148 runtime message now points at docs/archive/BUILD_07_LEDGER.md.
 - EVIDENCE: markdown link scan over all tracked .md outside docs/archive: 0 missing targets. Only test reading docs (lib/admin/reads/jobs.test.ts -> docs/ADMIN_CONSOLE.md) unaffected; vitest 242 files / 3859 passed.
 
-### CLEAN-03 — proofs and .gitignore
+### CLEAN-03, proofs and .gitignore
 - STATE: AWAITING-REVIEW
 - CHANGED: git rm -r docs/design/proofs/session-b (about 1,900 files); .gitignore adds `docs/design/proofs/` with a comment. GLOW_IDENTITY.md notes its proof image is in history at 77cf90ad.
 - EVIDENCE: du -sh docs 387M -> 162M (151M = docs/design/references incl. the 4 admin renders now there).
 - NOTE: scripts/design/session-b-shots/sweep-settings.mjs reads a REF jpg from the deleted proofs tree; it is a one-off shot script and would need a fresh shot first. docs/design/NAV_STATE.md is generated from proofs/nav/*.json (deleted in the earlier cleanup); left as is (generated file, "do not hand-edit").
 
-### CLEAN-04 — process narration in comments
+### CLEAN-04, process narration in comments
 - STATE: AWAITING-REVIEW
 - CHANGED: every hit of the A11 grep (264 lines, 176 files) read and rewritten by hand, plus a second pass over "the lead"/"lead ruling R-x"/"scope request" narration (~40 more). Comment-only (plus: one vitest title in lib/admin/reads/badge.test.ts; script path constants covered in CLEAN-01). The R-A..R-G rules the comments cite are now defined in docs/DESIGN_DIRECTION.md section 1.1.
 - LEFT ON PURPOSE: service worker / drain worker / vitest worker uses of "worker"; "this session" = browser session (AgentShell, device-identity, settings-store, saved/local); scripts/probes/m5_oversell.sh (two DB sessions); api/assistant, api/support, lib/social/bot-actions.ts untouched; scripts/design/nav-state.mjs code strings; session-b-crops.mjs template-literal text.
 - EVIDENCE: tsc 0 errors; lint 0 errors (335 warnings, pre-existing), css tokens clean incl. "0 comment paths that do not resolve"; vitest 242/242 files, 3859 passed, 1 skipped.
 
-### NEW-A6-01 — build-session names in admin-facing UI strings (LOW, not fixed)
+### NEW-A6-01, build-session names in admin-facing UI strings (LOW, not fixed)
 - apps/web/src/app/admin/listings/MandatesPanel.tsx:51,114, admin/moderation/ModerationDesk.tsx:253, admin/moderation/page.tsx:485 show "Session A has not written (scope request AR-12/AR-10)" / "Session A's ledger records" to operators. eslint-rules/server-actions-export-only-actions.mjs:91,94 lint messages cite "BUILD_06_LEDGER 7.0". Copy change, not comment; left for a copy pass.
 
 ### BATCH 1 REVIEW (Agent 3: scratchpad/reviews/a6-batch1-by-a3.md)
@@ -2457,23 +2457,23 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 
 #### BATCH 2: documents and the audit record (commit f0993d5e)
 
-### AUDIT-FACTS — THE_AUDIT updated with the post-audit facts
+### AUDIT-FACTS, THE_AUDIT updated with the post-audit facts
 - STATE: AWAITING-REVIEW
 - CHANGED: docs/THE_AUDIT.md. Each "could not confirm" or UNVERIFIED about EMAIL_REPLY_TO, SENTRY_DSN, NEXT_PUBLIC_SUPPORT_EMAIL or ANTHROPIC_API_KEY is now a confirmed finding marked "Confirmed after the audit (founder's read of Vercel, 23 September)". Lines touched: section 1 Vercel line, SEC-11 area (EMAIL_REPLY_TO), the unverified list and the founder steps in the A-sections, the STORE-08 nutrition row, the STORE unverified lines, OPS-03 fix step 3, OPS-06 WHY, the dependency table Sentry row, OPS unverified list and founder steps, the section 7-ish "CORRECTLY EMPTY" row (outbox SENT 16:00:05 + PENDING; push_tokens 0), section 8 Vercel line, section 11 item 6, "What worried me" (sessions closed 22:25 UTC), and section 10's opening line. Other agents' findings text was otherwise left alone.
 - EVIDENCE: grep for "UNVERIFIED|could not be confirmed" now shows only the Vercel plan and runtime logs as unverified.
 
-### DOC-12 + sign-in ruling — PRODUCT.md
+### DOC-12 + sign-in ruling, PRODUCT.md
 - STATE: AWAITING-REVIEW. Section 4 now carries the 23 Sep ruling, the inverted PUBLIC list in proxy.ts, what the ruling accepts, and the public catalogue flag described generically (Agent 4 builds it; its name and default go into ENVIRONMENT.md when it ships). Section 7: Trips is allowed; banned copy is enforced by the vitest scan; BANNED_SYNONYMS is empty (DOC-08, code half not mine). Section 8: dark only; "fails the build" replaced with lint.
-### DEPLOY.md — STATE: AWAITING-REVIEW. Changes: inline iframe replaces hosted redirect; proxy.ts replaces middleware.ts; AMADEUS_* and GOOGLE_PLACES_API_KEY removed from "optional" and added to "removed" (grep: no src reads them); the wrong MapTiler "never read" row dropped; sections renumbered 2.4/2.5/2.6 (ENVIRONMENT.md pointer fixed); vercel.json has 8 jobs; 4.4 now describes the Send Email Hook; section 1 counts refreshed; CI and its two repository Variables documented (from the a3 review); section 7 no longer says lint/test do not run or asks for light shots; section 9 rewritten to today.
-### EMAIL_FROM default — the code default is `Vallo <hello@vallospaces.com>` (lib/email/client.ts:25, BRAND_DOMAIN). .env.example now says the same; DEPLOY and ENVIRONMENT already did.
-### Env templates — .env.example adds YELLOWCARD_API_BASE/KEY/SECRET, VALLO_INSPECTION_REPORTS and VALLO_PREVIEW_HARNESS, drops the dangling HYBRID_INVENTORY header, and replaces the model-identifier default with a neutral note. apps/web/.env.local.example is DELETED (its two keys, MapTiler and VAPID, are in .env.example with fuller notes); FIRST_NOTIFICATION.md is repointed.
-### DOC-16 — STATE: FIXED (AWAITING-REVIEW). ENVIRONMENT.md gains rows for every variable read. TEST: apps/web/src/lib/env-documented.test.ts scans apps/web/src for process.env/env./_VAR names and asserts each appears in .env.example and ENVIRONMENT.md, and that .env.local.example stays gone. Against the old files: 3 failed (the 5 missing from the template, 14 missing from ENVIRONMENT.md, and the second template). New files: 4/4 pass.
-### DOC-10 / DOC-11 / DOC-14 (doc halves) — STATE: FIXED. Changed files: DESIGN_DIRECTION (rule 10 is lint; light-theme closing criterion; "103 objects + light twins"), design-tokens README, ADMIN_CONSOLE:657 (the test still passes), ICON_SYSTEM (no pre-commit scan exists; the eslint rule is the fix, not done: code, LOW), RECOMMENDATIONS T-1 is PARTLY CLOSED, RETENTION_SCHEDULE:19, CATALOGUE header.
-### Auth email docs — AUTH_EMAILS.md section 1 and 1A are replaced by the measured truth. auth_logs 23 Sep show run_hook "Hook ran successfully" against /api/auth/email-hook on every sign-up, no mail_from, and the accounts verified. WHAT_SENDS.md verificationCode is LIVE and section 5 is refreshed. reachability.test.ts comment is updated.
+### DEPLOY.md, STATE: AWAITING-REVIEW. Changes: inline iframe replaces hosted redirect; proxy.ts replaces middleware.ts; AMADEUS_* and GOOGLE_PLACES_API_KEY removed from "optional" and added to "removed" (grep: no src reads them); the wrong MapTiler "never read" row dropped; sections renumbered 2.4/2.5/2.6 (ENVIRONMENT.md pointer fixed); vercel.json has 8 jobs; 4.4 now describes the Send Email Hook; section 1 counts refreshed; CI and its two repository Variables documented (from the a3 review); section 7 no longer says lint/test do not run or asks for light shots; section 9 rewritten to today.
+### EMAIL_FROM default, the code default is `Vallo <hello@vallospaces.com>` (lib/email/client.ts:25, BRAND_DOMAIN). .env.example now says the same; DEPLOY and ENVIRONMENT already did.
+### Env templates, .env.example adds YELLOWCARD_API_BASE/KEY/SECRET, VALLO_INSPECTION_REPORTS and VALLO_PREVIEW_HARNESS, drops the dangling HYBRID_INVENTORY header, and replaces the model-identifier default with a neutral note. apps/web/.env.local.example is DELETED (its two keys, MapTiler and VAPID, are in .env.example with fuller notes); FIRST_NOTIFICATION.md is repointed.
+### DOC-16, STATE: FIXED (AWAITING-REVIEW). ENVIRONMENT.md gains rows for every variable read. TEST: apps/web/src/lib/env-documented.test.ts scans apps/web/src for process.env/env./_VAR names and asserts each appears in .env.example and ENVIRONMENT.md, and that .env.local.example stays gone. Against the old files: 3 failed (the 5 missing from the template, 14 missing from ENVIRONMENT.md, and the second template). New files: 4/4 pass.
+### DOC-10 / DOC-11 / DOC-14 (doc halves), STATE: FIXED. Changed files: DESIGN_DIRECTION (rule 10 is lint; light-theme closing criterion; "103 objects + light twins"), design-tokens README, ADMIN_CONSOLE:657 (the test still passes), ICON_SYSTEM (no pre-commit scan exists; the eslint rule is the fix, not done: code, LOW), RECOMMENDATIONS T-1 is PARTLY CLOSED, RETENTION_SCHEDULE:19, CATALOGUE header.
+### Auth email docs, AUTH_EMAILS.md section 1 and 1A are replaced by the measured truth. auth_logs 23 Sep show run_hook "Hook ran successfully" against /api/auth/email-hook on every sign-up, no mail_from, and the accounts verified. WHAT_SENDS.md verificationCode is LIVE and section 5 is refreshed. reachability.test.ts comment is updated.
 - GATES: tsc 0; lint 0 errors / 335 warnings, css clean, valuation clean; vitest 243 files, 3863 passed, 1 skipped; markdown link scan 0 broken outside archive.
 - NOT DONE (owned elsewhere or code): DOC-08 BANNED_SYNONYMS guard (content, A5); DOC-17 vitest.config header (tests, A3); README CI paragraph waits for CI green.
 
-### BATCH 2 REVIEW (Agent 3: scratchpad/reviews/a6-batch2-by-a3.md) — amended in 12c88b52
+### BATCH 2 REVIEW (Agent 3: scratchpad/reviews/a6-batch2-by-a3.md), amended in 12c88b52
 - AUDIT-FACTS: now stated as measured at 23:47 UTC: email_outbox has 5 SENT and 0 PENDING; push_tokens has 1 web token, created 23:07:53 and revoked 23:08:21 (a test enrolment). The same numbers are in WHAT_SENDS.md and DEPLOY.md.
 - DOC-16 test strengthened. It now scans helper-literal reads (envInt("NAME")), next.config.ts and capacitor.config.ts, and fails on an unexplained process.env[expr]. It requires a NAME= line (a comment mention does not count) and a code-formatted name in ENVIRONMENT.md. It found BOT_INPUT/OUTPUT_KOBO_PER_MTOK, NEXT_DIST_DIR and CAPACITOR_SERVER_URL (2 tests red before the docs were added); all are now documented. 7/7 pass.
 - LOW fixes: VAPID_SUBJECT fallback order (SUPPORT_EMAIL first); PRODUCT open list adds start, preview and gallery.
@@ -2483,7 +2483,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 
 #### BATCH 3: the long tail
 
-### SEC-08 + V-19 (the parts assigned to me) — commit c71b1878
+### SEC-08 + V-19 (the parts assigned to me), commit c71b1878
 - STATE: AWAITING-REVIEW (code), FOUNDER (two settings)
 - RE-VERIFIED: lib/profile/actions.ts signOut() had no scope (default 'global'); updatePassword only called updateUser; live `auth.sessions` for the QA member: 92 rows with user_agent `node` and 2 with curl. So sign-in from the server action recorded the server's agent, and the proxy's forwarding only covers refreshes.
 - CHANGED: lib/supabase/agent.ts (shared forwardedAgentHeaders); lib/supabase/server.ts forwards the request's User-Agent (via headers(), with try/catch outside a request); proxy.ts uses the helper; profile/actions.ts signOut is 'local' and signOutEverywhere is 'global'; auth/actions.ts updatePassword calls signOut({scope:'others'}) after a successful update; lib/security/session-groups.ts folds non-current sessions with no recorded device into one line; the devices page and DeviceList show the folded line and a "Sign out everywhere" control (confirm-then-act; full reload to /sign-in); en.ts gains 5 keys (other locales fall back to English) and the caveat no longer claims a password change "ends every key at once".
@@ -2496,7 +2496,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - FOUNDER: (1) Supabase → Authentication → Providers → Email → "Secure password change" ON (reauthentication before password change). (2) Supabase → Authentication → Settings → JWT expiry: lower from 3600 to 900 seconds, to shrink the window in which a revoked device's access token still reaches PostgREST.
 - NOT DONE (V-19 beyond my brief): the new-device push, "This was not me", and the 24h withdrawal hold. Old sessions keep reading `node` until they expire. New sign-ins record the device only once this is deployed.
 
-### SEC-04 + OPS-13 — server-side metadata strip — commit af96550e
+### SEC-04 + OPS-13, server-side metadata strip, commit af96550e
 - STATE: AWAITING-REVIEW (PARTIAL: the upload-to-attach path is covered; see NOT DONE)
 - RE-VERIFIED: PhotoManager uploaded the chosen File raw to the public `accommodation-photos` bucket; addBusinessPhoto, addAccommodationPhoto and the listing addPhoto inserted the row without reading the bytes; nothing server-side stripped EXIF.
 - CHOICE: "strip in the attach action" (the stack supports sharp in a Node server action; bundled and traced: `.next/server/app/agent/list/page.js.nft.json` includes node_modules/sharp). The attach action downloads with the service role, detects exif/xmp/iptc through sharp metadata, applies rotate() and re-encodes with no metadata (keepIccProfile) in the same format, then upserts over the object BEFORE the row is inserted. It fails closed: an unreadable or unsupported file (HEIC, GIF, not an image) is removed and the attach is refused.
@@ -2505,7 +2505,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - GATES: tsc 0; vitest 249 files all pass; next build exit 0.
 - NOT DONE: (1) An object is publicly readable at its random-UUID URL for the seconds between upload and attach. An upload that is never attached (orphan, or a deliberate direct upload) is never scrubbed. Closing that fully needs uploads to go into a private staging bucket, or a sweep job over public buckets: a new cron plus a handbook row (ADMIN_CONSOLE test) plus vercel.json, i.e. ops scope. Recorded for A3. (2) Private-bucket raw uploads (message attachments, inspection photos, escrow evidence) are readable by the counterparty and still carry EXIF. The same scrubStoredPhoto can be called from those attach actions; not done. (3) Resumable photo upload and the orphan sweep (OPS-13 items 2 and 3) are not done. (4) sharp is imported without a direct dependency entry in apps/web/package.json (it is present through next's optional dependency and the root override). Add `"sharp": "^0.35.4"` to apps/web dependencies once A3's lockfile lands, so the lock changes only once.
 
-### SEC-12 + DB-17 — filed KYC documents fixed; admin Storage reads closed — commit f66ae15b + PENDING migration
+### SEC-12 + DB-17, filed KYC documents fixed; admin Storage reads closed, commit f66ae15b + PENDING migration
 - STATE: AWAITING-REVIEW (migration NOT applied)
 - RE-VERIFIED (live pg_policy): agent_documents_objects_{update,delete}_own and host_documents_objects_{update,delete}_own are folder=uid only; *_objects_admin_select let an admin token read documents directly. ApplyWizard and UploadCard uploaded to a fixed `<uid>/<batch>/<slot>.<ext>` with upsert:true. HostDocumentUploader already used unique paths.
 - PENDING MIGRATION: scratchpad/work/fix-a6/sec12_migration.sql. It adds private.kyc_object_is_filed(bucket, name) (security definer, search_path '', EXECUTE revoked from public/anon and granted to authenticated because the policies call it). The four owner UPDATE/DELETE policies gain `and not private.kyc_object_is_filed(bucket_id, name)`, and both *_objects_admin_select policies are dropped.
@@ -2517,7 +2517,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - TEST THAT WOULD HAVE CAUGHT IT: supabase/tests/probes/sec-12.sql.
 - NOT DONE: storing a SHA-256 at review (fix step 3). The fixed-object policy makes it unnecessary for integrity against the uploader; the service role could still replace an object.
 
-### OPS-12 — subject access: self-serve data export — commit 74396b9d
+### OPS-12, subject access: self-serve data export, commit 74396b9d
 - STATE: AWAITING-REVIEW (PARTIAL: the retention purge jobs in OPS-12 steps 1 and 2 are not done; they are cron and database work that needs the proof RETENTION_SCHEDULE asks for)
 - RE-VERIFIED: no export path existed. Agent 5 removed the placebo "Download my data" (ae1a41f3); this adds a NEW control with NEW keys (settings.dataExport.*).
 - CHANGED: lib/account/export.ts (49 owned tables plus wallet_entries and ai_messages through parent ids; read through the member's own session AND .eq(owner column, uid); a per-table failure is recorded as `unavailable`; paged 1000 at a time up to 20k rows; notIncluded lists what is left out). app/api/account/export/route.ts (401 when signed out; consume data_export 3 an hour; no-store; attachment vallo-data-<date>.json; nosniff). Settings → Privacy & Security gains a DataExportCard (RowDownload, a plain anchor so there is no prefetch). route-parents NON_NAVIGABLE entry. en keys. docs/SUBJECT_ACCESS.md runbook, indexed in docs/README.
@@ -2532,7 +2532,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - PENDING PROOF: once the release branch deploys a Vercel preview, attach one photograph there (host PhotoManager) and confirm the stored object has no EXIF. I could not find a preview URL: the Vercel connection does not see this project.
 - NOTE after the merge: vitest 288 files, 1 failure, in `components/app/listing/example-notice.test.ts` ("isDemo && <ExampleNotice" regex against `isDemo && (\n <ExampleNotice`). It fails on repo-clean-work itself as integrated (identical listing page text), so it is not caused by fix/a6. Flagged to the orchestrator.
 
-### THE_HUNDRED handed UI items — commit 095eebdb
+### THE_HUNDRED handed UI items, commit 095eebdb
 - Stay sticky price not following the URL dates: FIXED. Live walk as the QA member at 390 on /stay/ed…03?checkIn=2026-10-10&checkOut=2026-10-15 showed "₦170,000 Total for 2 nights" (the weekend default). Cause: /stay handed only `params` to the listing page, and StayDatesProvider always opened on the next weekend. Fix: searchParams are passed through; the listing page reads them with readStayDates; initialStayDates (stay-dates-pick.ts, pure) uses usable requested dates and otherwise falls back to the weekend. Test: stay-dates-initial.test.ts (3).
 - UI-06 amenity/spec chips breaking mid-word: FIXED. The live screenshot shows "Parkin g" and "Backu p power". Fix: the fit row wraps (a tile is at least a third of the row), overflow-wrap normal, hyphens auto. Test: spec-tiles-wrap.test.ts renders the real catalogue.css rules in Chromium at 342px and checks that no word spans two lines. Old CSS: fails (3 words split).
 - Pinned bar over the tab strip: FIXED. Live: the bar (y 725-844) sits over nf-detail-tabs (y 735-780); the hit test says the bar is on top, but its fill is rgba(255,255,255,0.11) relying on a 40px backdrop blur, so the tab text read through in the walk's renderer. Fix: `.nf-glass.nf-action-bar-pinned` puts the same tint over the canvas colour. Test: action-bar-opaque.test.ts (computed background is opaque rgb; old: rgba(...,0.11)).
@@ -2540,7 +2540,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - Devices copy nit (Agent 4 via the orchestrator): the buttons now say "Sign out everywhere else" ("You stay signed in on this device") and "Sign out everywhere, this device included".
 - NEW-A6-02 (LOW, content, not mine): /wallet/send shows "Refunds reach your wallet in 3 to 5 business days". The founder settled it as minutes, up to one working day (archived FOUNDER_OPEN_ITEMS).
 
-### BATCH 3b REVIEW (Agent 3: scratchpad/reviews/a6-batch3b-by-a3.md) — fixes in commit 8f95218d
+### BATCH 3b REVIEW (Agent 3: scratchpad/reviews/a6-batch3b-by-a3.md), fixes in commit 8f95218d
 - 095eebdb APPROVED. LOW taken: spec tiles now `overflow-wrap: break-word` (spec-tiles-wrap test still passes).
 - OPS-12 CHANGE 1 (staff identities): every exported row loses STAFF_KEYS (reviewer_id, reviewed_by, resolved_by, decided_by, hidden_by, verified_by, supply_verified_by, granted_by, revoked_by, admitted_by, suspended_by, lifted_by). DECISION on review_notes: EXPORTED. It is not an internal note: the app already shows it to the applicant (application-status.ts), the lister (listings-queries.ts reviewNotes) and the host (host/queries.ts). decision_note and resolution_note are kept for the same reason. PARTY_KEYS (created_by, uploaded_by, opened_by, disputed_by, release_requested_by) are kept on purpose. Test: no exported row carries a staff key; and every `*_by`/reviewer_id column of every exported table in database.types.ts must be classified as staff or party (fails on a new column).
 - OPS-12 CHANGE 2 (completeness): added transactions (via bookings), escrows_as_payer/escrows_as_payee, booking_state_events (actor), business_transfers offered/received, conversations_as_host (conversations.agent_id is the auth user id, FK to auth.users), areas created, events hosted, listings (via own agents) + listing_photos, accommodations + accommodation_photos + business_documents + business_photos (via own businesses). price_check_shares has no SELECT grant for authenticated (live 42501), so it is in notIncluded. notIncluded also names received messages and support replies, staff identities, firm listings and venue configuration (room types, rates, hours).
@@ -2549,17 +2549,17 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - EVIDENCE: live run as the QA member through the publishable key, new builder: every table readable, none unavailable (after moving price_check_shares out).
 - GATES: tsc 0; eslint clean; vitest 288 files, 1 failure = the known example-notice.test.ts on the release branch.
 
-### SEC-P2-02 — any member could open a thread with any user id — code d71ce389; migration AWAITING-REVIEW
+### SEC-P2-02, any member could open a thread with any user id, code d71ce389; migration AWAITING-REVIEW
 - RE-VERIFIED live: conversations_insert checks only party membership; conversation_context_is_valid validates only reservation and booking contexts. Probe on live: control insert OK, then "PROBE_FAIL sec-p2-02: a thread with an arbitrary user and no listing was created".
 - FIX (draft scratchpad/reviews/a6-secp202-migration-DRAFT.sql): the context trigger, for context 'listing' when auth.uid() is set (member tokens only; service role, postgres, the escrow probes and reservation/booking threads unchanged; INSERT only, existing rows untouched): listing_id not null; guest_id = caller; guest <> agent; the listing is PUBLISHED and agent_id = its lister's user id; at most 20 listing threads per guest in 24 h (same number as the app's limiter, which fails open), counted under a per-guest advisory xact lock, refused with 54000. All 8 live threads satisfy the rule (all listing context, all on published listings whose lister is the agent).
 - NOT DONE (on purpose): moving thread creation to an RPC and revoking INSERT (fix step 2): the trigger gives the same guarantees without changing the deployed write path. Per-sender message rate limit (step 3) belongs with SEC-09.
 - PROOF (live, rolled back, no migration row): migration + probe → "PROBE_OK sec-p2-02: ... (limit tested: t)".
 - APP: startConversation maps 54000 to the daily-limit message. Test lib/messages/start-conversation-limit.test.ts (fails on the old code: 1 of 2).
 
-### Lint fix requested by the orchestrator — commit 5acdaf3b
+### Lint fix requested by the orchestrator, commit 5acdaf3b
 - 5 ESLint errors on the integrated branch came from my commits (an unknown-rule disable in DeviceList; nf/no-raw-colour in two test fixtures). Fixed; my earlier lint had run on a stale tree. After `npm ci` in the worktree: lint 0 errors / 333 warnings, css and valuation checks clean, tsc 0.
 
-### SEC-03 — unauthenticated email relay via the support acknowledgement — commit b2c4e5b5
+### SEC-03, unauthenticated email relay via the support acknowledgement, commit b2c4e5b5
 - STATE: AWAITING-REVIEW (PARTIAL)
 - RE-VERIFIED: fileSupportTicket (exported "use server") mails supportTicketFiled to the typed address, echoing name, topic and up to 300 chars of body; the newsletter door calls it with a fixed body.
 - FIX: signed-out → the email carries the reference only (no name, topic or body). Per-recipient cap: bucket support_ack_recipient, subjectForEmail, 3 per 24 h, for everyone; over the cap the ticket files and no email is sent. Signed-in members still get their own question echoed.
@@ -2571,7 +2571,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - FOUNDER NOTE (product, not a defect): threads can still be opened on EXAMPLE (is_demo) listings at the DB level. The example detail page no longer offers messaging.
 - REVIEW (Agent 3, a6-batch3d-by-a3.md): 2 narrowings done in 22e883a4. (1) The acknowledgement is sent only when the limiter answered allowed && !degraded; the ticket still files. (2) The count is keyed by mailboxKey (lib/security/mailbox.ts, mirroring private.canonical_email_parts: Gmail dots, +tags, googlemail→gmail; +tags dropped on other domains too). It is used for counting only; delivery goes to the typed address. Tests: ack-relay (5; the 2 new ones fail on b2c4e5b5) and mailbox.test (3). STATE: FIXED (PARTIAL: newsletter double opt-in and Turnstile not done).
 
-### SEC-07 — auth cookie not Secure, 400 days — commit be7e54de
+### SEC-07, auth cookie not Secure, 400 days, commit be7e54de
 - STATE: AWAITING-REVIEW (PARTIAL: HttpOnly is a separate project, as pass two says; apex HSTS is a Vercel domain setting)
 - RE-VERIFIED: @supabase/ssr 0.12.3 DEFAULT_COOKIE_OPTIONS has maxAge 400 days and no secure. cookies.js re-applies `maxAge: DEFAULT_COOKIE_OPTIONS.maxAge` AFTER merging cookieOptions, so the audit's fix step 1 (pass cookieOptions) would NOT have shortened the lifetime. Apex: `curl -I https://vallospaces.com/` gives 308 with `strict-transport-security: max-age=63072000` and nothing more (www carries includeSubDomains; preload from next.config).
 - FIX: lib/supabase/cookie-policy.ts withAuthCookiePolicy(options, secure): path /, SameSite lax, Secure, maxAge capped at 30 days (a removal stays 0). Applied in server.ts setAll, proxy.ts setAll, and the browser client through browserCookieMethods() (a document.cookie adapter using @supabase/ssr's parseCookieHeader/serializeCookieHeader). Secure = NODE_ENV production on the server, and location https in the browser.
@@ -2582,7 +2582,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 
 ### SEC-07 REVIEW: APPROVED (a6-batch3e-by-a3.md). LOWs are taken in the next commit (Secure decided from the request protocol; chunking test; ITP note).
 
-### SEC-14 — sign-up metadata, editable consent record, staff-looking names — probe 82661252; migration AWAITING-REVIEW
+### SEC-14, sign-up metadata, editable consent record, staff-looking names, probe 82661252; migration AWAITING-REVIEW
 - RE-VERIFIED live (probe before, rolled back): a hand-built auth.users insert with metadata display_name/nickname "Vallo Support" and terms_version "made-up" gives a profile named "Vallo Support" with terms "made-up" and terms_accepted_at now(). As the member, `update profiles set terms_version=…, terms_accepted_at=now()` is accepted. All 19 profile columns are UPDATE-able by authenticated.
 - WHO READS profiles.terms_*: nobody (grep of app, scripts and functions finds only handle_new_user). The real receipt is public.terms_acceptances, written only by the server (service role) after the form's version matched TERMS_VERSION (lib/legal/acceptance.ts).
 - FIX (draft scratchpad/reviews/a6-sec14-migration-DRAFT.sql): a guard trigger profiles_zzz_guard_record (the last BEFORE trigger, so after sync_display_name and the content scanner) plus private.name_claims_to_be_vallo:
@@ -2593,21 +2593,21 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - NOT DONE: a terms_versions table (step 3). It is not needed once the profile takes no terms claim at all. signup_role stays member-editable: it is a declaration, not a permission. Phone verification belongs to SEC-15.
 - PROOF (live, rolled back, no migration row): migration + probe gives "PROBE_OK sec-14: …".
 
-### Merge of the release branch — 25bf1375 (no lockfile change). NOTE: this merge commit and dba416e5 carry git's default message, without the required trailers. They are left as they are, because amending would rewrite history. Future merges use -m with the trailers.
+### Merge of the release branch, 25bf1375 (no lockfile change). NOTE: this merge commit and dba416e5 carry git's default message, without the required trailers. They are left as they are, because amending would rewrite history. Future merges use -m with the trailers.
 
-### SEC-07 LOWs — commit 47c0ec51
+### SEC-07 LOWs, commit 47c0ec51
 - Secure is now decided from the request: serverCookiesSecure(request.nextUrl.protocol) in the proxy, and x-forwarded-proto through headers() in server.ts. NODE_ENV production is only the fallback when the request says nothing.
 - New test: @supabase/ssr 0.12.3's own createStorageFromOptions driven through browserCookieMethods over a browser-like jar. A 6 KB session writes .0/.1/.2, all Secure and 30 d; a small rewrite leaves no stale chunk; removeItem empties the jar.
 - ITP note in cookie-policy.ts: Safari/WKWebView may cap a script-written cookie at 7 days; the next server rotation restores 30.
 - Tests 7/7. The protocol test fails on be7e54de (serverCookiesSecure took no argument).
 
-### UI-02 — Profile → Reviews went to a 404 — commit 0aa412bc
+### UI-02, Profile → Reviews went to a 404, commit 0aa412bc
 - STATE: FIXED (hidden; building a reviews list is its own piece of work)
 - RE-VERIFIED: AccountBody.tsx:300 had href="/reviews", and no route serves it.
 - FIX: the row is removed. The unused counts destructure and formatCount went with it; the type is kept because the page still passes counts.
 - TEST: app/static-hrefs.test.ts checks every literal href="/..." in a .tsx against the routes under src/app (groups ignored, dynamic segments wildcarded) plus the literal redirect sources in next.config.ts. On the old tree it reports only "AccountBody.tsx: /reviews".
 
-### UI-05 — home hero search wider than its plate — ALREADY-FIXED
+### UI-05, home hero search wider than its plate, ALREADY-FIXED
 - Live on production at 390, signed in as the QA member (session ended afterwards with logout scope=local): form l41 r351 w310; body l25 r365; plate l24 r366 overflow hidden; the Filters control is l304 r348, fully inside the plate. The audit measured the form at w334 with Filters at r372. Nothing to change.
 - REVIEW 1 (a6-batch3f-by-a3.md): CHANGES REQUIRED, because the matcher over-caught real names. Amended draft (same path):
   - Each field is judged alone. It is split into words, and runs of single letters are joined.
@@ -2618,20 +2618,20 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - Re-proved on live (rolled back; afterwards no function, no reserved row, no test user, no migration row): PROBE_OK. The probe (commit 619244fa) covers these controls: Eva Lloyd, Marco Cavallo, Tunde Official, Ada Staff; an edit beside a pre-existing "Admin" surname; admin naming. It covers these refusals: V.a.l.l.o, ValloSupport, vallo_hq, Moderator, Vallo Support, and the spaced-out form.
 - AWAITING Agent 3's re-check. Apply only after it.
 
-### UX-12 — phone field truncates pasted numbers — commit d6576bc7
+### UX-12, phone field truncates pasted numbers, commit d6576bc7
 - STATE: FIXED
 - RE-VERIFIED: PhoneField.tsx had maxLength={12}. In Chromium, insertText into a maxlength=12 tel input clips "+234 803 123 4567" to "+234 803 123".
 - FIX: maxLength removed; maskNational trims to the 10 national digits.
 - TEST: components/app/phone-field-paste.test.ts (Chromium, 4 forms, using the maxLength parsed from PhoneField.tsx). On the old source 3 of 4 fail, exactly the audit's three; "08031234567" passes on both.
 
-### UX-14 — refused sign-up clears the terms tick and hear-about — commit e8753626
+### UX-14, refused sign-up clears the terms tick and hear-about, commit e8753626
 - STATE: AWAITING-REVIEW (PARTIAL: validation on blur is not done)
 - RE-VERIFIED from code: the form submits through `<form action={formAction}>`, which React follows with a form reset even after a refusal. Text fields are controlled and survive. The hearAbout <select> is uncontrolled (defaultValue ""), and the terms checkbox loses its DOM state, which matches pass one's "hearAbout= … acceptTerms=false".
 - FIX: onSubmit always calls preventDefault. It keeps the unticked-terms refusal, then dispatches `startTransition(() => formAction(new FormData(form)))`. A manual dispatch is not followed by a reset. `action` stays for a submit made before hydration. This covers sign-in too: same form, same action, and redirects from a dispatched server action are handled by the router.
 - TEST: components/auth/email-form-no-reset.test.ts (source shape; 2 of 2 fail on the old code).
 - NOT DONE: a live browser walk. The production build passed (next build exit 0), but restarting the local server for the walk was refused by the environment's permission check, so the refusal path was not driven in Chromium. A browser check on the Vercel preview is still owed: refused referral "!!" → hear-about and tick still set; and one sign-in.
 
-### UX-02 — sign-up drops `next` — commit 5d1039ef
+### UX-02, sign-up drops `next`: commit 5d1039ef
 - STATE: AWAITING-REVIEW
 - RE-VERIFIED from code:
   - AuthChoices and EmailAuthForm swap links were bare /sign-in and /sign-up.
@@ -2644,25 +2644,25 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - TEST: lib/auth/next-link.test.ts (3). The wiring test fails on the old actions.ts.
 - RISK TO CHECK: if the Supabase redirect allow-list holds only an exact callback URL, a callback URL with another next falls back to the Site URL. The allow-list is not readable with this role. The OTP code path, which is the primary one, is unaffected.
 
-### OPS-18 — no server-side timeout on the Anthropic calls — commit 749b08c3
+### OPS-18, no server-side timeout on the Anthropic calls, commit 749b08c3
 - STATE: AWAITING-REVIEW
 - RE-VERIFIED: api/assistant/route.ts and api/support/route.ts pass req.signal only; neither exports maxDuration.
 - FIX: lib/ai/upstream-deadline.ts. requestSignal(req.signal) adds a 50 s total per request, across tool rounds. roundWatchdog(signal) cuts a round after 15 s without an SSE event; it is touched per event and cleared in finally. Both routes export maxDuration = 60. On a cut, the existing catch emits UPSTREAM_MESSAGE, because req.signal is not aborted.
 - TEST: lib/ai/upstream-deadline.test.ts. A real local HTTP server sends one event and stalls: the idle cut and the total cut both stop the read in under 2 s, and a client abort still ends it. A wiring check covers both routes. Before this change the module did not exist.
 
-### OPS-15 — one Next chunk script without a nonce — INVESTIGATED, NOT FIXED
+### OPS-15, one Next chunk script without a nonce, INVESTIGATED, NOT FIXED
 - Still live: `curl /about` gives 18 src scripts, and only `/_next/static/chunks/11-….js` has no nonce.
 - Next 16.3.6 app-render takes the nonce from the REQUEST's content-security-policy header (app-render.js:209). The proxy forwards only x-nonce on the request, and sets the CSP on the response. The nonce'd Next scripts show the render does get a nonce somewhere, so the one bare chunk is probably a Float preinit from a client boundary.
 - Proving the fix needs a production server to render the page. Running a local `next start` is refused in this environment, so it was left for a session that can serve the build. A possible first step: also set `content-security-policy` on the forwarded request headers in proxy.ts, then diff the HTML.
 
-### SEC-18 — /verification submit is a stub — NOT DONE (needs a product decision and a schema)
+### SEC-18, /verification submit is a stub, NOT DONE (needs a product decision and a schema)
 - Confirmed: submitVerification always refuses. Wiring it needs the identity table and bucket the stub's comment names, which do not exist. Hiding it means rerouting KycBanner, VerifyPrompt and KYC_RESUBMIT_HREF to the working supply flow, which is a product call on the supply journey (A1's domain). Left for the founder or A1.
 
-### DOC-15 — archived ledgers claim gates that did not run — commit 39860e40
+### DOC-15, archived ledgers claim gates that did not run, commit 39860e40
 - STATE: FIXED
 - Bracketed corrections, worded as pass two amended them, added to docs/archive/BUILD_06_LEDGER.md:528 and SESSIONS_CLOSE_OUT.md:217; BUILT_VS_PROVEN.md:996 points to 6e0ee6d. No test: prose in archived documents.
 
-### DOC-21 — keyboard and semantics defects — commit a774121d
+### DOC-21, keyboard and semantics defects, commit a774121d
 - STATE: AWAITING-REVIEW
 - RE-VERIFIED live with axe-core at 390 as the QA member (session ended afterwards with logout scope=local):
   - /stays: scrollable-region-focusable (6 × .nf-stay-card__chips)
@@ -2679,7 +2679,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - TEST: components/app/listing/a11y-structure.test.ts. Source checks cover each fix, and a Chromium axe run over the old and new row markup gives definition-list for the old and none for the new.
 - STILL OWED: an axe re-run on the deployed build once this is integrated. The float layout of the utilities row has not been seen in a real render, because a local server is refused here.
 
-### UX-20 (partial) + UX-16 (link part) — inspection sheet — commit fc61dd84
+### UX-20 (partial) + UX-16 (link part), inspection sheet, commit fc61dd84
 - STATE: AWAITING-REVIEW (PARTIAL)
 - RE-VERIFIED from code:
   - datetime-local had no min.
@@ -2694,7 +2694,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - TEST: lib/inspections/when.test.ts (4).
 - NOT DONE: moving the sheet's strings into the dictionary in 4 locales (the DOC-22 family, a translation job); day chips and Morning/Afternoon/Evening slots; a limit on sensible hours. UX-16's hub (one Bookings hub with segments) is a 1-day IA change, not done.
 
-### UX-07 — Rent returns stays, hotels and a restaurant; chip says "Any market" — commit f3815da1
+### UX-07, Rent returns stays, hotels and a restaurant; chip says "Any market", commit f3815da1
 - STATE: AWAITING-REVIEW
 - RE-VERIFIED from code: the rent filter checked only listing_intent, and nightly and per-head rows carry intent rent. ShelfBar's marketLabel had no rent case.
 - FIX:
@@ -2705,7 +2705,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - TEST: lib/listings/rent-market.test.ts (4). The exclusions fail on the old matchesFacts.
 - NOT CHANGED: the map-bounds RPC (bounds.ts, p_intent) still counts by intent only. That is a DB function, left alone.
 
-### UI-09 (partial) — touch targets — commit 717a6195
+### UI-09 (partial), touch targets, commit 717a6195
 - STATE: AWAITING-REVIEW (PARTIAL)
 - RE-VERIFIED live at 390, hit-testing 4 points 21px from centre, as the QA member (session ended afterwards):
   - .nf-pcard__heart 36×36 gives 4/4: ALREADY-FIXED (a ::after 44px area was added).
@@ -2743,7 +2743,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - MERGED the release branch at 19ce9c36 (389340f1), with a message carrying the trailers. It takes the release side's claims check, the export staff-identities wording, chapters.tsx and standards. No lockfile change.
 - Gates after the merge: lint 0 errors / 333 warnings plus the claims check (37 tests); tsc 0; vitest 312 files, 4390 passed, 1 skipped.
 
-### SEC-09 — writes that skip the actions' rate limits — probe 18935512; migration AWAITING-REVIEW
+### SEC-09, writes that skip the actions' rate limits, probe 18935512; migration AWAITING-REVIEW
 - RE-VERIFIED live, before the change, rolled back: as the member, 61 messages inserted straight into a conversation in one burst; the 61st was accepted.
 - FIX (draft scratchpad/reviews/a6-sec09-migration-DRAFT.sql):
   - private.limit_member_inserts(short_limit, short_window, day_limit) is a BEFORE INSERT trigger. It counts only member tokens (content_writer_is_member) through private.consume_rate_limit, in two fixed windows, and refuses with 54000.
@@ -2754,7 +2754,7 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - NOT MINE: step 3, Supabase Auth rate limits and CAPTCHA, is a founder dashboard setting. Step 4, money limits failing closed, belongs to A2.
 - Agent 5 APPROVED 94788792 and 8f769f8f. Its two LOWs are in ea05a248: earliestLagosInput rounds UP to the next quarter hour (tests: 22:10Z→01:15, 22:00Z→01:00, 12:37:10Z→15:45), and suppressHydrationWarning is set on the four pickers' inputs.
 
-### SEC-17 — small oracles and gaps — commit 745c5a7d; item 1 migration AWAITING-REVIEW
+### SEC-17, small oracles and gaps, commit 745c5a7d; item 1 migration AWAITING-REVIEW
 - Item 3: cancel lets a host cancel through the guest's path. FIXED. The read gains .eq("guest_id", session.user.id). Test lib/bookings/cancel-guest-only.test.ts, where RLS shows the booking to guest and host: on the old code the host's cancel reaches the service-role update.
 - Item 4: /api/client-error flood. FIXED. It now consumes client_error at 30 per IP per 10 min after the per-message quiet window, and still answers 204. Test route.test.ts: 50 varied messages give 30 reports (the old code gives 50).
 - Item 5: X-Powered-By. FIXED with poweredByHeader: false; the test reads next.config.ts. Live still sends the header until this deploys.
@@ -2767,14 +2767,14 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 - REQUIRED-LOW done in 4c0fb59d: lib/security/db-limit.ts dbLimitRefusal. It is wired into message send and photo send, messageForPostError (post and reply), both post/profile report paths, messageForStoryError (story comment), reports/actions, reviews/actions and the agent listing create. Test db-limit.test.ts checks the reader, that the migration raises the same sentence, and the wiring.
 - STATE: FIXED.
 
-### SEC-16 — public buckets accept unlinked uploads — NOT DONE (recorded)
+### SEC-16, public buckets accept unlinked uploads, NOT DONE (recorded)
 - Confirmed from policies: authenticated users can insert into their own folder in listing-photos, accommodation-photos, avatars and social-covers.
 - The fix is a nightly delete of public objects that no row references. A correct sweep needs every reference in the product mapped: listing_photos, accommodation_photos, business_photos, listing_videos posters, profiles.avatar_url, social_profiles cover and avatar, post media payloads, story media. It also has to delete through the Storage API, because deleting a storage.objects row leaves the bytes. A wrong map deletes people's photographs. Pass two rates this LOW and says the SEC-04 flow closes it. Left for a session that can map the references and run the sweep in report-only mode first.
 
-### SEC-15 — no recovery path for a lost mailbox — NOT DONE (founder decision)
+### SEC-15, no recovery path for a lost mailbox, NOT DONE (founder decision)
 - Confirmed as described. The fix is a staff-only, identity-verified email move, TOTP MFA and phone OTP, and it depends on the founder deciding whether "email never changes" stays absolute. The audit says so. Nothing to change in code until that ruling.
 
-### DOC-22 — hardcoded English and hand-rolled plurals — NOT DONE (sized, not started)
+### DOC-22, hardcoded English and hand-rolled plurals, NOT DONE (sized, not started)
 - Confirmed: ListingAmenities uses `${n} ${n === 1 ? "bedroom" : "bedrooms"}`. ListingUtilities is entirely module-level English, with a sentence built from fragments. CheckoutSummary "Total to pay", FundingVerifier, WalletDeck, VerifyCodeForm, Verifying and (auth)/error all carry literals.
 - Moving the example lines alone would be tokenism. Every one of those surfaces has many more literals, and the listing components overlap Agent 3's DOC-21 (c90286c6) and Agent 5's UI scope. It is a 1 to 2 day translation-layer job: surface keys in en.ts; plural() forms for bedroom, bathroom, toilet, hour, member, comment, reply; whole-sentence templates. Step 4 (react/jsx-no-literals) cannot go in at warn, because lint is capped at --max-warnings=333.
 

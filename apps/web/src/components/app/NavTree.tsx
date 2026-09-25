@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { GLASS_FOR } from "@/lib/nav/glass-glyph";
 import { isCurrent, type NavLeaf, type NavSection } from "./nav-model";
 
 /**
@@ -74,7 +76,11 @@ export function NavTree({
                 16, which is now the FLOOR of the scale rather than a middle
                 step; `md` is 24 and is what a row this tall wants beside 16px
                 type. */}
-            <UiIcon name={item.icon} size="md" filled={current} />
+            {GLASS_FOR[item.icon] ? (
+              <BrandIcon name={GLASS_FOR[item.icon]!} size={30} />
+            ) : (
+              <UiIcon name={item.icon} size="md" filled={current} />
+            )}
           </span>
           <span className="nf-nav__label">{item.label}</span>
           {item.badge ? <span className="nf-count-badge nf-nav__badge nf-numeric">{item.badge}</span> : null}

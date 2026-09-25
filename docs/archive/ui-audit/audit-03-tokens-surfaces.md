@@ -1,4 +1,4 @@
-# Audit 03 — Design tokens, colour, glass, elevation, radii, spacing, theming
+# Audit 03, Design tokens, colour, glass, elevation, radii, spacing, theming
 
 > **SUPERSEDED 2026-08-09. Not a backlog, and every count in it needs re-measuring.**
 > This audit grades the codebase against `00-reference-brief.md`, which is retired
@@ -14,7 +14,7 @@ plus a sweep of every `.tsx` under `apps/web/src`.
 Yardstick: §3 of `PREMIUM_REFERENCE_BRIEF.md`.
 
 Verdict up front: **the token layer is well-intentioned and unusually well-commented, but it has escaped its own
-rules.** There are 195 raw `rgb()` literals and 55 raw hex literals inside `globals.css` alone — the file that opens
+rules.** There are 195 raw `rgb()` literals and 55 raw hex literals inside `globals.css` alone, the file that opens
 with "Nothing below may introduce a raw colour." The dark surface ladder is functionally invisible (1.09:1 between
 "card" and "raised"), drop shadows are mathematically invisible on a `#000010` ground, `.nf-glass` is a flat
 translucent panel with no inner highlight and no ambient shadow, and light mode fails WCAG AA on the single most-used
@@ -28,22 +28,22 @@ text token in the product (296 call sites).
 
 Two-layer system in `packages/design-tokens/src/tokens.css`:
 
-- **Layer 1** (`tokens.css:19-50`) — raw palette: 8 inks, 5 mists, 4 royals, 5 electrics, 2 cyans, 2 crimsons,
+- **Layer 1** (`tokens.css:19-50`), raw palette: 8 inks, 5 mists, 4 royals, 5 electrics, 2 cyans, 2 crimsons,
   emerald, rose, sky. Documented as internal-only.
-- **Layer 2** (`tokens.css:72-266`) — semantic: brand, mode, surface, content, border, state, glass, gradients,
+- **Layer 2** (`tokens.css:72-266`), semantic: brand, mode, surface, content, border, state, glass, gradients,
   ambient canvas, elevation, radius, motion, typography, layout.
-- **Light theme** (`tokens.css:287-349`) — 30 overrides under `:root[data-theme="light"]`.
-- **Reduced motion** (`tokens.css:356-365`) — durations collapse to 1ms. Genuinely good.
+- **Light theme** (`tokens.css:287-349`), 30 overrides under `:root[data-theme="light"]`.
+- **Reduced motion** (`tokens.css:356-365`), durations collapse to 1ms. Genuinely good.
 
-Tailwind v4, CSS-first. **There is no `tailwind.config.*` anywhere in the repo** — only
+Tailwind v4, CSS-first. **There is no `tailwind.config.*` anywhere in the repo**: only
 `apps/web/postcss.config.mjs` (7 lines, `@tailwindcss/postcss`). The bridge is `@theme inline` at
 `globals.css:8-36`, mapping 17 colour keys, 5 radius keys and 1 font key.
 
 Theme wiring: pre-paint inline script at `layout.tsx:133-138` reading `localStorage.nf_theme`, writing
 `documentElement.dataset.theme`. `ThemeToggle.tsx:24-34` flips it. Dark is the hard default; `system` is opt-in.
-This part is correct — no FOUC, no silent OS override.
+This part is correct, no FOUC, no silent OS override.
 
-### 1.2 Glass surfaces — complete inventory
+### 1.2 Glass surfaces, complete inventory
 
 | # | Selector | File:line | blur | saturate | inner top highlight | hairline | ambient shadow |
 |---|---|---|---|---|---|---|---|
@@ -107,11 +107,11 @@ blooms explicitly `none`, and 83 `:root[data-theme="light"]` override rules in `
 
 ## 2. GAPS VS THE REFERENCE STANDARD
 
-### P0 — Ships-blocking
+### P0, Ships-blocking
 
 ---
 
-#### P0-1. `.nf-glass` is a flat rgba panel — exactly what the brief calls "not glass and reads as cheap"
+#### P0-1. `.nf-glass` is a flat rgba panel, exactly what the brief calls "not glass and reads as cheap"
 
 `globals.css:141-146`:
 ```css
@@ -125,15 +125,14 @@ blooms explicitly `none`, and 83 `:root[data-theme="light"]` override rules in `
 Four ingredients required by §3: blur+saturate ✓, hairline border ✓, **bright 1px inner top-edge highlight ✗**,
 **soft wide ambient shadow ✗**. Two of four.
 
-This is not a small class. `.nf-glass` is the material of **every sticky app header** —
-`AppShell.tsx:90`, `AgentShell.tsx:37`, `app/admin/layout.tsx:69`, `SiteHeader.tsx:28`,
-`app/(app)/search/page.tsx:147` — plus `FilterDrawer.tsx:334,515`, `ViewToggle.tsx:22`,
+This is not a small class. `.nf-glass` is the material of **every sticky app header**: `AppShell.tsx:90`, `AgentShell.tsx:37`, `app/admin/layout.tsx:69`, `SiteHeader.tsx:28`,
+`app/(app)/search/page.tsx:147`: plus `FilterDrawer.tsx:334,515`, `ViewToggle.tsx:22`,
 `MoodRow.tsx:46`, `PopularDestinations.tsx:44`, `HowItWorks.tsx:63`, `SavedBoard.tsx:211` (28 occurrences).
 
 Damning detail: **`--nf-glass-specular` is defined at `tokens.css:141-146` and referenced by nothing.**
 The specular ingredient was specified, then abandoned. `grep -r "glass-specular"` returns only the definition.
 
-Nor is there a scrim/fade under any sticky header — the brief asks for "content visibly scrolls under the nav behind
+Nor is there a scrim/fade under any sticky header, the brief asks for "content visibly scrolls under the nav behind
 a blur + gradient scrim". There is exactly **one** `maskImage` in the entire `.tsx` tree, and it is on the wallet
 balance card grid texture (`BalanceCard.tsx:126`), not on any nav.
 
@@ -156,7 +155,7 @@ colour, which on OLED is a hard blue cast, and on a cheap LCD is indistinguishab
 
 ---
 
-#### P0-3. The dark surface ladder is a 1.09:1 ramp — six named surfaces, one visible surface
+#### P0-3. The dark surface ladder is a 1.09:1 ramp, six named surfaces, one visible surface
 
 ```
 --nf-surface-canvas:    #000010   L = 0.000374
@@ -190,7 +189,7 @@ Light value `#7A8189` (`tokens.css:304`).
 `var(--nf-content-muted)` appears **296 times** across `.tsx` and `.css`. It also drives
 `.nf-field::placeholder` (`globals.css:1544`), `.nf-hero-figure__unit` (`globals.css:1782`),
 `.nf-logo__tagline` (`globals.css:2039`), `.nf-moment__footnote` (`globals.css:2002`) and `.nf-overline`
-(`globals.css:1303`) — all small text.
+(`globals.css:1303`), all small text.
 
 Note that someone already noticed the symptom and patched exactly one consumer:
 `globals.css:3013-3015` re-colours `.nf-overline` to `rgb(18 21 26 / 0.66)` (**5.88 : 1**, passes). The token itself
@@ -198,12 +197,12 @@ was left broken and the other 295 call sites were not touched. That is treating 
 
 ---
 
-#### P0-5. `--nf-state-info` was left out of the light-mode contrast pass — 2.14 : 1
+#### P0-5. `--nf-state-info` was left out of the light-mode contrast pass, 2.14 : 1
 
 `tokens.css:332-345` contains an explicit comment: *"The airy night-theme accents fail AA on white, so daylight
 swaps them for deeper members of the same families … the state colours step down until small bold text passes 4.5:1."*
 
-Then the block steps down `--nf-state-success`, `--nf-state-warning`, `--nf-state-error` — and **not `--nf-state-info`**.
+Then the block steps down `--nf-state-success`, `--nf-state-warning`, `--nf-state-error`: and **not `--nf-state-info`**.
 It stays `var(--nf-sky-400)` = `#38BDF8`.
 
 `#38BDF8` on `#FFFFFF` = **2.14 : 1**. Fails AA for any text size, fails 3:1 for non-text UI components.
@@ -228,7 +227,7 @@ the label switches to the *dark* one. `.nf-badge--success` (`globals.css:1704-17
 
 ---
 
-### P1 — Premium-tell failures
+### P1, Premium-tell failures
 
 ---
 
@@ -237,19 +236,19 @@ the label switches to the *dark* one. `.nf-badge--success` (`globals.css:1704-17
 Required by §3: ground → card → raised card → sheet → modal → toast, each with its own blur/shadow/border recipe.
 
 What exists:
-- `ground` — no token.
-- `card` — `--nf-shadow-card`, 2 layers (direct 1px + ambient 20px). Correct shape.
-- `raised card` — no token. `--nf-shadow-sm` exists and is used **zero** times.
-- `sheet` / `modal` — both use `--nf-shadow-float`, and `--nf-shadow-float` is **a single flat drop shadow**:
+- `ground`: no token.
+- `card`: `--nf-shadow-card`, 2 layers (direct 1px + ambient 20px). Correct shape.
+- `raised card`: no token. `--nf-shadow-sm` exists and is used **zero** times.
+- `sheet` / `modal`: both use `--nf-shadow-float`, and `--nf-shadow-float` is **a single flat drop shadow**:
   `0 32px 80px -16px rgb(0 0 0 / 0.8)`. No direct/contact layer at all. The highest surface in the product has the
   least sophisticated shadow.
-- `toast` — no token, no toast component found.
+- `toast`: no token, no toast component found.
 
 `--nf-shadow-lifted` is the only 2-layer one besides card, used 4 times, and is a *hover* state, not a rung.
 
 And nothing is enforced. 77 hand-written `box-shadow` declarations in `globals.css` and 16 arbitrary
 `shadow-[…]` utilities in components sit alongside the 4 tokens. Worst offenders:
-- `WalletActions.tsx:86` `shadow-[0_0_24px_rgb(0_102_255_/_0.45),inset_0_0_16px_rgb(0_102_255_/_0.12)]` — `rgb(0 102 255)` is not in the palette at all.
+- `WalletActions.tsx:86` `shadow-[0_0_24px_rgb(0_102_255_/_0.45),inset_0_0_16px_rgb(0_102_255_/_0.12)]`: `rgb(0 102 255)` is not in the palette at all.
 - `SignatureShowcase.tsx:71` `shadow-[0_30px_60px_rgba(12,57,239,0.45)]`
 - `AiAssistantBanner.tsx:27` `shadow-[0_10px_30px_-8px_rgba(0,0,0,0.5)]`
 - `Toggle.tsx:54` `shadow-[0_2px_6px_rgb(0_0_0/0.35)]`
@@ -259,16 +258,16 @@ And nothing is enforced. 77 hand-written `box-shadow` declarations in `globals.c
 #### P1-2. Light mode is a flat white SaaS theme, not the warm neumorphic paper twin the brief and the repo both claim
 
 `KNOWN_GAPS.md:79` claims: *"Fully designed exchange-grade paper twin, shipped."*
-`tokens.css:280-286` — the comment immediately above the light block — says the opposite:
+`tokens.css:280-286`: the comment immediately above the light block, says the opposite:
 *"the light theme has NOT had a design pass. Tracked in KNOWN_GAPS.md before it is exposed to users."*
 Two contradictory claims about the same 60 lines.
 
 Measured against §3 ("warm off-white ground, dual shadows (light top-left, dark bottom-right), cards that feel
 physically raised"):
 
-- **Ground is cool, not warm.** `#F4F5F7` has B(247) > G(245) > R(244) — a blue-grey. A warm off-white needs R > G > B.
+- **Ground is cool, not warm.** `#F4F5F7` has B(247) > G(245) > R(244), a blue-grey. A warm off-white needs R > G > B.
 - **No dual shadow.** `--nf-shadow-card` light (`tokens.css:322`) is
-  `0 1px 2px rgb(18 21 26 / 0.04), 0 4px 16px -4px rgb(18 21 26 / 0.06)` — two *dark* layers from the same direction.
+  `0 1px 2px rgb(18 21 26 / 0.04), 0 4px 16px -4px rgb(18 21 26 / 0.06)`: two *dark* layers from the same direction.
   There is no light-source shadow, no top-left highlight, no inset white rim anywhere in the light theme.
 - **Cards do not read as raised.** `globals.css:2785-2792` sets `.nf-card` light to flat `#FFFFFF`, a
   `rgb(18 21 26 / 0.09)` border, `--nf-shadow-card`, and explicitly `backdrop-filter: none`.
@@ -278,7 +277,7 @@ physically raised"):
 - `--nf-border-subtle` light = `rgb(18 21 26 / 0.08)` → **1.13 : 1** on white. Every hairline in light mode is
   at the threshold of perceptibility.
 
-It is not a mechanical inversion — real thought went in — but it is a *different design* (clean flat exchange UI)
+It is not a mechanical inversion, real thought went in, but it is a *different design* (clean flat exchange UI)
 from the one the brief specifies, and it is executed too timidly to hold structure.
 
 ---
@@ -293,7 +292,7 @@ Consequences, given `--nf-brand-primary: #0C2FE8` on the line above (`tokens.css
 
 | Token | Light value | Result |
 |---|---|---|
-| `--nf-brand-primary` | `#0C2FE8` | — |
+| `--nf-brand-primary` | `#0C2FE8` | none |
 | `--nf-brand-secondary` (`= electric-300`) | `#0C2FE8` | **identical to primary** |
 | `--nf-rating` (`= electric-300`) | `#0C2FE8` | **identical to primary** |
 
@@ -317,7 +316,7 @@ The file opens (`globals.css:5-7`) with *"Nothing below may introduce a raw colo
 | Literal | Occurrences in `globals.css` |
 |---|---|
 | `rgb(12 57 239 / …)` (= `--nf-electric-400`) | **68** |
-| `rgb(18 21 26 / …)` (light ink — **not a token**) | **51** |
+| `rgb(18 21 26 / …)` (light ink, **not a token**) | **51** |
 | `rgb(255 255 255 / …)` | 42 |
 | `rgb(0 0 0 / …)` | 20 |
 | `rgb(92 124 255 / …)` (= `--nf-electric-300`) | 12 |
@@ -354,7 +353,7 @@ const X = [
 - `components/app/messages/ListingOptionsSheet.tsx:21-26`
 - plus the same `#1E3A8A → #172554` inline at `components/app/bookings/BookingsTabs.tsx:42` and `app/(app)/bookings/MyBookings.tsx:64`
 
-These are stock Tailwind slate / indigo / cyan. `#312E81` and `#1E1B4B` are **indigo** — the exact violet-leaning
+These are stock Tailwind slate / indigo / cyan. `#312E81` and `#1E1B4B` are **indigo**: the exact violet-leaning
 family `tokens.css:52-66` says was deliberately hunted out of the tree ("*every time one has appeared it has had to
 be hunted back out*"). It is back, in the listing card placeholder that every user sees first.
 
@@ -362,13 +361,13 @@ Full hardcoded-colour census across `.tsx`:
 
 | File | hex | rgb/rgba | Notes |
 |---|---|---|---|
-| `design-system/icons/TrustIcon.tsx` | **30** | 0 | `#4F46E5` indigo-600, `#6366F1`, `#A5B4FC`, `#FF3A44`, `#C31162`, `#FFE000`, `#FFBC00` — off-brand warm + violet. Play/App Store marks are legitimate brand marks. |
-| `components/app/wallet/BalanceCard.tsx` | 0 | **6** | `rgb(0 200 255)`, `rgb(51 138 255)`, `rgb(0 102 255)`, `rgb(56 189 248)` — four blues, none in the palette |
+| `design-system/icons/TrustIcon.tsx` | **30** | 0 | `#4F46E5` indigo-600, `#6366F1`, `#A5B4FC`, `#FF3A44`, `#C31162`, `#FFE000`, `#FFBC00`: off-brand warm + violet. Play/App Store marks are legitimate brand marks. |
+| `components/app/wallet/BalanceCard.tsx` | 0 | **6** | `rgb(0 200 255)`, `rgb(51 138 255)`, `rgb(0 102 255)`, `rgb(56 189 248)`: four blues, none in the palette |
 | `ListingCard.tsx` / `ListingGallery.tsx` / `FeaturedCarousel.tsx` / `MapDock.tsx` / `ListingOptionsSheet.tsx` | 6 each | 1–2 each | the array above |
-| `design-system/icons/Icon3D.tsx` | 5 | 0 | `#FFFFFF` stops — benign |
-| `components/auth/ProviderMarks.tsx` | 4 | 0 | Google brand colours — legitimate |
+| `design-system/icons/Icon3D.tsx` | 5 | 0 | `#FFFFFF` stops, benign |
+| `components/auth/ProviderMarks.tsx` | 4 | 0 | Google brand colours, legitimate |
 | `SignatureShowcase.tsx` | 0 | 3 | |
-| `BookingsTabs.tsx`, `MyBookings.tsx`, `ApplyWizard.tsx:213`, `ListingPitch.tsx:27` | 1 each | — | `#fff` / inline gradients |
+| `BookingsTabs.tsx`, `MyBookings.tsx`, `ApplyWizard.tsx:213`, `ListingPitch.tsx:27` | 1 each | none | `#fff` / inline gradients |
 
 **Total: ~130 hex + ~26 rgb() literals in components**, on top of the ~250 in `globals.css`.
 
@@ -389,11 +388,11 @@ There **is** a semantic layer: `success / warning / error / info` + matching `-s
 (`tokens.css:119-129`). Better than "brand + grey". Reservations:
 
 - `--nf-state-warning` is **cyan** (`tokens.css:120`), by explicit decision. Cyan-as-warning is a comprehension
-  risk — it reads "info", and it collides visually with `--nf-state-info` (sky). In light mode they are
+  risk, it reads "info", and it collides visually with `--nf-state-info` (sky). In light mode they are
   `#0E6E8C` and `#38BDF8`: same hue family, one dark, one washed out.
 - `--nf-state-info` used **3 times**; `--nf-rating` **5 times**. Effectively a 2-colour semantic system
   (success 40, error 47, warning 39).
-- No `-border`, `-strong`, or `-on` variants — every consumer hand-rolls `color-mix(… 32%, transparent)` for
+- No `-border`, `-strong`, or `-on` variants, every consumer hand-rolls `color-mix(… 32%, transparent)` for
   borders. 49 `color-mix()` calls in `.tsx` are largely this.
 
 ---
@@ -408,7 +407,7 @@ Zero usage outside `tokens.css`:
 `--nf-header-height`. **26 dead tokens.**
 
 Note `--nf-canvas-bloom-1/2/3` (`tokens.css:182-184`) are documented as "the ingredients; the motion lives in the
-`nf-ambient` layer in globals.css" — but `.nf-ambient` (`globals.css:2247,2258,2275`) hardcodes its own
+`nf-ambient` layer in globals.css", but `.nf-ambient` (`globals.css:2247,2258,2275`) hardcodes its own
 `radial-gradient(circle, rgb(12 57 239 / 0.5) …)` and never reads them. The documented contract is fiction.
 
 `--nf-text-body: 0.875rem` and `--nf-text-body-sm: 0.875rem` (`tokens.css:252-253`) are **the same value**.
@@ -428,16 +427,16 @@ Any SVG drawn from `palette` paints a different green, cyan and red than the DOM
 #### P1-8. Radii: a scale exists, is mostly used, but the sheet radius is off-scale and nesting is uncorrected
 
 `@theme inline` (`globals.css:29-33`) maps only `--radius-sm|md|lg|xl|2xl`. It does **not** map `--radius-3xl`,
-so Tailwind's default 1.5rem/24px survives — and `rounded-t-3xl` is the radius of **every bottom sheet in the app**:
+so Tailwind's default 1.5rem/24px survives, and `rounded-t-3xl` is the radius of **every bottom sheet in the app**:
 - `ListingOptionsSheet.tsx:74`, `AdminActions.tsx:113`, `ThreadOptionsSheet.tsx:92`, `MyBookings.tsx:183`
 
 24px sits between `--nf-radius-xl` (22) and `--nf-radius-2xl` (32) and belongs to neither. The single most
 prominent radius in the mobile product is off the scale.
 
 Off-token one-offs: `rounded-[7px]`, `rounded-[4px]`, `rounded-[1.25rem]`.
-`rounded-full` (104) vs `rounded-[var(--nf-radius-pill)]` (5) — equivalent output, two conventions.
+`rounded-full` (104) vs `rounded-[var(--nf-radius-pill)]` (5), equivalent output, two conventions.
 
-**Optical nesting correction is applied in exactly one place** — `.nf-icon-tile` (`globals.css:320-353`) uses
+**Optical nesting correction is applied in exactly one place**: `.nf-icon-tile` (`globals.css:320-353`) uses
 `border-radius: 30%` outer with `inset: 7%; border-radius: 26%` inner. Genuinely correct, and clearly deliberate.
 Nowhere else. Counter-example, `BalanceCard.tsx:105,177`: outer `--nf-radius-2xl` (32px) with `p-5` (20px) →
 optically correct inner is 12px; the code uses `--nf-radius-md` (14px). Close by luck, not by rule. There is no
@@ -445,27 +444,27 @@ documented nesting rule and no `--nf-radius-inner-*` derivation.
 
 ---
 
-### P2 — Hygiene
+### P2, Hygiene
 
 ---
 
 #### P2-1. Spacing has no token scale at all
 
 `tokens.css` is asserted (line 4-5) to be "the single source of truth for every colour, radius, shadow, blur and
-motion value" — spacing is not in that list, and there are no `--nf-space-*` tokens. Spacing is Tailwind's implicit
+motion value", spacing is not in that list, and there are no `--nf-space-*` tokens. Spacing is Tailwind's implicit
 0.25rem scale, unconfigured (no `tailwind.config.*`).
 
 In components this is fine: only **23 arbitrary `p|m|gap-[…]`** across the whole tree, and most are legitimate
 (`max-w-[52ch]`, `pb-[max(1rem,env(safe-area-inset-bottom))]`).
 
 In `globals.css` it is not. Component padding is magic rem off any grid:
-- `.nf-btn` `padding: 0.72rem 1.2rem` (11.52 / 19.2px) — `globals.css:1341`
-- `.nf-btn--lg` `0.92rem 1.65rem` (14.72 / 26.4px) — `globals.css:1439`
-- `.nf-auth-row` `0.95rem 1.1rem` — `globals.css:1464`
-- `.nf-field` `0.95rem 1.05rem` — `globals.css:1526`
-- `.nf-chip` `0.45rem 0.9rem` — `globals.css:1663`
-- `.nf-panel-sunken` `1.1rem 1.25rem` — `globals.css:1827`
-- `.nf-page-header--verified` `0.5rem 0.625rem` — `globals.css:563`
+- `.nf-btn` `padding: 0.72rem 1.2rem` (11.52 / 19.2px), `globals.css:1341`
+- `.nf-btn--lg` `0.92rem 1.65rem` (14.72 / 26.4px), `globals.css:1439`
+- `.nf-auth-row` `0.95rem 1.1rem`: `globals.css:1464`
+- `.nf-field` `0.95rem 1.05rem`: `globals.css:1526`
+- `.nf-chip` `0.45rem 0.9rem`: `globals.css:1663`
+- `.nf-panel-sunken` `1.1rem 1.25rem`: `globals.css:1827`
+- `.nf-page-header--verified` `0.5rem 0.625rem`: `globals.css:563`
 
 Seven primitives, seven unrelated padding values, none on a 4px grid, none derived from anything.
 
@@ -482,7 +481,7 @@ duplicated too (lines 1590-1596, 1676-1692, 1880-1887). One `--nf-control-*` tok
 
 #### P2-3. Duplicated / split selector blocks
 
-`.nf-hero-scene` is defined **4 separate times** (`globals.css:880, 910, 2597, 2936`) — an `@supports` scroll
+`.nf-hero-scene` is defined **4 separate times** (`globals.css:880, 910, 2597, 2936`), an `@supports` scroll
 animation, an infinite drift animation, a mask + opacity block, and a light override. The drift at 910 and the
 scroll-linked animation at 880 both set `animation` on the same selector; the later one wins and silently kills the
 scroll-driven version wherever `animation-timeline: view()` is supported.
@@ -492,8 +491,8 @@ scroll-driven version wherever `animation-timeline: view()` is supported.
 
 #### P2-4. `!important`
 
-28 total. 25 are `animation: none !important` inside `prefers-reduced-motion` — defensible. 3 at
-`globals.css:1256-1258` are Leaflet third-party overrides — defensible. Two smells:
+28 total. 25 are `animation: none !important` inside `prefers-reduced-motion`: defensible. 3 at
+`globals.css:1256-1258` are Leaflet third-party overrides, defensible. Two smells:
 `globals.css:2922` `display: none !important` on a light-mode ambient span, and
 `globals.css:3097` `filter: none !important` on the wallet sparkline. Both exist because the base rule is
 over-specific, not because the override needs the weight.
@@ -504,7 +503,7 @@ over-specific, not because the override needs the weight.
 `.hover\:bg-\[var\(--nf-glass-fill\)\]:hover`, `:is(.bg-white\/5, .bg-white\/\[0\.04\], .bg-white\/\[0\.05\])`.
 These break silently the moment someone writes `bg-white/[0.045]` or reorders a utility.
 
-`globals.css:3071` `:root[data-theme="light"] select.nf-btn--primary` — a tag-qualified component override, meaning
+`globals.css:3071` `:root[data-theme="light"] select.nf-btn--primary`: a tag-qualified component override, meaning
 the language switcher is styled by *being a `<select>`*, not by a modifier class.
 
 #### P2-6. Two different dark bases
@@ -535,7 +534,7 @@ colour anywhere reveals subtle grey rather than the browser default. Low cost, b
 
 Replace `tokens.css:135-146` and `globals.css:141-156` wholesale.
 
-**Tokens — `packages/design-tokens/src/tokens.css`:**
+**Tokens, `packages/design-tokens/src/tokens.css`:**
 
 ```css
 /* ---------------------------------------------------------------------
@@ -601,7 +600,7 @@ Light-theme override (`:root[data-theme="light"]`):
   152deg, rgb(255 255 255 / 0.9) 0%, rgb(255 255 255 / 0.3) 30%, transparent 60%);
 ```
 
-**Component — `apps/web/src/app/globals.css`, replacing lines 141-156:**
+**Component, `apps/web/src/app/globals.css`, replacing lines 141-156:**
 
 ```css
   /*
@@ -696,10 +695,10 @@ Then repoint `.nf-tabbar` (2068), `.nf-dock` (2142), `.nf-btn--glass` (1412), `.
 
 ### 3.2 SHIP THIS: the elevation ladder
 
-Two changes are required together — the ladder alone does nothing until the dark base is lifted off `#000010`,
+Two changes are required together, the ladder alone does nothing until the dark base is lifted off `#000010`,
 because black-on-black shadows are invisible (P0-2).
 
-**Step 1 — lift the dark base and give the surface ramp real luminance separation.**
+**Step 1, lift the dark base and give the surface ramp real luminance separation.**
 Replace `tokens.css:19-26` and `tokens.css:89-94`:
 
 ```css
@@ -722,7 +721,7 @@ Replace `tokens.css:19-26` and `tokens.css:89-94`:
 canvas → raised now measures **1.22 : 1** by fill alone (vs 1.09), and a 45% black shadow on `#0A0C16` produces a
 visible 1.44:1 delta instead of 1.003:1. Update `layout.tsx:101` `themeColor` and the PWA manifest to `#06070F`.
 
-**Step 2 — the ladder. Replace `tokens.css:189-195`:**
+**Step 2, the ladder. Replace `tokens.css:189-195`:**
 
 ```css
 /* ---------------------------------------------------------------------
@@ -731,36 +730,36 @@ visible 1.44:1 delta instead of 1.003:1. Update `layout.tsx:101` `themeColor` an
  * lit rather than pasted; it is part of the rung, not an optional extra.
  * ------------------------------------------------------------------ */
 
-/* 0 · ground — no shadow, the page itself */
+/* 0 · ground, no shadow, the page itself */
 --nf-elev-0:        none;
 --nf-elev-0-rim:    none;
 
-/* 1 · card — resting content */
+/* 1 · card, resting content */
 --nf-elev-1:
   0 1px 1px rgb(0 0 0 / 0.30),
   0 4px 12px -2px rgb(0 0 0 / 0.34);
 --nf-elev-1-rim:    inset 0 1px 0 rgb(255 255 255 / 0.07);
 
-/* 2 · raised — hover, selected, a card that has come forward */
+/* 2 · raised, hover, selected, a card that has come forward */
 --nf-elev-2:
   0 2px 3px rgb(0 0 0 / 0.32),
   0 10px 26px -4px rgb(0 0 0 / 0.42);
 --nf-elev-2-rim:    inset 0 1px 0 rgb(255 255 255 / 0.10);
 
-/* 3 · sheet — bottom sheets, drawers, popovers anchored to an edge */
+/* 3 · sheet, bottom sheets, drawers, popovers anchored to an edge */
 --nf-elev-3:
   0 2px 4px rgb(0 0 0 / 0.34),
   0 -1px 0 rgb(255 255 255 / 0.05),
   0 -20px 48px -12px rgb(0 0 0 / 0.55);
 --nf-elev-3-rim:    inset 0 1px 0 rgb(255 255 255 / 0.14);
 
-/* 4 · modal — centred dialogs, detached from every edge */
+/* 4 · modal, centred dialogs, detached from every edge */
 --nf-elev-4:
   0 4px 8px rgb(0 0 0 / 0.34),
   0 24px 64px -12px rgb(0 0 0 / 0.62);
 --nf-elev-4-rim:    inset 0 1px 0 rgb(255 255 255 / 0.16);
 
-/* 5 · toast — the topmost transient object */
+/* 5 · toast, the topmost transient object */
 --nf-elev-5:
   0 2px 4px rgb(0 0 0 / 0.30),
   0 12px 28px -6px rgb(0 0 0 / 0.50),
@@ -776,7 +775,7 @@ visible 1.44:1 delta instead of 1.003:1. Update `layout.tsx:101` `themeColor` an
 --nf-elev-5-border: rgb(255 255 255 / 0.18);
 ```
 
-**Light-theme rungs — real dual shadows, per §3 "light top-left, dark bottom-right":**
+**Light-theme rungs, real dual shadows, per §3 "light top-left, dark bottom-right":**
 
 ```css
 :root[data-theme="light"] {
@@ -821,10 +820,10 @@ visible 1.44:1 delta instead of 1.003:1. Update `layout.tsx:101` `themeColor` an
   --nf-elev-5-border: rgb(60 50 40 / 0.18);
 }
 ```
-`rgb(60 50 40)` is a warm shadow ink — a neutral-grey shadow on a warm ground is what makes light modes look dead.
+`rgb(60 50 40)` is a warm shadow ink, a neutral-grey shadow on a warm ground is what makes light modes look dead.
 The `-2px -2px` white layer is the light-source shadow the current theme has none of.
 
-**Consumption — one class per rung, in `globals.css @layer components`:**
+**Consumption, one class per rung, in `globals.css @layer components`:**
 
 ```css
   .nf-elev-1, .nf-elev-2, .nf-elev-3, .nf-elev-4, .nf-elev-5 {
@@ -877,7 +876,7 @@ Then: delete `--nf-shadow-sm|card|lifted|float` and `--nf-glow-brand|accent`; re
   --nf-border-strong:  rgb(60 50 40 / 0.32);
 }
 ```
-Then delete the `.nf-overline` light patch at `globals.css:3013-3015` — it becomes redundant once the token is fixed.
+Then delete the `.nf-overline` light patch at `globals.css:3013-3015`: it becomes redundant once the token is fixed.
 
 Also change `tokens.css:126-129` (the base `:root` `-surface` tokens) to derive from `var(--nf-state-*)` rather than
 `var(--nf-emerald-400)` / `var(--nf-cyan-400)` / `var(--nf-rose-400)` / `var(--nf-sky-400)`, so themes propagate
@@ -885,7 +884,7 @@ automatically instead of needing four parallel overrides.
 
 ### 3.4 Un-collapse the light brand tokens
 
-Delete `--nf-electric-300: #0C2FE8;` from `tokens.css:340` — never override Layer 1 per theme. Instead:
+Delete `--nf-electric-300: #0C2FE8;` from `tokens.css:340`: never override Layer 1 per theme. Instead:
 ```css
 :root[data-theme="light"] {
   --nf-brand-primary:   #0C2FE8;
@@ -933,7 +932,7 @@ There is no lint gate anywhere. Add, in order of value:
    `color-mix(… var(--nf-*) …)`.
 2. **ESLint** `no-restricted-syntax` on JSX `className` / `style` string literals matching
    `/#[0-9a-fA-F]{3,8}\b/`, `/rgba?\(/`, `/(bg|text|border|ring|from|to|via)-(white|black)\//`.
-3. A CI script asserting `index.ts.palette` is byte-identical to Layer 1 of `tokens.css` — it has already drifted
+3. A CI script asserting `index.ts.palette` is byte-identical to Layer 1 of `tokens.css`: it has already drifted
    on `cyan400`, `emerald400`, `rose400` despite a comment claiming otherwise.
 
 ### 3.8 Cleanup
@@ -952,16 +951,16 @@ There is no lint gate anywhere. Add, in order of value:
 
 ## 4. FINDINGS INDEX
 
-**P0 (5)** — glass is a flat panel; dark shadows invisible; dark surface ladder 1.09:1; `--nf-content-muted` fails AA
+**P0 (5)**: glass is a flat panel; dark shadows invisible; dark surface ladder 1.09:1; `--nf-content-muted` fails AA
 at 296 sites; `--nf-state-info` 2.14:1 + success/error chips fail.
 
-**P1 (8)** — elevation ladder has 3 usable rungs and a single-layer modal shadow; light mode is flat SaaS not
+**P1 (8)**: elevation ladder has 3 usable rungs and a single-layer modal shadow; light mode is flat SaaS not
 neumorphic and its hairlines are 1.10:1; light collapses brand-secondary + rating into brand-primary; ~250 raw
 colours in `globals.css`; indigo/slate palette duplicated across 6 components; semantic layer has no border/strong
 variants and warning-as-cyan; 26 dead tokens + `index.ts` drift on 3 values; sheet radius off-scale + no optical
 nesting rule.
 
-**P2 (8)** — no spacing scale, magic rem in 7 primitives; control recipe copy-pasted 3×; 15 duplicated selector
+**P2 (8)**: no spacing scale, magic rem in 7 primitives; control recipe copy-pasted 3×; 15 duplicated selector
 blocks incl. `.nf-hero-scene` ×4 with an animation collision; `!important` smells at 2922/3097; escaped-class-name
 selectors; two dark bases; contradictory light nav materials; universal `*` border-color write.
 

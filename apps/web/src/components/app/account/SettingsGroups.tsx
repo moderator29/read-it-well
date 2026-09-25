@@ -9,7 +9,6 @@ import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
 import { useClientMount } from "@/lib/ui/client-mount";
 import {
-  applyReduceMotion,
   applyTextSize,
   useNfSettings,
   type TextSize,
@@ -51,7 +50,7 @@ import {
 /* ------------------------------------------------------------- appearance */
 
 /**
- * Appearance: motion and text size.
+ * Appearance: text size, data and language. Motion has its own group.
  *
  * THE THEME ROW IS GONE. The founder removed light mode from the platform on
  * 23 September 2026, so there is one palette and nothing for a person to
@@ -77,23 +76,15 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
   /* The migration is a WRITE to another device's leftover key, so it stays an
      effect: it is this component updating an external system, which is the case
      the rule says an effect is for. */
-  useEffect(() => {
-    try {
-      // Migrate the flag earlier builds stored on its own key.
-      if (window.localStorage.getItem("nf_reduce_motion") === "1") set("reduceMotion", true);
-    } catch {
-      // Storage unavailable: the settings document already has the answer.
-    }
-  }, [set]);
 
   useEffect(() => {
     applyTextSize(settings.textSize);
   }, [settings.textSize]);
 
-  useEffect(() => {
-    if (settings.reduceMotion) document.documentElement.dataset.reduceMotion = "1";
-    else delete document.documentElement.dataset.reduceMotion;
-  }, [settings.reduceMotion]);
+  /* MOTION MOVED OUT OF THIS CARD (Track M). The "Reduce motion" switch that
+     stood here set a root flag no stylesheet read, so it never did anything;
+     the Motion group beside this card (`MotionSettings`) replaced it with four
+     levels that do, and it reads the old switch's stored "on" as Calm. */
 
   return (
     <SettingsGroup label={copy.label} note={copy.note}>
@@ -103,16 +94,6 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
         value={settings.textSize}
         options={textSizes}
         onChange={(next) => set("textSize", next)}
-      />
-      <RowSwitch
-        icon="sliders"
-        label={copy.reduceMotion}
-        sub={copy.reduceMotionSub}
-        checked={settings.reduceMotion}
-        onChange={(next) => {
-          set("reduceMotion", next);
-          applyReduceMotion(next);
-        }}
       />
       {/*
        * The data-saver switch lives beside the other two device settings

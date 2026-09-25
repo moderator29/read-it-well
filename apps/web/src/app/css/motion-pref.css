@@ -1,0 +1,278 @@
+/*
+ * TRACK M: THE MOTION SETTING, MADE REAL (25 September 2026).
+ *
+ * Settings > Appearance > Motion writes `data-motion`, `data-motion-splash`,
+ * `data-motion-doors` and `data-motion-ambient` on the root (see
+ * lib/motion/motion-pref.ts), and the server paints them from the cookie, so
+ * the first frame already obeys. The "Reduce motion" switch this replaced set
+ * a flag that no stylesheet read, so it had never done anything.
+ *
+ *   cinematic  the duration ladder lengthened by about a quarter, pages rise
+ *              into place, cards follow the pointer with light
+ *   standard   no attribute, the designed default
+ *   calm       the ladder shortened, loops stop after one pass, the depth
+ *              arrivals become plain fades, no splash, no doors
+ *   off        every animation and transition lands in its final state
+ *
+ * The operating system's reduced-motion setting outranks all four: the
+ * cinematic ladder is only declared under `no-preference`, and every other
+ * partial answers `reduce` on its own.
+ *
+ * Imported after data-saver.css and touch.css, last of all, because "off"
+ * has to win over every partial above it.
+ */
+/*
+ * THE DURATION LADDERS, UNLAYERED ON PURPOSE. tokens.css declares the ladder
+ * outside any layer, and an unlayered declaration beats every layered one
+ * whatever its specificity, so an override written inside `@layer
+ * components` would lose to the very tokens it overrides.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-motion="cinematic"] {
+    --nf-duration-fast: 200ms;
+    --nf-duration-base: 300ms;
+    --nf-duration-slow: 480ms;
+    --nf-duration-deliberate: 780ms;
+    --nf-duration-entrance: 680ms;
+    --nf-duration-cinematic: 1100ms;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-motion="calm"] {
+    --nf-duration-instant: 60ms;
+    --nf-duration-fast: 100ms;
+    --nf-duration-base: 140ms;
+    --nf-duration-slow: 180ms;
+    --nf-duration-deliberate: 220ms;
+    --nf-duration-entrance: 220ms;
+    --nf-duration-cinematic: 300ms;
+    --nf-splash-hold: 0ms;
+  }
+}
+@layer components {
+  /* ------------------------------------------------------------ cinematic */
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Pages rise into place rather than only fading. */
+    :root[data-motion="cinematic"] .nf-page-stage > * {
+      animation-name: nf-cine-page;
+      animation-duration: var(--nf-duration-entrance);
+      animation-timing-function: var(--nf-ease-entrance);
+    }
+    @keyframes nf-cine-page {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    /* Interactive cards carry the light under the pointer; LivingCanvas
+       already writes --mx and --my on the card being touched. */
+    :root[data-motion="cinematic"] .nf-card--interactive {
+      background-image: radial-gradient(
+        280px circle at var(--mx, 50%) var(--my, 0%),
+        color-mix(in oklab, var(--nf-brand-secondary) 14%, transparent),
+        transparent 70%
+      );
+    }
+  }
+
+  /* ----------------------------------------------------------------- calm */
+
+  :root[data-motion="calm"] *,
+  :root[data-motion="calm"] *::before,
+  :root[data-motion="calm"] *::after {
+    animation-iteration-count: 1 !important;
+  }
+  :root[data-motion="calm"] .nf-page-title,
+  :root[data-motion="calm"] .nf-depth-word,
+  :root[data-motion="calm"] [data-state-kind="empty"] > *,
+  :root[data-motion="calm"] .nf-sgroup,
+  :root[data-motion="calm"] .nf-notif__list > li,
+  :root[data-motion="calm"] [data-testid="inbox-row"],
+  :root[data-motion="calm"] .nf-nav--drawer .nf-nav__section,
+  :root[data-motion="calm"] .nf-nav--drawer .nf-nav__who--hero,
+  :root[data-motion="calm"] .nf-nav--drawer .nf-nav__foot,
+  :root[data-motion="calm"] .nf-dockmore__tray,
+  :root[data-motion="calm"] .nf-dockmore__tray > li {
+    animation-name: nf-calm-fade !important;
+    animation-duration: 180ms !important;
+    animation-delay: 0ms !important;
+  }
+  @keyframes nf-calm-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* ------------------------------------------------------------------ off */
+
+  :root[data-motion="off"] *,
+  :root[data-motion="off"] *::before,
+  :root[data-motion="off"] *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  :root[data-motion="off"] {
+    --nf-splash-hold: 0ms;
+  }
+
+  /* ------------------------------------------------ the settings group */
+
+  .nf-motion-set {
+    display: grid;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-md);
+  }
+  /* The preview: the brand assembling at the level chosen, on a quiet stage. */
+  .nf-motion-preview {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 7.5rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: radial-gradient(
+      120% 90% at 50% 100%,
+      color-mix(in oklab, var(--nf-brand-secondary) 16%, transparent),
+      transparent 70%
+    );
+  }
+  .nf-motion-preview .nf-assemble {
+    animation: nf-assemble-zoom 1000ms var(--nf-ease-entrance) both;
+  }
+  .nf-motion-preview .nf-assemble__mark {
+    animation: nf-assemble-mark 760ms var(--nf-ease-entrance) 40ms both;
+  }
+  .nf-motion-preview .nf-assemble__letter {
+    animation: nf-assemble-letter 420ms var(--nf-ease-entrance) both;
+    animation-delay: calc(300ms + var(--nf-i, 0) * 95ms);
+  }
+  .nf-motion-preview[data-level="cinematic"] .nf-assemble {
+    animation-duration: 1500ms;
+  }
+  .nf-motion-preview[data-level="cinematic"] .nf-assemble__mark {
+    animation-duration: 1150ms;
+  }
+  .nf-motion-preview[data-level="cinematic"] .nf-assemble__letter {
+    animation-duration: 640ms;
+    animation-delay: calc(420ms + var(--nf-i, 0) * 140ms);
+  }
+  .nf-motion-preview[data-level="calm"] .nf-assemble {
+    animation: nf-calm-fade 180ms var(--nf-ease-standard) both;
+  }
+  .nf-motion-preview[data-level="calm"] .nf-assemble__mark,
+  .nf-motion-preview[data-level="calm"] .nf-assemble__letter,
+  .nf-motion-preview[data-level="off"] .nf-assemble,
+  .nf-motion-preview[data-level="off"] .nf-assemble__mark,
+  .nf-motion-preview[data-level="off"] .nf-assemble__letter {
+    animation: none;
+  }
+  .nf-motion-preview__again {
+    position: absolute;
+    top: var(--nf-space-xs);
+    right: var(--nf-space-xs);
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-secondary);
+    background: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+  }
+  .nf-motion-preview__again:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The four levels: a two-by-two of choices, each a glyph, a name and one
+     line saying what it does. */
+  .nf-motion-levels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-motion-level {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--nf-space-xs);
+    row-gap: var(--nf-space-3xs);
+    min-height: 4.5rem;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: transparent;
+    color: var(--nf-content-primary);
+    text-align: start;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-motion-level:hover {
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+  }
+  .nf-motion-level:active {
+    transform: scale(0.98);
+  }
+  .nf-motion-level:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-motion-level[aria-checked="true"] {
+    border-color: var(--nf-brand-edge);
+    background: color-mix(in oklab, var(--nf-brand-secondary) 12%, transparent);
+  }
+  .nf-motion-level__glyph {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+  }
+  .nf-motion-level__name {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+  }
+  .nf-motion-level__sub {
+    grid-column: 1 / -1;
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-muted);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-motion-preview .nf-assemble,
+    .nf-motion-preview .nf-assemble__mark,
+    .nf-motion-preview .nf-assemble__letter {
+      animation: none;
+    }
+    .nf-motion-level {
+      transition: none;
+    }
+    .nf-motion-level:active {
+      transform: none;
+    }
+  }
+
+  /* ------------------------------------------------------------- switches */
+
+  :root[data-motion-splash="off"] .nf-splash,
+  :root[data-motion="calm"] .nf-splash,
+  :root[data-motion="off"] .nf-splash {
+    display: none !important;
+  }
+  :root[data-motion-ambient="off"] .nf-ambient,
+  :root[data-motion-ambient="off"] .nf-ambient *,
+  :root[data-motion-ambient="off"] [class*="aurora"],
+  :root[data-motion-ambient="off"] [class*="aurora"] * {
+    animation-play-state: paused !important;
+  }
+}

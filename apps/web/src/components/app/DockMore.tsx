@@ -3,6 +3,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { GLASS_FOR } from "@/lib/nav/glass-glyph";
 
 export type DockMoreItem = { href: string; label: string; icon: UiIconName };
 
@@ -74,7 +76,11 @@ export function DockMore({
               className="nf-dockmore__item"
             >
               <span className="nf-dockmore__glyph" aria-hidden="true">
-                <UiIcon name={item.icon} size="md" />
+                {GLASS_FOR[item.icon] ? (
+                  <BrandIcon name={GLASS_FOR[item.icon]!} size={40} />
+                ) : (
+                  <UiIcon name={item.icon} size="md" />
+                )}
               </span>
               <span className="nf-dockmore__label">{item.label}</span>
             </Link>

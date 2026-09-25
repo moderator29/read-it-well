@@ -94,9 +94,9 @@ check, the ledger credit, the configured gate. All of it is covered by tests.
 Yellow Card's published API and have never been run against a live merchant
 account, because this platform does not have one yet:**
 
-- `createCollection` — the request path, the field names (`sequenceId`,
+- `createCollection`: the request path, the field names (`sequenceId`,
   `customerEmail`, `callbackUrl`) and the response key holding the payment URL.
-- `parseWebhook` — the field names on the webhook body and the exact status
+- `parseWebhook`: the field names on the webhook body and the exact status
   strings.
 
 They are small, they are at the bottom of the file, and no provider field name
@@ -104,7 +104,7 @@ appears anywhere else in the codebase. If their docs differ, those two functions
 are the whole of the change.
 
 The signing scheme in `request()` and the webhook signature header name are in
-the same category — confirm both against their integration guide.
+the same category, confirm both against their integration guide.
 
 ---
 
@@ -141,7 +141,7 @@ Three deliberate properties:
 Yellow Card takes a spread and/or a fee on the conversion. **Check what yours is
 before launching this** and, if it is material, say so on the top-up sheet. The
 sheet currently tells the person that the naira figure they type is what reaches
-their wallet — that must stay true. If Yellow Card deducts their fee from the
+their wallet, that must stay true. If Yellow Card deducts their fee from the
 settled amount rather than charging it on top, the copy in `CryptoForm` has to
 change to match, because a wallet crediting less than the stated figure is the
 platform lying about money.

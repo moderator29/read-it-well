@@ -150,7 +150,8 @@ export function ExitAccountForm({ tenancyId, copy }: { tenancyId: string; copy: 
       {(control) => (
         <select {...control} className="nf-field" value={value} onChange={(e) => set(e.target.value)}>
           <option value="" disabled>
-            {"—"}
+            {/* A word, not a dash: em dashes are out of the product's copy. */}
+            {"Choose one"}
           </option>
           {Object.entries(options).map(([key, text]) => (
             <option key={key} value={key}>
