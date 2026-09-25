@@ -108,6 +108,7 @@ export type UiIconName =
   | "tower-penthouse"
   | "door"
   | "check"
+  | "archive"
   /* ---------------------------------- consolidated from inline SVG blocks.
      Each of these was hand-drawn at a call site, several of them more than
      once, at a stroke weight the platform does not use. */
@@ -797,6 +798,14 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   /* A plain tick for a SELECTED state. Deliberately not `verified`, which
      is the human-checked mark and means one thing (Master Rule 12). */
   check: <path d="m5.2 12.6 4.3 4.3 9.3-9.8" />,
+  /* Archive a conversation (track G): a box with its lid and a slot. */
+  archive: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="4.5" rx="1.3" />
+      <path d="M5 9v9.2a1.8 1.8 0 0 0 1.8 1.8h10.4a1.8 1.8 0 0 0 1.8-1.8V9" />
+      <path d="M10 12.8h4" />
+    </>
+  ),
   door: (
     <>
       <path d="M6.5 20.5V4.8a1.3 1.3 0 0 1 1.3-1.3h8.4a1.3 1.3 0 0 1 1.3 1.3v15.7" />

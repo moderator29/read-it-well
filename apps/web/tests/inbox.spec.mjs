@@ -108,25 +108,28 @@ async function run(theme) {
           "Search messages...",
       );
 
+      /* Track G: two sides as the tabs, four views as a radiogroup. */
       const tabs = await page.locator('[role="tab"]').allInnerTexts();
       const labels = tabs.map((t) => t.replace(/\s*\d+$/, "").trim());
       check(
-        `three tabs, All, Primary and Requests (${JSON.stringify(labels)})`,
-        labels.length === 3 &&
-          labels[0] === "All" &&
-          labels[1] === "Primary" &&
-          labels[2] === "Requests",
+        `two side tabs, Property and Stays (${JSON.stringify(labels)})`,
+        labels.length === 2 && labels[0] === "Property" && labels[1] === "Stays",
+      );
+      const views = await page.locator('[data-testid="inbox-views"] [role="radio"]').allInnerTexts();
+      check(
+        `four views, Recent, Requests, Archived, Reported (${JSON.stringify(views)})`,
+        views.length === 4 && views[0] === "Recent" && views[2] === "Archived" && views[3] === "Reported",
       );
       check(
-        "All is the one selected on arrival",
-        (await page.locator('[role="tab"][aria-selected="true"]').innerText()).startsWith("All"),
+        "Recent is the view selected on arrival",
+        (await page.locator('[data-testid="inbox-view-recent"]').getAttribute("aria-checked")) === "true",
       );
 
     const rows = await page.locator('[data-testid="inbox-row"]').count();
     console.log(`    rows: ${rows}`);
 
     /* Requests must be a designed empty state, never a blank panel. */
-    await page.locator('[role="tab"]', { hasText: "Requests" }).click();
+    await page.locator('[data-testid="inbox-view-requests"]').click();
     await page.waitForTimeout(300);
     const requestRows = await page.locator('[data-testid="inbox-row"]').count();
     if (requestRows === 0) {
@@ -139,7 +142,7 @@ async function run(theme) {
     }
 
     /* A search with no matches is its own state, not the same empty. */
-    await page.locator('[role="tab"]', { hasText: "All" }).click();
+    await page.locator('[data-testid="inbox-view-recent"]').click();
     await page.waitForTimeout(200);
     await page.fill('[data-testid="inbox-search"]', "zzzzqqq");
     await page.waitForTimeout(300);

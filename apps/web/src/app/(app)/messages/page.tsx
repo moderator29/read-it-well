@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { resolveSession } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
 import { loadConversationSummaries } from "@/lib/messages/live";
+import { loadInboxViews } from "@/lib/messages/inbox-views";
+import { getSide } from "@/lib/side";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Inbox, InboxEmpty, type InboxRow } from "./Inbox";
@@ -54,6 +57,16 @@ export default async function InboxPage() {
     }
 
     const conversations = await loadConversationSummaries(session.supabase, session.user);
+    /* Track G: which threads this reader archived or reported, and which side
+       the shell is on, so the inbox opens where the reader already is. */
+    const [views, side] = await Promise.all([
+      loadInboxViews(
+        session.supabase as unknown as SupabaseClient,
+        session.user.id,
+        conversations.map((c) => ({ id: c.id, counterpartId: c.counterpartId ?? "", lastAt: c.lastAt })),
+      ),
+      getSide(),
+    ]);
     const rows: InboxRow[] = conversations.map((c) => ({
       id: c.id,
       counterpartName: c.counterpartName,
@@ -66,11 +79,14 @@ export default async function InboxPage() {
       counterpartVerified: c.counterpartVerified,
       counterpartTier: c.counterpartTier,
       contextKind: c.contextKind,
+      side: c.side ?? "property",
+      archived: views.archived.has(c.id),
+      reported: views.reported.has(c.id),
     }));
 
     return (
       <div className="mx-auto max-w-2xl">
-        <Inbox rows={rows} meId={session.user.id} canMarkRead />
+        <Inbox rows={rows} meId={session.user.id} canMarkRead initialSide={side} archiveOpen={views.archiveOpen} />
       </div>
     );
   }
