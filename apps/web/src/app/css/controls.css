@@ -738,6 +738,8 @@
    * there is no plate at all: the object stands on the white card, with no
    * navy square and no rim around it. The overview rows are the same
    * treatment a step smaller, because they are a checklist and not a choice.
+   * The object's own ground and the fade at its canvas edge are the shared
+   * light rule's (light.css), as on every glass object.
    */
   .nf-door__mark--glass {
     width: 4.5rem;
@@ -753,25 +755,6 @@
     border-color: transparent;
     background: none;
     box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-door__mark--glass :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
-    background: none;
-    box-shadow: none;
-  }
-  /* On white, a glow that runs to the edge of the artwork's canvas stops in a
-     hard lilac square (`id-card-check` draws its card on a glow that fills
-     the canvas; at night the navy swallows it). A short fade at the canvas
-     edge turns that edge into falloff. An object inside its own margin, which
-     is nearly all of them, is untouched. */
-  :root[data-theme="light"] .nf-door__mark--glass:not(:where([data-theme="dark"] *)) img {
-    -webkit-mask-image:
-      linear-gradient(to right, transparent, var(--nf-mask-opaque) 12%, var(--nf-mask-opaque) 88%, transparent),
-      linear-gradient(to bottom, transparent, var(--nf-mask-opaque) 12%, var(--nf-mask-opaque) 88%, transparent);
-    -webkit-mask-composite: source-in;
-    mask-image:
-      linear-gradient(to right, transparent, var(--nf-mask-opaque) 12%, var(--nf-mask-opaque) 88%, transparent),
-      linear-gradient(to bottom, transparent, var(--nf-mask-opaque) 12%, var(--nf-mask-opaque) 88%, transparent);
-    mask-composite: intersect;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-door {

@@ -6,9 +6,14 @@ import { chooseBack, parentOf } from "@/lib/nav/resolve";
 /**
  * `/profile/setup` in its four states declares a parent in
  * `route-parents.ts` and drew no back control, so Android back closed the app.
- * Each page now mounts the shared `BackButton` with the declared parent.
+ * The chooser mounts the shared `BackButton` with the declared parent. The two
+ * registration forms draw ONE back control, their own (25 September 2026: the
+ * page's arrow stood a row above the form's, so the screen opened with two):
+ * it steps back through the form, and from the first screen it leaves to the
+ * same declared parent.
  */
-const SETUP = join(process.cwd(), "src/app/(app)/profile/setup");
+const SRC = join(process.cwd(), "src");
+const SETUP = join(SRC, "app/(app)/profile/setup");
 
 const PAGES: [string, string, string][] = [
   ["/profile/setup", "page.tsx", "/profile"],
@@ -16,19 +21,36 @@ const PAGES: [string, string, string][] = [
   ["/profile/setup/owner", "owner/page.tsx", "/profile/setup"],
 ];
 
-describe("profile setup: a back control to the declared parent", () => {
-  for (const [route, file, parent] of PAGES) {
+describe("profile setup: one back control to the declared parent", () => {
+  for (const [route, , parent] of PAGES) {
     it(`${route} resolves to ${parent}`, () => {
       const target = parentOf(route);
       expect(target.kind).toBe("parent");
       expect(target.kind === "parent" ? target.href : null).toBe(parent);
     });
+  }
 
-    it(`${route} mounts the BackButton with that parent`, () => {
-      const source = readFileSync(join(SETUP, file), "utf8");
-      expect(source).toMatch(/import \{ BackButton \} from "@\/components\/site\/BackButton"/);
-      expect(source).toContain(`parentOf("${route}")`);
-      expect(source).toMatch(/<BackButton fallback=\{BACK\.kind === "parent" \? BACK\.href : "\/profile"\} \/>/);
+  it("the chooser mounts the BackButton with its parent", () => {
+    const source = readFileSync(join(SETUP, "page.tsx"), "utf8");
+    expect(source).toMatch(/import \{ BackButton \} from "@\/components\/site\/BackButton"/);
+    expect(source).toContain(`parentOf("/profile/setup")`);
+    expect(source).toMatch(/<BackButton fallback=\{BACK\.kind === "parent" \? BACK\.href : "\/profile"\} \/>/);
+  });
+
+  const FORMS: [string, string, string][] = [
+    ["/profile/setup/owner", "owner/page.tsx", "OwnerRegisterForm"],
+    ["/profile/setup/agent", "agent/page.tsx", "AgentRegisterForm"],
+  ];
+  for (const [route, file, form] of FORMS) {
+    it(`${route} draws one back control, the form's, and its first screen leaves to the parent`, () => {
+      const page = readFileSync(join(SETUP, file), "utf8");
+      expect(page).not.toContain("<BackButton");
+      expect(page).toContain(`<${form} `);
+      const shell = readFileSync(join(SRC, "components/supply/RegisterShell.tsx"), "utf8");
+      expect(shell.match(/data-nav-back=""/g)?.length).toBe(1);
+      expect(shell).toContain("onClick={onBack}");
+      const source = readFileSync(join(SRC, `components/supply/${form}.tsx`), "utf8");
+      expect(source).toMatch(/if \(step === 0\) \{\s*router\.push\("\/profile\/setup"\);/);
     });
   }
 

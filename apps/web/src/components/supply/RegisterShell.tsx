@@ -21,6 +21,11 @@ import { ICON, Surface, TYPE } from "@/components/app/Screen";
  * that do the same thing is two chances to do the wrong one. There is one, it
  * steps back through the form, and on the first screen it leaves the form. A
  * person on screen three pressing back expects screen two, and nothing else.
+ * It is drawn as the platform's own back control, the bare arrow `BackButton`
+ * draws on every sub-page with the same `data-nav-back` handle, and the pages
+ * draw no arrow of their own (25 September 2026: the page's shared arrow
+ * stood a row above this one, so the screen opened with two). The stays
+ * set-up settled the same double the same way (`HostShell`'s `chromeBack`).
  *
  * THE PROGRESS ROW IS `aria-hidden`, as B1's chooser already draws it: the
  * heading says where you are and `stepOf` states it in words for anybody using
@@ -82,7 +87,8 @@ export function RegisterShell({
           type="button"
           aria-label={backLabel}
           onClick={onBack}
-          className="nf-icon-btn nf-icon-btn--glass h-11 w-11 shrink-0"
+          data-nav-back=""
+          className="nf-tap grid shrink-0 place-items-center rounded-[var(--nf-radius-control)] text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-brand-secondary)]"
         >
           <UiIcon name="arrow-left" size={ICON.inline} />
         </button>
