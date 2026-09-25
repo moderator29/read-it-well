@@ -135,34 +135,30 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE ICON TILES (survey R1). The glass objects are drawn for the night
-   * ground, and what makes them read is which parts are transparent: no
-   * filter makes a daylight version. So in light every object sits on its
-   * OWN ground, `--nf-surface-artwork`, in one organised squircle with a
-   * soft brand rim, and it looks exactly as it does at night. One treatment
-   * for every object on every surface, rather than a navy chip here and a
-   * white one there. Not inside a button: a lit button is already the
-   * object's ground, and a dark square inside it reads as a hole.
+   * THE ICON TILES: NO GROUND BEHIND THE OBJECT (the founder, Track M,
+   * second round: "in light mode all these icons should not have those dark
+   * blue backgrounds; it should only be the icon").
+   *
+   * The glass objects used to sit on a navy squircle in light, because they
+   * are drawn for the night and their see-through parts read thin on white.
+   * The founder chose the object alone. What keeps it defined on white is a
+   * soft blue shadow under the object itself, no plate, no rim.
    * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-brand-icon-ground:not(:where([data-theme="dark"] *, .nf-btn *)),
-  :root[data-theme="light"] .nf-icon-tile:not(:where([data-theme="dark"] *, .nf-btn *)) {
-    background:
-      radial-gradient(90% 70% at 50% 18%, var(--nf-night-tile-glow), transparent 72%),
-      var(--nf-night-tile-ground);
-    box-shadow:
-      inset 0 0 0 1px var(--nf-night-tile-rim),
-      0 1px 2px var(--nf-shade-1);
+  :root[data-theme="light"] .nf-brand-icon-ground:not(:where([data-theme="dark"] *)),
+  :root[data-theme="light"] .nf-icon-tile:not(:where([data-theme="dark"] *)) {
+    background: none;
+    box-shadow: none;
     border-color: transparent;
   }
-  /* A plate that holds a glass object IS the tile: it takes the night ground
-     and the object's own ground steps back, so there is one squircle, not a
-     dark one inside a pale one. A plate holding a line glyph stays pale with
-     the glyph in the brand ink, which is the reference's icon chip. */
+  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) img {
+    filter: drop-shadow(0 2px 5px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent)) saturate(1.3) contrast(1.12);
+  }
+  /* A plate around a glass object is a light container now, the object
+     standing in it on its own. A plate holding a line glyph stays pale with
+     the glyph in the brand ink. */
   :root[data-theme="light"] .nf-plate:has(> .nf-brand-icon-ground, > .nf-icon-tile):not(:where([data-theme="dark"] *)) {
-    background:
-      radial-gradient(90% 70% at 50% 18%, var(--nf-night-tile-glow), transparent 72%),
-      var(--nf-night-tile-ground);
-    border-color: var(--nf-night-tile-rim);
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-brand-edge);
     box-shadow: 0 1px 2px var(--nf-shade-1);
   }
   :root[data-theme="light"] .nf-plate > :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
@@ -174,29 +170,35 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE DOCK: a floating white capsule-shaped bar with a soft shadow, the
-   * active item on a light grey rounded highlight (the reference's bottom
-   * bar). Opaque, so body copy never reads through it.
+   * THE DOCK IN DAYLIGHT: white glass with a blue glow, the same material
+   * language as the night's blue glass, and no highlight behind the
+   * current tab: that tab is its deep blue glyph and label alone (the
+   * founder: "it should only make that one have deep blue").
    * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-tabbar {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-subtle);
-    box-shadow: var(--nf-elev-3);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+  :root[data-theme="light"] .nf-tabbar,
+  :root[data-theme="light"] .nf-dock-island {
+    background: color-mix(in oklab, var(--nf-surface-primary) 86%, transparent);
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 10%, transparent),
+      0 12px 32px -14px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent),
+      var(--nf-elev-2);
   }
   :root[data-theme="light"] .nf-tabbar__pill {
-    background: var(--nf-surface-raised);
+    background: transparent;
     border-color: transparent;
     box-shadow: none;
   }
   :root[data-theme="light"] .nf-tab__link[aria-current="page"],
   :root[data-theme="light"] .nf-tab__link[data-on] {
-    color: var(--nf-content-primary);
+    color: var(--nf-brand-primary);
     text-shadow: none;
   }
   :root[data-theme="light"] .nf-tab__link[aria-current="page"] .nf-tab__icon,
   :root[data-theme="light"] .nf-tab__link[data-on] .nf-tab__icon {
+    color: var(--nf-brand-primary);
     filter: none;
   }
 
@@ -209,7 +211,8 @@
    * ground steps back. The row becomes a white card on a soft hairline.
    * ---------------------------------------------------------------- */
   :root[data-theme="light"] .nf-pf-plate:not(:where([data-theme="dark"] *)) {
-    --nf-pf-ground: var(--nf-night-tile-ground);
+    /* No navy ground in light (the founder, Track M): the object alone. */
+    --nf-pf-ground: var(--nf-surface-primary);
     --nf-pf-ink: var(--nf-brand-accent);
   }
   :root[data-theme="light"] .nf-pf-plate .nf-brand-icon-ground,

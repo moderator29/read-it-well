@@ -45,11 +45,12 @@ export default function AboutPage() {
     {
       /* This card used to say "we earn only when a booking completes", which
          promised a commission the platform does not charge. The fee position
-         (PRODUCT.md section 3) is that Vallo charges nothing, so the card now
-         says that. */
+         (PRODUCT.md section 3) is that Vallo's commission is zero, and since
+         Track A the card also names the Guarantee contribution, which comes
+         out of the lister's share. */
       icon: "wallet-secure",
       title: "Fair to both sides",
-      body: "Listing is free and the platform charges no fee: not to look, not to book, not to be paid, in any market here. What anybody pays is what the lister receives, less only the payment processor's own charge. Where an agent charges a fee of their own, it is theirs and it is stated on the listing rather than met at the door.",
+      body: "Listing is free and Vallo charges no fee to look, to book or to list, in any market here. What anybody pays reaches the lister, less the payment processor's own charge and the Vallo Guarantee contribution of 1 to 2 percent, which goes to a separate reserve and never to Vallo. Where an agent charges a fee of their own, it is theirs and it is stated on the listing rather than met at the door.",
     },
     {
       icon: "house-sparkle",

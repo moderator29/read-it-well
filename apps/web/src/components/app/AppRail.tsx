@@ -162,12 +162,9 @@ export function AppRail({
               )}
             </span>
             {drawer && userHandle && <span className="nf-nav__whohandle">@{userHandle}</span>}
-            {drawer && (
-              <span className="nf-nav__whocta">
-                {t.nav.viewProfile}
-                <UiIcon name="arrow-right" size={12} />
-              </span>
-            )}
+            {/* "View profile" STOOD HERE (the founder, Track M: "remove that
+                view profile"). The whole head is still the link to the
+                profile; the words were a second label for the same tap. */}
           </span>
           {!drawer && <UiIcon name="chevron-right" size={12} className="nf-nav__whochev" />}
         </Link>

@@ -47,6 +47,16 @@ export const PRIVATE_FEE_NOTE =
 export const OFF_PLATFORM_SENTENCE =
   "Keep every message, agreement and payment on Vallo. Vallo is not responsible for anything arranged, discussed or paid outside the platform.";
 
+/**
+ * The one amount taken from a payment, said wherever "no fees" is said.
+ * Vallo's own commission is zero today, and the Guarantee contribution is not
+ * Vallo's money: but it does come out of the lister's share, so "Vallo charges
+ * nothing, not to be paid" was not true for a lister and every such sentence
+ * now carries this one beside it.
+ */
+export const GUARANTEE_CONTRIBUTION_NOTE =
+  "The one amount set aside from a payment is the Vallo Guarantee contribution: between 1 and 2 percent, taken from the lister's share into a separate reserve. It is never added to the price a renter or guest pays, and it is never Vallo's own money.";
+
 /** What has to happen before payment is available. */
 export const PAYMENT_GATE_SENTENCE =
   "Payment opens only after the inspection report is submitted, both of you confirm the agreement, and Vallo approves it.";

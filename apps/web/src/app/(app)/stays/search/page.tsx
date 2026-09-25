@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forStayCard, forStayFilterSheet } from "@/lib/i18n/slice";
 import { StaysDatesRow, carriedParams } from "@/components/app/stays/StaysDatesRow";
 import { formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -77,7 +78,7 @@ export default async function StaysSearchPage({
           <StayFilterSheet
             query={query}
             locale={locale}
-            t={t}
+            t={forStayFilterSheet(t)}
             today={today}
             extra={{ type }}
             openOnMount={params.filters === "open"}
@@ -141,7 +142,7 @@ export default async function StaysSearchPage({
               <StayCard
                 stay={stay}
                 locale={locale}
-                t={t}
+                t={forStayCard(t)}
                 index={index}
                 saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
                 canSavePlaces={canSavePlaces}

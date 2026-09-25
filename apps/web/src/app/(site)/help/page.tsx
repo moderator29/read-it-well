@@ -8,7 +8,7 @@ import { HelpSearch, type Faq } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
 import { doorsSentence } from "@/lib/supply/roles";
 import { aiConsentForViewer } from "@/lib/ai/consent-server";
-import { GUARANTEE_SCOPE, GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, PAYMENT_GATE_SENTENCE, PAYOUT_ANSWER, REFUND_ROUTE } from "@/lib/money/copy";
+import { GUARANTEE_CONTRIBUTION_NOTE, GUARANTEE_SCOPE, GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, PAYMENT_GATE_SENTENCE, PAYOUT_ANSWER, REFUND_ROUTE } from "@/lib/money/copy";
 
 export const metadata: Metadata = {
   title: "Help centre",
@@ -224,7 +224,7 @@ const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "Does Vallo charge any fees?",
-    a: "No. Vallo charges no fees. Not to book, not to list, not to be paid, in any market on the platform. The total you see before you commit is the agent's own number: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale, a shop, an office or land. Nothing of ours sits on top of it. An agency fee or a caution fee can be a real part of what a landlord asks for, and when it is, it is named on the listing and counted into the move-in total. Anyone presenting an inspection fee, a holding fee or a platform fee as ours is lying, and you should report them.",
+    a: `No. Vallo charges you no fees: not to book and not to list, in any market on the platform. ${GUARANTEE_CONTRIBUTION_NOTE} The total you see before you commit is the agent's own number: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale, a shop, an office or land. Nothing of ours sits on top of it. An agency fee or a caution fee can be a real part of what a landlord asks for, and when it is, it is named on the listing and counted into the move-in total. Anyone presenting an inspection fee, a holding fee or a platform fee as ours is lying, and you should report them.`,
   },
   {
     category: "Verification and trust",

@@ -234,6 +234,7 @@ export function MobileTabBar({
   unreadNotifications = 0,
   signedIn = false,
   switchSlot,
+  prefetchFull = false,
 }: {
   t: Dictionary;
   side?: Side;
@@ -250,6 +251,15 @@ export function MobileTabBar({
    * arrangement `AppShell` already uses for the drawer.
    */
   switchSlot?: React.ReactNode;
+  /**
+   * Prefetch each tab's WHOLE page, not only its loading shell (Track M
+   * performance). Next's default for a dynamic route prefetches up to the
+   * `loading.tsx` boundary, so a tap showed the skeleton while the data was
+   * fetched after the tap; the founder saw exactly that on Search. The dock
+   * is the product's main road, so its four destinations are fetched ready.
+   * False under data saving, when nothing is fetched ahead at all.
+   */
+  prefetchFull?: boolean;
 }) {
   /*
     FIVE SLOTS, AND THE CENTRE ONE IS THE SWITCH.
@@ -398,6 +408,7 @@ export function MobileTabBar({
             <li key={tab.href} className="nf-tab">
               <Link
                 href={tab.href}
+                prefetch={prefetchFull}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={
                   isProfile && marked

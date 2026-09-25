@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forStayCard } from "@/lib/i18n/slice";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
@@ -105,7 +106,7 @@ export default async function RestaurantsPage() {
               <StayCard
                 stay={card}
                 locale={locale}
-                t={t}
+                t={forStayCard(t)}
                 index={index}
                 saved={card.place ? isSaved(savedKeys, card.place.kind, card.place.id) : false}
                 canSavePlaces={canSavePlaces}

@@ -7,6 +7,7 @@ import { getLocale } from "@/lib/locale";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
 import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
+import { shellDictionary } from "@/lib/i18n/shell-dictionary";
 import { AppShell } from "@/components/app/AppShell";
 
 import type { Metadata } from "next";
@@ -83,7 +84,8 @@ export default async function AppLayout({
 
   return (
     <AppShell
-      t={t}
+      /* The shell's slice, not the whole dictionary: see shell-dictionary.ts. */
+      t={shellDictionary(t)}
       side={side}
       userName={userName}
       userHandle={userHandle}

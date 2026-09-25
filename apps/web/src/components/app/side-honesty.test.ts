@@ -37,12 +37,16 @@ describe("the side is only moved on purpose", () => {
     );
   });
 
+  /* The visible "Property" / "Stays" tag left the header on the founder's
+     Track M ruling ("remove the property text, and in stays remove the stays
+     one too"). The side is still named in the header for a screen reader, in
+     full, which is the part of UX-04 that still holds. */
   it("names the side in the header, as text a screen reader hears in full", () => {
     const shell = src("components/app/AppShell.tsx");
-    expect(shell).toContain('className="nf-side-tag lg:hidden"');
-    expect(shell).toContain("{t.side.indicatorPrefix} </span>");
+    expect(shell).not.toContain('className="nf-side-tag lg:hidden"');
+    expect(shell).toMatch(/<span className="sr-only" data-side-tag=\{effectiveSide\}>/);
+    expect(shell).toContain("{t.side.indicatorPrefix}");
     expect(shell).toMatch(/effectiveSide === "stays" \? t\.side\.staysName : t\.side\.propertyName/);
-    expect(src("app/css/chrome.css")).toMatch(/\.nf-side-tag \{[^}]*font-size: var\(--nf-text-caption\)/);
   });
 
   it("offers the side switch at the top of the ⇄ sheet", () => {

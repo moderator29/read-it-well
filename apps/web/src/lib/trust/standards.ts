@@ -119,7 +119,7 @@ export function dueBy(
  * so it cannot be reworded into something weaker by accident.
  */
 export const NO_FEES_LINE =
-  "Vallo charges no fees. Not to book, not to list, not to be paid.";
+  "Vallo charges no fees to look, to book or to list, and its commission is zero. The Vallo Guarantee contribution, 1 to 2 percent of a payment, comes out of the lister's share into a separate reserve.";
 
 export const NEVER_ASK: { title: string; body: string }[] = [
   {

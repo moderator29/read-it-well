@@ -122,6 +122,8 @@
 @import "./css/feed-m.css";
 /* Track M: the listing page (marks, price, sections, tiles, the booking bar). */
 @import "./css/detail-m.css";
+/* Track M, second round: the moving edge on every container and button. */
+@import "./css/edge-m.css";
 /* Track M: the cinema kit (Truchet field, horizontal reel, vertical columns,
    kinetic type, film HUD). */
 @import "./css/cinema.css";

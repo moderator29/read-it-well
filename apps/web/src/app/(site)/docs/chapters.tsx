@@ -16,6 +16,7 @@ import {
   PAYOUT_ANSWER,
   PRIVATE_FEE_NOTE,
   REFUND_ROUTE,
+  GUARANTEE_CONTRIBUTION_NOTE,
 } from "@/lib/money/copy";
 import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-schema";
 import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
@@ -250,15 +251,15 @@ const WRITTEN: DocChapter[] = [
       },
       {
         id: "no-fees",
-        heading: "The platform charges nothing",
+        heading: "What Vallo takes from a payment",
         body: (
           <>
             <p>
-              Vallo takes no fee. Not to look, not to book, not to list, not to be
-              paid. There is no service fee, no booking fee, no listing fee and no
-              commission taken out of what anybody pays an agent, in any market on
-              this platform.
+              Vallo takes no fee to look, to book or to list. There is no service fee,
+              no booking fee and no listing fee, and Vallo&rsquo;s commission is zero, in
+              any market on this platform.
             </p>
+            <p>{GUARANTEE_CONTRIBUTION_NOTE}</p>
             <p>
               What a total is made of depends on the market, and in every one of them
               it is the agent&rsquo;s number and nothing of ours on top of it. On a
@@ -2045,7 +2046,7 @@ const WRITTEN: DocChapter[] = [
             </p>
             <p>
               There is no holding fee, no inspection fee, no agency fee and no caution fee
-              payable to Vallo, because Vallo charges nothing at all. Anybody presenting
+              payable to Vallo. Anybody presenting
               one as ours is lying.
             </p>
             <p>

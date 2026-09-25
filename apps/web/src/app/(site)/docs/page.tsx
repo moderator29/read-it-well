@@ -38,9 +38,10 @@ export default function DocsHomePage() {
           tell you, and how an inspection comes before any money moves. On Vallo
           Stays: searching against dates and guests, how a booking holds your nights,
           asking a restaurant for a table, and where it all lands in Plans. Then the
-          wallet that pays for both, how Around works, and what happens when something
-          goes wrong. The platform charges no fees, and this document says so wherever
-          it matters.
+          way paying works on both, how Around works, and what happens when something
+          goes wrong. Vallo&rsquo;s commission is zero, the one amount set aside from a
+          payment is the Vallo Guarantee contribution, and this document says so
+          wherever it matters.
         </p>
         {first && (
           <div className="mt-heading flex flex-wrap gap-row">

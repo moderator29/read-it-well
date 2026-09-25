@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forProofStrip } from "@/lib/i18n/slice";
 import { StillAvailable } from "@/components/app/listing/StillAvailable";
 import { readRecentlyLet } from "@/lib/availability/queries";
 import { readViewingSlots } from "@/lib/viewings/queries";
@@ -996,7 +997,7 @@ export default async function ListingDetailPage({
                   <ProofStrip
                     lines={proofLines({ ...proofFactsOf(listing), credentials })}
                     variant="full"
-                    t={t}
+                    t={forProofStrip(t)}
                     locale={locale}
                     className="mt-md"
                   />

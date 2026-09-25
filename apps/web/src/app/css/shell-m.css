@@ -152,8 +152,27 @@
     border-radius: var(--nf-radius-pill);
     background: var(--nf-brand-secondary);
   }
-  .nf-nav--drawer .nf-nav__row::after {
-    opacity: 0.35;
+  /* NO CHEVRONS BESIDE THE ROWS (the founder: "beside each side nav
+     feature remove those >"). A row is a destination; the whole row is the
+     control, and the glass object and the word already say so. */
+  .nf-nav--drawer .nf-nav__row::after,
+  .nf-nav--drawer .nf-nav__legal::after {
+    display: none;
+  }
+  /* The drawer's head held only the close control, which the founder took
+     out ("remove the X in the top right"); the scrim beside the panel, a
+     swipe and Escape still close it. An empty head takes no room. */
+  .nf-nav--drawer .nf-nav__head:empty {
+    display: none;
+  }
+  .nf-drawer--left {
+    overflow: hidden;
+  }
+  .nf-drawer__scroll {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-top: var(--nf-space-md);
   }
   .nf-nav--drawer .nf-nav__heading {
     letter-spacing: 0.08em;
@@ -191,6 +210,18 @@
       opacity: 1;
       transform: none;
     }
+  }
+
+  /* ------------------------------------------------ the header, smaller */
+
+  /* The founder: "the notification there, reduce the size". The bell and the
+     menu control sit at 40px with a 20px glyph (their 44pt target is kept by
+     `.nf-tap`), so the header reads lighter and the page starts sooner. */
+  .nf-app-header .nf-app-header__btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
   }
 
   /* ------------------------------------------------ the appearance row */
@@ -242,6 +273,7 @@
     color: var(--nf-content-muted);
   }
   .nf-theme-row__chev {
+    display: none;
     flex: none;
     width: 0.5rem;
     height: 0.5rem;
@@ -276,10 +308,16 @@
   /* ------------------------------------------------------ the capsule */
 
   /*
-   * THE CAPSULE, SHARPER. A true pill of dark glass with a hairline edge and a
-   * deep soft shadow, the reference's shape. The brand tint and the blue
-   * bloom come off it: the travelling pill and the solid active glyph are the
-   * only colour the bar needs.
+   * THE CAPSULE IS THE PLATFORM'S BLUE GLASS (the founder, second round:
+   * "the capsule surrounding the bottom nav should be glass glowing blue like
+   * all other containers"). chrome.css paints that material; this rule only
+   * makes the shape a true pill and gives the moving edge room.
+   *
+   * NO HIGHLIGHT BEHIND THE CURRENT TAB. The founder: "there is one circle
+   * thing when we click, transparent, closer to white; remove it; it should
+   * only make that one deep blue". The travelling pill stays in the markup
+   * for its geometry and paints nothing; the current tab is its deep blue
+   * glyph and label alone (chrome.css).
    */
   .nf-dockrow {
     align-items: flex-end;
@@ -288,17 +326,14 @@
   .nf-tabbar {
     --nf-tab-pad: 0.3125rem;
     border-radius: var(--nf-radius-pill);
-    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 18px 40px -16px var(--nf-shade-3),
-      var(--nf-glass-shadow-lifted);
   }
   .nf-tabbar__pill {
-    border-radius: var(--nf-radius-pill);
-    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
-    transition: translate var(--nf-duration-slow) var(--nf-ease-spring);
+    background: transparent;
+    box-shadow: none;
+  }
+  .nf-tab__link[aria-current="page"],
+  .nf-tab__link[aria-current="page"] .nf-tab__icon {
+    color: var(--nf-brand-primary);
   }
   .nf-tab__link {
     transition: transform var(--nf-duration-press) var(--nf-ease-press);
@@ -328,19 +363,16 @@
     position: relative;
     width: 3.5rem;
     height: 3.5rem;
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
-    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 18px 40px -16px var(--nf-shade-3),
-      var(--nf-glass-shadow-lifted);
   }
   .nf-dockmore__button[data-lit] {
-    color: var(--nf-brand-secondary);
+    color: var(--nf-brand-primary);
   }
   .nf-dockmore[data-open] .nf-dockmore__button {
-    background: var(--nf-content-primary);
-    color: var(--nf-surface-canvas);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      var(--nf-glow-edge),
+      0 0 22px -4px var(--nf-glow-3);
   }
   .nf-dockmore__icon {
     position: absolute;
