@@ -1,0 +1,114 @@
+/*
+ * TRACK M: THE LISTING PAGE BREATHES (25 September 2026).
+ *
+ * The page everybody lands on from a search: a property, a stay or a
+ * restaurant. The gallery already settles once (`nf-gallery-kenburns`) and
+ * the lead card rises (`nf-rise`); this carries the same life down the rest
+ * of the page, the way the founder asked for "all the inner areas":
+ *
+ *   the gallery marks   slide in beside the photograph, one after another
+ *   the price           arrives out of depth, the figure the eye goes to
+ *   the sections        rise as each one scrolls into view (view timeline)
+ *   the tiles           amenity and spec tiles pop in as their row appears
+ *   the booking bar     slides up from the bottom edge once, after the page
+ *
+ * The scroll-driven parts use the individual `translate` and `scale`
+ * properties, so they add to any transform a card already has on press.
+ * Without view timelines everything is simply shown; reduced motion stops
+ * all of it; Calm and Off are handled in motion-pref.css.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  .nf-gallery-mark {
+    animation: nf-detail-mark var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-gallery-mark:nth-child(1) {
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 420ms);
+  }
+  .nf-gallery-mark:nth-child(2) {
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 520ms);
+  }
+  .nf-gallery-mark:nth-child(n + 3) {
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 620ms);
+  }
+  @keyframes nf-detail-mark {
+    from {
+      opacity: 0;
+      translate: -12px 0;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+    }
+  }
+
+  .nf-detail-price {
+    transform-origin: left center;
+    animation: nf-in-depth var(--nf-duration-deliberate) var(--nf-ease-entrance) 200ms both;
+  }
+
+  @supports (animation-timeline: view()) {
+    .nf-cat-surface .nf-panel:not(.nf-detail-lead),
+    .nf-detail-panel {
+      animation: nf-detail-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+    .nf-amenity-tile,
+    .nf-spec-tile {
+      animation: nf-detail-pop linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 70%;
+    }
+  }
+  @keyframes nf-detail-rise {
+    from {
+      opacity: 0;
+      translate: 0 24px;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+    }
+  }
+  @keyframes nf-detail-pop {
+    from {
+      opacity: 0;
+      scale: 0.9;
+    }
+    to {
+      opacity: 1;
+      scale: none;
+    }
+  }
+
+  .nf-detail-foot {
+    animation: nf-detail-foot var(--nf-duration-slow) var(--nf-ease-entrance) calc(var(--nf-splash-hold, 0ms) + 350ms) both;
+  }
+  /* The bar's own glass is already there (ActionBar pins it); what rises is
+     its content, a short travel, so nothing leaves the bar's clip. */
+  @keyframes nf-detail-foot {
+    from {
+      translate: 0 16px;
+      opacity: 0;
+    }
+    to {
+      translate: none;
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-gallery-mark,
+    .nf-detail-price,
+    .nf-cat-surface .nf-panel:not(.nf-detail-lead),
+    .nf-detail-panel,
+    .nf-amenity-tile,
+    .nf-spec-tile,
+    .nf-detail-foot {
+      animation: none;
+    }
+  }
+}
