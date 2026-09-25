@@ -177,7 +177,7 @@ export default async function ProfilePage({
           <RoleSwitcher roles={SIGNED_OUT_ROLES} current="renter" variant="row" />
 
           <SettingsGroup label="More">
-            <RowLink href="/settings" icon="sliders" label={t.nav.settings} />
+            <RowLink href="/settings" icon="settings-gear" label={t.nav.settings} />
             <RowLink href="/help" icon="ticket" label="Help" />
           </SettingsGroup>
         </div>

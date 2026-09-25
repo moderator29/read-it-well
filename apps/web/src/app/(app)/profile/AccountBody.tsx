@@ -229,9 +229,11 @@ export function AccountBody({
             <SettingsGroup label={COPY.more}>
               {handle ? (
                 <>
+                  {/* The person and not the settings mark: this row edits the
+                      public profile, and the settings mark means Settings. */}
                   <RowLink
                     href={`/u/${handle}/edit`}
-                    icon="settings-gear"
+                    icon="user"
                     label={COPY.editProfile}
                     sub={COPY.editProfileSub}
                   />

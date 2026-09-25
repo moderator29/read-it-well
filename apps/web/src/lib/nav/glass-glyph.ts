@@ -33,5 +33,5 @@ export const GLASS_FOR: Partial<Record<UiIconName, BrandIconObject>> = {
   "shield-stop": "shield-lock",
   plus: "person-card",
   ticket: "support-chat",
-  "settings-gear": "manage-ring",
+  /* Settings is absent on purpose: its mark is the line glyph, in brand blue (the founder, 25 September 2026). */
 };

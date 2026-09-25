@@ -557,10 +557,26 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M5.3 20.2a6.9 6.9 0 0 1 13.4 0" />
     </>
   ),
+  /*
+   * SETTINGS. Three upright rails, each with its handle at a different
+   * height: the settings mark, and it is NOT a gear any more (the founder, 25
+   * September 2026: one "more clean, clear" settings icon, the same wherever
+   * settings appears). The toothed gear was 24 small arcs on a 24 grid and
+   * read as a smudge at the 18 to 24px it is drawn at; the glass `manage-ring`
+   * the tray and the drawer used was a faint ring around it. The name stays
+   * `settings-gear` so every call site, the dock's tray, the drawer, the
+   * profile's control, the assistant's panel and the console, changes at once.
+   * The rails stand upright on purpose: `sliders` above lies them flat and
+   * means Filters, and one mark means one thing.
+   */
   "settings-gear": (
     <>
-      <path d="M12.22 2.6h-.44a1.9 1.9 0 0 0-1.9 1.9v.17a1.9 1.9 0 0 1-.95 1.64l-.41.24a1.9 1.9 0 0 1-1.9 0l-.14-.08a1.9 1.9 0 0 0-2.59.7l-.21.36a1.9 1.9 0 0 0 .69 2.59l.15.1a1.9 1.9 0 0 1 .94 1.63v.48a1.9 1.9 0 0 1-.94 1.65l-.15.09a1.9 1.9 0 0 0-.69 2.59l.21.36a1.9 1.9 0 0 0 2.59.7l.14-.08a1.9 1.9 0 0 1 1.9 0l.41.24a1.9 1.9 0 0 1 .95 1.64v.17a1.9 1.9 0 0 0 1.9 1.9h.44a1.9 1.9 0 0 0 1.9-1.9v-.17a1.9 1.9 0 0 1 .95-1.64l.41-.24a1.9 1.9 0 0 1 1.9 0l.14.08a1.9 1.9 0 0 0 2.59-.7l.21-.37a1.9 1.9 0 0 0-.69-2.58l-.15-.09a1.9 1.9 0 0 1-.94-1.65v-.48a1.9 1.9 0 0 1 .94-1.64l.15-.09a1.9 1.9 0 0 0 .69-2.59l-.21-.36a1.9 1.9 0 0 0-2.59-.7l-.14.08a1.9 1.9 0 0 1-1.9 0l-.41-.24a1.9 1.9 0 0 1-.95-1.64v-.17a1.9 1.9 0 0 0-1.9-1.9Z" />
-      <circle cx="12" cy="12" r="3.1" />
+      <path d="M6 4v8.9m0 4.2V20" />
+      <circle cx="6" cy="15" r="2.1" />
+      <path d="M12 4v1.9m0 4.2V20" />
+      <circle cx="12" cy="8" r="2.1" />
+      <path d="M18 4v6.9m0 4.2V20" />
+      <circle cx="18" cy="13" r="2.1" />
     </>
   ),
   heart: (
@@ -699,7 +715,7 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   ),
 
   /* A flag on a mast, the cloth cut square. Report. A gear stood here before,
-     which is the icon for settings on every other screen of this platform. */
+     and a gear read as settings, which has its own mark (`settings-gear`). */
   flag: (
     <>
       <path d="M6.6 20.2V4.6" />

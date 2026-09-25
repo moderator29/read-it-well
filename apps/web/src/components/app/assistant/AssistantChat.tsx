@@ -630,7 +630,7 @@ export function AssistantChat({
             onClick={() => setSettingsOpen(true)}
             className="nf-icon-btn h-11 w-11"
           >
-            <UiIcon name="sliders" size={20} />
+            <UiIcon name="settings-gear" size={20} />
           </button>
         </div>
       </div>

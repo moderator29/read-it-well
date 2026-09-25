@@ -134,6 +134,8 @@
   .nf-pf-cover .nf-pf-gear {
     position: absolute;
     z-index: 41;
+    /* The settings mark in brand blue, as the tray and the drawer draw it. */
+    color: var(--nf-brand-secondary);
     inset-block-start: calc(env(safe-area-inset-top, 0px) + 0.5rem + 2.75rem + var(--nf-space-xs));
     inset-inline-end: var(--nf-pad-shell);
   }
