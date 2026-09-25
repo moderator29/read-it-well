@@ -85,9 +85,9 @@ function blockerCopy(
 
   switch (blocker.kind) {
     case "rent-refunds-owed":
-      return { line: phrase(copy.blockerRentRefundsOwed, { amount }), cta: copy.blockerWalletBalanceCta };
+      return { line: phrase(copy.blockerRentRefundsOwed, { amount }), cta: copy.blockerRentRefundsCta };
     case "rent-refunds-due":
-      return { line: phrase(copy.blockerRentRefundsDue, { amount }), cta: copy.blockerWalletBalanceCta };
+      return { line: phrase(copy.blockerRentRefundsDue, { amount }), cta: copy.blockerRentRefundsCta };
     case "active-bookings":
       return {
         line: phrase(

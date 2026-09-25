@@ -49,7 +49,7 @@ export const platformEn = {
     /* The button, on the devices screen and on the alert. */
     notMeTitle: "Something here is not you?",
     notMeBody:
-      "This signs out every other device, stops any money leaving your wallet for 24 hours, and takes you to change your password.",
+      "This signs out every other device, pauses payments and changes to your payout details for 24 hours, and takes you to change your password.",
     notMe: "This was not me",
     notMeConfirm: "Tap again to hold your money",
     notMeWorking: "Holding your money",
@@ -72,18 +72,18 @@ export const platformEn = {
   notMe: {
     heldVerdict: "Your money is on hold",
     heldConsequence:
-      "No money can leave your wallet until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
+      "No payment can be made and no payout detail can change until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
     extendedConsequence:
       "The hold now lasts until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
     alreadyHeldConsequence:
-      "Your wallet was already on hold until {until}; pressing again does not change that. {ended} Change your password now if you have not.",
+      "Your account was already on hold until {until}; pressing again does not change that. {ended} Change your password now if you have not.",
     alreadyHeldOtherConsequence:
-      "Your wallet was already on hold until {until} while a change to your account is checked; pressing this does not shorten it. {ended} Change your password now if you have not.",
+      "Your account was already on hold until {until} while a change to your account is checked; pressing this does not shorten it. {ended} Change your password now if you have not.",
     rateLimitedHeld:
-      "{ended} You have pressed this several times in the last hour, so the hold was left as it was: no money can leave your wallet until {until}. Change your password now if you have not.",
+      "{ended} You have pressed this several times in the last hour, so the hold was left as it was: no payment can be made and no payout detail can change until {until}. Change your password now if you have not.",
     /* A plain hold (see account-hold.ts): no cause, no date. */
     alreadyHeldPlainConsequence:
-      "Your wallet was already on hold; pressing this does not change that. {ended} Change your password now if you have not.",
+      "Your account was already on hold; pressing this does not change that. {ended} Change your password now if you have not.",
     rateLimitedHeldPlain:
       "{ended} You have pressed this several times in the last hour, so the hold was left as it was. Change your password now if you have not.",
     rateLimitedNoHold:
@@ -100,20 +100,22 @@ export const platformEn = {
   },
 
   hold: {
-    title: "Money cannot leave this wallet for now",
+    /* Track A: there is no wallet. A hold pauses payments and payout changes. */
+    title: "Payments are paused on this account for now",
     bodyNotMe:
-      "You told us a sign-in was not you. Until {until}, nothing can leave this wallet: no withdrawal, no send, no payment from the balance, and payout accounts cannot be changed. Money can still arrive.",
+      "You told us a sign-in was not you. Until {until}, no payment can be made from this account and payout details cannot be changed.",
     bodyOther:
-      "The email address on this account was changed with help from support. Until {until}, nothing can leave this wallet: no withdrawal, no send, no payment from the balance, and payout accounts cannot be changed. Money can still arrive.",
+      "The email address on this account was changed with help from support. Until {until}, no payment can be made from this account and payout details cannot be changed.",
     refusalNotMe:
-      "No money can leave this wallet until {until}, because you told us a sign-in was not you. Nothing has left your wallet.",
+      "No payment can be made from this account until {until}, because you told us a sign-in was not you. Nothing was charged.",
     refusalOther:
-      "No money can leave this wallet until {until}, because the email address on this account was changed with help from support. Nothing has left your wallet.",
-    refusalUnknown: "No money can leave this wallet while a hold is on it. Nothing has left your wallet.",
+      "No payment can be made from this account until {until}, because the email address on this account was changed with help from support. Nothing was charged.",
+    refusalUnknown: "No payment can be made from this account while a hold is on it. Nothing was charged.",
     bodyPlain:
-      "Nothing can leave this wallet for now: no withdrawal, no send, no payment from the balance, and payout accounts cannot be changed. Money can still arrive.",
-    refusalPlain: "No money can leave this wallet for now. Nothing has left your wallet.",
+      "No payment can be made from this account for now, and payout details cannot be changed.",
+    refusalPlain: "No payment can be made from this account for now. Nothing was charged.",
   },
+
 
   /* V-30: the five kinds of the feedback grammar, as the styleguide names them. */
   feedback: {
@@ -406,9 +408,9 @@ export const platformEn = {
 
   /* V-81: the lock on money. */
   moneyLock: {
-    needed: "Confirm it is you with this phone's face or fingerprint lock, or your password, before money leaves your wallet. Nothing has left.",
+    needed: "Confirm it is you with this phone's face or fingerprint lock, or your password, before this goes ahead. Nothing has changed.",
     confirmTitle: "Confirm it is you",
-    confirmBody: "Money is leaving your wallet. Use this phone's face or fingerprint lock.",
+    confirmBody: "This changes where money goes. Use this phone's face or fingerprint lock.",
     confirm: "Use face or fingerprint",
     usePassword: "Use my password instead",
     notConfirmed: "Not confirmed, so nothing has moved.",
@@ -420,8 +422,8 @@ export const platformEn = {
     passwordLabel: "Your Vallo password",
     passwordConfirm: "Confirm",
     cancel: "Cancel",
-    rejected: "That did not confirm it is you. Nothing has left your wallet. Try again.",
-    failed: "We could not check that just now. Nothing has left your wallet. Try again in a moment.",
+    rejected: "That did not confirm it is you. Nothing has changed. Try again.",
+    failed: "We could not check that just now. Nothing has changed. Try again in a moment.",
     settingsTitle: "Lock money with this phone",
     settingsBody:
       "Sending and withdrawing will ask for this phone's face or fingerprint lock. If the lock will not answer, your password still works.",

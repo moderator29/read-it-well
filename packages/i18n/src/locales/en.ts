@@ -221,16 +221,8 @@ export const en = {
     payByCard: "Pay by card",
     cardUnavailable: "Card payment is not available right now.",
     cardUnavailableStayNote:
-      "Your dates stay held and nothing has been charged. Pay from your wallet, or try the card again from here.",
-    cardUnavailableRentNote: "Nothing has been charged. Pay from your wallet, or try the card again from here.",
-    walletTitle: "Pay from your Vallo wallet",
-    walletCoversStay: "Your wallet holds {balance}. Paying from it confirms this stay straight away.",
-    walletCoversRent: "Your wallet holds {balance}. Paying from it settles the rent straight away.",
-    walletShortStay: "Your wallet holds {balance}, and this stay comes to {total}.",
-    walletShortRent: "Your wallet holds {balance}, and the move-in total comes to {total}.",
-    walletShortNote: "Add money to your wallet first, or pay by card.",
-    payFromWallet: "Pay from my wallet",
-    openWallet: "Open my wallet",
+      "Your dates stay held and nothing has been charged. Try the card again from here, or pay by bank transfer.",
+    cardUnavailableRentNote: "Nothing has been charged. Try the card again from here, or pay by bank transfer.",
     addMoney: "Add money",
     onPlatformStay:
       "Money moves inside Vallo, so the stay and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
@@ -265,28 +257,24 @@ export const en = {
     pageNotOpened: "The secure payment page could not be opened.",
     notCompleted: "The payment could not be completed.",
     paidFootnote: "Paid inside Vallo, recorded to the kobo.",
-    payingFromWallet: "Paying from your wallet",
     openingPaymentPage: "Opening your payment page",
     slowNothingMoved: "This is taking longer than usual. Nothing has moved yet and nothing has been charged. Stay here.",
-    walletUntilComplete: "Nothing leaves your wallet until this completes.",
     nothingChargedYet: "Nothing has been charged yet.",
     continueToBank: "Continue to your bank",
     payAnotherWay: "Pay another way",
     notHeardBack: "We have not heard back",
     tryAgain: "Try again",
     paymentNotCompleted: "Payment not completed",
-    nothingTaken: "Nothing has been taken from your card or your wallet.",
+    nothingTaken: "Nothing has been taken from your card or your account.",
     getHelp: "Get help",
     paymentSent: "Payment sent",
     seeStays: "See your stays",
     backToStay: "Back to the stay",
-    stalledWalletStay: "Your wallet balance has not changed. Check your stays before you try again, so you do not pay twice.",
     stalledCardStay: "Your card has not been charged. Check your stays before you try again, so you do not pay twice.",
     rentPaid: "Rent paid",
     openThread: "Open the thread",
     backToListing: "Back to the listing",
     preparingPayment: "Preparing your payment",
-    stalledWalletRent: "Your wallet balance has not changed. Reload this page before you try again, so you do not pay twice.",
     stalledCardRent: "Your card has not been charged. Reload this page before you try again, so you do not pay twice.",
     reload: "Reload",
     confirmingPayment: "Confirming your payment",
@@ -465,7 +453,7 @@ export const en = {
         body: "Message the agent or host and book an inspection first. When you pay, pay on Vallo, never to anybody outside it.",
         left: "Message",
         right: "Pay",
-        art: "A conversation, an inspection and a wallet",
+        art: "A conversation, an inspection and an agreement",
       },
       choice: {
         titleA: "Ready when",
@@ -572,14 +560,14 @@ export const en = {
     staysSub: "Hotels, shortlets and restaurants",
     propertySub: "Rentals, sales and agents",
     switching: "Switching to {side}",
-    coverStaysLine: "Hotels, apartments, resorts and tables, booked with the wallet you already have.",
+    coverStaysLine: "Hotels, apartments, resorts and tables, booked with the account you already have.",
     coverPropertyLine: "Rentals, sales, agents and inspections, on the account you already have.",
     flipped: "Now on {side}",
   },
   /* The Stays side: home, search, restaurants and trips. */
   stays: {
     heroTitle: "Where to next?",
-    heroLine: "Hotels, shortlets, serviced apartments and tables, paid with the wallet you already have.",
+    heroLine: "Hotels, shortlets, serviced apartments and tables, booked with the account you already have.",
     where: "Where",
     wherePlaceholder: "City, area or landmark",
     checkIn: "Check in",
@@ -745,7 +733,7 @@ export const en = {
     myBookings: "Plans",
     myBookingsSub: "Inspections, move-ins, stays and tables",
     savedSub: "Your saved properties, hotels and places",
-    walletSub: "Manage your balance, cards and transactions",
+    walletSub: "Your agreements, payments and Guarantee claims",
     agreementsSub: "Your agreements, payments and Guarantee claims",
     /*
      * The same four rows, said in one line each.
@@ -757,7 +745,7 @@ export const en = {
      */
     myBookingsRow: "Property and stays bookings",
     savedRow: "Saved properties and places",
-    walletRow: "Balance, cards and transactions",
+    walletRow: "Agreements, payments and Guarantee claims",
     /*
      * The account page itself (`/profile`). Row values carry the
      * figure in `{count}`; the Switch role line names only the roles the
@@ -961,7 +949,7 @@ export const en = {
       chips: {
         verified: { title: "Buy and rent", sub: "What moving in costs, not the rent alone." },
         ai: { title: "AI assistant", sub: "Ask in four languages. Real listings back." },
-        wallet: { title: "One naira wallet", sub: "Top up, pay and send, on both sides." },
+        wallet: { title: "The Vallo Guarantee", sub: "Vallo never holds your money. A reserve stands behind rentals and stays." },
         one: { title: "Bookings and trips", sub: "Stays, tables and inspections, by date." },
         stays: { title: "Vallo Stays", sub: "Hotels, apartments, resorts, guest houses, tables." },
         manage: { title: "Messages", sub: "Whoever is behind the listing, on the record." },
@@ -1102,7 +1090,6 @@ export const en = {
         subscribed: "Thank you. You are on the list.",
         home: "Home",
         ai: "AI Assistant",
-        wallet: "Wallet",
         safety: "Safety",
         standards: "Standards",
         cancellations: "Cancellations",
@@ -1201,7 +1188,7 @@ export const en = {
       title1: "Real Estate,",
       title2: "reimagined.",
       subtitle:
-        "Somewhere for a night, somewhere for the year, a house to buy, a shop to trade from, or the land itself. Nine markets, agents checked by real people, and one wallet for all of it.",
+        "Somewhere for a night, somewhere for the year, a house to buy, a shop to trade from, or the land itself. Nine markets, agents checked by real people, and payments Vallo never holds.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Start exploring",
       popularLabel: "Popular right now",
@@ -1242,12 +1229,12 @@ export const en = {
       body: "Most property in Nigeria is arranged across a phone call, a WhatsApp thread and a bank transfer, and none of those remember anything. Here the conversation, the money and the paperwork are the same account, so a year later you can still show what happened.",
       points: {
         wallet: {
-          title: "A naira wallet",
-          body: "Top up by card or bank transfer, pay from your balance, and send to other Vallo members. Crypto top-ups too, where they are switched on.",
+          title: "Payments Vallo never holds",
+          body: "Pay by card or bank transfer once both of you confirm the agreement and Vallo approves it. The owner's or agent's share goes straight to their bank.",
         },
         savings: {
-          title: "Savings pots",
-          body: "Set money aside toward rent or a deposit, in a pot that is separate from your spending balance.",
+          title: "The Vallo Guarantee",
+          body: "Between 1 and 2 percent of every payment goes to a separate reserve. If something covered goes wrong, claim in the 72 hours after you move in or check in.",
         },
         assistant: {
           title: "An assistant that reads the catalogue",
@@ -1303,7 +1290,7 @@ export const en = {
         },
         {
           q: "What happens after I pay?",
-          a: "Your confirmation and the details arrive at once, the conversation with the agent stays in your account, and every payment keeps a reference you can open from your wallet.",
+          a: "Your confirmation and the details arrive at once, the conversation with the agent stays in your account, and every payment keeps a reference you can open from the booking.",
         },
       ],
     },
@@ -1756,7 +1743,7 @@ export const en = {
     /** SEC-15: the 7-day hold after support moved this account to a new address. */
     moneyHold: {
       title: "Money cannot leave your account until {when}",
-      body: "Support moved this account to a new email address. For 7 days after that, withdrawals, wallet sends, wallet payments and new or changed bank accounts are paused, so nobody who took the account over can empty it. Money coming in, and paying by card, work as normal.",
+      body: "Support moved this account to a new email address. For 7 days after that, payments and new or changed bank accounts are paused, so nobody who took the account over can empty it. Money coming in, and paying by card, work as normal.",
     },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
@@ -1904,7 +1891,7 @@ export const en = {
     dataExport: {
       label: "A copy of your data",
       action: "Download your data",
-      sub: "Your account, profile, bookings, wallet, messages you sent and more, as one JSON file.",
+      sub: "Your account, profile, bookings, agreements, messages you sent and more, as one JSON file.",
       note: "It is made when you ask and holds only your own records. Files you uploaded are listed, not included. For anything it leaves out, contact support.",
       signedOut: "Sign in to download the data held on your account.",
     },
@@ -1912,7 +1899,7 @@ export const en = {
     devices: {
       rowLabel: "Devices and sessions",
       rowNote:
-        "Your wallet sits behind this account. Anything signed in that you do not recognise should be ended here, now.",
+        "Your bookings and payout details sit behind this account. Anything signed in that you do not recognise should be ended here, now.",
       rowNoteSignedOut: "Sign in to see where your account is signed in.",
       rowValueOne: "1 signed in",
       rowValueMany: "{count} signed in",
@@ -1997,9 +1984,9 @@ export const en = {
         bookingsSub: "Requests, confirmations and changes to your stays.",
         messages: "Messages",
         messagesSub: "New replies from hosts and agents you are talking to.",
-        wallet: "Wallet",
+        wallet: "Payments",
         walletSub:
-          "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+          "Emails about payments, refunds, agreements and Guarantee claims. Anything putting money at risk still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Occasional highlights from around Nigeria. Off by default.",
       },
@@ -2008,9 +1995,9 @@ export const en = {
         bookingsSub: "New requests, cancellations and payments on your listings.",
         messages: "Messages",
         messagesSub: "New enquiries from guests about your listings.",
-        wallet: "Earnings and payouts",
+        wallet: "Payments and payouts",
         walletSub:
-          "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+          "Emails about payments settled to your bank and refunds. Anything putting money at risk still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Hosting tips and what is moving in your area. Off by default.",
       },
@@ -2049,7 +2036,7 @@ export const en = {
         "Any event you are hosting that has not happened yet is cancelled, and everybody going is told. Events that have already happened stay, with your name removed.",
       keptTitle: "Kept, with your name removed",
       keepsBookings:
-        "Bookings, reservations, wallet entries, payments and payout records. Nigerian anti-money-laundering rules require us to keep transaction records, so these stay on file with your name, email address and telephone number removed.",
+        "Bookings, reservations, agreements, payments and payout records. Nigerian anti-money-laundering rules require us to keep transaction records, so these stay on file with your name, email address and telephone number removed.",
       keepsMessages:
         "Messages you have sent stay in the other person's conversation with an anonymous sender, so their side of the thread still reads.",
       keepsReviews: "Reviews you have written stay on the property, with no author name.",
@@ -2089,22 +2076,14 @@ export const en = {
       blockedTitle: "There is still something of yours here",
       blockedBody:
         "Clear these and the delete button unlocks. Nothing here stops you leaving, it just has to be settled first.",
-      blockerWalletBalance: "Your wallet holds {amount}.",
-      blockerWalletBalanceCta: "Spend or send it",
-      /* While bank payouts are closed (lib/wallet/bank-payouts.ts) the balance
-         cannot be withdrawn, so the line names the ways it can be cleared. */
-      blockerWalletBalanceBeforePayouts:
-        "Your wallet holds {amount}. Spend it or send it to another Vallo member. Withdrawal to a bank is not available yet, so if you cannot do either, contact support and we will settle it with you.",
-      blockerWalletHeld: "{amount} of yours is held in escrow.",
-      blockerWalletHeldCta: "Open my wallet",
       /* STORE-12 / MON-09: money in a pot, and rent refunds either way. The
          deletion is also re-checked for these on the day it runs. */
-      blockerPotBalance: "{amount} of yours is set aside in a savings pot.",
+      blockerRentRefundsCta: "Talk to support",
       blockerRentRefundsOwed: "You owe {amount} in rent refunds to people who paid you.",
       blockerRentRefundsDue: "{amount} in rent refunds is owed to you.",
-      blockerPendingPayouts: "You have {count} withdrawal that has not settled.",
-      blockerPendingPayoutsPlural: "You have {count} withdrawals that have not settled.",
-      blockerPendingPayoutsCta: "Open my wallet",
+      blockerPendingPayouts: "You have {count} refund that has not settled.",
+      blockerPendingPayoutsPlural: "You have {count} refunds that have not settled.",
+      blockerPendingPayoutsCta: "Open my agreements",
       blockerActiveBookings: "You have {count} booking that is still on.",
       blockerActiveBookingsPlural: "You have {count} bookings that are still on.",
       blockerActiveBookingsCta: "Cancel it",
@@ -3259,106 +3238,6 @@ export const en = {
     },
   },
 
-  wallet: {
-    entryKind: {
-      deposit: "Deposit",
-      withdrawal: "Withdrawal",
-      payment: "Payment",
-      refund: "Refund",
-      transfer_in: "Transfer received",
-      transfer_out: "Transfer sent",
-      escrow_hold: "On hold",
-      escrow_release: "Hold released",
-      escrow_refund: "Hold returned",
-      /*
-       * A pot is the person's own money set aside, not an escrow and not a
-       * payment, so neither word borrows from those.
-       *
-       * DELIBERATELY NOT ADDED TO ha, ig OR yo. Putting the English string in a
-       * translation file raises that locale's completeness count while the
-       * screen still reads in English, which is the exact defect
-       * `locale-completeness.test.ts` exists to catch, and it caught this when
-       * it was tried. An undeclared key falls back to English anyway, so the
-       * fallback is identical and the count stays honest. These two join the
-       * five hundred odd keys each locale already leaves undeclared, listed in
-       * `docs/i18n/LOCALE_STATE.md` for a native speaker.
-       */
-      pot_hold: "Moved to a pot",
-      pot_release: "Taken from a pot",
-      /* V-33: rent settles to the lister at the moment of charge. Left out of
-         ha, ig and yo for the same reason as the two pot words above. */
-      payment_in: "Rent received",
-      payment_in_return: "Rent refunded to tenant",
-    },
-    entryStatus: {
-      PENDING: "Going through",
-      COMPLETED: "Done",
-      FAILED: "Did not go through",
-      REVERSED: "Reversed",
-    },
-    /**
-     * The wallet home to its governing render: the balance card, the four
-     * tiles, quick actions, recent transactions and the trust strip. Added
-     * 18 September 2026.
-     */
-    home: {
-      /* Wallet home (22 September 2026): the tiles' label, the
-         quick-action cards that fit one line each at 390px, the settings link. */
-      actionsLabel: "Wallet actions",
-      quickSend: "Send",
-      quickSendSub: "To a wallet",
-      quickStatementSub: "All history",
-      quickCards: "Cards",
-      quickCardsSub: "And banks",
-      addMoneyTile: "Add money",
-      historyTile: "History",
-      quickRequest: "Request",
-      quickRequestSub: "Send a link",
-      settingsHeading: "How your wallet record works",
-      settingsLink: "Settings",
-      quickSettingsSub: "Your wallet",
-      totalBalance: "Total Balance",
-      hideBalance: "Hide balance",
-      showBalance: "Show balance",
-      thisWeek: "this week",
-      nairaWallet: "Naira wallet. Every movement is recorded to the kobo.",
-      send: "Send",
-      receive: "Receive",
-      topUp: "Top Up",
-      crypto: "Crypto",
-      quickActions: "Quick Actions",
-      sendMoney: "Send Money",
-      sendMoneySub: "To a Vallo wallet",
-      requestMoney: "Request Money",
-      requestMoneySub: "Share your link",
-      withdraw: "Withdraw",
-      withdrawSub: "To your bank",
-      statement: "Statement",
-      statementSub: "Every movement",
-      cryptoTopUp: "Top up with crypto",
-      cryptoTopUpSub: "Credited in naira",
-      recentTitle: "Recent Transactions",
-      seeAll: "See all",
-      completed: "Completed",
-      recentEmpty: "Nothing has moved through your wallet yet. Add money and it appears here.",
-      /* True statements only (22 September claims rule): what the balance is,
-         and what a completed movement is. The earlier "safe", "encrypted" and
-         "256-bit" copy was a render claim and is gone. */
-      trustTitle: "How your wallet works",
-      trustBody: "Your balance is Vallo's naira record of your money, not a bank deposit. A completed send cannot be recalled.",
-      topUpTitle: "Top up your wallet",
-      topUpHint: "By card or bank transfer through a secure Paystack window, or with a card you have already saved.",
-      savedCard: "Pay with a saved card",
-      anotherWay: "Use a new card or bank transfer",
-      backToSaved: "Use a saved card instead",
-      continueToPayment: "Continue to payment",
-      chargeCard: "Top up with this card",
-      opening: "Opening the secure payment window",
-      openingBody: "You are on your way to Paystack to complete the payment. Your wallet updates the moment it lands.",
-      charged: "Confirming your top-up",
-      chargedBody: "Your card was charged. We are checking with the payment service and your balance updates the moment it lands.",
-    },
-  },
   admin: {
     console: {
       title: "Admin console",
@@ -3498,23 +3377,6 @@ export const en = {
        * because the terms say in bold that we hold none.
        */
       columns: {
-        walletEntryStatus: {
-          PENDING: "Not settled yet",
-          COMPLETED: "Settled",
-          FAILED: "Failed",
-          REVERSED: "Reversed",
-        },
-        walletEntryKind: {
-          deposit: "Deposit",
-          withdrawal: "Withdrawal",
-          payment: "Payment",
-          refund: "Refund",
-          transfer_in: "Transfer received",
-          transfer_out: "Transfer sent",
-          escrow_hold: "On hold",
-          escrow_release: "Hold released",
-          escrow_refund: "Hold returned",
-        },
         /*
          * `transactions.status`, the provider's side of a payment.
          *
@@ -4074,7 +3936,7 @@ export const en = {
       sheet: {
         title: "Cancel this stay?",
         body:
-          "The dates reopen straight away, and anything owed goes to the guest wallet in the same transaction. The amount comes from the published schedule, never from a figure typed here.",
+          "The dates reopen straight away, and anything owed is refunded to the card the guest paid with. The amount comes from the published schedule, never from a figure typed here.",
         reasonLabel: "Why is this stay being cancelled",
         working: "Working out what is owed",
         owed: "{refund} goes back to the guest.",
@@ -4084,7 +3946,7 @@ export const en = {
         notesLabel: "What was established",
         successTitle: "Stay cancelled",
         successBody:
-          "The nights are back on the calendar, the money is in the guest wallet, and the guest has the amount and the reason in writing.",
+          "The nights are back on the calendar, the refund is on its way to the card the guest paid with, and the guest has the amount and the reason in writing.",
       },
     },
 
@@ -4103,7 +3965,7 @@ export const en = {
       switchOff: "Switch off",
       labels: {
         bookings: "Bookings",
-        wallet: "Wallet",
+        wallet: "Wallet (retired)",
         messaging: "Messaging",
         assistant: "Assistant",
         support: "Support",
@@ -4113,7 +3975,7 @@ export const en = {
       },
       consequences: {
         bookings: "Guests cannot reserve or cancel a stay. Existing bookings are untouched.",
-        wallet: "Funding, withdrawals and transfers stop. Balances and history are untouched.",
+        wallet: "Retired. Vallo holds no money, so this switch cannot be turned on.",
         messaging:
           "Guests cannot message agents and agents cannot reply. Past threads stay readable.",
         assistant: "The assistant stops answering. People can still search and browse.",
@@ -4227,10 +4089,6 @@ export const en = {
       stuckHint: "{count} pending over half an hour",
       stuckBody:
         "These debits have been PENDING for over half an hour. The money has left a spendable balance and has not arrived anywhere. The stale hold sweeper releases withdrawal holds on a schedule; anything here that is not a withdrawal has not got a sweeper and needs a person.",
-      floatLabel: "Wallet float",
-      floatNote: "Settled money in every wallet",
-      inEscrowLabel: "In escrow",
-      inEscrowNote: "Held, awaiting release or disputed",
       settledLabel: "Settled this week",
       vsSevenDaysBefore: "vs the 7 days before",
       settledNote: "Completed wallet entries, last 7 days",
@@ -4255,7 +4113,6 @@ export const en = {
       ledgerTitle: "Ledger",
       ledgerUnreadBody:
         "Every wallet entry, newest first, with the platform float after each one. The read did not answer just now; reload in a moment.",
-      walletsTitle: "Wallets",
       matchingFilter: "Matching this filter",
       newestForty: "Newest first, up to forty",
       settled: "Settled",
@@ -4263,9 +4120,6 @@ export const en = {
       settledHint: "Across the wallets listed below, newest first",
       heldPending: "Held pending",
       heldPendingHint: "Debits that have left a spendable balance and not settled",
-      walletsNoneTitle: "Nobody has a wallet yet",
-      walletsNoneFills: "Every wallet on the platform, newest first, with what is settled and what is held.",
-      walletsNoneCreates: "A wallet is created the first time somebody is paid or funds an account.",
       held: "{amount} held",
       disputesTitle: "Disputed holds waiting on a ruling",
       disputesBody:
@@ -4343,139 +4197,6 @@ export const en = {
       refundsNoneCreates: "A stay is refunded from its own page under the published schedule.",
     },
 
-    escrow: {
-      lede: "Money set aside between two people, and the rulings on it.",
-      /* The escrow ruling control (`_components/MoneyDecisions.tsx`), English
-         only; the other locales fall back to it. */
-      rulingControl: {
-        thePayer: "the payer",
-        thePayee: "the payee",
-        label: "Your ruling",
-        placeholder: "What you decided and why. Both people are sent this, word for word.",
-        choose: "Choose a direction. You will see exactly what moves, and to whom, before anything happens.",
-        releaseTo: "Release to {name}",
-        refundTo: "Refund to {name}",
-        goesTo: "{money} goes to {recipient}.",
-        payerLoses: "{payer} does not get this money back.",
-        payeeLoses: "{payee} does not receive this money.",
-        finality:
-          "Both people are sent your ruling word for word. This cannot be undone: the state machine will not let a resolved escrow be reopened.",
-        confirmRelease: "Release {money} to {recipient}",
-        confirmRefund: "Refund {money} to {recipient}",
-      },
-      /* The values of `escrow_state`, at the destination the staged
-         `ESCROW_STATE_WORDS` in `components/app/untranslated.ts` names.
-         CANCELLED is `common.status.CANCELLED`, as the desk has always worded it. */
-      state: {
-        INITIATED: "Agreed, not funded",
-        FUNDED: "Funded",
-        HELD: "Held",
-        RELEASE_REQUESTED: "Release asked for",
-        RELEASED: "Released",
-        REFUNDED: "Refunded",
-        DISPUTED: "In dispute",
-        RESOLVED: "Ruled on",
-      },
-      /* The six stages the pipeline draws, in the order money moves through them. */
-      stage: {
-        FUNDED: "Funded",
-        HELD: "Held",
-        RELEASE_REQUESTED: "Release requested",
-        RELEASED: "Released",
-        REFUNDED: "Refunded",
-        DISPUTED: "Disputed",
-      },
-      purpose: {
-        rent_deposit: "Rent deposit",
-        first_rent: "First rent",
-        purchase_deposit: "Purchase deposit",
-        purchase_balance: "Purchase balance",
-        agency_fee: "Agency fee",
-      },
-      event: {
-        opened: "opened",
-        funded: "funded",
-        held: "held",
-        release_requested: "release requested",
-        released: "released",
-        refunded: "refunded",
-        disputed: "disputed",
-        resolved: "ruled on",
-      },
-      byState: "Escrows by state",
-      incomplete: "There are more escrows than this desk reads in one pass, so these counts are at least these numbers.",
-      rulingTitle: "Waiting on a ruling",
-      rulingHint: "Until somebody rules, neither person can have the money",
-      tableInState: "Escrows: {state}",
-      tableTitle: "Live escrows",
-      count: { one: "{count} escrow", other: "{count} escrows" },
-      noneTitle: "The platform is not holding anybody's money",
-      noneFills: "Every escrow still running, with days held and the time left before it releases on its own.",
-      noneCreatesState: "Escrows in this state appear here as they reach it.",
-      noneCreates: "A tenant or buyer funding a rent deposit, first rent or purchase opens one.",
-      escrows: "escrows",
-      floatTitle: "Float total",
-      floatFoot: "Held, awaiting release or disputed, across every escrow. {count} still running.",
-      byPurposeTitle: "Escrow by purpose",
-      byPurposeLabel: "Escrows by purpose",
-      total: "Total",
-      byPurposeNoneTitle: "No escrow has been opened yet",
-      byPurposeNoneFills: "How the platform's escrows split between rent deposits, first rent and purchase money.",
-      byPurposeNoneCreates: "Each escrow a tenant or buyer funds is counted under its purpose.",
-      recentTitle: "Recent activity",
-      recentNoneTitle: "Nothing has happened to an escrow yet",
-      recentNoneFills:
-        "The newest movements across every escrow: funded, held, release asked for, released, refunded, disputed and ruled on.",
-      recentNoneCreates: "Each step a payer, a payee, the auto release or a ruling takes is listed as it happens.",
-      id: "ID",
-      amount: "Amount",
-      fromTo: "From → To",
-      fromToLabel: "From, to",
-      purposeColumn: "Purpose",
-      daysHeld: "Days held",
-      autoRelease: "Auto release",
-      payerFallback: "Payer",
-      payeeFallback: "payee",
-      to: "to",
-      notHeldYet: "Not held yet",
-      payer: "Payer",
-      payee: "Payee",
-      property: "Property",
-      confirmations: "Confirmations",
-      payerConfirmed: "Payer has confirmed",
-      payerNotConfirmed: "Payer has not confirmed",
-      fromInspection: "(from a confirmed inspection)",
-      payeeConfirmed: "Payee has confirmed",
-      payeeNotConfirmed: "Payee has not confirmed",
-      releasesAlone: "Releases on its own",
-      ifNobodyActs: "{when} if nobody acts",
-      objection: "The objection",
-      ruling: "The ruling",
-      platformShare: "Platform share",
-      noFee: "No fee",
-      settled: "Settled",
-      escrowFloat: "Escrow float",
-      ledgerFloat: "Ledger float",
-      floatHistoryTitle: "Float, booked daily",
-      floatUnreadTitle: "The float history could not be read",
-      floatUnreadBody:
-        "The escrow float booked each day against what the ledger books, and whether the two agree. The read did not answer just now; reload in a moment.",
-      balanced: "Balanced",
-      notBalanced: "Does not balance",
-      balancedOn: "On {date} the escrow float, {amount}, equals what the ledger books.",
-      differOn: "On {date} the escrow float and the ledger differ by {amount}.",
-      daysBalanced: { one: "{balanced} of {count} day balanced", other: "{balanced} of {count} days balanced" },
-      lastOff: "; last off on {date}",
-      daysBooked: { one: "{count} day booked", other: "{count} days booked" },
-      oneDay: "One day booked so far ({date})",
-      notBooked: "The float has not been booked yet",
-      floatFills:
-        "The money held in escrow, booked once a day, beside the float the ledger books, so a gap between them shows the day it opens.",
-      floatCreates: "A daily job books the float each morning. A line needs a second day, so none is drawn.",
-      floatChartLabel: "The escrow float booked each day against the ledger float",
-      difference: "Difference",
-      escrowsRow: "Escrows",
-    },
 
     supply: {
       lede: "More supply. More choice. A stronger marketplace.",
@@ -4715,25 +4436,6 @@ export const en = {
         placeholder: "For example: owner asked by support ticket 1234 after losing the phone the card was on.",
         confirm: "Remove {describe}",
       },
-      sweep: {
-        title: "Release the stuck holds",
-        body: "A withdrawal whose transfer never came back leaves a pending debit on the wallet, and spendable balance is settled money minus pending debits. Until the hold is cleared the owner is short that amount with nothing on their screen explaining it.",
-        window: "Older than, in minutes",
-        floor: "Ten minutes is the floor. Anything shorter would fail withdrawals that are still on their way.",
-        nothing: "Nothing is stuck at that window",
-        review: { one: "Review 1 hold", other: "Review {count} holds" },
-        willRelease: "This will check {withdrawals} ({amount}) with Paystack.",
-        withdrawals: { one: "1 held withdrawal", other: "{count} held withdrawals" },
-        consequence:
-          "Vallo asks Paystack about each hold first. A transfer that paid out is marked complete. One that failed, was reversed or never reached Paystack is released to the owner's spendable balance, and they start it again if they still want it. One Paystack cannot answer for yet is left as it is. Nobody is paid by this.",
-        release: "Check and settle {amount}",
-        cancel: "Cancel",
-        nothingNeeded: "Nothing was released. Every hold had settled, paid out, or is still waiting on Paystack.",
-        released: {
-          one: "Released 1 hold, with your name on the record.",
-          other: "Released {count} holds, with your name on the record.",
-        },
-      },
     },
 
     /*
@@ -4840,7 +4542,7 @@ export const en = {
           restaurants: "Restaurants",
         },
         emptyMoneyTitle: "No money collected in this range",
-        emptyMoneyFills: "Each successful card payment and completed wallet top-up is counted here on the day it clears.",
+        emptyMoneyFills: "Each successful card or bank payment is counted here on the day it clears.",
         emptyMoneyCreates: "Money arrives when guests book stays and tenants pay rent through Vallo.",
         emptySupplyTitle: "No real supply live yet",
         emptySupplyFills: "Live listings from owners, agents and firms are counted here by type. Example listings are not; they are on the Examples desk.",
@@ -4987,7 +4689,7 @@ export const en = {
         opsEmailOutboxWhat: "Every email the platform queues, by status (waiting, sending, sent, failed), with the oldest waiting and the newest failures.",
         opsEmailOutboxRequest: "Admins cannot read the email outbox today (row security is on and no admin policy exists); Request A14 asks for an admin read of the statuses without the payloads.",
         opsNotReadableByAnAdmin: "Not readable by an admin yet",
-        opsEveryNotificationThePlatformSends: "Every in-app notification, by kind (booking, message, wallet, listing, agent, support, system, social), with how many were read. Push is counted above.",
+        opsEveryNotificationThePlatformSends: "Every in-app notification, by kind (booking, message, payments, listing, agent, support, system, social), with how many were read. Push is counted above.",
         opsAdminsCannotReadTheNotifications: "Admins cannot read the in-app notifications table today; Request A6 asks for an admin read of the volumes by kind.",
         opsNoNotificationsSentInThis: "No notifications sent in this window",
         opsEachNotificationThePlatformSends: "Each notification the platform sends is counted here by kind.",
@@ -5046,7 +4748,6 @@ export const en = {
        screen reader's landmark list does not offer two called "Primary". */
     railNav: "Main menu",
     dockNav: "Shortcuts",
-    walletHeading: "Wallet",
   },
 
   /**
@@ -5149,106 +4850,11 @@ export const en = {
    * /wallet/send: a whole page for sending to another Vallo wallet.
    * Added 18 September 2026.
    */
-  walletSend: {
-    /* Send money, to 77A54EA3 (22 September 2026). The three
-       reassurance lines are the only claims on the page and each is true
-       of the code and the terms (lib/legal/terms.tsx section 15). */
-    availableBalance: "Available Balance",
-    sendSub: "Wallet to wallet, by email",
-    instantChip: "Instant transfer",
-    narrationLabel: "Narration (optional)",
-    narrationPlaceholder: "Add a short note",
-    sendCta: "Send Money",
-    trustTitle: "How a send works",
-    trustHolds: "Your wallet is Vallo's naira record of your money, not a bank deposit.",
-    trustFails: "If a send fails, nothing leaves your wallet: both sides move together or not at all.",
-    /* The founder's answer of 23 September, stated as a fact. */
-    trustRefund: "A refund from a cancelled stay lands in your wallet the moment it is decided.",
-    trustRecall: "A completed send cannot be recalled. Only the person you paid can send it back.",
-    title: "Send money",
-    lede: "To another Vallo wallet, by the email on their account. It lands the moment you confirm.",
-    recipientLabel: "Their email",
-    recipientHint: "The email they use on Vallo.",
-    amountLabel: "Amount (₦)",
-    noteLabel: "Note",
-    noteOptional: "(optional)",
-    notePlaceholder: "What is it for?",
-    balanceNow: "Available now",
-    balanceAfter: "After this send",
-    notEnough: "That is more than you have.",
-    consequence: "Leaves your wallet the moment you confirm. It cannot be recalled.",
-    continueLabel: "Continue",
-    back: "Back",
-    confirmTitle: "Check and confirm",
-    to: "To {email}",
-    send: "Send",
-    sendingTitle: "Sending",
-    sendingBody: "This usually takes a few seconds. If it takes longer, your money has not moved and nothing is lost.",
-    sentTitle: "Sent",
-    sentTo: "Sent to {name}",
-    sentBody: "Their wallet has it already, and both sides of the movement are in your history.",
-    reference: "Reference",
-    seeHistory: "See it in your history",
-    backToWallet: "Back to wallet",
-    failedTitle: "That did not go through",
-    loading: "Loading send",
-    signInTitle: "Sign in to send money",
-    signInBody: "Sending comes from your own wallet, so it needs your account.",
-    unreadableTitle: "Your balance could not be loaded",
-    unreadableBody: "We will not take a send against a figure we cannot stand behind. Nothing has moved. Try again in a moment.",
-    tagline: "Wallet to wallet, by email",
-    balanceLabel: "Wallet Balance",
-    availableFor: "Available for transfers",
-    recipientTitle: "Recipient",
-    recipientSub: "Who are you sending to?",
-    recipientPlaceholder: "Their Vallo email",
-    recentRecipients: "Recent",
-    clearRecent: "Clear recent",
-    amountTitle: "Amount",
-    amountPlaceholder: "Enter amount",
-    bankTitle: "Bank",
-    bankSub: "Sending to a bank account instead?",
-    bankAction: "Withdraw to your bank",
-    noteTitle: "Add a note",
-    noteSub: "Optional, for reference",
-    recipientChecking: "Checking the address",
-    recipientFound: "Sends to",
-    recipientNone: "No Vallo account uses this address yet. Check the spelling, or ask them to sign up first.",
-    recipientSelf: "That is your own address. Enter the recipient's.",
-  },
 
   /**
    * /wallet/receive: your handle, your address, a request to share.
    * Added 18 September 2026.
    */
-  walletReceive: {
-    title: "Receive money",
-    lede: "Anyone on Vallo can send to you from their wallet. Share a request or just your email.",
-    handleLabel: "Your Vallo handle",
-    noHandle: "No handle yet",
-    claimHandle: "Claim one on your profile",
-    emailLabel: "Send to this email",
-    where: "Money sent to {email} lands in this wallet the moment it is sent, and shows in your history straight away.",
-    requestTitle: "Ask for a payment",
-    amountLabel: "Amount (₦)",
-    amountOptional: "(optional)",
-    noteLabel: "Note",
-    notePlaceholder: "What is it for?",
-    share: "Share request",
-    copy: "Copy link",
-    copied: "Link copied",
-    shareText: "Send me {amount} on Vallo: {link}",
-    shareTextNoAmount: "Send me money on Vallo: {link}",
-    recentTitle: "Recently received",
-    recentEmpty: "Nothing has come in yet. Share a request and it lands here.",
-    loading: "Loading receive",
-    signInTitle: "Sign in to receive money",
-    signInBody: "Your address for receiving is tied to your account, so it needs you signed in.",
-    tagline: "Share it. Get paid.",
-    identityTitle: "Your details",
-    identitySub: "Where money sent to you lands",
-    requestSub: "A link with the amount already in it",
-  },
 
   /**
    * /settings/payments: "Payment methods". Cards you pay with, accounts you
@@ -5270,7 +4876,7 @@ export const en = {
     cardsEmptyTitle: "No card saved yet",
     cardsEmptyBody: "Save one and paying next time is one tap. Your card number never touches Vallo.",
     addCard: "Add a card",
-    addCardSub: "Tops up your wallet by ₦100 and saves the card for next time. Nothing is lost.",
+    addCardSub: "The bank makes a small check charge, returned to you, and the card is saved for next time.",
     adding: "Opening the secure card window. Nothing has been charged yet.",
     defaultLabel: "Default",
     expires: "Expires {when}",
@@ -5286,13 +4892,13 @@ export const en = {
     banksNoteBeforePayouts:
       "Withdrawal to a bank is not available yet. An account saved here is where withdrawals will go once bank payouts open. We confirm the name with the bank before saving anything.",
     accountsEmptyTitle: "No bank account yet",
-    accountsEmptyBody: "Add the account withdrawals should reach. The first one becomes your default.",
+    accountsEmptyBody: "Add the account your share of a payment, or an approved Guarantee claim, should reach. The first one becomes your default.",
     addAccount: "Add a bank account",
     defaultPayouts: "Default for payouts",
     accountSheetTitle: "This account",
     makeDefaultAccount: "Use for payouts",
     removeAccount: "Remove this account",
-    removeAccountBody: "Withdrawals can no longer go here. Nothing already sent is affected.",
+    removeAccountBody: "Payments and Guarantee payouts can no longer go here. Nothing already sent is affected.",
     removeAccountConfirm: "Yes, remove it",
     addSheetTitle: "Add a bank account",
     pickBank: "Bank",
@@ -5362,7 +4968,7 @@ export const en = {
     noRoomsYet: "The rooms for this property are still being loaded.",
     minStay: "This rate needs at least {count} nights.",
     maxStay: "This rate covers at most {count} nights.",
-    freeUntil: "Free to cancel until {hours} hours before you arrive. Refunds go to your Vallo wallet.",
+    freeUntil: "Free to cancel until {hours} hours before you arrive. Refunds go back to the card you paid with.",
     meal: {
       roomOnly: "Room only",
       breakfast: "Breakfast included",

@@ -47,7 +47,7 @@ export const afterTheGateEn = {
     nothing: "Nothing back",
     back: "{amount} back to you",
     measured: "Hours are measured to check-in at {hour} Lagos time.",
-    refundsTo: "Ask from the booking and support decides within five Nigerian business days. A refund it decides on is in your Vallo wallet the moment it does.",
+    refundsTo: "Ask from the booking and support decides within five Nigerian business days. A refund it decides on goes back to the card or account you paid with; banks usually show it within 5 to 10 working days.",
     frozenAt: "These terms were fixed when you paid on {date}.",
     /** Stay page: two rates at once, when the cheapest is non-refundable. */
     bothRates: "{cheap} non-refundable, {flex} free cancellation until {date}",
@@ -56,19 +56,19 @@ export const afterTheGateEn = {
   },
   refund: {
     heading: "Your refund",
-    /** A decided refund: it is in the wallet the moment it is decided. */
-    landed: "In your wallet {date}",
-    landedLate: "In your wallet {date}, after the latest date promised, {due}",
+    /** A decided refund: sent back to the card or account that paid (Track A). */
+    landed: "Sent back to your card {date}",
+    landedLate: "Sent back to your card {date}, after the latest date promised, {due}",
     nothingOwed: "Nothing was due back under the terms this stay was paid under.",
     amount: "{amount} back",
     retained: "{amount} kept under the terms",
     /** An ask that support has not decided yet. */
-    asked: "You asked on {asked}. Support decides by {date}. If it decides on a refund, the money is in your wallet the moment it does.",
+    asked: "You asked on {asked}. Support decides by {date}. If it decides on a refund, it goes back to the card or account you paid with.",
     overdue: "You asked on {asked}. Support was due to decide by {date} and has not yet. The operations desk is alerted when a request passes its due date.",
     declined: "Support declined the refund on {date}: {note}",
     declinedNoNote: "Support declined the refund on {date}.",
     askHeading: "Cancel this paid stay",
-    askLede: "A paid stay is cancelled by a person, not by a button. Ask here and the request is dated: support decides within five Nigerian business days of your ask, and a refund it decides on is in your wallet the moment it does.",
+    askLede: "A paid stay is cancelled by a person, not by a button. Ask here and the request is dated: support decides within five Nigerian business days of your ask, and a refund it decides on goes back to the card or account you paid with.",
     askReason: "Why are you cancelling?",
     reasons: {
       guest_choice: "I want to cancel",
