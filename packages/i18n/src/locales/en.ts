@@ -1996,9 +1996,9 @@ export const en = {
         bookingsSub: "Requests, confirmations and changes to your stays.",
         messages: "Messages",
         messagesSub: "New replies from hosts and agents you are talking to.",
-        wallet: "Wallet",
+        wallet: "Payments and receipts",
         walletSub:
-          "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+          "Emails when you pay, when a refund is on its way, and your receipts. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Occasional highlights from around Nigeria. Off by default.",
       },
@@ -2007,9 +2007,9 @@ export const en = {
         bookingsSub: "New requests, cancellations and payments on your listings.",
         messages: "Messages",
         messagesSub: "New enquiries from guests about your listings.",
-        wallet: "Earnings and payouts",
+        wallet: "Payments and payouts",
         walletSub:
-          "Emails about money in and money out. Anything putting money at risk still appears in the app.",
+          "Emails when a renter or guest pays you, and when your share settles to your bank. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Hosting tips and what is moving in your area. Off by default.",
       },

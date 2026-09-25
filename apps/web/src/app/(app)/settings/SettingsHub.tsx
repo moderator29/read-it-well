@@ -2,14 +2,15 @@
 
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { initial } from "@/lib/text/initial";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { plural, type Dictionary, type Locale } from "@vallo/i18n";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { SettingsGlyph, type SettingsGlyphName } from "@/components/app/account/SettingsGlyph";
 import { ICON } from "@/components/app/Screen";
-import { ROW_GLYPH, RowButton, RowLink, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
+import { ROW_GLYPH, RowButton, RowLink, SettingsGroup } from "@/components/app/account/rows";
+import { useThemeChoice } from "@/lib/theme/theme-client";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
 import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useNfSettings } from "@/components/app/account/settings-store";
@@ -19,7 +20,7 @@ import { clearOutbox } from "@/lib/offline/outbox";
 import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
-import { signOut, updateSettings } from "@/lib/profile/actions";
+import { signOut } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 
@@ -68,12 +69,6 @@ const ALL_ON: ResolvedProfileSettings["notifications"] = {
   bookings: true,
   messages: true,
   wallet: true,
-  marketing: false,
-};
-const ALL_OFF: ResolvedProfileSettings["notifications"] = {
-  bookings: false,
-  messages: false,
-  wallet: false,
   marketing: false,
 };
 
@@ -139,11 +134,12 @@ function ProfileRow({
  * a stroked line: `UiIcon` where it has the drawing, `SettingsGlyph` for the
  * four it does not. One plate, one family, on every settings row.
  */
-function HubGlyph({ name }: { name: "user" | "bell" | SettingsGlyphName }) {
-  return name === "user" || name === "bell" ? (
-    <UiIcon name={name} size={ROW_GLYPH} />
+const SETTINGS_GLYPHS = new Set<string>(["shield-check", "globe", "headset", "log-out"]);
+function HubGlyph({ name }: { name: SettingsGlyphName | UiIconName }) {
+  return SETTINGS_GLYPHS.has(name) ? (
+    <SettingsGlyph name={name as SettingsGlyphName} size={ROW_GLYPH} />
   ) : (
-    <SettingsGlyph name={name} size={ROW_GLYPH} />
+    <UiIcon name={name as UiIconName} size={ROW_GLYPH} />
   );
 }
 
@@ -174,45 +170,16 @@ export function SettingsHub({
      component's. */
 
   /* ------------------------------------------------------- notifications */
-  const { settings, set } = useNfSettings();
-  const [account, setAccount] = useState(notifications ?? ALL_ON);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const { settings } = useNfSettings();
+  const account = notifications ?? ALL_ON;
   const notifyOn = signedIn
     ? account.bookings || account.messages || account.wallet || account.marketing
     : settings.notifyPush || settings.notifyEmail || settings.notifySms || settings.notifyWhatsapp;
-
-  const flipNotifications = useCallback(
-    (next: boolean) => {
-      setSaveError(null);
-      if (!signedIn) {
-        set("notifyPush", next);
-        set("notifyEmail", next);
-        set("notifyWhatsapp", next);
-        if (!next) set("notifySms", false);
-        return;
-      }
-      const previous = account;
-      const patch = next ? ALL_ON : ALL_OFF;
-      setAccount(patch);
-      startTransition(async () => {
-        const result = await updateSettings({ notifications: patch });
-        if (!result.ok) {
-          setAccount(previous);
-          setSaveError(result.error);
-        }
-      });
-    },
-    [signedIn, set, account],
-  );
-
-  /* ---------------------------------------------------------- appearance */
-
-  useEffect(() => {
-    if (!saveError) return;
-    const timer = window.setTimeout(() => setSaveError(null), 6000);
-    return () => window.clearTimeout(timer);
-  }, [saveError]);
+  const themeChoice = useThemeChoice();
+  const appearance = t.settings.appearance;
+  const themeWord =
+    themeChoice === "light" ? appearance.themeLight : themeChoice === "system" ? appearance.themeSystem : appearance.themeDark;
+  const about = t.settings.about;
 
   return (
     <div className="nf-hub space-y-block" data-testid="settings-hub">
@@ -221,15 +188,16 @@ export function SettingsHub({
       {/* V-79: the data saver, at the top where people look for it. */}
       <DataSaverRow copy={t.platform.lite} />
 
-      <SettingsGroup
-        note={
-          saveError ? (
-            <span role="alert" className="text-[var(--nf-state-error)]">
-              {saveError}
-            </span>
-          ) : undefined
-        }
-      >
+      {/*
+        THE HUB, REBUILT (track G, 25 September 2026). Six groups, and every
+        row goes to a real page: nothing on this screen toggles in place any
+        more, so a row always means "open this". The notifications master
+        switch that stood here flipped four settings at once from a screen
+        that could not show which; the page it now opens has all four.
+        No wallet row: Vallo holds no money (custody retired), and the
+        payments row is the cards and payout accounts a person really has.
+      */}
+      <SettingsGroup label="Account">
         <RowLink
           href="/settings/account"
           glyph={<HubGlyph name="user" />}
@@ -238,16 +206,53 @@ export function SettingsHub({
           value={person?.verified ? <Checked>{hub.verified}</Checked> : undefined}
           testId="hub-account"
         />
-        <RowSwitch
+        {phoneRow && (
+          <RowLink
+            href="/settings/phone"
+            glyph={<HubGlyph name="phone" />}
+            label={phoneRow.label}
+            sub={phoneRow.sub}
+            testId="hub-phone"
+          />
+        )}
+        {passportRow && (
+          <RowLink
+            href="/settings/passport"
+            glyph={<HubGlyph name="document" />}
+            label={passportRow.label}
+            sub={passportRow.sub}
+            testId="hub-passport"
+          />
+        )}
+      </SettingsGroup>
+
+      <SettingsGroup label="Preferences">
+        <RowLink
+          href="/settings/notifications"
           glyph={<HubGlyph name="bell" />}
           label={t.settings.notifications.label}
           sub={hub.notificationsSub}
           value={notifyOn ? hub.on : hub.off}
-          checked={notifyOn}
-          onChange={flipNotifications}
-          disabled={pending}
           testId="hub-notifications"
         />
+        <RowLink
+          href="/settings/appearance"
+          glyph={<HubGlyph name={themeChoice === "light" ? "sun" : themeChoice === "system" ? "contrast" : "moon"} />}
+          label={appearance.label}
+          sub={`${appearance.theme}, ${hub.appearanceSub.toLowerCase()}`}
+          value={themeWord}
+          testId="hub-appearance"
+        />
+        <LanguageRow
+          t={t}
+          current={locale}
+          label={t.settings.language.label}
+          sub={hub.languageSub}
+          glyph={<HubGlyph name="globe" />}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup label="Privacy and security">
         <RowLink
           href="/settings/privacy"
           glyph={<HubGlyph name="shield-check" />}
@@ -260,39 +265,21 @@ export function SettingsHub({
           }
           testId="hub-privacy"
         />
-        {phoneRow && (
+      </SettingsGroup>
+
+      {signedIn && (
+        <SettingsGroup label="Payments">
           <RowLink
-            href="/settings/phone"
-            glyph={<HubGlyph name="user" />}
-            label={phoneRow.label}
-            sub={phoneRow.sub}
-            testId="hub-phone"
+            href="/settings/payments"
+            glyph={<HubGlyph name="document" />}
+            label={t.paymentsPage.settingsRow}
+            sub="Cards you pay with, and the bank accounts you are paid into"
+            testId="hub-payments"
           />
-        )}
-        {passportRow && (
-          <RowLink
-            href="/settings/passport"
-            glyph={<HubGlyph name="user" />}
-            label={passportRow.label}
-            sub={passportRow.sub}
-            testId="hub-passport"
-          />
-        )}
-        {/*
-          THE APPEARANCE ROW IS GONE, and it was the theme. The founder removed
-          light mode from the platform on 23 September 2026, so this hub has
-          nothing to offer here: one palette, no choice, and the row deleted
-          rather than left showing "Dark" as the only option somebody can pick.
-          Text size and reduced motion still live on the Appearance card inside
-          `/settings`, which is where they always were.
-        */}
-        <LanguageRow
-          t={t}
-          current={locale}
-          label={t.settings.language.label}
-          sub={hub.languageSub}
-          glyph={<HubGlyph name="globe" />}
-        />
+        </SettingsGroup>
+      )}
+
+      <SettingsGroup label="Help and legal">
         <RowLink
           href="/settings/help"
           glyph={<HubGlyph name="headset" />}
@@ -300,12 +287,10 @@ export function SettingsHub({
           sub={hub.helpSub}
           testId="hub-help"
         />
+        <RowLink href="/terms" glyph={<HubGlyph name="document" />} label={about.terms} testId="hub-terms" />
+        <RowLink href="/privacy" glyph={<HubGlyph name="eye-off" />} label={about.privacy} testId="hub-privacy-policy" />
+        <RowLink href="/disclaimer" glyph={<HubGlyph name="info" />} label={about.disclaimer} testId="hub-disclaimer" />
       </SettingsGroup>
-
-      {/* The Payment Methods block sits here in the render, between the hub
-          rows and Log Out. The page renders worker E's `PaymentMethodsBlock`
-          (a server component on the real reads) between this component's two
-          halves; see `page.tsx`. */}
     </div>
   );
 }

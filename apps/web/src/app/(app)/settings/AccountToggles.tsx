@@ -117,10 +117,12 @@ export function AccountNotificationsCard({
     save({ notifications: { [key]: next } }, () => setValue(previous));
   };
 
-  const ICON: Record<NotifyKey, "calendar-booking" | "chat-bubble" | "wallet" | "sparkle"> = {
+  /* The `wallet` key is the stored preference's name; what it covers is
+     payment and receipt emails, so the glyph is a document (custody retired). */
+  const ICON: Record<NotifyKey, "calendar-booking" | "chat-bubble" | "document" | "sparkle"> = {
     bookings: "calendar-booking",
     messages: "chat-bubble",
-    wallet: "wallet",
+    wallet: "document",
     marketing: "sparkle",
   };
 

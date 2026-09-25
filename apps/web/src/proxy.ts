@@ -142,6 +142,9 @@ const PUBLIC_SEGMENTS = new Set([
   "help",
   // Legal and policy. Never close one of these.
   "cancellations",
+  // The disclaimer is a legal page like the other four and was gated by
+  // omission: a stranger following a footer link got a sign-in wall.
+  "disclaimer",
   "eula",
   "privacy",
   "safety",

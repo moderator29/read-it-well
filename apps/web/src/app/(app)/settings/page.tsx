@@ -4,7 +4,6 @@ import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { BackButton } from "@/components/site/BackButton";
-import { PaymentMethodsBlock } from "@/components/app/payments/PaymentMethodsBlock";
 import { loadProfileState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { getAgentContext } from "@/lib/agent/listings-queries";
@@ -105,12 +104,10 @@ export default async function SettingsPage() {
           }
         />
 
-        {/* Worker E's block, on the real `listPaymentMethods` and
-            `listBankAccounts` reads: the cards and bank accounts with Add,
-            Default and Verified as the render draws them. It renders nothing
-            signed out, because a block about somebody's cards has no honest
-            signed-out form. */}
-        <PaymentMethodsBlock />
+        {/* The payment methods block that stood here is a row in the hub
+            now (Payments), opening `/settings/payments`, which renders the
+            same block: the hub is a list of doors, not a second copy of a
+            screen (track G). */}
 
         <LogOutRow t={t} signedIn={signedIn} />
       </div>

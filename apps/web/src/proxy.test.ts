@@ -227,6 +227,7 @@ const EXPECTED_PUBLIC = new Set([
   "/r/[code]",
   /* Legal and policy. */
   "/cancellations",
+  "/disclaimer",
   "/eula",
   "/privacy",
   "/safety",
