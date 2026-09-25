@@ -223,7 +223,7 @@ export async function loadConversationSummaries(
   const { data: conversations } = await supabase
     .from("conversations")
     .select(
-      "id, guest_id, agent_id, last_message_at, context_kind, listings(title), reservations!conversations_reservation_id_fkey(listings(title)), bookings!conversations_booking_id_fkey(listings(title))",
+      "id, guest_id, agent_id, last_message_at, context_kind, listings(title), reservations!conversations_reservation_id_fkey(listings(title)), bookings!conversations_booking_id_fkey(listings(title)), businesses!conversations_business_id_fkey(name)",
     )
     /* SEC-02. RLS lets an admin read every conversation; the inbox is the
        caller's own threads, so the caller is named as a party. */
@@ -300,6 +300,8 @@ export async function loadConversationSummaries(
         c.listings?.title ??
         c.reservations?.listings?.title ??
         c.bookings?.listings?.title ??
+        /* Track F: a thread about a hotel or a restaurant names the venue. */
+        c.businesses?.name ??
         null,
       lastMessage: last?.body ?? "No messages yet",
       whenLabel: lagosWhenLabel(last?.at ?? c.last_message_at),

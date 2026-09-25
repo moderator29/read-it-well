@@ -1,38 +1,4 @@
--- PROPOSED, NOT APPLIED. Track F: a guest can message a hotel or a restaurant.
---
--- Written by the visual-tracks session for the lead to review and apply as a
--- migration. Nothing here has run against any database.
---
--- WHY A SCHEMA CHANGE IS NEEDED
---
--- A conversation must be about something: `context_kind` is listing,
--- reservation or booking, and `conversations_context_shape_chk` plus
--- `private.conversation_context_is_valid()` enforce it. A business-grade venue
--- (M7: every hotel under /stay/[id], and every restaurant with
--- `venue.isBusiness`) has no `listings` row, so no listing thread can exist
--- for it, and a guest who has not booked has no booking or reservation either.
--- The stay page used to link `/messages/new?listing=<accommodation id>`, which
--- can only fail: that id is not a listing.
---
--- WHAT THIS ADDS
---
--- A fourth context, `business`: one thread per (guest, business), with the
--- business OWNER as the host (`agent_id`, which is the host user id for every
--- context already). It follows the listing branch's rules exactly: opened by
--- the guest, never with themselves, only with a PUBLISHED, non-example
--- business, and it counts against the same 20-a-day new-thread limit.
---
--- The app side is already written against this shape
--- (`apps/web/src/lib/venue-messages/actions.ts`) and degrades to an honest
--- sentence while the column does not exist.
---
--- APPLY AS TWO MIGRATIONS. `alter type ... add value` cannot be used by later
--- statements in the same transaction.
-
--- ============================================================ migration 1 of 2
-alter type public.thread_context add value if not exists 'business';
-
--- ============================================================ migration 2 of 2
+-- Track F: a guest can message a hotel or a restaurant (one thread per guest per business).
 alter table public.conversations
   add column if not exists business_id uuid references public.businesses(id) on delete restrict;
 
@@ -51,6 +17,8 @@ alter table public.conversations
 create unique index if not exists conversations_business_uq
   on public.conversations (guest_id, business_id)
   where business_id is not null;
+create index if not exists conversations_business_id_idx
+  on public.conversations (business_id);
 
 -- The live function as read on 25 September 2026, with the business branch
 -- added and `business_id` joining the immutable-context list. Nothing else
@@ -160,11 +128,3 @@ $function$;
 
 revoke execute on function private.conversation_context_is_valid() from public, anon, authenticated;
 
--- RLS: the existing insert policy (caller is guest or host) and the block
--- policy already cover the new kind; select is unchanged. No new grant.
---
--- FOLLOW-UPS FOR THE MESSAGES TRACK (lead-owned paths):
---  * lib/messages list and thread reads should name the business (join
---    businesses on business_id) where they name the listing today.
---  * the host inbox of a business owner should include context_kind='business'.
---  * regenerate database.types.ts after applying.

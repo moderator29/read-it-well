@@ -1846,6 +1846,7 @@ export type Database = {
         Row: {
           agent_id: string
           booking_id: string | null
+          business_id: string | null
           context_kind: Database["public"]["Enums"]["thread_context"]
           created_at: string
           guest_id: string
@@ -1857,6 +1858,7 @@ export type Database = {
         Insert: {
           agent_id: string
           booking_id?: string | null
+          business_id?: string | null
           context_kind?: Database["public"]["Enums"]["thread_context"]
           created_at?: string
           guest_id: string
@@ -1868,6 +1870,7 @@ export type Database = {
         Update: {
           agent_id?: string
           booking_id?: string | null
+          business_id?: string | null
           context_kind?: Database["public"]["Enums"]["thread_context"]
           created_at?: string
           guest_id?: string
@@ -1882,6 +1885,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
           {
@@ -6688,7 +6698,7 @@ export type Database = {
       source_kind: "first_party" | "partner" | "licensed_data"
       supply_role: "owner" | "agent"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
-      thread_context: "listing" | "reservation" | "booking"
+      thread_context: "listing" | "reservation" | "booking" | "business"
       transaction_status: "SUCCESSFUL" | "PENDING" | "FAILED" | "REFUNDED"
       wallet_entry_direction: "credit" | "debit"
       wallet_entry_kind:
@@ -7079,7 +7089,7 @@ export const Constants = {
       source_kind: ["first_party", "partner", "licensed_data"],
       supply_role: ["owner", "agent"],
       support_ticket_status: ["open", "pending", "resolved", "closed"],
-      thread_context: ["listing", "reservation", "booking"],
+      thread_context: ["listing", "reservation", "booking", "business"],
       transaction_status: ["SUCCESSFUL", "PENDING", "FAILED", "REFUNDED"],
       wallet_entry_direction: ["credit", "debit"],
       wallet_entry_kind: [
