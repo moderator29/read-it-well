@@ -107,10 +107,23 @@ export function RegisterShell({
       {/* The confirmation screen carries its own heading inside its object, so
           it passes none here and none is drawn. An empty heading element is a
           heading to a screen reader. */}
-      {heading ? <h2 className={`mt-heading ${TYPE.display}`}>{heading}</h2> : null}
-      {sub ? <p className={`mt-inline-tight max-w-[52ch] ${TYPE.bodyLg}`}>{sub}</p> : null}
+      {/* Keyed by the step (Track M): each step is a new arrival, so the
+          heading comes out of depth and the body pushes forward, rather than
+          the words changing in place under a still frame. */}
+      {heading ? (
+        <h2 key={`h-${current}`} className={`mt-heading nf-flow-title ${TYPE.display}`}>
+          {heading}
+        </h2>
+      ) : null}
+      {sub ? (
+        <p key={`s-${current}`} className={`mt-inline-tight max-w-[52ch] nf-flow-sub ${TYPE.bodyLg}`}>
+          {sub}
+        </p>
+      ) : null}
 
-      <div className="mt-heading">{children}</div>
+      <div key={`b-${current}`} className="mt-heading nf-flow-step">
+        {children}
+      </div>
 
       {error ? (
         <p
