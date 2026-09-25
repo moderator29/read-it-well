@@ -8,6 +8,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { VerifyingPanel, type AuthMoment } from "./VerifyingPanel";
 import type { VerificationOutcome } from "@/lib/auth/form-state";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { playThreshold, thresholdAllowed } from "@/lib/motion/threshold";
 
 /**
  * The moment after somebody taps the button in their email.
@@ -106,16 +107,20 @@ export function Verifying({
 
     void complete({ code, tokenHash, type, accessToken, refreshToken, next }).then((result) => {
       if (result.ok) {
-        settle(() => {
+        const go = () => {
           router.replace(result.next);
           /* The tree behind this screen was rendered signed out. */
           router.refresh();
-        });
+        };
+        /* Track M: a new account walks through the door, which is itself
+           the moment on screen, so it replaces the two-second floor. */
+        if (moment === "sign-up" && thresholdAllowed()) void playThreshold("door").then(go);
+        else settle(go);
         return;
       }
       setFailed(result);
     });
-  }, [code, tokenHash, type, next, complete, router]);
+  }, [code, tokenHash, type, next, complete, router, moment]);
 
   if (failed) {
     const said =

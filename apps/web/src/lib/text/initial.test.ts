@@ -27,7 +27,9 @@ describe("the initial on an avatar", () => {
       "components/social/profile/ProfileHeader.tsx",
       "components/social/feed/StoryRing.tsx",
       "components/messages/VerifiedAvatar.tsx",
-      "components/app/AppShell.tsx",
+      /* The header avatar left the shell in Track M; the face in the drawer
+         head is the shell's one avatar now. */
+      "components/app/AppRail.tsx",
     ];
     for (const file of files) {
       const text = readFileSync(join(process.cwd(), "src", file), "utf8");

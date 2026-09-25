@@ -1,0 +1,475 @@
+/*
+ * TRACK M: THE SHELL THE FOUNDER CHOSE (25 September 2026).
+ *
+ * The founder picked the pump.fun reference for the side drawer and the bottom
+ * bar: "glad clean sharp". This partial holds everything that changed to get
+ * there, in one place, so the rules it overrides in side-nav.css, overlays.css
+ * and chrome.css are overridden by position in the cascade rather than by a
+ * specificity race. It is imported after signature-motion.css and before
+ * light.css, so the light theme's guarded rules still win.
+ *
+ * Motion follows docs/TRACK_M_MOTION_PLAN.md: transform and opacity only,
+ * existing duration and easing tokens, and a reduced-motion answer for every
+ * animation at the foot of this file.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* ------------------------------------------------------ the drawer panel */
+
+  /*
+   * A FULL-HEIGHT PANEL, NOT A FLOATING CARD. The reference's drawer is the
+   * whole left of the screen, top to bottom, with the dimmed app showing only
+   * to its right. The panel is flush with three edges and rounds only the edge
+   * that faces the app.
+   */
+  .nf-drawer--left {
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: min(86%, 23rem);
+    padding-top: env(safe-area-inset-top, 0px);
+    border: 0;
+    border-inline-end: var(--nf-border-width) solid var(--nf-divider);
+    border-radius: 0 var(--nf-radius-2xl) var(--nf-radius-2xl) 0;
+    background: var(--nf-surface-canvas);
+    box-shadow: var(--nf-elev-4);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .nf-nav--drawer {
+    padding-inline: var(--nf-space-md);
+  }
+
+  /* ------------------------------------------------------ the person, bare */
+
+  /*
+   * THE HEAD OF THE DRAWER IS THE PERSON, WITH NOTHING AROUND THEM. No card,
+   * no border, no glow ring: the face at 64px, the name large under it, the
+   * handle quiet, and "View profile" as a plain link in the brand colour.
+   */
+  .nf-nav .nf-nav__who--hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    margin: 0 0 var(--nf-space-md);
+    padding: var(--nf-space-xs) var(--nf-space-2xs) var(--nf-space-md);
+    border: 0;
+    border-bottom: 1px solid var(--nf-divider);
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .nf-nav__who--hero .nf-nav__avatar {
+    width: 4rem;
+    height: 4rem;
+    font-size: 1.375rem;
+    box-shadow: 0 0 0 2px var(--nf-surface-canvas), 0 0 0 3px var(--nf-brand-edge-soft);
+  }
+  .nf-nav__who--hero .nf-nav__whoname {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: normal;
+  }
+  .nf-nav__who--hero .nf-nav__whohandle {
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-nav__who--hero .nf-nav__whocta {
+    margin-top: var(--nf-space-2xs);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-nav__who--hero:hover .nf-nav__whocta {
+    background: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .nf-nav__who--hero:hover {
+    border-color: var(--nf-divider);
+  }
+
+  /* ---------------------------------------------------- plain icon rows */
+
+  /*
+   * THE ROWS ARE PLAIN. The reference draws a glyph and a word with nothing
+   * behind them, and marks where you are with weight rather than a lit slab.
+   * The open row keeps a quiet fill and a short brand bar at its leading
+   * edge, so "you are here" reads at a glance without shouting.
+   */
+  .nf-nav--drawer .nf-nav__row {
+    position: relative;
+    font-size: var(--nf-text-body);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-nav--drawer .nf-nav__glyph {
+    color: var(--nf-content-secondary);
+  }
+  .nf-nav--drawer .nf-nav__row--on {
+    color: var(--nf-content-primary);
+    font-weight: 650;
+    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+    box-shadow: none;
+  }
+  .nf-nav--drawer .nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-nav--drawer .nf-nav__row--on::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.75rem;
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-secondary);
+  }
+  .nf-nav--drawer .nf-nav__row::after {
+    opacity: 0.35;
+  }
+  .nf-nav--drawer .nf-nav__heading {
+    letter-spacing: 0.08em;
+  }
+  /* On a phone the docked group (Home, Search, Feed) is hidden because the
+     dock carries it, so the group after it is the first one read and must not
+     draw a boundary under the person's head, which already draws one. */
+  @media (max-width: 63.999rem) {
+    .nf-nav--drawer .nf-nav__section--docked + .nf-nav__section {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+  }
+
+  /* The rows arrive: a short rise, thirty milliseconds apart, first ten. */
+  .nf-nav--drawer .nf-nav__who--hero,
+  .nf-nav--drawer .nf-nav__section,
+  .nf-nav--drawer .nf-nav__foot {
+    animation: nf-m-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-nav--drawer .nf-nav__section:nth-of-type(1) { animation-delay: 60ms; }
+  .nf-nav--drawer .nf-nav__section:nth-of-type(2) { animation-delay: 90ms; }
+  .nf-nav--drawer .nf-nav__section:nth-of-type(3) { animation-delay: 120ms; }
+  .nf-nav--drawer .nf-nav__section:nth-of-type(4) { animation-delay: 150ms; }
+  .nf-nav--drawer .nf-nav__section:nth-of-type(n + 5) { animation-delay: 180ms; }
+  .nf-nav--drawer .nf-nav__foot { animation-delay: 200ms; }
+
+  @keyframes nf-m-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(-10px, 6px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ------------------------------------------------ the appearance row */
+
+  /*
+   * APPEARANCE IS A ROW. The glyph of the current choice, the word, the value
+   * quiet on the right, a chevron that turns when the three choices open
+   * beneath it. The same anatomy as every other row on the panel: 48 tall,
+   * the shared glyph slot, the shared gap.
+   */
+  .nf-theme-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-2xs);
+  }
+  .nf-theme-row__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    width: 100%;
+    min-height: 3rem;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 500;
+    text-align: start;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-theme-row__head:hover {
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+  }
+  .nf-theme-row__head:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-theme-row .nf-nav__glyph {
+    color: var(--nf-content-secondary);
+  }
+  .nf-theme-row__label {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .nf-theme-row__value {
+    flex: none;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-theme-row__chev {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-inline: var(--nf-space-2xs) 0.125rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    opacity: 0.35;
+    transform: rotate(-45deg);
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-theme-row[data-open] .nf-theme-row__chev {
+    transform: rotate(45deg);
+  }
+  .nf-theme-row__panel {
+    padding-inline: var(--nf-space-sm);
+    animation: nf-m-drop var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  .nf-theme-row__panel[hidden] {
+    display: none;
+  }
+  @keyframes nf-m-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ------------------------------------------------------ the capsule */
+
+  /*
+   * THE CAPSULE, SHARPER. A true pill of dark glass with a hairline edge and a
+   * deep soft shadow, the reference's shape. The brand tint and the blue
+   * bloom come off it: the travelling pill and the solid active glyph are the
+   * only colour the bar needs.
+   */
+  .nf-dockrow {
+    align-items: flex-end;
+    gap: var(--nf-space-xs);
+  }
+  .nf-tabbar {
+    --nf-tab-pad: 0.3125rem;
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 18px 40px -16px var(--nf-shade-3),
+      var(--nf-glass-shadow-lifted);
+  }
+  .nf-tabbar__pill {
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+    transition: translate var(--nf-duration-slow) var(--nf-ease-spring);
+  }
+  .nf-tab__link {
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-tab__link:active {
+    transform: scale(0.92);
+  }
+  .nf-tab__link[aria-current="page"] .nf-tab__icon {
+    animation: nf-m-tab-pop var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-m-tab-pop {
+    from {
+      transform: scale(0.82);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  /* ----------------------------------------------- the sixth slot and tray */
+
+  .nf-dockmore {
+    position: relative;
+    flex: none;
+  }
+  .nf-dockmore__button {
+    position: relative;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 18px 40px -16px var(--nf-shade-3),
+      var(--nf-glass-shadow-lifted);
+  }
+  .nf-dockmore__button[data-lit] {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-dockmore[data-open] .nf-dockmore__button {
+    background: var(--nf-content-primary);
+    color: var(--nf-surface-canvas);
+  }
+  .nf-dockmore__icon {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dockmore__icon--close {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.6);
+  }
+  .nf-dockmore[data-open] .nf-dockmore__icon--grid {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.6);
+  }
+  .nf-dockmore[data-open] .nf-dockmore__icon--close {
+    opacity: 1;
+    transform: none;
+  }
+
+  /*
+   * THE TRAY rises out of the sixth slot: anchored to the right edge of the
+   * dock row and opening upward from the button, so the eye follows the
+   * finger. Four across, icon over word, each tile at least 64px tall.
+   */
+  .nf-dockmore__tray {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + var(--nf-space-sm));
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
+    width: min(calc(100vw - 2rem), 24rem);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-2xl);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 24px 60px -20px var(--nf-shade-3),
+      var(--nf-elev-4);
+    transform-origin: calc(100% - 1.75rem) 100%;
+    animation: nf-m-tray var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  .nf-dockmore__tray[hidden] {
+    display: none;
+  }
+  @keyframes nf-m-tray {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .nf-dockmore__tray > li {
+    animation: nf-m-tile var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(40ms + var(--nf-i, 0) * 30ms);
+  }
+  @keyframes nf-m-tile {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .nf-dockmore__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-height: 4.25rem;
+    padding: var(--nf-space-xs) var(--nf-space-3xs);
+    border-radius: var(--nf-radius-lg);
+    color: var(--nf-content-primary);
+    text-align: center;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-dockmore__item:hover {
+    background: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+  }
+  .nf-dockmore__item:active {
+    transform: scale(0.96);
+  }
+  .nf-dockmore__item:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-dockmore__item[aria-current="page"] {
+    background: color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+  }
+  .nf-dockmore__glyph {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+    color: var(--nf-content-secondary);
+  }
+  .nf-dockmore__item[aria-current="page"] .nf-dockmore__glyph {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-dockmore__label {
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.2;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
+  /* ------------------------------------------------------ reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-nav--drawer .nf-nav__who--hero,
+    .nf-nav--drawer .nf-nav__section,
+    .nf-nav--drawer .nf-nav__foot,
+    .nf-theme-row__panel,
+    .nf-dockmore__tray,
+    .nf-dockmore__tray > li,
+    .nf-tab__link[aria-current="page"] .nf-tab__icon {
+      animation: none;
+    }
+    .nf-tabbar__pill,
+    .nf-dockmore__icon,
+    .nf-theme-row__chev,
+    .nf-tab__link,
+    .nf-dockmore__item {
+      transition: none;
+    }
+    .nf-tab__link:active,
+    .nf-dockmore__item:active {
+      transform: none;
+    }
+  }
+}

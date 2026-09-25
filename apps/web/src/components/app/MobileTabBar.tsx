@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AutoHideDock } from "./AutoHideDock";
+import { DockMore, type DockMoreItem } from "./DockMore";
 import type { Dictionary } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
@@ -325,6 +326,34 @@ export function MobileTabBar({
   /* The profile slot is the way through to notifications on a phone. */
   const marked = signedIn && unreadNotifications > 0;
 
+  /*
+   * THE SUB-NAV BEHIND THE SIXTH SLOT (Track M). The destinations a member
+   * reaches often enough to deserve a thumb, which until now lived only in
+   * the drawer. The drawer keeps every one of them: this is a second, faster
+   * door, not a move. A guest gets the three that make sense signed out.
+   */
+  const stays = side === "stays";
+  const more: DockMoreItem[] = signedIn
+    ? [
+        { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
+        {
+          href: stays ? "/bookings?side=stays&from=stays" : "/bookings",
+          label: t.shape.plans.title,
+          icon: "calendar-booking",
+        },
+        { href: "/saved", label: t.nav.saved, icon: "heart" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/agreements", label: t.nav.agreements, icon: "document" },
+        { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
+        { href: "/settings", label: t.nav.settings, icon: "settings-gear" },
+        { href: "/settings/help", label: t.nav.helpSupport, icon: "ticket" },
+      ]
+    : [
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
+        { href: "/help", label: t.nav.helpSupport, icon: "ticket" },
+      ];
+
   return (
     <AutoHideDock
       route={active}
@@ -388,6 +417,7 @@ export function MobileTabBar({
           );
         })}
       </ul>
+      <DockMore items={more} label={t.nav.more} active={active} />
     </AutoHideDock>
   );
 }

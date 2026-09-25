@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { THEME_EVENT, readThemeChoice, setThemeChoice, watchSystemTheme } from "@/lib/theme/theme-client";
 import type { ThemeChoice } from "@/lib/theme/theme";
@@ -82,6 +82,50 @@ export function ThemeControl({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * THE THEME AS A FEATURE ROW (Track M, 25 September 2026).
+ *
+ * The founder asked for appearance to read like the rows of the account
+ * screen in the pump.fun reference, "not a bare switch": the glyph of the
+ * current choice in the panel's shared slot, the word Appearance, the current
+ * value set quiet on the right, and a chevron. Tapping the row opens the same
+ * three-way radio group beneath it, so "System" is still a real answer and the
+ * keyboard contract of `ThemeControl` is unchanged. The row is a disclosure
+ * button, which is what it is: it shows and hides a control.
+ */
+export function ThemeRow({
+  labels = { group: "Appearance", light: "Light", dark: "Dark", system: "System" },
+}: {
+  labels?: { group: string; light: string; dark: string; system: string };
+}) {
+  const choice = useSyncExternalStore<ThemeChoice>(subscribe, readThemeChoice, () => "dark");
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  const current = OPTIONS.find((o) => o.value === choice) ?? OPTIONS[1]!;
+  return (
+    <div className="nf-theme-row" data-open={open || undefined}>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        className="nf-theme-row__head nf-tap"
+        data-testid="theme-row"
+      >
+        <span className="nf-nav__glyph" aria-hidden="true">
+          <UiIcon name={current.icon} size="md" />
+        </span>
+        <span className="nf-theme-row__label">{labels.group}</span>
+        <span className="nf-theme-row__value">{labels[current.key]}</span>
+        <span className="nf-theme-row__chev" aria-hidden="true" />
+      </button>
+      <div id={panelId} className="nf-theme-row__panel" hidden={!open}>
+        <ThemeControl labels={labels} />
+      </div>
     </div>
   );
 }

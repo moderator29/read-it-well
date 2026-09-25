@@ -1,6 +1,5 @@
 "use client";
 
-import { initial } from "@/lib/text/initial";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
@@ -10,7 +9,6 @@ import { AppRail } from "./AppRail";
 import { MobileTabBar, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { RemoteImage } from "@/components/ui/RemoteImage";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, sideOfPlansQuery, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
@@ -406,19 +404,10 @@ export function AppShell({
                   <UiIcon name="bell" size="md" />
                   {marked && <span aria-hidden="true" className="nf-app-header__dot" />}
                 </Link>
-                <Link href="/profile" aria-label={t.nav.profile} className="nf-tap nf-app-header__avatar">
-                  {avatarUrl ? (
-                    /* The header avatar is a 40px circle on every screen in
-                       the product, and the source is a full size upload. It
-                       goes through the optimiser at the size it is drawn;
-                       `RemoteImage` keeps an unexpected host from throwing
-                       here, which on the app header would be a 500 on every
-                       route at once. */
-                    <RemoteImage src={avatarUrl} alt="" width={40} height={40} sizes="40px" />
-                  ) : (
-                    <span aria-hidden="true">{initial(userName)}</span>
-                  )}
-                </Link>
+                {/* NO AVATAR HERE (Track M, 25 September 2026). The founder
+                    took the round photograph out of the header: the drawer
+                    opens on the person, and the dock carries Profile, so the
+                    header keeps one job on the right, the bell. */}
               </>
             )}
           </div>

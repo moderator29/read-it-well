@@ -1,5 +1,6 @@
 "use client";
 
+import { DepthWords, wordCount } from "@/components/motion/DepthWords";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -469,8 +470,12 @@ export function FirstRun({
           data-slide={slide.key}
         >
           <h1 className="nf-gs-title">
-            <span className="nf-gs-title__a">{slide.titleA}</span>
-            <span className="nf-gs-title__b">{slide.titleB}</span>
+            <span className="nf-gs-title__a">
+              <DepthWords text={slide.titleA} />
+            </span>
+            <span className="nf-gs-title__b">
+              <DepthWords text={slide.titleB} start={wordCount(slide.titleA)} />
+            </span>
           </h1>
           <p className="nf-gs-sub">{slide.body}</p>
           <WelcomeScene

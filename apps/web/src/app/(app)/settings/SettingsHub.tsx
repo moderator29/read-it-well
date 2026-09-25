@@ -21,6 +21,7 @@ import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
+import { playThreshold } from "@/lib/motion/threshold";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 
@@ -336,6 +337,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
               await clearOutbox();
               await forgetWidget();
               clearAllInflight();
+              /* Track M: the page recedes and the panels close on the mark. */
+              await playThreshold("leave");
               router.replace("/");
               router.refresh();
             });

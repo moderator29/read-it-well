@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { ThemeControl } from "@/components/site/ThemeControl";
+import { ThemeRow } from "@/components/site/ThemeControl";
 import type { Dictionary } from "@vallo/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { panelClass } from "@/components/ui/Panel";
+import { initial } from "@/lib/text/initial";
 import { buildNav } from "./nav-model";
 import { NavTree } from "./NavTree";
 import { SideSwitch } from "./SideSwitch";
@@ -118,30 +118,31 @@ export function AppRail({
 
       {signedIn && (
         /*
-          THE USER BLOCK, per the drawer render: the avatar in a glowing ring,
-          the name, the handle, and a "View profile" glass capsule. One link
-          because it is one destination; the capsule is the visible affordance
-          and the whole block is its tap target.
+          THE USER BLOCK. In the drawer it is the pump.fun-style head the
+          founder chose on 25 September 2026 (Track M): no card and no box, the
+          face bare at the top of the panel, the name large under it, the
+          handle quiet, and "View profile" as a plain text link. One link
+          because it is one destination; the whole block is its tap target.
         */
         <Link
           href="/profile"
           onClick={onNavigate}
-          className={drawer ? `nf-nav__who nf-nav__who--card ${panelClass({ variant: "card" })}` : "nf-nav__who"}
+          className={drawer ? "nf-nav__who nf-nav__who--hero" : "nf-nav__who"}
         >
           <span className="nf-nav__avatar" aria-hidden="true">
             {avatarUrl ? (
-              /* 28px in the rail, 60px in the drawer card: the CSS decides,
+              /* 28px in the rail, 64px in the drawer head: the CSS decides,
                  so `sizes` has to follow the same branch or the browser
                  fetches the wrong one of the two. */
               <RemoteImage
                 src={avatarUrl}
                 alt=""
-                width={drawer ? 60 : 28}
-                height={drawer ? 60 : 28}
-                sizes={drawer ? "60px" : "28px"}
+                width={drawer ? 64 : 28}
+                height={drawer ? 64 : 28}
+                sizes={drawer ? "64px" : "28px"}
               />
             ) : (
-              userName.slice(0, 1).toUpperCase()
+              initial(userName)
             )}
           </span>
           <span className="nf-nav__whobody">
@@ -201,9 +202,11 @@ export function AppRail({
           THE THEME CONTROL, BACK AT THE FOOT (25 September 2026: the founder
           reversed the dark-only rule). Light, Dark and System, remembered in
           storage and a cookie so the server paints the right one. See
-          `components/site/ThemeControl.tsx` and `lib/theme/theme.ts`.
+          `components/site/ThemeControl.tsx` and `lib/theme/theme.ts`. Since
+          Track M it is a feature row that opens the three choices beneath it,
+          as the founder's reference draws settings rows.
         */}
-        <ThemeControl />
+        <ThemeRow />
         {/*
           THE LEGAL ROW AT THE FOOT OF THE DRAWER, which the drawer render
           draws and the product did not have: a divider, a shield, the

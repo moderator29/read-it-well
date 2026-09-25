@@ -7,6 +7,7 @@ import type { AuthFormState } from "@/lib/auth/form-state";
 import { Button } from "@/components/ui/Button";
 import { Field } from "./fields";
 import { useRouter } from "next/navigation";
+import { playThreshold, thresholdAllowed } from "@/lib/motion/threshold";
 import { VerifyingPanel } from "./VerifyingPanel";
 import {
   CONFIRMATION_CODE_PLACEHOLDER,
@@ -77,10 +78,16 @@ export function VerifyCodeForm({
   useEffect(() => {
     if (!state.ok || !state.verified) return;
     const to = state.verified;
-    const timer = window.setTimeout(() => {
+    const go = () => {
       router.replace(to);
       router.refresh();
-    }, 2000);
+    };
+    /* Track M: through the door, which replaces the two-second floor. */
+    if (thresholdAllowed()) {
+      void playThreshold("door").then(go);
+      return;
+    }
+    const timer = window.setTimeout(go, 2000);
     return () => window.clearTimeout(timer);
   }, [state.ok, state.verified, router]);
 

@@ -582,37 +582,48 @@
    * The track takes `--nf-radius-lg` so the outer corner is concentric with
    * the tab inside it: 14px plus the 4px of padding is 18px.
    */
+  /*
+   * THE PROFILE SUB-TABS ARE UNDERLINED WORDS (Track M, 25 September 2026).
+   * The founder chose the pump.fun profile for this strip: Open, Closed,
+   * Replies, Rewards set as plain words on a hairline, the current one in
+   * full ink with a short bar that grows in under it. It was a glass tray
+   * with a filled brand lozenge, which is the louder of the two and read as
+   * a control panel rather than as a place to read.
+   */
   .nf-glass-seg {
     display: grid;
     grid-template-columns: repeat(var(--nf-seg-count, 2), minmax(0, 1fr));
-    gap: 4px;
-    padding: 4px;
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill-thin);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    gap: var(--nf-space-2xs);
+    padding: 0;
+    border-bottom: 1px solid var(--nf-divider);
   }
   .nf-glass-seg__tab {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--nf-space-2xs);
     min-inline-size: 0;
     min-block-size: 46px;
-    padding-inline: 8px;
+    padding-inline: var(--nf-space-2xs);
     border: 0;
-    border-radius: var(--nf-radius-control);
     background: transparent;
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
-    color: var(--nf-content-secondary);
+    color: var(--nf-content-muted);
     cursor: pointer;
-    transition:
-      color var(--nf-duration-fast) var(--nf-ease-standard),
-      background var(--nf-duration-base) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-glass-seg__tab::after {
+    content: "";
+    position: absolute;
+    inset-inline: 22%;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--nf-content-primary);
+    transform: scaleX(0);
+    transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
   }
   .nf-glass-seg__tab:hover {
     color: var(--nf-content-primary);
@@ -622,19 +633,15 @@
     outline-offset: 2px;
   }
   .nf-glass-seg__tab[aria-selected="true"] {
-    /*
-     * FLAT BRAND PRIMARY, for the reason written out in full at
-     * `.nf-feed-seg__link[aria-current="page"]` in `social-feed.css`:
-     * `50E032EA` draws the live Belongings half as one flat azure, the same
-     * colour its twin draws For You with in `GOVERNING-feed-plus-bloom.png`,
-     * and this rule painted a 135 degree ramp. The lift along the top edge is
-     * the inset rim below, not a diagonal.
-     */
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 22px -4px var(--nf-glow-3);
+    color: var(--nf-content-primary);
+  }
+  .nf-glass-seg__tab[aria-selected="true"]::after {
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-glass-seg__tab::after {
+      transition: none;
+    }
   }
   .nf-glass-seg__tab .nf-social-tab__count {
     margin-inline-start: 2px;
