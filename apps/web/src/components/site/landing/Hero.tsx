@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n";
@@ -7,6 +8,9 @@ import type { MiniListing } from "@/lib/site/listing-card";
 import { photo } from "@/lib/site/photos";
 import { HeroListingCard } from "./HeroListingCard";
 import { SearchPill } from "./SearchPill";
+import { HeroAurora } from "./HeroAurora";
+import { StoreBadges } from "./StoreBadges";
+import type { StoreBadge } from "./store-badges";
 
 /**
  * The hero, to GOVERNING-landing-desktop-hero.png.
@@ -40,24 +44,29 @@ import { SearchPill } from "./SearchPill";
  * read the featured rail used to make, five of them, already mapped to the
  * small shape the client pager needs), so the preview harness can hand the
  * hero fixtures where this sandbox cannot reach the catalogue. Nothing here
- * is ambient motion: the one animation this viewport is allowed is the
- * entrance rise on the copy.
+ * is ambient motion except the aurora, which is the one loop this viewport
+ * is allowed and which pauses whenever the hero is off screen.
  */
 export function Hero({
   t,
   locale,
   cards,
+  badges = [],
 }: {
   t: Dictionary;
   locale: Locale;
   cards: MiniListing[];
+  /** From `storeBadges()`: empty until a store address exists, and always
+      empty inside a native shell. */
+  badges?: StoreBadge[];
 }) {
   const face = t.landing.face;
 
   return (
     <section className="nf-landing-hero" aria-labelledby="nf-landing-title">
-      {/* The aurora only shows where the photograph is a band, under 64rem. */}
-      <div className="nf-aurora nf-landing-hero-aurora" aria-hidden="true" />
+      {/* The moving light: a 28 second drift in the brand hues, paused off
+          screen and in a background tab (HeroAurora.tsx). */}
+      <HeroAurora />
 
       <div className="nf-shell nf-landing-hero-body">
         <div className="nf-landing-hero-copy flex flex-col gap-heading">
@@ -80,9 +89,16 @@ export function Hero({
               </li>
             ))}
           </ol>
-          <h1 id="nf-landing-title" className="nf-landing-title">
-            <span className="nf-rise">{face.hero.title1}</span>
-            <span className="nf-rise nf-rise-2 nf-gradient-text">{face.hero.title2}</span>
+          {/* THE DEPTH ARRIVAL (Track M). Each word comes forward from behind
+              the glass: blurred 8px, 1.12 times its size and transparent, then
+              sharp and settled, 70ms after the word before it. The whole
+              assembly is about 1.2 seconds, plays once per visit, and waits
+              for the app-open door when that is on screen. The words are
+              spans inside the line, so the line still reads as one string to
+              a screen reader and to `headline-coupling.test.ts`. */}
+          <h1 id="nf-landing-title" className="nf-landing-title nf-depth">
+            <DepthLine text={face.hero.title1} start={0} />
+            <DepthLine text={face.hero.title2} start={face.hero.title1.split(" ").length} accent />
           </h1>
           <p className="nf-rise nf-rise-3 nf-landing-sub">{face.hero.subtitle}</p>
           <div className="nf-rise nf-rise-4 flex flex-wrap items-center gap-row">
@@ -131,10 +147,37 @@ export function Hero({
       </div>
 
       <div className="nf-shell">
-        <div className="nf-landing-pill-wrap">
+        {/* The search rises last, once the headline has landed, and the store
+            badges with it (only where a real store address exists). */}
+        <div className="nf-landing-pill-wrap nf-depth-last">
           <SearchPill labels={face.search} />
         </div>
+        <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-depth-last nf-landing-hero-badges" />
       </div>
     </section>
+  );
+}
+
+/**
+ * One line of the headline as words that arrive from depth. `start` carries
+ * the word count across lines, so the second line continues the first; the
+ * index is capped at six in the stylesheet (no stagger past six steps).
+ */
+function DepthLine({ text, start, accent = false }: { text: string; start: number; accent?: boolean }) {
+  const words = text.split(" ");
+  return (
+    <span className={accent ? "nf-depth-line nf-depth-line--accent" : "nf-depth-line"}>
+      {words.map((w, i) => (
+        <Fragment key={`${w}-${i}`}>
+          <span
+            className={accent ? "nf-depth-w nf-gradient-text" : "nf-depth-w"}
+            style={{ "--w": Math.min(start + i, 6) } as React.CSSProperties}
+          >
+            {w}
+          </span>
+          {i < words.length - 1 ? " " : null}
+        </Fragment>
+      ))}
+    </span>
   );
 }

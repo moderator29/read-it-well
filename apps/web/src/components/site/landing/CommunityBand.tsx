@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Dictionary, Locale } from "@vallo/i18n";
-import { formatNumber } from "@vallo/i18n";
+import { intlTag } from "@vallo/i18n";
+import { CountUp } from "@/components/motion/CountUp";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import type { MiniListing } from "@/lib/site/listing-card";
@@ -61,7 +62,11 @@ export function CommunityBand({
             <ul className="nf-landing-figures">
               {figures.map((f) => (
                 <li key={f.key} className="nf-landing-figure">
-                  <strong className="nf-numeric">{formatNumber(f.value, locale)}</strong>
+                  {/* The platform's own figure, counted up once on arrival
+                      (CountUp.tsx). The server prints the final number. */}
+                  <strong>
+                    <CountUp value={f.value} tag={intlTag[locale]} />
+                  </strong>
                   <span>{f.label}</span>
                 </li>
               ))}

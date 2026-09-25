@@ -8,6 +8,7 @@ import { shapeEn } from "./shape.en";
 /* The front of the funnel (share door, area pages, store desk, broadcast,
    board): its own module for the same reason. */
 import { frontDoorEn } from "./front-door.en";
+import { landingRoomsEn } from "./landing-rooms.en";
 import { afterTheGateEn } from "./after-the-gate.en";
 import { trustVisibleEn } from "./trust-visible.en";
 import { landlordEn } from "./landlord.en";
@@ -5852,6 +5853,7 @@ export const en = {
   priceCheck: priceCheckEn,
   shape: shapeEn,
   frontDoor: frontDoorEn,
+  landingRooms: landingRoomsEn,
   afterTheGate: afterTheGateEn,
   trustVisible: trustVisibleEn,
 

@@ -7,6 +7,24 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { LandingBody, landingData } from "@/components/site/landing/LandingBody";
 import { requestSurface } from "@/lib/auth/surface";
+import { NONCE_HEADER } from "@/lib/security/csp";
+
+/*
+ * THE INTRO PLAYS ONCE PER VISIT, AND ON A SLOW DEVICE WITHOUT THE BLUR
+ * (Track M). This runs while the parser is still above the hero, so the
+ * decision is made before the first frame of the headline:
+ *
+ *   `data-intro="seen"`   the headline has assembled once this session, so
+ *                         it is simply there (landing-rooms.css);
+ *   `data-motion-lite`    two cores or less, or two gigabytes or less of
+ *                         memory: the depth arrival keeps its scale and fade
+ *                         and drops the blur, as data saver does.
+ *
+ * Both are wrapped in try: storage can throw in a private window, and the
+ * answer then is the full intro, which is the harmless default.
+ */
+const INTRO_SCRIPT =
+  "try{var d=document.documentElement,n=navigator;if(sessionStorage.getItem('nf-intro'))d.dataset.intro='seen';else sessionStorage.setItem('nf-intro','1');if((n.hardwareConcurrency&&n.hardwareConcurrency<=2)||(n.deviceMemory&&n.deviceMemory<=2))d.dataset.motionLite='on'}catch(e){}";
 
 /*
  * The landing page: the true face.
@@ -50,7 +68,9 @@ export default async function LandingPage() {
      the marketing page: it announces itself in its user agent and is sent to
      its own start, which answers home, welcome or sign in. A browser is
      untouched. See `lib/native/shell.ts`. */
-  if (isShellUserAgent((await headers()).get("user-agent"))) redirect(SHELL_START);
+  const head = await headers();
+  if (isShellUserAgent(head.get("user-agent"))) redirect(SHELL_START);
+  const nonce = head.get(NONCE_HEADER) ?? undefined;
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   const data = await landingData(t);
@@ -62,8 +82,9 @@ export default async function LandingPage() {
        landing renders. Light mode (reintroduced 25 September 2026) starts at
        the product, not at the poster. `nf-landing--stage` paints the ground. */
     <div className="nf-landing nf-landing--stage" data-theme="dark">
+      <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
       <SiteHeader t={t} locale={locale} variant="landing" />
-      <LandingBody t={t} locale={locale} data={data} native={native} />
+      <LandingBody t={t} locale={locale} data={data} native={native} nonce={nonce} />
       <SiteFooter t={t} />
     </div>
   );

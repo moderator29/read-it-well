@@ -75,6 +75,8 @@
 @import "./css/auth.css";
 @import "./css/home.css";
 @import "./css/landing.css";
+/* Track M: the landing rooms (hero depth, protection, AI showcase, FAQ). */
+@import "./css/landing-rooms.css";
 @import "./css/site.css";
 @import "./css/catalogue.css";
 /* The full-screen photo viewer: its notch-aware chrome and swipe-to-dismiss. */
@@ -102,6 +104,8 @@
 @import "./css/theme-control.css";
 /* Signature motion: finite, transform and opacity only (track I). */
 @import "./css/signature-motion.css";
+/* Track M: the shared reveal, stagger, press and feature-icon motion. */
+@import "./css/motion-kit.css";
 @import "./css/light.css";
 /*
  * `light.css` WAS IMPORTED HERE AND WAS DELETED (history). The founder removed light mode

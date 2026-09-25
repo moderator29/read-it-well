@@ -41,6 +41,13 @@ import { photo, type PhotoName } from "@/lib/site/photos";
  * into a market, not a picture of one listing, so the objection `MediaFrame`
  * raises to a building on a plot does not apply here.
  */
+/**
+ * One micro-motion per tile (Track M), cycled so neighbours differ: the icon
+ * lifts, tilts, turns or drops, once on hover or focus. Transform only;
+ * static under reduced motion (landing-rooms.css).
+ */
+const CAT_MOTION = ["lift", "tilt", "turn", "drop"] as const;
+
 export function CategoryGrid({
   t,
   counts,
@@ -101,7 +108,7 @@ export function CategoryGrid({
                     sizes="(max-width: 640px) 45vw, (max-width: 1024px) 50vw, 200px"
                   />
                   <span className="nf-landing-cat-body">
-                    <span className="nf-landing-cat-icon">
+                    <span className="nf-landing-cat-icon" data-motion={CAT_MOTION[i % CAT_MOTION.length]}>
                       <BrandIcon name={tile.icon} fill />
                     </span>
                     <span className="min-w-0">

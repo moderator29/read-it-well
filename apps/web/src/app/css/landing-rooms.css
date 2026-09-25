@@ -1,0 +1,782 @@
+/*
+ * THE LANDING'S NEW ROOMS AND ITS INTRO (Track M, 25 September 2026).
+ *
+ * `landing.css` is the render's page and is left as it was; this file is what
+ * the motion plan added on top: the hero's depth arrival and moving aurora,
+ * the protection room, the AI showcase, the FAQ, the closing call to action,
+ * the official store badges and the category micro-motion. The plan and its
+ * timing table are docs/TRACK_M_MOTION_PLAN.md.
+ *
+ * Everything here moves transform and opacity only, except the headline's
+ * blur, which is an entrance, ends at nothing, and is dropped on data saver
+ * and on slow devices. Each block carries its reduced-motion answer at the
+ * foot of the file.
+ */
+@layer components {
+  /* ================================================ the hero intro */
+
+  /*
+   * THE HEADLINE ARRIVES FROM DEPTH. Each word starts 1.12 times its size,
+   * blurred 8px and transparent, and comes forward to sharp, 70ms after the
+   * word before (six steps at most). The first word starts 80ms in, so the
+   * whole line has landed by about a second, and the search rises last at
+   * 700ms. Everything waits `--nf-splash-hold`, which the app-open door sets
+   * while it is on screen and which is zero otherwise.
+   */
+  .nf-depth-line {
+    display: block;
+  }
+  .nf-depth-w {
+    display: inline-block;
+    transform-origin: 50% 62%;
+    animation: nf-depth-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 80ms + var(--w, 0) * 70ms);
+  }
+  /* The lit line keeps its bloom: the glow is part of the keyframe so the
+     animation ends exactly on the resting look (landing.css). */
+  .nf-depth-line--accent .nf-depth-w {
+    animation-name: nf-depth-in-lit;
+  }
+  @keyframes nf-depth-in {
+    from {
+      opacity: 0;
+      filter: blur(8px);
+      transform: scale(1.12);
+    }
+    55% {
+      opacity: 1;
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: none;
+    }
+  }
+  @keyframes nf-depth-in-lit {
+    from {
+      opacity: 0;
+      filter: blur(8px) drop-shadow(0 0 22px var(--nf-glow-2));
+      transform: scale(1.12);
+    }
+    55% {
+      opacity: 1;
+    }
+    to {
+      opacity: 1;
+      filter: blur(0) drop-shadow(0 0 22px var(--nf-glow-2));
+      transform: none;
+    }
+  }
+  /* Data saver and slow devices: the same arrival without the blur. */
+  @keyframes nf-depth-in-lite {
+    from {
+      opacity: 0;
+      transform: scale(1.12);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  :root[data-save-data="on"] .nf-depth-w,
+  :root[data-motion-lite="on"] .nf-depth-w {
+    animation-name: nf-depth-in-lite;
+  }
+
+  /* The rest of the hero follows the headline instead of racing it. */
+  .nf-landing-hero .nf-landing-crumbs.nf-rise {
+    animation-delay: var(--nf-splash-hold, 0s);
+  }
+  .nf-landing-hero .nf-rise-3 {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 520ms);
+  }
+  .nf-landing-hero .nf-rise-4 {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 580ms);
+  }
+  .nf-landing-hero .nf-rise-5 {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 640ms);
+  }
+  .nf-landing-hero .nf-landing-float-wrap {
+    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 600ms);
+  }
+  .nf-depth-last {
+    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 700ms);
+  }
+
+  /* Once per visit: the second time the landing opens this session, the
+     hero is simply there (the flag is set by the script in app/page.tsx). */
+  :root[data-intro="seen"] .nf-depth-w,
+  :root[data-intro="seen"] .nf-landing-hero .nf-rise,
+  :root[data-intro="seen"] .nf-landing-hero .nf-landing-float-wrap,
+  :root[data-intro="seen"] .nf-depth-last {
+    animation: none;
+  }
+  :root[data-intro="seen"] .nf-depth-line--accent .nf-depth-w {
+    filter: drop-shadow(0 0 22px var(--nf-glow-2));
+  }
+
+  /* ----------------------------------------------------- the aurora */
+
+  /*
+   * Three fields of brand light behind the hero, each drifting on the same
+   * 28 second linear loop from a different phase, so the light moves without
+   * ever visibly repeating. Transform only; the blur is static, so each field
+   * is rasterised once and then only moved. On the photograph (64rem up) it
+   * is screened over the plate at a low strength, a wash of light rather than
+   * a second picture; on the phone it is the hero's whole atmosphere.
+   */
+  .nf-hero-aurora {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    animation: nf-aurora-land var(--nf-duration-cinematic) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 360ms);
+  }
+  .nf-hero-aurora > span {
+    position: absolute;
+    border-radius: var(--nf-radius-circle);
+    filter: blur(72px);
+    animation: 28s linear infinite both;
+  }
+  .nf-hero-aurora[data-playing="false"] > span {
+    animation-play-state: paused;
+  }
+  .nf-hero-aurora-a {
+    width: 40rem;
+    height: 40rem;
+    top: -16rem;
+    left: -12rem;
+    opacity: 0.42;
+    background: radial-gradient(circle, var(--nf-brand-primary-strong) 0%, transparent 66%);
+    animation-name: nf-aurora-a;
+  }
+  .nf-hero-aurora-b {
+    width: 34rem;
+    height: 34rem;
+    top: 2rem;
+    right: -14rem;
+    opacity: 0.34;
+    background: radial-gradient(circle, var(--nf-brand-secondary) 0%, transparent 66%);
+    animation-name: nf-aurora-b;
+  }
+  .nf-hero-aurora-c {
+    width: 28rem;
+    height: 28rem;
+    bottom: -12rem;
+    left: 28%;
+    opacity: 0.26;
+    background: radial-gradient(circle, var(--nf-brand-accent) 0%, transparent 66%);
+    animation-name: nf-aurora-c;
+  }
+  @media (min-width: 64rem) {
+    .nf-hero-aurora {
+      mix-blend-mode: screen;
+    }
+    .nf-hero-aurora-a { opacity: 0.3; }
+    .nf-hero-aurora-b { opacity: 0.2; }
+    .nf-hero-aurora-c { opacity: 0.16; }
+  }
+  @keyframes nf-aurora-land {
+    from { opacity: 0.35; }
+    to { opacity: 1; }
+  }
+  @keyframes nf-aurora-a {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+    33% { transform: translate3d(9rem, 4rem, 0) rotate(40deg); }
+    66% { transform: translate3d(3rem, 8rem, 0) rotate(-20deg); }
+  }
+  @keyframes nf-aurora-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    40% { transform: translate3d(-10rem, 5rem, 0) scale(1.12); }
+    75% { transform: translate3d(-4rem, -3rem, 0) scale(0.94); }
+  }
+  @keyframes nf-aurora-c {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(-8rem, -6rem, 0); }
+  }
+  :root[data-save-data="on"] .nf-hero-aurora {
+    display: none;
+  }
+
+  .nf-landing-hero-badges {
+    justify-content: center;
+    margin-top: var(--nf-gap-group);
+  }
+
+  /* ================================================== shared rooms */
+
+  .nf-room-head {
+    max-width: var(--nf-measure-lede);
+    margin-inline: auto;
+    margin-bottom: var(--nf-gap-block);
+    text-align: center;
+  }
+  .nf-room-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    min-height: 2.75rem;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    color: var(--nf-content-link);
+    text-decoration: none;
+  }
+  .nf-room-link svg {
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-room-link:hover svg {
+      transform: translateX(3px);
+    }
+  }
+  .nf-room-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-xs);
+  }
+
+  /* The feature-icon plate: 28px glyph on the Track M icon scale. */
+  .nf-feature-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--nf-radius-lg);
+    color: var(--nf-brand-secondary);
+    background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 32%, transparent);
+  }
+  .nf-feature-icon--sm {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-md);
+  }
+
+  /* ================================================ protection room */
+
+  .nf-protect-grid {
+    display: grid;
+    gap: var(--nf-gap-row);
+  }
+  @media (min-width: 48rem) {
+    .nf-protect-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--nf-gap-group);
+    }
+  }
+  .nf-protect-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+  }
+  /* The lift uses `translate`, not `transform`, so it never meets the
+     entrance (motion-kit.css); the stronger shadow fades in on an overlay's
+     opacity rather than transitioning a box-shadow. */
+  .nf-protect-card {
+    position: relative;
+    transition: translate var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-protect-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: var(--nf-elev-3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-protect-card:hover {
+      translate: 0 -2px;
+    }
+    .nf-protect-card:hover::after {
+      opacity: 1;
+    }
+  }
+  .nf-protect-title {
+    margin-top: var(--nf-space-xs);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+  }
+  .nf-protect-body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-protect-card .nf-room-link {
+    margin-top: auto;
+  }
+
+  /* ===================================================== the AI room */
+
+  .nf-ai-room {
+    display: grid;
+    gap: var(--nf-gap-block);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .nf-ai-room {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: var(--nf-space-3xl);
+    }
+  }
+  .nf-ai-truths {
+    display: grid;
+    gap: var(--nf-gap-row);
+  }
+  .nf-ai-truths > li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-gap-row);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  .nf-ai-truths > li > span:last-child {
+    padding-top: 0.4rem;
+  }
+
+  .nf-ai-show {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-row);
+  }
+  .nf-ai-show-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-gap-row);
+    min-height: 2.75rem;
+  }
+  .nf-ai-show-caption {
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-ai-show-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+  }
+  /* The pips: which of the three conversations is playing, and a way to
+     jump to one. A 44px target around an 8px dot. */
+  .nf-ai-show-pip {
+    position: relative;
+    width: 1.5rem;
+    height: 2.75rem;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .nf-ai-show-pip::before {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: -0.25rem 0 0 -0.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-muted);
+    opacity: 0.5;
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-ai-show-pip[aria-pressed="true"]::before {
+    background: var(--nf-brand-secondary);
+    opacity: 1;
+    transform: scale(1.25);
+  }
+  .nf-ai-show-pip:focus-visible,
+  .nf-ai-show-replay:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-control);
+  }
+  .nf-ai-show-replay {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: transparent;
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+    cursor: pointer;
+  }
+
+  /* The panel: a phone-proportioned glass pane with a fixed height, so a
+     script arriving never moves the page. */
+  .nf-ai-show-panel {
+    display: flex;
+    flex-direction: column;
+    height: 30rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-2xl);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
+    transition: opacity var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-ai-show-panel[data-leaving="true"] {
+    opacity: 0.2;
+  }
+  .nf-ai-show-head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-bottom: 1px solid var(--nf-glass-border);
+  }
+  .nf-ai-show-avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+  }
+  .nf-ai-show-name {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-ai-show-thread {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-md);
+  }
+  .nf-ai-bubble {
+    max-width: 86%;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-lg);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+  .nf-ai-bubble--user {
+    align-self: flex-end;
+    border-bottom-right-radius: var(--nf-radius-xs);
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+  }
+  .nf-ai-bubble--bot {
+    align-self: flex-start;
+    border-bottom-left-radius: var(--nf-radius-xs);
+    color: var(--nf-content-primary);
+    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+  }
+  .nf-ai-bubble--user[data-live] {
+    animation: nf-ai-slide var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-ai-word[data-live] {
+    display: inline-block;
+    white-space: pre;
+    animation: nf-ai-word var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+  .nf-ai-typing {
+    align-self: flex-start;
+    display: inline-flex;
+    gap: 0.3rem;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-lg);
+    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+  }
+  .nf-ai-typing > span {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-secondary);
+    animation: nf-ai-dot var(--nf-duration-deliberate) var(--nf-ease-standard) infinite;
+  }
+  .nf-ai-typing > span:nth-child(2) { animation-delay: 120ms; }
+  .nf-ai-typing > span:nth-child(3) { animation-delay: 240ms; }
+  .nf-ai-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-row);
+    perspective: 900px;
+  }
+  .nf-ai-card {
+    min-width: 0;
+  }
+  .nf-ai-card--slot {
+    min-height: 1px;
+  }
+  /* The cards fold down into place, hinged on their top edge. */
+  .nf-ai-card[data-live] {
+    transform-origin: 50% 0;
+    animation: nf-ai-fold var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-ai-note {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-brand-secondary);
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  }
+  .nf-ai-note[data-live] {
+    animation: nf-ai-slide var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-ai-slide {
+    from { opacity: 0; transform: translate3d(0, 12px, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-ai-word {
+    from { opacity: 0; transform: translate3d(0, 3px, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-ai-dot {
+    0%, 100% { opacity: 0.35; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-3px); }
+  }
+  @keyframes nf-ai-fold {
+    from { opacity: 0; transform: rotateX(-68deg); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (max-width: 26rem) {
+    .nf-ai-show-panel {
+      height: 31rem;
+    }
+    .nf-ai-show-thread {
+      padding: var(--nf-space-sm);
+    }
+  }
+
+  /* ========================================================= the FAQ */
+
+  .nf-faq-room {
+    display: grid;
+    gap: var(--nf-gap-block);
+  }
+  @media (min-width: 64rem) {
+    .nf-faq-room {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+      gap: var(--nf-space-3xl);
+      align-items: start;
+    }
+    .nf-faq-head {
+      position: sticky;
+      top: calc(var(--nf-header-height) + var(--nf-space-lg));
+    }
+  }
+  .nf-faq-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .nf-faq-list {
+    border-top: 1px solid var(--nf-glass-border);
+  }
+  /*
+   * The accordion. `interpolate-size` lets the panel's height ease between
+   * zero and its content over 240ms on the standard curve, where the browser
+   * supports `::details-content`; everywhere else it opens instantly, which
+   * is also what reduced motion gets. It works with scripts off.
+   */
+  .nf-faq-item {
+    interpolate-size: allow-keywords;
+    border-bottom: 1px solid var(--nf-glass-border);
+  }
+  .nf-faq-item::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height var(--nf-duration-base) var(--nf-ease-standard),
+      content-visibility var(--nf-duration-base) allow-discrete;
+  }
+  .nf-faq-item[open]::details-content {
+    height: auto;
+  }
+  .nf-faq-q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-gap-row);
+    min-height: 3.5rem;
+    padding: var(--nf-space-sm) 0;
+    list-style: none;
+    cursor: pointer;
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-faq-q::-webkit-details-marker {
+    display: none;
+  }
+  .nf-faq-q:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-faq-chevron {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    color: var(--nf-content-secondary);
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-faq-item[open] .nf-faq-chevron {
+    transform: rotate(180deg);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-faq-a {
+    padding-bottom: var(--nf-space-md);
+    padding-inline-end: var(--nf-space-2xl);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+    max-width: var(--nf-measure-body);
+  }
+
+  /* ====================================================== the close */
+
+  .nf-close {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-gap-group);
+    padding: var(--nf-space-3xl) var(--nf-pad-card);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+    text-align: center;
+  }
+  .nf-close-glow {
+    position: absolute;
+    inset: auto -20% -60% -20%;
+    height: 120%;
+    z-index: -1;
+    background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--nf-brand-primary) 30%, transparent) 0%, transparent 70%);
+  }
+  .nf-close-title {
+    max-width: 18ch;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h0);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: var(--nf-tracking-display);
+    color: var(--nf-content-primary);
+  }
+  .nf-close-body {
+    max-width: var(--nf-measure-lede);
+  }
+  .nf-close-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-gap-row);
+  }
+
+  /* ================================================ store badges */
+
+  .nf-store-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-gap-row);
+  }
+  .nf-store-badge {
+    display: block;
+    border-radius: var(--nf-radius-md);
+  }
+  /* 44px tall: above both stores' 40px minimum and a full tap target. */
+  .nf-store-badge svg {
+    display: block;
+    width: auto;
+    height: 2.75rem;
+  }
+  .nf-store-badge:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+
+  /* ======================================= category micro-motion */
+
+  .nf-landing-cat-icon {
+    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+  }
+  @media (hover: hover) {
+    .nf-landing-cat:hover .nf-landing-cat-icon[data-motion="lift"] { transform: translate3d(0, -4px, 0); }
+    .nf-landing-cat:hover .nf-landing-cat-icon[data-motion="tilt"] { transform: rotate(-8deg); }
+    .nf-landing-cat:hover .nf-landing-cat-icon[data-motion="turn"] { transform: rotate(12deg) scale(1.06); }
+    .nf-landing-cat:hover .nf-landing-cat-icon[data-motion="drop"] { transform: translate3d(0, 3px, 0) scale(1.06); }
+  }
+  .nf-landing-cat:focus-visible .nf-landing-cat-icon {
+    transform: translate3d(0, -3px, 0);
+  }
+
+  /* ============================================ reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-depth-w,
+    .nf-depth-last,
+    .nf-landing-hero .nf-landing-float-wrap,
+    .nf-hero-aurora,
+    .nf-hero-aurora > span,
+    .nf-ai-bubble--user[data-live],
+    .nf-ai-word[data-live],
+    .nf-ai-typing > span,
+    .nf-ai-card[data-live],
+    .nf-ai-note[data-live] {
+      animation: none;
+    }
+    .nf-depth-line--accent .nf-depth-w {
+      filter: drop-shadow(0 0 22px var(--nf-glow-2));
+    }
+    .nf-protect-card,
+    .nf-protect-card::after,
+    .nf-landing-cat-icon,
+    .nf-faq-chevron,
+    .nf-room-link svg,
+    .nf-ai-show-panel,
+    .nf-ai-show-pip::before {
+      transition: none;
+    }
+    .nf-protect-card:hover {
+      translate: none;
+    }
+    .nf-landing-cat:hover .nf-landing-cat-icon,
+    .nf-landing-cat:focus-visible .nf-landing-cat-icon,
+    .nf-room-link:hover svg {
+      transform: none;
+    }
+    .nf-faq-item::details-content {
+      transition: none;
+    }
+  }
+}
