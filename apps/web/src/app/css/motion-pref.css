@@ -87,6 +87,21 @@
   :root[data-motion="calm"] *::after {
     animation-iteration-count: 1 !important;
   }
+  /*
+   * SCROLL-DRIVEN MOTION IS NOT A DURATION, SO IT NEEDS ITS OWN OFF SWITCH.
+   * A `view()` or `scroll()` timeline ignores animation-duration entirely, so
+   * the 1ms rule below never reached the posts, sections and headings that
+   * rise with the scroll. Handing them back to the document timeline, with
+   * no duration of their own, lands each one in its final state at once.
+   */
+  :root[data-motion="calm"] *,
+  :root[data-motion="calm"] *::before,
+  :root[data-motion="calm"] *::after,
+  :root[data-motion="off"] *,
+  :root[data-motion="off"] *::before,
+  :root[data-motion="off"] *::after {
+    animation-timeline: auto !important;
+  }
   :root[data-motion="calm"] .nf-page-title,
   :root[data-motion="calm"] .nf-depth-word,
   :root[data-motion="calm"] [data-state-kind="empty"] > *,

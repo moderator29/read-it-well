@@ -1,0 +1,188 @@
+/*
+ * TRACK M: THE FEED MOVES (25 September 2026).
+ *
+ * The founder: "in the feed add many animations". What moves, and why each
+ * is quiet enough to scroll past a hundred times:
+ *
+ *   posts        rise into place as they enter the screen, driven by the
+ *                scroll itself (a view timeline), so a fast flick shows
+ *                them already settled and a slow read watches them arrive
+ *   photographs  settle from a slight zoom as their post comes in
+ *   the heart    pops on a spring and throws a ring of light when liked
+ *   repost       the arrows turn half a circle when reposted
+ *   stories      each ring's light travels round it slowly, the way a
+ *                story waiting to be seen should look alive
+ *
+ * The post and the photo animate `translate` and `scale`, the individual
+ * transform properties, never `transform`: the card already moves on press
+ * with `transform`, and the two must add up rather than fight.
+ *
+ * Browsers without view timelines simply show every post settled. Reduced
+ * motion stops all of it; Calm and Off are handled in motion-pref.css.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@property --nf-ring-a {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 160deg;
+}
+
+@layer components {
+  /* ------------------------------------------------------------- posts */
+
+  @supports (animation-timeline: view()) {
+    .nf-post {
+      animation: nf-feed-arrive linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+    .nf-post__media img {
+      animation: nf-feed-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 35%;
+    }
+  }
+  @keyframes nf-feed-arrive {
+    from {
+      opacity: 0;
+      translate: 0 28px;
+      scale: 0.975;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+      scale: none;
+    }
+  }
+  @keyframes nf-feed-settle {
+    from {
+      scale: 1.08;
+    }
+    to {
+      scale: none;
+    }
+  }
+  .nf-post__media {
+    overflow: hidden;
+  }
+
+  /* ------------------------------------------------------------- heart */
+
+  .nf-post__act--like svg,
+  .nf-post__act--repost svg {
+    transition: scale var(--nf-duration-fast) var(--nf-ease-spring);
+  }
+  .nf-post__act--like:active svg,
+  .nf-post__act--repost:active svg {
+    scale: 0.82;
+  }
+  .nf-post__act--like[aria-pressed="true"] svg {
+    animation: nf-feed-heart var(--nf-duration-deliberate) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-feed-heart {
+    0% {
+      scale: 0.6;
+    }
+    45% {
+      scale: 1.3;
+    }
+    100% {
+      scale: none;
+    }
+  }
+  .nf-post__act--like::after {
+    content: "";
+    position: absolute;
+    left: 0.35rem;
+    top: 50%;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-top: -0.875rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px dotted var(--nf-mark-unread);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nf-post__act--like[aria-pressed="true"]::after {
+    animation: nf-feed-burst var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-feed-burst {
+    0% {
+      opacity: 0.9;
+      scale: 0.4;
+    }
+    100% {
+      opacity: 0;
+      scale: 1.7;
+    }
+  }
+
+  /* ------------------------------------------------------------ repost */
+
+  .nf-post__act--repost[data-active] svg {
+    animation: nf-feed-turn var(--nf-duration-deliberate) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-feed-turn {
+    from {
+      rotate: -180deg;
+    }
+    to {
+      rotate: none;
+    }
+  }
+
+  /* ----------------------------------------------------------- stories */
+
+  .nf-story-ring__disc:not(.nf-story-ring__disc--you) {
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      conic-gradient(
+          from var(--nf-ring-a),
+          var(--nf-state-info) 0deg,
+          color-mix(in oklab, var(--nf-state-info) 60%, var(--nf-brand-primary)) 120deg,
+          var(--nf-brand-primary) 220deg,
+          var(--nf-state-info) 360deg
+        )
+        border-box;
+    animation: nf-feed-ring 6s linear infinite;
+  }
+  @keyframes nf-feed-ring {
+    to {
+      --nf-ring-a: 520deg;
+    }
+  }
+  .nf-story-ring__item {
+    transition: scale var(--nf-duration-fast) var(--nf-ease-spring);
+  }
+  .nf-story-ring__item:active {
+    scale: 0.94;
+  }
+
+  /* ------------------------------------------------------ reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-post,
+    .nf-post__media img,
+    .nf-post__act--like[aria-pressed="true"] svg,
+    .nf-post__act--like[aria-pressed="true"]::after,
+    .nf-post__act--repost[data-active] svg,
+    .nf-story-ring__disc:not(.nf-story-ring__disc--you) {
+      animation: none;
+    }
+    .nf-post__act--like svg,
+    .nf-post__act--repost svg,
+    .nf-story-ring__item {
+      transition: none;
+    }
+    .nf-post__act--like:active svg,
+    .nf-post__act--repost:active svg,
+    .nf-story-ring__item:active {
+      scale: none;
+    }
+  }
+  :root[data-save-data="on"] .nf-story-ring__disc:not(.nf-story-ring__disc--you) {
+    animation: none;
+  }
+}

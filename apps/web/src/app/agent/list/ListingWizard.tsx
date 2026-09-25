@@ -1850,6 +1850,9 @@ export function ListingWizard({
           accessible name, which is where the renders put that information:
           the row of rectangles says it to a sighted reader already. */}
       <StepHead
+        /* Keyed by the step (Track M), so the title and its object arrive
+           fresh on every step instead of changing in place. */
+        key={stepKey || step}
         title={(stepKey && copy.drawn.titles[stepKey]) || (stepNames[step] ?? "")}
         sub={stepKey && copy.drawn.subtitles[stepKey]}
         object={stepKey && STEP_OBJECT[stepKey]}
@@ -1869,7 +1872,7 @@ export function ListingWizard({
         </div>
       )}
 
-      <div className="nf-panel nf-panel--card block mt-group p-card sm:p-cell">
+      <div className="nf-panel nf-panel--card nf-lw-body block mt-group p-card sm:p-cell">
         {/* ---------------------------------------------------- 1 basic info */}
         {step === 0 && (
           <div className="space-y-lg">

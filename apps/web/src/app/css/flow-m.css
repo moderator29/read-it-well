@@ -1,0 +1,272 @@
+/*
+ * TRACK M: THE SUPPLIER FLOWS MOVE LIKE A JOURNEY (25 September 2026).
+ *
+ * The founder asked for the inner areas, "applying to be an agent, a
+ * landlord, hotels, restaurants", to be as alive as the landing page. Those
+ * flows are built from a handful of shared pieces, so each piece gets its
+ * motion once and every flow inherits it: the owner, agent and firm
+ * registrations, add a workspace, the hotel, shortlet and restaurant set-ups,
+ * and the listing wizard.
+ *
+ *   the step bar      the newly reached bar fills from the left, and the
+ *                     current one carries a slow sheen of light
+ *   a step            pushes forward in depth; its heading arrives out of
+ *                     depth (RegisterShell and the wizard key them by step)
+ *   the step object   the glass object pops in on a spring, then floats
+ *   the doors         the choice cards rise in turn, lift their object on
+ *                     hover, and settle with a spring when chosen
+ *   the done screens  the confirmation object lands with a ring of light
+ *                     going out from it, twice, and the listing ID glints
+ *
+ * Transform, opacity and filter only; tokens for every duration; a still
+ * answer under reduced motion at the foot, and Calm and Off handled by
+ * motion-pref.css like everything else.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  @keyframes nf-flow-fill {
+    from {
+      transform: scaleX(0.15);
+      opacity: 0.4;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes nf-flow-sheen {
+    0% {
+      transform: translateX(-120%);
+    }
+    55%,
+    100% {
+      transform: translateX(120%);
+    }
+  }
+  @keyframes nf-flow-in {
+    from {
+      opacity: 0;
+      transform: translate3d(28px, 0, 0) scale(0.985);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  @keyframes nf-flow-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.6) translateY(10px);
+      filter: blur(6px);
+    }
+    60% {
+      opacity: 1;
+      filter: none;
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-flow-float {
+    0%,
+    100% {
+      transform: none;
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  @keyframes nf-flow-choose {
+    0% {
+      transform: scale(0.97);
+    }
+    60% {
+      transform: scale(1.012);
+    }
+    100% {
+      transform: none;
+    }
+  }
+  @keyframes nf-flow-ring {
+    from {
+      opacity: 0.7;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1.6);
+    }
+  }
+
+  /* ------------------------------------------------------- the step bars */
+
+  .nf-steprow__bar,
+  .nf-lw-rail__seg {
+    position: relative;
+    overflow: hidden;
+    transform-origin: left center;
+  }
+  .nf-steprow__bar[data-on],
+  .nf-lw-rail__seg[data-done] {
+    animation: nf-flow-fill var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  /* The bar you are on: the last lit one in the register flows, the one the
+     wizard marks with data-at. */
+  .nf-steprow__bar[data-on]:not(:has(+ .nf-steprow__bar[data-on]))::after,
+  .nf-lw-rail__seg[data-at]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--nf-content-on-brand) 60%, transparent),
+      transparent
+    );
+    animation: nf-flow-sheen 2.6s var(--nf-ease-standard) 600ms infinite;
+  }
+
+  /* ----------------------------------------------------------- a step */
+
+  .nf-flow-title,
+  .nf-lw-head__title {
+    transform-origin: left center;
+    animation: nf-in-depth var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-flow-sub,
+  .nf-lw-head__sub {
+    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 90ms both;
+  }
+  .nf-flow-step,
+  .nf-lw-body > * {
+    animation: nf-flow-in var(--nf-duration-entrance) var(--nf-ease-entrance) 120ms both;
+  }
+  .nf-lw-head__object {
+    animation:
+      nf-flow-pop var(--nf-duration-deliberate) var(--nf-ease-spring) 160ms both,
+      nf-flow-float 6s var(--nf-ease-standard) 1s infinite;
+  }
+
+  /* ------------------------------------------------------------- doors */
+
+  .nf-door {
+    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  li:nth-child(2) > .nf-door,
+  .nf-door:nth-child(2) {
+    animation-delay: 70ms;
+  }
+  li:nth-child(3) > .nf-door,
+  .nf-door:nth-child(3) {
+    animation-delay: 140ms;
+  }
+  li:nth-child(n + 4) > .nf-door,
+  .nf-door:nth-child(n + 4) {
+    animation-delay: 200ms;
+  }
+  .nf-door img {
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  @media (hover: hover) {
+    .nf-door:hover img {
+      transform: translateY(-3px) scale(1.05);
+    }
+  }
+  .nf-door[data-on] {
+    animation: nf-flow-choose var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  .nf-lw-choice[aria-pressed="true"],
+  .nf-lw-choice[aria-checked="true"] {
+    animation: nf-flow-choose var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+
+  /* ------------------------------------------------------ done screens */
+
+  .nf-regobject > :not(style),
+  .nf-lw-done__object {
+    animation: nf-flow-pop var(--nf-duration-cinematic) var(--nf-ease-spring) both;
+  }
+  .nf-regobject::after,
+  .nf-lw-done__object::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8rem;
+    height: 8rem;
+    margin: -4rem 0 0 -4rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
+    pointer-events: none;
+    opacity: 0;
+    animation: nf-flow-ring 1.4s var(--nf-ease-entrance) 450ms 2 both;
+  }
+  .nf-lw-id {
+    position: relative;
+    overflow: hidden;
+    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 300ms both;
+  }
+  .nf-lw-id::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      color-mix(in oklab, var(--nf-brand-secondary) 22%, transparent) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    animation: nf-flow-sheen 1.8s var(--nf-ease-standard) 900ms 1 both;
+    pointer-events: none;
+  }
+  .nf-lw-next__row {
+    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-lw-next__row:nth-of-type(1) {
+    animation-delay: 500ms;
+  }
+  .nf-lw-next__row:nth-of-type(2) {
+    animation-delay: 580ms;
+  }
+  .nf-lw-next__row:nth-of-type(3) {
+    animation-delay: 660ms;
+  }
+
+  /* ------------------------------------------------------ reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-steprow__bar[data-on],
+    .nf-lw-rail__seg[data-done],
+    .nf-steprow__bar::after,
+    .nf-lw-rail__seg::after,
+    .nf-flow-title,
+    .nf-lw-head__title,
+    .nf-flow-sub,
+    .nf-lw-head__sub,
+    .nf-flow-step,
+    .nf-lw-body > *,
+    .nf-lw-head__object,
+    .nf-door,
+    .nf-door[data-on],
+    .nf-lw-choice[aria-pressed="true"],
+    .nf-lw-choice[aria-checked="true"],
+    .nf-regobject > :not(style),
+    .nf-lw-done__object,
+    .nf-regobject::after,
+    .nf-lw-done__object::after,
+    .nf-lw-id,
+    .nf-lw-id::after,
+    .nf-lw-next__row {
+      animation: none;
+    }
+    .nf-door img {
+      transition: none;
+    }
+  }
+}
