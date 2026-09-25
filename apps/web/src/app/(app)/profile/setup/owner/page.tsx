@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import { BackButton } from "@/components/site/BackButton";
-import { parentOf } from "@/lib/nav/resolve";
 import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { listStates } from "@/lib/places/queries";
 import { OwnerRegisterForm } from "@/components/supply/OwnerRegisterForm";
-
-/* Back to the declared parent (`route-parents.ts`): this route declared one and drew no control, so Android back closed the app. */
-const BACK = parentOf("/profile/setup/owner");
 
 export const metadata: Metadata = {
   title: "Register as an owner",
@@ -49,12 +44,9 @@ export default async function OwnerRegistrationPage() {
   const [locale, states] = await Promise.all([getLocale(), listStates()]);
   const t = getDictionary(locale);
 
-  return (
-    <>
-      <div className="pb-sm">
-        <BackButton fallback={BACK.kind === "parent" ? BACK.href : "/profile"} />
-      </div>
-      <OwnerRegisterForm t={t} states={states} />
-    </>
-  );
+  /* No back arrow on the page: the form draws the screen's one way back on
+     its title row. It steps back through the form, and from the first screen
+     it leaves to this route's declared parent, `/profile/setup`
+     (`RegisterShell`). */
+  return <OwnerRegisterForm t={t} states={states} />;
 }

@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
 import { requireSignedInPage } from "@/lib/actions/signed-in-page";
-import { BackButton } from "@/components/site/BackButton";
-import { parentOf } from "@/lib/nav/resolve";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentRegisterForm } from "@/components/supply/AgentRegisterForm";
-
-/* Back to the declared parent (`route-parents.ts`): this route declared one and drew no control, so Android back closed the app. */
-const BACK = parentOf("/profile/setup/agent");
 
 export const metadata: Metadata = {
   title: "Register as an agent",
@@ -33,12 +28,9 @@ export default async function AgentRegistrationPage() {
   await requireSignedInPage("/profile/setup/agent");
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  return (
-    <>
-      <div className="pb-sm">
-        <BackButton fallback={BACK.kind === "parent" ? BACK.href : "/profile"} />
-      </div>
-      <AgentRegisterForm t={t} locale={locale} />
-    </>
-  );
+  /* No back arrow on the page: the form draws the screen's one way back on
+     its title row. It steps back through the form, and from the first screen
+     it leaves to this route's declared parent, `/profile/setup`
+     (`RegisterShell`). */
+  return <AgentRegisterForm t={t} locale={locale} />;
 }
