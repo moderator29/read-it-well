@@ -113,7 +113,7 @@ All scroll-driven pieces share one read-then-write scroll frame (`lib/motion/scr
 
 ## Verification
 
-- Every batch: typecheck, lint (including the CSS token gate, the claims gate and the valuation-word gate) and the full unit suite. The last full run was 5,751 passing, 1 skipped, over 501 files.
+- Every batch: typecheck, lint (including the CSS token gate, the claims gate and the valuation-word gate) and the full unit suite. The last full run was 5,758 passing, 1 skipped, over 501 files.
 - A production build on every batch.
 - Performance, from round two on: main-thread time on idle pages with the CPU slowed four times, read from the browser's own counters and traces.
 - Screenshots at 390px and 1440px, dark and light:
@@ -190,6 +190,8 @@ Two changes got it there:
 | Price Check | 42 KB | 13 KB |
 
 A tap to Settings now downloads 30 KB for its page where it was 105 KB, and a tap to Home 40 KB where it was 73 KB.
+
+**The shell's words, typed.** `AppShell` carried twelve whole namespaces (58 KB) in the HTML of every full in-app load. `ShellDictionary` is now a precise type carrying only the lines the shell draws (about 4 KB), and the shell and every component it hands `t` to take that type, so a read of anything not carried does not build. Full-page HTML, before and after: Home 383 KB to 278 KB, Settings 297 KB to 165 KB, Search 1,209 KB to 1,006 KB.
 
 **Prices in Yoruba, Hausa and Igbo.** Node writes the naira sign for these locales, while Chromium's trimmed locale data writes "NGN", and Node spaces the Hausa sign. So every price on those pages was a hydration mismatch: React discarded the server's HTML and redrew the page in the browser, and the reader saw "₦" turn into "NGN". Money is now built from one normalised set of parts (the narrow sign, no space beside it) in `formatMoney` and `<Amount>`. The four languages hydrate clean on the main routes.
 
