@@ -22,6 +22,12 @@ export function NavScrollState({ target }: { target: string }) {
       if (next !== scrolled) {
         scrolled = next;
         el.dataset.scrolled = next ? "true" : "false";
+        /* Over the hero the bar is part of the night photograph; once the
+           page scrolls under it, it takes the reader's theme (Track M). */
+        if (el.dataset.overNight !== undefined) {
+          if (next) el.removeAttribute("data-theme");
+          else el.setAttribute("data-theme", "dark");
+        }
       }
     };
     read();

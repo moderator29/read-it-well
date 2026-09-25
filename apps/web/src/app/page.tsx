@@ -77,11 +77,15 @@ export default async function LandingPage() {
   const native = (await requestSurface()) !== "web";
 
   return (
-    /* The landing is a night stage in both themes, like the auth screen: its
-       hero is built from night photography and lit type, governed by the
-       landing renders. Light mode (reintroduced 25 September 2026) starts at
-       the product, not at the poster. `nf-landing--stage` paints the ground. */
-    <div className="nf-landing nf-landing--stage" data-theme="dark">
+    /* THE LANDING FOLLOWS THE CHOSEN THEME (the founder, 25 September 2026:
+       light mode "all in, sharp and clean", the landing included). It used
+       to be a night stage in both themes. Now only what is built on night
+       photography keeps the night, as a local island with its own
+       `data-theme="dark"`: the hero, the photo tiles, the community stack,
+       the drawn phones, and the header while it floats over the hero.
+       Every other band is daylight in light mode. `nf-landing--stage`
+       paints the ground for either theme. */
+    <div className="nf-landing nf-landing--stage">
       <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
       <SiteHeader t={t} locale={locale} variant="landing" />
       <LandingBody t={t} locale={locale} data={data} native={native} nonce={nonce} />

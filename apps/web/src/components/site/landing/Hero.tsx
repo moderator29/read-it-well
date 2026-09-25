@@ -41,6 +41,10 @@ import { Sweep } from "./Sweep";
  * image element does both jobs: absolute over the whole hero from 64rem,
  * a block in the flow below it (landing.css).
  *
+ * A NIGHT ISLAND IN BOTH THEMES: the hero is night photography and lit
+ * type, so it carries its own `data-theme="dark"` while the rest of the
+ * landing follows the reader's theme.
+ *
  * The listings on the card arrive from the page (the same `recommended`
  * read the featured rail used to make, five of them, already mapped to the
  * small shape the client pager needs), so the preview harness can hand the
@@ -64,7 +68,7 @@ export function Hero({
   const face = t.landing.face;
 
   return (
-    <section className="nf-landing-hero" data-chapter="hero" aria-labelledby="nf-landing-title">
+    <section className="nf-landing-hero" data-chapter="hero" data-theme="dark" aria-labelledby="nf-landing-title">
       {/* The moving light: a 28 second drift in the brand hues, paused off
           screen and in a background tab (HeroAurora.tsx). */}
       <HeroAurora />

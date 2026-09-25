@@ -75,7 +75,7 @@ export function Journey({ t }: { t: Dictionary }) {
               </MotionReveal>
               {/* The stacked layout's own screen, under 64rem. */}
               <div className="nf-journey__inline">
-                <div className="nf-phone nf-phone--sm">
+                <div className="nf-phone nf-phone--sm" data-theme="dark">
                   <JourneyScreen step={s.key} labels={labels} />
                 </div>
               </div>
@@ -93,7 +93,7 @@ export function Journey({ t }: { t: Dictionary }) {
               </span>
             ))}
           </div>
-          <div className="nf-phone">
+          <div className="nf-phone" data-theme="dark">
             {steps.map((s, i) => (
               <div key={s.key} className="nf-journey__screen" data-i={i}>
                 <JourneyScreen step={s.key} labels={labels} />

@@ -99,7 +99,7 @@ export function CategoryGrid({
             const count = tile.kind ? (counts?.get(tile.kind) ?? 0) : 0;
             return (
               <Reveal as="li" key={tile.key} delay={i * 40}>
-                <Link href={tile.href} prefetch={false} className="nf-landing-cat">
+                <Link href={tile.href} prefetch={false} className="nf-landing-cat" data-theme="dark">
                   <Image
                     src={photo(tile.photo)}
                     alt=""

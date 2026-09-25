@@ -13,7 +13,7 @@ import { SectionHead } from "./SectionHead";
  * Seven doors into the product, in mixed sizes, each with one small live
  * scene built on the platform's own glass objects: the keys swing on their
  * tag by the house, the calendar turns, the assistant bobs while it types,
- * the Price Check bars settle behind the report, the shield pops and a light
+ * the Price Check report floats, the shield pops and a light
  * crosses it, two messages trade places behind the chat, the people float.
  * No line glyph illustrates anything here (the founder's rule for content
  * surfaces). The scenes are slow,
@@ -104,16 +104,9 @@ function SceneArt({ scene }: { scene: Scene }) {
       );
     case "bars":
       return (
-        <>
-          <span className="nf-scene__bars" aria-hidden="true">
-            {[0.55, 0.8, 0.68, 0.92].map((h, i) => (
-              <i key={i} style={{ "--h": h, "--bar-i": i } as React.CSSProperties} />
-            ))}
-          </span>
-          <span className="nf-scene__obj nf-scene__obj--front">
-            <BrandIcon name="report-stats" size={80} />
-          </span>
-        </>
+        <span className="nf-scene__obj nf-scene__obj--bob">
+          <BrandIcon name="report-stats" size={88} />
+        </span>
       );
     case "shield":
       return (

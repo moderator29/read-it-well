@@ -13,7 +13,17 @@
   root so they can be promoted to the token scale in one move.
 */
 @layer components {
+  /*
+   * THE NIGHT ISLANDS RECOMPUTE THESE (Track M, 25 September 2026). The
+   * landing now follows the reader's theme and keeps the night only in local
+   * islands (`data-theme="dark"`: the hero, the header over it, the photo
+   * tiles). A custom property that reads another is resolved where it is
+   * declared, so values declared on `.nf-landing` alone would carry the
+   * paper palette into the night hero. Declaring them again on every island
+   * resolves them against the island's own palette.
+   */
   .nf-landing,
+  .nf-landing [data-theme="dark"],
   .nf-site {
     /*
      * Local rungs. The hero headline sits above `--nf-text-display` because the
@@ -84,11 +94,16 @@
     --nf-landing-control: var(--nf-glass-fill);
     --nf-landing-control-strong: var(--nf-glass-fill-strong);
     --nf-landing-pane: color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
+  }
+  /* The page's own ground and ink, on the page only, never on an island. */
+  .nf-landing,
+  .nf-site {
     background: var(--nf-surface-canvas);
     color: var(--nf-content-primary);
   }
   @media (min-width: 64rem) {
     .nf-landing,
+    .nf-landing [data-theme="dark"],
     .nf-site {
       --nf-landing-fg: var(--nf-landing-on-ink);
       --nf-landing-fg-2: var(--nf-landing-on-ink-secondary);

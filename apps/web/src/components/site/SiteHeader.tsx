@@ -48,7 +48,17 @@ export function SiteHeader({
   const id = "nf-site-nav";
 
   return (
-    <header id={id} className="nf-site-nav sticky top-0 z-50" data-variant={variant}>
+    <header
+      id={id}
+      className="nf-site-nav sticky top-0 z-50"
+      data-variant={variant}
+      /* The landing's bar floats over the hero's night photograph, so it
+         starts as a night island; NavScrollState hands it back to the
+         reader's theme once the page scrolls under it. */
+      data-theme={variant === "landing" ? "dark" : undefined}
+      data-over-night={variant === "landing" ? "" : undefined}
+      suppressHydrationWarning
+    >
       {variant === "landing" && <NavScrollState target={id} />}
       <div className="nf-site-bar nf-safe-top">
         <div className="nf-shell flex h-header-sm items-center gap-group sm:h-header lg:gap-block">
