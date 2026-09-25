@@ -197,8 +197,10 @@ A tap to Settings now downloads 30 KB for its page where it was 105 KB, and a ta
 
 **Prices in Yoruba, Hausa and Igbo.** Node writes the naira sign for these locales, while Chromium's trimmed locale data writes "NGN", and Node spaces the Hausa sign. So every price on those pages was a hydration mismatch: React discarded the server's HTML and redrew the page in the browser, and the reader saw "₦" turn into "NGN". Money is now built from one normalised set of parts (the narrow sign, no space beside it) in `formatMoney` and `<Amount>`. The four languages hydrate clean on the main routes.
 
+**Measured live after the deploys** (a fresh sign-in, full-page HTML): Home 383 KB to 306 KB, Settings 297 KB to 176 KB, Search 1,209 KB to 676 KB.
+
 **Still worth doing, not started:**
-- The CSS bundle is 688 KB.
+- The CSS bundle is about 715 KB (104 KB gzipped) and blocks the first paint. About a sixth of it is the landing's alone (landing, landing rooms, cinema) and about a quarter is in-app screens the landing never shows (the feed, threads, wallet, admin). Splitting it by route would save roughly 15 to 25 KB gzipped per first load, but it reorders a cascade that `globals.css` says must not move, so it needs a before-and-after screenshot diff across both themes first.
 - Twelve secondary routes still load the dictionaries: payments, checkout, tenancy, the agent and host desks, and the assistant. Payments were left alone by the Track M rule.
 - The landing's HTML is about 628 KB.
 
