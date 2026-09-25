@@ -373,6 +373,23 @@ export default async function SearchPage({
   };
   const within = query.within;
   const listings = anchor && within !== undefined ? ranked.filter((l) => withinCommute(commuteOf(l), within)) : ranked;
+  /*
+   * THE FIRST SCREENFUL, AND A PREFETCHED "SHOW MORE" (Track M performance).
+   * The grid drew every result at once: 52 cards on the live catalogue, a
+   * megabyte of HTML and 52 client cards for a phone to hydrate before the
+   * page answered a tap. It draws 24, and 24 more per step from `?more=`.
+   * The count, the map, the drawer's pool and the saved and seen state keep
+   * the whole list; only the cards drawn are paged. The link to the next step
+   * is prefetched when it scrolls into view, so it opens without a wait, and
+   * it keeps the reader's place (`scroll={false}`).
+   */
+  const SHELF_STEP = 24;
+  const moreParam = typeof raw.more === "string" ? Number.parseInt(raw.more, 10) : 1;
+  const shelfSteps = Number.isFinite(moreParam) ? Math.min(Math.max(moreParam, 1), 40) : 1;
+  const drawn = listings.slice(0, SHELF_STEP * shelfSteps);
+  const shelfHref = toShelfHref(query);
+  const moreHref =
+    drawn.length < listings.length ? `${shelfHref}${shelfHref.includes("?") ? "&" : "?"}more=${shelfSteps + 1}` : null;
   /* V-70: "Photographed: kitchen, prepaid meter" under a card whose lister labelled its photos. */
   const photographedCaptions = await readPhotographedCaptions(listings.map((l) => l.id), locale);
   const landlordNow = requestNow();
@@ -613,7 +630,7 @@ export default async function SearchPage({
                   : "grid grid-cols-2 gap-sm sm:gap-md lg:grid-cols-4"
               }
             >
-              {listings.map((l, i) => (
+              {drawn.map((l, i) => (
                 <li key={l.id}>
                   <ListingCard
                     listing={l}
@@ -638,12 +655,22 @@ export default async function SearchPage({
               ))}
             </ul>
             </ResultsFade>
+            {moreHref && (
+              <div className="mt-block flex justify-center">
+                <ButtonLink href={moreHref} variant="secondary" scroll={false} prefetch data-testid="shelf-more">
+                  {t.catalogue.shelf.showMore.replace(
+                    "{count}",
+                    formatNumber(Math.min(SHELF_STEP, listings.length - drawn.length), locale),
+                  )}
+                </ButtonLink>
+              </div>
+            )}
             </LastVisitProvider>
           )}
         </div>
       )}
 
-      {query.view !== "map" && listings.length > 0 && repo.isSeed && (
+      {query.view !== "map" && listings.length > 0 && !moreHref && repo.isSeed && (
         <p className="nf-caption mt-block text-center text-[var(--nf-content-muted)]">
           That is everything matching this search.
         </p>

@@ -4959,6 +4959,8 @@ export const en = {
       found: "{count} properties found",
       foundOne: "1 property found",
       foundNone: "No properties found",
+      /* The link under the first 24 results that draws the next ones. */
+      showMore: "Show {count} more",
       sort: "Sort",
       sortRecommended: "Recommended",
       sortTopRated: "Top rated",
