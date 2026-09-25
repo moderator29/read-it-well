@@ -26,8 +26,9 @@ import { TierBadge } from "@/components/trust/TierBadge";
  * photograph across the top that fades into the page, a rounded-square glass
  * back control at the upper left and a settings gear at the upper right riding
  * on it (here the gear joins the app header's row and back is dropped; see
- * the note at the gear), then the person. An 88px ROUND face on a lit blue ring with a small
- * tick at its lower right, and beside it the name with its tick, the handle,
+ * the note at the gear), then the person. An 88px ROUND face on a lit blue ring (the
+ * render puts a small tick on it too; the founder asked for one mark, beside
+ * the name, on 25 September 2026), and beside it the name with its tick, the handle,
  * one line of bio, and Followers and Following split by a hairline.
  *
  * Every word and number here is the database's:
@@ -271,9 +272,11 @@ export function AccountHero({
               <span aria-hidden="true">{monogram}</span>
             )}
           </span>
-          {/* The person's badge (from `person_badge`) sits here;
-              the quiet picture mark says the face is a control. */}
-          {badgeTier ? <TierBadge tier={badgeTier} size={22} decorative className="nf-pf-avatar__tier" /> : null}
+          {/* ONE MARK, BESIDE THE NAME (the founder, 25 September 2026).
+              The person's badge (from `person_badge`) stood on the ring as
+              well, so a verified person wore it twice a finger apart. The
+              face keeps only the quiet picture mark, which says it is a
+              control. */}
           <span className="nf-pf-avatar__badge nf-pf-avatar__badge--quiet" aria-hidden="true">
             <UiIcon name={busy === "avatar" ? "sparkle" : "picture"} size="2xs" />
           </span>

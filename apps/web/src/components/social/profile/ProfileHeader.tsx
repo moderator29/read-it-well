@@ -173,30 +173,13 @@ export function ProfileHeader({
             )}
           </span>
           {/*
-            THE MARK AT THE FOOT OF THE RING, AND IT NO LONGER COMES FROM
-            `isAgent`.
-
-            It used to, and the comment that stood here called `isAgent` "the
-            one state where a human was checked". That was wrong and it was the
-            second derivation of this badge, alive on a shipping surface.
-            `social_profiles.is_agent` is true the moment an agent application
-            is APPROVED, at verification tier 0, before one document has been
-            looked at; its own column comment in the database reads "a role
-            marker, not an earned badge". So this avatar drew a tick for
-            somebody nobody had checked while every listing behind them
-            correctly drew none, which is exactly the fault
-            `20260919230000_p2_a_verified_agent_means_a_person_was_checked`
-            closed in messaging.
-
-            It is `public.person_badge.tier` now, through the one renderer, and
-            it draws no background of its own.
+            NO MARK ON THE RING (the founder, 25 September 2026): the person's
+            badge is shown once, beside the name, where it says whose it is.
+            It stood at the foot of the ring as well, so a verified person
+            wore it twice. The one beside the name is still
+            `public.person_badge.tier` through the one renderer, and never
+            `isAgent`, which is a role marker and not an earned badge.
           */}
-          <TierBadge
-            tier={profile.badgeTier}
-            size={18}
-            className="nf-profile-avatar__badge"
-            decorative
-          />
         </div>
 
         <div className="nf-profile-text">

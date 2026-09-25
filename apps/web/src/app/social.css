@@ -485,28 +485,6 @@
     block-size: 100%;
     object-fit: cover;
   }
-  /* The mark at the foot of the ring. Only ever the verified shield on an
-     APPROVED agent, or the pencil that says the photo is a control. */
-  .nf-profile-avatar__badge {
-    position: absolute;
-    inset-inline-end: 4px;
-    inset-block-end: 4px;
-    display: grid;
-    place-items: center;
-    inline-size: 26px;
-    block-size: 26px;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-    border: 3px solid var(--nf-surface-canvas);
-    box-shadow: 0 0 14px -2px var(--nf-glow-3);
-  }
-  .nf-profile-avatar__badge--quiet {
-    background: var(--nf-surface-elevated);
-    color: var(--nf-content-secondary);
-    box-shadow: none;
-    border-color: var(--nf-border-subtle);
-  }
   /* The words sit beside the face and start where the cover ends, so the
      name is the first thing under the photograph. */
   .nf-profile-text {
