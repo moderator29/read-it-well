@@ -1,0 +1,200 @@
+/*
+ * THE TRACK M MOTION KIT: the shared reveal, the stagger, the press, and the
+ * feature-icon micro-motions. The components are in `src/components/motion`
+ * and the timing table they follow is docs/TRACK_M_MOTION_PLAN.md section 2.
+ *
+ * Rules this file keeps, all of them from the plan:
+ *   - transform and opacity only (plus the blur on the landing headline,
+ *     which is in landing-rooms.css and is an entrance);
+ *   - only the existing `--nf-duration-*` and `--nf-ease-*` tokens;
+ *   - no stagger past six steps;
+ *   - every rule has a reduced-motion answer at the foot of the file.
+ */
+@layer components {
+  /* ------------------------------------------------------------ reveal */
+
+  /*
+   * `data-reveal` is written by MotionReveal only for an element that mounted
+   * below the fold, so with no attribute the content is simply there.
+   */
+  .nf-m-reveal[data-reveal="out"],
+  .nf-m-stagger[data-reveal="out"] > * {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  /*
+   * AN ANIMATION, NOT A TRANSITION, so the entrance owns `transform` only
+   * while it runs and a surface's own hover can use the separate `translate`
+   * property (the listing and protection cards lift that way) without the
+   * two fighting or the stagger delay leaking into the hover.
+   */
+  .nf-m-reveal[data-reveal="in"],
+  .nf-m-stagger[data-reveal="in"] > * {
+    animation: nf-m-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-m-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 16px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  /* 60ms apart, six steps, and the seventh child arrives with the sixth. */
+  .nf-m-stagger[data-reveal="in"] > :nth-child(2) { animation-delay: 60ms; }
+  .nf-m-stagger[data-reveal="in"] > :nth-child(3) { animation-delay: 120ms; }
+  .nf-m-stagger[data-reveal="in"] > :nth-child(4) { animation-delay: 180ms; }
+  .nf-m-stagger[data-reveal="in"] > :nth-child(5) { animation-delay: 240ms; }
+  .nf-m-stagger[data-reveal="in"] > :nth-child(n + 6) { animation-delay: 300ms; }
+
+  /* ------------------------------------------------------------- press */
+
+  /*
+   * Press, everywhere Track M touches: scale 0.98 on the press curve, 120ms.
+   * A class rather than a rule on every surface, so a surface opts in.
+   */
+  .nf-m-press {
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-m-press:active {
+    transform: scale(0.98);
+  }
+
+  /* ------------------------------------------------ feature micro-motion */
+
+  .nf-fx .nf-fx-wipe,
+  .nf-fx .nf-fx-line {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+  }
+  .nf-fx .nf-fx-turn {
+    transform-box: view-box;
+    transform-origin: 7.6px 15.6px;
+  }
+  .nf-fx .nf-fx-drop,
+  .nf-fx .nf-fx-roof,
+  .nf-fx .nf-fx-shadow,
+  .nf-fx .nf-fx-dot {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
+  /*
+   * Two names for each motion: one plays when the host enters view, the
+   * other on hover. Switching name is what restarts a CSS animation, so the
+   * hover replays even after the entrance has run.
+   */
+  [data-reveal="in"] .nf-fx .nf-fx-wipe { animation: nf-fx-wipe var(--nf-duration-deliberate) var(--nf-ease-entrance) 200ms both; }
+  [data-reveal="in"] .nf-fx .nf-fx-turn { animation: nf-fx-turn var(--nf-duration-deliberate) var(--nf-ease-standard) 200ms both; }
+  [data-reveal="in"] .nf-fx .nf-fx-dot { animation: nf-fx-dot var(--nf-duration-deliberate) var(--nf-ease-standard) 200ms both; }
+  [data-reveal="in"] .nf-fx .nf-fx-drop { animation: nf-fx-drop var(--nf-duration-deliberate) var(--nf-ease-spring) 200ms both; }
+  [data-reveal="in"] .nf-fx .nf-fx-shadow { animation: nf-fx-shadow var(--nf-duration-deliberate) var(--nf-ease-spring) 200ms both; }
+  [data-reveal="in"] .nf-fx .nf-fx-line { animation: nf-fx-wipe var(--nf-duration-deliberate) var(--nf-ease-entrance) 200ms both; }
+  [data-reveal="in"] .nf-fx .nf-fx-roof { animation: nf-fx-roof var(--nf-duration-deliberate) var(--nf-ease-spring) 200ms both; }
+
+  @media (hover: hover) {
+    .nf-fx-host:hover .nf-fx .nf-fx-wipe { animation: nf-fx-wipe-b var(--nf-duration-deliberate) var(--nf-ease-entrance) both; }
+    .nf-fx-host:hover .nf-fx .nf-fx-turn { animation: nf-fx-turn-b var(--nf-duration-deliberate) var(--nf-ease-standard) both; }
+    .nf-fx-host:hover .nf-fx .nf-fx-dot { animation: nf-fx-dot-b var(--nf-duration-deliberate) var(--nf-ease-standard) both; }
+    .nf-fx-host:hover .nf-fx .nf-fx-drop { animation: nf-fx-drop-b var(--nf-duration-deliberate) var(--nf-ease-spring) both; }
+    .nf-fx-host:hover .nf-fx .nf-fx-shadow { animation: nf-fx-shadow-b var(--nf-duration-deliberate) var(--nf-ease-spring) both; }
+    .nf-fx-host:hover .nf-fx .nf-fx-line { animation: nf-fx-wipe-b var(--nf-duration-deliberate) var(--nf-ease-entrance) both; }
+    .nf-fx-host:hover .nf-fx .nf-fx-roof { animation: nf-fx-roof-b var(--nf-duration-deliberate) var(--nf-ease-spring) both; }
+  }
+
+  /* The dots type one after another; the second line is written after the first. */
+  .nf-fx .nf-fx-dot:nth-child(2) { animation-delay: 320ms; }
+  .nf-fx .nf-fx-dot:nth-child(3) { animation-delay: 440ms; }
+  .nf-fx .nf-fx-line:last-of-type { animation-delay: 340ms; }
+  @media (hover: hover) {
+    .nf-fx-host:hover .nf-fx .nf-fx-dot:nth-child(2) { animation-delay: 120ms; }
+    .nf-fx-host:hover .nf-fx .nf-fx-dot:nth-child(3) { animation-delay: 240ms; }
+    .nf-fx-host:hover .nf-fx .nf-fx-line:last-of-type { animation-delay: 140ms; }
+  }
+
+  @keyframes nf-fx-wipe { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes nf-fx-wipe-b { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+  @keyframes nf-fx-turn {
+    0% { transform: rotate(0); }
+    55% { transform: rotate(-38deg); }
+    100% { transform: rotate(0); }
+  }
+  @keyframes nf-fx-turn-b {
+    0% { transform: rotate(0); }
+    55% { transform: rotate(-38deg); }
+    100% { transform: rotate(0); }
+  }
+
+  @keyframes nf-fx-dot {
+    0% { opacity: 0.25; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-1.4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes nf-fx-dot-b {
+    0% { opacity: 0.25; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-1.4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes nf-fx-drop {
+    0% { opacity: 0; transform: translateY(-7px); }
+    60% { opacity: 1; transform: translateY(0.6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes nf-fx-drop-b {
+    0% { opacity: 0; transform: translateY(-7px); }
+    60% { opacity: 1; transform: translateY(0.6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes nf-fx-shadow {
+    0% { opacity: 0; transform: scaleX(0.3); }
+    60% { opacity: 0.35; transform: scaleX(1.1); }
+    100% { opacity: 0.28; transform: scaleX(1); }
+  }
+  @keyframes nf-fx-shadow-b {
+    0% { opacity: 0; transform: scaleX(0.3); }
+    60% { opacity: 0.35; transform: scaleX(1.1); }
+    100% { opacity: 0.28; transform: scaleX(1); }
+  }
+  .nf-fx .nf-fx-shadow {
+    opacity: 0.28;
+  }
+
+  @keyframes nf-fx-roof {
+    0% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes nf-fx-roof-b {
+    0% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* --------------------------------------------------- reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-m-reveal[data-reveal],
+    .nf-m-stagger[data-reveal] > * {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+    .nf-m-press,
+    .nf-m-press:active {
+      transform: none;
+      transition: none;
+    }
+    .nf-fx * {
+      animation: none !important;
+    }
+  }
+  @media print {
+    .nf-m-reveal[data-reveal],
+    .nf-m-stagger[data-reveal] > * {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
