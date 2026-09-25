@@ -131,7 +131,14 @@ export function HorizontalReel({
         </header>
         <ol ref={track} className="nf-hreel__track" style={{ "--nf-reel-n": frames.length } as React.CSSProperties}>
           {frames.map((frame, i) => (
-            <li key={frame.key} className="nf-hreel__frame" style={{ "--nf-i": i } as React.CSSProperties}>
+            /* A photograph is a night island in both themes, the platform's
+               rule for media: its caption stays light-on-dark and sharp. */
+            <li
+              key={frame.key}
+              className="nf-hreel__frame"
+              data-theme="dark"
+              style={{ "--nf-i": i } as React.CSSProperties}
+            >
               <div className="nf-hreel__photo">
                 <Image
                   src={`/brand/photos/${frame.photo}.jpg`}
