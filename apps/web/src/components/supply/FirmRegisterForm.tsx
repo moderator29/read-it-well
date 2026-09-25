@@ -183,7 +183,7 @@ export function FirmRegisterForm({
               on its pool of brand light. It carries no text and is not a
               control. */}
           <div className="nf-regobject nf-regobject--inline">
-            <BrandIcon name="apartment-block" size={176} priority />
+            <BrandIcon name="cluster-home" size={176} priority />
           </div>
           <RegFieldGroup>
             <RegField>
@@ -486,7 +486,7 @@ export function FirmDoneScreen({
       secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
     >
       <RegisterDone
-        object="apartment-block"
+        object="cluster-home"
         heading={mine.done.title}
         sub={mine.done.sub}
         filedLine={copy.filedAs.replace("{reference}", filed.reference)}

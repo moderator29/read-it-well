@@ -64,63 +64,73 @@ export { hrefFor };
  */
 
 /**
- * THE OBJECT ON EACH DOOR'S PLATE, AND IT IS A GLASS OBJECT RATHER THAN A LINE
- * ICON.
+ * THE OBJECT ON EACH DOOR, AND IT IS A WHOLE GLASS OBJECT.
  *
- * `GOVERNING-02` draws a lit three dimensional house, key and building sitting
- * on the three plates, which is the icon style the whole reference set is
- * built from. What shipped was the flat `UiIcon` outline, which is the right
- * mark in a row of text and the wrong one on a plate this size: the render's
- * door is an OBJECT you are being offered, and a 24px stroke drawing does not
- * read as one.
+ * `GOVERNING-02` draws a lit three dimensional house, a key and a building,
+ * each one nearly filling its plate. The owner and the agent doors carried
+ * `home-ring` and `key-ring`, a faint glass ring with a thin line drawing
+ * inside it, and on a phone they read as nothing (the founder, 25 September
+ * 2026). So every door now carries a whole object, drawn larger (the
+ * `.nf-door__mark--glass` box in controls.css), and in light mode it stands
+ * on the white card with no plate behind it.
  *
- * NONE OF THE SIX HAS A LIGHT TWIN, and that is checked rather than assumed.
- * A row holding one twinned object and one untwinned one is two artwork
- * families side by side the moment somebody opens it in daylight, which is
- * exactly what `--twin-sweep` exists to catch. All six are untwinned, so the
- * set agrees with itself in both themes.
+ *   owner       `modern-house`, the render's own lit house.
+ *   agent       `keys-tag`, a key on its tag: the agent holds the keys.
+ *   firm        `cluster-home`, glass towers, which reads as an office at this
+ *               size where `apartment-block` is drawn small and faint and
+ *               `office-space` is a desk. The firm door is not offered today
+ *               (`SUPPLY_DOOR_ORDER`); the object waits with its copy.
+ *   hotel, shortlet, restaurant   kept. They were whole objects already, and
+ *               they are what the market chips and the Stays pages give these
+ *               three. The glass library has no restaurant; the bell on the
+ *               desk is the nearest, and it is the restaurant's object on the
+ *               host desk too.
+ *
+ * The register forms each door opens carry the same object (the owner's step
+ * mark, the agent's and the firm's done screens), so the thing you chose is
+ * the thing you see on the form.
  */
 const DOOR_OBJECT: Record<string, BrandIconName> = {
-  owner: "home-ring",
-  agent: "key-ring",
-  firm: "apartment-block",
+  owner: "modern-house",
+  agent: "keys-tag",
+  firm: "cluster-home",
   hotel: "hotel",
   shortlet: "shortlet",
-  /* The nearest object this set holds. There is no restaurant in the glass
-     library and one needs commissioning; a bell on a desk is at least the
-     right room, and it is untwinned like the five above it. */
   restaurant: "concierge-bell",
 };
 
 /**
- * THE OBJECT ON EACH OVERVIEW ROW.
+ * THE OBJECT ON EACH OVERVIEW ROW, KEYED BY THE DOOR.
  *
- * `GOVERNING-02` screen three draws a glass object on a plate beside every
- * line, and then a clock beside the timing. The clock is NOT in this list: the
- * timing is the calm panel below the rows, which is where the image puts it,
- * and an earlier pass had the clock landing on "a Nigerian bank account in
- * your own name" because the list was clamped to its last entry.
+ * `GOVERNING-02` screen three draws a glass object beside every line, and
+ * each object says what its line asks for: a person for who you are, a pin
+ * for where the property is, a document with a shield for what proves it is
+ * yours. The clock is not here: the timing is the calm panel below the rows,
+ * which is where the image puts it.
  *
- * The rows are free text and they differ per door, so this is positional and
- * approximate by construction: who you are, what proves who you are, what you
- * hold, and the account the money lands in. It is clamped to the document
- * rather than to the wallet, because a door with more rows than this is asking
- * for more paperwork and never for more accounts.
+ * The rows used to take one positional list for every door, so once the
+ * objects were drawn large (the founder, 25 September 2026: bigger and
+ * clearer) a hotel's "Photographs of the place" stood beside a wallet and an
+ * agent's fees beside the bank account's wallet. So each door has its own
+ * list, in the order its `needs` are written. The order is the copy's, and
+ * the Hausa, Yoruba and Igbo lists keep it, because they are translations of
+ * the same lines. A door with more lines than objects gives the document to
+ * the rest, because more lines means more paperwork and never more accounts.
  *
- * All four are untwinned, like the six doors, so the column is one artwork
- * family in both themes.
+ * Every object is a whole glass object. `id-card-check` draws its card on a
+ * glow that fills its canvas; in daylight the canvas edge is faded out
+ * (controls.css), so it reads as a card and not as a lilac square.
  */
-const OVERVIEW_OBJECTS: BrandIconName[] = [
-  "user-check",
-  /* `id-card-check` and not `person-card`: the latter is the library's flat
-     outline family and stands beside three solid glass objects as a different
-     material in both themes. It is the one twinned object in this column and
-     that is a paper nuance rather than a both-themes fault, so it loses to
-     the artwork family. See the note on the agent form's identity cards. */
-  "id-card-check",
-  "doc-shield",
-  "wallet-naira",
-];
+const NEED_OBJECTS: Record<string, readonly BrandIconName[]> = {
+  owner: ["user-check", "id-card-check", "doc-shield", "wallet"],
+  agent: ["user-check", "id-card-check", "pin-map", "tag-percent", "wallet"],
+  /* The RC number is a number, the certificate is the document, and the
+     proof that you work there is usually a staff card. */
+  firm: ["user-check", "tag-hash", "doc-shield", "id-card-check"],
+  hotel: ["user-check", "tag-hash", "hotel-room", "camera"],
+  shortlet: ["user-check", "pin-map", "doc-home", "camera"],
+  restaurant: ["user-check", "tag-hash", "calendar-clock", "camera"],
+};
 const OVERVIEW_FALLBACK: BrandIconName = "doc-shield";
 
 export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) {
@@ -155,10 +165,7 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
 
   const overviewRows = chosen
     ? doorCopy(chosen).needs.map((need, index) => ({
-        /* The fourth row of the render is a clock over "it should not take
-           long", so the fourth glyph is the clock whatever the fourth need
-           says, and any fifth need takes the document glyph. */
-        object: OVERVIEW_OBJECTS[index] ?? OVERVIEW_FALLBACK,
+        object: NEED_OBJECTS[chosen]?.[index] ?? OVERVIEW_FALLBACK,
         label: need,
       }))
     : [];
@@ -224,8 +231,8 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
                       className="nf-door"
                       data-on={selected || undefined}
                     >
-                      <span className="nf-door__mark" aria-hidden="true">
-                        <BrandIcon name={DOOR_OBJECT[id] ?? "home-ring"} size={44} />
+                      <span className="nf-door__mark nf-door__mark--glass" aria-hidden="true">
+                        <BrandIcon name={DOOR_OBJECT[id] ?? "modern-house"} fill />
                       </span>
                       <span className="min-w-0 flex-1 text-left">
                         <span className={`block ${TYPE.rowTitle}`}>{door.title}</span>
@@ -258,8 +265,8 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
           <ul className="mt-heading grid gap-group">
             {overviewRows.map((row) => (
               <li key={row.label} className="nf-door nf-door--calm">
-                <span className="nf-door__mark" aria-hidden="true">
-                  <BrandIcon name={row.object} size={44} />
+                <span className="nf-door__mark nf-door__mark--glass" aria-hidden="true">
+                  <BrandIcon name={row.object} fill />
                 </span>
                 <span className={`min-w-0 flex-1 ${TYPE.body}`}>{row.label}</span>
               </li>

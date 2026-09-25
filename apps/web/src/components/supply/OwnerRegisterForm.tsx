@@ -226,7 +226,9 @@ export function OwnerRegisterForm({
     {
       heading: own.you.title,
       sub: own.you.sub,
-      mark: "home-ring" as const,
+      /* The owner door's own object (AddWorkspaceChooser), so the form
+         continues the door that was chosen. */
+      mark: "modern-house" as const,
       body: (
         <div className="grid gap-row">
           <RegFieldGroup>

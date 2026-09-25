@@ -544,7 +544,7 @@ export function AgentDoneScreen({
       secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
     >
       <RegisterDone
-        object="key-ring"
+        object="keys-tag"
         heading={mine.done.title}
         sub={mine.done.sub}
         filedLine={copy.filedAs.replace("{reference}", filed.reference)}

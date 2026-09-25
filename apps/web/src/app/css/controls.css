@@ -731,6 +731,48 @@
     background: var(--nf-plate-fill);
     box-shadow: var(--nf-plate-shadow);
   }
+  /*
+   * THE CHOOSER'S DOORS CARRY A WHOLE GLASS OBJECT, AND LARGER (the founder,
+   * 25 September 2026). At night the object nearly fills a bigger plate, as
+   * `GOVERNING-02` draws the house, the key and the building. In daylight
+   * there is no plate at all: the object stands on the white card, with no
+   * navy square and no rim around it. The overview rows are the same
+   * treatment a step smaller, because they are a checklist and not a choice.
+   */
+  .nf-door__mark--glass {
+    width: 4.5rem;
+    height: 4.5rem;
+    padding: var(--nf-space-3xs);
+  }
+  .nf-door--calm .nf-door__mark--glass {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
+  :root[data-theme="light"] .nf-door__mark--glass:not(:where([data-theme="dark"] *)) {
+    padding: 0;
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-door__mark--glass :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
+    background: none;
+    box-shadow: none;
+  }
+  /* On white, a glow that runs to the edge of the artwork's canvas stops in a
+     hard lilac square (`id-card-check` draws its card on a glow that fills
+     the canvas; at night the navy swallows it). A short fade at the canvas
+     edge turns that edge into falloff. An object inside its own margin, which
+     is nearly all of them, is untouched. */
+  :root[data-theme="light"] .nf-door__mark--glass:not(:where([data-theme="dark"] *)) img {
+    -webkit-mask-image:
+      linear-gradient(to right, transparent, var(--nf-mask-opaque) 12%, var(--nf-mask-opaque) 88%, transparent),
+      linear-gradient(to bottom, transparent, var(--nf-mask-opaque) 12%, var(--nf-mask-opaque) 88%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent, var(--nf-mask-opaque) 12%, var(--nf-mask-opaque) 88%, transparent),
+      linear-gradient(to bottom, transparent, var(--nf-mask-opaque) 12%, var(--nf-mask-opaque) 88%, transparent);
+    mask-composite: intersect;
+  }
   @media (prefers-reduced-motion: reduce) {
     .nf-door {
       transition: none;
@@ -772,6 +814,15 @@
     color: var(--nf-content-on-brand);
     background: var(--nf-plate-fill);
     box-shadow: var(--nf-plate-shadow);
+  }
+  /* In daylight the plate is the pale paper tint, so a LINE glyph standing on
+     it takes the brand ink, as a plate holding a line glyph does everywhere
+     else in light. White on the pale plate was invisible: the clock in the
+     chooser's timing panel, and the document glyphs on the owner's proof
+     rows (`.nf-door__mark` holding a `UiIcon`). A glass object ignores the
+     colour. */
+  :root[data-theme="light"] :is(.nf-calmpanel__glyph, .nf-door__mark):not(:where([data-theme="dark"] *)) {
+    color: var(--nf-brand-primary);
   }
   .nf-switch-add {
     margin-top: var(--nf-space-xs);
