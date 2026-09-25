@@ -33,7 +33,7 @@
  */
 
 import type { EmailMessage } from "./messages";
-import { appUrl, escapeHtml, greetingName, hello, siteUrl } from "./render";
+import { appUrl, escapeHtml, greetingName, hello, paintExplicit, siteUrl } from "./render";
 import {
   DARK,
   ELECTRIC,
@@ -118,29 +118,45 @@ type Version = {
 
 /* ------------------------------------------------------------------ words */
 
-const HEADLINE_TWO = "Make yourself at home.";
-
-const EYEBROW = "Welcome to Vallo";
-
-const WHAT_VALLO_IS =
-  "Vallo is one account with two sides to it, and you can flip between them whenever you like.";
-
-const WORLDS = [
-  { name: "Property", line: "Homes to rent, buy or sell." },
-  { name: "Stays", line: "Hotels, shortlets and restaurant tables." },
-] as const;
-
-const SECTION_LABEL = "Where to begin";
-
-const BUTTON_LABEL = "Step inside";
-
 /*
- * TRUE OF BOTH WAYS THE BUTTON CAN LAND. Signed in, `/welcome` shows the first
- * run (or goes on home once it has been seen). Signed out on another device, it
- * shows the same slides ending on Sign in, so all the reader needs is the
- * address this email went to.
+ * EVERY WORD THIS EMAIL SAYS OUTSIDE THE PER-ROLE STEPS, IN ONE OBJECT (track H,
+ * 25 September 2026), so refining the welcome is editing one data structure
+ * and nothing about the markup. The per-role opening, three steps and note are
+ * `WELCOME_COPY.versions` further down. `/preview/email/welcome` renders every
+ * version from this object on a phone-sized frame.
  */
-const BUTTON_AFTER = "Opening this on another device? Sign in there with this same address.";
+const CHROME = {
+  eyebrow: "Welcome to Vallo",
+  /** The second line of the headline, under "Hello <name>." */
+  headlineTwo: "Make yourself at home.",
+  lede: "Vallo is one account with two sides to it, and you can flip between them whenever you like.",
+  worlds: [
+    { name: "Property", line: "Homes to rent, buy or sell." },
+    { name: "Stays", line: "Hotels, shortlets and restaurant tables." },
+  ],
+  sectionLabel: "Where to begin",
+  /** The one primary action. */
+  button: "Step inside",
+  /*
+   * TRUE OF BOTH WAYS THE BUTTON CAN LAND. Signed in, `/welcome` shows the
+   * first run (or goes on home once it has been seen). Signed out on another
+   * device, it shows the same slides ending on Sign in, so all the reader needs
+   * is the address this email went to.
+   */
+  buttonAfter: "Opening this on another device? Sign in there with this same address.",
+  footerReason: "You are receiving this because you created a Vallo account with this address.",
+  footerLinkLabel: "Change what Vallo emails you",
+  subjectWithName: "Welcome to Vallo, {name}",
+  subjectPlain: "Welcome to Vallo",
+} as const;
+
+const HEADLINE_TWO = CHROME.headlineTwo;
+const EYEBROW = CHROME.eyebrow;
+const WHAT_VALLO_IS = CHROME.lede;
+const WORLDS = CHROME.worlds;
+const SECTION_LABEL = CHROME.sectionLabel;
+const BUTTON_LABEL = CHROME.button;
+const BUTTON_AFTER = CHROME.buttonAfter;
 
 const PAY_INSIDE =
   "One thing worth knowing from day one: nobody from Vallo will ever ask you to pay outside Vallo. If somebody does, report them from the listing.";
@@ -148,9 +164,8 @@ const PAY_INSIDE =
 const LISTER_NOTE =
   "Keep your conversations and payments inside Vallo. It is the record both sides can point to if anything is ever in question.";
 
-const FOOTER_REASON = "You are receiving this because you created a Vallo account with this address.";
-
-const FOOTER_LINK_LABEL = "Change what Vallo emails you";
+const FOOTER_REASON = CHROME.footerReason;
+const FOOTER_LINK_LABEL = CHROME.footerLinkLabel;
 
 const REGISTER_OWNER: Step = {
   title: "Register as an owner",
@@ -304,6 +319,9 @@ const VERSIONS: Record<SignupRole | "general", Version> = {
 /* ---------------------------------------------------------------- helpers */
 
 /** A theme hex as an rgba() string, so the bloom stays on the palette. */
+/** The whole of the welcome's words: the shared lines and every version. */
+export const WELCOME_COPY = { ...CHROME, versions: VERSIONS } as const;
+
 function rgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -375,52 +393,34 @@ const STYLE = `
       @media only screen and (max-width: 480px) {
         .wm-card  { padding: 30px 22px 32px !important; }
         .wm-h1    { font-size: 27px !important; }
-        .wm-world { display: block !important; width: auto !important; }
-        .wm-gap   { display: block !important; width: 100% !important; height: 10px !important; }
-        .wm-steps { padding: 16px 16px 2px !important; }
+        .wm-hero  { padding: 22px 18px 18px !important; }
+        .wm-value { padding: 16px 16px 16px 14px !important; }
         .wm-plate { width: 36px !important; padding-right: 10px !important; }
         .wm-btn   { width: 100% !important; }
         .wm-btn a { display: block !important; }
       }`;
 
-function worldTile(world: (typeof WORLDS)[number]): string {
-  /* The panel is painted on the row's own cell, not on a nested table, so the
-     two tiles share one height the way the first run screen's cards do. */
-  return `<td class="wm-world rm-panel" width="50%" valign="top" bgcolor="${DARK.panel}" style="width:50%;vertical-align:top;background:${DARK.panel};border:1px solid ${DARK.edge};border-top:1px solid ${DARK.rim};border-radius:16px;padding:16px 18px 17px;">
-                      <p class="rm-brand" style="margin:0 0 6px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${SKY};">${escapeHtml(world.name)}</p>
-                      <p class="rm-body" style="margin:0;${TEXT}font-size:14px;line-height:1.5;color:${DARK.body};">${escapeHtml(world.line)}</p>
-                    </td>`;
+function valueCard(step: Step, index: number): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 12px;">
+                  <tr>
+                    <td class="rm-panel wm-value" bgcolor="${DARK.panel}" style="background-color:${DARK.panel};border:1px solid ${DARK.edge};border-radius:16px;padding:18px 20px 18px 18px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;"><tr>
+                        <td class="wm-plate" width="50" valign="top" style="width:50px;vertical-align:top;padding-right:14px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                            <td class="rm-brand" align="center" valign="middle" width="36" height="36" bgcolor="${DARK.card}" style="width:36px;height:36px;background-color:${DARK.card};border:1px solid ${DARK.edge};border-top:1px solid ${SKY};border-radius:10px;${TEXT}font-size:15px;line-height:36px;font-weight:700;text-align:center;color:${SKY};mso-line-height-rule:exactly;">${index + 1}</td>
+                          </tr></table>
+                        </td>
+                        <td valign="top" style="vertical-align:top;">
+                          <p class="rm-title" style="margin:0 0 6px;${TEXT}font-size:16px;line-height:1.4;font-weight:700;letter-spacing:-0.01em;color:${DARK.text};">${escapeHtml(step.title)}</p>
+                          <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:15px;line-height:1.6;color:${DARK.body};">${escapeHtml(step.body)}</p>
+                          <p style="margin:0;${TEXT}font-size:14px;line-height:20px;font-weight:600;color:${SKY};"><a class="rm-brand" href="${escapeHtml(href(step.link))}" target="_blank" style="color:${SKY};text-decoration:underline;text-underline-offset:3px;">${escapeHtml(step.link.label)}&nbsp;&rarr;</a></p>
+                        </td>
+                      </tr></table>
+                    </td>
+                  </tr>
+                </table>`;
 }
 
-function stepRow(step: Step, index: number): string {
-  const top = index === 0 ? "" : `border-top:1px solid ${DARK.edge};`;
-  return `<tr>
-                          <td class="wm-plate" width="44" valign="top" style="width:44px;vertical-align:top;padding:${index === 0 ? "4px" : "18px"} 14px 18px 0;${top}">
-                            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                              <td class="rm-brand" align="center" valign="middle" width="36" height="36" style="width:36px;height:36px;background:${DARK.card};border:1px solid ${DARK.edge};border-top:1px solid ${SKY};border-radius:10px;${TEXT}font-size:15px;line-height:36px;font-weight:700;text-align:center;color:${SKY};mso-line-height-rule:exactly;">${index + 1}</td>
-                            </tr></table>
-                          </td>
-                          <td valign="top" style="vertical-align:top;padding:${index === 0 ? "4px" : "18px"} 0 18px;${top}">
-                            <p class="rm-title" style="margin:0 0 6px;${TEXT}font-size:16px;line-height:1.4;font-weight:700;letter-spacing:-0.01em;color:${DARK.text};">${escapeHtml(step.title)}</p>
-                            <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:15px;line-height:1.6;color:${DARK.body};">${escapeHtml(step.body)}</p>
-                            <p style="margin:0;${TEXT}font-size:14px;line-height:20px;font-weight:600;"><a class="rm-brand" href="${escapeHtml(href(step.link))}" target="_blank" style="color:${SKY};text-decoration:underline;text-underline-offset:3px;">${escapeHtml(step.link.label)}&nbsp;&rarr;</a></p>
-                          </td>
-                        </tr>`;
-}
-
-/**
- * The lit button, bulletproof.
- *
- * Every client but classic Outlook draws the HTML anchor: a gradient over a
- * solid brand blue declared FIRST (Word drops background images and keeps the
- * colour), a brighter top edge from a lighter border and an inset highlight,
- * and a soft bloom from box-shadow where the client renders it (Apple Mail,
- * iOS, most webmail; Gmail drops it, which leaves the lit fill). Classic
- * Outlook gets a VML rounded rectangle in the same electric blue with the
- * same label, because Word ignores padding on an anchor and would otherwise
- * draw a text link. 14px radius on a 52px button: a rounded rectangle, never a
- * capsule.
- */
 function litButton(label: string, url: string): string {
   const safeUrl = escapeHtml(url);
   const safeLabel = escapeHtml(label);
@@ -442,15 +442,34 @@ function litButton(label: string, url: string): string {
 }
 
 function renderHtml(version: Version, greetingLine: string): string {
-  const worlds = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 28px;">
+  /* THE HERO: a lit panel carrying the eyebrow, the greeting headline, the
+     one-sentence lede and the two sides of the account as two labelled lines.
+     The reference layout (a hero, three value blocks, one primary button) in
+     Vallo's night: the panel is solid navy for every client and carries a
+     brand wash only where a gradient is honoured. */
+  const worldLines = WORLDS.map(
+    (world) => `<tr>
+                          <td width="92" valign="top" class="rm-brand" style="width:92px;vertical-align:top;padding:8px 12px 0 0;${TEXT}font-size:12px;line-height:18px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${SKY};">${escapeHtml(world.name)}</td>
+                          <td valign="top" class="rm-body" style="vertical-align:top;padding:8px 0 0;${TEXT}font-size:14px;line-height:18px;color:${DARK.body};">${escapeHtml(world.line)}</td>
+                        </tr>`,
+  ).join("\n                        ");
+  const hero = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
                   <tr>
-                    ${worldTile(WORLDS[0])}
-                    <td class="wm-gap" width="12" style="width:12px;font-size:0;line-height:0;">&nbsp;</td>
-                    ${worldTile(WORLDS[1])}
+                    <td class="rm-panel wm-hero" bgcolor="${DARK.panel}" style="background-color:${DARK.panel};background-image:linear-gradient(160deg,${rgba(GLOW, 0.34)} 0%,${rgba(GLOW, 0)} 62%);border:1px solid ${DARK.edge};border-top:1px solid ${DARK.rim};border-radius:18px;padding:26px 24px 22px;">
+                      <p class="rm-brand" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${SKY};">${escapeHtml(EYEBROW)}</p>
+                      <h1 class="wm-h1" style="margin:0 0 14px;${TEXT}font-size:31px;line-height:1.18;font-weight:700;letter-spacing:-0.025em;color:${DARK.text};"><span class="rm-title" style="color:${DARK.text};">${escapeHtml(greetingLine)}</span><br /><span class="rm-brand" style="color:${SKY};">${escapeHtml(HEADLINE_TWO)}</span></h1>
+                      <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:17px;line-height:1.6;color:${DARK.body};">${escapeHtml(WHAT_VALLO_IS)}</p>
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid ${DARK.edge};margin-top:12px;">
+                        ${worldLines}
+                      </table>
+                    </td>
                   </tr>
                 </table>`;
 
-  const steps = version.steps.map(stepRow).join("\n                        ");
+  /* THREE VALUE BLOCKS, one card each: a numbered plate, the step, one
+     sentence or two, and a text link. They stack at every width, so a phone
+     and a desktop read the same order. */
+  const valueCards = version.steps.map((step, index) => valueCard(step, index)).join("\n                ");
 
   return `<!doctype html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -493,22 +512,11 @@ function renderHtml(version: Version, greetingLine: string): string {
                   </tr>
                 </table>
                 <div style="height:34px;line-height:34px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
-                <p class="rm-brand" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${SKY};">${escapeHtml(EYEBROW)}</p>
-                <h1 class="wm-h1" style="margin:0 0 18px;${TEXT}font-size:31px;line-height:1.18;font-weight:700;letter-spacing:-0.025em;color:${DARK.text};"><span class="rm-title" style="color:${DARK.text};">${escapeHtml(greetingLine)}</span><br /><span class="rm-brand" style="color:${SKY};">${escapeHtml(HEADLINE_TWO)}</span></h1>
-                <p class="rm-body" style="margin:0 0 22px;${TEXT}font-size:17px;line-height:1.6;color:${DARK.body};">${escapeHtml(WHAT_VALLO_IS)}</p>
-                ${worlds}
-                <p class="rm-body" style="margin:0 0 26px;${TEXT}font-size:16px;line-height:1.65;color:${DARK.body};">${escapeHtml(version.opening)}</p>
+                ${hero}
+                <p class="rm-body" style="margin:0 0 24px;${TEXT}font-size:16px;line-height:1.65;color:${DARK.body};">${escapeHtml(version.opening)}</p>
                 <p class="rm-muted" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${DARK.muted};">${escapeHtml(SECTION_LABEL)}</p>
-                <!-- The first steps, on a glass panel with a lit top edge. -->
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 30px;">
-                  <tr>
-                    <td class="rm-panel wm-steps" bgcolor="${DARK.panel}" style="background:${DARK.panel};border:1px solid ${DARK.edge};border-top:1px solid ${DARK.rim};border-radius:18px;padding:20px 22px 4px;">
-                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
-                        ${steps}
-                      </table>
-                    </td>
-                  </tr>
-                </table>
+                ${valueCards}
+                <div style="height:14px;line-height:14px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
                 ${litButton(BUTTON_LABEL, appUrl(WELCOME_LANDING))}
                 <p class="rm-muted" style="margin:14px 0 30px;${TEXT}font-size:13px;line-height:1.6;color:${DARK.muted};">${escapeHtml(BUTTON_AFTER)}</p>
                 <!-- The calm panel: one safety sentence and a small round glyph. -->
@@ -619,8 +627,8 @@ export function welcome(data: WelcomeData): EmailMessage {
   const first =
     greetingName(data.name) ?? greetingName((data.handle ?? "").trim().replace(/^@+/, ""));
   return {
-    subject: first ? `Welcome to Vallo, ${first}` : "Welcome to Vallo",
-    html: renderHtml(version, hi),
+    subject: first ? CHROME.subjectWithName.replace("{name}", first) : CHROME.subjectPlain,
+    html: paintExplicit(renderHtml(version, hi)),
     text: renderText(version, hi),
   };
 }

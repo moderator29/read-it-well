@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppliedTheme } from "@/lib/theme/theme-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import { tileProvider, warnIfNonCommercialTiles } from "@/lib/maps/tiles";
@@ -84,15 +85,23 @@ export function PinMap({
   }, [onMove]);
 
   const [imagery, setImagery] = useState<"loading" | "ready" | "offline">("loading");
-  /* THE MAP FOLLOWS THE PLATFORM AND THE PLATFORM HAS ONE THEME. This was
-     `useState` plus a `MutationObserver` on `data-theme`, because a person
-     could switch to paper while a map was on screen and the tiles had to swap
-     with it. The founder removed light mode on 23 September 2026, so the
-     attribute can never appear and the observer could never fire; it is
-     deleted rather than left watching for something that cannot happen.
-     `tileProvider` keeps its parameter: which tile STYLE a map asks for is a
-     map question, and this is the only answer the platform has. */
-  const theme = "dark" as const;
+  /* THE MAP FOLLOWS THE PAGE'S THEME, live (track L; light mode came back on
+     25 September 2026). Dark cartography at night, light cartography on the
+     light theme. The map is built once below with the theme it opened in, and
+     the effect after it swaps only the tile layer when the theme changes, so
+     the reader's pan, zoom and pin are never lost to a switch. */
+  const theme = useAppliedTheme();
+  const tilesRef = useRef<{ layer: { remove(): void }; theme: string } | null>(null);
+  /* The theme as of the latest render. The first render after hydration
+     answers the server's "dark", and Leaflet loads asynchronously, so the map
+     reads this ref at the moment it adds its tiles rather than the value it
+     was mounted with; `tilesReady` then lets the swap below catch any change
+     that landed while Leaflet was still loading. */
+  const themeRef = useRef(theme);
+  const [tilesReady, setTilesReady] = useState(false);
+  useEffect(() => {
+    themeRef.current = theme;
+  }, [theme]);
 
   /* The credit belongs to whichever provider is actually serving tiles, and it
      travels WITH the tile URL rather than being written beside the map: a
@@ -130,7 +139,8 @@ export function PinMap({
       });
       mapRef.current = map;
 
-      const provider = tileProvider(theme);
+      const opened = themeRef.current;
+      const provider = tileProvider(opened);
       const tiles = leaflet.tileLayer(provider.url, { maxZoom: provider.maxZoom });
       tiles.on("tileerror", () => {
         if (!cancelled) setImagery("offline");
@@ -139,6 +149,8 @@ export function PinMap({
         if (!cancelled) setImagery("ready");
       });
       tiles.addTo(map);
+      tilesRef.current = { layer: tiles, theme: opened };
+      if (!cancelled) setTilesReady(true);
 
       /* `moveend` and not `move`: one coordinate per gesture rather than one
          per frame, so a pan does not fire sixty server-bound state updates. */
@@ -159,6 +171,26 @@ export function PinMap({
        to it here would fight the user's own pan. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* The tile swap for a theme change. Leaflet is already loaded by the time a
+     map exists, so the import resolves from cache. */
+  useEffect(() => {
+    const map = mapRef.current;
+    const current = tilesRef.current;
+    if (!map || !current || current.theme === theme) return;
+    let cancelled = false;
+    void import("leaflet").then((leaflet) => {
+      if (cancelled || !mapRef.current) return;
+      const provider = tileProvider(theme);
+      const next = leaflet.tileLayer(provider.url, { maxZoom: provider.maxZoom });
+      next.addTo(mapRef.current);
+      current.layer.remove();
+      tilesRef.current = { layer: next, theme };
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [theme, tilesReady]);
 
   const recentre = useCallback(() => {
     const map = mapRef.current;

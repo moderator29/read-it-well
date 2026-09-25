@@ -191,6 +191,19 @@ export const priceCheckEn = {
     startOver: "Start again",
   },
 
+  /* Track L: what a person can do with an answer, beneath the range. */
+  next: {
+    heading: "What next",
+    seeListings: "See listings in this area",
+    seeListingsBody: "The same kind of place, with the same number of bedrooms, where you checked.",
+    setAlert: "Tell me about new listings here",
+    setAlertSignedOut: "Sign in to be told about new listings here",
+    alertBody: "We keep this search for you and tell you when something new matches it.",
+    alertSaved: "Done. It is in your saved searches, with alerts on.",
+    alertOpen: "Open saved searches",
+    shareBody: "Send the area card: the range and how many listings it rests on, never the spot you pinned.",
+  },
+
   notify: {
     heading: "Tell me when you can answer",
     body: "We will tell you the moment there are enough listings near here to answer. We are not going to guess in the meantime.",

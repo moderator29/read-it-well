@@ -879,12 +879,14 @@ describe("the five auth templates are what the generator produces", () => {
      * site Supabase is configured with, and one button in the brand blue with
      * white text on it. The button is the message's one action; the fallback
      * link below it is the same action in a form no client can strip.
+     * (Track H: the cell now also carries its `bgcolor` after the style, which
+     * the pattern allows; the colour it checks is unchanged.)
      */
     expect(html).toContain(`{{ .SiteURL }}${theme.MARK_PATH}`);
     expect(html).toContain(`{{ .SiteURL }}${theme.WORDMARK_PATH}`);
     expect(html).toContain(`alt="${theme.WORDMARK_ALT}"`);
     const button = html.match(
-      /<td align="center" style="border-radius:14px;background-color:(#[0-9A-F]{6});[^"]*mso-padding-alt:16px 34px;">\s*<a href="\{\{ \.ConfirmationURL \}\}"[^>]*color:#FFFFFF;[^>]*>([^<]+)<\/a>/,
+      /<td align="center" style="border-radius:14px;background-color:(#[0-9A-F]{6});[^"]*mso-padding-alt:16px 34px;"[^>]*>\s*<a href="\{\{ \.ConfirmationURL \}\}"[^>]*color:#FFFFFF;[^>]*>([^<]+)<\/a>/,
     );
     expect(button).not.toBeNull();
     expect(button?.[1]).toBe(theme.GLOW);

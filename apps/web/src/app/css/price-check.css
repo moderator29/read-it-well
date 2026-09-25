@@ -447,3 +447,42 @@
   }
 }
 
+/*
+ * What next, beneath an answered check (track L): three steps in a column,
+ * each a glyph plate beside its action and one line saying what it does.
+ */
+@layer components {
+  .nf-pc-next {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-glow);
+  }
+  .nf-pc-next__step {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    /* A grid item's minimum is its content: without this the one-line button
+       label held the row wider than the panel at 390px. */
+    min-width: 0;
+  }
+  .nf-pc-next .nf-btn {
+    height: auto;
+    min-height: 2.75rem;
+    white-space: normal;
+    text-align: center;
+  }
+  .nf-pc-next__glyph {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--nf-plate-size-md);
+    height: var(--nf-plate-size-md);
+    border-radius: var(--nf-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    background: var(--nf-plate-fill);
+    color: var(--nf-brand-accent);
+  }
+}
+

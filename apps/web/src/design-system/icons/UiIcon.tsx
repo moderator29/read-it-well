@@ -108,6 +108,8 @@ export type UiIconName =
   | "tower-penthouse"
   | "door"
   | "check"
+  | "archive"
+  | "price-tag"
   /* ---------------------------------- consolidated from inline SVG blocks.
      Each of these was hand-drawn at a call site, several of them more than
      once, at a stroke weight the platform does not use. */
@@ -797,6 +799,24 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   /* A plain tick for a SELECTED state. Deliberately not `verified`, which
      is the human-checked mark and means one thing (Master Rule 12). */
   check: <path d="m5.2 12.6 4.3 4.3 9.3-9.8" />,
+  /* Price Check (track L): a tag with its hole and a small bar, the
+     shop-window price. Deliberately not a coin or a naira sign: the page
+     reports what places are ASKING, not a sum anybody owes. */
+  "price-tag": (
+    <>
+      <path d="M3.6 12.4V5.2a1.6 1.6 0 0 1 1.6-1.6h7.2a1.6 1.6 0 0 1 1.1.5l7 7a1.6 1.6 0 0 1 0 2.3l-7.2 7.2a1.6 1.6 0 0 1-2.3 0l-7-7a1.6 1.6 0 0 1-.4-1.2Z" />
+      <circle cx="8.2" cy="8.2" r="1.5" />
+      <path d="m11.6 15.2 3.6-3.6" />
+    </>
+  ),
+  /* Archive a conversation (track G): a box with its lid and a slot. */
+  archive: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="4.5" rx="1.3" />
+      <path d="M5 9v9.2a1.8 1.8 0 0 0 1.8 1.8h10.4a1.8 1.8 0 0 0 1.8-1.8V9" />
+      <path d="M10 12.8h4" />
+    </>
+  ),
   door: (
     <>
       <path d="M6.5 20.5V4.8a1.3 1.3 0 0 1 1.3-1.3h8.4a1.3 1.3 0 0 1 1.3 1.3v15.7" />

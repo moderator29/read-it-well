@@ -238,6 +238,23 @@ export function buildNav({
    * row in the workspace's own navigation, one tap further in, which is where
    * somebody who is working looks for it.
    */
+  /*
+   * PRICE CHECK HAS A DOOR (track L, 25 September 2026). `/price` had no
+   * inbound link anywhere in the product (`lib/nav/route-parents.ts` said so):
+   * it was reached by address and by share cards only. It sits on the
+   * Property side, because what it reports is what homes near a place are
+   * asking, and signed in, because the route is behind the gate. Its own
+   * section, not the docked one, so it is not hidden on a phone where the
+   * dock carries Home, Search and Feed. The label is the feature's name and
+   * never "valuation", "worth" or "value" (`check-valuation-words.mjs`).
+   */
+  if (signedIn && !stays) {
+    sections.push({
+      heading: null,
+      items: [{ href: "/price", label: t.priceCheck.title, icon: "price-tag" }],
+    });
+  }
+
   const workspaces: NavNode[] = [];
 
   /* Agent mode is Property's workspace. On the Stays side the shell simply

@@ -5,6 +5,9 @@ import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { markInboxRead } from "@/lib/messages/actions";
+import { archiveConversation, unarchiveConversation } from "@/lib/messages/archive";
+import { Chip } from "@/components/ui/Chip";
+import type { Side } from "@/lib/side.constants";
 import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -56,28 +59,71 @@ export type InboxRow = {
    * in a list row is exactly the thing the surface language forbids.
    */
   contextKind?: ThreadContextKind;
+  /** Property or Stays (track G). Absent reads as Property. */
+  side?: Side;
+  /** Archived by this reader, and not answered since. */
+  archived?: boolean;
+  /** This reader reported the conversation, a message in it or the person. */
+  reported?: boolean;
 };
 
 const CONTEXT_GLYPH: Partial<Record<ThreadContextKind, UiIconName>> = {
   reservation: "utensils",
   booking: "building-hotel",
+  business: "building-hotel",
 };
 
-type Tab = "all" | "primary" | "requests";
+/*
+ * TWO AXES (track G, 25 September 2026).
+ *
+ * The SIDE is the product's two-sided model, Property and Stays, as the top
+ * tabs: a rental enquiry and a hotel booking are different errands and each
+ * side's list is short enough to scan. It opens on the side the shell is on.
+ *
+ * The VIEW is which of this reader's threads: Recent (everything live that is
+ * not a request), Requests (a stranger's first message waits here, the
+ * platform's standing refusal about messaging), Archived (put away by this
+ * reader only; the other party still sees it) and Reported (threads this
+ * reader reported). All and Primary were folded: Recent is Primary, and a
+ * list of everything mixed requests back in, which is what Requests exists to
+ * stop.
+ */
+type View = "recent" | "requests" | "archived" | "reported";
+const VIEW_ORDER: View[] = ["recent", "requests", "archived", "reported"];
+const VIEW_LABEL: Record<View, string> = {
+  recent: "Recent",
+  requests: "Requests",
+  archived: "Archived",
+  reported: "Reported",
+};
+const SIDE_ORDER: Side[] = ["property", "stays"];
+const SIDE_LABEL: Record<Side, string> = { property: "Property", stays: "Stays" };
 
-/* The order is the product's; the words are the dictionary's. They were three
-   English literals in a four locale product, which is the sharpest form of the
-   half translated control `QueueFilters.tsx:141` argues against: the rows below
-   these tabs are translated and the tabs above them were not. */
-const TAB_ORDER: Tab[] = ["all", "primary", "requests"];
+function inView(row: InboxRow, view: View): boolean {
+  if (view === "reported") return row.reported === true;
+  if (view === "archived") return row.archived === true;
+  if (row.archived) return false;
+  return view === "requests" ? row.isRequest : !row.isRequest;
+}
 
-function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
+function Row({
+  row,
+  typing,
+  onArchive,
+  archivePending,
+}: {
+  row: InboxRow;
+  typing: boolean;
+  /** Absent where archiving is not open (signed out, or the table is not live). */
+  onArchive?: (row: InboxRow) => void;
+  archivePending?: boolean;
+}) {
   const glyph = row.contextKind ? CONTEXT_GLYPH[row.contextKind] : undefined;
   /* A shared card previews as its words, never as the path it carries. */
   const preview = sharePreview(row.lastMessage) ?? row.lastMessage;
   return (
-    <li>
-      <Link href={`/messages/${row.id}`} data-testid="inbox-row" className="nf-inbox-row">
+    <li className="flex items-center gap-3xs">
+      <Link href={`/messages/${row.id}`} data-testid="inbox-row" className="nf-inbox-row min-w-0 flex-1">
         {/* The avatar in the thread family's lit ring, carrying the verified
             mark: one mark per person per row, where the eye lands first. */}
         <span className="nf-inbox-row__ring">
@@ -123,6 +169,19 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
           )}
         </span>
       </Link>
+      {onArchive && (
+        <button
+          type="button"
+          onClick={() => onArchive(row)}
+          disabled={archivePending}
+          aria-label={`${row.archived ? "Move back to Recent" : "Archive"}: ${row.counterpartName}`}
+          title={row.archived ? "Move back to Recent" : "Archive"}
+          data-testid="inbox-archive"
+          className="nf-icon-btn h-11 w-11 shrink-0 disabled:opacity-60"
+        >
+          <UiIcon name={row.archived ? "arrow-up" : "archive"} size={ICON.row} />
+        </button>
+      )}
     </li>
   );
 }
@@ -179,8 +238,14 @@ export function Inbox({
   meId = null,
   canMarkRead = false,
   labels,
+  initialSide = "property",
+  archiveOpen = false,
 }: {
   rows: InboxRow[];
+  /** The side the app shell is on, which the inbox opens on. */
+  initialSide?: Side;
+  /** Archive and unarchive are live (signed in, and the table exists). */
+  archiveOpen?: boolean;
   /** The three tab words, where a server parent already holds the dictionary. */
   labels?: Dictionary["uiCommon"]["inbox"];
   /** The signed-in user, for ignoring our own typing pings. Null when seeded. */
@@ -189,7 +254,12 @@ export function Inbox({
   canMarkRead?: boolean;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("all");
+  const [side, setSide] = useState<Side>(initialSide);
+  const [view, setView] = useState<View>("recent");
+  const [archiveNote, setArchiveNote] = useState<string | null>(null);
+  const [archiving, startArchiving] = useTransition();
+  /* Optimistic: an archived row leaves Recent the moment it is tapped. */
+  const [archivedLocal, setArchivedLocal] = useState<Record<string, boolean>>({});
   const [query, setQuery] = useState("");
   const [markError, setMarkError] = useState<string | null>(null);
   const [marking, startMarking] = useTransition();
@@ -209,24 +279,47 @@ export function Inbox({
     meId,
   );
 
-  const requests = useMemo(() => rows.filter((r) => r.isRequest), [rows]);
+  const live = useMemo(
+    () => rows.map((r) => (r.id in archivedLocal ? { ...r, archived: archivedLocal[r.id] } : r)),
+    [rows, archivedLocal],
+  );
+  const onSide = useMemo(() => live.filter((r) => (r.side ?? "property") === side), [live, side]);
+  const requests = useMemo(() => onSide.filter((r) => inView(r, "requests")), [onSide]);
   const unreadTotal = rows.reduce((sum, r) => sum + r.unread, 0);
+  const unreadBySide = useMemo(() => {
+    const out: Record<Side, number> = { property: 0, stays: 0 };
+    for (const r of live) if (!r.archived && r.unread > 0) out[r.side ?? "property"] += 1;
+    return out;
+  }, [live]);
 
   const shown = useMemo(() => {
-    const byTab =
-      tab === "requests"
-        ? requests
-        : tab === "primary"
-          ? rows.filter((r) => !r.isRequest)
-          : rows;
+    const byView = onSide.filter((r) => inView(r, view));
     const q = query.trim().toLowerCase();
-    if (q.length === 0) return byTab;
-    return byTab.filter((r) =>
+    if (q.length === 0) return byView;
+    return byView.filter((r) =>
       `${r.counterpartName} ${r.listingTitle ?? ""} ${r.lastMessage}`
         .toLowerCase()
         .includes(q),
     );
-  }, [tab, query, rows, requests]);
+  }, [view, query, onSide]);
+
+  const toggleArchive = (row: InboxRow) => {
+    const next = !row.archived;
+    setArchiveNote(null);
+    setArchivedLocal((current) => ({ ...current, [row.id]: next }));
+    startArchiving(async () => {
+      const result = next
+        ? await archiveConversation({ conversationId: row.id })
+        : await unarchiveConversation({ conversationId: row.id });
+      if (!result.ok) {
+        setArchivedLocal((current) => ({ ...current, [row.id]: !next }));
+        setArchiveNote(result.error);
+        return;
+      }
+      setArchiveNote(next ? `Archived. It is under Archived, and ${row.counterpartName} still sees it.` : "Moved back to Recent.");
+      router.refresh();
+    });
+  };
 
   const markAllRead = () => {
     setMarkError(null);
@@ -319,45 +412,50 @@ export function Inbox({
         data-testid="inbox-search"
       />
 
-      {/* ---------------------------------------------------------- tabs */}
+      {/* ------------------------------------------------ side, then view */}
       {/*
-        This was a `role="tablist"` of `role="tab"` chips with `aria-selected`
-        and NOTHING else: no panel, no `aria-controls`, no roving tabindex, no
-        arrow keys. A tablist that controls nothing is a promise to a screen
-        reader that the surface does not keep.
-
-        It is made a REAL tablist rather than demoted to a filter row, because
-        the three tabs genuinely swap which conversations the list below shows -
-        that is a view switch, not an attribute filter - and the list is a panel
-        that can name itself. `Segmented` brings the roving tabindex and the
-        arrow keys with it.
-
-        No `panelIdPrefix`: only the selected panel exists, so `aria-controls`
-        on the other two would dangle. The panel points back with
-        `aria-labelledby`.
+        The SIDE is a real tablist (it swaps the whole list), opening on the
+        side the shell is on, each tab carrying how many of its threads are
+        unread. The VIEW is a radiogroup of chips beneath it: a filter over
+        that side's list, four equal cells so every word is whole at 390px.
       */}
       <div className="mt-heading">
-        <Segmented<Tab>
-          label={tabLabels.filterLabel}
-          /* The default `md` rung, not `sm`. `Segmented` paints its real
-             height with no overflowing hit area the way `Chip` and `Switch`
-             have, so `sm` is a genuine 36px target - under the 44pt floor, and
-             `icons-and-targets` catches it. */
+        <Segmented<Side>
+          label="Conversations by side"
           full
-          options={TAB_ORDER.map((key) => ({
+          options={SIDE_ORDER.map((key) => ({
             value: key,
-            label: tabLabels[key],
-            /* Requests is the only tab that carries a count, and only when
-               somebody is actually waiting in it. */
-            ...(key === "requests" && requests.length > 0
-              ? { count: requests.length }
-              : null),
+            label: SIDE_LABEL[key],
+            ...(unreadBySide[key] > 0 ? { count: unreadBySide[key] } : null),
           }))}
-          value={tab}
-          onChange={setTab}
-          itemIdPrefix="inbox-tab"
+          value={side}
+          onChange={setSide}
+          itemIdPrefix="inbox-side"
         />
       </div>
+      <div className="mt-sm" data-testid="inbox-views">
+        <div role="radiogroup" aria-label={tabLabels.filterLabel} className="grid grid-cols-4 gap-2xs">
+          {VIEW_ORDER.map((key) => (
+            <Chip
+              key={key}
+              behaviour="choice"
+              selected={view === key}
+              onSelectedChange={() => setView(key)}
+              data-testid={`inbox-view-${key}`}
+              className="w-full min-w-0 justify-center px-2xs"
+            >
+              {key === "requests" ? tabLabels.requests : VIEW_LABEL[key]}
+              {key === "requests" && requests.length > 0 ? ` ${requests.length}` : ""}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
+      {archiveNote && (
+        <p role="status" className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]" data-testid="inbox-archive-note">
+          {archiveNote}
+        </p>
+      )}
 
       {markError && (
         /* Rose, not cyan: `--nf-state-warning` is the pending token under
@@ -372,10 +470,10 @@ export function Inbox({
           the list re-enters rather than mutating in place, and it names its own
           tab, which is what makes the tablist a tablist. */}
       <div
-        key={tab}
+        key={`${side}-${view}`}
         role="tabpanel"
-        id={`inbox-panel-${tab}`}
-        aria-labelledby={`inbox-tab-${tab}`}
+        id={`inbox-panel-${side}`}
+        aria-labelledby={`inbox-side-${side}`}
         className="mt-heading"
       >
         {shown.length > 0 ? (
@@ -383,7 +481,13 @@ export function Inbox({
              One line between two conversations, nothing around either. */
           <ul className="flex flex-col gap-3xs">
             {shown.map((row) => (
-              <Row key={row.id} row={row} typing={typing.has(row.id)} />
+              <Row
+                key={row.id}
+                row={row}
+                typing={typing.has(row.id)}
+                onArchive={archiveOpen && view !== "reported" ? toggleArchive : undefined}
+                archivePending={archiving}
+              />
             ))}
           </ul>
         ) : query.trim().length > 0 ? (
@@ -391,21 +495,43 @@ export function Inbox({
             title="Nothing matches that"
             body={`No conversation mentions "${query.trim()}". Try a host's name, a listing or a word from the message.`}
           />
-        ) : tab === "requests" ? (
+        ) : view === "requests" ? (
           <Empty
             title="No requests waiting"
             body="A message from somebody you have never spoken to waits here first, so a stranger never lands in your main list."
           />
-        ) : rows.length === 0 ? (
+        ) : view === "archived" ? (
           <Empty
-            title="No conversations yet"
-            body="Open any property and tap Message agent. The thread appears here, with the property attached, so nobody has to ask which one you mean."
-            action={{ href: "/search", label: "Find a place" }}
+            title={archiveOpen ? "Nothing archived" : "Archive is not open yet"}
+            body={
+              archiveOpen
+                ? "Archive a conversation from Recent to put it away. Only you stop seeing it there; the other person still has it, and a new reply brings it back."
+                : "Soon you will be able to put conversations away here. Nothing you have is hidden in the meantime."
+            }
           />
+        ) : view === "reported" ? (
+          <Empty
+            title="Nothing reported"
+            body="A conversation you report, or one with a person you reported, is listed here so you can find it again."
+          />
+        ) : onSide.length === 0 ? (
+          side === "stays" ? (
+            <Empty
+              title="No stay conversations yet"
+              body="Message a hotel or a restaurant, or book a stay. The conversation appears here with the place attached."
+              action={{ href: "/stays", label: "Find a stay" }}
+            />
+          ) : (
+            <Empty
+              title="No conversations yet"
+              body="Open any property and tap Message agent. The thread appears here, with the property attached, so nobody has to ask which one you mean."
+              action={{ href: "/search", label: "Find a place" }}
+            />
+          )
         ) : (
           <Empty
-            title="Nothing in Primary"
-            body="Every thread you have is still a request. Reply to one and it moves across."
+            title="Nothing in Recent"
+            body="Everything on this side is a request or archived. Reply to a request and it moves here."
           />
         )}
       </div>

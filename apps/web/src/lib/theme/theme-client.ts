@@ -83,6 +83,11 @@ function subscribeTheme(onChange: () => void): () => void {
   return () => window.removeEventListener(THEME_EVENT, onChange);
 }
 
+/** The stored choice (Light, Dark or System), live. Server render answers dark. */
+export function useThemeChoice(): ThemeChoice {
+  return useSyncExternalStore(subscribeTheme, readThemeChoice, () => "dark");
+}
+
 /** The theme the page is painted in, live. Server render answers dark. */
 export function useAppliedTheme(): ResolvedTheme {
   return useSyncExternalStore(subscribeTheme, readAppliedTheme, () => "dark");

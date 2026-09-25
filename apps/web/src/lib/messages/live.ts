@@ -18,6 +18,8 @@ import type { Database } from "../supabase/database.types";
 import { createAdminClient } from "../supabase/admin";
 import { callableNumberFor } from "../security/counterpart-contact";
 import type { ThreadContextKind } from "./db";
+import type { Side } from "../side.constants";
+import { threadSide } from "./thread-side";
 import { lagosTimeLabel, lagosWhenLabel } from "./time";
 import { readPersonBadges, type BadgeTier } from "@/lib/trust/badge-tier";
 
@@ -62,6 +64,10 @@ export type LiveConversationSummary = {
    * a listing thread.
    */
   contextKind: ThreadContextKind;
+  /** Property or Stays, for the inbox's two top tabs (track G). See `thread-side.ts`. Absent reads as property. */
+  side?: Side;
+  /** The other party's user id, for matching a report on the person (track G). */
+  counterpartId?: string;
 };
 
 export type LiveThreadMessage = {
@@ -223,7 +229,7 @@ export async function loadConversationSummaries(
   const { data: conversations } = await supabase
     .from("conversations")
     .select(
-      "id, guest_id, agent_id, last_message_at, context_kind, listings(title), reservations!conversations_reservation_id_fkey(listings(title)), bookings!conversations_booking_id_fkey(listings(title)), businesses!conversations_business_id_fkey(name)",
+      "id, guest_id, agent_id, last_message_at, context_kind, listings(title, property_type, listing_intent, rent_period, rate_period, rent_amount_minor, rate_minor), reservations!conversations_reservation_id_fkey(listings(title)), bookings!conversations_booking_id_fkey(listings(title)), businesses!conversations_business_id_fkey(name)",
     )
     /* SEC-02. RLS lets an admin read every conversation; the inbox is the
        caller's own threads, so the caller is named as a party. */
@@ -318,6 +324,8 @@ export async function loadConversationSummaries(
       counterpartVerified: identity?.verified ?? false,
       counterpartTier: identity?.tier ?? "none",
       contextKind: c.context_kind,
+      side: threadSide(c.context_kind, c.listings),
+      counterpartId,
     };
   });
 }

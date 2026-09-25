@@ -26,6 +26,7 @@ import type {
 import { AreaReport, NeighbourhoodFacts } from "./AreaPanel";
 import { PinMap } from "./PinMap";
 import { ShareAreaButton } from "./ShareAreaButton";
+import { NextActions } from "./NextActions";
 import { shareAreaCopy } from "./share-copy";
 import { AnsweredResult, ComparablesRail, Disclaimer, RefusalPanel, StripPlot } from "./ResultPanel";
 
@@ -486,21 +487,37 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
                 area typed into rung three beyond its name, not the hint, which
                 exists nowhere but this component's own state.
               */}
+              {/* Track L: the share control is the third of three next steps
+                  now, beside seeing the listings and setting an alert. */}
               <div className="mt-section-tight">
-                <ShareAreaButton
-                  stateCode={stateCode}
-                  lgaCode={lgaCode || null}
-                  area={area.trim() || null}
-                  propertyType={propertyType}
-                  listingIntent={intent}
-                  bedrooms={query.bedrooms}
-                  figures={{
-                    lowMinor: result.lowMinor,
-                    midMinor: result.midMinor,
-                    highMinor: result.highMinor,
-                    listingCount: result.comparableCount,
+                <NextActions
+                  facts={{
+                    intent,
+                    propertyType,
+                    bedrooms: query.bedrooms,
+                    area: area.trim() || null,
+                    lgaName: lgas.find((option) => option.code === lgaCode)?.name ?? null,
+                    stateName: states.find((option) => option.code === stateCode)?.name ?? null,
                   }}
-                  copy={shareCopy}
+                  copy={copy.next}
+                  signedIn={props.signedIn}
+                  share={
+                    <ShareAreaButton
+                      stateCode={stateCode}
+                      lgaCode={lgaCode || null}
+                      area={area.trim() || null}
+                      propertyType={propertyType}
+                      listingIntent={intent}
+                      bedrooms={query.bedrooms}
+                      figures={{
+                        lowMinor: result.lowMinor,
+                        midMinor: result.midMinor,
+                        highMinor: result.highMinor,
+                        listingCount: result.comparableCount,
+                      }}
+                      copy={shareCopy}
+                    />
+                  }
                 />
               </div>
               <div className="mt-section-tight">
