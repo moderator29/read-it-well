@@ -11,6 +11,7 @@ import {
   PRIVATE_FEE_NOTE,
   REFUND_ROUTE,
 } from "@/lib/money/copy";
+import { occurrencesIn } from "@/lib/price-check/regulated-words";
 import { faqItems } from "./faq-items";
 
 /*
@@ -37,8 +38,10 @@ describe("the landing rooms' copy", () => {
     expect(found).toEqual([]);
   });
 
-  it("never says valuation, worth or value", () => {
-    const found = strings(t.landingRooms).filter((s) => /\b(valuation|worth|value)\b/i.test(s));
+  it("uses none of the regulated words", () => {
+    const found = strings(t.landingRooms).filter(
+      (text) => occurrencesIn({ path: "landing-rooms.en.ts", text: JSON.stringify(text) }).length > 0,
+    );
     expect(found).toEqual([]);
   });
 
