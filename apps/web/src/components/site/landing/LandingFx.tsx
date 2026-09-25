@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { motionQuiet } from "@/lib/motion/gate";
+import { onMotionGate } from "@/components/motion/useMotionGate";
 
 /**
  * The landing's global details that need a pointer or a scroll position
@@ -19,91 +21,135 @@ import { useEffect } from "react";
  *   `--nf-page-p` and `--nf-hero-p`, which this writes once per frame.
  *   Where the browser has scroll timelines it does nothing on scroll at all.
  *
- * None of it attaches on touch, under reduced motion, or with data saver on.
+ * None of it attaches on touch, under reduced motion, at Calm or Off in the
+ * motion setting, or with data saver on; a change of setting re-decides.
  */
 const MAGNET_MAX = 6;
 const CARD_TILT = 5;
 
 export function LandingFx() {
-  useEffect(() => {
-    const root = document.documentElement;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const lite = root.dataset.saveData === "on" || root.dataset.motionLite === "on";
-    if (reduce || lite) return;
-    const cleanups: (() => void)[] = [];
+  useEffect(
+    () =>
+      onMotionGate(() => {
+        const root = document.documentElement;
+        /* Calm, Off or reduced motion (lib/motion/gate.ts), data saver, or a
+       slow device: nothing attaches. Re-decided when the setting changes. */
+        const lite =
+          root.dataset.saveData === "on" || root.dataset.motionLite === "on";
+        if (motionQuiet() || lite) return;
+        const cleanups: (() => void)[] = [];
 
-    /* ---------------------------------------------- scroll fallback */
-    const timelines = typeof CSS !== "undefined" && CSS.supports?.("animation-timeline: scroll()");
-    if (!timelines) {
-      let frame = 0;
-      const hero = document.querySelector<HTMLElement>(".nf-landing-hero");
-      const read = () => {
-        frame = 0;
-        const max = Math.max(1, root.scrollHeight - window.innerHeight);
-        root.style.setProperty("--nf-page-p", (window.scrollY / max).toFixed(4));
-        if (hero) hero.style.setProperty("--nf-hero-p", Math.min(1, window.scrollY / Math.max(1, hero.offsetHeight)).toFixed(4));
-      };
-      const onScroll = () => {
-        if (!frame) frame = requestAnimationFrame(read);
-      };
-      read();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      cleanups.push(() => {
-        window.removeEventListener("scroll", onScroll);
-        cancelAnimationFrame(frame);
-      });
-    }
+        /* ---------------------------------------------- scroll fallback */
+        const timelines =
+          typeof CSS !== "undefined" &&
+          CSS.supports?.("animation-timeline: scroll()");
+        if (!timelines) {
+          let frame = 0;
+          const hero = document.querySelector<HTMLElement>(".nf-landing-hero");
+          const read = () => {
+            frame = 0;
+            const max = Math.max(1, root.scrollHeight - window.innerHeight);
+            root.style.setProperty(
+              "--nf-page-p",
+              (window.scrollY / max).toFixed(4)
+            );
+            if (hero)
+              hero.style.setProperty(
+                "--nf-hero-p",
+                Math.min(
+                  1,
+                  window.scrollY / Math.max(1, hero.offsetHeight)
+                ).toFixed(4)
+              );
+          };
+          const onScroll = () => {
+            if (!frame) frame = requestAnimationFrame(read);
+          };
+          read();
+          window.addEventListener("scroll", onScroll, { passive: true });
+          cleanups.push(() => {
+            window.removeEventListener("scroll", onScroll);
+            cancelAnimationFrame(frame);
+          });
+        }
 
-    /* -------------------------------------- pointer: magnets and tilt */
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      let frame = 0;
-      let last: PointerEvent | null = null;
-      const hero = document.querySelector<HTMLElement>(".nf-landing-hero");
-      const card = hero?.querySelector<HTMLElement>(".nf-landing-float-wrap") ?? null;
-      const paint = () => {
-        frame = 0;
-        const e = last;
-        if (!e) return;
-        const target = (e.target as Element | null)?.closest?.(".nf-magnetic");
-        for (const el of document.querySelectorAll<HTMLElement>(".nf-magnetic[data-pulled]")) {
-          if (el !== target) {
-            el.style.setProperty("--mag-x", "0px");
-            el.style.setProperty("--mag-y", "0px");
-            delete el.dataset.pulled;
-          }
+        /* -------------------------------------- pointer: magnets and tilt */
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+          let frame = 0;
+          let last: PointerEvent | null = null;
+          const hero = document.querySelector<HTMLElement>(".nf-landing-hero");
+          const card =
+            hero?.querySelector<HTMLElement>(".nf-landing-float-wrap") ?? null;
+          const paint = () => {
+            frame = 0;
+            const e = last;
+            if (!e) return;
+            const target = (e.target as Element | null)?.closest?.(
+              ".nf-magnetic"
+            );
+            for (const el of document.querySelectorAll<HTMLElement>(
+              ".nf-magnetic[data-pulled]"
+            )) {
+              if (el !== target) {
+                el.style.setProperty("--mag-x", "0px");
+                el.style.setProperty("--mag-y", "0px");
+                delete el.dataset.pulled;
+              }
+            }
+            if (target instanceof HTMLElement) {
+              const box = target.getBoundingClientRect();
+              const dx =
+                ((e.clientX - (box.left + box.width / 2)) / (box.width / 2)) *
+                MAGNET_MAX;
+              const dy =
+                ((e.clientY - (box.top + box.height / 2)) / (box.height / 2)) *
+                MAGNET_MAX;
+              target.style.setProperty(
+                "--mag-x",
+                `${Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, dx)).toFixed(
+                  1
+                )}px`
+              );
+              target.style.setProperty(
+                "--mag-y",
+                `${Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, dy)).toFixed(
+                  1
+                )}px`
+              );
+              target.dataset.pulled = "true";
+            }
+            if (hero && card) {
+              const box = hero.getBoundingClientRect();
+              const inside = e.clientY >= box.top && e.clientY <= box.bottom;
+              const px = inside ? (e.clientX - box.left) / box.width - 0.5 : 0;
+              const py = inside ? (e.clientY - box.top) / box.height - 0.5 : 0;
+              card.style.setProperty(
+                "--card-rx",
+                `${(-py * CARD_TILT).toFixed(2)}deg`
+              );
+              card.style.setProperty(
+                "--card-ry",
+                `${(px * CARD_TILT).toFixed(2)}deg`
+              );
+            }
+          };
+          const onMove = (e: PointerEvent) => {
+            last = e;
+            if (!frame) frame = requestAnimationFrame(paint);
+          };
+          window.addEventListener("pointermove", onMove, { passive: true });
+          cleanups.push(() => {
+            window.removeEventListener("pointermove", onMove);
+            cancelAnimationFrame(frame);
+          });
         }
-        if (target instanceof HTMLElement) {
-          const box = target.getBoundingClientRect();
-          const dx = ((e.clientX - (box.left + box.width / 2)) / (box.width / 2)) * MAGNET_MAX;
-          const dy = ((e.clientY - (box.top + box.height / 2)) / (box.height / 2)) * MAGNET_MAX;
-          target.style.setProperty("--mag-x", `${Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, dx)).toFixed(1)}px`);
-          target.style.setProperty("--mag-y", `${Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, dy)).toFixed(1)}px`);
-          target.dataset.pulled = "true";
-        }
-        if (hero && card) {
-          const box = hero.getBoundingClientRect();
-          const inside = e.clientY >= box.top && e.clientY <= box.bottom;
-          const px = inside ? (e.clientX - box.left) / box.width - 0.5 : 0;
-          const py = inside ? (e.clientY - box.top) / box.height - 0.5 : 0;
-          card.style.setProperty("--card-rx", `${(-py * CARD_TILT).toFixed(2)}deg`);
-          card.style.setProperty("--card-ry", `${(px * CARD_TILT).toFixed(2)}deg`);
-        }
-      };
-      const onMove = (e: PointerEvent) => {
-        last = e;
-        if (!frame) frame = requestAnimationFrame(paint);
-      };
-      window.addEventListener("pointermove", onMove, { passive: true });
-      cleanups.push(() => {
-        window.removeEventListener("pointermove", onMove);
-        cancelAnimationFrame(frame);
-      });
-    }
 
-    return () => {
-      for (const clean of cleanups) clean();
-    };
-  }, []);
+        return () => {
+          for (const clean of cleanups) clean();
+        };
+      }),
+    []
+  );
 
   return null;
 }

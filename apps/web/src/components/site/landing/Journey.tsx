@@ -7,7 +7,9 @@ import {
   NO_INSPECTION_FEE_HEADLINE,
   PAYMENT_GATE_SENTENCE,
 } from "@/lib/money/copy";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { JourneyScreen, type JourneyScreenKey } from "./JourneyScreens";
+import type { GlassMotion } from "./glass-motion";
 import { JourneyScroll } from "./JourneyScroll";
 import { SectionHead } from "./SectionHead";
 
@@ -29,6 +31,10 @@ import { SectionHead } from "./SectionHead";
  * `NO_CUSTODY_SENTENCE`, verbatim from `lib/money/copy.ts`; the one phrase in
  * the drawings is `NO_INSPECTION_FEE_HEADLINE`, set in sentence case.
  */
+/* The platform's glass objects, one a chapter, each with its one motion. */
+const CHAPTER_OBJECT: readonly BrandIconName[] = ["listing-search", "inspect-ring", "contract-sign", "keys-handover"];
+const CHAPTER_MOTION: readonly GlassMotion[] = ["rise", "pop", "tilt", "turn"];
+
 export function Journey({ t }: { t: Dictionary }) {
   const j = t.landingRooms.journey;
   const bodies: Record<string, string> = {
@@ -53,8 +59,13 @@ export function Journey({ t }: { t: Dictionary }) {
           {steps.map((s, i) => (
             <li key={s.key} className="nf-journey__chapter" data-journey-step={i}>
               <MotionReveal className="nf-journey__text nf-depth-gate">
-                <span className="nf-journey__num nf-numeric" aria-hidden="true">
-                  {String(i + 1).padStart(2, "0")}
+                <span className="nf-journey__mark">
+                  <span className="nf-glass-fx nf-feature-glass" data-motion={CHAPTER_MOTION[i] ?? "rise"}>
+                    <BrandIcon name={CHAPTER_OBJECT[i] ?? "listing-search"} fill />
+                  </span>
+                  <span className="nf-journey__num nf-numeric" aria-hidden="true">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                 </span>
                 <span className="nf-eyebrow">{s.label}</span>
                 <h3 className="nf-journey__title">
@@ -64,7 +75,7 @@ export function Journey({ t }: { t: Dictionary }) {
               </MotionReveal>
               {/* The stacked layout's own screen, under 64rem. */}
               <div className="nf-journey__inline">
-                <div className="nf-phone nf-phone--sm">
+                <div className="nf-phone nf-phone--sm" data-theme="dark">
                   <JourneyScreen step={s.key} labels={labels} />
                 </div>
               </div>
@@ -82,7 +93,7 @@ export function Journey({ t }: { t: Dictionary }) {
               </span>
             ))}
           </div>
-          <div className="nf-phone">
+          <div className="nf-phone" data-theme="dark">
             {steps.map((s, i) => (
               <div key={s.key} className="nf-journey__screen" data-i={i}>
                 <JourneyScreen step={s.key} labels={labels} />

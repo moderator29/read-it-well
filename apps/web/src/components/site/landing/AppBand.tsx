@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { Reveal } from "@/components/site/Reveal";
 import { Logo } from "@/design-system/brand/Logo";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { photo } from "@/lib/site/photos";
 import { ListingMini } from "./ListingMini";
@@ -65,7 +65,7 @@ export function AppBand({
               picture of the app, but the listing card drawn inside them
               holds a real link, and aria-hidden alone left that link in the
               tab order, focusable and unannounced (axe `aria-hidden-focus`). */}
-          <div className="nf-landing-phones" aria-hidden="true" inert>
+          <div className="nf-landing-phones" data-theme="dark" aria-hidden="true" inert>
             <div className="nf-landing-phone nf-landing-phone--back">
               <div className="nf-landing-phone-screen">
                 <Image
@@ -107,7 +107,7 @@ export function AppBand({
             <ul className="nf-landing-checks mt-group">
               {points.map((p) => (
                 <li key={p}>
-                  <UiIcon name="verified" size={18} aria-hidden />
+                  <BrandIcon name="seal-check" size={24} />
                   {p}
                 </li>
               ))}

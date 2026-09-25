@@ -1,4 +1,5 @@
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
  * The four drawn phone screens of the journey (Track M, second pass).
@@ -118,7 +119,7 @@ export function JourneyScreen({ step, labels }: { step: JourneyScreenKey; labels
             </span>
           </div>
           <div className="nf-jscreen__keys">
-            <UiIcon name="key" size={28} />
+            <BrandIcon name="keys-handover" size={64} />
             <span>{labels.keys}</span>
           </div>
         </div>

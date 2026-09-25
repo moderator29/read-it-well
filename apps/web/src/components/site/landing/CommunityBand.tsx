@@ -68,7 +68,7 @@ export function CommunityBand({
         </Reveal>
 
         <Reveal delay={80}>
-          <div className="nf-landing-stack">
+          <div className="nf-landing-stack" data-theme="dark">
             <div className="nf-landing-stack-photo nf-landing-stack-photo--main">
               <Image
                 src={photo("villa-pool-skyline-01")}

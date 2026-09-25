@@ -1,14 +1,16 @@
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { ButtonLink } from "@/components/ui/Button";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { FeatureGlyph, type FeatureGlyphName } from "@/components/motion/FeatureGlyph";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { AiShowcase, type ShowcaseScript } from "./AiShowcase";
+import type { GlassMotion } from "./glass-motion";
 import { SectionHead } from "./SectionHead";
 import { Sweep } from "./Sweep";
 
-const TRUTH_GLYPHS: readonly FeatureGlyphName[] = ["chat", "home", "document"];
+const TRUTH_OBJECTS: readonly BrandIconName[] = ["listing-search", "coin-naira", "doc-review"];
+const TRUTH_MOTION: readonly GlassMotion[] = ["rise", "turn", "tilt"];
 const RENT_KINDS: ReadonlySet<ListingKind> = new Set(["rental"]);
 const STAY_KINDS: ReadonlySet<ListingKind> = new Set(["shortlet", "hotel", "villa", "apartment"]);
 
@@ -49,8 +51,8 @@ export function AiBand({ t, locale, cards }: { t: Dictionary; locale: Locale; ca
           <MotionReveal as="ul" stagger className="nf-ai-truths">
             {[truths.listings, truths.costs, truths.title].map((line, i) => (
               <li key={line} className="nf-fx-host">
-                <span className="nf-feature-icon nf-feature-icon--sm">
-                  <FeatureGlyph name={TRUTH_GLYPHS[i] ?? "chat"} id={`nf-ai-truth-${i}`} size={20} />
+                <span className="nf-glass-fx nf-feature-glass nf-feature-glass--sm" data-motion={TRUTH_MOTION[i] ?? "rise"}>
+                  <BrandIcon name={TRUTH_OBJECTS[i] ?? "bot"} fill />
                 </span>
                 <span>{line}</span>
               </li>

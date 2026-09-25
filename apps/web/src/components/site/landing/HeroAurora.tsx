@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { usePlayWhenVisible } from "@/components/motion/useInView";
+import { useMotionGate } from "@/components/motion/useMotionGate";
 
 /**
  * The hero's moving light (Track M): three soft fields in the brand hues
@@ -14,7 +15,11 @@ import { usePlayWhenVisible } from "@/components/motion/useInView";
  */
 export function HeroAurora() {
   const ref = useRef<HTMLDivElement | null>(null);
-  const playing = usePlayWhenVisible(ref);
+  const visible = usePlayWhenVisible(ref);
+  /* A living background: it needs the Living backgrounds switch, a motion
+     level above Calm, and data saver off (lib/motion/gate.ts). */
+  const { ambient } = useMotionGate();
+  const playing = visible && ambient;
   return (
     <div ref={ref} className="nf-hero-aurora" data-playing={playing ? "true" : "false"} aria-hidden="true">
       <span className="nf-hero-aurora-a" />

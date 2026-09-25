@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@vallo/i18n";
-import { useHydrated, usePlayWhenVisible, useReducedMotion } from "@/components/motion/useInView";
+import { useHydrated, usePlayWhenVisible } from "@/components/motion/useInView";
+import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { ListingMini } from "./ListingMini";
 
@@ -52,7 +54,9 @@ export function AiShowcase({
   labels: { caption: string; replay: string; you: string; name: string; verified: string; script: string };
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const reduce = useReducedMotion();
+  /* Reduced motion, or the motion setting at Calm or Off: the finished first
+     conversation, no clock (lib/motion/gate.ts). */
+  const { quiet: reduce } = useMotionGate();
   const visible = usePlayWhenVisible(ref);
   const hydrated = useHydrated();
   /* Scripts run only once the page is interactive and the reader has not
@@ -102,7 +106,7 @@ export function AiShowcase({
   };
 
   return (
-    <div className="nf-ai-show" ref={ref}>
+    <div className="nf-ai-show" ref={ref} data-playing={live && visible ? "true" : "false"}>
       <div className="nf-ai-show-bar">
         <span className="nf-ai-show-caption">{labels.caption}</span>
         {live && (
@@ -132,7 +136,7 @@ export function AiShowcase({
       <div className="nf-ai-show-panel" data-leaving={leaving ? "true" : undefined} aria-hidden="true" inert>
         <div className="nf-ai-show-head">
           <span className="nf-ai-show-avatar">
-            <UiIcon name="sparkle" size={16} aria-hidden />
+            <BrandIcon name="bot" size={32} />
           </span>
           <span className="nf-ai-show-name">{labels.name}</span>
         </div>
@@ -174,7 +178,7 @@ export function AiShowcase({
           )}
           {script.note && t >= replyEnd + 200 && (
             <div className="nf-ai-note" data-live={live ? "true" : undefined}>
-              <UiIcon name="document" size={16} aria-hidden />
+              <BrandIcon name="doc-review" size={24} />
               {script.note}
             </div>
           )}

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { FeatureGlyph, type FeatureGlyphName } from "@/components/motion/FeatureGlyph";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
 import { SectionHead } from "./SectionHead";
+import type { GlassMotion } from "./glass-motion";
 
 /**
  * How Vallo protects you (Track M): the three rules that sit in the product
@@ -18,21 +19,30 @@ import { SectionHead } from "./SectionHead";
  * `GUARANTEE_SENTENCE` and its scope are printed; the FAQ below prints them
  * too. Nothing on this band is reworded money copy.
  *
- * Each card's icon plays its one micro-motion as the card arrives and again
- * on hover: the page is written in, the shield draws its tick, the key turns.
+ * Each card's glass object (the platform's own icons, never a line glyph on
+ * a content surface) plays one micro-motion as the card arrives and again on
+ * hover: the agreement tilts as if picked up, the shield pops, the keys turn.
  */
 export function ProtectBand({ t }: { t: Dictionary }) {
   const p = t.landingRooms.protect;
-  const cards: { key: string; glyph: FeatureGlyphName; title: string; body: string; more?: { href: string; label: string } }[] = [
-    { key: "gate", glyph: "document", title: p.gate.title, body: PAYMENT_GATE_SENTENCE },
+  const cards: {
+    key: string;
+    object: BrandIconName;
+    motion: GlassMotion;
+    title: string;
+    body: string;
+    more?: { href: string; label: string };
+  }[] = [
+    { key: "gate", object: "contract-sign", motion: "tilt", title: p.gate.title, body: PAYMENT_GATE_SENTENCE },
     {
       key: "guarantee",
-      glyph: "shield",
+      object: "shield-check",
+      motion: "pop",
       title: p.guarantee.title,
       body: t.landing.oneAccount.points.savings.body,
       more: { href: "/safety", label: p.guarantee.more },
     },
-    { key: "inspection", glyph: "key", title: p.inspection.title, body: NO_INSPECTION_FEE },
+    { key: "inspection", object: "keys-home", motion: "turn", title: p.inspection.title, body: NO_INSPECTION_FEE },
   ];
   return (
     <section className="nf-shell nf-room" data-chapter="protect" aria-labelledby="nf-landing-protect-title">
@@ -40,8 +50,8 @@ export function ProtectBand({ t }: { t: Dictionary }) {
       <MotionReveal as="ul" stagger className="nf-protect-grid">
         {cards.map((c) => (
           <li key={c.key} className="nf-protect-card nf-fx-host">
-            <span className="nf-feature-icon">
-              <FeatureGlyph name={c.glyph} id={`nf-protect-${c.key}`} />
+            <span className="nf-glass-fx nf-feature-glass" data-motion={c.motion}>
+              <BrandIcon name={c.object} fill />
             </span>
             <h3 className="nf-protect-title">{c.title}</h3>
             <p className="nf-protect-body">{c.body}</p>
