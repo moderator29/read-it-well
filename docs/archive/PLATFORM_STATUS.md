@@ -556,7 +556,7 @@ rather than rediscovered.
 
 ## HANDOFF 05: the two-side platform
 
-### Part One, the backend — 89% built, far less proven
+### Part One, the backend, 89% built, far less proven
 
 **Measured against:** the brief's own named items in section 1. **34 of 38 built.**
 That is a count of items, not of scopes closed, and the gap between "built" and
@@ -580,9 +580,8 @@ free cancellation 5, and **a date outside the inventory horizon returns 0**.
 The filters discriminate and availability is really enforced. 64 listings + 5
 accommodations + 2 restaurants = 71 entries through one RPC.
 
-**B0's open debt is the one that matters.** The audit of commit `73e284e2` —
-5 files, 1,073 insertions across `checkout.ts`, `wallet/actions.ts`,
-`admin/business-actions.ts`, `business-queries.ts`, `wallet/schema.ts` — **has
+**B0's open debt is the one that matters.** The audit of commit `73e284e2`: 5 files, 1,073 insertions across `checkout.ts`, `wallet/actions.ts`,
+`admin/business-actions.ts`, `business-queries.ts`, `wallet/schema.ts`: **has
 never been done.** HANDOFF_08 line 910 still lists it as outstanding. Four
 sessions have now built on an unread money-path diff. **3–4 hours.**
 
@@ -599,7 +598,7 @@ job, every money path and every state machine is unexercised against real data.
 Rate limits are wired at 14 money call sites, read by hand; not one has ever
 refused a real call.
 
-#### The scheduler, corrected — because the first reading of it was wrong
+#### The scheduler, corrected, because the first reading of it was wrong
 
 A measurement agent reported that only two of seven Vercel cron routes have
 ever completed, inferring it from `audit_log`. **That inference is wrong, and
@@ -621,7 +620,7 @@ What the evidence actually shows, from `audit_log` directly:
 
 The `pg_cron` path is separately proven at **:47** past the hour (17:47, 18:47).
 Both schedulers are in. **Before 17:37 today, the previous successful
-reconciliation was 29 August at 10:47 — a 24 day gap.**
+reconciliation was 29 August at 10:47, a 24 day gap.**
 
 **All three hourly routes work. All four daily routes are unproven and cannot
 be proven before tomorrow morning.** That is the honest statement, and it is
@@ -639,7 +638,7 @@ Four new `.ok` rows by 08:00 means B4 is real. Fewer means it is not.
 paths once a seeded signed-in account exists. **~2 days**, gated on that
 account.
 
-### Part Two, the frontend — 42.6% proven
+### Part Two, the frontend, 42.6% proven
 
 **Two denominators, and only one is honest.**
 
@@ -651,8 +650,8 @@ looks matched, and it should not be quoted on its own.**
 
 **Against `scripts/design/sweep-register.mjs`, regenerated for this report: 58
 of 136 surfaces carry a fresh proof = 42.6%.** A surface counts only when a
-screenshot taken *after* `c32cd9c` — when the harness stopped lying in four
-ways — carries every non-parameter segment of the route in its filename. The
+screenshot taken *after* `c32cd9c`: when the harness stopped lying in four
+ways, carries every non-parameter segment of the route in its filename. The
 committed `SWEEP.md` is stale at 133 surfaces.
 
 | Track | Surfaces | Fresh proof | Void only | Ambiguous | None | % |
@@ -690,7 +689,7 @@ Session B's.
 
 The photo assets. First look was alarming: `listing_photos` holds 228 rows and
 `storage.objects` holds **8 objects in total**, with no photo bucket. But the
-rows do not point at storage — every path is a public path like
+rows do not point at storage, every path is a public path like
 `/brand/photos/villa-pool-terrace.jpg`, and `lib/stays/photos.ts:22-27` passes
 a leading slash straight through by design. **All 15 distinct paths are present
 on disk**, 170–254 KB, with `.webp` and `-640.jpg` derivatives beside them.
@@ -713,7 +712,7 @@ image assignments and shoot `/around` ~4h; side-by-sides for 58 proven surfaces
 
 ## HANDOFF 08: the new week
 
-### Section 1, the five findings — four closed and proved, one re-broken
+### Section 1, the five findings, four closed and proved, one re-broken
 
 | Finding | % | Measured against | Proven? |
 |---|---|---|---|
@@ -745,7 +744,7 @@ against 235 files, seven applied with no file anywhere, and one file never
 applied.**
 
 **All seven orphans were mine, created this afternoon** by running operational
-one-offs through the migration API instead of committing them — the identical
+one-offs through the migration API instead of committing them, the identical
 failure mode the finding was written about. Files now written for all seven,
 re-measured, **zero orphans**. The rotation one is deliberately **redacted**:
 it carried the cron bearer as a literal, and the literal appears nowhere in the
@@ -784,10 +783,10 @@ are being filtered" are two different claims and only the first is true.
 | **D** store rejection sweep | **67%** | 16 of 24 actionable work orders; 4.5 of 7 blockers | Mixed; one item was claimed closed and was not |
 | **E** the interface reads as one product | **~40%** | ~13 of 34 items | **UNPROVEN** on the shape law |
 | **F** the mobile landing page | **33%** | 1 of 3 pieces | **UNPROVEN**, no native build |
-| **L** light mode | **~45%** | 1 of 5 root causes closed, 4 partial | **UNPROVEN — the probe is broken** |
+| **L** light mode | **~45%** | 1 of 5 root causes closed, 4 partial | **UNPROVEN, the probe is broken** |
 | **M** drift and the wallet | **~70%** | 4.5 of 6 sections; 3.5 of 4 wallet P1s | **Best-proven track in the build** |
 
-#### Track A — 29%, and the money half is untouched
+#### Track A, 29%, and the money half is untouched
 
 Closed and read in source: the three national-ID desks now use a first-party
 document viewer with no `supabase.co` href surviving; the Vallo share sheet is
@@ -805,7 +804,7 @@ the sweep found is still read by nobody.
 `frame-src` to two Paystack origins, and its own comment says **in the present
 tense** that the shim "draws the checkout in one iframe on our own page
 instead". No such page exists. That is a live CSP grant with no product behind
-it — the same shape as the four open escrow doors, pointed the other way. Small,
+it, the same shape as the four open escrow doors, pointed the other way. Small,
 but the comment is false and a reader will believe the checkout shipped.
 
 **The track's own definition of done is not met on its terms:** it asks for a
@@ -813,28 +812,28 @@ table in the ledger, one row per departure, each marked closed with its commit
 or open with the reason. **No such table exists.** **3–4 days**, and the three
 unanswered questions about 3-D Secure inside the iframe need a real card.
 
-#### Track B — 65%, and nobody has opened one of these emails
+#### Track B, 65%, and nobody has opened one of these emails
 
 The shared shell, the RC number, the blue correction with a test that reads the
 token file so it cannot go stale again, the verification-code hook returning
 **502** when the send fails so a 200 genuinely means Resend accepted it, and
-`announce()` — one call writes the in-app row and sends the mail, and the
+`announce()`: one call writes the in-app row and sends the mail, and the
 address is never supplied by the caller. 27 builders, **18 reachable from real
 code.**
 
 **9 of 27 templates are unreachable**, referenced only in fixtures. **Two of
-them are `passwordChanged` and `newDeviceSignIn` — the exact two the brief
+them are `passwordChanged` and `newDeviceSignIn`: the exact two the brief
 called security obligations rather than nice-to-haves.** Written, rendered by
 fixtures, asserted by passing tests, and no person will ever receive either.
 That is the single most misleading green light in this track.
 
 **UNPROVEN on appearance.** There are no email screenshots anywhere in
-`docs/design/proofs/` — the four files named `*-email-*.png` are screenshots of
+`docs/design/proofs/`: the four files named `*-email-*.png` are screenshots of
 the sign-in and sign-up *screens*. Every claim about how these look rests on
 HTML string assertions. For a brief that was about how the email looks, that
 gap is the whole thing. **1.5 days.**
 
-#### Track C — 6%, and push is at zero
+#### Track C, 6%, and push is at zero
 
 Not partial: **zero**. No device or token table in the live database, no FCM,
 no APNs, no `aps-environment` entitlement. The Android manifest says so itself.
@@ -842,19 +841,19 @@ no APNs, no `aps-environment` entitlement. The Android manifest says so itself.
 work in this handoff" and it has not started. **4–6 days plus founder
 credentials.**
 
-The three in-app proofs the brief demanded — unread count live, a new row
+The three in-app proofs the brief demanded, unread count live, a new row
 reaching an open page without refresh, every deep target resolving to a real
-screen — **none is asserted by a test.** The machinery exists; the proof does
+screen, **none is asserted by a test.** The machinery exists; the proof does
 not.
 
-#### Track D — 67%, one false closure now fixed, two hard blockers left
+#### Track D, 67%, one false closure now fixed, two hard blockers left
 
 Genuinely closed and each verified in the file: the offline card, the AASA
 `/auth/callback*` ordering, the Android path prefix, `TravelTime` deleted, both
 location-purpose strings corrected to say the data is collected and stored, the
 report and block controls in a one-to-one thread, the EULA, the terms tick with
 `terms_acceptances` live, crypto behind `notFound()` rather than an env gate.
-The deep-link gate **exits 1 and names who supplies each value** — and its test
+The deep-link gate **exits 1 and names who supplies each value**: and its test
 tests the checker rather than the tree, so it will not go green by accident.
 
 Left, and two of these are automatic refusals:
@@ -871,11 +870,11 @@ Left, and two of these are automatic refusals:
   nothing runs it, so a binary can still be cut with placeholder fingerprints.
   **One line in `ci.yml`.**
 
-#### Track E — ~40%, and the founder's overrule has not been executed
+#### Track E, ~40%, and the founder's overrule has not been executed
 
 The toggle defect is genuinely fixed: the grid is now `repeat(var(--nf-seg-count, 3), ...)`
 with the count set from `ORDER.length`, and the dead 79.5px track is gone.
-**But the regression guard the brief demanded does not exist** — no test asserts
+**But the regression guard the brief demanded does not exist**: no test asserts
 the segment count or the grid template, so it can come straight back.
 
 Every named capsule is fixed and a new static scanner reports **0 at or above
@@ -891,21 +890,21 @@ item in the track.
 **UNPROVEN on the shape law:** the definition of done requires the sweep to
 return zero, and the one genuine browser run covered **9 routes of ~98**.
 
-#### Track F — 33%, and the cheapest item in the handoff is undone
+#### Track F, 33%, and the cheapest item in the handoff is undone
 
 **Piece 2 is a redirect at the top of one function.** `home-or-landing/route.ts`
-exists, is correct, resolves by session and returns a 307 — **and `app/page.tsx`
+exists, is correct, resolves by session and returns a 307, **and `app/page.tsx`
 never calls it.** A signed-in person opening the app still lands on the
 marketing page. **30 minutes including a test.**
 
 **Piece 3:** the native shell loads `/`, so **the application still opens on the
-marketing website** — the exact shape the brief says Apple rejects under 4.2.
+marketing website**: the exact shape the brief says Apple rejects under 4.2.
 **1.5 days.**
 
-#### Track L — ~45%, and every contrast number in it is unproven
+#### Track L, ~45%, and every contrast number in it is unproven
 
 Genuinely closed: the invalid light shadows (all 12 declarations now valid CSS);
-**the container ladder, which I recomputed myself** — `--nf-container-edge` over
+**the container ladder, which I recomputed myself**: `--nf-container-edge` over
 white is **3.30:1** and over the light canvas **3.14:1**, both clearing the 3:1
 interface floor, against 2.53:1 before; the dock clearance arithmetic; the auth
 text re-root, 1.14:1 → 20.29:1. Two of the three checking tools were fixed
@@ -915,7 +914,7 @@ first, which is now house practice.
 records 7,467 leaves across 98 routes, **150 below the floor, 51 dark and 99
 light**, and calls it the largest open defect we have a number for.
 `probe-contrast.mjs` takes **one** full-page screenshot and reads every
-element's rectangle out of it — no stitching, no scroll capture, and no check
+element's rectangle out of it, no stitching, no scroll capture, and no check
 that the image actually holds content at the element's offset. Its only guard
 skips elements outside the image bounds, **so a blank-but-full-height PNG passes
 it and is measured as if real.** Of 84 sampled failures, **43 did not
@@ -929,7 +928,7 @@ show.
 The 121 light twins remain the floor under this track and they are artwork, not
 code.
 
-#### Track M — ~70%, and the only track with real proof discipline
+#### Track M, ~70%, and the only track with real proof discipline
 
 The wallet balance figure, the action tiles and the second header row are all
 fixed with measured pixel values, not adjectives. The banned grey borders in
@@ -940,7 +939,7 @@ gate BUILD_06 wrote and did not hold.
 
 **One wallet P1 unfinished, and it refused itself honestly:** the quick-action
 cards measure 115px against the render's 85, and the remaining 30px are in the
-strings — "Request Money" needs 91.2px of width in a 69.5px box. Blocked on an
+strings, "Request Money" needs 91.2px of width in a 69.5px box. Blocked on an
 i18n key another scope owns. **Half a day** once that key is released.
 
 ---
@@ -961,12 +960,12 @@ with the raw fraction beside every figure.
 | **O** the switch | **75%** | 6 of 8 items | Placement proven by image |
 | **P** home pages and dock | **90%** | 19 of 21 items | Proven by image, except the dock geometry |
 
-### §2, the words — 100%, PROVEN
+### §2, the words, 100%, PROVEN
 
 The founder's headline is in the dictionary word for word and rendered from it,
 not inline. **The ghost in the search control is dead**: `landing.css:960` is
 now `repeat(var(--nf-seg-count, 3), ...)` with the count set from `ORDER.length`.
-`headline-coupling.test.ts` is a genuinely behavioural test — it calls
+`headline-coupling.test.ts` is a genuinely behavioural test, it calls
 `getDictionary(locale)` and asserts against the shipped object, not source text.
 
 **One copy defect found:** `en.ts:4332`, the property home hero lede, reads
@@ -980,7 +979,7 @@ design. The definition of done's "ships in all four locales" is true as
 *served* and false as *translated*. That needs a native speaker, not an
 engineer.
 
-### Track G — 50%, and the missing half is structural
+### Track G, 50%, and the missing half is structural
 
 The forms are real and proven by image: `/profile/setup/{owner,agent,firm}`,
 1,520 lines of components, a 268-line migration confirmed live, 71 tests
@@ -990,7 +989,7 @@ hardcoded sentence.
 
 **The schema half is at zero, verified by direct query.** `agents.role`,
 `agents.firm_id`, `firm_members`, `listings.listing_role`, `listing_mandates`,
-listing-keyed ownership documents, the new dated stamps — **none exists.**
+listing-keyed ownership documents, the new dated stamps, **none exists.**
 `agents.user_id` is still NOT NULL with a unique index, so the brief's decisive
 finding stands untouched: **the founder's own example, a man who owns one flat
 and agents another, is still unrepresentable.**
@@ -1014,7 +1013,7 @@ Of the brief's fifteen surfaces, **4 read from the source of truth and 11 do
 not.** The help centre still tells a landlord to "Become an agent", as do
 `/careers`, `/contact` and the docs. **2.5–3 weeks.**
 
-### Track H — 100%, and the only gap is where it was photographed
+### Track H, 100%, and the only gap is where it was photographed
 
 `ListingMoveIn` is on the screen (`listing/[id]/page.tsx:899`), the sale twin
 beside it, the `move-in-asc` sort reaches the index, the filter drawer says
@@ -1027,7 +1026,7 @@ zero.
 `/preview/f3/listing`. The ledger says so itself: "a preview is not the route
 and that is said rather than glossed." **~2 hours with a seeded session.**
 
-### Track I, Price Check — 0%, and it is not blocked
+### Track I, Price Check, 0%, and it is not blocked
 
 The only occurrence of the phrase anywhere in the tree is the research document
 itself. No route, no table, no geohash, no comparables gate, no refusal states,
@@ -1038,11 +1037,10 @@ Check stage one and its refusal machinery are ours. Only the ESVARBON section
 number and the Lagos gazette figures are founder-gated, and neither blocks
 stage one. **2.5–3 weeks.**
 
-### Track J, escrow — 20%, and only custody is blocked
+### Track J, escrow, 20%, and only custody is blocked
 
 **Blocked on the founder: exactly one thing, and it is correctly held.** The
-solicitor's answer on custody. The gate is genuinely being honoured —
-`lib/escrow/actions.ts:26` states "Nothing renders it today", zero product
+solicitor's answer on custody. The gate is genuinely being honoured, `lib/escrow/actions.ts:26` states "Nothing renders it today", zero product
 surfaces call these actions, and `public.escrows` holds **0 rows**.
 
 **Two items done, both proven against the live database rather than against a
@@ -1051,7 +1049,7 @@ migration file:**
 - **The four exposed verbs are shut.** `has_function_privilege` returns false
   for `anon` and `authenticated` on every escrow function. The one that kept its
   grant, `escrow_admin_resolve`, guards itself with a role check in its own
-  body — checked, correct, not a hole.
+  body, checked, correct, not a hole.
 - **The dead brand string is gone** from the live function bodies.
 
 **Seven of the nine named fixes are not done**, each verified against the live
@@ -1069,7 +1067,7 @@ directions.
 
 **~3 weeks, and none of it except custody is waiting on the founder.**
 
-### Track N, the supply pipeline — 82%
+### Track N, the supply pipeline, 82%
 
 **The worst defect in the platform is closed.** Accommodation photo upload is
 genuinely mounted in the wizard via `FacilitiesStep`, not merely written. Room
@@ -1092,7 +1090,7 @@ queue was paged; `addPhoto` skips the storage read-back that `addVideo`
 performs; and `HomeScreen`'s one empty state says "Agents are still listing" on
 a brief whose entire point is that owners list too.
 
-### Track O, the switch — 75%, with one thing for the founder to confirm
+### Track O, the switch, 75%, with one thing for the founder to confirm
 
 The centre slot is the switch, on both sides, with the reserved index and the
 displaced "More" item documented by name and route. Proven by opening
@@ -1112,12 +1110,12 @@ surfaces that no longer ship:**
 
 **One deviation needing the founder's word.** The brief says the switch lives in
 two places; it ships in one. `AppShell.tsx:147-157` records the reason in the
-founder's words — "it lives in the dock now and two entrances to the same sheet
-in the same product is clutter" — but **that exists only as a code comment and
+founder's words, "it lives in the dock now and two entrances to the same sheet
+in the same product is clutter", but **that exists only as a code comment and
 cannot be independently confirmed.** Flagging it to confirm or reverse; ~1 hour
 to reinstate the drawer row either way.
 
-### Track P, home pages and the dock — 90%
+### Track P, home pages and the dock, 90%
 
 Both home pages confirmed by opening the screenshots rather than trusting the
 ledger. The property home draws the hero plate with the place chip, the search
@@ -1135,11 +1133,11 @@ measured ratios. That is the gate BUILD_06 wrote and did not hold.
 Left: the stale dock shot above, the "invest" lede, and the home proof being a
 preview mount rather than the gated `/home` route. **~half a day.**
 
-### Section 7 — what the founder actually gates
+### Section 7, what the founder actually gates
 
 Four gated items, all open, **and none of them is blocking a track.** The
 solicitor blocks only a live custody path. The lawyer's numbers block only the
-printing of those numbers — **and the guard is real**: a test asserts the door
+printing of those numbers, **and the guard is real**: a test asserts the door
 copy matches none of `per cent`, `%`, `₦`, `LASRERA` or `Certificate of
 Occupancy`. The forms shipped the behaviour ("I have none of these" is a
 first-class answer) without a single unverified figure. That is the right way
@@ -1194,10 +1192,9 @@ believed that was never earned.
 3. **GOVERNING-08 screen 2.** `08-2-390-dark` and `-1536-dark` byte-identical to
    `08-1-*`; the light pair differs and nobody has explained why.
 4. **GOVERNING-10: two measurement claims falsified, and I verified both myself.**
-   The section says "every shot is 2x" — the `imgc` PNGs are **390 px wide,
+   The section says "every shot is 2x", the `imgc` PNGs are **390 px wide,
    which is 1x**, where `imga` and `b3` are 780. It says "`overflowX` was
-   measured on every one of the twenty-four and is zero everywhere" —
-   `g10-4-facilities-and-photos-390-{dark,light}.png` are **394 px wide**, which
+   measured on every one of the twenty-four and is zero everywhere", `g10-4-facilities-and-photos-390-{dark,light}.png` are **394 px wide**, which
    is 4 px of real horizontal overflow, and `ratio-sweep.txt` contains no
    overflow record at all. **The measurement was never taken.** Cause found and
    fixed in `857f820`: two buttons in a row that would not wrap.
@@ -1211,7 +1208,7 @@ guard against today's harness bug, comparing `page.url()` against the asked
 path and refusing if they differ. It does **not** guard against a `notFound()`
 body served at HTTP 200. The three scripts the owner-registration rows name
 live under a `scratchpad/` that is not in the repository, and **no script exists
-for `imgb` or `imgc` at all** — those runs cannot be re-executed. Mitigated by
+for `imgb` or `imgc` at all**: those runs cannot be re-executed. Mitigated by
 opening thirteen of the proof images directly: every one shows the surface its
 row claims, and none is a sign-in page or a not-found body.
 

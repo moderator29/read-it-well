@@ -1,4 +1,4 @@
-# R1 VISUAL AUDIT — 19 September 2026
+# R1 VISUAL AUDIT, 19 September 2026
 
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
@@ -49,7 +49,7 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 | Flip, mid-turn | `GOVERNING-flip-mid-turn.png` | `docs/design/proofs/lead/flip-mid-turn-390-dark.png` (**18 Sept 22:22, RE-VERIFY**) | **60** | The render's whole idea is that the page you are leaving stays visible around the turning pane. That proof blacks the screen out, so the trick reads as a page transition rather than a coin turning in your hand. |
 | Dock | feed/booking/profile renders | `docs/design/proofs/lead/dock-390-dark.png` is **18 Sept 22:20**, pre-token-change | **not ruled** | I refuse to score it on a stale file and could not re-shoot. Needs one shot. |
 
-**Surfaces with no reference image — do they read as the same product?**
+**Surfaces with no reference image, do they read as the same product?**
 
 | Surface | Same product? | Why |
 | --- | --- | --- |
@@ -86,22 +86,22 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 ### A4. The assistant clips a starter chip mid-word and lets the result rail escape both gutters
 - **EVIDENCE:** `docs/design/proofs/f1/assistant-390-dark.png` beside `BF49B814`; previously `docs/design/proofs/f6/f6-07-assistant-starter-clipped-light.png`. Also on this screen: the assistant says "under 2,000,000 a year" with no naira mark, 80px above cards reading "₦1,650,000 per year".
 - **SEVERITY: critical** (word broken mid-word, row clipped, a money figure outside `formatMoney`, which is rule 2).
-- **FIX:** (a) the starter rail takes A2's mask and `scroll-padding-inline`, each chip `max-inline-size: 15rem` with two-line clamping instead of a cut. (b) The two-up result rail sits inside the shell gutter and bleeds by exactly `--nf-shell-gutter` with a matching `scroll-padding-inline` — the pattern `FeedPreview` already documents for the story rail. (c) Every money figure in an assistant reply goes through `formatMoney` before it reaches the wire; grep the answer builder for bare `toLocaleString`.
+- **FIX:** (a) the starter rail takes A2's mask and `scroll-padding-inline`, each chip `max-inline-size: 15rem` with two-line clamping instead of a cut. (b) The two-up result rail sits inside the shell gutter and bleeds by exactly `--nf-shell-gutter` with a matching `scroll-padding-inline`: the pattern `FeedPreview` already documents for the story rail. (c) Every money figure in an assistant reply goes through `formatMoney` before it reaches the wire; grep the answer builder for bare `toLocaleString`.
 - **EFFORT:** half a day.
 
-### A5. The resting container is still near-black with a white hairline everywhere the founder's ruling did not reach — THE BIGGEST SINGLE FINDING
-- **EVIDENCE, from the source:** `app/css/glass.css:1120` — `.nf-icon-tile { border: 1px solid var(--nf-glass-border); background: var(--nf-glass-fill); box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1) }`, with `packages/design-tokens/src/tokens.css:1031` `--nf-glass-border: rgb(255 255 255 / 0.11)`, `:955` `--nf-glass-fill: rgb(255 255 255 / 0.075)`, `:1221` `--nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.12)`. **Not one brand value.** `.nf-icon-tile` is the plate behind every glass object in every list row, which is the plate he photographed.
+### A5. The resting container is still near-black with a white hairline everywhere the founder's ruling did not reach, THE BIGGEST SINGLE FINDING
+- **EVIDENCE, from the source:** `app/css/glass.css:1120`: `.nf-icon-tile { border: 1px solid var(--nf-glass-border); background: var(--nf-glass-fill); box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1) }`, with `packages/design-tokens/src/tokens.css:1031` `--nf-glass-border: rgb(255 255 255 / 0.11)`, `:955` `--nf-glass-fill: rgb(255 255 255 / 0.075)`, `:1221` `--nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.12)`. **Not one brand value.** `.nf-icon-tile` is the plate behind every glass object in every list row, which is the plate he photographed.
 - **EVIDENCE, on screen:** eleven of fourteen chips and Reset (`docs/design/proofs/f3/filters-390-dark.png`); "Contact host" (`scripts/.shots/preview-f5-thread-booking-card-dark.png`); "Mark as inspected" (`preview-f5-thread-rental-dark.png`); "Explore Stays" and the Abuja/Lekki/Ikeja chips (`scripts/.shots/root-dark.png`); "Add" and six row plates (`preview-f4-settings-dark.png`); "Mark all read (3)" beside a lit search button (`docs/design/proofs/f5/inbox-390-dark.png`); three of four balance actions (`preview-e-wallet-dark.png`); every "View" and kebab (`docs/design/proofs/f5/admin-queue-390-dark.png`); the Reply button (`docs/design/proofs/f4/post-thread-390-dark.png`).
 - **SEVERITY: high**, and it is the single biggest reason the product still does not read as its renders. In every governing image a resting chip, tile, plate and secondary carries a blue outline with light on it. Ours carries a grey hairline, so a screen with one lit primary and eleven grey boxes reads as a prototype with one finished control.
 - **FIX, three edits in order:**
-  1. `glass.css:1120` — swap `--nf-glass-border` for `--nf-brand-edge`, `--nf-glass-fill` for `--nf-brand-tint-1`, and `var(--nf-elev-1-rim), var(--nf-elev-1)` for `var(--nf-glow-edge)`. This one rule reaches every icon plate on profile, settings, bookings, rent, move-in and the rows.
+  1. `glass.css:1120`: swap `--nf-glass-border` for `--nf-brand-edge`, `--nf-glass-fill` for `--nf-brand-tint-1`, and `var(--nf-elev-1-rim), var(--nf-elev-1)` for `var(--nf-glow-edge)`. This one rule reaches every icon plate on profile, settings, bookings, rent, move-in and the rows.
   2. In `controls.css` and `chips.css`, any rule setting `border-color: var(--nf-glass-border)` **on a control** becomes `--nf-brand-edge` plus `box-shadow: var(--nf-glow-edge)`. Audit by `grep -rn "nf-glass-border" apps/web/src/app` and classify each hit as a divider (keep) or a control edge (change).
-  3. `landing.css` — the hero's ghost CTA and the city chips are landing-local classes the same sweep missed. Same substitution.
+  3. `landing.css`: the hero's ghost CTA and the city chips are landing-local classes the same sweep missed. Same substitution.
   Then add a rule to `scripts/check-css-tokens.mjs`: `--nf-glass-border` may not be the `border-color` of anything that is also a control, so this cannot regress.
 - **EFFORT:** a day, mostly the grep and the regression shots.
 
 ### A6. The landing lede is five lines painted straight over the villa at 390
-- **EVIDENCE:** `scripts/.shots/root-dark.png` — "hotel, a shortlet or a table on Vallo Stays," and "and pay for all of it from one naira wallet." both sit on lit glazing and pool. The content truth sweep replaced a two-line lede with a five-line one and the scrim was not re-cut. Same fault on desktop (`landing-desktop-hero.png`) and in the invest band (`preview-f1-home-dark.png`, and `f6-06-invest-copy-over-photo-light.png` at 14:52, still open).
+- **EVIDENCE:** `scripts/.shots/root-dark.png`: "hotel, a shortlet or a table on Vallo Stays," and "and pay for all of it from one naira wallet." both sit on lit glazing and pool. The content truth sweep replaced a two-line lede with a five-line one and the scrim was not re-cut. Same fault on desktop (`landing-desktop-hero.png`) and in the invest band (`preview-f1-home-dark.png`, and `f6-06-invest-copy-over-photo-light.png` at 14:52, still open).
 - **SEVERITY: high.**
 - **FIX:** one shared utility, not four local gradients. Add `.nf-photo-scrim` to `utilities.css`: `linear-gradient(90deg, color-mix(in oklab, var(--nf-ink-950) 82%, transparent) 0%, color-mix(in oklab, var(--nf-ink-950) 55%, transparent) 42%, transparent 70%)` plus a bottom `linear-gradient(0deg, color-mix(in oklab, var(--nf-ink-950) 70%, transparent) 0%, transparent 45%)`. Apply it in `MediaFrame` whenever the frame carries text, and on the landing hero, the invest band and the desktop category tiles. Then cap the 390 lede at three lines with a shorter `landing.hero.subtitle` in `packages/i18n/src/locales/en.ts` and its three siblings.
 - **EFFORT:** half a day including the four locales.
@@ -115,7 +115,7 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 ### A8. The landing Search button stacks its arrow above its word
 - **EVIDENCE:** `scripts/.shots/root-dark.png`, and his own photograph `founder/landing-feature-orbs-as-shipped.jpg` shows the same thing, so it has survived his complaint.
 - **SEVERITY: high.** It reads as a broken control on the product's primary CTA.
-- **FIX:** `landing.css`, `.nf-landing-pill` submit — the button is a grid child whose column is narrower than `label + gap + icon`, so its inline flex wraps. Set `display: inline-flex; align-items: center; gap: var(--nf-gap-inline-tight); white-space: nowrap; min-inline-size: max-content` and make the grid column `minmax(max-content, 1fr)`. Arrow after the word, as "Explore Properties" already does.
+- **FIX:** `landing.css`, `.nf-landing-pill` submit, the button is a grid child whose column is narrower than `label + gap + icon`, so its inline flex wraps. Set `display: inline-flex; align-items: center; gap: var(--nf-gap-inline-tight); white-space: nowrap; min-inline-size: max-content` and make the grid column `minmax(max-content, 1fr)`. Arrow after the word, as "Explore Properties" already does.
 - **EFFORT:** hours.
 
 ### A9. The landing feature orbs are still flat near-black circles behind glass objects
@@ -137,19 +137,19 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 - **EFFORT:** half a day.
 
 ### A12. The verified mark is a shield everywhere; every governing render draws a circular tick beside a name
-- **EVIDENCE:** `apps/web/src/design-system/icons/UiIcon.tsx:279` — `verified` is a shield outline with a tick inside. On screen: `preview-f4-profile-dark.png` (beside the name and on the avatar), `preview-f4-feed-dark.png` (every post author), `preview-f5-thread-booking-card-dark.png` (thread header), `preview-f4-settings-dark.png` (an emerald shield for "Verified"). Against `50E032EA`, `7F96BE6C`, `GOVERNING-feed-plus-bloom.png` and `GOVERNING-chat-booking-card.png`, all of which draw a **filled circular badge with a white tick** beside a name. The shield is correct inside a **chip** (`FD3DFE84` and `3EB3E2A9` both show a shield in the Verified pill) and that is where we should keep it.
+- **EVIDENCE:** `apps/web/src/design-system/icons/UiIcon.tsx:279`: `verified` is a shield outline with a tick inside. On screen: `preview-f4-profile-dark.png` (beside the name and on the avatar), `preview-f4-feed-dark.png` (every post author), `preview-f5-thread-booking-card-dark.png` (thread header), `preview-f4-settings-dark.png` (an emerald shield for "Verified"). Against `50E032EA`, `7F96BE6C`, `GOVERNING-feed-plus-bloom.png` and `GOVERNING-chat-booking-card.png`, all of which draw a **filled circular badge with a white tick** beside a name. The shield is correct inside a **chip** (`FD3DFE84` and `3EB3E2A9` both show a shield in the Verified pill) and that is where we should keep it.
 - **SEVERITY: high.** It is the most repeated mark in the product, it is the wrong shape against four governing images, and it collides with the Inspections row, which uses a shield-check for a different idea.
 - **FIX:** add `verified-badge` to `UiIcon.tsx` as a filled circle (or the feed render's twelve-point rosette) with a white tick, `--nf-brand-primary` for identity and `--nf-success` for a status word. Swap every **identity** use (`VerifiedAvatar`, the thread title tick, the feed author tick, the settings Verified/Secure marks) to it. Leave `verified` as the shield and use it only inside `.nf-badge` on a listing card.
 - **EFFORT:** half a day.
 
 ### A13. Settings mixes icon tiers inside one column
-- **EVIDENCE:** `scripts/.shots/preview-f4-settings-dark.png` — Account Information, Language and Help & Support are thin stroked `UiIcon` glyphs; Notifications, Privacy & Security and Appearance are 3D glass `BrandIcon` objects. Same column, six rows. `7F96BE6C` draws all six as stroked glyphs in lit plates.
+- **EVIDENCE:** `scripts/.shots/preview-f4-settings-dark.png`: Account Information, Language and Help & Support are thin stroked `UiIcon` glyphs; Notifications, Privacy & Security and Appearance are 3D glass `BrandIcon` objects. Same column, six rows. `7F96BE6C` draws all six as stroked glyphs in lit plates.
 - **SEVERITY: high.** Rule 5 says tiers never mix in a row, and this is a column of six.
 - **FIX:** the render decides it: all six become `UiIcon` at `ICON.inline` in an `.nf-icon-tile` fixed at 2.5rem with A5's lit composition. Keep glass objects for section heads (Payment Methods keeps its wallet), which is the rule `BrandIcon.tsx` already states in its own header comment.
 - **EFFORT:** hours.
 
 ### A14. Buy and Rent carry swapped glyphs on two surfaces
-- **EVIDENCE:** `apps/web/src/components/app/filters/FilterDrawer.tsx:337-338` — `{ value: "sale", label: "Buy", icon: "key" }`, `{ value: "rent", label: "Rent", icon: "home" }`. `components/site/landing/SearchPill.tsx` — `buy: { icon: "home" }`, `rent: { icon: "key" }`. Visible in `docs/design/proofs/f3/filters-390-dark.png` beside `scripts/.shots/root-dark.png`.
+- **EVIDENCE:** `apps/web/src/components/app/filters/FilterDrawer.tsx:337-338`: `{ value: "sale", label: "Buy", icon: "key" }`, `{ value: "rent", label: "Rent", icon: "home" }`. `components/site/landing/SearchPill.tsx`: `buy: { icon: "home" }`, `rent: { icon: "key" }`. Visible in `docs/design/proofs/f3/filters-390-dark.png` beside `scripts/.shots/root-dark.png`.
 - **SEVERITY: high.** Two surfaces two taps apart teach the user opposite things.
 - **FIX:** the governing hero settles it: Buy is the house, Rent is the key, Stay is the bed. Swap the two icons at `FilterDrawer.tsx:337-338`. While there: the Market group offers only `sale` and `rent`, while his target and the home grid both sell Shortlets, so add the `shortlet` option with the calendar glyph.
 - **EFFORT:** hours.
@@ -181,7 +181,7 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 ### A19. The drawer's scrim is opaque black where the render dims a living page
 - **EVIDENCE:** `scripts/.shots/preview-lead-drawer-dark.png` (the right 12 per cent is pure black) beside `BCD39CA8`, where the results page behind is dimmed but fully visible with its own glow, which is what sells the drawer as a pane sliding over the app.
 - **SEVERITY: high** for the "alive" standard.
-- **FIX:** `overlays.css` — scrim becomes `background: color-mix(in oklab, var(--nf-ink-950) 58%, transparent)` with `backdrop-filter: blur(10px) saturate(1.1)`, and the page beneath keeps rendering rather than being replaced. `@supports not (backdrop-filter: blur(1px))` falls back to 78 per cent.
+- **FIX:** `overlays.css`: scrim becomes `background: color-mix(in oklab, var(--nf-ink-950) 58%, transparent)` with `backdrop-filter: blur(10px) saturate(1.1)`, and the page beneath keeps rendering rather than being replaced. `@supports not (backdrop-filter: blur(1px))` falls back to 78 per cent.
 - **EFFORT:** hours.
 
 ### A20. Stays home replaces the render's five-up rail with a 3x3 grid that has a hole in it, and its active tile breaks the row
@@ -191,26 +191,26 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 - **EFFORT:** half a day.
 
 ### A21. The flip blacks out the page it is leaving
-- **EVIDENCE:** `docs/design/proofs/lead/flip-mid-turn-390-dark.png` (**18 Sept 22:22 — RE-VERIFY**) beside `GOVERNING-flip-mid-turn.png`. In the render the search bar, the market chips, two listing cards and Popular Cities are visible either side of the turning pane; in that proof everything outside the pane is black, the cover's two-line sub-line is legibly sheared at mid-turn, and the dock's "Search / Feed / More" labels are muddied by the pane's translucency.
+- **EVIDENCE:** `docs/design/proofs/lead/flip-mid-turn-390-dark.png` (**18 Sept 22:22, RE-VERIFY**) beside `GOVERNING-flip-mid-turn.png`. In the render the search bar, the market chips, two listing cards and Popular Cities are visible either side of the turning pane; in that proof everything outside the pane is black, the cover's two-line sub-line is legibly sheared at mid-turn, and the dock's "Search / Feed / More" labels are muddied by the pane's translucency.
 - **SEVERITY: high.** This is a governing image and the thing it governs is the moment he calls the product's signature.
 - **FIX:** in `side-flip.css` / `components/app/flip`, do not unmount or cover the outgoing surface. Keep it rendered under the pane at `filter: brightness(0.45) saturate(0.8)` with **no** blur (the render keeps it crisp) and give the pane `transform-style: preserve-3d` with its own `backface-visibility`, so it is genuinely a card turning above live content. Two more things the render asks for: add a second inset rim at `--nf-rim-lit-ink` inside `--nf-glow-edge-strong` so the leading edge has a white-hot core; and fade the cover's text to 0 above about 25 degrees of rotation, letting the mark carry the turn alone, which is what the render draws.
 - **EFFORT:** a day. **Re-shoot first.**
 
 ### A22. LIGHT: the sign-in lockup stays dark on paper and the language control is white on white
-- **EVIDENCE:** `docs/design/proofs/f1/sign-in-390-light.png` (08:19 — **RE-VERIFY**) beside `55A56F21`. On paper the app icon is a near-black glass tile and the wordmark is the chrome-blue 3D artwork, both pasted on a pale grey page; the aurora plate the direction assigns to auth is absent in light; the EN control is a white pill with a grey hairline on a near-white page; the podium ellipse is a stray grey outline.
+- **EVIDENCE:** `docs/design/proofs/f1/sign-in-390-light.png` (08:19, **RE-VERIFY**) beside `55A56F21`. On paper the app icon is a near-black glass tile and the wordmark is the chrome-blue 3D artwork, both pasted on a pale grey page; the aurora plate the direction assigns to auth is absent in light; the EN control is a white pill with a grey hairline on a near-white page; the podium ellipse is a stray grey outline.
 - **SEVERITY: high.** Rule 7: light is a designed twin, not a derivation, and this is the first screen a new account sees.
 - **FIX:** ship a light twin of the lockup (wordmark in `--nf-brand-primary` on transparent; app tile as `--nf-brand-tint-1` with a `--nf-brand-edge` ring and the mark in brand); keep the aurora plate in light at reduced opacity over the paper ground rather than removing it; give the EN control `--nf-brand-tint-1` with `--nf-brand-edge`; delete the podium ellipse in light, because it is a dark-theme reflection and paper has no reflection.
 - **EFFORT:** half a day.
 
 ### A23. LIGHT: one screen carries two different icon-plate treatments
-- **EVIDENCE:** `scripts/.shots/preview-f4-settings-light.png` (13:49 — **RE-VERIFY**, it predates the 14:27 token change): six row plates as dark chips punched into a white card, and the Payment Methods plate on the **same** screen as a pale lavender chip with a blue line glyph.
+- **EVIDENCE:** `scripts/.shots/preview-f4-settings-light.png` (13:49, **RE-VERIFY**, it predates the 14:27 token change): six row plates as dark chips punched into a white card, and the Payment Methods plate on the **same** screen as a pale lavender chip with a blue line glyph.
 - **HONEST ON HIS COMPLAINT:** he asked for the near-black square to become deep navy and **it did**. `packages/design-tokens/src/tokens.css:2805` now reads `--nf-icon-ground: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-ink-950))` with light `--nf-brand-primary: #0C2FE8` and `--nf-ink-950: #010118`, which is deep navy, not near-black, and the comment above it quotes his word and explains the reversal. The letter of his fix landed.
 - **SEVERITY: high**, and I report it as "changed as asked, still not right", not as "ignored": on paper a dark chip still reads as a hole punched in a white card, and it now disagrees with its own neighbour.
 - **FIX:** on paper the object should not need a dark ground at all. Where a light twin exists in the glass pack, use it and give the plate `--nf-brand-tint-1` with a `--nf-brand-edge` ring, which is what Payment Methods already does and what reads correctly. Where no twin exists, keep `--nf-icon-ground` but drop it to about 24 per cent brand over `--nf-paper-100` so it reads as a tinted chip rather than a hole, and add the light `--nf-glow-edge` so it is lit rather than punched. One treatment per theme, enforced by making `.nf-icon-tile` the only place either is set.
 - **EFFORT:** half a day plus a pass over the 80 untwinned objects.
 
 ### A24. LIGHT: the selected admin status chip is white ink on a white plate
-- **EVIDENCE:** `docs/design/proofs/f6/f6-01-admin-all-chip-white-on-white.png` at 14:52, measured by F6 at 1.21:1. Could not re-shoot — **RE-VERIFY**. My dark shot `docs/design/proofs/f5/admin-queue-390-dark.png` shows the same chip as a brand-filled **square** among **capsules**, so it has a second problem in both themes.
+- **EVIDENCE:** `docs/design/proofs/f6/f6-01-admin-all-chip-white-on-white.png` at 14:52, measured by F6 at 1.21:1. Could not re-shoot, **RE-VERIFY**. My dark shot `docs/design/proofs/f5/admin-queue-390-dark.png` shows the same chip as a brand-filled **square** among **capsules**, so it has a second problem in both themes.
 - **SEVERITY: high** if still open (an unreadable control), plus rule 13's "colour is never the only signal".
 - **FIX:** the selected status chip takes `background: var(--nf-gradient-cta)` and `color: var(--nf-content-on-brand)` in **both** themes, never a theme-derived surface, and takes `--nf-radius-pill` like its siblings. Add a contrast assertion to `check-css-tokens.mjs` for any pairing of `--nf-content-on-brand` with a background that is not a brand fill.
 - **EFFORT:** hours.
@@ -224,17 +224,17 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 ### A26. The composer's send control is a dark square with a diagonal arrow on every thread and the assistant
 - **EVIDENCE:** `preview-f5-thread-booking-card-dark.png`, `preview-f5-thread-rental-dark.png`, `docs/design/proofs/f1/assistant-390-dark.png`, `docs/design/proofs/f4/post-thread-390-dark.png`. `GOVERNING-chat-booking-card.png` and `founder/GOVERNING-thread-rental-enquiry.jpg` both draw a brand-filled rounded square with a white paper plane, and a paperclip attach, not a picture glyph.
 - **SEVERITY: high.** Send is the only primary on the screen and it is currently the quietest control on it.
-- **FIX:** `threads.css` — send takes `--nf-gradient-cta`, `--nf-glow-edge-strong` and `--nf-content-on-brand`, disabled at 45 per cent with the fill retained. Swap the glyph to `send` (paper plane) and attach to `attach` (paperclip); add both to `UiIcon.tsx` if absent.
+- **FIX:** `threads.css`: send takes `--nf-gradient-cta`, `--nf-glow-edge-strong` and `--nf-content-on-brand`, disabled at 45 per cent with the fill retained. Swap the glyph to `send` (paper plane) and attach to `attach` (paperclip); add both to `UiIcon.tsx` if absent.
 - **EFFORT:** hours.
 
 ### A27. Checkout's payment options begin under the pinned bar, and every frosted bar tints grey
-- **EVIDENCE:** `docs/design/proofs/f6/f6-00-checkout-bar-blur-dark.png` — "How would you like to pay?" is the last thing above the bar and the options are behind it. The bar, the listing page's "Breakdown" control and the stay page's "Message" control all frost to the same washed grey-lavender, which is a neutral surface behind a blur rather than a brand one. The checkout progress bar's third segment is also a raw neutral grey on navy.
+- **EVIDENCE:** `docs/design/proofs/f6/f6-00-checkout-bar-blur-dark.png`: "How would you like to pay?" is the last thing above the bar and the options are behind it. The bar, the listing page's "Breakdown" control and the stay page's "Message" control all frost to the same washed grey-lavender, which is a neutral surface behind a blur rather than a brand one. The checkout progress bar's third segment is also a raw neutral grey on navy.
 - **SEVERITY: high** (A1's fault class, second instance) plus medium for the tint.
 - **FIX:** apply A1's `--nf-pinned-bar-h` reservation to the checkout scroller. For the tint: any surface with `backdrop-filter` sits over `--nf-brand-tint-1`, not over a white alpha, so the frost picks up the brand. `grep -rn "backdrop-filter" apps/web/src/app` and give each hit a brand-tinted fill and `--nf-glow-edge`. The progress track becomes `--nf-brand-tint-1`.
 - **EFFORT:** half a day.
 
 ### A28. The inbox and trips do not read as the same product
-- **EVIDENCE:** `docs/design/proofs/f5/inbox-390-dark.png` — four thread rows with no container, no divider and no lit control; the "All" segment is a near-black plate on a near-black track and is effectively invisible; "Mark all read (3)" is a grey capsule beside a lit search button; a preview truncates "…available u…" inside a word; and the proof shipped with the Next dev-tools badge reading "2 Issues". `docs/design/proofs/f3/trips-390-dark.png` — bare rows on a spine with **black** dots on navy, "Cancel" rendered as unstyled grey text, "Fri 2 Oct to Mon 5 / Oct" broken by the price column, and a "Past trips / 1" stub above 600px of empty navy; previously `f6-12-trips-cancel-and-date-wrap-light.png` at 14:56, still open.
+- **EVIDENCE:** `docs/design/proofs/f5/inbox-390-dark.png`: four thread rows with no container, no divider and no lit control; the "All" segment is a near-black plate on a near-black track and is effectively invisible; "Mark all read (3)" is a grey capsule beside a lit search button; a preview truncates "…available u…" inside a word; and the proof shipped with the Next dev-tools badge reading "2 Issues". `docs/design/proofs/f3/trips-390-dark.png`: bare rows on a spine with **black** dots on navy, "Cancel" rendered as unstyled grey text, "Fri 2 Oct to Mon 5 / Oct" broken by the price column, and a "Past trips / 1" stub above 600px of empty navy; previously `f6-12-trips-cancel-and-date-wrap-light.png` at 14:56, still open.
 - **SEVERITY: high.** 10.5 requires every surface without an image to read as the same product, and these two read as a different one.
 - **FIX:** both lists adopt `.nf-glass--card` rows with `--nf-glow-edge` and the product's row anatomy (plate, title, meta, trailing state, chevron) at `--nf-space-2xs` gaps. Trips' spine dots become `--nf-brand-primary` with a `--nf-glow-2` halo. "Cancel" becomes a glass secondary with the brand ring, never body text, in the row's trailing slot. Give the date its own row above the price. Replace "Past trips / 1" with a real row: object, "Past trips", "1 stay", chevron. Truncate previews on a word boundary. Fix the inbox's two dev issues first (see A40).
 - **EFFORT:** a day for the two surfaces.
@@ -248,7 +248,7 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 ### A30. Profile stacks the identity block full width where the render nests it
 - **EVIDENCE:** `scripts/.shots/preview-f4-profile-dark.png` beside `50E032EA`. The render keeps name, handle, bio and counts in one column beside the avatar and gets five rows plus the dock on screen; ours drops bio, counts and a link row to full width beneath the avatar, spends about 135 CSS px doing it, and gets three and a half rows. Our counts print "12,400" where the render prints "12.4K".
 - **SEVERITY: medium.**
-- **FIX:** `social.css` — the identity block becomes `display: grid; grid-template-columns: auto minmax(0,1fr); column-gap: var(--nf-space-sm)` with the avatar spanning both rows and bio and counts inside the right column, as the render draws it. Compact the follower count with the same one-fraction-digit rule the money ruling settled. The "Edit profile" and "Your public page" links are not in the render; make them one glass secondary "Edit profile" in the identity block's trailing slot.
+- **FIX:** `social.css`: the identity block becomes `display: grid; grid-template-columns: auto minmax(0,1fr); column-gap: var(--nf-space-sm)` with the avatar spanning both rows and bio and counts inside the right column, as the render draws it. Compact the follower count with the same one-fraction-digit rule the money ruling settled. The "Edit profile" and "Your public page" links are not in the render; make them one glass secondary "Edit profile" in the identity block's trailing slot.
 - **EFFORT:** half a day.
 
 ### A31. Row density runs 25 to 35 per cent looser than the renders
@@ -296,7 +296,7 @@ _Transcribed by the lead. R1 could not write files, so this is its report verbat
 ### A38. The in-app header is a flat black band with a hard bottom edge
 - **EVIDENCE:** `preview-f3-stays-dark.png`, `preview-f3-search-dark.png`, `preview-f3-listing-dark.png`, `preview-e-wallet-dark.png`. Every governing render floats the header on the page with no bar at all (`FD3DFE84`, `6AF37222`, `50E032EA`, `7F96BE6C`). On the listing page it also stacks above the photo's own back button, so two chrome bars eat 128 device px before any content.
 - **SEVERITY: medium.**
-- **FIX:** `chrome.css` — the header is transparent at scroll 0 and frosts to `--nf-brand-tint-1` with `--nf-glow-edge` once the page moves, which is what the renders imply and what A27 calls for. On a detail page with its own in-photo back control, collapse the app header to a transparent overlay and keep one back control.
+- **FIX:** `chrome.css`: the header is transparent at scroll 0 and frosts to `--nf-brand-tint-1` with `--nf-glow-edge` once the page moves, which is what the renders imply and what A27 calls for. On a detail page with its own in-photo back control, collapse the app header to a transparent overlay and keep one back control.
 - **EFFORT:** half a day.
 
 ### A39. Smaller gaps, one line each
@@ -340,7 +340,7 @@ All inside the token laws: one blue family, named curves, reduced-motion complet
 
 **E5. Make verification land rather than sit.** `glass.css` already promises this in a comment ("a shield that pulses once when verification lands") and nothing fires it. When a Verified mark first enters a viewport, pulse the ring once, scale 1 → 1.04 → 1 over 420ms on `--nf-ease-spring`, and draw the tick in with a 180ms `stroke-dashoffset`. Once per viewport, never a loop. Trust is the product's whole promise and it currently arrives silently. Half a day.
 
-**E6. Fan the bloom on a tangent and dim the world behind it.** Covered as a gap in A25 because the render demands it; the elegance is the detail — 45ms stagger, each lozenge on its tangent, the plus turning 45 degrees into a close, and a 6px backdrop blur behind so the three read as glass over a page that is still scrolling. Done properly this is the screenshot people send.
+**E6. Fan the bloom on a tangent and dim the world behind it.** Covered as a gap in A25 because the render demands it; the elegance is the detail, 45ms stagger, each lozenge on its tangent, the plus turning 45 degrees into a close, and a 6px backdrop blur behind so the three read as glass over a page that is still scrolling. Done properly this is the screenshot people send.
 
 **E7. Give the dock's travelling pill a wake.** When the active slot moves, trail a 120ms fading copy of the pill's bloom behind it. One pseudo-element, `--nf-ease-out`. It is the one gesture everybody performs many times a day and it should feel expensive. Hours.
 
@@ -379,7 +379,7 @@ All inside the token laws: one blue family, named curves, reduced-motion complet
 | "Our containers are dull." | **Partly.** `--nf-glow-edge` exists, is right, and reached `.nf-glass--card`, `.nf-glass--tile` and `.nf-icon-btn`. It did **not** reach `.nf-icon-tile`, the filter chips, the landing's ghost CTA and city chips, the glass secondaries or the admin row controls, all of which still carry `--nf-glass-border` at 11 per cent white. See A5, which names the file and the line. |
 | "Change the bottom nav capsule to the branding colour." | **Cannot confirm.** The only dock proof on disk is 18 Sept 22:20, before the change, and I could not re-shoot. Needs one shot before anyone claims it. |
 | "Retire all our buttons colours to this new one, really shiny." | **Partly.** The primary rests in its own bloom and looks right everywhere I shot it. The glass secondary is still a grey-hairlined plate on the landing hero, the filter sheet, the booking card, the stay page, the inspection card, the post thread, the inbox and the admin rows. See A5. |
-| "The resting glow belongs in the inner containers of the icons." | **No, not where it matters most.** `.nf-icon-btn` has it. `.nf-icon-tile` — the plate behind every glass object in every list row, which is the plate he photographed — still has `border: 1px solid var(--nf-glass-border)` and neutral `--nf-elev-1` at `glass.css:1120`. See A5 step 1. |
+| "The resting glow belongs in the inner containers of the icons." | **No, not where it matters most.** `.nf-icon-btn` has it. `.nf-icon-tile`: the plate behind every glass object in every list row, which is the plate he photographed, still has `border: 1px solid var(--nf-glass-border)` and neutral `--nf-elev-1` at `glass.css:1120`. See A5 step 1. |
 | "The icon plate was a near-black square on paper." | **Changed as asked, still not right.** `--nf-icon-ground` is now 62 per cent brand mixed with `--nf-ink-950`, which is deep navy rather than near-black, and the comment above it quotes his word and explains the reversal. On paper it still reads as a dark chip punched into a white card, and it now disagrees with the lavender Payment Methods plate on the same screen. See A23, marked RE-VERIFY. |
 
 **Unprompted, and he should know it: the content truth sweep did land.** The Invest segment is gone from the search pill, the overline names Restaurants, and the stats band carries 64 / 6 / 4 read live rather than the render's invented 10K+ and 200+. Every landing proof currently on disk still shows the old four-segment pill, so anyone reading those files will believe the opposite.
@@ -394,10 +394,10 @@ Verified against my 16:03 shots: fault 2 (admin All chip, **RE-VERIFY**), fault 
 
 ## 6. WHAT SHOULD HAPPEN NEXT, in order
 
-1. **A5 step 1** — one line in `glass.css:1120`. It is the highest ratio of change to effort in the whole audit and it lifts a dozen surfaces at once.
-2. **A1 / A27** — the pinned-bar reservation, one token, two surfaces, two critical faults closed.
-3. **A2 / A3 / A4** — the three remaining criticals, all on the catalogue and assistant paths.
-4. **A12 and A14** — the identity mark and the swapped glyphs, because both are cheap and both are teaching people the wrong thing today.
+1. **A5 step 1**: one line in `glass.css:1120`. It is the highest ratio of change to effort in the whole audit and it lifts a dozen surfaces at once.
+2. **A1 / A27**: the pinned-bar reservation, one token, two surfaces, two critical faults closed.
+3. **A2 / A3 / A4**: the three remaining criticals, all on the catalogue and assistant paths.
+4. **A12 and A14**: the identity mark and the swapped glyphs, because both are cheap and both are teaching people the wrong thing today.
 5. **Re-shoot the dock, the flip, and the four light twins** before anyone marks a scope closed on them.
 
 **Not done, stated plainly:** I could not write the findings file (harness refusal); I could not re-shoot the dock, the flip, or the light twins of settings, profile, admin queue and stays; I did not assess crypto, restaurants, saved, host wizard, receive, transactions or the remaining nine agent surfaces; and the desktop 1280 twin was not captured at all.

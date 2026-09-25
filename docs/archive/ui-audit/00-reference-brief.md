@@ -47,7 +47,7 @@ against this standard.** The platform is going to the Apple App Store; the bar i
   hand-drawn one-offs sitting next to a library glyph.
 - **Filled / outline / duotone variants** of the same glyph, switched by state
   (inactive = outline, active = filled). Tab bars in the references do exactly this.
-- **Symbol effects on state change** — bell rings/wiggles on new notification,
+- **Symbol effects on state change**: bell rings/wiggles on new notification,
   refresh rotates, heart pulses + fills on save, send icon flies, speaker emits
   waves, spinner has real radial segments. Icons are animated participants, not
   static decals.
@@ -69,9 +69,9 @@ against this standard.** The platform is going to the Apple App Store; the bar i
   expand/collapse is spring-animated and the indicator slides between positions.
 - **Offset circular FAB** either inside the bar (dark pill with `+`) or floating
   beside it, visually dominant.
-- Content **visibly scrolls under** the nav behind a blur + gradient scrim — depth,
+- Content **visibly scrolls under** the nav behind a blur + gradient scrim, depth,
   not a flat opaque cut-off.
-- **Desktop / admin: three-pane** — narrow icon rail (with tooltips + active pill),
+- **Desktop / admin: three-pane**: narrow icon rail (with tooltips + active pill),
   middle list pane, right detail pane. Soft radii, avatar-led rows, unread dots,
   count badges, filter chips at the top of the list pane.
 - Sidebar groups with small-caps section labels ("Inbox", "Agents", "Team",
@@ -103,7 +103,7 @@ against this standard.** The platform is going to the Apple App Store; the bar i
 - **Tabular / lining figures** for anything in a column (prices, stats, tables) so
   digits align.
 - Strict three-part metric hierarchy: small grey label → huge value → small grey unit.
-- **Mixed-emphasis paragraphs** — the actionable clause in solid bold, connective
+- **Mixed-emphasis paragraphs**: the actionable clause in solid bold, connective
   words in grey, inside one sentence.
 - Tight, intentional line-height and letter-spacing on display sizes (negative
   tracking on large text).
@@ -130,7 +130,7 @@ against this standard.** The platform is going to the Apple App Store; the bar i
 - Immersive media hero → content sheet that overlaps it with a large top radius.
 - **Gradient hero fading into flat content** (blue → white) rather than a hard seam.
 - Empty states are **designed**: full-bleed illustration or photograph, a real
-  headline ("No trips yet — your credits are waiting"), one sentence of body, and a
+  headline ("No trips yet, your credits are waiting"), one sentence of body, and a
   single primary CTA. Never a centred grey sentence.
 - Onboarding: full-bleed atmospheric imagery, editorial serif or tight sans display
   headline, dot/segment progress indicator, huge black primary pill, quiet
@@ -161,50 +161,50 @@ against this standard.** The platform is going to the Apple App Store; the bar i
 
 ## Reference screens supplied (for context on what "premium" means here)
 
-1. SF Symbol animation grid (Expo UI native symbol effects) — bell, wifi, heart,
+1. SF Symbol animation grid (Expo UI native symbol effects), bell, wifi, heart,
    chat, refresh, spinner, send, star, speaker, all animated.
-2. Health dashboard, light — blue gradient hero fading to white, glass metric card
+2. Health dashboard, light, blue gradient hero fading to white, glass metric card
    with three columns, huge "260 of 300" two-tone numeral, green "Good" status pill,
    floating labelled pill nav.
-3. Real-estate detail, dark — edge-to-edge video hero with glass circular controls,
+3. Real-estate detail, dark, edge-to-edge video hero with glass circular controls,
    FOR SALE pill, ₦90,000,000 display numeral, spec row with icons, outline "Book a
    tour" pill, pinned blurred footer with ghost + solid CTA pair.
-4. Real-estate booking sheet, dark — glass sheet over the hero, horizontal date
+4. Real-estate booking sheet, dark, glass sheet over the hero, horizontal date
    chips and time chips with blue selected ring, chips bleeding off-edge, full-width
    blue submit.
-5. Real-estate home, dark — search bar with Map toggle, category chips with photo
+5. Real-estate home, dark, search bar with Map toggle, category chips with photo
    thumbnails inside, blue promo card, For Rent/For Sale segmented, Sort pill,
    listing cards with New badge and rating chip.
-6. Health dashboard, dark — near-black with coloured ambient glow, three vertical
+6. Health dashboard, dark, near-black with coloured ambient glow, three vertical
    gradient progress bars with icons riding on top and % labels, right-aligned
    metric stack, to-do card with tinted icon tile, floating labelled pill nav.
-7. Desktop SaaS inbox — three-pane, icon rail, grouped sidebar with coloured dots
+7. Desktop SaaS inbox, three-pane, icon rail, grouped sidebar with coloured dots
    and count badges, chat detail with bubbles, agent list.
-8. Crypto wallet, light neumorphic — huge two-tone "$3,430.00", dark/light button
+8. Crypto wallet, light neumorphic, huge two-tone "$3,430.00", dark/light button
    pair, filter chips, coin rows with brand marks and green deltas, sparkline chart
    with dotted grid, floating pill nav.
-9. Project manager, light neumorphic — raised cards, dual-shadow, mini charts,
+9. Project manager, light neumorphic, raised cards, dual-shadow, mini charts,
    avatar stacks, day-strip calendar, timeline schedule, pill nav + black FAB.
-10. Team chat, light — three screens: home with coloured dashed-border task/note
+10. Team chat, light, three screens: home with coloured dashed-border task/note
     zones, chat with reply-quote bubbles and a voice-note waveform, activity feed
     with pink highlighted unread group, filter chips, tab bar with central black FAB.
-11. Onboarding set (4 apps) — atmospheric cloud/sky gradients, editorial headlines,
+11. Onboarding set (4 apps), atmospheric cloud/sky gradients, editorial headlines,
     segmented progress, black and blue primary pills, designed empty state ("No
     trips yet"), 3D glass logo badge, floating icon constellation.
-12. Task manager, teal — coloured header block, day strip with white selected pill,
+12. Task manager, teal, coloured header block, day strip with white selected pill,
     tasks grouped under "Today" / "Upcoming · Tue 23 Sep" headers, each row carrying
     a small coloured category tag (Work / Design / Personal), a time range and a
     metadata row of tiny icon+count triples (attachments, comments, participants),
     dark floating pill nav with a WHITE circular FAB in the centre, bottom sheet
     "Task detail" with a drag handle, icon-led setting rows, a real toggle switch,
     coloured tag dots with stepper chevrons, and a full-width black "Add Task".
-13. Health detail, light — segmented Day/Week/Month/Year control, 2×2 metric grid
+13. Health detail, light, segmented Day/Week/Month/Year control, 2×2 metric grid
     where each tile is icon+coloured label / big value / small grey goal, multi-arc
     radial gauge, pink line chart with a soft gradient fill and labelled axes, "Heart
     rate zones" as four labelled mini progress bars in semantic colours, a tinted
     "Insights" card with a lightning icon and one sentence, weekly goal row of seven
     ring badges (filled vs empty), and a compact dark pill nav.
-14. Design studio marketing site — light neutral ground, centred editorial sections,
+14. Design studio marketing site, light neutral ground, centred editorial sections,
     "Recent work" chip label above the headline, a stat line above the H1, paired
     dark + light CTA pills with tiny brand icons inside, a work gallery of rounded
     cards, a greyed logo wall with a "30+ More" pill, a 3-then-2 grid of icon +
@@ -213,7 +213,7 @@ against this standard.** The platform is going to the Apple App Store; the bar i
     tiles with name/role and a "5+ More" tile, pricing as two cards with a segmented
     Landing/Full Site/Brand/Product switcher and check-list features, and an FAQ
     accordion with chevron rotation.
-15. SaaS marketing site (6 hero variants) — soft mesh/aurora gradient backgrounds
+15. SaaS marketing site (6 hero variants), soft mesh/aurora gradient backgrounds
     (pink→lavender→blue), a display headline with **inline brand logo chips set into
     the sentence**, an inline email capture where the input and the CTA share one
     pill, a social-proof cluster of overlapping avatars + five stars + "1,000+

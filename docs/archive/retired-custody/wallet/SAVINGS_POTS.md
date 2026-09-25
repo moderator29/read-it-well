@@ -1,13 +1,12 @@
 # Savings pots
 
-Money a person sets aside inside their **own** wallet — rent money, house money
-— so that spending it takes a deliberate act.
+Money a person sets aside inside their **own** wallet, rent money, house money, so that spending it takes a deliberate act.
 
 **Pots earn nothing.** No interest, no yield, no return, no lock-in, no penalty.
 That is a deliberate limit, not an omission: paying a return on customer
 balances is a regulated activity, and a savings product that implies one without
 a licence for it is the kind of promise that ends a company. The schema is
-written so that a return is not something it can express — there is no column
+written so that a return is not something it can express, there is no column
 that could hold a rate.
 
 ---
@@ -26,7 +25,7 @@ new enum value be *used* in the same transaction that adds it, which is why the
 enum is on its own and why they cannot be pasted together.
 
 The Supabase MCP connected to my session points at a different account from
-Vallo's, so I have not run these against your database and will not — applying
+Vallo's, so I have not run these against your database and will not, applying
 a migration to the wrong project is exactly the failure worth being careful
 about. Open the **SQL editor** in your Supabase dashboard and paste each file,
 the same way you set the Vault secret.
@@ -57,7 +56,7 @@ supabase gen types typescript --project-id <your-ref> > apps/web/src/lib/supabas
 - **Spendable excludes pending debits.** Money already committed to an in-flight
   withdrawal cannot also fund a pot.
 - **Both are idempotent on the reference**, like every other money path here.
-- **A pot cannot go negative** — a check constraint, plus the functions refuse
+- **A pot cannot go negative**: a check constraint, plus the functions refuse
   to take out more than is in it.
 - **Money out works on an archived pot.** Closing a pot must never be able to
   strand money inside it.
@@ -65,7 +64,7 @@ supabase gen types typescript --project-id <your-ref> > apps/web/src/lib/supabas
 ## Why `pot_hold` and `pot_release` rather than reusing `transfer_out`/`in`
 
 A transfer means money left for somebody else. Money moved into a pot has not
-left the wallet at all — it is the same person's money, one step further from
+left the wallet at all, it is the same person's money, one step further from
 being spent. A statement row calling that a transfer lies to the person reading
 it about where their money went.
 
@@ -75,7 +74,7 @@ spendable, a release puts it back.
 ## The app layer is already shipped, and it waits for you
 
 Server actions, the pots section, create, top up and take out are all on main.
-**They appear by themselves the moment you run the SQL** — there is nothing to
+**They appear by themselves the moment you run the SQL**: there is nothing to
 redeploy.
 
 Until then `readPots()` answers `unavailable`, the wallet draws no pots section,
@@ -85,6 +84,6 @@ yet." Verified against a running build with the table absent: the wallet returns
 
 The generated types do not know about `wallet_pots` yet, so the read and the
 insert go through narrow casts contained in `lib/wallet/pots.ts` and
-`lib/wallet/pot-actions.ts` — the same approach `lib/wallet/rpc.ts` already
+`lib/wallet/pot-actions.ts`: the same approach `lib/wallet/rpc.ts` already
 takes for the money functions, and for the same reason. Regenerating the types
 changes nothing; the casts simply stop being load-bearing.

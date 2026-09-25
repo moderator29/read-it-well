@@ -1,4 +1,4 @@
-# Audit 05 — Interactive Controls (buttons, chips, segmented, toggles, inputs, sheets, progress)
+# Audit 05, Interactive Controls (buttons, chips, segmented, toggles, inputs, sheets, progress)
 
 > **SUPERSEDED 2026-08-09. Not a backlog, and every count in it needs re-measuring.**
 > This audit grades the codebase against `00-reference-brief.md`, which is retired
@@ -13,7 +13,7 @@ Paths below are relative to `/home/user/read-it-well/apps/web/src`.
 
 Headline: **the control layer is a CSS class family, not a component system.** There is a
 genuinely thoughtful set of `.nf-*` classes in `app/globals.css`, but there is **zero React
-primitive layer** — no `components/ui/` directory exists. Every one of the ~363 interactive
+primitive layer**: no `components/ui/` directory exists. Every one of the ~363 interactive
 elements in the app re-specifies its own geometry with Tailwind overrides on top of the class.
 That is the root cause of most findings below.
 
@@ -27,7 +27,7 @@ That is the root cause of most findings below.
 |---|---|---|
 | `.nf-btn` | 1330 | Base button: inline-flex, gap .5rem, weight 650, `--nf-text-body` (0.875rem), radius `--nf-radius-lg` (18px), padding `.72rem 1.2rem` |
 | `.nf-btn::after` | 1352 | Specular sheen over top half |
-| `.nf-btn:active` | 1362 | `translateY(1px)` — the only press state |
+| `.nf-btn:active` | 1362 | `translateY(1px)`: the only press state |
 | `.nf-btn:disabled` | 1365 | `opacity: 0.24` |
 | `.nf-btn--primary` | 1372 | Gradient CTA + blue glow + hover light-sweep ripple |
 | `.nf-btn--glass` | 1412 | Translucent white + hairline |
@@ -39,7 +39,7 @@ That is the root cause of most findings below.
 | `.nf-icon-btn` | 1573 | 2.6rem circular glass icon button; `:active { scale(0.94) }` |
 | `.nf-icon-btn--square` | 1605 | Card-radius variant |
 | `.nf-chip` | 1659 | Pill, `.45rem .9rem`, caption size; `[aria-pressed=true]` / `--active` = brighter border + glow |
-| `.nf-badge` | 1694 | Status pill shell — **layout and type only** |
+| `.nf-badge` | 1694 | Status pill shell, **layout and type only** |
 | `.nf-badge--success/--brand/--warning` | 1704–1715 | The only three tinted variants |
 | `.nf-badge-overlap` | 1723 | Corner ribbon badge |
 | `.nf-count-badge` | 1747 | Circular count badge |
@@ -66,23 +66,21 @@ and `:359` collapses all durations to 1ms under reduced motion.
 
 ### 1.2 Component-level controls that exist
 
-- `components/app/account/Toggle.tsx` — animated switch, `role="switch"`, thumb shadow.
-- `components/app/filters/FilterDrawer.tsx:161` — a **second, duplicate** `Switch`.
-- `components/app/filters/FilterDrawer.tsx:106` and `app/(app)/listing/[id]/ReservePanel.tsx:38`
-  — two **duplicate** `Stepper` components at different sizes.
-- `components/app/account/SettingsGroups.tsx:460` — `SegmentedRow` (chip radiogroup).
-- `components/app/bookings/BookingsTabs.tsx` + `app/(app)/bookings/MyBookings.tsx:265`
-  — two **copy-pasted** sliding-underline tab bars.
-- `components/auth/AuthPanel.tsx:510` — four-segment password strength meter.
-- `app/agent/list/ListingWizard.tsx:680` — the app's only segmented progress rail.
-- `app/admin/_components/ui.tsx:92` — `StatusChip` with a 5-tone semantic map.
-- `components/agent/ApplyWizard.tsx:473` — `UploadZone` with three honest states.
+- `components/app/account/Toggle.tsx`: animated switch, `role="switch"`, thumb shadow.
+- `components/app/filters/FilterDrawer.tsx:161`: a **second, duplicate** `Switch`.
+- `components/app/filters/FilterDrawer.tsx:106` and `app/(app)/listing/[id]/ReservePanel.tsx:38`: two **duplicate** `Stepper` components at different sizes.
+- `components/app/account/SettingsGroups.tsx:460`: `SegmentedRow` (chip radiogroup).
+- `components/app/bookings/BookingsTabs.tsx` + `app/(app)/bookings/MyBookings.tsx:265`: two **copy-pasted** sliding-underline tab bars.
+- `components/auth/AuthPanel.tsx:510`: four-segment password strength meter.
+- `app/agent/list/ListingWizard.tsx:680`: the app's only segmented progress rail.
+- `app/admin/_components/ui.tsx:92`: `StatusChip` with a 5-tone semantic map.
+- `components/agent/ApplyWizard.tsx:473`: `UploadZone` with three honest states.
 
 ---
 
 ## 2. Gaps vs the reference standard
 
-### P0 — must fix before submission
+### P0, must fix before submission
 
 ---
 
@@ -101,13 +99,13 @@ Concrete divergence in *height*, on the same visual class:
 | 32px | `components/app/search/MapCanvas.tsx:646` `nf-btn nf-btn--primary … h-8 … text-[0.75rem]` |
 | 36px | `components/app/ListingCard.tsx:54,64,74` `nf-btn nf-btn--glass h-9 px-3.5 text-[0.8125rem]` |
 | 40px | `components/app/account/SupportChat.tsx:498` `nf-btn nf-btn--primary h-10 w-10 rounded-full p-0` |
-| 41px (default) | `.nf-btn` unmodified — globals.css:1330 |
+| 41px (default) | `.nf-btn` unmodified, globals.css:1330 |
 | 44px | `components/app/filters/FilterDrawer.tsx:529` `nf-btn nf-btn--primary min-h-11 flex-1` |
 | ~46px | `components/auth/AuthPanel.tsx:89,221` `nf-btn nf-btn--primary w-full py-3.5` |
 | ~48px | `components/app/wallet/WalletActions.tsx:290` `nf-btn nf-btn--primary … py-3` |
 
 And in *font size*: `0.75rem`, `0.8125rem`, `0.8438rem`, `0.875rem`, `0.9375rem`,
-`--nf-text-body`, `--nf-text-body-lg` — **seven** button label sizes with no scale behind them.
+`--nf-text-body`, `--nf-text-body-lg`: **seven** button label sizes with no scale behind them.
 
 `disabled` opacity is overridden **7 different ways** at 29 call sites
 (`opacity-60` ×16, `-40` ×4, `-70` ×2, `-50` ×2, `-35` ×2, `-45` ×1, `-0` ×2) on top
@@ -117,7 +115,7 @@ disabled recipe, and 0.24 alone fails WCAG contrast on the label.
 Counting genuinely distinct *implementations* (not just overrides):
 
 1. `.nf-btn` + 3 variants (globals.css:1330)
-2. `.nf-auth-row` — its own material, own padding, own shadow (globals.css:1457)
+2. `.nf-auth-row`: its own material, own padding, own shadow (globals.css:1457)
 3. `.nf-icon-btn` (+ `--square`) (globals.css:1573)
 4. `.nf-action-circle` (globals.css:1848)
 5. `.nf-dock__btn` (globals.css:2160)
@@ -126,10 +124,10 @@ Counting genuinely distinct *implementations* (not just overrides):
 8. Photo-overlay glass circle, hand-rolled and duplicated 4×:
    `components/app/listing/ListingActions.tsx:144,155`,
    `components/app/listing/ListingGallery.tsx:162`, `app/(app)/saved/SavedBoard.tsx:211`
-9. `components/agent/ApplyWizard.tsx:256` — bespoke agent-type card button
-10. `app/agent/list/ListingWizard.tsx:1083` — bespoke disclosure row button
-11. `components/app/wallet/WalletActions.tsx:78` — `nf-card` used as a button
-12. `components/agent/AgentMobileNav.tsx:104` — bespoke square nav button
+9. `components/agent/ApplyWizard.tsx:256`: bespoke agent-type card button
+10. `app/agent/list/ListingWizard.tsx:1083`: bespoke disclosure row button
+11. `components/app/wallet/WalletActions.tsx:78`: `nf-card` used as a button
+12. `components/agent/AgentMobileNav.tsx:104`: bespoke square nav button
 
 **Twelve implementations, 45 override signatures.** This is the top-priority finding.
 
@@ -141,7 +139,7 @@ The reference asks for *scale-down + shadow compression + spring-back*.
 
 What ships:
 - `.nf-btn:active` = `translateY(1px)` only (globals.css:1362). No scale, no shadow
-  compression, standard ease — **not** the spring token that already exists.
+  compression, standard ease, **not** the spring token that already exists.
 - `.nf-btn--primary` puts its signature effect (the light-sweep ripple, globals.css:1381–1397)
   and its glow lift (`:1403`) **entirely on `:hover`**. On a phone that code never runs.
   The most expensive piece of button craft in the codebase is invisible to the App Store audience.
@@ -149,8 +147,7 @@ What ships:
   **no `:active` rule at all**. 51 chips with no touch feedback.
 - Only **10 elements in the whole app** carry any `active:scale`
   (`ListingActions.tsx:144,155`, `ListingGallery.tsx:162`, `MapCanvas.tsx:561,588`,
-  `search/page.tsx:215,239`, `rent/page.tsx:98`, `saved/SavedBoard.tsx:211,228`) —
-  and they use four different values (`scale-90`, `scale-95`, `scale-[0.96]`).
+  `search/page.tsx:215,239`, `rent/page.tsx:98`, `saved/SavedBoard.tsx:211,228`), and they use four different values (`scale-90`, `scale-95`, `scale-[0.96]`).
 - **`navigator.vibrate` appears zero times in the codebase.** No haptics anywhere.
   Reference §5 and §8 both require haptic pairing on primary actions.
 
@@ -163,15 +160,15 @@ between positions."*
 
 | # | Where | Behaviour |
 |---|---|---|
-| 1 | `components/app/filters/ViewToggle.tsx:22` | Chips in a glass pill — **hard-swap**, no indicator |
+| 1 | `components/app/filters/ViewToggle.tsx:22` | Chips in a glass pill, **hard-swap**, no indicator |
 | 2 | `components/app/bookings/BookingsTabs.tsx:172` | Sliding **2px underline**, not a capsule |
 | 3 | `app/(app)/bookings/MyBookings.tsx:298` | Byte-identical copy of #2 |
-| 4 | `app/agent/bookings/BookingsWorkspace.tsx:379` | Chip row — **hard-swap** |
-| 5 | `components/app/account/SettingsGroups.tsx:487` | Chip radiogroup — **hard-swap** |
+| 4 | `app/agent/bookings/BookingsWorkspace.tsx:379` | Chip row, **hard-swap** |
+| 5 | `components/app/account/SettingsGroups.tsx:487` | Chip radiogroup, **hard-swap** |
 
 Three of five hard-swap. The two that animate animate the wrong thing (a hairline underline
 is a 2015 Material tab, not an iOS segmented control). `.nf-tab-pop` (globals.css:2099)
-already proves the team can build a pill that pops in — but even that scales in place
+already proves the team can build a pill that pops in, but even that scales in place
 rather than sliding, and it is only used by the bottom nav.
 
 ---
@@ -198,11 +195,10 @@ Specific defects:
 - **Zero detents / snap points.** No sheet can be half-open.
 - **Zero drag-to-dismiss.** No `onPointerDown` / `touchstart` handler exists anywhere
   in the app for sheet gestures.
-- Entrance is `nf-rise` (globals.css:2577) — a generic `translateY(18px)` + fade at
+- Entrance is `nf-rise` (globals.css:2577), a generic `translateY(18px)` + fade at
   `--nf-ease-entrance`. Not spring physics, and it is the **same** animation used for
   list-item reveals, so a modal enters exactly like a paragraph.
-- `ListingOptionsSheet.tsx:46` and `ThreadOptionsSheet.tsx:66` **never lock body scroll**
-  — the page scrolls behind the open sheet on iOS.
+- `ListingOptionsSheet.tsx:46` and `ThreadOptionsSheet.tsx:66` **never lock body scroll**: the page scrolls behind the open sheet on iOS.
 - **No focus trap in any of the eight.** They set initial focus and handle Escape, but
   Tab escapes the dialog into the page beneath. This is a real accessibility failure
   for `aria-modal="true"`.
@@ -212,13 +208,13 @@ Specific defects:
 
 ---
 
-### P1 — visible quality gap
+### P1, visible quality gap
 
 ---
 
 **P1-1 · `.nf-badge` with no modifier renders as an invisible pill.**
 
-`app/globals.css:1694` defines `.nf-badge` with layout + type only — **no background,
+`app/globals.css:1694` defines `.nf-badge` with layout + type only, **no background,
 no colour**. It inherits whatever the parent is. Bare `nf-badge` ships at:
 
 - `components/app/account/SettingsGroups.tsx:142, 272`
@@ -230,7 +226,7 @@ no colour**. It inherits whatever the parent is. Bare `nf-badge` ships at:
 - `app/admin/_components/ui.tsx:103` relies entirely on inline `TONE_STYLE`
 
 So a booking whose status falls to `default` renders its status as **plain untinted text
-in a pill-shaped void** — exactly the "generic grey" the reference forbids.
+in a pill-shaped void**: exactly the "generic grey" the reference forbids.
 
 **P1-2 · Status pills have no icons and only three semantic tones.**
 
@@ -252,14 +248,14 @@ Only 4 call sites add `min-h-11`
 (`FilterDrawer.tsx:479`, `ActiveFilters.tsx:38`, `ViewToggle.tsx:33`, `ListingWizard.tsx:1005`).
 The other **47** ship at ~37px, including primary interaction surfaces:
 
-- `components/app/wallet/WalletActions.tsx:265` — quick-amount money chips
-- `components/app/wallet/TransactionsSection.tsx:110` — transaction filters
-- `components/app/NotificationsList.tsx:121` — notification filters
-- `components/app/account/SettingsGroups.tsx:493` — every settings segmented row
-- `app/agent/bookings/BookingsWorkspace.tsx:392` — the agent's booking tabs
-- `app/admin/_components/AdminActions.tsx:669` — ticket state switcher
-- `app/(app)/wallet/WalletDeck.tsx:468` — deposit amount chips
-- `components/app/search/MapCanvas.tsx:661` — `h-8` = **32px**
+- `components/app/wallet/WalletActions.tsx:265`: quick-amount money chips
+- `components/app/wallet/TransactionsSection.tsx:110`: transaction filters
+- `components/app/NotificationsList.tsx:121`: notification filters
+- `components/app/account/SettingsGroups.tsx:493`: every settings segmented row
+- `app/agent/bookings/BookingsWorkspace.tsx:392`: the agent's booking tabs
+- `app/admin/_components/AdminActions.tsx:669`: ticket state switcher
+- `app/(app)/wallet/WalletDeck.tsx:468`: deposit amount chips
+- `components/app/search/MapCanvas.tsx:661`: `h-8` = **32px**
 
 Two files bypass the class entirely with `!important`:
 `app/agent/bookings/BookingsWorkspace.tsx:171` `nf-chip !py-1.5 !text-[0.75rem]`,
@@ -279,14 +275,14 @@ factually wrong. Worse, 9 call sites shrink it further:
 **P1-5 · Chip rows: no scroll-snap, no edge fade.**
 
 `.nf-scroll-x` (globals.css:2768) is `overflow-x:auto` + hidden scrollbars. That's all.
-A separate `.nf-snap-x` (globals.css:1641) has `scroll-snap-type: x mandatory` — but it is
+A separate `.nf-snap-x` (globals.css:1641) has `scroll-snap-type: x mandatory`: but it is
 used **only on the marketing landing page** (`CarouselRail.tsx:50`, `MoodRow.tsx:40`,
 `PopularDestinations.tsx:39`). Every in-app chip row uses the non-snapping one:
 
-- `components/app/filters/ActiveFilters.tsx:184` — active filter chips
-- `components/app/filters/CategoryTiles.tsx:49` — category tiles
-- `app/(app)/search/page.tsx:205` — popular destinations
-- `app/(app)/rent/page.tsx:88` — rent by city
+- `components/app/filters/ActiveFilters.tsx:184`: active filter chips
+- `components/app/filters/CategoryTiles.tsx:49`: category tiles
+- `app/(app)/search/page.tsx:205`: popular destinations
+- `app/(app)/rent/page.tsx:88`: rent by city
 - `components/app/wallet/TransactionsSection.tsx:103`
 - `components/app/NotificationsList.tsx:114`
 - `components/app/listing/ListingAmenities.tsx:77`
@@ -295,7 +291,7 @@ used **only on the marketing landing page** (`CarouselRail.tsx:50`, `MoodRow.tsx
 Scrollbars **are** correctly hidden on all of them (✅ vs §8).
 Bleed: the `-mx-5 … px-5` negative-margin pattern **is** used correctly on most rows, so
 the next chip does peek past the gutter (✅). But there is **no mask/fade on the right
-edge** anywhere — `mask-image` is used for hero art (globals.css:2237, 2345, 2538) and
+edge** anywhere, `mask-image` is used for hero art (globals.css:2237, 2345, 2538) and
 never for a scroller.
 
 **P1-6 · No spinner exists in the codebase. Loading is text-swap only.**
@@ -312,8 +308,7 @@ Label-swap causes the button to **change width mid-press**, which reads as a gli
 `aria-busy` is set in exactly **two** places (`AuthPanel.tsx:220`, `ApplyWizard.tsx:485`)
 out of 18 pending buttons. The reference's spinner-in-button pattern is absent.
 
-Optimistic UI exists in exactly one place —
-`components/app/listing/ListingActions.tsx:87–109` (heart flips instantly, reverts on
+Optimistic UI exists in exactly one place, `components/app/listing/ListingActions.tsx:87–109` (heart flips instantly, reverts on
 failure). That is genuinely good and should be the template; it is used nowhere else.
 `components/app/wallet/TransactionsSection.tsx` and every admin action wait for a full
 `router.refresh()` round trip with no skeleton.
@@ -321,11 +316,11 @@ failure). That is genuinely good and should be the template; it is used nowhere 
 **P1-7 · Progress: one segmented bar in the whole product, and it is a 6px touch target.**
 
 `app/agent/list/ListingWizard.tsx:686–697` is the only segmented progress bar. Each
-segment is `<button className="block h-1.5 w-full rounded-full">` — a **6px-tall
+segment is `<button className="block h-1.5 w-full rounded-full">`: a **6px-tall
 interactive button**. It also has no animated fill and no value riding on it.
 
 `components/auth/AuthPanel.tsx:517` (password strength) is four `h-1` static segments
-with `transition-colors` only — no fill animation.
+with `transition-colors` only, no fill animation.
 
 Nowhere in the app is there:
 - an animated progress fill,
@@ -353,14 +348,13 @@ Three different answers to the same question, in one app.
 
 Reference §3: *"Sticky bottom action bars are blurred, not solid."*
 
-- `components/app/filters/FilterDrawer.tsx:515` — `nf-glass` ✅ blurred, and it **is** a
+- `components/app/filters/FilterDrawer.tsx:515`: `nf-glass` ✅ blurred, and it **is** a
   correct pair (ghost "Clear all" + solid "Show N places").
-- `components/app/listing/ListingStickyBar.tsx:64` — `nf-card` ✅ blurred (14px, globals.css:200),
+- `components/app/listing/ListingStickyBar.tsx:64`: `nf-card` ✅ blurred (14px, globals.css:200),
   but it is price + **one** button, not a CTA pair.
-- `app/agent/list/ListingWizard.tsx:1280` — **`bg-[var(--nf-surface-primary)]`, fully solid**. ❌
+- `app/agent/list/ListingWizard.tsx:1280`: **`bg-[var(--nf-surface-primary)]`, fully solid**. ❌
 
-Checkout (`app/(app)/checkout/[bookingId]/PayPanel.tsx`) has **no pinned footer at all** —
-the pay CTAs are buried inside list rows at `:169` and `:198`.
+Checkout (`app/(app)/checkout/[bookingId]/PayPanel.tsx`) has **no pinned footer at all**: the pay CTAs are buried inside list rows at `:169` and `:198`.
 
 The reference's *"solid high-contrast pill + ghost/hairline pill, side by side in a blurred
 pinned footer"* pattern appears **once** in the entire product (FilterDrawer). Elsewhere
@@ -375,16 +369,16 @@ it is *just a class*. Consequences:
 
 - **Leading icon is not supported.** The three search bars each rebuild it by hand and
   each is different:
-  - `app/page.tsx:136` — icon 20px, bare `<input>` on a `nf-card`, no `nf-field`
-  - `app/(app)/home/page.tsx:78` — icon 20px, `text-[0.875rem]`, bare input
-  - `app/(app)/search/page.tsx:163` — icon 18px, `text-[0.9375rem]`, bare input
-  - `app/(site)/help/HelpSearch.tsx:57` — `nf-field pl-10` with an absolutely-positioned icon
+  - `app/page.tsx:136`: icon 20px, bare `<input>` on a `nf-card`, no `nf-field`
+  - `app/(app)/home/page.tsx:78`: icon 20px, `text-[0.875rem]`, bare input
+  - `app/(app)/search/page.tsx:163`: icon 18px, `text-[0.9375rem]`, bare input
+  - `app/(site)/help/HelpSearch.tsx:57`: `nf-field pl-10` with an absolutely-positioned icon
   Four search fields, four constructions, three type sizes.
 - **No trailing clear/"×" affordance anywhere.** The only trailing control in the app is
   the password eye (`AuthPanel.tsx:461`). Reference §5 explicitly asks for
   *"a trailing filter/clear affordance"*.
 - **Error state is a border-colour change only.** `globals.css:1557` sets
-  `border-color: var(--nf-state-error)` — but `.nf-field` paints its border via
+  `border-color: var(--nf-state-error)`: but `.nf-field` paints its border via
   `border-box` gradient (`:1529–1537`) with `border: 1px solid transparent`, so
   `border-color` on an element whose border is a gradient **has no visible effect**.
   The error state is effectively invisible; only the separate `<p role="alert">` below
@@ -398,17 +392,16 @@ it is *just a class*. Consequences:
 
 **P1-11 · Toggles: real, animated, duplicated.**
 
-`components/app/account/Toggle.tsx` is good — `role="switch"`, 28×48 track,
+`components/app/account/Toggle.tsx` is good, `role="switch"`, 28×48 track,
 `transition-transform` thumb with `shadow-[0_2px_6px_rgb(0_0_0/0.35)]`. ✅ against §5.
 
 But `components/app/filters/FilterDrawer.tsx:161` is a **second implementation** with the
-same visual intent and different mechanics — it animates `transition-[left]` with
+same visual intent and different mechanics, it animates `transition-[left]` with
 `left-[1.5rem]`/`left-[0.15rem]` instead of `translate-x`, i.e. it animates a
 **layout property** rather than a transform (non-composited, jank on low-end Android),
 and its thumb is `h-5 w-5` vs the other's `h-[1.375rem]`.
 
-Only real `<input type="checkbox">` in the app: `components/agent/ApplyWizard.tsx:349`
-— `h-4 w-4 accent-[…]`, a **16px native checkbox** on the terms agreement of the agent
+Only real `<input type="checkbox">` in the app: `components/agent/ApplyWizard.tsx:349`: `h-4 w-4 accent-[…]`, a **16px native checkbox** on the terms agreement of the agent
 onboarding flow. That is the single most legally important control in the product and
 it is the least designed one.
 
@@ -417,7 +410,7 @@ in 8 places without the containment it promises.
 
 ---
 
-### P2 — polish
+### P2, polish
 
 - **P2-1** `.nf-btn` default radius is `--nf-radius-lg` = **18px**, and `--lg` is 22px.
   Neither is a pill. Reference §5 says *"full-width high-contrast **pill**"*.
@@ -425,34 +418,31 @@ in 8 places without the containment it promises.
   **never by `.nf-btn`**. The primary CTA is a rounded rectangle, not a pill.
   (`app/globals.css:1340`, `:1441`)
 - **P2-2** `.nf-btn--primary:hover` lifts `translateY(-1px)` (globals.css:1405) but
-  `:active` returns it to `translateY(0)` (`:1408`) rather than pressing *below* rest —
-  so on desktop the press reads as "returning to normal", not "being pushed".
+  `:active` returns it to `translateY(0)` (`:1408`) rather than pressing *below* rest, so on desktop the press reads as "returning to normal", not "being pushed".
 - **P2-3** No shadow compression on press anywhere. `.nf-btn--primary` keeps
   `0 0 12px` at rest and `0 0 24px` on hover; `:active` doesn't touch `box-shadow`.
 - **P2-4** `--nf-ease-spring` (tokens.css:220) is used for message bubbles
   (globals.css:525, 528) and status assembly (`:684`) but **never for a control**.
 - **P2-5** `components/app/wallet/WalletActions.tsx:78` uses `nf-card nf-card--interactive`
-  as a button — a card pretending to be a control, so it inherits card press behaviour
+  as a button, a card pretending to be a control, so it inherits card press behaviour
   rather than button press behaviour.
 - **P2-6** `app/admin/_components/AdminActions.tsx:167–171` styles the destructive
   confirm by **inline-overriding `background` and killing `box-shadow`** on a
   `nf-btn--primary`. There is no `--danger` button variant, so every destructive action
   in admin is an inline style.
 - **P2-7** `components/app/filters/ActiveFilters.tsx:42–48` draws the remove "×" as two
-  rotated 1.5px `<span>`s. Handmade geometry sitting next to a `UiIcon` set — reference §1
+  rotated 1.5px `<span>`s. Handmade geometry sitting next to a `UiIcon` set, reference §1
   forbids exactly this ("no hand-drawn one-offs sitting next to a library glyph").
 - **P2-8** No `<input type="range">` / slider exists anywhere. The price filter is two
   numeric text fields (`FilterDrawer.tsx:372, 390`). Not necessarily wrong, but there is
   no slider primitive should one be needed.
-- **P2-9** `ApplyWizard.tsx:210` stepper circles are `h-8 w-8` (32px) buttons —
-  under 44pt, and they are the navigation for a 6-step flow.
+- **P2-9** `ApplyWizard.tsx:210` stepper circles are `h-8 w-8` (32px) buttons, under 44pt, and they are the navigation for a 6-step flow.
 - **P2-10** `.nf-btn--primary::after` (the ripple, globals.css:1381) **replaces** the base
   `.nf-btn::after` specular sheen (globals.css:1352), so the primary button silently loses
   the top-edge highlight that every other variant has.
 - **P2-11** Empty states on controls: `BookingsTabs.tsx:191–209` and
   `MyBookings.tsx` render a `BrandIcon` + one grey sentence + a CTA. Better than a bare
-  sentence, but §6 asks for a real headline + body + CTA; here there is no headline —
-  `EMPTY_COPY` (`BookingsTabs.tsx:27`) is a single sentence doing both jobs.
+  sentence, but §6 asks for a real headline + body + CTA; here there is no headline, `EMPTY_COPY` (`BookingsTabs.tsx:27`) is a single sentence doing both jobs.
 
 ---
 
@@ -466,7 +456,7 @@ Ship a real `apps/web/src/components/ui/` primitive layer. Keep the `.nf-*` CSS 
 ```tsx
 // components/ui/Button.tsx
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "glass";
-type ButtonSize    = "sm" | "md" | "lg";   // 40 / 48 / 56 px — no other heights exist
+type ButtonSize    = "sm" | "md" | "lg";   // 40 / 48 / 56 px, no other heights exist
 
 export type ButtonProps = {
   variant?: ButtonVariant;          // default "secondary"
@@ -501,12 +491,12 @@ Rules the primitive enforces:
   desktop bonus). globals.css:1394, 1403.
 - **`loading` renders a real spinner** and pins width via `min-width` measured pre-swap,
   sets `aria-busy`, and keeps the label (dimmed) rather than replacing it.
-- **`haptic`** calls `navigator.vibrate?.(8)` on `pointerdown` — one line, satisfies §8.
+- **`haptic`** calls `navigator.vibrate?.(8)` on `pointerdown`: one line, satisfies §8.
 
 Add a companion `<ActionBar>`:
 
 ```tsx
-// components/ui/ActionBar.tsx — the ONLY way to pin CTAs to the bottom
+// components/ui/ActionBar.tsx, the ONLY way to pin CTAs to the bottom
 <ActionBar blur safeArea>            {/* nf-glass + env(safe-area-inset-bottom), always */}
   <Button variant="ghost" full>Not now</Button>
   <Button variant="primary" full haptic>Pay ₦240,000</Button>
@@ -522,21 +512,21 @@ export type ChipProps = {
   selected?: boolean;
   /** "filter" = aria-pressed toggle · "choice" = role=radio in a ChipGroup · "link" */
   behaviour?: "filter" | "choice" | "link";
-  size?: "sm" | "md";        // 36 (display-only) / 44 (interactive) — md is default
+  size?: "sm" | "md";        // 36 (display-only) / 44 (interactive), md is default
   icon?: UiIconName;
   count?: number;            // renders a tabular trailing count
   thumbnail?: string;        // §1: photo inside the pill for category chips
   onSelectedChange?(next: boolean): void;
 };
 
-// The row is a primitive too — this is what fixes snap + bleed + fade in one place.
+// The row is a primitive too, this is what fixes snap + bleed + fade in one place.
 export function ChipRow(props: {
   children: React.ReactNode;
   /** scroll-snap-type: x proximity + scroll-padding matching the gutter */
   snap?: boolean;            // default true
   /** right-edge mask so the next chip fades rather than hard-clipping */
   fadeEdges?: boolean;       // default true
-  bleed?: boolean;           // default true — negative gutter margin
+  bleed?: boolean;           // default true, negative gutter margin
 }): JSX.Element;
 ```
 
@@ -551,7 +541,7 @@ export function ChipRow(props: {
 }
 .nf-chip-row > * { scroll-snap-align: start; flex-shrink: 0; }
 ```
-Selected state must be a **coloured ring/fill**, not only a border glow — change
+Selected state must be a **coloured ring/fill**, not only a border glow, change
 globals.css:1687 to add `box-shadow: 0 0 0 2px var(--nf-brand-primary)` plus a
 `color-mix` fill.
 Raise `.nf-chip` min-height to 44px (globals.css:1663) and delete all 4 `!py-1.5` hacks.
@@ -570,14 +560,14 @@ export function Segmented<T extends string>(props: {
 }): JSX.Element;
 ```
 
-Implementation contract — this is the piece the reference cares about most:
+Implementation contract, this is the piece the reference cares about most:
 - One absolutely-positioned **capsule** `<span aria-hidden>` inside a track.
 - Position via `transform: translateX(var(--seg-x))` + `width: var(--seg-w)`, both
   measured with `ResizeObserver` so labels of different lengths work.
 - Transition `transform 320ms var(--nf-ease-spring), width 320ms var(--nf-ease-spring)`.
 - Capsule carries its own shadow: `0 2px 8px -2px rgb(0 0 0 / .35)` + a 1px inner top highlight.
 - Track is `nf-glass` with `--nf-radius-pill`, capsule inset by 3px (nested-radius correction).
-- Under `prefers-reduced-motion`, capsule jumps (transition: none) — reference §7.
+- Under `prefers-reduced-motion`, capsule jumps (transition: none), reference §7.
 
 Replaces all five implementations: `ViewToggle.tsx:22`, `BookingsTabs.tsx:143`,
 `MyBookings.tsx:268`, `BookingsWorkspace.tsx:379`, `SettingsGroups.tsx:484`.
@@ -602,21 +592,21 @@ export function Sheet(props: {
 
 Non-negotiables the primitive owns (so no call site can forget one):
 1. `createPortal` to `document.body`.
-2. **Body scroll lock** with scrollbar-width compensation — fixes
+2. **Body scroll lock** with scrollbar-width compensation, fixes
    `ListingOptionsSheet.tsx` and `ThreadOptionsSheet.tsx`.
-3. **Real focus trap** (first/last sentinel + Tab wrap) — fixes all 8.
+3. **Real focus trap** (first/last sentinel + Tab wrap), fixes all 8.
 4. Restore focus to the trigger on close.
 5. **Drag handle**: 36×5px, `--nf-radius-pill`, `--nf-content-muted` at 40%, 12px top margin.
 6. **Pointer-drag to dismiss**: `onPointerDown/Move/Up`, follow the finger, release below
    40% of the current detent → dismiss; otherwise **spring back**
    (`transform 420ms var(--nf-ease-spring)`).
 7. Enter/exit with the spring token, **not** `nf-rise`.
-8. Backdrop: `bg-black/60 backdrop-blur-md` + `saturate(140%)`, uniformly — fixes the two
+8. Backdrop: `bg-black/60 backdrop-blur-md` + `saturate(140%)`, uniformly, fixes the two
    unblurred agent sheets.
 9. `padding-bottom: max(1.25rem, env(safe-area-inset-bottom))`.
 10. Escape closes, backdrop click closes, `inert` on the app root while open.
 
-### 3.5 `StatusPill` — one status vocabulary
+### 3.5 `StatusPill`: one status vocabulary
 
 ```tsx
 export type StatusTone = "success" | "warning" | "danger" | "info" | "brand" | "neutral";
@@ -629,12 +619,12 @@ export function StatusPill(props: {
 }): JSX.Element;
 
 /** The single mapping. Delete ui.tsx:25 statusTone, ListingsWorkspace toneStyle,
- *  BookingsWorkspace statusBadgeClass — all three collapse into this. */
+ *  BookingsWorkspace statusBadgeClass, all three collapse into this. */
 export function toneForStatus(status: string): StatusTone;
 ```
 Add `.nf-badge--danger`, `.nf-badge--info`, `.nf-badge--neutral` to globals.css:1704 and
 give bare `.nf-badge` the neutral tint so it can never render invisible.
-Every pill gets an icon by default — reference §5.
+Every pill gets an icon by default, reference §5.
 
 ### 3.6 `Input` / `Field`
 
@@ -677,7 +667,7 @@ export function Stepper(props: { value; min; max; onChange; label; hint?; size?:
 
 export function Progress(props: {
   value: number; max?: number;
-  /** Renders the % or "3 of 7" riding on the filled portion — reference §5. */
+  /** Renders the % or "3 of 7" riding on the filled portion, reference §5. */
   showValue?: boolean;
   tone?: StatusTone;
   segments?: number;      // >1 → segmented step bar
@@ -690,14 +680,14 @@ Then unify the wizards: `ApplyWizard.tsx:195` and `ListingWizard.tsx:680` both r
 
 ### 3.8 Migration order (highest impact first)
 
-1. `Button` + `ActionBar` — touches 140 call sites, removes 45 geometries, adds press +
+1. `Button` + `ActionBar`: touches 140 call sites, removes 45 geometries, adds press +
    haptics + spinner in one change.
-2. `Sheet` — 8 call sites, fixes 2 scroll-lock bugs and 8 focus-trap bugs.
-3. `Segmented` — 5 call sites, delivers the single most recognisable reference detail.
-4. `Chip` + `ChipRow` — 51 call sites, fixes 47 touch targets and adds snap + fade.
-5. `StatusPill` — ~30 call sites, collapses 3 colour vocabularies into 1.
-6. `Input`/`Select`/`Textarea` — fixes the invisible error state and 4 divergent search bars.
-7. `Switch`/`Stepper`/`Progress` — de-duplicates and delivers the wizard bars.
+2. `Sheet`: 8 call sites, fixes 2 scroll-lock bugs and 8 focus-trap bugs.
+3. `Segmented`: 5 call sites, delivers the single most recognisable reference detail.
+4. `Chip` + `ChipRow`: 51 call sites, fixes 47 touch targets and adds snap + fade.
+5. `StatusPill`: ~30 call sites, collapses 3 colour vocabularies into 1.
+6. `Input`/`Select`/`Textarea`: fixes the invisible error state and 4 divergent search bars.
+7. `Switch`/`Stepper`/`Progress`: de-duplicates and delivers the wizard bars.
 
 ---
 
@@ -711,7 +701,7 @@ Then unify the wizards: `ApplyWizard.tsx:195` and `ListingWizard.tsx:680` both r
 | 4 | Segmented slides a shadowed capsule? | **No.** 3 of 5 hard-swap; 2 slide a 2px underline. P0 |
 | 5 | Chip rows: ring/fill, bleed, snap, hidden scrollbars? | Bleed ✅, scrollbars hidden ✅, selected = glow not ring ⚠️, **no snap**, **no fade**. P1 |
 | 6 | Status pills tinted icon+label with semantic colour? | Shell exists; only 4 of ~30 have icons; 3 tones only; bare `.nf-badge` renders **invisible**; 3 competing tone maps. P1 |
-| 7 | Toggles animated with thumb shadow? | ✅ `Toggle.tsx` — but duplicated in `FilterDrawer.tsx:161` animating `left`, and a raw 16px checkbox on the agent terms. P1 |
+| 7 | Toggles animated with thumb shadow? | ✅ `Toggle.tsx`: but duplicated in `FilterDrawer.tsx:161` animating `left`, and a raw 16px checkbox on the agent terms. P1 |
 | 8 | Inputs: leading icon, height, clear, focus ring, error, label, primitive? | Height ✅, focus ring ✅, label ✅; **no primitive**, **no clear**, leading icon hand-rolled 4 ways, **error state visually inert**. P1 |
 | 9 | Sheets: handle, detents, spring, blur, scroll lock? | **None** have a handle, detents, spring or drag. 2 of 9 miss scroll lock, 2 miss blur, **0 of 8 trap focus**. P0 |
 | 10 | Loading/disabled/empty on controls? | **No spinner exists.** Text-swap only, width jumps, `aria-busy` on 2 of 18. One good optimistic case (`ListingActions.tsx:87`). P1 |

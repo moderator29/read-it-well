@@ -122,8 +122,17 @@
     font-weight: 500;
     color: var(--nf-content-primary);
   }
-  .nf-nav--drawer .nf-nav__glyph {
-    color: var(--nf-content-secondary);
+  /* The glyph slot holds the platform's glass object now (the founder: "use
+     the current platform icons, not the old black and white"), so it grows
+     to the object's size and keeps the brand blue for any line glyph that
+     has no glass twin yet. */
+  .nf-nav .nf-nav__glyph {
+    width: 1.875rem;
+    height: 1.875rem;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-nav__glyph img {
+    display: block;
   }
   .nf-nav--drawer .nf-nav__row--on {
     color: var(--nf-content-primary);
@@ -220,7 +229,8 @@
     outline-offset: 2px;
   }
   .nf-theme-row .nf-nav__glyph {
-    color: var(--nf-content-secondary);
+    width: 1.875rem;
+    height: 1.875rem;
   }
   .nf-theme-row__label {
     flex: 1 1 auto;
@@ -438,11 +448,13 @@
   .nf-dockmore__glyph {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--nf-radius-circle);
-    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
-    color: var(--nf-content-secondary);
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--nf-brand-secondary);
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  .nf-dockmore__item:hover .nf-dockmore__glyph {
+    transform: translateY(-2px) scale(1.06);
   }
   .nf-dockmore__item[aria-current="page"] .nf-dockmore__glyph {
     color: var(--nf-brand-secondary);

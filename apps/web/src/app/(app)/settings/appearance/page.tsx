@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { AppearanceCard, LanguageRow } from "@/components/app/account/SettingsGroups";
 import { SettingsGroup } from "@/components/app/account/rows";
 import { ThemeControl } from "@/components/site/ThemeControl";
+import { MotionSettings } from "@/components/app/account/MotionSettings";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.appearance.label };
@@ -41,6 +42,11 @@ export default async function AppearanceSettingsPage() {
             />
           </div>
         </SettingsGroup>
+      </section>
+      {/* THE MOTION SETTING (Track M): four levels, three switches and a
+          preview. It replaced a "Reduce motion" switch that did nothing. */}
+      <section id="settings-motion" className="mb-block scroll-mt-28">
+        <MotionSettings t={t} />
       </section>
       <section id="settings-appearance" className="scroll-mt-28">
         <AppearanceCard t={t}>

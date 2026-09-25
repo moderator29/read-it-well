@@ -1,4 +1,4 @@
-# Audit 07 — Agent (supplier) workspace + Admin console
+# Audit 07, Agent (supplier) workspace + Admin console
 
 > **SUPERSEDED 2026-08-09. Not a backlog, and every count in it needs re-measuring.**
 > This audit grades the codebase against `00-reference-brief.md`, which is retired
@@ -10,9 +10,9 @@
 Scope: `apps/web/src/app/agent/**`, `app/agents/**`, `components/agent/**`, `app/admin/**`.
 Yardsticks: reference 7 (desktop SaaS three-pane inbox), 9 (project manager, neumorphic
 raised cards + mini charts), 13 (health detail, segmented control + 2×2 metric grid +
-gradient line chart), 14 (studio marketing — pricing/FAQ/team polish).
+gradient line chart), 14 (studio marketing, pricing/FAQ/team polish).
 
-Headline verdict: **the back office is not an unstyled internal tool — it is genuinely
+Headline verdict: **the back office is not an unstyled internal tool, it is genuinely
 on-brand.** Every surface uses `nf-card`, `nf-glass`, `nf-chip`, `nf-badge`,
 `nf-numeric`, `var(--nf-*)` tokens, and the shell chrome is a near-copy of the guest
 AppShell. That is the good news and it is a real achievement.
@@ -26,13 +26,13 @@ non-functional search box in the agent top bar. Against reference 7 and 9 this r
 
 ---
 
-## 1. What exists — per surface
+## 1. What exists, per surface
 
 ### 1.1 Agent shell (`components/agent/AgentShell.tsx`)
 
 - Flex row: `AgentRail` (lg+) + `<main>` with an `nf-glass` sticky header
   (`AgentShell.tsx:37`), 60/64px tall, and a content well padded with
-  `pb-[calc(2.5rem+env(safe-area-inset-bottom))]` (`:71`) — safe area is respected.
+  `pb-[calc(2.5rem+env(safe-area-inset-bottom))]` (`:71`), safe area is respected.
 - Header carries: `BackButton`, `AgentMobileNav` hamburger, `LogoMark` (<lg),
   `AgentModePill`, a search input, `LanguageSwitcher`.
 - **No `ThemeToggle`.** The guest shell has one (`components/app/AppShell.tsx:112`).
@@ -47,12 +47,12 @@ non-functional search box in the agent top bar. Against reference 7 and 9 this r
 - Logo → `AgentModePill` (blue dot + "Agent Mode", `AgentNav.tsx:36-52`) → 10-item
   flat nav list → `AgentIdentityCard` → `ModeSwitcher`.
 - Active item = `color-mix(in oklab, var(--nf-mode-agent) 18%, transparent)` fill on a
-  `rounded-[var(--nf-radius-md)]` row (`AgentNav.tsx:86-90`) — a tinted rectangle, not
+  `rounded-[var(--nf-radius-md)]` row (`AgentNav.tsx:86-90`), a tinted rectangle, not
   a pill and not an animated indicator.
-- One badge exists: `{ href: "/agent/messages", ..., badge: 3 }` — **hardcoded**
+- One badge exists: `{ href: "/agent/messages", ..., badge: 3 }`: **hardcoded**
   (`AgentNav.tsx:26`), pointing at a page that is a coming-soon stub.
 - `/agent/list` and `/agent/bookings` both use `icon: "calendar-check"`
-  (`AgentNav.tsx:24-25`) — two adjacent nav rows with the identical glyph.
+  (`AgentNav.tsx:24-25`), two adjacent nav rows with the identical glyph.
 
 ### 1.3 Agent mobile nav (`AgentMobileNav.tsx`)
 
@@ -65,7 +65,7 @@ non-functional search box in the agent top bar. Against reference 7 and 9 this r
 ### 1.4 Agent dashboard (`app/agent/dashboard/page.tsx`, `RealDashboard.tsx`)
 
 Two dashboards. The seeded one (`page.tsx:62-322`) is the richer of the two:
-- 5 `StatCard`s in an `nf-panel-sunken` well (`:83`) — genuinely nice, the sunken well
+- 5 `StatCard`s in an `nf-panel-sunken` well (`:83`), genuinely nice, the sunken well
   reads like reference 6's instrument panel.
 - Earnings card with `AreaSparkline`, a recent-bookings list with status badges, a
   hand-rolled `<table>` for listing performance (`:233-256`) with a phone card fallback
@@ -74,7 +74,7 @@ Two dashboards. The seeded one (`page.tsx:62-322`) is the richer of the two:
 - The real signed-in dashboard (`RealDashboard.tsx`) is **materially thinner**: 5 plain
   `Tile`s with **no delta, no sparkline, no icon tile**, a status-count list, an
   upcoming-stays list. No charts at all. The comment at `RealDashboard.tsx:8-16`
-  explains why (no history to compare) — honest, but it means the real agent sees a
+  explains why (no history to compare), honest, but it means the real agent sees a
   visibly poorer dashboard than the demo.
 
 ### 1.5 Agent listings (`ListingsWorkspace.tsx`)
@@ -84,18 +84,18 @@ Two dashboards. The seeded one (`page.tsx:62-322`) is the richer of the two:
   reference 7's grouped sidebar and it works.
 - Rows are `nf-card` with an 84px cover thumb, title, status badge, location line,
   price, photo count, an optional review-note strip, and a footer action bar.
-- Actions (`:314-351`) are **bare text buttons** — `text-[0.8125rem] font-semibold
-  text-[var(--nf-content-secondary)]` — including **Delete**, which is
+- Actions (`:314-351`) are **bare text buttons**: `text-[0.8125rem] font-semibold
+  text-[var(--nf-content-secondary)]`: including **Delete**, which is
   `text-[var(--nf-content-muted)]` (`:345`), i.e. the destructive action is the
   *quietest* thing in the row.
-- `ConfirmSheet` (`:117-237`) — portal, Escape, scroll lock, focus, safe-area padding,
+- `ConfirmSheet` (`:117-237`), portal, Escape, scroll lock, focus, safe-area padding,
   error + unmet-requirements list. Solid.
 - Designed empty state at `:367-385`.
 
 ### 1.6 Agent bookings (`BookingsWorkspace.tsx`)
 
 - Chip tab row (`:378-398`) with `nf-chip--active` and a count per tab. Not a segmented
-  control with a sliding capsule (reference 13) — four independent chips.
+  control with a sliding capsule (reference 13), four independent chips.
 - Booking cards carry dates, guest composition, waiting/hold-release copy, settlement
   state, total, and accept/decline buttons.
 - `DecisionSheet` (`:62-211`) with a required decline reason, three suggestion chips,
@@ -104,7 +104,7 @@ Two dashboards. The seeded one (`page.tsx:62-322`) is the richer of the two:
 
 ### 1.7 Agent earnings (`EarningsWorkspace.tsx`)
 
-- 4 `Tile`s (icon / label / value) — **no trend, no delta, no chart anywhere on the
+- 4 `Tile`s (icon / label / value), **no trend, no delta, no chart anywhere on the
   earnings page**. The `AreaSparkline` component exists and is used only on the seeded
   dashboard.
 - Month breakdown as a hand-rolled `<table>` (`:124-145`) + phone card fallback.
@@ -113,12 +113,12 @@ Two dashboards. The seeded one (`page.tsx:62-322`) is the richer of the two:
 
 ### 1.8 Agent list wizard (`app/agent/list/ListingWizard.tsx`, 1308 lines)
 
-- **Segmented progress bar at the very top** (`:679-698`) — 7 equal-width 1.5px
+- **Segmented progress bar at the very top** (`:679-698`), 7 equal-width 1.5px
   segments filled with `var(--nf-gradient-agent)`. This is exactly what the brief asks
   for and is the best progress design in the repo.
 - Step name as an `aria-live` `<h1>` + `n / 7` counter (`:704-711`).
 - Autosave to server + `localStorage`, with a "saved at HH:MM" line (`:1273-1277`).
-- Sticky bottom action bar (`:1280`) — but `bg-[var(--nf-surface-primary)]`, **solid,
+- Sticky bottom action bar (`:1280`), but `bg-[var(--nf-surface-primary)]`, **solid,
   not blurred**, and it correctly offsets by `lg:left-[var(--nf-rail-width)]`.
 - Success uses the shared `MomentScreen` (`:655-670`).
 
@@ -128,11 +128,11 @@ Two dashboards. The seeded one (`page.tsx:62-322`) is the richer of the two:
   done/current, tick icon on done, connector lines that colour in, desktop captions,
   a phone-only current-step caption. Good, though it is a dot-stepper not a segmented
   bar (inconsistent with `ListingWizard`).
-- `UploadZone` (`:473-543`) — dashed 4:3 drop zone, live preview, "Uploading…" scrim,
+- `UploadZone` (`:473-543`), dashed 4:3 drop zone, live preview, "Uploading…" scrim,
   an "Uploaded" verified pill, per-slot error. Genuinely well thought through.
 - **Validation is submit-only.** `err` comes from `useActionState` on the server action
   (`:68`, `:188`); there is no per-step gate. You can click Next through all six steps
-  with an empty form and only learn on submit — and the errors then live on steps you
+  with an empty form and only learn on submit, and the errors then live on steps you
   have navigated away from (fieldsets are `hidden`, `:245`, `:282`, …), so a field error
   can render in a `hidden` fieldset and be invisible.
 - Hardcoded English inside a fully-i18n'd app: `:132`, `:166`, `:177`, `:183` (upload
@@ -142,37 +142,37 @@ Two dashboards. The seeded one (`page.tsx:62-322`) is the richer of the two:
   hero reference numeral in `nf-numeric` at 1.75rem with tracking (`:99`), a real
   3-stage vertical timeline with rail segments and done/current/upcoming dot states
   (`:123-189`), staged `nf-rise` animation delays (`:96`, `:120`, `:203`).
-- `app/agents/page.tsx` (pitch) — has ~10 hardcoded English strings for step blurbs and
+- `app/agents/page.tsx` (pitch), has ~10 hardcoded English strings for step blurbs and
   the FAQ (`:36-66`), acknowledged in its own header comment (`:25-27`).
 
 ### 1.10 Admin console (`app/admin/**`)
 
-- `layout.tsx` — server-side access gate, then the identical rail+glass-header shell as
+- `layout.tsx`: server-side access gate, then the identical rail+glass-header shell as
   Agent Mode (`:49-95`). `AdminPill` marker (`:99-112`). Queue counts fetched once and
   passed to both nav form factors as badges (`:35-46`).
-- `AdminRail` (`AdminNav.tsx:28-71`) — 8 flat items, `UiIcon` at 18px, active =
+- `AdminRail` (`AdminNav.tsx:28-71`), 8 flat items, `UiIcon` at 18px, active =
   `bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)]`, count badge as a
-  solid brand-blue pill. `AdminTabs` (`:73-114`) — horizontal `nf-scroll-x` chip strip
+  solid brand-blue pill. `AdminTabs` (`:73-114`), horizontal `nf-scroll-x` chip strip
   below lg with the same counts.
-- `_components/ui.tsx` — a real shared kit: `statusTone()` (`:25-46`), `TONE_STYLE`
+- `_components/ui.tsx`: a real shared kit: `statusTone()` (`:25-46`), `TONE_STYLE`
   (`:48-57`), `StatusChip`, `QueueHeader`, `QueueEmpty`, `QueueUnavailable`,
   `DetailRow`, `DetailSection`, `CheckRow`. Bound to locale via `adminUi(t, locale)`.
   This is the strongest piece of system thinking in the console.
-- `_components/AdminActions.tsx` — one shared `ActionSheet` (`:51-185`) for every
+- `_components/AdminActions.tsx`: one shared `ActionSheet` (`:51-185`) for every
   decision: portal, Escape, scroll lock, focus, `role="dialog" aria-modal`, optional
   required notes textarea, `role="alert"` error, pending label, and a **success state
   rendered in-sheet** (`:115-127`). This is well above average.
 - Queue pages: `page.tsx` (6-tile overview), `flags`, `alerts`, `reports`, `agents`,
-  `listings`, `support`, `switches` — all the same shape: `QueueHeader` → open list →
+  `listings`, `support`, `switches`: all the same shape: `QueueHeader` → open list →
   "recently decided" list, each item an `nf-card` `<li>`.
-- `AccessScreen.tsx` — centred `nf-card`, logo, tinted circular key icon, three honest
+- `AccessScreen.tsx`: centred `nf-card`, logo, tinted circular key icon, three honest
   refusal variants, primary CTA + quiet secondary link. Designed, not embarrassing.
 
 ---
 
 ## 2. Gaps vs the reference standard
 
-### P0 — ship blockers for "designed by a top-tier studio"
+### P0, ship blockers for "designed by a top-tier studio"
 
 **P0-1 · The admin is a sidebar + single-column card feed, not a three-pane.**
 Reference 7 is icon rail → list pane → detail pane. Every admin queue is
@@ -182,13 +182,13 @@ detail cards: `admin/agents/page.tsx:194`+`:200`, `admin/listings/page.tsx:194`+
 `admin/reports/page.tsx:100`+`:106`. On a 1440px monitor a reviewer sees one 768px
 column of stacked mega-cards with ~half the screen empty. `admin/agents/page.tsx`
 renders **every field of a six-step application** (`:61-152`, five `DetailSection`s,
-~18 `DetailRow`s) inline for *every* card in the list — scrolling past three pending
+~18 `DetailRow`s) inline for *every* card in the list, scrolling past three pending
 applications means scrolling past ~60 detail rows.
 
 **P0-2 · Support is the one page that tries two panes and gets the order backwards.**
 `admin/support/page.tsx`: the selected ticket's detail renders at `:113-183`, i.e.
 *above* the list at `:185-225`. Selecting a ticket is a `<Link href="?ticket=id">`
-(`:40`) — a full server navigation on a `force-dynamic` page with no loading state, and
+(`:40`), a full server navigation on a `force-dynamic` page with no loading state, and
 the reader is then scrolled to a detail block sitting on top of the list they came
 from. That is not a list/detail pane, it is an accordion in the wrong order.
 
@@ -223,7 +223,7 @@ the root boundary and drops the operator out of the console entirely.
 **P0-6 · The agent top-bar search is fake.**
 `AgentShell.tsx:59-64`: `<input type="search" aria-label={t.common.search}
 placeholder="Search bookings, my listings" className="nf-field hidden !py-2 pl-9
-sm:block sm:max-w-md" />` — no `name`, no `form`, no `onChange`, no `onSubmit`, no
+sm:block sm:max-w-md" />`: no `name`, no `form`, no `onChange`, no `onSubmit`, no
 results UI. It is a prop that looks like a feature. Shipping a decorative search field
 in a supplier tool is a credibility failure, and App Review has rejected apps for
 non-functional visible controls.
@@ -233,7 +233,7 @@ non-functional visible controls.
 Every agent sees a permanent "3" on Messages. Messages is an `AgentComingSoon` stub
 (`app/agent/messages/page.tsx:10`). Tap the badge, get "In development."
 
-### P1 — visibly below the bar
+### P1, visibly below the bar
 
 **P1-8 · No rail tooltips, no active pill, no grouped sections, no status dots.**
 Reference 7 asks for all four. `AgentNav.tsx:76-104` and `AdminNav.tsx:47-64` are flat
@@ -243,13 +243,13 @@ with small-caps labels, no coloured leading dot per destination. `ADMIN_NAV`
 human → switches, per its own comment at `:5-8`) and **that grouping is documented in
 prose but never rendered**.
 
-**P1-9 · Agent Mode has no mobile tab bar — a straight downgrade from the guest app.**
-Guest: `components/app/MobileTabBar.tsx:31-33` — `nf-tabbar fixed inset-x-4
+**P1-9 · Agent Mode has no mobile tab bar, a straight downgrade from the guest app.**
+Guest: `components/app/MobileTabBar.tsx:31-33`: `nf-tabbar fixed inset-x-4
 bottom-[max(0.9rem,env(safe-area-inset-bottom))] mx-auto w-fit`, a floating detached
 pill with `nf-tab-pop__pill` sliding indicator and `nf-tab-pop-in` spring animation
 (`globals.css:2088-2128`). Agent: a hamburger drawer (`AgentMobileNav.tsx:57-69`).
 Agents are the users **most** likely to be on a phone. The justification in the header
-comment (`:24-27`) — ten destinations won't fit five slots — is sound reasoning for the
+comment (`:24-27`), ten destinations won't fit five slots, is sound reasoning for the
 wrong conclusion: the answer is 4 tabs + "More", not zero tabs. Admin is worse: a
 horizontal scrolling chip strip (`AdminNav.tsx:85-112`) with no persistent anchor.
 
@@ -257,7 +257,7 @@ horizontal scrolling chip strip (`AdminNav.tsx:85-112`) with no persistent ancho
 `AppShell.tsx:112` renders `<ThemeToggle />`. `AgentShell.tsx:38-68` and
 `admin/layout.tsx:70-80` do not. An agent who set light mode in the guest app carries it
 over via the root, but has no control inside the workspace, and there is no evidence
-either surface was reviewed in light mode — `nf-panel-sunken` is a hard
+either surface was reviewed in light mode, `nf-panel-sunken` is a hard
 `linear-gradient(180deg, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.68))` (`globals.css:1825-1832`)
 with a light override at `:3109`, and the agent rail/admin rail are opaque
 `--nf-surface-primary` rather than glass.
@@ -267,12 +267,12 @@ with a light override at `:3109`, and the agent rail/admin rail are opaque
 - Big value: `text-[1.25rem] ... sm:text-[1.375rem]` (`:50`). That is 22px. Reference 13
   and 8 use a display numeral. `nf-hero-figure` exists (`globals.css:1808`+,
   `clamp(2.75rem, 11vw, 4.25rem)`, tabular, `-0.03em` tracking) and is used in **exactly
-  one file in the repo** — `app/(app)/checkout/[bookingId]/page.tsx`. Never in the
+  one file in the repo**: `app/(app)/checkout/[bookingId]/page.tsx`. Never in the
   agent workspace.
 - **Two-tone value: absent.** `₦12.4M` renders as one uniform string; there is no muted
   secondary span for the unit/decimal. The brief calls this "one of the strongest
   premium tells in the whole reference set."
-- Trend delta: **present and good** — arrow path flips direction (`:59-61`), colour is
+- Trend delta: **present and good**: arrow path flips direction (`:59-61`), colour is
   `--nf-state-success` / `--nf-state-error` (`:57`), sign is explicit (`:67`).
 - **Sparkline: absent.** No mini chart on any tile.
 - Tinted icon tile: **partial.** `<BrandIcon name={icon} fill />` (`:44`) is a filled
@@ -288,13 +288,13 @@ performance table (`dashboard/page.tsx:123-300`). Whatever the data honesty argu
 the *designed* experience must not be the one nobody sees.
 
 **P1-13 · Charts are minimum-viable.**
-`AreaSparkline.tsx` — gradient fill (`:49-52`) ✓, line ✓, end dot ✓. Missing: **any
+`AreaSparkline.tsx`: gradient fill (`:49-52`) ✓, line ✓, end dot ✓. Missing: **any
 axis, any gridline, any hover/tooltip, any point markers, any value labels**. Worse,
-`preserveAspectRatio="none"` (`:43`) means the stroke is non-uniformly scaled — mitigated
+`preserveAspectRatio="none"` (`:43`) means the stroke is non-uniformly scaled, mitigated
 by `vectorEffect="non-scaling-stroke"` (`:62`) for the line but the gradient area is
 still stretched. And `<linearGradient id="nf-spark-fill">` (`:49`) is a **hardcoded
 non-unique DOM id**; two sparklines on one page collide.
-`DonutChart.tsx` — segments, gap, centre total, legend with %, colour-independent labels
+`DonutChart.tsx`: segments, gap, centre total, legend with %, colour-independent labels
 (`:62-75`). Solid but static: no hover, no segment highlight, no animation.
 Reference 13's pink line chart has a labelled axis and a soft gradient fill; reference 8
 has a dotted grid. Neither exists here. There is no bar chart, no progress-ring, no
@@ -303,22 +303,22 @@ multi-arc gauge, no "heart-rate-zone" style mini progress-bar row.
 **P1-14 · Destructive actions have no destructive *button* design.**
 There is no `nf-btn--danger` in `globals.css` (only `--primary`, `--glass`, `--ghost`,
 `--lg`, `:1372-1446`). So destruction is faked two ways:
-- `AdminActions.tsx:167-171` — `className="nf-btn nf-btn--primary"` with
+- `AdminActions.tsx:167-171`: `className="nf-btn nf-btn--primary"` with
   `style={{ background: "var(--nf-state-error)", boxShadow: "none" }}`. The inline
   override kills the primary's shadow *and* leaves the `::after` sheen (`:1381`)
   painting a blue-tinted gradient over a red button.
-- `AdminActions.tsx:398`, `:498`, `:720` — `nf-btn nf-btn--glass` with
+- `AdminActions.tsx:398`, `:498`, `:720`: `nf-btn nf-btn--glass` with
   `style={{ color: "var(--nf-state-error)" }}`. Red text on a neutral glass pill, no
   red border, no red tint. "Reject", "Switch off" and "Cancel" are visually the same
   weight.
-- Agent delete is worse: `ListingsWorkspace.tsx:342-349` — a bare text button in
+- Agent delete is worse: `ListingsWorkspace.tsx:342-349`: a bare text button in
   `text-[var(--nf-content-muted)]`, i.e. the *lowest* contrast element in the row.
 
 **P1-15 · Four different mechanisms for one status pill.**
-1. `admin/_components/ui.tsx:48-57` `TONE_STYLE` + `statusTone()` — the good one.
-2. `agent/listings/ListingsWorkspace.tsx:54-67` `toneStyle()` — a near-identical
+1. `admin/_components/ui.tsx:48-57` `TONE_STYLE` + `statusTone()`: the good one.
+2. `agent/listings/ListingsWorkspace.tsx:54-67` `toneStyle()`: a near-identical
    reimplementation reading `STATUS_TONE` from the schema.
-3. `agent/bookings/BookingsWorkspace.tsx:47-56` `statusBadgeClass()` — uses the CSS
+3. `agent/bookings/BookingsWorkspace.tsx:47-56` `statusBadgeClass()`: uses the CSS
    classes `nf-badge--warning` / `nf-badge--success` instead.
 4. Raw inline objects: `agent/dashboard/page.tsx:172-177`,
    `RealDashboard.tsx:222-232`, `agents/status/page.tsx:105-110`.
@@ -333,9 +333,9 @@ An operator cannot filter flags by reason, sort applications by age, or search a
 ticket by reference. Reference 7 puts filter chips at the top of the list pane.
 
 **P1-17 · Per-step validation missing in `ApplyWizard`.**
-`ApplyWizard.tsx:383-386` — Next is `onClick={() => setStep(s => Math.min(last, s+1))}`
+`ApplyWizard.tsx:383-386`: Next is `onClick={() => setStep(s => Math.min(last, s+1))}`
 with no gate. Errors only arrive from the server on submit (`:68`, `:188`) and render
-inside `hidden` fieldsets (`:245`, `:282`, `:290`, `:306`, `:327`) — the applicant can
+inside `hidden` fieldsets (`:245`, `:282`, `:290`, `:306`, `:327`), the applicant can
 be told "there is an error" with nothing visible. `ListingWizard.tsx:426` does gate
 step 0 on `titleIssue`, so the two wizards in the same product behave differently.
 
@@ -360,13 +360,13 @@ shortly." A Hausa- or Yoruba-speaking agent hits five of ten destinations in Eng
 `AgentComingSoon` wrappers. Half the rail is furniture. For App Store submission this
 is a functionality-completeness risk in its own right, independent of design.
 
-### P2 — polish
+### P2, polish
 
 **P2-22 · Sticky action bar is solid, not blurred.** `ListingWizard.tsx:1280`
-`bg-[var(--nf-surface-primary)]` — the brief asks for blurred pinned footers
+`bg-[var(--nf-surface-primary)]`: the brief asks for blurred pinned footers
 (§3, §5). The `nf-glass` class is right there and used in both shell headers.
 
-**P2-23 · Duplicate nav icon.** `AgentNav.tsx:24-25` — `calendar-check` for both
+**P2-23 · Duplicate nav icon.** `AgentNav.tsx:24-25`: `calendar-check` for both
 "List apartment" and "Bookings".
 
 **P2-24 · Admin nav icons are generic re-use.** `nav.ts:24` uses `chat-bubble` for
@@ -379,7 +379,7 @@ and active render the identical glyph at identical weight (`AdminNav.tsx:57`).
 wins.
 
 **P2-26 · Reviewer thumbnails are unconstrained raw `<img>`.**
-`admin/listings/page.tsx:102-108` — `h-24 w-32 object-cover` in an `nf-scroll-x` strip,
+`admin/listings/page.tsx:102-108`: `h-24 w-32 object-cover` in an `nf-scroll-x` strip,
 no lightbox, no click-to-enlarge, no count. A reviewer approving a listing on photo
 quality gets 96×128px crops with no way to see the full image.
 
@@ -388,33 +388,30 @@ warns against.** `ui.tsx:137-152` and `:158-175`: a 48px tinted circle, a bold l
 muted line. Correct information, zero design. The brief asks for a full-bleed
 illustration/photograph, a real headline and a single primary CTA. `QueueEmpty` has
 **no CTA at all**. Compare `ListingsWorkspace.tsx:367-385` and
-`BookingsWorkspace.tsx:423-435`, which do have an 80px `BrandIcon` and a CTA — the
+`BookingsWorkspace.tsx:423-435`, which do have an 80px `BrandIcon` and a CTA, the
 agent side got a better empty state than the admin side.
 
-**P2-28 · `AgentComingSoon` is decent but generic.** `AgentComingSoon.tsx:31-54` —
-blurred gradient halo behind a 72px `BrandIcon` (`:33-40`), "In development" tag pill,
+**P2-28 · `AgentComingSoon` is decent but generic.** `AgentComingSoon.tsx:31-54`: blurred gradient halo behind a 72px `BrandIcon` (`:33-40`), "In development" tag pill,
 `nf-h2`, a sentence, a ghost CTA back to the dashboard. Not embarrassing. But it is
 identical for all five stubs; there is no preview of what is coming, no "notify me",
 no ETA, no illustration specific to the surface.
 
 **P2-29 · `AccessScreen` doesn't use the shell.** `AccessScreen.tsx:46` renders its own
 bare `<main className="flex min-h-dvh items-center justify-center">` with no aurora, no
-`LivingCanvas`, no theme toggle, no footer — where the guest app's equivalent moments
+`LivingCanvas`, no theme toggle, no footer, where the guest app's equivalent moments
 sit on `nf-aurora` (cf. `agents/apply/page.tsx:27`).
 
 **P2-30 · No avatar anywhere in the admin.** Reference 7's list rows are avatar-led.
 `admin/agents/page.tsx` renders an applicant's full six-step file with **no photo of
 the person**, `admin/support/page.tsx:53-58` shows a name as plain text. The agent side
-does have `AgentIdentityCard` (`AgentNav.tsx:114-141`) with a gradient initial circle —
-that pattern is never reused in the console.
+does have `AgentIdentityCard` (`AgentNav.tsx:114-141`) with a gradient initial circle, that pattern is never reused in the console.
 
 **P2-31 · No avatar stacks, no timeline, no calendar strip in the agent workspace.**
 Reference 9's project manager leans on avatar stacks, a day-strip calendar and a
-timeline schedule. `agent/bookings` — the one surface that is *literally a schedule* —
-renders a flat card list with no calendar view, no month strip, no timeline.
+timeline schedule. `agent/bookings`: the one surface that is *literally a schedule*, renders a flat card list with no calendar view, no month strip, no timeline.
 
 **P2-32 · Bookings tabs are chips, not a segmented control.**
-`BookingsWorkspace.tsx:378-398` — four independent `nf-chip`s. Reference 13's Day/Week/
+`BookingsWorkspace.tsx:378-398`: four independent `nf-chip`s. Reference 13's Day/Week/
 Month/Year is a segmented control whose active capsule *slides*. No indicator, no
 animation, no shared track.
 
@@ -424,10 +421,10 @@ the back office and it appears three times; earnings tiles
 (`EarningsWorkspace.tsx:92`) are a bare `grid` with no well.
 
 **P2-34 · Admin overview tiles say "Open"/"Clear" in hardcoded English.**
-`admin/page.tsx:80-82` — `{value > 0 ? "Open" : "Clear"}`, and `:52`
+`admin/page.tsx:80-82`: `{value > 0 ? "Open" : "Clear"}`, and `:52`
 `title="Total open across every queue"`. Everything else on that page is dictionary-driven.
 
-**P2-35 · `nf-tag-pill` misuse on the overview.** `admin/page.tsx:80` — a queue with
+**P2-35 · `nf-tag-pill` misuse on the overview.** `admin/page.tsx:80`: a queue with
 work gets the *default brand-blue* `nf-tag-pill`, a clear queue gets
 `nf-tag-pill--success`. So "6 flags waiting" reads as calm brand blue and "nothing to
 do" reads as urgent green-adjacent. `--warning` exists (`globals.css:1809`) and is the
@@ -452,7 +449,7 @@ but not enforced.
 gated in component code.
 
 **P2-40 · `.nf-field` on `<select>` gets inline `background` per `<option>`.**
-`ApplyWizard.tsx:455-458` — `style={{ background: "var(--nf-surface-elevated)" }}` on
+`ApplyWizard.tsx:455-458`: `style={{ background: "var(--nf-surface-elevated)" }}` on
 every `<option>` is a browser workaround leaking into markup; there is no styled
 select primitive in the design system.
 
@@ -463,7 +460,7 @@ select primitive in the design system.
 no destination in `ADMIN_NAV` (`nav.ts:22-31`).
 
 **P2-42 · Overview has no trend, no sparkline, no time context.**
-`admin/page.tsx:84-91` — six raw integers at `text-[2rem]`. No "up 4 since yesterday",
+`admin/page.tsx:84-91`: six raw integers at `text-[2rem]`. No "up 4 since yesterday",
 no 7-day sparkline, no median-age-of-oldest-item. Reference 9 puts a mini chart on
 every raised card.
 
@@ -488,19 +485,19 @@ Replace `mx-auto max-w-3xl` on all seven queue pages with a shared
 grid: [72px icon rail] [minmax(320px, 380px) list pane] [1fr detail pane]
 ```
 
-1. **Icon rail** — collapse `AdminRail` to 72px icon-only at `xl`, keep the 264px
+1. **Icon rail**: collapse `AdminRail` to 72px icon-only at `xl`, keep the 264px
    labelled rail at `lg`. Add a `title`-backed tooltip component (delayed, positioned
    right, `nf-glass`). Active state becomes a `rounded-full` pill with the brand fill
    *plus* a 3px leading indicator bar. Render `ADMIN_NAV` in the three groups its own
    comment already describes (`nav.ts:5-8`) under small-caps
    `text-[0.6875rem] uppercase tracking-[0.08em] text-[var(--nf-content-muted)]`
-   labels — SAFETY / SUPPLY / PEOPLE / SYSTEM — each row carrying a 6px coloured status
+   labels, SAFETY / SUPPLY / PEOPLE / SYSTEM, each row carrying a 6px coloured status
    dot (red for flags/alerts, amber for review queues, blue for tickets).
-2. **List pane** — one compact row per item: avatar or type glyph, title, `StatusChip`,
+2. **List pane**: one compact row per item: avatar or type glyph, title, `StatusChip`,
    relative age right-aligned, unread dot. `overflow-y-auto`, its own sticky header with
    filter chips (status, age, reason) and a search field. Selection is client state, not
    a `?ticket=` navigation.
-3. **Detail pane** — everything `ApplicationCard` / `ListingCard` currently renders
+3. **Detail pane**: everything `ApplicationCard` / `ListingCard` currently renders
    inline, moved here, with the decision buttons in a **blurred sticky footer**
    (`nf-glass`) at the bottom of the pane.
 4. Below `lg`, degrade to the current single column with list → detail as a route push.
@@ -533,7 +530,7 @@ phone card fallback (so `dashboard/page.tsx:193-256` and
 
 ### 3.3 Add `loading.tsx` + `error.tsx` to both surfaces (fixes P0-4, P0-5)
 
-- `app/admin/loading.tsx` — the rail and header are in `layout.tsx` so they persist;
+- `app/admin/loading.tsx`: the rail and header are in `layout.tsx` so they persist;
   the loading file only needs a skeleton queue: `QueueHeader` skeleton + 4 shimmering
   `nf-card` blocks. Add an `nf-skeleton` class with a `@keyframes` sweep and a
   `prefers-reduced-motion` collapse to a static tint.
@@ -566,7 +563,7 @@ phone card fallback (so `dashboard/page.tsx:193-256` and
   bold figure + muted `.00`.
 - Give `RealDashboard`'s `Tile` the same component. For the missing-history problem,
   show a sparkline of whatever *does* exist (listing count over time, bookings per week)
-  rather than nothing — or render an explicit "no history yet" micro-state inside the
+  rather than nothing, or render an explicit "no history yet" micro-state inside the
   delta slot instead of omitting the row.
 - Wrap earnings tiles in `nf-panel-sunken` for consistency with the two dashboards.
 
@@ -581,7 +578,7 @@ phone card fallback (so `dashboard/page.tsx:193-256` and
 - `DonutChart`: animate `stroke-dasharray` from 0 on mount (gated on reduced-motion),
   add hover-to-highlight with the segment's value replacing the centre total.
 - Add two missing primitives the references lean on: a labelled mini progress-bar row
-  (reference 13's "heart rate zones" — perfect for listing-status distribution) and a
+  (reference 13's "heart rate zones", perfect for listing-status distribution) and a
   weekly ring strip.
 
 ### 3.6 Fix destructive-action design (fixes P1-14)
@@ -626,14 +623,14 @@ bookings, or remove it. There is no third option before App Review.
 
 ### 3.10 Kill the fake badge (fixes P0-7)
 
-`AgentNav.tsx:26` — drop `badge: 3`, thread real unread counts from
+`AgentNav.tsx:26`: drop `badge: 3`, thread real unread counts from
 `readAgentNumbers` (which already returns `unreadMessages`, used at
 `RealDashboard.tsx:127`) into `buildAgentNav`. Until Messages ships, render no badge.
 
 ### 3.11 Empty states worth the name (fixes P2-27, P2-28)
 
 `QueueEmpty` (`ui.tsx:137-152`): 96px `BrandIcon` or a spot illustration, a real
-headline ("Nothing waiting — the flag queue is clear"), one sentence, and a CTA to the
+headline ("Nothing waiting, the flag queue is clear"), one sentence, and a CTA to the
 next queue with work. `AgentComingSoon`: per-surface illustration, a two-line preview
 of what the screen will do, and move the copy into the dictionary.
 
@@ -647,7 +644,7 @@ comment at `:16-25` already says so).
 
 ### 3.13 Wizard consistency (fixes P1-17, P1-18, P2-22)
 
-Adopt `ListingWizard`'s segmented bar in `ApplyWizard` (or vice versa — pick one).
+Adopt `ListingWizard`'s segmented bar in `ApplyWizard` (or vice versa, pick one).
 Add a per-step client validation gate to `ApplyWizard` mirroring
 `ListingWizard.tsx:426`, and on submit failure jump to the first step carrying an error
 so nothing is announced from inside a `hidden` fieldset. Change
