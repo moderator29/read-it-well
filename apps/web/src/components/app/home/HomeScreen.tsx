@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { forListingCard } from "@/lib/i18n/slice";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { DAYPART_GREETING, type HomeOverview } from "@/lib/app/home-queries";
@@ -255,7 +256,7 @@ export function HomeScreen({
           <li key={listing.id} className="nf-feature-row__item">
             {/* The catalogue's card is F3's and is never forked here, so home
                 and search show one object. */}
-            <ListingCard listing={listing} locale={locale} t={t} index={index} />
+            <ListingCard listing={listing} locale={locale} t={forListingCard(t)} index={index} />
           </li>
         ))}
       </FeaturedBand>

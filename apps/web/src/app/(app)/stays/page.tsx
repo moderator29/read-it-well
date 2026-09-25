@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forStayCard } from "@/lib/i18n/slice";
 import { marketOf } from "@/lib/listings/market";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -226,7 +227,7 @@ export default async function StaysHomePage() {
             <StayCard
               stay={stay}
               locale={locale}
-              t={t}
+              t={forStayCard(t)}
               index={index}
               saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
               canSavePlaces={canSavePlaces}

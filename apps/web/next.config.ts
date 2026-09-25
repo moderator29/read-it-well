@@ -57,6 +57,19 @@ const nextConfig: NextConfig = {
   // Workspace packages ship raw TypeScript, so Next compiles them in place.
   transpilePackages: ["@vallo/design-tokens", "@vallo/i18n"],
 
+  experimental: {
+    /*
+     * THE CLIENT ROUTER KEEPS WHAT IT HAS JUST SEEN (Track M performance).
+     * With the default of 0 for dynamic pages, going back to a tab you left
+     * ten seconds ago fetched it again and showed its skeleton while it did.
+     * Thirty seconds of reuse makes tab switching and back instant; live
+     * surfaces (the inbox, notifications, a thread) keep themselves current
+     * through their realtime subscriptions regardless. Prefetched pages keep
+     * the default five minutes.
+     */
+    staleTimes: { dynamic: 30, static: 300 },
+  },
+
 
   // Three image sources, all explicitly allowed through the optimiser and
   // nothing else: the seed catalogue's Unsplash photography, the Supabase

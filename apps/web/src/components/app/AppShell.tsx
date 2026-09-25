@@ -13,6 +13,8 @@ import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, sideOfPlansQuery, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
 import { SideSync } from "./SideSync";
+import { useHydrated } from "@/components/motion/useInView";
+import { isDataSaver } from "@/lib/ui/data-saver";
 import { isDetailPath } from "@/lib/side.constants";
 import { ProfileSwitcher, type ProfileSwitcherCopy } from "@/components/supply/ProfileSwitcher";
 import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";
@@ -117,6 +119,9 @@ export function AppShell({
   const searchParams = useSearchParams();
   const activeType = searchParams.get("type");
   const [drawer, setDrawer] = useState(preview?.drawer ?? false);
+  /* The dock prefetches its tabs whole once the page is live, and never under
+     data saving (Track M performance; see MobileTabBar's prefetchFull). */
+  const hydrated = useHydrated();
 
   const effectiveSide: Side = sideOfPath(active) ?? sideOfPlansQuery(active, searchParams) ?? side;
   const immersive = isImmersiveRoute(active);
@@ -429,6 +434,7 @@ export function AppShell({
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
           switchSlot={switchControl}
+          prefetchFull={hydrated && !isDataSaver()}
         />
       )}
     </div>

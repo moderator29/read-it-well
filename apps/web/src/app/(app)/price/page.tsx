@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forPriceCheck } from "@/lib/i18n/slice";
 import { randomUUID } from "node:crypto";
 import { areaPaid } from "@/lib/after-gate/paid-queries";
 import { PaidPanel } from "@/components/app/price/PaidPanel";
@@ -176,7 +177,7 @@ export default async function PriceCheckPage({
       <div className="mt-section-tight">
         <PriceCheckScreen
           locale={locale}
-          t={t}
+          t={forPriceCheck(t)}
           states={states.map((row) => ({ code: row.code, name: row.name }))}
           lgas={lgas.map((row) => ({ code: row.code, name: row.name }))}
           query={{

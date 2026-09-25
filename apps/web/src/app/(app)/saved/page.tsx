@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forListingCard, forStayCard } from "@/lib/i18n/slice";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
@@ -77,7 +78,7 @@ export default async function SavedPage() {
          `saved_items` saw an empty heart beside the `StayCard` half's filled
          one, on the same screen. `entry.mode` says which half resolved it
          and both mean saved. (R2 finding 4.) */
-      card: <ListingCard listing={entry.listing} locale={locale} t={t} saved />,
+      card: <ListingCard listing={entry.listing} locale={locale} t={forListingCard(t)} saved />,
     })),
     ...places.map<SavedBoardItem>((entry) => ({
       id: entry.row.entity_id,
@@ -91,7 +92,7 @@ export default async function SavedPage() {
         <StayCard
           stay={stayCardFromRow(entry.row)}
           locale={locale}
-          t={t}
+          t={forStayCard(t)}
           saved
           canSavePlaces
         />

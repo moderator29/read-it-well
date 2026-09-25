@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forListingCard } from "@/lib/i18n/slice";
 import { after } from "next/server";
 import { demandRecorder } from "@/lib/demand/record";
 import { demandCell } from "@/lib/demand/cell";
@@ -617,7 +618,7 @@ export default async function SearchPage({
                   <ListingCard
                     listing={l}
                     locale={locale}
-                    t={t}
+                    t={forListingCard(t)}
                     index={i}
                     dense={query.view !== "rows"}
                     saved={savedIds.has(l.id)}

@@ -1,4 +1,5 @@
 import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
+import { forSettingsHub } from "@/lib/i18n/slice";
 import type { Metadata } from "next";
 import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
@@ -77,7 +78,7 @@ export default async function SettingsPage() {
 
       <div className="space-y-block">
         <SettingsHub
-          t={t}
+          t={forSettingsHub(t)}
           locale={locale}
           signedIn={signedIn}
           person={
@@ -109,7 +110,7 @@ export default async function SettingsPage() {
             same block: the hub is a list of doors, not a second copy of a
             screen (track G). */}
 
-        <LogOutRow t={t} signedIn={signedIn} />
+        <LogOutRow t={forSettingsHub(t)} signedIn={signedIn} />
       </div>
     </div>
   );
