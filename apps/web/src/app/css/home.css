@@ -704,6 +704,12 @@
     position: relative;
     z-index: 1;
     display: grid;
+    /* One column that may be narrower than its content's natural width. The
+       implicit column was sized to the search field's intrinsic width (a text
+       input is about twenty characters wide however much room it has), which
+       at 390px pushed the filter button 26px past the plate's edge, where the
+       plate's clip cut it in half. */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-space-sm);
     padding: var(--nf-space-lg) var(--nf-space-md) var(--nf-space-md);
   }

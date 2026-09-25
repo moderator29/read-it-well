@@ -15,6 +15,7 @@ import "./globals.css";
 import { siteUrl } from "@/lib/site";
 import { CHROME_COLOUR } from "@/lib/theme/chrome";
 import { THEME_BOOT_SCRIPT, THEME_KEY, parseThemeChoice, serverTheme } from "@/lib/theme/theme";
+import { ITERATION_QUIET_SCRIPT } from "@/lib/motion/iteration-quiet";
 
 /*
  * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
@@ -334,6 +335,17 @@ export default async function RootLayout({
           storage, then sets the browser chrome to match. See
           `lib/theme/theme.ts`.
         */}
+        {/*
+          FIRST OF ALL, BEFORE REACT: no document-wide listener for animation
+          laps. With one in place the browser wakes the main thread for every
+          lap of every moving edge light; without it the lights cost the page
+          nothing. See `lib/motion/iteration-quiet.ts`.
+        */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: ITERATION_QUIET_SCRIPT }}
+        />
         <script
           nonce={nonce}
           suppressHydrationWarning
