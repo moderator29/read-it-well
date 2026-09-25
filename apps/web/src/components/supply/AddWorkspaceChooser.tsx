@@ -119,7 +119,8 @@ const DOOR_OBJECT: Record<string, BrandIconName> = {
  *
  * Every object is a whole glass object. `id-card-check` draws its card on a
  * glow that fills its canvas; in daylight the canvas edge is faded out
- * (controls.css), so it reads as a card and not as a lilac square.
+ * (light.css, for every glass object), so it reads as a card and not as a
+ * lilac square.
  */
 const NEED_OBJECTS: Record<string, readonly BrandIconName[]> = {
   owner: ["user-check", "id-card-check", "doc-shield", "wallet"],

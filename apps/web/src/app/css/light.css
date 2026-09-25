@@ -143,6 +143,20 @@
    * are drawn for the night and their see-through parts read thin on white.
    * The founder chose the object alone. What keeps it defined on white is a
    * soft blue shadow under the object itself, no plate, no rim.
+   *
+   * THE EDGE OF THE CANVAS FADES (25 September 2026). 23 objects
+   * are drawn on their own glass tile whose glow runs to the edge of the
+   * image: `contract-sign`, `seal-check`, `doc-review`, `savings-pot`,
+   * `coin-naira`, `hourglass`, `ledger-book`, the payment marks and the rest
+   * (measured over all 144 files: edge alpha between 0.17 and 0.43). At
+   * night the navy swallows that edge; on white it stopped in a hard lilac
+   * square. The outer tenth of every object now fades to nothing, so the
+   * tile ends in falloff instead of a cut. The other 121 objects sit inside
+   * a transparent margin, so the fade barely meets them: measured, it takes
+   * 0.1 percent of a solid body's alpha on average and 3.9 percent at the
+   * worst (`reviews`, whose bubble runs nearly edge to edge). A radial fade
+   * was tried and refused, because it rounds off the tiles and bites the
+   * corners of the keys, the bell and the lens.
    * ---------------------------------------------------------------- */
   :root[data-theme="light"] .nf-brand-icon-ground:not(:where([data-theme="dark"] *)),
   :root[data-theme="light"] .nf-icon-tile:not(:where([data-theme="dark"] *)) {
@@ -152,6 +166,14 @@
   }
   :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) img {
     filter: drop-shadow(0 2px 5px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent)) saturate(1.3) contrast(1.12);
+    -webkit-mask-image:
+      linear-gradient(to right, transparent, var(--nf-mask-opaque) 10%, var(--nf-mask-opaque) 90%, transparent),
+      linear-gradient(to bottom, transparent, var(--nf-mask-opaque) 10%, var(--nf-mask-opaque) 90%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent, var(--nf-mask-opaque) 10%, var(--nf-mask-opaque) 90%, transparent),
+      linear-gradient(to bottom, transparent, var(--nf-mask-opaque) 10%, var(--nf-mask-opaque) 90%, transparent);
+    mask-composite: intersect;
   }
   /* A plate around a glass object is a light container now, the object
      standing in it on its own. A plate holding a line glyph stays pale with
