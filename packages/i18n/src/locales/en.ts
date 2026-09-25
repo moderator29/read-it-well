@@ -653,6 +653,7 @@ export const en = {
     messages: "Messages",
     wallet: "Wallet",
     agreements: "Agreements",
+    helpSupport: "Help and support",
     aiAssistant: "AI Assistant",
     profile: "Profile",
     settings: "Settings",

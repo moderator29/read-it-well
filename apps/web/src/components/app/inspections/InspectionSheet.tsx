@@ -50,7 +50,7 @@ import { statusFor, type BadgeTone } from "./status";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { TruthQuestions } from "./TruthQuestions";
 import { DrawUpAgreement } from "@/components/app/agreements/DrawUpAgreement";
-import { NO_INSPECTION_FEE, PRIVATE_FEE_NOTE } from "@/lib/money/copy";
+import { NO_INSPECTION_FEE, PRIVATE_FEE_NOTE, NO_INSPECTION_FEE_HEADLINE } from "@/lib/money/copy";
 import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 
 /**
@@ -344,13 +344,18 @@ export function InspectionSheet({
           </div>
           <UiIcon name="chevron-right" size={20} className="nf-ix-card__chev" />
         </div>
+        {/* Track B: visible on the closed card too, so nobody has to open it
+            to learn there is nothing to pay. */}
+        <p className="nf-ix-nofee-line" data-testid="inspection-no-fee-headline">
+          {NO_INSPECTION_FEE_HEADLINE}
+        </p>
       </summary>
 
       {/* TRACK B: stated on the inspection screen itself, not only in a policy. */}
       <div className="nf-ix-nofee" role="note" data-testid="inspection-no-fee">
         <UiIcon name="verified" size={16} />
         <p>
-          <strong>{NO_INSPECTION_FEE}</strong> {PRIVATE_FEE_NOTE}
+          <strong>{NO_INSPECTION_FEE_HEADLINE}.</strong> {NO_INSPECTION_FEE} {PRIVATE_FEE_NOTE}
         </p>
       </div>
 

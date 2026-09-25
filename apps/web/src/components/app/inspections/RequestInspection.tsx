@@ -13,6 +13,7 @@ import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when"
 import Link from "next/link";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import type { Inspection } from "@/lib/inspections/types";
+import { NO_INSPECTION_FEE_HEADLINE, PRIVATE_FEE_NOTE } from "@/lib/money/copy";
 
 /**
  * ASKING TO SEE A PROPERTY, AS A THING RATHER THAN A SENTENCE.
@@ -140,6 +141,11 @@ export function RequestInspection({
       <Sheet open={open} onOpenChange={setOpen} title={SHEET_TITLE} detents={[0.6]}>
         <div className="px-2xs pb-xs">
           <p className={TYPE.body}>{SHEET_SUB}</p>
+          {/* Track B: said where the inspection is asked for, before anybody
+              can be asked for money. */}
+          <p className="nf-ix-nofee" role="note" data-testid="request-inspection-no-fee">
+            <strong>{NO_INSPECTION_FEE_HEADLINE}</strong> {PRIVATE_FEE_NOTE}
+          </p>
 
           <label className="mt-md block">
             <span className="nf-label">{WHEN_LABEL}</span>

@@ -791,6 +791,14 @@
   line-height: 1.45;
 }
 
+.nf-ix-nofee-line {
+  margin: var(--nf-space-2xs, 0.25rem) var(--nf-space-card, 1rem) 0;
+  color: var(--nf-content-primary);
+  font-size: var(--nf-text-caption);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .nf-ix-nofee strong {
   color: var(--nf-content-primary);
 }

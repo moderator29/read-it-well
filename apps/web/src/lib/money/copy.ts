@@ -36,6 +36,9 @@ export const GUARANTEE_SCOPE =
 export const NO_INSPECTION_FEE =
   "Vallo charges no inspection fee. Viewing a property through Vallo is free.";
 
+/** The same promise as a heading, in the words the founder set for the screen. */
+export const NO_INSPECTION_FEE_HEADLINE = "VALLO CHARGES NO INSPECTION FEE";
+
 /** The companion to NO_INSPECTION_FEE: a private arrangement is not ours. */
 export const PRIVATE_FEE_NOTE =
   "If an owner or agent asks you for a fee to inspect, that is a private arrangement between you and them. It is not a Vallo charge, Vallo does not collect it, and you can report it to us.";

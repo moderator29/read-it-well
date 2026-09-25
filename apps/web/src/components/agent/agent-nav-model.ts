@@ -83,6 +83,8 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
       items: [
         { href: "/agent/verification", label: t.agent.nav.verification, icon: "verified" },
         { href: "/agent/settings", label: t.agent.nav.settings, icon: "sliders" },
+        /* Track B: help from every workspace, not only the member side. */
+        { href: "/settings/help", label: t.nav.helpSupport, icon: "ticket" },
       ],
     },
     /*

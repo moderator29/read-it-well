@@ -38,6 +38,11 @@ export function StaffFrame({ staff, name, children }: { staff: StaffAccess; name
                 Handbook
               </Link>
             </li>
+            <li>
+              <Link className="nf-btn nf-btn--secondary nf-btn--sm" href="/settings/help">
+                Help and support
+              </Link>
+            </li>
             {staff.handbookAcknowledged
               ? staff.scopes.map((scope) => (
                   <li key={scope}>
