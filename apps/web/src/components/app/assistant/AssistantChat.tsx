@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { DepthWords } from "@/components/motion/DepthWords";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import {
   formatNumber,
@@ -657,7 +658,11 @@ export function AssistantChat({
           >
             {empty && (
               <div className="flex flex-1 flex-col items-center justify-center gap-md py-section-tight text-center">
-                <span className="block h-24 w-24">
+                {/* Track M: the assistant settles in with a small spring, its
+                    greeting arrives word by word out of depth, and the line
+                    under it rises after. All of it waits for the app-open
+                    door and is still under reduced motion. */}
+                <span className="nf-ai-hello-bot block h-24 w-24">
                   <BrandIcon name="bot" fill />
                 </span>
                 <div>
@@ -665,8 +670,10 @@ export function AssistantChat({
                       screen whose composer, chips and thinking pill all come
                       from the dictionary. Three of four languages read the
                       assistant's own description of itself in a fourth. */}
-                  <p className="nf-h3">{copy.emptyTitle}</p>
-                  <p className="nf-body-sm mx-auto mt-2xs max-w-[36ch] text-[var(--nf-content-muted)]">
+                  <p className="nf-h3">
+                    <DepthWords text={copy.emptyTitle} />
+                  </p>
+                  <p className="nf-rise nf-rise-4 nf-body-sm mx-auto mt-2xs max-w-[36ch] text-[var(--nf-content-muted)]">
                     {copy.emptyBody}
                   </p>
                 </div>
@@ -774,13 +781,14 @@ export function AssistantChat({
 
           {/* ---------------------------------------------- suggestions */}
           <div className="nf-ai__chips" role="group" aria-label="Suggested questions">
-            {STARTERS.map((s) => (
+            {STARTERS.map((s, i) => (
               <button
                 key={s.key}
                 type="button"
                 onClick={() => send(copy.chips[s.key])}
                 disabled={streamingHere}
-                className="nf-ai__chip nf-tap"
+                className={`nf-ai__chip nf-tap ${empty ? "nf-rise-seq" : ""}`}
+                style={empty ? ({ "--nf-rise-i": i + 2 } as React.CSSProperties) : undefined}
               >
                 <UiIcon name={s.icon} size={20} />
                 {/* The label is its own element so it can clamp. A bare text

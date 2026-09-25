@@ -62,6 +62,35 @@
     transform: scale(0.98);
   }
 
+  /* ------------------------------------------------ disclosures */
+
+  /*
+   * A `<details>` that eases open: the panel's height over 240ms on the
+   * standard curve where `::details-content` exists, instant elsewhere and
+   * under reduced motion. The chevron turns half a circle on the same beat.
+   * The help centre and the docs use it; the landing FAQ has its own copy in
+   * landing-rooms.css.
+   */
+  .nf-m-details {
+    interpolate-size: allow-keywords;
+  }
+  .nf-m-details::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height var(--nf-duration-base) var(--nf-ease-standard),
+      content-visibility var(--nf-duration-base) allow-discrete;
+  }
+  .nf-m-details[open]::details-content {
+    height: auto;
+  }
+  .nf-m-chevron {
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-m-details[open] > summary .nf-m-chevron {
+    transform: rotate(180deg);
+  }
+
   /* ------------------------------------------------ feature micro-motion */
 
   .nf-fx .nf-fx-wipe,
@@ -172,6 +201,24 @@
     100% { opacity: 1; transform: translateY(0); }
   }
 
+  /* ------------------------------------------- the assistant's hello */
+
+  /* The bot settles in with the spring, after the app-open door. */
+  .nf-ai-hello-bot {
+    animation: nf-ai-hello var(--nf-duration-deliberate) var(--nf-ease-spring) both;
+    animation-delay: var(--nf-splash-hold, 0s);
+  }
+  @keyframes nf-ai-hello {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0) scale(0.86);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   /* --------------------------------------------------- reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
@@ -188,6 +235,13 @@
     }
     .nf-fx * {
       animation: none !important;
+    }
+    .nf-m-details::details-content,
+    .nf-m-chevron {
+      transition: none;
+    }
+    .nf-ai-hello-bot {
+      animation: none;
     }
   }
   @media print {

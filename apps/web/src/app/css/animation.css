@@ -112,8 +112,16 @@
     }
   }
 
+  /*
+   * EVERY ON-LOAD ENTRANCE WAITS FOR THE DOOR (Track M). While the app-open
+   * splash is on screen the root carries `--nf-splash-hold` (threshold.css);
+   * it is zero otherwise, so outside the splash nothing here changes. Without
+   * it a page's first rise played underneath the door and was over before
+   * anybody could see it.
+   */
   .nf-rise {
     animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: var(--nf-splash-hold, 0s);
   }
 
   /*
@@ -131,10 +139,10 @@
    * already moved on. It is a cap rather than two names for one number, and the
    * cap is the decision.
    */
-  .nf-rise-2 { animation-delay: 50ms; }
-  .nf-rise-3 { animation-delay: 100ms; }
-  .nf-rise-4 { animation-delay: 150ms; }
-  .nf-rise-5 { animation-delay: 150ms; }
+  .nf-rise-2 { animation-delay: calc(var(--nf-splash-hold, 0s) + 50ms); }
+  .nf-rise-3 { animation-delay: calc(var(--nf-splash-hold, 0s) + 100ms); }
+  .nf-rise-4 { animation-delay: calc(var(--nf-splash-hold, 0s) + 150ms); }
+  .nf-rise-5 { animation-delay: calc(var(--nf-splash-hold, 0s) + 150ms); }
 
   /*
    * The same stagger for a LIST, whose length nobody knows at authoring time.
@@ -156,7 +164,7 @@
    */
   .nf-rise-seq {
     animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-    animation-delay: calc(min(var(--nf-rise-i, 0), 3) * 50ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--nf-rise-i, 0), 3) * 50ms);
   }
 
   /*
@@ -318,7 +326,7 @@
    */
   .nf-card-in {
     animation: nf-card-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-    animation-delay: calc(min(var(--card-i, 0), 3) * 50ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--card-i, 0), 3) * 50ms);
   }
   @keyframes nf-card-in {
     from {

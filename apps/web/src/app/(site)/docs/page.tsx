@@ -55,7 +55,7 @@ export default function DocsHomePage() {
       </div>
 
       {/* -------------------------------------------------------- chapters */}
-      <ol className="nf-rise mt-block grid gap-row sm:grid-cols-2" style={{ animationDelay: "80ms" }}>
+      <ol className="nf-rise mt-block grid gap-row sm:grid-cols-2" style={{ animationDelay: "calc(var(--nf-splash-hold, 0s) + 80ms)" }}>
         {CHAPTERS.map((chapter) => (
           <li key={chapter.slug}>
             <Link
@@ -88,7 +88,7 @@ export default function DocsHomePage() {
       </ol>
 
       {/* --------------------------------------------------- other surfaces */}
-      <section className="nf-rise mt-section" style={{ animationDelay: "140ms" }}>
+      <section className="nf-rise mt-section" style={{ animationDelay: "calc(var(--nf-splash-hold, 0s) + 140ms)" }}>
         <h2 className="nf-h3">Where else to look</h2>
         <div className="mt-group grid gap-row sm:grid-cols-3">
           {[
