@@ -129,7 +129,7 @@ export async function messageVenue(input: {
 /** 42703 / PGRST204 / 22P02: the column or the enum value is not live yet. */
 function schemaOrDown(code: string | undefined): string {
   if (code === "42703" || code === "PGRST204" || code === "22P02" || code === "PGRST200") {
-    return "Messaging hotels and restaurants directly is switching on shortly. Until then, use the venue's booking or table request, which opens a chat with them.";
+    return "Messaging a hotel or restaurant directly is not open yet. A booking or a table request opens a chat with the venue.";
   }
   return "Messaging is unavailable just now. Please try again shortly.";
 }
