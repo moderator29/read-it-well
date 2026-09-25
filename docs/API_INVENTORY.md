@@ -1,5 +1,7 @@
 # The API plan for the upgraded wide platform build
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 The authoritative integration plan for the marketplace era. Distilled on
 18 September 2026 from `docs/research/API_INVENTORY_RESEARCH.md`, which holds
 the full evidence, the provider-by-provider detail and the verification log.

@@ -1,5 +1,7 @@
 # R1 VISUAL AUDIT — 19 September 2026
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 > The screenshots this file cites under `docs/design/proofs/` were removed from the tree; they are in git history at `77cf90ad`.
 
 _Transcribed by the lead. R1 could not write files, so this is its report verbatim from the line below._

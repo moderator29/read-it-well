@@ -1,5 +1,7 @@
 # AROUND: the social layer, argued from first principles
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 > **This shipped. It is the design record, not a plan.** Corrected 2026-08-09.
 > The line "Nothing here is built" below was true on 2026-08-04 and false the
 > same week. Live on 2026-08-09: `areas` 7, `posts` 18 (every one

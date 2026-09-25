@@ -54,7 +54,7 @@ identity, (c) is it used for tracking. **(c) is No for every row.**
 | Health & Fitness (both) | No | | | |
 | Financial Info → **Payment Info** | Yes | App Functionality | Yes | `payment_methods` keeps Paystack's card token, card type, last four digits and expiry. The full card number never reaches us. |
 | Financial Info → Credit Info | No | | | |
-| Financial Info → **Other Financial Info** | Yes | App Functionality | Yes | wallet and pot balances, `bank_accounts` (payout account), `wallet_entries` |
+| Financial Info → **Other Financial Info** | Yes | App Functionality | Yes | `payout_accounts` (the bank account a lister's share and Guarantee payouts go to), `transactions` with each payment's split, `deal_agreements`, `guarantee_claims`. No wallet or balance is kept (Track A, 25 September 2026). |
 | Location → **Precise Location** | Yes | App Functionality | Yes | Listing and stay pin from "use my location"; `price_check_watches.lat/lng` (3 decimals, about 110 m, which Apple counts as precise). Only when the person taps; never in the background. |
 | Location → Coarse Location | No | | | State and local government are typed or picked by the person, not derived from the device. That is User Content, not Location. |
 | Sensitive Info | No | | | Nothing about race, religion, health, sexuality, politics, biometrics or genetics is collected. |
@@ -125,7 +125,7 @@ is stored) / **Required or optional?** / **Purposes**.
 | Financial info → **User payment info** | Yes | Optional (only if a card is saved) | App functionality (Paystack card token, last four digits) |
 | Financial info → **Purchase history** | Yes | Optional | App functionality |
 | Financial info → Credit score | **No** | | |
-| Financial info → **Other financial info** | Yes | Optional | App functionality (wallet, pot balances, payout bank account) |
+| Financial info → **Other financial info** | Yes | Optional | App functionality (payment splits, agreements, Guarantee claims, payout bank account) |
 | Health and fitness (both) | **No** | | |
 | Messages → Emails | **No** | | We send emails. We do not read the user's email. |
 | Messages → SMS or MMS | **No** | | |
@@ -153,9 +153,9 @@ is stored) / **Required or optional?** / **Purposes**.
 - Independent security review: **No**
 
 ### Other Play declarations that must agree with this
-- **Financial features:** see STORE-09. Answer from what ships: digital wallet
-  and P2P transfer yes if wallet Send/Request is live at submission; crypto no;
-  loans no.
+- **Financial features:** Vallo holds no money (Track A). Digital wallet: **no**.
+  P2P transfer: **no**. Payments for rentals and stays through a licensed
+  processor, split at the moment of payment: yes. Crypto: no. Loans: no.
 - **Target audience:** 18 and over.
 - **Ads:** "No, my app does not contain ads."
 

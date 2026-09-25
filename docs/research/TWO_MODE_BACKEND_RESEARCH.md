@@ -1,5 +1,7 @@
 # Two-side backend research
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Agent 2 of 2, read-only. Written 18 September 2026 against the working tree at
 `/home/user/read-it-well` and the live Supabase project `uccixoonmbhrnyczyigt`
 (Postgres 17), queried exclusively through `list_tables` and SELECT-only

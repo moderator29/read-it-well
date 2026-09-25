@@ -1,5 +1,7 @@
 # Valuation engine research: what Vallo can honestly estimate, and when
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Written 22 September 2026, against the working tree and the live-project counts
 recorded in `docs/archive/PLATFORM_SURVEY_2026-09-22.md`. Every claim about this
 codebase carries a `path:line`. Every claim about Nigerian law, data sources or

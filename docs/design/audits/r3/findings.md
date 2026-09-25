@@ -1,5 +1,7 @@
 # R3: product and platform audit, 19 September 2026
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Recorded by the lead from R3's report. R3 could not write this file itself
 (the harness refuses a report file from a subagent), so this is the lead's
 transcription and the ledger's copy of record. R3 read the ledger, the

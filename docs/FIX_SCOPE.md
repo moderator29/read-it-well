@@ -1,5 +1,7 @@
 # Fix scope: who holds which file
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 The audit session (docs/THE_AUDIT.md, branch `claude/vallo-audit-app-store-jzmmd4`) and the build of
 docs/THE_HUNDRED.md (branch `claude/vallo-hundred-recommendations-xclnva`) work in parallel. This file is where
 either side claims a file the other holds before touching it.

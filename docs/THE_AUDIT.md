@@ -1,5 +1,7 @@
 # THE AUDIT
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Vallo: VALLO SPACES LTD, RC 9870413. Audited 23 September 2026 against `origin/main` at `85c5471` and the live platform at www.vallospaces.com, including the live Supabase project `uccixoonmbhrnyczyigt`.
 
 Ten audit areas each ran twice. In pass one an agent audited its own area. In pass two a different agent re-audited those findings adversarially: it tried to kill each finding, reproduced it independently, and searched the same ground for what pass one had missed. Two more agents cleaned the repository. Every finding below carries its address, its evidence, its fix and its pass-two verdict. How it was run, and what it left behind, is in section 9.

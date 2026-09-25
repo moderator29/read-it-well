@@ -1,5 +1,7 @@
 # Vallo Icon System
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Two tiers, each with one job, plus one landing-only mark set that is not a
 tier. Never mix them.**
 
@@ -292,3 +294,7 @@ to bot-home, verified to shield-check, profile to user-check, location to
 pin-map, booking to calendar-check, map to map-route, hotel to hotel-star,
 home to house-sparkle, experience to luggage-check, favorites to heart-home,
 notification to bell-alert, language to globe-pin, settings to doc-shield.
+
+## Added 25 September 2026 (Tracks E and J)
+
+Line icons, all `currentColor`, added to `UiIcon`: `contrast` (the theme control), and for the property-type and space tiles `storefront`, `briefcase`, `land-plot`, `house-duplex`, `house-terrace`, `house-bungalow`, `tower-penthouse`, `door` and a plain `check` (the selected tick; the verified mark is never used as a tick). In light mode every glass PNG, the logo and the role-switch coin sit on one dark tile (`--nf-night-tile-*`, `app/css/light.css`), the ground the artwork was drawn for.

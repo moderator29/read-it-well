@@ -1,5 +1,7 @@
 # The grant state of the live database
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Every verdict in this document is a verdict about ONE system: the live
 Supabase project `uccixoonmbhrnyczyigt`.** Every privilege below was read from
 `pg_class.relacl`, `pg_attribute.attacl` and `pg_proc.proacl` on that project

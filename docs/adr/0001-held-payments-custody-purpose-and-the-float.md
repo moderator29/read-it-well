@@ -1,3 +1,5 @@
+> **Superseded on 25 September 2026 by [ADR 0002](0002-vallo-never-holds-customer-money.md).** Vallo no longer holds customer money; everything below is history.
+
 # ADR-E1. Held payments: custody, the purpose gate, and the float
 
 **Status.** Accepted for the machinery. **The custody question is OPEN and is
@@ -271,7 +273,7 @@ fail: the extractor reads `create or replace function` statements and would
 never have seen a `drop`, so six probes would have gone on passing against a
 body that no longer existed in production. The body is kept readable and
 unreachable until the probes are re-pointed. **That re-pointing is not done and
-is named in `docs/escrow/PROBE_STATE.md` as the reason P-1 to P-6 are proved
+is named in `docs/archive/retired-custody/escrow/PROBE_STATE.md` as the reason P-1 to P-6 are proved
 against a retired door.**
 
 ---

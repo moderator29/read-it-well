@@ -1,5 +1,7 @@
 # The three locale drafts: what is declared, what is a draft, and what to send a speaker
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Written 23 September 2026. Counted by `apps/web/src/lib/i18n/locale-completeness.ts`
 and by `suppliedKeys` from `packages/i18n`, never by hand. The numbers below come
 from the same `suppliedKeys(dictionary)` call the completeness gate uses, so this

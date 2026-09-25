@@ -1,5 +1,7 @@
 # The listing pipeline, audited end to end
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Read-only research. No product code was changed, no migration was written, no
 database was touched. This file is the only thing this session wrote. One
 read-only `git status --short` was run by accident against the brief's rule not

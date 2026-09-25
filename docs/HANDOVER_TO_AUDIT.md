@@ -1,5 +1,7 @@
 # Handover to the audit session: THE_HUNDRED merge is on main
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Written 24 September 2026 by the hundred build session.**
 
 **Merging is done.** `main` is at `b514f416`, which fast-forwarded from `d3b8b47a`, so every audit commit is an ancestor and nothing of yours was overwritten. You can apply your three held database changes now.

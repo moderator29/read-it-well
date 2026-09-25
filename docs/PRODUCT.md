@@ -20,20 +20,20 @@ Last verified against the code and the live Supabase project
 ## 1. What Vallo is
 
 **A Nigeria first property marketplace for renting, buying and selling, with a
-social layer, a naira wallet and a verification ladder.**
+social layer, an agreement gate before every payment, the Vallo Guarantee and a
+verification ladder. Vallo never holds customer money.**
 
-**Escrow is not in that sentence and used to be.** It is being built, it is not
-usable, and the terms of service say plainly that the platform does not hold
-your money. A one-line description of the product is exactly the place a promise
-like that leaks from, so it is removed until the thing exists. Section 5 of the
-vocabulary below has the full position.
+**There is no wallet and no escrow (Track A, 25 September 2026).** Every charge
+is split by the processor at the moment of payment: the lister's share to their
+bank, 1 to 2 percent to the Guarantee reserve, Vallo's commission (zero today)
+to Vallo. `docs/MONEY_ARCHITECTURE.md` is the mechanism.
 
 Everything on the platform was listed on the platform by a real person who
 applied, was verified and was approved. There is no third-party inventory, no
 Google Places feed, no hotel rate aggregator and no scraped stock. That is not a
 gap, it is the whole argument: it is the only reason the verified badge and an
-inspection can mean anything, and the only ground on which escrow could ever
-mean anything if it is built.
+inspection can mean anything, and the ground on which an approved agreement
+and a Guarantee claim can mean anything.
 
 **This is now true of the database as well as the code.** `places_cache` and its
 243 rows of cached Google payloads are dropped, `partner_stay_intents` is
@@ -56,7 +56,7 @@ like any other. What does not survive is anybody else's inventory.
 | **Stay** | Nightly lodging: hotel, apartment, shortlet, villa, home. Reserve, hold, pay | `rate_minor` per `rate_period` |
 | **Eat** | A restaurant lists itself. A guest requests a table, the venue accepts or declines | Per head. No deposit, by design |
 | **Around** | The social layer. Places, posts, stories, people, the assistant answering in comments | Free |
-| **Wallet** | A naira wallet. Fund, withdraw, transfer, pay for a stay | Integer kobo, append-only ledger |
+| **Agreements and the Guarantee** | Both sides confirm the agreement, Vallo approves it, then payment opens. The Guarantee reserve stands behind rentals and stays | Split at payment; the reserve is an append-only ledger. No wallet |
 
 ## 3. The fee position
 
@@ -133,7 +133,7 @@ so switching it needs an environment change and a redeploy, not a code change.
   The ruling above holds exactly.
 - **On:** signed-out visitors can open `/search`, `/stays`, `/restaurants`,
   `/listing/*`, `/stay/*` and `/restaurant/*` read-only. Anonymous page
-  requests are rate-limited per IP. `/u`, messages, the wallet, bookings and
+  requests are rate-limited per IP. `/u`, messages, agreements, bookings and
   every action stay behind sign-in either way, and an exact address is never
   selected for a signed-out reader (the address columns are not granted to
   anon).
@@ -275,38 +275,14 @@ collapse into one tick.**
 4. **Badges** are earned standing, 15 defined in `public.badges`, split into an
    AGENT ladder and a MEMBER ladder, awarded nightly by `private.sweep_badges`
    and grantable by an admin with a mandatory reason and an audit row.
-5. **Escrow** is the promise that money is held until the thing happens.
-   **BEING BUILT, and not usable.** As of 2026-08-09 the ledger has learned the
-   vocabulary: `public.wallet_entry_kind` now carries `escrow_hold`,
-   `escrow_release` and `escrow_refund`, so a hold is a movement in the one
-   ledger rather than a shadow balance in a second table. **Nothing else exists**:
-   no escrow table, no state machine, no release condition, no dispute path, no
-   UI. `booking_status` is still `PENDING, CONFIRMED, CANCELLED` with no
-   `COMPLETED`, so the platform cannot yet record that a stay happened, which is
-   the condition escrow would release on.
-
-   **This paragraph used to say escrow is not promised anywhere in user-facing
-   copy. That is no longer true, and the way it became untrue is the lesson.**
-   `app/(site)/safety/page.tsx` still keeps its promise, and the four locale
-   files still return zero hits for escrow. But
-   `apps/web/src/components/app/wallet/BalanceBreakdownSheet.tsx` renders, to a
-   user, "Escrow moves money out of it and holds it until both sides are done",
-   "Money in escrow", "What you have in escrow", and "You have paid this into
-   escrow. It comes back if the deal does not happen."
-
-   **It got through because the check was a grep of the locale files, and that
-   component hardcodes its English.** A guarantee that is only enforced where
-   the strings are translated is not enforced.
-
-   It matters more now than it did when this was written, because
-   `apps/web/src/lib/legal/terms.tsx` was rewritten on 15 September to say in as
-   many words that Vallo does not hold your money in escrow. **The wallet screen
-   and the contract now say opposite things about where somebody's rent money
-   is.** That is the highest-priority item in `docs/archive/FRONTEND_REVAMP.md`.
-
-   **The rule stands and is restated.** Escrow may not be mentioned to a user
-   until the money can actually be held, released and disputed. See
-   RECOMMENDATIONS section 7.
+5. **Escrow, the wallet and held payments are retired** (Track A, 25
+   September 2026). Vallo never holds customer money, and no user-facing copy
+   may say it does: every money sentence is read from
+   `apps/web/src/lib/money/copy.ts`. What a person is offered instead is an
+   **agreement** both sides confirm and Vallo approves before payment opens,
+   and the **Vallo Guarantee**: a separate reserve funded from every payment,
+   claimable within 72 hours of move-in or check-in, capped and reviewed.
+   `docs/MONEY_ARCHITECTURE.md` is the whole mechanism.
 
 **The badge is earned and is never for sale.** A paid inspection is a service
 with a real cost and may be charged for; the badge that results depends on the
@@ -392,10 +368,15 @@ Four locales ship: English, Yorùbá, Hausa and Igbo. `en` is the typed source o
 truth; the other three are complete and awaiting native review. `Accept-Language`
 is negotiated, plurals go through `Intl.PluralRules`.
 
-**Dark only.** The founder removed light mode on 23 September 2026
-(`docs/design/LIGHT_MODE_REMOVED.md`). The root forces dark, and `tokens.css`
-carries no `[data-theme="light"]` block and must not grow one back. There is
-no theme to verify other than dark.
+**Dark by default, light by choice (Track E, 25 September 2026).** Light mode
+was removed on 23 September (`docs/design/LIGHT_MODE_REMOVED.md`, now history)
+and reintroduced properly after the five root causes in
+`docs/research/LIGHT_MODE_SURVEY.md` were answered: a complete light palette in
+`tokens.css`, a dark tile behind artwork drawn for the night, and anything over a
+photograph kept dark on purpose. The choice (Light, Dark, System) sits at the
+foot of the side navigation, is painted by the server from the `nf_theme`
+cookie, and defaults to Dark. Both themes are swept at 390px
+(`apps/web/scripts/design/light/sweep.mjs`).
 
 The brand is one blue family. Deep navy-black, dark neon blue, electric blue
 glow. Anchors: base `#010118`, glow `#0C39EF`, mid `#000F98`. **No orange, amber,
@@ -452,5 +433,4 @@ Kept here so the list is short and visible rather than scattered.
 | `listing_videos` exists and nothing writes to it | RECOMMENDATIONS P-11 |
 | No storage bucket has a size or type limit | RECOMMENDATIONS MED-1 |
 | The money write path still logs nothing and still answers 200 on a misconfiguration | RECOMMENDATIONS CASE-1 |
-| Escrow ledger kinds exist; `booking_status` has no `COMPLETED`, so nothing can release | RECOMMENDATIONS E-2 |
 | The npm scope, the workspace and the live domain still say Vallo, or worse, vallo | RECOMMENDATIONS section 20 |

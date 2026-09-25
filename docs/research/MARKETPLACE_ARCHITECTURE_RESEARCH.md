@@ -1,5 +1,7 @@
 # Marketplace architecture research
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Agent 1 of the marketplace transformation. Research only. This file is the
 single artefact of that work; no code, no doc and no database row was changed
 in producing it. Written 18 September 2026 against `main` at `6b1bb674` and

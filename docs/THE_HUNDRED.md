@@ -1,5 +1,7 @@
 # The Hundred
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **What would make Vallo excellent, and what would make it uncatchable.**
 
 Written 23 September 2026 for the founder of VALLO SPACES LTD, against `main` at `85c5471` and the live product at www.vallospaces.com. It sits beside the parallel audit session: that session finds what is broken, and this file proposes what should exist. Nothing here is a bug report. Where the walk tripped over something broken, it went to the audit session, and the list is in TO THE FOUNDER.

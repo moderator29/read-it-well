@@ -1,5 +1,7 @@
 # Design drift survey: the shipped frontend against the reference images
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Written 22 September 2026, on the founder's complaint: "there is a lot of areas that need fixing
 on the frotned that other session did that didn't look like the files we told it to follow survey
 it especially the wallet features".

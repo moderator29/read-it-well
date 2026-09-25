@@ -1,5 +1,7 @@
 # Vallo design reference catalogue
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Light mode was removed on 23 September 2026** (`LIGHT_MODE_REMOVED.md`). Rows below that describe light-theme captures or light twins are kept as history; they are not work to do.
 
 Source: `docs/design/references/` and its two SUBFOLDERS. Every UUID file was opened and inspected. Exact duplicates were confirmed by MD5 checksum, so "exact duplicate" below means byte-identical, not merely similar.

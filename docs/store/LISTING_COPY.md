@@ -10,8 +10,10 @@ The rules this copy follows:
   "Verified homes" or "verified listings" is not backed, and is not used.
 - **No counts.** There is no "thousands of listings". Today most of the
   catalogue is labelled example listings (STORE-11).
-- **No escrow, no "safe", no "secure", no "guaranteed", no "protected".** The
-  Terms say the platform does not hold your money in escrow.
+- **No escrow, no wallet, no "safe", no "secure", no "guaranteed", no
+  "protected".** Vallo never holds customer money (Track A). "The Vallo
+  Guarantee" may be named as a product, always with its limits (capped,
+  reviewed, rentals and stays only).
 - **No "best price" and no "cheapest".** The price check says what a place
   costs in total. It does not say it is a good deal.
 
@@ -46,11 +48,10 @@ Character limits are in brackets. The counts include spaces.
 > YOUR AREA
 > Follow areas and people, read and post updates, and share a listing with a friend.
 >
-> A NAIRA WALLET [IF the wallet ships as it is, STORE-09]
-> Add money with a card and pay for a stay from it.
->
-> (Add "and move money out to a Nigerian bank account" only once Paystack
-> transfers are enabled on the account. Today they are not, STORE-12.)
+> PAY WITHOUT VALLO HOLDING YOUR MONEY
+> Inspect, confirm the agreement with the owner or agent, and pay once Vallo
+> approves it. Their share goes straight to their bank. Vallo charges no
+> inspection fee.
 >
 > ASK THE ASSISTANT
 > Ask the assistant about areas, prices and how renting works. It tells you before the first message that it is an AI service run by Anthropic, and it asks you to agree. A person at Vallo is always available instead.

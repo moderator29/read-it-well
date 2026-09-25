@@ -1,5 +1,7 @@
 # What sends, what refuses, and what is not proved
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Every email this platform can compose, what makes it leave, what stops it
 leaving twice, whether a `/settings` switch can silence it, and its state
 today. Written 23 September by the junction worker, off the source and off the

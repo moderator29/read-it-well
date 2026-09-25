@@ -1,5 +1,7 @@
 # The voice
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 How Vallo speaks when there is nothing to show, when something is loading, when a
 person is offline, when something failed and when something is done. These rules
 come from the empty states that were already the best-written screens in the

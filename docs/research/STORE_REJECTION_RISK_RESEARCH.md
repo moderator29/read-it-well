@@ -1,5 +1,7 @@
 # Store rejection risk research: Vallo on the App Store and Google Play
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Research date: 22 September 2026.
 Subject: `com.vallospaces.app`, a Capacitor 8.5 shell (`apps/web/capacitor.config.ts:64`) loading a remote Next.js 16 origin.
 Publisher: VALLO SPACES LTD, a Nigerian private company limited by shares.

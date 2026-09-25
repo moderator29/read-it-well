@@ -1,5 +1,7 @@
 # Discovery C: brand, design system, assets and responsive truth
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Written 18 September 2026 by discovery Agent C of 3, read-only, for the
 visual redesign session.** Agent A owns routes, journeys and surfaces; Agent B
 owns backend, admin and security; this file deliberately does not duplicate

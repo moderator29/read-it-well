@@ -1,5 +1,7 @@
 # Mobile strategy research: Capacitor shell versus a React Native rewrite
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Written 22 September 2026 against the tree at `/home/user/read-it-well`, by a
 read-only pass. Every count was measured with a command quoted beside it, or is
 marked as an estimate. Nothing was changed, built, run on a device or deployed.

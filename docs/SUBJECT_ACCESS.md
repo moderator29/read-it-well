@@ -1,5 +1,7 @@
 # Subject access: giving a person a copy of their data
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 The privacy notice promises a copy of the personal data Vallo holds about a
 person, in a portable format (Nigeria Data Protection Act 2023). This is how
 that promise is kept.

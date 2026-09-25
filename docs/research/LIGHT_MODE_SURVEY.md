@@ -1,5 +1,7 @@
 # Light mode survey: what is broken on paper, and why
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Written 22 September 2026 against the working tree at `/home/user/read-it-well`.
 Commissioned on the founder's report: "our light mode in our platform is so
 fucking worst ... images not showing icons bad containers color so bad switch

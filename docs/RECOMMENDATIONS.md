@@ -1,5 +1,7 @@
 # Vallo recommendations
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **This file replaces the previous RECOMMENDATIONS.md.** Nothing from it was
 discarded: all 171 of its entries are carried into section 8 with their
 original identifiers, because code comments, migrations and both handoffs cite

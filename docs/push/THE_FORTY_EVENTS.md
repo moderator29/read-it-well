@@ -1,5 +1,7 @@
 # The forty events, walked
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **What this is.** `docs/research/EMAIL_AND_NOTIFICATIONS_RESEARCH.md` section
 3.6 is a matrix of forty events against three channels, and on 23 September
 every cell in the push column was missing. This page walks the same forty and

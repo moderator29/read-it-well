@@ -1,5 +1,9 @@
 # Light mode, removed
 
+> **History (25 September 2026, Track E).** Light mode is back: a complete light palette in `tokens.css`, a dark tile behind artwork drawn for the night, anything over a photograph kept dark, and a Light / Dark / System control at the foot of the side navigation (default Dark). The causes this document records are answered in `docs/research/LIGHT_MODE_SURVEY.md`; both themes are swept at 390px by `apps/web/scripts/design/light/sweep.mjs`.
+
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Founder decision, 23 September 2026.** Light mode is removed from the
 platform. This is the record of what came out, what was struck with it, and the
 handful of things deliberately left behind with the reason for each.

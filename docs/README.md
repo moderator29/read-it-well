@@ -21,18 +21,17 @@ For setup, architecture and the repository layout, start with the [repository RE
 | Document | What it is for |
 |---|---|
 | [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md) | ADR-001 to ADR-014 in one file |
-| [adr/0001-held-payments-custody-purpose-and-the-float.md](adr/0001-held-payments-custody-purpose-and-the-float.md) | Held payments (escrow): custody, the purpose gate and the float |
-| [escrow/RELEASE_CONDITION.md](escrow/RELEASE_CONDITION.md) | A decision paper on release conditions for the agency fee leg. Nothing in it is implemented |
+| [adr/0002-vallo-never-holds-customer-money.md](adr/0002-vallo-never-holds-customer-money.md) | Vallo never holds customer money (supersedes ADR 0001) |
+| [adr/0001-held-payments-custody-purpose-and-the-float.md](adr/0001-held-payments-custody-purpose-and-the-float.md) | Superseded: held payments (escrow), kept as history |
 | [API_INVENTORY.md](API_INVENTORY.md) | The third-party integration plan |
 
 ## Money
 
 | Document | What it is for |
 |---|---|
-| [wallet/WITHDRAWAL_PATH.md](wallet/WITHDRAWAL_PATH.md) | What happens after money leaves a wallet: doors, webhook, sweeper and email |
-| [wallet/CRYPTO_DEPOSITS.md](wallet/CRYPTO_DEPOSITS.md) | Crypto top-ups through Yellow Card |
-| [wallet/SAVINGS_POTS.md](wallet/SAVINGS_POTS.md) | Savings pots |
-| [escrow/PROBE_STATE.md](escrow/PROBE_STATE.md) | The escrow probes and what they prove |
+| [MONEY_ARCHITECTURE.md](MONEY_ARCHITECTURE.md) | **How money moves now**: split at payment, the agreement gate, refunds, the Vallo Guarantee, crypto |
+| [TRACKS_25_SEPTEMBER_LEDGER.md](TRACKS_25_SEPTEMBER_LEDGER.md) | The 25 September tracks: what shipped, what was corrected, what is open |
+| [archive/retired-custody/](archive/retired-custody/README.md) | The retired wallet, escrow and held-payment documents, kept as history |
 
 ## Run and deploy it
 

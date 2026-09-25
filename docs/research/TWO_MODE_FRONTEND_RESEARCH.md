@@ -1,5 +1,7 @@
 # Two-side frontend research: Property and Stays
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Agent 1 of 2. Research only, no code changed.** Written 18 September 2026
 against the tree as it stands. Every path and symbol below was read in this
 session unless it appears in the honesty log at the end. British spelling

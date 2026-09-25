@@ -1,5 +1,7 @@
 # Mobile readiness
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Rewritten 18 September 2026 in the Build 06 pass (G4, store posture). Every
 line below was checked against the tree on that day rather than carried over,
 and the counts are reproducible with the commands quoted beside them. The

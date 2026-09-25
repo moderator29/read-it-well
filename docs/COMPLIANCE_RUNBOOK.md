@@ -1,5 +1,7 @@
 # Compliance runbook: what staff do, and in what order
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Vallo's AML/CFT duties as a DNFBP (Dealers in Real Estate) under the Money
 Laundering (Prevention and Prohibition) Act 2022, from the SCUML-EFCC checklist.
 Each section names its checklist item. Everything here is staff only. **Nothing

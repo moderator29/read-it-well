@@ -1,5 +1,7 @@
 # One person, many accounts
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Raised by the founder on 23 September. This file answers one question about
 four gates, and it answers it from the code and the live schema rather than
 from any handoff.** This platform has a long history of a rule existing in

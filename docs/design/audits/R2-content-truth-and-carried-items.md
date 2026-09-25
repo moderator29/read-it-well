@@ -1,5 +1,7 @@
 # R2: the content truth sweep, and three carried items written out
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 **Agent R2, recommendation only, 19 September 2026, on `claude/brave-feynman-9g0ykr`
 at `12270a9`.** Four named jobs. This file holds what R2 did NOT apply, with the
 exact change at each site and the worker who owns it. Nothing here was edited

@@ -1,5 +1,7 @@
 # Escrow, end to end: what it actually takes
 
+> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+
 Research file, written 22 September 2026 against the repository as it stands.
 Read-only session: no git, no database write, no product code changed. This
 file is the only thing written.
