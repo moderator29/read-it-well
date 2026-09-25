@@ -356,7 +356,7 @@ export function AppShell({
             className="nf-app-header__row flex h-header-sm min-w-0 items-center gap-sm px-gutter sm:h-header"
             /* Which of the two tails this row is carrying, so the stylesheet
                can treat the tight one differently. Signed in the tail is a
-               44px bell and a 40px avatar; signed out it is two buttons, 172px
+               44px bell (the avatar left in Track M); signed out it is two buttons, 172px
                of them, and that row does not fit a full lockup on a phone. */
             data-tail={signedIn ? "account" : "signed-out"}
           >
@@ -417,7 +417,7 @@ export function AppShell({
         {immersive ? (
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         ) : (
-          <div className="nf-shell py-section-tight">{children}</div>
+          <div className="nf-shell nf-page-stage py-section-tight">{children}</div>
         )}
       </main>
 

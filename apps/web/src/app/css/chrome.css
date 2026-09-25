@@ -895,7 +895,7 @@
    * costs a sighted reader a logotype they are looking at the mark of.
    *
    * Scoped to `[data-tail="signed-out"]`, because a signed-in header carries a
-   * 44px bell and a 40px avatar instead of 172px of buttons and has room to
+   * 44px bell (its avatar left in Track M) instead of 172px of buttons and has room to
    * spare. 26rem rather than the 25.3rem the arithmetic gives, because the
    * lockup grows with the viewport at about a tenth of the rate the row does,
    * so the crossing is shallow and a margin is cheap.

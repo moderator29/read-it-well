@@ -121,9 +121,11 @@
   /*
    * THE GEAR, ON THE APP HEADER'S ROW. On a phone the cover runs behind the
    * header, whose row is 60px with 44px controls 8px from its top, a gutter of
-   * `--nf-pad-shell`, then the 40px avatar and the 44px bell 12px apart. The
-   * gear is the header's own control (`nf-icon-btn`) placed 8px left of the
-   * bell, so the band reads as one row: menu, lockup, gear, bell, avatar.
+   * `--nf-pad-shell`, then the 44px bell. The gear is the header's own control
+   * (`nf-icon-btn`) and it sits directly UNDER the bell, 8px below it, on the
+   * cover. It stood on the header row left of the bell until Track M; with the
+   * side tag beside the lockup that row has no 52px to spare at 390, and a
+   * gear touching "Property" reads as a collision, not a row.
    * Measured against the header at 360, 390 and 430: it clears the lockup.
    * Named under the cover so it outranks `.nf-icon-btn`'s own `position`;
    * not `.nf-tap`, which is unlayered and would win (`.nf-icon-btn` carries
@@ -132,8 +134,8 @@
   .nf-pf-cover .nf-pf-gear {
     position: absolute;
     z-index: 41;
-    inset-block-start: calc(env(safe-area-inset-top, 0px) + 0.5rem);
-    inset-inline-end: calc(var(--nf-pad-shell) + 2.5rem + var(--nf-space-sm) + 2.75rem + var(--nf-space-xs));
+    inset-block-start: calc(env(safe-area-inset-top, 0px) + 0.5rem + 2.75rem + var(--nf-space-xs));
+    inset-inline-end: var(--nf-pad-shell);
   }
   @media (min-width: 640px) {
     .nf-pf-cover .nf-pf-gear {
