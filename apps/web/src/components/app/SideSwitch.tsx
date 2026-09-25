@@ -1,7 +1,7 @@
 "use client";
 
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { useEffect, useRef, useState } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
 import { otherSide } from "@/lib/side.constants";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -29,7 +29,7 @@ export function SideSwitch({
   t,
   onNavigate,
 }: {
-  t: Dictionary;
+  t: ShellDictionary;
   onNavigate?: () => void;
 }) {
   const { flip, pending, side } = useSideFlip();

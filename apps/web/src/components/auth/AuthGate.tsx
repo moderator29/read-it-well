@@ -1,8 +1,8 @@
 "use client";
 
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { authHref, returnHref, type GatedAction } from "./auth-intent";
 
@@ -176,7 +176,7 @@ export function AuthGate({
  * Rendered on signed-out screens only; the component decides that itself
  * rather than making every shell ask.
  */
-export function SignedOutActions({ t, className }: { t: Dictionary; className?: string }) {
+export function SignedOutActions({ t, className }: { t: ShellDictionary; className?: string }) {
   const { signedIn } = useRequireAuth();
   const pathname = usePathname();
   const params = useSearchParams();

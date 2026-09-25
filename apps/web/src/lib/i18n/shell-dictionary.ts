@@ -1,5 +1,4 @@
 import type { Dictionary } from "@vallo/i18n/core";
-import { sliceDictionary } from "./slice";
 
 /**
  * THE SHELL'S SLICE OF THE DICTIONARY (Track M performance, 25 September 2026).
@@ -11,25 +10,50 @@ import { sliceDictionary } from "./slice";
  * it. The founder asked for an app that loads fast with no "booting"; this was
  * the single largest thing every page carried for no reader.
  *
- * The namespaces are the ones the shell's whole import graph can reach, as
- * `shell-dictionary.test.ts` computes it; that test fails the build the day
- * the shell starts reading one that is not here.
+ * The first cut sent whole namespaces (58 KB), found by an import walker that
+ * also counted `t.nav.settings` as the `settings` namespace. This one is
+ * typed: `AppShell` and everything it hands `t` to take a `ShellDictionary`,
+ * so the compiler refuses any read that is not carried here, and the shell
+ * carries only the lines it draws (about 4 KB; the test holds it under 8).
+ * A full dictionary still fits wherever a `ShellDictionary` is asked for, so
+ * the previews and the admin console that pass one need no change.
  */
-export const SHELL_NAMESPACES = [
-  "a11y",
-  "common",
-  "home",
-  "nav",
-  "pickers",
-  "priceCheck",
-  "settings",
-  "shape",
-  "side",
-  "signUp",
-  "stays",
-  "supply",
-] as const satisfies readonly (keyof Dictionary)[];
+export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side"> & {
+  shape: Pick<Dictionary["shape"], "workspace" | "plans">;
+  supply: Pick<Dictionary["supply"], (typeof SUPPLY_KEYS)[number]>;
+  priceCheck: Pick<Dictionary["priceCheck"], "title">;
+  pickers: Pick<Dictionary["pickers"], "close">;
+};
 
-export function shellDictionary(t: Dictionary): Dictionary {
-  return sliceDictionary(t, SHELL_NAMESPACES);
+/** The workspace switcher's lines. */
+const SUPPLY_KEYS = [
+  "switchTitle",
+  "personal",
+  "personalMeaning",
+  "addTitle",
+  "addMeaning",
+  "current",
+  "empty",
+  "switchTrigger",
+  "kinds",
+  "standings",
+] as const;
+
+const cache = new WeakMap<Dictionary, ShellDictionary>();
+
+export function shellDictionary(t: Dictionary): ShellDictionary {
+  const cached = cache.get(t);
+  if (cached) return cached;
+  const shell: ShellDictionary = {
+    a11y: t.a11y,
+    common: t.common,
+    nav: t.nav,
+    side: t.side,
+    shape: { workspace: t.shape.workspace, plans: t.shape.plans },
+    supply: Object.fromEntries(SUPPLY_KEYS.map((key) => [key, t.supply[key]])) as ShellDictionary["supply"],
+    priceCheck: { title: t.priceCheck.title },
+    pickers: { close: t.pickers.close },
+  };
+  cache.set(t, shell);
+  return shell;
 }

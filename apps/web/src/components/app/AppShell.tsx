@@ -1,10 +1,10 @@
 "use client";
 
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n/core";
 import { AppRail } from "./AppRail";
 import { MobileTabBar, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
 import { Logo } from "@/design-system/brand/Logo";
@@ -76,7 +76,7 @@ export function AppShell({
   preview,
   children,
 }: {
-  t: Dictionary;
+  t: ShellDictionary;
   side?: Side;
   userName: string;
   userHandle?: string;

@@ -1,9 +1,9 @@
 "use client";
 
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -158,7 +158,7 @@ export function ProfileSwitcher({
   onNavigate,
   renderTrigger,
 }: {
-  t: Dictionary;
+  t: ShellDictionary;
   copy: ProfileSwitcherCopy;
   workspaces: Workspace[];
   current: ProfileSelection;

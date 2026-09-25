@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n/core";
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import type { Side } from "@/lib/side.constants";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Logo } from "@/design-system/brand/Logo";
@@ -46,7 +46,7 @@ export function SideCover({
   className = "",
 }: {
   side: Side;
-  t: Dictionary;
+  t: ShellDictionary;
   /** The first ever flip: the side name types in and the cover holds a beat longer. */
   ceremony?: boolean;
   /** Navigation is still pending after the turn landed: the miniature breathes once per beat. */

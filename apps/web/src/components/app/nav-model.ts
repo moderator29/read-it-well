@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n/core";
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
 
@@ -112,7 +112,7 @@ export function buildNav({
   isAdmin,
   signedIn,
 }: {
-  t: Dictionary;
+  t: ShellDictionary;
   /**
    * Which side the shell is on. Property returns the model exactly as it was;
    * Stays returns its own: Stays, Explore stays, Feed, then Account with

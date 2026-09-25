@@ -1,7 +1,7 @@
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import Link from "next/link";
 import { AutoHideDock } from "./AutoHideDock";
 import { DockMore, type DockMoreItem } from "./DockMore";
-import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
 
@@ -236,7 +236,7 @@ export function MobileTabBar({
   switchSlot,
   prefetchFull = false,
 }: {
-  t: Dictionary;
+  t: ShellDictionary;
   side?: Side;
   active?: string;
   unreadNotifications?: number;

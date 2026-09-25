@@ -1,5 +1,6 @@
 "use client";
 
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import {
   createContext,
   useCallback,
@@ -12,7 +13,6 @@ import {
   useTransition,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n/core";
 import { SIDE_HOME, writeSideCookie, type Side } from "@/lib/side.constants";
 import { SideCover } from "./SideCover";
 
@@ -127,7 +127,7 @@ export function SideFlip({
   children,
 }: {
   side: Side;
-  t: Dictionary;
+  t: ShellDictionary;
   children: React.ReactNode;
 }) {
   const router = useRouter();
