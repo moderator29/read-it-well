@@ -107,7 +107,7 @@ export function PageHeader({
         <div className="mt-group flex items-start gap-md">
           {leading}
           <div className="min-w-0 flex-1">
-            <h1 className="nf-h1 text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">{title}</h1>
+            <h1 className="nf-h1 nf-page-title text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">{title}</h1>
             {subtitle &&
               (subtitleHref ? (
                 <Link

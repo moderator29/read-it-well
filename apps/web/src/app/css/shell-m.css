@@ -97,6 +97,17 @@
     border-color: var(--nf-divider);
   }
 
+  /* On the desktop rail the person is a plain row too: no card around it. */
+  .nf-nav--rail .nf-nav__who {
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+  }
+  .nf-nav--rail .nf-nav__who:hover {
+    border-color: transparent;
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+  }
+
   /* ---------------------------------------------------- plain icon rows */
 
   /*
@@ -448,6 +459,24 @@
     color: var(--nf-content-secondary);
   }
 
+  /* ------------------------------------------------------ between pages */
+
+  /*
+   * A NEW PAGE SETTLES IN RATHER THAN CUTTING. Opacity only, on purpose: a
+   * transform or a filter on a page root makes it the containing block for
+   * every fixed and sticky thing inside it (pinned action bars, sheets), and
+   * for the length of the entrance those would ride with the page instead of
+   * the screen. A 240ms fade is the part of "breathing" that costs nothing.
+   */
+  .nf-page-stage > * {
+    animation: nf-m-page-in var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-m-page-in {
+    from {
+      opacity: 0;
+    }
+  }
+
   /* ------------------------------------------------------ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
@@ -457,7 +486,8 @@
     .nf-theme-row__panel,
     .nf-dockmore__tray,
     .nf-dockmore__tray > li,
-    .nf-tab__link[aria-current="page"] .nf-tab__icon {
+    .nf-tab__link[aria-current="page"] .nf-tab__icon,
+    .nf-page-stage > * {
       animation: none;
     }
     .nf-tabbar__pill,

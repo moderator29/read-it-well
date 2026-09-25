@@ -112,6 +112,8 @@
 @import "./css/shell-m.css";
 /* Track M: thresholds, the splash, the door, leaving and coming back. */
 @import "./css/threshold.css";
+/* Track M: the inner rooms breathe (titles, empty states, rows, the bell). */
+@import "./css/inner-m.css";
 @import "./css/light.css";
 /*
  * `light.css` WAS IMPORTED HERE AND WAS DELETED (history). The founder removed light mode
