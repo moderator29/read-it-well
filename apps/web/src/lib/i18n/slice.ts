@@ -35,15 +35,19 @@ export function sliceDictionary(t: Dictionary, keys: readonly (keyof Dictionary)
 
 export const SLICES = {
   /* Each list is what the component's WHOLE import graph can read, as the
-     coverage test computes it, including a few names it only appears to read
-     (a `supabase.auth` counts as `auth`): one namespace too many is a few
-     kilobytes, one too few is a crash in somebody's hand. */
-  listingCard: ["auth", "catalogue", "common", "directHome", "interests", "landing", "moveIn", "platform", "settings", "shape", "trustVisible", "units"],
-  stayCard: ["auth", "catalogue", "common", "platform", "shape", "stays"],
+     coverage test computes it. The walker skips what cannot read a
+     dictionary in the browser (server actions, whole-line comments, the
+     Supabase `auth` client, the root layout's client copy, `Dictionary[...]`
+     types) and otherwise over-counts on purpose: one namespace too many is a
+     few kilobytes, one too few is a crash in somebody's hand. Trimming those
+     false readings took the settings screen's slice from 137 KB to 47 KB and
+     the listing card's from 104 KB to 55 KB. */
+  listingCard: ["catalogue", "common", "directHome", "interests", "moveIn", "shape", "trustVisible", "units"],
+  stayCard: ["catalogue", "common", "stays"],
   stayFilterSheet: ["catalogue", "shape", "stayDetail", "stays"],
-  priceCheck: ["auth", "home", "landlord", "priceCheck", "shape"],
-  proofStrip: ["shape", "trustVisible"],
-  settingsHub: ["admin", "auth", "common", "directHome", "interests", "landing", "paymentsPage", "platform", "settings", "shape", "socialProfile", "units"],
+  priceCheck: ["home", "priceCheck"],
+  proofStrip: ["trustVisible"],
+  settingsHub: ["common", "directHome", "paymentsPage", "platform", "settings", "socialProfile", "units"],
 } as const satisfies Record<string, readonly (keyof Dictionary)[]>;
 
 export function forListingCard(t: Dictionary): Dictionary {

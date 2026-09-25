@@ -20,6 +20,28 @@ function resolve(spec: string, from: string): string | null {
   return existsSync(base) && /\.(tsx?|js)$/.test(base) ? base : null;
 }
 
+/*
+ * Property reads that share a namespace's name but are not dictionary reads,
+ * tested against the text just before the dot:
+ *   supabase.auth, client.auth, createClient().auth   the Supabase auth client
+ *   auth.admin                                       its admin API
+ *   useClientCopy().x                                the root layout's client
+ *                                                    copy, not a page's `t`
+ */
+const NOT_A_DICTIONARY = /(?:\bsupabase|\bclient|createClient\(\)|\bauth|useClientCopy\(\))\s*$/;
+
+/*
+ * Comments can mention `profiles.settings` without reading anything. Only
+ * comments that begin a line are removed: a block comment (or a JSX one) that
+ * opens a line, and a whole-line `//`. Anything cleverer would have to parse
+ * strings and regular expressions, and a mistake there could hide a real read
+ * and let a slice pass that is too small. Leaving a trailing comment in only
+ * ever over-counts, which is the safe direction.
+ */
+function withoutComments(source: string): string {
+  return source.replace(/^[ \t]*\{?\/\*[\s\S]*?\*\/\}?/gm, "").replace(/^[ \t]*\/\/.*$/gm, "");
+}
+
 export function reachableNamespaces(root: string): Set<string> {
   const seen = new Set<string>();
   const used = new Set<string>();
@@ -28,10 +50,19 @@ export function reachableNamespaces(root: string): Set<string> {
     const file = queue.pop()!;
     if (seen.has(file)) continue;
     seen.add(file);
-    const source = readFileSync(file, "utf8");
+    const raw = readFileSync(file, "utf8");
+    /* A server action never runs in the browser and is never handed `t`,
+       so nothing in one can make a client slice need a namespace. */
+    if (file !== join(SRC, root) && /^\s*["']use server["']/.test(raw)) continue;
+    const source = withoutComments(raw);
     for (const m of source.matchAll(/\.([a-zA-Z][a-zA-Z0-9]*)\b|\[\s*["']([a-zA-Z][a-zA-Z0-9]*)["']\s*\]/g)) {
       const name = m[1] ?? m[2]!;
-      if (NAMESPACES.has(name)) used.add(name);
+      if (!NAMESPACES.has(name)) continue;
+      const before = source.slice(Math.max(0, m.index! - 24), m.index!);
+      if (m[1] && NOT_A_DICTIONARY.test(before)) continue;
+      /* `Dictionary["landing"]` is a type, erased before anything runs. */
+      if (m[2] && /\bDictionary\s*$/.test(before)) continue;
+      used.add(name);
     }
     /* Type-only imports are skipped: they are erased, so nothing behind them
        can read a dictionary at run time. */
