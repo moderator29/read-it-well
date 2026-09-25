@@ -5,6 +5,8 @@ import { FeatureGlyph, type FeatureGlyphName } from "@/components/motion/Feature
 import type { ListingKind } from "@/lib/listings/types";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { AiShowcase, type ShowcaseScript } from "./AiShowcase";
+import { SectionHead } from "./SectionHead";
+import { Sweep } from "./Sweep";
 
 const TRUTH_GLYPHS: readonly FeatureGlyphName[] = ["chat", "home", "document"];
 const RENT_KINDS: ReadonlySet<ListingKind> = new Set(["rental"]);
@@ -38,15 +40,11 @@ export function AiBand({ t, locale, cards }: { t: Dictionary; locale: Locale; ca
   const scripts = candidates.filter((s): s is ShowcaseScript => s !== null && Boolean(s.user && s.reply));
 
   return (
-    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-ai-title">
+    <section className="nf-shell nf-room" data-chapter="ai" aria-labelledby="nf-landing-ai-title">
       <div className="nf-ai-room">
         <MotionReveal className="flex flex-col gap-heading">
           <div>
-            <span className="nf-overline text-[var(--nf-brand-secondary)]">{a.overline}</span>
-            <h2 id="nf-landing-ai-title" className="nf-h1 mt-row max-w-measure-display">
-              {a.title}
-            </h2>
-            <p className="nf-lede mt-group max-w-measure-lede">{a.body}</p>
+            <SectionHead id="nf-landing-ai-title" eyebrow={a.overline} title={a.title} lede={a.body} />
           </div>
           <MotionReveal as="ul" stagger className="nf-ai-truths">
             {[truths.listings, truths.costs, truths.title].map((line, i) => (
@@ -59,7 +57,8 @@ export function AiBand({ t, locale, cards }: { t: Dictionary; locale: Locale; ca
             ))}
           </MotionReveal>
           <div>
-            <ButtonLink href="/assistant" variant="primary" size="md" trailingIcon="arrow-right">
+            <ButtonLink href="/assistant" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
+              <Sweep />
               {a.cta}
             </ButtonLink>
           </div>

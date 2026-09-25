@@ -764,3 +764,1317 @@
     }
   }
 }
+
+/*
+ * ========================================================================
+ * THE SECOND PASS (Track M, the founder's "expand it, impress me, clean and
+ * high end"): one section system, the journey, the bento, the two worlds,
+ * the cities marquee, the map, and the page-wide details. Same rules as the
+ * top of this file: transform and opacity (the bento's spotlight is the one
+ * gradient that follows a pointer, and only on a desktop pointer), token
+ * timings, every loop paused off screen, every rule answered for reduced
+ * motion and data saver at the foot.
+ * ========================================================================
+ */
+@layer components {
+  /* ------------------------------------------- one section system */
+
+  /* One rhythm: every room has the same vertical padding. */
+  .nf-room {
+    padding-block: var(--nf-gap-section-tight) var(--nf-gap-section);
+  }
+  .nf-room--tight {
+    padding-block: var(--nf-gap-section-tight);
+  }
+
+  /* One head: eyebrow with a hairline that draws in, heading, lede. */
+  .nf-sec-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: var(--nf-gap-block);
+  }
+  .nf-sec-head--center {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+    max-width: var(--nf-measure-section);
+  }
+  .nf-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-eyebrow::before {
+    content: "";
+    width: 1.75rem;
+    height: 1px;
+    background: currentColor;
+    transform-origin: 0 50%;
+    transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance) 120ms;
+  }
+  /* A centred head draws its hairline on both sides of the eyebrow. */
+  .nf-sec-head--center .nf-eyebrow::after {
+    content: "";
+    width: 1.75rem;
+    height: 1px;
+    background: currentColor;
+    transform-origin: 100% 50%;
+    transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance) 120ms;
+  }
+  .nf-sec-title {
+    margin-top: var(--nf-gap-row);
+    max-width: var(--nf-measure-display);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: var(--nf-tracking-display);
+    color: var(--nf-content-primary);
+  }
+  .nf-sec-title--display {
+    font-size: var(--nf-text-h0);
+    line-height: 1.02;
+  }
+  .nf-sec-lede {
+    margin-top: var(--nf-gap-group);
+    max-width: var(--nf-measure-lede);
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.62;
+    color: var(--nf-content-secondary);
+  }
+  .nf-sec-head .nf-room-link {
+    margin-top: var(--nf-gap-heading);
+  }
+  /* Headings three screens down wait for the reader: the word arrival and
+     the eyebrow's hairline start the first time the head is on screen
+     (MotionReveal's `data-seen`). Only where scripts run, so with scripts
+     off nothing is ever held back. */
+  .nf-depth-gate .nf-depth-word {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 120ms + min(var(--nf-i, 0), 6) * 70ms);
+  }
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .nf-depth-gate:not([data-seen]) .nf-depth-word {
+      animation-play-state: paused;
+    }
+    .nf-depth-gate:not([data-seen]) .nf-eyebrow::before,
+    .nf-depth-gate:not([data-seen]) .nf-eyebrow::after {
+      transform: scaleX(0);
+    }
+  }
+
+  /* One card language: the landing's panels share a radius, an edge, a
+     surface and one hover (lift 2px on `translate`, the stronger shadow on
+     an overlay's opacity). */
+  .nf-bento__card,
+  .nf-journey__chapter,
+  .nf-worlds__stage {
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+  }
+
+  /* ------------------------------------------------ the journey */
+
+  .nf-journey {
+    position: relative;
+  }
+  .nf-journey__chapters {
+    display: grid;
+    gap: var(--nf-gap-row);
+  }
+  .nf-journey__chapter {
+    display: grid;
+    gap: var(--nf-gap-group);
+    padding: var(--nf-pad-card);
+  }
+  .nf-journey__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-gap-row);
+  }
+  .nf-journey__num {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    color: color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
+  }
+  .nf-journey__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: var(--nf-tracking-display);
+    color: var(--nf-content-primary);
+  }
+  .nf-journey__body {
+    max-width: var(--nf-measure-lede);
+    font-size: var(--nf-text-body);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+  .nf-journey__inline {
+    display: flex;
+    justify-content: center;
+  }
+  .nf-journey__stage {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .nf-journey {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+      gap: var(--nf-space-3xl);
+      view-timeline: --nf-journey block;
+    }
+    .nf-journey__chapters {
+      gap: 0;
+    }
+    /* Three quarters of a screen a chapter: four chapters is three screens
+       of scroll, and the phone stays pinned for all of it. */
+    .nf-journey__chapter {
+      min-height: 75vh;
+      align-content: center;
+      padding: 0;
+      border: 0;
+      background: none;
+      box-shadow: none;
+    }
+    .nf-journey__inline {
+      display: none;
+    }
+    .nf-journey__text {
+      opacity: 0.32;
+      transition: opacity var(--nf-duration-slow) var(--nf-ease-standard);
+    }
+    .nf-journey[data-step="0"] [data-journey-step="0"] .nf-journey__text,
+    .nf-journey[data-step="1"] [data-journey-step="1"] .nf-journey__text,
+    .nf-journey[data-step="2"] [data-journey-step="2"] .nf-journey__text,
+    .nf-journey[data-step="3"] [data-journey-step="3"] .nf-journey__text {
+      opacity: 1;
+    }
+    .nf-journey__stage {
+      position: sticky;
+      top: calc(50vh - 17rem);
+      align-self: start;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: var(--nf-space-xl);
+      height: 34rem;
+    }
+  }
+
+  /* The rail: a hairline that fills a quarter a chapter, with the four
+     chapter names beside it. */
+  .nf-journey__rail {
+    position: relative;
+    width: 7rem;
+    border-right: 1px solid var(--nf-glass-border);
+  }
+  .nf-journey__rail-fill {
+    position: absolute;
+    top: 0;
+    right: -1px;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--nf-brand-secondary), var(--nf-brand-primary));
+    transform-origin: 50% 0;
+    transform: scaleY(0.25);
+    transition: transform var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-journey[data-step="1"] .nf-journey__rail-fill { transform: scaleY(0.5); }
+  .nf-journey[data-step="2"] .nf-journey__rail-fill { transform: scaleY(0.75); }
+  .nf-journey[data-step="3"] .nf-journey__rail-fill { transform: scaleY(1); }
+  /* Where scroll timelines exist the rail follows the scroll itself. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-journey__rail-fill {
+        transition: none;
+        animation: nf-journey-fill linear both;
+        animation-timeline: --nf-journey;
+        animation-range: contain 0% contain 100%;
+      }
+    }
+  }
+  @keyframes nf-journey-fill {
+    from { transform: scaleY(0.06); }
+    to { transform: scaleY(1); }
+  }
+  .nf-journey__dot {
+    position: absolute;
+    right: var(--nf-space-sm);
+    translate: 0 -50%;
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-content-muted);
+    transition: color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-journey__dot::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: calc(-1 * var(--nf-space-sm) - 4px);
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-glass-border);
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  .nf-journey__dot[data-i="0"] { top: 12.5%; }
+  .nf-journey__dot[data-i="1"] { top: 37.5%; }
+  .nf-journey__dot[data-i="2"] { top: 62.5%; }
+  .nf-journey__dot[data-i="3"] { top: 87.5%; }
+  .nf-journey[data-step="0"] .nf-journey__dot[data-i="0"],
+  .nf-journey[data-step="1"] .nf-journey__dot[data-i="1"],
+  .nf-journey[data-step="2"] .nf-journey__dot[data-i="2"],
+  .nf-journey[data-step="3"] .nf-journey__dot[data-i="3"] {
+    color: var(--nf-content-primary);
+  }
+  .nf-journey[data-step="0"] .nf-journey__dot[data-i="0"]::after,
+  .nf-journey[data-step="1"] .nf-journey__dot[data-i="1"]::after,
+  .nf-journey[data-step="2"] .nf-journey__dot[data-i="2"]::after,
+  .nf-journey[data-step="3"] .nf-journey__dot[data-i="3"]::after {
+    background: var(--nf-brand-secondary);
+    transform: scale(1.5);
+  }
+
+  /* The phone: a drawn frame, not a device photograph. */
+  .nf-phone {
+    position: relative;
+    flex: none;
+    width: 17rem;
+    height: 34rem;
+    padding: 0.55rem;
+    border-radius: 2.6rem;
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-landing-ink);
+    box-shadow: var(--nf-panel-rim), var(--nf-elev-4), 0 0 60px -10px var(--nf-glow-2);
+  }
+  .nf-phone--sm {
+    width: 14.5rem;
+    height: 25rem;
+    border-radius: 2.2rem;
+  }
+  .nf-journey__screen {
+    position: absolute;
+    inset: 0.55rem;
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity var(--nf-duration-slow) var(--nf-ease-standard),
+      transform var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-journey[data-step="0"] .nf-journey__screen[data-i="0"],
+  .nf-journey[data-step="1"] .nf-journey__screen[data-i="1"],
+  .nf-journey[data-step="2"] .nf-journey__screen[data-i="2"],
+  .nf-journey[data-step="3"] .nf-journey__screen[data-i="3"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The screens' contents. */
+  .nf-jscreen {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 2.05rem;
+    background:
+      radial-gradient(120% 60% at 50% 0%, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent), transparent 70%),
+      var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-phone--sm .nf-jscreen {
+    border-radius: 1.7rem;
+  }
+  .nf-jscreen__bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.9rem 1.4rem 0.4rem;
+  }
+  .nf-jscreen__bar > span {
+    width: 2.2rem;
+    height: 0.35rem;
+    border-radius: var(--nf-radius-xs);
+    background: color-mix(in oklab, var(--nf-content-primary) 22%, transparent);
+  }
+  /* The drawn tab bar at the foot of every screen. */
+  .nf-jscreen::after {
+    content: "";
+    margin: auto 1.1rem 0.9rem;
+    height: 2.6rem;
+    border-radius: var(--nf-radius-lg);
+    background:
+      radial-gradient(circle at 12% 50%, var(--nf-brand-secondary) 0 4px, transparent 5px),
+      radial-gradient(circle at 37% 50%, color-mix(in oklab, var(--nf-content-primary) 30%, transparent) 0 4px, transparent 5px),
+      radial-gradient(circle at 63% 50%, color-mix(in oklab, var(--nf-content-primary) 30%, transparent) 0 4px, transparent 5px),
+      radial-gradient(circle at 88% 50%, color-mix(in oklab, var(--nf-content-primary) 30%, transparent) 0 4px, transparent 5px),
+      color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+  }
+  .nf-jscreen__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.8rem 0.9rem;
+  }
+  .nf-jscreen__search,
+  .nf-jscreen__label,
+  .nf-jscreen__chip,
+  .nf-jscreen__stamp,
+  .nf-jscreen__paid,
+  .nf-jscreen__bank {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 650;
+  }
+  .nf-jscreen__search {
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge);
+    color: var(--nf-content-secondary);
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+  }
+  .nf-jscreen__row {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.5rem;
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+  }
+  .nf-jscreen__thumb {
+    flex: none;
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: var(--nf-radius-sm);
+    background: linear-gradient(140deg, var(--nf-brand-primary), var(--nf-brand-accent));
+    opacity: 0.8;
+  }
+  .nf-jscreen__thumb[data-hue="1"] {
+    background: linear-gradient(140deg, var(--nf-brand-secondary), var(--nf-brand-primary-strong));
+  }
+  .nf-jscreen__thumb[data-hue="2"] {
+    background: linear-gradient(140deg, var(--nf-brand-accent), var(--nf-brand-primary-strong));
+  }
+  .nf-jscreen__lines {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+  .nf-jscreen__lines > i,
+  .nf-jscreen__lines > b {
+    display: block;
+    height: 0.4rem;
+    border-radius: var(--nf-radius-xs);
+    background: color-mix(in oklab, var(--nf-content-primary) 20%, transparent);
+  }
+  .nf-jscreen__lines > b {
+    height: 0.5rem;
+    background: var(--nf-brand-secondary);
+  }
+  .nf-jscreen__cal {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.3rem;
+  }
+  .nf-jscreen__cal > span {
+    aspect-ratio: 1;
+    border-radius: var(--nf-radius-xs);
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+  }
+  .nf-jscreen__cal > span[data-on] {
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 14px var(--nf-glow-2);
+  }
+  .nf-jscreen__chip {
+    align-self: flex-start;
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-content-secondary);
+    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+  }
+  .nf-jscreen__chip--ok {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+  }
+  .nf-jscreen__doc {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.8rem;
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+  }
+  .nf-jscreen__signs {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .nf-jscreen__signs > span {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-brand-secondary);
+    border: 1px dashed var(--nf-brand-edge);
+  }
+  .nf-jscreen__stamp {
+    align-self: center;
+    padding: 0.45rem 0.75rem;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 18px var(--nf-glow-2);
+  }
+  .nf-jscreen__pay {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+    padding: 0.8rem;
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+  }
+  .nf-jscreen__paid {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-jscreen__flow {
+    position: relative;
+    height: 2.2rem;
+    margin-left: 0.55rem;
+    border-left: 2px dashed var(--nf-brand-edge);
+  }
+  .nf-jscreen__flow > i {
+    position: absolute;
+    left: -5px;
+    top: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-secondary);
+  }
+  .nf-jscreen__keys {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* Each screen plays one small entrance as it becomes the current one. */
+  :is(
+      .nf-journey[data-step="0"] .nf-journey__screen[data-i="0"],
+      .nf-journey[data-step="1"] .nf-journey__screen[data-i="1"],
+      .nf-journey[data-step="2"] .nf-journey__screen[data-i="2"],
+      .nf-journey[data-step="3"] .nf-journey__screen[data-i="3"]
+    )
+    :is(.nf-jscreen__row, .nf-jscreen__chip, .nf-jscreen__signs > span, .nf-jscreen__stamp, .nf-jscreen__keys) {
+    animation: nf-js-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-jscreen__row:nth-child(3), .nf-jscreen__chip:last-child, .nf-jscreen__signs > span[data-i="1"] { animation-delay: 120ms; }
+  .nf-jscreen__row:nth-child(4), .nf-jscreen__stamp, .nf-jscreen__keys { animation-delay: 240ms; }
+  :is(
+      .nf-journey[data-step="1"] .nf-journey__screen[data-i="1"]
+    )
+    .nf-jscreen__cal > span[data-on] {
+    animation: nf-js-pop var(--nf-duration-slow) var(--nf-ease-spring) 160ms both;
+  }
+  :is(.nf-journey[data-step="3"] .nf-journey__screen[data-i="3"]) .nf-jscreen__flow > i {
+    animation: nf-js-flow var(--nf-duration-cinematic) var(--nf-ease-standard) 120ms both;
+  }
+  @keyframes nf-js-in {
+    from { opacity: 0; transform: translate3d(0, 10px, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-js-pop {
+    0% { transform: scale(0.4); }
+    60% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes nf-js-flow {
+    from { transform: translateY(0); }
+    to { transform: translateY(2rem); }
+  }
+
+  /* --------------------------------------------------- the bento */
+
+  .nf-bento {
+    display: grid;
+    gap: var(--nf-gap-row);
+  }
+  @media (min-width: 40rem) {
+    .nf-bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .nf-bento__cell--wide {
+      grid-column: span 2;
+    }
+  }
+  @media (min-width: 64rem) {
+    .nf-bento {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-flow: dense;
+      gap: var(--nf-gap-group);
+    }
+    .nf-bento__cell--tall {
+      grid-row: span 2;
+    }
+  }
+  .nf-bento__cell {
+    display: flex;
+    min-width: 0;
+  }
+  .nf-bento__card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--nf-gap-group);
+    min-height: 14rem;
+    overflow: hidden;
+    padding: var(--nf-pad-card);
+    color: var(--nf-content-primary);
+    transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      translate var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-bento__card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    box-shadow: var(--nf-elev-3);
+    opacity: 0;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+    pointer-events: none;
+  }
+  @media (hover: hover) {
+    .nf-bento__card:hover {
+      translate: 0 -2px;
+    }
+    .nf-bento__card:hover::after {
+      opacity: 1;
+    }
+  }
+  .nf-bento__card:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+  .nf-bento__spot {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(22rem circle at var(--spot-x, 50%) var(--spot-y, 0%), color-mix(in oklab, var(--nf-brand-primary) 24%, transparent), transparent 62%);
+    opacity: 0;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-bento__card:hover .nf-bento__spot {
+      opacity: 1;
+    }
+  }
+  .nf-bento__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-bento__title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+  }
+  .nf-bento__arrow {
+    color: var(--nf-brand-secondary);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-bento__card:hover .nf-bento__arrow {
+      transform: translateX(3px);
+    }
+  }
+  .nf-bento__body {
+    max-width: 44ch;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The scenes: a stage of about 7rem, drawn in the brand's light. */
+  .nf-scene {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 7rem;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-bento__cell--tall .nf-scene {
+    flex: 1;
+    height: auto;
+    min-height: 11rem;
+  }
+  .nf-scene__house svg {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+  .nf-scene__tag svg {
+    width: 2rem;
+    height: 2rem;
+  }
+  .nf-scene * {
+    animation-play-state: running;
+  }
+  .nf-bento-gate[data-playing="false"] .nf-scene *,
+  .nf-marquee[data-playing="false"] .nf-marquee__track,
+  .nf-ngmap [data-playing="false"] .nf-ngmap__sonar {
+    animation-play-state: paused;
+  }
+
+  /* The price tag swings from its string. */
+  .nf-scene__house {
+    color: color-mix(in oklab, var(--nf-content-primary) 55%, transparent);
+  }
+  .nf-scene__tag {
+    position: absolute;
+    top: 0.6rem;
+    left: calc(50% + 1.6rem);
+    transform-origin: 0 0;
+    animation: nf-scene-swing 4.8s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-scene-swing {
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(10deg); }
+  }
+
+  /* The calendar turns a page. */
+  .nf-scene__cal {
+    position: relative;
+    width: 6.5rem;
+    height: 7rem;
+    perspective: 400px;
+  }
+  .nf-scene__cal-top {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1.4rem;
+    z-index: 2;
+    border-radius: var(--nf-radius-sm) var(--nf-radius-sm) 0 0;
+    background: var(--nf-brand-primary);
+  }
+  .nf-scene__cal-page {
+    position: absolute;
+    inset: 1.4rem 0 0 0;
+    border-radius: 0 0 var(--nf-radius-sm) var(--nf-radius-sm);
+    background: color-mix(in oklab, var(--nf-content-primary) 10%, var(--nf-surface-canvas));
+    border: 1px solid var(--nf-brand-edge);
+  }
+  /* The turning page is only there while it turns: the grid underneath is
+     the month at rest. */
+  .nf-scene__cal-page--flip {
+    z-index: 2;
+    transform-origin: 50% 0;
+    opacity: 0;
+    animation: nf-scene-flip 4.8s var(--nf-ease-standard) infinite;
+  }
+  .nf-scene__cal-grid {
+    position: absolute;
+    inset: 2rem 0.5rem 0.5rem;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.3rem;
+  }
+  .nf-scene__cal-grid > i {
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
+  }
+  .nf-scene__cal-grid > i[data-on] {
+    background: var(--nf-brand-secondary);
+  }
+  @keyframes nf-scene-flip {
+    0%, 55% { transform: rotateX(0); opacity: 0; }
+    58% { transform: rotateX(0); opacity: 1; }
+    76% { transform: rotateX(-88deg); opacity: 0.5; }
+    78%, 100% { transform: rotateX(-88deg); opacity: 0; }
+  }
+
+  /* The assistant types. */
+  .nf-scene__chat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 9rem;
+  }
+  .nf-scene__q {
+    align-self: flex-end;
+    width: 70%;
+    height: 1.4rem;
+    border-radius: var(--nf-radius-md) var(--nf-radius-md) var(--nf-radius-xs) var(--nf-radius-md);
+    background: var(--nf-brand-primary);
+  }
+  .nf-scene__dots {
+    display: inline-flex;
+    gap: 0.3rem;
+    align-self: flex-start;
+    padding: 0.55rem 0.7rem;
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+  }
+  .nf-scene__dots > i {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: var(--nf-radius-circle);
+    background: currentColor;
+    animation: nf-ai-dot 1.4s var(--nf-ease-standard) infinite;
+  }
+  .nf-scene__dots > i:nth-child(2) { animation-delay: 160ms; }
+  .nf-scene__dots > i:nth-child(3) { animation-delay: 320ms; }
+
+  /* Price Check: the asking prices settle into bars. */
+  .nf-scene__bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    height: 5rem;
+  }
+  .nf-scene__bars > i {
+    width: 0.9rem;
+    height: 100%;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, var(--nf-brand-secondary), var(--nf-brand-primary));
+    transform-origin: 50% 100%;
+    transform: scaleY(var(--h));
+    animation: nf-scene-bar 4.8s var(--nf-ease-entrance) infinite;
+    animation-delay: calc(var(--bar-i) * 90ms);
+  }
+  @keyframes nf-scene-bar {
+    0% { transform: scaleY(0.15); }
+    25%, 85% { transform: scaleY(var(--h)); }
+    100% { transform: scaleY(0.15); }
+  }
+
+  /* The shield draws its tick. */
+  .nf-scene__tick {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    animation: nf-scene-tick 4.8s var(--nf-ease-entrance) infinite;
+  }
+  @keyframes nf-scene-tick {
+    0%, 8% { transform: scaleX(0); opacity: 0; }
+    26%, 88% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(1); opacity: 0; }
+  }
+
+  /* Two messages trade places. */
+  .nf-scene__msgs {
+    position: relative;
+    width: 9rem;
+    height: 4.5rem;
+  }
+  .nf-scene__msg {
+    position: absolute;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-md);
+  }
+  .nf-scene__msg--a {
+    left: 0;
+    top: 0.4rem;
+    width: 65%;
+    background: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
+    animation: nf-scene-msg 4.8s var(--nf-ease-standard) infinite;
+  }
+  .nf-scene__msg--b {
+    right: 0;
+    bottom: 0.4rem;
+    width: 55%;
+    background: var(--nf-brand-primary);
+    animation: nf-scene-msg 4.8s var(--nf-ease-standard) 2.4s infinite;
+  }
+  @keyframes nf-scene-msg {
+    0% { opacity: 0; transform: translate3d(0, 8px, 0); }
+    12%, 60% { opacity: 1; transform: none; }
+    80%, 100% { opacity: 0.25; transform: none; }
+  }
+
+  /* The feed moves up a card. */
+  .nf-scene__feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 8rem;
+    height: 5.5rem;
+    overflow: hidden;
+    mask-image: linear-gradient(180deg, transparent, var(--nf-content-primary) 20%, var(--nf-content-primary) 80%, transparent);
+  }
+  .nf-scene__feed > i {
+    flex: none;
+    height: 1.8rem;
+    border-radius: var(--nf-radius-sm);
+    background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    animation: nf-scene-feed 4.8s var(--nf-ease-standard) infinite;
+  }
+  .nf-scene__feed > i:nth-child(2) {
+    background: color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  }
+  @keyframes nf-scene-feed {
+    0%, 30% { transform: translateY(0); }
+    45%, 100% { transform: translateY(-2.2rem); }
+  }
+
+  /* ------------------------------------------------ the two worlds */
+
+  .nf-worlds {
+    --nf-worlds-accent: var(--nf-brand-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-gap-block);
+  }
+  .nf-worlds[data-side="stays"] {
+    --nf-worlds-accent: var(--nf-brand-accent);
+  }
+  .nf-worlds__switch {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-worlds__tab {
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-lg);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge);
+    background: transparent;
+    font-weight: 650;
+    color: var(--nf-content-secondary);
+    cursor: pointer;
+    transition: color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-worlds__tab[aria-pressed="true"] {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+  }
+  .nf-worlds__tab:focus-visible,
+  .nf-worlds__coin:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-worlds__coin {
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: none;
+    cursor: pointer;
+    perspective: 500px;
+  }
+  .nf-worlds__coin-inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform var(--nf-duration-deliberate) var(--nf-ease-spring);
+  }
+  .nf-worlds[data-side="stays"] .nf-worlds__coin-inner {
+    transform: rotateY(180deg);
+  }
+  .nf-worlds__face {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border-radius: var(--nf-radius-circle);
+    backface-visibility: hidden;
+    background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--nf-brand-secondary) 40%, transparent), var(--nf-landing-ink) 75%);
+    box-shadow: inset 0 0 0 1px var(--nf-brand-edge), 0 0 24px var(--nf-glow-2);
+  }
+  .nf-worlds__face--back {
+    transform: rotateY(180deg);
+  }
+  .nf-worlds__stage {
+    display: grid;
+    width: 100%;
+    padding: var(--nf-pad-card);
+    overflow: hidden;
+  }
+  .nf-worlds__panel {
+    grid-area: 1 / 1;
+    display: grid;
+    gap: var(--nf-gap-block);
+    align-items: center;
+    transition:
+      opacity var(--nf-duration-slow) var(--nf-ease-standard),
+      transform var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-worlds__panel[data-shown="false"] {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    pointer-events: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-worlds__panel {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+    }
+  }
+  .nf-worlds__copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-group);
+  }
+  .nf-worlds__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    line-height: 1.12;
+    color: var(--nf-content-primary);
+  }
+  .nf-worlds__title::before {
+    content: "";
+    display: block;
+    width: 2.5rem;
+    height: 3px;
+    margin-bottom: var(--nf-gap-row);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-worlds-accent);
+  }
+  .nf-worlds__body {
+    font-size: var(--nf-text-body);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+  .nf-worlds__cards {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(12rem, 1fr);
+    gap: var(--nf-gap-row);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .nf-worlds__cards > li {
+    scroll-snap-align: start;
+  }
+  .nf-worlds__panel[data-shown="true"] .nf-worlds__cards > li {
+    animation: nf-js-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--card-i, 0) * 60ms);
+  }
+
+  /* --------------------------------------------- the cities marquee */
+
+  .nf-marquee {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-row);
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, var(--nf-content-primary) 10%, var(--nf-content-primary) 90%, transparent);
+  }
+  .nf-marquee__track {
+    display: flex;
+    gap: var(--nf-gap-row);
+    width: max-content;
+    animation: nf-marquee-left 70s linear infinite;
+  }
+  .nf-marquee__row--right .nf-marquee__track {
+    animation-name: nf-marquee-right;
+    animation-duration: 80s;
+  }
+  .nf-marquee__row:hover .nf-marquee__track,
+  .nf-marquee__row:focus-within .nf-marquee__track {
+    animation-play-state: paused;
+  }
+  @keyframes nf-marquee-left {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(calc(-50% - var(--nf-gap-row) / 2), 0, 0); }
+  }
+  @keyframes nf-marquee-right {
+    from { transform: translate3d(calc(-50% - var(--nf-gap-row) / 2), 0, 0); }
+    to { transform: translate3d(0, 0, 0); }
+  }
+  .nf-marquee__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-panel-fill);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nf-content-secondary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-marquee__chip svg {
+    color: var(--nf-brand-secondary);
+  }
+  @media (hover: hover) {
+    .nf-marquee__chip:hover {
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-marquee__chip:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* --------------------------------------------------------- the map */
+
+  .nf-map-room {
+    display: grid;
+    gap: var(--nf-gap-block);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .nf-map-room {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: var(--nf-space-3xl);
+    }
+  }
+  .nf-map-room__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-gap-heading);
+  }
+  .nf-ngmap {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-ngmap__svg {
+    display: block;
+    width: 100%;
+    max-width: 36rem;
+    height: auto;
+    margin-inline: auto;
+    overflow: visible;
+  }
+  .nf-ngmap__land {
+    fill: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
+    stroke: var(--nf-brand-edge);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .nf-ngmap__dot {
+    fill: var(--nf-brand-secondary);
+  }
+  .nf-ngmap__sonar {
+    fill: none;
+    stroke: var(--nf-brand-secondary);
+    stroke-width: 1.2;
+    opacity: 0;
+  }
+  .nf-ngmap__label {
+    fill: var(--nf-content-secondary);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .nf-ngmap__pin > * {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+  }
+  .nf-ngmap__label {
+    transform-origin: 0 50%;
+  }
+  /* On a phone the names are the chips above the map; the pins stay. */
+  @media (max-width: 40rem) {
+    .nf-ngmap__label {
+      display: none;
+    }
+  }
+  .nf-ngmap[data-seen] .nf-ngmap__pin > :not(.nf-ngmap__sonar) {
+    animation: nf-pin-pop var(--nf-duration-entrance) var(--nf-ease-spring) both;
+    animation-delay: calc(200ms + min(var(--pin-i, 0), 6) * 90ms);
+  }
+  .nf-ngmap[data-seen] .nf-ngmap__sonar {
+    animation: nf-pin-sonar 3.2s var(--nf-ease-exit) infinite;
+    animation-delay: calc(900ms + var(--pin-i, 0) * 400ms);
+  }
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .nf-ngmap:not([data-seen]) .nf-ngmap__pin > * {
+      opacity: 0;
+    }
+  }
+  @keyframes nf-pin-pop {
+    from { opacity: 0; transform: scale(0.2); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nf-pin-sonar {
+    0% { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 0; transform: scale(4); }
+  }
+
+  /* ------------------------------------------- page-wide details */
+
+  /* Magnetic calls to action (LandingFx.tsx writes the pull). */
+  .nf-magnetic {
+    translate: var(--mag-x, 0px) var(--mag-y, 0px);
+    transition: translate var(--nf-duration-slow) var(--nf-ease-spring);
+  }
+  /* The light sweep across a primary button on hover. */
+  .nf-sweep {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .nf-sweep::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -45%;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent), transparent);
+    transform: translateX(0) skewX(-12deg);
+  }
+  @media (hover: hover) {
+    .nf-btn:hover > .nf-sweep::before,
+    .nf-btn:hover .nf-sweep::before {
+      transform: translateX(380%) skewX(-12deg);
+      transition: transform var(--nf-duration-cinematic) var(--nf-ease-standard);
+    }
+  }
+  /* The hero drifts: the aurora slower than the page, the card a little
+     faster, while the hero scrolls away. Scroll timelines where they exist,
+     `--nf-hero-p` from LandingFx.tsx where they do not. */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nf-landing-hero .nf-hero-aurora {
+        animation:
+          nf-aurora-land var(--nf-duration-cinematic) var(--nf-ease-entrance) calc(var(--nf-splash-hold, 0s) + 360ms) both,
+          nf-hero-drift-slow linear both;
+        animation-timeline: auto, scroll(root);
+        animation-range: normal, 0 100vh;
+      }
+      .nf-landing-hero .nf-landing-float {
+        animation: nf-hero-drift-fast linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 100vh;
+      }
+    }
+  }
+  @supports not (animation-timeline: scroll()) {
+    .nf-landing-hero .nf-hero-aurora {
+      translate: 0 calc(var(--nf-hero-p, 0) * 90px);
+    }
+    .nf-landing-hero .nf-landing-float {
+      translate: 0 calc(var(--nf-hero-p, 0) * -60px);
+    }
+  }
+  @keyframes nf-hero-drift-slow {
+    from { translate: 0 0; }
+    to { translate: 0 90px; }
+  }
+  @keyframes nf-hero-drift-fast {
+    from { translate: 0 0; }
+    to { translate: 0 -60px; }
+  }
+  /* The card turns a little towards the pointer over the hero. */
+  .nf-landing-hero .nf-landing-float {
+    transform: perspective(900px) rotateX(var(--card-rx, 0deg)) rotateY(var(--card-ry, 0deg));
+    transition: transform var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  /* No hard edge under the hero where it paints its own ground. */
+  @media (max-width: 63.999rem) {
+    .nf-landing-hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      z-index: -1;
+      height: 6rem;
+      background: linear-gradient(180deg, transparent, var(--nf-surface-canvas));
+      pointer-events: none;
+    }
+  }
+
+  /* --------------------------------- data saver and reduced motion */
+
+  :root[data-save-data="on"] .nf-scene *,
+  :root[data-save-data="on"] .nf-marquee__track,
+  :root[data-save-data="on"] .nf-ngmap__sonar,
+  :root[data-save-data="on"] .nf-landing-hero .nf-landing-float,
+  :root[data-save-data="on"] .nf-landing-hero .nf-hero-aurora {
+    animation: none;
+  }
+  :root[data-save-data="on"] .nf-marquee__track,
+  :root[data-save-data="on"] .nf-magnetic {
+    translate: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-scene *,
+    .nf-marquee__track,
+    .nf-ngmap__pin > *,
+    .nf-jscreen *,
+    .nf-worlds__cards > li {
+      animation: none !important;
+    }
+    .nf-eyebrow::before,
+    .nf-eyebrow::after,
+    .nf-journey__text,
+    .nf-journey__screen,
+    .nf-journey__rail-fill,
+    .nf-journey__dot,
+    .nf-journey__dot::after,
+    .nf-bento__card,
+    .nf-bento__card::after,
+    .nf-bento__spot,
+    .nf-worlds__coin-inner,
+    .nf-worlds__panel,
+    .nf-magnetic,
+    .nf-landing-hero .nf-landing-float {
+      transition: none;
+    }
+    .nf-journey__screen {
+      transform: none;
+    }
+    .nf-bento__card,
+    .nf-bento__card:hover {
+      transform: none;
+      translate: none;
+    }
+    .nf-sweep {
+      display: none;
+    }
+    /* The marquee stops and wraps into a still list; the copies go. */
+    .nf-marquee {
+      mask-image: none;
+    }
+    .nf-marquee__track {
+      flex-wrap: wrap;
+      justify-content: center;
+      width: auto;
+      padding-inline: var(--nf-pad-shell);
+    }
+    .nf-marquee__copy {
+      display: none;
+    }
+  }
+}

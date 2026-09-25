@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 
 /**
  * The Track M section reveal: rise 16px and fade, 520ms entrance, with the
@@ -39,19 +39,30 @@ export function MotionReveal({
   "aria-label"?: string;
 }) {
   const ref = useRef<HTMLElement | null>(null);
-  const [state, setState] = useState<"idle" | "out" | "in">("idle");
 
+  /*
+   * The state is written straight onto the element rather than through React
+   * state: it is presentation only, React never renders these attributes, so
+   * a re-render cannot reset them, and there is no second render per reveal.
+   *
+   *   data-reveal="out" | "in"   the entrance (below the fold at mount only)
+   *   data-seen="true"           this has been on screen at least once; what
+   *                              a heading's word-by-word arrival waits for
+   */
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (typeof IntersectionObserver === "undefined") return;
-    if (el.getBoundingClientRect().top < window.innerHeight) return;
-    setState("out");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || typeof IntersectionObserver === "undefined" || el.getBoundingClientRect().top < window.innerHeight) {
+      el.dataset.seen = "true";
+      return;
+    }
+    el.dataset.reveal = "out";
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          setState("in");
+          el.dataset.reveal = "in";
+          el.dataset.seen = "true";
           io.disconnect();
         }
       },
@@ -69,7 +80,6 @@ export function MotionReveal({
       aria-labelledby={labelledBy}
       aria-label={label}
       style={style}
-      data-reveal={state === "idle" ? undefined : state}
       className={[stagger ? "nf-m-stagger" : "nf-m-reveal", className ?? ""].join(" ").trim()}
     >
       {children}

@@ -4,6 +4,7 @@ import { MotionReveal } from "@/components/motion/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { structuredDataJson } from "@/lib/listings/syndication";
 import { faqItems } from "./faq-items";
+import { SectionHead } from "./SectionHead";
 
 /**
  * The landing FAQ (Track M). Every money answer is a `lib/money/copy.ts`
@@ -29,20 +30,17 @@ export function LandingFaq({ t, nonce }: { t: Dictionary; nonce?: string }) {
     })),
   };
   return (
-    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-faq-title">
+    <section className="nf-shell nf-room" data-chapter="faq" aria-labelledby="nf-landing-faq-title">
       <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{ __html: structuredDataJson(jsonLd) }} />
       <div className="nf-faq-room">
-        <MotionReveal className="nf-faq-head">
-          <span className="nf-overline text-[var(--nf-brand-secondary)]">{f.overline}</span>
-          <h2 id="nf-landing-faq-title" className="nf-h1 mt-row">
-            {f.title}
-          </h2>
-          <p className="nf-lede mt-group">{f.body}</p>
-          <Link href="/help" prefetch={false} className="nf-room-link mt-heading">
+        <div className="nf-faq-head">
+          <SectionHead id="nf-landing-faq-title" eyebrow={f.overline} title={f.title} lede={f.body}>
+            <Link href="/help" prefetch={false} className="nf-room-link mt-heading">
             {f.help}
             <UiIcon name="arrow-right" size={16} aria-hidden />
           </Link>
-        </MotionReveal>
+          </SectionHead>
+        </div>
         <MotionReveal className="nf-faq-list">
           {items.map((item) => (
             <details key={item.key} className="nf-faq-item">

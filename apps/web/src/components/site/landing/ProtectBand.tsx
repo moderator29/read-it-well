@@ -4,6 +4,7 @@ import { MotionReveal } from "@/components/motion/Reveal";
 import { FeatureGlyph, type FeatureGlyphName } from "@/components/motion/FeatureGlyph";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
+import { SectionHead } from "./SectionHead";
 
 /**
  * How Vallo protects you (Track M): the three rules that sit in the product
@@ -34,14 +35,8 @@ export function ProtectBand({ t }: { t: Dictionary }) {
     { key: "inspection", glyph: "key", title: p.inspection.title, body: NO_INSPECTION_FEE },
   ];
   return (
-    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-protect-title">
-      <MotionReveal className="nf-room-head">
-        <span className="nf-overline text-[var(--nf-brand-secondary)]">{p.overline}</span>
-        <h2 id="nf-landing-protect-title" className="nf-h1 mt-row">
-          {p.title}
-        </h2>
-        <p className="nf-lede mt-group">{p.body}</p>
-      </MotionReveal>
+    <section className="nf-shell nf-room" data-chapter="protect" aria-labelledby="nf-landing-protect-title">
+      <SectionHead id="nf-landing-protect-title" eyebrow={p.overline} title={p.title} lede={p.body} align="center" />
       <MotionReveal as="ul" stagger className="nf-protect-grid">
         {cards.map((c) => (
           <li key={c.key} className="nf-protect-card nf-fx-host">

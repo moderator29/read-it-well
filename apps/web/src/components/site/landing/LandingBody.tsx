@@ -7,7 +7,6 @@ import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
 import { Hero } from "./Hero";
 import { FeatureChips } from "./FeatureChips";
 import { CommunityBand } from "./CommunityBand";
-import { HowVallo } from "./HowVallo";
 import { CategoryGrid } from "./CategoryGrid";
 import { StaysBand } from "./StaysBand";
 import { AppBand } from "./AppBand";
@@ -16,6 +15,12 @@ import { AiBand } from "./AiBand";
 import { LandingFaq } from "./LandingFaq";
 import { FinalCta } from "./FinalCta";
 import { storeBadges } from "./store-badges";
+import { Journey } from "./Journey";
+import { Bento } from "./Bento";
+import { WorldsBand } from "./WorldsBand";
+import { CitiesMarquee } from "./CitiesMarquee";
+import { NigeriaMap } from "./NigeriaMap";
+import { LandingFx } from "./LandingFx";
 
 /**
  * Everything the landing prints that comes from the platform, read once.
@@ -125,13 +130,22 @@ export function LandingBody({
         feature band, the AI showcase after how it works, the figures after
         stays, and the FAQ and a closing call to action at the foot.
       */}
+      {/* THE SECOND PASS (the founder's "expand, impress me"): the journey
+          takes the four-step slot the render gave How Vallo works, since it
+          tells the same four steps with the phone beside them, and the
+          bento, the two worlds, the cities and the map join the rooms. */}
+      <LandingFx />
       <Hero t={t} locale={locale} cards={data.cards} badges={badges} />
       <FeatureChips t={t} />
+      <CitiesMarquee t={t} />
       <ProtectBand t={t} />
-      <HowVallo t={t} />
+      <Journey t={t} />
+      <Bento t={t} />
       <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
+      <WorldsBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
       <CategoryGrid t={t} counts={data.counts} />
       <StaysBand t={t} />
+      <NigeriaMap t={t} />
       <CommunityBand t={t} locale={locale} listing={first} stats={data.stats} />
       {native ? null : <AppBand t={t} locale={locale} listing={first} native={native} />}
       <LandingFaq t={t} nonce={nonce} />

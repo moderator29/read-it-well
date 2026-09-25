@@ -110,6 +110,76 @@ export const landingRoomsEn = {
     body: "Search homes, land and stays across Nigeria, and keep every message, agreement and payment in one account.",
     join: "Create your account",
   },
+  /*
+   * The journey (Track M, second pass): four chapters told down the page
+   * beside one phone. The money chapters' bodies are NOT here: Inspect,
+   * Agree and Move in print `NO_INSPECTION_FEE`, `PAYMENT_GATE_SENTENCE` and
+   * `NO_CUSTODY_SENTENCE` from `lib/money/copy.ts`. The screen labels are
+   * the few words drawn inside the phone.
+   */
+  journey: {
+    overline: "From search to keys",
+    title: "Four steps, one record",
+    body: "The whole of renting, told in the order it happens. Nothing moves on until the step before it is done.",
+    steps: [
+      { key: "find", label: "Find", title: "Find the place", body: "Search homes, land and stays across Nigeria, with the person behind each listing named and the move-in total printed before you call anybody." },
+      { key: "inspect", label: "Inspect", title: "See it for yourself" },
+      { key: "agree", label: "Agree", title: "Agree before anything is paid" },
+      { key: "move", label: "Move in", title: "Pay, and move in" },
+    ],
+    screen: {
+      search: "Search Lagos",
+      inspection: "Inspection",
+      booked: "Booked",
+      noFee: "No inspection fee",
+      agreement: "Agreement",
+      you: "You",
+      owner: "Owner",
+      approved: "Approved by Vallo",
+      paid: "Paid",
+      theirBank: "Straight to their bank",
+      keys: "Keys",
+    },
+  },
+  bento: {
+    overline: "Everything in one place",
+    title: "One account for the whole of it",
+    body: "Search, stays, the assistant, the agreement and the record, in the same place, so nothing is arranged across five apps.",
+    cards: {
+      rent: { title: "Rent and buy", body: "Homes, land, shops and offices, with the move-in total printed on the card." },
+      stays: { title: "Vallo Stays", body: "Hotels, shortlets and guest houses, with the free nights and the full total before you book." },
+      ai: { title: "Vallo AI", body: "Ask in English, Yorùbá, Hausa or Igbo. It names only places that are on Vallo." },
+      price: { title: "Price Check", body: "What similar places near you are currently advertised for, and it says so when there is not enough to tell." },
+      agree: { title: "Agreements and the Guarantee", body: "Both of you confirm the agreement before any payment opens." },
+      messages: { title: "Messages", body: "Every conversation with the lister stays on the platform, so there is a record." },
+      feed: { title: "Around", body: "Places, posts and people near you, from the same account." },
+    },
+  },
+  worlds: {
+    overline: "Two sides, one account",
+    property: {
+      label: "Property",
+      title: "Somewhere to live, or to own",
+      body: "Rent by the year or buy outright. The agent is named, the inspection comes before any money, and the agreement is on the record.",
+      cta: "Explore properties",
+    },
+    stays: {
+      label: "Stays",
+      title: "Somewhere to stay tonight",
+      body: "Hotels, shortlets and guest houses by the night, with the dates that are free and the full total before you book.",
+      cta: "Explore stays",
+    },
+    flip: "Flip to",
+  },
+  cities: {
+    overline: "Across Nigeria",
+    title: "Start with a place you know",
+  },
+  map: {
+    overline: "Where Vallo lives",
+    title: "Built for the whole of Nigeria",
+    body: "Search any of these cities, or any other place you know. The pins are places, not counts.",
+  },
   badges: {
     appleSmall: "Download on the",
     apple: "App Store",

@@ -8,6 +8,7 @@ import { photo } from "@/lib/site/photos";
 import { ListingMini } from "./ListingMini";
 import { storeBadges } from "./store-badges";
 import { StoreBadges } from "./StoreBadges";
+import { SectionHead } from "./SectionHead";
 
 /**
  * Take Vallo with you.
@@ -51,15 +52,10 @@ export function AppBand({
     native,
   });
   return (
-    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-app-title">
+    <section className="nf-shell nf-room" data-chapter="app" aria-labelledby="nf-landing-app-title">
       <div className="nf-landing-app">
         <Reveal className="flex flex-col gap-heading">
-          <div>
-            <h2 id="nf-landing-app-title" className="nf-h1 max-w-measure-display">
-              {a.title}
-            </h2>
-            <p className="nf-lede mt-group max-w-measure-lede">{a.body}</p>
-          </div>
+          <SectionHead id="nf-landing-app-title" title={a.title} lede={a.body} />
           {/* The official artwork, drawn inline (StoreBadges.tsx). */}
           <StoreBadges badges={badges} labels={t.landingRooms.badges} />
         </Reveal>

@@ -11,6 +11,7 @@ import { SearchPill } from "./SearchPill";
 import { HeroAurora } from "./HeroAurora";
 import { StoreBadges } from "./StoreBadges";
 import type { StoreBadge } from "./store-badges";
+import { Sweep } from "./Sweep";
 
 /**
  * The hero, to GOVERNING-landing-desktop-hero.png.
@@ -63,7 +64,7 @@ export function Hero({
   const face = t.landing.face;
 
   return (
-    <section className="nf-landing-hero" aria-labelledby="nf-landing-title">
+    <section className="nf-landing-hero" data-chapter="hero" aria-labelledby="nf-landing-title">
       {/* The moving light: a 28 second drift in the brand hues, paused off
           screen and in a background tab (HeroAurora.tsx). */}
       <HeroAurora />
@@ -106,7 +107,8 @@ export function Hero({
           </h1>
           <p className="nf-rise nf-rise-3 nf-landing-sub">{face.hero.subtitle}</p>
           <div className="nf-rise nf-rise-4 flex flex-wrap items-center gap-row">
-            <ButtonLink href="/search" variant="primary" size="md" trailingIcon="arrow-right">
+            <ButtonLink href="/search" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
+              <Sweep />
               {face.hero.explore}
             </ButtonLink>
             <ButtonLink href="/stays" variant="secondary" size="md">
