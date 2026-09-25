@@ -239,12 +239,27 @@ export async function loadConversationSummaries(
   if (!conversations || conversations.length === 0) return [];
 
   const ids = conversations.map((c) => c.id);
-  const { data: recent } = await supabase
-    .from("messages")
-    .select("conversation_id, sender_id, body, created_at, read_at")
-    .in("conversation_id", ids)
-    .order("created_at", { ascending: false })
-    .limit(400);
+  const counterparts = conversations.map((c) => (c.guest_id === user.id ? c.agent_id : c.guest_id));
+
+  /* The three reads below need only the conversations, so they go out
+     together rather than one after another (Track M performance: the inbox
+     finished 1.4 seconds after the tap on production). What each one reads
+     is unchanged. */
+  const [{ data: recent }, { data: mine }, identities] = await Promise.all([
+    supabase
+      .from("messages")
+      .select("conversation_id, sender_id, body, created_at, read_at")
+      .in("conversation_id", ids)
+      .order("created_at", { ascending: false })
+      .limit(400),
+    /* Which threads the caller has ever spoken in. The recent sweep is
+       bounded at 400 messages across every conversation, so it cannot answer
+       this on its own: a thread the caller replied to a year and two hundred
+       messages ago would come back as a request. One narrow query, keyed on
+       the caller's own id, answers it exactly. */
+    supabase.from("messages").select("conversation_id").in("conversation_id", ids).eq("sender_id", user.id).limit(1000),
+    identitiesOf(counterparts),
+  ]);
 
   const lastByConversation = new Map<
     string,
@@ -267,23 +282,8 @@ export async function loadConversationSummaries(
     }
   }
 
-  const counterparts = conversations.map((c) => (c.guest_id === user.id ? c.agent_id : c.guest_id));
-
-  /* Which threads the caller has ever spoken in. The recent sweep above is
-     bounded at 400 messages across every conversation, so it cannot answer
-     this on its own: a thread the caller replied to a year and two hundred
-     messages ago would come back as a request. One narrow query, keyed on the
-     caller's own id, answers it exactly. */
   const spokenIn = new Set<string>();
-  const { data: mine } = await supabase
-    .from("messages")
-    .select("conversation_id")
-    .in("conversation_id", ids)
-    .eq("sender_id", user.id)
-    .limit(1000);
   for (const row of mine ?? []) spokenIn.add(row.conversation_id);
-
-  const identities = await identitiesOf(counterparts);
 
   /* UX-P2-03: a listing thread with no message in it is a tap somebody
      abandoned (the old "Message" page opened one on load). It is not shown in

@@ -41,7 +41,14 @@ export default async function InboxPage() {
   const session = await resolveSession();
 
   if (session.state === "signed-in") {
-    if (!(await isFeatureEnabled("messaging"))) {
+    /* The switch, the threads and the side are asked for together; the
+       threads are only drawn when the switch is on (Track M performance). */
+    const [messagingOn, conversations, side] = await Promise.all([
+      isFeatureEnabled("messaging"),
+      loadConversationSummaries(session.supabase, session.user),
+      getSide(),
+    ]);
+    if (!messagingOn) {
       return (
         <div className="mx-auto max-w-2xl">
           <div className="relative">
@@ -56,17 +63,13 @@ export default async function InboxPage() {
       );
     }
 
-    const conversations = await loadConversationSummaries(session.supabase, session.user);
     /* Track G: which threads this reader archived or reported, and which side
        the shell is on, so the inbox opens where the reader already is. */
-    const [views, side] = await Promise.all([
-      loadInboxViews(
-        session.supabase as unknown as SupabaseClient,
-        session.user.id,
-        conversations.map((c) => ({ id: c.id, counterpartId: c.counterpartId ?? "", lastAt: c.lastAt })),
-      ),
-      getSide(),
-    ]);
+    const views = await loadInboxViews(
+      session.supabase as unknown as SupabaseClient,
+      session.user.id,
+      conversations.map((c) => ({ id: c.id, counterpartId: c.counterpartId ?? "", lastAt: c.lastAt })),
+    );
     const rows: InboxRow[] = conversations.map((c) => ({
       id: c.id,
       counterpartName: c.counterpartName,
