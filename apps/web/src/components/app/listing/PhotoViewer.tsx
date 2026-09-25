@@ -11,9 +11,10 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode, TouchEvent as ReactTouchEvent } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { readSheetMarker } from "@/lib/ui/use-sheet-history";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { useClientMount } from "@/lib/ui/client-mount";
@@ -148,8 +149,121 @@ function Lightbox({
    * hook counts its openers, so the page only moves again when the last one
    * has gone.
    */
-  const close = useCallback(() => onClose(), [onClose]);
+  /*
+   * THE VIEWER IS A HISTORY ENTRY, so the way out is always the one a person
+   * already knows. Opening pushes an entry on the same address (the App
+   * Router's own state spread in, or it reloads on the way back, the same
+   * reason `FirstRun` does it), so the browser's back, the iPhone edge swipe
+   * and Android's hardware back close the photographs FIRST and leave the
+   * listing where it was. Closing from inside (the X, Escape, a swipe down)
+   * pops that entry itself, so history never keeps a dead viewer entry that
+   * would make the next back press look like it did nothing.
+   */
+  const pushed = useRef(false);
+  /* Read through a ref so a new `onClose` identity from the provider can never
+     re-run the effect below and push a second entry. */
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      /* Already on our own entry is React's development double-mount, not a
+         second opening: pushing again would cost the reader a second back. */
+      const current = (window.history.state ?? {}) as Record<string, unknown>;
+      if (current.nfPhotoViewer) {
+        /* already ours */
+      } else if (readSheetMarker(current)) {
+        /* Opened from the "Show all" sheet, which closes as this opens. The
+           sheet's entry is REUSED rather than stacked on: the sheet's own
+           hook only pops its entry while its marker is on top, so pushing
+           over it would leave a dead entry behind and cost the reader a
+           back press that does nothing. The marker is dropped, so the sheet
+           leaves history alone. */
+        const { nfSheet: _sheet, ...rest } = current;
+        window.history.replaceState({ ...rest, nfPhotoViewer: true }, "");
+      } else {
+        window.history.pushState({ ...current, nfPhotoViewer: true }, "");
+      }
+      pushed.current = true;
+    } catch {
+      /* A sandbox that refuses history still gets the X, Escape and the swipe. */
+    }
+    const onPop = () => {
+      pushed.current = false;
+      onCloseRef.current();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [mounted]);
+
+  const close = useCallback(() => {
+    if (pushed.current && (window.history.state as { nfPhotoViewer?: boolean } | null)?.nfPhotoViewer) {
+      pushed.current = false;
+      /* popstate above does the actual close, so there is one path out. */
+      window.history.back();
+      return;
+    }
+    onClose();
+  }, [onClose]);
   useOverlay({ open: mounted, onClose: close, panelRef: surface, autoFocus: false });
+
+  /*
+   * SWIPE DOWN TO DISMISS, the gesture every phone photo viewer teaches.
+   *
+   * The track is `touch-action: pan-x pinch-zoom`, so a sideways swipe is still
+   * the browser's own snap scroll and a pinch still zooms, while a vertical drag
+   * is left to this handler instead of doing nothing. The photograph follows
+   * the finger and the ground fades with the distance; past a quarter of the
+   * way (or on a quick flick) it closes, otherwise it springs back. Only
+   * `transform` and `opacity` move. Under reduced motion nothing follows the
+   * finger: the gesture still closes past the threshold, it just does not
+   * animate on the way.
+   */
+  const [drag, setDrag] = useState(0);
+  const gesture = useRef<{ x: number; y: number; t: number; axis: "x" | "y" | null } | null>(null);
+  const reduced = useRef(false);
+  useEffect(() => {
+    reduced.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+  }, []);
+  const onTouchStart = useCallback((event: ReactTouchEvent) => {
+    /* Pinched in, a vertical drag is the reader panning the enlarged photo,
+       never a dismissal. */
+    if (event.touches.length !== 1 || (window.visualViewport?.scale ?? 1) > 1.01) {
+      gesture.current = null;
+      return;
+    }
+    const t = event.touches[0]!;
+    gesture.current = { x: t.clientX, y: t.clientY, t: performance.now(), axis: null };
+  }, []);
+  const onTouchMove = useCallback((event: ReactTouchEvent) => {
+    const g = gesture.current;
+    const t = event.touches[0];
+    if (!g || !t || event.touches.length !== 1) return;
+    const dx = t.clientX - g.x;
+    const dy = t.clientY - g.y;
+    if (g.axis === null && Math.hypot(dx, dy) > 8) g.axis = Math.abs(dy) > Math.abs(dx) ? "y" : "x";
+    if (g.axis !== "y") return;
+    if (!reduced.current) setDrag(Math.max(0, dy));
+  }, []);
+  const onTouchEnd = useCallback(
+    (event: ReactTouchEvent) => {
+      const g = gesture.current;
+      gesture.current = null;
+      if (!g || g.axis !== "y") return;
+      const t = event.changedTouches[0];
+      const dy = t ? t.clientY - g.y : 0;
+      const velocity = dy / Math.max(1, performance.now() - g.t);
+      const height = surface.current?.clientHeight ?? 800;
+      if (dy > height * 0.22 || (dy > 60 && velocity > 0.6)) {
+        close();
+        return;
+      }
+      setDrag(0);
+    },
+    [close],
+  );
 
   /* First focus, with `preventScroll`: the viewer covers the page it opened
      from, and letting the browser scroll to the control it just focused would
@@ -213,11 +327,26 @@ function Lightbox({
       aria-label={`${title} photos`}
       tabIndex={-1}
       data-testid="listing-lightbox"
+      data-theme="dark"
       data-open={entered}
+      data-dragging={drag > 0 ? "" : undefined}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchEnd}
+      style={
+        drag > 0
+          ? ({
+              "--nf-viewer-drag": `${drag}px`,
+              "--nf-viewer-fade": String(1 - Math.min(drag / 520, 0.75)),
+              "--nf-viewer-scale": String(1 - Math.min(drag / 3000, 0.12)),
+            } as CSSProperties)
+          : undefined
+      }
       className={[
         // Above the Sheet primitive's 80/81, so a photo opened from the
         // "Show all" sheet is never painted behind the sheet it came from.
-        "fixed inset-0 z-[90] bg-[var(--nf-surface-artwork)] outline-none",
+        "nf-photo-viewer fixed inset-0 z-[90] outline-none",
         "transition-opacity duration-200 ease-out motion-reduce:transition-none",
         "motion-safe:transition-[opacity,transform] motion-safe:duration-200",
         entered ? "opacity-100 motion-safe:scale-100" : "opacity-0 motion-safe:scale-[0.98]",
@@ -226,7 +355,7 @@ function Lightbox({
       <div
         ref={track}
         onScroll={onScroll}
-        className="nf-scroll-x flex h-full w-full snap-x snap-mandatory"
+        className="nf-scroll-x nf-photo-viewer__track flex h-full w-full snap-x snap-mandatory"
       >
         {photos.map((photo, i) => (
           <div
@@ -250,17 +379,17 @@ function Lightbox({
       </div>
 
       {/* Chrome sits above the track and clears the notch and the home indicator. */}
-      <div className="nf-safe-top pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-sm p-sm">
+      <div className="nf-photo-viewer__chrome pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-sm">
         <button
           type="button"
-          onClick={onClose}
+          onClick={close}
           aria-label="Close photos"
           data-testid="lightbox-close"
           className="pointer-events-auto grid h-11 w-11 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="close" size={20} />
         </button>
-        <p className="nf-numeric pointer-events-none mt-2xs rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--caption px-sm py-xs font-semibold">
+        <p className="nf-numeric pointer-events-none rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--caption px-sm py-xs font-semibold">
           <span className="sr-only">Photo </span>
           {active + 1} / {photos.length}
         </p>

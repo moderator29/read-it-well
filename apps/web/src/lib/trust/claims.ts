@@ -108,6 +108,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
     mechanism:
       "public.guarantee_reserve_entries (append-only ledger funded by the split at settle_booking_charge) and public.admin_decide_guarantee_claim, which caps each claim by the amount paid and the reserve balance under an advisory lock; scope and window in public.money_policy",
   },
+  { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 
   /* Sentences deleted on the release branch by another change. */
   { phrase: /^secure and fast$/i, mechanism: "none", pendingRemoval: "STORE-06, fix/a4 b36e00e2 (already integrated)" },

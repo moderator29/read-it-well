@@ -44,7 +44,10 @@ export function StaysDatesRow({
         <span className={TYPE.rowMeta}>{copy.guests}</span>
         <input type="number" name="guests" inputMode="numeric" min={1} max={30} defaultValue={guests ?? 2} className="nf-field" />
       </label>
-      <button type="submit" className="nf-btn nf-btn--primary">
+      {/* The whole row on a phone: at 390 the button had half of it, and
+          "Show prices for these dates" ran out of both sides, clipped. It may
+          still wrap in a longer locale rather than clip. */}
+      <button type="submit" className="nf-btn nf-btn--primary col-span-2 h-auto min-h-11 whitespace-normal text-center leading-tight sm:col-span-1">
         {copy.submit}
       </button>
     </form>

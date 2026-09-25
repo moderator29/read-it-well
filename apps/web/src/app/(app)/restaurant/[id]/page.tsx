@@ -201,9 +201,9 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       };
 
   const where = [venue.area, venue.city].filter(Boolean).join(", ");
-  /* A thread is bound to a LISTING (`startConversation({ listingId })`), so a
-     business venue has no thread to open and the control is not drawn for it
-     rather than drawn and refusing. Reported, not worked around. */
+  /* A listing thread is bound to a LISTING (`startConversation({ listingId })`),
+     so this link exists only for a catalogue restaurant. A business venue is
+     messaged through the host row's `messageVenue` instead (track F). */
   const messageHref =
     venue.isBusiness || venue.isExample ? null : `/messages/new?listing=${venue.id}`;
 
@@ -318,6 +318,12 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
               verified: venue.verified,
               verifiedLabel: t.catalogue.detail.verifiedHost,
               messageHref,
+              /* Track F: a business venue has no listing thread, so it is
+                 messaged through the business itself (`MessageVenue`). */
+              messageVenue:
+                venue.isBusiness && !venue.isExample
+                  ? { businessId: venue.id, venueName: detail.business.name }
+                  : null,
               messageLabel: t.catalogue.detail.message,
             }
           : null

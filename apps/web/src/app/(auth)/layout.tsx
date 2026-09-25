@@ -49,9 +49,8 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
      * palette on `:root, [data-theme="dark"]`, so this element and everything
      * inside it take the dark values whatever the document is set to.
      *
-     * DARK ONLY: light mode was removed from the platform on 23 September.
-     * The attribute stays so the tokens resolve dark here whatever the root
-     * says while the rest of the platform finishes that change.
+     * Light mode was removed on 23 September and reintroduced on the 25th;
+     * this attribute is what keeps the auth stage dark on a light document.
      */
     <main id="main" className="nf-auth" data-theme="dark">
       <AuthBackBar />

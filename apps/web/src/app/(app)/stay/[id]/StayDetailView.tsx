@@ -348,7 +348,14 @@ export function StayDetailView({
                     role: BUSINESS_LABEL[businessKind] ?? "Host",
                     verified: detail.hostVerified === true,
                     verifiedLabel: detailCopy.verifiedHost,
-                    messageHref: detail.isExample ? null : `/messages/new?listing=${detail.id}`,
+                    /* An accommodation id is not a listing id, so the old
+                       `/messages/new?listing=` link could only fail. A stay is
+                       messaged through its business (`MessageVenue`). */
+                    messageHref: null,
+                    messageVenue:
+                      detail.isExample || !detail.businessId
+                        ? null
+                        : { businessId: detail.businessId, venueName: detail.hostName },
                     messageLabel: detailCopy.message,
                   }
                 : null

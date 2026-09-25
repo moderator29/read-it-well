@@ -9,31 +9,22 @@
  * Layer 1 is the raw palette. Never reference layer 1 from a component.
  * Layer 2 is the semantic layer. Components reference only layer 2.
  *
- * THE PLATFORM IS DARK ONLY, AND THAT IS A DECISION RATHER THAN AN OMISSION.
+ * TWO THEMES. DARK IS THE DEFAULT AND THE BRAND; LIGHT IS CHOSEN.
  *
- * The founder removed light mode on 23 September 2026. There was a complete
- * second palette here, 932 lines on `:root[data-theme="light"]`, and it is
- * deleted along with the light stylesheet, the before-paint script that set the
- * attribute, the control that wrote it and the store behind it. If you are
- * looking for the twin because a token seems to be missing one: it is not
- * missing, it was taken out on purpose. `docs/design/LIGHT_MODE_REMOVED.md`
- * lists what came out, what was struck with it and what was deliberately left.
+ * The founder removed light mode on 23 September 2026 and reversed that on the
+ * 25th ("light mode, reintroduced properly"). The night palette is `:root`
+ * below; the light palette is the `:root[data-theme="light"]` block at the end
+ * of this file, which opens with why the first one failed and how this one
+ * answers each failure. The choice is written by `lib/theme/theme.ts`
+ * (cookie + storage, before paint), `color-scheme` follows the theme in
+ * `app/css/base.css`, and `app/css/light.css` carries the few rules a token
+ * cannot express (the icon tiles, the logo plate, the ambient artwork).
  *
- * DO NOT ADD A `[data-theme="light"]` BLOCK BACK WITHOUT THE FOUNDER SAYING
- * SO. A token here needs no twin, a rule in a stylesheet needs no paper
- * answer, and `html { color-scheme: dark }` in `app/css/base.css` is what
- * stops a browser or an operating system set to light painting its own white
- * into the form controls, scrollbars and native pickers that no stylesheet can
- * reach.
- *
- * WHY `[data-theme="dark"]` IS STILL ON THE SELECTOR BELOW. It is not the
- * other half of a theme switch any more; it is the one way a SUBTREE can
- * declare the full palette for itself. The auth screen and the first-run stage
+ * WHY `[data-theme="dark"]` IS ON THE SELECTOR BELOW. It is the one way a
+ * SUBTREE can declare the full night palette for itself inside a light page. The auth screen and the first-run stage
  * both carry it, from when they had to stay dark while the rest of the
  * document might be light (rule 22, the register setter for a money product).
- * They are redundant now and they are harmless, and the mechanism is worth
- * keeping because it is how any future "this part is always X" would be
- * written: a custom property declared on a descendant wins for that subtree
+ * With light back they matter again, and the mechanism is: a custom property declared on a descendant wins for that subtree
  * over the value it would otherwise inherit, which is inheritance rather than
  * a specificity trick.
  *
@@ -3349,7 +3340,9 @@
  * instead of half Poppins and half fallback.
  */
 :root[lang="yo"],
-:root[lang="ig"] {
+:root[lang="ig"],
+:root[lang="yo"] [data-theme="dark"],
+:root[lang="ig"] [data-theme="dark"] {
   --nf-font-display: var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -3386,7 +3379,11 @@
  * one code path and transitions simply resolve immediately.
  */
 @media (prefers-reduced-motion: reduce) {
-  :root {
+  /* A night subtree (`[data-theme="dark"]`: auth, first run, every
+     photograph region) redeclares the palette and with it the durations, so
+     it is named here too or reduced motion would stop at its edge. */
+  :root,
+  [data-theme="dark"] {
     --nf-duration-instant: 1ms;
     --nf-duration-fast: 1ms;
     --nf-duration-base: 1ms;
@@ -3419,6 +3416,267 @@
  * the note beside `--nf-side-accent`. Scoped on the attribute rather than a
  * class so the pre-paint script and the shell can both set it.
  */
-[data-side="stays"] {
+[data-side="stays"],
+[data-side="stays"] [data-theme="dark"] {
   --nf-side-accent: var(--nf-mode-agent);
+}
+
+/* ==========================================================================
+ * THE LIGHT THEME, REINTRODUCED 25 SEPTEMBER 2026.
+ * ==========================================================================
+ *
+ * The founder reversed the dark-only rule. This is NOT the block that was
+ * deleted on the 23rd; that one failed for five reasons, recorded in
+ * `docs/research/LIGHT_MODE_SURVEY.md` section 0, and this one is written
+ * against each of them:
+ *
+ *  R1  Brand glass objects were painted on a navy chip in daylight and lost a
+ *      third of their contrast. They now sit on THEIR OWN night ground
+ *      (`--nf-surface-artwork`, unchanged below), in an organised dark tile:
+ *      the artwork is drawn for that ground, so it reads exactly as it does at
+ *      night. See `app/css/light.css`, "the icon tiles".
+ *  R2  The container ladder collapsed (white on white, rims white on white).
+ *      Containers here are WHITE with a soft 1px neutral border and a real,
+ *      low shadow, and the canvas is white: the reference is a clean white
+ *      ground with rounded cards on soft hairlines.
+ *  R3  Glass fills that LIFT at night (white at 7.5 per cent) inverted to
+ *      white at 86 per cent and lifted nothing. Every wash, glass fill and
+ *      hover here is INK at a low alpha, so a lift is still a visible step.
+ *  R4  Four stylesheets had no light answer. The lit materials they use
+ *      (panel, plate, lit button, glass button, selected) are TOKENS, so they
+ *      are answered here once rather than rule by rule.
+ *  R5  Nothing checked it. `apps/web/scripts/design/light/sweep.mjs` measures contrast
+ *      and overflow on every main route in both themes.
+ *
+ * Contrast, measured on #FFFFFF: content-primary 18.9:1, secondary 9.7:1,
+ * subtle 7.6:1, muted 5.8:1, brand-primary 5.5:1 (and white on it 5.5:1),
+ * brand-quiet 7.0:1, success 5.5:1, warning 5.4:1, error 5.9:1, info 5.9:1.
+ *
+ * WHAT DELIBERATELY STAYS DARK: anything drawn over a PHOTOGRAPH (scrims,
+ * the on-media controls, the photo viewer's ground) and the ARTWORK ground,
+ * because the photograph and the artwork do not change with the theme.
+ */
+:root[data-theme="light"] {
+  /* ----------------------------------------------------------- the ground */
+  --nf-surface-canvas: #FFFFFF;
+  --nf-canvas-base: #FFFFFF;
+  --nf-surface-primary: #FFFFFF;
+  --nf-surface-secondary: #F6F7F9;
+  --nf-surface-elevated: #FFFFFF;
+  --nf-surface-raised: #F3F5F8;
+  --nf-surface-inset: #EEF1F5;
+
+  /* ------------------------------------------------------------ the inks */
+  --nf-content-primary: #0B0D17;
+  --nf-content-secondary: #363C4A;
+  --nf-content-subtle: #464E5E;
+  --nf-content-muted: #5A6273;
+  --nf-content-on-brand: #FFFFFF;
+  --nf-content-inverse: #FFFFFF;
+  --nf-content-link: var(--nf-brand-quiet);
+
+  /* ----------------------------------------------------------- the brand */
+  --nf-brand-primary: #005FE8;
+  --nf-brand-primary-strong: #004BC0;
+  --nf-brand-quiet: #0050C8;
+  --nf-brand-accent: #005FE8;
+  --nf-brand-tint-1: color-mix(in oklab, var(--nf-brand-primary) 7%, transparent);
+  --nf-brand-tint-2: color-mix(in oklab, var(--nf-brand-primary) 11%, transparent);
+  --nf-brand-tint-3: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+  --nf-brand-tint-4: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+  --nf-mode-personal: #005FE8;
+  --nf-mode-agent: #0068F0;
+  --nf-mode-admin: #003C99;
+  --nf-focus-ring: var(--nf-brand-quiet);
+  --nf-rating: var(--nf-brand-quiet);
+  --nf-gradient-brand: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
+  --nf-gradient-agent: linear-gradient(135deg, #1F7BFF 0%, #0050D0 100%);
+  --nf-gradient-cta: linear-gradient(180deg, #0A6CF5 0%, #005FE8 100%);
+  --nf-gradient-text: linear-gradient(135deg, #005FE8 0%, #0040B0 100%);
+  --nf-gradient-surface: linear-gradient(180deg, rgb(11 13 23 / 0.02) 0%, rgb(11 13 23 / 0) 100%);
+
+  /* ------------------------------------------------ edges and interaction */
+  --nf-border-subtle: rgb(11 13 23 / 0.08);
+  --nf-border-default: rgb(11 13 23 / 0.12);
+  --nf-border-strong: rgb(11 13 23 / 0.22);
+  --nf-divider: rgb(11 13 23 / 0.09);
+  --nf-interactive-hover: rgb(11 13 23 / 0.05);
+  --nf-interactive-active: rgb(11 13 23 / 0.09);
+  --nf-interactive-disabled: rgb(11 13 23 / 0.04);
+  --nf-overlay-backdrop: rgb(11 13 23 / 0.40);
+  --nf-scrim-drawer: rgb(11 13 23 / 0.32);
+
+  /* ------------------------------------------------ the states, on white */
+  --nf-state-success: #047857;
+  --nf-state-warning: #0E7490;
+  --nf-state-error: #C8102E;
+  --nf-state-info: #0369A1;
+  --nf-state-warning-accent: var(--nf-state-warning);
+  --nf-mark-unread: #C8102E;
+  --nf-state-success-surface: color-mix(in oklab, var(--nf-state-success) 10%, transparent);
+  --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning) 10%, transparent);
+  --nf-state-error-surface: color-mix(in oklab, var(--nf-state-error) 9%, transparent);
+  --nf-state-info-surface: color-mix(in oklab, var(--nf-state-info) 10%, transparent);
+
+  /* ------------------------------------------ washes: ink, never white (R3) */
+  --nf-wash-1: rgb(11 13 23 / 0.03);
+  --nf-wash-2: rgb(11 13 23 / 0.05);
+  --nf-wash-3: rgb(11 13 23 / 0.07);
+  --nf-wash-4: rgb(11 13 23 / 0.10);
+  --nf-wash-5: rgb(11 13 23 / 0.14);
+  --nf-wash-6: rgb(11 13 23 / 0.20);
+  --nf-wash-7: rgb(11 13 23 / 0.28);
+  --nf-shade-1: rgb(11 13 23 / 0.06);
+  --nf-shade-2: rgb(11 13 23 / 0.10);
+  --nf-shade-3: rgb(11 13 23 / 0.16);
+  --nf-well-fill: linear-gradient(180deg, #F2F4F8 0%, #F5F7FA 100%);
+  --nf-well-fill-deep: linear-gradient(180deg, #EBEEF3 0%, #F0F2F6 100%);
+  --nf-surface-inverse: rgb(11 13 23 / 0.92);
+  --nf-wash-on-inverse: rgb(255 255 255 / 0.13);
+
+  /* ------------------------------------------------ glass, as paper (R3) */
+  --nf-glass-fill-thin: rgb(11 13 23 / 0.03);
+  --nf-glass-fill: rgb(11 13 23 / 0.045);
+  --nf-glass-fill-strong: rgb(11 13 23 / 0.07);
+  --nf-glass-card-ink: #FFFFFF;
+  --nf-glass-card-fill: #FFFFFF;
+  --nf-glass-well-fill: var(--nf-surface-inset);
+  --nf-glass-fill-plate: color-mix(in oklab, #FFFFFF 90%, transparent);
+  --nf-glass-fill-plate-strong: color-mix(in oklab, #FFFFFF 96%, transparent);
+  --nf-glass-border: rgb(11 13 23 / 0.10);
+  --nf-glass-rim-thin: rgb(255 255 255 / 0.6);
+  --nf-glass-rim: rgb(255 255 255 / 0.8);
+  --nf-glass-rim-strong: rgb(255 255 255 / 1);
+  --nf-glass-floor: rgb(11 13 23 / 0.04);
+  --nf-glass-specular: linear-gradient(var(--nf-light-angle), rgb(255 255 255 / 0) 0%, rgb(255 255 255 / 0) 100%);
+  --nf-glass-sheen: none;
+  --nf-plate-sheen: none;
+
+  /* ------------------------------------------ elevation: real, low shadows */
+  --nf-elev-1: 0 1px 2px rgb(11 13 23 / 0.06), 0 1px 1px rgb(11 13 23 / 0.04);
+  --nf-elev-2: 0 1px 2px rgb(11 13 23 / 0.06), 0 4px 12px -2px rgb(11 13 23 / 0.08);
+  --nf-elev-3: 0 2px 4px rgb(11 13 23 / 0.06), 0 10px 24px -6px rgb(11 13 23 / 0.12);
+  --nf-elev-4: 0 4px 8px rgb(11 13 23 / 0.06), 0 16px 32px -8px rgb(11 13 23 / 0.16);
+  --nf-elev-5: 0 8px 16px rgb(11 13 23 / 0.08), 0 24px 48px -12px rgb(11 13 23 / 0.20);
+  --nf-elev-1-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --nf-elev-2-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --nf-elev-3-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --nf-elev-4-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --nf-elev-5-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --nf-elev-1-border: rgb(11 13 23 / 0.08);
+  --nf-elev-2-border: rgb(11 13 23 / 0.10);
+  --nf-elev-3-border: rgb(11 13 23 / 0.12);
+  --nf-elev-4-border: rgb(11 13 23 / 0.14);
+  --nf-elev-5-border: rgb(11 13 23 / 0.16);
+
+  /* ----------------------------------- glow, kept only where it is a shadow */
+  --nf-glow-ink: var(--nf-brand-primary);
+  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) 4%, transparent);
+  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) 8%, transparent);
+  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) 14%, transparent);
+  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) 22%, transparent);
+  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) 32%, transparent);
+  --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 20%, transparent),
+                   0 8px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
+  --nf-glow-accent: 0 6px 18px -10px color-mix(in oklab, var(--nf-brand-accent) 28%, transparent);
+  --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 60%, transparent);
+  --nf-bloom-card: 0 1px 2px rgb(11 13 23 / 0.05), 0 8px 24px -12px rgb(11 13 23 / 0.14);
+  --nf-bloom-lit: 0 1px 2px rgb(0 50 150 / 0.16), 0 6px 16px -6px rgb(0 80 220 / 0.30);
+  --nf-bloom-lit-press: 0 1px 3px rgb(0 50 150 / 0.22);
+  --nf-bloom-lit-hover: 0 2px 4px rgb(0 50 150 / 0.18), 0 10px 22px -8px rgb(0 80 220 / 0.36);
+  --nf-bloom-lit-soft: 0 1px 2px rgb(0 50 150 / 0.10), 0 4px 12px -6px rgb(0 80 220 / 0.20);
+  --nf-rim-lit-ink: rgb(255 255 255 / 0.7);
+  --nf-rim-lit: inset 0 1px 0 var(--nf-rim-lit-ink);
+  --nf-rim-specular: rgb(255 255 255 / 0.22);
+  --nf-rim-specular-soft: rgb(11 13 23 / 0.06);
+
+  /* ------------------------------ containers: white, soft hairline (R2) */
+  --nf-container-ink: var(--nf-brand-primary);
+  --nf-container-edge-quiet: var(--nf-border-default);
+  --nf-container-edge: rgb(11 13 23 / 0.12);
+  --nf-container-edge-lit: color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+  --nf-container-fill: linear-gradient(#FFFFFF, #FFFFFF);
+  --nf-brand-edge-soft: rgb(11 13 23 / 0.08);
+  --nf-brand-edge: var(--nf-container-edge);
+  --nf-brand-edge-strong: color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  --nf-border-brand: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+  --nf-glow-edge: 0 0 0 1px var(--nf-container-edge), 0 1px 2px rgb(11 13 23 / 0.05);
+  --nf-glow-edge-strong: 0 0 0 1px var(--nf-brand-edge-strong), 0 2px 8px -2px rgb(0 80 220 / 0.20);
+  --nf-edge-stride-base: var(--nf-container-edge);
+  --nf-edge-stride-lit: var(--nf-container-edge);
+  --nf-edge-stride-peak: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  --nf-tile-market-fill: #F3F6FB;
+  --nf-tile-market-edge: rgb(11 13 23 / 0.10);
+  --nf-chip-city-fill: #F1F3F7;
+  --nf-chip-city-edge: rgb(11 13 23 / 0.08);
+  --nf-well-edge-home-search: rgb(11 13 23 / 0.14);
+
+  /* ---------------------------------------------------- the lit material */
+  --nf-lit: var(--nf-brand-primary);
+  --nf-panel-fill-base: linear-gradient(#FFFFFF, #FFFFFF);
+  --nf-panel-fill-card-base: linear-gradient(#FFFFFF, #FFFFFF);
+  --nf-panel-edge: rgb(11 13 23 / 0.10);
+  --nf-panel-edges: rgb(11 13 23 / 0.10) rgb(11 13 23 / 0.10) rgb(11 13 23 / 0.12) rgb(11 13 23 / 0.10);
+  --nf-panel-catch: var(--nf-brand-primary);
+  --nf-panel-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --nf-panel-halo: 0 1px 2px rgb(11 13 23 / 0.05);
+  --nf-panel-glow: 0 1px 2px rgb(11 13 23 / 0.05), 0 4px 14px -6px rgb(11 13 23 / 0.10);
+  --nf-panel-hair: rgb(11 13 23 / 0.09);
+  --nf-plate-fill-base: linear-gradient(180deg, #EEF4FF 0%, #E6EEFD 100%);
+  --nf-plate-edge: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+  --nf-plate-edges:
+    color-mix(in oklab, var(--nf-brand-primary) 18%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 18%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 22%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+  --nf-plate-rim: inset 0 1px 0 rgb(255 255 255 / 0.8);
+  --nf-plate-inner-light: inset 0 0 0 rgb(255 255 255 / 0);
+  --nf-plate-glow: 0 1px 2px rgb(11 13 23 / 0.06);
+  --nf-plate-glyph-glow: drop-shadow(0 0 0 rgb(255 255 255 / 0));
+  --nf-selected-fill: var(--nf-gradient-cta);
+  --nf-selected-edge: var(--nf-brand-primary);
+  --nf-selected-edges: var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary-strong) var(--nf-brand-primary);
+  --nf-selected-rim: inset 0 1px 0 rgb(255 255 255 / 0.22);
+  --nf-selected-shadow: var(--nf-selected-rim), 0 1px 2px rgb(0 50 150 / 0.18), 0 6px 14px -6px rgb(0 80 220 / 0.40);
+  --nf-selected-shadow-inline: var(--nf-selected-rim), 0 1px 2px rgb(0 50 150 / 0.18);
+  --nf-btn-lit-edges: var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary-strong) var(--nf-brand-primary);
+  --nf-btn-lit-fill: linear-gradient(180deg, #1A74FF 0%, #005FE8 100%);
+  --nf-btn-lit-rim: inset 0 1px 0 rgb(255 255 255 / 0.22);
+  --nf-btn-lit-inner: inset 0 0 0 rgb(255 255 255 / 0);
+  --nf-btn-lit-inner-hover: inset 0 0 0 rgb(255 255 255 / 0);
+  --nf-btn-lit-bloom: 0 1px 2px rgb(0 50 150 / 0.18), 0 6px 14px -6px rgb(0 80 220 / 0.40);
+  --nf-btn-lit-bloom-hover: 0 2px 4px rgb(0 50 150 / 0.20), 0 10px 20px -8px rgb(0 80 220 / 0.45);
+  --nf-btn-lit-text-glow: 0 0 0 rgb(255 255 255 / 0);
+  --nf-btn-lit-pool: radial-gradient(50% 55% at 50% 16%, rgb(255 255 255 / 0) 0%, rgb(255 255 255 / 0) 100%);
+  --nf-btn-glass-fill: linear-gradient(#FFFFFF, #FFFFFF);
+  --nf-btn-glass-edge: rgb(11 13 23 / 0.18);
+  --nf-btn-glass-shadow: 0 1px 2px rgb(11 13 23 / 0.05);
+  --nf-bar-edge-lit: rgb(11 13 23 / 0.08);
+  --nf-bar-glow: 0 1px 0 rgb(11 13 23 / 0.06);
+
+  /* --------------------------- drawn placeholders (no photograph yet) */
+  --nf-media-ground-from: #E3E8F0;
+  --nf-media-ground-to: #CDD5E2;
+  --nf-media-silhouette: rgb(11 13 23 / 0.18);
+  --nf-media-moon: rgb(255 255 255 / 0.7);
+  --nf-media-wall: rgb(255 255 255 / 0.72);
+  --nf-media-wall-shade: rgb(11 13 23 / 0.14);
+  --nf-media-roof: rgb(11 13 23 / 0.24);
+  --nf-media-glass: rgb(96 116 150 / 0.42);
+  --nf-media-land: rgb(11 13 23 / 0.07);
+
+  /* ---------------------------------- the night tile (survey R1, light.css)
+     The organised ground every glass object, the logo lockup and the role
+     coin stand on in light: the artwork's own night, a brand glow at the top,
+     a brand rim. Only light.css reads these. */
+  --nf-night-tile-ground: var(--nf-surface-artwork);
+  --nf-night-tile-glow: color-mix(in oklab, var(--nf-electric-400) 32%, transparent);
+  --nf-night-tile-rim: color-mix(in oklab, var(--nf-electric-400) 42%, transparent);
+  --nf-night-tile-bloom: color-mix(in oklab, var(--nf-electric-500) 42%, transparent);
+  --nf-night-tile-face: color-mix(in oklab, var(--nf-electric-400) 10%, transparent);
+
+  /* ------------------------------------------ misc surfaces with a meaning */
+  --nf-surface-ai: linear-gradient(var(--nf-light-angle), #F2F6FF 0%, #F7F9FD 100%);
+  --nf-surface-pin: rgb(255 255 255 / 0.96);
+  --nf-shadow-on-paper: 0 1px 2px rgb(11 13 23 / 0.06), 0 8px 20px -8px rgb(11 13 23 / 0.14);
 }

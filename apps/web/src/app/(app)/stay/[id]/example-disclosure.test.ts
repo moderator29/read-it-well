@@ -24,7 +24,9 @@ describe("example stays and restaurants are labelled where they would be booked"
     expect(view).toMatch(/detail\.isExample && \(\s*<ExampleNotice variant="page"[^>]*statement=\{t\.examples\.statement\}/);
     expect(view).toMatch(/detail\.isExample \? \([\s\S]*?stay-not-bookable[\s\S]*?\) : \([\s\S]*?<DetailAvailabilityCard/);
     expect(view).toMatch(/detail\.isExample \? \([\s\S]*?rooms-example[\s\S]*?\) : detail\.roomTypes\.length > 0 \? \([\s\S]*?<RoomTypes/);
-    expect(view).toMatch(/messageHref: detail\.isExample \? null :/);
+    /* The stay is messaged through its business now (track F); an example
+       still draws no message control. */
+    expect(view).toMatch(/messageVenue:\s*detail\.isExample \|\| !detail\.businessId\s*\?\s*null/);
   });
 
   it("an example restaurant draws the notice and no table to hold, from either source", () => {

@@ -59,7 +59,9 @@ export function SystemMoment({
   const Stage: "main" | "div" = inset ? "div" : "main";
 
   return (
-    <Stage id={inset ? undefined : "main"} className={stageClass}>
+    /* A night stage in both themes, like the auth screen: the podium and the
+       aurora are night artwork (light mode reintroduced 25 September 2026). */
+    <Stage id={inset ? undefined : "main"} className={stageClass} data-theme="dark">
       <div className="nf-system__plate" aria-hidden="true">
         {offline ? (
           // eslint-disable-next-line @next/next/no-img-element

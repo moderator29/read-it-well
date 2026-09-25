@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { ThemeControl } from "@/components/site/ThemeControl";
 import type { Dictionary } from "@vallo/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -197,16 +198,12 @@ export function AppRail({
       <div className="nf-nav__foot">
         <SideSwitch t={t} onNavigate={onNavigate} />
         {/*
-          THE THEME CONTROL IS GONE FROM THE DRAWER, with light mode, on the
-          founder's decision of 23 September 2026.
-
-          It had already been cut down once, from a full-width row in a lit
-          glass card saying "Light mode" to the bare glyph on its own, on the
-          founder's "no box, no Light mode, no Dark mode, just the icon". Now
-          there is one palette and a control with one value is not a control.
-          The component, its store and the `nf_theme` key are all deleted; see
-          `docs/design/LIGHT_MODE_REMOVED.md`.
+          THE THEME CONTROL, BACK AT THE FOOT (25 September 2026: the founder
+          reversed the dark-only rule). Light, Dark and System, remembered in
+          storage and a cookie so the server paints the right one. See
+          `components/site/ThemeControl.tsx` and `lib/theme/theme.ts`.
         */}
+        <ThemeControl />
         {/*
           THE LEGAL ROW AT THE FOOT OF THE DRAWER, which the drawer render
           draws and the product did not have: a divider, a shield, the

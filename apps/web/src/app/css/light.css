@@ -1,0 +1,214 @@
+/*
+ * THE LIGHT THEME'S RULES, the part a token cannot say.
+ *
+ * Light mode was removed on 23 September 2026 and reintroduced on the 25th.
+ * The palette is the `:root[data-theme="light"]` block in `tokens.css`, which
+ * does nearly all of the work; this file is deliberately short and holds only
+ * what changes SHAPE or ARTWORK rather than colour.
+ *
+ * EVERY SELECTOR IS GUARDED so it cannot reach into a night subtree. A region
+ * that carries `data-theme="dark"` (the auth stage, first run, and every
+ * photograph: card media, the listing hero, the photo viewer) redeclares the
+ * night palette for itself, and a rule keyed only on the root would still
+ * match inside it. `:not(:where([data-theme="dark"] *))` is the guard, and
+ * `$L` below is shorthand for the whole prefix in this comment only:
+ *   $L = :root[data-theme="light"] X:not(:where([data-theme="dark"] *))
+ */
+
+@layer components {
+  /* ------------------------------------------------------------------
+   * The ambient night: artwork, blooms and film grain. On a white ground
+   * they read as smudges; the reference is a clean white page.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] .nf-ambient > span,
+  :root[data-theme="light"] .nf-ambient::before,
+  :root[data-theme="light"] .nf-ambient::after,
+  :root[data-theme="light"] .nf-grain {
+    display: none;
+  }
+
+  /* ------------------------------------------------------------------
+   * THE LOGO PLATE. The lockup is chrome-blue glass drawn for a night
+   * ground; on white its highlights vanish and the wordmark reads washed
+   * out. In light the whole lockup sits in a rounded container carrying the
+   * brand's own night material, so it is the same object in both themes.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] .nf-logo:not(:where([data-theme="dark"] *)) {
+    /* The padding is paid back in margin, so the header's row is exactly as
+       wide as it was: the plate grows into the gaps, never the layout. */
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    margin-inline: calc(var(--nf-space-xs) * -1);
+    border-radius: var(--nf-radius-md);
+    background:
+      radial-gradient(120% 90% at 30% 0%, var(--nf-night-tile-glow), transparent 70%),
+      var(--nf-night-tile-ground);
+    box-shadow:
+      inset 0 0 0 1px var(--nf-night-tile-rim),
+      0 1px 2px var(--nf-shade-1),
+      0 4px 12px -4px var(--nf-night-tile-bloom);
+  }
+
+  /* ------------------------------------------------------------------
+   * THE ICON TILES (survey R1). The glass objects are drawn for the night
+   * ground, and what makes them read is which parts are transparent: no
+   * filter makes a daylight version. So in light every object sits on its
+   * OWN ground, `--nf-surface-artwork`, in one organised squircle with a
+   * soft brand rim, and it looks exactly as it does at night. One treatment
+   * for every object on every surface, rather than a navy chip here and a
+   * white one there. Not inside a button: a lit button is already the
+   * object's ground, and a dark square inside it reads as a hole.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] .nf-brand-icon-ground:not(:where([data-theme="dark"] *, .nf-btn *)),
+  :root[data-theme="light"] .nf-icon-tile:not(:where([data-theme="dark"] *, .nf-btn *)) {
+    background:
+      radial-gradient(90% 70% at 50% 18%, var(--nf-night-tile-glow), transparent 72%),
+      var(--nf-night-tile-ground);
+    box-shadow:
+      inset 0 0 0 1px var(--nf-night-tile-rim),
+      0 1px 2px var(--nf-shade-1);
+    border-color: transparent;
+  }
+  /* A plate that holds a glass object IS the tile: it takes the night ground
+     and the object's own ground steps back, so there is one squircle, not a
+     dark one inside a pale one. A plate holding a line glyph stays pale with
+     the glyph in the brand ink, which is the reference's icon chip. */
+  :root[data-theme="light"] .nf-plate:has(> .nf-brand-icon-ground, > .nf-icon-tile):not(:where([data-theme="dark"] *)) {
+    background:
+      radial-gradient(90% 70% at 50% 18%, var(--nf-night-tile-glow), transparent 72%),
+      var(--nf-night-tile-ground);
+    border-color: var(--nf-night-tile-rim);
+    box-shadow: 0 1px 2px var(--nf-shade-1);
+  }
+  :root[data-theme="light"] .nf-plate > :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
+    background: none;
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-plate--brand:not(:where([data-theme="dark"] *)) {
+    color: var(--nf-brand-primary);
+  }
+
+  /* ------------------------------------------------------------------
+   * THE DOCK: a floating white capsule-shaped bar with a soft shadow, the
+   * active item on a light grey rounded highlight (the reference's bottom
+   * bar). Opaque, so body copy never reads through it.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] .nf-tabbar {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-subtle);
+    box-shadow: var(--nf-elev-3);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root[data-theme="light"] .nf-tabbar__pill {
+    background: var(--nf-surface-raised);
+    border-color: transparent;
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-tab__link[aria-current="page"],
+  :root[data-theme="light"] .nf-tab__link[data-on] {
+    color: var(--nf-content-primary);
+    text-shadow: none;
+  }
+  :root[data-theme="light"] .nf-tab__link[aria-current="page"] .nf-tab__icon,
+  :root[data-theme="light"] .nf-tab__link[data-on] .nf-tab__icon {
+    filter: none;
+  }
+
+  /* ------------------------------------------------------------------
+   * THE PROFILE ROWS AND THE ROLE SWITCH. Their plates hold artwork that
+   * carries its own glass square, drawn for a night ground: on white the
+   * square's dark corners showed as ink artefacts around the object. The
+   * plate itself takes the night ground here (the row's own `--nf-pf-ground`
+   * hook, so every gradient it draws is re-derived from it) and the object's
+   * ground steps back. The row becomes a white card on a soft hairline.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] .nf-pf-plate:not(:where([data-theme="dark"] *)) {
+    --nf-pf-ground: var(--nf-night-tile-ground);
+    --nf-pf-ink: var(--nf-brand-accent);
+  }
+  :root[data-theme="light"] .nf-pf-plate .nf-brand-icon-ground,
+  :root[data-theme="light"] .nf-pf-plate .nf-icon-tile {
+    background: none;
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-pf-row:not(:where([data-theme="dark"] *)) {
+    --nf-pf-row-fill: linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary));
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-pf-row:not(:where([data-theme="dark"] *))::before {
+    filter: none;
+  }
+  :root[data-theme="light"] .nf-pf-row:not(:where([data-theme="dark"] *)):hover {
+    box-shadow: var(--nf-elev-2);
+  }
+
+  /* ------------------------------------------------------------------
+   * STATUS BADGES. At night the ink is the hue lifted towards white on a
+   * deep hued fill; on white that is a pale word on a mid-tone chip. In
+   * light the chip is a 10 per cent tint of the hue and the ink is the hue
+   * itself, darkened a step, which clears 4.5:1 for every state hue.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] :is(.nf-badge, .nf-count-badge, .nf-badge-overlap, .nf-reg-open):not(:where([data-theme="dark"] *)) {
+    --nf-badge-ink: color-mix(in oklab, var(--nf-badge-hue) 86%, black);
+    background: color-mix(in oklab, var(--nf-badge-hue) 10%, var(--nf-surface-primary));
+    box-shadow: inset 0 0 0 var(--nf-border-width) color-mix(in oklab, var(--nf-badge-hue) 32%, transparent);
+  }
+
+  /* ------------------------------------------------------------------
+   * THE FEED. The post card built its own lit gradient from the canvas;
+   * in light it is the reference card: white on a soft hairline.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] .nf-post:not(:where([data-theme="dark"] *)) {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] :is(.nf-post__handle, .nf-post__when):not(:where([data-theme="dark"] *)) {
+    color: var(--nf-content-muted);
+  }
+  :root[data-theme="light"] .nf-post__plate:not(:where([data-theme="dark"] *)) {
+    background: var(--nf-surface-secondary);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-feed-chip:not(:where([data-theme="dark"] *)) {
+    background: var(--nf-surface-raised);
+    /* `--nf-brand-edge` is the soft neutral hairline in light (tokens.css). */
+    border-color: var(--nf-brand-edge);
+  }
+
+  /* The landing, the auth stage and the system moments (404, error,
+     offline) keep the night in both themes (their own `data-theme="dark"`);
+     on a light document they paint their own ground, because the body under
+     them is white. */
+  :root[data-theme="light"] .nf-landing--stage,
+  :root[data-theme="light"] .nf-system {
+    background: var(--nf-canvas-base);
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------------
+   * THE ROLE SWITCH (the flip coin in the drawer). In light the coin read
+   * as a dark square punched into a pale ring. The whole coin is one night
+   * disc now: the ring takes the artwork ground and the brand rim, the coin
+   * face is the night glass it was drawn on, and the object's own ground
+   * steps back so there is no square inside the circle.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] .nf-side-switch__ring:not(:where([data-theme="dark"] *)) {
+    background:
+      radial-gradient(80% 70% at 50% 20%, var(--nf-night-tile-glow), transparent 72%),
+      var(--nf-night-tile-ground);
+    border-color: var(--nf-night-tile-rim);
+    box-shadow:
+      0 1px 2px var(--nf-shade-1),
+      0 6px 14px -6px var(--nf-night-tile-bloom);
+  }
+  :root[data-theme="light"] .nf-side-switch__coin:not(:where([data-theme="dark"] *)) {
+    background: var(--nf-night-tile-face);
+    box-shadow: inset 0 0 0 1px var(--nf-night-tile-rim);
+  }
+  :root[data-theme="light"] .nf-side-switch__coin :is(.nf-brand-icon-ground, .nf-icon-tile) {
+    background: none;
+    box-shadow: none;
+  }
+}

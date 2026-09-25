@@ -89,6 +89,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
       : null,
     businessKind: detail.business.kind,
     hostName: detail.business.name,
+    businessId: detail.business.id,
     /*
      * THE SHIELD MEANS A HUMAN WAS CHECKED (ledger rule 12), AND THE SHELF
      * DECIDES IT.

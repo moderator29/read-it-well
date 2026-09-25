@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppliedTheme } from "@/lib/theme/theme-client";
 import { tileProvider, warnIfNonCommercialTiles } from "@/lib/maps/tiles";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n";
@@ -110,14 +111,10 @@ export function MapCanvas({
   const [tick, setTick] = useState(0);
   const [engineReady, setEngineReady] = useState(false);
   const [imagery, setImagery] = useState<"loading" | "ready" | "offline">("loading");
-  /* THE MAP FOLLOWS THE PLATFORM AND THE PLATFORM HAS ONE THEME. This was
-     `useState(null)` plus a `MutationObserver` on `data-theme`, so the tiles
-     could swap when somebody switched to paper mid-map. Light mode was removed
-     on 23 September 2026, the attribute can never appear, and an observer
-     waiting for something that cannot happen is the dead machinery that gets
-     re-enabled by accident. The null start went with it: there is no longer a
-     first render where the answer is unknown. */
-  const theme = "dark" as const;
+  /* THE MAP FOLLOWS THE PAGE'S THEME, live: dark cartography at night,
+     light cartography on the light theme (reintroduced 25 September 2026).
+     The effect below already rebuilds the tile layer when this changes. */
+  const theme = useAppliedTheme();
   /* The credit line belongs to whichever provider is actually serving tiles.
      Both providers credit the same names whatever the style, so the theme here
      only picks a variant; it is passed for completeness rather than because the

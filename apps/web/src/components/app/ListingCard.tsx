@@ -291,7 +291,8 @@ export function ListingCard({
     >
       {/* The controls sit OUTSIDE the link. An anchor may not contain a
           button, and a screen reader must hear two controls, not one. */}
-      <div className="nf-pcard__controls">
+      {/* On a photograph the controls keep the night material in both themes. */}
+      <div className="nf-pcard__controls" data-theme="dark">
         <SaveButton
           saved={save.saved}
           pending={save.pending}
@@ -323,6 +324,7 @@ export function ListingCard({
       >
         <div
           className="nf-pcard__media"
+          data-theme="dark"
           style={{ viewTransitionName: `listing-photo-${listing.id}` }}
         >
           <div className="nf-pcard__photo">

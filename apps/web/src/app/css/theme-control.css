@@ -1,0 +1,58 @@
+/*
+ * The Light / Dark / System control at the foot of the side navigation
+ * (`components/site/ThemeControl.tsx`). Three equal cells, the glyph above
+ * the word, 52px tall, a rounded rectangle under the shape law: it is a
+ * control with text, so it is drawn on the control radius, never a capsule.
+ * The chosen cell takes the lit selected material in both themes.
+ */
+@layer components {
+  .nf-theme-control {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-3xs);
+    margin-block-start: var(--nf-space-sm);
+    padding: var(--nf-space-3xs);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-theme-control__option {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: var(--nf-space-3xs);
+    min-height: 3.25rem;
+    padding-inline: var(--nf-space-2xs);
+    border-radius: calc(var(--nf-radius-control) - 2px);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.1;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-theme-control__option > span {
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-theme-control__option:hover {
+    background: var(--nf-interactive-hover);
+    color: var(--nf-content-primary);
+  }
+  .nf-theme-control__option:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  .nf-theme-control__option:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 1px;
+  }
+  .nf-theme-control__option[aria-checked="true"] {
+    background: var(--nf-selected-fill);
+    color: var(--nf-content-on-brand);
+    box-shadow: var(--nf-selected-shadow-inline);
+  }
+}

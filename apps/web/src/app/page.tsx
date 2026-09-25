@@ -57,7 +57,11 @@ export default async function LandingPage() {
   const native = (await requestSurface()) !== "web";
 
   return (
-    <div className="nf-landing">
+    /* The landing is a night stage in both themes, like the auth screen: its
+       hero is built from night photography and lit type, governed by the
+       landing renders. Light mode (reintroduced 25 September 2026) starts at
+       the product, not at the poster. `nf-landing--stage` paints the ground. */
+    <div className="nf-landing nf-landing--stage" data-theme="dark">
       <SiteHeader t={t} locale={locale} variant="landing" />
       <LandingBody t={t} locale={locale} data={data} native={native} />
       <SiteFooter t={t} />
