@@ -954,6 +954,13 @@ const PILL_ALLOWED = new Set([
    * delete it only if the direction ever stops naming a switch track.
    */
   "src/app/settings-rows.css  .nf-switch",
+  /*
+   * PERMANENT, by the founder's Track M ruling of 25 September 2026: the
+   * dock is the pump.fun capsule, a true pill, and the highlight that travels
+   * inside it carries no word, only a glyph. It follows the capsule's shape
+   * the way the island beside it does.
+   */
+  "src/app/css/shell-m.css  .nf-tabbar__pill",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things

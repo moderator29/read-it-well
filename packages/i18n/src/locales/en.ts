@@ -328,6 +328,9 @@ export const en = {
 
   /* Confirming an address, by code or by link, and the auth screens' edges. */
   authFlow: {
+    /** Track M: the line that comes out of depth as a new account walks
+        through the door after verifying. */
+    welcomeThrough: "Welcome to Vallo.",
     enterCode: "Enter your code",
     sentTo: "We sent {count} digits to",
     sentToTail: ". Type them here and you are in. No second sign-in.",

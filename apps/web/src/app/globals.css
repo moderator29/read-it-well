@@ -102,6 +102,10 @@
 @import "./css/theme-control.css";
 /* Signature motion: finite, transform and opacity only (track I). */
 @import "./css/signature-motion.css";
+/* Track M: the shell the founder chose (pump.fun drawer and dock). */
+@import "./css/shell-m.css";
+/* Track M: thresholds, the splash, the door, leaving and coming back. */
+@import "./css/threshold.css";
 @import "./css/light.css";
 /*
  * `light.css` WAS IMPORTED HERE AND WAS DELETED (history). The founder removed light mode

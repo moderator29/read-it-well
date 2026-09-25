@@ -8,6 +8,8 @@ import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
+import { BrandAssemble } from "@/components/motion/BrandAssemble";
+import { ThresholdStage } from "@/components/motion/ThresholdStage";
 import "./globals.css";
 import { siteUrl } from "@/lib/site";
 import { CHROME_COLOUR } from "@/lib/theme/chrome";
@@ -363,6 +365,25 @@ export default async function RootLayout({
           }}
         />
         {/*
+          THE SPLASH, DECIDED BEFORE PAINT (Track M, 25 September 2026).
+
+          The app opening is the first threshold: the mark turns, the wordmark
+          assembles letter by letter, and a door opens on the page. It plays
+          once per browser session, which on the native shell is once per cold
+          start, and never under reduced motion, never with data saving on,
+          and never on the console, the auth callback or a shared link. It is
+          decided here, before the first frame, because deciding it after
+          hydration would show the page and then cover it.
+        */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var d=document.documentElement;if(!sessionStorage.getItem('nf_entered')&&d.dataset.saveData!=='on'&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&!/^\\/(admin|auth|api|offline|open|s|r)(\\/|$)/.test(location.pathname))d.dataset.splash='on';sessionStorage.setItem('nf_entered','1')}catch(e){}",
+          }}
+        />
+        {/*
           WITHOUT JAVASCRIPT, EVERYTHING BELOW THE FOLD WAS INVISIBLE.
 
           Reveal renders data-shown="false" on the server and an
@@ -393,6 +414,15 @@ export default async function RootLayout({
           {t.common.skipToContent}
         </a>
         {children}
+        {/* The splash itself: hidden unless the script above said so, gone
+            for good once its door has opened. Pure CSS; see threshold.css. */}
+        <div className="nf-splash" aria-hidden="true">
+          <div className="nf-splash__leaf nf-splash__leaf--a" />
+          <div className="nf-splash__leaf nf-splash__leaf--b" />
+          <div className="nf-splash__glow" />
+          <BrandAssemble size={68} className="nf-splash__brand" />
+        </div>
+        <ThresholdStage welcome={t.authFlow.welcomeThrough} />
       </body>
     </html>
   );

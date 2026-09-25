@@ -35,12 +35,12 @@ describe.skipIf(!CHROMIUM && !process.env.CI)("touch targets (real Chromium)", (
     await browser?.close();
   });
 
-  it("the header avatar answers a thumb anywhere in its 44px target", async () => {
-    const css = [rule("base.css", ".nf-tap"), rule("base.css", ".nf-tap::after"), rule("chrome.css", ".nf-app-header__avatar")].join("\n");
+  it("the header bell answers a thumb anywhere in its 44px target", async () => {
+    const css = [rule("base.css", ".nf-tap"), rule("base.css", ".nf-tap::after"), rule("controls.css", ".nf-icon-btn")].join("\n");
     const page = await browser.newPage({ viewport: { width: 390, height: 400 } });
     await page.setContent(
       `<html><head><style>:root{--nf-radius-circle:9999px}body{margin:0;display:grid;place-items:center;height:400px}${css}</style></head>
-       <body><a href="#" class="nf-tap nf-app-header__avatar">A</a></body></html>`,
+       <body><a href="#" class="nf-tap nf-icon-btn">A</a></body></html>`,
     );
     const hits = await page.evaluate(() => {
       const el = document.querySelector("a")!;

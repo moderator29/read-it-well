@@ -1,0 +1,488 @@
+/*
+ * TRACK M: THRESHOLDS (25 September 2026).
+ *
+ * The moments of crossing into Vallo, which the founder asked to feel "like a
+ * door": the app opening (the splash in the root layout), a new account
+ * walking through after verifying, coming back after a while away, and
+ * signing out. The markup is `BrandAssemble` and `ThresholdStage` under
+ * components/motion, and the timings are the ones in
+ * docs/TRACK_M_MOTION_PLAN.md.
+ *
+ * Transform, opacity and filter only. Every moment is decoration over a page
+ * that is already there, so under reduced motion none of it exists: the
+ * splash is never switched on, `playThreshold` resolves at once, and the
+ * block at the foot of this file removes anything that could still paint.
+ *
+ * A partial of globals.css. The imports there are ordered, and the order is
+ * the cascade: do not move this one.
+ */
+@layer components {
+  /* ------------------------------------------------ the brand, assembling */
+
+  .nf-assemble {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    perspective: 600px;
+  }
+  .nf-assemble__mark {
+    display: block;
+    transform-style: preserve-3d;
+  }
+  .nf-assemble__mark img {
+    display: block;
+    height: auto;
+  }
+  .nf-assemble__word {
+    position: relative;
+    display: block;
+  }
+  .nf-assemble__letter {
+    position: absolute;
+    inset: 0;
+  }
+  .nf-assemble__letter img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* The mark turns in depth with motion blur and settles flat and sharp. */
+  @keyframes nf-assemble-mark {
+    0% {
+      opacity: 0;
+      transform: rotateY(-150deg) rotateZ(-50deg) scale(0.55);
+      filter: blur(8px);
+    }
+    55% {
+      opacity: 1;
+      filter: blur(3px);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  /* A letter comes out of depth: large, blurred and pale, then lands. */
+  @keyframes nf-assemble-letter {
+    0% {
+      opacity: 0;
+      transform: scale(1.7) translateY(-6%);
+      filter: blur(9px) grayscale(1) brightness(1.8);
+    }
+    60% {
+      opacity: 0.85;
+      filter: blur(2px) grayscale(0.6) brightness(1.3);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  /* The whole lockup grows to its size while it assembles. */
+  @keyframes nf-assemble-zoom {
+    from {
+      transform: scale(0.84);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  /* ----------------------------------------------------------- the splash */
+
+  /*
+   * Off unless the before-paint script in app/layout.tsx switched it on, and
+   * gone for good once `ThresholdStage` moves the flag to "done". Its own
+   * last keyframe hides it too, so it clears even if that script never runs.
+   */
+  .nf-splash {
+    display: none;
+  }
+  :root[data-splash="on"] {
+    --nf-splash-hold: 1250ms;
+  }
+  :root[data-splash="on"] .nf-splash {
+    position: fixed;
+    inset: 0;
+    z-index: var(--nf-z-top);
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    animation: nf-splash-gone 1ms linear 1750ms both;
+  }
+  @keyframes nf-splash-gone {
+    to {
+      visibility: hidden;
+    }
+  }
+  .nf-splash__leaf {
+    position: absolute;
+    inset-block: 0;
+    width: 50.5%;
+    background: var(--nf-surface-canvas);
+    animation: var(--nf-duration-deliberate) var(--nf-ease-entrance) 1120ms both;
+  }
+  .nf-splash__leaf--a {
+    left: 0;
+    animation-name: nf-splash-leaf-a;
+  }
+  .nf-splash__leaf--b {
+    right: 0;
+    animation-name: nf-splash-leaf-b;
+  }
+  @keyframes nf-splash-leaf-a {
+    to {
+      transform: translateX(-102%);
+    }
+  }
+  @keyframes nf-splash-leaf-b {
+    to {
+      transform: translateX(102%);
+    }
+  }
+  /* The light in the gap as the door parts. */
+  .nf-splash__glow {
+    position: absolute;
+    inset-block: 0;
+    left: 50%;
+    width: 40vw;
+    margin-left: -20vw;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklab, var(--nf-content-on-brand) 70%, transparent),
+      color-mix(in oklab, var(--nf-brand-secondary) 45%, transparent) 55%,
+      transparent
+    );
+    opacity: 0;
+    transform: scaleX(0.02);
+    animation: nf-splash-light var(--nf-duration-deliberate) var(--nf-ease-entrance) 1080ms both;
+  }
+  @keyframes nf-splash-light {
+    0% {
+      opacity: 0;
+      transform: scaleX(0.02);
+    }
+    30% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(3.2);
+    }
+  }
+  .nf-splash__brand {
+    position: relative;
+    animation:
+      nf-assemble-zoom 1000ms var(--nf-ease-entrance) both,
+      nf-splash-brand-out 380ms var(--nf-ease-exit) 1040ms forwards;
+  }
+  .nf-splash__brand .nf-assemble__mark {
+    animation: nf-assemble-mark 760ms var(--nf-ease-entrance) 40ms both;
+  }
+  .nf-splash__brand .nf-assemble__letter {
+    animation: nf-assemble-letter 420ms var(--nf-ease-entrance) both;
+    animation-delay: calc(300ms + var(--nf-i, 0) * 95ms);
+  }
+  @keyframes nf-splash-brand-out {
+    to {
+      opacity: 0;
+      transform: scale(1.18);
+      filter: blur(4px);
+    }
+  }
+  /* The page comes forward through the opening door. */
+  :root[data-splash="on"] #main {
+    animation: nf-threshold-forward 760ms var(--nf-ease-entrance) 1150ms both;
+  }
+  @keyframes nf-threshold-forward {
+    from {
+      opacity: 0.4;
+      transform: scale(0.955);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /* ------------------------------------------------- the threshold stage */
+
+  .nf-threshold {
+    position: fixed;
+    inset: 0;
+    z-index: var(--nf-z-top);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .nf-threshold__veil {
+    position: absolute;
+    inset: 0;
+    background: var(--nf-surface-canvas);
+  }
+  .nf-threshold__center {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-lg);
+    text-align: center;
+  }
+
+  /* THE DOOR: going. */
+  .nf-threshold--door .nf-threshold__veil {
+    animation: nf-threshold-in 240ms var(--nf-ease-standard) both;
+  }
+  @keyframes nf-threshold-in {
+    from {
+      opacity: 0;
+    }
+  }
+  .nf-threshold__tick {
+    width: 4.5rem;
+    height: 4.5rem;
+    overflow: visible;
+    fill: none;
+    stroke: var(--nf-brand-secondary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nf-threshold__tick circle,
+  .nf-threshold__tick path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .nf-threshold__tick circle {
+    animation: nf-threshold-draw 520ms var(--nf-ease-standard) 140ms forwards;
+  }
+  .nf-threshold__tick path {
+    animation: nf-threshold-draw 340ms var(--nf-ease-entrance) 520ms forwards;
+  }
+  @keyframes nf-threshold-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  .nf-threshold__words {
+    font-size: clamp(1.5rem, 6vw, 2.25rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+    animation: nf-threshold-words 560ms var(--nf-ease-entrance) 440ms both;
+  }
+  @keyframes nf-threshold-words {
+    from {
+      opacity: 0;
+      transform: scale(1.22);
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  /*
+   * The arch of light: a doorway, rounded at the top, opening from a slit and
+   * then passing the viewer, so for a moment the whole screen is its light.
+   */
+  .nf-threshold__arch {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(52vw, 16rem);
+    height: min(78vh, 30rem);
+    margin: calc(min(78vh, 30rem) / -2) 0 0 calc(min(52vw, 16rem) / -2);
+    border-radius: min(26vw, 8rem) min(26vw, 8rem) var(--nf-radius-lg) var(--nf-radius-lg);
+    background: radial-gradient(
+      120% 90% at 50% 60%,
+      var(--nf-content-on-brand),
+      color-mix(in oklab, var(--nf-brand-secondary) 70%, var(--nf-content-on-brand)) 55%,
+      var(--nf-brand-secondary)
+    );
+    box-shadow: 0 0 120px 30px var(--nf-glow-3);
+    opacity: 0;
+    transform: scale(0.02, 0.7);
+    animation: nf-threshold-arch 700ms var(--nf-ease-entrance) 820ms both;
+  }
+  @keyframes nf-threshold-arch {
+    0% {
+      opacity: 0;
+      transform: scale(0.02, 0.7);
+    }
+    45% {
+      opacity: 1;
+      transform: scale(1, 1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(7, 5);
+    }
+  }
+  .nf-threshold--door .nf-threshold__center {
+    animation: nf-threshold-through 420ms var(--nf-ease-exit) 1080ms forwards;
+  }
+  @keyframes nf-threshold-through {
+    to {
+      opacity: 0;
+      transform: scale(2.4);
+      filter: blur(6px);
+    }
+  }
+
+  /* THE DOOR: arriving. The light falls away off the new page. */
+  .nf-threshold--door[data-phase="arriving"] {
+    animation: nf-threshold-out 760ms var(--nf-ease-standard) both;
+  }
+  .nf-threshold--door[data-phase="arriving"] > * {
+    animation: none;
+    opacity: 0;
+  }
+  .nf-threshold--door[data-phase="arriving"] .nf-threshold__arch {
+    opacity: 1;
+    transform: scale(7, 5);
+  }
+  @keyframes nf-threshold-out {
+    to {
+      opacity: 0;
+    }
+  }
+  :root[data-arrive="door"] #main {
+    animation: nf-threshold-forward 820ms var(--nf-ease-entrance) both;
+  }
+
+  /* LEAVING: the page recedes, two panels close on the mark. */
+  :root:has(.nf-threshold--leave[data-phase="going"]) #main {
+    animation: nf-threshold-recede 520ms var(--nf-ease-exit) forwards;
+  }
+  @keyframes nf-threshold-recede {
+    to {
+      opacity: 0.2;
+      transform: scale(0.94);
+      filter: blur(6px);
+    }
+  }
+  .nf-threshold--leave .nf-threshold__veil {
+    display: none;
+  }
+  .nf-threshold__panel {
+    position: absolute;
+    inset-block: 0;
+    width: 50.5%;
+    background: var(--nf-surface-canvas);
+    animation: 460ms var(--nf-ease-entrance) 120ms both;
+  }
+  .nf-threshold__panel--a {
+    left: 0;
+    animation-name: nf-threshold-close-a;
+  }
+  .nf-threshold__panel--b {
+    right: 0;
+    animation-name: nf-threshold-close-b;
+  }
+  @keyframes nf-threshold-close-a {
+    from {
+      transform: translateX(-102%);
+    }
+  }
+  @keyframes nf-threshold-close-b {
+    from {
+      transform: translateX(102%);
+    }
+  }
+  .nf-threshold--leave .nf-threshold__center {
+    animation: nf-threshold-words 420ms var(--nf-ease-entrance) 360ms both;
+  }
+  .nf-threshold--leave[data-phase="arriving"] .nf-threshold__panel {
+    animation: var(--nf-duration-deliberate) var(--nf-ease-entrance) 120ms both;
+  }
+  .nf-threshold--leave[data-phase="arriving"] .nf-threshold__panel--a {
+    animation-name: nf-splash-leaf-a;
+  }
+  .nf-threshold--leave[data-phase="arriving"] .nf-threshold__panel--b {
+    animation-name: nf-splash-leaf-b;
+  }
+  .nf-threshold--leave[data-phase="arriving"] .nf-threshold__center {
+    animation: nf-splash-brand-out 300ms var(--nf-ease-exit) both;
+  }
+  :root[data-arrive="leave"] #main {
+    animation: nf-threshold-forward 700ms var(--nf-ease-entrance) 160ms both;
+  }
+
+  /* COMING BACK: the page settles forward once, the mark in the header
+     answers with a single breath. */
+  :root[data-arrive="return"] #main {
+    animation: nf-threshold-return 820ms var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-threshold-return {
+    from {
+      opacity: 0.55;
+      transform: scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  :root[data-arrive="return"] .nf-app-header__brand {
+    animation: nf-threshold-breath 820ms var(--nf-ease-spring) both;
+  }
+  @keyframes nf-threshold-breath {
+    40% {
+      transform: scale(1.08);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  /* --------------------------------------------- words out of depth */
+
+  .nf-depth-word {
+    display: inline-block;
+    white-space: pre;
+    animation: nf-depth-word 560ms var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0ms) + 120ms + var(--nf-i, 0) * 70ms);
+  }
+  @keyframes nf-depth-word {
+    from {
+      opacity: 0;
+      transform: scale(1.35) translateY(-0.12em);
+      filter: blur(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /* ------------------------------------------------------ reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-splash,
+    :root[data-splash="on"] .nf-splash,
+    .nf-threshold {
+      display: none;
+    }
+    :root[data-splash="on"] #main,
+    :root[data-arrive] #main,
+    :root:has(.nf-threshold) #main,
+    :root[data-arrive="return"] .nf-app-header__brand {
+      animation: none;
+    }
+    :root[data-splash="on"] {
+      --nf-splash-hold: 0ms;
+    }
+    .nf-depth-word {
+      animation: none;
+    }
+  }
+}

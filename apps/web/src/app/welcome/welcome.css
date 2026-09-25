@@ -212,10 +212,14 @@
     align-items: center;
     animation: nf-gs-enter var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
+  /* Track M: a step forward in depth, not a nudge up. The next slide comes
+     toward the reader out of a slight blur, the way a door is walked
+     through rather than a page turned. */
   @keyframes nf-gs-enter {
     from {
       opacity: 0;
-      transform: translateY(6px);
+      transform: scale(0.94);
+      filter: blur(6px);
     }
     to {
       opacity: 1;

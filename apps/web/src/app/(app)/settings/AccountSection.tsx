@@ -11,6 +11,7 @@ import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
+import { playThreshold } from "@/lib/motion/threshold";
 import { DeleteAccountPanel } from "./DeleteAccountPanel";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
 import type { Dictionary, Locale } from "@vallo/i18n";
@@ -78,6 +79,8 @@ export function AccountSection({
       await clearOutbox();
       await forgetWidget();
       clearAllInflight();
+      /* Track M: the page recedes and the panels close on the mark. */
+      await playThreshold("leave");
       router.replace("/");
       router.refresh();
     });
