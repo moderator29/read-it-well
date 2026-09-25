@@ -190,7 +190,7 @@ export function buildNav({
           ...(unreadNotifications > 0 ? { badge: unreadNotifications } : {}),
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
-        { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
+        { href: "/agreements", label: t.nav.agreements, icon: "document" },
         /* No crypto row: V-83 took the deferred crypto market out of the
            shipped tree (parked on `claude/parked-crypto-deferred`). */
         /*
@@ -201,7 +201,7 @@ export function buildNav({
          * make the navigation longer without making anything more reachable.
          *
          * That argument had a hole in it: the banner is on ONE screen. From
-         * anywhere else - a listing, the wallet, a thread - reaching the
+         * anywhere else - a listing, an agreement, a thread - reaching the
          * assistant meant going home first, so the "second door" was in practice
          * the only door, and it was on a screen you had to leave to use it. A
          * tool you reach for from inside what you are doing is precisely a thing

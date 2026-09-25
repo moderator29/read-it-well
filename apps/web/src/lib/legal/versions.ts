@@ -26,7 +26,7 @@
  * together. A date rather than a number so a stored row says which text was on
  * screen without anybody keeping a separate table of what version meant what.
  */
-export const TERMS_VERSION = "2026-09-24";
+export const TERMS_VERSION = "2026-09-25";
 
 /**
  * The privacy notice moves with them today and has its own constant anyway,
@@ -36,7 +36,9 @@ export const TERMS_VERSION = "2026-09-24";
 /* 2026-09-24 (STORE-08 / SEC-13 / STORE-07): processors named, location,
    push tokens, device records, AI and crash data described, the analytics
    claim removed, the deletion section brought to the purge that now runs. */
-export const PRIVACY_VERSION = "2026-09-24";
+/* 2026-09-25 (Track A/B): no wallet or balance is held; payment data now
+   describes split settlement, agreements and Guarantee claims. */
+export const PRIVACY_VERSION = "2026-09-25";
 
 /** The two documents a person accepts when they open an account. */
 export const ACCEPTED_AT_SIGNUP = [

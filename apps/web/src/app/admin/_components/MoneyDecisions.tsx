@@ -2,19 +2,18 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
-import { resolveEscrow, setFeeRate } from "@/lib/admin/money-actions";
+import { setFeeRate } from "@/lib/admin/money-actions";
 import { reviewKycDocument } from "@/lib/admin/kyc-actions";
 
 /**
- * The three decisions the money side of the console can take.
+ * The two decisions the money side of the console takes here (the escrow
+ * ruling that was the third is retired: Vallo holds no money).
  *
  * Each one is a small inline form rather than a confirm sheet, and that is a
  * deliberate departure from AdminActions. A sheet is right when the decision is
  * a yes or no with a note attached, which is what the moderation queues are.
- * These three are not: an escrow ruling needs a direction AND a reason, a fee
- * change needs four fields, and a rejection needs the reviewer to be looking at
+ * These are not: a fee change needs four fields, and a rejection needs the reviewer to be looking at
  * the document while they type why it is wrong. Putting any of those behind a
  * sheet hides the thing being judged behind the judgement.
  *
@@ -32,138 +31,6 @@ function Refusal({ message }: { message: string | null }) {
     >
       {message}
     </p>
-  );
-}
-
-/* ------------------------------------------------------------ escrow ruling */
-
-export function EscrowRuling({
-  escrowId,
-  amountMinor,
-  locale,
-  payerName,
-  payeeName,
-}: {
-  escrowId: string;
-  amountMinor: number;
-  locale: Locale;
-  /** Who paid in. Named in the confirmation, because a refund goes to them. */
-  payerName: string | null;
-  /** Who is waiting to be paid. Named for the same reason. */
-  payeeName: string | null;
-}) {
-  const router = useRouter();
-  const [note, setNote] = useState("");
-  const [direction, setDirection] = useState<"release" | "refund" | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [pending, start] = useTransition();
-
-  function run() {
-    if (!direction) return;
-    setError(null);
-    start(async () => {
-      const result = await resolveEscrow({ escrowId, direction, note });
-      if (!result.ok) {
-        setError(result.fieldErrors?.["note"] ?? result.error);
-        return;
-      }
-      /* ESC-07. At or above the two-person threshold the first ruling is a
-         proposal; say so, because nothing has moved yet. */
-      setNotice(result.data.outcome === "awaiting_second_approval" ? result.data.message : null);
-      setNote("");
-      setDirection(null);
-      router.refresh();
-    });
-  }
-
-  const r = getDictionary(locale).admin.escrow.rulingControl;
-  const cancelWord = getDictionary(locale).admin.payments.sweep.cancel;
-  const fill = (text: string, values: Record<string, string>) =>
-    text.replace(/\{(\w+)\}/g, (whole, key: string) => values[key] ?? whole);
-  const money = formatMoney(amountMinor, locale);
-  const payer = payerName ?? r.thePayer;
-  const payee = payeeName ?? r.thePayee;
-  /* Who actually receives the money under the chosen direction. Release pays
-     the payee; refund returns it to the payer. */
-  const recipient = direction === "release" ? payee : payer;
-
-  return (
-    <div className="mt-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm">
-      <label className="block">
-        <span className="nf-label">{r.label}</span>
-        <textarea
-          className="nf-field min-h-[80px] resize-y"
-          value={note}
-          maxLength={1000}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder={r.placeholder}
-        />
-      </label>
-
-      {/*
-        THE SECOND STEP, AND WHY IT IS NOT CEREMONY.
-        Choosing a direction used to move the money on that same click. The
-        amount was in the button label, which is half of the rule; the person
-        receiving it was not, and "Release to the payee" reads identically
-        whoever the payee happens to be. Naming them, next to the amount, in a
-        sentence that has to be read before a second deliberate press, is the
-        difference between confirming a decision and confirming a button.
-      */}
-      {!direction ? (
-        <>
-          <p className="nf-caption mt-row">{r.choose}</p>
-          <div className="mt-row flex flex-wrap gap-inline">
-            <Button type="button" size="sm" onClick={() => setDirection("release")}>
-              {fill(r.releaseTo, { name: payee })}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={() => setDirection("refund")}
-            >
-              {fill(r.refundTo, { name: payer })}
-            </Button>
-          </div>
-        </>
-      ) : (
-        <div className="mt-row rounded-[var(--nf-radius-md)] border border-[var(--nf-state-warning)] p-card-sm">
-          <p className="nf-body font-semibold text-content">
-            {fill(r.goesTo, { money, recipient })}
-          </p>
-          <p className="nf-body-sm mt-row text-content-2">
-            {direction === "release" ? fill(r.payerLoses, { payer }) : fill(r.payeeLoses, { payee })} {r.finality}
-          </p>
-          <div className="mt-group flex flex-wrap gap-inline">
-            {/* The second step is the lit primary (admin-money's request, 23
-                September): the ruling is the consequential action and the
-                confirmation above already says, in words, what cannot be undone. */}
-            <Button type="button" size="sm" variant="primary" loading={pending} onClick={run}>
-              {fill(direction === "release" ? r.confirmRelease : r.confirmRefund, { money, recipient })}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              disabled={pending}
-              onClick={() => {
-                setDirection(null);
-                setError(null);
-              }}
-            >
-              {cancelWord}
-            </Button>
-          </div>
-        </div>
-      )}
-      <Refusal message={error} />
-      {notice ? (
-        <p role="status" className="nf-body-sm mt-row font-medium text-content-2">
-          {notice}
-        </p>
-      ) : null}
-    </div>
   );
 }
 

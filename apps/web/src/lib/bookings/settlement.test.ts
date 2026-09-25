@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { readSettlement, settleBookingCharge } from "./settlement";
-import type { AdminClient } from "../wallet/ledger";
+import type { AdminClient } from "@/lib/supabase/service";
 
 /*
  * MON-05 / OPS-02. Settlement is one database call now, and the only thing the
  * application decides is how to read its answer. A charge the processor took
- * that could not be applied comes back as "returned-to-wallet"; it must never
+ * that could not be applied comes back as "refund-due" (back to the card, never
+ * a wallet: Vallo holds no money); it must never
  * read as "settled" (which would send a confirmation) or throw (which would
  * make the webhook answer 500 and Paystack retry for 72 hours).
  */
@@ -31,20 +32,26 @@ describe("settleBookingCharge", () => {
     });
   });
 
-  it("reads a second payment as returned to the wallet, not as settled", async () => {
+  it("reads a second payment as a refund due to the card, not as settled", async () => {
     const { admin } = adminAnswering({
-      outcome: "returned-to-wallet",
+      outcome: "refund-due",
       booking_id: "b1",
       reason: "already_paid",
       amount_minor: 2000,
+      reference: "r",
     });
     const out = await settleBookingCharge(admin, { reference: "r", amountMinor: 2000 });
     expect(out).toEqual({
-      outcome: "returned-to-wallet",
+      outcome: "refund-due",
       bookingId: "b1",
       reason: "already_paid",
       amountMinor: 2000,
+      reference: "r",
     });
+  });
+
+  it("refuses the retired wallet outcome rather than reading it as anything", () => {
+    expect(() => readSettlement({ outcome: "returned-to-wallet", booking_id: "b1" })).toThrow();
   });
 
   it("throws when the database call fails, so the caller can retry", async () => {
@@ -82,6 +89,7 @@ describe("readSettlement", () => {
         agentShareMinor: 985,
         processorFeeMinor: 15,
         netSettlementMinor: 985,
+        guaranteeMinor: 0,
       },
     });
   });

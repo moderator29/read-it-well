@@ -22,7 +22,6 @@ import {
   startDeletionAction,
 } from "@/lib/account-deletion/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { BANK_PAYOUTS_OPEN } from "@/lib/wallet/bank-payouts";
 
 /**
  * The deletion control, and everything behind it.
@@ -85,30 +84,10 @@ function blockerCopy(
   const many = blocker.amount !== 1;
 
   switch (blocker.kind) {
-    case "wallet-balance":
-      return {
-        line: phrase(
-          BANK_PAYOUTS_OPEN ? copy.blockerWalletBalance : copy.blockerWalletBalanceBeforePayouts,
-          { amount },
-        ),
-        cta: copy.blockerWalletBalanceCta,
-      };
-    case "wallet-held":
-      return { line: phrase(copy.blockerWalletHeld, { amount }), cta: copy.blockerWalletHeldCta };
-    case "pot-balance":
-      return { line: phrase(copy.blockerPotBalance, { amount }), cta: copy.blockerWalletBalanceCta };
     case "rent-refunds-owed":
       return { line: phrase(copy.blockerRentRefundsOwed, { amount }), cta: copy.blockerWalletBalanceCta };
     case "rent-refunds-due":
       return { line: phrase(copy.blockerRentRefundsDue, { amount }), cta: copy.blockerWalletBalanceCta };
-    case "pending-payouts":
-      return {
-        line: phrase(
-          many ? copy.blockerPendingPayoutsPlural : copy.blockerPendingPayouts,
-          { count },
-        ),
-        cta: copy.blockerPendingPayoutsCta,
-      };
     case "active-bookings":
       return {
         line: phrase(

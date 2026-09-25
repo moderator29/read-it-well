@@ -1,4 +1,4 @@
-import { parseNairaToKobo } from "../wallet/schema";
+import { parseNairaToKobo } from "@/lib/money/amount";
 
 /**
  * WHAT A MONEY PROOF IS FOR. V-81.

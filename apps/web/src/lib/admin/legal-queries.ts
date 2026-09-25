@@ -80,7 +80,7 @@ export async function getTermsStanding(userId: string): Promise<AdminRead<TermsS
   try {
     /* Structurally typed rather than regenerated. `database.types.ts` is a
        generated file, and regenerating all of it to add one table pulls every
-       other unrelated schema change into this diff. `lib/wallet/pots.ts` reads `wallet_pots` the same way
+       other unrelated schema change into this diff. the retired wallet pots read did the same
        and for the same reason; the shape asserted here is the shape the
        migration creates, and the read is still the operator's own client, so
        RLS is unaffected by how the call is typed. */

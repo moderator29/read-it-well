@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { logMoney } from "@/lib/payments/observability";
-import { getAdminClient } from "@/lib/wallet/ledger";
-import { recordMoneyAudit } from "@/lib/wallet/audit";
-import {
-  DEFAULT_SWEEP_HOURS,
-  runMoneyReconciliation,
-} from "@/lib/wallet/reconciliation";
+import { getAdminClient } from "@/lib/supabase/service";
+import { recordMoneyAudit } from "@/lib/money/audit";
+import { DEFAULT_SWEEP_HOURS, runMoneyReconciliation } from "@/lib/payments/reconciliation";
 import { recordAlert } from "@/lib/alerts";
 import { cronAuthVerdict, fromPlatformScheduler } from "@/lib/cron/auth";
 import { refusalAlert } from "@/lib/cron/run";
@@ -187,12 +184,7 @@ async function run(request: Request): Promise<NextResponse> {
       charges_seen: report.charges.chargesSeen,
       charges_ours: report.charges.chargesOurs,
       gaps: report.charges.gaps.length,
-      recovered_minor: report.charges.recoveredMinor,
-      holds_examined: report.holds.examined,
-      released_minor: report.holds.releasedMinor,
-      overdrawn: report.overdrawn.length,
-      paid_checked: report.paid?.checked ?? 0,
-      paid_reversed: report.paid?.reversed.length ?? 0,
+      refunded_minor: report.charges.refundedMinor,
     },
   };
 
@@ -201,7 +193,7 @@ async function run(request: Request): Promise<NextResponse> {
 
   await recordMoneyAudit(admin, {
     actor: { kind: "sweep" },
-    action: "wallet.reconciliation.run",
+    action: "payment.reconciliation.run",
     reference: null,
     outcome: reconcileAuditOutcome(summary),
     detail: { hours, apply, ...summary.counts },
@@ -217,17 +209,9 @@ async function run(request: Request): Promise<NextResponse> {
         ours: report.charges.chargesOurs,
         unavailable: report.charges.unavailable,
         reason: report.charges.reason,
-        recoveredMinor: report.charges.recoveredMinor,
+        refundedMinor: report.charges.refundedMinor,
         gaps: report.charges.gaps,
       },
-      holds: {
-        examined: report.holds.examined,
-        releasedMinor: report.holds.releasedMinor,
-        unavailable: report.holds.unavailable,
-        resolutions: report.holds.resolutions,
-      },
-      overdrawn: report.overdrawn,
-      paid: report.paid,
       needsAttention: report.needsAttention,
     },
     { status: 200 },

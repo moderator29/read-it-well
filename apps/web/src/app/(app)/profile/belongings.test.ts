@@ -8,7 +8,6 @@ describe("rowValue: only what the database returned", () => {
   it("draws nothing for a read that failed", () => {
     expect(rowValue("bookings", NO_FACTS, "en")).toBeNull();
     expect(rowValue("saved", NO_FACTS, "en")).toBeNull();
-    expect(rowValue("wallet", NO_FACTS, "en")).toBeNull();
     expect(rowValue("inspections", NO_FACTS, "en")).toBeNull();
   });
 
@@ -24,10 +23,9 @@ describe("rowValue: only what the database returned", () => {
     expect(rowValue("inspections", facts({ openInspections: 1 }), "en")).toBe("1 open");
   });
 
-  it("states a wallet balance through the shared money formatter, zero included", () => {
-    expect(rowValue("wallet", facts({ walletMinor: 24568000 }), "en")).toMatch(/245,680$/);
-    expect(rowValue("wallet", facts({ walletMinor: 0 }), "en")).toMatch(/0$/);
-    expect(rowValue("wallet", facts({ walletMinor: 4200075 }), "en")).toMatch(/42,000\.75$/);
+  it("counts open agreements, and never states a balance: Vallo holds no money", () => {
+    expect(rowValue("payments", facts({ openAgreements: 2 }), "en")).toBe("2 open");
+    expect(rowValue("payments", facts({ openAgreements: 0 }), "en")).toBeNull();
   });
 });
 

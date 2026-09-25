@@ -39,7 +39,7 @@ import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "./rate-lim
  * refused call costs nothing.
  *
  * PER USER AND PER IP. A signed-in money action counts against the account,
- * because an account is what has a wallet. The two unauthenticated routes
+ * because an account is what pays. The two unauthenticated routes
  * (the webhooks, the reconcile route) count failures per address, because an
  * address is the only handle they have and a genuine delivery is never
  * limited: only a failed signature or secret is counted, so Paystack retrying
@@ -51,20 +51,13 @@ import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "./rate-lim
  */
 
 export type MoneyAction =
-  | "fundWallet"
-  | "fundWalletWithSavedCard"
   | "chargeSavedCard"
-  | "withdraw"
-  | "transferToUser"
-  | "startCryptoDeposit"
-  | "verifyFunding"
-  | "payWithWallet"
   | "payWithSavedCard"
   | "startCardCheckout"
   | "addBankAccount"
   | "resolveBankAccount"
   | "startCardSetup"
-  | "holdMoney"
+  | "fileGuaranteeClaim"
   | "setDefaultPaymentMethod"
   | "removePaymentMethod"
   | "setDefaultBankAccount"
@@ -83,53 +76,11 @@ const HOUR = 60 * 60;
 const TEN_MINUTES = 10 * 60;
 
 export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
-  fundWallet: {
-    bucket: "money_fund_start",
-    limit: 10,
-    windowSeconds: HOUR,
-    refusal: "You have started several top-ups in the last hour, so this one was not opened and nothing was charged.",
-  },
-  fundWalletWithSavedCard: {
-    bucket: "money_fund_saved_card",
-    limit: 6,
-    windowSeconds: HOUR,
-    refusal: "You have charged your saved card several times in the last hour, so this one was not sent and nothing was charged.",
-  },
   chargeSavedCard: {
     bucket: "card_charge",
     limit: 10,
     windowSeconds: TEN_MINUTES,
     refusal: "That is a lot of card charges at once, so this one was not sent and nothing was charged.",
-  },
-  withdraw: {
-    bucket: "money_withdraw",
-    limit: 5,
-    windowSeconds: HOUR,
-    refusal: "You have asked for several withdrawals in the last hour, so this one was not sent. Your balance is untouched.",
-  },
-  transferToUser: {
-    bucket: "money_transfer",
-    limit: 10,
-    windowSeconds: HOUR,
-    refusal: "You have sent money several times in the last hour, so this transfer was not made. Your balance is untouched.",
-  },
-  startCryptoDeposit: {
-    bucket: "money_crypto_start",
-    limit: 6,
-    windowSeconds: HOUR,
-    refusal: "You have started several crypto top-ups in the last hour, so this one was not opened and nothing was charged.",
-  },
-  verifyFunding: {
-    bucket: "money_verify",
-    limit: 30,
-    windowSeconds: TEN_MINUTES,
-    refusal: "That payment has been checked many times in the last few minutes. If you completed it, your balance updates on its own.",
-  },
-  payWithWallet: {
-    bucket: "money_pay_wallet",
-    limit: 10,
-    windowSeconds: TEN_MINUTES,
-    refusal: "That is a lot of payment attempts at once, so this one was not made. Your balance is untouched and your dates are still held.",
   },
   payWithSavedCard: {
     bucket: "money_pay_saved_card",
@@ -155,49 +106,20 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     windowSeconds: TEN_MINUTES,
     refusal: "That account has been looked up many times in the last few minutes, so this check was not made.",
   },
+  /* Track A: a Guarantee claim is money out of the reserve, reviewed by a
+     person. Counted so a stolen session cannot flood the desk. */
+  fileGuaranteeClaim: {
+    bucket: "guarantee_claim_file",
+    limit: 5,
+    windowSeconds: HOUR,
+    refusal: "You have filed several claims in the last hour, so this one was not filed.",
+  },
   startCardSetup: {
     bucket: "card_setup",
     limit: 5,
     windowSeconds: HOUR,
     refusal: "You have started several card setups already, so this one was not opened and nothing was charged.",
   },
-  /*
-   * THE KEY IS `holdMoney` AND THE BUCKET IS UNCHANGED, 23 SEPTEMBER. It used
-   * to be `openHeldPayment`, after the server action of that name, and that
-   * action is retired: one call that opened an agreement and funded it, with a
-   * funding reference it had to invent because the row did not exist yet. The
-   * BUCKET STRING IS DELIBERATELY NOT RENAMED. `money_hold_open` is the key
-   * `consume_rate_limit` counts against in the database, so renaming it would
-   * hand everybody who is mid-window a fresh allowance. The name above is what
-   * this codebase calls the limit; the string below is what the counter is.
-   */
-  holdMoney: {
-    bucket: "money_hold_open",
-    limit: 5,
-    windowSeconds: HOUR,
-    refusal: "You have held money several times in the last hour, so this one was not opened. Your balance is untouched.",
-  },
-
-  /* ---------------------------------------------------------------------
-     THE FOUR BELOW SPEND NOTHING, AND THEY ARE HERE ANYWAY.
-
-     Everything above this line is priced: a processor call, a held balance,
-     a locked row. These four are ordinary database updates and cost us a
-     fraction of a penny each. They are counted because of what they DECIDE
-     rather than what they spend. The default card is the card the next
-     charge lands on; the default bank account is where the next payout
-     lands. An attacker with a stolen session cannot read a card token and
-     cannot file a bank account whose name the bank did not confirm, but
-     until now they could flip which of somebody's own rows is the default
-     as many times a second as the network allowed, and soft-delete every
-     card on the account in one loop with nothing counting.
-
-     The windows are wider than the money rows because a person genuinely
-     tidying their cards taps more often than a person paying: twenty
-     default changes in ten minutes is already a person who has stopped
-     meaning it, and ten removals in an hour is more cards than anybody on
-     this platform has.
-     --------------------------------------------------------------------- */
 
   setDefaultPaymentMethod: {
     bucket: "card_default",

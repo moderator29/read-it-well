@@ -30,9 +30,8 @@ describe("the preconditions", () => {
 
   it("names each blocker on its own number and nothing else", () => {
     const cases: [Partial<BlockerReading>, string][] = [
-      [{ walletBalanceMinor: 1 }, "wallet-balance"],
-      [{ walletHeldMinor: 120_000_00 }, "wallet-held"],
-      [{ pendingPayouts: 1 }, "pending-payouts"],
+      [{ rentRefundsOwedMinor: 1 }, "rent-refunds-owed"],
+      [{ rentRefundsDueMinor: 120_000_00 }, "rent-refunds-due"],
       [{ activeBookings: 2 }, "active-bookings"],
       [{ activeReservations: 1 }, "active-reservations"],
       [{ publishedListings: 3 }, "published-listings"],
@@ -48,31 +47,36 @@ describe("the preconditions", () => {
   it("gives every blocker a route out, and never a dead end", () => {
     const all = blockersFrom(
       reading({
-        walletBalanceMinor: 500_00,
-        walletHeldMinor: 1_200_000_00,
-        pendingPayouts: 1,
+        rentRefundsOwedMinor: 500_00,
+        rentRefundsDueMinor: 1_200_000_00,
         activeBookings: 1,
         activeReservations: 1,
         publishedListings: 1,
         ownedBusinesses: 1,
       }),
     );
-    expect(all).toHaveLength(7);
+    expect(all).toHaveLength(6);
     for (const blocker of all) {
       expect(blocker.href.startsWith("/")).toBe(true);
       expect(blocker.href.length).toBeGreaterThan(1);
     }
   });
 
-  it("puts the money blockers first, because a balance is the costly one to get wrong", () => {
+  it("puts the money blockers first, because money owed is the costly one to get wrong", () => {
     const all = blockersFrom(
-      reading({ walletBalanceMinor: 100, activeBookings: 1, publishedListings: 1 }),
+      reading({ rentRefundsOwedMinor: 100, activeBookings: 1, publishedListings: 1 }),
     );
-    expect(all[0]?.kind).toBe("wallet-balance");
+    expect(all[0]?.kind).toBe("rent-refunds-owed");
+  });
+
+  it("never blocks on a wallet, a held payment, a pot or a withdrawal: Vallo holds no money", () => {
+    const patch = { walletBalanceMinor: 500_00, walletHeldMinor: 1_00, potBalanceMinor: 1_00, pendingPayouts: 3 };
+    expect(blockersFrom(reading(patch))).toEqual([]);
+    expect(canProceed(reading(patch))).toBe(true);
   });
 
   it("carries the kobo untouched, so nothing here can turn money into a float", () => {
-    const blocker = blockersFrom(reading({ walletBalanceMinor: 1_234_567 }))[0];
+    const blocker = blockersFrom(reading({ rentRefundsOwedMinor: 1_234_567 }))[0];
     expect(blocker?.amount).toBe(1_234_567);
     expect(Number.isInteger(blocker?.amount)).toBe(true);
   });
@@ -90,7 +94,7 @@ describe("the preconditions", () => {
 
   it("puts the business last, because its route out needs another person to agree", () => {
     const all = blockersFrom(
-      reading({ ownedBusinesses: 1, publishedListings: 1, walletBalanceMinor: 100 }),
+      reading({ ownedBusinesses: 1, publishedListings: 1, rentRefundsOwedMinor: 100 }),
     );
     expect(all[all.length - 1]?.kind).toBe("owned-businesses");
   });
@@ -140,8 +144,8 @@ describe("reading the database's answer", () => {
   });
 });
 
-describe("MON-09 / STORE-12: money in a pot or a rent refund blocks deletion", () => {
-  it("names the pot and both directions of rent refund", async () => {
+describe("MON-09 / STORE-12: a rent refund in either direction blocks deletion", () => {
+  it("names both directions of rent refund, and never a pot", async () => {
     const { blockersFrom } = await import("./preconditions");
     const kinds = blockersFrom({
       ...EMPTY_READING,
@@ -149,6 +153,6 @@ describe("MON-09 / STORE-12: money in a pot or a rent refund blocks deletion", (
       rentRefundsOwedMinor: 1,
       rentRefundsDueMinor: 1,
     }).map((b) => b.kind);
-    expect(kinds).toEqual(["pot-balance", "rent-refunds-owed", "rent-refunds-due"]);
+    expect(kinds).toEqual(["rent-refunds-owed", "rent-refunds-due"]);
   });
 });

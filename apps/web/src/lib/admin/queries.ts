@@ -68,6 +68,10 @@ export type QueueCounts = {
    * tile, because clearing them is one job.
    */
   moderation: number;
+  /** Track A: agreements both parties confirmed, waiting for review before payment opens. */
+  agreements: number;
+  /** Track A: Guarantee claims waiting for a decision. */
+  claims: number;
 };
 
 /**
@@ -120,6 +124,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
       heldComments,
       heldBios,
       heldEvents,
+      agreements,
+      claims,
     ] = await Promise.all([
       admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
       admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
@@ -151,6 +157,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
         .eq("bio_status", "HELD"),
       /* V-88 review: the Held lane lists held events too, so it counts them. */
       admin.from("events").select("id", { count: "exact", head: true }).eq("status", "HELD"),
+      admin.from("deal_agreements").select("id", { count: "exact", head: true }).eq("status", "in_review"),
+      admin.from("guarantee_claims").select("id", { count: "exact", head: true }).eq("status", "submitted"),
     ]);
 
     return {
@@ -168,6 +176,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
           (heldComments.count ?? 0) +
           (heldBios.count ?? 0) +
           (heldEvents.count ?? 0),
+        agreements: agreements.count ?? 0,
+        claims: claims.count ?? 0,
       },
     };
   } catch {

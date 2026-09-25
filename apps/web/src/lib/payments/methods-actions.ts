@@ -32,8 +32,8 @@ import { isFeatureEnabled } from "../flags";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { guardMoney } from "../security/money-limits";
 import { subjectForUser } from "../security/rate-limit";
-import { recordMoneyAudit } from "../wallet/audit";
-import { getAdminClient } from "../wallet/ledger";
+import { recordMoneyAudit } from "@/lib/money/audit";
+import { getAdminClient } from "@/lib/supabase/service";
 import {
   cardDefaultChangedNotice,
   cardRemovedNotice,

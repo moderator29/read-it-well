@@ -6,7 +6,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { NEVER_ASK, NO_FEES_LINE, RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
-import { WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
+import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
 import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { e164 } from "@/lib/notify/whatsapp";
 
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
  *
  * So this page says it in the plainest words available, before anyone needs
  * it. Every claim on it is something the platform genuinely does today: no
- * promise of an escrow that is not built, no response time the console cannot
+ * promise that Vallo holds money it never holds, no response time the console cannot
  * keep, and no refund window that the cancellation schedule does not compute.
  */
 
 const PAYING_STEPS: { title: string; body: string }[] = [
   {
-    title: "You never pay a person, you pay the platform",
-    body: "Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card, a bank transfer raised by the processor, or your Vallo wallet. That is true on both sides: a hotel room for Friday and a flat for the year are paid the same way, and there is no step on either where somebody sends you an account number.",
+    title: "You never pay a person directly, you pay through Vallo",
+    body: `${NO_CUSTODY_SENTENCE} Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card or a bank transfer raised by the processor. That is true on both sides: a hotel room for Friday and a flat for the year are paid the same way, and there is no step on either where somebody sends you an account number.`,
   },
   {
     title: "The price you agree is the price you pay",
@@ -43,11 +43,15 @@ const PAYING_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "There is a record, permanently",
-    body: "Every payment writes a reference against your booking that you can open from Bookings and from your wallet. If anything goes wrong, that reference is what a person on our side works from. A transfer you made to somebody's personal account has no such record and cannot be traced by us.",
+    body: "Every payment writes a reference against your booking that you can open from Bookings and from Agreements. If anything goes wrong, that reference is what a person on our side works from. A transfer you made to somebody's personal account has no such record and cannot be traced by us.",
   },
   {
-    title: "Money comes back to your wallet first",
-    body: `A refund lands in your Vallo wallet, which is the fastest route we have. ${WALLET_MONEY_USES} One wallet serves both sides, so it does not matter which one the money came from.`,
+    title: "A refund goes back the way it came",
+    body: `${REFUND_ROUTE} Vallo keeps no balance for you, so there is nothing to withdraw and nothing sitting with us.`,
+  },
+  {
+    title: "The Vallo Guarantee",
+    body: GUARANTEE_SENTENCE,
   },
   {
     title: "A table costs nothing to hold",
@@ -65,12 +69,16 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
     body: "For a rental or a sale, view the property before any money moves, in person or on a video call. Bring somebody with you if you can, and go in daylight. Anybody who will not let you inspect before paying is telling you something. A stay is the other way round, because you cannot inspect a hotel room in Enugu from Lagos: there you pay on Vallo first, and the cancellation schedule and the report route are what protect you instead.",
   },
   {
-    title: "Confirm the inspection in the thread",
-    body: "Both sides can record that the inspection happened, in the conversation itself. That record sits with the booking, so nobody can later claim an inspection that did not happen.",
+    title: "Submit the inspection report",
+    body: "The inspection report is eight items with photographs: the outside, the inside, the kitchen, the bathrooms, the utilities, the appliances, safety and an overall verdict. You submit it from the inspection itself. It is the record of what the place was like, and it is what any Guarantee claim is compared with.",
+  },
+  {
+    title: "Both of you confirm the agreement, and Vallo approves it",
+    body: "From the report an agreement is drawn up with the figures from the listing. You and the owner or agent each confirm the same version, and a person at Vallo reviews it. Payment opens only once it is approved, and both of you are told by email and in the app.",
   },
   {
     title: "Only then, pay on Vallo",
-    body: "Rent is message, inspect, then pay. There is no reserve button on a rental for exactly that reason. Never hand over cash at an inspection, and never pay an inspection fee, a holding fee or an agency fee to anybody.",
+    body: `Rent is message, inspect, agree, then pay. There is no reserve button on a rental for exactly that reason. Never hand over cash at an inspection. ${NO_INSPECTION_FEE} ${OFF_PLATFORM_SENTENCE}`,
   },
 ];
 

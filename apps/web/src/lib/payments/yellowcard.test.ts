@@ -1,16 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { parseWebhook } from "./yellowcard";
+import { createBookingCollection, isCryptoPaymentOpen, parseWebhook } from "./yellowcard";
 import { CRYPTO_PREFIX, isCryptoReference, isFundReference } from "./references";
 
 /**
  * The crypto webhook parser, tested because it is the function that decides
- * whether a wallet gets credited and by how much.
- *
- * Everything upstream of it is a signature check; everything downstream is
- * `recordFunding`, which is already exercised by the card path. This is the
- * layer that turns somebody else's JSON into an amount of somebody's money, so
- * the cases that matter are the ones where it should REFUSE.
+ * whether a booking is treated as paid and for how much NAIRA. There is no
+ * wallet: Vallo never holds crypto or a balance (Track A). This is the layer
+ * that turns somebody else's JSON into an amount of somebody's money, so the
+ * cases that matter are the ones where it should REFUSE.
  */
 
 const settled = {
@@ -22,12 +20,11 @@ const settled = {
 };
 
 describe("parseWebhook", () => {
-  it("reads a settled collection into kobo, a reference and an email", () => {
-    expect(parseWebhook(settled)).toEqual({
+  it("reads a settled collection into naira kobo and a reference, and nothing about the crypto side", () => {
+    expect(parseWebhook({ ...settled, cryptoAmount: 31.2, cryptoCurrency: "USDT" })).toEqual({
       reference: settled.sequenceId,
       amountMinor: 5_000_000,
       status: "completed",
-      email: "somebody@example.com",
     });
   });
 
@@ -74,9 +71,39 @@ describe("parseWebhook", () => {
     expect(parseWebhook({ ...settled, status: undefined })?.status).toBe("unknown");
   });
 
-  it("carries a null email rather than an empty one", () => {
-    expect(parseWebhook({ ...settled, customerEmail: "" })?.email).toBeNull();
-    expect(parseWebhook({ ...settled, customerEmail: undefined })?.email).toBeNull();
+});
+
+describe("crypto stays shut unless settlement goes straight to the destinations", () => {
+  it("is not open with keys alone: the founder must confirm direct settlement", () => {
+    const before = { ...process.env };
+    process.env.YELLOWCARD_API_KEY = "k";
+    process.env.YELLOWCARD_API_SECRET = "s";
+    process.env.YELLOWCARD_API_BASE = "https://sandbox.example";
+    delete process.env.YELLOWCARD_DIRECT_SETTLEMENT;
+    expect(isCryptoPaymentOpen()).toBe(false);
+    process.env.YELLOWCARD_DIRECT_SETTLEMENT = "yes please";
+    expect(isCryptoPaymentOpen()).toBe(false);
+    process.env.YELLOWCARD_DIRECT_SETTLEMENT = "confirmed";
+    expect(isCryptoPaymentOpen()).toBe(true);
+    process.env = before;
+  });
+
+  it("refuses to open a collection whose naira legs do not add up to the amount", async () => {
+    const before = { ...process.env };
+    process.env.YELLOWCARD_API_KEY = "k";
+    process.env.YELLOWCARD_API_SECRET = "s";
+    process.env.YELLOWCARD_API_BASE = "https://sandbox.example";
+    process.env.YELLOWCARD_DIRECT_SETTLEMENT = "confirmed";
+    await expect(
+      createBookingCollection({
+        amountMinor: 100_000,
+        reference: settled.sequenceId,
+        email: "a@example.com",
+        callbackUrl: "https://example.com",
+        settlements: [{ role: "lister", bankCode: "058", accountNumber: "0123456789", amountMinor: 90_000 }],
+      }),
+    ).rejects.toThrow(/does not add up/);
+    process.env = before;
   });
 });
 

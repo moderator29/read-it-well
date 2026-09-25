@@ -15,7 +15,7 @@ import { CHROME_COLOUR } from "@/lib/theme/chrome";
  * platform do exactly that today, and both are deliberate and correct on the
  * web:
  *
- *   - Paystack checkout. `lib/wallet/actions.ts` and `lib/bookings/checkout.ts`
+ *   - Paystack checkout. `lib/bookings/checkout.ts`
  *     mint an authorisation URL on Paystack's domain, and the wallet deck and
  *     the checkout pay panel send the browser to it.
  *   - Supabase authorize. `startOAuth` in `lib/auth/actions.ts` redirects to

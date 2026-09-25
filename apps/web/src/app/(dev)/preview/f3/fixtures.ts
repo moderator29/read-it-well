@@ -470,9 +470,7 @@ export const CHECKOUT: CheckoutView = {
   holdExpiresAt: new Date(Date.now() + 40 * 60_000).toISOString(),
   holdExpired: false,
   cardAvailable: true,
-  walletBalanceMinor: 120_000_00,
-  walletBalanceDisplay: "₦120,000",
-  walletCovers: false,
+  agreement: { id: "00000000-0000-4000-8000-00000000a001", status: "approved", reason: null },
 };
 
 export const SAVED_CARDS: PaymentMethod[] = [

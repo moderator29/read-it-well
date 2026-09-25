@@ -56,14 +56,10 @@ export const EMPTY_READING: BlockerReading = {
  * lives in the dictionary and the rule lives here.
  */
 export type BlockerKind =
-  | "wallet-balance"
-  | "wallet-held"
-  | "pot-balance"
   | "rent-refunds-owed"
   | "rent-refunds-due"
   | "active-bookings"
   | "active-reservations"
-  | "pending-payouts"
   | "published-listings"
   | "owned-businesses";
 
@@ -88,23 +84,17 @@ export type Blocker = {
 export function blockersFrom(reading: BlockerReading): Blocker[] {
   const blockers: Blocker[] = [];
 
-  if (reading.walletBalanceMinor > 0) {
-    blockers.push({ kind: "wallet-balance", href: "/wallet", amount: reading.walletBalanceMinor });
-  }
-  if (reading.walletHeldMinor > 0) {
-    blockers.push({ kind: "wallet-held", href: "/wallet", amount: reading.walletHeldMinor });
-  }
-  if (reading.potBalanceMinor > 0) {
-    blockers.push({ kind: "pot-balance", href: "/wallet", amount: reading.potBalanceMinor });
-  }
+  /*
+   * No wallet, no held money and no pending withdrawal can block a deletion:
+   * Vallo holds no customer money (25 September 2026), so there is none to
+   * strand. The reading still carries those fields at zero because the
+   * database answers with them; they are not read here.
+   */
   if (reading.rentRefundsOwedMinor > 0) {
-    blockers.push({ kind: "rent-refunds-owed", href: "/wallet", amount: reading.rentRefundsOwedMinor });
+    blockers.push({ kind: "rent-refunds-owed", href: "/help", amount: reading.rentRefundsOwedMinor });
   }
   if (reading.rentRefundsDueMinor > 0) {
-    blockers.push({ kind: "rent-refunds-due", href: "/wallet", amount: reading.rentRefundsDueMinor });
-  }
-  if (reading.pendingPayouts > 0) {
-    blockers.push({ kind: "pending-payouts", href: "/wallet", amount: reading.pendingPayouts });
+    blockers.push({ kind: "rent-refunds-due", href: "/help", amount: reading.rentRefundsDueMinor });
   }
   if (reading.activeBookings > 0) {
     blockers.push({ kind: "active-bookings", href: "/bookings", amount: reading.activeBookings });

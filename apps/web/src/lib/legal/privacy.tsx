@@ -25,7 +25,7 @@ import {
 } from "./company";
 
 /** The date on the page; moves with PRIVACY_VERSION (`./versions`). */
-export const PRIVACY_UPDATED = "24 September 2026";
+export const PRIVACY_UPDATED = "25 September 2026";
 
 export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNode }[] = [
   {
@@ -107,10 +107,18 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
             with the people who list, and the reviews you write.
           </li>
           <li>
-            <strong>Payment data.</strong> Payment references, amounts, refunds, your
-            wallet and savings pot balances, and, if you save them, a card token and the
-            bank account you nominate for payouts. Card numbers are handled by Paystack;
+            <strong>Payment data.</strong> Payment references, amounts, how each payment
+            was split (the lister&rsquo;s share, the Vallo Guarantee contribution and
+            our commission), refunds, and, if you save them, a card token and the bank
+            account you nominate for payouts. We do not keep a wallet or a balance for
+            you, because we never hold your money. Card numbers are handled by Paystack;
             we never see or store your full card number.
+          </li>
+          <li>
+            <strong>Agreements and Guarantee claims.</strong> The agreements you draw
+            up and confirm, their versions, Vallo&rsquo;s decision and its reason, and,
+            if you make a claim on the Vallo Guarantee, what you claimed, the photographs
+            and evidence you upload, and the decision.
           </li>
           <li>
             <strong>Verification data.</strong> If you apply to list as an agent or a
@@ -244,7 +252,12 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
               <li>Supabase (Ireland, EU): our database, sign-in and file storage.</li>
               <li>Vercel (United States): hosting the website and app.</li>
               <li>
-                Paystack (Nigeria): card and bank payments, refunds and payouts.
+                Paystack (Nigeria): card and bank payments, splitting each payment to the
+                lister&rsquo;s bank account and the Guarantee reserve, and refunds.
+              </li>
+              <li>
+                Yellow Card (Nigeria): where crypto payment is offered, converting it to
+                naira. It receives the payment reference and amount.
               </li>
               <li>Resend (United States): sending our emails.</li>
               <li>
@@ -342,8 +355,8 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
         </p>
         <p>
           <strong>Money is never deleted with an account.</strong> On the day the deletion
-          runs we check again. If money is still in your wallet or a savings pot, held for
-          a transaction, on its way to your bank, or owed to you or by you, the deletion
+          runs we check again. If a payment or a refund is still in progress, a Guarantee
+          claim is open, or money is owed to you or by you, the deletion
           waits: nothing is destroyed, a person at Vallo is told, and we contact you to
           settle it first. Your code to stop the deletion keeps working while it waits.
         </p>
@@ -352,7 +365,7 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
           Special Control Unit against Money Laundering and is subject to Nigeria&rsquo;s
           Money Laundering (Prevention and Prohibition) Act, which requires a business
           that moves money to retain its transaction records for at least five years after
-          the transaction. So your bookings, reservations, wallet entries, payments,
+          the transaction. So your bookings, reservations, agreements, payments, Guarantee claims,
           platform revenue lines, payout records, inspection requests and reviews are kept
           for that period. Your name, email address and telephone number are removed from
           every one of them, and what remains is an amount, a date and a reference that no

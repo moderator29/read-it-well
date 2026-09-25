@@ -22,12 +22,7 @@ export type ReconcileRunSummary = {
     charges_seen: number;
     charges_ours: number;
     gaps: number;
-    recovered_minor: number;
-    holds_examined: number;
-    released_minor: number;
-    overdrawn: number;
-    paid_checked: number;
-    paid_reversed: number;
+    refunded_minor: number;
   };
 };
 

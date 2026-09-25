@@ -17,7 +17,7 @@ import type { DeletionClient } from "./rpc";
  * restore code. `audit_log` is readable by every admin, so it is a wider
  * audience than a server log and not a narrower one. The vocabulary is an
  * opaque uuid, a count, a status and a short machine-readable reason: exactly
- * the vocabulary `lib/wallet/audit.ts` already sets for the money path.
+ * the vocabulary `lib/money/audit.ts` already sets for the money path.
  *
  * BEST EFFORT, ALWAYS. The step this records has already committed. A failed
  * audit insert must never turn a completed purge into an error, so every

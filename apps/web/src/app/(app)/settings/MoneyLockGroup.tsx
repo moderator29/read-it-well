@@ -7,7 +7,7 @@ import { RowButton, RowValue, SettingsGroup } from "@/components/app/account/row
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
-import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
+import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { beginEnrol, finishEnrol, removeMoneyCredential, sendFallbackCode } from "@/lib/security/money-step-up-actions";
 import { createPlatformKey, platformLockAvailable } from "@/lib/security/webauthn-client";
 import type { MoneyCredentialList } from "@/lib/security/money-step-up";

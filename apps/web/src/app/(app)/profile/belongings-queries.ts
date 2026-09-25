@@ -12,7 +12,7 @@ import { NO_FACTS, badgeTierFrom, type BadgeTier, type BelongingsFacts } from ".
  *   bookings            `bookings_guest_select`: guest_id = auth.uid()
  *   saved_items         `saved_items_own`: user_id = auth.uid()
  *   saved_places        the same rule, on the stays side's saves
- *   wallet_balances     a SECURITY INVOKER view over the ledger, so the
+ *   deal_agreements     the agreements this person is a party to, so the
  *                       ledger's own policies decide
  *   inspection_requests `inspection_requests_select_party`
  *
@@ -31,7 +31,7 @@ export async function loadBelongings(): Promise<BelongingsFacts> {
   const { supabase, user } = session;
   const today = lagosToday();
 
-  const [upcoming, savedItems, savedPlaces, wallet, inspections] = await Promise.all([
+  const [upcoming, savedItems, savedPlaces, agreements, inspections] = await Promise.all([
     headCount(
       supabase
         .from("bookings")
@@ -57,7 +57,7 @@ export async function loadBelongings(): Promise<BelongingsFacts> {
            not on that screen, so it is not in this number either. */
         .in("entity_kind", ["accommodation", "restaurant"]),
     ),
-    readWallet(supabase, user.id),
+    readOpenAgreements(supabase),
     headCount(
       supabase
         .from("inspection_requests")
@@ -71,8 +71,7 @@ export async function loadBelongings(): Promise<BelongingsFacts> {
   return {
     upcomingBookings: upcoming,
     saved: savedItems === null || savedPlaces === null ? null : savedItems + savedPlaces,
-    walletMinor: wallet?.balanceMinor ?? null,
-    walletCurrency: wallet?.currency ?? "NGN",
+    openAgreements: agreements,
     openInspections: inspections,
   };
 }
@@ -92,24 +91,16 @@ async function headCount(
 type Client = Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>["supabase"];
 
 /**
- * The balance, or null when there is no wallet or the read failed.
- *
- * No wallet row is the lazy-creation contract (`readStatement`), not a zero:
- * somebody who has never funded anything has no wallet yet, and the row says
- * nothing rather than printing a naira sign beside a number nobody set.
+ * Agreements this person is a party to that are waiting on somebody or open
+ * for payment, under their own RLS. Null when the read failed.
  */
-async function readWallet(
-  supabase: Client,
-  userId: string,
-): Promise<{ balanceMinor: number; currency: string } | null> {
+async function readOpenAgreements(supabase: Client): Promise<number | null> {
   try {
-    const { data, error } = await supabase
-      .from("wallet_balances")
-      .select("wallet_id, balance_minor, currency")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (error || !data || !data.wallet_id) return null;
-    return { balanceMinor: Number(data.balance_minor ?? 0), currency: data.currency ?? "NGN" };
+    const { count, error } = await supabase
+      .from("deal_agreements")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["awaiting_parties", "in_review", "approved", "rejected"]);
+    return error ? null : (count ?? 0);
   } catch {
     return null;
   }

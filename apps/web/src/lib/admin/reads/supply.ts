@@ -239,8 +239,16 @@ export async function getSupplyDesk(
       readEvery<StayRow>((f, t) =>
         db.from("accommodations").select("business_id, status, area, city, is_demo").order("id").range(f, t),
       ),
-      readEvery<{ payee_id: string; amount_minor: number }>((f, t) =>
-        db.from("escrows").select("payee_id, amount_minor").not("released_at", "is", null).order("id").range(f, t),
+      /* What settled to each lister: their share of every settled charge,
+         which the split sent straight to their bank (Track A). */
+      readEvery<{ payee_user_id: string | null; lister_share_minor: number | null }>((f, t) =>
+        db
+          .from("transactions")
+          .select("payee_user_id, lister_share_minor")
+          .eq("status", "SUCCESSFUL")
+          .not("payee_user_id", "is", null)
+          .order("id")
+          .range(f, t),
       ),
       readEvery<{ listing_id: string; total_minor: number }>((f, t) =>
         db
@@ -254,7 +262,9 @@ export async function getSupplyDesk(
     if (!agents || !applications || !businesses || !listings || !stays || !released || !bookings) return UNAVAILABLE;
 
     const releasedTo = new Map<string, number>();
-    for (const r of released.rows) releasedTo.set(r.payee_id, (releasedTo.get(r.payee_id) ?? 0) + r.amount_minor);
+    for (const r of released.rows) {
+      if (r.payee_user_id) releasedTo.set(r.payee_user_id, (releasedTo.get(r.payee_user_id) ?? 0) + (r.lister_share_minor ?? 0));
+    }
     const bookedOn = new Map<string, number>();
     for (const b of bookings.rows) bookedOn.set(b.listing_id, (bookedOn.get(b.listing_id) ?? 0) + b.total_minor);
 

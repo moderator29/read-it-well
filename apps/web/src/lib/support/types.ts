@@ -17,7 +17,7 @@
 export type SupportTurn = { role: "user" | "assistant"; content: string };
 
 /** The surfaces support can hand somebody straight to. */
-export type SupportActionKind = "bookings" | "wallet" | "messages" | "sign-in";
+export type SupportActionKind = "bookings" | "agreements" | "messages" | "sign-in";
 
 export type SupportAction = {
   kind: SupportActionKind;

@@ -128,6 +128,44 @@ export type InitializedTransaction = {
  * Start a hosted checkout. The caller supplies the unique reference (our
  * idempotency key, e.g. rm-fund-<uuid>) and the kobo amount as an integer.
  */
+/**
+ * Where each kobo of a charge settles, fixed before the card is touched.
+ *
+ * TRACK A, 25 SEPTEMBER 2026: VALLO NEVER HOLDS CUSTOMER MONEY. Every charge
+ * this platform opens carries a Paystack dynamic split: the lister's share to
+ * the lister's own subaccount (their bank), the Guarantee contribution to the
+ * reserve subaccount (a separate bank account), and what is left, Vallo's
+ * commission, to the main account. All of it settles from the same
+ * transaction. The processor's fee is borne by the lister's subaccount.
+ *
+ * The shares are computed by the database (`public.payment_split_for_booking`)
+ * and only copied here. They are flat kobo, and they add up to the amount
+ * minus the commission by construction.
+ */
+export type PaystackSplit = {
+  listerSubaccount: string;
+  listerShareMinor: number;
+  reserveSubaccount: string;
+  guaranteeMinor: number;
+};
+
+function splitBody(split: PaystackSplit): Record<string, unknown> {
+  const subaccounts: { subaccount: string; share: number }[] = [
+    { subaccount: split.listerSubaccount, share: split.listerShareMinor },
+  ];
+  if (split.guaranteeMinor > 0) {
+    subaccounts.push({ subaccount: split.reserveSubaccount, share: split.guaranteeMinor });
+  }
+  return {
+    split: {
+      type: "flat",
+      bearer_type: "subaccount",
+      bearer_subaccount: split.listerSubaccount,
+      subaccounts,
+    },
+  };
+}
+
 export async function initializeTransaction(params: {
   email: string;
   amountMinor: number;
@@ -150,6 +188,8 @@ export async function initializeTransaction(params: {
    * produce.
    */
   channels?: readonly string[];
+  /** Where the charge settles. Required for every payment a person makes to another. */
+  split?: PaystackSplit;
 }): Promise<InitializedTransaction> {
   if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
     throw new PaystackError("The amount must be a positive integer number of kobo.");
@@ -170,6 +210,7 @@ export async function initializeTransaction(params: {
         ? { channels: [...params.channels] }
         : {}),
       ...(params.metadata ? { metadata: params.metadata } : {}),
+      ...(params.split ? splitBody(params.split) : {}),
     },
   });
   return {
@@ -447,6 +488,7 @@ export async function chargeAuthorization(params: {
   amountMinor: number;
   reference: string;
   metadata?: Record<string, unknown>;
+  split?: PaystackSplit;
 }): Promise<ChargedAuthorization> {
   if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
     throw new PaystackError("The amount must be a positive integer number of kobo.");
@@ -466,6 +508,7 @@ export async function chargeAuthorization(params: {
       currency: "NGN",
       reference: params.reference,
       ...(params.metadata ? { metadata: params.metadata } : {}),
+      ...(params.split ? splitBody(params.split) : {}),
     },
   });
   return {
@@ -644,4 +687,78 @@ export async function resolveAccountNumber(
     accountNumber: data.account_number,
     accountName: data.account_name,
   };
+}
+
+/* ------------------------------------------------------------- subaccounts */
+
+export type CreatedSubaccount = { subaccountCode: string };
+
+/**
+ * A lister's settlement account at Paystack.
+ *
+ * Created from a verified payout account, once, when the lister adds it. The
+ * lister's share of every payment settles here straight from the charge, so
+ * Vallo never holds it. `percentage_charge` is 0 because the split every
+ * charge carries names the shares in flat kobo, and a subaccount-level
+ * percentage would be a second, silent fee.
+ */
+export async function createSubaccount(params: {
+  businessName: string;
+  bankCode: string;
+  accountNumber: string;
+  description?: string;
+}): Promise<CreatedSubaccount> {
+  const data = await request<{ subaccount_code: string }>("/subaccount", {
+    method: "POST",
+    body: {
+      business_name: params.businessName.slice(0, 100),
+      settlement_bank: params.bankCode,
+      account_number: params.accountNumber,
+      percentage_charge: 0,
+      ...(params.description ? { description: params.description.slice(0, 200) } : {}),
+    },
+  });
+  if (typeof data?.subaccount_code !== "string" || data.subaccount_code.length === 0) {
+    throw new PaystackError("The payment service did not return a settlement account.");
+  }
+  return { subaccountCode: data.subaccount_code };
+}
+
+/* ----------------------------------------------------------------- refunds */
+
+export type SubmittedRefund = { refundId: string; status: string };
+
+/**
+ * Return a charge, in full or in part, to the card or account it came from.
+ *
+ * This is the only way money goes back to a person on Vallo. There is no
+ * wallet to credit. Paystack processes the refund against the original
+ * transaction; the bank shows it on its own schedule.
+ */
+export async function refundTransaction(params: {
+  reference: string;
+  amountMinor?: number;
+  merchantNote?: string;
+  customerNote?: string;
+}): Promise<SubmittedRefund> {
+  if (params.amountMinor !== undefined && (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0)) {
+    throw new PaystackError("A refund amount must be a positive integer number of kobo.");
+  }
+  const data = await request<{ id?: number | string; status?: string }>("/refund", {
+    method: "POST",
+    body: {
+      transaction: params.reference,
+      ...(params.amountMinor !== undefined ? { amount: params.amountMinor } : {}),
+      currency: "NGN",
+      ...(params.merchantNote ? { merchant_note: params.merchantNote.slice(0, 300) } : {}),
+      ...(params.customerNote ? { customer_note: params.customerNote.slice(0, 300) } : {}),
+    },
+  });
+  return { refundId: String(data?.id ?? ""), status: typeof data?.status === "string" ? data.status : "pending" };
+}
+
+/** The reserve's settlement subaccount, from the environment. Null when not set up. */
+export function guaranteeReserveSubaccount(): string | null {
+  const code = (process.env.PAYSTACK_GUARANTEE_SUBACCOUNT ?? "").trim();
+  return code.length > 0 ? code : null;
 }

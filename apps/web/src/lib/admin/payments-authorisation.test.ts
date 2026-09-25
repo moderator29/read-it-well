@@ -27,7 +27,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  *   3. An unreadable or failed read becomes "unavailable" rather than an empty
  *      result, because an empty payments screen states that nobody's money is
  *      stuck, which is the one lie this screen must never tell.
- *   4. The sweep window floor is enforced server side, not only by the input.
  */
 
 const guard = vi.hoisted(() => ({ requireAdmin: vi.fn() }));
@@ -47,9 +46,9 @@ const sweep = vi.hoisted(() => ({
   })),
 }));
 vi.mock("../wallet/reconciliation", () => sweep);
-vi.mock("../wallet/ledger", () => ({ getAdminClient: () => ({}) }));
+vi.mock("@/lib/supabase/service", () => ({ getAdminClient: () => ({}) }));
 
-import { expireStaleWithdrawalHolds, retireExampleListings } from "./payments-actions";
+import { retireExampleListings } from "./payments-actions";
 import { getPaymentHealth } from "./payments-queries";
 import { getRevenueSummary } from "./revenue-queries";
 import { isOverdue, lagosToday } from "./examples-queries";
@@ -82,14 +81,6 @@ beforeEach(() => {
 });
 
 describe("a caller who is not staff", () => {
-  it("cannot sweep withdrawal holds, and never reaches the database", async () => {
-    const rpc = notAdmin();
-    const result = await expireStaleWithdrawalHolds({ olderThanMinutes: 30 });
-
-    expect(result.ok).toBe(false);
-    expect(result.ok === false && result.error).toBe(ADMIN_FORBIDDEN_MESSAGE);
-    expect(rpc).not.toHaveBeenCalled();
-  });
 
   it("cannot retire the example listings, and never reaches the database", async () => {
     const rpc = notAdmin();
@@ -136,76 +127,9 @@ describe("a `forbidden` answer from the database", () => {
 });
 
 describe("an answer that cannot be read", () => {
-  it.each([
-    ["null", null],
-    ["a bare string", "ok"],
-    ["an array", []],
-    ["an envelope with no status", { expired: 4 }],
-    ["a status that is not a string", { status: 7 }],
-  ])("does not let %s pass as a completed sweep", async (_label, data) => {
-    adminAnswering(data);
-    const result = await expireStaleWithdrawalHolds({ olderThanMinutes: 30 });
-    expect(result.ok).toBe(false);
-  });
-
-  it("treats a transport error as a failure, not as a clean sweep", async () => {
-    adminAnswering(null, { message: "connection reset" });
-    const result = await expireStaleWithdrawalHolds({ olderThanMinutes: 30 });
-    expect(result.ok).toBe(false);
-  });
-
   it("makes payment health unavailable when the envelope is not an object", async () => {
     adminAnswering("ok");
     await expect(getPaymentHealth()).resolves.toEqual({ state: "unavailable" });
-  });
-});
-
-describe("the sweep window floor", () => {
-  /*
-   * A one-minute window would fail withdrawals that are merely still in flight,
-   * turning a working transfer into a FAILED entry. The screen offers ten as a
-   * floor; this proves the server does not rely on the screen to say so.
-   */
-  it.each([0, 1, 9, -30])("refuses a window of %i minutes without calling the database", async (
-    minutes,
-  ) => {
-    const rpc = adminAnswering({ status: "ok", expired: 3 });
-    const result = await expireStaleWithdrawalHolds({ olderThanMinutes: minutes });
-
-    expect(result.ok).toBe(false);
-    expect(rpc).not.toHaveBeenCalled();
-    expect(sweep.sweepStaleWithdrawalHolds).not.toHaveBeenCalled();
-  });
-
-  it("accepts the ten-minute floor itself, and hands it to the verifying sweep (MON-02)", async () => {
-    const rpc = adminAnswering({ status: "ok", expired: 2 });
-    sweep.sweepStaleWithdrawalHolds.mockResolvedValueOnce({
-      examined: 2,
-      releasedMinor: 2,
-      unavailable: false,
-      reason: "",
-      resolutions: [
-        { reference: "a", amountMinor: 1, ageMinutes: 20, action: "released", reason: "transfer_failed" },
-        { reference: "b", amountMinor: 1, ageMinutes: 20, action: "released", reason: "transfer_reversed" },
-      ],
-    } as never);
-    const result = await expireStaleWithdrawalHolds({ olderThanMinutes: 10 });
-
-    expect(result.ok).toBe(true);
-    expect(result.ok === true && result.data.expired).toBe(2);
-    expect(sweep.sweepStaleWithdrawalHolds).toHaveBeenCalledWith(
-      {},
-      expect.objectContaining({ olderThanMinutes: 10, apply: true }),
-    );
-    expect(rpc).not.toHaveBeenCalled();
-  });
-
-  it("refuses a fractional window, because minutes are whole", async () => {
-    const rpc = adminAnswering({ status: "ok", expired: 1 });
-    const result = await expireStaleWithdrawalHolds({ olderThanMinutes: 30.5 });
-
-    expect(result.ok).toBe(false);
-    expect(rpc).not.toHaveBeenCalled();
   });
 });
 

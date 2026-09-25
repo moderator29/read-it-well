@@ -12,7 +12,7 @@ import { Browser } from "@capacitor/browser";
  * on OUR OWN ORIGIN:
  *
  *   - Paystack returns to `/wallet?funded=1&reference=...` or to
- *     `/checkout/<id>?paid=1&reference=...`, built in `lib/wallet/actions.ts`
+ *     `/checkout/<id>?paid=1&reference=...`, built in `lib/payments/split-attempt.ts`
  *     and `lib/bookings/checkout.ts`.
  *   - Supabase returns to `/auth/callback?code=...&next=...`, built in
  *     `lib/auth/actions.ts`.

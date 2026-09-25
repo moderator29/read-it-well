@@ -150,20 +150,20 @@ const AGENT = "66666666-6666-4666-8666-666666666666";
 const contactForUser = vi.hoisted(() => vi.fn());
 vi.mock("../email/recipients", () => ({ contactForUser }));
 
-function escrowRow(overrides: Partial<StoredRow> = {}): StoredRow {
+/* Track A: the escrow templates are retired. The fixture is the agreement
+   approval, which, like the escrow email before it, answers to no /settings
+   switch and names a property the batch read has to fill in. */
+function agreementRow(overrides: Partial<StoredRow> = {}): StoredRow {
   return {
     id: "row-held",
-    template: "escrow.HELD",
+    template: "agreement.approved",
     user_id: RECIPIENT,
     payload: {
-      escrow_id: "33333333-3333-4333-8333-333333333333",
-      state: "HELD",
-      viewer: "payer",
-      counterparty_id: COUNTERPARTY,
+      agreement_id: "33333333-3333-4333-8333-333333333333",
+      viewer: "renter",
+      kind: "rent",
       listing_id: LISTING,
-      purpose: "agency_fee",
       amount_minor: 250_000_00,
-      auto_release_at: null,
     },
     attempts: 0,
     status: "PENDING",
@@ -193,9 +193,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("a queued escrow event reaches a person", () => {
+describe("a queued agreement decision reaches a person", () => {
   it("claims it, builds it, sends it to the resolved address and marks it sent", async () => {
-    const { admin, calls, rows } = fakeAdmin([escrowRow()]);
+    const { admin, calls, rows } = fakeAdmin([agreementRow()]);
     const { send, sent } = recorder();
 
     const result = await drainEmailOutbox(admin, { configured: true, send });
@@ -204,11 +204,11 @@ describe("a queued escrow event reaches a person", () => {
     expect(sent).toHaveLength(1);
     /* The address came from the recipient lookup, never from the row. */
     expect(sent[0]?.to).toBe("ada@example.com");
-    /* Resolved through `lib/email/recipients`, with no channel: an escrow
-       state change is not one of the four switches /settings offers. */
+    /* Resolved through `lib/email/recipients`, with no channel: an agreement
+       decision is not one of the four switches /settings offers. */
     expect(contactForUser).toHaveBeenCalledWith(admin, RECIPIENT, undefined);
-    /* The real escrow builder rendered the real amount and the real name. */
-    expect(sent[0]?.subject).toContain("250,000");
+    /* The real agreement builder rendered the real amount and the real name. */
+    expect(sent[0]?.html).toContain("250,000");
     /* `greetingName` shortens both to the first name, deliberately, so an
        email never addresses somebody by their full legal name. Asserted on
        the document because the text alternative wraps at the reading width
@@ -223,14 +223,13 @@ describe("a queued escrow event reaches a person", () => {
 
   it("sends both parties their own version of one transition", async () => {
     const { admin } = fakeAdmin([
-      escrowRow({ id: "to-payer" }),
-      escrowRow({
+      agreementRow({ id: "to-payer" }),
+      agreementRow({
         id: "to-payee",
         user_id: COUNTERPARTY,
         payload: {
-          ...escrowRow().payload,
-          viewer: "payee",
-          counterparty_id: RECIPIENT,
+          ...agreementRow().payload,
+          viewer: "owner",
         },
       }),
     ]);
@@ -239,13 +238,13 @@ describe("a queued escrow event reaches a person", () => {
     await drainEmailOutbox(admin, { configured: true, send });
 
     expect(sent).toHaveLength(2);
-    expect(sent[0]?.subject).not.toEqual(sent[1]?.subject);
+    expect(sent[0]?.html).not.toEqual(sent[1]?.html);
   });
 });
 
 describe("it never sends the same event twice", () => {
   it("does not hand a claimed row out a second time in the same run", async () => {
-    const { admin, calls } = fakeAdmin([escrowRow()]);
+    const { admin, calls } = fakeAdmin([agreementRow()]);
     const { send, sent } = recorder();
 
     await drainEmailOutbox(admin, { configured: true, send });
@@ -255,7 +254,7 @@ describe("it never sends the same event twice", () => {
   });
 
   it("claims nothing on a second run, because the row is terminal", async () => {
-    const { admin, rows } = fakeAdmin([escrowRow()]);
+    const { admin, rows } = fakeAdmin([agreementRow()]);
     const first = recorder();
     await drainEmailOutbox(admin, { configured: true, send: first.send });
     const second = recorder();
@@ -269,7 +268,7 @@ describe("it never sends the same event twice", () => {
 
 describe("a failed send loses nothing", () => {
   it("puts the row back, with the reason and no address in it", async () => {
-    const { admin, calls, rows } = fakeAdmin([escrowRow()]);
+    const { admin, calls, rows } = fakeAdmin([agreementRow()]);
     const send: SendPort = async () => ({ sent: false, reason: "rejected", status: 429 });
 
     const result = await drainEmailOutbox(admin, { configured: true, send });
@@ -282,7 +281,7 @@ describe("a failed send loses nothing", () => {
   });
 
   it("goes terminal once the attempts are used up, and that is what raises", async () => {
-    const { admin, rows } = fakeAdmin([escrowRow({ attempts: MAX_ATTEMPTS - 1 })]);
+    const { admin, rows } = fakeAdmin([agreementRow({ attempts: MAX_ATTEMPTS - 1 })]);
     const send: SendPort = async () => ({ sent: false, reason: "unreachable" });
 
     const result = await drainEmailOutbox(admin, { configured: true, send });
@@ -293,7 +292,7 @@ describe("a failed send loses nothing", () => {
   });
 
   it("retries a send that threw rather than losing the row", async () => {
-    const { admin, rows } = fakeAdmin([escrowRow()]);
+    const { admin, rows } = fakeAdmin([agreementRow()]);
     const send: SendPort = async () => {
       throw new Error("socket hang up");
     };
@@ -312,7 +311,7 @@ describe("a failed send loses nothing", () => {
 
 describe("what can never be sent is dropped rather than retried for ever", () => {
   it("drops a template this build does not have", async () => {
-    const { admin, calls, rows } = fakeAdmin([escrowRow({ template: "escrow.INVENTED" })]);
+    const { admin, calls, rows } = fakeAdmin([agreementRow({ template: "escrow.HELD" })]);
     const { send, sent } = recorder();
     const result = await drainEmailOutbox(admin, { configured: true, send });
 
@@ -324,7 +323,7 @@ describe("what can never be sent is dropped rather than retried for ever", () =>
 
   it("drops a row whose recipient has no address any more", async () => {
     contactForUser.mockResolvedValue(null);
-    const { admin, rows, calls } = fakeAdmin([escrowRow()]);
+    const { admin, rows, calls } = fakeAdmin([agreementRow()]);
     const { send, sent } = recorder();
     const result = await drainEmailOutbox(admin, { configured: true, send });
 
@@ -336,7 +335,7 @@ describe("what can never be sent is dropped rather than retried for ever", () =>
 
   it("drops a payload that cannot make a message", async () => {
     const { admin, rows } = fakeAdmin([
-      escrowRow({ payload: { escrow_id: "x", viewer: "payer" } }),
+      agreementRow({ payload: { agreement_id: "x", viewer: "renter" } }),
     ]);
     const { send, sent } = recorder();
     const result = await drainEmailOutbox(admin, { configured: true, send });
@@ -347,7 +346,7 @@ describe("what can never be sent is dropped rather than retried for ever", () =>
   });
 
   it("drops an address the client refuses rather than burning five attempts on it", async () => {
-    const { admin, rows } = fakeAdmin([escrowRow()]);
+    const { admin, rows } = fakeAdmin([agreementRow()]);
     const send: SendPort = async () => ({ sent: false, reason: "invalid-recipient" });
     const result = await drainEmailOutbox(admin, { configured: true, send });
 
@@ -358,7 +357,7 @@ describe("what can never be sent is dropped rather than retried for ever", () =>
 
 describe("with no Resend key configured", () => {
   it("claims nothing at all, so no attempt is burned by a preview deploy", async () => {
-    const { admin, calls } = fakeAdmin([escrowRow()]);
+    const { admin, calls } = fakeAdmin([agreementRow()]);
     const { send, sent } = recorder();
 
     const result = await drainEmailOutbox(admin, { configured: false, send });
@@ -374,11 +373,10 @@ describe("the batch reads", () => {
   it("asks for each id once across the whole batch", async () => {
     const { admin } = fakeAdmin([]);
     const facts = await gatherFacts(admin, [
-      escrowRow({ id: "a" }),
-      escrowRow({ id: "b" }),
-      escrowRow({ id: "c" }),
+      agreementRow({ id: "a" }),
+      agreementRow({ id: "b" }),
+      agreementRow({ id: "c" }),
     ]);
-    expect(facts.names.get(COUNTERPARTY)).toBe("Chidi Okonkwo");
     expect(facts.listings.get(LISTING)?.title).toBe("2 bedroom flat, Yaba");
   });
 
@@ -386,7 +384,7 @@ describe("the batch reads", () => {
     const { admin } = fakeAdmin([]);
     const facts = await gatherFacts(admin, [
       {
-        ...escrowRow(),
+        ...agreementRow(),
         template: "verification.rung_passed",
         payload: { agent_id: AGENT, rung: "identity" },
       },
@@ -399,7 +397,7 @@ describe("the claim and the health read", () => {
   it("ignores a malformed row rather than throwing the run away", async () => {
     const admin = {
       rpc: async () => ({
-        data: [{ id: "ok", template: "escrow.HELD", user_id: RECIPIENT, payload: {}, attempts: 1 }, { id: null }, "nonsense"],
+        data: [{ id: "ok", template: "agreement.approved", user_id: RECIPIENT, payload: {}, attempts: 1 }, { id: null }, "nonsense"],
         error: null,
       }),
     } as never;
@@ -435,7 +433,7 @@ describe("OPS-14: mail a switch can turn off carries List-Unsubscribe", () => {
 
   it("an enquiry email (the Messages switch) names where the switch is", async () => {
     const { admin } = fakeAdmin([
-      escrowRow({
+      agreementRow({
         id: "row-enquiry",
         template: "listing.new_enquiry",
         payload: { enquirer_id: COUNTERPARTY, listing_id: LISTING, message_id: "msg-1" },
@@ -447,8 +445,8 @@ describe("OPS-14: mail a switch can turn off carries List-Unsubscribe", () => {
     expect(seen[0]?.["List-Unsubscribe"]).toMatch(/^<https?:\/\/[^>]+\/settings\/notifications\?channel=messages>$/);
   });
 
-  it("an escrow email, which nothing can switch off, carries none", async () => {
-    const { admin } = fakeAdmin([escrowRow()]);
+  it("an agreement email, which nothing can switch off, carries none", async () => {
+    const { admin } = fakeAdmin([agreementRow()]);
     const { send, seen } = headerRecorder();
     await drainEmailOutbox(admin, { configured: true, send });
     expect(seen).toEqual([undefined]);

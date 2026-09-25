@@ -15,7 +15,15 @@
  * `lib/trust/cancellation.ts` for the schedule and `lib/trust/standards.ts`
  * for how fast a person answers.
  */
-import { WALLET_MONEY_USES } from "../wallet/bank-payouts";
+import {
+  GUARANTEE_SCOPE,
+  GUARANTEE_SENTENCE,
+  NO_CUSTODY_SENTENCE,
+  NO_INSPECTION_FEE,
+  OFF_PLATFORM_SENTENCE,
+  PAYMENT_GATE_SENTENCE,
+  REFUND_ROUTE,
+} from "../money/copy";
 
 export type FaqEntry = {
   id: string;
@@ -37,7 +45,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "booking",
     keywords: ["book", "reserv", "stay", "check in", "check-in", "checkin", "trip", "night"],
     answer:
-      "To book a place, open it from Search, pick your dates and guests, then confirm on the booking screen. The stay is held as pending until it is paid for, you can settle it with your wallet balance or a bank card, and every booking appears under Bookings with its status, its dates and its total.",
+      "To book a place, open it from Search, pick your dates and guests, then confirm on the booking screen. The stay is held as pending until the host accepts and Vallo approves it; then you pay by card or bank transfer, and every booking appears under Bookings with its status, its dates and its total.",
   },
   {
     id: "rent-inspection",
@@ -53,25 +61,30 @@ export const SUPPORT_FAQ: FaqEntry[] = [
       "landlord",
     ],
     answer:
-      "Annual rentals work as message, inspect, then pay. Message the agent inside Vallo, arrange to inspect the property in person, and pay only after you have seen it. Keep every chat and payment inside Vallo so the record protects you.",
+      `Annual rentals work as message, inspect, agree, then pay. Message the agent inside Vallo, inspect the property in person and submit the eight-item inspection report with photos. ${PAYMENT_GATE_SENTENCE} ${NO_INSPECTION_FEE} ${OFF_PLATFORM_SENTENCE}`,
   },
   {
     id: "payments",
     keywords: ["pay", "card", "transfer", "naira", "ngn", "checkout", "paystack"],
     answer:
-      "Payments are made in naira, either from your Vallo wallet balance or with a bank card at checkout. For annual rentals, pay only after inspecting the property, and always pay inside Vallo. Every payment shows in Wallet with its own reference.",
+      `Payments are made in naira, by card or bank transfer at checkout. ${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE} Every payment shows on its booking or agreement with its own reference.`,
   },
   {
     id: "charges",
     keywords: [CHARGE_WORD, "charge", "commission", "cost to use", "hidden", "how much does vallo"],
     answer:
-      "Vallo charges nothing to use. Searching, booking, messaging agents and the wallet all cost you nothing extra; the price you see on a listing is the price you pay.",
+      `Vallo charges nothing to use. Searching, booking, inspecting and messaging agents cost you nothing extra; the price you see on a listing is the price you pay. ${NO_INSPECTION_FEE} Between 1 and 2 percent of each payment goes to the Vallo Guarantee reserve out of the owner's or agent's share, never added on top.`,
   },
   {
     id: "wallet",
-    keywords: ["wallet", "balance", "top up", "topup", "fund", "withdraw", "transaction"],
+    keywords: ["wallet", "balance", "top up", "topup", "fund", "withdraw", "escrow", "hold my money"],
     answer:
-      `Your naira wallet lives in the Wallet tab: balance at the top, then every entry grouped by day. The balance is always computed from the ledger rather than stored. ${WALLET_MONEY_USES}`,
+      `Vallo has no wallet and keeps no balance. ${NO_CUSTODY_SENTENCE} There is nothing to top up and nothing to withdraw. Refunds go back to the card or account you paid with.`,
+  },
+  {
+    id: "guarantee",
+    keywords: ["guarantee", "claim", "reserve"],
+    answer: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE} File a claim from the agreement, with photos, inside the window.`,
   },
   {
     id: "verified-badge",
@@ -101,19 +114,19 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "cancellations",
     keywords: ["cancel", "call it off", "not as described", "not as listed"],
     answer:
-      "A listed stay is priced under Vallo's platform schedule, and the exact terms are fixed on your booking when you pay, so they cannot change afterwards. Under that schedule the free-cancellation deadline is 72 hours before check-in: cancel before it and everything you paid comes back to your wallet, cancel inside it and half comes back, and once check-in day has started nothing does. A stay you have not paid for is only a hold on the calendar, so you can call it off from Bookings at any hour for nothing.",
+      "A listed stay is priced under Vallo's platform schedule, and the exact terms are fixed on your booking when you pay, so they cannot change afterwards. Under that schedule the free-cancellation deadline is 72 hours before check-in: cancel before it and everything you paid comes back to the card or account you paid with, cancel inside it and half comes back, and once check-in day has started nothing does. A stay you have not paid for is only a hold on the calendar, so you can call it off from Bookings at any hour for nothing.",
   },
   {
     id: "cancel-a-paid-stay",
     keywords: ["already paid", "paid for it", "cancel my paid", "change my booking"],
     answer:
-      "Once money has moved, a cancellation is handled by a person rather than by a button, because a refund is your money and it deserves a name against the decision. Ask support here with your booking, and we apply the published schedule exactly as it is written, return the amount to your wallet and put the figure and the reason in writing. Cancellation requests are answered within 1 day, and sooner when your check-in is close.",
+      "Once money has moved, a cancellation is handled by a person rather than by a button, because a refund is your money and it deserves a name against the decision. Ask support here with your booking, and we apply the published schedule exactly as it is written, refund the amount to the card or account you paid with and put the figure and the reason in writing. Cancellation requests are answered within 1 day, and sooner when your check-in is close.",
   },
   {
     id: "refunds",
     keywords: ["refund", "money back", "my money", "reimburse", "paid twice", "double charge", "reversal"],
     answer:
-      `Refunds go to your Vallo wallet in naira, to the kobo, because that is the fastest route in this market. The money is in the wallet the moment the cancellation is decided, and never later than five Nigerian business days after you ask from the booking. ${WALLET_MONEY_USES} If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.`,
+      `${REFUND_ROUTE} The booking shows where your refund is. If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.`,
   },
   {
     id: "arrival",
@@ -143,7 +156,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "notifications",
     keywords: ["notif", "alert", "remind", "bell", "email me", "push"],
     answer:
-      "Notifications land in the bell tab: booking updates, agent replies, wallet activity and support replies. Choose which channels you hear from, and how, under Settings, Notifications.",
+      "Notifications land in the bell tab: booking updates, agent replies, agreement decisions and support replies. Choose which channels you hear from, and how, under Settings, Notifications.",
   },
   {
     id: "account",
@@ -185,7 +198,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "greeting",
     keywords: ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how far"],
     answer:
-      "Hello. I can help with bookings, payments, the wallet, listing a property, verification, cancellations and more. What would you like to know?",
+      "Hello. I can help with bookings, payments, agreements, the Vallo Guarantee, listing a property, verification, cancellations and more. What would you like to know?",
   },
 ];
 

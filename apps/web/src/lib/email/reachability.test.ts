@@ -59,7 +59,7 @@ const SRC = path.resolve(here, "..", "..");
 /** The files that declare a message builder, and are therefore not callers. */
 const DECLARING = [
   "lib/email/messages.ts",
-  "lib/email/escrow-messages.ts",
+  "lib/email/agreement-messages.ts",
   "lib/email/payment-instrument-messages.ts",
   "lib/email/welcome-message.ts",
   "lib/account-deletion/emails.ts",
@@ -143,27 +143,6 @@ const REFUSED: Record<string, string> = {
     "GoTrue and sends its own mail; the token never reaches this process, so " +
     "ours would be a SECOND email with no working link, arriving beside the " +
     "real one on the one screen where somebody is already locked out.",
-
-  escrowFunded:
-    "It prints 'held in escrow', the claim about custody nobody may make " +
-    "until the solicitor answers on the structure. Rule 11: escrow is " +
-    "promised nowhere until it operates. Superseded by heldPaymentSetAside, " +
-    "which the outbox sends on every HELD transition to both parties.",
-
-  withdrawalFailed:
-    "Superseded by withdrawalOutcome, and removed from three call sites on " +
-    "23 September rather than left to agree with it. All three performed the " +
-    "same UPDATE of `wallet_entries.status` that fires " +
-    "`wallet_entries_enqueue_withdrawal_email`, so one failed withdrawal was " +
-    "TWO emails about the same money, and the two disagreed: the queued one " +
-    "tells `reversed` apart from `failed`, which is the difference between " +
-    "money that never left and money that left and came back. Two senders " +
-    "for one event is the defect; matching their wording would only hide it.",
-
-  escrowReleased:
-    "Same custody claim in its subject line, same rule 11. Superseded by " +
-    "heldPaymentPaidOut, which the outbox sends on every RELEASED transition " +
-    "to both parties, with the settlement lines rather than a bare amount.",
 };
 
 describe("no email builder is built and unreachable", () => {
@@ -190,8 +169,10 @@ describe("no email builder is built and unreachable", () => {
 
     /* If the regex ever stops finding builders, this whole file would pass on
        an empty set, which is the classic way a sweep like this goes blind.
-       Thirty eight is the count on 23 September and it only ever grows. */
-    expect(declared.size).toBeGreaterThanOrEqual(38);
+       Thirty eight was the count on 23 September. On 25 September Track A
+       retired the wallet, withdrawal and escrow builders (eleven) and added
+       four agreement and Guarantee builders, so the floor is thirty one. */
+    expect(declared.size).toBeGreaterThanOrEqual(31);
 
     const files = await walk(SRC);
     const reached = new Set<string>();

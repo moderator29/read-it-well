@@ -195,6 +195,9 @@ export function SiteFooter({ t }: { t: Dictionary }) {
             <Link href="/privacy" className="nf-site-footer-link">
               {f.privacy}
             </Link>
+            <Link href="/disclaimer" className="nf-site-footer-link">
+              {f.disclaimer}
+            </Link>
             <Link href="/delete-account" className="nf-site-footer-link">
               {f.deleteAccount}
             </Link>

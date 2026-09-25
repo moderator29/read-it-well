@@ -47,6 +47,7 @@ export default async function HelpSettingsPage() {
               />
               <RowLink href="/terms" icon="grid" label={t.settings.about.terms} />
               <RowLink href="/privacy" icon="verified" label={t.settings.about.privacy} />
+              <RowLink href="/disclaimer" icon="shield-stop" label={t.settings.about.disclaimer} />
               <RowValue icon="sparkle" label={t.settings.about.version} value="0.1.0" />
               {/* The library names are the products' own names and are not
                   translated, in any language. */}

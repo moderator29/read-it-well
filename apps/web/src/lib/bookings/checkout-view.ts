@@ -82,9 +82,12 @@ export type CheckoutView = {
   holdExpired: boolean;
   /** False until the Paystack keys land, which the surface says out loud. */
   cardAvailable: boolean;
-  walletBalanceMinor: number;
-  walletBalanceDisplay: string;
-  walletCovers: boolean;
+  /**
+   * TRACK A. Payment is available only on an approved agreement. This is the
+   * agreement's state as the guest reads it under their own RLS, or null when
+   * there is none yet (a request the host has not accepted).
+   */
+  agreement: { id: string; status: string; reason: string | null } | null;
 };
 
 export type CheckoutRead =
@@ -121,7 +124,7 @@ export async function getCheckoutView(
     if (error) return { state: "unavailable" };
     if (!booking) return { state: "missing" };
 
-    const [listingRead, settledRead, balanceRead, heldRead] = await Promise.all([
+    const [listingRead, settledRead, agreementRead] = await Promise.all([
       session.supabase
         .from("listings")
         .select("title, area, city")
@@ -134,26 +137,11 @@ export async function getCheckoutView(
         .eq("status", "SUCCESSFUL")
         .limit(1),
       session.supabase
-        .from("wallet_balances")
-        .select("balance_minor")
-        .eq("user_id", session.user.id)
+        .from("deal_agreements")
+        .select("id, status, decision_reason")
+        .eq("booking_id", booking.id)
         .maybeSingle(),
-      /* SEC-02. The caller's own wallet: an admin reads every entry. */
-      session.supabase
-        .from("wallet_entries")
-        .select("amount_minor, wallets!inner(user_id)")
-        .eq("wallets.user_id", session.user.id)
-        .eq("status", "PENDING")
-        .eq("direction", "debit"),
     ]);
-
-    // Spendable, not settled: the derived balance minus every PENDING debit, so
-    // money already committed to an in-flight withdrawal is never offered
-    // towards a stay. The same arithmetic the wallet ledger uses.
-    const settledBalance = balanceRead.data?.balance_minor ?? 0;
-    let held = 0;
-    for (const row of heldRead.data ?? []) held += row.amount_minor;
-    const walletBalanceMinor = Math.max(0, settledBalance - held);
 
     const currency = booking.currency;
     const money = (minor: number) => formatMoney(minor, locale, currency);
@@ -229,9 +217,13 @@ export async function getCheckoutView(
         holdExpiresAt,
         holdExpired: holdExpiresAtMs <= Date.now(),
         cardAvailable: isPaystackConfigured(),
-        walletBalanceMinor,
-        walletBalanceDisplay: money(walletBalanceMinor),
-        walletCovers: walletBalanceMinor >= booking.total_minor && booking.total_minor > 0,
+        agreement: agreementRead.data
+          ? {
+              id: agreementRead.data.id,
+              status: agreementRead.data.status,
+              reason: agreementRead.data.decision_reason ?? null,
+            }
+          : null,
       },
     };
   } catch {

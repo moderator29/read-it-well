@@ -6,7 +6,7 @@ import { TERMS_SECTIONS as sections } from "@/lib/legal/terms";
 export const metadata: Metadata = {
   title: "Terms of service",
   description:
-    "The rules for using Vallo: accounts, payments, refunds, what a verified badge means, listing a property, the wallet and acceptable use.",
+    "The rules for using Vallo: accounts, payments, refunds, what a verified badge means, listing a property, agreements and approval, the Vallo Guarantee and acceptable use.",
 };
 
 /**
@@ -31,7 +31,7 @@ export default function TermsPage() {
         title="Terms of service"
         lede="The rules of the platform, in plain language: what you can expect from Vallo, and what Vallo expects from you."
       >
-        <p className="nf-site-badge">Last updated: 28 July 2026</p>
+        <p className="nf-site-badge">Last updated: 25 September 2026</p>
       </SiteHead>
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">

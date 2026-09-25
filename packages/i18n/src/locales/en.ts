@@ -652,6 +652,7 @@ export const en = {
     bookings: "Plans",
     messages: "Messages",
     wallet: "Wallet",
+    agreements: "Agreements",
     aiAssistant: "AI Assistant",
     profile: "Profile",
     settings: "Settings",
@@ -744,6 +745,7 @@ export const en = {
     myBookingsSub: "Inspections, move-ins, stays and tables",
     savedSub: "Your saved properties, hotels and places",
     walletSub: "Manage your balance, cards and transactions",
+    agreementsSub: "Your agreements, payments and Guarantee claims",
     /*
      * The same four rows, said in one line each.
      *
@@ -1413,6 +1415,7 @@ export const en = {
       contact: "Contact",
       privacy: "Privacy",
       terms: "Terms",
+      disclaimer: "Disclaimer",
       /* THE STORE BLOCKER. Google Play requires a publicly reachable page
          explaining how to request account deletion, and a reviewer looks for
          it beside Privacy and Terms rather than hunting for it. `/delete-account`
@@ -2128,6 +2131,7 @@ export const en = {
       helpSub: "FAQs, contact us",
       terms: "Terms",
       privacy: "Privacy policy",
+      disclaimer: "Disclaimer",
       version: "Version",
       licences: "Open source licences",
     },
@@ -4319,21 +4323,20 @@ export const en = {
       debit: "Debit",
       entries: "entries",
       refundState: {
-        credited: "In the guest's wallet",
-        not_settled: "Credit not settled yet",
-        failed: "Credit failed",
-        not_credited: "Recorded, no credit found",
+        submitted: "Sent back to the card",
+        pending: "Not yet sent to the processor",
+        failed: "The processor refused it",
         nothing_owed: "Nothing was owed",
       },
       openStay: "Open the stay",
       kept: "{amount} kept",
       refundsTitle: "Refunds",
       refundsBody:
-        "Every refund decided on the console, newest first, with where the money is now. A stay is refunded from its own page under the published schedule; open a stay from the Stays queue to decide one. The state beside each row is the wallet entry's own status, not a guess.",
+        "Every refund decided on the console, newest first, with where the money is now. A stay is refunded from its own page under the published schedule; open a stay from the Stays queue to decide one. The money goes back to the card or account it came from through Paystack; the state beside each row is what the processor said.",
       returned: "Returned",
       returnedHint: { one: "Across 1 refund on the platform", other: "Across {count} refunds on the platform" },
-      notCredited: "Recorded without a credit",
-      notCreditedHint: "A refund owed with no wallet entry behind it needs an engineer",
+      notCredited: "Not yet with the processor",
+      notCreditedHint: "A refund Paystack has not accepted needs a person to retry it",
       refundsNoneTitle: "No refund has been decided yet",
       refundsNoneFills: "Every refund decided on the console, with where its money is now.",
       refundsNoneCreates: "A stay is refunded from its own page under the published schedule.",
@@ -5278,7 +5281,7 @@ export const en = {
     removeCardBody: "It is forgotten here and cannot be charged by Vallo again. Your bank is not involved.",
     removeCardConfirm: "Yes, remove it",
     banksLabel: "Bank accounts",
-    banksNote: "Where money you withdraw is paid. We confirm the name with the bank before saving anything.",
+    banksNote: "Where a Vallo Guarantee payout is sent if a claim is approved. We confirm the name with the bank before saving anything.",
     banksNoteBeforePayouts:
       "Withdrawal to a bank is not available yet. An account saved here is where withdrawals will go once bank payouts open. We confirm the name with the bank before saving anything.",
     accountsEmptyTitle: "No bank account yet",
@@ -5313,7 +5316,7 @@ export const en = {
     cardWord: "{brand} Card",
     verified: "Verified",
     accountsNote: "The bank confirmed the name on this account before it was saved.",
-    blockEmpty: "No card or bank account saved yet. Add one and paying or withdrawing is one tap.",
+    blockEmpty: "No card or bank account saved yet. Add a card and paying is one tap.",
     blockEmptyBeforePayouts: "No card or bank account saved yet. Add a card and paying is one tap.",
   },
 

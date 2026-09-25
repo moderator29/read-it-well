@@ -14,32 +14,33 @@ Some schema names say something other than what the column or table holds. Renam
 
 ## The money tables: which one is authoritative for what
 
-Twelve tables carry an amount of money in a `*_minor` column. Most record one step of one flow. Only the first two answer "what does somebody have".
+**Track A, 25 September 2026: Vallo never holds customer money.** There is no wallet, no balance, no escrow and no held payment. Every charge is split by Paystack at the moment of payment: the lister's share to their own subaccount, the Guarantee contribution to the reserve's subaccount, and Vallo's commission (zero today) to the main account. The tables below record those movements; none of them is a balance somebody holds with Vallo, except the Guarantee reserve, which is Vallo's own ring-fenced reserve.
+
+The custody tables (`wallets`, `wallet_entries`, `wallet_pots`, `escrows`, `escrow_evidence`, `escrow_rulings`, `escrow_float_snapshots`) are retired. On live they are unreachable: every app role's grants on them and on their functions are revoked (`20260925130904_track_a_custody_unreachable_from_every_app_role.sql`), and the rent-to-wallet trigger is disabled (`20260925130806_…`). The migration that moves them into a `retired_custody` schema with no grants is in `supabase/migrations/pending/` for the founder to apply. They are not in `database.types.ts`, so no app code can name them.
 
 | Table | Authoritative for | Written by |
 |---|---|---|
-| `wallet_entries` | **a member's wallet balance, and each pot's balance.** The append-only ledger: integer kobo, `direction` says which way, only `COMPLETED` entries count. A pot's balance is `private.pot_balance_minor(pot)`, summed from these entries. | `pay_booking_from_wallet`, `settle_booking_charge`, `settle_rent_charge_to_lister`, `refund_booking_payment`, `refund_and_cancel_booking`, `hold_wallet_withdrawal`, `expire_stale_withdrawal_holds`, `transfer_between_wallets`, `purge_account_rows`, `move_into_pot`, `move_out_of_pot`, the escrow functions |
-| `escrows` | **money held between two people**, with its state machine enforced by a trigger. | the escrow functions only |
-| `wallet_pots` | the pots a member made (name, target). **Its `balance_minor` column is not the balance**; it is being retired, and the balance is read from `wallet_entries` as above. | the app creates pots (`lib/wallet/pot-actions.ts`) |
-| `transactions` | **each payment attempt against a booking**, by card or from the wallet, and whether it succeeded. | the app inserts a card attempt as PENDING (`lib/bookings/checkout.ts`) and marks it FAILED (`lib/bookings/settlement.ts`); `settle_booking_charge` and `pay_booking_from_wallet` record success |
-| `ledger_entries` | **the split of each settled charge** into platform, agent and processor shares. | `settle_booking_charge`, `pay_booking_from_wallet`, `refund_booking_payment`, `refund_and_cancel_booking` |
-| `booking_refunds` | refunds against a booking. | `refund_booking_payment`, `refund_and_cancel_booking` |
+| `transactions` | **each payment attempt against a booking**, with its split: `lister_share_minor + guarantee_minor + commission_minor = amount_minor`, and the subaccounts it paid to. The gate trigger refuses a row with no split or no approved agreement. | the app inserts an attempt as PENDING with its split (`lib/payments/split-attempt.ts`) and marks it FAILED (`lib/bookings/settlement.ts`); `settle_booking_charge` records success |
+| `ledger_entries` | **the split of each settled charge**: platform, agent, processor and Guarantee shares. | `settle_booking_charge`, `refund_booking_payment`, `refund_and_cancel_booking` |
+| `booking_refunds` | refunds against a booking, and where the processor refund stands (`processor_status`). | `refund_booking_payment`, `refund_and_cancel_booking`, `record_processor_refund` |
 | `rent_payments` | a move-in charge and its parts (rent, caution, fees). | `open_rent_charge` |
-| `rent_refunds_owed` | what a lister owes back on a refunded rent charge. | `settle_rent_charge_to_lister`, `rent_refund_shortfall` |
-| `escrow_rulings` | an admin's ruling on a disputed escrow. | `escrow_admin_resolve`, `escrow_reverse_ruling` |
-| `escrow_float_snapshots` | **the total held in escrow on a day**, booked as a liability. A report, never a balance. | `escrow_float_snapshot_take` |
-| `platform_revenue` | **commission Vallo collected when an escrow settles.** | `escrow_settle` books it; `escrow_reverse_ruling` deletes it when a ruling is reversed |
-| `escrow_evidence` | the evidence filed in a dispute (it carries a disputed amount, not a movement). | `escrow_file_evidence_as` |
+| `rent_refunds_owed` | what a lister owes back on a refunded rent charge, since their share settled to them at payment. | `refund_booking_payment`, `refund_and_cancel_booking`, `rent_refund_shortfall` |
+| `deal_agreements` | **what both parties committed to, and whether payment may open**: the terms version, both confirmations, Vallo's decision and reason, and `paid` once settled. | `agreement_open_rent_as`, `agreement_amend_as`, `agreement_confirm_as`, `agreement_cancel_as`, `admin_decide_agreement`, `settle_booking_charge`, `expire_booking_holds` |
+| `guarantee_reserve_entries` | **the Vallo Guarantee reserve**, append-only: contributions in from each settled charge, approved claims out. Its sum is the reserve balance. | `settle_booking_charge`, `admin_decide_guarantee_claim` |
+| `guarantee_claims` | each claim on the Guarantee, capped by what was paid and by the reserve. | `guarantee_claim_file_as`, `admin_decide_guarantee_claim`, `admin_mark_guarantee_claim_paid` |
+| `platform_revenue` | commission booked by the retired escrow flow. Historical only; nothing writes it now. | nothing since Track A |
 
-How a rent payment settles, the way round it actually happens:
-1. `open_rent_charge` opens a one-night booking for the move-in total and a `rent_payments` row.
-2. The booking is paid like any stay (card or wallet), which writes `transactions` and a `ledger_entries` row.
-3. The AFTER INSERT trigger `ledger_entries_settle_rent_to_lister` runs `settle_rent_charge_to_lister`, which credits the lister in `wallet_entries`.
+How a rent payment settles now:
+1. The renter submits the inspection report; `agreement_open_rent_as` draws up the agreement from the listing and the report.
+2. Both parties confirm (`agreement_confirm_as`, an agent under a mandate), and an admin approves it (`admin_decide_agreement`). `rent_payments` cannot be opened before approval.
+3. `open_rent_charge` opens a one-night booking for the move-in total; the app opens a split attempt in `transactions`.
+4. Paystack splits the charge; `settle_booking_charge` records `transactions` success, a `ledger_entries` row, a `guarantee_reserve_entries` contribution and marks the agreement paid. Nothing is credited to a Vallo balance. The old trigger `ledger_entries_settle_rent_to_lister`, which did that, is disabled.
 
 Which table to read:
-- What a member holds, in the wallet or in a pot: `wallet_entries`.
-- What one booking charge came to and how it split: `transactions` and `ledger_entries`.
-- What Vallo earned: the platform share in `ledger_entries`, plus `platform_revenue` for escrows.
-- What Vallo is holding for others: `escrows`, or `escrow_float_snapshots` for the daily total.
+- What one charge came to and how it split: `transactions` and `ledger_entries`.
+- Whether a payment may open: `deal_agreements.status = 'approved'`.
+- What is in the Guarantee reserve: the sum of `guarantee_reserve_entries` (`admin_guarantee_reserve`).
+- What Vallo earned: `commission_minor` on `transactions`, zero today.
+- What Vallo is holding for others: nothing, by design.
 
-(Checked against the live function bodies and triggers on 24 September 2026, and by `lib/db/schema-names-doc.test.ts` against the migrations.)
+(Checked against the migrations on 25 September 2026 by `lib/db/schema-names-doc.test.ts`.)

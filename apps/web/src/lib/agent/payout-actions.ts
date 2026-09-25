@@ -29,7 +29,7 @@
  * nothing but `is_default`.
  */
 
-import { moneyHoldRefusal } from "../wallet/money-hold";
+import { moneyHoldRefusal } from "@/lib/money/hold";
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE } from "../actions/session";

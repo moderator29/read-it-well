@@ -2,7 +2,7 @@
 
 import { getDictionary } from "@vallo/i18n";
 import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
-import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
+import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useEffect, useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n";
 import { RowButton, Sheet } from "@/components/app/account/rows";

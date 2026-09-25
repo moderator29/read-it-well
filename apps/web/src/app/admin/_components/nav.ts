@@ -7,7 +7,7 @@ export type { AdminIcon };
 /**
  * The console's map, in the order the governing renders draw it (5EAA44CB,
  * 01F7DFC7, 8E9602E2, C1D98B3C): Overview, Listings, Supply, Verification,
- * Money, Escrow, Bookings, Moderation, Support, Operations, Analytics, and
+ * Money, Agreements, Bookings, Moderation, Support, Operations, Analytics, and
  * Settings on its own at the foot.
  *
  * The renders draw twelve rows. The console has more desks than that, and
@@ -96,7 +96,16 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
       { key: "fees", href: "/admin/fees", icon: ui("document"), label: "Fees" },
     ],
   },
-  { key: "escrow", href: "/admin/escrow", icon: glyph("shield-lock"), label: "Escrow" },
+  /* TRACK A: the escrow desk is retired (Vallo holds no money). Its place is
+     the review gate between an agreement and payment. */
+  {
+    key: "agreements",
+    href: "/admin/agreements",
+    icon: glyph("shield-lock"),
+    label: "Agreements",
+    countKeys: ["agreements"],
+    countLabel: "agreements waiting for review before payment opens",
+  },
   { key: "bookings", href: "/admin/bookings", icon: ui("calendar-booking"), label: "Bookings" },
   {
     /* V-88: Moderation keeps what is not a queue. Its three queues (message

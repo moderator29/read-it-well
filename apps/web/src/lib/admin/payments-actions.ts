@@ -7,30 +7,6 @@ import { createAdminClient } from "../supabase/admin";
 import { writeAudit } from "./audit";
 import { adminRefusal, requireAdmin, ADMIN_FORBIDDEN_MESSAGE } from "./guard";
 import { removeSavedMethodSchema } from "./schema";
-import { getAdminClient } from "../wallet/ledger";
-import { sweepStaleWithdrawalHolds } from "../wallet/reconciliation";
-
-/**
- * Sweeping stuck withdrawal holds, which is a money movement and is treated as
- * one.
- *
- * WHAT IT ACTUALLY DOES. A withdrawal that never got its transfer webhook
- * leaves a PENDING debit on the wallet, and available balance is settled minus
- * pending debits, so the owner is short that amount until it resolves.
- *
- * MON-02. It used to call `public.admin_expire_stale_withdrawal_holds`, which
- * failed every PENDING hold past an age, whatever the processor said. A
- * transfer that had in fact paid out was released as well, and the member was
- * paid twice. It now runs `sweepStaleWithdrawalHolds`, the same code as the
- * scheduled sweep: every hold is verified with Paystack first; a paid transfer
- * is completed, a failed or reversed one released, one Paystack has never seen
- * released only once it is old enough (NEVER_STARTED_MIN_AGE_MINUTES), and an
- * unanswered one is left alone. Each resolution is audited with this admin as
- * the actor.
- *
- * AUTHORISATION. `requireAdmin()` reads the caller's roles through their own
- * client; the sweep then runs with the service role, as the scheduled one does.
- */
 
 const SERVICE_DOWN =
   "That could not be recorded just now. Nothing was changed. Please try again.";
@@ -52,66 +28,6 @@ function readCount(data: unknown, key: string): number {
   const envelope = readEnvelope(data);
   const value = envelope?.[key];
   return typeof value === "number" && Number.isSafeInteger(value) ? value : 0;
-}
-
-/* ------------------------------------------------- sweeping withdrawal holds */
-
-const expireHoldsSchema = z.object({
-  /*
-   * The window, in minutes, and the floor is deliberate.
-   *
-   * Thirty is the sweeper's own window and the default the screen offers. Ten
-   * is the smallest value this action will accept, because a sweep with a
-   * window of one minute would fail withdrawals that are simply still in
-   * flight, and turning a working transfer into a FAILED entry is the exact
-   * harm the window exists to prevent.
-   */
-  olderThanMinutes: z
-    .number()
-    .int("Choose a whole number of minutes.")
-    .min(10, "A window under ten minutes would fail withdrawals that are still in flight.")
-    .max(10080, "Choose a window inside the last week."),
-});
-
-export type SweepOutcome = {
-  /** Holds handed back to their owners (failed, reversed or never started). */
-  expired: number;
-  /** Holds whose transfer had paid out, now completed rather than released. */
-  completed: number;
-  /** Holds Paystack could not settle either way, left as they were. */
-  leftPending: number;
-};
-
-export async function expireStaleWithdrawalHolds(input: {
-  olderThanMinutes: number;
-}): Promise<ActionResult<SweepOutcome>> {
-  const access = await requireAdmin();
-  if (access.state !== "admin") return fail(ADMIN_FORBIDDEN_MESSAGE);
-
-  const parsed = validate(expireHoldsSchema, input);
-  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-
-  const admin = getAdminClient();
-  if (!admin) return fail(SERVICE_DOWN);
-
-  try {
-    const report = await sweepStaleWithdrawalHolds(admin, {
-      olderThanMinutes: parsed.data.olderThanMinutes,
-      apply: true,
-      actor: { kind: "user", userId: access.user.id },
-    });
-    if (report.unavailable) return fail(SERVICE_DOWN);
-    revalidatePath("/admin/payments");
-    revalidatePath("/admin/money");
-    const count = (action: string) => report.resolutions.filter((r) => r.action === action).length;
-    return ok({
-      expired: count("released"),
-      completed: count("completed"),
-      leftPending: count("left_pending") + count("failed"),
-    });
-  } catch {
-    return fail(SERVICE_DOWN);
-  }
 }
 
 /* --------------------------------------------------- retiring the examples */

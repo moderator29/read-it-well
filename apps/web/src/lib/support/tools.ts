@@ -15,8 +15,8 @@ import {
 } from "../trust/cancellation";
 import { RESPONSE_COMMITMENTS } from "../trust/standards";
 import { SUPPORT_TOPICS, gradeForTopic, supportTopicLabel } from "../trust/support-topics";
-import { readStatement } from "../wallet/repository";
-import type { WalletSummary } from "../wallet/types";
+import { AGREEMENT_STATUS_LABEL } from "@/components/app/agreements/status";
+import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, PAYMENT_GATE_SENTENCE } from "../money/copy";
 import { searchFaq } from "./faq";
 import { fileSupportTicket } from "./actions";
 import type { SupportAction } from "./types";
@@ -29,7 +29,7 @@ import type { SupportAction } from "./types";
  * auth cookies, and never on the service role. `resolveSession()` hands back
  * that client already bound to the signed-in user, and each read is filtered
  * by the caller's own id on top of RLS, so a tool physically cannot return
- * another person's booking, wallet, ticket or thread. A signed-out caller has
+ * another person's booking, agreement, ticket or thread. A signed-out caller has
  * no such client, so the personal tools answer "unavailable, offer sign-in"
  * rather than guessing, and the model is told to say exactly that.
  *
@@ -80,10 +80,10 @@ const BOOKINGS_ACTION: SupportAction = {
   href: "/bookings",
 };
 
-const WALLET_ACTION: SupportAction = {
-  kind: "wallet",
-  label: "Open my wallet",
-  href: "/wallet",
+const AGREEMENTS_ACTION: SupportAction = {
+  kind: "agreements",
+  label: "Open my agreements",
+  href: "/agreements",
 };
 
 const MESSAGES_ACTION: SupportAction = {
@@ -141,7 +141,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "search_help",
     description:
-      "Search Vallo's canonical help notes: how bookings, payments, the wallet, listing a property, verification, cancellations, refunds, reviews, reporting, languages, privacy and messaging safety actually work. Call this before answering any question about policy or how the platform works, and answer from what it returns rather than from memory.",
+      "Search Vallo's canonical help notes: how bookings, payments, agreements, the Vallo Guarantee, listing a property, verification, cancellations, refunds, reviews, reporting, languages, privacy and messaging safety actually work. Call this before answering any question about policy or how the platform works, and answer from what it returns rather than from memory.",
     input_schema: {
       type: "object",
       properties: {
@@ -165,9 +165,9 @@ export const SUPPORT_TOOLS = [
     },
   },
   {
-    name: "my_wallet",
+    name: "my_agreements",
     description:
-      "Read the signed-in caller's own wallet: the settled naira balance, how much of it is held against a withdrawal in flight, what is therefore spendable, and their last few ledger entries. Use it for questions about balance, a refund landing, a withdrawal or a transaction. Returns unavailable when nobody is signed in.",
+      "Read the signed-in caller's own agreements: each rental or stay agreement they are a party to, its status (waiting for the parties, with Vallo for review, approved, sent back with a reason, paid), the total and their side. Use it for questions about paying for a rental, why payment is not open yet, an approval, or a Guarantee claim. Vallo keeps no wallet or balance, so there is no balance to read. Returns unavailable when nobody is signed in.",
     input_schema: {
       type: "object",
       properties: {},
@@ -486,7 +486,7 @@ async function readBookings(client: Db, userId: string): Promise<BookingContext 
             : naira(paidMinor, row.currency),
       ...(refund
         ? {
-            refund: `${naira(refund.refundMinor, row.currency)} was returned to their wallet on ${instantLabel(refund.createdAt)}`,
+            refund: `${naira(refund.refundMinor, row.currency)} was refunded to the card or account they paid with on ${instantLabel(refund.createdAt)}`,
           }
         : {}),
       cancelInApp: cancellableInApp(row.status, row.check_in, paidMinor, today),
@@ -555,7 +555,7 @@ function nextStepsFor(
     ];
   }
   return [
-    "This stay is paid for, so cancelling it is done by a person rather than by the button: ask support here and the published schedule decides the amount, which goes back to their Vallo wallet.",
+    "This stay is paid for, so cancelling it is done by a person rather than by the button: ask support here and the published schedule decides the amount, which is refunded to the card or account they paid with.",
     "Call booking_policy with this booking id before quoting any figure.",
   ];
 }
@@ -604,85 +604,34 @@ async function runMyBookings(session: SignedIn): Promise<ToolOutcome> {
   };
 }
 
-/** The caller's own balance and last few entries, read as them. */
-async function runMyWallet(session: SignedIn): Promise<ToolOutcome> {
-  let statement: WalletSummary;
-  try {
-    statement = await readStatement(session.supabase, session.user.id);
-  } catch {
-    return unreadable("wallet");
-  }
-
-  const { currency } = statement;
-
-  if (statement.id === null) {
-    // The lazy-creation contract: a wallet row appears on first use. Saying
-    // "your balance is zero" would be true and would still mislead, because it
-    // sounds like money that went missing rather than an account never funded.
-    return {
-      result: {
-        walletCreated: false,
-        note: "No wallet has been opened on this account yet, which happens the first time money moves. There is no balance to state and nothing has gone missing.",
-      },
-      actions: [WALLET_ACTION],
-    };
-  }
-
-  /*
-   * Two figures, because the platform has two and they are not the same one.
-   *
-   * The derived balance counts COMPLETED entries only, while a withdrawal in
-   * flight sits as a PENDING debit and is held out of what can be spent
-   * (`availableBalanceMinor`). Reporting the settled balance alone is how a
-   * guest is told they have money that checkout will then refuse. Read here
-   * rather than taken from the statement's newest hundred rows, because a hold
-   * older than that would be silently dropped from the subtraction.
-   */
-  let heldMinor: number | null = null;
-  const held = await session.supabase
-    .from("wallet_entries")
-    .select("amount_minor")
-    .eq("wallet_id", statement.id)
-    .eq("status", "PENDING")
-    .eq("direction", "debit");
-  if (!held.error) {
-    heldMinor = 0;
-    for (const row of held.data ?? []) heldMinor += row.amount_minor;
-  }
-
+/**
+ * The caller's own agreements, read as them. Track A: Vallo holds no money,
+ * so there is no balance to report; what a person wants to know about money
+ * is where their agreement stands and whether payment is open.
+ */
+async function runMyAgreements(session: SignedIn): Promise<ToolOutcome> {
+  const { data, error } = await session.supabase
+    .from("deal_agreements")
+    .select("id, kind, status, amount_minor, renter_id, decision_reason, updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(10);
+  if (error) return unreadable("agreements");
+  const rows = data ?? [];
   return {
     result: {
-      walletCreated: true,
-      balance: naira(statement.balanceMinor, currency),
-      heldForWithdrawals:
-        heldMinor === null
-          ? "unknown, the pending entries could not be read"
-          : naira(heldMinor, currency),
-      spendable:
-        heldMinor === null
-          ? "unknown, because the amount held could not be read. Give the balance and say the spendable figure could not be confirmed."
-          : naira(statement.balanceMinor - heldMinor, currency),
-      note: "The balance is derived from the ledger, never stored. Money committed to a withdrawal that has not settled is held out of the spendable figure, so quote spendable when they ask what they can use, and explain the difference only when the two are not equal.",
-      recent:
-        statement.entries.length === 0
-          ? []
-          : statement.entries.slice(0, 5).map((entry) => ({
-              kind: entry.kind,
-              direction: entry.direction,
-              amount: naira(entry.amountMinor, currency),
-              status: entry.status,
-              reference: entry.reference,
-              when: instantLabel(entry.createdAt),
-              ...(entry.note ? { note: entry.note } : {}),
-            })),
-      ...(statement.entries.length === 0
-        ? { recentNote: "This wallet has no entries yet, so there is no history to describe." }
-        : {
-            statusMeaning:
-              "PENDING is in flight and not yet settled, COMPLETED has landed, FAILED did not go through and the money was never taken, REVERSED was undone.",
-          }),
+      agreements: rows.map((r) => ({
+        id: r.id,
+        kind: r.kind === "stay" ? "stay" : "rental",
+        status: AGREEMENT_STATUS_LABEL[r.status] ?? r.status,
+        total: naira(r.amount_minor, "NGN"),
+        side: r.renter_id === session.user.id ? "paying side" : "owner or agent",
+        ...(r.status === "rejected" && r.decision_reason ? { sentBackBecause: r.decision_reason } : {}),
+        updated: instantLabel(r.updated_at),
+      })),
+      ...(rows.length === 0 ? { note: "This person has no agreements yet. One is drawn up after an inspection report is submitted, or when a host accepts a stay." } : {}),
+      howMoneyWorks: `${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE} ${GUARANTEE_SENTENCE}`,
     },
-    actions: [WALLET_ACTION],
+    actions: [AGREEMENTS_ACTION],
   };
 }
 
@@ -777,11 +726,11 @@ async function runBookingPolicy(session: SignedIn, input: unknown): Promise<Tool
       booking,
       route: "a person on the support team",
       whatHappens:
-        "This stay is paid for, so it is not cancelled by the button in the app: ask here and a person applies the published schedule, returns the money to their Vallo wallet in naira, and puts the amount and the reason in writing. Cancellation requests are answered within 1 day, sooner when check-in is close.",
+        "This stay is paid for, so it is not cancelled by the button in the app: ask here and a person applies the published schedule, refunds the money to the card or account they paid with, and puts the amount and the reason in writing. Cancellation requests are answered within 1 day, sooner when check-in is close.",
       paid: naira(paidMinor, currency),
       ifCancelledNow: {
         tier: outcome.stop.label,
-        backToWallet: naira(outcome.refundMinor, currency),
+        refunded: naira(outcome.refundMinor, currency),
         keptByHost: naira(outcome.retainedMinor, currency),
         why: outcome.stop.detail,
       },
@@ -1050,7 +999,7 @@ type PersonalTool = (session: SignedIn, input: unknown) => Promise<ToolOutcome>;
 
 const PERSONAL_TOOLS: Record<string, PersonalTool> = {
   my_bookings: (session) => runMyBookings(session),
-  my_wallet: (session) => runMyWallet(session),
+  my_agreements: (session) => runMyAgreements(session),
   booking_policy: (session, input) => runBookingPolicy(session, input),
   my_tickets: (session) => runMyTickets(session),
   my_messages: (session) => runMyMessages(session),

@@ -83,20 +83,20 @@ describe("reservationBucket", () => {
 });
 
 describe("refundState", () => {
-  it("names where the money is from the wallet entry's own status", () => {
-    expect(refundState(50_000, "COMPLETED")).toBe("credited");
-    expect(refundState(50_000, "PENDING")).toBe("not_settled");
-    expect(refundState(50_000, "FAILED")).toBe("failed");
-    expect(refundState(50_000, "REVERSED")).toBe("failed");
+  /* Track A: a refund goes back through the processor to the card or account
+     that paid. There is no wallet entry; the state is the processor's. */
+  it("names where the money is from the processor's own status", () => {
+    expect(refundState(50_000, "submitted")).toBe("submitted");
+    expect(refundState(50_000, "failed")).toBe("failed");
   });
 
-  it("flags a refund owed with no entry behind it", () => {
-    expect(refundState(50_000, null)).toBe("not_credited");
+  it("flags a refund owed that has not been submitted", () => {
+    expect(refundState(50_000, null)).toBe("pending");
   });
 
   it("calls a zero refund nothing owed rather than failed", () => {
     expect(refundState(0, null)).toBe("nothing_owed");
-    expect(refundState(0, "COMPLETED")).toBe("nothing_owed");
+    expect(refundState(0, "submitted")).toBe("nothing_owed");
   });
 });
 

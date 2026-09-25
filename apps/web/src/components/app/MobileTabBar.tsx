@@ -81,8 +81,8 @@ type Tab = { href: string; label: string; icon: UiIconName };
  * A tab bar is a statement about where you are, so showing it on a screen it
  * cannot point at is a lie: it appeared on settings, on notifications, on a
  * listing page and inside checkout, with nothing highlighted, taking up the
- * bottom of the screen and answering no question. The wallet is back on the
- * list because the wallet is a TAB now.
+ * bottom of the screen and answering no question. Agreements is on the
+ * list because it replaced the retired wallet as the money destination.
  *
  * Those screens are reached FROM a tab or from the side drawer, and they get
  * the back affordance instead. Kept as a shared constant so the shell and the
@@ -96,7 +96,7 @@ export const TAB_BAR_ROUTES = [
   "/home",
   "/around",
   "/search",
-  "/wallet",
+  "/agreements",
   "/profile",
   /*
    * THE STAYS ROOTS. `/stays/search` is listed BEFORE `/stays` on purpose:

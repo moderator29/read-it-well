@@ -235,9 +235,7 @@ function View({ v, s }: { v: string; s?: string }) {
           <div className="mt-lg">
             <PayPanel
               view={
-                s === "wallet"
-                  ? { ...RENT_VIEW, walletCovers: true, cardAvailable: false }
-                  : s === "large"
+                s === "large"
                     ? RENT_VIEW_LARGE
                     : RENT_VIEW
               }

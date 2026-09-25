@@ -1,0 +1,44 @@
+/* The agreement and claims queues: one row per decision, the decision on the row. */
+.nf-admin-queue {
+  display: grid;
+  gap: var(--nf-space-row, 0.75rem);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nf-admin-queue-row {
+  display: grid;
+  gap: var(--nf-space-inline, 0.5rem);
+  padding: var(--nf-space-card, 1rem);
+  border: 1px solid var(--nf-border-subtle);
+  border-radius: var(--nf-radius-card, 0.875rem);
+  background: var(--nf-surface-raised);
+}
+
+@media (min-width: 48rem) {
+  .nf-admin-queue-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+}
+
+.nf-admin-queue-row__main {
+  min-width: 0;
+}
+
+.nf-admin-queue-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nf-space-inline, 0.5rem);
+  align-items: flex-start;
+}
+
+.nf-admin-queue-row__actions form {
+  width: min(100%, 28rem);
+}
+
+.nf-admin-queue-row--done {
+  display: block;
+  opacity: 0.85;
+}

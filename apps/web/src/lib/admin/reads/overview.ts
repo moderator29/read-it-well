@@ -50,7 +50,7 @@ async function collectedRows(
   db: AdminReader,
   fromIso: string,
 ): Promise<{ key: string; amount: number; at: string }[] | null> {
-  const [charges, deposits] = await Promise.all([
+  const [charges] = await Promise.all([
     readAll<{ created_at: string; amount_minor: number }>((from, to) =>
       db
         .from("transactions")
@@ -61,20 +61,9 @@ async function collectedRows(
         .order("id", { ascending: true })
         .range(from, to),
     ),
-    readAll<{ created_at: string; amount_minor: number }>((from, to) =>
-      db
-        .from("wallet_entries")
-        .select("created_at, amount_minor")
-        .eq("kind", "deposit")
-        .eq("status", "COMPLETED")
-        .gte("created_at", fromIso)
-        .order("created_at", { ascending: true })
-        .order("id", { ascending: true })
-        .range(from, to),
-    ),
   ]);
-  if (!charges || !deposits) return null;
-  return [...charges, ...deposits].map((row) => ({
+  if (!charges) return null;
+  return [...charges].map((row) => ({
     key: lagosDay(row.created_at),
     amount: row.amount_minor,
     at: row.created_at,

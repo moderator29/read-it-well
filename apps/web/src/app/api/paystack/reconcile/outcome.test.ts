@@ -16,12 +16,7 @@ function run(over: Partial<ReconcileRunSummary> = {}): ReconcileRunSummary {
       charges_seen: 12,
       charges_ours: 12,
       gaps: 0,
-      recovered_minor: 0,
-      holds_examined: 3,
-      released_minor: 0,
-      overdrawn: 0,
-      paid_checked: 0,
-      paid_reversed: 0,
+      refunded_minor: 0,
     },
     ...over,
   };
@@ -36,7 +31,7 @@ describe("reconcileAlert", () => {
   it("opens one warning with the counts when a run needs attention", () => {
     const summary = run({
       needsAttention: true,
-      counts: { ...run().counts, gaps: 2, recovered_minor: 500_000 },
+      counts: { ...run().counts, gaps: 2, refunded_minor: 500_000 },
     });
     expect(reconcileAlert(summary)).toEqual({
       kind: "cron.reconcile.needs_attention",
@@ -47,12 +42,7 @@ describe("reconcileAlert", () => {
         charges_seen: 12,
         charges_ours: 12,
         gaps: 2,
-        recovered_minor: 500_000,
-        holds_examined: 3,
-        released_minor: 0,
-        overdrawn: 0,
-        paid_checked: 0,
-        paid_reversed: 0,
+        refunded_minor: 500_000,
       },
       subjectId: RECONCILE_SUBJECT,
     });

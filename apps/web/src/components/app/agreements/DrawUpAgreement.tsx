@@ -1,0 +1,65 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { openRentAgreement } from "@/lib/agreements/actions";
+import { PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
+
+/**
+ * The step after the inspection report (Track A).
+ *
+ * The renter's submitted report is the proof of what was seen. From it the
+ * agreement is drawn up with the listing's own move-in figures and the dates
+ * the renter names here; both parties then confirm it, and Vallo approves it
+ * before payment opens. The database refuses unless the report is submitted
+ * with all eight items ticked and photos taken at the property.
+ */
+export function DrawUpAgreement({ inspectionId, minDate }: { inspectionId: string; minDate: string }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [moveIn, setMoveIn] = useState(minDate);
+  const [handover, setHandover] = useState(minDate);
+  const [notes, setNotes] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <form
+      className="nf-ix-agreement grid gap-inline"
+      data-testid="draw-up-agreement"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setError(null);
+        start(async () => {
+          const result = await openRentAgreement({ inspectionId, moveIn, handoverOn: handover, notes });
+          if (!result.ok) {
+            setError(result.error);
+            return;
+          }
+          router.push(`/agreements/${result.data.agreementId}`);
+        });
+      }}
+    >
+      <p className="nf-ix-hint">{PAYMENT_GATE_SENTENCE}</p>
+      <label className="nf-field">
+        <span className="nf-field__label">Move-in date</span>
+        <input className="nf-input" type="date" min={minDate} value={moveIn} onChange={(e) => setMoveIn(e.target.value)} required />
+      </label>
+      <label className="nf-field">
+        <span className="nf-field__label">Keys handed over on</span>
+        <input className="nf-input" type="date" min={minDate} value={handover} onChange={(e) => setHandover(e.target.value)} />
+      </label>
+      <label className="nf-field">
+        <span className="nf-field__label">Anything both of you should agree in writing (optional)</span>
+        <textarea className="nf-input min-h-[4.5rem]" maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} />
+      </label>
+      {error ? (
+        <p role="alert" className="nf-ix-hint text-[var(--nf-status-error)]">
+          {error}
+        </p>
+      ) : null}
+      <button type="submit" className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" disabled={pending}>
+        {pending ? "Drawing up the agreement" : "Draw up the agreement"}
+      </button>
+    </form>
+  );
+}

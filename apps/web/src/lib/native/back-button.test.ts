@@ -223,14 +223,14 @@ describe("the real Android back listener", () => {
    * the component happened to pass. Declaring them changes the destination, so
    * the destination is pressed here rather than reasoned about.
    *
-   * The dynamic ones carry a concrete segment, because `isAppRoot("/escrow/[id]")`
+   * The dynamic ones carry a concrete segment, because `isAppRoot("/agreements/[id]")`
    * is a question about the literal five characters `[id]` and not about any
    * address a person can be standing on.
    */
   it("does NOT close the application on any route this pass declared", () => {
     const added = [
-      "/escrow",
-      "/escrow/2f1d4c6e-0000-4000-8000-000000000001",
+      "/agreements",
+      "/agreements/2f1d4c6e-0000-4000-8000-000000000001",
       "/price",
       "/price/area/2f1d4c6e-0000-4000-8000-000000000002",
       "/admin/analytics",
@@ -339,8 +339,8 @@ describe("where the hardware button sends a person who is not at a root", () => 
    */
   it("sends the hardware button to the destination each new entry names", () => {
     const expected: [string, string][] = [
-      ["/escrow", "/wallet"],
-      ["/escrow/2f1d4c6e-0000-4000-8000-000000000001", "/escrow"],
+      ["/agreements", "/home"],
+      ["/agreements/2f1d4c6e-0000-4000-8000-000000000001", "/agreements"],
       ["/price", "/home"],
       ["/price/area/2f1d4c6e-0000-4000-8000-000000000002", "/price"],
       ["/admin/analytics", "/admin"],
@@ -356,12 +356,11 @@ describe("where the hardware button sends a person who is not at a root", () => 
       ["/preview/imgc/hotel", "/preview"],
       ["/preview/session-b/profile", "/preview"],
       ["/preview/session-b/admin/overview", "/preview"],
-      ["/preview/session-b/admin-money/money", "/preview"],
       ["/preview/session-b/admin-review/kyc", "/preview"],
       /* A deck that DOES have an index page keeps its own folder, which is what
          proves the four entries above are not a blanket rule. */
       ["/preview/f3/listing/sale", "/preview/f3/listing"],
-      ["/preview/session-b/wallet/send", "/preview/session-b/wallet"],
+      ["/preview/session-b/sweep-stays/checkout", "/preview/session-b/sweep-stays"],
     ];
     for (const [path, href] of expected) {
       expect({ path, ...androidDecision(path, null) }).toEqual({

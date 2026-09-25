@@ -23,9 +23,9 @@ import {
  *   side. It takes any non-empty bank code, hands it straight to Paystack,
  *   and answers in the `ActionResult` envelope.
  *
- *   `lookupAccountName` (wallet/actions.ts) was the withdraw sheet's courtesy
+ *   `lookupAccountName` (the retired wallet actions) was the withdraw sheet's courtesy
  *   read. It refused, silently, any bank code that was not one of the twenty
- *   three in `wallet/banks.ts`, and answered in a shape of its own.
+ *   three in the retired wallet banks list, and answered in a shape of its own.
  *
  * So a person could file a Jaiz, Sparkle or VFD account on the payments
  * settings page and then be told nothing at all by the withdraw sheet for the
@@ -35,7 +35,7 @@ import {
  * here and every caller asks this.
  *
  * THE SECOND OPINION IS GONE AS WELL, 23 September. `withdrawSchema` no longer
- * checks a bank code against `wallet/banks.ts`; `withdraw` and
+ * checks a bank code against `the retired wallet banks list`; `withdraw` and
  * `lookupAccountName` both ask `lookupBank` below, which is the same live
  * registry the payments settings page and the send desk ask. `WALLET_BANKS`
  * survives as a picker's seed on the withdraw sheet and as nothing else: it validates nothing, and no money path reads it.

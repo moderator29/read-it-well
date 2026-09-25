@@ -5,7 +5,8 @@
  *
  * /cancellations tells a guest, in plain words, that a paid stay is cancelled
  * by a person rather than by a button, that the published schedule is applied
- * exactly as written, that the money returns to their Vallo wallet, and that
+ * exactly as written, that the money returns to the card or account they paid
+ * with, and that
  * they get the amount and the reason in writing. Until this file existed there
  * was no surface on which any person at support could do it, so the published
  * policy and the console disagreed. This is the console's half of that promise.
@@ -18,12 +19,15 @@
  * reasons override the schedule upward to a full refund, because the published
  * page says they do. Nothing here can go below the schedule.
  *
- * THE MONEY MOVES AS LEDGER ENTRIES. Not one balance is edited anywhere. The
- * wallet credit, the contra settlement row, the booking transition, the state
- * event, the calendar release and the refund record all happen inside
+ * THE DECISION IS ONE TRANSACTION; THE MONEY GOES BACK THROUGH THE PROCESSOR.
+ * The contra settlement row, the booking transition, the state event, the
+ * calendar release, the amount owed back by the lister and the refund record
+ * all happen inside
  * private.refund_and_cancel_booking, in one transaction, keyed on a unique
  * `rm-refund-` reference so a double tap is a no-op rather than a second
- * payment out. That function re-proves the caller's admin role itself and
+ * refund. The refund itself is then submitted to Paystack against the
+ * original charge (lib/payments/refund.ts); Vallo holds no balance to pay it
+ * from and credits nothing. That function re-proves the caller's admin role itself and
  * re-bounds the amount against the settled total, so this file is a second
  * check rather than the only one.
  *
@@ -42,6 +46,7 @@ import { bestEffortEmail, sendMessage } from "../email/client";
 import { bookingRefunded } from "../email/messages";
 import { contactForUser } from "../email/recipients";
 import { refundReference } from "../payments/references";
+import { submitBookingRefund } from "../payments/refund";
 import { createAdminClient } from "../supabase/admin";
 import {
   CANCELLATION_REASON_CODES,
@@ -223,19 +228,25 @@ export async function cancelBookingAsAdmin(
     );
   }
   if (status === "duplicate") return fail(ALREADY);
-  /* V-33. Settled rent is the lister's the moment it is charged, so a refund
-     comes back out of the lister's wallet. When they no longer hold it the
-     database records the sum as owed, holds it against what the lister can
-     spend, raises an alert, and moves nothing, so this is retried later. */
-  if (status === "lister_short") {
-    const holds = outcomeNumber(data, "lister_spendable_minor") ?? 0;
-    return fail(
-      `This rent was settled to the lister, who can cover ${formatMoney(holds, "en")} of the ${formatMoney(outcome.refundMinor, "en")} refund. Nothing was paid yet. The shortfall is recorded as owed by the lister and held against their wallet; retry the refund once it is covered, and tell the tenant it is on its way.`,
-    );
-  }
   if (status !== "ok") return fail(SERVICE_DOWN);
 
   const refundMinor = outcomeNumber(data, "refund_minor") ?? outcome.refundMinor;
+  /* The decision is recorded; the money goes back to the card through the
+     processor. Vallo holds nothing, so there is no balance to credit. What the
+     lister already received is recorded as owed back (rent_refunds_owed). A
+     processor refusal leaves the refund row marked failed for the desk. */
+  const refundRow = typeof (data as Record<string, unknown> | null)?.refund_id === "string"
+    ? String((data as Record<string, unknown>).refund_id)
+    : null;
+  if (refundMinor > 0 && refundRow) {
+    await submitBookingRefund(createAdminClient(), {
+      refundId: refundRow,
+      bookingId: booking.id,
+      amountMinor: refundMinor,
+      reason,
+      actor: { kind: "user", userId: access.user.id },
+    });
+  }
   const retainedMinor = outcomeNumber(data, "retained_minor") ?? outcome.retainedMinor;
   const settledMinor = outcomeNumber(data, "paid_minor") ?? paidMinor;
 
@@ -290,7 +301,6 @@ export async function cancelBookingAsAdmin(
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${booking.id}`);
   revalidatePath("/bookings");
-  revalidatePath("/wallet");
 
   return ok({
     refundMinor,
@@ -382,18 +392,29 @@ export async function refundBookingAsAdmin(
       { amountMinor: `At most ${formatMoney(refundable, "en")}.` },
     );
   }
-  if (status === "lister_short") {
-    const holds = outcomeNumber(data, "lister_spendable_minor") ?? 0;
-    return fail(
-      `This rent was settled to the lister, who can cover ${formatMoney(holds, "en")} of it. Nothing was paid yet. The shortfall is recorded as owed by the lister and held against their wallet; retry once it is covered.`,
-    );
-  }
   if (status !== "ok") return fail(SERVICE_DOWN);
+
+  const refundRow = typeof (data as Record<string, unknown> | null)?.refund_id === "string"
+    ? String((data as Record<string, unknown>).refund_id)
+    : null;
+  if (refundRow) {
+    const sent = await submitBookingRefund(createAdminClient(), {
+      refundId: refundRow,
+      bookingId,
+      amountMinor,
+      reason,
+      actor: { kind: "user", userId: access.user.id },
+    });
+    if (!sent.ok) {
+      return fail(
+        `The refund is recorded but the payment processor did not accept it (${sent.reason}). It is marked failed on the booking; try again from the booking or contact Paystack support with reference ${reference}.`,
+      );
+    }
+  }
 
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${bookingId}`);
   revalidatePath("/bookings");
-  revalidatePath("/wallet");
 
   return ok({
     refundMinor: outcomeNumber(data, "refund_minor") ?? amountMinor,

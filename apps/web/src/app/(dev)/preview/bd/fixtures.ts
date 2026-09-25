@@ -200,7 +200,7 @@ export const REFUNDS: RefundConsole = {
       reason: "guest_choice",
       note: null,
       reference: "rm-refund-7f2e5c11-0f3b-4d6a-8e9c-1b2d3f4a5c6e",
-      state: "credited",
+      state: "submitted",
       decidedByName: PERSON.name,
       createdAt: ago(3 * 60),
     },
@@ -216,7 +216,7 @@ export const REFUNDS: RefundConsole = {
       reason: "host_cancelled",
       note: "The host wrote to say the suite is under repair.",
       reference: "rm-refund-9d4f813d-da60-431a-84b0-6a329352ad75",
-      state: "not_settled",
+      state: "pending",
       decidedByName: PERSON.name,
       createdAt: ago(7 * 60),
     },
@@ -232,7 +232,7 @@ export const REFUNDS: RefundConsole = {
       reason: "no_access",
       note: "The guest waited at the gate for an hour; the caretaker never came.",
       reference: "rm-refund-2a7e5c11-0f3b-4d6a-8e9c-1b2d3f4a5c6f",
-      state: "not_credited",
+      state: "failed",
       decidedByName: PERSON.name,
       createdAt: ago(26 * 60),
     },
@@ -254,7 +254,7 @@ export const REFUNDS: RefundConsole = {
     },
   ],
   full: false,
-  totals: { refundedMinor: 39_500_000, count: 4, notCredited: 1 },
+  totals: { refundedMinor: 39_500_000, count: 4, notSubmitted: 1 },
 };
 
 /* ---------------------------------------------------------------- payments */

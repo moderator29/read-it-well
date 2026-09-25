@@ -1,4 +1,3 @@
-import { BANK_PAYOUTS_OPEN } from "../wallet/bank-payouts";
 import {
   appUrl,
   button,
@@ -48,7 +47,7 @@ import {
  * it is four words long, "did I do that", and the answer differs only in one
  * sentence and one row. Keeping them together guarantees that the payout
  * account email is exactly as clear as the saved card one, which is the way
- * round that normally goes wrong. It is the same argument `withdrawalOutcome`
+ * round that normally goes wrong. It is the same argument the refund email
  * makes for its three endings and it is right for the same reason.
  *
  * ---------------------------------------------------------------------------
@@ -183,8 +182,8 @@ const SUBJECT: Record<PaymentInstrumentEvent, string> = {
 /**
  * What happened, said once, in the sentence the reader needs.
  *
- * Each of these states the effect rather than the operation. "Money you
- * withdraw now goes to" is what a payout account change MEANS; "your default
+ * Each of these states the effect rather than the operation. "Your share of
+ * every payment now settles to" is what a payout account change MEANS; "your default
  * payout destination was updated" is what a database did.
  */
 function whatHappened(data: PaymentInstrumentData): string {
@@ -197,15 +196,11 @@ function whatHappened(data: PaymentInstrumentData): string {
     case "card_removed":
       return `We removed ${thing} from your Vallo account. Nothing was charged.`;
     case "bank_added":
-      return BANK_PAYOUTS_OPEN
-        ? `We added ${thing} for your payouts, after the bank confirmed the name on it.`
-        : `We added ${thing} to your Vallo account, after the bank confirmed the name on it. Withdrawals will go to it once bank payouts open.`;
+      return `We added ${thing} to your Vallo account, after the bank confirmed the name on it.`;
     case "bank_default_changed":
-      return BANK_PAYOUTS_OPEN
-        ? `Money you withdraw from Vallo now goes to ${thing}.`
-        : `Once bank payouts open, money you withdraw from Vallo will go to ${thing}.`;
+      return `${thing} is now your payout account. Your share of every payment made to you through Vallo now settles to it.`;
     case "bank_removed":
-      return `We removed ${thing} from your Vallo account. Your balance is untouched.`;
+      return `We removed ${thing} from your Vallo account.`;
   }
 }
 

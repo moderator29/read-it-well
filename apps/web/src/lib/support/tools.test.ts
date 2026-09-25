@@ -35,8 +35,8 @@ type QueryResult = { data?: unknown; error?: unknown };
  * A Supabase client that answers from a script.
  *
  * Keyed by table, and an array of results is consumed one per `from()` call,
- * which is what lets a single test give the wallet's statement read and the
- * pending-hold read two different answers. Every builder method returns the
+ * which is what lets a single test give two reads of one table two different
+ * answers. Every builder method returns the
  * same object and the object is thenable, so it satisfies both shapes the tools
  * use: `await client.from(t).select().eq()` and `.maybeSingle()`.
  */
@@ -109,7 +109,7 @@ function said(value: unknown): string {
 
 const PERSONAL = [
   "my_bookings",
-  "my_wallet",
+  "my_agreements",
   "booking_policy",
   "my_tickets",
   "my_messages",
@@ -367,7 +367,7 @@ describe("booking_policy", () => {
   it("quotes the full refund outside the deadline, to the kobo", async () => {
     const out = await runSupportTool("booking_policy", { bookingId: "b-1" }, paidStay("2026-09-01"));
     const now = record(record(out.result).ifCancelledNow);
-    expect(now.backToWallet).toBe("₦12,345.67");
+    expect(now.refunded).toBe("₦12,345.67");
     expect(now.keptByHost).toBe("₦0");
     expect(now.tier).toBe("Everything back");
   });
@@ -375,7 +375,7 @@ describe("booking_policy", () => {
   it("quotes half inside the deadline, splitting the odd kobo the way the desk does", async () => {
     const out = await runSupportTool("booking_policy", { bookingId: "b-1" }, paidStay("2026-08-08"));
     const now = record(record(out.result).ifCancelledNow);
-    expect(now.backToWallet).toBe("₦6,172.84");
+    expect(now.refunded).toBe("₦6,172.84");
     expect(now.keptByHost).toBe("₦6,172.83");
   });
 
@@ -436,95 +436,50 @@ describe("booking_policy", () => {
   });
 });
 
-/* --------------------------------------------------------------- my_wallet */
+/* ----------------------------------------------------------- my_agreements */
 
-describe("my_wallet", () => {
-  it("says no wallet has been opened rather than quoting a zero balance", async () => {
-    const session = signedIn(fakeDb({ wallet_balances: { data: null } }));
-    const out = await runSupportTool("my_wallet", {}, session);
-    expect(record(out.result).walletCreated).toBe(false);
-    expect(record(out.result).balance).toBeUndefined();
-    expect(String(record(out.result).note)).toMatch(/nothing has gone missing/i);
-  });
-
-  it("holds a withdrawal in flight out of what can be spent", async () => {
-    /* The derived balance counts settled entries only. Quoting it as spendable
-       is how somebody is told they have money that checkout then refuses. */
+describe("my_agreements", () => {
+  it("lists the caller's agreements with their status, total and side", async () => {
     const session = signedIn(
       fakeDb({
-        wallet_balances: { data: { wallet_id: "w-1", balance_minor: 5_000_000, currency: "NGN" } },
-        wallet_entries: [{ data: [] }, { data: [{ amount_minor: 1_500_000 }] }],
+        deal_agreements: {
+          data: [
+            {
+              id: "a-1",
+              kind: "rent",
+              status: "rejected",
+              amount_minor: 250_000_000,
+              renter_id: "guest-1",
+              decision_reason: "The move-in date is before the handover date.",
+              updated_at: "2026-09-24T23:40:00Z",
+            },
+          ],
+        },
       }),
     );
-    const out = await runSupportTool("my_wallet", {}, session);
-    expect(record(out.result).balance).toBe("₦50,000");
-    expect(record(out.result).heldForWithdrawals).toBe("₦15,000");
-    expect(record(out.result).spendable).toBe("₦35,000");
-  });
-
-  it("refuses to state a spendable figure it could not work out", async () => {
-    const session = signedIn(
-      fakeDb({
-        wallet_balances: { data: { wallet_id: "w-1", balance_minor: 5_000_000, currency: "NGN" } },
-        wallet_entries: [{ data: [] }, { error: { message: "denied" } }],
-      }),
-    );
-    const out = await runSupportTool("my_wallet", {}, session);
-    expect(record(out.result).balance).toBe("₦50,000");
-    expect(String(record(out.result).spendable)).toMatch(/unknown/i);
-  });
-
-  it("labels entry dates in Lagos instead of handing over an instant", async () => {
-    const session = signedIn(
-      fakeDb({
-        wallet_balances: { data: { wallet_id: "w-1", balance_minor: 250_000, currency: "NGN" } },
-        wallet_entries: [
-          {
-            data: [
-              {
-                id: "e-1",
-                kind: "refund",
-                direction: "credit",
-                amount_minor: 250_000,
-                reference: "rm-rf-1",
-                status: "COMPLETED",
-                created_at: "2026-08-06T23:40:00Z",
-                metadata: {},
-              },
-            ],
-          },
-          { data: [] },
-        ],
-      }),
-    );
-    const out = await runSupportTool("my_wallet", {}, session);
-    const entry = rows(record(out.result).recent)[0] ?? {};
+    const out = await runSupportTool("my_agreements", {}, session);
+    const row = rows(record(out.result).agreements)[0] ?? {};
+    expect(row.total).toBe("₦2,500,000");
+    expect(row.side).toBe("paying side");
+    expect(row.sentBackBecause).toMatch(/move-in date/);
     // 23:40 UTC is the following day in Lagos, which is the reader's day.
-    expect(entry.when).toBe("7 Aug 2026, 00:40");
-    expect(entry.amount).toBe("₦2,500");
+    expect(String(row.updated)).toMatch(/^25 Sep/);
+    expect(String(record(out.result).howMoneyWorks)).toMatch(/never holds your money/i);
   });
 
-  it("says an empty ledger is empty without describing history", async () => {
-    const session = signedIn(
-      fakeDb({
-        wallet_balances: { data: { wallet_id: "w-1", balance_minor: 0, currency: "NGN" } },
-        wallet_entries: [{ data: [] }, { data: [] }],
-      }),
-    );
-    const out = await runSupportTool("my_wallet", {}, session);
-    expect(rows(record(out.result).recent)).toEqual([]);
-    expect(String(record(out.result).recentNote)).toMatch(/no entries yet/i);
+  it("says there are none rather than inventing a balance", async () => {
+    const session = signedIn(fakeDb({ deal_agreements: { data: [] } }));
+    const out = await runSupportTool("my_agreements", {}, session);
+    expect(rows(record(out.result).agreements)).toEqual([]);
+    expect(said(out.result)).not.toMatch(/balance of|spendable/i);
   });
 
-  it("states no balance at all when the wallet read fails", async () => {
-    const session = signedIn(fakeDb({ wallet_balances: { error: { message: "denied" } } }));
-    const out = await runSupportTool("my_wallet", {}, session);
+  it("says it could not read them when the read fails", async () => {
+    const session = signedIn(fakeDb({ deal_agreements: { error: { message: "denied" } } }));
+    const out = await runSupportTool("my_agreements", {}, session);
     expect(record(out.result).available).toBe(false);
-    expect(said(out.result)).not.toContain("₦");
   });
 });
-
-/* -------------------------------------------------------------- my_tickets */
 
 describe("my_tickets", () => {
   it("does not read an empty list as never having contacted us", async () => {

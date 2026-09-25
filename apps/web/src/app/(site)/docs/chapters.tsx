@@ -5,8 +5,18 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
-import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/wallet/schema";
-import { BANK_PAYOUTS_OPEN, WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
+import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/money/amount";
+import {
+  GUARANTEE_SCOPE,
+  GUARANTEE_SENTENCE,
+  NO_CUSTODY_SENTENCE,
+  NO_INSPECTION_FEE,
+  OFF_PLATFORM_SENTENCE,
+  PAYMENT_GATE_SENTENCE,
+  PAYOUT_ANSWER,
+  PRIVATE_FEE_NOTE,
+  REFUND_ROUTE,
+} from "@/lib/money/copy";
 import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-schema";
 import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
 import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-schema";
@@ -24,7 +34,7 @@ import { SUPPLY_DOOR_HREF, doorsSentence } from "@/lib/supply/roles";
  * a site that will tell somebody a chapter exists and then hand them a 404.
  *
  * Numbers that already exist in the product are IMPORTED rather than typed out:
- * the wallet's movement bounds, the refund window, the verification ladder, the
+ * the payment bounds, the refund window, the verification ladder, the
  * report categories, the post limits and what a place moderator may do. If any
  * of those change, this document changes with them in the same commit. A
  * figure typed into prose is a figure that starts lying the first time somebody
@@ -66,7 +76,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 1,
     title: "What Vallo is, and who it is for",
     summary:
-      "Rent, buy or stay across Nigeria without the runaround. One app with two sides, Property and Vallo Stays, one account, one naira wallet and no platform fee anywhere.",
+      "Rent, buy or stay across Nigeria without the runaround. One app with two sides, Property and Vallo Stays, one account, and Vallo never holds your money.",
     icon: "house-sparkle",
     sections: [
       {
@@ -94,7 +104,7 @@ export const CHAPTERS: DocChapter[] = [
               any money moves. <strong>Vallo Stays</strong> is the nightly side:
               hotels, apartments, guest houses, resorts, serviced apartments,
               shortlets and restaurant tables. One account carries both, along with
-              your wallet, your bookings, your messages and your conversations about
+              your agreements, your bookings, your messages and your conversations about
               the areas you live in.
             </p>
             <p>
@@ -153,7 +163,7 @@ export const CHAPTERS: DocChapter[] = [
               <strong>Switching costs nothing and changes nothing you own.</strong> The
               switch sits at the foot of the side drawer, and flipping it changes the
               vocabulary and the bottom bar, not your account: the same profile, the
-              same wallet, the same balance, the same inbox and the same saved places.
+              same agreements, the same inbox and the same saved places.
               Plans is one dated list of everything you have lined up on both sides:
               inspections, move-ins, stays and tables, in the order they happen.
             </p>
@@ -173,7 +183,7 @@ export const CHAPTERS: DocChapter[] = [
             <li>
               <strong>Book a stay.</strong> Search with your dates and your party,
               hold the nights, see the whole price in naira before you commit, and
-              pay by card or from your wallet.
+              pay by card or bank transfer once the host accepts and Vallo approves.
             </li>
             <li>
               <strong>Hold a table.</strong> Ask a restaurant for a date, a time and
@@ -181,10 +191,10 @@ export const CHAPTERS: DocChapter[] = [
               conversation, and no money moves for a table.
             </li>
             <li>
-              <strong>Keep your money in one place.</strong> Fund a wallet, send money
-              to another Vallo account
-              {BANK_PAYOUTS_OPEN ? ", withdraw to a Nigerian bank account" : ""}, and
-              read every movement in a statement that cannot be edited.
+              <strong>Pay on Vallo, without Vallo holding your money.</strong> Inspect,
+              submit the report, confirm the agreement, and pay once Vallo approves it.
+              The owner&rsquo;s or agent&rsquo;s share settles straight to them, and the
+              Vallo Guarantee stands behind rentals and stays.
             </li>
             <li>
               <strong>Talk to the agent.</strong> Ask about the road, the generator or
@@ -285,7 +295,7 @@ export const CHAPTERS: DocChapter[] = [
             <ul>
               <li>
                 <strong>The platform.</strong> Home, Search, Stays, Restaurants,
-                Around, Saved, Plans, Wallet, Inbox, Notifications, the
+                Around, Saved, Plans, Agreements, Inbox, Notifications, the
                 assistant, your profile and Settings.
               </li>
               <li>
@@ -407,7 +417,7 @@ export const CHAPTERS: DocChapter[] = [
                 Your account
               </Link>{" "}
               is where your details live and where everything you have on the platform
-              is linked from: bookings, saved places, reviews, wallet, inbox and
+              is linked from: bookings, agreements, saved places, reviews, inbox and
               notifications.
             </p>
             <ul>
@@ -474,7 +484,7 @@ export const CHAPTERS: DocChapter[] = [
               </li>
               <li>
                 <strong>Notifications.</strong> Four switches: bookings, messages,
-                wallet, and ideas and offers. Marketing is off until you turn it on.
+                payments and agreements, and ideas and offers. Marketing is off until you turn it on.
               </li>
               <li>
                 <strong>Privacy.</strong> Hide my activity, and Data saver for lighter
@@ -913,7 +923,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 5,
     title: "Booking and paying",
     summary:
-      "The stays journey end to end: reserving holds your dates, the breakdown shows everything, you pay by card or wallet, and it lands in Trips. Restaurant tables too.",
+      "The stays journey end to end: reserving holds your dates, the breakdown shows everything, Vallo approves it, you pay by card or bank transfer, and it lands in Trips. Restaurant tables too.",
     icon: "calendar-check",
     sections: [
       {
@@ -1016,7 +1026,7 @@ export const CHAPTERS: DocChapter[] = [
       },
       {
         id: "paying",
-        heading: "Paying by card or from your wallet",
+        heading: "Paying by card or bank transfer",
         body: (
           <>
             <p>
@@ -1027,11 +1037,11 @@ export const CHAPTERS: DocChapter[] = [
               so support can trace it if anything goes wrong.
             </p>
             <p>
-              <strong>Wallet.</strong> If your balance covers the total, pay in one tap.
-              That single action debits the wallet, records the payment, writes the
-              ledger row, confirms the booking, and closes the nights, all in one
-              database transaction. It either all happens or none of it does, because a
-              half-paid booking is the worst state this platform could hold.
+              <strong>Split at the moment you pay.</strong> {NO_CUSTODY_SENTENCE} When the
+              processor confirms the payment, the booking is confirmed, the nights are
+              closed and the split is recorded, all in one database transaction. It either
+              all happens or none of it does. Payment opens only once the host has
+              accepted and Vallo has approved the booking.
             </p>
             <p>
               Tap twice on a bad connection and you are not charged twice. Each attempt
@@ -1056,7 +1066,7 @@ export const CHAPTERS: DocChapter[] = [
               <Link href="/bookings" className={A}>
                 Bookings
               </Link>{" "}
-              and pay by card or wallet exactly as above. A stay an agent has accepted is
+              and pay by card or bank transfer exactly as above, once Vallo approves it. A stay an agent has accepted is
               not paid until you pay it, and the product says so plainly rather than
               telling you it is settled when the agent has received nothing.
             </p>
@@ -1115,9 +1125,7 @@ export const CHAPTERS: DocChapter[] = [
             </ul>
             <p>
               If the agent cancels, or the property was materially not what was listed, you
-              get everything back whenever it happens. A refund lands in your Vallo wallet
-              the moment the cancellation is decided, and never later than five Nigerian
-              business days after you ask. {WALLET_MONEY_USES}
+              get everything back whenever it happens. {REFUND_ROUTE}
             </p>
             <p>
               An unpaid hold is different again: let it go whenever you like, for nothing.
@@ -1217,188 +1225,156 @@ export const CHAPTERS: DocChapter[] = [
   },
 
   /* ------------------------------------------------------------------ 6 */
+  /* Track A, 25 September 2026: this chapter was "Your wallet". Vallo no
+     longer holds anybody's money, so there is no wallet to describe. It now
+     explains how a payment is split, the agreement and approval gate, where a
+     refund goes, and the Vallo Guarantee. Every sentence about money is read
+     from `lib/money/copy.ts`. */
   {
-    slug: "your-wallet",
+    slug: "money-and-the-guarantee",
     number: 6,
-    title: "Your wallet",
+    title: "Money, agreements and the Guarantee",
     summary:
-      `Funding, savings pots, ${BANK_PAYOUTS_OPEN ? "withdrawing to a Nigerian bank" : "why withdrawing to a bank is not open yet"}, sending money to another account, and what the platform charges: nothing.`,
-    icon: "wallet-secure",
+      "How a payment is split at the moment you pay, why Vallo never holds your money, the agreement both sides confirm and Vallo approves, where a refund goes, and the Vallo Guarantee.",
+    icon: "shield-lock",
     sections: [
       {
-        id: "what-it-is",
-        heading: "What the wallet is",
+        id: "never-held",
+        heading: "Vallo never holds your money",
         body: (
           <>
+            <p>{NO_CUSTODY_SENTENCE}</p>
             <p>
-              <Link href="/wallet" className={A}>
-                Your wallet
-              </Link>{" "}
-              is a naira balance held against your account. Refunds land here, and you can
-              pay for a stay from here in one tap. {WALLET_MONEY_USES}
-            </p>
-            <p>
-              The balance is not a number somebody stores and edits. It is derived from a
-              statement of movements that can only be added to, so the figure at the top
-              of the page and the rows underneath it can never disagree with each other.
-              Every amount is held as whole kobo, so nothing is ever lost to rounding.
+              There is no Vallo wallet, no balance, no escrow and no held payment. There is
+              nothing to top up and nothing to withdraw. If anybody tells you that Vallo is
+              holding money for you, or asks you to send money to be held, it is not us.
             </p>
           </>
         ),
       },
       {
-        id: "adding-money",
-        heading: "Adding money",
+        id: "the-split",
+        heading: "How a payment is split",
         body: (
           <>
             <p>
-              Tap <strong>Add money</strong>, type the amount in naira, and you are taken
-              to the payment processor to pay by card or bank transfer. When you come
-              back, the credit is posted against a reference beginning{" "}
-              <code>rm-fund-</code>.
+              When you pay by card or bank transfer, the payment processor divides that one
+              payment into three parts in the same transaction: the owner&rsquo;s or
+              agent&rsquo;s share, paid to the bank account on their payout details; the
+              Vallo Guarantee contribution, between 1 and 2 percent, paid to a separate
+              reserve; and Vallo&rsquo;s commission, which is zero today. The three always
+              add up exactly to what you paid, and the database refuses a payment row where
+              they do not.
             </p>
             <p>
-              If the processor tells us before your browser gets back, or your browser
-              gets back before the processor tells us, the credit still posts exactly
-              once. It is keyed on the reference, so whichever arrives first wins and the
-              second changes nothing.
+              The Guarantee contribution comes out of the owner&rsquo;s or agent&rsquo;s
+              share. It is never added on top of the price you were shown.
             </p>
-            {/* Crypto top-ups are built and feature-flagged
-                (`lib/wallet/actions.ts`, `startCryptoDeposit`), so the honest
-                register is "where switched on": present tense for the flow,
-                and the absent control named as the off state. */}
             <p>
-              Where crypto top-ups are switched on, you can also fund the wallet
-              through Yellow Card. You type the amount in naira, exactly as you would
-              for a card, and the processor works out what that costs in the coin at
-              the moment you pay. If the control is not on your screen, it is not
-              switched on for your wallet yet.
+              Where crypto payment is offered, Yellow Card converts it to naira first and the
+              naira is split the same way. Vallo never holds crypto and never gives you a
+              crypto address of its own.
             </p>
           </>
         ),
       },
       {
-        id: "withdrawing",
-        heading: "Withdrawing to your bank",
-        body: BANK_PAYOUTS_OPEN ? (
+        id: "the-gate",
+        heading: "Before payment opens",
+        body: (
           <>
+            <p>{PAYMENT_GATE_SENTENCE}</p>
             <p>
-              Tap <strong>Withdraw</strong>, choose your bank, enter the account number
-              and the amount. The account must be a Nigerian account in your own name.
+              For a rental: you inspect the property and submit the inspection report, eight
+              items with photographs. An agreement is drawn up from the listing&rsquo;s own
+              figures and your report, with the move-in date and the day the keys are
+              handed over. You and the owner or agent each confirm the same version; if
+              anything changes, the version moves and both of you confirm again. An agent
+              confirming for an owner confirms that they hold the owner&rsquo;s mandate.
             </p>
             <p>
-              A withdrawal is held while it settles, and the amount is taken out of what
-              you can spend the moment you request it, so money already on its way to your
-              bank can never be spent again on a stay. References begin{" "}
-              <code>rm-wd-</code>.
+              For a stay: the host accepts your booking, which draws up the agreement from
+              the booking itself.
+            </p>
+            <p>
+              Then a person at Vallo reviews it and approves it, or sends it back with a
+              reason. Both of you are told by email and in the app the moment it is decided,
+              and every decision is logged. Your agreements live under{" "}
+              <Link href="/agreements" className={A}>
+                Agreements
+              </Link>
+              .
+            </p>
+            <p>
+              <strong>{NO_INSPECTION_FEE}</strong> {PRIVATE_FEE_NOTE}
             </p>
           </>
-        ) : (
+        ),
+      },
+      {
+        id: "refunds",
+        heading: "Where a refund goes",
+        body: (
           <p>
-            Not yet. Vallo cannot send a transfer to your bank today, so there is no
-            Withdraw button. {WALLET_MONEY_USES} Nothing you hold is lost in the meantime.
+            {REFUND_ROUTE} Because Vallo keeps no balance, a refund can only go back the way
+            the money came. The booking shows its refund and where it stands.
           </p>
         ),
       },
       {
-        id: "transfers",
-        heading: "Sending money to another account",
-        body: (
-          <p>
-            <strong>Transfer</strong> sends money to another Vallo account by email
-            address or phone number. It moves inside the platform, so it is instant and
-            it lands in their wallet. Both sides get a row in their statement, paired on a
-            reference beginning <code>rm-p2p-</code>.
-          </p>
-        ),
-      },
-      {
-        /* Pots are built and light up when their migration is applied
-           (`lib/wallet/pots.ts`); the wording on what a pot is and is not
-           follows the comment on `wallet_pots` in the migration itself. */
-        id: "pots",
-        heading: "Savings pots",
+        id: "the-guarantee",
+        heading: "The Vallo Guarantee",
         body: (
           <>
+            <p>{GUARANTEE_SENTENCE}</p>
+            <p>{GUARANTEE_SCOPE}</p>
             <p>
-              A pot is money you set aside inside your own wallet: name it, give it a
-              target if you want one, and move money in and out whenever you like.
-              Money in a pot has left your spendable balance and is still entirely
-              yours, which is the point: it cannot be spent at checkout by accident,
-              and it is back the moment you move it back.
-            </p>
-            <p>
-              Pots earn nothing and cost nothing. There is no interest, no yield and
-              no lock-in. Where pots are not switched on yet, the wallet does not
-              draw the section at all.
+              You claim from the agreement, with photographs, in the 72 hours after move-in
+              or check-in. A person checks the claim against the inspection report and the
+              agreement. A claim is capped at what you paid for that booking and by what is
+              in the reserve when it is decided, and an approved claim is paid to your bank
+              account. Anything arranged or paid outside Vallo is not covered.
             </p>
           </>
         ),
       },
       {
-        id: "limits",
-        heading: "The limits",
-        body: (
-          <p>
-            The smallest amount you can move in one go is {MIN_MOVE}, and the largest is{" "}
-            {MAX_MOVE}. Those bounds apply to adding money and transferring
-            {BANK_PAYOUTS_OPEN ? ", and to withdrawing," : ""} alike. To move more than the ceiling, split it across more than one movement.
-          </p>
-        ),
-      },
-      {
-        id: "spendable",
-        heading: "Spendable against settled",
-        body: (
-          <p>
-            The wallet shows what you can actually spend, which is your settled balance
-            minus anything already committed to a withdrawal that has not landed yet.
-            That is the figure checkout uses too, so a stay can never be paid with money
-            that is already on its way to your bank.
-          </p>
-        ),
-      },
-      {
-        id: "the-statement",
-        heading: "The statement",
+        id: "for-listers",
+        heading: "If you are being paid",
         body: (
           <>
+            <p>{PAYOUT_ANSWER}</p>
             <p>
-              Under the balance is every movement, grouped by day, newest first: what it
-              was, which way it went, how much, and its reference. Every stay you pay for,
-              every refund, every top-up and every withdrawal appears here.
-            </p>
-            <p>
-              A reference is the thing to quote to support. It is unique, enforced by the
-              database rather than checked in passing, which is what makes a payment
-              traceable rather than merely recorded.
+              Add your bank account under payout details before anybody can pay you. The
+              agreement shows the Guarantee percentage before it is confirmed, so the figure
+              you receive is known in advance.
             </p>
           </>
         ),
       },
       {
-        id: "what-we-charge",
-        heading: "What the platform charges",
+        id: "references",
+        heading: "References",
         body: (
-          <>
-            <p>
-              <strong>Nothing.</strong> There is no fee to hold a wallet, no fee to add
-              money, {BANK_PAYOUTS_OPEN ? "no fee to withdraw, " : ""}no fee to transfer,
-              and no fee to pay for a stay from it.
-            </p>
-            <p>
-              This is not a line of marketing copy, it is the shape of the ledger. Every
-              settled charge on this platform decomposes into three parts that must add up
-              exactly to what was paid: the agent share, the payment processor charge, and
-              the platform share. The platform share is zero, and the database refuses a
-              row where the three parts do not balance.
-            </p>
-            <p>
-              A card processor may charge for moving money. Where that happens it is
-              labelled as the processor charge, because it belongs to them and not to us.
-              Nobody at Vallo will ever ask you for a fee of any other kind.
-            </p>
-          </>
+          <p>
+            Every payment and every refund carries a reference that is unique, enforced by
+            the database rather than checked in passing. It is the thing to quote to
+            support, and it is what makes a payment traceable rather than merely recorded.
+            The smallest single payment is {MIN_MOVE} and the largest is {MAX_MOVE}.
+          </p>
+        ),
+      },
+      {
+        id: "off-platform",
+        heading: "Off the platform",
+        body: (
+          <p>
+            {OFF_PLATFORM_SENTENCE} The{" "}
+            <Link href="/disclaimer" className={A}>
+              Disclaimer
+            </Link>{" "}
+            says exactly what that covers.
+          </p>
         ),
       },
     ],
@@ -1501,7 +1477,7 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               Settings has four switches: <strong>Bookings</strong>,{" "}
-              <strong>Messages</strong>, <strong>Wallet</strong> and{" "}
+              <strong>Messages</strong>, <strong>Payments and agreements</strong> and{" "}
               <strong>Ideas and offers</strong>. Marketing is off until you turn it on,
               and every marketing email carries a way out.
             </p>
@@ -1773,8 +1749,8 @@ export const CHAPTERS: DocChapter[] = [
                 an application with no identity document cannot be verified by anybody.
               </li>
               <li>
-                <strong>Payout account.</strong> The Nigerian bank account your earnings
-                {BANK_PAYOUTS_OPEN ? " go to" : " will be paid to once bank payouts open"}.
+                <strong>Payout account.</strong> The Nigerian bank account your share of
+                every payment settles to, at the moment it is paid.
                 We ask the bank whose account it is and store the name the bank gave, not
                 the one typed into the form.
               </li>
@@ -1994,8 +1970,8 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              Every payment happens inside Vallo: on the checkout screen, by card, by a
-              bank transfer the processor raises, or from your wallet. That is what leaves
+              Every payment happens inside Vallo: on the checkout screen, by card or by a
+              bank transfer the processor raises. That is what leaves
               a reference against your booking that both you and support can open, which
               is the thing that makes a dispute solvable.
             </p>
@@ -2135,8 +2111,8 @@ export const CHAPTERS: DocChapter[] = [
                 dates, the guests, your messages with agents, and your reviews.
               </li>
               <li>
-                <strong>Payment data.</strong> References, amounts, refunds and your
-                wallet statement. Card details are handled by licensed Nigerian payment
+                <strong>Payment data.</strong> References, amounts, how each payment
+                was split, refunds, agreements and Guarantee claims. Card details are handled by licensed Nigerian payment
                 processors and we never hold your full card number.
               </li>
               <li>
@@ -2167,7 +2143,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               Every table in the database has row level security switched on. That is not
               a setting in the application that a bug could skip past: the database itself
-              refuses to hand your rows to anybody who is not you. Your wallet, your
+              refuses to hand your rows to anybody who is not you. Your agreements, your
               bookings, your messages and your settings are all reached that way.
             </p>
             <p>
@@ -2340,17 +2316,13 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               <strong>The card was refused.</strong> Nothing was taken and your dates are
-              still held. Try again, try another card, or pay from your wallet.
+              still held. Try again, or try another card or a bank transfer.
             </p>
             <p>
               <strong>Money left my account and the booking still says unpaid.</strong>{" "}
               Open the booking again first: the settlement often lands a moment after you
               return. If it still says unpaid, contact support with the payment reference
-              from your{" "}
-              <Link href="/wallet" className={A}>
-                wallet statement
-              </Link>{" "}
-              or from the booking. A reference is unique, so it can be traced.
+              from the booking or from your bank. A reference is unique, so it can be traced.
             </p>
             <p>
               <strong>I tapped pay twice.</strong> You were not charged twice. A repeated
@@ -2369,24 +2341,9 @@ export const CHAPTERS: DocChapter[] = [
         heading: "My refund has not arrived",
         body: (
           <p>
-            A refund lands in your Vallo wallet the moment the cancellation is decided,
-            and never later than five Nigerian business days after you ask, not back on your card. Check the{" "}
-            <Link href="/wallet" className={A}>
-              wallet statement
-            </Link>{" "}
-            first. {WALLET_MONEY_USES} If nothing appears in the statement, contact
-            support with the booking reference.
-          </p>
-        ),
-      },
-      {
-        id: "balance-looks-low",
-        heading: "My balance is lower than I expected",
-        body: (
-          <p>
-            The wallet shows what you can spend, which is your settled balance minus any
-            withdrawal that has been requested and has not landed yet. That money is not
-            missing, it is committed. The statement shows it as a pending movement.
+            {REFUND_ROUTE} The booking shows the refund and where it stands. If nothing has
+            reached your bank after ten working days, contact support with the booking
+            reference.
           </p>
         ),
       },
@@ -2422,7 +2379,7 @@ export const CHAPTERS: DocChapter[] = [
           <p>
             Around has a switch, and it is off while something is being fixed. Nothing you
             posted is gone and nothing you joined is lost. Everything else on the platform,
-            including booking and your wallet, carries on working.
+            including booking and paying, carries on working.
           </p>
         ),
       },

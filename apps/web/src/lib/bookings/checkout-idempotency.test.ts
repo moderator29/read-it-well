@@ -36,7 +36,7 @@ vi.mock("../payments/paystack", () => ({
 vi.mock("../payments/charge-saved-card", () => ({ chargeSavedCard: vi.fn() }));
 vi.mock("../email/recipients", () => ({ contactFromSession: () => null }));
 vi.mock("./arrival", () => ({ announceConfirmedStay: vi.fn() }));
-vi.mock("../wallet/ledger", () => ({
+vi.mock("@/lib/supabase/service", () => ({
   availableBalanceMinor: async () => 0,
   ensureWalletId: async () => "wallet-1",
   getAdminClient: () => ({ from: vi.fn(), rpc: seam.rpc }),
@@ -90,11 +90,13 @@ beforeEach(() => {
 describe("the payment paths share one per-booking guard", () => {
   it("claims the booking scope and subject on every path, and refuses in flight", async () => {
     seam.withIdempotency.mockResolvedValue({ status: "in-flight" });
-    const { payWithWallet, payWithSavedCard, startCardCheckout } = await import("./checkout");
+    const checkout = await import("./checkout");
+    const { payWithSavedCard, startCardCheckout } = checkout;
     const { bookingPaymentSubject } = await import("./payment-subject");
+    // There is no wallet path: Vallo holds no money (Track A).
+    expect("payWithWallet" in checkout).toBe(false);
 
     const results = await Promise.all([
-      payWithWallet({ bookingId: BOOKING, idempotencyKey: "k1" }),
       payWithSavedCard({ bookingId: BOOKING, methodId: BOOKING, idempotencyKey: "k2" }),
       startCardCheckout({ bookingId: BOOKING, idempotencyKey: "k3" }),
     ]);
@@ -102,7 +104,7 @@ describe("the payment paths share one per-booking guard", () => {
     for (const result of results) {
       expect(result).toEqual({ ok: false, error: "in flight" });
     }
-    expect(seam.withIdempotency).toHaveBeenCalledTimes(3);
+    expect(seam.withIdempotency).toHaveBeenCalledTimes(2);
     const scopes = new Set(seam.withIdempotency.mock.calls.map(([req]) => req.scope));
     const subjects = new Set(seam.withIdempotency.mock.calls.map(([req]) => req.subject));
     expect(scopes.size).toBe(1);
@@ -112,8 +114,8 @@ describe("the payment paths share one per-booking guard", () => {
 
   it("records only an ok answer, so a refused attempt stays retryable", async () => {
     seam.withIdempotency.mockResolvedValue({ status: "in-flight" });
-    const { payWithWallet } = await import("./checkout");
-    await payWithWallet({ bookingId: BOOKING, idempotencyKey: "k1" });
+    const { startCardCheckout } = await import("./checkout");
+    await startCardCheckout({ bookingId: BOOKING, idempotencyKey: "k1" });
     const request = seam.withIdempotency.mock.calls[0]?.[0];
     expect(request).toBeDefined();
     expect(request?.shouldRecord({ ok: true, data: null })).toBe(true);
@@ -122,8 +124,8 @@ describe("the payment paths share one per-booking guard", () => {
 
   it("does not claim the guard for a booking the caller cannot pay", async () => {
     seam.featureOn = false;
-    const { payWithWallet } = await import("./checkout");
-    const result = await payWithWallet({ bookingId: BOOKING, idempotencyKey: "k1" });
+    const { startCardCheckout } = await import("./checkout");
+    const result = await startCardCheckout({ bookingId: BOOKING, idempotencyKey: "k1" });
     expect(result.ok).toBe(false);
     expect(seam.withIdempotency).not.toHaveBeenCalled();
   });

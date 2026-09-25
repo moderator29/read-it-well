@@ -78,7 +78,6 @@ export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
       return fail("failed" satisfies DeviceAlertError);
     }
     revalidatePath("/settings/devices");
-    revalidatePath("/wallet");
     return ok({
       ended: typeof answer.ended === "number" ? answer.ended : 0,
       holdUntil: typeof answer.hold_until === "string" ? answer.hold_until : null,

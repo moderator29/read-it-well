@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 
 /**
- * A fail-closed feature flag, the pattern of `lib/escrow/flag.ts`: true only
+ * A fail-closed feature flag, the pattern of the retired escrow flag: true only
  * when the `feature_flags` row exists and says true. Every other answer,
  * including a failed read, is false.
  */

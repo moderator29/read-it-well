@@ -28,11 +28,8 @@ import {
 
 const PAYER = "11111111-1111-4111-8111-111111111111";
 const PAYEE = "22222222-2222-4222-8222-222222222222";
-const ESCROW = "33333333-3333-4333-8333-333333333333";
+const AGREEMENT = "33333333-3333-4333-8333-333333333333";
 const LISTING = "44444444-4444-4444-8444-444444444444";
-const ENTRY = "55555555-5555-4555-8555-555555555555";
-/** The same row family through the OTHER door: a send to somebody else. */
-const SENT_ENTRY = "5a5a5a5a-5a5a-4a5a-8a5a-5a5a5a5a5a5a";
 const AGENT = "66666666-6666-4666-8666-666666666666";
 const MESSAGE = "99999999-9999-4999-8999-999999999999";
 
@@ -42,12 +39,6 @@ const lookups: TemplateLookups = {
   signupRole: (id) => (id === PAYER ? "landlord" : null),
   listing: (id) =>
     id === LISTING ? { title: "2 bedroom flat, Yaba", address: "14 Herbert Macaulay Way" } : null,
-  withdrawal: (id) =>
-    id === ENTRY
-      ? { bankName: "GTBank", accountLast4: null, destination: "own_account" }
-      : id === SENT_ENTRY
-        ? { bankName: "Sparkle Microfinance Bank", accountLast4: "6789", destination: "own_account" }
-        : null,
   passedRungs: (id) => (id === AGENT ? ["identity"] : []),
   enquiry: (id) =>
     id === MESSAGE
@@ -62,16 +53,14 @@ function contextFor(recipientId: string, name: string | null): TemplateContext {
   return { recipientId, recipient: { name }, lookups };
 }
 
-/** The keys every escrow payload carries, whatever the state. */
-function escrowPayload(state: string, viewer: "payer" | "payee", extra: Payload = {}): Payload {
+/** The keys every agreement payload carries (Track A). */
+function agreementPayload(viewer: "renter" | "owner", extra: Payload = {}): Payload {
   return {
-    escrow_id: ESCROW,
-    state,
-    viewer,
-    counterparty_id: viewer === "payer" ? PAYEE : PAYER,
+    agreement_id: AGREEMENT,
     listing_id: LISTING,
-    purpose: "agency_fee",
+    kind: "rent",
     amount_minor: 250_000_00,
+    viewer,
     ...extra,
   };
 }
@@ -84,17 +73,12 @@ function escrowPayload(state: string, viewer: "payer" | "payee", extra: Payload 
  */
 const TEMPLATES_THE_TRIGGERS_WRITE = [
   "account.welcome",
-  "escrow.INITIATED",
-  "escrow.HELD",
-  "escrow.RELEASE_REQUESTED",
-  "escrow.RELEASED",
-  "escrow.REFUNDED",
-  "escrow.DISPUTED",
-  "escrow.RESOLVED",
-  "escrow.CANCELLED",
+  "agreement.waiting",
+  "agreement.approved",
+  "agreement.rejected",
+  "guarantee.claim_decided",
   "security.password_changed",
   "security.new_device_sign_in",
-  "wallet.withdrawal_outcome",
   "inspection.scheduled",
   "verification.rung_passed",
   "listing.new_enquiry",
@@ -105,46 +89,22 @@ const TEMPLATES_THE_TRIGGERS_WRITE = [
 const PAYLOADS: Record<(typeof TEMPLATES_THE_TRIGGERS_WRITE)[number], Payload> = {
   /* `private.enqueue_welcome_email` writes the clock and nothing else. */
   "account.welcome": { at: "2026-09-23T13:05:00.000Z" },
-  "escrow.INITIATED": escrowPayload("INITIATED", "payer"),
-  "escrow.HELD": escrowPayload("HELD", "payer", {
-    auto_release_at: "2026-10-01T09:00:00.000Z",
+  "agreement.waiting": agreementPayload("renter"),
+  "agreement.approved": agreementPayload("renter"),
+  "agreement.rejected": agreementPayload("owner", {
+    reason: "The inspection photos do not show the kitchen. Add clear photos and submit again.",
   }),
-  "escrow.RELEASE_REQUESTED": escrowPayload("RELEASE_REQUESTED", "payer", {
-    auto_release_at: "2026-10-01T09:00:00.000Z",
-    requested_by: PAYEE,
-  }),
-  "escrow.RELEASED": escrowPayload("RELEASED", "payee", {
-    commission_minor: 0,
-    net_minor: 250_000_00,
-    automatic: true,
-  }),
-  "escrow.REFUNDED": escrowPayload("REFUNDED", "payer", {
-    reason: "The property was not available on the day.",
-  }),
-  "escrow.DISPUTED": escrowPayload("DISPUTED", "payer", {
-    raised_by: PAYER,
-    reason: "The keys were never handed over.",
-  }),
-  "escrow.RESOLVED": escrowPayload("RESOLVED", "payer", {
-    direction: "refund",
-    ruling: "Both sides filed. The property was not handed over, so the money goes back.",
-    commission_minor: 0,
-    net_minor: 250_000_00,
-  }),
-  "escrow.CANCELLED": escrowPayload("CANCELLED", "payee", {
-    actor_id: PAYER,
-    note: "Withdrawn by the person who proposed it, before any money moved.",
-  }),
+  "guarantee.claim_decided": {
+    claim_id: "5b5b5b5b-5b5b-4b5b-8b5b-5b5b5b5b5b5b",
+    agreement_id: AGREEMENT,
+    decision: "approve",
+    amount_minor: 30_000_00,
+    reason: "The cooker did not work at move-in, as the report shows.",
+  },
   "security.password_changed": { at: "2026-09-23T13:05:00.000Z" },
   "security.new_device_sign_in": {
     at: "2026-09-23T13:05:00.000Z",
     device: "Chrome on Android",
-  },
-  "wallet.withdrawal_outcome": {
-    entry_id: ENTRY,
-    outcome: "failed",
-    amount_minor: 50_000_00,
-    reference: "rm-wd-c0426a",
   },
   "inspection.scheduled": {
     inspection_id: "77777777-7777-4777-8777-777777777777",
@@ -185,9 +145,8 @@ describe("the registry covers every template a trigger writes", () => {
   });
 
   it("asks only for the ids its own payload carries", () => {
-    const escrow = OUTBOX_TEMPLATES["escrow.HELD"]?.needs(PAYLOADS["escrow.HELD"], PAYER);
-    expect(escrow?.users).toEqual([PAYEE]);
-    expect(escrow?.listings).toEqual([LISTING]);
+    const agreement = OUTBOX_TEMPLATES["agreement.approved"]?.needs(PAYLOADS["agreement.approved"], PAYER);
+    expect(agreement?.listings).toEqual([LISTING]);
 
     /* The two security templates need nothing looked up at all, which is what
        lets them send when everything else is unreachable. */
@@ -274,106 +233,30 @@ describe("the welcome is the version the reader declared, and never a guess", ()
   });
 });
 
-describe("the escrow messages say the right thing to the right side", () => {
-  it("names the counterparty the drain resolved, not an id", () => {
-    const message = templateFor("escrow.INITIATED")?.build(
-      PAYLOADS["escrow.INITIATED"],
-      contextFor(PAYER, "Ada"),
-    );
-    /* `greetingName` shortens to the first name on both sides. */
-    expect(message?.subject).toContain("Chidi");
-    expect(message?.html).toContain("Hello Ada.");
-    expect(message?.html).toContain("2 bedroom flat, Yaba");
-    /* And nowhere does a uuid reach a person. */
-    expect(message?.html).not.toContain(PAYEE);
+describe("the agreement messages (Track A)", () => {
+  it("tells the renter payment is open, and says Vallo never holds the money", () => {
+    const message = templateFor("agreement.approved")?.build(PAYLOADS["agreement.approved"], contextFor(PAYER, "Ada"));
+    expect(message?.subject).toContain("payment is open");
+    expect(message?.text).toContain("Vallo never holds your money");
+    expect(message?.text).not.toMatch(/escrow|wallet/i);
   });
 
-  it("tells the payee a different true thing from the payer", () => {
-    const toPayer = templateFor("escrow.HELD")?.build(
-      escrowPayload("HELD", "payer", { auto_release_at: null }),
-      contextFor(PAYER, "Ada"),
-    );
-    const toPayee = templateFor("escrow.HELD")?.build(
-      escrowPayload("HELD", "payee", { auto_release_at: null }),
+  it("gives a rejection's reason word for word, and sends nothing without one", () => {
+    const message = templateFor("agreement.rejected")?.build(PAYLOADS["agreement.rejected"], contextFor(PAYEE, "Chidi"));
+    expect(message?.text).toContain("The inspection photos do not show the kitchen");
+    const bare = templateFor("agreement.rejected")?.build(
+      { ...PAYLOADS["agreement.rejected"], reason: null },
       contextFor(PAYEE, "Chidi"),
     );
-    expect(toPayer?.subject).not.toEqual(toPayee?.subject);
-    /* Asserted on the document rather than the text alternative: the plain
-       text renderer wraps at the reading width, so a sentence long enough to
-       be distinctive is also long enough to be split by a newline. */
-    expect(toPayer?.html).toContain("has left your spendable balance");
-    expect(toPayee?.html).toContain("It reaches your Vallo balance");
+    expect(bare).toBeNull();
   });
 
-  it("knows whether the reader is the one who objected", () => {
-    const toRaiser = templateFor("escrow.DISPUTED")?.build(
-      PAYLOADS["escrow.DISPUTED"],
+  it("refuses a payload with no viewer rather than guessing a side", () => {
+    const message = templateFor("agreement.approved")?.build(
+      { ...PAYLOADS["agreement.approved"], viewer: "someone" },
       contextFor(PAYER, "Ada"),
     );
-    const toOther = templateFor("escrow.DISPUTED")?.build(
-      escrowPayload("DISPUTED", "payee", {
-        raised_by: PAYER,
-        reason: "The keys were never handed over.",
-      }),
-      contextFor(PAYEE, "Chidi"),
-    );
-    expect(toRaiser?.subject).toBe("We have your objection");
-    expect(toOther?.subject).toContain("has objected");
-  });
-
-  it("carries the operator's ruling to both sides word for word", () => {
-    const ruling = "Both sides filed. The property was not handed over, so the money goes back.";
-    for (const viewer of ["payer", "payee"] as const) {
-      const message = templateFor("escrow.RESOLVED")?.build(
-        escrowPayload("RESOLVED", viewer, {
-          direction: "refund",
-          ruling,
-          commission_minor: 0,
-          net_minor: 250_000_00,
-        }),
-        contextFor(viewer === "payer" ? PAYER : PAYEE, "Ada"),
-      );
-      expect(message?.html).toContain(ruling);
-    }
-  });
-
-  it("refuses to send a dispute or a ruling with no words in it", () => {
-    expect(
-      templateFor("escrow.DISPUTED")?.build(
-        escrowPayload("DISPUTED", "payer", { raised_by: PAYER, reason: null }),
-        contextFor(PAYER, "Ada"),
-      ),
-    ).toBeNull();
-    expect(
-      templateFor("escrow.RESOLVED")?.build(
-        escrowPayload("RESOLVED", "payer", { direction: "release", ruling: "" }),
-        contextFor(PAYER, "Ada"),
-      ),
-    ).toBeNull();
-  });
-
-  it("builds nothing from a payload missing the amount or the purpose", () => {
-    expect(
-      templateFor("escrow.HELD")?.build(
-        { escrow_id: ESCROW, viewer: "payer", purpose: "agency_fee" },
-        contextFor(PAYER, "Ada"),
-      ),
-    ).toBeNull();
-    expect(
-      templateFor("escrow.HELD")?.build(
-        { escrow_id: ESCROW, viewer: "payer", amount_minor: 100 },
-        contextFor(PAYER, "Ada"),
-      ),
-    ).toBeNull();
-  });
-
-  it("reads an amount that arrived as a string, because money is integer kobo", () => {
-    const message = templateFor("escrow.HELD")?.build(
-      escrowPayload("HELD", "payer", { amount_minor: "25000000", auto_release_at: null }),
-      contextFor(PAYER, "Ada"),
-    );
-    expect(message?.text).toContain("250,000");
-    expect(message?.text).not.toContain("NaN");
+    expect(message).toBeNull();
   });
 });
 
@@ -412,30 +295,8 @@ describe("the security messages", () => {
   });
 });
 
-describe("the withdrawal, the inspection and the rung", () => {
-  it("names the bank but never a bank account number", () => {
-    const message = templateFor("wallet.withdrawal_outcome")?.build(
-      PAYLOADS["wallet.withdrawal_outcome"],
-      contextFor(PAYER, "Ada"),
-    );
-    expect(message?.text).toContain("GTBank");
-    /* `withdrawal` resolves `accountLast4` to null for a bank destination, so
-       no NUBAN fragment can reach the page. */
-    expect(message?.text).not.toContain("****");
-  });
+describe("the inspection and the rung", () => {
 
-  it("tells failed and reversed apart", () => {
-    const failed = templateFor("wallet.withdrawal_outcome")?.build(
-      { ...PAYLOADS["wallet.withdrawal_outcome"], outcome: "failed" },
-      contextFor(PAYER, "Ada"),
-    );
-    const reversed = templateFor("wallet.withdrawal_outcome")?.build(
-      { ...PAYLOADS["wallet.withdrawal_outcome"], outcome: "reversed" },
-      contextFor(PAYER, "Ada"),
-    );
-    expect(failed?.text).toContain("Not sent, money still in your wallet");
-    expect(reversed?.text).toContain("Returned to your wallet by the bank");
-  });
 
   /**
    * ONE LEDGER ROW, TWO DOORS, AND THE WORDS MUST FOLLOW THE DOOR.
@@ -459,56 +320,8 @@ describe("the withdrawal, the inspection and the rung", () => {
    * This is the guard that would fail if somebody quietly reintroduced a
    * third-party send without reintroducing the words to go with it.
    */
-  it("gives every row the withdrawal wording, because there is one door left", () => {
-    const own = templateFor("wallet.withdrawal_outcome")?.build(
-      PAYLOADS["wallet.withdrawal_outcome"],
-      contextFor(PAYER, "Ada"),
-    );
-    /* SENT_ENTRY is the row that used to carry a third-party destination. It
-       must now read exactly like every other row. */
-    const legacy = templateFor("wallet.withdrawal_outcome")?.build(
-      { ...PAYLOADS["wallet.withdrawal_outcome"], entry_id: SENT_ENTRY },
-      contextFor(PAYER, "Ada"),
-    );
 
-    expect(own?.subject).toBe("Your withdrawal did not go through");
-    expect(legacy?.subject).toBe("Your withdrawal did not go through");
 
-    /* The two rows carry different bank details, so the bodies are not byte
-       identical and asserting that they are would be asserting the fixtures
-       rather than the wording. What must be identical is every sentence that
-       used to branch on the destination. */
-    const flat = (raw: string | undefined) => (raw ?? "").replace(/\s+/g, " ");
-    for (const built of [own, legacy]) {
-      expect(flat(built?.text)).toContain("The transfer to your bank did not complete");
-      expect(flat(built?.text)).toContain("try the withdrawal again");
-      /* And nobody is addressed as having sent money to somebody else. */
-      expect(flat(built?.text)).not.toContain("the account you sent it to");
-      expect(flat(built?.text)).not.toContain("send it again");
-    }
-  });
-
-  it("a paid withdrawal says the money is on its way to their bank", () => {
-    const paid = templateFor("wallet.withdrawal_outcome")?.build(
-      { ...PAYLOADS["wallet.withdrawal_outcome"], entry_id: SENT_ENTRY, outcome: "paid" },
-      contextFor(PAYER, "Ada"),
-    );
-    expect(paid?.subject).toContain("on its way to your bank");
-    expect(paid?.text).toContain("Sent to your bank");
-    /* The bank and four digits, and no holder's name anywhere (rule 16). */
-    expect(paid?.text).toContain("Sparkle Microfinance Bank ****6789");
-  });
-
-  it("an entry the drain could not read is treated as the person's own withdrawal", () => {
-    /* A row whose metadata says nothing is every row the withdraw door has
-       ever written. Defaulting the other way would tell somebody moving their
-       own balance home that they had sent money to a stranger. */
-    const unknown = templateFor("wallet.withdrawal_outcome")?.build(
-      { ...PAYLOADS["wallet.withdrawal_outcome"], entry_id: LISTING },
-      contextFor(PAYER, "Ada"),
-    );
-    expect(unknown?.subject).toBe("Your withdrawal did not go through");
-  });
 
   it("refuses an inspection with no property or no time", () => {
     expect(

@@ -13,24 +13,21 @@
  *    checkout for the amount on the STORED booking row. Settlement belongs to
  *    the webhook and the return path, never to this action: nothing here marks
  *    anything paid.
- *  - payWithWallet re-prices the guest's spendable balance server side and then
- *    does everything else inside ONE database function: debit the wallet,
- *    record the transaction, write the balanced ledger row, confirm the
- *    booking, append the state event and close the calendar nights. All or
- *    nothing, because a half-paid booking is the worst state this platform
- *    could hold.
  *  - settleCardPayment is the return-from-Paystack path. It verifies with the
  *    processor and then calls the same settlement the webhook calls, so
  *    whichever arrives first wins and the second is a no-op.
  *
- * The platform charges nothing. The amount is always the booking total exactly
- * as stored, computed at reserve from the listing's own price snapshot and
- * never taken from the client (docs/MASTER_TODO.md section 5b).
+ * VALLO NEVER HOLDS THE MONEY (Track A, 25 September 2026). Payment opens only
+ * on an approved agreement, and every charge carries the split the database
+ * computed: the lister's share to their own subaccount, the Guarantee
+ * contribution to the reserve subaccount, Vallo's commission (zero today) to
+ * the main account, all from the same transaction. There is no wallet path:
+ * a balance Vallo held would be custody. The amount is always the booking
+ * total exactly as stored, never taken from the client.
  *
  * Every amount is integer kobo, end to end (Master Rule 50).
  */
 
-import { moneyHoldRefusal } from "../wallet/money-hold";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -41,7 +38,6 @@ import {
 } from "../actions/session";
 import { contactFromSession } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
-import { nairaExact } from "../payments/money";
 import {
   PaystackError,
   initializeTransaction,
@@ -49,16 +45,14 @@ import {
   verifyTransaction,
 } from "../payments/paystack";
 import { chargeSavedCard, type ChargeSavedCardOutcome } from "../payments/charge-saved-card";
-import { bookingReference, isBookingReference } from "../payments/references";
+import { isBookingReference } from "../payments/references";
+import { isRefusal, openSplitAttempt } from "../payments/split-attempt";
+import { refundChargeToCard } from "../payments/refund";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { bookingPaymentSubject } from "./payment-subject";
 import { checkoutReturnPath } from "../rent/return-path";
-import { ALREADY_LET_MESSAGE } from "../rent/db";
 import { guardMoney } from "../security/money-limits";
-import { accountHoldRefusal } from "../security/account-hold-guard";
-import { moneyLockRefusalFor } from "../security/money-lock-guard";
-import { createClient } from "../supabase/server";
-import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 import { announceConfirmedStay } from "./arrival";
 import { cancelInputSchema } from "./schema";
 import { bookingForReference, markChargeFailed, settleBookingCharge } from "./settlement";
@@ -69,9 +63,6 @@ const PAUSED_MESSAGE =
 
 const CARD_UNCONFIGURED_MESSAGE =
   "We cannot reach card payment right now. Your booking is untouched and your dates are still held.";
-
-const WALLET_OFF_MESSAGE =
-  "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
 
 const NOT_FOUND_MESSAGE =
   "We could not find that booking on your account. Open it again from Bookings, and check you are signed in with the account that reserved it.";
@@ -89,13 +80,6 @@ const ALREADY_PAID_MESSAGE = "This booking is already paid, so there is nothing 
 const CANCELLED_MESSAGE =
   "This booking was cancelled, so it cannot be paid. Search again and pick new dates.";
 
-/**
- * Kept for the one case that still means it: the database refused because the
- * booking left a payable state between the guard's read and the write. It is no
- * longer said about a CONFIRMED booking, because a confirmed stay can still be
- * unpaid and telling that guest "nothing further is needed" was simply false.
- */
-const CONFIRMED_MESSAGE = "This booking is already confirmed. Nothing further is needed.";
 
 const SERVICE_DOWN_MESSAGE =
   "Payment is temporarily unavailable. Your booking is unchanged. Please try again shortly.";
@@ -136,14 +120,6 @@ export type CardCheckout = {
   accessCode: string;
   reference: string;
   amountMinor: number;
-};
-
-export type WalletPayment = {
-  bookingId: string;
-  amountMinor: number;
-  reference: string;
-  /** The spendable balance left after the payment, in kobo. */
-  balanceAfterMinor: number;
 };
 
 export type CardSettlement = {
@@ -316,20 +292,12 @@ async function startCardCheckoutWork(
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
-  const amountMinor = booking.total_minor;
-  const reference = bookingReference();
-
-  // The attempt row goes in first, so a webhook that beats the redirect back
-  // has something to settle and never has to invent a booking.
-  const attempt = await admin.from("transactions").insert({
-    booking_id: booking.id,
-    provider: "paystack",
-    provider_ref: reference,
-    amount_minor: amountMinor,
-    currency: booking.currency,
-    status: "PENDING",
-  });
-  if (attempt.error) return fail(SERVICE_DOWN_MESSAGE);
+  // The attempt row goes in first, with its split, so a webhook that beats
+  // the redirect back has something to settle and never has to invent a
+  // booking. No approved agreement or no payee account means no attempt.
+  const opened = await openSplitAttempt(admin, booking);
+  if (isRefusal(opened)) return fail(opened.message);
+  const { reference, amountMinor } = opened;
 
   // A rent charge comes back to /rent/pay/<inspectionId>, a stay to
   // /checkout/<bookingId>; the database decides which (lib/rent/return-path).
@@ -344,8 +312,10 @@ async function startCardCheckoutWork(
       metadata: {
         booking_id: booking.id,
         user_id: userId,
+        agreement_id: opened.agreementId,
         purpose: "booking_payment",
       },
+      split: opened.split,
     });
     return ok({
       authorizationUrl: tx.authorizationUrl,
@@ -416,29 +386,20 @@ async function payWithSavedCardWork(
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
-  const amountMinor = booking.total_minor;
-  const reference = bookingReference();
-
-  // The same attempt row the hosted path writes, under the same reference
-  // scheme, because a saved-card charge is just a charge with a reference:
-  // the webhook settles it with the identical code path and a replay collides
-  // on the same unique provider_ref.
-  const attempt = await admin.from("transactions").insert({
-    booking_id: booking.id,
-    provider: "paystack",
-    provider_ref: reference,
-    amount_minor: amountMinor,
-    currency: booking.currency,
-    status: "PENDING",
-  });
-  if (attempt.error) return fail(SERVICE_DOWN_MESSAGE);
+  // The same attempt row, with the same split, the hosted path writes: a
+  // saved-card charge is just a charge with a reference, settled by the
+  // identical code path.
+  const opened = await openSplitAttempt(admin, booking);
+  if (isRefusal(opened)) return fail(opened.message);
+  const { reference, amountMinor } = opened;
 
   const charged = await chargeSavedCard({
     methodId,
     amountMinor,
     reference,
     purpose: "booking_payment",
-    metadata: { booking_id: booking.id },
+    metadata: { booking_id: booking.id, agreement_id: opened.agreementId },
+    split: opened.split,
     callbackUrl: `${await siteOrigin()}${await checkoutReturnPath(admin, booking.id, reference)}`,
   });
 
@@ -493,168 +454,6 @@ export async function payWithSavedCard(
       shouldRecord: (result) => result.ok,
     },
     () => payWithSavedCardWork(guarded.booking, input.methodId),
-  );
-
-  if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
-  return run.result;
-}
-
-/* ---------------------------------------------------------- wallet path */
-
-/**
- * The atomic wallet payment, reached by name because it is a money-critical
- * door defined once in SQL and called from exactly here. The generated types
- * do not carry it, so the client is narrowed to the single method used rather
- * than the whole surface being loosened.
- */
-type RpcCaller = {
-  rpc: (
-    fn: string,
-    args: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: { message?: string | null } | null }>;
-};
-
-type WalletPayOutcome =
-  | { status: "ok"; amount_minor?: number; reference?: string }
-  | { status: "insufficient"; available_minor?: number }
-  | { status: string; available_minor?: number };
-
-function readOutcome(data: unknown): WalletPayOutcome | null {
-  if (typeof data !== "object" || data === null || Array.isArray(data)) return null;
-  const status = (data as Record<string, unknown>).status;
-  if (typeof status !== "string") return null;
-  const available = (data as Record<string, unknown>).available_minor;
-  return {
-    status,
-    ...(typeof available === "number" ? { available_minor: available } : {}),
-  };
-}
-
-async function payWithWalletWork(
-  booking: PayableBooking,
-  userId: string,
-  email: string | null,
-  displayName: string | null,
-): Promise<ActionResult<WalletPayment | null>> {
-  if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF_MESSAGE);
-
-  const admin = getAdminClient();
-  if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
-
-  const amountMinor = booking.total_minor;
-  const reference = bookingReference();
-
-  /* V-19: while a money hold stands, paying from the balance is refused by
-     the audit's trigger. Said in words first, from the payer's own RLS read. */
-  const own = await createClient().catch(() => null);
-  if (own) {
-    const accountHold = await accountHoldRefusal(own);
-    if (accountHold) return fail(accountHold);
-  }
-
-  // A first read of the spendable balance, so a guest who plainly cannot afford
-  // the stay is told so without a write being attempted. The figure that
-  // actually decides the payment is re-read inside the database function, under
-  // a row lock, because only that one can be trusted against a concurrent spend.
-  let available: number;
-  try {
-    const walletId = await ensureWalletId(admin, userId);
-    available = await availableBalanceMinor(admin, walletId);
-  } catch {
-    return fail(SERVICE_DOWN_MESSAGE);
-  }
-
-  if (available < amountMinor) {
-    return fail(
-      `Your available wallet balance is ${nairaExact(available)}, and this stay comes to ${nairaExact(amountMinor)}. Add money to your wallet or pay by card.`,
-    );
-  }
-
-  let outcome: WalletPayOutcome | null = null;
-  try {
-    const caller = admin as unknown as RpcCaller;
-    const { data, error } = await caller.rpc("pay_booking_from_wallet", {
-      payer: userId,
-      target_booking: booking.id,
-      payment_reference: reference,
-    });
-    if (error) return fail(moneyHoldRefusal(error) ?? SERVICE_DOWN_MESSAGE);
-    outcome = readOutcome(data);
-  } catch {
-    return fail(SERVICE_DOWN_MESSAGE);
-  }
-
-  if (!outcome) return fail(SERVICE_DOWN_MESSAGE);
-
-  if (outcome.status === "insufficient") {
-    const exact = typeof outcome.available_minor === "number" ? outcome.available_minor : available;
-    return fail(
-      `Your available wallet balance is ${nairaExact(exact)}, and this stay comes to ${nairaExact(amountMinor)}. Add money to your wallet or pay by card.`,
-    );
-  }
-  if (outcome.status === "not_payable") return fail(CANCELLED_MESSAGE);
-  if (outcome.status === "not_pending") return fail(CONFIRMED_MESSAGE);
-  if (outcome.status === "not_found") return fail(NOT_FOUND_MESSAGE);
-  if (outcome.status === "already_paid") return fail(ALREADY_PAID_MESSAGE);
-  if (outcome.status === "already_let") return fail(ALREADY_LET_MESSAGE);
-  if (outcome.status !== "ok" && outcome.status !== "duplicate") return fail(SERVICE_DOWN_MESSAGE);
-
-  // Everything committed together or not at all. Reading the balance back is
-  // display only and must never turn a paid stay into an error.
-  let balanceAfterMinor = available - amountMinor;
-  try {
-    const walletId = await ensureWalletId(admin, userId);
-    balanceAfterMinor = await availableBalanceMinor(admin, walletId);
-  } catch {
-    // Keep the arithmetic figure; the wallet page re-reads the real one.
-  }
-
-  revalidatePath("/bookings");
-  revalidatePath("/wallet");
-  revalidatePath(`/checkout/${booking.id}`);
-
-  // The booking is CONFIRMED in the database. Telling the payer, and the
-  // person actually arriving when they are somebody else, is best effort: the
-  // confirmation stands whether or not either email leaves.
-  await announceConfirmedStay(admin, {
-    bookingId: booking.id,
-    totalMinor: amountMinor,
-    actingUser: { id: userId, contact: email !== null ? { email, name: displayName } : null },
-  });
-
-  return ok({ bookingId: booking.id, amountMinor, reference, balanceAfterMinor });
-}
-
-/**
- * Pay a booking from the guest's own Vallo wallet.
- *
- * The spendable balance is re-checked server side and then again inside the
- * database function under a row lock, so two taps racing each other cannot both
- * spend the last naira. Wrapped in the idempotency guard as well, so a retry on
- * a dropped connection replays the first receipt.
- */
-export async function payWithWallet(
-  input: CheckoutInput,
-): Promise<ActionResult<WalletPayment | null>> {
-  const guarded = await guardPayable(input.bookingId);
-  if (!guarded.ok) return guarded.result;
-
-  const limit = await guardMoney("payWithWallet", guarded.userId);
-  if (!limit.allowed) return fail(limit.message);
-  /* V-81: paying from the balance is money leaving the wallet. The booking
-     fixes the amount, so the proof names the booking. */
-  const lock = await moneyLockRefusalFor(guarded.userId, input.stepUp, { kind: "pay_wallet", target: guarded.booking.id });
-  if (lock) return fail(lock);
-
-  const run = await withIdempotency<ActionResult<WalletPayment | null>>(
-    {
-      scope: BOOKING_PAYMENT_SCOPE,
-      key: input.idempotencyKey ?? null,
-      subject: bookingPaymentSubject(guarded.booking.id),
-      shouldRecord: (result) => result.ok,
-    },
-    () =>
-      payWithWalletWork(guarded.booking, guarded.userId, guarded.email, guarded.displayName),
   );
 
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
@@ -748,9 +547,14 @@ export async function settleCardPayment(
   if (settlement.outcome === "unknown-reference") {
     return fail("That payment could not be matched to a booking. Our team reconciles it for you.");
   }
-  if (settlement.outcome === "returned-to-wallet") {
+  if (settlement.outcome === "refund-due") {
+    await refundChargeToCard(admin, {
+      reference: settlement.reference || reference,
+      reason: settlement.reason,
+      actor: { kind: "user", userId: session.user.id },
+    });
     return fail(
-      "Your payment went through but could not be applied to this booking, so the whole amount is in your Vallo wallet now. Nothing is lost; you can use it from your wallet.",
+      "Your payment went through but could not be applied to this booking, so the whole amount is being returned to the card or account you paid with. Vallo has kept nothing. Banks usually show it within 5 to 10 working days.",
     );
   }
 

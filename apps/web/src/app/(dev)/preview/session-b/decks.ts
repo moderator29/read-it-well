@@ -5,7 +5,6 @@
  */
 export const SESSION_B_DECKS: readonly (readonly [slug: string, note: string])[] = [
   ["admin", "Admin console shell: overview, operations, analytics, back arrow"],
-  ["admin-money", "Money desks: money, escrow, payments, bookings, supply"],
   ["admin-review", "Review desks: listings, review, moderation, KYC"],
   ["audit2-fixes", "Fixes from the second interface audit"],
   ["feed", "Around: the feed"],
@@ -17,8 +16,6 @@ export const SESSION_B_DECKS: readonly (readonly [slug: string, note: string])[]
   ["sweep-orphans", "Platform sweep: screens with no other deck"],
   ["sweep-settings", "Platform sweep: settings"],
   ["sweep-social", "Platform sweep: social"],
-  ["sweep-stays", "Platform sweep: stays, checkout, escrow"],
-  ["sweep-wallet", "Wallet sweep"],
-  ["wallet", "Wallet and send"],
+  ["sweep-stays", "Platform sweep: stays and checkout"],
   ["welcome", "Welcome and first run"],
 ];

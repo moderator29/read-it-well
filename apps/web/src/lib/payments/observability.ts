@@ -30,9 +30,8 @@ export type MoneySurface =
   | "verify"
   | "reconcile"
   | "fund"
-  | "withdraw"
-  | "transfer"
-  | "escrow";
+  | "refund"
+  | "payout-account";
 
 /**
  * What happened. Deliberately small and closed: an alert rule wants a fixed

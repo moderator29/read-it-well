@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash, randomBytes } from "node:crypto";
 import { authOrigin } from "../site";
-import { getAdminClient } from "../wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 import { b64urlToBuffer, bufferToB64url, checkClientData, readEnrolKey, verifyAssertion, type Alg } from "./webauthn";
 import { intentLine, type MoneyIntent } from "./money-intent";
 

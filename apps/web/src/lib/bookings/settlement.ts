@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { AdminClient } from "../wallet/ledger";
+import type { AdminClient } from "@/lib/supabase/service";
 
 /**
  * Booking settlement: the one place a card charge becomes a paid booking.
@@ -12,24 +12,27 @@ import type { AdminClient } from "../wallet/ledger";
  * disagree about money.
  *
  * WHAT MAKES IT IDEMPOTENT, AND SAFE AGAINST A SECOND PAYMENT. The decision is
- * the database's, in `private.settle_booking_charge`, under the payer's wallet
- * lock and then the booking's: an attempt already SUCCESSFUL or REFUNDED moves
- * nothing; the first charge that matches an open booking settles it and writes
- * one ledger row; any other charge the processor has taken (the booking is
- * already paid, is cancelled or finished, or the amount is not its price) is
- * returned to the payer's wallet in the same transaction (MON-05, OPS-02).
+ * the database's, in `private.settle_booking_charge`, under the booking's lock:
+ * an attempt already SUCCESSFUL or REFUNDED moves nothing; the first charge
+ * that matches an approved agreement settles it and writes one ledger row and
+ * one Guarantee contribution; any other charge the processor has taken (no
+ * approved agreement, the booking is already paid, cancelled or finished, or
+ * the amount is not its price) is marked refund-due and goes back to the CARD.
+ * Vallo never keeps it and never credits it anywhere: there is no wallet
+ * (Track A, 25 September 2026).
  *
  * A stay can be CONFIRMED and still unpaid, because a host accepting a
  * request-to-book stay confirms it without any money arriving. So "did the
  * status change" is not the same question as "did money move on this call",
  * and a receipt must be gated on `outcome: "settled"`, never on `confirmed`.
  *
- * THE COMMERCIAL RULE. The platform charges nothing (docs/MASTER_TODO.md
- * section 5b), so every ledger row reads: gross is the booking total,
- * platform_fee_minor is 0, processor_fee_minor is whatever the processor
- * actually took (0 when it did not say), and agent_share_minor is the rest.
- * That satisfies the ledger_balances_chk constraint exactly, in integer kobo:
- * gross = 0 + (gross - processor) + processor.
+ * THE SPLIT. The charge was opened with a Paystack split that the database
+ * computed (`public.payment_split_for_booking`): the lister's share to their
+ * subaccount, the Guarantee contribution to the reserve subaccount, and
+ * Vallo's commission (zero today) to the main account. The ledger row records
+ * exactly that: gross = platform fee + lister share + processor fee +
+ * guarantee, in integer kobo, with the processor's fee borne by the lister's
+ * subaccount as the split's bearer.
  */
 
 /** Every calendar date in [checkIn, checkOut), ISO strings. Half-open nights. */
@@ -96,6 +99,8 @@ export type ChargeDecomposition = {
   agentShareMinor: number;
   processorFeeMinor: number;
   netSettlementMinor: number;
+  /** The Guarantee contribution that settled to the reserve with this charge. */
+  guaranteeMinor?: number;
 };
 
 /**
@@ -140,13 +145,13 @@ export type ChargeSettlement =
       ledger: ChargeDecomposition;
     }
   /**
-   * MON-05 / OPS-02. The processor took the money but it could not be applied
-   * to the booking: the booking was already paid, is no longer open, has a
-   * check-in that passed while unconfirmed, or the amount is not its price.
-   * The database has already credited the whole amount to the payer's wallet,
-   * marked the attempt REFUNDED and raised an alert. Nothing is announced.
+   * The processor took the money but it could not be applied to the booking:
+   * no approved agreement, already paid, no longer open, a check-in that passed
+   * while unconfirmed, or the wrong amount. The database marked the attempt
+   * FAILED and raised an alert. The caller refunds the whole charge to the
+   * card (`refundChargeToCard`). Nothing is announced as paid.
    */
-  | { outcome: "returned-to-wallet"; bookingId: string; reason: string; amountMinor: number }
+  | { outcome: "refund-due"; bookingId: string; reason: string; amountMinor: number; reference: string }
   /** The reference was already settled. Nothing moved, nothing to announce. */
   | { outcome: "already-settled"; bookingId: string | null }
   /** No transaction carries this reference and no booking was named for it. */
@@ -175,16 +180,18 @@ export function readSettlement(data: unknown): ChargeSettlement {
           agentShareMinor: num(l.agentShareMinor),
           processorFeeMinor: num(l.processorFeeMinor),
           netSettlementMinor: num(l.netSettlementMinor),
+          guaranteeMinor: num(l.guaranteeMinor),
         },
       };
     }
-    case "returned-to-wallet":
+    case "refund-due":
       if (!bookingId) throw new Error("settle_booking_charge returned no booking");
       return {
-        outcome: "returned-to-wallet",
+        outcome: "refund-due",
         bookingId,
         reason: typeof r.reason === "string" ? r.reason : "unknown",
         amountMinor: num(r.amount_minor),
+        reference: typeof r.reference === "string" ? r.reference : "",
       };
     case "already-settled":
       return { outcome: "already-settled", bookingId };
@@ -205,8 +212,8 @@ export function readSettlement(data: unknown): ChargeSettlement {
  * recorded as a second success and a charge landing on a cancelled booking was
  * kept. It is now one call to `public.settle_booking_charge`, which decides
  * everything under the booking's lock in one transaction: the first matching
- * charge settles it; any other charge the processor has taken goes back to the
- * payer's wallet. It never raises for a charge that moved money, so the
+ * charge settles it; any other charge the processor has taken is marked for a
+ * refund to the card. It never raises for a charge that moved money, so the
  * webhook can always answer 200.
  *
  * `fallbackBookingId` heals the one case where the processor knows about a
@@ -241,7 +248,7 @@ export async function settleBookingCharge(
  * Mark a payment attempt FAILED and leave the booking exactly as it was.
  *
  * A failed card attempt must not cancel the stay: the guest still holds their
- * dates and can try again, by card or from their wallet. Only a PENDING
+ * dates and can try again. Only a PENDING
  * attempt moves, so a delivery arriving after a successful settlement cannot
  * unpick it. Returns true when this call moved the row.
  */

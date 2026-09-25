@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
-import { WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
+import { NO_CUSTODY_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
 
 export const metadata: Metadata = {
   title: "Cancellation policy",
@@ -80,8 +80,8 @@ export default function CancellationPolicyPage() {
               than by a button, because a refund is somebody&apos;s money and it
               deserves a name against the decision. Write to support with your
               booking reference. We apply the schedule above exactly as it is
-              written, the refund goes to your Vallo wallet, and you get the
-              amount and the reason in writing.
+              written, the refund goes back to the card or account you paid with,
+              and you get the amount and the reason in writing.
             </p>
             <p className="mt-row text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               Cancellation requests are answered{" "}
@@ -164,10 +164,8 @@ export default function CancellationPolicyPage() {
           </h2>
           <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Into your Vallo wallet, in naira, to the kobo, usually within minutes
-              of the decision. One wallet serves both sides of the product.{" "}
-              {WALLET_MONEY_USES} A refund is not returned to the card it was paid
-              with.
+              {REFUND_ROUTE} {NO_CUSTODY_SENTENCE} There is no Vallo balance for a
+              refund to sit in, so it always goes back the way the money came.
             </p>
           </div>
         </section>
@@ -186,7 +184,7 @@ export default function CancellationPolicyPage() {
               The schedule above is for stays: a room, a flat or a house taken by
               the night. A year&apos;s rent, a purchase or a commercial lease is
               settled in the agreement you sign with the agent, and the terms in
-              that agreement are the ones that apply. Vallo holds the
+              that agreement are the ones that apply. Vallo keeps the
               conversation, the inspection and the record of what was paid, and it
               does not overwrite what the two of you agreed.
             </p>

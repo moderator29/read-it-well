@@ -1,0 +1,122 @@
+import { NO_CUSTODY_SENTENCE, OFF_PLATFORM_SENTENCE } from "../money/copy";
+import { appUrl, button, compose, heading, hello, money, note, paragraph, rows, type Block, type ReceiptRow } from "./render";
+import type { EmailMessage } from "./messages";
+
+/**
+ * THE AGREEMENT AND GUARANTEE EMAILS (Track A, 25 September 2026).
+ *
+ * The admin gate between an agreement and payment tells both parties the
+ * moment it decides, by email and in the app. These are the emails. Each one
+ * says what was decided, what it means for money (nothing has moved; payment
+ * opens now, or does not), and the one thing to do next.
+ */
+
+function message(subject: string, preheader: string, blocks: readonly (Block | null | false)[], footer: string): EmailMessage {
+  const { html, text } = compose({ preheader, blocks, footerLines: [footer] });
+  return { subject, html, text };
+}
+
+export type AgreementEmailData = {
+  name: string | null;
+  viewer: "renter" | "owner";
+  kind: "rent" | "stay";
+  listingTitle: string | null;
+  amountMinor: number;
+  agreementId: string;
+  reason?: string | null;
+};
+
+function place(data: AgreementEmailData): string {
+  return data.listingTitle ?? (data.kind === "rent" ? "the property" : "your stay");
+}
+
+function facts(data: AgreementEmailData): ReceiptRow[] {
+  return [
+    { label: "Property", value: place(data) },
+    { label: "Total agreed", value: money(data.amountMinor), strong: true },
+  ];
+}
+
+export function agreementApproved(data: AgreementEmailData): EmailMessage {
+  const renter = data.viewer === "renter";
+  return message(
+    `Approved: payment is open for ${place(data)}`,
+    renter ? "Vallo approved the agreement. You can pay now." : "Vallo approved the agreement. The renter can pay now.",
+    [
+      heading("Your agreement is approved"),
+      paragraph(
+        `${hello(data.name)} Vallo reviewed the agreement for ${place(data)} that both of you confirmed, and approved it.`,
+      ),
+      rows(facts(data)),
+      paragraph(
+        renter
+          ? "Payment is open now, in the app. Pay through Vallo only."
+          : "The renter can pay now. Your share settles straight to the bank account on your payout details.",
+      ),
+      paragraph(NO_CUSTODY_SENTENCE),
+      button(renter ? "Pay in the app" : "Open the agreement", appUrl(`/agreements/${data.agreementId}`)),
+      note(OFF_PLATFORM_SENTENCE),
+    ],
+    "You are receiving this because you are a party to an agreement on Vallo.",
+  );
+}
+
+export function agreementRejected(data: AgreementEmailData): EmailMessage {
+  return message(
+    `Sent back: the agreement for ${place(data)}`,
+    "Vallo did not approve the agreement yet. Here is why.",
+    [
+      heading("Vallo sent the agreement back"),
+      paragraph(`${hello(data.name)} Vallo reviewed the agreement for ${place(data)} and did not approve it yet.`),
+      data.reason ? rows([{ label: "Why", value: data.reason, strong: true }]) : null,
+      paragraph("Nothing has been charged. Change what the reason names, and both of you confirm the new version."),
+      button("Open the agreement", appUrl(`/agreements/${data.agreementId}`)),
+      note(OFF_PLATFORM_SENTENCE),
+    ],
+    "You are receiving this because you are a party to an agreement on Vallo.",
+  );
+}
+
+export function agreementWaiting(data: AgreementEmailData): EmailMessage {
+  return message(
+    `An agreement is waiting for you: ${place(data)}`,
+    "Read the terms and confirm them in the app.",
+    [
+      heading("Terms waiting for your confirmation"),
+      paragraph(
+        `${hello(data.name)} An agreement for ${place(data)} has been drawn up. Read the terms and confirm them in the app. Once both of you confirm, Vallo reviews it and then payment opens.`,
+      ),
+      rows(facts(data)),
+      button("Read the terms", appUrl(`/agreements/${data.agreementId}`)),
+      note(OFF_PLATFORM_SENTENCE),
+    ],
+    "You are receiving this because you are a party to an agreement on Vallo.",
+  );
+}
+
+export type ClaimDecidedData = {
+  name: string | null;
+  decision: "approve" | "reject";
+  amountMinor: number | null;
+  reason: string | null;
+  agreementId: string;
+};
+
+export function guaranteeClaimDecided(data: ClaimDecidedData): EmailMessage {
+  const approved = data.decision === "approve";
+  return message(
+    approved ? "Your Vallo Guarantee claim is approved" : "Your Vallo Guarantee claim was not approved",
+    approved ? "A person at Vallo approved your claim." : "A person at Vallo reviewed your claim.",
+    [
+      heading(approved ? "Claim approved" : "Claim not approved"),
+      paragraph(
+        approved
+          ? `${hello(data.name)} Vallo approved ${data.amountMinor !== null ? money(data.amountMinor) : "your claim"} from the Vallo Guarantee. It will be paid to your bank account, and you will be told when it is sent.`
+          : `${hello(data.name)} Vallo reviewed your claim against the inspection report and did not approve it.`,
+      ),
+      data.reason ? rows([{ label: approved ? "Note" : "Why", value: data.reason }]) : null,
+      button("Open the agreement", appUrl(`/agreements/${data.agreementId}`)),
+    ],
+    "You are receiving this because you made a claim on the Vallo Guarantee.",
+  );
+}

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
-import { getAdminClient } from "@/lib/wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 
 /**
  * GET /api/plans/next. THE HOME-SCREEN WIDGET'S ONE QUESTION. V-98.

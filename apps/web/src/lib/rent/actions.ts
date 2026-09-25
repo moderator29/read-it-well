@@ -30,7 +30,7 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
 import { payWithSavedCard } from "../bookings/checkout";
 import { isFeatureEnabled } from "../flags";
 import type { ChargeSavedCardOutcome } from "../payments/charge-saved-card";
-import { getAdminClient } from "../wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 import { ALREADY_LET_MESSAGE, readOpenOutcome } from "./db";
 import { lagosToday, rentPaymentIdSchema, startRentPaymentSchema, whyNotMoveIn } from "./schema";
 

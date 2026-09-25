@@ -15,7 +15,7 @@ vi.mock("../security/rate-limit", () => ({
   ipFromHeaders: () => "203.0.113.9",
   subjectForIp: (ip: string) => `ip:${ip}`,
 }));
-vi.mock("../wallet/ledger", () => ({ getAdminClient: () => ({}) }));
+vi.mock("@/lib/supabase/service", () => ({ getAdminClient: () => ({}) }));
 vi.mock("../landlord/rpc", () => ({ callLandlordRpc: (...args: unknown[]) => rpc(...args) }));
 vi.mock("../actions/session", () => ({
   NOT_CONFIGURED_MESSAGE: "nc",

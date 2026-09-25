@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/guard";
 import { ingestList } from "@/lib/compliance/sanctions/ingest";
 import { uploadSource } from "@/lib/compliance/sanctions/sources";
-import { getAdminClient } from "@/lib/wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 import { siteUrl } from "@/lib/site";
 
 /**

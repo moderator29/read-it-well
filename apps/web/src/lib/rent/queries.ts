@@ -57,9 +57,8 @@ export type RentPayView = {
   holdExpiresAt: string | null;
   holdExpired: boolean;
   cardAvailable: boolean;
-  walletBalanceMinor: number;
-  walletBalanceDisplay: string;
-  walletCovers: boolean;
+  /** TRACK A. The agreement drawn up from this inspection, as the tenant reads it. */
+  agreement: { id: string; status: string; reason: string | null } | null;
   /** V-24: the move-in day as a weekday, "Fri 16 Oct". */
   moveInDisplay: string;
   /** V-13: when the lister's yes froze the figure, or null before any yes froze one. */
@@ -183,22 +182,11 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
       paid = (settledRead.data?.length ?? 0) > 0;
     }
 
-    // Spendable, not settled: the derived balance minus every PENDING debit,
-    // the same arithmetic the checkout view and the wallet ledger use.
-    const [balanceRead, heldRead] = await Promise.all([
-      session.supabase.from("wallet_balances").select("balance_minor").eq("user_id", session.user.id).maybeSingle(),
-      /* SEC-02. The caller's own wallet: an admin reads every entry. */
-      session.supabase
-        .from("wallet_entries")
-        .select("amount_minor, wallets!inner(user_id)")
-        .eq("wallets.user_id", session.user.id)
-        .eq("status", "PENDING")
-        .eq("direction", "debit"),
-    ]);
-    const settledBalance = balanceRead.data?.balance_minor ?? 0;
-    let held = 0;
-    for (const row of heldRead.data ?? []) held += row.amount_minor;
-    const walletBalanceMinor = Math.max(0, settledBalance - held);
+    const { data: agreementRow } = await session.supabase
+      .from("deal_agreements")
+      .select("id, status, decision_reason")
+      .eq("inspection_id", inspectionId)
+      .maybeSingle();
 
     const currency = charge?.currency ?? "NGN";
     const money = (minor: number) => formatMoney(minor, locale, currency);
@@ -242,15 +230,15 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
         holdExpiresAt: holdExpiresAtMs !== null ? new Date(holdExpiresAtMs).toISOString() : null,
         holdExpired,
         cardAvailable: isPaystackConfigured(),
-        walletBalanceMinor,
-        walletBalanceDisplay: money(walletBalanceMinor),
-        walletCovers: walletBalanceMinor >= ledger.totalMinor && ledger.totalMinor > 0,
+        agreement: agreementRow
+          ? { id: agreementRow.id, status: agreementRow.status, reason: agreementRow.decision_reason ?? null }
+          : null,
         moveInDisplay: formatMoneyDate(moveIn < lagosToday() ? lagosToday() : moveIn, locale) ?? moveIn,
         quotedAt: quote?.quoted_at ?? null,
         quotedOnDisplay: quote ? formatMoneyDate(quote.quoted_at, locale) : null,
         remainderMinor: ledger.remainderMinor,
         remainderDisplay: money(ledger.remainderMinor),
-        routes: payRoutes(ledger.totalMinor, walletBalanceMinor),
+        routes: payRoutes(ledger.totalMinor),
       },
     };
   } catch {

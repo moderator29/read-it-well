@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
-import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
+import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import {

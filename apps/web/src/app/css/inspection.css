@@ -775,3 +775,26 @@
     }
   }
 }
+
+/* Track B: the no-inspection-fee notice, on the inspection screen itself. */
+.nf-ix-nofee {
+  display: flex;
+  gap: var(--nf-space-inline, 0.5rem);
+  align-items: flex-start;
+  margin: var(--nf-space-row, 0.75rem) 0;
+  padding: var(--nf-space-row, 0.75rem) var(--nf-space-card, 1rem);
+  border: 1px solid var(--nf-border-subtle);
+  border-radius: var(--nf-radius-card, 0.875rem);
+  background: var(--nf-surface-raised);
+  color: var(--nf-content-secondary);
+  font-size: var(--nf-text-caption);
+  line-height: 1.45;
+}
+
+.nf-ix-nofee strong {
+  color: var(--nf-content-primary);
+}
+
+.nf-ix-agreement {
+  margin-top: var(--nf-space-block, 1rem);
+}

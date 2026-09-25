@@ -127,15 +127,13 @@ export const RENT_VIEW: RentPayView = {
   holdExpiresAt: null,
   holdExpired: false,
   cardAvailable: true,
-  walletBalanceMinor: 12_500_000,
-  walletBalanceDisplay: "₦125,000.00",
-  walletCovers: false,
+  agreement: { id: "00000000-0000-4000-8000-00000000a002", status: "approved", reason: null },
   moveInDisplay: "Thu 1 Oct",
   quotedAt: null,
   quotedOnDisplay: null,
   remainderMinor: 0,
   remainderDisplay: "₦0.00",
-  routes: { leadWithTransfer: true, walletOffered: true, walletLimitMinor: 1_000_000_000 },
+  routes: { leadWithTransfer: true },
 };
 
 export const SAVED_SEARCHES: SavedSearchView[] = [
@@ -203,5 +201,5 @@ export const RENT_VIEW_LARGE: RentPayView = {
   quotedOnDisplay: "Thu 1 Oct",
   remainderMinor: 15_000_000,
   remainderDisplay: "₦150,000.00",
-  routes: { leadWithTransfer: true, walletOffered: false, walletLimitMinor: 1_000_000_000 },
+  routes: { leadWithTransfer: true },
 };

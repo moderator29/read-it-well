@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { getDictionary } from "@vallo/i18n";
-import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
+import { startCardCheckout } from "@/lib/bookings/checkout";
+import { PaymentGate } from "@/components/app/agreements/PaymentGate";
+import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { PaystackCheckout } from "@/components/app/payments/PaystackCheckout";
@@ -16,7 +17,7 @@ import type { PaymentMethod } from "@/lib/payments/methods";
 import type { ChargeSavedCardOutcome } from "@/lib/payments/charge-saved-card";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { failureConsequence } from "./payment-copy";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { Panel } from "@/components/ui/Panel";
@@ -100,9 +101,8 @@ type Phase =
   | { kind: "saved-card-hosted"; authorizationUrl: string; accessCode: string; reference: string }
   | { kind: "card-starting" }
   | { kind: "checkout-open"; accessCode: string; reference: string; authorizationUrl: string }
-  | { kind: "wallet-paying" }
-  | { kind: "wallet-paid" }
-  | { kind: "stalled"; method: "card" | "wallet" }
+  | { kind: "paid" }
+  | { kind: "stalled"; method: "card" }
   | { kind: "error"; message: string };
 
 /**
@@ -189,8 +189,6 @@ export function PayPanel({
 }) {
   const c = getDictionary(view.locale).checkout;
   const router = useRouter();
-  /* V-81: paying from the wallet asks for the phone lock, when there is one. */
-  const moneyLock = useMoneyStepUp(view.locale);
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
   /* Inline arrows rather than `useMemo(newKey, [])`. Passing the function by
@@ -199,7 +197,6 @@ export function PayPanel({
      the one thing these two exist for. They key the two result panels, so a key
      that changed between renders would remount a panel mid-payment. */
   const cardKey = useMemo(() => newKey(), []);
-  const walletKey = useMemo(() => newKey(), []);
   const timers = useRef<number[]>([]);
 
   /* The saved card offered first: the default when it can be charged. Null
@@ -218,8 +215,7 @@ export function PayPanel({
   const busy =
     phase.kind === "saved-card-charging" ||
     phase.kind === "card-starting" ||
-    phase.kind === "checkout-open" ||
-    phase.kind === "wallet-paying";
+    phase.kind === "checkout-open";
 
   const clearTimers = () => {
     for (const id of timers.current) window.clearTimeout(id);
@@ -231,7 +227,7 @@ export function PayPanel({
   /* Two clocks per attempt: one that admits the wait is long, one that stops
      pretending it is still a wait. Both are cleared the moment the server
      answers, so a fast payment never sees either. */
-  const startClocks = (method: "card" | "wallet") => {
+  const startClocks = (method: "card") => {
     clearTimers();
     setSlow(false);
     timers.current.push(window.setTimeout(() => setSlow(true), SLOW_MS));
@@ -276,7 +272,7 @@ export function PayPanel({
     }
     /* Charged. The booking is settled server side, so the truth is on the
        server and this asks for it rather than drawing an optimistic success. */
-    setPhase({ kind: "wallet-paid" });
+    setPhase({ kind: "paid" });
     router.refresh();
   };
 
@@ -306,30 +302,6 @@ export function PayPanel({
       message: result.ok
         ? c.pageNotOpened
         : result.error,
-    });
-  };
-
-  const payFromWallet = async () => {
-    startClocks("wallet");
-    /* V-81: the phone lock, when there is one, for exactly this booking. */
-    const result = await moneyLock.guard({ kind: "pay_wallet", target: view.bookingId }, (stepUp) => {
-      setPhase({ kind: "wallet-paying" });
-      return payWithWallet({ bookingId: view.bookingId, idempotencyKey: walletKey, stepUp });
-    });
-    if (result === null) {
-      clearTimers();
-      setPhase({ kind: "error", message: getDictionary(view.locale).platform.moneyLock.notConfirmed });
-      return;
-    }
-    clearTimers();
-    if (result.ok && result.data) {
-      setPhase({ kind: "wallet-paid" });
-      router.refresh();
-      return;
-    }
-    setPhase({
-      kind: "error",
-      message: result.ok ? c.notCompleted : result.error,
     });
   };
 
@@ -429,37 +401,11 @@ export function PayPanel({
             note={c.cardUnavailableStayNote}
           />
         )}
-        {view.walletCovers ? (
-          <Option
-            icon="wallet-secure"
-            title={c.walletTitle}
-            body={c.walletCoversStay.replace("{balance}", view.walletBalanceDisplay)}
-            action={
-              <Button
-                variant="secondary"
-                full
-                onClick={payFromWallet}
-                disabled={busy}
-                loading={phase.kind === "wallet-paying"}
-              >
-                {c.payFromWallet}
-              </Button>
-            }
-          />
-        ) : (
-          <Option
-            icon="wallet-secure"
-            title={c.walletTitle}
-            body={c.walletShortStay.replace("{balance}", view.walletBalanceDisplay).replace("{total}", view.totalDisplay)}
-            note={c.walletShortNote}
-            action={
-              <ButtonLink href="/wallet" variant="ghost" full trailingIcon="arrow-right">
-                {c.openWallet}
-              </ButtonLink>
-            }
-          />
-        )}
       </ul>
+      {/* Where the money goes, said before the tap. Vallo never holds it. */}
+      <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]" data-testid="checkout-no-custody">
+        {NO_CUSTODY_SENTENCE} {GUARANTEE_SENTENCE}
+      </p>
       {/* `UiIcon` at 16 rather than a 16px `BrandIcon`. `docs/ICON_SYSTEM.md`
           says below 24 the plinth in the brand artwork collapses into a
           coloured square, and this row is otherwise all stroked glyphs, so the
@@ -510,24 +456,7 @@ export function PayPanel({
           >
             {c.payByCard}
           </Button>
-        ) : view.walletCovers ? (
-          <Button
-            variant="primary"
-            onClick={payFromWallet}
-            disabled={busy}
-            loading={phase.kind === "wallet-paying"}
-            className="shrink-0"
-          >
-            {c.payFromWallet}
-          </Button>
-        ) : (
-          /* Neither method can complete this payment right now, so the bar
-             offers the one step that would change that rather than a disabled
-             button that answers nothing. */
-          <ButtonLink href="/wallet" variant="primary" className="shrink-0">
-            {c.addMoney}
-          </ButtonLink>
-        )}
+        ) : null}
       </ActionBar>
 
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
@@ -545,9 +474,11 @@ export function PayPanel({
     subject: view.title,
   };
 
+  /* TRACK A: no button the database would refuse. Payment opens on an approved agreement. */
+  if (view.agreement?.status !== "approved") return <PaymentGate agreement={view.agreement} />;
+
   return (
     <>
-      {moneyLock.sheet}
       {/*
         THE CHECKOUT, ON THIS PAGE.
 
@@ -574,7 +505,7 @@ export function PayPanel({
             return state.ok ? state.data : "pending";
           }}
           onPaid={() => {
-            setPhase({ kind: "wallet-paid" });
+            setPhase({ kind: "paid" });
             router.refresh();
           }}
           /* Cancelled is not a failure and it is not a stall. The reference
@@ -586,7 +517,7 @@ export function PayPanel({
 
       {/* ----------------------------------------------- what just happened */}
       <ResultSheet
-        open={phase.kind === "wallet-paid"}
+        open={phase.kind === "paid"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="sent"
         verdict={c.paymentSent}
@@ -609,22 +540,18 @@ export function PayPanel({
            twice. Nothing else in this component blocks. */
         blocking
         verdict={
-          phase.kind === "wallet-paying"
-            ? c.payingFromWallet
-            : phase.kind === "saved-card-charging"
-              ? savedCardMoment({ kind: "charging" }, view.totalDisplay).verdict
-              : c.openingPaymentPage
+          phase.kind === "saved-card-charging"
+            ? savedCardMoment({ kind: "charging" }, view.totalDisplay).verdict
+            : c.openingPaymentPage
         }
         fact={fact}
         locale={view.locale}
         consequence={
           slow
             ? c.slowNothingMoved
-            : phase.kind === "wallet-paying"
-              ? c.walletUntilComplete
-              : phase.kind === "saved-card-charging"
-                ? savedCardMoment({ kind: "charging" }, view.totalDisplay).consequence
-                : c.nothingChargedYet
+            : phase.kind === "saved-card-charging"
+              ? savedCardMoment({ kind: "charging" }, view.totalDisplay).consequence
+              : c.nothingChargedYet
         }
       />
 
@@ -676,11 +603,7 @@ export function PayPanel({
         verdict={c.notHeardBack}
         fact={fact}
         locale={view.locale}
-        consequence={
-          phase.kind === "stalled" && phase.method === "wallet"
-            ? c.stalledWalletStay
-            : c.stalledCardStay
-        }
+        consequence={c.stalledCardStay}
         actions={[
           { label: plansAction.label, href: plansAction.href, tone: "primary" },
           { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },

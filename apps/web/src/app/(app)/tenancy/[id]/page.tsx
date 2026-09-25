@@ -7,12 +7,13 @@ import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState, FactGrid, Section, Stack, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { ROOM_COPY } from "@/lib/inspections/report";
-import { DeductionAnswer, ProposeDeduction, ReturnCaution } from "@/components/app/tenancy/CautionControls";
+import { DeductionAnswer, ProposeDeduction } from "@/components/app/tenancy/CautionControls";
+import { MONEY_BETWEEN_PEOPLE_RETIRED } from "@/lib/tenancy/money-copy";
 import { koboToNairaInput } from "@/lib/agent/listings-schema";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
 import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";
 import { PinMessages } from "@/components/app/tenancy/PinMessages";
-import { AddFlatmate, RemoveFlatmate, ReturnShare } from "@/components/app/tenancy/FlatmateControls";
+import { AddFlatmate, RemoveFlatmate } from "@/components/app/tenancy/FlatmateControls";
 import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
 
 /** A private record. Never indexed, never in a tab title. */
@@ -189,7 +190,7 @@ function MoneySection({ file, copy }: { file: TenancyFile; copy: Copy }) {
   );
 }
 
-function CautionSection({ file, copy, locale }: { file: TenancyFile; copy: Copy; locale: Locale }) {
+function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale: Locale }) {
   const caution = file.caution;
   return (
     <Section title={copy.cautionHeading} divided>
@@ -287,14 +288,7 @@ function CautionSection({ file, copy, locale }: { file: TenancyFile; copy: Copy;
               <div className="nf-panel nf-panel--card block p-md">
                 <h3 className="nf-h4">{copy.returnHeading}</h3>
                 <div className="mt-sm">
-                  <ReturnCaution
-                    tenancyId={file.id}
-                    obligationId={caution.obligationId}
-                    outstanding={caution.outstanding}
-                    outstandingNaira={koboToNairaInput(caution.returnableMinor)}
-                    copy={copy}
-                    locale={locale}
-                  />
+                  <p className={TYPE.body} data-testid="money-between-people-retired">{MONEY_BETWEEN_PEOPLE_RETIRED}</p>
                 </div>
               </div>
             </>
@@ -308,7 +302,6 @@ function CautionSection({ file, copy, locale }: { file: TenancyFile; copy: Copy;
 function FlatmatesSection({
   file,
   copy,
-  locale,
 }: {
   file: TenancyFile;
   copy: ReturnType<typeof getDictionary>["afterTheGate"]["flatmates"];
@@ -350,13 +343,7 @@ function FlatmatesSection({
                 </div>
                 {!row.paid && !file.void && <RemoveFlatmate tenancyId={file.id} contributorId={row.id} copy={copy} />}
                 {row.paid && !row.returned && file.void && row.paidMinor !== null && (
-                  <ReturnShare
-                    tenancyId={file.id}
-                    contributorId={row.id}
-                    amountMinor={row.paidMinor}
-                    label={copy.returnShare}
-                    locale={locale}
-                  />
+                  <p className={TYPE.rowMeta}>{MONEY_BETWEEN_PEOPLE_RETIRED}</p>
                 )}
               </li>
             ))}

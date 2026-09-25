@@ -8,11 +8,12 @@
  * instead. `known-routes.test.ts` walks `src/app` and fails when a routable
  * directory is added or removed without this list following it. The
  * extra names are `next.config.ts` redirects (`/agents…`, `/support`, and
- * `/trips`, folded into Plans by V-76).
+ * `/trips`, folded into Plans by V-76, and `/wallet` and `/escrow`, retired by
+ * Track A on 25 September 2026 and sent to `/agreements`).
  */
 export const KNOWN_TOP_SEGMENTS: ReadonlySet<string> = new Set([
-  "about", "admin", "agent", "agents", "api", "areas", "around", "assistant", "auth", "bookings",
-  "cancellations", "careers", "check", "checkout", "contact", "delete-account", "docs", "escrow",
+  "about", "admin", "agent", "agents", "agreements", "api", "areas", "around", "assistant", "auth", "bookings",
+  "cancellations", "careers", "check", "checkout", "contact", "delete-account", "disclaimer", "docs", "escrow",
   "eula", "forgot-password", "gallery", "help", "home", "home-or-landing", "host", "inspections",
   "landlord", "legal", "listing", "messages", "notifications", "offline", "open", "post",
   "preview", "price", "privacy", "profile", "r", "record", "rent", "reset-password", "restaurant",
@@ -22,7 +23,7 @@ export const KNOWN_TOP_SEGMENTS: ReadonlySet<string> = new Set([
 ]);
 
 /** The redirect sources in `next.config.ts`, which have no directory. */
-export const REDIRECT_ONLY_SEGMENTS: ReadonlySet<string> = new Set(["agents", "support", "trips"]);
+export const REDIRECT_ONLY_SEGMENTS: ReadonlySet<string> = new Set(["agents", "escrow", "support", "trips", "wallet"]);
 
 /** Whether the first segment of `path` is one this app can answer at. */
 export function isKnownRoute(path: string): boolean {

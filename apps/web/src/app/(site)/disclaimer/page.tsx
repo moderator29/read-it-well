@@ -1,0 +1,54 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { SiteHead } from "@/components/site/SiteHead";
+import { DISCLAIMER_SECTIONS as sections, DISCLAIMER_UPDATED } from "@/lib/legal/disclaimer";
+
+export const metadata: Metadata = {
+  title: "Disclaimer",
+  description:
+    "Anything arranged, discussed or paid outside Vallo is not Vallo's responsibility. Vallo never holds your money, charges no inspection fee, and is a marketplace rather than a party to your deal.",
+};
+
+/** The Disclaimer, public copy. The content lives in `lib/legal/disclaimer.tsx`. */
+export default function DisclaimerPage() {
+  return (
+    <>
+      <SiteHead
+        plate="skyline-waterfront-dusk"
+        icon="shield-lock"
+        chip="Legal"
+        title="Disclaimer"
+        lede="What Vallo is responsible for, and what it is not. Keep everything on the platform."
+      >
+        <p className="nf-site-badge">Last updated: {DISCLAIMER_UPDATED}</p>
+      </SiteHead>
+      <div className="nf-shell pb-section">
+        <div className="mx-auto max-w-3xl">
+          <div className="nf-panel nf-panel--card block nf-rise mt-block p-card-lg" style={{ animationDelay: "100ms" }}>
+            <div className="space-y-block">
+              {sections.map((s) => (
+                <section key={s.title}>
+                  <h2 className="nf-h3">{s.title}</h2>
+                  <div className="mt-inline space-y-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-inline [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-inline [&_ul]:pl-heading">
+                    {s.body}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </div>
+          <p className="mt-block text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+            See also our{" "}
+            <Link href="/terms" className="font-semibold text-[var(--nf-content-link)] hover:underline">
+              Terms of service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="font-semibold text-[var(--nf-content-link)] hover:underline">
+              Privacy policy
+            </Link>
+            .
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}

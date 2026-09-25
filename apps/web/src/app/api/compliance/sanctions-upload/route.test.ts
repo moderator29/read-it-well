@@ -6,7 +6,7 @@ vi.mock("@/lib/admin/guard", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("@/lib/site", () => ({ siteUrl: () => "https://www.vallospaces.com" }));
-vi.mock("@/lib/wallet/ledger", () => ({ getAdminClient: () => ({}) }));
+vi.mock("@/lib/supabase/service", () => ({ getAdminClient: () => ({}) }));
 vi.mock("@/lib/compliance/sanctions/ingest", () => ({
   ingestList: async () => {
     seam.ingested += 1;

@@ -11,7 +11,6 @@ import { getTermsStanding } from "@/lib/admin/legal-queries";
 import { adminUi } from "../_components/ui";
 import { fill } from "../_components/copy";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
-import { SweepHolds } from "./SweepHolds";
 import { LookupPanel } from "./LookupPanel";
 import { ActingFor, ActingForLookup } from "../_components/ActingFor";
 import { readActingForParams } from "@/lib/compliance/beneficial-ownership";
@@ -99,9 +98,6 @@ export default async function AdminPaymentsPage({
     found ? getSavedMethods(found) : Promise.resolve(null),
     found ? getTermsStanding(found) : Promise.resolve(null),
   ]);
-  /* The moment this page's rows were read, handed to the sweep control so its
-     age arithmetic runs against the same clock the list was built from. */
-  const asOf = new Date().toISOString();
 
   if (read.state !== "ok") {
     return (
@@ -261,13 +257,6 @@ export default async function AdminPaymentsPage({
                 ))}
               </TBody>
             </Table>
-
-            <SweepHolds
-              holds={staleHolds}
-              defaultMinutes={staleMinutes}
-              locale={locale}
-              asOf={asOf}
-            />
           </div>
         )}
       </ui.Section>

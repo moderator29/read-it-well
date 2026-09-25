@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import {
   isPaystackConfigured,
   metadataObject,
-  verifyTransaction,
   verifyWebhookSignature,
 } from "@/lib/payments/paystack";
 import {
@@ -10,34 +9,15 @@ import {
   logMoney,
   type MoneyOutcome,
 } from "@/lib/payments/observability";
-import {
-  availableBalanceMinor,
-  ensureWalletId,
-  findUserByEmail,
-  getAdminClient,
-  recordFunding,
-  settleWithdrawal,
-  walletOwnerId,
-  type AdminClient,
-} from "@/lib/wallet/ledger";
-import { recordMoneyAudit, recordWebhookDelivery } from "@/lib/wallet/audit";
-import { creditReversedWithdrawal, reversalReference } from "@/lib/wallet/withdrawal-reversal";
-import { bestEffortEmail, sendMessage } from "@/lib/email/client";
-import { walletFunded } from "@/lib/email/messages";
-import { contactForUser } from "@/lib/email/recipients";
+import { getAdminClient, type AdminClient } from "@/lib/supabase/service";
+import { recordMoneyAudit, recordWebhookDelivery } from "@/lib/money/audit";
 import { announceConfirmedStay } from "@/lib/bookings/arrival";
 import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement";
 import { savePaymentMethodFromCharge } from "@/lib/payments/methods";
 import { recordAlert } from "@/lib/alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
-import {
-  BOOKING_PREFIX,
-  FUND_PREFIX,
-  WITHDRAW_PREFIX,
-  isBookingReference,
-} from "@/lib/payments/references";
-import type { Json } from "@/lib/supabase/database.types";
-import { processorFeeMetadata } from "@/lib/wallet/funding-fee";
+import { BOOKING_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
+import { refundChargeToCard } from "@/lib/payments/refund";
 
 /**
  * Paystack webhook.
@@ -80,15 +60,17 @@ import { processorFeeMetadata } from "@/lib/wallet/funding-fee";
  * must not be able to write rows into audit_log by posting nonsense at this
  * URL.
  *
- * Routing is by reference format, the contract this platform generates, all of
- * it documented in lib/payments/references.ts:
- *  - rm-fund-<uuid>: wallet funding. charge.success credits the ledger with a
- *    COMPLETED deposit, idempotent on the unique reference, so a replayed
- *    webhook or the verify-on-redirect fallback can never double-post.
- *  - rm-wd-<uuid>: withdrawal. transfer.success / transfer.failed /
- *    transfer.reversed settle the matching PENDING debit hold.
- *  - rm-book-<uuid>: a card payment against a booking, settled through
- *    lib/bookings/settlement.ts, the same function the return path calls.
+ * VALLO NEVER HOLDS CUSTOMER MONEY (Track A, 25 September 2026). There is no
+ * wallet to fund and nothing to withdraw, so the only money event this route
+ * acts on is a charge against a booking:
+ *  - rm-book-<uuid>: a card payment against a booking, opened with its split
+ *    and settled through lib/bookings/settlement.ts, the same function the
+ *    return path calls. A charge that cannot be applied is refunded to the
+ *    card, in full, from here.
+ *  - rm-fund-<uuid>: a wallet top-up from before the wallet was retired. If
+ *    one ever arrives, it is refunded to the card in full; it is never
+ *    credited anywhere.
+ *  - transfer.* events are acknowledged and ignored: Vallo sends no transfers.
  *
  * Completion notifications fire from the database trigger, never from here.
  */
@@ -175,142 +157,6 @@ async function fileCardIfAsked(
   });
 }
 
-/* --------------------------------------------------------------- funding */
-
-/**
- * Whose funding this is.
- *
- * Metadata first, because fundWallet writes `user_id` into it at checkout.
- * Then the customer's email, because metadata is the part of a Paystack
- * transaction that cannot be relied on: it can arrive as a JSON STRING rather
- * than an object, it can arrive empty, and it arrives shaped by whichever
- * integration created the charge. metadataObject() handles the stringified
- * case, which this route did not: a stringified metadata used to yield no
- * user_id and the funding was dropped with no trace at all.
- *
- * Last, the authoritative verify call, because the webhook payload and the
- * verify response do not always carry the same metadata for the same charge,
- * and a payment we cannot place is worth one extra API call to try to place.
- * verifyFunding has always had the email fallback; this route did not.
- *
- * The email is used for the lookup and never logged, never persisted and never
- * returned.
- */
-async function ownerOfFunding(
-  data: NonNullable<WebhookEvent["data"]>,
-  reference: string,
-): Promise<{ userId: string | null; how: string }> {
-  const metadata = metadataObject(data.metadata);
-  const fromMetadata = metadata["user_id"];
-  if (typeof fromMetadata === "string" && fromMetadata.length > 0) {
-    return { userId: fromMetadata, how: "metadata_user_id" };
-  }
-
-  const email = data.customer?.email ?? null;
-  if (email && email.length > 0) {
-    const user = await findUserByEmail(email);
-    if (user) return { userId: user.id, how: "webhook_customer_email" };
-  }
-
-  try {
-    const charge = await verifyTransaction(reference);
-    const verified = charge.metadata["user_id"];
-    if (typeof verified === "string" && verified.length > 0) {
-      return { userId: verified, how: "verify_metadata_user_id" };
-    }
-    if (charge.customerEmail && charge.customerEmail.length > 0) {
-      const user = await findUserByEmail(charge.customerEmail);
-      if (user) return { userId: user.id, how: "verify_customer_email" };
-    }
-  } catch {
-    return { userId: null, how: "verify_failed" };
-  }
-
-  return { userId: null, how: "no_identifier" };
-}
-
-async function handleFundingChargeSuccess(
-  admin: AdminClient,
-  data: NonNullable<WebhookEvent["data"]>,
-): Promise<Verdict> {
-  const reference = data.reference ?? "";
-
-  if (data.currency !== undefined && data.currency !== "NGN") {
-    return verdict("rejected", "currency_not_ngn", 200);
-  }
-
-  const amountMinor = data.amount;
-  if (!Number.isSafeInteger(amountMinor) || amountMinor === undefined || amountMinor <= 0) {
-    return verdict("rejected", "amount_not_positive_integer", 200);
-  }
-
-  const owner = await ownerOfFunding(data, reference);
-  if (!owner.userId) {
-    // Real money with no home. Answered 200 because retrying produces the same
-    // answer every time, but recorded as a failure everywhere a human looks:
-    // an error line on the money channel, an unmatched row in audit_log, and a
-    // gap the reconciliation sweep reports on its next run.
-    await recordMoneyAudit(admin, {
-      actor: { kind: "webhook" },
-      action: "wallet.funding.unmatched",
-      reference,
-      amountMinor,
-      outcome: "unmatched",
-      detail: { resolution: owner.how },
-    });
-    return verdict("failed", `owner_unresolved:${owner.how}`, 200, { amountMinor });
-  }
-
-  // The card, if the checkout asked for it to be kept. Before the ledger
-  // write so a replayed delivery, which the ledger refuses as a duplicate,
-  // still refreshes the token; the save is keyed and idempotent on its own.
-  await fileCardIfAsked(admin, data, owner.userId, reference);
-
-  const posted = await recordFunding(admin, {
-    userId: owner.userId,
-    amountMinor,
-    reference,
-    metadata: {
-      channel: (data.channel ?? null) as Json,
-      paid_at: (data.paid_at ?? null) as Json,
-      purpose: "wallet_fund",
-      ...processorFeeMetadata(data.fees),
-    },
-  });
-
-  await recordMoneyAudit(admin, {
-    actor: { kind: "webhook" },
-    action: posted === "posted" ? "wallet.funding.posted" : "wallet.funding.duplicate",
-    reference,
-    amountMinor,
-    subjectUserId: owner.userId,
-    outcome: posted,
-    detail: { resolution: owner.how, channel: data.channel ?? null },
-  });
-
-  // This is the settlement path that actually runs in production: most fundings
-  // arrive here, not through the redirect. The receipt is gated on "posted" so
-  // a replayed delivery credits nothing and emails nothing.
-  if (posted !== "posted") {
-    return verdict("duplicate", `already_in_ledger:${owner.how}`, 200, {
-      amountMinor,
-      userId: owner.userId,
-    });
-  }
-
-  const userId = owner.userId;
-  await bestEffortEmail(async () => {
-    const contact = await contactForUser(admin, userId, "wallet");
-    if (!contact) return;
-    const walletId = await ensureWalletId(admin, userId);
-    const balanceMinor = await availableBalanceMinor(admin, walletId);
-    const message = walletFunded({ ownerName: contact.name, amountMinor, balanceMinor });
-    await sendMessage(contact.email, message);
-  });
-
-  return verdict("posted", `credited:${owner.how}`, 200, { amountMinor, userId });
-}
-
 /* --------------------------------------------------------------- booking */
 
 /**
@@ -356,7 +202,7 @@ async function handleBookingChargeSuccess(
 
   await recordMoneyAudit(admin, {
     actor: { kind: "webhook" },
-    action: "wallet.booking.charge_settled",
+    action: "payment.booking.charge_settled",
     reference,
     amountMinor,
     outcome: settlement.outcome,
@@ -368,11 +214,21 @@ async function handleBookingChargeSuccess(
   // not settlement.confirmed: a request-to-book stay the host already accepted
   // is CONFIRMED before the money arrives, so gating on the status change would
   // take a guest's card and never send them a receipt.
-  /* MON-05 / OPS-02. The money moved but could not be applied to the booking,
-     so the database already returned it to the payer's wallet and raised the
-     alert. That is handled, not failed: 200, and Paystack does not retry. */
-  if (settlement.outcome === "returned-to-wallet") {
-    return verdict("posted", `booking_returned_to_wallet:${settlement.reason}`, 200, { amountMinor });
+  /* The money moved but could not be applied to the booking. The database
+     marked it and raised the alert; the whole charge goes back to the card
+     now. Vallo keeps nothing and credits nothing. Handled, not failed: 200. */
+  if (settlement.outcome === "refund-due") {
+    const refund = await refundChargeToCard(admin, {
+      reference,
+      reason: settlement.reason,
+      actor: { kind: "webhook" },
+    });
+    return verdict(
+      refund.ok ? "posted" : "failed",
+      `booking_refund_due:${settlement.reason}:${refund.ok ? "refund_submitted" : "refund_failed"}`,
+      200,
+      { amountMinor },
+    );
   }
   if (settlement.outcome !== "settled") {
     return verdict("duplicate", `booking_${settlement.outcome}`, 200, { amountMinor });
@@ -394,8 +250,7 @@ async function handleBookingChargeSuccess(
  * A card payment against a booking failed.
  *
  * The attempt is marked FAILED and the booking is deliberately left PENDING:
- * the guest still holds their dates and can try again, by card or from their
- * wallet. Only a PENDING attempt moves, so a late failure delivery cannot
+ * the guest still holds their dates and can try again. Only a PENDING attempt moves, so a late failure delivery cannot
  * unpick a payment that already succeeded.
  */
 async function handleBookingChargeFailed(
@@ -407,123 +262,12 @@ async function handleBookingChargeFailed(
   await markChargeFailed(admin, reference);
   await recordMoneyAudit(admin, {
     actor: { kind: "webhook" },
-    action: "wallet.booking.charge_failed",
+    action: "payment.booking.charge_failed",
     reference,
     outcome: "failed",
     detail: { source: "webhook" },
   });
   return verdict("rejected", "booking_charge_failed", 200);
-}
-
-/* -------------------------------------------------------------- transfers */
-
-async function handleTransferEvent(
-  admin: AdminClient,
-  event: string,
-  data: NonNullable<WebhookEvent["data"]>,
-): Promise<Verdict> {
-  const reference = data.reference ?? "";
-
-  if (event === "transfer.success") {
-    const settled = await settleWithdrawal(admin, reference, "COMPLETED");
-    if (!settled) return verdict("duplicate", "withdrawal_not_pending", 200);
-    const ownerId = await walletOwnerId(admin, settled.walletId);
-    await recordMoneyAudit(admin, {
-      actor: { kind: "webhook" },
-      action: "wallet.withdrawal.completed",
-      reference,
-      amountMinor: settled.amountMinor,
-      walletId: settled.walletId,
-      subjectUserId: ownerId,
-      outcome: "COMPLETED",
-    });
-    return verdict("posted", "withdrawal_completed", 200, {
-      amountMinor: settled.amountMinor,
-      walletId: settled.walletId,
-      userId: ownerId,
-    });
-  }
-
-  const outcome =
-    event === "transfer.failed" ? "FAILED" : event === "transfer.reversed" ? "REVERSED" : null;
-  if (!outcome) return verdict("ignored", `transfer_event_unhandled:${event}`, 200);
-
-  const settled = await settleWithdrawal(admin, reference, outcome);
-  // Null means nothing moved, which is what a replayed delivery looks like:
-  // stay silent rather than tell someone twice that their money came back.
-  // MON-03: except a reversal of a transfer that had already paid out, whose
-  // money is back with the platform and goes back to the member.
-  if (!settled && outcome === "REVERSED") return handleReversalAfterPayout(admin, reference);
-  if (!settled) return verdict("duplicate", "withdrawal_not_pending", 200);
-
-  const ownerId = await walletOwnerId(admin, settled.walletId);
-  await recordMoneyAudit(admin, {
-    actor: { kind: "webhook" },
-    action: "wallet.withdrawal.returned",
-    reference,
-    amountMinor: settled.amountMinor,
-    walletId: settled.walletId,
-    subjectUserId: ownerId,
-    outcome,
-  });
-
-  /*
-   * THE OUTBOX SAYS THIS NOW, AND IT SAYS IT BETTER.
-   *
-   * A direct send here used to sit beside the UPDATE above, and that UPDATE
-   * is what fires `wallet_entries_enqueue_withdrawal_email`. One failed
-   * withdrawal therefore produced TWO emails about the same money, and the
-   * two disagreed: the queued one tells `reversed` apart from `failed`,
-   * which is the difference between money that never left and money that
-   * left and came back, and this one said only that it failed. Removed
-   * rather than made to agree, because two senders for one event is the
-   * defect and matching their wording only hides it.
-   *
-   * Nothing is lost. `withdrawalOutcome` reads the destination bank and the
-   * last four digits from the entry at SEND time, which is also why they no
-   * longer travel through a queue.
-   */
-
-  return verdict("posted", `withdrawal_${outcome.toLowerCase()}`, 200, {
-    amountMinor: settled.amountMinor,
-    walletId: settled.walletId,
-    userId: ownerId,
-  });
-}
-
-/**
- * MON-03. `transfer.reversed` for a withdrawal already COMPLETED: credit the
- * member back once (creditReversedWithdrawal) and tell the desk, because a
- * bank reversing a transfer it had confirmed is worth a person's attention.
- * A FAILED or REVERSED hold is a replay and credits nothing.
- */
-async function handleReversalAfterPayout(admin: AdminClient, reference: string): Promise<Verdict> {
-  const credit = await creditReversedWithdrawal(admin, reference);
-  if (credit.state === "not_completed") return verdict("duplicate", "withdrawal_not_pending", 200);
-  if (credit.state === "duplicate") return verdict("duplicate", "reversal_already_credited", 200);
-
-  const ownerId = await walletOwnerId(admin, credit.walletId);
-  await recordMoneyAudit(admin, {
-    actor: { kind: "webhook" },
-    action: "wallet.withdrawal.reversed_after_payout",
-    reference,
-    amountMinor: credit.amountMinor,
-    walletId: credit.walletId,
-    subjectUserId: ownerId,
-    outcome: "REVERSED",
-  });
-  await recordAlert({
-    kind: "wallet.withdrawal_reversed_after_payout",
-    severity: "critical",
-    subjectKind: "wallet_entry",
-    subjectId: reference,
-    detail: { amount_minor: credit.amountMinor, credited_as: reversalReference(reference) },
-  });
-  return verdict("posted", "withdrawal_reversed_after_payout", 200, {
-    amountMinor: credit.amountMinor,
-    walletId: credit.walletId,
-    userId: ownerId,
-  });
 }
 
 /* ------------------------------------------------------------- dispatch */
@@ -538,7 +282,15 @@ async function dispatch(
   if (event === "charge.success") {
     // Two charge families share this event, told apart by their reference.
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeSuccess(admin, data);
-    if (reference.startsWith(FUND_PREFIX)) return handleFundingChargeSuccess(admin, data);
+    if (reference.startsWith(FUND_PREFIX)) {
+      // A retired wallet top-up. Nothing credits it: it goes back to the card.
+      const refund = await refundChargeToCard(admin, {
+        reference,
+        reason: "wallet_retired",
+        actor: { kind: "webhook" },
+      });
+      return verdict(refund.ok ? "posted" : "failed", `wallet_topup_refunded:${refund.ok}`, 200);
+    }
     return verdict("ignored", "reference_not_ours", 200);
   }
 
@@ -548,10 +300,7 @@ async function dispatch(
   }
 
   if (event.startsWith("transfer.")) {
-    if (!reference.startsWith(WITHDRAW_PREFIX)) {
-      return verdict("ignored", "reference_not_ours", 200);
-    }
-    return handleTransferEvent(admin, event, data);
+    return verdict("ignored", "transfers_retired", 200);
   }
 
   return verdict("ignored", `event_unhandled:${event}`, 200);

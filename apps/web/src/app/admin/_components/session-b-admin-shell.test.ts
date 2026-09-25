@@ -79,7 +79,7 @@ describe("the console map", () => {
       "Supply",
       "Verification",
       "Money",
-      "Escrow",
+      "Agreements",
       "Bookings",
       "Moderation",
       "Support",
@@ -91,7 +91,7 @@ describe("the console map", () => {
   it("orphans no working desk: every route folder under app/admin is on the map", () => {
     const hrefs = new Set(ADMIN_NAV.map((d) => d.href));
     const desks = [
-      "agents", "alerts", "audit", "bookings", "businesses", "escrow", "examples", "fees",
+      "agents", "alerts", "audit", "agreements", "bookings", "businesses", "examples", "fees",
       "kyc", "listings", "money", "payments", "queue", "reference",
       "social", "standing", "stops", "support", "switches", "operations", "analytics", "settings", "supply",
     ];

@@ -218,7 +218,7 @@ describe("every preview deck serves its own index", () => {
   it("finds the preview tree at all, so an empty walk cannot pass as coverage", () => {
     const found = decks(PREVIEW, [], []);
     expect(found.length).toBeGreaterThan(20);
-    expect(found).toContain("e");
+    expect(found).toContain("f3");
   });
 
   it("serves a page at every directory that has screens under it", () => {

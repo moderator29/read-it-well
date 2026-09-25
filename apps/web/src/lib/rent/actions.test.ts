@@ -25,7 +25,7 @@ vi.mock("../actions/session", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("../flags", () => ({ isFeatureEnabled: async () => state.flag }));
-vi.mock("../wallet/ledger", () => ({ getAdminClient: () => state.admin }));
+vi.mock("@/lib/supabase/service", () => ({ getAdminClient: () => state.admin }));
 vi.mock("../bookings/checkout", () => ({ payWithSavedCard: (i: unknown) => state.payWithSavedCard(i) }));
 
 const { startRentPayment, payRentWithSavedCard } = await import("./actions");

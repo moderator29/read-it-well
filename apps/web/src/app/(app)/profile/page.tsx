@@ -123,7 +123,7 @@ export default async function ProfilePage({
   const copy = {
     bookings: t.nav.bookings,
     saved: t.nav.saved,
-    wallet: t.nav.wallet,
+    wallet: t.nav.agreements,
     messages: t.nav.messages,
     settings: t.nav.settings,
     belongings: t.socialProfile.belongings,
@@ -132,7 +132,7 @@ export default async function ProfilePage({
     /* The render's own wording, one line each at 390 at the row's 12px. */
     myBookingsSub: t.socialProfile.myBookingsSub,
     savedSub: t.socialProfile.savedSub,
-    walletSub: t.socialProfile.walletSub,
+    walletSub: t.socialProfile.agreementsSub,
   };
 
   if (account.state !== "signed-in") {

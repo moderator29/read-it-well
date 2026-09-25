@@ -18,7 +18,6 @@ import {
   type Payload,
   type TemplateLookups,
   type TemplateNeeds,
-  type WithdrawalFacts,
 } from "./templates";
 import type { SignupRole, VerificationRung } from "@/lib/email/messages";
 
@@ -30,8 +29,8 @@ import type { SignupRole, VerificationRung } from "@/lib/email/messages";
  *
  * `announce()` next door joins the two channels for an event a server action
  * can see. This joins them for an event only the DATABASE can see, which is
- * most of them: an escrow state moved by a pg_cron sweep, a withdrawal settled
- * by the reconciliation, a password changed inside GoTrue, a session minted by
+ * most of them: an agreement decided by a reviewer, a claim decided,
+ * a password changed inside GoTrue, a session minted by
  * an OAuth callback. A trigger writes a row into `public.email_outbox` in the
  * same transaction as the change, and this reads those rows and sends them.
  *
@@ -274,7 +273,6 @@ export type BatchFacts = {
   /** What an account declared it came here for. Absent is an ordinary state. */
   roles: Map<string, SignupRole>;
   listings: Map<string, ListingFacts>;
-  withdrawals: Map<string, WithdrawalFacts>;
   rungs: Map<string, VerificationRung[]>;
   enquiries: Map<string, EnquiryFacts>;
 };
@@ -286,7 +284,6 @@ const EMPTY_FACTS = (): BatchFacts => ({
   names: new Map(),
   roles: new Map(),
   listings: new Map(),
-  withdrawals: new Map(),
   rungs: new Map(),
   enquiries: new Map(),
 });
@@ -294,7 +291,6 @@ const EMPTY_FACTS = (): BatchFacts => ({
 function mergeNeeds(rows: readonly OutboxRow[]): Required<TemplateNeeds> {
   const users = new Set<string>();
   const listings = new Set<string>();
-  const entries = new Set<string>();
   const agents = new Set<string>();
   const messages = new Set<string>();
   for (const row of rows) {
@@ -308,14 +304,12 @@ function mergeNeeds(rows: readonly OutboxRow[]): Required<TemplateNeeds> {
     }
     for (const id of needs.users ?? []) users.add(id);
     for (const id of needs.listings ?? []) listings.add(id);
-    for (const id of needs.entries ?? []) entries.add(id);
     for (const id of needs.agents ?? []) agents.add(id);
     for (const id of needs.messages ?? []) messages.add(id);
   }
   return {
     users: [...users],
     listings: [...listings],
-    entries: [...entries],
     agents: [...agents],
     messages: [...messages],
   };
@@ -387,40 +381,6 @@ export async function gatherFacts(
     }
   }
 
-  if (needs.entries.length > 0) {
-    try {
-      const { data } = await admin
-        .from("wallet_entries")
-        .select("id, metadata")
-        .in("id", needs.entries);
-      for (const row of data ?? []) {
-        const metadata =
-          row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
-            ? (row.metadata as Record<string, unknown>)
-            : {};
-        const bank = typeof metadata["bank_name"] === "string" ? metadata["bank_name"].trim() : "";
-        const last4 =
-          typeof metadata["account_last4"] === "string" ? metadata["account_last4"].trim() : "";
-        /* THERE IS ONE DOOR NOW. The send desk's bank mode was removed on 23
-           September and nothing writes `third_party` any more, so every row is
-           the withdraw door. `metadata.destination` is deliberately NOT read
-           back here: an unrecognised or stale value must never be allowed to
-           turn a person's own withdrawal into "you sent money to somebody",
-           and the only way to guarantee that is to not consult it. Checked
-           against the live table before this was written: both wallet_entries
-           rows carry a null destination, so nothing historical is
-           mis-described. */
-        facts.withdrawals.set(row.id, {
-          bankName: bank.length > 0 ? bank : null,
-          accountLast4: /^\d{4}$/.test(last4) ? last4 : null,
-          destination: "own_account",
-        });
-      }
-    } catch {
-      /* The outcome is the message; the destination is a detail on it. */
-    }
-  }
-
   if (needs.agents.length > 0) {
     try {
       const { data } = await admin
@@ -478,7 +438,6 @@ function lookupsFor(facts: BatchFacts): TemplateLookups {
     userName: (id) => facts.names.get(id) ?? null,
     signupRole: (id) => facts.roles.get(id) ?? null,
     listing: (id) => facts.listings.get(id) ?? null,
-    withdrawal: (id) => facts.withdrawals.get(id) ?? null,
     passedRungs: (id) => facts.rungs.get(id) ?? [],
     enquiry: (id) => facts.enquiries.get(id) ?? null,
   };

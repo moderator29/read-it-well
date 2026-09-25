@@ -88,8 +88,7 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
             ? {
                 upcomingBookings: 2,
                 saved: 14,
-                walletMinor: 24568000,
-                walletCurrency: "NGN",
+                openAgreements: 1,
                 openInspections: 1,
               }
             : undefined

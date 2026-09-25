@@ -8,7 +8,7 @@ import type { BoardSubject } from "./board";
 /**
  * V-08: THE BOARD'S TWO SERVER READS, BOTH FAIL CLOSED.
  *
- * `listingBoardIsOn` follows `lib/escrow/flag.ts`: anything other than a
+ * `listingBoardIsOn` follows `lib/flags/read.ts`: anything other than a
  * `feature_flags.listing_board` row that says true is off. A missing row, an
  * error, no configuration: off. The same flag gates the VL- code at the share
  * door, inside `public.share_door`, so the board and the code that reads it

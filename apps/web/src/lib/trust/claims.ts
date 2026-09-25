@@ -100,7 +100,14 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   { phrase: /\bprepare that (?:photo|picture) safely\b/i, mechanism: "the client-side re-encode before upload (strips metadata); a process, not a claim" },
   { phrase: /\btalking to an agent safely\b/i, mechanism: "advice heading in the docs, not a claim" },
   { phrase: /\brather than checked in passing\b|\bwhile it is checked\b|\brooms are checked\b/i, mechanism: "a process description (a database constraint; a report being read; the member's own checklist)" },
-  { phrase: /^completely safe$/i, mechanism: "an entry in the escrow copy guard's own banned-phrase list (lib/escrow/copy.ts), not copy" },
+  /* The Vallo Guarantee (Track A, 25 September 2026): a product name, not a
+     promise that money is guaranteed. What backs it is a real reserve and a
+     reviewed, capped claim, both enforced in the database. */
+  {
+    phrase: /\bguarantee\b/i,
+    mechanism:
+      "public.guarantee_reserve_entries (append-only ledger funded by the split at settle_booking_charge) and public.admin_decide_guarantee_claim, which caps each claim by the amount paid and the reserve balance under an advisory lock; scope and window in public.money_policy",
+  },
 
   /* Sentences deleted on the release branch by another change. */
   { phrase: /^secure and fast$/i, mechanism: "none", pendingRemoval: "STORE-06, fix/a4 b36e00e2 (already integrated)" },

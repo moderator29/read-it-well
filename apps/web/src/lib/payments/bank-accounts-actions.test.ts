@@ -31,8 +31,8 @@ vi.mock("../security/idempotency", () => ({
   IN_FLIGHT_MESSAGE: "in flight",
   withIdempotency: async (_opts: unknown, work: () => Promise<unknown>) => ({ status: "ran", result: await work() }),
 }));
-vi.mock("../wallet/audit", () => ({ recordMoneyAudit: async () => undefined }));
-vi.mock("../wallet/ledger", () => ({ getAdminClient: () => state.admin }));
+vi.mock("@/lib/money/audit", () => ({ recordMoneyAudit: async () => undefined }));
+vi.mock("@/lib/supabase/service", () => ({ getAdminClient: () => state.admin }));
 vi.mock("./notices", () => ({
   bankAccountAddedNotice: async () => undefined,
   bankAccountRemovedNotice: async () => undefined,

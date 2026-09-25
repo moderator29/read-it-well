@@ -34,7 +34,7 @@ vi.mock("@/lib/notify/whatsapp", async (importOriginal) => {
     }),
   };
 });
-vi.mock("@/lib/wallet/ledger", () => ({
+vi.mock("@/lib/supabase/service", () => ({
   getAdminClient: () => ({
     from: () => ({
       upsert: (row: { wamid_hash: string }) => ({

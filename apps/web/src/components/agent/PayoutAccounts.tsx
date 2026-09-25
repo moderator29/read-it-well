@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
-import { useLockRecovery, useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
+import { useLockRecovery, useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {

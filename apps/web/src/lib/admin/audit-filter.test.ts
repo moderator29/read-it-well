@@ -96,7 +96,7 @@ describe("labels", () => {
  *
  *   grep -rho 'entityType: *"[a-z_]*"' apps/web/src | sort -u
  *   plus the two module constants, lib/cron/report.ts ("cron_job") and
- *   lib/wallet/audit.ts ("wallet_entry"), and the two literal `entity_type:`
+ *   lib/money/audit.ts ("wallet_entry"), and the two literal `entity_type:`
  *   writers, lib/cron/report.ts and the Paystack webhook route.
  *
  * `cron_job` was the one that mattered and the one that was missing: it is

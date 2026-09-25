@@ -102,7 +102,7 @@ describe("docs/schema/NAMES.md matches the schema", () => {
   it("each database function the page names as a writer really writes that table", () => {
     const money = DOC.slice(DOC.indexOf("## The money tables"));
     const rows = [...money.matchAll(/^\| `(\w+)` \|[^|]*\|([^|]*)\|$/gm)];
-    expect(rows.length).toBeGreaterThan(10);
+    expect(rows.length).toBeGreaterThanOrEqual(9);
     let checked = 0;
     for (const [, table, writers] of rows) {
       for (const fn of [...(writers ?? "").matchAll(/`([a-z_]+)`/g)].map((m) => m[1] ?? "")) {
@@ -115,15 +115,14 @@ describe("docs/schema/NAMES.md matches the schema", () => {
     expect(checked).toBeGreaterThan(20);
   });
 
-  it("a rent charge credits the lister from the ledger row, by trigger, as the page says", () => {
-    expect(MIGRATIONS.some((sql) => /create trigger ledger_entries_settle_rent_to_lister\s+after insert on public\.ledger_entries[\s\S]{0,120}settle_rent_charge_to_lister/i.test(sql))).toBe(true);
+  it("the rent-to-wallet trigger is disabled, as the page says (Track A)", () => {
+    expect(MIGRATIONS.some((sql) => /alter table public\.ledger_entries disable trigger ledger_entries_settle_rent_to_lister/i.test(sql))).toBe(true);
     expect(DOC).toContain("`ledger_entries_settle_rent_to_lister`");
   });
 
   it("the app writes the rows the page says it writes", () => {
     const app = (p: string) => readFileSync(join(ROOT, "apps", "web", "src", p), "utf8");
-    expect(app("lib/bookings/checkout.ts")).toMatch(/from\("transactions"\)\.insert\(/);
+    expect(app("lib/payments/split-attempt.ts")).toMatch(/from\("transactions"\)\.insert\(/);
     expect(app("lib/bookings/settlement.ts")).toMatch(/markChargeFailed[\s\S]*from\("transactions"\)[\s\S]{0,80}\.update\(/);
-    expect(app("lib/wallet/pot-actions.ts")).toMatch(/\.from\("wallet_pots"\)\s*\.insert\(/);
   });
 });

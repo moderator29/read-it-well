@@ -84,14 +84,6 @@ export function outcomeOf(status: string, createdAt: string, now: number): Payme
   }
 }
 
-function channelOf(metadata: unknown): string | null {
-  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
-    const c = (metadata as Record<string, unknown>)["channel"];
-    if (typeof c === "string" && c.trim()) return c.trim().toLowerCase();
-  }
-  return null;
-}
-
 /** The channel as the desk groups it. A checkout's channel is not recorded on its row. */
 export function channelLabel(a: Pick<PaymentAttempt, "kind" | "channel">): string {
   if (a.channel) return a.channel;
@@ -162,7 +154,7 @@ export async function getPaymentsDesk(filter: PaymentsFilter, now = Date.now()):
   const db: Client = access.supabase;
 
   try {
-    const [tx, txCount, deposits, depositCount] = await Promise.all([
+    const [tx, txCount] = await Promise.all([
       readEvery<{
         id: string;
         booking_id: string | null;
@@ -175,18 +167,8 @@ export async function getPaymentsDesk(filter: PaymentsFilter, now = Date.now()):
         db.from("transactions").select("id, booking_id, provider, provider_ref, amount_minor, status, created_at").order("id").range(f, t),
       ),
       exactCount(db.from("transactions").select("id", { count: "exact", head: true })),
-      readEvery<{ id: string; amount_minor: number; reference: string; status: string; metadata: unknown; created_at: string }>(
-        (f, t) =>
-          db
-            .from("wallet_entries")
-            .select("id, amount_minor, reference, status, metadata, created_at")
-            .eq("kind", "deposit")
-            .order("id")
-            .range(f, t),
-      ),
-      exactCount(db.from("wallet_entries").select("id", { count: "exact", head: true }).eq("kind", "deposit")),
     ]);
-    if (!tx || !deposits || txCount === null || depositCount === null) return UNAVAILABLE;
+    if (!tx || txCount === null) return UNAVAILABLE;
 
     const attempts: PaymentAttempt[] = [
       ...tx.rows.map((r) => ({
@@ -200,24 +182,13 @@ export async function getPaymentsDesk(filter: PaymentsFilter, now = Date.now()):
         bookingId: r.booking_id,
         createdAt: r.created_at,
       })),
-      ...deposits.rows.map((r) => ({
-        id: r.id,
-        kind: "topup" as const,
-        reference: r.reference,
-        channel: channelOf(r.metadata),
-        provider: null,
-        outcome: outcomeOf(r.status, r.created_at, now),
-        amountMinor: r.amount_minor,
-        bookingId: null,
-        createdAt: r.created_at,
-      })),
     ];
 
     return {
       state: "ok",
       data: {
         ...buildPayments(attempts, filter, now),
-        complete: tx.complete && deposits.complete && tx.rows.length === txCount && deposits.rows.length === depositCount,
+        complete: tx.complete && tx.rows.length === txCount,
       },
     };
   } catch {

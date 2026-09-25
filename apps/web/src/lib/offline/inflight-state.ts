@@ -31,22 +31,16 @@ export type InflightAnswer = {
 export async function inflightState(reference: string): Promise<InflightAnswer> {
   const ref = (reference ?? "").trim();
   const fund = isFundReference(ref);
-  const history = fund ? "/wallet/transactions" : "/bookings";
+  const history = "/bookings";
   const unknown: InflightAnswer = { state: "unknown", history };
   const session = await resolveSession();
   if (session.state !== "signed-in" || ref.length === 0 || ref.length > 200) return unknown;
   const limit = await guardMoney("paymentState", session.user.id);
   if (!limit.allowed) return unknown;
 
-  if (fund) {
-    const { data, error } = await session.supabase.from("wallet_entries").select("status").eq("reference", ref).maybeSingle();
-    if (error) return unknown;
-    if (!data) return { state: "none", history };
-    if (data.status === "COMPLETED") return { state: "paid", history };
-    if (data.status === "FAILED") return { state: "failed", history };
-    if (data.status === "REVERSED") return { state: "returned", history };
-    return { state: "pending", history };
-  }
+  /* A wallet top-up reference is from before the wallet was retired (Track A):
+     there is nothing of ours it can be waiting on. */
+  if (fund) return { state: "none", history };
   if (isBookingReference(ref)) {
     const { data, error } = await session.supabase.from("transactions").select("status").eq("provider_ref", ref).maybeSingle();
     if (error) return unknown;

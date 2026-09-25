@@ -5,8 +5,9 @@ import {
   verifyWebhookSignature,
 } from "@/lib/payments/yellowcard";
 import { failureReason, logMoney } from "@/lib/payments/observability";
-import { findUserByEmail, getAdminClient, recordFunding } from "@/lib/wallet/ledger";
-import { recordMoneyAudit, recordWebhookDelivery } from "@/lib/wallet/audit";
+import { getAdminClient } from "@/lib/supabase/service";
+import { settleBookingCharge } from "@/lib/bookings/settlement";
+import { recordMoneyAudit, recordWebhookDelivery } from "@/lib/money/audit";
 import { isCryptoReference } from "@/lib/payments/references";
 import { recordAlert } from "@/lib/alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
@@ -42,11 +43,16 @@ import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-li
  * `sequenceId` we did not mint is not ours to credit no matter how well signed
  * the envelope is, and `isCryptoReference` is the shape test that decides.
  * Pending and failed events are acknowledged and do nothing: a crypto payment
- * that has not settled has not settled, and the wallet must never show money
- * that is still moving.
+ * that has not settled has not settled.
  *
- * The credit itself is `recordFunding`, the same function the card path uses,
- * idempotent on the reference. A webhook delivered five times credits once.
+ * TRACK A: there is no wallet to credit. A completed collection settles ONE
+ * booking through `settleBookingCharge`, the same database function a card
+ * charge uses, in naira only, idempotent on the reference: a webhook
+ * delivered five times settles once. Yellow Card has already settled the
+ * naira straight to the lister, the Guarantee reserve and Vallo; this only
+ * records that it happened. A collection that cannot be applied cannot be
+ * refunded to a card, so it raises a critical alert for a person to return
+ * it through Yellow Card.
  */
 
 export const runtime = "nodejs";
@@ -61,7 +67,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     /* 500, not 200. Unconfigured is a state we can come out of, and a credit
        arriving while we are in it must stay in the retry queue rather than
        being acknowledged into oblivion. */
-    logMoney({ surface: "fund", outcome: "unconfigured", reason: "yellowcard_not_configured" });
+    logMoney({ surface: "webhook", outcome: "unconfigured", reason: "yellowcard_not_configured" });
     /*
      * AND THE DESK HEARS ABOUT IT, which it did not until now.
      *
@@ -92,7 +98,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         { status: 429, headers: { "retry-after": String(spray.retryAfterSeconds) } },
       );
     }
-    logMoney({ surface: "fund", outcome: "rejected", reason: "yellowcard_bad_signature" });
+    logMoney({ surface: "webhook", outcome: "rejected", reason: "yellowcard_bad_signature" });
     await recordAlert({
       kind: "webhook.yellowcard.signature_invalid",
       severity: "warning",
@@ -113,13 +119,13 @@ export async function POST(request: Request): Promise<NextResponse> {
     /* 200: a shape we do not recognise is not a failure on our side and
        retrying it forever helps nobody. It is logged so an unexpected event
        type shows up as a pattern rather than as silence. */
-    logMoney({ surface: "fund", outcome: "rejected", reason: "yellowcard_unreadable_event" });
+    logMoney({ surface: "webhook", outcome: "rejected", reason: "yellowcard_unreadable_event" });
     return NextResponse.json({ received: true, acted: false }, { status: 200 });
   }
 
   if (!isCryptoReference(event.reference)) {
     logMoney({
-      surface: "fund",
+      surface: "webhook",
       outcome: "rejected",
       reason: "yellowcard_foreign_reference",
       reference: event.reference,
@@ -138,7 +144,7 @@ export async function POST(request: Request): Promise<NextResponse> {
        in motion, and a balance that counts it is a balance somebody can spend
        before it exists. */
     logMoney({
-      surface: "fund",
+      surface: "webhook",
       outcome: "received",
       reason: `yellowcard_${event.status}`,
       reference: event.reference,
@@ -153,7 +159,7 @@ export async function POST(request: Request): Promise<NextResponse> {
        time. Without this key nothing can be written, so the only honest reply
        is one that keeps the delivery in the retry queue until the key is set. */
     logMoney({
-      surface: "fund",
+      surface: "webhook",
       outcome: "unconfigured",
       reason: "service_role_key_missing",
       reference: event.reference,
@@ -176,95 +182,56 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    /*
-     * WHOSE WALLET.
-     *
-     * The same mechanism the card path uses - `findUserByEmail` on the address
-     * the processor echoes back - rather than a second one invented for this
-     * route. `startCryptoDeposit` sends the signed-in user's own address as
-     * `customerEmail`, so the round trip is what ties an anonymous crypto
-     * settlement to an account.
-     */
-    const user = event.email ? await findUserByEmail(event.email) : null;
-    const userId = user?.id ?? null;
-    if (!userId) {
-      /* A signed, completed, correctly-shaped credit we cannot attribute. NOT
-         200: this is money that has been paid and has nowhere to go, and it
-         must stay visible in the processor's retry queue while somebody looks
-         at it rather than being quietly accepted and dropped. */
-      logMoney({
-        surface: "fund",
-        outcome: "failed",
-        reason: "yellowcard_unattributable",
-        reference: event.reference,
-        amountMinor: event.amountMinor,
-      });
-      await recordMoneyAudit(admin, {
-        actor: { kind: "webhook" },
-        action: "wallet.funding.unmatched",
-        reference: event.reference,
-        amountMinor: event.amountMinor,
-        outcome: "unmatched",
-        detail: { provider: "yellowcard" },
-      });
-      await recordWebhookDelivery(admin, {
-        event: "collection.completed",
-        reference: event.reference,
-        amountMinor: event.amountMinor,
-        currency: "NGN",
-        outcome: "failed",
-        reason: "owner_unresolved",
-        httpStatus: 500,
-      });
-      await recordAlert({
-        kind: "webhook.yellowcard.settlement_failed",
-        severity: "critical",
-        detail: { reference: event.reference, reason: "owner_unresolved", amount_minor: event.amountMinor },
-        subjectId: event.reference,
-      });
-      return NextResponse.json({ received: false, reason: "unattributable" }, { status: 500 });
-    }
-
-    const result = await recordFunding(admin, {
-      userId,
-      amountMinor: event.amountMinor,
+    const settlement = await settleBookingCharge(admin, {
       reference: event.reference,
-      metadata: { note: "Wallet top-up with crypto", provider: "yellowcard" },
+      amountMinor: event.amountMinor,
+      processorFeeMinor: 0,
     });
 
     await recordMoneyAudit(admin, {
       actor: { kind: "webhook" },
-      action: result === "posted" ? "wallet.funding.posted" : "wallet.funding.duplicate",
+      action: "payment.booking.charge_settled",
       reference: event.reference,
       amountMinor: event.amountMinor,
-      subjectUserId: userId,
-      outcome: result,
-      detail: { provider: "yellowcard" },
+      outcome: settlement.outcome,
+      detail: { provider: "yellowcard", currency: "NGN" },
     });
+
+    if (settlement.outcome === "refund-due" || settlement.outcome === "unknown-reference") {
+      await recordAlert({
+        kind: "webhook.yellowcard.return_needed",
+        severity: "critical",
+        detail: {
+          reference: event.reference,
+          amount_minor: event.amountMinor,
+          reason: settlement.outcome === "refund-due" ? settlement.reason : "unknown_reference",
+        },
+        subjectId: event.reference,
+      });
+    }
 
     await recordWebhookDelivery(admin, {
       event: "collection.completed",
       reference: event.reference,
       amountMinor: event.amountMinor,
       currency: "NGN",
-      outcome: result,
-      reason: "credited",
+      outcome: settlement.outcome === "settled" ? "posted" : settlement.outcome === "already-settled" ? "duplicate" : "rejected",
+      reason: settlement.outcome,
       httpStatus: 200,
     });
 
     logMoney({
-      surface: "fund",
-      outcome: result,
-      reason: result === "duplicate" ? "yellowcard_duplicate" : "yellowcard_credited",
+      surface: "webhook",
+      outcome: settlement.outcome === "settled" ? "posted" : settlement.outcome === "already-settled" ? "duplicate" : "rejected",
+      reason: `yellowcard_${settlement.outcome}`,
       reference: event.reference,
       amountMinor: event.amountMinor,
-      userId,
     });
 
-    return NextResponse.json({ received: true, acted: result === "posted" }, { status: 200 });
+    return NextResponse.json({ received: true, acted: settlement.outcome === "settled" }, { status: 200 });
   } catch (error) {
     logMoney({
-      surface: "fund",
+      surface: "webhook",
       outcome: "failed",
       reason: `yellowcard_write_failed:${failureReason(error)}`,
       reference: event.reference,

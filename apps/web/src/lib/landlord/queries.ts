@@ -109,7 +109,7 @@ export async function readRentFactFor(inspectionId: string): Promise<RentFact | 
 
 /**
  * THE LANDLORD LINE'S SWITCH, READ FAIL CLOSED, on the model of
- * `lib/escrow/flag.ts`. Used only to TELL the reviewer whether consent will
+ * `lib/flags/read.ts`. Used only to TELL the reviewer whether consent will
  * lead to a message yet; the database functions check the flag themselves.
  */
 export async function landlordLineIsOpen(): Promise<boolean> {

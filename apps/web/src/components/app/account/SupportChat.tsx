@@ -80,14 +80,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * When the agent is running it earns these from the tools it actually called.
  * With no key there are no tool results, so the only actions offered are the
  * ones the matched help topic guarantees: a booking answer really does belong
- * on the trips hub, a wallet answer really does belong on the wallet. Nothing
+ * on the trips hub, a payment answer really does belong on the agreements. Nothing
  * here claims to have read anybody's record.
  */
 const FALLBACK_ACTIONS: Record<string, SupportAction | undefined> = {
   booking: { kind: "bookings", label: "Open my bookings", href: "/bookings" },
   cancellations: { kind: "bookings", label: "Open my bookings", href: "/bookings" },
-  wallet: { kind: "wallet", label: "Open my wallet", href: "/wallet" },
-  payments: { kind: "wallet", label: "Open my wallet", href: "/wallet" },
+  wallet: { kind: "agreements", label: "Open my agreements", href: "/agreements" },
+  payments: { kind: "agreements", label: "Open my agreements", href: "/agreements" },
+  guarantee: { kind: "agreements", label: "Open my agreements", href: "/agreements" },
   "messaging-safety": { kind: "messages", label: "Message the agent", href: "/messages" },
   "rent-inspection": { kind: "messages", label: "Message the agent", href: "/messages" },
 };
@@ -610,9 +611,9 @@ export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } =
 }
 
 /** Navigation glyphs for the quick actions; content icons never go here. */
-const ACTION_GLYPH: Record<SupportAction["kind"], "calendar-booking" | "wallet" | "chat-bubble" | "user"> = {
+const ACTION_GLYPH: Record<SupportAction["kind"], "calendar-booking" | "document" | "chat-bubble" | "user"> = {
   bookings: "calendar-booking",
-  wallet: "wallet",
+  agreements: "document",
   messages: "chat-bubble",
   "sign-in": "user",
 };

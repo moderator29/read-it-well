@@ -88,6 +88,7 @@ vi.mock("../payments/paystack", () => ({
   initializeTransaction: seam.initializeTransaction,
   isPaystackConfigured: () => true,
   verifyTransaction: vi.fn(),
+  guaranteeReserveSubaccount: () => "ACCT_reserve",
 }));
 vi.mock("../payments/charge-saved-card", () => ({ chargeSavedCard: seam.chargeSavedCard }));
 vi.mock("../email/recipients", () => ({ contactFromSession: () => null }));
@@ -97,9 +98,19 @@ vi.mock("../bookings/settlement", () => ({
   markChargeFailed: vi.fn(async () => {}),
   settleBookingCharge: vi.fn(),
 }));
-vi.mock("../wallet/ledger", () => ({
-  availableBalanceMinor: async () => 0,
-  ensureWalletId: async () => "wallet-1",
+/* Track A: every card attempt opens with the processor split, read from the
+   database. The split itself is proved in split-attempt's own tests; here it
+   answers a fixed attempt so the return path is what is under test. */
+vi.mock("../payments/split-attempt", () => ({
+  openSplitAttempt: async () => ({
+    reference: REFERENCE,
+    amountMinor: 150_000_000,
+    agreementId: "agreement-1",
+    split: { subaccount: "ACCT_lister", reserveSubaccount: "ACCT_reserve", listerShareMinor: 147_750_000, guaranteeMinor: 2_250_000 },
+  }),
+  isRefusal: (v: { refused?: boolean }) => v.refused === true,
+}));
+vi.mock("@/lib/supabase/service", () => ({
   getAdminClient: () => ({
     from: (name: string) => {
       if (name === "transactions") return { insert: async () => ({ error: null }) };

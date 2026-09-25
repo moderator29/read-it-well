@@ -74,12 +74,9 @@
  *                                   complaint.
  *   /sign-in, /sign-up -> /welcome  NOT `/start`, which is a 307 and not a
  *                                   screen. See the door section below.
- *   /escrow -> /wallet              The wallet is where this product already
- *                                   explains money set aside.
- *   /escrow/[id] -> /escrow         Not the conversation it was proposed in:
- *                                   an agreement id cannot fill a
- *                                   conversation id, and the same link also
- *                                   arrives by email with no thread at all.
+ *   /agreements/[id] -> /agreements Track A: the agreement list is where
+ *                                   money now lives; the wallet and escrow
+ *                                   routes are retired and redirect there.
  *   /price/area/[id] -> /price      What the page itself already passes to
  *                                   `PageHeader`, read off the surface.
  *   /preview/<four decks>/[screen]  Four decks have no index page, so the
@@ -136,6 +133,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/r": "/",
   "/r/[code]": "/r",
   "/privacy": "/",
+  "/disclaimer": "/",
   "/safety": "/",
   "/check": "/",
   "/standards": "/",
@@ -210,7 +208,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/record/[code]": "/search",
   "/settings/passport": "/settings",
   "/rent/pay/[inspectionId]": "/bookings",
-  "/rent/share/[id]": "/wallet",
+  "/rent/share/[id]": "/agreements",
   "/tenancy/[id]": "/bookings",
   "/tenancy/[id]/complaint": "/tenancy/[id]",
   "/host/arrival": "/host",
@@ -252,33 +250,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/messages/share/booking/[id]": "/bookings/[id]",
 
   /* --------------------------------------------------------------- money */
-  "/wallet": "/home",
-  "/wallet/receive": "/wallet",
-  "/wallet/send": "/wallet",
-  "/wallet/transactions": "/wallet",
-  "/wallet/transactions/[id]": "/wallet/transactions",
-  /*
-   * HELD PAYMENTS. `/escrow/[id]` is linked from a message thread
-   * (`ProposeHeldPayment`) and from the escrow emails, and `/escrow` is linked
-   * from NOWHERE in the product: no drawer row, no tile, no card. It is
-   * reachable by typing the address and by pressing back from a held payment,
-   * which makes the second of those the only way most people will ever see it,
-   * and makes getting its own way up right more rather than less important.
-   *
-   * `/escrow/[id]` -> `/escrow` rather than back to the conversation, and the
-   * choice is forced as well as defensible: an agreement id is not a
-   * conversation id, so `/messages/[id]` cannot be filled from what this route
-   * captures, and the same link arrives by email where there is no thread at
-   * all. The list is the index of exactly these objects.
-   *
-   * `/escrow` -> `/wallet`, because the wallet is where this product already
-   * explains money that is set aside: `BalanceBreakdownSheet` is the sentence
-   * about it and it lives there. `/home` was the other defensible answer and
-   * is the weaker one, because it treats the screen as an orphan rather than
-   * as the detail behind something a person has already been shown.
-   */
-  "/escrow": "/wallet",
-  "/escrow/[id]": "/escrow",
+  /* Track A: the wallet and escrow routes are retired (they redirect to
+     /agreements in next.config.ts). The agreement list is where money now
+     lives. */
+  "/agreements": "/home",
+  "/agreements/[id]": "/agreements",
 
   /* -------------------------------------------------------------- social */
   /* C3.2, as `/search` above: the landing page, not `/home`. */
@@ -322,6 +298,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/phone": "/settings",
   "/legal/privacy": "/settings",
   "/legal/terms": "/settings",
+  "/legal/disclaimer": "/settings",
 
   /* ------------------------------------------------------------- console
    *
@@ -339,7 +316,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/bookings/[bookingId]": "/admin/bookings",
   "/admin/bookings/reservations": "/admin/bookings",
   "/admin/businesses": "/admin",
-  "/admin/escrow": "/admin",
+  "/admin/agreements": "/admin",
   "/admin/examples": "/admin",
   "/admin/fees": "/admin",
   "/admin/account-recovery": "/admin",

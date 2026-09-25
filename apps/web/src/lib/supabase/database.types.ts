@@ -1152,6 +1152,8 @@ export type Database = {
           retained_minor: number
           wallet_entry_id: string | null
           wallet_reference: string | null
+          processor_refund_id: string | null
+          processor_status: string
         }
         Insert: {
           booking_id: string
@@ -1166,6 +1168,8 @@ export type Database = {
           retained_minor: number
           wallet_entry_id?: string | null
           wallet_reference?: string | null
+          processor_refund_id?: string | null
+          processor_status?: string
         }
         Update: {
           booking_id?: string
@@ -1180,6 +1184,8 @@ export type Database = {
           retained_minor?: number
           wallet_entry_id?: string | null
           wallet_reference?: string | null
+          processor_refund_id?: string | null
+          processor_status?: string
         }
         Relationships: [
           {
@@ -1946,242 +1952,6 @@ export type Database = {
         }
         Relationships: []
       }
-      escrow_evidence: {
-        Row: {
-          amount_minor: number | null
-          author_id: string
-          caption: string | null
-          created_at: string
-          escrow_id: string
-          fact: Database["public"]["Enums"]["escrow_fact"] | null
-          file_name: string | null
-          happened_on: string | null
-          id: string
-          kind: Database["public"]["Enums"]["escrow_evidence_kind"]
-          mime_type: string | null
-          size_bytes: number | null
-          storage_path: string | null
-        }
-        Insert: {
-          amount_minor?: number | null
-          author_id: string
-          caption?: string | null
-          created_at?: string
-          escrow_id: string
-          fact?: Database["public"]["Enums"]["escrow_fact"] | null
-          file_name?: string | null
-          happened_on?: string | null
-          id?: string
-          kind: Database["public"]["Enums"]["escrow_evidence_kind"]
-          mime_type?: string | null
-          size_bytes?: number | null
-          storage_path?: string | null
-        }
-        Update: {
-          amount_minor?: number | null
-          author_id?: string
-          caption?: string | null
-          created_at?: string
-          escrow_id?: string
-          fact?: Database["public"]["Enums"]["escrow_fact"] | null
-          file_name?: string | null
-          happened_on?: string | null
-          id?: string
-          kind?: Database["public"]["Enums"]["escrow_evidence_kind"]
-          mime_type?: string | null
-          size_bytes?: number | null
-          storage_path?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "escrow_evidence_escrow_id_fkey"
-            columns: ["escrow_id"]
-            isOneToOne: false
-            referencedRelation: "escrows"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      escrow_float_snapshots: {
-        Row: {
-          as_of: string
-          commission_booked_minor: number
-          components: Json
-          created_at: string
-          currency: string
-          difference_minor: number
-          escrow_count: number
-          float_minor: number
-          id: string
-          ledger_float_minor: number
-          taken_at: string
-        }
-        Insert: {
-          as_of: string
-          commission_booked_minor: number
-          components?: Json
-          created_at?: string
-          currency?: string
-          difference_minor: number
-          escrow_count: number
-          float_minor: number
-          id?: string
-          ledger_float_minor: number
-          taken_at?: string
-        }
-        Update: {
-          as_of?: string
-          commission_booked_minor?: number
-          components?: Json
-          created_at?: string
-          currency?: string
-          difference_minor?: number
-          escrow_count?: number
-          float_minor?: number
-          id?: string
-          ledger_float_minor?: number
-          taken_at?: string
-        }
-        Relationships: []
-      }
-      escrows: {
-        Row: {
-          amount_minor: number
-          auto_release_at: string | null
-          commission_minor: number | null
-          commission_rate_id: string | null
-          conversation_id: string | null
-          created_at: string
-          currency: string
-          dispute_reason: string | null
-          disputed_at: string | null
-          disputed_by: string | null
-          funded_at: string | null
-          held_at: string | null
-          id: string
-          initiated_at: string
-          inspection_confirmation_id: string | null
-          listing_id: string | null
-          opened_by: string | null
-          payee_confirmed_at: string | null
-          payee_id: string
-          payer_confirmed_at: string | null
-          payer_id: string
-          purpose: Database["public"]["Enums"]["escrow_purpose"]
-          refunded_at: string | null
-          release_requested_at: string | null
-          release_requested_by: string | null
-          released_at: string | null
-          resolution_note: string | null
-          resolved_at: string | null
-          resolved_by: string | null
-          state: Database["public"]["Enums"]["escrow_state"]
-          updated_at: string
-        }
-        Insert: {
-          amount_minor: number
-          auto_release_at?: string | null
-          commission_minor?: number | null
-          commission_rate_id?: string | null
-          conversation_id?: string | null
-          created_at?: string
-          currency?: string
-          dispute_reason?: string | null
-          disputed_at?: string | null
-          disputed_by?: string | null
-          funded_at?: string | null
-          held_at?: string | null
-          id?: string
-          initiated_at?: string
-          inspection_confirmation_id?: string | null
-          listing_id?: string | null
-          opened_by?: string | null
-          payee_confirmed_at?: string | null
-          payee_id: string
-          payer_confirmed_at?: string | null
-          payer_id: string
-          purpose: Database["public"]["Enums"]["escrow_purpose"]
-          refunded_at?: string | null
-          release_requested_at?: string | null
-          release_requested_by?: string | null
-          released_at?: string | null
-          resolution_note?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          state?: Database["public"]["Enums"]["escrow_state"]
-          updated_at?: string
-        }
-        Update: {
-          amount_minor?: number
-          auto_release_at?: string | null
-          commission_minor?: number | null
-          commission_rate_id?: string | null
-          conversation_id?: string | null
-          created_at?: string
-          currency?: string
-          dispute_reason?: string | null
-          disputed_at?: string | null
-          disputed_by?: string | null
-          funded_at?: string | null
-          held_at?: string | null
-          id?: string
-          initiated_at?: string
-          inspection_confirmation_id?: string | null
-          listing_id?: string | null
-          opened_by?: string | null
-          payee_confirmed_at?: string | null
-          payee_id?: string
-          payer_confirmed_at?: string | null
-          payer_id?: string
-          purpose?: Database["public"]["Enums"]["escrow_purpose"]
-          refunded_at?: string | null
-          release_requested_at?: string | null
-          release_requested_by?: string | null
-          released_at?: string | null
-          resolution_note?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          state?: Database["public"]["Enums"]["escrow_state"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "escrows_commission_rate_id_fkey"
-            columns: ["commission_rate_id"]
-            isOneToOne: false
-            referencedRelation: "fee_rates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "escrows_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "escrows_inspection_confirmation_id_fkey"
-            columns: ["inspection_confirmation_id"]
-            isOneToOne: false
-            referencedRelation: "inspection_confirmations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "escrows_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "listing_lister"
-            referencedColumns: ["listing_id"]
-          },
-          {
-            foreignKeyName: "escrows_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       event_attendees: {
         Row: {
           decided_at: string | null
@@ -2760,6 +2530,7 @@ export type Database = {
           platform_fee_minor: number
           processor_fee_minor: number
           transaction_id: string | null
+          guarantee_reserve_minor: number | null
         }
         Insert: {
           agent_share_minor?: number
@@ -2771,6 +2542,7 @@ export type Database = {
           platform_fee_minor?: number
           processor_fee_minor?: number
           transaction_id?: string | null
+          guarantee_reserve_minor?: number | null
         }
         Update: {
           agent_share_minor?: number
@@ -2782,6 +2554,7 @@ export type Database = {
           platform_fee_minor?: number
           processor_fee_minor?: number
           transaction_id?: string | null
+          guarantee_reserve_minor?: number | null
         }
         Relationships: [
           {
@@ -3599,6 +3372,8 @@ export type Database = {
           recipient_code: string | null
           resolved_account_name: string | null
           resolved_at: string | null
+          paystack_subaccount_code: string | null
+          subaccount_created_at: string | null
         }
         Insert: {
           account_name: string
@@ -3612,6 +3387,8 @@ export type Database = {
           recipient_code?: string | null
           resolved_account_name?: string | null
           resolved_at?: string | null
+          paystack_subaccount_code?: string | null
+          subaccount_created_at?: string | null
         }
         Update: {
           account_name?: string
@@ -3625,6 +3402,8 @@ export type Database = {
           recipient_code?: string | null
           resolved_account_name?: string | null
           resolved_at?: string | null
+          paystack_subaccount_code?: string | null
+          subaccount_created_at?: string | null
         }
         Relationships: [
           {
@@ -5672,6 +5451,13 @@ export type Database = {
           provider_ref: string | null
           status: Database["public"]["Enums"]["transaction_status"]
           updated_at: string
+          payee_user_id: string | null
+          payee_subaccount_code: string | null
+          reserve_subaccount_code: string | null
+          lister_share_minor: number | null
+          guarantee_minor: number | null
+          commission_minor: number | null
+          agreement_id: string | null
         }
         Insert: {
           amount_minor: number
@@ -5683,6 +5469,13 @@ export type Database = {
           provider_ref?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
           updated_at?: string
+          payee_user_id?: string | null
+          payee_subaccount_code?: string | null
+          reserve_subaccount_code?: string | null
+          lister_share_minor?: number | null
+          guarantee_minor?: number | null
+          commission_minor?: number | null
+          agreement_id?: string | null
         }
         Update: {
           amount_minor?: number
@@ -5694,6 +5487,13 @@ export type Database = {
           provider_ref?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
           updated_at?: string
+          payee_user_id?: string | null
+          payee_subaccount_code?: string | null
+          reserve_subaccount_code?: string | null
+          lister_share_minor?: number | null
+          guarantee_minor?: number | null
+          commission_minor?: number | null
+          agreement_id?: string | null
         }
         Relationships: [
           {
@@ -5799,108 +5599,243 @@ export type Database = {
         }
         Relationships: []
       }
-      wallet_entries: {
+      deal_agreements: {
         Row: {
           amount_minor: number
+          booking_id: string | null
           created_at: string
-          direction: Database["public"]["Enums"]["wallet_entry_direction"]
+          decided_at: string | null
+          decided_by: string | null
+          decision_reason: string | null
           id: string
-          kind: Database["public"]["Enums"]["wallet_entry_kind"]
-          metadata: Json
-          reference: string
-          status: Database["public"]["Enums"]["wallet_entry_status"]
-          wallet_id: string
+          inspection_id: string | null
+          kind: string
+          listing_id: string
+          mandate_id: string | null
+          owner_confirmed_at: string | null
+          owner_confirmed_version: number | null
+          owner_id: string
+          paid_at: string | null
+          renter_confirmed_at: string | null
+          renter_confirmed_version: number | null
+          renter_id: string
+          status: Database["public"]["Enums"]["agreement_status"]
+          submitted_at: string | null
+          terms: Json
+          terms_version: number
+          updated_at: string
         }
         Insert: {
           amount_minor: number
+          booking_id?: string | null
           created_at?: string
-          direction: Database["public"]["Enums"]["wallet_entry_direction"]
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
           id?: string
-          kind: Database["public"]["Enums"]["wallet_entry_kind"]
-          metadata?: Json
-          reference: string
-          status?: Database["public"]["Enums"]["wallet_entry_status"]
-          wallet_id: string
+          inspection_id?: string | null
+          kind: string
+          listing_id: string
+          mandate_id?: string | null
+          owner_confirmed_at?: string | null
+          owner_confirmed_version?: number | null
+          owner_id: string
+          paid_at?: string | null
+          renter_confirmed_at?: string | null
+          renter_confirmed_version?: number | null
+          renter_id: string
+          status?: Database["public"]["Enums"]["agreement_status"]
+          submitted_at?: string | null
+          terms: Json
+          terms_version?: number
+          updated_at?: string
         }
         Update: {
           amount_minor?: number
+          booking_id?: string | null
           created_at?: string
-          direction?: Database["public"]["Enums"]["wallet_entry_direction"]
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
           id?: string
-          kind?: Database["public"]["Enums"]["wallet_entry_kind"]
-          metadata?: Json
-          reference?: string
-          status?: Database["public"]["Enums"]["wallet_entry_status"]
-          wallet_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wallet_entries_wallet_id_fkey"
-            columns: ["wallet_id"]
-            isOneToOne: false
-            referencedRelation: "wallet_balances"
-            referencedColumns: ["wallet_id"]
-          },
-          {
-            foreignKeyName: "wallet_entries_wallet_id_fkey"
-            columns: ["wallet_id"]
-            isOneToOne: false
-            referencedRelation: "wallets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      wallet_pots: {
-        Row: {
-          archived_at: string | null
-          balance_minor: number
-          created_at: string
-          id: string
-          name: string
-          target_minor: number | null
-          user_id: string
-        }
-        Insert: {
-          archived_at?: string | null
-          balance_minor?: number
-          created_at?: string
-          id?: string
-          name: string
-          target_minor?: number | null
-          user_id: string
-        }
-        Update: {
-          archived_at?: string | null
-          balance_minor?: number
-          created_at?: string
-          id?: string
-          name?: string
-          target_minor?: number | null
-          user_id?: string
+          inspection_id?: string | null
+          kind?: string
+          listing_id?: string
+          mandate_id?: string | null
+          owner_confirmed_at?: string | null
+          owner_confirmed_version?: number | null
+          owner_id?: string
+          paid_at?: string | null
+          renter_confirmed_at?: string | null
+          renter_confirmed_version?: number | null
+          renter_id?: string
+          status?: Database["public"]["Enums"]["agreement_status"]
+          submitted_at?: string | null
+          terms?: Json
+          terms_version?: number
+          updated_at?: string
         }
         Relationships: []
       }
-      wallets: {
+      deal_agreement_events: {
         Row: {
+          action: string
+          actor_id: string | null
+          agreement_id: string
           created_at: string
-          currency: string
+          from_status: Database["public"]["Enums"]["agreement_status"] | null
           id: string
-          updated_at: string
-          user_id: string
+          note: string | null
+          terms_version: number
+          to_status: Database["public"]["Enums"]["agreement_status"]
         }
         Insert: {
+          action: string
+          actor_id?: string | null
+          agreement_id: string
           created_at?: string
-          currency?: string
+          from_status?: Database["public"]["Enums"]["agreement_status"] | null
           id?: string
-          updated_at?: string
-          user_id: string
+          note?: string | null
+          terms_version: number
+          to_status: Database["public"]["Enums"]["agreement_status"]
         }
         Update: {
+          action?: string
+          actor_id?: string | null
+          agreement_id?: string
           created_at?: string
-          currency?: string
+          from_status?: Database["public"]["Enums"]["agreement_status"] | null
           id?: string
+          note?: string | null
+          terms_version?: number
+          to_status?: Database["public"]["Enums"]["agreement_status"]
+        }
+        Relationships: []
+      }
+      guarantee_claims: {
+        Row: {
+          agreement_id: string
+          approved_minor: number | null
+          booking_id: string
+          claimant_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_reason: string | null
+          description: string
+          evidence_paths: string[]
+          id: string
+          items: string[]
+          paid_at: string | null
+          paid_by: string | null
+          paid_reference: string | null
+          requested_minor: number
+          status: string
+        }
+        Insert: {
+          agreement_id: string
+          approved_minor?: number | null
+          booking_id: string
+          claimant_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          description: string
+          evidence_paths?: string[]
+          id?: string
+          items?: string[]
+          paid_at?: string | null
+          paid_by?: string | null
+          paid_reference?: string | null
+          requested_minor: number
+          status?: string
+        }
+        Update: {
+          agreement_id?: string
+          approved_minor?: number | null
+          booking_id?: string
+          claimant_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          description?: string
+          evidence_paths?: string[]
+          id?: string
+          items?: string[]
+          paid_at?: string | null
+          paid_by?: string | null
+          paid_reference?: string | null
+          requested_minor?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      guarantee_reserve_entries: {
+        Row: {
+          amount_minor: number
+          booking_id: string | null
+          claim_id: string | null
+          created_at: string
+          created_by: string | null
+          direction: string
+          id: string
+          kind: string
+          note: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          amount_minor: number
+          booking_id?: string | null
+          claim_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction: string
+          id?: string
+          kind: string
+          note?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          booking_id?: string | null
+          claim_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: []
+      }
+      money_policy: {
+        Row: {
+          claim_window_hours: number
+          guarantee_bps: number
+          id: boolean
+          min_inspection_photos: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          claim_window_hours?: number
+          guarantee_bps?: number
+          id?: boolean
+          min_inspection_photos?: number
           updated_at?: string
-          user_id?: string
+          updated_by?: string | null
+        }
+        Update: {
+          claim_window_hours?: number
+          guarantee_bps?: number
+          id?: boolean
+          min_inspection_photos?: number
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -5934,34 +5869,9 @@ export type Database = {
         }
         Relationships: []
       }
-      wallet_balances: {
-        Row: {
-          balance_minor: number | null
-          currency: string | null
-          user_id: string | null
-          wallet_id: string | null
-        }
-        Insert: {
-          balance_minor?: never
-          currency?: string | null
-          user_id?: string | null
-          wallet_id?: string | null
-        }
-        Update: {
-          balance_minor?: never
-          currency?: string | null
-          user_id?: string | null
-          wallet_id?: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       account_deletion_blockers: { Args: { p_user: string }; Returns: Json }
-      admin_expire_stale_withdrawal_holds: {
-        Args: { p_older_than_minutes?: number }
-        Returns: Json
-      }
       admin_payment_health: {
         Args: { p_stale_minutes?: number }
         Returns: Json
@@ -6205,129 +6115,8 @@ export type Database = {
           status: Database["public"]["Enums"]["area_status"]
         }[]
       }
-      escrow_admin_resolve: {
-        Args: { p_direction: string; p_escrow: string; p_note: string }
-        Returns: Json
-      }
-      escrow_cancel_as: {
-        Args: { p_actor: string; p_escrow: string; p_reason?: string }
-        Returns: Json
-      }
       escrow_confirm: { Args: { p_escrow: string }; Returns: Json }
-      escrow_confirm_as: {
-        Args: { p_actor: string; p_escrow: string }
-        Returns: Json
-      }
-      escrow_file_evidence_as: {
-        Args: {
-          p_actor: string
-          p_amount_minor?: number
-          p_caption?: string
-          p_escrow: string
-          p_fact?: Database["public"]["Enums"]["escrow_fact"]
-          p_file_name?: string
-          p_happened_on?: string
-          p_kind: Database["public"]["Enums"]["escrow_evidence_kind"]
-          p_mime_type?: string
-          p_size_bytes?: number
-          p_storage_path?: string
-        }
-        Returns: Json
-      }
-      escrow_fund_from_wallet: {
-        Args: {
-          p_amount_minor: number
-          p_hold_days?: number
-          p_listing: string
-          p_payee: string
-          p_purpose: Database["public"]["Enums"]["escrow_purpose"]
-          p_reference: string
-        }
-        Returns: Json
-      }
-      escrow_fund_from_wallet_as: {
-        Args: {
-          p_actor: string
-          p_amount_minor: number
-          p_hold_days?: number
-          p_listing: string
-          p_payee: string
-          p_purpose: Database["public"]["Enums"]["escrow_purpose"]
-          p_reference: string
-        }
-        Returns: Json
-      }
-      escrow_fund_proposal_as: {
-        Args: { p_actor: string; p_escrow: string; p_hold_days?: number }
-        Returns: Json
-      }
-      escrow_hold: {
-        Args: {
-          amount: number
-          escrow_id: string
-          hold_days?: number
-          hold_reference: string
-          note?: string
-          payer_user: string
-        }
-        Returns: Json
-      }
-      escrow_open: {
-        Args: {
-          amount: number
-          listing: string
-          payee_user: string
-          payer_user: string
-          purpose: Database["public"]["Enums"]["escrow_purpose"]
-        }
-        Returns: Json
-      }
-      escrow_propose_as: {
-        Args: {
-          p_actor: string
-          p_actor_pays: boolean
-          p_amount_minor: number
-          p_conversation: string
-          p_counterparty: string
-          p_purpose: Database["public"]["Enums"]["escrow_purpose"]
-        }
-        Returns: Json
-      }
-      escrow_raise_dispute: {
-        Args: { p_escrow: string; p_reason: string }
-        Returns: Json
-      }
-      escrow_reverse_ruling: {
-        Args: { p_note: string; p_ruling: string }
-        Returns: Json
-      }
-      escrow_raise_dispute_as: {
-        Args: { p_actor: string; p_escrow: string; p_reason: string }
-        Returns: Json
-      }
-      escrow_refund: {
-        Args: {
-          escrow_id: string
-          note?: string
-          payer_user: string
-          refund_reference: string
-        }
-        Returns: Json
-      }
-      escrow_release: {
-        Args: {
-          beneficiary_user: string
-          escrow_id: string
-          note?: string
-          release_reference: string
-        }
-        Returns: Json
-      }
       escrow_request_release: { Args: { p_escrow: string }; Returns: Json }
-      escrow_request_release_as: {
-        Args: { p_actor: string; p_escrow: string }
-        Returns: Json
-      }
       estimate_value: {
         Args: {
           p_bedrooms: number
@@ -6358,10 +6147,6 @@ export type Database = {
         Args: { p_limit?: number; p_ttl?: string }
         Returns: Json
       }
-      expire_stale_withdrawal_holds: {
-        Args: { older_than_minutes?: number }
-        Returns: Json
-      }
       fail_account_purge: {
         Args: { p_reason: string; p_request: string }
         Returns: Json
@@ -6384,15 +6169,6 @@ export type Database = {
           acting_admin: string
           new_role: Database["public"]["Enums"]["app_role"]
           target_email: string
-        }
-        Returns: Json
-      }
-      hold_wallet_withdrawal: {
-        Args: {
-          amount: number
-          hold_metadata?: Json
-          hold_reference: string
-          owner_user: string
         }
         Returns: Json
       }
@@ -6443,24 +6219,6 @@ export type Database = {
           title: string
         }[]
       }
-      move_into_pot: {
-        Args: {
-          amount: number
-          move_reference: string
-          owner_user: string
-          pot: string
-        }
-        Returns: Json
-      }
-      move_out_of_pot: {
-        Args: {
-          amount: number
-          move_reference: string
-          owner_user: string
-          pot: string
-        }
-        Returns: Json
-      }
       my_sessions: {
         Args: never
         Returns: {
@@ -6484,14 +6242,6 @@ export type Database = {
       open_account_deletion: { Args: { p_user: string }; Returns: Json }
       open_rent_charge: {
         Args: { p_inspection: string; p_move_in: string; p_tenant: string }
-        Returns: Json
-      }
-      pay_booking_from_wallet: {
-        Args: {
-          payer: string
-          payment_reference: string
-          target_booking: string
-        }
         Returns: Json
       }
       platform_stats: {
@@ -6625,15 +6375,6 @@ export type Database = {
         Returns: Json
       }
       signup_method_for_email: { Args: { p_email: string }; Returns: string }
-      stale_withdrawal_holds: {
-        Args: { older_than_minutes?: number }
-        Returns: {
-          amount_minor: number
-          created_at: string
-          reference: string
-          wallet_id: string
-        }[]
-      }
       stays_search: {
         Args: {
           p_amenities?: string[]
@@ -6704,22 +6445,7 @@ export type Database = {
         }
         Returns: Json
       }
-      transfer_between_wallets: {
-        Args: {
-          amount: number
-          in_reference: string
-          note?: string
-          out_reference: string
-          recipient_user: string
-          sender_user: string
-        }
-        Returns: string
-      }
       unaccent_immutable: { Args: { input: string }; Returns: string }
-      user_id_by_email_for_transfer: {
-        Args: { p_email: string }
-        Returns: string
-      }
       verification_is_required: { Args: { p_user: string }; Returns: boolean }
       verify_payout_account: {
         Args: {
@@ -6729,20 +6455,19 @@ export type Database = {
         }
         Returns: Json
       }
-      wallets_overdrawn: {
-        Args: never
-        Returns: {
-          balance_minor: number
-          user_id: string
-          wallet_id: string
-        }[]
-      }
       withdraw_business_transfer: {
         Args: { p_transfer: string; p_user: string }
         Returns: Json
       }
     }
     Enums: {
+      agreement_status:
+        | "awaiting_parties"
+        | "in_review"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "paid"
       agent_application_status:
         | "DRAFT"
         | "SUBMITTED"

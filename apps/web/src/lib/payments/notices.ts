@@ -5,7 +5,7 @@ import {
   type PaymentInstrumentEvent,
 } from "../email/payment-instrument-messages";
 import { announce } from "../notify/junction";
-import type { AdminClient } from "../wallet/ledger";
+import type { AdminClient } from "@/lib/supabase/service";
 
 /**
  * EVERY CHANGE TO HOW SOMEBODY PAYS, OR GETS PAID, SAYS SO.
@@ -22,7 +22,7 @@ import type { AdminClient } from "../wallet/ledger";
  * withdrawal that did not arrive.
  *
  * That is the exact shape of the failure the money audit trail was built to
- * end (`lib/wallet/audit.ts`), and the payments desk was outside it.
+ * end (`lib/money/audit.ts`), and the payments desk was outside it.
  *
  * ---------------------------------------------------------------------------
  * WHAT EACH NOTICE MAY SAY, AND WHAT IT MAY NEVER SAY.

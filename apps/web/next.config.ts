@@ -229,6 +229,20 @@ const nextConfig: NextConfig = {
       { source: "/admin/reports", destination: "/admin/queue?tab=reports", permanent: true },
       { source: "/admin/flags", destination: "/admin/queue?tab=flags", permanent: true },
       { source: "/admin/moderation", destination: "/admin/queue?tab=held", permanent: true },
+      /*
+       * Track A, 25 September 2026: custody is retired. There is no wallet,
+       * no escrow and no held payment, so every old link lands where money
+       * now lives: the agreements that gate a payment, and the admin queue
+       * that approves them. Not permanent, so a browser never caches a
+       * redirect a later route might want back.
+       */
+      { source: "/wallet", destination: "/agreements", permanent: false },
+      { source: "/wallet/:path*", destination: "/agreements", permanent: false },
+      { source: "/escrow", destination: "/agreements", permanent: false },
+      { source: "/escrow/:path*", destination: "/agreements", permanent: false },
+      { source: "/admin/escrow", destination: "/admin/agreements", permanent: false },
+      { source: "/admin/escrow/:path*", destination: "/admin/agreements", permanent: false },
+      { source: "/docs/your-wallet", destination: "/docs/money-and-the-guarantee", permanent: false },
     ];
   },
 

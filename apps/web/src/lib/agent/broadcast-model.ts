@@ -14,7 +14,7 @@ import { koboToNairaInput } from "./listings-schema";
  *   1. IT RUNS ONLY WHEN THREE THINGS ARE TRUE: `ANTHROPIC_API_KEY` is set,
  *      `ASSISTANT_MODEL` names the model (no model name is written in this
  *      repository), and `feature_flags.broadcast_model` exists and says true.
- *      The flag fails closed like `lib/escrow/flag.ts`: a missing row, an
+ *      The flag fails closed like `lib/flags/read.ts`: a missing row, an
  *      error or no configuration is off. Locally none of the three holds, so
  *      the deterministic answer is the whole answer.
  *   2. IT RETURNS TEXT SPANS, NEVER VALUES. The tool the model is given takes

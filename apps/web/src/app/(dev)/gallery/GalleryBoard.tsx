@@ -7,7 +7,6 @@ import { getDictionary } from "@vallo/i18n";
 import { BackButton } from "@/components/site/BackButton";
 import { Sheet } from "@/components/ui/Sheet";
 import { EmptyActions } from "@/components/app/EmptyActions";
-import { WaitNotice } from "@/components/app/wallet/MoneyWait";
 import { adminUi } from "@/app/admin/_components/ui";
 import { QUEUE_EMPTY_MARK } from "@/app/admin/_components/queue-empty";
 
@@ -445,30 +444,6 @@ export function GalleryBoard() {
               <ui.QueueEmpty title={title} body={body} state={state} />
             </div>
           ))}
-        </div>
-      </Section>
-
-      <Section
-        title="A money call that is taking too long"
-        note="The two states of the clock on withdraw and transfer. At ten seconds the quiet line; at twenty-five the terminal panel. IT OFFERS NO RETRY ON PURPOSE, because neither action takes an idempotency key, so a second submit is a second movement of real money: the long version of that reasoning is on withdraw in lib/wallet/actions.ts. Read the two sentences as somebody who has just asked us to send money to their bank and has been watching a spinner: they assert something about a request that is still in flight, and that is the thing to check."
-      >
-        <div className="grid gap-group md:grid-cols-2">
-          <div className="nf-card p-card">
-            <p className="nf-overline mb-inline-tight">slow, withdrawal</p>
-            <WaitNotice wait="slow" movement="withdrawal" onDone={() => undefined} />
-          </div>
-          <div className="nf-card p-card">
-            <p className="nf-overline mb-inline-tight">stalled, withdrawal</p>
-            <WaitNotice wait="stalled" movement="withdrawal" onDone={() => undefined} />
-          </div>
-          <div className="nf-card p-card">
-            <p className="nf-overline mb-inline-tight">slow, transfer</p>
-            <WaitNotice wait="slow" movement="transfer" onDone={() => undefined} />
-          </div>
-          <div className="nf-card p-card">
-            <p className="nf-overline mb-inline-tight">stalled, transfer</p>
-            <WaitNotice wait="stalled" movement="transfer" onDone={() => undefined} />
-          </div>
         </div>
       </Section>
 

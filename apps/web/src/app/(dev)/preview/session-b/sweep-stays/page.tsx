@@ -10,9 +10,6 @@ const ROUTES = [
   ["checkout", "/checkout/[bookingId]"],
   ["pay-pending", "/checkout/[bookingId] payment pending sheet"],
   ["pay-failed", "/checkout/[bookingId] payment failed sheet"],
-  ["escrow", "/escrow"],
-  ["escrow-detail", "/escrow/[id]"],
-  ["escrow-thread", "the held payment in a conversation"],
 ] as const;
 
 /** The index of the stays group's sweep harness. */

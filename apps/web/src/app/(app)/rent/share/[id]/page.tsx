@@ -6,7 +6,8 @@ import { resolveSession } from "@/lib/actions/session";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
-import { PayShare, ShareAnswer } from "@/components/app/tenancy/FlatmateControls";
+import { ShareAnswer } from "@/components/app/tenancy/FlatmateControls";
+import { MONEY_BETWEEN_PEOPLE_RETIRED } from "@/lib/tenancy/money-copy";
 
 /** A private record. Never indexed. */
 export const metadata: Metadata = { title: "Your share", robots: { index: false, follow: false } };
@@ -26,7 +27,7 @@ export default async function RentSharePage({ params }: { params: Promise<{ id: 
   const copy = getDictionary(locale).afterTheGate.flatmates;
   const shell = (children: React.ReactNode) => (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={copy.shareTitle} fallback="/wallet" />
+      <PageHeader title={copy.shareTitle} fallback="/agreements" />
       {children}
     </div>
   );
@@ -92,7 +93,7 @@ export default async function RentSharePage({ params }: { params: Promise<{ id: 
       </>
     );
   } else {
-    state = <PayShare contributorId={id} amountMinor={share} locale={locale} label={copy.sharePay.replace("{share}", formatMoney(share, locale))} />;
+    state = <p className="nf-body" data-testid="money-between-people-retired">{MONEY_BETWEEN_PEOPLE_RETIRED}</p>;
   }
 
   return shell(

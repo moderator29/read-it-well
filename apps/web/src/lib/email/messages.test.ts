@@ -2,14 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { EVERY_MESSAGE } from "./fixtures";
 import {
-  escrowFunded,
+  bookingRefunded,
   inspectionScheduled,
   listingRejected,
   verificationCode,
-  walletFunded,
   welcome,
-  withdrawalOutcome,
 } from "./messages";
+import { agreementApproved } from "./agreement-messages";
 import { greetingName, hello, money } from "./render";
 import { LEGAL_LINE, MARK_PATH, SIGN_OFF, WORDMARK_ALT, WORDMARK_PATH } from "./theme";
 
@@ -168,7 +167,14 @@ describe("money never reaches a reader as kobo", () => {
   });
 
   it("prints the same figure in both renderings", () => {
-    const m = walletFunded({ ownerName: "Ada", amountMinor: 123_456, balanceMinor: 999_900 });
+    const m = agreementApproved({
+      name: "Ada",
+      viewer: "renter",
+      kind: "rent",
+      listingTitle: "A flat",
+      amountMinor: 123_456,
+      agreementId: "33333333-3333-4333-8333-333333333333",
+    });
     const amount = money(123_456);
     expect(m.html).toContain(amount);
     expect(m.text).toContain(amount);
@@ -183,15 +189,18 @@ describe("the messages that carry a promise", () => {
     expect(m.html).toContain("different building");
   });
 
-  it("an escrow receipt says the money has not been paid to anybody", () => {
-    const m = escrowFunded({
+  it("a refund email says the money goes back to the card, never to a wallet", () => {
+    const m = bookingRefunded({
       listingTitle: "A flat",
-      amountMinor: 100_000,
-      reference: "NF-ESC-1",
-      releaseCondition: "you confirm you have the keys",
+      checkIn: "2026-10-01",
+      checkOut: "2026-10-03",
+      paidMinor: 100_000,
+      refundMinor: 100_000,
+      retainedMinor: 0,
+      reasonLine: "The host cancelled.",
     });
-    expect(flat(m.text)).toMatch(/has not been paid to the lister/i);
-    expect(flat(m.text)).toContain("you confirm you have the keys");
+    expect(flat(m.text)).toMatch(/card/i);
+    expect(flat(m.text)).not.toMatch(/wallet/i);
   });
 
   it("a code email offers nothing to click", () => {
@@ -214,13 +223,6 @@ describe("the messages that carry a promise", () => {
       time: "11:30",
     });
     expect(flat(m.text)).toMatch(/do not carry money/i);
-  });
-
-  it("a withdrawal that was reversed is not described as a failure", () => {
-    const reversed = withdrawalOutcome({ outcome: "reversed", amountMinor: 1000 });
-    // Somebody's statement shows a debit and then a credit. Telling them it
-    // failed is how a support ticket starts.
-    expect(flat(reversed.text)).toMatch(/sent it back/i);
   });
 
   it("the welcome for a buyer refuses to vouch for a title", () => {

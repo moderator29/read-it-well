@@ -58,6 +58,26 @@
  * legal answer, not when either one arrives alone.**
  *
  * ---------------------------------------------------------------------------
+ * WHAT CHANGED ON 25 SEPTEMBER 2026 (TRACK A AND TRACK B)
+ *
+ * The founder retired custody. Vallo holds no customer money at any point:
+ * there is no wallet, no balance, no escrow and no held payment. Every charge
+ * is split by the processor in the same transaction: the owner's or agent's
+ * share to their own bank account through a Paystack subaccount, the Vallo
+ * Guarantee contribution to a separate reserve, and Vallo's commission (zero
+ * today) to Vallo. The old section 15 ("The wallet") is gone, section 4 now
+ * describes the split, section 5 routes refunds to the card or account that
+ * paid, and new sections describe the agreement and approval gate and the
+ * Vallo Guarantee. Every money sentence is read from `lib/money/copy.ts`, the
+ * module the screens and emails read, so the contract and the product say the
+ * same thing. The Disclaimer (`lib/legal/disclaimer.tsx`) forms part of these
+ * terms.
+ *
+ * The CBN point above now cuts the other way: the platform is designed so
+ * that it never holds client funds, which is the position the objects clause
+ * already takes.
+ *
+ * ---------------------------------------------------------------------------
  * FOR THE SOLICITOR
  *
  * Provisions are not invented here: anything carrying real legal consequence goes to the Company Solicitor.
@@ -66,7 +86,7 @@
  *
  * These seven need a solicitor's eye before Launch and are marked here rather
  * than in a separate document that would drift away from the text. (The
- * numbers below were re-pointed on 16 September 2026 to the current section
+ * numbers below were re-pointed on 25 September 2026, and before that on 16 September 2026 to the current section
  * numbering; three of them still named an older draft's numbers. The flags
  * themselves are unchanged.)
  *
@@ -85,13 +105,15 @@
  *       commitment.
  *   6   The commission paragraph, which describes a fee that is set to zero
  *       today. It must not read as introducing one.
- *   13  Limitation of liability, which no longer rests on a holding promise.
- *   14  Suspension, closure and the appeal route.
- *   18  Governing law, which must stay consistent with the Co-Founder and
+ *   13  Agreements and approval: what an approval means and does not.
+ *   15  Limitation of liability, which no longer rests on a holding promise.
+ *   16  Suspension, closure and the appeal route.
+ *   19  Governing law, which must stay consistent with the Co-Founder and
  *       Investment Agreement: Nigerian law, and arbitration in Abuja under the
  *       Arbitration and Mediation Act 2023.
- *   15  The wallet, which states what a balance is not. That sentence is the
- *       one a regulator would read first.
+ *   14  The Vallo Guarantee: a discretionary, capped, reviewed protection
+ *       funded from a reserve. It must not read as insurance or as an
+ *       unconditional promise to pay.
  *
  * AND ONE CORRECTION OF FACT MADE ON 22 SEPTEMBER, recorded here because a
  * legal document should carry its own history. Section 7 described the
@@ -109,7 +131,15 @@
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { COMPANY_FORMAL_NAME, COMPANY_TRADING_NAME } from "./company";
-import { BANK_PAYOUTS_OPEN, TERMS_REFUND_LINE } from "@/lib/wallet/bank-payouts";
+import {
+  GUARANTEE_SCOPE,
+  NO_CUSTODY_SENTENCE,
+  NO_INSPECTION_FEE,
+  OFF_PLATFORM_SENTENCE,
+  PAYMENT_GATE_SENTENCE,
+  PRIVATE_FEE_NOTE,
+  REFUND_ROUTE,
+} from "@/lib/money/copy";
 import Link from "next/link";
 
 /**
@@ -152,8 +182,9 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           {COMPANY_TRADING_NAME} is a marketplace for property and stays in Nigeria.
           People list homes to rent, property for sale, land, shops and offices, and
           shortlets, hotels and rooms let by their owners. We check the people who
-          list, host their listings, carry messages between them and you, and process
-          payments.
+          list, host their listings, carry messages between them and you, review the
+          agreements you make on the platform, and arrange payment through a licensed
+          payment processor. We never hold your money.
         </p>
         {/* Identity, not obligation. This paragraph describes what the platform
             sets out to do; it creates no right and no duty, and nothing else in
@@ -221,36 +252,34 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
             shown before you confirm anything.
           </li>
           <li>
-            <strong>
-              We do not hold your money in escrow, and you should not treat a payment
-              made here as protected by us holding it.
-            </strong>{" "}
-            A payment for a stay, and money you add to your wallet, is collected by our
-            payment processor into {COMPANY_TRADING_NAME}&rsquo;s account and recorded
-            against your booking or your wallet, to the kobo.{" "}
-            {BANK_PAYOUTS_OPEN
-              ? "The host's share of a stay is recorded for them and paid to their bank account."
-              : "The host's share of a stay is recorded for them; paying it out to their bank is not open yet and will be once bank payouts open."}{" "}
-            We keep the record of what was paid, to whom, for what and when, and that
-            record is what we can act on if something goes wrong. It is not the same
-            thing as holding the money in escrow for you, and we will not describe it as
-            though it were.
+            <strong>{NO_CUSTODY_SENTENCE}</strong> Our payment processor splits every
+            payment at the moment it is made: the share of the owner or agent goes to the
+            bank account on their payout details, the Vallo Guarantee contribution
+            described in section 14 goes to a separate reserve, and our commission, if
+            any, goes to us. {COMPANY_TRADING_NAME} has no wallet and keeps no balance for
+            you, so there is nothing to top up, nothing held and nothing to withdraw.
           </li>
           <li>
-            Renting is <strong>message, inspect, then pay</strong>. Message the person
-            who listed the property, see the property in person, and pay after that.
-            There is no reserve button on a rental and that is deliberate.
+            {PAYMENT_GATE_SENTENCE} For a stay, the host accepts the booking and we
+            approve it before payment opens. We record what was paid, to whom, for what
+            and when, and that record is what we act on if something goes wrong.
+          </li>
+          <li>
+            Where a crypto payment is offered, it is made through Yellow Card, which
+            converts it to naira before it is split. {COMPANY_TRADING_NAME} never holds
+            crypto and never gives you a crypto address of its own.
           </li>
           <li>
             Paying in cash or by direct bank transfer outside the platform leaves no
             record we can act on at all, and we cannot help recover money paid that way.
-            If anybody asks you to do it, report them to us.
+            {" "}{OFF_PLATFORM_SENTENCE} If anybody asks you to pay outside the platform,
+            report them to us.
           </li>
           <li>
             If a property is materially not as listed, report it to us. We investigate,
-            and we can suspend a listing, stop the person who posted it from trading and
-            withhold any payout we still control. We cannot reverse a payment that has
-            already reached them.
+            and we can suspend a listing and stop the person who posted it from trading.
+            Because we never hold the money, we cannot reverse a payment that has already
+            settled to them; what we can do is described in sections 5 and 14.
           </li>
         </ul>
       </>
@@ -269,13 +298,12 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
         </li>
         <li>
           <strong>A tenancy, a sale, a lease or a purchase of land is not governed by
-          it</strong>, because no money for one of those passes through{" "}
-          {COMPANY_TRADING_NAME}. What is payable, what is returnable and on what notice
-          are terms of the agreement you sign with the landlord, the vendor or their
-          agent, and you should read that agreement before you pay anybody anything. If
-          you pay a move-in total on {COMPANY_TRADING_NAME} after an inspection, it is
-          credited to the lister&rsquo;s {COMPANY_TRADING_NAME} wallet and recorded
-          against the tenancy; the agreement still decides what is returnable.
+          it.</strong> What is payable, what is returnable and on what notice are terms of
+          the agreement you make with the landlord, the vendor or their agent. A rental
+          paid on {COMPANY_TRADING_NAME} is paid against an agreement both of you
+          confirmed and we approved (section 13), and the owner&rsquo;s or agent&rsquo;s
+          share settles to them when you pay; the agreement decides what is returnable,
+          between you and them.
         </li>
         <li>
           A stay nobody has paid for is only a hold on the calendar and can be called
@@ -286,7 +314,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           you could not get in, you get everything back whenever it happens. Report it
           rather than cancelling it yourself.
         </li>
-        <li>{TERMS_REFUND_LINE}</li>
+        <li>{REFUND_ROUTE} There is no {COMPANY_TRADING_NAME} balance for a refund to sit in.</li>
       </ul>
     ),
   },
@@ -296,11 +324,13 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
       <ul>
         <li>
           <strong>
-            Listing is free and {COMPANY_TRADING_NAME} charges no fee of any kind
-            today, to anybody, for anything.
+            Listing is free and {COMPANY_TRADING_NAME} charges no fee today to look, to
+            save, to message, to enquire, to inspect or to list.
           </strong>{" "}
-          Not to look, not to save, not to message, not to enquire, not to list and not
-          to complete a transaction.
+          When a payment is made to you through the platform, between 1 and 2 percent of
+          it goes to the Vallo Guarantee reserve (section 14) out of your share, and the
+          exact percentage is shown on the agreement before anybody pays. Our commission
+          is zero today.
         </li>
         <li>
           If that ever changes, the rate will be shown before the action that incurs it,
@@ -320,9 +350,10 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           lawyer verify title at the land registry before money moves.
         </li>
         <li>
-          Earnings are paid to a nominated Nigerian bank account. We may remove
-          listings, withhold payouts connected to fraud, or stop accounts that break
-          these terms.
+          Your share of a payment settles straight to the Nigerian bank account on your
+          payout details, through our payment processor, at the moment it is paid. You
+          need payout details on file before anybody can pay you. We may remove
+          listings or stop accounts that break these terms.
         </li>
       </ul>
     ),
@@ -354,9 +385,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
             you who somebody is rather than how they will behave.
           </li>
           <li>
-            Badges are earned and are never for sale. Where a paid inspection is offered
-            as a service, what you pay for is the inspection; the outcome depends on
-            what the inspector finds and never on the payment.
+            Badges are earned and are never for sale.
           </li>
         </ul>
       </>
@@ -389,16 +418,28 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
     title: "9. Inspections",
     body: (
-      <p>
-        You can request an inspection through the platform and the person who listed the
-        property arranges it with you.{" "}
-        <strong>
-          {COMPANY_TRADING_NAME} is not present at an inspection and does not conduct it
-        </strong>{" "}
-        unless the listing explicitly says the property was physically inspected by us
-        and gives the date. Take somebody with you, meet in daylight, and never pay
-        before you have seen the property.
-      </p>
+      <>
+        <p>
+          You can request an inspection through the platform and the person who listed
+          the property arranges it with you.{" "}
+          <strong>
+            {COMPANY_TRADING_NAME} is not present at an inspection and does not conduct
+            it
+          </strong>{" "}
+          unless the listing explicitly says the property was physically inspected by us
+          and gives the date. Take somebody with you, meet in daylight, and never pay
+          before you have seen the property.
+        </p>
+        <p>
+          <strong>{NO_INSPECTION_FEE}</strong> {PRIVATE_FEE_NOTE}
+        </p>
+        <p>
+          After a rental inspection you submit the inspection report on the platform:
+          eight items, each with its photographs. It is the record of the property as you
+          found it, it is what an agreement is drawn up from, and it is what any claim on
+          the Vallo Guarantee is compared with.
+        </p>
+      </>
     ),
   },
   {
@@ -451,7 +492,67 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "13. Our responsibility to you",
+    title: "13. Agreements and approval",
+    body: (
+      <>
+        <p>
+          Before a rental or a stay is paid for on the platform, an agreement is drawn
+          up from the listing&rsquo;s own figures and, for a rental, the inspection
+          report. Both of you confirm the same version. Changing anything creates a new
+          version and both of you confirm again.
+        </p>
+        <p>
+          A person at {COMPANY_TRADING_NAME} then reviews the agreement and approves it,
+          or sends it back with a reason. Both of you are told by email and in the app.
+          Payment opens only after approval. Approval means the agreement is complete and
+          consistent with the listing and the report; it is not a guarantee of the
+          property, the owner or the agent, and every decision is logged.
+        </p>
+        <p>
+          Where an agent confirms for an owner, the agent confirms that they hold the
+          owner&rsquo;s mandate to do so.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "14. The Vallo Guarantee",
+    body: (
+      <>
+        <p>
+          Between 1 and 2 percent of every payment made through the platform is set
+          aside, at the moment of payment, in a reserve kept apart from{" "}
+          {COMPANY_TRADING_NAME}&rsquo;s own money. The exact percentage is shown on the
+          agreement before you pay. {GUARANTEE_SCOPE}
+        </p>
+        <ul>
+          <li>
+            A claim is made from the agreement on the platform, with evidence, within the
+            claim window: 72 hours from move-in on a rental or from check-in on a stay.
+          </li>
+          <li>
+            A person at {COMPANY_TRADING_NAME} reviews every claim against the inspection
+            report and the agreement, and approves it, in full or in part, or declines it
+            with a reason.
+          </li>
+          <li>
+            <strong>
+              A claim is capped at what you paid for that booking and by what is in the
+              reserve at the time it is decided.
+            </strong>{" "}
+            An approved claim is paid to your bank account from the reserve.
+          </li>
+          <li>
+            The Guarantee is not insurance, it is not a deposit and it creates no
+            balance in your name. Anything arranged or paid outside the platform is not
+            covered.
+          </li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: "15. Our responsibility to you",
     body: (
       <>
         <p>
@@ -466,7 +567,15 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           </li>
           <li>
             We are not liable for losses caused by another user breaking their agreement
-            with you, beyond the specific commitments in sections 5 and 6.
+            with you, beyond the specific commitments in sections 5 and 14.
+          </li>
+          <li>
+            We are not responsible for anything arranged, discussed or paid outside the
+            platform. The{" "}
+            <Link href="/disclaimer" className="font-semibold text-[var(--nf-content-link)] hover:underline">
+              Disclaimer
+            </Link>{" "}
+            sets this out in full and forms part of these terms.
           </li>
           <li>
             Nothing in these terms excludes liability that cannot lawfully be excluded,
@@ -477,7 +586,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "14. Suspension, closing your account, and appealing",
+    title: "16. Suspension, closing your account, and appealing",
     body: (
       <>
         <p>
@@ -489,34 +598,13 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
         <p>
           <strong>You can appeal any suspension or closure.</strong> Reply to the notice
           or contact support, and a person who was not involved in the original decision
-          reviews it. Money owed to you that is not connected to fraud is still paid out.
+          reviews it.
         </p>
       </>
     ),
   },
   {
-    title: "15. The wallet",
-    body: (
-      <>
-        <p>
-          Your {COMPANY_TRADING_NAME} wallet is a record, in naira, of money you have
-          funded or been refunded, and what you have spent on the platform. You can move
-          it out to a Nigerian bank account in your own name.
-        </p>
-        <p>
-          <strong>
-            A wallet balance is not a bank deposit. It is not a savings account, it earns
-            no interest, it is not insured by the Nigeria Deposit Insurance Corporation,
-            and {COMPANY_TRADING_NAME} is not a bank or a licensed financial
-            institution.
-          </strong>{" "}
-          Keep in it only what you intend to spend here.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "16. Privacy",
+    title: "17. Privacy",
     body: (
       <p>
         How we handle personal data is described in our{" "}
@@ -529,7 +617,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "17. Changes to these terms",
+    title: "18. Changes to these terms",
     body: (
       <p>
         We may update these terms as the platform grows. The date at the top of this
@@ -540,7 +628,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "18. Governing law and disputes",
+    title: "19. Governing law and disputes",
     body: (
       <p>
         These terms are governed by the laws of the Federal Republic of Nigeria, and the
@@ -551,7 +639,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "19. Contact",
+    title: "20. Contact",
     body: (
       <p>
         Questions about these terms go to{" "}

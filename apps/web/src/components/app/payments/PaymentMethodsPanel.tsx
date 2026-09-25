@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getDictionary, type Dictionary } from "@vallo/i18n";
 import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
-import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
+import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { RowButton, Sheet } from "@/components/app/account/rows";
 import { TYPE } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
@@ -28,7 +28,6 @@ import { AddBankAccountSheet } from "./AddBankAccountSheet";
 import { PaystackCheckout, type ConfirmOutcome } from "./PaystackCheckout";
 import { panelClass } from "@/components/ui/Panel";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
-import { BANK_PAYOUTS_OPEN } from "@/lib/wallet/bank-payouts";
 
 /**
  * PAYMENT METHODS, to the block at the foot of the settings render
@@ -307,7 +306,7 @@ export function PaymentMethodsPanel({
                 <BrandIcon name="card-lock" fill />
               </span>
               <p className={TYPE.rowMeta}>
-                {BANK_PAYOUTS_OPEN ? copy.blockEmpty : copy.blockEmptyBeforePayouts}
+                {copy.blockEmpty}
               </p>
             </div>
           )}
@@ -327,7 +326,7 @@ export function PaymentMethodsPanel({
         <RowButton
           icon="building-apartment"
           label={copy.addAccount}
-          sub={BANK_PAYOUTS_OPEN ? copy.banksNote : copy.banksNoteBeforePayouts}
+          sub={copy.banksNote}
           onClick={() => {
             setChooser(false);
             setAddingAccount(true);

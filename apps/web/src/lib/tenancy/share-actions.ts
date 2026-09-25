@@ -20,7 +20,7 @@ import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { parseNairaToKobo } from "../agent/listings-schema";
-import { findUserByEmail, getAdminClient } from "../wallet/ledger";
+import { findUserByEmail, getAdminClient } from "@/lib/supabase/service";
 import { callMoneyDoor } from "./money-door";
 
 const SERVICE_DOWN = "That did not go through. Nothing was changed. Try again in a moment.";
@@ -154,7 +154,6 @@ export async function payRentShare(input: { contributorId: string; stepUp?: stri
   });
   if (!result.ok) return fail(result.error);
   revalidatePath(`/rent/share/${parsed.data.contributorId}`);
-  revalidatePath("/wallet");
   return ok(null);
 }
 
@@ -177,6 +176,5 @@ export async function returnRentShare(input: { tenancyId: string; contributorId:
   });
   if (!result.ok) return fail(result.error);
   revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
-  revalidatePath("/wallet");
   return ok(null);
 }

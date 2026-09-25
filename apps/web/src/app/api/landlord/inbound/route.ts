@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { bearerMatches } from "@/lib/cron/auth";
 import { handleInboundReply } from "@/lib/landlord/inbound";
-import { getAdminClient } from "@/lib/wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 
 /**
  * POST /api/landlord/inbound. A landlord's SMS or WhatsApp reply, as the

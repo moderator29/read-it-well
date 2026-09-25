@@ -5,7 +5,7 @@ import { handleInboundReply } from "@/lib/landlord/inbound";
 import { parseReply } from "@/lib/landlord/message";
 import { cloudTransport, inboundMessages, inboundSignatureValid } from "@/lib/notify/whatsapp";
 import { consume } from "@/lib/security/rate-limit";
-import { getAdminClient } from "@/lib/wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 import { siteUrl } from "@/lib/site";
 
 /**

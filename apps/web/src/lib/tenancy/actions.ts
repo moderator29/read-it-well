@@ -170,7 +170,6 @@ export async function returnCaution(input: {
   });
   if (result.ok) {
     revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
-    revalidatePath("/wallet");
   }
   return result;
 }

@@ -10,7 +10,7 @@ vi.mock("@/lib/security/rate-limit", () => ({
   ipFromHeaders: () => "203.0.113.9",
   subjectForIp: (ip: string) => `ip:${ip}`,
 }));
-vi.mock("@/lib/wallet/ledger", () => ({
+vi.mock("@/lib/supabase/service", () => ({
   getAdminClient: () => ({
     rpc: async (_fn: string, args: unknown) => {
       seam.calls.push(args);

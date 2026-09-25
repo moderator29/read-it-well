@@ -306,7 +306,7 @@ export type EscrowLike = {
   createdAt: string;
   heldAt: string | null;
   settledAt: string | null;
-  /* The remaining transitions, when the read carries them (`lib/admin/reads/escrow.ts`
+  /* The remaining transitions, when the read carries them (the retired escrow read
      does). Absent, the activity list uses the three above and invents none. */
   fundedAt?: string | null;
   releaseRequestedAt?: string | null;

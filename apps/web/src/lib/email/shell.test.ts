@@ -739,7 +739,11 @@ describe("the copy rules hold in the markup that ships", () => {
      * ladder most listers have not climbed and an email cannot be corrected
      * once it has landed.
      */
-    expect(html).not.toMatch(/\b(guarantee[ds]?|insured|money[- ]back|refund guarantee)\b/i);
+    /* "Vallo Guarantee" is a product name (Track A, 25 September 2026): a
+       capped, reviewed claim on a separate reserve, never a promise that money
+       is guaranteed. The name is allowed; any other use of the word is not. */
+    const unnamed = html.replace(/Vallo Guarantee/g, "");
+    expect(unnamed).not.toMatch(/\b(guarantee[ds]?|insured|money[- ]back|refund guarantee)\b/i);
     expect(html).not.toMatch(/\byour money is (safe|protected|guaranteed)\b/i);
     expect(html).not.toMatch(/\b(vetted|100%|fully verified|verified listing)\b/i);
   });

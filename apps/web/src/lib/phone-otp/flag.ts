@@ -5,7 +5,7 @@ import { createClient } from "../supabase/server";
 
 /**
  * `feature_flags.phone_confirmation`, read per request and FAILING CLOSED,
- * the pattern of `lib/escrow/flag.ts`: no row, a failed read or no
+ * the pattern of `lib/flags/read.ts`: no row, a failed read or no
  * configuration all mean off. Off, nothing asks for a phone anywhere.
  *
  * To turn it on, once a code transport is wired (founder question 7):

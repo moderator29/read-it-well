@@ -16,7 +16,7 @@
  *   British spelling. Plain and calm: the tone of a platform that tells you
  *   what happened and what happens next, and then stops.
  *
- *   No marketing. Nobody opens a wallet receipt to be sold to. There is no
+ *   No marketing. Nobody opens a receipt to be sold to. There is no
  *   "we are excited", no "amazing", no exclamation mark, and no claim this
  *   platform cannot stand behind.
  *
@@ -35,7 +35,7 @@
  *   warning nobody reads.
  */
 
-import { WALLET_MONEY_NEXT } from "../wallet/bank-payouts";
+import { REFUND_ROUTE } from "../money/copy";
 import {
   appUrl,
   bullets,
@@ -266,8 +266,7 @@ export type PasswordResetData = {
  * emails is how somebody presses the wrong one and concludes they have been
  * phished.
  *
- * It is kept rather than deleted for the same reason `escrowFunded` is: the
- * fixtures render it, `shell.test.ts` holds it to the catalogue's structure,
+ * It is kept rather than deleted: the fixtures render it, `shell.test.ts` holds it to the catalogue's structure,
  * and the day the Send Email Hook is switched on (`app/api/auth/email-hook`,
  * built and not enabled) the recovery payload arrives here and this becomes
  * the message for it. Until that day it has no caller ON PURPOSE, and
@@ -493,303 +492,6 @@ export function newDeviceSignIn(data: NewDeviceSignInData): EmailMessage {
       "You are receiving this because a device signed in to this account for the first time.",
       "This is a security notice. It is always sent and it cannot be switched off.",
     ],
-  );
-}
-
-/* ------------------------------------------------------------------ wallet */
-
-export type WalletFundedData = {
-  ownerName?: string | null;
-  amountMinor: number;
-  balanceMinor: number;
-};
-
-/** To the wallet owner when a funding lands in the ledger. */
-export function walletFunded(data: WalletFundedData): EmailMessage {
-  return message(
-    `${money(data.amountMinor)} added to your Vallo wallet`,
-    `Your wallet has been credited with ${money(data.amountMinor)}.`,
-    [
-      heading("Your wallet has been topped up"),
-      paragraph(`${hello(data.ownerName)} Your payment has settled and your wallet is credited.`),
-      rows([
-        { label: "Added", value: money(data.amountMinor) },
-        { label: "New balance", value: money(data.balanceMinor), strong: true },
-      ]),
-      paragraph(
-        `The money is available now. ${WALLET_MONEY_NEXT}`,
-      ),
-      button("Open my wallet", appUrl("/wallet")),
-      note("Your full statement, every credit and debit, is in the wallet."),
-    ],
-    ["You are receiving this because your Vallo wallet was credited."],
-  );
-}
-
-/** What happened to a withdrawal. One email, three honest endings. */
-export type WithdrawalOutcome = "paid" | "failed" | "reversed";
-
-/**
- * WHOSE ACCOUNT THE MONEY WENT TO. THERE IS ONLY ONE DOOR NOW.
- *
- * There used to be two. `own_account` is the withdraw sheet: a person moving
- * their own balance to their own bank. `third_party` was the send desk in bank
- * mode, and that door was removed on 23 September, because moving a member's
- * money to somebody else's account is a licensed activity VALLO SPACES LTD is
- * not licensed for.
- *
- * So the union has one member and the branch that chose between them is gone.
- * IT IS KEPT AS A TYPE RATHER THAN DELETED because the ledger still carries
- * `metadata.destination` on the row, and a named type is how the next person
- * finds out why a field with one possible value exists.
- *
- * THE WORDS MATTERED, WHICH IS WHY THIS WAS EVER TWO. The single message used
- * to say "your withdrawal did not go through" to somebody who had just tried
- * to send rent to a landlord. With one door left, "withdrawal" is the right
- * word for everybody who can receive this, and nothing has to guess.
- */
-export type WithdrawalDestination = "own_account";
-
-export type WithdrawalOutcomeData = {
-  ownerName?: string | null;
-  outcome: WithdrawalOutcome;
-  amountMinor: number;
-  bankName?: string | null;
-  accountLast4?: string | null;
-  /**
-   * Which door this row came from. Read off `metadata.destination` on the
-   * entry. With the send desk's bank mode removed there is one door, and the
-   * door does not write at all.
-   */
-  destination?: WithdrawalDestination | null;
-  /** The wallet reference the money moved on. */
-  reference?: string | null;
-  /** The balance after the outcome settled, when it is known. */
-  balanceMinor?: number;
-};
-
-/**
- * One message for every ending a withdrawal can have.
- *
- * Three functions would drift. The reader's question is the same in all three
- * cases and it is exactly two words long, "where is it", and the honest answer
- * differs only in one row and one paragraph. Keeping them together is what
- * guarantees that the failure email is as clear as the success one, which is
- * the way round that usually goes wrong.
- *
- * `reversed` is not a duplicate of `failed`. Failed means the bank refused it
- * and the money never left. Reversed means it left, came back, and somebody
- * will have seen a debit and then a credit. Telling somebody "it failed" when
- * their statement shows two entries is how a support ticket starts.
- *
- * ---------------------------------------------------------------------------
- * AND IT IS ONE MESSAGE FOR BOTH DOORS, WHICH IS WHY `destination` EXISTS.
- *
- * A bank send and a withdrawal are the same ledger row on purpose. They are
- * not the same event to the person: one is moving your own money home, the
- * other is paying somebody. Until 23 September this template said
- * "withdrawal" to both, so a person who had just sent rent to a landlord was
- * told their WITHDRAWAL had not gone through, about money they had not
- * withdrawn, using a word they had not seen on the screen they used.
- *
- * A SECOND BUILDER WAS THE WRONG FIX AND WAS NOT MADE. `reachability.test.ts`
- * asserts the built set equals the reachable set in both directions, so a
- * second builder with no caller of its own would turn it red, correctly. More
- * to the point, two builders is how the failure email quietly stops being as
- * clear as the success one, which is the whole argument in the paragraph
- * above. So the words fork inside the one message and the shape does not fork
- * at all: same rows, same reference, same button, same three endings.
- *
- * WHAT NEVER CHANGES BETWEEN THE TWO. The recipient's NAME is not printed in
- * either version. A bank name and four digits are what a receipt needs, and
- * rule 16 keeps the rest of it out of an inbox.
- */
-export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
-  const account =
-    (data.bankName ?? "").trim().length > 0
-      ? `${(data.bankName ?? "").trim()}${
-          (data.accountLast4 ?? "").trim().length > 0
-            ? ` ****${(data.accountLast4 ?? "").trim()}`
-            : ""
-        }`
-      : null;
-
-  const paid = data.outcome === "paid";
-
-  /* One door. `destination` is read off the ledger row and can only be the
-     withdraw door now, so nothing branches on it and the words are the same
-     for everybody who can receive this. */
-  const outcomeLabel = paid
-    ? "Sent to your bank"
-    : data.outcome === "reversed"
-      ? "Returned to your wallet by the bank"
-      : "Not sent, money still in your wallet";
-
-  const list: ReceiptRow[] = [{ label: "Amount", value: money(data.amountMinor) }];
-  if (account) list.push({ label: "Destination", value: account });
-  list.push({ label: "Outcome", value: outcomeLabel, strong: true });
-  if (typeof data.balanceMinor === "number") {
-    list.push({ label: "Wallet balance", value: money(data.balanceMinor) });
-  }
-
-  const explanation = paid
-    ? "Banks normally credit within minutes, and can take up to one working day. Once it has left us, the timing is theirs."
-    : data.outcome === "reversed"
-      ? "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your Vallo wallet now. This is almost always a name or account number that does not match."
-      : "This is usually the account details, or a bank that is temporarily unreachable. Check the account number and the bank, then try the withdrawal again.";
-
-  const failedHeadline = "Your withdrawal did not go through";
-
-  return message(
-    paid ? `${money(data.amountMinor)} is on its way to your bank` : failedHeadline,
-    paid
-      ? `${money(data.amountMinor)} has left your Vallo wallet for your bank.`
-      : `${money(data.amountMinor)} stays in your Vallo wallet.`,
-    [
-      heading(paid ? "Your withdrawal is on its way" : failedHeadline),
-      paragraph(
-        paid
-          ? `${hello(data.ownerName)} The transfer has left Vallo for your bank account.`
-          : `${hello(data.ownerName)} The transfer to your bank did not complete, so the money is in your wallet and is available to you now.`,
-      ),
-      rows(list),
-      paragraph(explanation),
-      data.reference ? code(data.reference) : null,
-      button("Open my wallet", appUrl("/wallet")),
-      note(
-        paid
-          ? "If it has not arrived after one working day, contact support with the reference above and a person will trace it."
-          : "If it fails a second time, contact support with the reference above and a person will look into it with you.",
-      ),
-    ],
-    ["You are receiving this because of a withdrawal from your Vallo wallet."],
-  );
-}
-
-/* ------------------------------------------------------------------ escrow */
-
-export type EscrowFundedData = {
-  payerName?: string | null;
-  listingTitle: string;
-  amountMinor: number;
-  reference: string;
-  /** What has to happen before the money is released. One plain sentence. */
-  releaseCondition: string;
-};
-
-/**
- * To the payer when money enters escrow.
- *
- * SUPERSEDED, AND DELIBERATELY NOT WIRED. READ THIS BEFORE CONNECTING IT.
- *
- * `escrows` now enqueues an email on every state change through
- * `private.escrow_enqueue_emails`, and the eight builders it reaches live in
- * `lib/email/escrow-messages.ts`. `heldPaymentSetAside` is the one that has
- * replaced this.
- *
- * THIS ONE MAY NOT BE SENT, and the reason is in its own first line: it says
- * "held in escrow", which is the single thing nobody at this company may say
- * to a customer until the founder's solicitor has answered in writing which
- * structure the funds are held under. `lib/escrow/copy.ts` enforces that in
- * code, over every string the replacement produces, and this file is outside
- * that enforcement. Wiring it would ship the one sentence the whole escrow
- * copy layer exists to prevent.
- *
- * It is kept rather than deleted because the fixtures render it and the
- * sentence craft in it is worth reading when the structure IS decided. It is
- * not kept because anybody should call it.
- *
- * The most important sentence in this email is the one that says the money has
- * not been paid to anybody. Somebody who has just parted with two million naira
- * needs to know exactly where it is sitting and exactly what causes it to move,
- * and a vague "your payment was successful" is what makes people ring the agent
- * in a panic.
- */
-export function escrowFunded(data: EscrowFundedData): EmailMessage {
-  return message(
-    `${money(data.amountMinor)} is held in escrow for ${data.listingTitle}`,
-    `Your money is held by Vallo and has not gone to anybody yet.`,
-    [
-      heading("Your money is held in escrow"),
-      paragraph(
-        `${hello(data.payerName)} Vallo is holding this money. It has not been paid to the lister and it will not be until the condition below is met.`,
-      ),
-      rows([
-        { label: "Property", value: data.listingTitle },
-        { label: "Held", value: money(data.amountMinor), strong: true },
-        { label: "Reference", value: data.reference },
-      ]),
-      paragraph(`Released when: ${data.releaseCondition}`),
-      paragraph(
-        "If that does not happen, tell us and the money comes back to your wallet. That is what escrow is for and it is the reason to keep the payment on the platform.",
-      ),
-      button("View this transaction", appUrl("/wallet")),
-      note(
-        "Nobody at Vallo will ever ask you to release this money early, or to send anything further outside the platform.",
-      ),
-    ],
-    [
-      "You are receiving this because you paid into escrow on Vallo.",
-      MONEY_SAFETY_LINE,
-    ],
-  );
-}
-
-export type EscrowReleasedData = {
-  /** Whether this reader is the one who paid or the one being paid. */
-  audience: "payer" | "recipient";
-  name?: string | null;
-  listingTitle: string;
-  amountMinor: number;
-  reference: string;
-  /** What satisfied the condition. One plain sentence. */
-  releasedBecause: string;
-};
-
-/**
- * When escrow pays out. Two audiences, one function.
- *
- * SUPERSEDED BY `heldPaymentPaidOut` IN `lib/email/escrow-messages.ts`, and
- * not wired, for exactly the reason given on `escrowFunded` above: the word
- * "escrow" in its subject is the claim about custody that nobody may make
- * yet. The replacement is sent by the outbox on every RELEASED transition,
- * to both parties, with the settlement lines rather than a bare amount.
- *
- * The payer and the recipient need the same facts and a different first
- * sentence, and writing them as one function is what keeps the amount, the
- * reference and the reason identical on both sides. Two people comparing two
- * emails about the same money must not find two different accounts of it.
- */
-export function escrowReleased(data: EscrowReleasedData): EmailMessage {
-  const toRecipient = data.audience === "recipient";
-  return message(
-    toRecipient
-      ? `${money(data.amountMinor)} has been released to you`
-      : `${money(data.amountMinor)} has been released for ${data.listingTitle}`,
-    toRecipient
-      ? `The money for ${data.listingTitle} is in your wallet.`
-      : `The money you paid for ${data.listingTitle} has gone to the lister.`,
-    [
-      heading(toRecipient ? "The money is yours" : "Your escrow has been released"),
-      paragraph(
-        toRecipient
-          ? `${hello(data.name)} The condition on this payment has been met, so Vallo has released the money into your wallet.`
-          : `${hello(data.name)} The condition on this payment has been met, so Vallo has released the money to the lister.`,
-      ),
-      rows([
-        { label: "Property", value: data.listingTitle },
-        { label: "Released", value: money(data.amountMinor), strong: true },
-        { label: "Reference", value: data.reference },
-      ]),
-      paragraph(`Released because: ${data.releasedBecause}`),
-      button("Open my wallet", appUrl("/wallet")),
-      note(
-        toRecipient
-          ? WALLET_MONEY_NEXT
-          : "If you believe this was released in error, contact support with the reference above and a person will look at it.",
-      ),
-    ],
-    ["You are receiving this because of an escrow payment on Vallo."],
   );
 }
 
@@ -1504,13 +1206,13 @@ export type BookingRefundedData = {
   checkOut: string;
   /** What the guest had settled, in kobo. */
   paidMinor: number;
-  /** What has just gone back to their wallet, in kobo. */
+  /** What is going back to the card or account they paid with, in kobo. */
   refundMinor: number;
   /** What the host keeps, in kobo. Always paidMinor minus refundMinor. */
   retainedMinor: number;
   /** One plain sentence naming why this amount and not another. */
   reasonLine: string;
-  /** The wallet reference the money moved on, when any money moved. */
+  /** The refund's reference, when any money is going back. */
   reference?: string | null;
 };
 
@@ -1531,7 +1233,7 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
     { label: "Stay", value: data.listingTitle },
     { label: "Dates", value: dateRange(data.checkIn, data.checkOut) },
     { label: "You had paid", value: money(data.paidMinor) },
-    { label: "Back in your wallet", value: money(data.refundMinor), strong: true },
+    { label: "Going back to your card", value: money(data.refundMinor), strong: true },
   ];
   if (data.retainedMinor > 0) {
     list.push({ label: "Kept by the host", value: money(data.retainedMinor) });
@@ -1539,29 +1241,27 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
 
   return message(
     returned
-      ? `${money(data.refundMinor)} is back in your Vallo wallet`
+      ? `${money(data.refundMinor)} is on its way back to your card`
       : `Cancelled: ${data.listingTitle}`,
     returned
-      ? `Your stay is cancelled and ${money(data.refundMinor)} has returned to your wallet.`
+      ? `Your stay is cancelled and ${money(data.refundMinor)} is being returned to the card you paid with.`
       : "Your stay is cancelled. Here is exactly how the amount was worked out.",
     [
-      heading(returned ? "Your refund is in your wallet" : "Your stay is cancelled"),
+      heading(returned ? "Your refund is on its way" : "Your stay is cancelled"),
       paragraph(
         `${hello(data.guestName)} A person at Vallo has cancelled this stay and released the dates.`,
       ),
       paragraph(data.reasonLine),
       rows(list),
       returned
-        ? paragraph(
-            `The money is in your Vallo wallet now. ${WALLET_MONEY_NEXT}`,
-          )
+        ? paragraph(REFUND_ROUTE)
         : paragraph(
             "Nothing has been taken from you beyond what you had already paid for this stay, and the booking stays in your history for your records.",
           ),
       data.reference ? code(data.reference) : null,
       button(
-        returned ? "Open your wallet" : "Find another place",
-        appUrl(returned ? "/wallet" : "/search"),
+        returned ? "Open your bookings" : "Find another place",
+        appUrl(returned ? "/bookings" : "/search"),
       ),
       note(
         "If this amount does not look right to you, reply to support with the reference above and a person will go through it with you.",
@@ -1619,20 +1319,3 @@ export function supportTicketFiled(data: SupportTicketFiledData): EmailMessage {
   );
 }
 
-/**
- * The old name for withdrawalOutcome({ outcome: "failed" }).
- *
- * Kept because two call sites outside this module still import it, one of them
- * in a file this change does not own. It forwards rather than duplicating, so
- * there is one implementation and the copy cannot fork.
- */
-export type WithdrawalFailedData = {
-  ownerName?: string | null;
-  amountMinor: number;
-  bankName?: string | null;
-  accountLast4?: string | null;
-};
-
-export function withdrawalFailed(data: WithdrawalFailedData): EmailMessage {
-  return withdrawalOutcome({ ...data, outcome: "failed" });
-}

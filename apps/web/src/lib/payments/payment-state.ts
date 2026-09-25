@@ -47,7 +47,7 @@ import {
   resolveSession,
 } from "../actions/session";
 import { guardMoney } from "../security/money-limits";
-import { isBookingReference, isFundReference } from "./references";
+import { isBookingReference } from "./references";
 
 /**
  * Settled one way, settled the other, or not yet settled.
@@ -82,18 +82,6 @@ export async function paymentState(reference: string): Promise<ActionResult<Paym
      payments in ten minutes rather than for a person tapping. */
   const limit = await guardMoney("paymentState", session.user.id);
   if (!limit.allowed) return fail(limit.message);
-
-  if (isFundReference(ref)) {
-    const { data, error } = await session.supabase
-      .from("wallet_entries")
-      .select("status")
-      .eq("reference", ref)
-      .maybeSingle();
-    if (error || !data) return UNKNOWN;
-    if (data.status === "COMPLETED") return ok("paid");
-    if (data.status === "FAILED" || data.status === "REVERSED") return ok("failed");
-    return UNKNOWN;
-  }
 
   if (isBookingReference(ref)) {
     const { data, error } = await session.supabase

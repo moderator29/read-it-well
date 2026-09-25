@@ -18,7 +18,7 @@
  * Removing an account is a soft delete. There is no delete policy.
  */
 
-import { moneyHoldRefusal } from "../wallet/money-hold";
+import { moneyHoldRefusal } from "@/lib/money/hold";
 import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
 import { listerPepRefusal } from "../compliance/pep-gate";
 import { revalidatePath } from "next/cache";
@@ -34,8 +34,8 @@ import { guardMoney } from "../security/money-limits";
 import { accountHoldRefusal } from "../security/account-hold-guard";
 import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { subjectForUser } from "../security/rate-limit";
-import { recordMoneyAudit } from "../wallet/audit";
-import { getAdminClient } from "../wallet/ledger";
+import { recordMoneyAudit } from "@/lib/money/audit";
+import { getAdminClient } from "@/lib/supabase/service";
 import type { BankAccountRow } from "./db";
 import {
   bankAccountAddedNotice,

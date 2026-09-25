@@ -24,11 +24,12 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
 import { recordAlert } from "../alerts";
 import { guardMoney } from "../security/money-limits";
 import type { Json } from "../supabase/database.types";
-import { recordMoneyAudit } from "../wallet/audit";
-import { getAdminClient } from "../wallet/ledger";
+import { recordMoneyAudit } from "@/lib/money/audit";
+import { getAdminClient } from "@/lib/supabase/service";
 import { logMoney } from "./observability";
 import {
   PaystackError,
+  type PaystackSplit,
   chargeAuthorization,
   initializeTransaction,
   isPaystackConfigured,
@@ -68,8 +69,10 @@ export async function chargeSavedCard(params: {
   reference: string;
   purpose: string;
   metadata?: Record<string, Json>;
-  /** Where a hosted fallback returns to. Defaults to the wallet. */
-  callbackUrl?: string;
+  /** Where a hosted fallback returns to. */
+  callbackUrl: string;
+  /** Where the charge settles (Track A): every payment to another person carries one. */
+  split: PaystackSplit;
 }): Promise<ActionResult<ChargeSavedCardOutcome>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -143,6 +146,7 @@ export async function chargeSavedCard(params: {
       amountMinor: params.amountMinor,
       reference: params.reference,
       metadata,
+      split: params.split,
     });
     if (charge.status === "success") {
       logMoney({
@@ -207,10 +211,9 @@ export async function chargeSavedCard(params: {
       email,
       amountMinor: params.amountMinor,
       reference: params.reference,
-      callbackUrl:
-        params.callbackUrl ??
-        `${(process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "")}/wallet?funded=1&reference=${params.reference}`,
+      callbackUrl: params.callbackUrl,
       metadata,
+      split: params.split,
     });
     return ok({
       kind: "needs_hosted_checkout",

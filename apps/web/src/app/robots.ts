@@ -74,6 +74,7 @@ export default function robots(): MetadataRoute.Robots {
           "/stories/",
           "/u/",
           /* Somebody's own data, their money, and the things they do. */
+          "/agreements",
           "/assistant",
           "/bookings/",
           "/checkout/",

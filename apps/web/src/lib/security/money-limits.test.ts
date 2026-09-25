@@ -63,25 +63,25 @@ describe("guardMoney", () => {
   });
 
   it("consumes the action's own bucket for the user", async () => {
-    const verdict = await guardMoney("withdraw", "user-1");
+    const verdict = await guardMoney("fileGuaranteeClaim", "user-1");
     expect(verdict).toEqual({ allowed: true, degraded: false });
     expect(seen).toEqual([
       {
-        bucket: "money_withdraw",
+        bucket: "guarantee_claim_file",
         subject: "user:user-1",
-        limit: MONEY_LIMITS.withdraw.limit,
-        windowSeconds: MONEY_LIMITS.withdraw.windowSeconds,
+        limit: MONEY_LIMITS.fileGuaranteeClaim.limit,
+        windowSeconds: MONEY_LIMITS.fileGuaranteeClaim.windowSeconds,
       },
     ]);
   });
 
   it("refuses with the action's sentence and a time to come back", async () => {
     deny = true;
-    const verdict = await guardMoney("transferToUser", "user-1");
+    const verdict = await guardMoney("addBankAccount", "user-1");
     expect(verdict.allowed).toBe(false);
     if (verdict.allowed) throw new Error("unreachable");
     expect(verdict.message).toBe(
-      `${MONEY_LIMITS.transferToUser.refusal} Try again in about 4 minutes.`,
+      `${MONEY_LIMITS.addBankAccount.refusal} Try again in about 4 minutes.`,
     );
     expect(verdict.retryAfterSeconds).toBe(240);
   });

@@ -1,4 +1,5 @@
 import * as messages from "./messages";
+import * as agreementMessages from "./agreement-messages";
 import type { EmailMessage } from "./messages";
 
 /**
@@ -78,99 +79,47 @@ export const EVERY_MESSAGE: NamedMessage[] = [
     }),
   },
   {
-    name: "walletFunded",
-    // Carries kobo, so the receipt has to stay exact to the last kobo.
-    message: messages.walletFunded({
-      ownerName: "Ada",
-      amountMinor: 12_345_678,
-      balanceMinor: 98_765_401,
-    }),
-  },
-  {
-    name: "withdrawalOutcome:paid",
-    message: messages.withdrawalOutcome({
-      ownerName: "Ada",
-      outcome: "paid",
-      amountMinor: 250_000,
-      bankName: "GTBank",
-      accountLast4: "4417",
-      reference: "NF-WDL-9K2M",
-      balanceMinor: 1_000_000,
-    }),
-  },
-  {
-    name: "withdrawalOutcome:failed",
-    message: messages.withdrawalOutcome({ ownerName: "Ada", outcome: "failed", amountMinor: 250_000 }),
-  },
-  {
-    name: "withdrawalOutcome:reversed",
-    message: messages.withdrawalOutcome({
-      ownerName: "Ada",
-      outcome: "reversed",
-      amountMinor: 250_000,
-    }),
-  },
-  /* THE SAME BUILDER THROUGH THE OTHER DOOR. A bank send is an `rm-wd-` entry
-     like any withdrawal, so this is one message with two vocabularies rather
-     than two messages, and both need looking at side by side: the failure
-     wording is the half that usually goes unread until it is wrong. */
-  {
-    name: "withdrawalOutcome:sent",
-    message: messages.withdrawalOutcome({
-      ownerName: "Ada",
-      outcome: "paid",
-      amountMinor: 250_000,
-      bankName: "Sparkle Microfinance Bank",
-      accountLast4: "6789",
-      destination: "own_account",
-      reference: "rm-wd-9k2m",
-    }),
-  },
-  {
-    name: "withdrawalOutcome:sent-failed",
-    message: messages.withdrawalOutcome({
-      ownerName: "Ada",
-      outcome: "failed",
-      amountMinor: 250_000,
-      bankName: "Sparkle Microfinance Bank",
-      accountLast4: "6789",
-      destination: "own_account",
-    }),
-  },
-  {
-    name: "withdrawalFailed",
-    message: messages.withdrawalFailed({ ownerName: "Ada", amountMinor: 250_000 }),
-  },
-  {
-    name: "escrowFunded",
-    message: messages.escrowFunded({
-      payerName: "Ada",
-      listingTitle: LISTING,
-      amountMinor: 450_000_000,
-      reference: "NF-ESC-77QT",
-      releaseCondition: "you confirm you have the keys and the tenancy agreement is signed",
-    }),
-  },
-  {
-    name: "escrowReleased:payer",
-    message: messages.escrowReleased({
-      audience: "payer",
+    name: "agreementApproved",
+    message: agreementMessages.agreementApproved({
       name: "Ada",
+      viewer: "renter",
+      kind: "rent",
       listingTitle: LISTING,
       amountMinor: 450_000_000,
-      reference: "NF-ESC-77QT",
-      releasedBecause: "you confirmed you had the keys",
+      agreementId: "33333333-3333-4333-8333-333333333333",
     }),
   },
   {
-    name: "escrowReleased:recipient",
-    message: messages.escrowReleased({
-      audience: "recipient",
+    name: "agreementRejected",
+    message: agreementMessages.agreementRejected({
       name: "Chidi",
+      viewer: "owner",
+      kind: "rent",
       listingTitle: LISTING,
       amountMinor: 450_000_000,
-      reference: "NF-ESC-77QT",
-      releasedBecause: "the tenant confirmed they had the keys",
+      agreementId: "33333333-3333-4333-8333-333333333333",
+      reason: "The inspection photos do not show the kitchen. Add clear photos and submit again.",
+    }),
+  },
+  {
+    name: "agreementWaiting",
+    message: agreementMessages.agreementWaiting({
+      name: "Ada",
+      viewer: "renter",
+      kind: "stay",
+      listingTitle: LISTING,
+      amountMinor: 12_000_000,
+      agreementId: "33333333-3333-4333-8333-333333333333",
+    }),
+  },
+  {
+    name: "guaranteeClaimDecided",
+    message: agreementMessages.guaranteeClaimDecided({
+      name: "Ada",
+      decision: "approve",
+      amountMinor: 3_000_000,
+      reason: "The cooker did not work at move-in, as the report shows.",
+      agreementId: "33333333-3333-4333-8333-333333333333",
     }),
   },
   {

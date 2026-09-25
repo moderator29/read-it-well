@@ -1,14 +1,10 @@
 import {
-  heldPaymentDisputed,
-  heldPaymentPaidOut,
-  heldPaymentPayoutAsked,
-  heldPaymentProposed,
-  heldPaymentReturned,
-  heldPaymentRuling,
-  heldPaymentSetAside,
-  heldPaymentWithdrawn,
-  type EscrowEmailBase,
-} from "../email/escrow-messages";
+  agreementApproved,
+  agreementRejected,
+  agreementWaiting,
+  guaranteeClaimDecided,
+  type AgreementEmailData,
+} from "../email/agreement-messages";
 import {
   inspectionScheduled,
   newDeviceSignIn,
@@ -16,16 +12,12 @@ import {
   passwordChanged,
   verificationRungPassed,
   welcome,
-  withdrawalOutcome,
   type EmailMessage,
   type SignupRole,
   type VerificationRung,
-  type WithdrawalDestination,
-  type WithdrawalOutcome,
 } from "../email/messages";
 import type { EmailChannel } from "../email/recipients";
 import { scamRecall } from "../email/safety-messages";
-import type { EscrowPurpose } from "../escrow/copy";
 
 /**
  * WHAT A ROW IN THE OUTBOX MEANS, AND THE ONLY PLACE THAT DECIDES.
@@ -94,37 +86,12 @@ export type EnquiryFacts = {
   conversationPath: string;
 };
 
-/** Where a withdrawal went, in the vocabulary rule 16 allows. */
-export type WithdrawalFacts = {
-  bankName: string | null;
-  /** Four digits of a CARD only. A bank account gets none; see below. */
-  accountLast4: string | null;
-  /**
-   * WHICH DOOR THIS ROW CAME FROM, because one row serves two of them.
-   *
-   * A bank send and a withdrawal are the same `rm-wd-` entry on purpose: the
-   * Paystack webhook settles `transfer.*` only for that prefix and the
-   * stale-hold sweeper releases only that prefix, so a prefix of its own would
-   * have produced a debit nothing on this platform could ever settle. The
-   * entry's `metadata.destination` is what tells them apart, and the drain
-   * reads it here so the email can stop calling a transfer to a landlord a
-   * withdrawal.
-   *
-   * `null` is an entry whose metadata says nothing, which is every row the
-   * withdraw door has ever written. The builder treats it as `own_account`,
-   * which is what it is.
-   */
-  destination: WithdrawalDestination | null;
-};
-
 /** What the drain must read before a batch of rows can be built. */
 export type TemplateNeeds = {
   /** Display names for these accounts. */
   users?: readonly string[];
   /** Title and address for these listings. */
   listings?: readonly string[];
-  /** Bank and destination for these wallet entries. */
-  entries?: readonly string[];
   /** Which verification rungs these agents have passed. */
   agents?: readonly string[];
   /** The words in these messages. */
@@ -147,7 +114,6 @@ export type TemplateLookups = {
    */
   signupRole: (id: string) => SignupRole | null;
   listing: (id: string) => ListingFacts | null;
-  withdrawal: (id: string) => WithdrawalFacts | null;
   /** The `agent_verification_checks.kind` values at `passed`, mapped to rungs. */
   passedRungs: (agentId: string) => readonly VerificationRung[];
   enquiry: (messageId: string) => EnquiryFacts | null;
@@ -230,10 +196,6 @@ function num(payload: Payload, key: string): number | null {
   return null;
 }
 
-function bool(payload: Payload, key: string): boolean {
-  return payload[key] === true;
-}
-
 function ids(...values: (string | null)[]): string[] {
   return values.filter((value): value is string => typeof value === "string" && value.length > 0);
 }
@@ -278,65 +240,34 @@ function lagosParts(iso: string | null): { date: string | null; time: string | n
   }
 }
 
-/* ------------------------------------------------------------------ escrow */
+/* -------------------------------------------------------------- agreements */
 
-const ESCROW_PURPOSES: readonly EscrowPurpose[] = [
-  "rent_deposit",
-  "first_rent",
-  "purchase_deposit",
-  "purchase_balance",
-  "agency_fee",
-];
-
-function purposeOf(payload: Payload): EscrowPurpose | null {
-  const raw = str(payload, "purpose");
-  return ESCROW_PURPOSES.find((p) => p === raw) ?? null;
-}
-
-/** What every escrow builder shares, assembled once from the payload. */
-function escrowBase(payload: Payload, context: TemplateContext): (EscrowEmailBase & {
-  viewer: "payer" | "payee";
-}) | null {
-  const id = str(payload, "escrow_id");
+/** What every agreement email reads off its payload (Track A). */
+function agreementData(payload: Payload, context: TemplateContext): AgreementEmailData | null {
+  const agreementId = str(payload, "agreement_id");
   const amountMinor = num(payload, "amount_minor");
-  const purpose = purposeOf(payload);
   const viewer = str(payload, "viewer");
-  if (!id || amountMinor === null || !purpose) return null;
-  if (viewer !== "payer" && viewer !== "payee") return null;
-
-  const counterpartyId = str(payload, "counterparty_id");
+  const kind = str(payload, "kind");
+  if (!agreementId || amountMinor === null) return null;
+  if (viewer !== "renter" && viewer !== "owner") return null;
   const listingId = str(payload, "listing_id");
   return {
-    id,
-    amountMinor,
-    purpose,
-    viewer,
     name: context.recipient.name,
-    counterpartyName: counterpartyId ? context.lookups.userName(counterpartyId) : null,
+    viewer,
+    kind: kind === "stay" ? "stay" : "rent",
     listingTitle: listingId ? (context.lookups.listing(listingId)?.title ?? null) : null,
+    amountMinor,
+    agreementId,
+    reason: str(payload, "reason"),
   };
 }
 
-/** Every escrow template needs the same two lookups off the same two keys. */
-function escrowNeeds(payload: Payload): TemplateNeeds {
+function agreementTemplate(render: (data: AgreementEmailData) => EmailMessage | null): OutboxTemplate {
   return {
-    users: ids(str(payload, "counterparty_id")),
-    listings: ids(str(payload, "listing_id")),
-  };
-}
-
-function escrowTemplate(
-  render: (
-    base: EscrowEmailBase & { viewer: "payer" | "payee" },
-    payload: Payload,
-    context: TemplateContext,
-  ) => EmailMessage | null,
-): OutboxTemplate {
-  return {
-    needs: escrowNeeds,
+    needs: (payload) => ({ listings: ids(str(payload, "listing_id")) }),
     build: (payload, context) => {
-      const base = escrowBase(payload, context);
-      return base ? render(base, payload, context) : null;
+      const data = agreementData(payload, context);
+      return data ? render(data) : null;
     },
   };
 }
@@ -346,11 +277,9 @@ function escrowTemplate(
 /**
  * Every template a trigger can write, and nothing else.
  *
- * The keys are the exact strings the migrations compose. `escrow.<STATE>` is
- * built from the enum label, so the eight entries here are the eight states
- * `ESCROW_EMAIL_STATES` names, and FUNDED is absent from both for the same
- * reason: it lasts a microsecond and announcing it would be announcing our own
- * plumbing.
+ * The keys are the exact strings the migrations compose. The escrow and
+ * wallet templates are gone with the custody they described (Track A): Vallo
+ * holds no money, so there is no hold, release or withdrawal to announce.
  */
 export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
   /* -------------------------------------------------------------- account */
@@ -387,67 +316,30 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
       }),
   },
 
-  /* --------------------------------------------------------------- escrow */
+  /* ----------------------------------------------------------- agreements */
 
-  "escrow.INITIATED": escrowTemplate((base) => heldPaymentProposed(base)),
+  /* Written by private.agreement_tell_both when an agreement is drawn up and
+     when Vallo decides it (Track A). Both parties get their own row. */
+  "agreement.waiting": agreementTemplate((data) => agreementWaiting(data)),
+  "agreement.approved": agreementTemplate((data) => agreementApproved(data)),
+  "agreement.rejected": agreementTemplate((data) => (data.reason ? agreementRejected(data) : null)),
 
-  "escrow.HELD": escrowTemplate((base, payload) =>
-    heldPaymentSetAside({ ...base, autoReleaseAt: str(payload, "auto_release_at") }),
-  ),
-
-  "escrow.RELEASE_REQUESTED": escrowTemplate((base, payload) =>
-    heldPaymentPayoutAsked({ ...base, autoReleaseAt: str(payload, "auto_release_at") }),
-  ),
-
-  "escrow.RELEASED": escrowTemplate((base, payload) =>
-    heldPaymentPaidOut({
-      ...base,
-      commissionMinor: num(payload, "commission_minor") ?? 0,
-      netMinor: num(payload, "net_minor") ?? base.amountMinor,
-      automatic: bool(payload, "automatic"),
-    }),
-  ),
-
-  "escrow.REFUNDED": escrowTemplate((base, payload) =>
-    heldPaymentReturned({ ...base, reason: str(payload, "reason") }),
-  ),
-
-  "escrow.DISPUTED": escrowTemplate((base, payload, context) => {
-    const reason = str(payload, "reason");
-    /* The builder requires the words that were filed, and prints them to both
-       sides verbatim. Without them there is no message worth sending. */
-    if (!reason) return null;
-    const raisedBy = str(payload, "raised_by");
-    return heldPaymentDisputed({
-      ...base,
-      reason,
-      raisedByYou: raisedBy !== null && raisedBy === context.recipientId,
-    });
-  }),
-
-  "escrow.RESOLVED": escrowTemplate((base, payload) => {
-    const ruling = str(payload, "ruling");
-    if (!ruling) return null;
-    const direction = str(payload, "direction") === "refund" ? "refund" : "release";
-    return heldPaymentRuling({
-      ...base,
-      direction,
-      ruling,
-      commissionMinor: num(payload, "commission_minor") ?? 0,
-      netMinor: num(payload, "net_minor") ?? base.amountMinor,
-    });
-  }),
-
-  "escrow.CANCELLED": escrowTemplate((base, payload, context) => {
-    const note = str(payload, "note");
-    if (!note) return null;
-    const actorId = str(payload, "actor_id");
-    return heldPaymentWithdrawn({
-      ...base,
-      note,
-      withdrawnByYou: actorId !== null && actorId === context.recipientId,
-    });
-  }),
+  /* Written by public.admin_decide_guarantee_claim. */
+  "guarantee.claim_decided": {
+    needs: () => ({}),
+    build: (payload, context) => {
+      const agreementId = str(payload, "agreement_id");
+      const decision = str(payload, "decision");
+      if (!agreementId || (decision !== "approve" && decision !== "reject")) return null;
+      return guaranteeClaimDecided({
+        name: context.recipient.name,
+        decision,
+        amountMinor: num(payload, "amount_minor"),
+        reason: str(payload, "reason"),
+        agreementId,
+      });
+    },
+  },
 
   /* ------------------------------------------------------------- security */
 
@@ -484,35 +376,6 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
          * from Lagos will either panic about themselves or ignore a real one.
          */
         place: null,
-      });
-    },
-  },
-
-  /* --------------------------------------------------------------- wallet */
-
-  "wallet.withdrawal_outcome": {
-    needs: (payload) => ({ entries: ids(str(payload, "entry_id")) }),
-    build: (payload, context) => {
-      const amountMinor = num(payload, "amount_minor");
-      const raw = str(payload, "outcome");
-      const outcome: WithdrawalOutcome | null =
-        raw === "paid" || raw === "failed" || raw === "reversed" ? raw : null;
-      if (amountMinor === null || !outcome) return null;
-
-      const entryId = str(payload, "entry_id");
-      const entry = entryId ? context.lookups.withdrawal(entryId) : null;
-      return withdrawalOutcome({
-        ownerName: context.recipient.name,
-        outcome,
-        amountMinor,
-        bankName: entry?.bankName ?? null,
-        accountLast4: entry?.accountLast4 ?? null,
-        /* WHICH DOOR, so the words match the screen the person used. Read off
-           the entry at send time with the bank and the last four, never
-           carried in the queue row: the outbox holds ids so a row read out of
-           it describes an event without describing anybody. */
-        destination: entry?.destination ?? null,
-        reference: str(payload, "reference"),
       });
     },
   },

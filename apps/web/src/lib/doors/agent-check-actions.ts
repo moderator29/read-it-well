@@ -5,7 +5,7 @@ import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { callLandlordRpc } from "../landlord/rpc";
 import { consume, ipFromHeaders, subjectForIp } from "../security/rate-limit";
-import { getAdminClient } from "../wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 import { normalisePhone } from "../phone";
 import { readCheckQuery, readCheckResult, reservationWindowStart, type CheckResult } from "./agent-check";
 

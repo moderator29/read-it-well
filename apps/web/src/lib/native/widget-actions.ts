@@ -2,7 +2,7 @@
 
 import { createHash, randomBytes } from "node:crypto";
 import { resolveSession } from "../actions/session";
-import { getAdminClient } from "../wallet/ledger";
+import { getAdminClient } from "@/lib/supabase/service";
 
 /**
  * THE WIDGET'S DEVICE-BOUND TOKEN. V-98.

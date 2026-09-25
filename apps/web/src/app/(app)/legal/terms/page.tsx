@@ -13,7 +13,7 @@ export default function AppTermsPage() {
     <LegalDocument
       title="Terms of service"
       intro="The agreement between you and Vallo when you use the platform, book a place, or list one."
-      updated="28 July 2026"
+      updated="25 September 2026"
       sections={TERMS_SECTIONS}
       otherHref="/legal/privacy"
       otherLabel="Privacy policy"

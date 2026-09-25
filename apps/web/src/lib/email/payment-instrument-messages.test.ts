@@ -117,7 +117,7 @@ describe("the sentence a person acts on", () => {
       event: "bank_default_changed",
       bankName: "GTBank",
     });
-    expect(message.html).toMatch(/money you withdraw/i);
+    expect(message.html).toMatch(/now settles to it/i);
     /* The password, before setting it back: an attacker who still holds the
        session simply changes it again. */
     const passwordAt = message.html.indexOf("change your password");

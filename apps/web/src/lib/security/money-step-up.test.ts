@@ -7,7 +7,7 @@ const db = vi.hoisted(() => ({
   stepUps: [] as { id: string; user_id: string; digest: string; used_at: string | null; expires_at: string }[],
 }));
 
-vi.mock("../wallet/ledger", () => ({
+vi.mock("@/lib/supabase/service", () => ({
   getAdminClient: () => ({
     from: (table: string) => {
       if (table === "money_credentials") {

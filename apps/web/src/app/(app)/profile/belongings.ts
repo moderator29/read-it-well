@@ -1,4 +1,4 @@
-import { formatMoney, formatNumber, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatNumber, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Workspace } from "@/lib/supply/workspaces";
 import type { WorkspaceKind } from "@/lib/supply/roles";
 import { ROLE_COPY, type RoleState } from "@/components/roles/roles";
@@ -6,7 +6,7 @@ import { ROLE_COPY, type RoleState } from "@/components/roles/roles";
 /**
  * THE PROFILE'S BELONGINGS, AS PURE FUNCTIONS.
  *
- * `50E032EA` draws four rows (My Bookings, Saved, Wallet, Inspections) and a
+ * `50E032EA` draws four rows (My Bookings, Saved, Payments, Inspections) and a
  * Switch role row under them. The render carries no number on any of them. The
  * founder's brief for this surface allows one, on the right of a row, only where
  * the database actually returns it. So every figure below arrives as a number
@@ -41,12 +41,10 @@ export type BelongingsFacts = {
   /** Saved listings plus saved hotels and restaurants. */
   saved: number | null;
   /**
-   * The wallet balance in kobo, or null when the account has no wallet row yet
-   * or the read failed. A wallet that exists with nothing in it IS zero, and
-   * says so.
+   * Agreements waiting on this person or open for payment (Track A). There is
+   * no wallet: Vallo holds no customer money, so there is no balance to show.
    */
-  walletMinor: number | null;
-  walletCurrency: string;
+  openAgreements: number | null;
   /** Requests this person made that are still alive: asked, proposed or booked in. */
   openInspections: number | null;
 };
@@ -54,8 +52,7 @@ export type BelongingsFacts = {
 export const NO_FACTS: BelongingsFacts = {
   upcomingBookings: null,
   saved: null,
-  walletMinor: null,
-  walletCurrency: "NGN",
+  openAgreements: null,
   openInspections: null,
 };
 
@@ -65,11 +62,10 @@ export const NO_FACTS: BelongingsFacts = {
  * A count of zero draws nothing too, on purpose: "0 upcoming" is a fact, but
  * it is a fact the row's own words already cover, and four zeros down the
  * right hand edge of a new account read as a scoreboard of what they have not
- * done. The wallet is the exception: a balance of nothing is still a balance,
- * and it is the one number on this screen somebody opens it to check.
+ * done.
  */
 export function rowValue(
-  kind: "bookings" | "saved" | "wallet" | "inspections",
+  kind: "bookings" | "saved" | "payments" | "inspections",
   facts: BelongingsFacts,
   locale: Locale,
 ): string | null {
@@ -81,10 +77,8 @@ export function rowValue(
       return countLabel(facts.saved, copy.saved, locale);
     case "inspections":
       return countLabel(facts.openInspections, copy.open, locale);
-    case "wallet":
-      return facts.walletMinor === null
-        ? null
-        : formatMoney(facts.walletMinor, locale, facts.walletCurrency);
+    case "payments":
+      return countLabel(facts.openAgreements, copy.open, locale);
   }
 }
 

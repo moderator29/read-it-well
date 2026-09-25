@@ -3,59 +3,37 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 /**
- * Yellow Card: the crypto on-ramp.
+ * Yellow Card: crypto in, naira out, under Yellow Card's licence.
  *
  * ===========================================================================
- * WHY THIS PROVIDER AND NOT A WALLET ADDRESS.
+ * TRACK A, 25 SEPTEMBER 2026: CRYPTO NEVER TOUCHES ANYTHING VALLO CONTROLS.
  * ===========================================================================
  *
- * The obvious way to "accept crypto" is to show a USDT address and watch the
- * chain. Vallo must not do that, and the reason is not squeamishness:
+ * The person's crypto goes to Yellow Card. Yellow Card converts it under its
+ * own licence and settles NAIRA, and only naira, to the destinations the
+ * booking's split names: the lister's share to the lister's bank account, the
+ * Guarantee contribution to the reserve's bank account, and Vallo's
+ * commission to Vallo. Vallo never holds a crypto address, a crypto balance or
+ * a key, not even briefly, and nothing in Vallo's data is ever denominated in
+ * crypto: every figure this module accepts or returns is integer kobo.
  *
- *  - IT MAKES US A CUSTODIAN. A private key we hold is somebody else's money
- *    we hold, with no bank, no insurance and no recovery. One leaked key is
- *    every deposit ever made.
- *  - IT MAKES US AN EXCHANGE. The wallet is denominated in kobo. Crediting a
- *    naira balance from a USDT deposit means someone decided a rate, and if
- *    that someone is us then we carry the price movement between the deposit
- *    landing and the naira being spent.
- *  - IT NEEDS A CHAIN WATCHER. Confirmations, reorgs, dust, wrong-network
- *    sends, memo-less exchange withdrawals. Every one of those is a way to
- *    lose a person's money quietly, which is the failure this codebase has
- *    already had once.
- *
- * Yellow Card is a licensed on-ramp operating across Africa with NGN
- * settlement. The person pays in crypto; we are credited in naira; the rate,
- * the custody and the compliance are theirs. That is the same relationship we
- * already have with Paystack for cards, which is why this module is shaped
- * like `paystack.ts` down to the error class and the fifteen second timeout.
+ * There is no wallet to credit. A completed collection settles ONE approved
+ * booking through the same database function a card charge uses.
  *
  * ===========================================================================
- * THE ONE THING IN HERE THAT IS NOT YET PROVEN AGAINST A LIVE ACCOUNT.
+ * WHAT MUST BE TRUE BEFORE THIS IS EVER SWITCHED ON.
  * ===========================================================================
  *
- * `YELLOWCARD_API_BASE`, the request signing scheme and the exact field names
- * in `createCollection` are written from Yellow Card's published Payments API
- * and have NOT been executed against a real merchant account, because this
- * platform does not have one yet. Everything structural around them - the
- * reference scheme, the idempotency, the webhook verification, the ledger
- * credit, the configured-gate - is ours and is exercised by the same code
- * paths Paystack already uses.
+ * Yellow Card has to settle the naira DIRECTLY to the named destinations. If
+ * the contract instead settles everything into one Vallo account for Vallo to
+ * pass on, that is custody and this path must stay off. So it runs only when
+ * `YELLOWCARD_DIRECT_SETTLEMENT=confirmed` is set, which is a statement the
+ * founder makes after reading the Yellow Card contract, not a technical
+ * switch. The request shape of `createBookingCollection` and `parseWebhook`
+ * has not been executed against a live merchant account and must be checked
+ * against Yellow Card's live documentation on the day keys arrive.
  *
- * So the seam to check on the day the keys arrive is `createCollection` and
- * `parseWebhook`, and nothing else. They are deliberately small and
- * deliberately at the bottom of this file. Do not spread provider field names
- * beyond them.
- *
- * ===========================================================================
- * NOTHING RENDERS WITHOUT KEYS, AND THAT IS THE POINT.
- * ===========================================================================
- *
- * `isYellowCardConfigured()` is false until both variables are set, and the
- * wallet asks it before it draws anything. A crypto option that appears and
- * then cannot take money is the same defect as a Reserve button on a listing
- * nobody can book - worse here, because this one is about money. Gated this
- * way the control cannot exist before the capability does.
+ * NOTHING RENDERS WITHOUT KEYS AND THAT CONFIRMATION.
  */
 
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -170,8 +148,8 @@ async function request<T>(
  * Whether a webhook really came from Yellow Card.
  *
  * The same shape as the Paystack check and for the same reason: this endpoint
- * credits wallets, so an unverified body is an instruction from anybody on the
- * internet to add money to an account.
+ * marks bookings paid, so an unverified body is an instruction from anybody on
+ * the internet to treat a stay as paid for.
  *
  * Length is compared before `timingSafeEqual` because it throws on a mismatch
  * rather than returning false. Returns false, never throws, so the route can
@@ -194,6 +172,16 @@ export function verifyWebhookSignature(rawBody: string, signature: string): bool
 /* THE PROVIDER SEAM. Confirm these two against live docs when keys arrive.  */
 /* ======================================================================== */
 
+/** True only when the founder has confirmed Yellow Card settles directly to each destination. */
+export function isDirectSettlementConfirmed(): boolean {
+  return (process.env.YELLOWCARD_DIRECT_SETTLEMENT ?? "").trim() === "confirmed";
+}
+
+/** Crypto can be offered only when the keys exist AND direct settlement is confirmed. */
+export function isCryptoPaymentOpen(): boolean {
+  return isYellowCardConfigured() && isDirectSettlementConfirmed();
+}
+
 export type CryptoCollection = {
   /** Where to send the person to pay. */
   paymentUrl: string;
@@ -201,28 +189,40 @@ export type CryptoCollection = {
   reference: string;
 };
 
+/** One naira destination of a collection's settlement. */
+export type NairaSettlement = {
+  /** Who this leg is for, for the record: never used to route money. */
+  role: "lister" | "guarantee_reserve" | "vallo_commission";
+  bankCode: string;
+  accountNumber: string;
+  amountMinor: number;
+};
+
 /**
- * Open a crypto collection for a naira amount.
+ * Open a crypto collection that pays one booking in naira.
  *
- * THE AMOUNT IS IN NAIRA, NOT IN CRYPTO, and that is the whole design. We ask
- * for "credit this wallet with ₦50,000"; Yellow Card decides how much USDT
- * that is at the moment of payment and carries the rate. We never quote a
- * crypto amount, never store one, and never convert. If this function ever
- * grows a `rate` parameter, something has gone wrong upstream of it.
- *
- * `reference` is OURS and is the idempotency key end to end: the collection,
- * the webhook and the ledger row all carry it, so a webhook delivered twice
- * credits once.
+ * THE AMOUNT IS IN NAIRA, NOT IN CRYPTO. We ask Yellow Card to collect the
+ * crypto equivalent of a naira amount at the moment of payment and to settle
+ * that naira to the destinations given. We never quote a crypto amount, never
+ * store one and never convert. The settlement legs must add up to the amount
+ * exactly, or nothing is sent.
  */
-export async function createCollection(params: {
-  /** Integer kobo. Converted to naira units at the boundary, once, here. */
+export async function createBookingCollection(params: {
   amountMinor: number;
   reference: string;
   email: string;
   callbackUrl: string;
+  settlements: readonly NairaSettlement[];
 }): Promise<CryptoCollection> {
+  if (!isCryptoPaymentOpen()) {
+    throw new YellowCardError("Crypto payments are not open.");
+  }
   if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
     throw new YellowCardError("The amount must be a positive integer number of kobo.");
+  }
+  const total = params.settlements.reduce((sum, leg) => sum + leg.amountMinor, 0);
+  if (total !== params.amountMinor || params.settlements.some((leg) => !Number.isSafeInteger(leg.amountMinor) || leg.amountMinor < 0)) {
+    throw new YellowCardError("The settlement does not add up to the amount, so nothing was sent.");
   }
 
   const data = await request<{ paymentUrl?: string; url?: string; sequenceId?: string }>(
@@ -230,14 +230,20 @@ export async function createCollection(params: {
     {
       method: "POST",
       body: {
-        /* Kobo to naira at the boundary. The ledger stays integer kobo either
-           side of this line; this is the only division in the crypto path and
-           it is exact, because kobo amounts are whole. */
         amount: params.amountMinor / 100,
         currency: "NGN",
         sequenceId: params.reference,
         customerEmail: params.email,
         callbackUrl: params.callbackUrl,
+        settlement: params.settlements
+          .filter((leg) => leg.amountMinor > 0)
+          .map((leg) => ({
+            bankCode: leg.bankCode,
+            accountNumber: leg.accountNumber,
+            amount: leg.amountMinor / 100,
+            currency: "NGN",
+            narration: leg.role,
+          })),
       },
     },
   );
@@ -250,34 +256,17 @@ export async function createCollection(params: {
 }
 
 export type CryptoWebhookEvent = {
-  /** Our reference, which is how the ledger finds the row to write. */
+  /** Our reference, which is how the booking's charge is found. */
   reference: string;
-  /** Integer kobo, as settled in naira by the provider. */
+  /** Integer kobo, as settled in naira by the provider. Never a crypto amount. */
   amountMinor: number;
   status: "completed" | "failed" | "pending" | "unknown";
-  /**
-   * The payer's email, which is how the credit finds a wallet.
-   *
-   * The card path resolves an owner the same way - `findUserByEmail` on the
-   * address the processor echoes back - and this is deliberately the same
-   * mechanism rather than a second one. `startCryptoDeposit` sends the
-   * signed-in user's own address, so the round trip is what ties an anonymous
-   * settlement to an account.
-   */
-  email: string | null;
 };
 
 /**
- * Read a webhook body into the three facts the ledger needs.
- *
- * Returns null rather than throwing on anything it does not recognise, so an
- * unexpected event type is a no-op the route can answer 200 to rather than an
- * exception that looks like an outage.
- *
- * ROUNDING IS `Math.round`, NOT `Math.floor`. A provider that settles
- * ₦49,999.999999 through float arithmetic must not credit ₦49,999.99 - the
- * fraction of a kobo is theirs to be exact about and ours to not silently
- * shave. Anything that does not parse to a positive integer is refused above.
+ * Read a webhook body into the facts settlement needs: our reference, the
+ * naira amount, and the status. Nothing about the crypto side is read or
+ * kept. Returns null on anything it does not recognise.
  */
 export function parseWebhook(body: unknown): CryptoWebhookEvent | null {
   if (typeof body !== "object" || body === null) return null;
@@ -301,10 +290,5 @@ export function parseWebhook(body: unknown): CryptoWebhookEvent | null {
           ? "pending"
           : "unknown";
 
-  const email =
-    typeof row["customerEmail"] === "string" && row["customerEmail"].length > 0
-      ? row["customerEmail"]
-      : null;
-
-  return { reference, amountMinor, status, email };
+  return { reference, amountMinor, status };
 }

@@ -8,7 +8,7 @@ import type { PushClient } from "./schema";
  * alone should not be enough to start pushing to iPhones: the first send to
  * a real handset is a launch decision (the permission copy, the App Store
  * build that registers for the production gateway), so it sits behind a
- * fail-closed flag in the pattern of `lib/escrow/flag.ts`:
+ * fail-closed flag in the pattern of `lib/flags/read.ts`:
  *
  *   no row, a failed read, or enabled = false   ->  shut
  *   a row with enabled = true                   ->  open

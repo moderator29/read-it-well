@@ -8,7 +8,7 @@ import { HelpSearch, type Faq } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
 import { doorsSentence } from "@/lib/supply/roles";
 import { aiConsentForViewer } from "@/lib/ai/consent-server";
-import { AGENT_PAYOUT_ANSWER, WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
+import { GUARANTEE_SCOPE, GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, PAYMENT_GATE_SENTENCE, PAYOUT_ANSWER, REFUND_ROUTE } from "@/lib/money/copy";
 
 export const metadata: Metadata = {
   title: "Help centre",
@@ -80,17 +80,27 @@ const FAQS: Faq[] = [
   {
     category: "Property and Stays",
     q: "What are the two sides, and what does switching do?",
-    a: "Vallo is one app with two faces. The Property side is renting, buying and selling: listings, agents, inspections and Plans, priced as a sale price or a yearly rent. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced apartments, shortlets and restaurant tables, priced per night against your dates. The switch sits at the foot of the side menu. Flipping it changes the vocabulary and the bottom bar and nothing else: same account, same profile, same wallet and balance, same inbox, same saved places. Plans is one dated list of what you have lined up on both sides.",
+    a: "Vallo is one app with two faces. The Property side is renting, buying and selling: listings, agents, inspections and Plans, priced as a sale price or a yearly rent. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced apartments, shortlets and restaurant tables, priced per night against your dates. The switch sits at the foot of the side menu. Flipping it changes the vocabulary and the bottom bar and nothing else: same account, same profile, same inbox, same saved places. Plans is one dated list of what you have lined up on both sides.",
   },
   {
     category: "Property and Stays",
     q: "How is paying for a stay different from paying for a tenancy?",
-    a: "A stay is paid on Vallo before you arrive. You pick your dates, reserve, and the nights are held free for 48 hours while you decide; the breakdown shows the nightly rate, the nights and anything the host charges, added up, and you pay by card or from your wallet. A tenancy is the other way round: you message the agent, you inspect the property in person, and only then do you pay, with the whole move-in total printed before you commit. There is no reserve button on a yearly rental for that reason. Both are paid inside Vallo and both leave a reference you can open later.",
+    a: "A stay is paid on Vallo before you arrive. You pick your dates, reserve, and the nights are held free for 48 hours while you decide; the breakdown shows the nightly rate, the nights and anything the host charges, added up. Once the host accepts, Vallo approves the booking and you pay by card or bank transfer. A tenancy is the other way round: you message the agent, you inspect the property in person, you submit the inspection report, and an agreement is drawn up that both of you confirm and Vallo approves. Only then do you pay, with the whole move-in total printed before you commit. There is no reserve button on a yearly rental for that reason. Both are paid inside Vallo and both leave a reference you can open later.",
   },
   {
     category: "Property and Stays",
-    q: "Does my wallet work on both sides?",
-    a: `Yes. There is one naira wallet on one account. Top it up by card or bank transfer and pay for a tenancy, a sale deposit or a hotel room from the same balance. Refunds land back in the same wallet whichever side they came from. ${WALLET_MONEY_USES}`,
+    q: "Does Vallo hold my money?",
+    a: `No. ${NO_CUSTODY_SENTENCE} There is no Vallo wallet or balance, nothing to top up and nothing to withdraw. ${PAYMENT_GATE_SENTENCE}`,
+  },
+  {
+    category: "Payments and refunds",
+    q: "What is the Vallo Guarantee?",
+    a: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE}`,
+  },
+  {
+    category: "Payments and refunds",
+    q: "Do I pay to inspect a property?",
+    a: `No. ${NO_INSPECTION_FEE} If anybody asks you for money to view a place, that is a private arrangement and not ours, and you can report it. ${OFF_PLATFORM_SENTENCE}`,
   },
   {
     category: "Property and Stays",
@@ -107,7 +117,7 @@ const FAQS: Faq[] = [
   {
     category: "Booking a stay",
     q: "How do I book a stay on Vallo?",
-    a: "Open Stays, type where you are going and set your check-in, your check-out and how many of you there are. Every price on the results page then becomes the total for those nights rather than a rate. Open one, reserve, and the nights are held for 48 hours for nothing while you decide. Pay by card or from your wallet and the stay appears in Plans with its reference.",
+    a: "Open Stays, type where you are going and set your check-in, your check-out and how many of you there are. Every price on the results page then becomes the total for those nights rather than a rate. Open one, reserve, and the nights are held for 48 hours for nothing while you decide. Pay by card or bank transfer once payment opens and the stay appears in Plans with its reference.",
   },
   {
     category: "Booking a stay",
@@ -134,12 +144,12 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "Do I pay the agent directly?",
-    a: "Never. You pay on Vallo, through the checkout screen, using a card, a bank transfer raised by the payment processor, or your Vallo wallet. Nobody on this platform has any reason to send you an account number, and if somebody does, report them. How the agent is paid is handled on the platform, and it is never something you arrange by transfer.",
+    a: `Never. You pay on Vallo, through the checkout screen, using a card or a bank transfer raised by the payment processor. Nobody on this platform has any reason to send you an account number, and if somebody does, report them. The owner's or agent's share is split off by the processor in the same payment and goes straight to their bank account. ${NO_CUSTODY_SENTENCE}`,
   },
   {
     category: "Payments and refunds",
     q: "What payment methods can I use?",
-    a: "You can pay in naira with Nigerian debit cards or by bank transfer, and from your Vallo wallet. The same three work on both sides of the product, for a night or for a year. Prices are always shown in naira with no hidden conversion.",
+    a: "You can pay in naira with Nigerian debit cards or by bank transfer. Where crypto is offered it is converted to naira by Yellow Card before it reaches anybody, and Vallo never holds crypto. The same methods work on both sides of the product, for a night or for a year. Prices are always shown in naira with no hidden conversion.",
   },
   {
     category: "Payments and refunds",
@@ -149,15 +159,15 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "How do refunds work?",
-    a: `One schedule applies to every stay on Vallo. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the agent's. If the agent cancels, or the property was not what was listed, you get everything back whenever it happens. Refunds land in your Vallo wallet. ${WALLET_MONEY_USES}`,
+    a: `One schedule applies to every stay on Vallo. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the agent's. If the agent cancels, or the property was not what was listed, you get everything back whenever it happens. ${REFUND_ROUTE}`,
   },
   {
     category: "Payments and refunds",
     q: "How long does a refund take to arrive?",
-    /* This answer used to promise card reversals in three to ten business
-       days. Refunds do not go back to a card: they land in the wallet, which
-       is what the docs, the cancellation policy and the product itself say. */
-    a: `A refund lands in your Vallo wallet the moment the cancellation is decided. Ask from the booking and the request is dated: never later than five Nigerian business days after you ask, and the booking shows that date. ${WALLET_MONEY_USES} If nothing has appeared in your wallet statement, contact support with your booking reference.`,
+    /* Track A: Vallo keeps no balance, so a refund goes back through the
+       processor to the card or account that paid. The processor's timing,
+       not ours, decides when the bank shows it. */
+    a: `${REFUND_ROUTE} Ask from the booking and the request is dated, and the booking shows where the refund is. If nothing has appeared after ten working days, contact support with your booking reference.`,
   },
 
   // ------------------------------------------------------------ listing
@@ -182,12 +192,12 @@ const FAQS: Faq[] = [
   {
     category: "Listing your property",
     q: "Does it cost anything to list?",
-    a: "No. Listing is free, and it stays free. Vallo charges no fees at all: not to list, not to book, and nothing is taken out of what a guest pays you.",
+    a: "No. Listing is free, and it stays free. Vallo charges no fees to list or to book. The one amount set aside from each payment is the Vallo Guarantee contribution, between 1 and 2 percent, which goes to a separate reserve that protects both sides and never to Vallo.",
   },
   {
     category: "Listing your property",
     q: "When do agents get paid?",
-    a: AGENT_PAYOUT_ANSWER,
+    a: PAYOUT_ANSWER,
   },
 
   // ------------------------------------------------------- verification

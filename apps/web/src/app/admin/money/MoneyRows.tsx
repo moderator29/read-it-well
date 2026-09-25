@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { AdminRead } from "@/lib/admin/queries";
-import type { RefundConsole, RefundState, RefundView, WalletEntryView } from "@/lib/admin/money-queries";
+import type { RefundConsole, RefundState, RefundView } from "@/lib/admin/money-queries";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
@@ -14,76 +14,13 @@ import { fill } from "../_components/copy";
  * preview harness draws the same rows the desk draws.
  */
 
-/**
- * Where a refund's money is, in words and in a tone that survives greyscale.
- * The word is the signal; the tone only agrees with it.
- */
+/** Where a refund is, as a tone: back at the card is done, a refusal needs a person. */
 export const REFUND_TONE: Record<RefundState, StatusTone> = {
-  credited: "success",
-  not_settled: "info",
+  submitted: "success",
+  pending: "warning",
   failed: "danger",
-  not_credited: "danger",
   nothing_owed: "neutral",
 };
-
-export function EntryRow({
-  entry,
-  locale,
-  ui,
-}: {
-  entry: WalletEntryView;
-  locale: Locale;
-  ui: AdminUi;
-}) {
-  const outgoing = entry.direction === "debit";
-  return (
-    <li className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
-      <span className="min-w-0">
-        <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
-          {/* Same column-keyed lookup as the status chip beside it, rather
-              than a second hand-rolled `replace(/_/g, " ")` that would print
-              "escrow hold" in lower case beside a properly named status. */}
-          {entry.note ?? ui.columnLabel("walletEntryKind", entry.kind)}
-          {entry.ownerName ? ` · ${entry.ownerName}` : ""}
-        </span>
-        {/* THE REFERENCE IS NEVER CLIPPED. It is the only string an operator
-            can trace a payment by with Paystack or Yellow Card, and it was
-            rendered at 11px monospace with an ellipsis, so the money screen
-            could not do the one thing it exists for. `user-select: all` means
-            one tap takes the whole string. */}
-        <span className="block font-mono text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
-          {entry.reference}
-        </span>
-      </span>
-      <span className="flex shrink-0 items-baseline gap-sm">
-        {/*
-          NOT `label={entry.status}`. That printed `PENDING`, `COMPLETED`,
-          `FAILED` and `REVERSED` in shouting capitals on the money screen,
-          which is the column, not a word for a person.
-
-          And not the bare `status={entry.status}` either, which would have
-          fallen through to `statusLabel` and `t.admin.common.status`, where
-          `PENDING` reads "Requested". That is right for a booking and wrong
-          for a wallet entry, where PENDING means the money has not settled.
-          `columnLabel` is keyed by column as well as by value for exactly
-          this collision. `status` is still passed, because the TONE is
-          shared across every queue and only the word is per-column.
-        */}
-        <ui.StatusChip
-          label={ui.columnLabel("walletEntryStatus", entry.status)}
-          status={entry.status}
-        />
-        <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
-          {outgoing ? "-" : "+"}
-          {formatMoney(entry.amountMinor, locale)}
-        </span>
-        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-          {ui.when(entry.createdAt)}
-        </span>
-      </span>
-    </li>
-  );
-}
 
 export function RefundRow({
   refund,
@@ -193,9 +130,9 @@ export function RefundsPanel({
               />
               <ui.Stat
                 label={c.notCredited}
-                value={String(refunds.data.totals.notCredited)}
+                value={String(refunds.data.totals.notSubmitted)}
                 hint={c.notCreditedHint}
-                tone={refunds.data.totals.notCredited === 0 ? "success" : "danger"}
+                tone={refunds.data.totals.notSubmitted === 0 ? "success" : "danger"}
               />
             </ui.StatRow>
           </div>

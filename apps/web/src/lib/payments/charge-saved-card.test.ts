@@ -18,8 +18,8 @@ const seam = vi.hoisted(() => ({
 
 vi.mock("../security/money-limits", () => ({ guardMoney: seam.guardMoney }));
 vi.mock("../alerts", () => ({ recordAlert: seam.recordAlert }));
-vi.mock("../wallet/audit", () => ({ recordMoneyAudit: seam.recordMoneyAudit }));
-vi.mock("../wallet/ledger", () => ({ getAdminClient: () => ({ from: vi.fn() }) }));
+vi.mock("@/lib/money/audit", () => ({ recordMoneyAudit: seam.recordMoneyAudit }));
+vi.mock("@/lib/supabase/service", () => ({ getAdminClient: () => ({ from: vi.fn() }) }));
 vi.mock("./paystack", () => ({
   PaystackError: class extends Error {},
   chargeAuthorization: seam.chargeAuthorization,
@@ -59,8 +59,10 @@ vi.mock("../actions/session", () => ({
 const PARAMS = {
   methodId: METHOD_ID,
   amountMinor: 250_000,
-  reference: "rm-fund-test",
-  purpose: "wallet_funding",
+  reference: "rm-book-test",
+  purpose: "booking_payment",
+  callbackUrl: "https://vallospaces.com/checkout/b1",
+  split: { listerSubaccount: "ACCT_lister", listerShareMinor: 246_250, reserveSubaccount: "ACCT_reserve", guaranteeMinor: 3_750 },
 };
 
 beforeEach(() => {
@@ -93,7 +95,7 @@ describe("chargeSavedCard at the card_charge limit", () => {
     expect(seam.recordAlert).toHaveBeenCalledWith({
       kind: "money.card_charge.limited",
       severity: "info",
-      detail: { purpose: "wallet_funding", amount_minor: 250_000, retry_after_seconds: 240 },
+      detail: { purpose: "booking_payment", amount_minor: 250_000, retry_after_seconds: 240 },
       subjectId: "user-1",
       subjectKind: "user",
     });

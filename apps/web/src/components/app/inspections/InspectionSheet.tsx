@@ -49,6 +49,8 @@ import { ladderFor, type LadderKey } from "./ladder";
 import { statusFor, type BadgeTone } from "./status";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { TruthQuestions } from "./TruthQuestions";
+import { DrawUpAgreement } from "@/components/app/agreements/DrawUpAgreement";
+import { NO_INSPECTION_FEE, PRIVATE_FEE_NOTE } from "@/lib/money/copy";
 import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 
 /**
@@ -343,6 +345,14 @@ export function InspectionSheet({
           <UiIcon name="chevron-right" size={20} className="nf-ix-card__chev" />
         </div>
       </summary>
+
+      {/* TRACK B: stated on the inspection screen itself, not only in a policy. */}
+      <div className="nf-ix-nofee" role="note" data-testid="inspection-no-fee">
+        <UiIcon name="verified" size={16} />
+        <p>
+          <strong>{NO_INSPECTION_FEE}</strong> {PRIVATE_FEE_NOTE}
+        </p>
+      </div>
 
       <div className="nf-ix-body">
         {/* ---------------------------------------------- date, party, state */}
@@ -688,6 +698,13 @@ export function InspectionSheet({
           )}
           {inspection.state !== "CONFIRMED" && inspection.state !== "COMPLETED" && (
             <p className="nf-ix-hint">The report opens once a time is agreed on both sides.</p>
+          )}
+          {/* TRACK A: the agreement is drawn up from the renter's submitted report. */}
+          {side === "requester" && reportLive && saved.submittedAt && (
+            <DrawUpAgreement
+              inspectionId={inspection.id}
+              minDate={new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" })}
+            />
           )}
         </div>
       </div>

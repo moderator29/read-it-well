@@ -62,28 +62,6 @@ function passwordChangedRow(): StoredRow {
   };
 }
 
-/**
- * A settlement row, exactly as `wallet_entries_enqueue_withdrawal_email`
- * writes one when a hold is marked FAILED. The same trigger and the same
- * payload serve both doors, which is the point.
- */
-function withdrawalRow(): StoredRow {
-  return {
-    id: "row-withdrawal",
-    template: "wallet.withdrawal_outcome",
-    user_id: RECIPIENT,
-    payload: {
-      entry_id: "55555555-5555-4555-8555-555555555555",
-      outcome: "failed",
-      amount_minor: 50_000_00,
-      reference: "rm-wd-c0426a",
-    },
-    attempts: 0,
-    status: "PENDING",
-    error: null,
-  };
-}
-
 /** A welcome row, exactly as `users_enqueue_welcome_email_on_confirm` writes one. */
 function welcomeRow(): StoredRow {
   return {
@@ -147,9 +125,6 @@ function fakeDatabase(rows: StoredRow[]) {
             city: "Lagos",
           }));
         }
-        if (table === "wallet_entries") {
-          return ids.map((id) => ({ id, metadata: walletEntryMetadata }));
-        }
         if (table === "agent_verification_checks") {
           return ids.map((id) => ({ agent_id: id, kind: "identity", status: "passed" }));
         }
@@ -182,21 +157,6 @@ const CONVERSATION = "88888888-8888-4888-8888-888888888888";
 
 /** What `profiles.signup_role` answers with for the rows in one test. */
 let profileRole: string | null = null;
-
-/**
- * What the wallet entry behind a `wallet.withdrawal_outcome` row carries.
- *
- * It used to decide whether this email called the money a withdrawal or a
- * transfer, because there were two doors onto the same `rm-wd-` ledger row.
- * The send-to-a-bank door was removed on 23 September, so the drain no longer
- * consults `destination` at all and every row is the withdraw door. The field
- * is still varied per test, because a stale or unexpected value arriving from
- * the ledger must not change a single word of what a person reads.
- */
-let walletEntryMetadata: Record<string, unknown> = {
-  bank_name: "GTBank",
-  account_last4: null,
-};
 
 /** Everything one intercepted POST tells us. */
 type Captured = {
@@ -239,7 +199,6 @@ let restoreFetch: (() => void) | null = null;
 
 beforeEach(() => {
   profileRole = null;
-  walletEntryMetadata = { bank_name: "GTBank", account_last4: null };
   contactForUser.mockReset();
   contactForUser.mockResolvedValue({ email: "ada@example.com", name: "Ada Balogun" });
   /* A key has to be present or `sendEmail` answers `unconfigured` and never
@@ -262,64 +221,31 @@ afterEach(() => {
  * wire-format proof fails here rather than shipping on a builder test alone,
  * which is the shape that left nine builders unreachable under a green suite.
  */
-const ESCROW_BASE = {
-  escrow_id: "33333333-3333-4333-8333-333333333333",
-  viewer: "payer",
-  counterparty_id: "22222222-2222-4222-8222-222222222222",
+/* Track A: the escrow and withdrawal templates are retired; the agreement
+   and Guarantee templates replace them, with the payload
+   `private.agreement_tell_both` and `admin_decide_guarantee_claim` compose. */
+const AGREEMENT_BASE = {
+  agreement_id: "33333333-3333-4333-8333-333333333333",
   listing_id: "44444444-4444-4444-8444-444444444444",
-  purpose: "agency_fee",
+  kind: "rent",
   amount_minor: 250_000_00,
+  viewer: "renter",
 };
 
 const EVERY_PAYLOAD: Record<string, Payload> = {
   "account.welcome": { at: "2026-09-23T13:05:00.000Z" },
-  "escrow.INITIATED": { ...ESCROW_BASE, state: "INITIATED" },
-  "escrow.HELD": { ...ESCROW_BASE, state: "HELD", auto_release_at: "2026-10-01T09:00:00.000Z" },
-  "escrow.RELEASE_REQUESTED": {
-    ...ESCROW_BASE,
-    state: "RELEASE_REQUESTED",
-    auto_release_at: "2026-10-01T09:00:00.000Z",
-  },
-  "escrow.RELEASED": {
-    ...ESCROW_BASE,
-    state: "RELEASED",
-    commission_minor: 0,
-    net_minor: 250_000_00,
-    automatic: true,
-  },
-  "escrow.REFUNDED": {
-    ...ESCROW_BASE,
-    state: "REFUNDED",
-    reason: "The property was not available on the day.",
-  },
-  "escrow.DISPUTED": {
-    ...ESCROW_BASE,
-    state: "DISPUTED",
-    raised_by: RECIPIENT,
-    reason: "The keys were never handed over.",
-  },
-  "escrow.RESOLVED": {
-    ...ESCROW_BASE,
-    state: "RESOLVED",
-    direction: "refund",
-    ruling: "Both sides filed. The property was not handed over, so the money goes back.",
-    commission_minor: 0,
-    net_minor: 250_000_00,
-  },
-  "escrow.CANCELLED": {
-    ...ESCROW_BASE,
-    state: "CANCELLED",
-    actor_id: RECIPIENT,
-    note: "Withdrawn by the person who proposed it, before any money moved.",
+  "agreement.waiting": { ...AGREEMENT_BASE },
+  "agreement.approved": { ...AGREEMENT_BASE, viewer: "owner" },
+  "agreement.rejected": { ...AGREEMENT_BASE, reason: "The move-in date is before the handover date." },
+  "guarantee.claim_decided": {
+    claim_id: "12121212-1212-4212-8212-121212121212",
+    agreement_id: "33333333-3333-4333-8333-333333333333",
+    decision: "approve",
+    amount_minor: 50_000_00,
+    reason: "The report shows the water was working; it was not at move-in.",
   },
   "security.password_changed": { at: "2026-09-23T13:05:00.000Z" },
   "security.new_device_sign_in": { at: "2026-09-23T13:05:00.000Z", device: "Chrome on Android" },
-  "wallet.withdrawal_outcome": {
-    entry_id: "55555555-5555-4555-8555-555555555555",
-    outcome: "failed",
-    amount_minor: 50_000_00,
-    reference: "rm-wd-c0426a",
-  },
   "inspection.scheduled": {
     inspection_id: "77777777-7777-4777-8777-777777777777",
     listing_id: "44444444-4444-4444-8444-444444444444",
@@ -354,17 +280,11 @@ const EVERY_PAYLOAD: Record<string, Payload> = {
  * may appear, in the subject, the document or the text, in a link or out of
  * one.
  *
- * `escrow_id` is exempted, and it is exempted UNDER PROTEST rather than
- * because it is right. The eight escrow emails print it as the visible
- * "Reference" row and again under the button, so a reader is asked to quote
- * `33333333-3333-4333-8333-333333333333` to support over the phone. That is a
- * copy defect in `lib/email/escrow-messages.ts`, it is recorded in the ledger
- * as a finding rather than fixed inside this stint, and the exemption is here
- * so this sweep can hold the line on everything else in the meantime. The day
- * escrow grows a short human reference, delete this list and the exemption
- * with it.
+ * `agreement_id` is exempted because it is the path of the link the reader
+ * follows (`/agreements/<id>`); it is never printed as visible copy.
  */
 const ID_KEYS_THAT_MUST_NOT_PRINT = [
+  "claim_id",
   "counterparty_id",
   "enquirer_id",
   "raised_by",
@@ -392,7 +312,7 @@ describe("every template the outbox can send survives the whole path to the sock
   /*
    * WHY THIS EXISTS BESIDE `templates.test.ts` RATHER THAN INSTEAD OF IT.
    *
-   * That file drives each builder and reads its words. This drives all fifteen
+   * That file drives each builder and reads its words. This drives every one
    * through the REAL registry, the REAL `gatherFacts`, the REAL `sendMessage`
    * and `sendEmail`, and asserts on the JSON body that would have gone to
    * Resend. Between those two layers sit the recipient resolution, the From
@@ -592,55 +512,6 @@ describe("a row a database trigger wrote becomes a real HTTP request", () => {
     expect(result.counts).toMatchObject({ claimed: 1, sent: 0, retried: 1 });
     expect(settled).toEqual([{ id: "row-security", result: "retry" }]);
     expect(rows[0]?.status).toBe("PENDING");
-  });
-
-  /**
-   * THE HOP THE TEMPLATE TESTS CANNOT SEE.
-   *
-   * `templates.test.ts` proves the words are right GIVEN the destination. It
-   * cannot prove the drain ever reads one, and a drain that stopped reading
-   * `metadata.destination` would send "your withdrawal did not go through" to
-   * everybody again with that file still green. So these two drive the whole
-   * path from a row a trigger wrote to the bytes on the wire, and differ only
-   * in what the wallet entry carries.
-   */
-  /*
-   * THIS TEST USED TO PROVE THE SEND-TO-A-BANK WORDING reached the wire. That
-   * door was removed on 23 September, so what reaches the wire now is the
-   * withdrawal wording, for every row, whatever the ledger metadata says. The
-   * test is kept pointed at the same seam because the seam is still the point:
-   * a trigger's row becoming a real HTTP request.
-   */
-  it("sends the withdrawal wording to the wire even for a row with send metadata", async () => {
-    walletEntryMetadata = {
-      bank_name: "Sparkle Microfinance Bank",
-      account_last4: "6789",
-      destination: "own_account",
-    };
-    const { admin } = fakeDatabase([withdrawalRow()]);
-    const capture = captureFetch({ status: 200, body: { id: "resend-message-id" } });
-    restoreFetch = capture.restore;
-
-    await drainEmailOutbox(admin);
-
-    expect(capture.calls).toHaveLength(1);
-    const body = capture.calls[0]?.body;
-    expect(body?.subject).toBe("Your withdrawal did not go through");
-    /* The bank and four digits reach the reader; nothing else about the
-       account does, and no holder's name is printed at all (rule 16). */
-    expect(body?.html).toContain("Sparkle Microfinance Bank ****6789");
-    /* And nobody is told they sent money to a stranger. */
-    expect(body?.html).not.toContain("the account you sent it to");
-  });
-
-  it("still calls the person's own withdrawal a withdrawal, on the same path", async () => {
-    const { admin } = fakeDatabase([withdrawalRow()]);
-    const capture = captureFetch({ status: 200, body: { id: "resend-message-id" } });
-    restoreFetch = capture.restore;
-
-    await drainEmailOutbox(admin);
-
-    expect(capture.calls[0]?.body.subject).toBe("Your withdrawal did not go through");
   });
 
   it("does not reach the socket at all when there is no key", async () => {

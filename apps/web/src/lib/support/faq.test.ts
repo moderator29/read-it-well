@@ -125,7 +125,7 @@ describe("matching a question", () => {
 
 describe("faqAnswerById", () => {
   it("returns the canonical answer, and null for an id that is gone", () => {
-    expect(faqAnswerById("wallet")).toContain("Wallet tab");
+    expect(faqAnswerById("wallet")).toContain("no wallet");
     expect(faqAnswerById("no-such-entry")).toBeNull();
   });
 });
