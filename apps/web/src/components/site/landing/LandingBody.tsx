@@ -21,6 +21,8 @@ import { WorldsBand } from "./WorldsBand";
 import { CitiesMarquee } from "./CitiesMarquee";
 import { NigeriaMap } from "./NigeriaMap";
 import { LandingFx } from "./LandingFx";
+import { DayBand, KineticBand, PlacesBand, SystemBand } from "@/components/cinema/LandingCinema";
+import { ReelHud } from "@/components/cinema/ReelHud";
 
 /**
  * Everything the landing prints that comes from the platform, read once.
@@ -134,15 +136,25 @@ export function LandingBody({
           takes the four-step slot the render gave How Vallo works, since it
           tells the same four steps with the phone beside them, and the
           bento, the two worlds, the cities and the map join the rooms. */}
+      {/* THE CINEMA KIT (Track M, the founder's showreel reference): the
+          kinetic words as a title sequence under the hero, the Truchet field
+          between the promise and the journey, the wall of places drifting
+          on the vertical axis, and a day told sideways between the two
+          worlds and the categories. The HUD frames the whole page as a film. */}
       <LandingFx />
+      <ReelHud />
       <Hero t={t} locale={locale} cards={data.cards} badges={badges} />
+      <KineticBand t={t} />
       <FeatureChips t={t} />
       <CitiesMarquee t={t} />
       <ProtectBand t={t} />
+      <SystemBand t={t} />
       <Journey t={t} />
       <Bento t={t} />
+      <PlacesBand t={t} />
       <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
       <WorldsBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
+      <DayBand t={t} />
       <CategoryGrid t={t} counts={data.counts} />
       <StaysBand t={t} />
       <NigeriaMap t={t} />

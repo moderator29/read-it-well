@@ -151,6 +151,12 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
+  /* A touch screen has no pointer to move across the pattern. */
+  @media (hover: none) {
+    .nf-system__note {
+      display: none;
+    }
+  }
 
   /* ------------------------------------------------------ horizontal reel */
 
