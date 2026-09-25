@@ -14,6 +14,7 @@ import { createPortal } from "react-dom";
 import type { CSSProperties, ReactNode, TouchEvent as ReactTouchEvent } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { readSheetMarker } from "@/lib/ui/use-sheet-history";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { useClientMount } from "@/lib/ui/client-mount";
@@ -170,8 +171,20 @@ function Lightbox({
     try {
       /* Already on our own entry is React's development double-mount, not a
          second opening: pushing again would cost the reader a second back. */
-      if (!(window.history.state as { nfPhotoViewer?: boolean } | null)?.nfPhotoViewer) {
-        window.history.pushState({ ...(window.history.state ?? {}), nfPhotoViewer: true }, "");
+      const current = (window.history.state ?? {}) as Record<string, unknown>;
+      if (current.nfPhotoViewer) {
+        /* already ours */
+      } else if (readSheetMarker(current)) {
+        /* Opened from the "Show all" sheet, which closes as this opens. The
+           sheet's entry is REUSED rather than stacked on: the sheet's own
+           hook only pops its entry while its marker is on top, so pushing
+           over it would leave a dead entry behind and cost the reader a
+           back press that does nothing. The marker is dropped, so the sheet
+           leaves history alone. */
+        const { nfSheet: _sheet, ...rest } = current;
+        window.history.replaceState({ ...rest, nfPhotoViewer: true }, "");
+      } else {
+        window.history.pushState({ ...current, nfPhotoViewer: true }, "");
       }
       pushed.current = true;
     } catch {
@@ -215,7 +228,9 @@ function Lightbox({
     reduced.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
   }, []);
   const onTouchStart = useCallback((event: ReactTouchEvent) => {
-    if (event.touches.length !== 1) {
+    /* Pinched in, a vertical drag is the reader panning the enlarged photo,
+       never a dismissal. */
+    if (event.touches.length !== 1 || (window.visualViewport?.scale ?? 1) > 1.01) {
       gesture.current = null;
       return;
     }
