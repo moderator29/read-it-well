@@ -177,10 +177,12 @@
     border-color: var(--nf-brand-edge);
   }
 
-  /* The landing and the auth stage keep the night in both themes (their
-     own `data-theme="dark"`); on a light document they paint their own
-     ground, because the body under them is white. */
-  :root[data-theme="light"] .nf-landing--stage {
+  /* The landing, the auth stage and the system moments (404, error,
+     offline) keep the night in both themes (their own `data-theme="dark"`);
+     on a light document they paint their own ground, because the body under
+     them is white. */
+  :root[data-theme="light"] .nf-landing--stage,
+  :root[data-theme="light"] .nf-system {
     background: var(--nf-canvas-base);
     color: var(--nf-content-primary);
   }
