@@ -1,0 +1,134 @@
+/*
+ * SIGNATURE MOTION (track I, 25 September 2026). Tasteful, rare, finite.
+ *
+ * THE BUDGET IN `glass.css` STANDS: one ambient infinite loop per viewport,
+ * and it is the canvas bloom. Nothing here loops. Every animation below plays
+ * ONCE, on an event a person caused or on the first paint of the object, and
+ * then the object is still:
+ *
+ *   nf-sig-logo       the lockup arrives once when the shell first paints
+ *   nf-sig-settle     a hero photograph settles from a slow push-in, once
+ *   nf-sig-pop        a dock icon springs when it becomes the current tab
+ *   nf-sig-ring       a story ring's light runs round it once on arrival
+ *
+ * RULES EVERY ONE OF THEM KEEPS, and the reason each is here:
+ *   - only `transform` and `opacity` move, so nothing reflows and nothing can
+ *     add layout shift (the sweep in the report measures CLS on the routes);
+ *   - nothing moves further than its own box, and every mover sits inside an
+ *     element that already clips (`overflow: hidden`) or is scaled from 1
+ *     downwards, so no animation can widen the page;
+ *   - `prefers-reduced-motion: reduce` turns every one of them off outright,
+ *     not faster: the object is drawn at its resting state;
+ *   - data saver turns them off too, the way `data-saver.css` quietens the
+ *     rest of the decoration.
+ */
+@layer components {
+  /* ------------------------------------------------------------ the logo */
+  .nf-logo {
+    animation: nf-sig-logo var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-sig-logo {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 3px, 0) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ------------------------------------------- the hero photograph, once */
+  .nf-hero-plate > .absolute:first-child {
+    animation: nf-sig-settle 2.4s var(--nf-ease-entrance) both;
+    transform-origin: 60% 40%;
+  }
+  @keyframes nf-sig-settle {
+    from {
+      transform: scale(1.06);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  /* --------------------------------------- the dock icon, on becoming current */
+  .nf-tab__icon {
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  .nf-tab__link:active .nf-tab__icon {
+    transform: scale(var(--nf-press-scale-sm));
+    transition-duration: var(--nf-duration-press);
+  }
+  .nf-tab__link[aria-current="page"] .nf-tab__icon {
+    animation: nf-sig-pop var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-sig-pop {
+    0% {
+      transform: scale(0.82);
+    }
+    60% {
+      transform: scale(1.08);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* ------------------------------------------ the story ring's light, once */
+  .nf-story-ring__disc::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      color-mix(in oklab, var(--nf-lit-cyan) 85%, transparent) 40deg,
+      transparent 90deg,
+      transparent 360deg
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), black calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), black calc(100% - 2px));
+    opacity: 0;
+    animation: nf-sig-ring 1.4s var(--nf-ease-standard) 0.35s both;
+  }
+  @keyframes nf-sig-ring {
+    0% {
+      opacity: 0;
+      transform: rotate(-90deg);
+    }
+    15% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: rotate(270deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-logo,
+    .nf-hero-plate > .absolute:first-child,
+    .nf-tab__link[aria-current="page"] .nf-tab__icon,
+    .nf-story-ring__disc::after {
+      animation: none;
+    }
+    .nf-tab__icon,
+    .nf-tab__link:active .nf-tab__icon {
+      transition: none;
+      transform: none;
+    }
+  }
+}
+
+:root[data-save-data="on"] .nf-logo,
+:root[data-save-data="on"] .nf-hero-plate > .absolute:first-child,
+:root[data-save-data="on"] .nf-tab__link[aria-current="page"] .nf-tab__icon,
+:root[data-save-data="on"] .nf-story-ring__disc::after {
+  animation: none;
+}
