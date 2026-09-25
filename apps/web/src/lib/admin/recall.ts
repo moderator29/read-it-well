@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * V-60, THE PURE HALF: reading the two answers `scam_recall_preview` and

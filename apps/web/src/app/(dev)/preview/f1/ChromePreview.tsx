@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { AppShell } from "@/components/app/AppShell";
 import type { Side } from "@/lib/side.constants";
 import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";

@@ -6,7 +6,7 @@ import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { GateHandshake } from "./GateHandshake";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";

@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
 import { signInWithAppleIdToken } from "@/lib/auth/actions";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
  * SIGN IN WITH APPLE INSIDE THE iOS SHELL (STORE-02).
@@ -73,7 +73,7 @@ function randomNonce(): string {
 }
 
 export function NativeAppleSignIn({ label, next }: { label: string; next?: string | undefined }) {
-  const a = useClientDictionary().authFlow;
+  const a = useClientCopy().authFlow;
   const router = useRouter();
   const available = useSyncExternalStore(noSubscribe, pluginAvailable, () => false);
   const [busy, setBusy] = useState(false);

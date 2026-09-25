@@ -1,4 +1,4 @@
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { HostDraft, HostStepId } from "@/lib/host/onboarding";
 

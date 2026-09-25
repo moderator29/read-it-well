@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { LoopGate } from "@/components/motion/LoopGate";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";

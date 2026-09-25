@@ -1,4 +1,4 @@
-import { formatDate, type Dictionary } from "@vallo/i18n";
+import { formatDate, type Dictionary } from "@vallo/i18n/core";
 
 /**
  * SCUML item 6: Suspicious Transaction Reports, the pure half.

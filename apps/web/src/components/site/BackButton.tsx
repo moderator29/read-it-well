@@ -2,7 +2,7 @@
 
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useBack } from "@/lib/nav/use-back";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
  * Universal back control.
@@ -38,7 +38,7 @@ export function BackButton({
   /* No server parent to thread `t` from, on any of the pages that use this.
      See `lib/i18n/use-client-dictionary.ts` for why that is allowed here and
      why it must not spread. */
-  const t = useClientDictionary();
+  const t = useClientCopy();
   const back = useBack(fallback);
   return (
     <button

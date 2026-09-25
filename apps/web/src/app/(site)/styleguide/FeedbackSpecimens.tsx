@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { FEEDBACK_KINDS, FEEDBACK_MOTION, feedback, type FeedbackKind } from "@/lib/ui/feedback";
 

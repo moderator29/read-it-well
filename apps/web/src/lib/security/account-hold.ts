@@ -23,7 +23,7 @@
  * hiccuped would be a second outage wearing a security badge.
  */
 
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, type Locale } from "@vallo/i18n/core";
 
 /*
  * `plain`: a hold whose reason code names nothing (no review, no compliance,

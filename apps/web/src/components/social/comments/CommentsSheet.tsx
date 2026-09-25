@@ -13,8 +13,8 @@ import { PostBody } from "@/components/social/feed/PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { pruneDeleted } from "@/lib/social/deleted-posts";
-import { countOf } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
  * Comments, as a sheet.

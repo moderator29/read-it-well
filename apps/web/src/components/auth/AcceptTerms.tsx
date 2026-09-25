@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { TERMS_VERSION } from "@/lib/legal/versions";
 
 /**

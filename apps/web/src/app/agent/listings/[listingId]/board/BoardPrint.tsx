@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import type { BoardLines } from "@/lib/listings/board";
 import "./board.css";

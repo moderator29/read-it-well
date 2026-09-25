@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useBack } from "@/lib/nav/use-back";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
  * Overview / Amenities / Location / Reviews, as anchors.
@@ -34,7 +34,7 @@ export function ListingSectionTabs({
   backFallback?: string;
 }) {
   const [active, setActive] = useState(tabs[0]?.id ?? "");
-  const t = useClientDictionary();
+  const t = useClientCopy();
   const back = useBack(backFallback);
   const sentinel = useRef<HTMLSpanElement | null>(null);
   const [stuck, setStuck] = useState(false);

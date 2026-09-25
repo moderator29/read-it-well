@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import {
   KIND_NOUN,
   activeFilterCount,

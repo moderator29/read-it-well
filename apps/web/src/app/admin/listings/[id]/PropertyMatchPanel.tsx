@@ -1,5 +1,5 @@
-import type { Dictionary, Locale } from "@vallo/i18n";
-import { formatMoney } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
+import { formatMoney } from "@vallo/i18n/core";
 import { readListingPropertyId, readPropertyCandidates } from "@/lib/landlord/queries";
 import { Badge, Empty, Panel } from "../../_review/parts";
 import { PropertyMatchButtons, PropertySplitButton } from "./PropertyMatchButtons";

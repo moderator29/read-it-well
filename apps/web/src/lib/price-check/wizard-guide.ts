@@ -1,4 +1,4 @@
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { isSupportedType, MINIMUM_COMPARABLES } from "./gate";
 import type { AreaAskingRow, ListingIntent, ListingPropertyType, RentPeriod } from "./types";
 

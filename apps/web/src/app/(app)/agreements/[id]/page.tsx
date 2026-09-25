@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { readAgreement } from "@/lib/agreements/queries";
 import { PageHeader } from "@/components/app/PageHeader";

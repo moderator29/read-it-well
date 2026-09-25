@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { formatRating, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";

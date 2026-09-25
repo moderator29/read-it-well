@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconTiles } from "./IconTiles";
 import { priceScale } from "@/lib/listings/price-bounds";

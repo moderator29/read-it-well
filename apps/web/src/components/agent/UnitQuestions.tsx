@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Segmented } from "@/components/ui/Segmented";
 import { UNIT_SHAPES, inferShape, type UnitForm, type UnitShape } from "@/lib/listings/unit-shape";
 

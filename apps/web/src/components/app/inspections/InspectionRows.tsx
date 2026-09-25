@@ -4,7 +4,7 @@ import { TierBadge } from "@/components/trust/TierBadge";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";

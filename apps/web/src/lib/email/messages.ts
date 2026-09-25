@@ -54,7 +54,7 @@ import {
   type Block,
   type ReceiptRow,
 } from "./render";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * What every message function returns.

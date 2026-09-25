@@ -1,4 +1,4 @@
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { ListingKind } from "@/lib/listings/types";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { SectionHead } from "./SectionHead";

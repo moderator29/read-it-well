@@ -1,4 +1,4 @@
-import { formatDate, formatNumber, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, type Locale } from "@vallo/i18n/core";
 import { tx } from "@/app/admin/_components/shell-text";
 import { MeterBar } from "@/components/agent/charts/MeterBar";
 import {

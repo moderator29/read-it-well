@@ -1,4 +1,4 @@
-import { intlTag, type Locale } from "@vallo/i18n";
+import { intlTag, type Locale } from "@vallo/i18n/core";
 import type { CSSProperties } from "react";
 
 /**

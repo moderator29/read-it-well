@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { withNext } from "@/lib/auth/next-link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/providers";
 import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
 import { AppleMark, NativeAppleSignIn } from "./NativeAppleSignIn";

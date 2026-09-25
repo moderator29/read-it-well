@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatDate } from "@vallo/i18n";
+import { formatDate } from "@vallo/i18n/core";
 import { readBeneficialOwnershipDesk } from "@/lib/compliance/beneficial-ownership-queries";
 import { readActingForParams } from "@/lib/compliance/beneficial-ownership";
 import { ActingFor, ActingForLookup } from "../../_components/ActingFor";

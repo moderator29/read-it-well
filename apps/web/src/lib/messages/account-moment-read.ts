@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { InspectionState } from "@/lib/inspections/types";

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { retireExampleListings } from "@/lib/admin/payments-actions";
 import type { ExampleListingView } from "@/lib/admin/examples-queries";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * Taking the example properties off the catalogue.

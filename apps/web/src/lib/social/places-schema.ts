@@ -16,7 +16,7 @@
 
 import { z } from "zod";
 import type { AreaStatus } from "./areas-schema";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /** One of the 774 rows in `public.local_governments`. */
 export type LgaNode = {

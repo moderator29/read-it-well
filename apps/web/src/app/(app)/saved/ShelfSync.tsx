@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { shelfName } from "@/components/app/offline/ShelfView";
 import type { ShelfChange, ShelfItem } from "@/lib/offline/shelf";
 import { syncShelf } from "@/lib/offline/shelf-store";

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";

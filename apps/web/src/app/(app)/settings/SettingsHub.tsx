@@ -5,7 +5,7 @@ import { initial } from "@/lib/text/initial";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { SettingsGlyph, type SettingsGlyphName } from "@/components/app/account/SettingsGlyph";
 import { ICON } from "@/components/app/Screen";

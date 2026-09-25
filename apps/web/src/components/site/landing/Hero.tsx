@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { DepthWords, wordCount } from "@/components/motion/DepthWords";
 import { UiIcon } from "@/design-system/icons/UiIcon";

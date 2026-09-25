@@ -4,7 +4,7 @@ import { startTransition, useActionState, useState } from "react";
 import { AcceptTerms } from "./AcceptTerms";
 import { withNext } from "@/lib/auth/next-link";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState, EmailStatus } from "@/lib/auth/form-state";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";

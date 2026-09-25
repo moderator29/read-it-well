@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 

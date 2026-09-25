@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
 

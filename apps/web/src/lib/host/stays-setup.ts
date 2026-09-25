@@ -24,7 +24,7 @@
 
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /* --------------------------------------------------------- the two branches */
 

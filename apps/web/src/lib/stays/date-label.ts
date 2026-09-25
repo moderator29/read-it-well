@@ -1,4 +1,4 @@
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 
 /**
  * "Sat 10 Oct" for an ISO calendar date, the way the stay page shows it.

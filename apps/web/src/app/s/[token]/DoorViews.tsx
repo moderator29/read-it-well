@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
 import type { ShareLines } from "@/lib/price-check/share-card";

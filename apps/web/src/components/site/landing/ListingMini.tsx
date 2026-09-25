@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { UiIcon } from "@/design-system/icons/UiIcon";

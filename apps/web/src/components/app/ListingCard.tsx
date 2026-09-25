@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { formatDate, formatMoney, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";

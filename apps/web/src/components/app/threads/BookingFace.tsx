@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { TYPE } from "@/components/app/Screen";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ThreadContext } from "@/lib/messages/live";

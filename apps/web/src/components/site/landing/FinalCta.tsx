@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { DepthWords } from "@/components/motion/DepthWords";

@@ -51,7 +51,7 @@ import {
   reserveInputSchema,
 } from "./schema";
 import { releaseBookedNights, writeBookedNights } from "./settlement";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 
@@ -68,19 +68,17 @@ function hostOf(href: string): string {
 
 export function ExternalLinkSheet({
   href,
-  locale,
   label,
   className,
   children,
 }: {
   href: string;
-  locale: Locale;
   /** The control's accessible name. The visible text is `children`. */
   label: string;
   className?: string;
   children: React.ReactNode;
 }) {
-  const t = getDictionary(locale);
+  const t = useClientCopy();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const host = hostOf(href);

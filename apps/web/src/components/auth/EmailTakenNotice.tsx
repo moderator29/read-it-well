@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { EmailStatus } from "@/lib/auth/form-state";
 import { Field } from "./fields";
 

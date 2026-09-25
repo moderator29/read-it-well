@@ -1,4 +1,4 @@
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { lagosToday } from "@/lib/rent/schema";

@@ -1,4 +1,4 @@
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import type { ListingReviewView } from "@/lib/admin/queries";
 import { PERIOD_SUFFIX } from "@/lib/listings/pricing";
 import type { AdminCopy } from "../_components/copy";

@@ -19,7 +19,7 @@ import { readCountedReviews } from "../reviews/weight";
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { DEFAULT_LOCALE, intlTag, type Locale } from "@vallo/i18n";
+import { DEFAULT_LOCALE, intlTag, type Locale } from "@vallo/i18n/core";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";

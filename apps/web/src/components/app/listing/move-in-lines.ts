@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { RENT_PERIOD_LABEL, type RentPeriod } from "@/lib/listings/pricing";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";

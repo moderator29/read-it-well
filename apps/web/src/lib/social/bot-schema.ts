@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * @vallo in the replies: the shapes, the words and the arithmetic.

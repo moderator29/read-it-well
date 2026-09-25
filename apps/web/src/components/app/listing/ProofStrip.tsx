@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";

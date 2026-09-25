@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { panelClass } from "@/components/ui/Panel";
 import { Segmented } from "@/components/ui/Segmented";
 import { Button } from "@/components/ui/Button";

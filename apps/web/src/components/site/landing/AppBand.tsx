@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { Reveal } from "@/components/site/Reveal";
 import { Logo } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";

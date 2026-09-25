@@ -39,7 +39,7 @@ import { parseSettings } from "../profile/schema";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 export type Occupation = { code: string; name: string };
 

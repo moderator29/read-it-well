@@ -12,7 +12,7 @@ import type { AgentStanding, StopRecord } from "@/lib/admin/suspension-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RecallPanel } from "./RecallPanel";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * The stops desk.

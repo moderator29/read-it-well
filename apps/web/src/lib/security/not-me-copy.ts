@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * THE "THIS WAS NOT ME" ANSWER, IN WORDS. V-19, with the no-tipping-off rule

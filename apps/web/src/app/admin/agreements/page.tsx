@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { requireAdmin } from "@/lib/admin/guard";
 import { readAgreementQueue, readGuaranteeDesk } from "@/lib/admin/reads/agreements";

@@ -247,7 +247,7 @@ export default async function ProfilePage({
           operations console for staff, and Add a workspace), and the line
           under it names only what this account actually holds.
         */
-        switchLine={switchRoleLine(held.workspaces)}
+        switchLine={switchRoleLine(held.workspaces, t.socialProfile.accountPage)}
         memberSince={monthAndYear(profile.memberSince)}
       />
     </div>

@@ -1,4 +1,4 @@
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import type { DemandRow } from "@/lib/demand/queries";
 import { demandCounts, demandWhat } from "@/lib/demand/words";

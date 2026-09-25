@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { countOf, formatMoney } from "@vallo/i18n";
+import { countOf, formatMoney } from "@vallo/i18n/core";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";

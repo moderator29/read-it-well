@@ -1,4 +1,4 @@
-import { formatNumber, plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatNumber, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Listing } from "@/lib/listings/types";
 import { ICON } from "@/components/app/Screen";

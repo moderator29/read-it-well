@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * V-87: `public.record_credential`'s answer, in the desk's words. Pure. Null

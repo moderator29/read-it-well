@@ -1,4 +1,4 @@
-import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 
 /**
  * THE VALLO RECORD (V-34), AS LINES. Pure.

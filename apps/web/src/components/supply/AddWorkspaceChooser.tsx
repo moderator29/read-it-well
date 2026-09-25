@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";

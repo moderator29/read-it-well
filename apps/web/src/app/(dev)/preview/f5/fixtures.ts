@@ -5,7 +5,7 @@ import type { ThreadContext } from "@/lib/messages/live";
 import type { Inspection } from "@/lib/inspections/types";
 import type { InspectionListingFacts } from "@/components/app/inspections/InspectionSheet";
 import type { QueueRowData } from "@/app/admin/_components/QueueTable";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { shareBody } from "@/components/app/messages/share";
 import { COUNTERPART, HOTEL, PERSON } from "../_fixtures/people";
 

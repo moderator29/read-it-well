@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { markInboxRead } from "@/lib/messages/actions";
@@ -12,7 +12,7 @@ import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { ThreadContextKind } from "@/lib/messages/db";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
@@ -271,7 +271,7 @@ export function Inbox({
    * today, and the strings it needs are three tab labels. A caller that
    * acquires a `t` can still beat it by passing `tabLabels`.
    */
-  const clientInbox = useClientDictionary().uiCommon.inbox;
+  const clientInbox = useClientCopy().uiCommon.inbox;
   const tabLabels = labels ?? clientInbox;
 
   const typing = useInboxTyping(

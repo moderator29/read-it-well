@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 import { useHydrated, usePlayWhenVisible } from "@/components/motion/useInView";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";

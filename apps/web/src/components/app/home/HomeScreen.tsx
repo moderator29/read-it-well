@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { forListingCard } from "@/lib/i18n/slice";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { DAYPART_GREETING, type HomeOverview } from "@/lib/app/home-queries";
 import { ListingCard } from "@/components/app/ListingCard";

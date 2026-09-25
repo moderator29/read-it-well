@@ -1,4 +1,4 @@
-import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { eddStage, type EddReview } from "./edd";
 
 /**

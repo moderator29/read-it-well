@@ -1,4 +1,4 @@
-import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 
 /**

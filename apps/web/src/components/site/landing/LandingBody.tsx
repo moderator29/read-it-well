@@ -1,4 +1,4 @@
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { getListingRepository } from "@/lib/listings/repository";
 import { landingCatalogue } from "@/lib/listings/landing-catalogue";
 import type { Listing, ListingKind } from "@/lib/listings/types";

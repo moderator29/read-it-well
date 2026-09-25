@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SORTS, sortBasisOf } from "@/lib/listings/search-params";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";

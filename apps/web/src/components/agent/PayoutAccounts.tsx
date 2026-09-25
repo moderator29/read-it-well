@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useLockRecovery, useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";

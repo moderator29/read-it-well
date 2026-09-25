@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { addAccommodationDraft } from "@/lib/host/actions";
 import { StaysHero, StaysNote, StaysPlate, StaysRow, StaysStepper } from "./StaysParts";
 import type { StaysStepProps } from "./types";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * YOUR HOTEL. `GOVERNING-10` screen one, and `GOVERNING-09` screen four.

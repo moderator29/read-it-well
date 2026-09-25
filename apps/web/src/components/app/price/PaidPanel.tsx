@@ -1,4 +1,4 @@
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { PaidRow } from "@/lib/after-gate/paid-prices";
 import { bpsAsPercentText } from "@/lib/money/percent";
 import { Section, TYPE } from "@/components/app/Screen";

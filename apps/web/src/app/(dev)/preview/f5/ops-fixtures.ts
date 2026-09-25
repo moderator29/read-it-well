@@ -1,4 +1,4 @@
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import type { AgentInbox } from "@/lib/agent/messages-queries";
 import type { AgentEarnings } from "@/lib/agent/earnings-queries";
 import type { AgentAnalytics } from "@/lib/agent/analytics-queries";

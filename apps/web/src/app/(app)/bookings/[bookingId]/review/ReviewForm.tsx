@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { submitReview, type ReviewWritten } from "@/lib/reviews/actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
 import type { ReviewSubject } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -68,7 +68,7 @@ export function ReviewForm({
 }) {
   const router = useRouter();
   const [kept, setKept] = useState(false);
-  const OUTBOX = useClientDictionary().platform.outbox;
+  const OUTBOX = useClientCopy().platform.outbox;
   const [state, formAction, pending] = useActionState<
     ActionResult<ReviewWritten> | null,
     FormData

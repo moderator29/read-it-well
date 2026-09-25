@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { setEnquiryStage } from "@/lib/enquiry/actions";
 import { LOST_REASONS, STAGES, type DeskStage, type LostReason, type Stage } from "@/lib/enquiry/stage";

@@ -18,8 +18,8 @@ import {
   toggleRepost,
 } from "@/lib/social/posts-actions";
 import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
-import { countOf } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 type ThreadReply = PostView & { depth: number; parentId: string | null; mutedAuthor: boolean };
 

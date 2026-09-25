@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { countOf, getDictionary, type Locale } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";

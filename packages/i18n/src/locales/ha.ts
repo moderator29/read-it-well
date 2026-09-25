@@ -1,3 +1,4 @@
+import { unitsHa } from "./units";
 import type { Dictionary } from "./en";
 import { withFallback, type Translation } from "./fallback";
 
@@ -25,12 +26,7 @@ export const ha: Dictionary = withFallback({
   },
 
   /* The counted nouns shared with `counts`; every other unit is still English. */
-  units: {
-    nights: { one: "dare ɗaya", other: "darare {count}" },
-    guests: { one: "baƙo ɗaya", other: "baƙi {count}" },
-    adults: { one: "babba ɗaya", other: "manya {count}" },
-    children: { one: "yaro ɗaya", other: "yara {count}" },
-  },
+  units: unitsHa,
 
   reserve: {
     confirmedRange: "{from} zuwa {to}, {nights} don {guests}.",

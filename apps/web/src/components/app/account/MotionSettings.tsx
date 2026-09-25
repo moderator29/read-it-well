@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconObject } from "@/design-system/icons/BrandIcon";
 import { BrandAssemble } from "@/components/motion/BrandAssemble";

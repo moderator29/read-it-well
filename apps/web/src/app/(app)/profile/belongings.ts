@@ -1,4 +1,4 @@
-import { formatNumber, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Workspace } from "@/lib/supply/workspaces";
 import type { WorkspaceKind } from "@/lib/supply/roles";
 import { ROLE_COPY, type RoleState } from "@/components/roles/roles";
@@ -15,16 +15,14 @@ import { ROLE_COPY, type RoleState } from "@/components/roles/roles";
  * homes that they have none.
  *
  * Kept free of `server-only` so the unit tests can run them in Node and so the
- * client body can call them with the locale it already holds. Every word comes
- * from `socialProfile.accountPage` in `packages/i18n`.
+ * client body can call them. Every word comes from `socialProfile.accountPage`
+ * in `packages/i18n`, handed in by the caller: the server page passes its `t`,
+ * the client body the root layout's client copy. The module imports no
+ * dictionary itself, because the profile's client body imports it and a
+ * dictionary import here shipped all four languages to the profile page.
  */
 
 export type AccountPageCopy = Dictionary["socialProfile"]["accountPage"];
-
-/** The account page's words in the reader's language. */
-export function accountCopy(locale: Locale): AccountPageCopy {
-  return getDictionary(locale).socialProfile.accountPage;
-}
 
 /** A person's badge tier as `public.person_badge` publishes it; null is none. */
 export type BadgeTier = "gold" | "platinum" | null;
@@ -67,9 +65,9 @@ export const NO_FACTS: BelongingsFacts = {
 export function rowValue(
   kind: "bookings" | "saved" | "payments" | "inspections",
   facts: BelongingsFacts,
+  copy: AccountPageCopy,
   locale: Locale,
 ): string | null {
-  const copy = accountCopy(locale);
   switch (kind) {
     case "bookings":
       return countLabel(facts.upcomingBookings, copy.upcoming, locale);
@@ -113,9 +111,8 @@ const KIND_WORD: Record<WorkspaceKind, keyof AccountPageCopy> = {
  */
 export function switchRoleLine(
   workspaces: readonly Pick<Workspace, "kind">[],
-  locale: Locale = "en",
+  copy: AccountPageCopy,
 ): string {
-  const copy = accountCopy(locale);
   const kinds: string[] = [];
   for (const workspace of workspaces) {
     const word = copy[KIND_WORD[workspace.kind]];

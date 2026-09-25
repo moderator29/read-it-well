@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { resolveSession } from "../actions/session";
 import { RENT_PERIOD_LABEL, type RentPeriod } from "../listings/pricing";
 import { getListingRepository } from "../listings/repository";

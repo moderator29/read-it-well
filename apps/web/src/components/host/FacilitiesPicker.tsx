@@ -6,8 +6,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { setAccommodationFacilities } from "@/lib/host/actions";
 import { STAY_FACILITIES } from "@/lib/host/facilities";
-import { countOf } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
  * WHAT THE PROPERTY OFFERS. `GOVERNING-10` screen four, the facilities half.

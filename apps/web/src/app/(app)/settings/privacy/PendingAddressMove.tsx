@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { ownerCancelEmailRecovery } from "@/lib/admin/email-recovery-actions";
 import type { PendingMove } from "@/lib/auth/pending-address-move";
 

@@ -1,4 +1,4 @@
-import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 
 /**
  * THE LINE ABOUT THE OTHER PERSON IN A THREAD (V-23). Pure.

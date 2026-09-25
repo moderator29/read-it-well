@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { setLite } from "@/lib/ui/lite";
 import { useRouter } from "next/navigation";
-import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n";
+import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";

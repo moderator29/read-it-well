@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { formatMoneyGlance, getDictionary, plural, type Locale } from "@vallo/i18n";
+import { formatMoneyGlance, plural, type Locale } from "@vallo/i18n/core";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -129,7 +130,7 @@ export function ListingStickyBar({
      and the night count come from the dictionary now, and the count picks its
      form from `Intl.PluralRules` rather than from an assumption that every
      language has a singular and a plural. */
-  const t = getDictionary(locale);
+  const t = useClientCopy();
   const caption =
     quoting && stay
       ? t.reserve.totalForNights.replace("{nights}", plural(stay.nights, t.counts.nights, locale))

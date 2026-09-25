@@ -1,4 +1,4 @@
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";

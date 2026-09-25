@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, type Locale } from "@vallo/i18n/core";
 import type { ChatCardData } from "@/components/app/messages/ChatCard";
 import { parseShare, type SharedRef } from "@/components/app/messages/share";
 import { getListingRepository } from "@/lib/listings/repository";

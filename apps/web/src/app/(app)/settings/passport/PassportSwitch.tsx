@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { setRenterPassport } from "@/lib/trust/passport-actions";
 
 /** V-100: the one switch. Off also takes the passport back from every thread. */

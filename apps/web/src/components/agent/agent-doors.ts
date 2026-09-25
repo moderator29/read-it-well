@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * The supply side's front door, for a signed-in member who has no listing

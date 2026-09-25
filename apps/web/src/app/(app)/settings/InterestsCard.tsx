@@ -1,5 +1,5 @@
 import { RowLink } from "@/components/app/account/rows";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { type PropertyType } from "@/lib/interests/schema";
 
 /**

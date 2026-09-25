@@ -20,6 +20,7 @@ export default async function PreviewEmptyThread() {
   return (
     <div className="flex h-dvh flex-col">
       <ThreadView
+        sheetCopy={{ passport: t.trustVisible.passport, unsafe: t.trustVisible.unsafe }}
         live={false}
         conversationId={CONVERSATION_ID}
         meId={PERSON.id}

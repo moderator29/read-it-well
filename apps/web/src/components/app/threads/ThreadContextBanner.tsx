@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Inspection } from "@/lib/inspections/types";
 import type { ThreadContext } from "@/lib/messages/live";

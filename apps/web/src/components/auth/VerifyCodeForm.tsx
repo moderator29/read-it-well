@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { Button } from "@/components/ui/Button";
 import { Field } from "./fields";

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PersonTier } from "@/app/admin/_components/PersonTier";
 import type { BadgeTier } from "@/lib/admin/reads/badges";
-import { countOf, formatDate, formatMoney, plural, type Locale, type Dictionary } from "@vallo/i18n";
+import { countOf, formatDate, formatMoney, plural, type Locale, type Dictionary } from "@vallo/i18n/core";
 import type { BookingsDesk as BookingsDeskData } from "@/lib/admin/reads/bookings";
 import { BOOKING_STATUSES } from "@/lib/admin/bookings-queries";
 import { LiveRefresh } from "../_components/LiveRefresh";

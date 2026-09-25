@@ -63,7 +63,7 @@ import {
   shortletPlaceDraftSchema,
 } from "./schema";
 import { bedsArray, placeTypeUnavailable } from "./stays-setup";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 type BusinessKind = Database["public"]["Enums"]["business_kind"];
 

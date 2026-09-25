@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { bookViewingSlot } from "@/lib/viewings/actions";

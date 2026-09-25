@@ -55,7 +55,12 @@ describe.skipIf(!hasBrowser && !process.env.CI)("listing detail (axe)", () => {
 
   it("the stay card's chips wrap instead of scrolling inside the card's link", async () => {
     const { StayCard } = await import("../stays/StayCard");
+    const { ClientCopyProvider } = await import("@/lib/i18n/client-copy");
+    const { clientCopyOf } = await import("@/lib/i18n/client-copy-of");
+    /* The card's save control reads its words from the root layout's
+       provider, so the card is rendered inside one, as it is in the app. */
     const html = renderToStaticMarkup(
+      <ClientCopyProvider copy={clientCopyOf(getDictionary("en"))}>
       <StayCard
         t={getDictionary("en")}
         locale="en"
@@ -76,7 +81,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("listing detail (axe)", () => {
           totalMinor: null,
           nights: null,
         } as never}
-      />,
+      />
+      </ClientCopyProvider>,
     );
     expect(await axe(`<div style="width:300px">${html}</div>`, { rules: ["scrollable-region-focusable", "nested-interactive"], css: CATALOGUE_CSS })).toEqual([]);
   });

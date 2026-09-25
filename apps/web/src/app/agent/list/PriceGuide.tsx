@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { wizardPriceGuide } from "@/lib/price-check/wizard-actions";
 import { guideLines, type FeeNorms, type Guide, type GuideSubject } from "@/lib/price-check/wizard-guide";
 

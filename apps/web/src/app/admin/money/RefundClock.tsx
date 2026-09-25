@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { ClockBoard, ClockBoardRow } from "@/lib/after-gate/refunds";
 import { DeclineRefundRequest } from "./DeclineRefundRequest";
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { closeBrief } from "@/lib/briefs/actions";
 import { briefLine } from "@/lib/briefs/brief";

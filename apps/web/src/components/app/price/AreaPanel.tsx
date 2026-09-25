@@ -1,6 +1,6 @@
 import { Amount } from "@/components/ui/Amount";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 import { factLabel } from "@/lib/price-check/facts-labels";
 import type { AreaAskingRow, AreaCensus, AreaUtilityFacts } from "@/lib/price-check/types";
 

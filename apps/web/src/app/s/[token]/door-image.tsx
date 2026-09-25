@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { ImageResponse } from "next/og";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { ShareLines } from "@/lib/price-check/share-card";
 import type { DoorCard, DoorLines } from "@/lib/share/door";
 import {

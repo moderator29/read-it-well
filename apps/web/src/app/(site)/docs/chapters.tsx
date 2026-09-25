@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";

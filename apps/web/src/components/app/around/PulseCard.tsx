@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { recordPulse } from "@/lib/around/pulse-actions";
 import { PULSE_ANSWERS, type PulseKind, type PulseResult } from "@/lib/around/pulse";
 

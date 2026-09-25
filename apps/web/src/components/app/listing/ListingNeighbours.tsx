@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { kindLine, type Flooding } from "@/lib/around/pulse";
 import type { Neighbours } from "@/lib/around/pulse-queries";

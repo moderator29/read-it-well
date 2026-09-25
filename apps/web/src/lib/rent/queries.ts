@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { resolveSession } from "../actions/session";
 import { HOLD_WINDOW_HOURS } from "../bookings/checkout-view";
 import type { InspectionState } from "../inspections/types";

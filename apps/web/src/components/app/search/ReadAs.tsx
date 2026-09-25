@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UNIT_SHAPES } from "@/lib/listings/unit-shape";
 import { toShelfHref, type ShelfQuery } from "./shelf-query";
 

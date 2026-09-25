@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { GateHandshake } from "@/components/app/inspections/GateHandshake";
 import type { InspectionPack } from "@/lib/offline/pack";
 import { readPacks } from "@/lib/offline/pack-store";

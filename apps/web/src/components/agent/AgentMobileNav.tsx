@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useOverlay } from "@/lib/ui/use-overlay";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { AgentProfile } from "@/lib/agent/types";
 import { Logo } from "@/design-system/brand/Logo";
 import { ModeSwitcher } from "./ModeSwitcher";

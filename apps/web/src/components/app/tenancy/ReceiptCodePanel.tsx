@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { formatReceiptCode } from "@/lib/receipts/code";
 import { createReceiptCode, revokeReceiptCode } from "@/lib/receipts/actions";

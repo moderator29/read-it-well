@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatDate, formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { ShelfItem } from "@/lib/offline/shelf";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 

@@ -4,7 +4,7 @@ import "@/app/css/price-check.css";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { Segmented } from "@/components/ui/Segmented";

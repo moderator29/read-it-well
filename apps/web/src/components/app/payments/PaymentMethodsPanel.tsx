@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getDictionary, type Dictionary } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { RowButton, Sheet } from "@/components/app/account/rows";
 import { TYPE } from "@/components/app/Screen";

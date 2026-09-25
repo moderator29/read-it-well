@@ -3,7 +3,7 @@
 import { useAppliedTheme } from "@/lib/theme/theme-client";
 import { tileProvider, warnIfNonCommercialTiles } from "@/lib/maps/tiles";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import "leaflet/dist/leaflet.css";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -22,7 +22,7 @@ import {
   type ScreenPoint,
 } from "./mapGeo";
 import type { MapCopy, MapListing } from "./mapTypes";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * The discovery map.

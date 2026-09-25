@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 import { Sheet } from "@/components/ui/Sheet";
 import { Amount } from "@/components/ui/Amount";
 import { Button, ButtonLink } from "@/components/ui/Button";

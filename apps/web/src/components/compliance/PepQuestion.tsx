@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import type { Dictionary, Locale } from "@vallo/i18n";
-import { formatDate } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
+import { formatDate } from "@vallo/i18n/core";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { answerPepQuestion } from "@/lib/compliance/pep-actions";
 

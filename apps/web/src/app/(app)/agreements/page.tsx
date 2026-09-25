@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { readMyAgreements } from "@/lib/agreements/queries";
 import { PageHeader } from "@/components/app/PageHeader";

@@ -2,7 +2,7 @@ import { isModestExample } from "@/lib/listings/example-imagery";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { formatMoney, formatNumber, plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, formatNumber, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";

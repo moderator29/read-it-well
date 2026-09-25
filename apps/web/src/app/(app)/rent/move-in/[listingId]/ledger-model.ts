@@ -1,4 +1,4 @@
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { RENT_PERIOD_LABEL, type RentPeriod } from "@/lib/listings/pricing";
 import type { AreaComparison, LedgerLine } from "./MoveInLedger";

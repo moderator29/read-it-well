@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { loadSettings } from "@/components/app/account/settings-store";
 import { connectionIsFrugal } from "@/lib/ui/data-saver";

@@ -1,3 +1,4 @@
+import { unitsIg } from "./units";
 import type { Dictionary } from "./en";
 import { withFallback, type Translation } from "./fallback";
 
@@ -26,12 +27,7 @@ export const ig: Dictionary = withFallback({
   },
 
   /* The counted nouns shared with `counts`; every other unit is still English. */
-  units: {
-    nights: { other: "abalị {count}" },
-    guests: { other: "ọbịa {count}" },
-    adults: { other: "okenye {count}" },
-    children: { other: "nwa {count}" },
-  },
+  units: unitsIg,
 
   reserve: {
     confirmedRange: "{from} ruo {to}, {nights} maka {guests}.",

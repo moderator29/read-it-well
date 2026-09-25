@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { draftFromBroadcast } from "@/lib/agent/broadcast-actions";
 import type { BroadcastKey, BroadcastParse } from "@/lib/agent/broadcast";

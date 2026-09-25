@@ -1,4 +1,4 @@
-import { formatMoneyGlance, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoneyGlance, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { BUDGET_EDGES_KOBO } from "./cell";
 import type { DemandRow } from "./queries";
 

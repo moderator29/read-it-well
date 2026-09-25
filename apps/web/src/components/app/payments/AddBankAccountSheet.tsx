@@ -1,7 +1,7 @@
 "use client";
 
 import { getDictionary } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useEffect, useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n";

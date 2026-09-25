@@ -5,7 +5,7 @@ import {
   isLocale,
   localeFromAcceptLanguage,
   type Locale,
-} from "@vallo/i18n";
+} from "@vallo/i18n/core";
 import { LOCALE_COOKIE } from "./locale.constants";
 
 export { LOCALE_COOKIE };

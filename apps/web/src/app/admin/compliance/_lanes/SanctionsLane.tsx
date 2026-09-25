@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { requireAdmin } from "@/lib/admin/guard";
 import { readSanctionsDesk, strHref, type SanctionsDesk, type SanctionsHit } from "@/lib/compliance/sanctions/desk";
 import { adminUi } from "../../_components/ui";

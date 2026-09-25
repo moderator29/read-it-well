@@ -7,8 +7,8 @@ import type { HostReservation, HostReservationBoard } from "@/lib/agent/reservat
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { countOf, type Locale } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf, type Locale } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
  * Tonight's tables, and the requests still waiting on an answer.

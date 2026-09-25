@@ -1,6 +1,6 @@
 import Image from "next/image";
-import type { Dictionary, Locale } from "@vallo/i18n";
-import { intlTag } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
+import { intlTag } from "@vallo/i18n/core";
 import { CountUp } from "@/components/motion/CountUp";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";

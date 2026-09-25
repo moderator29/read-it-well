@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { adminUi } from "./ui";
 

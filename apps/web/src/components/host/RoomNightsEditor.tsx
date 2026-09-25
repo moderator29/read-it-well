@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { countOf, formatMoney, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";

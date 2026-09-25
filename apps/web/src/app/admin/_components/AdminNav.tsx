@@ -5,7 +5,7 @@ import type { PersonTier as PersonTierValue } from "@/lib/admin/reads/shapes";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NavIcon } from "./AdminGlyph";
 import {

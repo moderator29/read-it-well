@@ -2,7 +2,7 @@ import { PersonTier } from "@/app/admin/_components/PersonTier";
 import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import type { ListingReviewView } from "@/lib/admin/queries";

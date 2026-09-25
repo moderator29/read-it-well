@@ -2,7 +2,7 @@
 
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { useState, useTransition } from "react";
-import { plural, type Locale, type PluralForms } from "@vallo/i18n";
+import { plural, type Locale, type PluralForms } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Disclosure } from "@/components/app/Disclosure";
 import { endOtherSessions, endSession } from "@/lib/security/sessions-actions";

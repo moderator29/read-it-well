@@ -1,7 +1,8 @@
 "use client";
 
 import { initial as initialOf } from "@/lib/text/initial";
-import { DEFAULT_LOCALE, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
+import { DEFAULT_LOCALE, formatNumber, type Locale } from "@vallo/i18n/core";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -12,7 +13,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { panelClass } from "@/components/ui/Panel";
 import type { BadgeTier } from "@/lib/trust/badge-tier";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * A post.
@@ -296,6 +297,8 @@ export function PostCard({
   /** Rendered in place of the body while this post is being changed. */
   editor?: React.ReactNode;
 }) {
+  /* Read before the early return below: a hook runs on every render. */
+  const aroundLine = useClientCopy().uiCommon.around;
   /*
    * A post that was taken down draws NOTHING here (founder, item 4: "a deleted
    * post is deleted"). Every listing read excludes removed rows at the query,
@@ -489,7 +492,7 @@ export function PostCard({
            */
           className="mt-sm inline-flex h-7 items-center rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-sm text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
         >
-          {getDictionary(locale).uiCommon.around.replace("{area}", post.areaName)}
+          {aroundLine.replace("{area}", post.areaName)}
         </Link>
       ) : null}
 

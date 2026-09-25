@@ -1,7 +1,7 @@
 import { initial } from "@/lib/text/initial";
 import Image from "next/image";
 import Link from "next/link";
-import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -298,7 +298,6 @@ export function ProfileHeader({
       {profile.link && (
         <ExternalLinkSheet
           href={profile.link}
-          locale={locale}
           label={linkLabel(profile.link)}
           className="nf-social-link"
         >

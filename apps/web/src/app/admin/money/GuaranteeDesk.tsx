@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { decideClaim, markClaimPaid } from "@/lib/admin/agreements-actions";
 import type { ClaimRow } from "@/lib/admin/reads/agreements";
 

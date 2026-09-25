@@ -2,7 +2,7 @@
 
 import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
  * The moment between tapping and being inside, and the bar under it.
@@ -28,7 +28,7 @@ export type AuthMoment = "sign-in" | "sign-up";
 
 
 export function VerifyingPanel({ moment = "sign-up" }: { moment?: AuthMoment }) {
-  const a = useClientDictionary().authFlow;
+  const a = useClientCopy().authFlow;
   const words =
     moment === "sign-up"
       ? { title: a.verifyingTitle, body: a.verifyingBody }

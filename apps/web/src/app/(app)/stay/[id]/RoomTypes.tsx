@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
 import { ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";

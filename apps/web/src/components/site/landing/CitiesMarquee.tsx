@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { LoopGate } from "@/components/motion/LoopGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SectionHead } from "./SectionHead";

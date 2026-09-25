@@ -17,7 +17,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { responseTimeFor } from "@/lib/trust/standards";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
  * Report this.
@@ -65,7 +65,7 @@ export function ReportSheet({
   onOpen?: () => void;
 }) {
   const noun = REPORT_TARGET_NOUN[targetType];
-  const reportCopy = useClientDictionary().trustVisible.report;
+  const reportCopy = useClientCopy().trustVisible.report;
   const uid = useId();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<ReportCategory | null>(null);

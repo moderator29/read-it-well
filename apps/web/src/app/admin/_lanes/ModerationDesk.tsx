@@ -18,7 +18,7 @@ import {
 import { formatDuration, percentChange } from "../_review/metrics";
 import { CalmNote } from "../_components/panels";
 import type { ModerationSummary } from "../_review/contracts";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * Moderation, 01F7DFC7 panel 1: the reason tabs, Total reports and Over 24

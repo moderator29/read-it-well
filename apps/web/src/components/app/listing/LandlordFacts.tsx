@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ownerConfirmedLine, requestNow } from "@/lib/landlord/facts";
 import { readListingFactsFor, readPropertyOffers, type PropertyOffer } from "@/lib/landlord/queries";

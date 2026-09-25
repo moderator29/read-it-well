@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { decideAgreement } from "@/lib/admin/agreements-actions";
 import type { QueueRow } from "@/lib/admin/reads/agreements";
 

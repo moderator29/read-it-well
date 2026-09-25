@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { getDictionary } from "@vallo/i18n";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import type { ClientCopy } from "@/lib/i18n/client-copy-of";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { deviceSavesChanged } from "@/components/app/SaveControl";
 import { announceSent, due, forget, isCreate, readOutbox, reschedule, sessionUserId, type OutboxEntry } from "@/lib/offline/outbox";
@@ -36,7 +36,7 @@ import { saveRestaurant, saveStay, unsaveRestaurant, unsaveStay } from "@/lib/sa
  * Money is never replayed: the second half only READS.
  */
 
-type Copy = ReturnType<typeof getDictionary>["platform"];
+type Copy = ClientCopy["platform"];
 
 type News =
   | { kind: "paid" | "failed" | "returned" | "pending"; reference: string; history: string }
@@ -117,7 +117,7 @@ async function replayOne(entry: OutboxEntry): Promise<Outcome> {
 }
 
 export function OfflineTray() {
-  const copy: Copy = useClientDictionary().platform;
+  const copy: Copy = useClientCopy().platform;
   const [news, setNews] = useState<News>(null);
   const running = useRef(false);
   const toldPending = useRef(new Set<string>());

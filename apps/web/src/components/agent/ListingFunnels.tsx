@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { fixText } from "@/lib/agent/funnel";
 import type { FunnelBoard } from "@/lib/agent/funnel-queries";
 

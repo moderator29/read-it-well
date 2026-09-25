@@ -1,4 +1,4 @@
-import { countOf, formatMoney, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import type { ListingReviewView } from "@/lib/admin/queries";
 import { ListingDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";

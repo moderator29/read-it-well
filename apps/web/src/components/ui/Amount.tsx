@@ -1,4 +1,4 @@
-import { COMPACT_FROM_MINOR, intlTag, isGlanceCompact, type Locale } from "@vallo/i18n";
+import { COMPACT_FROM_MINOR, intlTag, isGlanceCompact, moneyParts, type Locale } from "@vallo/i18n/core";
 
 /**
  * Money, set the way the reference set sets money.
@@ -83,9 +83,10 @@ export function Amount({
      caller says otherwise. It used to round ₦42,000.75 to ₦42,001 by default. */
   const withKobo = showFraction ?? Math.abs(Math.round(minorUnits)) % 100 !== 0;
 
-  const parts = new Intl.NumberFormat(intlTag[locale], {
-    style: "currency",
-    currency,
+  /* Built from the same normalised parts as `formatMoney` (`moneyParts` in
+     packages/i18n): the narrow naira sign on every engine, no space beside
+     it, so the server's HTML and the browser's hydration always agree. */
+  const parts = moneyParts(major, locale, currency, {
     /*
      * Compact notation carries its precision in the fraction: ₦1,500 compacts
      * to "₦1.5K". Forcing maximumFractionDigits to 0 rounds that to "₦2K",
@@ -119,7 +120,7 @@ export function Amount({
           minimumFractionDigits: withKobo ? 2 : 0,
           maximumFractionDigits: withKobo ? 2 : 0,
         }),
-  }).formatToParts(major);
+  });
 
   /*
    * The split point is the decimal separator: everything before it - symbol,

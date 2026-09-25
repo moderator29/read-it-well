@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { countOf, formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { freeToCancelUntil, termsFromPolicyRules } from "@/lib/trust/cancellation";

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { LostByArea } from "@/lib/enquiry/queries";
 import { STAGES, type Stage } from "@/lib/enquiry/stage";
 

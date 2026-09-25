@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { useBack } from "@/lib/nav/use-back";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { ListingActions } from "./ListingActions";
 import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import type { SharedKind } from "@/components/app/messages/share";
@@ -110,7 +110,7 @@ export function ListingGallery({
   /* The gallery's floating back circle is icon-only, so its accessible name is
      the ONLY thing a screen reader has to go on. It was the English literal
      "Back" on a page whose every other word is translated. */
-  const t = useClientDictionary();
+  const t = useClientCopy();
   const viewer = usePhotoViewer();
   const track = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);

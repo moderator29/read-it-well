@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
 import { HorizontalReel, type ReelFrame } from "./HorizontalReel";

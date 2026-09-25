@@ -16,8 +16,8 @@ import type {
   TransferOffer,
   TransferableBusiness,
 } from "@/lib/business-transfer/queries";
-import { countOf } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
  * The route out of the business precondition, drawn as the two doors it is.

@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { useClientMount } from "@/lib/ui/client-mount";
 
 /**

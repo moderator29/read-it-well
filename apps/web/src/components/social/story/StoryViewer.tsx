@@ -24,8 +24,8 @@ import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
 import { STORY_COPY } from "@/lib/social/stories-schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Toast, useToast } from "@/components/ui/Toast";
-import { countOf } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
  * A story, full bleed.

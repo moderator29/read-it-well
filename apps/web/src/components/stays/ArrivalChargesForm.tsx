@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { ARRIVAL_KEYS, ARRIVAL_UNITS, type ArrivalCharges, type ArrivalKey, type ArrivalUnit } from "@/lib/stays/arrival-charges";
 import { declareArrivalCharges } from "@/lib/stays/arrival-actions";

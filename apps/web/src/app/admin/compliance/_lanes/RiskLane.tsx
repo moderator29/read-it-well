@@ -1,4 +1,4 @@
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { readRiskDesk, type RiskPerson } from "@/lib/compliance/risk-queries";
 import { eddCardView, when } from "@/lib/compliance/edd-view";
 import { EddReviewCard } from "@/components/compliance/EddReviewCard";

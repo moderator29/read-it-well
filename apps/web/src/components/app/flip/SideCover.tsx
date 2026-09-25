@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { Side } from "@/lib/side.constants";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Logo } from "@/design-system/brand/Logo";

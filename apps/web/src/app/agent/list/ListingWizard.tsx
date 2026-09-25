@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";

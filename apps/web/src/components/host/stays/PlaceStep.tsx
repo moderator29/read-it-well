@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { addAccommodationDraft, setShortletPlaceDraft } from "@/lib/host/actions";
 import { PLACE_TYPES, type PlaceTypeId } from "@/lib/host/stays-setup";

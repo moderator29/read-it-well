@@ -1,4 +1,4 @@
-import { formatMoney, formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { findNeighbourhood, NEIGHBOURHOODS } from "../places/neighbourhoods";
 import { nairaToKobo } from "../listings/search-params";
 

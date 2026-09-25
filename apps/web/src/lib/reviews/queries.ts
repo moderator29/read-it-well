@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { readCountedReviews } from "./weight";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, type Locale } from "@vallo/i18n/core";
 import { resolveSession } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
 import { reviewIneligibility, type ReviewIneligibility } from "./eligibility";

@@ -3,7 +3,7 @@
 import { initial } from "@/lib/text/initial";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/ThreadContextBanner";
 import { reservationLine } from "@/components/app/threads/ReservationFace";
 import type { Inspection } from "@/lib/inspections/types";
@@ -35,11 +35,11 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
-import { getDictionary } from "@vallo/i18n";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { OUTBOX_SENT_EVENT, type OutboxSentDetail } from "@/lib/offline/outbox";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import { useBack } from "@/lib/nav/use-back";
-import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
+import { ThreadOptionsSheet, type SheetListing, type ThreadSheetCopy } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
@@ -165,6 +165,8 @@ export type ThreadViewProps = {
    */
   accountMoment?: { checks: Record<string, AccountCheckView>; offer: ChargeOffer } | null;
   accountCopy?: Dictionary["trustVisible"]["account"];
+  /** The options sheet's passport and safety words, from the page's `t`. */
+  sheetCopy: ThreadSheetCopy;
   /**
    * V-23: dated facts about the other person, already worded, in order.
    * Empty draws nothing: a null fact is never a line.
@@ -313,6 +315,7 @@ export function ThreadView({
   quickRepliesTitle = "",
   accountMoment = null,
   accountCopy,
+  sheetCopy,
   personLine = [],
   personLabel,
   recordLine = [],
@@ -330,6 +333,8 @@ export function ThreadView({
    * state change landed on this page" tint. Nothing new is invented and
    * reduced motion stills it in the stylesheet.
    */
+  /* The bubble's "waiting" word, from the root layout's client copy. */
+  const waitingShort = useClientCopy().platform.outbox.waitingShort;
   const [ceremony, setCeremony] = useState(false);
   const [draft, setDraft] = useState("");
   const [pendingFile, setPendingFile] = useState<{ file: File; url: string } | null>(null);
@@ -839,6 +844,7 @@ export function ThreadView({
         onConfirmInspection={() => void handleConfirmInspection()}
         onClose={closeSheet}
         passportShare={live ? passportShare : null}
+        sheetCopy={sheetCopy}
         unsafeAsLister={context?.kind === "listing" && role === "host"}
       />
 
@@ -1024,7 +1030,7 @@ export function ThreadView({
                       {m.state === "sending" ? (
                         <span>Sending</span>
                       ) : m.state === "waiting" ? (
-                        <span data-testid="bubble-waiting">{getDictionary(locale).platform.outbox.waitingShort}</span>
+                        <span data-testid="bubble-waiting">{waitingShort}</span>
                       ) : (
                         <span className="nf-numeric">{m.timeLabel}</span>
                       )}

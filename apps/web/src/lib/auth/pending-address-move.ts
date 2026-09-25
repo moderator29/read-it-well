@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, type Locale } from "@vallo/i18n/core";
 import { createClient } from "../supabase/server";
 
 /**

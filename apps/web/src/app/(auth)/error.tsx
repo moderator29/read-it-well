@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
  * The auth group's error boundary. There was none.
@@ -35,7 +35,7 @@ export default function AuthError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const a = useClientDictionary().authFlow;
+  const a = useClientCopy().authFlow;
   useEffect(() => {
     console.error("[vallo] auth route error", error);
   }, [error]);

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Segmented } from "@/components/ui/Segmented";
 import type { Flooding } from "@/lib/around/pulse";
 

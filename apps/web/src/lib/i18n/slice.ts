@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * A CLIENT COMPONENT GETS THE PART OF THE DICTIONARY IT READS (Track M

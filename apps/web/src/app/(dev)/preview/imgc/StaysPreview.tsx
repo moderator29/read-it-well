@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 import { FacilitiesStep } from "@/components/host/stays/FacilitiesStep";
 import { HotelStep } from "@/components/host/stays/HotelStep";
 import { HouseRulesStep } from "@/components/host/stays/HouseRulesStep";

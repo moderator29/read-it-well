@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_LOCALE, type Locale } from "@vallo/i18n";
+import { DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";

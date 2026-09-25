@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { plural, type Locale } from "@vallo/i18n";
-import type { Dictionary } from "@vallo/i18n";
+import { plural, type Locale } from "@vallo/i18n/core";
+import type { Dictionary } from "@vallo/i18n/core";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { reportNotMe, type NotMeResult } from "@/lib/security/device-alert-actions";
 import { formatHoldUntil } from "@/lib/security/account-hold";

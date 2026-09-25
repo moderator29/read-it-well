@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { type Locale } from "@vallo/i18n";
+import { type Locale } from "@vallo/i18n/core";
 import type { AreaProposal, AreaSummary } from "@/lib/social/areas-queries";
 import { AREA_COPY, AREA_KIND_LABEL } from "@/lib/social/areas-schema";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { JoinButton } from "../JoinButton";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * The rows of `/around/settings`: a suggestion still waiting, one we

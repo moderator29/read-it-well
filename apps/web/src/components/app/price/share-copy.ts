@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { ShareCardCopy } from "@/lib/price-check/share-card";
 import type { ShareAreaCopy } from "./ShareAreaButton";
 

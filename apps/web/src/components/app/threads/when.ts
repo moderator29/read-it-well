@@ -1,4 +1,4 @@
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, type Locale } from "@vallo/i18n/core";
 
 /**
  * Times as the thread banner says them. Everything here is Lagos wall-clock,

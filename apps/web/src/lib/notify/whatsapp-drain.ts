@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isLocale } from "@vallo/i18n";
+import { isLocale } from "@vallo/i18n/core";
 import { quietVerdict, readQuietHours } from "../push/quiet-hours";
 import { DOORBELL_TEMPLATES, cloudTransport, doorbellParam, e164, templateLanguage, type DoorbellEvent, type WhatsAppTransport } from "./whatsapp";
 

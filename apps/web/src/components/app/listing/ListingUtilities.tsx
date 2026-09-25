@@ -3,7 +3,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Listing } from "@/lib/listings/types";
 import type { ListingAccessView } from "@/lib/listings/access-queries";
 import { ICON, TYPE } from "@/components/app/Screen";
-import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n";
+import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
 
 /**
  * Light, water, and getting through the gate.

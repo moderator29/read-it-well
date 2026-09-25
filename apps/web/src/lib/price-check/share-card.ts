@@ -1,4 +1,4 @@
-import { formatMoneyGlance, type Locale } from "@vallo/i18n";
+import { formatMoneyGlance, type Locale } from "@vallo/i18n/core";
 import { publicAreaName } from "../share/public-text";
 import { SHARE_CARD_FOOTER } from "./disclaimer";
 import type { AreaShare, ListingPropertyType } from "./types";

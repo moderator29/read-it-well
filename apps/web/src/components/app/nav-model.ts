@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
 

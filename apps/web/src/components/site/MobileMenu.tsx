@@ -9,7 +9,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { SUPPORT_HREF } from "@/lib/support-email";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 
 /**
  * Marketing side navigation, for phones.

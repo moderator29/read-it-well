@@ -14,7 +14,7 @@ import { signOut } from "@/lib/profile/actions";
 import { playThreshold } from "@/lib/motion/threshold";
 import { DeleteAccountPanel } from "./DeleteAccountPanel";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
 
 /**
  * The account block: who you are signed in as, sign out, and deletion.

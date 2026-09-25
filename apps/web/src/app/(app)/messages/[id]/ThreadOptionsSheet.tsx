@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dictionary } from "@vallo/i18n/core";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -13,7 +14,6 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UnsafeSheet } from "@/components/app/safety/UnsafeSheet";
 import { PassportShareRow } from "@/components/app/safety/PassportShareRow";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The conversation's options sheet, behind the kebab in the header.
@@ -55,6 +55,9 @@ export type SheetListing = {
   hue: number;
 };
 
+/** The words the options sheet draws, handed down from the thread page. */
+export type ThreadSheetCopy = Pick<Dictionary["trustVisible"], "passport" | "unsafe">;
+
 export function ThreadOptionsSheet({
   open,
   conversationId,
@@ -71,6 +74,7 @@ export function ThreadOptionsSheet({
   onClose,
   passportShare = null,
   unsafeAsLister = false,
+  sheetCopy,
 }: {
   open: boolean;
   conversationId: string;
@@ -99,8 +103,10 @@ export function ThreadOptionsSheet({
   passportShare?: { enabled: boolean; shared: boolean } | null;
   /** V-63: the viewer is the lister on this listing thread. */
   unsafeAsLister?: boolean;
+  /** The passport switch's and the safety sheet's words, from the page's `t`:
+      required, so no caller can draw the safety controls without them. */
+  sheetCopy: ThreadSheetCopy;
 }) {
-  const dictionary = useClientDictionary();
   const [confirmingBlock, setConfirmingBlock] = useState(false);
   const [blockNote, setBlockNote] = useState<string | null>(null);
   const [blocking, startBlocking] = useTransition();
@@ -237,7 +243,7 @@ export function ThreadOptionsSheet({
           {/* V-100: show or take back the renter passport, in this thread only. */}
           {passportShare && (
             <PassportShareRow
-              copy={dictionary.trustVisible.passport}
+              copy={sheetCopy.passport}
               conversationId={conversationId}
               initial={passportShare}
             />
@@ -245,7 +251,7 @@ export function ThreadOptionsSheet({
           {/* V-63: the moment of fear first, before any report category. */}
           {signedIn && (
             <UnsafeSheet
-              copy={dictionary.trustVisible.unsafe}
+              copy={sheetCopy.unsafe}
               conversationId={conversationId}
               trigger="row"
               afterLeave="/messages"

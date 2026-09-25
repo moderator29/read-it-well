@@ -1,4 +1,4 @@
-import { plural, type Locale, type PluralForms } from "@vallo/i18n";
+import { plural, type Locale, type PluralForms } from "@vallo/i18n/core";
 
 /**
  * "SHOW ME" (V-69): a renter asks the lister for one specific clip in the

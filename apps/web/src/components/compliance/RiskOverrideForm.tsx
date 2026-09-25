@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { overrideRiskClass } from "@/lib/compliance/risk-actions";
 

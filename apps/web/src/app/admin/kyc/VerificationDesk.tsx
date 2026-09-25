@@ -14,7 +14,7 @@ import {
 } from "../_review/parts";
 import { formatDuration, percentChange } from "../_review/metrics";
 import type { RungKind, VerificationSummary } from "../_review/contracts";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * Verification, 8E9602E2 panel 2: four KPI cards, the identity verification

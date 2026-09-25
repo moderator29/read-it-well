@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/Button";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
-import { countOf, type Locale } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf, type Locale } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
  * The venue's own table board.

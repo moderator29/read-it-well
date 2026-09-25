@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
 import type { ListingFacts } from "@/lib/listings/filter";

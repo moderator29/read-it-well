@@ -1,4 +1,4 @@
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { SafetyShareView } from "@/lib/doors/safety";
 

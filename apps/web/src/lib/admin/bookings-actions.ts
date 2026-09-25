@@ -40,7 +40,7 @@
 import { revalidatePath } from "next/cache";
 import { readFrozenTerms } from "../after-gate/refunds";
 import { z } from "zod";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import { bookingRefunded } from "../email/messages";

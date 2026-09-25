@@ -8,8 +8,8 @@ import { monthGrid, countNights } from "@/lib/agent/calendar-schema";
 import type { CalendarNight, CalendarSubject } from "@/lib/agent/calendar-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EmptyState } from "@/components/app/Screen";
-import { countOf } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
  * The host's calendar.

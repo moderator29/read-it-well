@@ -7,7 +7,7 @@ import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { VerifyingPanel, type AuthMoment } from "./VerifyingPanel";
 import type { VerificationOutcome } from "@/lib/auth/form-state";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { playThreshold, thresholdAllowed } from "@/lib/motion/threshold";
 
 /**
@@ -74,7 +74,7 @@ export function Verifying({
     next?: string | undefined;
   }) => Promise<VerificationOutcome>;
 }) {
-  const a = useClientDictionary().authFlow;
+  const a = useClientCopy().authFlow;
   const router = useRouter();
   const [failed, setFailed] = useState<Extract<VerificationOutcome, { ok: false }> | null>(null);
   /* Runs once. A second call would exchange a code that has already been

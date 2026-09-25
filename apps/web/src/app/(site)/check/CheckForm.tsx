@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useId } from "react";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ActionResult } from "@/lib/actions/envelope";

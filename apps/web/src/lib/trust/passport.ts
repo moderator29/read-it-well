@@ -1,4 +1,4 @@
-import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 
 /**
  * THE RENTER PASSPORT (V-100), AS LINES. Pure.

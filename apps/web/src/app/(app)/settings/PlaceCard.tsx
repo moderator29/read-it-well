@@ -1,6 +1,6 @@
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
 import type { ReactNode } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * The settings rows that own where somebody is and what they do.

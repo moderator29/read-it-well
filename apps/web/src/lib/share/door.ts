@@ -1,4 +1,4 @@
-import { formatMoneyGlance, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoneyGlance, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { moveInTotal, type MoveInColumns } from "../listings/pricing";
 import { publicAreaName } from "./public-text";
 

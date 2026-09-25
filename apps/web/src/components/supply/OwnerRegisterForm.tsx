@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { TYPE } from "@/components/app/Screen";
 import { TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";

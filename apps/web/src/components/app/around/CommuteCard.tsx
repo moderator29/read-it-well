@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { Anchor, CommuteResult } from "@/lib/listings/commute";
 import { reportCommute } from "@/lib/listings/commute-actions";
 

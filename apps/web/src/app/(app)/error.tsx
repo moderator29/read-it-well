@@ -3,10 +3,8 @@
 import { useEffect } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { reportClientError } from "@/lib/observability/client";
-import { getDictionary } from "@vallo/i18n";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { StateMoment } from "@/components/ui/StateMoment";
-
-const COPY = getDictionary("en").trustVisible.state;
 
 /**
  * Personal Mode's error boundary: the brand moment, inside the chrome.
@@ -44,6 +42,11 @@ export default function AppError({
     console.error("[vallo] app route error", error);
     reportClientError(error, { kind: "client.app_boundary", digest: error.digest });
   }, [error]);
+
+  /* The words come from the root layout (`lib/i18n/client-copy.tsx`), so
+     the screen speaks the reader's language; it was English for everyone,
+     read from the whole dictionary, which every in-app route shipped for it. */
+  const COPY = useClientCopy().trustVisible.state;
 
   /* V-97: the state kit's full-screen form, in the voice's words. */
   return (

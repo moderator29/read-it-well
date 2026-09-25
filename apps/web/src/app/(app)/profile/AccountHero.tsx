@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatNumber, type Locale } from "@vallo/i18n";
+import { formatNumber, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
@@ -15,7 +15,8 @@ import { createClient } from "@/lib/supabase/client";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { ButtonLink } from "@/components/ui/Button";
-import { accountCopy, type BadgeTier } from "./belongings";
+import type { BadgeTier } from "./belongings";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { TierBadge } from "@/components/trust/TierBadge";
 
 /**
@@ -103,7 +104,7 @@ export function AccountHero({
   locale: Locale;
 }) {
   const router = useRouter();
-  const COPY = accountCopy(locale);
+  const COPY = useClientCopy().socialProfile.accountPage;
   /* The render writes 12.4K: from ten thousand a count is compact, below
      it every digit shows. The figure itself is always the database's. */
   const formatCount = (value: number) =>

@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { formatDate, plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";

@@ -1,6 +1,6 @@
 import { requestSignal, roundWatchdog } from "@/lib/ai/upstream-deadline";
 import { NextRequest } from "next/server";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { getListingRepository } from "@/lib/listings/repository";
 import { listOpenAreas } from "@/lib/social/areas-queries";
 import { getAreaFeed } from "@/lib/social/posts-queries";

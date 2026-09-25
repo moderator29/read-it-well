@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { answerStillAvailable } from "@/lib/availability/actions";
 import { laterWindow, type AvailabilityAnswer, type AvailabilityCheck } from "@/lib/availability/check";

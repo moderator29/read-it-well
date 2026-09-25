@@ -2,7 +2,7 @@ import { matchesFilter } from "../listings/filter";
 import type { Listing, ListingSearchFilter } from "../listings/types";
 import { parseShelfQuery, shelfFilter, staySideHref } from "@/components/app/search/shelf-query";
 import type { SavedSearchParams } from "./searches";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * WHAT COUNTS AS A NEW MATCH, AS A PURE DECISION.

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { assignFirmListing, setFirmRouting } from "@/lib/firm/actions";
 import type { FirmListing, FirmMember, FirmRouting } from "@/lib/firm/queries";

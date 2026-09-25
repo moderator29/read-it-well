@@ -3,7 +3,7 @@
 import "./profile.css";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { type Locale } from "@vallo/i18n";
+import { type Locale } from "@vallo/i18n/core";
 import Link from "next/link";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
@@ -24,7 +24,8 @@ import {
   MAX_PHONE_LENGTH,
 } from "@/lib/profile/schema";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { accountCopy, NO_FACTS, rowValue, type BelongingsFacts } from "./belongings";
+import { NO_FACTS, rowValue, type BelongingsFacts } from "./belongings";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { SwitchRoleRow } from "./SwitchRoleRow";
 import { COVER_INPUT_ID } from "./AccountHero";
 
@@ -148,7 +149,7 @@ export function AccountBody({
    */
   roleSwitch?: React.ReactNode;
 }) {
-  const COPY = accountCopy(locale);
+  const COPY = useClientCopy().socialProfile.accountPage;
   const [tab, setTab] = useState<Tab>("account");
   const [editing, setEditing] = useState(false);
 
@@ -217,7 +218,7 @@ export function AccountBody({
         >
           <div className="nf-pf-rows" data-testid="belongings">
             {rows.map((row) => (
-              <BelongingRow key={row.key} row={row} value={rowValue(row.key, facts, locale)} />
+              <BelongingRow key={row.key} row={row} value={rowValue(row.key, facts, COPY, locale)} />
             ))}
           </div>
 

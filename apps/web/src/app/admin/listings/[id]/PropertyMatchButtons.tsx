@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { decidePropertyMatch, reopenClosedListing, splitFromProperty } from "@/lib/landlord/admin-actions";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 
 /**
  * V-37. The reviewer's one-tap decision on a proposed match: "Same property"

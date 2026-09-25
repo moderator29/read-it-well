@@ -19,7 +19,7 @@ import {
 import { formatDuration, percentChange } from "../_review/metrics";
 import type { ListingReviewTimes, ListingStatusCounts } from "../_review/contracts";
 import type { QueueRow } from "./rows";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * The listings review queue, C1D98B3C panel 1: status tabs, the table of

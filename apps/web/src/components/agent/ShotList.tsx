@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { missingRequired, offeredSlots, type ShotSlot, type UtilityClaims } from "@/lib/listings/shot-list";
 import { readPhotoSlots, setPhotoSlot } from "@/lib/listings/shot-list-actions";

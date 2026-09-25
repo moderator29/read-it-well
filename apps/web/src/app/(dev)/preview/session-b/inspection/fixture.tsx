@@ -1,4 +1,4 @@
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
 import type { InspectionState } from "@/lib/inspections/types";

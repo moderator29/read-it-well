@@ -1,4 +1,4 @@
-import { formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";

@@ -17,7 +17,7 @@ import {
 } from "@/lib/host/stays-setup";
 import { StaysCountRow, StaysNote, StaysPlate, StaysRow } from "./StaysParts";
 import type { StaysStepProps } from "./types";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * TABLES AND HOURS. `GOVERNING-11` screen four.

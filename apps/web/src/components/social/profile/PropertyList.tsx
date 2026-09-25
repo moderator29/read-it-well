@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { PropertyCard } from "@/lib/social/profile-tabs-queries";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * An agent's live places, on their own page.

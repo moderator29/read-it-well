@@ -3,7 +3,7 @@ import "server-only";
 import { firstNameAndInitial } from "../after-gate/public-place-model";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { resolveSession } from "../actions/session";
 import { isRoomItem, type RoomItem } from "../inspections/report";
 import { formatMoneyDate } from "../money/dates";

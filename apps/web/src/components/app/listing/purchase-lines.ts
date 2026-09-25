@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import type { Part } from "./move-in-lines";
 

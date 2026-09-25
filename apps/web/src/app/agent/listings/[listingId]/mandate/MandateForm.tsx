@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { fileListingMandate } from "@/lib/compliance/beneficial-ownership-actions";
 import { MANDATE_KINDS, RELATIONSHIPS, type MyMandate } from "@/lib/compliance/beneficial-ownership";

@@ -4,7 +4,7 @@ import { DuplicateListing } from "./DuplicateListing";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type Dictionary, type Locale, formatMoneyGlance } from "@vallo/i18n";
+import { type Dictionary, type Locale, formatMoneyGlance } from "@vallo/i18n/core";
 import { fill } from "../_copy";
 import {
   deleteListing,

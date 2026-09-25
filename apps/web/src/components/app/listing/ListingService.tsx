@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import type { ServiceFacts } from "@/lib/listings/service";

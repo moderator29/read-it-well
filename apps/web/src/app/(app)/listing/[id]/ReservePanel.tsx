@@ -2,7 +2,8 @@
 
 import { useActionState, useId, useState, useMemo } from "react";
 import Link from "next/link";
-import { getDictionary, plural, type Locale } from "@vallo/i18n";
+import { plural, type Locale } from "@vallo/i18n/core";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -156,7 +157,7 @@ export function ReservePanel({
      Both go through the dictionary now. The sentences that WRAP a count come
      from `t.reserve`, because a counted noun cannot be pluralised properly
      without also owning the words on either side of it. */
-  const t = getDictionary(locale);
+  const t = useClientCopy();
 
   const [state, formAction, pending] = useActionState<
     ActionResult<ReserveReceipt> | null,

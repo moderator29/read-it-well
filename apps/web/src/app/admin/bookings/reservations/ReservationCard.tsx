@@ -1,4 +1,4 @@
-import { plural, type PluralForms } from "@vallo/i18n";
+import { plural, type PluralForms } from "@vallo/i18n/core";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { BOOKING_STATUSES, type AdminReservationRow } from "@/lib/admin/bookings-queries";
 import type { ReservationDecision } from "@/lib/admin/schema";

@@ -20,7 +20,7 @@ import {
 import { ShareSheet } from "@/components/app/messages/ShareSheet";
 import type { SharedKind } from "@/components/app/messages/share";
 import { createShareLink } from "@/lib/share/actions";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { nativeHaptic, nativeShare } from "@/lib/native/device";
 
 /**
@@ -129,7 +129,7 @@ export function ListingActions({
   const [message, setMessage] = useState<string | null>(null);
   const [signInPrompt, setSignInPrompt] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const t = useClientDictionary();
+  const t = useClientCopy();
   /*
    * THE SHARE DOOR (V-07), MINTED WHEN THE SHEET OPENS.
    *

@@ -2,7 +2,7 @@ import { Amount } from "@/components/ui/Amount";
 import { EmptyState } from "@/components/app/Screen";
 import { TYPE } from "@/components/app/Screen";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import type { Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
 import { COMPARABLES_LEAD, PRICE_CHECK_DISCLAIMER } from "@/lib/price-check/disclaimer";
 import type { PriceCheckResult } from "@/lib/price-check/gate";
 import { REFUSALS, type RefusalCode } from "@/lib/price-check/refusals";

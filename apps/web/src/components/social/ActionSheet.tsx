@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * The sheet behind a card's `…`.

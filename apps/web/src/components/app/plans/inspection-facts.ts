@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import type { InspectionListingFacts } from "@/components/app/inspections/InspectionSheet";
 import { resolveSession } from "@/lib/actions/session";
 import { PERIOD_SUFFIX, headlinePeriod, headlinePrice } from "@/lib/listings/pricing";

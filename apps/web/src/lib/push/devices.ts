@@ -3,7 +3,7 @@ import "server-only";
 import { resolveSession } from "@/lib/actions/session";
 import { sessionWhen, type SessionWhen } from "@/lib/security/when";
 import type { PushPlatform } from "./schema";
-import { countOf } from "@vallo/i18n";
+import { countOf } from "@vallo/i18n/core";
 
 /**
  * THE DEVICES A PERSON CAN BE REACHED ON, READ FOR THEIR OWN EYES.

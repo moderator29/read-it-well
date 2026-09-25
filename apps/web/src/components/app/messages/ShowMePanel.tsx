@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { createClient } from "@/lib/supabase/client";
 import { useDataSaver } from "@/lib/ui/data-saver";
 import { answerShowMe, requestShowMe } from "@/lib/messages/show-me-actions";

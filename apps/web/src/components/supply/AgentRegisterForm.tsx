@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { TYPE } from "@/components/app/Screen";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";

@@ -1,53 +1,56 @@
+import { getDictionary } from "@vallo/i18n";
 import { describe, expect, it } from "vitest";
 import { NO_FACTS, badgeTierFrom, rowValue, switchParamTarget, switchRoleLine, type BelongingsFacts } from "./belongings";
 import type { RoleState } from "@/components/roles/roles";
+
+const EN = getDictionary("en").socialProfile.accountPage;
 
 const facts = (over: Partial<BelongingsFacts>): BelongingsFacts => ({ ...NO_FACTS, ...over });
 
 describe("rowValue: only what the database returned", () => {
   it("draws nothing for a read that failed", () => {
-    expect(rowValue("bookings", NO_FACTS, "en")).toBeNull();
-    expect(rowValue("saved", NO_FACTS, "en")).toBeNull();
-    expect(rowValue("inspections", NO_FACTS, "en")).toBeNull();
+    expect(rowValue("bookings", NO_FACTS, EN, "en")).toBeNull();
+    expect(rowValue("saved", NO_FACTS, EN, "en")).toBeNull();
+    expect(rowValue("inspections", NO_FACTS, EN, "en")).toBeNull();
   });
 
   it("draws nothing for a zero count", () => {
-    expect(rowValue("bookings", facts({ upcomingBookings: 0 }), "en")).toBeNull();
-    expect(rowValue("saved", facts({ saved: 0 }), "en")).toBeNull();
-    expect(rowValue("inspections", facts({ openInspections: 0 }), "en")).toBeNull();
+    expect(rowValue("bookings", facts({ upcomingBookings: 0 }), EN, "en")).toBeNull();
+    expect(rowValue("saved", facts({ saved: 0 }), EN, "en")).toBeNull();
+    expect(rowValue("inspections", facts({ openInspections: 0 }), EN, "en")).toBeNull();
   });
 
   it("words a real count", () => {
-    expect(rowValue("bookings", facts({ upcomingBookings: 2 }), "en")).toBe("2 upcoming");
-    expect(rowValue("saved", facts({ saved: 1400 }), "en")).toBe("1,400 saved");
-    expect(rowValue("inspections", facts({ openInspections: 1 }), "en")).toBe("1 open");
+    expect(rowValue("bookings", facts({ upcomingBookings: 2 }), EN, "en")).toBe("2 upcoming");
+    expect(rowValue("saved", facts({ saved: 1400 }), EN, "en")).toBe("1,400 saved");
+    expect(rowValue("inspections", facts({ openInspections: 1 }), EN, "en")).toBe("1 open");
   });
 
   it("counts open agreements, and never states a balance: Vallo holds no money", () => {
-    expect(rowValue("payments", facts({ openAgreements: 2 }), "en")).toBe("2 open");
-    expect(rowValue("payments", facts({ openAgreements: 0 }), "en")).toBeNull();
+    expect(rowValue("payments", facts({ openAgreements: 2 }), EN, "en")).toBe("2 open");
+    expect(rowValue("payments", facts({ openAgreements: 0 }), EN, "en")).toBeNull();
   });
 });
 
 describe("switchRoleLine: names only what the account holds", () => {
   it("never says admin to somebody who is not staff", () => {
-    expect(switchRoleLine([])).not.toMatch(/admin/);
-    expect(switchRoleLine([{ kind: "agent" }])).toBe("Change between user and agent");
-    expect(switchRoleLine([{ kind: "owner" }, { kind: "firm" }])).not.toMatch(/admin/);
+    expect(switchRoleLine([], EN)).not.toMatch(/admin/);
+    expect(switchRoleLine([{ kind: "agent" }], EN)).toBe("Change between user and agent");
+    expect(switchRoleLine([{ kind: "owner" }, { kind: "firm" }], EN)).not.toMatch(/admin/);
   });
 
   it("offers what can be applied for when nothing is held", () => {
-    expect(switchRoleLine([])).toBe("Add a workspace");
+    expect(switchRoleLine([], EN)).toBe("Add a workspace");
   });
 
   it("reads as the render only for an agent who is also staff", () => {
-    expect(switchRoleLine([{ kind: "agent" }, { kind: "console" }])).toBe(
+    expect(switchRoleLine([{ kind: "agent" }, { kind: "console" }], EN)).toBe(
       "Change between user, agent or admin",
     );
   });
 
   it("names a kind once however many are held", () => {
-    expect(switchRoleLine([{ kind: "firm" }, { kind: "firm" }])).toBe("Change between user and firm");
+    expect(switchRoleLine([{ kind: "firm" }, { kind: "firm" }], EN)).toBe("Change between user and firm");
   });
 });
 

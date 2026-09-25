@@ -4,7 +4,7 @@ import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { useBack } from "@/lib/nav/use-back";
-import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
  * Page header with the platform back flow.
@@ -75,7 +75,7 @@ export function PageHeader({
      itself, and it appears on every app screen. It reads the locale cookie
      directly because there is no server parent to hand it a dictionary and
      there are ~50 call sites; see the hook for why that is a last resort. */
-  const t = useClientDictionary();
+  const t = useClientCopy();
   const label = backLabel ?? t.common.back;
 
   const back = useBack(fallback);

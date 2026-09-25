@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import {
   GUARANTEE_SCOPE,
   GUARANTEE_SENTENCE,

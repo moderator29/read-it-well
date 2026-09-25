@@ -33,8 +33,13 @@ export function reachableNamespaces(root: string): Set<string> {
       const name = m[1] ?? m[2]!;
       if (NAMESPACES.has(name)) used.add(name);
     }
-    for (const m of source.matchAll(/from\s+["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g)) {
-      const next = resolve(m[1] ?? m[2]!, file);
+    /* Type-only imports are skipped: they are erased, so nothing behind them
+       can read a dictionary at run time. */
+    for (const m of source.matchAll(
+      /(?:^|\n)\s*(?:import|export)\s+(type\s)?[^;]*?from\s+["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g,
+    )) {
+      if (m[1]) continue;
+      const next = resolve(m[2] ?? m[3]!, file);
       if (next && !next.includes("/node_modules/")) queue.push(next);
     }
   }

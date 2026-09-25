@@ -1,4 +1,4 @@
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 
 /**
  * Kobo-exact money display.

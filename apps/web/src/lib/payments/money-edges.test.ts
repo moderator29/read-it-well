@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import { renderClient } from "@/lib/testing/render-client";
 import { nairaExact } from "./money";
 

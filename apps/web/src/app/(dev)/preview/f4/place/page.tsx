@@ -1,4 +1,4 @@
-import { formatNumber } from "@vallo/i18n";
+import { formatNumber } from "@vallo/i18n/core";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Feed } from "@/components/social/feed/Feed";

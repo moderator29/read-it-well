@@ -1,6 +1,6 @@
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ICON, TYPE } from "@/components/app/Screen";
-import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n";
+import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
 
 /**
  * The spec row.

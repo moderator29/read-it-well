@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { panelClass } from "@/components/ui/Panel";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";

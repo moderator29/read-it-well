@@ -5,7 +5,7 @@ import {
   localeFromAcceptLanguage,
   matchAcceptLanguage,
   parseAcceptLanguage,
-} from "@vallo/i18n";
+} from "@vallo/i18n/core";
 
 /**
  * `Accept-Language` negotiation.

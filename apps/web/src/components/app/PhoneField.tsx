@@ -2,8 +2,8 @@
 
 import { useId } from "react";
 import { maskNational, readPhone, type PhoneReading } from "@/lib/phone";
-import { countOf, type Locale } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { countOf, type Locale } from "@vallo/i18n/core";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
  * A Nigerian mobile number field.

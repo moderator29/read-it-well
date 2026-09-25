@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatNumber, type Locale } from "@vallo/i18n";
+import { formatNumber, type Locale } from "@vallo/i18n/core";
 import type { AreaDetail, AreaSummary } from "@/lib/social/areas-queries";
 import { AREA_COPY } from "@/lib/social/areas-schema";
 

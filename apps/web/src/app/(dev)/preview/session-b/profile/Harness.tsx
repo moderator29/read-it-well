@@ -95,7 +95,7 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
         }
         switchLine={switchRoleLine(
           v === "values" ? [{ kind: "agent" }, { kind: "console" }] : [],
-          "en",
+          getDictionary("en").socialProfile.accountPage,
         )}
         memberSince="September 2026"
       />

@@ -4,7 +4,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { countByStage, STAGES, type DeskStage, type Stage } from "@/lib/enquiry/stage";
-import { countOf, type Dictionary } from "@vallo/i18n";
+import { countOf, type Dictionary } from "@vallo/i18n/core";
 
 /**
  * The host inbox.
