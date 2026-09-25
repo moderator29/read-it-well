@@ -6,6 +6,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { MessageVenue } from "@/components/stays/MessageVenue";
 import { ListingAbout } from "./ListingAbout";
 import { ICON } from "@/components/app/Screen";
 
@@ -143,6 +144,12 @@ export type DetailHost = {
    * is never drawn. It is not a reason to hide the host.
    */
   messageHref?: string | null;
+  /**
+   * A hotel or restaurant with no listing row: the Message control opens the
+   * first-message sheet keyed on the BUSINESS instead (`MessageVenue`). Used
+   * only where `messageHref` is null; a listing-backed venue keeps its link.
+   */
+  messageVenue?: { businessId: string; venueName: string } | null;
   messageLabel: string;
 };
 
@@ -196,6 +203,15 @@ export function DetailAboutCard({
               )}
               <span className="nf-host-row__name">{host.name}</span>
             </span>
+            {!host.messageHref && host.messageVenue && (
+              <AuthGate action="message">
+                <MessageVenue
+                  businessId={host.messageVenue.businessId}
+                  venueName={host.messageVenue.venueName}
+                  label={host.messageLabel}
+                />
+              </AuthGate>
+            )}
             {host.messageHref && (
               <AuthGate action="message">
                 <ButtonLink

@@ -91,6 +91,8 @@ export type StayDetail = {
   businessKind?: string;
   /** The business's own name, for the host row on the About card. */
   hostName?: string | null;
+  /** The business behind the stay, so a guest can message it before booking. */
+  businessId?: string | null;
   /** True only where a human was checked (ledger rule 12). */
   hostVerified?: boolean;
   /**
