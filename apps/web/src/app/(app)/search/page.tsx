@@ -12,6 +12,8 @@ import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i1
 import { RealMap } from "@/components/app/search/RealMap";
 import { ShelfBar } from "@/components/app/search/ShelfBar";
 import { ShelfCount } from "@/components/app/search/ShelfCount";
+import { MapListPill } from "@/components/app/search/MapListPill";
+import { ResultsFade } from "@/components/app/search/ResultsFade";
 import {
   clearedShelf,
   parseShelfQuery,
@@ -24,6 +26,7 @@ import {
   shelfFilter,
   shelfPoolFilter,
   toShelfHref,
+  toShelfViewHref,
   type ShelfQuery,
 } from "@/components/app/search/shelf-query";
 import { getLocale } from "@/lib/locale";
@@ -523,7 +526,7 @@ export default async function SearchPage({
       )}
 
       {/* ------------------------------------------------------ results grid */}
-      {query.view === "list" && (
+      {query.view !== "map" && (
         <div className="mt-md">
           {listings.length === 0 ? (
             <>
@@ -594,10 +597,20 @@ export default async function SearchPage({
             <LastVisitProvider>
             {/* V-73: the first twenty cards drawn were seen. */}
             <RecordViews seen={listings.slice(0, 20).map((l) => l.id)} />
+            {/* Track M: while a filter, sort or view change is on its way
+                the current cards dim to 60 per cent; the new grid arrives
+                with the card entrance (ResultsFade.tsx). The `key` still
+                remounts the list per query, so nothing is reused wrongly. */}
+            <ResultsFade>
             <ul
               key={toShelfHref(query)}
               data-testid="results-grid"
-              className="grid grid-cols-2 gap-sm sm:gap-md lg:grid-cols-4"
+              data-view={query.view}
+              className={
+                query.view === "rows"
+                  ? "nf-results--rows grid grid-cols-1 gap-sm sm:gap-md lg:grid-cols-2"
+                  : "grid grid-cols-2 gap-sm sm:gap-md lg:grid-cols-4"
+              }
             >
               {listings.map((l, i) => (
                 <li key={l.id}>
@@ -606,7 +619,7 @@ export default async function SearchPage({
                     locale={locale}
                     t={t}
                     index={i}
-                    dense
+                    dense={query.view !== "rows"}
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
                     messageAgent
@@ -623,15 +636,26 @@ export default async function SearchPage({
                 </li>
               ))}
             </ul>
+            </ResultsFade>
             </LastVisitProvider>
           )}
         </div>
       )}
 
-      {query.view === "list" && listings.length > 0 && repo.isSeed && (
+      {query.view !== "map" && listings.length > 0 && repo.isSeed && (
         <p className="nf-caption mt-block text-center text-[var(--nf-content-muted)]">
           That is everything matching this search.
         </p>
+      )}
+
+      {/* Track M: the phone's quick switch between the results and the map,
+          floating above the dock. Hidden from 640px, where the toggle is on
+          the bar. */}
+      {(listings.length > 0 || query.view === "map") && (
+        <MapListPill
+          href={toShelfViewHref(query, query.view === "map" ? "list" : "map")}
+          to={query.view === "map" ? "list" : "map"}
+        />
       )}
     </>
   );

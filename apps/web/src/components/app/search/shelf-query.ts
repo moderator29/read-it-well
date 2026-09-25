@@ -64,7 +64,7 @@ export function toShelfFiltersHref(query: ShelfQuery): string {
 
 export function toShelfViewHref(query: ShelfQuery, view: ViewKey): string {
   const href = toShelfHref({ ...query, view });
-  if (view === "map") return href;
+  if (view !== "list") return href;
   return href.includes("?") ? `${href}&view=list` : `${href}?view=list`;
 }
 

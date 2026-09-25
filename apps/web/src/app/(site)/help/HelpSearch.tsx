@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { MotionReveal } from "@/components/motion/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 
@@ -67,19 +68,19 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
       {visible.length > 0 ? (
         <div className="mt-heading space-y-block">
           {categories.map((cat) => (
-            <section key={cat} aria-label={cat}>
+            <MotionReveal as="section" key={cat} aria-label={cat}>
               <h2 className="nf-overline mb-row">{cat}</h2>
               <div className="space-y-row">
                 {visible
                   .filter((f) => f.category === cat)
                   .map((f) => (
-                    <details key={f.q} className="nf-panel nf-panel--card group block p-0">
+                    <details key={f.q} className="nf-panel nf-panel--card nf-m-details group block p-0">
                       <summary className="flex cursor-pointer list-none items-center justify-between gap-row p-card-sm font-semibold leading-snug [&::-webkit-details-marker]:hidden">
                         {f.q}
                         <UiIcon
                           name="chevron-down"
-                          size={16}
-                          className="shrink-0 text-[var(--nf-content-muted)] transition-transform group-open:rotate-180"
+                          size={20}
+                          className="nf-m-chevron shrink-0 text-[var(--nf-content-muted)]"
                         />
                       </summary>
                       <p className="px-group pb-group text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)] sm:px-heading sm:pb-heading">
@@ -88,7 +89,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
                     </details>
                   ))}
               </div>
-            </section>
+            </MotionReveal>
           ))}
         </div>
       ) : (

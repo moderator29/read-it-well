@@ -107,7 +107,17 @@ export function sortBasisOf(sort: SortKey): SortBasis {
   return SORTS.find((entry) => entry.key === sort)?.basis ?? "mixed";
 }
 
-export type ViewKey = "list" | "map";
+/**
+ * How the shelf draws its results (Track M): `list` is the card grid it has
+ * always drawn and stays the default, so every address already out in the
+ * world means what it meant; `rows` is one wide card a row, for reading the
+ * figures side by side; `map` is the map.
+ */
+export type ViewKey = "list" | "rows" | "map";
+
+function readView(value: string | undefined): ViewKey {
+  return value === "map" || value === "rows" ? value : "list";
+}
 
 /** Singular and plural nouns per category, for honest result counts. */
 export const KIND_NOUN: Record<ListingKind, { one: string; many: string }> = {
@@ -401,7 +411,7 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
 
   const query: DiscoveryQuery = {
     sort,
-    view: readText(params.view) === "map" ? "map" : "list",
+    view: readView(readText(params.view)),
     amenities: readAmenities(params.amenities),
     instantBook: readFlag(params.instant),
     verifiedOnly: readFlag(params.verified),
@@ -506,7 +516,7 @@ export function toSearchHref(query: DiscoveryQuery): string {
   if (query.q) params.set("q", query.q);
   if (query.kind) params.set("type", query.kind);
   if (query.sort !== "recommended") params.set("sort", query.sort);
-  if (query.view === "map") params.set("view", "map");
+  if (query.view !== "list") params.set("view", query.view);
   if (query.minMinor !== undefined) params.set("min", String(koboToNaira(query.minMinor)));
   if (query.maxMinor !== undefined) params.set("max", String(koboToNaira(query.maxMinor)));
   if (query.bedrooms !== undefined) params.set("beds", String(query.bedrooms));
@@ -550,7 +560,7 @@ export function toSearchHref(query: DiscoveryQuery): string {
  */
 export function toViewHref(query: DiscoveryQuery, view: ViewKey): string {
   const href = toSearchHref({ ...query, view });
-  if (view === "map") return href;
+  if (view !== "list") return href;
   return href.includes("?") ? `${href}&view=list` : `${href}?view=list`;
 }
 

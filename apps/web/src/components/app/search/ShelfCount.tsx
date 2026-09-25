@@ -26,6 +26,11 @@ export function ShelfCount({
   t: Dictionary;
 }) {
   const copy = t.catalogue.shelf;
+  const viewHrefs = {
+    list: toShelfViewHref(query, "list"),
+    rows: toShelfViewHref(query, "rows"),
+    map: toShelfViewHref(query, "map"),
+  };
   const current = SORTS.find((sort) => sort.key === query.sort) ?? SORTS[0]!;
   const currentBasis = sortBasisOf(query.sort);
   const basis =
@@ -88,6 +93,18 @@ export function ShelfCount({
       {/* One control on the right, as the image draws it. The map view is
           the last item of the same menu rather than a second control that
           would push the count onto three lines at 390px. */}
+      <div className="nf-shelf-tools">
+      {/* Track M: from 640px the view toggle sits on the bar beside the sort,
+          with its sliding capsule; on a phone it stays the last item of the
+          sort menu, and the floating Map / List pill is the quick switch. */}
+      {(count > 0 || query.view !== "list") && (
+        <ViewToggle
+          current={query.view}
+          hrefs={viewHrefs}
+          compact
+          className="nf-viewtoggle--bar"
+        />
+      )}
       {(count > 1 || query.view === "map") && (
         <details className="nf-shelf-sort shrink-0" data-testid="sort-control">
           <summary>
@@ -113,11 +130,16 @@ export function ShelfCount({
               );
             })}
             <li className="mt-2xs border-t border-[var(--nf-panel-hair)] pt-2xs">
-              <ViewToggle current={query.view} hrefFor={(view) => toShelfViewHref(query, view)} />
+              <ViewToggle
+                current={query.view}
+                hrefs={viewHrefs}
+                className="nf-viewtoggle--menu"
+              />
             </li>
           </ul>
         </details>
       )}
+      </div>
     </div>
   );
 }

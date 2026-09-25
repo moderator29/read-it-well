@@ -34,7 +34,7 @@ export const VIEW_COOKIE = "nf_view";
 const VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export function isViewKey(value: string | undefined | null): value is ViewKey {
-  return value === "list" || value === "map";
+  return value === "list" || value === "rows" || value === "map";
 }
 
 /** Remember the view the person is actually looking at. Client only. */

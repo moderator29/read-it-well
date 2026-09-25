@@ -5,6 +5,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { photo } from "@/lib/site/photos";
+import { SectionHead } from "./SectionHead";
+import { Sweep } from "./Sweep";
 
 /**
  * The Stays band: the resort pool plate on the left, the copy and the six
@@ -27,7 +29,7 @@ export function StaysBand({ t }: { t: Dictionary }) {
     { href: "/restaurants", label: s.restaurants, icon: "concierge-bell" },
   ];
   return (
-    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-stays-title">
+    <section className="nf-shell nf-room" data-chapter="stays" aria-labelledby="nf-landing-stays-title">
       <Reveal>
         <div className="nf-landing-band">
           <div className="nf-landing-band-photo">
@@ -40,13 +42,10 @@ export function StaysBand({ t }: { t: Dictionary }) {
           </div>
           <div className="nf-landing-band-body">
             <div>
-              <span className="nf-overline text-[var(--nf-brand-secondary)]">{s.overline}</span>
-              <h2 id="nf-landing-stays-title" className="nf-h1 mt-row">
-                {s.title}
-              </h2>
-              <p className="nf-lede mt-group max-w-measure-lede">{s.body}</p>
+              <SectionHead id="nf-landing-stays-title" eyebrow={s.overline} title={s.title} lede={s.body} />
               <div className="mt-heading">
-                <ButtonLink href="/stays" variant="primary" size="md" trailingIcon="arrow-right">
+                <ButtonLink href="/stays" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
+                  <Sweep />
                   {s.cta}
                 </ButtonLink>
               </div>

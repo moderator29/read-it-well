@@ -6,6 +6,8 @@ import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import { photo, type PhotoName } from "@/lib/site/photos";
+import { SectionHead } from "./SectionHead";
+import { Sweep } from "./Sweep";
 
 /**
  * Explore by category: eight photo tiles linking to real searches.
@@ -41,6 +43,13 @@ import { photo, type PhotoName } from "@/lib/site/photos";
  * into a market, not a picture of one listing, so the objection `MediaFrame`
  * raises to a building on a plot does not apply here.
  */
+/**
+ * One micro-motion per tile (Track M), cycled so neighbours differ: the icon
+ * lifts, tilts, turns or drops, once on hover or focus. Transform only;
+ * static under reduced motion (landing-rooms.css).
+ */
+const CAT_MOTION = ["lift", "tilt", "turn", "drop"] as const;
+
 export function CategoryGrid({
   t,
   counts,
@@ -72,18 +81,15 @@ export function CategoryGrid({
   ];
 
   return (
-    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-cats-title">
+    <section className="nf-shell nf-room" data-chapter="categories" aria-labelledby="nf-landing-cats-title">
       <div className="nf-landing-split nf-landing-split--even">
         <Reveal className="flex flex-col gap-heading">
           <div>
-            <span className="nf-overline text-[var(--nf-brand-secondary)]">{c.overline}</span>
-            <h2 id="nf-landing-cats-title" className="nf-h1 mt-row max-w-measure-display">
-              {c.title}
-            </h2>
-            <p className="nf-lede mt-group max-w-measure-lede">{c.body}</p>
+            <SectionHead id="nf-landing-cats-title" eyebrow={c.overline} title={c.title} lede={c.body} />
           </div>
           <div>
-            <ButtonLink href="/start" variant="primary" size="md" trailingIcon="arrow-right">
+            <ButtonLink href="/start" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
+              <Sweep />
               {c.join}
             </ButtonLink>
           </div>
@@ -101,7 +107,7 @@ export function CategoryGrid({
                     sizes="(max-width: 640px) 45vw, (max-width: 1024px) 50vw, 200px"
                   />
                   <span className="nf-landing-cat-body">
-                    <span className="nf-landing-cat-icon">
+                    <span className="nf-landing-cat-icon" data-motion={CAT_MOTION[i % CAT_MOTION.length]}>
                       <BrandIcon name={tile.icon} fill />
                     </span>
                     <span className="min-w-0">

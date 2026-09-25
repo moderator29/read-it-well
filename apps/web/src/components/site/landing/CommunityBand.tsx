@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Dictionary, Locale } from "@vallo/i18n";
-import { formatNumber } from "@vallo/i18n";
+import { intlTag } from "@vallo/i18n";
+import { CountUp } from "@/components/motion/CountUp";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import type { MiniListing } from "@/lib/site/listing-card";
@@ -8,6 +9,8 @@ import { photo } from "@/lib/site/photos";
 import type { PlatformStats } from "@/lib/platform-stats";
 import { ListingMini } from "./ListingMini";
 import { statTiles } from "./stat-tiles";
+import { SectionHead } from "./SectionHead";
+import { Sweep } from "./Sweep";
 
 /**
  * The community band: copy and three honest figures on the left, the
@@ -36,39 +39,29 @@ export function CommunityBand({
   const figures = statTiles(stats, t).slice(0, 3);
 
   return (
-    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-community-title">
+    <section className="nf-shell nf-room" data-chapter="community" aria-labelledby="nf-landing-community-title">
       <div className="nf-landing-split nf-landing-split--even">
         <Reveal className="flex flex-col gap-heading">
           <div>
-            <span className="nf-overline text-[var(--nf-brand-secondary)]">{c.overline}</span>
-            <h2 id="nf-landing-community-title" className="nf-h1 mt-row max-w-measure-display">
-              {/* Double-bracketed phrases take the brand ink, as the render
-                  sets them. A locale whose translation carries no brackets
-                  renders as one white line, which is the honest fallback. */}
-              {c.title.split(/\[\[(.+?)\]\]/g).map((part, i) =>
-                i % 2 === 1 ? (
-                  <span key={`${part}-${i}`} className="nf-landing-hl">
-                    {part}
-                  </span>
-                ) : (
-                  part
-                ),
-              )}
-            </h2>
-            <p className="nf-lede mt-group max-w-measure-lede">{c.body}</p>
+            <SectionHead id="nf-landing-community-title" eyebrow={c.overline} title={c.title} lede={c.body} />
           </div>
           {figures.length > 0 && (
             <ul className="nf-landing-figures">
               {figures.map((f) => (
                 <li key={f.key} className="nf-landing-figure">
-                  <strong className="nf-numeric">{formatNumber(f.value, locale)}</strong>
+                  {/* The platform's own figure, counted up once on arrival
+                      (CountUp.tsx). The server prints the final number. */}
+                  <strong>
+                    <CountUp value={f.value} tag={intlTag[locale]} />
+                  </strong>
                   <span>{f.label}</span>
                 </li>
               ))}
             </ul>
           )}
           <div>
-            <ButtonLink href="/start" variant="primary" size="md" trailingIcon="arrow-right">
+            <ButtonLink href="/start" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
+              <Sweep />
               {c.join}
             </ButtonLink>
           </div>

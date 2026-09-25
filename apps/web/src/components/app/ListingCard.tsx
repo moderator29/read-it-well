@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -24,6 +23,7 @@ import { useLastVisit } from "@/components/app/search/LastVisit";
 import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
 import { unitLine } from "@/lib/listings/unit-shape";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
+import { CardPhotos } from "@/components/app/search/CardPhotos";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 
 /**
@@ -125,6 +125,20 @@ export function ListingCard({
 }) {
   const router = useRouter();
   const photo = listing.photos[0];
+  /* Track M: several photographs swipe (CardPhotos.tsx); the arrows drawn
+     outside the link scroll the same track on a pointer. */
+  const photoTrack = useRef<HTMLDivElement | null>(null);
+  const [photoAt, setPhotoAt] = useState(0);
+  const photoCount = Math.min(listing.photos.length, 5);
+  const stepPhoto = (dir: -1 | 1) => {
+    const track = photoTrack.current;
+    if (!track) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    track.scrollBy({ left: dir * track.clientWidth, behavior: reduce ? "auto" : "smooth" });
+  };
+  /* The heart pops on the tap that saves, never on a page that loads with
+     it already filled. */
+  const [heartPop, setHeartPop] = useState(false);
   /*
    * WHERE THIS OPENS IS DECIDED BY WHAT THE LISTING IS, not by a prop.
    *
@@ -296,14 +310,40 @@ export function ListingCard({
         <SaveButton
           saved={save.saved}
           pending={save.pending}
-          onToggle={save.toggle}
+          onToggle={() => {
+            setHeartPop(true);
+            save.toggle();
+          }}
           title={listing.title}
           surface="media"
+          className={heartPop ? "nf-heart-pop" : undefined}
         />
         {intent !== undefined && tunableKind && (
           <IntentTune type={tunableKind} t={t} interests={intent} />
         )}
       </div>
+      {photoCount > 1 && (
+        <div className="nf-pcard__photonav" data-theme="dark">
+          <button
+            type="button"
+            className="nf-pcard__photobtn"
+            aria-label={`Previous photo of ${listing.title}`}
+            disabled={photoAt === 0}
+            onClick={() => stepPhoto(-1)}
+          >
+            <UiIcon name="arrow-left" size={16} />
+          </button>
+          <button
+            type="button"
+            className="nf-pcard__photobtn"
+            aria-label={`Next photo of ${listing.title}`}
+            disabled={photoAt >= photoCount - 1}
+            onClick={() => stepPhoto(1)}
+          >
+            <UiIcon name="arrow-right" size={16} />
+          </button>
+        </div>
+      )}
       {save.note && (
         <p
           role="status"
@@ -320,7 +360,7 @@ export function ListingCard({
         onPointerDown={warm}
         onPointerEnter={warm}
         onFocus={warm}
-        className="flex h-full flex-col"
+        className="nf-pcard__link"
       >
         <div
           className="nf-pcard__media"
@@ -336,12 +376,11 @@ export function ListingCard({
               sizes={wide ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
             />
             {photo && (
-              <Image
-                src={photo}
-                alt=""
-                fill
+              <CardPhotos
+                photos={listing.photos}
                 sizes={wide ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
-                className="object-cover"
+                trackRef={photoTrack}
+                onIndex={setPhotoAt}
               />
             )}
           </div>
