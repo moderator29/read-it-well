@@ -112,7 +112,8 @@ describe("where the Record is drawn", () => {
 
   it("sits under the listing's agent card, on the supplier page and in the thread header", () => {
     expect(read("app/(app)/listing/[id]/page.tsx")).toContain("<ValloRecord record={record}");
-    expect(read("app/(app)/listing/[id]/page.tsx")).toContain("listing.isDemo ? null : await readListingRecord(listing.id)");
+    /* Read with the page's other reads, in parallel, and skipped on an example listing. */
+    expect(read("app/(app)/listing/[id]/page.tsx")).toContain("listing.isDemo ? Promise.resolve(null) : readListingRecord(listing.id)");
     expect(read("app/(app)/u/[handle]/page.tsx")).toContain("readUserRecord(userId)");
     expect(read("app/(app)/messages/[id]/page.tsx")).toContain("await readThreadRecord(id)");
     expect(read("app/(app)/messages/[id]/ThreadView.tsx")).toContain('data-testid="thread-record"');
