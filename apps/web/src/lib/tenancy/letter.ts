@@ -57,7 +57,7 @@ export function demandLetter(facts: LetterFacts, personal?: string | null): { su
   }
   lines.push(
     "",
-    `Please pay ${facts.outstanding} to my Vallo wallet from the tenancy file, or send me an itemised statement of any further deduction with the evidence for it, by ${facts.respondBy}.`,
+    `Please return ${facts.outstanding} to me as our tenancy agreement provides, or send me an itemised statement of any further deduction with the evidence for it, by ${facts.respondBy}.`,
   );
   if (facts.verifyUrl) {
     lines.push("", `You can look the payment up at ${facts.verifyUrl} with the receipt code I can give you.`);

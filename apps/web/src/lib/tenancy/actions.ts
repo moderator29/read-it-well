@@ -42,7 +42,7 @@ const STATUS_WORDS: Record<string, string> = {
   void: "This tenancy was cancelled or refunded, so no caution is owed on it.",
   not_ended: "Deductions open once the tenancy has ended.",
   already_returned: "That return has already gone through. It is on the record below.",
-  insufficient: "There is not enough in your wallet for this amount.",
+  insufficient: "Vallo does not move money between people.",
   no_such_file: "That photo did not finish uploading. Upload it again.",
   bad_stage: "That report does not exist.",
   not_paid: "The tenancy file opens when the move-in payment has settled.",

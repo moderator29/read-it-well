@@ -46,7 +46,7 @@ export const CANCELLATION_STOPS: CancellationStop[] = [
     refundBasisPoints: 10_000,
     label: "Everything back",
     detail:
-      "Cancel more than 72 hours before check-in and the full amount you paid returns to your Vallo wallet the moment the cancellation is decided, and never later than five Nigerian business days after you ask.",
+      "Cancel more than 72 hours before check-in and the full amount you paid goes back to the card or account you paid with. Support decides within five Nigerian business days of your ask.",
   },
   {
     tier: "half",

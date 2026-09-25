@@ -59,7 +59,7 @@ const GREETING =
 const STARTERS = [
   "Where is my booking?",
   "How do cancellations work?",
-  "What is my wallet balance?",
+  "Where does my money go when I pay?",
   "How do I list my property?",
 ];
 

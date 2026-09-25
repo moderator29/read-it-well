@@ -34,7 +34,7 @@ const WORDS: Record<string, string> = {
   already_added: "That person already has a share on this move-in.",
   declined_before: "That person declined a share of this move-in, so they cannot be asked again.",
   already_paid: "That share has already been paid.",
-  insufficient: "There is not enough in your wallet for this.",
+  insufficient: "Vallo does not move money between people.",
   not_accepted: "Accept the share first, then pay it.",
   not_open: "This move-in can no longer take shares: it has been paid, cancelled or refunded.",
   rate_limited: "You have invited a lot of people today. Try again tomorrow.",
