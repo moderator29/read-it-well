@@ -126,7 +126,7 @@ export function ShowMePanel({
         {role === "guest" && canAsk && (
           <button
             type="button"
-            className="nf-btn nf-btn--secondary nf-btn--sm min-h-11"
+            className="nf-btn nf-btn--glass nf-btn--sm min-h-11"
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
             data-testid="show-me-open"
@@ -165,7 +165,7 @@ export function ShowMePanel({
             <button
               type="button"
               disabled={pending || other.trim().length < 3}
-              className="nf-btn nf-btn--secondary nf-btn--sm min-h-11"
+              className="nf-btn nf-btn--glass nf-btn--sm min-h-11"
               onClick={() => ask("other")}
             >
               {copy.send}
@@ -194,7 +194,7 @@ export function ShowMePanel({
                     {saver && !played.includes(request.id) ? (
                       <button
                         type="button"
-                        className="nf-btn nf-btn--secondary nf-btn--sm mt-xs min-h-11"
+                        className="nf-btn nf-btn--glass nf-btn--sm mt-xs min-h-11"
                         onClick={() => setPlayed((ids) => [...ids, request.id])}
                         data-testid="show-me-play"
                       >

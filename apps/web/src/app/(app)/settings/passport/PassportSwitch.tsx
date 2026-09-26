@@ -34,7 +34,7 @@ export function PassportSwitch({
         type="button"
         onClick={flip}
         disabled={pending}
-        className={`nf-btn ${enabled ? "nf-btn--secondary" : "nf-btn--primary"} min-h-[44px] w-full`}
+        className={`nf-btn ${enabled ? "nf-btn--glass" : "nf-btn--primary"} min-h-[44px] w-full`}
       >
         {pending ? copy.working : enabled ? copy.turnOff : copy.turnOn}
       </button>

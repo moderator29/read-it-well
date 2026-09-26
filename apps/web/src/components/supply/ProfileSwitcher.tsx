@@ -341,7 +341,7 @@ export function ProfileSwitcher({
               setOpen(false);
               flipApi.flip(otherSide(side));
             }}
-            className="nf-btn nf-btn--secondary nf-btn--full mb-sm"
+            className="nf-btn nf-btn--glass nf-btn--full mb-sm"
             data-testid="switcher-side-flip"
           >
             {side === "stays" ? t.side.switchToProperty : t.side.switchToStays}

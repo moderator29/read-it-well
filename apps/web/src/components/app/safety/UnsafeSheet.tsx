@@ -137,7 +137,7 @@ export function UnsafeSheet({
                 type="button"
                 disabled={pending}
                 onClick={() => file(true)}
-                className="nf-btn nf-btn--secondary w-full min-h-[44px]"
+                className="nf-btn nf-btn--glass w-full min-h-[44px]"
                 data-testid="unsafe-leave"
               >
                 {pending ? copy.working : copy.leave}
@@ -148,7 +148,7 @@ export function UnsafeSheet({
                 type="button"
                 disabled={pending}
                 onClick={() => file(false)}
-                className="nf-btn nf-btn--secondary w-full min-h-[44px]"
+                className="nf-btn nf-btn--glass w-full min-h-[44px]"
                 data-testid="unsafe-tell"
               >
                 {pending ? copy.working : copy.tell}

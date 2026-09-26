@@ -37,7 +37,11 @@ export function PassportShareRow({
 
   return (
     <div className="mt-md grid gap-2xs" data-testid="passport-share">
-      <button type="button" onClick={flip} disabled={pending} className="nf-btn nf-btn--secondary min-h-[44px] w-full">
+      {/* `nf-btn--glass` is what `<Button variant="secondary">` renders. The
+          class written here was a "secondary" modifier no stylesheet defines,
+          so the button drew no surface, only the bare button's sheen: a bar
+          over an invisible box (`button-classes.test.ts`). */}
+      <button type="button" onClick={flip} disabled={pending} className="nf-btn nf-btn--glass min-h-[44px] w-full">
         {pending ? copy.working : shared ? copy.unshare : copy.share}
       </button>
       <p className="nf-caption text-[var(--nf-content-muted)]" role="status">
