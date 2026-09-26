@@ -77,17 +77,45 @@ export const localeMeta: Record<
 };
 
 /**
- * BCP 47 tags. Yoruba, Hausa and Igbo all resolve to Nigeria, which is what
- * `Intl` needs for correct number and date grouping.
- */
-/**
- * BCP 47 tags for Intl. Exported because the `<Amount>` primitive builds money
- * from `formatToParts` rather than a formatted string, and it must resolve the
- * same tag this file does. A second private copy would drift, which is exactly
- * how the naira sign ended up hard-coded in five places disagreeing with each
- * other about whether ha-NG puts a space after the symbol.
+ * THE TAG EVERY FORMATTER ASKS OF, AND WHY IT IS en-NG FOR EVERY LOCALE.
+ *
+ * Chromium carries no locale data for Yoruba, Hausa or Igbo. Asked for yo-NG
+ * it quietly formats in the phone's own language instead: "Sep 25, 2026" on a
+ * phone set to American English, "4 500 000 ₦" on one set to French,
+ * "4.500.000 ₦" in German, Arabic-Indic digits in Arabic. Node, which renders
+ * the server's HTML, carries all of CLDR and writes "25 Oṣù Owewe 2026" and
+ * "₦4,500,000". So on a Yoruba, Hausa or Igbo page the server and the browser
+ * wrote every price, date and short figure differently, and each one was a
+ * hydration mismatch: React threw the server's HTML away and drew the page
+ * again, and the reader watched the page change under them.
+ *
+ * en-NG is carried by every engine and writes the same thing in all of them,
+ * so every locale formats with it: "₦4,500,000", "₦45k", "₦1.2b", "25 Sept
+ * 2026". For numbers and money that is exactly what Node wrote for yo-NG,
+ * ha-NG and ig-NG anyway. What changes is the words: month and weekday names,
+ * and the letter after a short figure (Hausa wrote thousands "D" for dubu,
+ * Yoruba and Igbo wrote a billion "G"), which Chrome never showed. Month names
+ * in the reader's language can come back as words the locale files carry,
+ * once a native speaker supplies them, rather than as whatever one engine
+ * happens to ship. `portable-intl.test.ts` holds the line.
+ *
+ * Exported because the `<Amount>` primitive builds money from `formatToParts`
+ * and must ask the same tag this file does; a second private copy would
+ * drift, which is how the naira sign once ended up hard-coded in five places.
  */
 export const intlTag: Record<Locale, string> = {
+  en: "en-NG",
+  yo: "en-NG",
+  ha: "en-NG",
+  ig: "en-NG",
+};
+
+/**
+ * Plural rules are the one piece of Yoruba, Hausa and Igbo every engine
+ * carries, and they agree: Hausa has one and other, Yoruba and Igbo only
+ * other. So counted phrases keep the reader's own rules.
+ */
+export const pluralTag: Record<Locale, string> = {
   en: "en-NG",
   yo: "yo-NG",
   ha: "ha-NG",
@@ -95,21 +123,24 @@ export const intlTag: Record<Locale, string> = {
 };
 
 /**
+ * Dates are written on Lagos time unless a caller says otherwise. The server
+ * runs on UTC and a phone runs on its own zone, so a date formatted in
+ * "whatever zone this is" is written one way by the server and another by the
+ * browser for the hour either side of midnight, every night, and a time of
+ * day is written differently all day.
+ */
+export const LAGOS_TIME_ZONE = "Africa/Lagos";
+
+/**
  * THE NAIRA SIGN, THE SAME ON THE SERVER AND IN EVERY BROWSER.
  *
- * Engines disagree about Nigeria's languages. Node's ICU writes the naira
- * sign for yo-NG, ha-NG and ig-NG; Chromium's trimmed locale data has no
- * sign for them and writes "NGN 4,500,000"; and Node puts a space after the
- * sign in ha-NG where Chromium does not. The server renders with one and the
- * browser hydrates with the other, so every price on a Yoruba, Hausa or Igbo
- * page was a hydration mismatch: React threw the server's HTML away, drew the
- * page again in the browser, and the reader watched "₦" turn into "NGN".
- *
- * `narrowSymbol` asks for the sign itself, which every engine carries for
- * NGN, and a space beside the sign is dropped, as Nigerian writing does
- * ("₦4,500,000"). English output is unchanged. `formatMoney` and the
- * `<Amount>` primitive both build money from these parts, so they cannot
- * disagree.
+ * Money is asked of `intlTag` (en-NG for every locale; it says why) with
+ * `narrowSymbol`, which asks for the sign itself, and a space beside the sign
+ * is dropped, as Nigerian writing does ("₦4,500,000"). The space rule dates
+ * from when Hausa money was asked of ha-NG, which Node spaced ("₦ 4,500,000")
+ * and Chrome did not; it stays so that no tag can bring the space back.
+ * `formatMoney` and the `<Amount>` primitive both build money from these
+ * parts, so they cannot disagree.
  */
 export function moneyParts(
   major: number,
@@ -171,9 +202,9 @@ export function formatMoney(
      * exactly the scale asked for. The suffix is then lowered because that is
      * how naira is written in Nigeria: ₦45k, ₦1.2m, never ₦45K.
      *
-     * Hausa abbreviates thousands as "D" for dubu and is lowered by the same
-     * rule. That reads correctly, but it sits inside the same native review
-     * the locale files are already waiting on.
+     * Hausa abbreviates thousands as "D" for dubu, but only in engines that
+     * carry Hausa, so the server wrote "₦45d" and Chrome "₦45k" (see
+     * `intlTag`). Every locale now writes the short figure the en-NG way.
      */
     /*
      * ONE FRACTION DIGIT, ALWAYS, because compact notation left alone keeps
@@ -278,7 +309,7 @@ const pluralRules = new Map<Locale, Intl.PluralRules>();
 export function rulesFor(locale: Locale): Intl.PluralRules {
   const cached = pluralRules.get(locale);
   if (cached) return cached;
-  const built = new Intl.PluralRules(intlTag[locale]);
+  const built = new Intl.PluralRules(pluralTag[locale]);
   pluralRules.set(locale, built);
   return built;
 }
@@ -294,11 +325,12 @@ export function rulesFor(locale: Locale): Intl.PluralRules {
  * exactly two forms. Some of the pairs were then only half wired, which is how
  * an admin reading a stay for one adult was told there were "1 adults".
  *
- * The categories come from CLDR through `Intl`, resolved with the same
- * `intlTag` map `formatMoney` uses, so this is driven by the locale rather than
- * by an assumption about it. English and Hausa select `one` or `other`; Yoruba
- * and Igbo have a single category and fall on `other` for every count,
- * including one, which is correct for both languages rather than a shortcut.
+ * The categories come from CLDR through `Intl`, resolved with `pluralTag`
+ * (the reader's own language, which every engine carries for plural rules),
+ * so this is driven by the locale rather than by an assumption about it.
+ * English and Hausa select `one` or `other`; Yoruba and Igbo have a single
+ * category and fall on `other` for every count, including one, which is
+ * correct for both languages rather than a shortcut.
  *
  * `other` is the fallback for a category the dictionary has not filled in, so a
  * half-translated entry degrades to a readable phrase instead of an empty span.
@@ -390,6 +422,10 @@ export function formatRating(
   });
 }
 
+/**
+ * A date in words, the same from the server and from every phone: asked of
+ * `intlTag`, and on Lagos time unless the options name another zone.
+ */
 export function formatDate(
   date: Date,
   locale: Locale = DEFAULT_LOCALE,
@@ -399,5 +435,8 @@ export function formatDate(
     year: "numeric",
   }
 ): string {
-  return new Intl.DateTimeFormat(intlTag[locale], options).format(date);
+  return new Intl.DateTimeFormat(intlTag[locale], {
+    timeZone: LAGOS_TIME_ZONE,
+    ...options,
+  }).format(date);
 }

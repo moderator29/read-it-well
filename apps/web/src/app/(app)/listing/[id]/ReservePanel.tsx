@@ -49,13 +49,14 @@ const STAY_LENGTHS: { label: string; nights: number }[] = [
  * Built from the ISO string with a midday anchor rather than `new Date(iso)`,
  * which parses as UTC and can land on the previous day for anyone west of
  * Greenwich - a booking app that labels tomorrow as today is worse than one
- * that shows a raw date.
+ * that shows a raw date. The anchor is midday UTC, read in UTC, so the server
+ * and every phone name the same day.
  */
 function quickDateLabel(iso: string, todayIso: string): string {
   if (iso === todayIso) return "Today";
   if (iso === addDaysIso(todayIso, 1)) return "Tomorrow";
-  const d = new Date(`${iso}T12:00:00`);
-  return d.toLocaleDateString("en-NG", { weekday: "short", day: "numeric" });
+  const d = new Date(`${iso}T12:00:00Z`);
+  return d.toLocaleDateString("en-NG", { weekday: "short", day: "numeric", timeZone: "UTC" });
 }
 
 /**

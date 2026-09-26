@@ -213,7 +213,7 @@ function capacityOf(listing: Listing): number | null {
 function dateLabel(iso: string, locale: Locale): string {
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) return iso;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-NG" : undefined, {
+  return new Intl.DateTimeFormat(intlTag[locale], {
     day: "numeric",
     month: "long",
     year: "numeric",

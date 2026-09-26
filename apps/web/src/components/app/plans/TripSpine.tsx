@@ -55,10 +55,11 @@ function lagosDate(iso: string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date(iso));
 }
 
-function tableWhen(iso: string, locale: Locale): string {
+/** British order in every locale: dates are written in English words (`intlTag`). */
+function tableWhen(iso: string): string {
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) return iso;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : undefined, {
+  return new Intl.DateTimeFormat("en-GB", {
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -117,7 +118,7 @@ export function TripSpine({
     cancelled: reservation.status === "CANCELLED",
     title: reservation.listingTitle,
     where: reservation.location,
-    when: tableWhen(reservation.reservedFor, locale),
+    when: tableWhen(reservation.reservedFor),
     meta: plural(reservation.partySize, t.counts.guests, locale),
     href: reservation.conversationId
       ? `/messages/${reservation.conversationId}`

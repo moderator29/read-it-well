@@ -263,10 +263,13 @@ export async function getProfileMediaGrid(userId: string): Promise<MediaTile[]> 
 /**
  * "May 2025", for a joined line and a review date.
  *
- * The tag comes from `intlTag` rather than being hard-coded to en-GB, because
- * "Joined March 2024" translated to Yoruba with an English month in the middle
- * of it is a sentence in two languages. Node carries full ICU here, so yo-NG,
- * ha-NG and ig-NG each give their own month names.
+ * This used to ask yo-NG, ha-NG and ig-NG, so that "Joined March 2024" in
+ * Yoruba did not carry an English month. Node gave Yoruba, Hausa and Igbo
+ * month names, but Chrome has none and writes the phone's own language, so
+ * the same page wrote a date one way on the server and another in the
+ * browser. Every date on the platform is now written the en-NG way in every
+ * locale (`intlTag` in @vallo/i18n/core says why), and the month in the
+ * reader's language comes back when the locale files carry it.
  *
  * The locale is optional and English is the default deliberately: the review
  * date this also formats is read from a server module that has no request

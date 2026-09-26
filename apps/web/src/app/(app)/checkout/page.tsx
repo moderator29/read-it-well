@@ -93,7 +93,7 @@ export default async function RoomCheckoutPage({
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkIn}</dt>
                 <dd className={`text-right ${TYPE.rowTitle}`}>
-                  <span className="nf-numeric">{stayDateLabel(checkIn, locale) ?? checkIn}</span>
+                  <span className="nf-numeric">{stayDateLabel(checkIn) ?? checkIn}</span>
                 </dd>
               </div>
             )}
@@ -101,7 +101,7 @@ export default async function RoomCheckoutPage({
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkOut}</dt>
                 <dd className={`text-right ${TYPE.rowTitle}`}>
-                  <span className="nf-numeric">{stayDateLabel(checkOut, locale) ?? checkOut}</span>
+                  <span className="nf-numeric">{stayDateLabel(checkOut) ?? checkOut}</span>
                 </dd>
               </div>
             )}

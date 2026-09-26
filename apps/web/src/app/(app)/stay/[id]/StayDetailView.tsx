@@ -240,13 +240,13 @@ export function StayDetailView({
     {
       key: "check-in",
       label: catalogue.checkIn,
-      value: dateLabel(checkIn, locale) ?? detailCopy.selectDate,
+      value: dateLabel(checkIn) ?? detailCopy.selectDate,
       href: datesHref,
     },
     {
       key: "check-out",
       label: catalogue.checkOut,
-      value: dateLabel(checkOut, locale) ?? detailCopy.selectDate,
+      value: dateLabel(checkOut) ?? detailCopy.selectDate,
       href: datesHref,
     },
     {

@@ -89,10 +89,10 @@ const CONTROL_INDENT = "nf-insp-row__controls";
 function whenLine(value: string, locale: Locale): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return `${formatDate(date, locale, { weekday: "short", day: "numeric", month: "short" })}, ${date.toLocaleTimeString(
-    locale,
-    { hour: "numeric", minute: "2-digit", timeZone: "Africa/Lagos" },
-  )}`;
+  return `${formatDate(date, locale, { weekday: "short", day: "numeric", month: "short" })}, ${formatDate(date, locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  })}`;
 }
 
 export function InspectionRows({

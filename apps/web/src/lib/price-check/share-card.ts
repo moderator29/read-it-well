@@ -1,4 +1,4 @@
-import { formatMoneyGlance, type Locale } from "@vallo/i18n/core";
+import { formatMoneyGlance, LAGOS_TIME_ZONE, intlTag, type Locale } from "@vallo/i18n/core";
 import { publicAreaName } from "../share/public-text";
 import { SHARE_CARD_FOOTER } from "./disclaimer";
 import type { AreaShare, ListingPropertyType } from "./types";
@@ -102,9 +102,10 @@ export function shareMonth(iso: string | null, locale: Locale): string | null {
   if (iso === null || iso === "") return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-NG" : locale, {
+  return new Intl.DateTimeFormat(intlTag[locale], {
     month: "long",
     year: "numeric",
+    timeZone: LAGOS_TIME_ZONE,
   }).format(date);
 }
 

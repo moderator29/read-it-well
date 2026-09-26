@@ -1,6 +1,6 @@
 import { Amount } from "@/components/ui/Amount";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
-import type { Locale } from "@vallo/i18n/core";
+import { LAGOS_TIME_ZONE, intlTag, type Locale } from "@vallo/i18n/core";
 import { factLabel } from "@/lib/price-check/facts-labels";
 import type { AreaAskingRow, AreaCensus, AreaUtilityFacts } from "@/lib/price-check/types";
 
@@ -75,9 +75,10 @@ function monthYear(iso: string, locale: Locale): string {
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(locale === "en" ? "en-NG" : locale, {
+  return new Intl.DateTimeFormat(intlTag[locale], {
     month: "long",
     year: "numeric",
+    timeZone: LAGOS_TIME_ZONE,
   }).format(date);
 }
 

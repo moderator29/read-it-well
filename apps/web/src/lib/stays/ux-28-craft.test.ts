@@ -18,10 +18,10 @@ describe("flow craft", () => {
   });
 
   it("(b) checkout shows 'Sat 10 Oct', not an ISO date", () => {
-    expect(stayDateLabel("2026-10-10", "en")).toBe("Sat 10 Oct");
+    expect(stayDateLabel("2026-10-10")).toBe("Sat 10 Oct");
     const checkout = src("app/(app)/checkout/page.tsx");
-    expect(checkout).toContain("stayDateLabel(checkIn, locale)");
-    expect(checkout).toContain("stayDateLabel(checkOut, locale)");
+    expect(checkout).toContain("stayDateLabel(checkIn)");
+    expect(checkout).toContain("stayDateLabel(checkOut)");
   });
 
   it("(c) sign-in does not apply the sign-up length rule", () => {

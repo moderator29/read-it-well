@@ -158,6 +158,7 @@ export function StandingDesk({
                       day: "numeric",
                       month: "short",
                       year: "numeric",
+                      timeZone: "Africa/Lagos",
                     })}
                   </span>
                 </div>

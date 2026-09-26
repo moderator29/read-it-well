@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, intlTag, type Locale } from "@vallo/i18n";
 import { resolveSession } from "@/lib/actions/session";
 
 /**
@@ -14,7 +14,7 @@ function monthYear(iso: unknown, locale: Locale): string | null {
   if (typeof iso !== "string") return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-NG" : locale, { month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(date);
+  return new Intl.DateTimeFormat(intlTag[locale], { month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(date);
 }
 
 export async function LastLetLine({ listingId, locale }: { listingId: string; locale: Locale }) {

@@ -55,10 +55,12 @@ function dayLabel(iso: string, todayIso: string): string {
   if (iso === lagosDayIso(1)) return "Tomorrow";
   /* Midday rather than midnight, because `new Date("2026-08-09")` parses as
      UTC and renders as the previous day for anybody west of Greenwich. A
-     booking form that labels tomorrow as today is worse than a raw date. */
-  return new Date(`${iso}T12:00:00`).toLocaleDateString("en-NG", {
+     booking form that labels tomorrow as today is worse than a raw date.
+     Midday UTC, read in UTC, so the server and every phone name the same day. */
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-NG", {
     weekday: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 }
 

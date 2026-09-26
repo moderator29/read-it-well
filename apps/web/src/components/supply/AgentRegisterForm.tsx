@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoney, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { TYPE } from "@/components/app/Screen";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -114,7 +114,7 @@ export function AgentRegisterForm({
 
   const percent = useMemo(
     () =>
-      new Intl.NumberFormat(locale === "en" ? "en-NG" : locale, {
+      new Intl.NumberFormat(intlTag[locale], {
         style: "percent",
         maximumFractionDigits: 2,
       }),

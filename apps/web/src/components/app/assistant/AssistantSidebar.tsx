@@ -24,23 +24,24 @@ export const LANGUAGES = ["English", "Pidgin", "Hausa", "Igbo", "Yoruba"] as con
 export type Tone = (typeof TONES)[number];
 export type Language = (typeof LANGUAGES)[number];
 
+/* On the Lagos clock, like the chat's own timestamps: the server runs on UTC
+   and a phone on its own zone, so an unzoned time is written two ways. */
 const timeOfDay = new Intl.DateTimeFormat("en-GB", {
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: "Africa/Lagos",
 });
 const dayOfYear = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
+  timeZone: "Africa/Lagos",
 });
+const lagosDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" });
 
 /** Clock time for today's activity, a short date for anything older. */
 function whenLabel(timestamp: number): string {
   const then = new Date(timestamp);
-  const now = new Date();
-  const sameDay =
-    then.getFullYear() === now.getFullYear() &&
-    then.getMonth() === now.getMonth() &&
-    then.getDate() === now.getDate();
+  const sameDay = lagosDay.format(then) === lagosDay.format(new Date());
   return sameDay ? timeOfDay.format(then) : dayOfYear.format(then);
 }
 

@@ -193,7 +193,6 @@ export default async function PlansPage({
           <ComingUp
             groups={upcoming}
             copy={copy}
-            locale={locale}
             partial={unavailable || asked.readFailed || shown.readFailed}
           />
 

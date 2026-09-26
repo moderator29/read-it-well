@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { publicPlace } from "@/lib/after-gate/public-place";
-import { formatMoney, getDictionary } from "@vallo/i18n";
+import { formatMoney, getDictionary, intlTag } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { verifyReceiptCode } from "@/lib/receipts/verify";
 import { formatReceiptCode, normaliseReceiptCode } from "@/lib/receipts/code";
@@ -61,7 +61,7 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
   }
 
   const receipt = outcome.receipt;
-  const month = new Intl.DateTimeFormat(locale === "en" ? "en-NG" : locale, {
+  const month = new Intl.DateTimeFormat(intlTag[locale], {
     month: "long",
     year: "numeric",
     timeZone: "Africa/Lagos",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary, Locale } from "@vallo/i18n/core";
+import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Section, TYPE } from "@/components/app/Screen";
 import { planCount, type PlanGroups, type PlanItem, type PlanKind } from "./plans";
@@ -20,8 +20,9 @@ const KIND_ICON: Record<PlanKind, UiIconName> = {
   table: "utensils",
 };
 
-function when(item: PlanItem, locale: Locale): string {
-  const tag = locale === "en" ? "en-GB" : undefined;
+/** British order in every locale: dates are written in English words (`intlTag`). */
+function when(item: PlanItem): string {
+  const tag = "en-GB";
   if (item.at) {
     const at = new Date(item.at);
     if (!Number.isNaN(at.getTime())) {
@@ -46,12 +47,10 @@ function when(item: PlanItem, locale: Locale): string {
 export function ComingUp({
   groups,
   copy,
-  locale,
   partial = false,
 }: {
   groups: PlanGroups;
   copy: Dictionary["shape"]["plans"];
-  locale: Locale;
   /** True when a read behind the list failed: an empty list is then unknown, not empty. */
   partial?: boolean;
 }) {
@@ -89,7 +88,7 @@ export function ComingUp({
                           {item.where ? `, ${item.where}` : ""}
                         </span>
                       </span>
-                      <span className={`nf-numeric shrink-0 text-right ${TYPE.rowMeta}`}>{when(item, locale)}</span>
+                      <span className={`nf-numeric shrink-0 text-right ${TYPE.rowMeta}`}>{when(item)}</span>
                     </Link>
                   </li>
                 ))}

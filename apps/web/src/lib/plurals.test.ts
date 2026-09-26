@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LOCALES, formatParty, getDictionary, intlTag, plural, type Locale } from "@vallo/i18n";
+import { LOCALES, formatParty, getDictionary, plural, pluralTag, type Locale } from "@vallo/i18n";
 
 /**
  * Counted nouns, in all four languages.
@@ -56,7 +56,7 @@ describe("the plural categories come from the locale, not from an assumption", (
        simply update the numbers: a locale that gains a category has locale
        files carrying a form that is no longer reachable. */
     const categories = (locale: Locale) =>
-      new Intl.PluralRules(intlTag[locale]).resolvedOptions().pluralCategories.slice().sort();
+      new Intl.PluralRules(pluralTag[locale]).resolvedOptions().pluralCategories.slice().sort();
 
     expect(categories("en")).toEqual(["one", "other"]);
     expect(categories("ha")).toEqual(["one", "other"]);

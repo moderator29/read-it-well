@@ -16,7 +16,7 @@ import type {
   TransferOffer,
   TransferableBusiness,
 } from "@/lib/business-transfer/queries";
-import { countOf } from "@vallo/i18n/core";
+import { countOf, formatDate } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
@@ -62,7 +62,7 @@ const STATUS_WORD: Record<string, string> = {
 function when(iso: string): string {
   const parsed = Date.parse(iso);
   if (!Number.isFinite(parsed)) return "";
-  return new Date(parsed).toLocaleDateString(undefined, {
+  return formatDate(new Date(parsed), "en", {
     day: "numeric",
     month: "long",
     year: "numeric",

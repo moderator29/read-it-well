@@ -1,4 +1,4 @@
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoney, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { PaidRow } from "@/lib/after-gate/paid-prices";
 import { bpsAsPercentText } from "@/lib/money/percent";
 import { Section, TYPE } from "@/components/app/Screen";
@@ -18,7 +18,7 @@ function monthYear(iso: string | null, locale: Locale): string {
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(locale === "en" ? "en-NG" : locale, { month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(date);
+  return new Intl.DateTimeFormat(intlTag[locale], { month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(date);
 }
 
 export function PaidPanel({

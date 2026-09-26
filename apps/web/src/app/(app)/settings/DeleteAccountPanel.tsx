@@ -4,7 +4,7 @@ import { useActionState, useEffect, useId, useRef, useState, useTransition } fro
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
@@ -218,7 +218,7 @@ function ScheduledPanel({
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
-  const when = new Date(purgeAfter).toLocaleDateString(locale, {
+  const when = formatDate(new Date(purgeAfter), locale, {
     day: "numeric",
     month: "long",
     year: "numeric",

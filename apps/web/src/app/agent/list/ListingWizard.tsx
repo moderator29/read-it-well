@@ -1025,7 +1025,7 @@ export function ListingWizard({
     const parts = values.availableFrom.split("-").map(Number);
     const [year, month, day] = parts;
     if (parts.length !== 3 || !year || !month || !day) return null;
-    return new Date(year, month - 1, day);
+    return new Date(Date.UTC(year, month - 1, day, 12));
   })();
   const toiletCount = Number(values.toilets) || 0;
   const backupHours = Number(values.powerBackupHours) || 0;
