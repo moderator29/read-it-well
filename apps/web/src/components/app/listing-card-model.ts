@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { DEFAULT_LOCALE, countOf, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing, PowerBackup, PowerGrid } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SHORT, isTenancyPeriod } from "@/lib/listings/pricing";
 
@@ -181,7 +181,7 @@ export function cardFacts(listing: Listing, t: Dictionary, locale: Locale = DEFA
     facts.push({
       key: "beds",
       numeric: true,
-      label: plural(listing.bedrooms, t.units.beds, locale),
+      label: countOf(listing.bedrooms, "beds", locale),
     });
   }
 
@@ -189,7 +189,7 @@ export function cardFacts(listing: Listing, t: Dictionary, locale: Locale = DEFA
     facts.push({
       key: "baths",
       numeric: true,
-      label: plural(listing.bathrooms, t.units.baths, locale),
+      label: countOf(listing.bathrooms, "baths", locale),
     });
   }
 

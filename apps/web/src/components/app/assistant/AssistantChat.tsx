@@ -9,12 +9,12 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { DepthWords } from "@/components/motion/DepthWords";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import {
+  countOf,
   formatNumber,
   formatRating,
   getDictionary,
   type Dictionary,
   type Locale,
-  plural,
 } from "@vallo/i18n";
 import type {
   AssistantListingItem,
@@ -936,14 +936,14 @@ function ThreadListingCard({
     facts.push({
       key: "beds",
       icon: "bed",
-      label: plural(listing.bedrooms, t.units.beds, locale),
+      label: countOf(listing.bedrooms, "beds", locale),
     });
   }
   if (listing.bathrooms !== undefined && listing.bathrooms > 0) {
     facts.push({
       key: "baths",
       icon: "bath",
-      label: plural(listing.bathrooms, t.units.baths, locale),
+      label: countOf(listing.bathrooms, "baths", locale),
     });
   }
   if (listing.sizeSqm !== undefined && listing.sizeSqm > 0) {

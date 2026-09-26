@@ -1,4 +1,4 @@
-import { formatNumber, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { countOf, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Listing } from "@/lib/listings/types";
 import { ICON } from "@/components/app/Screen";
@@ -17,14 +17,14 @@ export function specChips(listing: Listing, t: Dictionary, locale: Locale): Spec
     chips.push({
       key: "beds",
       icon: "bed",
-      label: plural(listing.bedrooms, t.units.beds, locale),
+      label: countOf(listing.bedrooms, "beds", locale),
     });
   }
   if (listing.bathrooms > 0) {
     chips.push({
       key: "baths",
       icon: "bath",
-      label: plural(listing.bathrooms, t.units.baths, locale),
+      label: countOf(listing.bathrooms, "baths", locale),
     });
   }
   if (listing.sizeSqm !== undefined && listing.sizeSqm > 0) {
@@ -45,7 +45,7 @@ export function specChips(listing: Listing, t: Dictionary, locale: Locale): Spec
     chips.push({
       key: "guests",
       icon: "user",
-      label: plural(listing.maxGuests, t.units.guests, locale),
+      label: countOf(listing.maxGuests, "guests", locale),
     });
   }
   return chips;

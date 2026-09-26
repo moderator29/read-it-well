@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { LOCALES, countOf, getDictionary, type UnitNoun } from "@vallo/i18n";
 
@@ -57,5 +59,45 @@ describe("countOf", () => {
     for (const locale of ["yo", "ig", "ha"] as const) {
       expect([0, 1, 2].map((n) => countOf(n, "beds", locale)), locale).toEqual(["0 beds", "1 bed", "2 beds"]);
     }
+  });
+});
+
+/*
+ * THE UNITS TABLE IS READ THROUGH countOf, NEVER HANDED TO plural().
+ *
+ * `plural(n, t.units.beds, locale)` picks the form by the page's locale, and
+ * Yoruba and Igbo have one category, so an untranslated English pair printed
+ * "1 beds · 1 baths" on every one-bedroom card and listing page in those two
+ * languages (Track M QA, 25 September 2026). `countOf` is the door that knows
+ * an untranslated unit is English and takes English's categories.
+ *
+ * The two files left are the move-in ledger, a money screen whose owner
+ * changes it; the list may only shrink.
+ */
+const SRC = join(__dirname, "..");
+const NOT_YET = new Set([
+  "app/(app)/rent/move-in/[listingId]/MoveInLedger.tsx",
+  "app/(app)/rent/move-in/[listingId]/page.tsx",
+]);
+
+function sources(dir: string, out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) {
+      if (name !== "(dev)" && name !== "node_modules") sources(path, out);
+    } else if (/\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name)) {
+      out.push(path);
+    }
+  }
+  return out;
+}
+
+describe("the units table", () => {
+  it("reaches the page through countOf", () => {
+    const handed = sources(SRC)
+      .filter((file) => /\bplural\([^,()]+,\s*[\w.]*\bunits\./.test(readFileSync(file, "utf8")))
+      .map((file) => relative(SRC, file))
+      .sort();
+    expect(handed).toEqual([...NOT_YET].sort());
   });
 });

@@ -56,6 +56,16 @@ describe("cardFacts", () => {
     expect(cardFacts(listing({ bedrooms: 3 }), en)[0]?.label).toBe("3 beds");
   });
 
+  /* The units are English text in these three languages until translated,
+     and English text takes English's grammar: Yoruba's one category printed
+     "1 beds · 1 baths" on every one-bedroom card. */
+  it("keeps the singular for one in Yoruba, Hausa and Igbo too", () => {
+    for (const locale of ["yo", "ha", "ig"] as const) {
+      const facts = cardFacts(listing({ bedrooms: 1, bathrooms: 1 }), getDictionary(locale), locale);
+      expect(facts.slice(0, 2).map((fact) => fact.label), locale).toEqual(["1 bed", "1 bath"]);
+    }
+  });
+
   /*
    * A rental is arranged with the agent and inspected before money moves, so an
    * "Instant" mark on one would be a promise the product refuses to keep.

@@ -10,7 +10,7 @@ import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
-import { getDictionary, intlTag, plural, type Locale, formatRating } from "@vallo/i18n";
+import { countOf, getDictionary, intlTag, type Locale, formatRating } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import {
@@ -485,7 +485,7 @@ export default async function ListingDetailPage({
     const closing: string[] = [];
     const capacity = capacityOf(listing);
     if (capacity !== null) {
-      closing.push(`It sleeps up to ${plural(capacity, t.units.guests, locale)}.`);
+      closing.push(`It sleeps up to ${countOf(capacity, "guests", locale)}.`);
     }
     if (listing.reviewCount > 0) {
       closing.push(
@@ -693,7 +693,7 @@ export default async function ListingDetailPage({
       value:
         listing.parkingSpaces === 0
           ? "None"
-          : plural(listing.parkingSpaces, t.units.spaces, locale),
+          : countOf(listing.parkingSpaces, "spaces", locale),
     });
   }
   if (listing.floor !== undefined) {
@@ -715,7 +715,7 @@ export default async function ListingDetailPage({
   if (listing.minimumTenancyMonths !== undefined) {
     facts.push({
       label: "Minimum tenancy",
-      value: plural(listing.minimumTenancyMonths, t.units.months, locale),
+      value: countOf(listing.minimumTenancyMonths, "months", locale),
     });
   }
 

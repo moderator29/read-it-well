@@ -1,4 +1,4 @@
-import { formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
@@ -91,18 +91,18 @@ export function ListingMoveInBlock({
           <span className="nf-numeric">
             {listing.bedrooms > 0 && (
               <span className="block">
-                {plural(listing.bedrooms, t.units.beds, locale)}
+                {countOf(listing.bedrooms, "beds", locale)}
                 {listing.bathrooms > 0 && (
                   <>
                     {" · "}
-                    {plural(listing.bathrooms, t.units.baths, locale)}
+                    {countOf(listing.bathrooms, "baths", locale)}
                   </>
                 )}
               </span>
             )}
             {listing.toilets !== undefined && listing.toilets > 0 && (
               <span className="block text-[var(--nf-content-muted)]">
-                {plural(listing.toilets, t.units.toilets, locale)}
+                {countOf(listing.toilets, "toilets", locale)}
               </span>
             )}
           </span>
