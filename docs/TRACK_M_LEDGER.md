@@ -113,7 +113,7 @@ All scroll-driven pieces share one read-then-write scroll frame (`lib/motion/scr
 
 ## Verification
 
-- Every batch: typecheck, lint (including the CSS token gate, the claims gate and the valuation-word gate) and the full unit suite. The last full run was 5,758 passing, 1 skipped, over 501 files.
+- Every batch: typecheck, lint (including the CSS token gate, the claims gate and the valuation-word gate) and the full unit suite. The last full run was 5,777 passing, 1 skipped, over 503 files.
 - A production build on every batch.
 - Performance, from round two on: main-thread time on idle pages with the CPU slowed four times, read from the browser's own counters and traces.
 - Screenshots at 390px and 1440px, dark and light:
@@ -158,7 +158,27 @@ The founder saw the loading skeleton on Search and asked for the app to be "clea
 | Listing | 577 KB | 291 KB |
 | Search | 1,437 KB | 1,078 KB |
 
-**No skeleton between tabs.** The dock prefetches its four tabs whole, not only up to their loading skeleton, except under data saving. The client router keeps a dynamic page for 30 seconds, so going back and forth between tabs does not show the skeleton.
+**No skeleton on the roads most taps take.** Next prefetches a dynamic page only as far as its loading skeleton, so a tap drew the skeleton and then waited for the page. The dock already fetched its four tabs whole. The other common roads now do too, through one link (`components/app/WholePrefetchLink.tsx`) with the same rule: after the page is live, and never under data saving.
+- Home's Buy, Rent and Pay doors (Search is about 35 KB on the wire, Agreements 11). List opens the 120 KB listing form and still waits for the tap.
+- The filter drawer fetches the results it will open once the choice has been still for a moment, and the page Reset opens.
+- The More tray's pages as it opens, the drawer's rows as it opens (not the desktop rail, which is always on screen), and the bell. Each is 10 to 25 KB.
+- A listing card fetches its listing when the reader has looked at it for a second (about 23 KB); it already did so when a finger came down, which a quick tap beat.
+- None of these pages writes while it renders, so fetching one ahead records nothing the reader did not do.
+
+Measured on a production build over a phone-like network (150 ms of latency), against the same build with data saving on, which is the old behaviour:
+
+| Tap | Before | Now |
+|---|---|---|
+| Home, Rent | skeleton, 2,373 ms | no skeleton, 374 ms |
+| Home, Buy | skeleton, 2,275 ms | no skeleton, 315 ms |
+| Filters, Show results | 2,416 ms | 429 ms |
+| More, Messages | skeleton, 991 ms | no skeleton, 192 ms |
+| More, Settings | skeleton, 985 ms | no skeleton, 148 ms |
+| Drawer, Settings | skeleton, 1,049 ms | no skeleton, 198 ms |
+| Bell | skeleton, 557 ms | no skeleton, 157 ms |
+| A listing, after looking at its card | skeleton, 1.9 to 6.3 s | no skeleton, about 0.5 s (mostly the photograph's transition) |
+
+The client router keeps a dynamic page for 30 seconds and a page fetched whole for five minutes, so going back and forth does not fetch again.
 
 **The moving lights cost nothing.** The first build of the round-two light turned a conic gradient with an animated custom property. That can only run on the main thread, so every frame re-matched styles and repainted every ring. With the CPU slowed four times to stand in for a mid-range phone, the idle page's main thread was busy:
 
@@ -203,18 +223,30 @@ A tap to Settings now downloads 30 KB for its page where it was 105 KB, and a ta
 | Inbox | 443 ms | 410 ms | 1,364 ms | 577 ms |
 | Restaurant (venue) | 679 ms | 496 ms | 838 ms | 643 ms |
 
-**Prices in Yoruba, Hausa and Igbo.** Node writes the naira sign for these locales, while Chromium's trimmed locale data writes "NGN", and Node spaces the Hausa sign. So every price on those pages was a hydration mismatch: React discarded the server's HTML and redrew the page in the browser, and the reader saw "₦" turn into "NGN". Money is now built from one normalised set of parts (the narrow sign, no space beside it) in `formatMoney` and `<Amount>`. The four languages hydrate clean on the main routes.
+**Every phone writes what the server wrote.** Chromium carries no locale data for Yoruba, Hausa or Igbo and formats those languages in the phone's own language, while the server (Node, with all of CLDR) writes them natively. On a phone set to French a Yoruba price read "4 500 000 ₦" against the server's "₦4,500,000", and on one set to Arabic it came out in Arabic-Indic digits; dates and short figures differed on every phone ("25 Oṣù Owewe 2026" against "Sep 25, 2026", Hausa "₦45d" against "₦45k"). Each difference is a hydration mismatch, and React answers one by discarding the server's page and drawing it again. An earlier fix normalised the naira sign, which only covered phones set to English.
+- Every formatter now asks en-NG in every locale (`intlTag` in `@vallo/i18n/core`); plural rules, the one piece every engine carries for these languages, keep the reader's own (`pluralTag`). Dates are written on Lagos time unless a caller names another zone, because the server runs on UTC.
+- Hand-built tags and unzoned dates across the app moved onto it; `portable-intl.test.ts` fails if one comes back, and was checked against planted violations of each kind.
+- Measured, signed in, on 10 pages in 4 languages with phones set to English, French and Arabic: 33 of 120 page loads hit a hydration error before, 0 after.
+- What changes for a reader: month and weekday names, and the letter after a short figure, are the en-NG ones in every language ("25 Sept 2026", "₦45k", "₦1.2b"). About 37 percent of the Yoruba, Hausa and Igbo strings are translated, so those pages were already mostly English. Month names in the reader's language can come back as words the locale files carry, once a native speaker supplies them, rather than as whatever one engine ships.
 
 **Measured live after the deploys** (a fresh sign-in, full-page HTML): Home 383 KB to 306 KB, Settings 297 KB to 176 KB, Search 1,209 KB to 676 KB.
+
+**The second agent's QA pass.** It found and fixed two older bugs, both merged: the safety sheets' quiet buttons had lost their glass, and a Yoruba or Igbo card said "1 beds" (`countOf` now takes English's plural categories for a unit the locale has not translated). It raised these, now done:
+- The dates and short figures above.
+- The Hausa dock labels ran into each other at 390px ("Bayanan martaba" is 95px in a 53px slot, and Yoruba "Ìtàn àdúgbò" and Igbo "Akụkọ ógbè" also overflowed). A label wider than its slot now breaks at its space, with every glyph on one baseline; English lays out exactly as before, measured position for position.
+- English on translated pages: the listing's "For rent" pill, the heart's name and the logo's name on the in-app error screen and the assistant now use their translated keys. The heart is "Save to favourites" in the reader's language, pressed or not, with the property's title as its description; it used to change its name with its state as well as setting `aria-pressed`.
+- The assistant's copy no longer carries unit words nothing reads.
 
 **Still worth doing, not started:**
 - The CSS bundle is about 715 KB (104 KB gzipped) and blocks the first paint. About a sixth of it is the landing's alone (landing, landing rooms, cinema) and about a quarter is in-app screens the landing never shows (the feed, threads, wallet, admin). Splitting it by route would save roughly 15 to 25 KB gzipped per first load, but it reorders a cascade that `globals.css` says must not move, so it needs a before-and-after screenshot diff across both themes first.
 - Eleven secondary routes still load the dictionaries: payments, checkout, tenancy, the agent and host desks, saved searches and two settings screens. Payments were left alone by the Track M rule. (The AI assistant was the twelfth; it now takes its dozen lines from its page.)
 - The landing's HTML is about 628 KB.
+- Price suffixes ("/ night", "/ year") come from English-only maps in `lib/listings/pricing.ts` that the cards, the move-in block and every booking panel read, and end-to-end tests pin them. The dictionary has translated equivalents (`catalogue.card`); moving every surface onto them is its own change.
+- "For stays", "Dining" and "Experience" on the listing pill, and "Try again" and "Back to home" on the in-app error screen, have no translated key yet. A key added in English alone would make the three incomplete locales worse, which `locale-completeness.test.ts` refuses, so they arrive with their translations.
 
 ## Open
 
-- **Real-device check.** Every check so far ran in Chromium at phone size. A pass on a physical iPhone and a mid-range Android is still worth doing, for the splash, the pinned reel and the moving lights in particular.
+- **Real-device check.** Every check so far ran in Chromium at phone size. A pass on a physical iPhone and a mid-range Android is still worth doing, for the splash, the pinned reel and the moving lights in particular, and for Safari's own date and number formatting, which could not be tested here.
 - **Android hardware back on the owner and agent forms** follows the route's parent, so from any step it leaves the form rather than stepping back one screen. This was true before this round; fixing it means giving each step its own history entry, or having the form claim the back key.
 - **After Continue on a long form step** the next step opens scrolled down, with its title under the app header. This also predates this round.
 - **Translations.** Hausa, Yoruba and Igbo show the English word "Pay" on the home tile until a native speaker supplies one.
