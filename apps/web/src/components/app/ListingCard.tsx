@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatDate, formatMoney, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
@@ -163,6 +163,38 @@ export function ListingCard({
     setWarmed(true);
   };
 
+  /*
+   * AND ON A LOOK (Track M performance). The intent above starts on the
+   * finger coming down, which a quick tap beats: the listing's skeleton
+   * showed while its page was still on the way. A card that has sat mostly
+   * on screen for a second, while the reader looks at it, is fetched whole
+   * (about 23 KB on the wire), so the one they tap is usually already here.
+   * A card scrolled past is never fetched.
+   */
+  const cardRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    let timer: number | undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        window.clearTimeout(timer);
+        if (!entry?.isIntersecting) return;
+        timer = window.setTimeout(() => {
+          warm();
+          observer.disconnect();
+        }, 1000);
+      },
+      { threshold: 0.75 },
+    );
+    observer.observe(el);
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
+    /* `warm` reads a ref and a setter only, so the observer is set up once. */
+  }, []);
+
   /* A view transition carries the photograph into the detail hero. */
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (
@@ -296,6 +328,7 @@ export function ListingCard({
 
   return (
     <article
+      ref={cardRef}
       className={panelClass({
         variant: "card",
         className: `nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${index !== undefined ? "nf-card-in" : ""}`,
