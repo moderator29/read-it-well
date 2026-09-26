@@ -12,7 +12,7 @@ import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
 import { countOf, getDictionary, intlTag, type Locale, formatRating } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getListingRepository } from "@/lib/listings/repository";
+import { listingById } from "@/lib/listings/listing-by-id";
 import {
   listingMetadata,
   listingStructuredData,
@@ -241,7 +241,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const listing = await getListingRepository().byId(id);
+  const listing = await listingById(id);
   /* OPS-17: metadata resolves before the body streams for crawlers and
      link checkers, so a missing listing answers them with a real 404 rather
      than a 200 that streams a not-found page. */
@@ -288,22 +288,9 @@ export default async function ListingDetailPage({
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
 
-  const listing = await getListingRepository().byId(id);
+  const listing = await listingById(id);
   if (!listing) notFound();
 
-  // Written reviews for this listing. Public by policy for a PUBLISHED listing,
-  // so this read works for a signed-out visitor too.
-  const reviews = await getListingReviews(listing.id, locale);
-  /* V-59: "Moved in for the Vallo price", the one public number from the
-     tenancy reviews. Null (and no line) on every example listing. */
-  /* V-87: the lister's dated credential checks, for the proof strip. */
-  const credentials = listing.isDemo ? [] : await readListingCredentials(listing.id);
-  const doorLine = listing.isDemo
-    ? null
-    : doorHonestyLine(await readDoorHonesty(listing.id), t.trustVisible.tenancy);
-  /* V-34: the lister's Record under the agent card. An example listing has
-     no Record, and a null draws nothing. */
-  const record = listing.isDemo ? null : await readListingRecord(listing.id);
 
   /*
    * WHERE "MESSAGE AGENT" GOES, AND THE DEAD END THIS REPLACES.
@@ -334,8 +321,6 @@ export default async function ListingDetailPage({
      apartment let by the year is a tenancy here, never a nightly stay. */
   const listingMarket = marketOf(listing);
   const isRental = listingMarket === "tenancy";
-  /* V-94: free viewing slots, read only for a rental (null or empty draws nothing). */
-  const viewingSlots = isRental ? await readViewingSlots(listing.id) : null;
 
   /* A restaurant is ours to take a booking for, and it is NOT a stay. Without
      this it fell into the nightly branch and drew a date range picker, a
@@ -357,43 +342,81 @@ export default async function ListingDetailPage({
   const isSale = listing.intent === "sale";
   const isBookable = !isRental && !isRestaurant && !isSale;
 
-  // Nights a guest cannot pick: booked or blocked dates from the platform
-  // calendar. Empty for catalogue listings and when Supabase is not configured,
-  // so the picker simply has nothing to refuse.
-  const blockedDates = isBookable ? await getBlockedDates(listing.id) : [];
   const today = lagosToday();
 
-  // The heart opens in the right state for a signed-in account. Device saves
-  // live in localStorage and are reconciled by the control itself on mount.
-  const initialSaved = (await getSavedListings()).some(
-    (entry) => entry.listing.id === listing.id,
-  );
-
-  // Reporting belongs to somebody, so the sheet needs to know whether there is
-  // a somebody. Signed out is a designed state inside the sheet rather than a
-  // hidden control: a visitor who spots a scam should not have to guess that
-  // reporting exists.
-  const session = await resolveSession();
+  /*
+   * EVERY READ THE PAGE NEEDS, AT ONCE (Track M performance).
+   *
+   * These ran one after another, about fifteen round trips before the first
+   * byte left the server: 680ms on production for a listing, and the reader
+   * watched the loading state for all of it. Each read needs only the listing
+   * (and the reader's session, for the three that follow), so they go out
+   * together and the page waits for the slowest one. What each read is, and
+   * when it is skipped, is unchanged.
+   */
+  const [
+    reviews,
+    credentials,
+    doorHonesty,
+    record,
+    viewingSlots,
+    blockedDates,
+    savedListings,
+    session,
+    showMeOpen,
+    commute,
+    neighboursFlag,
+    access,
+  ] = await Promise.all([
+    // Written reviews for this listing. Public by policy for a PUBLISHED
+    // listing, so this read works for a signed-out visitor too.
+    getListingReviews(listing.id, locale),
+    /* V-87: the lister's dated credential checks, for the proof strip. */
+    listing.isDemo ? Promise.resolve([]) : readListingCredentials(listing.id),
+    listing.isDemo ? Promise.resolve(null) : readDoorHonesty(listing.id),
+    /* V-34: the lister's Record under the agent card. An example listing has
+       no Record, and a null draws nothing. */
+    listing.isDemo ? Promise.resolve(null) : readListingRecord(listing.id),
+    /* V-94: free viewing slots, read only for a rental (null or empty draws nothing). */
+    isRental ? readViewingSlots(listing.id) : Promise.resolve(null),
+    // Nights a guest cannot pick: booked or blocked dates from the platform
+    // calendar. Empty for catalogue listings and when Supabase is not
+    // configured, so the picker simply has nothing to refuse.
+    isBookable ? getBlockedDates(listing.id) : Promise.resolve([]),
+    // The heart opens in the right state for a signed-in account. Device saves
+    // live in localStorage and are reconciled by the control itself on mount.
+    getSavedListings(),
+    // Reporting belongs to somebody, so the sheet needs to know whether there
+    // is a somebody. Signed out is a designed state inside the sheet rather
+    // than a hidden control: a visitor who spots a scam should not have to
+    // guess that reporting exists.
+    resolveSession(),
+    /* V-41: the neighbours' account, for a home to let or sell. */
+    flagIsOn(SHOW_ME_FLAG),
+    /* V-43: rush-hour bands from this area (nothing when the flag is off). */
+    (isRental || isSale) && !listing.isDemo
+      ? readCommutesFrom({ stateCode: listing.stateCode, area: listing.area, city: listing.city })
+      : Promise.resolve({ anchors: 0, rows: [] }),
+    isRental || isSale ? flagIsOn(NEIGHBOURS_FLAG) : Promise.resolve(false),
+    /* Light, water and the gate. The first two are public columns; the gate
+       details are read through the caller's own policies and come back null
+       for anyone who is not the host, an admin, or a guest holding a CONFIRMED
+       booking on this listing. A refusal and an absence are the same answer
+       here on purpose, so nobody can learn whether a code exists by watching
+       the page change. */
+    readListingAccess(listing.id),
+  ]);
+  /* V-59: "Moved in for the Vallo price", the one public number from the
+     tenancy reviews. Null (and no line) on every example listing. */
+  const doorLine = doorHonesty === null ? null : doorHonestyLine(doorHonesty, t.trustVisible.tenancy);
+  const initialSaved = savedListings.some((entry) => entry.listing.id === listing.id);
   const signedIn = session.state === "signed-in";
 
-  /* Light, water and the gate. The first two are public columns; the gate
-     details are read through the caller's own policies and come back null for
-     anyone who is not the host, an admin, or a guest holding a CONFIRMED
-     booking on this listing. A refusal and an absence are the same answer here
-     on purpose, so nobody can learn whether a code exists by watching the page
-     change. */
-  /* V-41: the neighbours' account, for a home to let or sell. Read with the
-     caller's session; the summary function applies its own threshold. */
-  const showMeOpen = await flagIsOn(SHOW_ME_FLAG);
-  /* V-43: rush-hour bands from this area (nothing when the flag is off). */
-  const commute =
-    (isRental || isSale) && !listing.isDemo
-      ? await readCommutesFrom({ stateCode: listing.stateCode, area: listing.area, city: listing.city })
-      : { anchors: 0, rows: [] };
-  const neighboursOn =
-    (isRental || isSale) && session.state === "signed-in" && (await flagIsOn(NEIGHBOURS_FLAG));
-  const [access, bookingConfirmed, neighbours, flooding] = await Promise.all([
-    readListingAccess(listing.id),
+  /* V-41: the neighbours' account is read with the caller's session; the
+     summary function applies its own threshold. These three need the session,
+     so they follow the reads above, together. */
+  const neighboursOn = (isRental || isSale) && session.state === "signed-in" && neighboursFlag;
+  const [bookingConfirmed, neighbours, flooding] = await Promise.all([
     session.state === "signed-in"
       ? hasConfirmedBooking(session.supabase, listing.id, session.user.id)
       : Promise.resolve(false),
