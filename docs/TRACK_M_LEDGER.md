@@ -177,7 +177,7 @@ Two changes got it there:
 **Every language on every page, gone.** The i18n package had one entry, and it imported all four dictionaries, so a client component that needed only `formatMoney`, or a back button that needed the word "Back", shipped every word of English, Yoruba, Hausa and Igbo to the browser: a 709 KB chunk (220 KB gzipped) on the landing page and nearly every route.
 - `@vallo/i18n/core` carries the locale list, the Intl tags and every formatter, `countOf` included, with no dictionary; 347 files moved to it.
 - The few words client components on the main routes read come from the root layout in a small client copy (`lib/i18n/client-copy`, about 7 KB), in the reader's language from the first paint.
-- Result on the build: 119 of 131 user-facing routes no longer load the chunk, including the landing page, Home, Search, Stays, Around, Settings, Profile, Saved, Messages, the listing, stay and restaurant pages, and sign-in and sign-up. Tests guard the light entry and the layouts' client code.
+- Result on the build: 120 of 131 user-facing routes no longer load the chunk, including the landing page, Home, Search, Stays, Around, Settings, Profile, Saved, Messages, the listing, stay and restaurant pages, and sign-in and sign-up. Tests guard the light entry and the layouts' client code.
 - Measured on vallospaces.com after the deploy: the landing page's JavaScript went from 1,381 KB to 722 KB, and sign-in's from 1,368 KB to 705 KB.
 
 **What a tap downloads.** The per-page dictionary slices were checked by an import walker that also counted things that cannot read a dictionary in the browser: server actions (Settings carried the 57 KB `admin` namespace because a server action calls Supabase's `auth.admin.deleteUser`), `supabase.auth` calls, comments and types. With those skipped, the slices shrank:
@@ -209,7 +209,7 @@ A tap to Settings now downloads 30 KB for its page where it was 105 KB, and a ta
 
 **Still worth doing, not started:**
 - The CSS bundle is about 715 KB (104 KB gzipped) and blocks the first paint. About a sixth of it is the landing's alone (landing, landing rooms, cinema) and about a quarter is in-app screens the landing never shows (the feed, threads, wallet, admin). Splitting it by route would save roughly 15 to 25 KB gzipped per first load, but it reorders a cascade that `globals.css` says must not move, so it needs a before-and-after screenshot diff across both themes first.
-- Twelve secondary routes still load the dictionaries: payments, checkout, tenancy, the agent and host desks, and the assistant. Payments were left alone by the Track M rule.
+- Eleven secondary routes still load the dictionaries: payments, checkout, tenancy, the agent and host desks, saved searches and two settings screens. Payments were left alone by the Track M rule. (The AI assistant was the twelfth; it now takes its dozen lines from its page.)
 - The landing's HTML is about 628 KB.
 
 ## Open
