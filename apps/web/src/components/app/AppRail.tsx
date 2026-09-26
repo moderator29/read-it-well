@@ -179,6 +179,7 @@ export function AppRail({
            landmarks with one name are one entry too many in a landmark list. */
         label={t.a11y.railNav}
         onNavigate={onNavigate}
+        whole={drawer}
       />
 
       {/*

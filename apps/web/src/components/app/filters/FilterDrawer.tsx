@@ -55,6 +55,7 @@ import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { useClientMount } from "@/lib/ui/client-mount";
+import { isDataSaver } from "@/lib/ui/data-saver";
 
 /**
  * The filter sheet, to the right-hand panel of 3EB3E2A9.
@@ -357,6 +358,12 @@ function SwitchRow({
   );
 }
 
+/* `router.prefetch`'s option for the whole page rather than its loading shell,
+   typed from `useRouter` itself so no internal Next module is imported. */
+const WHOLE = { kind: "full" } as unknown as NonNullable<
+  Parameters<ReturnType<typeof useRouter>["prefetch"]>[1]
+>;
+
 export function FilterDrawer({
   query,
   facts,
@@ -531,6 +538,27 @@ export function FilterDrawer({
   }, []);
 
   const pending = useMemo(() => queryFrom(query, draft), [query, draft]);
+
+  /*
+   * THE RESULTS ARE READY BEFORE THE TAP (Track M performance).
+   *
+   * "Show N results" navigated only when it was pressed, so the shelf's
+   * skeleton filled the screen while the server drew the new list: the
+   * loading the founder saw on Search. The page the sheet will open is
+   * fetched whole once the choice has been still for a moment, and so is the
+   * one Reset opens, so either lands at once. About 35 KB a fetch on the wire;
+   * nothing is fetched ahead under data saving.
+   */
+  const target = toShelfHref(pending);
+  const resetTarget = toShelfHref(clearedShelf(query));
+  useEffect(() => {
+    if (!open || isDataSaver()) return;
+    const timer = window.setTimeout(() => {
+      router.prefetch(target, WHOLE);
+      router.prefetch(resetTarget, WHOLE);
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [open, router, target, resetTarget]);
   /* V-43: the pool carries bands to the anchor the shelf was loaded with, so
      "within" is counted only for that anchor; a newly chosen one is counted
      after Apply, and the sheet says so. */
@@ -571,7 +599,7 @@ export function FilterDrawer({
   const sliderMax = Math.max(Math.min(maxInNaira ?? scale.ceiling, scale.ceiling), scale.floor);
 
   function apply() {
-    router.push(toShelfHref(pending));
+    router.push(target);
     setOpen(false);
   }
 

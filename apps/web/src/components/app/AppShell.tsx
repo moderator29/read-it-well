@@ -4,6 +4,7 @@ import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
+import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppRail } from "./AppRail";
 import { MobileTabBar, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
@@ -399,7 +400,9 @@ export function AppShell({
             <SignedOutActions t={t} className="ms-auto" />
             {signedIn && (
               <>
-                <Link
+                {/* Fetched whole, so the bell opens the list with no skeleton:
+                    about 11 KB on the wire, kept for five minutes. */}
+                <WholePrefetchLink
                   href="/notifications"
                   aria-label={
                     marked
@@ -414,7 +417,7 @@ export function AppShell({
                 >
                   <UiIcon name="bell" size={20} />
                   {marked && <span aria-hidden="true" className="nf-app-header__dot" />}
-                </Link>
+                </WholePrefetchLink>
                 {/* NO AVATAR HERE (Track M, 25 September 2026). The founder
                     took the round photograph out of the header: the drawer
                     opens on the person, and the dock carries Profile, so the

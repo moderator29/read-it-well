@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 
@@ -36,6 +37,8 @@ export type HomeCategory = {
   meaning?: string;
   href: string;
   icon: BrandIconName;
+  /** Fetch the page whole before the tap (`WholePrefetchLink`); for light pages only. */
+  whole?: boolean;
 };
 
 export function CategoryRow({
@@ -52,23 +55,26 @@ export function CategoryRow({
   return (
     <nav aria-label={label} className="nf-rise nf-rise-4 mt-md">
       <ul className="nf-cat-row" data-columns={columns} data-testid="home-categories">
-        {categories.map((category) => (
-          <li key={category.key} className="min-w-0">
-            <Link
-              href={category.href}
-              className={panelClass({ variant: "card", className: "nf-cat-tile nf-tap" })}
-              data-testid={`home-category-${category.key}`}
-            >
-              <span className="nf-cat-tile__plate" aria-hidden="true">
-                <BrandIcon name={category.icon} fill />
-              </span>
-              <span className="nf-cat-tile__label">{category.label}</span>
-              {category.meaning && (
-                <span className="nf-cat-tile__meaning">{category.meaning}</span>
-              )}
-            </Link>
-          </li>
-        ))}
+        {categories.map((category) => {
+          const Door = category.whole ? WholePrefetchLink : Link;
+          return (
+            <li key={category.key} className="min-w-0">
+              <Door
+                href={category.href}
+                className={panelClass({ variant: "card", className: "nf-cat-tile nf-tap" })}
+                data-testid={`home-category-${category.key}`}
+              >
+                <span className="nf-cat-tile__plate" aria-hidden="true">
+                  <BrandIcon name={category.icon} fill />
+                </span>
+                <span className="nf-cat-tile__label">{category.label}</span>
+                {category.meaning && (
+                  <span className="nf-cat-tile__meaning">{category.meaning}</span>
+                )}
+              </Door>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );

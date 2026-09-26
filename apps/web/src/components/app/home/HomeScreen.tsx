@@ -147,9 +147,12 @@ export function HomeScreen({
    * with the house on it.
    */
   const categories: HomeCategory[] = [
-    { key: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check" },
-    { key: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home" },
-    { key: "pay", label: copy.pay, href: "/agreements", icon: "naira-hand" },
+    /* Buy, Rent and Pay open with no skeleton: their pages are fetched whole
+       ahead of the tap (about 35, 35 and 11 KB on the wire). List opens the
+       listing form, about 120 KB, so it waits for the tap. */
+    { key: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check", whole: true },
+    { key: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home", whole: true },
+    { key: "pay", label: copy.pay, href: "/agreements", icon: "naira-hand", whole: true },
     { key: "manage", label: copy.manage, href: manageHref, icon: "doc-home" },
     /*
       UX-22 / STORE-05: NO INVEST TILE. It went to `/search?market=buy`, the

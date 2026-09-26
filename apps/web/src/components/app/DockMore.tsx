@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import Link from "next/link";
+import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { GLASS_FOR } from "@/lib/nav/glass-glyph";
@@ -69,7 +69,10 @@ export function DockMore({
       <ul id={trayId} className="nf-dockmore__tray" hidden={!open} aria-label={label}>
         {items.map((item, index) => (
           <li key={item.href} style={{ "--nf-i": index } as React.CSSProperties}>
-            <Link
+            {/* Fetched whole as the tray opens (it is `hidden` until then, and
+                Next prefetches only what is on screen), so the page a reader
+                picks is already here: each is 10 to 25 KB on the wire. */}
+            <WholePrefetchLink
               href={item.href}
               onClick={() => setOpenOn(null)}
               aria-current={item === activeItem ? "page" : undefined}
@@ -83,7 +86,7 @@ export function DockMore({
                 )}
               </span>
               <span className="nf-dockmore__label">{item.label}</span>
-            </Link>
+            </WholePrefetchLink>
           </li>
         ))}
       </ul>

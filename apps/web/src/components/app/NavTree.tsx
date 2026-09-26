@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { GLASS_FOR } from "@/lib/nav/glass-glyph";
@@ -52,6 +53,7 @@ export function NavTree({
   label,
   accent = "brand",
   onNavigate,
+  whole = false,
 }: {
   sections: NavSection[];
   active: string;
@@ -60,12 +62,20 @@ export function NavTree({
   /** `agent` swaps the active pill and glyph colour for the mode's own. */
   accent?: "brand" | "agent";
   onNavigate?: () => void;
+  /**
+   * Fetch each row's page whole before the tap (`WholePrefetchLink`). The
+   * drawer sets it: its rows mount when it opens, which is when a reader is
+   * choosing where to go. The desktop rail does not, because it is always on
+   * screen and would fetch every page on every load.
+   */
+  whole?: boolean;
 }) {
+  const Row = whole ? WholePrefetchLink : Link;
   const row = (item: NavLeaf) => {
     const current = isCurrent(item.href, active, activeType);
     return (
       <li key={`${item.href}-${item.label}`}>
-        <Link
+        <Row
           href={item.href}
           onClick={onNavigate}
           aria-current={current ? "page" : undefined}
@@ -84,7 +94,7 @@ export function NavTree({
           </span>
           <span className="nf-nav__label">{item.label}</span>
           {item.badge ? <span className="nf-count-badge nf-nav__badge nf-numeric">{item.badge}</span> : null}
-        </Link>
+        </Row>
       </li>
     );
   };
