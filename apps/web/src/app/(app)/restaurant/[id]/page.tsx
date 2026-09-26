@@ -135,12 +135,14 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
    * older and larger half, and the face below is drawn from whichever
    * answered. Nothing else about the listing path changes.
    */
-  const listing = await listingById(id);
+  /* Both halves are asked for at once: a listing found by this id carries
+     this id, so the venue read never depended on the listing's answer
+     (Track M performance). */
+  const [listing, detail] = await Promise.all([listingById(id), getRestaurantDetail(id)]);
   /* UI-P2-03: premises let on a rent or sold are Property, not a place to
      book a table; they move to the rental template. */
   if (listing && isPropertyMarket(marketOf(listing))) redirect(`/listing/${id}`);
   const listingFace = listing && marketOf(listing) === "dining" ? listing : null;
-  const detail = await getRestaurantDetail(listingFace ? listingFace.id : id);
 
   /* This route is for restaurants. Anything else is served by the surface built
      for it, so a stay or a flat that arrived here is not found rather than
