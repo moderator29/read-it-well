@@ -11,11 +11,11 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import {
   formatNumber,
   formatRating,
-  getDictionary,
-  type Dictionary,
   type Locale,
   plural,
-} from "@vallo/i18n";
+  type Dictionary,
+} from "@vallo/i18n/core";
+import type { AssistantCopy } from "./assistant-copy";
 import type {
   AssistantListingItem,
   AssistantStreamEvent,
@@ -177,6 +177,7 @@ export function AssistantChat({
   viewer,
   seed,
   aiConsented = false,
+  t,
 }: {
   locale: Locale;
   /** STORE-07: whether this person has agreed to the AI disclosure. The
@@ -190,8 +191,9 @@ export function AssistantChat({
    * a screenshot of a conversation costs nobody their real history.
    */
   seed?: { threads: Thread[]; thinking?: boolean };
+  /** The lines the chat draws, from the page, in the reader's language. */
+  t: AssistantCopy;
 }) {
-  const t = getDictionary(locale);
   const copy = t.home.assistant;
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -928,7 +930,7 @@ function ThreadListingCard({
 }: {
   listing: AssistantListingItem;
   locale: Locale;
-  t: Dictionary;
+  t: AssistantCopy;
 }) {
   const save = useSaveControl(listing.id);
   const facts: { key: string; icon: UiIconName; label: string }[] = [];

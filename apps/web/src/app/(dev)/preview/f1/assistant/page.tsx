@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { assistantCopyOf } from "@/components/app/assistant/assistant-copy";
 import { getLocale } from "@/lib/locale";
 import { AssistantChat } from "@/components/app/assistant/AssistantChat";
 import type { Thread } from "@/components/app/assistant/threads";
@@ -45,6 +47,7 @@ export default async function PreviewAssistant() {
         locale={locale}
         viewer={{ initials: PERSON.name.slice(0, 1), avatarUrl: PERSON.avatarUrl }}
         seed={{ threads: [THREAD], thinking: true }}
+        t={assistantCopyOf(getDictionary(locale))}
       />
     </main>
   );

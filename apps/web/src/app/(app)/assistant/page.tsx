@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+import { assistantCopyOf } from "@/components/app/assistant/assistant-copy";
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
@@ -41,5 +43,12 @@ export default async function AssistantPage() {
      or a price in the assistant's result cards must group its digits the same
      way as the same figure on the search page. */
   const [locale, viewer] = await Promise.all([getLocale(), readViewer()]);
-  return <AssistantChat locale={locale} viewer={viewer} aiConsented={await aiConsentForViewer()} />;
+  return (
+    <AssistantChat
+      locale={locale}
+      viewer={viewer}
+      aiConsented={await aiConsentForViewer()}
+      t={assistantCopyOf(getDictionary(locale))}
+    />
+  );
 }
