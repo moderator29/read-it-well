@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
   useSyncExternalStore,
@@ -307,6 +308,11 @@ export function useSaveControl(
  * this product was a stroke difference of 0.18 CSS pixels, which is invisible,
  * and because a filled silhouette survives greyscale where a hue does not.
  * `aria-pressed` carries the same fact to anybody who cannot see either.
+ *
+ * So the name does not change with the state: it is "Save to favourites" in
+ * the reader's language, pressed or not, and the property's title is the
+ * description. It was "Save {title}" and "Remove {title} from saved" in
+ * English on every page, which also said the state twice over.
  */
 export function SaveButton({
   saved,
@@ -319,19 +325,22 @@ export function SaveButton({
   saved: boolean;
   pending: boolean;
   onToggle: () => void;
-  /** Named in the label so a screen reader hears which property this is. */
+  /** The description, so a screen reader hears which property this is. */
   title: string;
   className?: string;
   /** On a photograph the heart is the glass square of the renders. */
   surface?: "page" | "media";
 }) {
+  const name = useClientCopy().a11y.favourite;
+  const titleId = useId();
   return (
     <button
       type="button"
       onClick={onToggle}
       disabled={pending}
       aria-pressed={saved}
-      aria-label={saved ? `Remove ${title} from saved` : `Save ${title}`}
+      aria-label={name}
+      aria-describedby={titleId}
       data-testid="card-save"
       className={[surface === "media" ? "nf-pcard__heart" : "nf-icon-btn", className ?? ""]
         .filter(Boolean)
@@ -343,6 +352,9 @@ export function SaveButton({
         filled={saved}
         className={saved && surface === "page" ? "text-[var(--nf-brand-primary)]" : undefined}
       />
+      <span id={titleId} hidden>
+        {title}
+      </span>
     </button>
   );
 }

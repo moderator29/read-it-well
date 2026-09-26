@@ -820,7 +820,16 @@ export default async function ListingDetailPage({
           initialSaved={initialSaved}
           backFallback="/home"
           mark={{
-            label: isSale ? t.catalogue.card.forSale : market.label,
+            /* Rent and sale in the reader's language. Stays, dining and
+               experiences have no key yet: one added in English alone would
+               make the three incomplete locales worse, which
+               `locale-completeness.test.ts` refuses, so they arrive with
+               their translations. */
+            label: isSale
+              ? t.catalogue.card.forSale
+              : listingMarket === "tenancy"
+                ? t.catalogue.card.forRent
+                : market.label,
             icon: market.icon,
             verified: listing.verified,
             verifiedLabel: t.common.verified,

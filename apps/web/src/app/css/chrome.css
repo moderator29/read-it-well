@@ -720,12 +720,27 @@
     display: flex;
     flex-shrink: 0;
   }
+  /*
+   * A LABEL WIDER THAN ITS SLOT BREAKS AT ITS SPACE, and only there. Hausa
+   * "Bayanan martaba" is 95px in a 53px slot and ran into "Labarai" beside
+   * it; Yoruba "Ìtàn àdúgbò" and Igbo "Akụkọ ógbè" are 65px. Every word fits
+   * on its own, so nobody's words are shortened. The label may use the whole
+   * slot, padding included, before it breaks, and its box stays one line
+   * tall: every glyph keeps the one baseline and a second line hangs below,
+   * inside the capsule. A label that fits, every English one included, lays
+   * out exactly as it did.
+   */
   .nf-tab__label {
+    max-width: calc(100% + 2 * var(--nf-space-2xs));
+    height: 1em;
+    margin-inline: calc(-1 * var(--nf-space-2xs));
     font-size: 0.6875rem;
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.01em;
-    white-space: nowrap;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: normal;
   }
   .nf-tab__link[aria-current="page"],
   .nf-tab__link[data-on] {

@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { type Locale, formatRating } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MapCopy, MapListing } from "./mapTypes";
 import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 
 /**
  * The card that docks at the foot of the map when a pin is chosen.
@@ -52,6 +53,10 @@ export function MapDock({
   const [drag, setDrag] = useState(0);
   const startY = useRef<number | null>(null);
   const dragged = useRef(false);
+  /* The heart is named as `SaveButton` names it: "Save to favourites" in the
+     reader's language, the state in `aria-pressed`, the title described. */
+  const saveName = useClientCopy().a11y.favourite;
+  const saveTitleId = useId();
 
   const where =
     listing.area && listing.area !== listing.city
@@ -211,7 +216,8 @@ export function MapDock({
             onClick={onSave}
             disabled={saveBusy}
             aria-pressed={saved}
-            aria-label={saved ? `Remove ${listing.title} from saved` : `Save ${listing.title}`}
+            aria-label={saveName}
+            aria-describedby={saveTitleId}
             data-testid="map-dock-save"
             className="nf-icon-btn h-11 w-11"
           >
@@ -220,6 +226,9 @@ export function MapDock({
               size={20}
               className={saved ? "text-[var(--nf-brand-primary)]" : undefined}
             />
+            <span id={saveTitleId} hidden>
+              {listing.title}
+            </span>
           </button>
           <button
             type="button"

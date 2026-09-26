@@ -46,13 +46,15 @@ export default function AppError({
   /* The words come from the root layout (`lib/i18n/client-copy.tsx`), so
      the screen speaks the reader's language; it was English for everyone,
      read from the whole dictionary, which every in-app route shipped for it. */
-  const COPY = useClientCopy().trustVisible.state;
+  const clientCopy = useClientCopy();
+  const COPY = clientCopy.trustVisible.state;
 
   /* V-97: the state kit's full-screen form, in the voice's words. */
   return (
     <StateMoment
       kind="error"
       home="/home"
+      homeLabel={clientCopy.a11y.logoHome}
       inset
       overline={COPY.screenErrorOverline}
       title={COPY.screenErrorTitle}

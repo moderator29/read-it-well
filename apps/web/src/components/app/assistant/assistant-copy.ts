@@ -10,7 +10,7 @@ import type { Dictionary } from "@vallo/i18n/core";
  */
 export type AssistantCopy = {
   home: Pick<Dictionary["home"], "assistant">;
-  units: Pick<Dictionary["units"], "beds" | "baths">;
+  a11y: Pick<Dictionary["a11y"], "logoHome">;
   catalogue: { card: Pick<Dictionary["catalogue"]["card"], "sqm"> };
   common: Pick<Dictionary["common"], "verified">;
 };
@@ -18,7 +18,7 @@ export type AssistantCopy = {
 export function assistantCopyOf(t: Dictionary): AssistantCopy {
   return {
     home: { assistant: t.home.assistant },
-    units: { beds: t.units.beds, baths: t.units.baths },
+    a11y: { logoHome: t.a11y.logoHome },
     catalogue: { card: { sqm: t.catalogue.card.sqm } },
     common: { verified: t.common.verified },
   };

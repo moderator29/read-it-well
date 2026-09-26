@@ -25,6 +25,7 @@ export function StateMoment({
   actions,
   children,
   home,
+  homeLabel,
   inset = false,
   offline = false,
   aside,
@@ -44,13 +45,15 @@ export function StateMoment({
   /** What the screen needs under the actions. */
   children?: ReactNode;
   home?: string;
+  /** Passed to `SystemMoment`; see there. */
+  homeLabel?: string;
   inset?: boolean;
   offline?: boolean;
   aside?: ReactNode;
 }) {
   const role = stateRole(kind);
   return (
-    <SystemMoment {...(home ? { home } : {})} inset={inset} offline={offline} {...(aside ? { aside } : {})}>
+    <SystemMoment {...(home ? { home } : {})} {...(homeLabel ? { homeLabel } : {})} inset={inset} offline={offline} {...(aside ? { aside } : {})}>
       {/* The role sits on a real box: `display: contents` drops an element
           from the accessibility tree in some browsers, and the role with it.
           A block wrapper changes nothing in the card's layout (the card is

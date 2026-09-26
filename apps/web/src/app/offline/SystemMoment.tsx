@@ -42,6 +42,7 @@ import "@/app/css/system.css";
  */
 export function SystemMoment({
   home = "/",
+  homeLabel = "Vallo home",
   inset = false,
   offline = false,
   children,
@@ -49,6 +50,10 @@ export function SystemMoment({
 }: {
   /** Where the lockup links. Root pages resolve the reader's real home. */
   home?: string;
+  /** The lockup's name for a screen reader. The not-found, offline and root
+      error screens are written in English and keep the English name; the
+      in-app error screen speaks the reader's language and passes theirs. */
+  homeLabel?: string;
   inset?: boolean;
   offline?: boolean;
   children: ReactNode;
@@ -73,7 +78,7 @@ export function SystemMoment({
       <div className="nf-aurora" aria-hidden="true" />
 
       <div className="nf-system__stage">
-        <Link href={home} aria-label="Vallo home" className="nf-system__brand nf-tap">
+        <Link href={home} aria-label={homeLabel} className="nf-system__brand nf-tap">
           {offline ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

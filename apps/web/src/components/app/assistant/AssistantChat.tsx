@@ -604,7 +604,7 @@ export function AssistantChat({
         >
           <UiIcon name="arrow-left" size={20} />
         </button>
-        <Link href="/home" aria-label="Vallo home" className="nf-ai__lockup nf-tap">
+        <Link href="/home" aria-label={t.a11y.logoHome} className="nf-ai__lockup nf-tap">
           <LogoMark size={32} />
           <Image
             src="/brand/vallo-wordmark.png"
