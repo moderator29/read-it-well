@@ -12,7 +12,7 @@ import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
 import { getDictionary, intlTag, plural, type Locale, formatRating } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getListingRepository } from "@/lib/listings/repository";
+import { listingById } from "@/lib/listings/listing-by-id";
 import {
   listingMetadata,
   listingStructuredData,
@@ -241,7 +241,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const listing = await getListingRepository().byId(id);
+  const listing = await listingById(id);
   /* OPS-17: metadata resolves before the body streams for crawlers and
      link checkers, so a missing listing answers them with a real 404 rather
      than a 200 that streams a not-found page. */
@@ -288,7 +288,7 @@ export default async function ListingDetailPage({
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
 
-  const listing = await getListingRepository().byId(id);
+  const listing = await listingById(id);
   if (!listing) notFound();
 
 

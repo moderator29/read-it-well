@@ -3,7 +3,7 @@ import { isPropertyMarket, marketOf } from "@/lib/listings/market";
 import { notFound, redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getListingRepository } from "@/lib/listings/repository";
+import { listingById } from "@/lib/listings/listing-by-id";
 import { formatNumber } from "@vallo/i18n";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import type { SpecPair } from "@/components/app/listing/DetailAnatomy";
@@ -66,7 +66,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const listing = await getListingRepository().byId(id);
+  const listing = await listingById(id);
   const restaurant = listing && listing.kind === "restaurant" ? listing : null;
   /* The business-grade venue answers here too, or every M7 restaurant would
      carry the fallback title in the tab and in a shared link. */
@@ -135,7 +135,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
    * older and larger half, and the face below is drawn from whichever
    * answered. Nothing else about the listing path changes.
    */
-  const listing = await getListingRepository().byId(id);
+  const listing = await listingById(id);
   /* UI-P2-03: premises let on a rent or sold are Property, not a place to
      book a table; they move to the rental template. */
   if (listing && isPropertyMarket(marketOf(listing))) redirect(`/listing/${id}`);

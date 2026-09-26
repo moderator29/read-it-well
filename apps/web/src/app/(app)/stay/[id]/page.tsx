@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getListingRepository } from "@/lib/listings/repository";
+import { listingById } from "@/lib/listings/listing-by-id";
 import { isPropertyMarket, marketOf } from "@/lib/listings/market";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -182,7 +182,7 @@ export default async function StayDetailPage({
     /* UX-10 / UX-04: a listing let on a tenancy or sold is Property, whatever
        its kind. An old link to /stay/<id> for it moves to /listing/<id>, so it
        is drawn under the rental template and does not turn the app to Stays. */
-    const listing = await getListingRepository().byId(id);
+    const listing = await listingById(id);
     if (listing && isPropertyMarket(marketOf(listing))) redirect(`/listing/${id}`);
     return <ListingPage params={params} searchParams={searchParams} />;
   }
