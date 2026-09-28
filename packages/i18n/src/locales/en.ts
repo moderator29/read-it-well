@@ -1625,8 +1625,8 @@ export const en = {
     },
     /** SEC-15: the 7-day hold after support moved this account to a new address. */
     moneyHold: {
-      title: "Money cannot leave your account until {when}",
-      body: "Support moved this account to a new email address. For 7 days after that, payments and new or changed bank accounts are paused, so nobody who took the account over can empty it. Money coming in, and paying by card, work as normal.",
+      title: "Your payout details are locked until {when}",
+      body: "Support moved this account to a new email address. For 7 days after that, nobody can add or change a bank or payout account, so nobody who took the account over can redirect where you are paid. Paying by card and receiving payouts to the account already on file work as normal.",
     },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {

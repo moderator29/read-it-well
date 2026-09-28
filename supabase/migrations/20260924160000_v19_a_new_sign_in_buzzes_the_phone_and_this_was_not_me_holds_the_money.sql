@@ -1,4 +1,13 @@
 /*
+ * CUSTODY IS RETIRED (25 September 2026). The wallet and its debit trigger
+ * are gone, so a hold now refuses only what the two live triggers guard:
+ * adding or changing a bank account or a payout account
+ * (`bank_accounts_00_money_hold`, `payout_accounts_00_money_hold`). That is
+ * still the point: whoever took the session cannot redirect where the
+ * person is paid. The notice says so, with kind `system` and a link to the
+ * devices screen, instead of a wallet that no longer exists. The wallet
+ * wording below describes the design as written on 24 September.
+ *
  * V-19. A NEW SIGN-IN BUZZES THE PHONE, AND "THIS WAS NOT ME" HOLDS THE MONEY.
  *
  * `20260923093115` taught the database to notice a new device: `auth.sessions`
@@ -140,10 +149,10 @@ begin
   if v_placed or v_extended then
     perform private.notify(
       actor,
-      'wallet'::public.notification_kind,
-      'Money cannot leave your wallet for now',
-      'You said a sign-in was not you. We signed out every other device, and no money can leave your wallet until the hold ends. Change your password now.',
-      '/wallet'
+      'system'::public.notification_kind,
+      'Your payout details are locked for now',
+      'You said a sign-in was not you. We signed out every other device, and nobody can add or change a bank or payout account on this account until the hold ends. Change your password now.',
+      '/settings/devices'
     );
   end if;
 
