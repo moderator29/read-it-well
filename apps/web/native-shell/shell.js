@@ -8,8 +8,9 @@
  * its button reloaded this packaged page instead of retrying the origin.
  *
  * Now the origin is WRITTEN INTO THE BUILD (`shell-config.js`, from
- * `scripts/write-shell-config.mjs`) and read from there. Nothing here calls a
- * `window.Capacitor` member at all. Retrying checks the origin answers, then
+ * `scripts/write-shell-config.mjs`) and read from there. The one
+ * `window.Capacitor` member used is `nativePromise`, to hide the splash; see
+ * `hideSplash` below. Retrying checks the origin answers, then
  * replaces this page with the app's start path; the `online` event does the
  * same by itself when the connection returns.
  *
@@ -36,7 +37,33 @@
     return origin ? origin + startPathOf(win) : null;
   }
 
+  /*
+   * TAKE THE SPLASH DOWN, BECAUSE NOTHING ELSE WILL (native release audit,
+   * 28 September 2026). `launchAutoHide: false` leaves hiding the splash to
+   * `src/lib/native/splash.ts`, which lives in the LIVE web app. When the
+   * origin cannot be reached, which is App Review's airplane mode cold start,
+   * the live app never loads, this packaged page is shown instead, and until
+   * this line nothing hid the splash: the person sat on a static image forever
+   * with this card underneath it.
+   *
+   * `nativePromise` is the bridge primitive Capacitor injects into every page
+   * the web view loads, this local one included, and is declared in
+   * `@capacitor/core`'s `definitions-internal.d.ts`. No plugin import, so this
+   * still runs with the radio off.
+   */
+  function hideSplash(win) {
+    try {
+      var cap = win && win.Capacitor;
+      if (!cap || typeof cap.nativePromise !== "function") return;
+      var pending = cap.nativePromise("SplashScreen", "hide", { fadeOutDuration: 200 });
+      if (pending && typeof pending.then === "function") pending.then(null, function () {});
+    } catch (e) {
+      /* A shell without the plugin shows no splash to hide. */
+    }
+  }
+
   function start(win, doc) {
+    hideSplash(win);
     var target = retryTarget(win);
     if (!target) {
       doc.body.setAttribute("data-state", "unconfigured");
@@ -81,6 +108,6 @@
     return { target: target, attempt: attempt };
   }
 
-  root.__valloShell = { originOf: originOf, startPathOf: startPathOf, retryTarget: retryTarget, start: start };
+  root.__valloShell = { originOf: originOf, startPathOf: startPathOf, retryTarget: retryTarget, start: start, hideSplash: hideSplash };
   if (root.document && root.document.body) start(root, root.document);
 })(typeof window !== "undefined" ? window : this);

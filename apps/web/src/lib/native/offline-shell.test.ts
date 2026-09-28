@@ -56,7 +56,7 @@ describe("the card is ours, not a developer's", () => {
 
 type Listener = () => void;
 
-function run(options: { origin?: string; startPath?: string; reachable?: boolean }) {
+function run(options: { origin?: string; startPath?: string; reachable?: boolean; capacitor?: unknown }) {
   const listeners: Record<string, Listener[]> = {};
   const elements: Record<string, { hidden: boolean; attrs: Record<string, string>; click?: Listener }> = {
     retry: { hidden: false, attrs: {} },
@@ -70,6 +70,7 @@ function run(options: { origin?: string; startPath?: string; reachable?: boolean
     __VALLO_START_PATH__: options.startPath,
     location: { replace, reload: vi.fn() },
     fetch,
+    Capacitor: options.capacitor,
     addEventListener: (name: string, fn: Listener) => void (listeners[name] ??= []).push(fn),
     document: {
       body,
@@ -121,5 +122,37 @@ describe("Try again retries the live origin", () => {
     expect(run({}).body.attrs["data-state"]).toBe("unconfigured");
     expect(run({ origin: "http://insecure.example" }).body.attrs["data-state"]).toBe("unconfigured");
     expect(run({ origin: "https://www.vallospaces.com" }).body.attrs["data-state"]).toBeUndefined();
+  });
+});
+
+describe("the offline card takes the splash down itself", () => {
+  /* launchAutoHide is false and the live app is what normally hides the
+     splash, so an unreachable origin left the splash up over this card. */
+  it("asks the injected bridge to hide it, whether or not the build has an origin", () => {
+    for (const origin of ["https://www.vallospaces.com", undefined]) {
+      const nativePromise = vi.fn(() => Promise.resolve());
+      run({ origin, capacitor: { nativePromise } });
+      expect(nativePromise).toHaveBeenCalledWith("SplashScreen", "hide", { fadeOutDuration: 200 });
+    }
+  });
+
+  it("survives a missing bridge, a throwing one and a rejected hide", async () => {
+    expect(() => run({ origin: "https://www.vallospaces.com" })).not.toThrow();
+    expect(() =>
+      run({ capacitor: { nativePromise: () => { throw new Error("no plugin"); } } }),
+    ).not.toThrow();
+    const shell = run({
+      origin: "https://www.vallospaces.com",
+      capacitor: { nativePromise: () => Promise.reject(new Error("not implemented")) },
+    });
+    await settle();
+    expect(shell.body.attrs["data-state"]).toBeUndefined();
+  });
+
+  it("uses only a bridge member that @capacitor/core declares", () => {
+    const require = createRequire(import.meta.url);
+    const definitions = readFileSync(require.resolve("@capacitor/core/types/definitions-internal.d.ts"), "utf8");
+    expect(shellJs).toContain('cap.nativePromise("SplashScreen", "hide"');
+    expect(definitions).toMatch(/nativePromise:/);
   });
 });
