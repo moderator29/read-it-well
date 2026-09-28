@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -20,6 +21,13 @@
             backup and landing on a second handset. There is nothing in here
             worth restoring: the account lives on the server and signing in
             again takes seconds.
+
+            `dataExtractionRules` closes the half `allowBackup` does not. From
+            Android 12, for an application targeting 31 or above,
+            `allowBackup="false"` stops CLOUD backup but NOT device-to-device
+            transfer (the cable or wifi migration to a new phone). The rules
+            file excludes every domain from both, so the cookie jar and its
+            session never travel either way.
 
             `usesCleartextTraffic` is already false by default at this target
             SDK, and it is written out anyway because it is the flag that
@@ -198,6 +206,7 @@
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
 
         <!--
             FCM's defaults for a notification that arrives while the
@@ -209,16 +218,25 @@
             OR A LOG LINE. `vallo_default` is the id the server puts on every
             Android message (`src/lib/push/transport/fcm.ts`), so the two have
             to agree; if this ever changes, that file changes with it. The
-            channel itself is created by the push plugin at registration.
+            channel itself is created at boot by `src/lib/native/push-taps.ts`.
+
+            THESE THREE MUST BE DIRECT CHILDREN OF <application>. Until 28
+            September 2026 they sat inside the FileProvider's <provider>
+            element, where they were provider metadata that Firebase never
+            reads (it reads `ApplicationInfo.metaData`). The file was well
+            formed, so nothing complained. `src/lib/native/native-projects.test.ts`
+            now holds the placement.
 
             The icon must be a silhouette: Android 5 and above renders a
             notification icon as a mask, so anything with colour in it comes
             out a white blob. `@mipmap/ic_launcher` is wrong for the same
             reason and is the default people fall back to.
 
-            NONE OF THIS DOES ANYTHING WITHOUT `app/google-services.json`,
-            which is not in this repository and comes from a Firebase project
-            only the owner can create.
+            NONE OF THIS DOES ANYTHING WITHOUT A VALID `app/google-services.json`.
+            The file is in the repository for Firebase project `vallo-44059`
+            but its `current_key` is still a placeholder, so `app/build.gradle`
+            refuses a release build until the owner pastes the real Android
+            API key in.
         -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
@@ -229,7 +247,6 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/vallo_notification" />
-        </provider>
     </application>
 
     <!--

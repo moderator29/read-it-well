@@ -1,6 +1,5 @@
 import UIKit
 import Capacitor
-import UserNotifications
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -8,11 +7,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Claim the notification centre delegate so the foreground
-        // presentation method below is actually called. Set here, at launch,
-        // because iOS only consults the delegate that was in place when the
-        // notification arrives.
-        UNUserNotificationCenter.current().delegate = self
+        // Deliberately NOT claiming `UNUserNotificationCenter.current().delegate`.
+        // Capacitor's bridge installs its own `NotificationRouter` as that
+        // delegate when it starts (`CapacitorBridge.swift`), which replaces
+        // anything set here, and the router hands foreground presentation and
+        // taps to the push plugin. See the note at the bottom of this file.
         return true
     }
 
@@ -55,10 +54,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // observes these names and does the rest. Posting the notification is all
     // that is required here, and doing more would duplicate the plugin.
     //
-    // The third method is what makes a notification VISIBLE while the
-    // application is in the foreground. Without it iOS delivers the push and
-    // shows nothing, which is reported as "push does not work" by every
-    // person who tests it with the app open, which is everybody.
+    // Showing a notification while the application is in the foreground is
+    // NOT done here: see the note at the bottom of this file.
 
     func application(_ application: UIApplication,
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
@@ -87,36 +84,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
-// MARK: -
-
-extension AppDelegate: UNUserNotificationCenterDelegate {
-    // SHOW IT EVEN WHEN THE APPLICATION IS OPEN.
-    //
-    // The iOS default is to deliver a notification to a foregrounded
-    // application WITHOUT displaying anything, on the reasoning that the app
-    // can show its own thing. Vallo's in-product notification row is that
-    // thing and it is genuinely better, but it only appears on the pages that
-    // render it, so a person reading a listing when a booking arrives would
-    // see nothing at all. Banner and sound, and the badge left to the system.
-    func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                willPresent notification: UNNotification,
-                                withCompletionHandler completionHandler:
-                                    @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .sound, .badge])
-    }
-
-    // A TAP, WHICH IS WHERE THE DEEP LINK LIVES.
-    //
-    // Handed straight to Capacitor, which raises `pushNotificationActionPerformed`
-    // in the web layer. The destination is carried in the payload as `href`
-    // and is validated there against our own origin, for the same reason the
-    // service worker validates it: a notification is a place a tap leaves the
-    // application from.
-    func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                didReceive response: UNNotificationResponse,
-                                withCompletionHandler completionHandler: @escaping () -> Void) {
-        NotificationCenter.default.post(name: Notification.Name.capacitorDidReceiveNotificationResponse,
-                                        object: response)
-        completionHandler()
-    }
-}
+// MARK: - Notification centre delegate: owned by Capacitor, not by this class
+//
+// This file used to extend AppDelegate as a `UNUserNotificationCenterDelegate`
+// to show banners in the foreground and forward taps. Removed on 28 September
+// 2026 (native release audit), for two reasons, either of which was enough:
+//
+// 1. IT DID NOT COMPILE. The tap method posted
+//    `Notification.Name.capacitorDidReceiveNotificationResponse`, a name that
+//    does not exist in Capacitor 8.5 (`CAPNotifications.swift` defines the
+//    full list). No Xcode build had ever run, so nothing caught it.
+// 2. IT WOULD NEVER HAVE RUN. `CapacitorBridge` sets its `NotificationRouter`
+//    as the centre's delegate when the web view loads, after launch, so the
+//    router wins. The router gives `willPresent` to the push plugin, which
+//    reads `plugins.PushNotifications.presentationOptions` from
+//    `capacitor.config.ts` (badge, sound, alert), and gives the tap to the
+//    plugin, which raises `pushNotificationActionPerformed` for
+//    `src/lib/native/push-taps.ts`. Foreground banners and tap routing are
+//    therefore both handled without any code here.
