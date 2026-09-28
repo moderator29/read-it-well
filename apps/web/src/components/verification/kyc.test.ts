@@ -3,6 +3,8 @@ import {
   BUSINESS_SECTIONS,
   CONSENTS,
   MAX_FILE_BYTES,
+  addressDateProblem,
+  lagosToday,
   missingFrom,
   progressLabel,
   rejectFile,
@@ -10,11 +12,12 @@ import {
   type KycSubmission,
 } from "./kyc";
 
-const FILE = { name: "id.jpg", size: 1024, type: "image/jpeg" };
+const ID = { name: "id.jpg", size: 1024, type: "image/jpeg", path: "u/kyc-b/identity-1.jpg", subtype: "passport", issuedOn: null };
+const BILL = { name: "bill.pdf", size: 1024, type: "application/pdf", path: "u/kyc-b/address-1.pdf", subtype: "utility_bill", issuedOn: lagosToday() };
 
 function submission(over: Partial<KycSubmission> = {}): KycSubmission {
   return {
-    documents: { identity: FILE, address: FILE },
+    documents: { identity: ID, address: BILL },
     business: false,
     businessDetails: {},
     consents: ["accuracy", "terms", "processing"],
@@ -86,7 +89,7 @@ describe("missingFrom", () => {
   });
 
   it("names the document rather than saying something is missing", () => {
-    const gaps = missingFrom(submission({ documents: { address: FILE } }));
+    const gaps = missingFrom(submission({ documents: { address: BILL } }));
     expect(gaps).toEqual(["Government issued ID"]);
   });
 
@@ -121,5 +124,27 @@ describe("missingFrom", () => {
       for (const field of section.fields) filled[field.name] = "   ";
     }
     expect(missingFrom(submission({ business: true, businessDetails: filled })).length).toBeGreaterThan(0);
+  });
+});
+
+describe("the two answers about each document", () => {
+  it("asks which ID and which proof of address it is", () => {
+    const gaps = missingFrom(
+      submission({ documents: { identity: { ...ID, subtype: null }, address: { ...BILL, subtype: "passport" } } }),
+    );
+    expect(gaps).toEqual(["Which ID you uploaded", "Which proof of address you uploaded"]);
+  });
+
+  it("refuses a proof of address older than three months, or undated, or in the future", () => {
+    expect(addressDateProblem("2026-09-01", "2026-09-28")).toBeNull();
+    expect(addressDateProblem("2026-06-01", "2026-09-28")).toMatch(/three months/);
+    expect(addressDateProblem("2026-10-02", "2026-09-28")).toMatch(/future/);
+    expect(addressDateProblem(null, "2026-09-28")).toMatch(/date printed/);
+    expect(addressDateProblem("28/09/2026", "2026-09-28")).toMatch(/date printed/);
+  });
+
+  it("names the stale date as a gap", () => {
+    const gaps = missingFrom(submission({ documents: { identity: ID, address: { ...BILL, issuedOn: "2026-01-01" } } }), "2026-09-28");
+    expect(gaps).toEqual(["The date on your proof of address, within the last three months"]);
   });
 });

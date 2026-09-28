@@ -13,7 +13,40 @@ import {
   KycStatus,
   type KycStatusView,
 } from "@/components/verification/KycStatus";
+import { resolveSession } from "@/lib/actions/session";
 import { submitVerification } from "./actions";
+
+/**
+ * Where the caller's own filed identity and address documents stand: the
+ * newest of each kind, read through their RLS-bound client. This is what a
+ * person who is not (yet) an agent has instead of a ladder, and it is also
+ * the only place a rejection shows: `private.review_kyc_document` records a
+ * refused document's rung as pending, never failed, so the ladder alone
+ * would leave a rejected applicant looking at "in review" for ever.
+ */
+async function ownDocumentState(): Promise<
+  { state: "none" } | { state: "pending" } | { state: "rejected"; reason: string | null } | { state: "approved" }
+> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return { state: "none" };
+  const { data, error } = await session.supabase
+    .from("agent_documents")
+    .select("kind, review_status, rejection_reason, uploaded_at")
+    .eq("uploader_id", session.user.id)
+    .in("kind", ["identity", "address"])
+    .order("uploaded_at", { ascending: false })
+    .limit(20);
+  if (error || !data || data.length === 0) return { state: "none" };
+  const latest = new Map<string, { review_status: string; rejection_reason: string | null }>();
+  for (const row of data as { kind: string; review_status: string; rejection_reason: string | null }[]) {
+    if (!latest.has(row.kind)) latest.set(row.kind, row);
+  }
+  const rows = [...latest.values()];
+  const rejected = rows.find((row) => row.review_status === "rejected");
+  if (rejected) return { state: "rejected", reason: rejected.rejection_reason };
+  if (rows.some((row) => row.review_status === "pending")) return { state: "pending" };
+  return latest.size >= 2 ? { state: "approved" } : { state: "pending" };
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -65,7 +98,7 @@ export default async function VerificationPage({
     merchantCode !== "" && (await vninIdentityOn()) ? (
       <VninPanel copy={getDictionary(locale).trustVisible.vnin} merchantCode={merchantCode} />
     ) : null;
-  const ladder = await getOwnLadder(context);
+  const [ladder, documents] = await Promise.all([getOwnLadder(context), ownDocumentState()]);
   /* SCUML item 20: the PEP question, for listers only (the panel draws
      nothing for anybody without an agents row). */
   const pep = <PepQuestionPanel askedAt="verification" />;
@@ -151,6 +184,27 @@ export default async function VerificationPage({
     ) {
       status = { state: "pending" };
     }
+  }
+
+  /*
+   * THE DOCUMENTS THEMSELVES, WHERE THE LADDER SAYS NOTHING OR ONLY "WAITING".
+   *
+   * A rejected document outranks "in review" for the same reason a failed
+   * rung does: the decision has been made and the person can act on it
+   * today. A suspension, a failed rung and a reviewer's request are left as
+   * they were. A person with documents in the queue and no agents row used to
+   * be shown an empty form again after sending, as if nothing had arrived.
+   */
+  if (documents.state === "rejected" && (status === null || status.state === "pending" || status.state === "approved")) {
+    status = {
+      state: "rejected",
+      reason:
+        documents.reason ??
+        "The reviewer did not record a reason. Send the documents again and our team will look at them within one working day.",
+      fix: "Replace the document that was refused and send it again. Everything you have already had approved stays approved.",
+    };
+  } else if (status === null && documents.state === "pending") {
+    status = { state: "pending" };
   }
 
   /*
