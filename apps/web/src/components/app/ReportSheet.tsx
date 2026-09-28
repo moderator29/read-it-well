@@ -146,7 +146,7 @@ export function ReportSheet({
             data-testid="report-sheet"
             className="absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
           >
-            <header className="nf-glass flex items-center gap-sm border-b border-[var(--nf-border-subtle)] px-md py-sm">
+            <header className="nf-glass flex items-center gap-sm border-b border-[var(--nf-border-subtle)] px-md pb-sm pt-[calc(var(--nf-space-sm)+env(safe-area-inset-top,0px))]">
               <button
                 ref={closeRef}
                 type="button"
@@ -167,7 +167,7 @@ export function ReportSheet({
             </header>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-md py-md">
-              <div className="mx-auto grid max-w-2xl gap-md pb-xl">
+              <div className="mx-auto grid max-w-2xl gap-md pb-[calc(var(--nf-space-xl)+env(safe-area-inset-bottom,0px))]">
                 {state?.ok ? (
                   <div className={panelClass({ variant: "card", className: "block p-lg text-center" })} data-testid="report-filed">
                     <span className="mx-auto block h-16 w-16">

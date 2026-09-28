@@ -123,6 +123,15 @@ export function startNativeRuntime(handlers: NativeRuntimeHandlers): () => void 
     }
 
     try {
+      /* Android's web view has no navigator.share; supply it from the plugin
+         so every share control opens the system sheet, not the clipboard. */
+      const { startShareBridge } = await import("./share-bridge");
+      collect(await startShareBridge());
+    } catch {
+      /* The share controls fall back to copying the link, as on the web. */
+    }
+
+    try {
       /* V-53: a tap on a native notification opens the screen it names. */
       const { startPushTaps } = await import("./push-taps");
       collect(await startPushTaps(handlers.notificationChannelName ?? "Vallo"));

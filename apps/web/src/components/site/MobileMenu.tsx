@@ -95,7 +95,7 @@ export function MobileMenu({
             className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
           />
 
-          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-heading pb-block pt-heading">
+          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-heading pb-[calc(var(--nf-gap-block)+env(safe-area-inset-bottom,0px))] pt-[calc(var(--nf-gap-heading)+env(safe-area-inset-top,0px))]">
             <div className="mb-block flex items-center justify-between">
               <Logo size={50} wordSize={21} />
               <button

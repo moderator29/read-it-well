@@ -108,7 +108,7 @@ export function AgentMobileNav({
             {/* Panel */}
             <div
               className={[
-                "nf-panel nf-agent-drawer absolute inset-y-0 left-0 flex w-[18.5rem] max-w-[85vw] flex-col overflow-y-auto rounded-l-none px-md pt-5 transition-transform duration-300 ease-out",
+                "nf-panel nf-agent-drawer absolute inset-y-0 left-0 flex w-[18.5rem] max-w-[85vw] flex-col overflow-y-auto rounded-l-none px-md pt-[calc(1.25rem+env(safe-area-inset-top,0px))] transition-transform duration-300 ease-out",
                 open ? "translate-x-0" : "-translate-x-full",
               ].join(" ")}
               style={{
