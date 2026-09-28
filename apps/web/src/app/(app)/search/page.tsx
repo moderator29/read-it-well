@@ -211,7 +211,7 @@ export default async function SearchPage({
   const said = saidText && wordsShown(query, parseWords(saidText)) ? saidText : null;
 
   const repo = getListingRepository();
-  /* Three reads: the results, the pool the sheet counts against (the whole
+  /* The three catalogue reads: the results, the pool the sheet counts against (the whole
      catalogue for the current text), and the whole catalogue for the map. */
   /* V-41: "No flooding reported" is judged on facts this page reads, not in
      the repository's SQL, so the repository is asked without it and the
@@ -219,68 +219,6 @@ export default async function SearchPage({
      in-memory filter here it narrows what the read returned, so it works
      within the repository's row ceiling, not past it. */
   const { noFlood: wantsNoFlood, ...shelfAsked } = shelfFilter(query);
-  const [rawResults, rawPool, whole] = await Promise.all([
-    /* The move-in ordering is pushed into the read, because the read has a row
-       ceiling: sorting afterwards alone would order the newest rows rather
-       than the cheapest ones to move into. See `ListingSearchOptions.order`. */
-    repo.search(
-      shelfAsked,
-      query.sort === "move-in-asc" ? { order: "move-in" } : query.sort === "newest" ? { order: "newest" } : {},
-    ),
-    repo.search(shelfPoolFilter(query)),
-    /* The Property side's catalogue, never its stays: a nightly rate must
-       not become a city's "from" price on this map (V-67 review). */
-    repo.search({ propertySide: true }),
-  ]);
-  const floodClear = await floodClearFor([...rawResults, ...rawPool]);
-  /* Fail closed (review): with no flood facts (flag off, signed out, a read
-     that failed) "No flooding reported" is not a filter at all: no narrowing,
-     no switch, no count. */
-  if (!floodClear && query.noFlood) delete query.noFlood;
-  const noFloodApplies = Boolean(wantsNoFlood && floodClear);
-  const judged = (l: Listing): Listing =>
-    floodClear && floodClear.has(l.id) ? { ...l, floodClear: floodClear.get(l.id)! } : l;
-  const pool = rawPool.map(judged);
-  const floodNarrowed = rawResults
-    .map(judged)
-    .filter((l) => !noFloodApplies || l.floodClear === true);
-  const sorted = sortListings(floodNarrowed, query.sort);
-
-  /*
-   * V-10: THIS SEARCH AS A DEMAND CELL. A neighbourhood from the closed list
-   * (the typed words are read and dropped), the market, a bedroom minimum, a
-   * budget band and whether it found fewer than three REAL homes. Example
-   * listings are not supply, so they are not counted as results here either.
-   */
-  const demand = demandCell({
-    q: query.q,
-    intent: query.intent,
-    bedrooms: query.bedrooms,
-    maxMinor: query.maxMinor,
-    results: rawResults.filter((listing) => !listing.isDemo).length,
-  });
-  /* Recorded on the server after the response, never by the client. */
-  const recordDemand = await demandRecorder(demand);
-  if (recordDemand) after(recordDemand);
-
-  /*
-   * WHICH OF THESE ARE ALREADY ON THE SHORTLIST.
-   *
-   * The card used to draw its heart from the device store alone, so a
-   * signed-in reader whose save went to `saved_items` came back to an empty
-   * heart on every result. The stored ids are read here, once, and handed to
-   * each card; the device half is still resolved inside the control, so a
-   * guest is unaffected. (R2 finding 4.)
-   *
-   * `getSavedListings` with no argument returns the account's rows only and
-   * resolves them to listings, which is more work than an id set needs. It is
-   * what the three detail pages already call for exactly this answer, so this
-   * uses the same door rather than adding a second one; a cheap
-   * `getSavedListingIds` in `lib/saved/queries.ts` would be the better read
-   * and belongs to whoever owns that module.
-   */
-  const savedIds = new Set((await getSavedListings()).map((entry) => entry.listing.id));
-
   /*
    * WHETHER THIS EXACT SEARCH IS ALREADY KEPT.
    *
@@ -291,8 +229,6 @@ export default async function SearchPage({
    * control honest after a reload rather than only after a tap.
    */
   const canonical = canonicalSearch(raw);
-  const savedSearch = canonical.key.length > 0 ? await findSavedSearch(canonical.key) : null;
-
   /*
    * SEARCH BY LISTING CODE.
    *
@@ -316,17 +252,109 @@ export default async function SearchPage({
    * GOVERNING-12 screen four draws the found listing under a line saying how
    * it was found, and a redirect has nowhere to put that line.
    */
+  const codeRead = readListingReference(query.q ?? "");
+  /*
+   * Every read that needs only the request goes out in this one batch: the
+   * catalogue reads and the shortlist, saved-search, listing-code, stated
+   * interest and anchor reads. Each is its own round trip and none of them
+   * reads another's answer, so awaiting them one by one only added up their
+   * latencies before the first byte.
+   */
+  const [rawResults, rawPool, whole, savedEntries, savedSearch, codeHit, tuning, anchors] = await Promise.all([
+    /* The move-in ordering is pushed into the read, because the read has a row
+       ceiling: sorting afterwards alone would order the newest rows rather
+       than the cheapest ones to move into. See `ListingSearchOptions.order`. */
+    repo.search(
+      shelfAsked,
+      query.sort === "move-in-asc" ? { order: "move-in" } : query.sort === "newest" ? { order: "newest" } : {},
+    ),
+    repo.search(shelfPoolFilter(query)),
+    /* The Property side's catalogue, never its stays: a nightly rate must
+       not become a city's "from" price on this map (V-67 review). */
+    repo.search({ propertySide: true }),
+    getSavedListings(),
+    canonical.key.length > 0 ? findSavedSearch(canonical.key) : null,
+    codeRead.state === "code" ? repo.byReference(codeRead.value) : null,
+    readIntentTuning(),
+    readAnchors(),
+  ]);
+
+  /*
+   * THE SECOND BATCH: everything that needs only the catalogue answer.
+   *
+   * The landlord facts and the photo captions are read per listing and are
+   * the same for a listing whichever set it is asked about with, so they are
+   * asked for every result (and a code hit) up front instead of waiting for
+   * the shelf to be ordered, collapsed and narrowed. Both readers keep only the
+   * first 200 ids they are given, and the shelf's order is not the catalogue's,
+   * so a superset larger than that could keep a different 200. In that case
+   * they are read afterwards from the exact ids, as they always were.
+   */
+  const ID_READ_CAP = 200;
+  const idSuperset = [...new Set([...(codeHit ? [codeHit.id] : []), ...rawResults.map((l) => l.id)])];
+  const readAhead = idSuperset.length <= ID_READ_CAP;
+  const demandResults = rawResults.filter((listing) => !listing.isDemo).length;
+  const [floodClear, recordDemand, factsAhead, captionsAhead] = await Promise.all([
+    floodClearFor([...rawResults, ...rawPool]),
+    /*
+     * V-10: THIS SEARCH AS A DEMAND CELL. A neighbourhood from the closed list
+     * (the typed words are read and dropped), the market, a bedroom minimum, a
+     * budget band and whether it found fewer than three REAL homes. Example
+     * listings are not supply, so they are not counted as results here either.
+     */
+    demandRecorder(
+      demandCell({
+        q: query.q,
+        intent: query.intent,
+        bedrooms: query.bedrooms,
+        maxMinor: query.maxMinor,
+        results: demandResults,
+      }),
+    ),
+    readAhead ? readListingFactsFor(idSuperset) : null,
+    readAhead ? readPhotographedCaptions(idSuperset, locale) : null,
+  ]);
+  /* Fail closed (review): with no flood facts (flag off, signed out, a read
+     that failed) "No flooding reported" is not a filter at all: no narrowing,
+     no switch, no count. */
+  if (!floodClear && query.noFlood) delete query.noFlood;
+  const noFloodApplies = Boolean(wantsNoFlood && floodClear);
+  const judged = (l: Listing): Listing =>
+    floodClear && floodClear.has(l.id) ? { ...l, floodClear: floodClear.get(l.id)! } : l;
+  const pool = rawPool.map(judged);
+  const floodNarrowed = rawResults
+    .map(judged)
+    .filter((l) => !noFloodApplies || l.floodClear === true);
+  const sorted = sortListings(floodNarrowed, query.sort);
+
+  /* The demand cell is recorded on the server after the response, never by the client. */
+  if (recordDemand) after(recordDemand);
+
+  /*
+   * WHICH OF THESE ARE ALREADY ON THE SHORTLIST.
+   *
+   * The card used to draw its heart from the device store alone, so a
+   * signed-in reader whose save went to `saved_items` came back to an empty
+   * heart on every result. The stored ids are read here, once, and handed to
+   * each card; the device half is still resolved inside the control, so a
+   * guest is unaffected. (R2 finding 4.)
+   *
+   * `getSavedListings` with no argument returns the account's rows only and
+   * resolves them to listings, which is more work than an id set needs. It is
+   * what the three detail pages already call for exactly this answer, so this
+   * uses the same door rather than adding a second one; a cheap
+   * `getSavedListingIds` in `lib/saved/queries.ts` would be the better read
+   * and belongs to whoever owns that module.
+   */
+  const savedIds = new Set(savedEntries.map((entry) => entry.listing.id));
+
   /* V-34: a Record code (`VR-`) is a person, not a listing, and has its own
      page. Only with the prefix, so a six-letter place name is never taken
      for one. */
   const recordCode = readRecordCode(query.q ?? "");
   if (recordCode) redirect(`/record/${recordCode}`);
 
-  const codeRead = readListingReference(query.q ?? "");
-  const codeHit = codeRead.state === "code" ? await repo.byReference(codeRead.value) : null;
-
   /* A stated interest reorders an unfiltered shelf and nothing else. */
-  const tuning = await readIntentTuning();
   const statedIntent = hasOwnRequest(query) ? [] : tuning.interests;
   const ordered = orderByStatedIntent(sorted, statedIntent);
   /*
@@ -337,7 +365,7 @@ export default async function SearchPage({
    * and it moves to the end of whatever order the page chose, not out of it.
    */
   const shelf = codeHit ? [codeHit] : ordered;
-  const landlordFacts = await readListingFactsFor(shelf.map((l) => l.id));
+  const landlordFacts = factsAhead ?? (await readListingFactsFor(shelf.map((l) => l.id)));
   const notReconfirmed = new Set(
     [...landlordFacts].filter(([, facts]) => facts.notReconfirmed).map(([id]) => id),
   );
@@ -355,7 +383,6 @@ export default async function SearchPage({
    * ends inside it. Nothing is shown for an area with no band: the claims
    * rule. The drawer count does not see commutes yet; the shelf does.
    */
-  const anchors = await readAnchors();
   const anchor = query.to ? (anchors.find((a) => a.slug === query.to) ?? null) : null;
   /* An anchor that does not resolve (unknown, or the flag off) is not a
      filter: it leaves the query, so no count or chip claims it (review). */
@@ -391,7 +418,7 @@ export default async function SearchPage({
   const moreHref =
     drawn.length < listings.length ? `${shelfHref}${shelfHref.includes("?") ? "&" : "?"}more=${shelfSteps + 1}` : null;
   /* V-70: "Photographed: kitchen, prepaid meter" under a card whose lister labelled its photos. */
-  const photographedCaptions = await readPhotographedCaptions(listings.map((l) => l.id), locale);
+  const photographedCaptions = captionsAhead ?? (await readPhotographedCaptions(listings.map((l) => l.id), locale));
   const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied

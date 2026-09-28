@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { resolveSession } from "../actions/session";
+import { getShellIdentity } from "./shell-queries";
 import { memo } from "../cache/memo";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -192,7 +193,15 @@ export const getHomeOverview = cache(async function getHomeOverview(): Promise<H
 
   const { supabase, user } = session;
 
-  const [profileResult, unreadResult] = await Promise.all([
+  /*
+   * The unread count comes from the shell identity rather than a second
+   * `notifications` count. `getShellIdentity` is wrapped in `cache` and the
+   * `(app)` layout already awaits it in the same request, so this joins that
+   * execution instead of paying another round trip. It fails soft to zero,
+   * which is what the count here always did. The profile read stays: the shell
+   * does not select the place codes, interests or settings this page needs.
+   */
+  const [profileResult, shell] = await Promise.all([
     supabase
       .from("profiles")
       .select(
@@ -200,7 +209,7 @@ export const getHomeOverview = cache(async function getHomeOverview(): Promise<H
       )
       .eq("id", user.id)
       .maybeSingle(),
-    supabase.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null),
+    getShellIdentity(),
   ]);
 
   const profile = profileResult.data;
@@ -236,7 +245,7 @@ export const getHomeOverview = cache(async function getHomeOverview(): Promise<H
     daypart,
     firstName,
     avatarUrl: profile?.avatar_url ?? "",
-    unreadNotifications: unreadResult.error ? 0 : (unreadResult.count ?? 0),
+    unreadNotifications: shell.unreadNotifications,
     signedIn: true,
     place,
     areas: places.areas,

@@ -35,7 +35,21 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const overview = await getHomeOverview();
+  const repo = getListingRepository();
+  /*
+   * Every read on this page is independent of the others and free of side
+   * effects, so they go out together rather than one after another: each is a
+   * separate round trip to the database, and in sequence they were the longest
+   * wait before Home's first byte. The first-run redirect below still runs
+   * before anything is drawn; the reads it makes unnecessary only read, so
+   * starting them early changes when they finish and nothing else.
+   */
+  const [overview, recommended, agentContext, mode] = await Promise.all([
+    getHomeOverview(),
+    repo.recommended(18),
+    getAgentContext(),
+    getMode(),
+  ]);
 
   /*
    * The first-run question, gated here and nowhere else.
@@ -52,7 +66,6 @@ export default async function HomePage() {
    */
   if (overview.askIntent) redirect("/welcome");
 
-  const repo = getListingRepository();
   /*
    * The featured shelf.
    *
@@ -66,7 +79,7 @@ export default async function HomePage() {
    */
   /* UX-04: the Property home's shelf is Property: tenancies and sales. A
      shortlet or a hotel room here opened under Stays and turned the app over. */
-  const listings = (await repo.recommended(18)).filter((listing) => isPropertyMarket(marketOf(listing))).slice(0, 6);
+  const listings = recommended.filter((listing) => isPropertyMarket(marketOf(listing))).slice(0, 6);
 
   /*
    * Whether this person is a seller or an agent who has not finished verifying.
@@ -77,7 +90,6 @@ export default async function HomePage() {
    * are two chances for the two surfaces to disagree about whether somebody is
    * verified. A renter or buyer never produces a prompt.
    */
-  const [agentContext, mode] = await Promise.all([getAgentContext(), getMode()]);
   const agentFacts: AgentFacts =
     agentContext.state === "agent"
       ? {
