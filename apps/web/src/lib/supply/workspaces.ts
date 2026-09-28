@@ -174,7 +174,11 @@ export function makeWorkspace({
         ? "/host"
         : standing === "refused" || standing === "suspended"
           ? "/agent/verification"
-          : "/agent/dashboard",
+          : kind === "firm"
+            ? /* A firm opens on its own desk (assignments, roster, routing),
+                 not on the owner's personal agent dashboard. */
+              "/agent/firm"
+            : "/agent/dashboard",
   };
 }
 

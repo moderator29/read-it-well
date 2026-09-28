@@ -99,6 +99,12 @@ describe("where a workspace opens", () => {
     expect(makeWorkspace({ kind: "firm", id: "1", name: "n", standing: "active" }).key).toBe("firm:1");
     expect(makeWorkspace({ kind: "console", id: "x", name: "n", standing: "active" }).key).toBe("admin");
   });
+
+  it("opens a firm on its own desk, and a stopped one on its reason", () => {
+    expect(makeWorkspace({ kind: "firm", id: "1", name: "n", standing: "active" }).href).toBe("/agent/firm");
+    expect(makeWorkspace({ kind: "firm", id: "1", name: "n", standing: "suspended" }).href).toBe("/agent/verification");
+    expect(makeWorkspace({ kind: "agent", id: "1", name: "n", standing: "active" }).href).toBe("/agent/dashboard");
+  });
 });
 
 describe("the cookie is a hint and the list is the truth", () => {
