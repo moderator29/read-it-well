@@ -3,7 +3,7 @@ import "server-only";
 import { resolveSession } from "../actions/session";
 import { requireAdmin } from "../admin/guard";
 import { readEddReviews, type EddReview } from "./edd";
-import { callRpc } from "./rpc";
+import { callRpc, isUndeployed } from "./rpc";
 
 /**
  * SCUML item 20: the two reads.
@@ -35,6 +35,11 @@ export async function readMyPepAnswer(): Promise<PepAnswerRead> {
   if (agentError) return { state: "unavailable" };
   if (!agent) return { state: "not-asked" };
   const { data, error } = await callRpc(session.supabase, "my_pep_answered_at");
+  /* The SCUML item 20 migration is not applied yet: there is no question to
+     ask and nowhere to keep an answer. Drawn as "not asked" rather than as a
+     failure, because "refresh the page to try again" is a promise a refresh
+     can never keep. The panel appears by itself once the migration lands. */
+  if (isUndeployed(error)) return { state: "not-asked" };
   if (error) return { state: "unavailable" };
   return { state: "ready", answeredAt: typeof data === "string" ? data : null };
 }

@@ -14,6 +14,19 @@ type RpcCaller = {
 
 export type RpcAnswer = { data: unknown; error: { message: string; code: string | null } | null };
 
+/*
+ * "No function by that name": the migration that creates it has not been
+ * applied. By code only, the discipline of `lib/money/rpc.ts` `isMissing`: a
+ * message saying "does not exist" is as likely to be a missing relation inside
+ * a function that ran. This is the one answer that means "the check is not
+ * live", which a caller treats differently from "the check could not run".
+ */
+const UNDEPLOYED_CODES = new Set(["PGRST202", "42883"]);
+
+export function isUndeployed(error: RpcAnswer["error"]): boolean {
+  return Boolean(error?.code && UNDEPLOYED_CODES.has(error.code));
+}
+
 export async function callRpc(
   client: object,
   fn: string,
