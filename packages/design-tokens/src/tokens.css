@@ -1134,6 +1134,9 @@
   /* The map pin's ground, deliberately dark in both themes for the same reason
      the media overlays are: what is under it is a map, not the page. */
   --nf-surface-pin: rgb(1 1 24 / 0.88);
+  /* Ink over a dusk photograph. Unlike --nf-surface-pin it is NOT redefined
+     for light: the photograph is dark in daylight too (landing.css). */
+  --nf-ink-on-photo: rgb(1 1 24 / 0.88);
 
   /* ---------------------------------------------------------------------
    * THE LIGHT. ONE ANGLE, AND IT IS A TOKEN SO IT CANNOT DRIFT AGAIN.
@@ -3678,5 +3681,15 @@
   /* ------------------------------------------ misc surfaces with a meaning */
   --nf-surface-ai: linear-gradient(var(--nf-light-angle), #F2F6FF 0%, #F7F9FD 100%);
   --nf-surface-pin: rgb(255 255 255 / 0.96);
+  /* The platinum verified mark (staff) in daylight. The dark-theme greys
+     (#d6d6d6 at the middle) sit at about 1.45:1 on white, under the 3:1 a
+     graphic needs, so the mark read as a disabled grey next to the name.
+     A deeper steel keeps it silver and clears 3:1 on paper; the tick turns
+     white so it still reads on the deeper fill. */
+  --nf-badge-platinum-top: #8f99ab;
+  --nf-badge-platinum-mid: #7a8598;
+  --nf-badge-platinum-foot: #66708a;
+  --nf-badge-platinum-tick-top: #ffffff;
+  --nf-badge-platinum-tick-foot: #eef1f6;
   --nf-shadow-on-paper: 0 1px 2px rgb(11 13 23 / 0.06), 0 8px 20px -8px rgb(11 13 23 / 0.14);
 }
