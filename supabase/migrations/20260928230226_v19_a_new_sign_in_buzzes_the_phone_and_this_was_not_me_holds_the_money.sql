@@ -65,9 +65,10 @@
  *      use up the owner's press; the owner's press still signs them out.
  *
  *    The password change is the step the server cannot take for them, so the
- *    screen sends them straight to it. Note for the audit, reported, not
- *    fixed here: `/reset-password` accepts any signed-in session without the
- *    current password, so an attacker who is still signed in could set one.
+ *    screen sends them straight to it. `/reset-password` asks any session not
+ *    made by a recent recovery link for the current password
+ *    (`lib/auth/password-change-proof.ts`), so a thief still signed in cannot
+ *    set one.
  *
  * WHAT THE NOTIFICATION DOES NOT SAY. No place: the address on
  * `auth.sessions` is whichever of our servers refreshed the token. No "just
