@@ -3054,7 +3054,7 @@ The walk found things that are broken rather than missing. They are not recommen
 
 ### From the build (24 September)
 
-The hundred were built by six builders, each change attacked by a second agent before merge. The ledger is `docs/THE_HUNDRED_BUILD.md`; every V-number has its final state there. What needs you:
+The hundred were built by six builders, each change attacked by a second agent before merge. The ledger is `docs/archive/THE_HUNDRED_BUILD.md`; every V-number has its final state there. What needs you:
 
 **Switches, each one statement, each off today.** Every flag reads a `feature_flags` row and anything but `true` is off.
 
@@ -3107,7 +3107,7 @@ The audit session applies them, because it owns the live schema.
 
 ### From the build: the close (24 September, evening)
 
-**Everything is on `main`.** The audit's merge went in first, and its version won in every area it owns. All four gates ran green on the merged tree before each push. Every V-number's final state is in `docs/THE_HUNDRED_BUILD.md`: 48 SHIPPED, 34 PARTIAL, 13 FOUNDER, 1 DEFERRED (V-44), and the rest AUDIT.
+**Everything is on `main`.** The audit's merge went in first, and its version won in every area it owns. All four gates ran green on the merged tree before each push. Every V-number's final state is in `docs/archive/THE_HUNDRED_BUILD.md`: 48 SHIPPED, 34 PARTIAL, 13 FOUNDER, 1 DEFERRED (V-44), and the rest AUDIT.
 
 **The five live regressions you reported are fixed on `main`.** Each fix was proven on a local production build against the live database, not on a passing test alone.
 1. **"Message agent" said the listing was gone.** It was not gone. A second `listings -> agents` foreign key had made the database query ambiguous. Every such query now names its key. The app may now say a listing no longer exists only after a privileged read confirms it; otherwise it says "This chat did not open just now. Nothing has changed on the listing." A test fails the build if the ambiguous form comes back.

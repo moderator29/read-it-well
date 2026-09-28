@@ -13,6 +13,7 @@ Start with the [README](README.md) for setup and architecture, and [`docs/PRODUC
 - Write each subject line as a sentence about what the code now does, in the imperative or the present tense. Examples: "Spendable arithmetic lives in one place", "Move the loose root documents into docs/". Do not prefix it with ticket numbers or session names.
 - Use the body for the reason and for anything a reviewer could not work out from the diff.
 - Make each commit build and pass its own tests.
+- Commits carry the author's own identity. Do not add tool-generated trailers (co-author lines, session links) to commit messages or pull request descriptions.
 
 ## Before you push
 
@@ -42,9 +43,10 @@ Migrations live in `supabase/migrations/`. The README's [Database and migrations
 
 ## Money
 
+- Vallo never holds customer money. Read [`docs/MONEY_ARCHITECTURE.md`](docs/MONEY_ARCHITECTURE.md) before touching payments, and do not reintroduce a wallet, balance or escrow.
 - Every amount is **integer kobo**, in a `bigint` column whose name ends in `_minor`. Money never passes through a float, and division gets explicit rounding.
-- The wallet ledger (`wallet_entries`) only ever gets new rows. Balances are derived, never stored. Only the service role writes money, and every write is idempotent on a unique reference.
-- Use the existing database functions for money movement (`private.wallet_spendable_locked` under a wallet row lock, and the escrow and withdrawal doors). Do not write a new copy of balance arithmetic.
+- The ledgers (`ledger_entries`, `guarantee_reserve_entries`) only ever get new rows. Every money write is idempotent on a unique reference.
+- User-facing wording about money comes from `apps/web/src/lib/money/copy.ts`. Do not write new copies of it in components.
 
 ## Comments
 
@@ -53,11 +55,11 @@ Comments describe the code and why it is the way it is: the constraint, the inci
 ## Secrets and personal data
 
 - Never commit a secret, key, token, password or real person's contact details. That includes test fixtures, probe logs and migrations. `.env.local` is ignored. Keep it that way.
-- New environment variables go in `apps/web/.env.example` with a comment, in `docs/ENVIRONMENT.md`, and in the README's environment table, in the same change as the code that reads them.
+- New environment variables go in `apps/web/.env.example` with a comment and in `docs/ENVIRONMENT.md`, in the same change as the code that reads them. A unit test enforces the second.
 - Server-only values never get the `NEXT_PUBLIC_` prefix.
 - If a secret is exposed, rotate it first and clean up afterwards.
 
 ## Documentation
 
 - Live documentation is listed in [`docs/README.md`](docs/README.md). When your change makes one of those documents wrong, update it in the same pull request.
-- Retired material goes to `docs/archive/`. Do not add plans, ledgers or status reports to the top of `docs/`.
+- Retired material and dated build records go to `docs/archive/`. Do not add plans, ledgers or status reports to the top of `docs/`.

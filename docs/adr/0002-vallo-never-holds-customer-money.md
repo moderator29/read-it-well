@@ -12,4 +12,4 @@ Holding client funds between two parties is regulated by the Central Bank of Nig
 
 ## Consequences
 
-See `docs/MONEY_ARCHITECTURE.md` for the mechanism and `docs/TRACKS_25_SEPTEMBER_LEDGER.md` (Track A) for what was applied live and what is pending.
+See `docs/MONEY_ARCHITECTURE.md` for the mechanism and `docs/archive/TRACKS_25_SEPTEMBER_LEDGER.md` (Track A) for what was applied live and what is pending.

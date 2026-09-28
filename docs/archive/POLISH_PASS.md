@@ -196,7 +196,7 @@ proof.
 
 ## Left for later, deliberately
 
-These are the big ones. They stay ranked in `docs/agent1-selection.md` and
+These are the big ones. They stay ranked in `docs/archive/UPGRADE_SHORTLIST_2026-08-04.md` and
 nothing here touches them: seasons (`#5`), diaspora currency (`#6`), WhatsApp
 share cards (`#8`, `#31`, `#244`), SMS fallback (`#9`), escrow (`#55`), split
 pay (`#89`), the image pipeline and blurhash (`#105`, `#138`), PostGIS (`#104`),

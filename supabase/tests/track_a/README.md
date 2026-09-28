@@ -13,5 +13,5 @@ psql -d vallo_probe -f supabase/tests/track_a/a2_money_flow.sql
 ```
 
 Every numbered step prints the status the database answered with. The
-expected answers are in the ledger (`docs/TRACKS_25_SEPTEMBER_LEDGER.md`,
+expected answers are in the ledger (`docs/archive/TRACKS_25_SEPTEMBER_LEDGER.md`,
 Track A). A line reading `WRONGLY ALLOWED` is a failure.

@@ -961,7 +961,7 @@ desk in section 9 rather than done unasked. The window closes at first
 submission.
 
 `<the private address, redacted (SEC-11)>` appears in no tracked file. `vallo.ng` survives in
-exactly two, both deliberate: `docs/archive/SESSION_REPORT_2026-09-15.md` and
+exactly two, both deliberate: `docs/archive/STATUS_REPORT_2026-09-15.md` and
 `docs/design/audits/r3/findings.md`, which are historical records and are
 excluded from the sweep by design.
 

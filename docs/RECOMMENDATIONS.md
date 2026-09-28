@@ -226,7 +226,7 @@ written. They are marked DONE in the register below, with the commit.
 
 Plus the platform sweep itself: the RentMe artwork, the 14 image files carrying
 it, the native application identifiers, the npm scope and the domain literals.
-`docs/SESSION_REPORT_2026-09-15.md` is the account of that.
+`docs/archive/STATUS_REPORT_2026-09-15.md` is the account of that.
 
 ---
 

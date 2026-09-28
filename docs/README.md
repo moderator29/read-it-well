@@ -30,7 +30,6 @@ For setup, architecture and the repository layout, start with the [repository RE
 | Document | What it is for |
 |---|---|
 | [MONEY_ARCHITECTURE.md](MONEY_ARCHITECTURE.md) | **How money moves now**: split at payment, the agreement gate, refunds, the Vallo Guarantee, crypto |
-| [TRACKS_25_SEPTEMBER_LEDGER.md](TRACKS_25_SEPTEMBER_LEDGER.md) | The 25 September tracks: what shipped, what was corrected, what is open |
 | [archive/retired-custody/](archive/retired-custody/README.md) | The retired wallet, escrow and held-payment documents, kept as history |
 
 ## Run and deploy it
@@ -53,6 +52,9 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [MOBILE.md](MOBILE.md) | Building, signing and shipping the iOS and Android apps |
 | [MOBILE_READINESS.md](MOBILE_READINESS.md) | Why the native apps load the live origin, and store posture |
 | [STORE_SUBMISSION_NOTES.md](STORE_SUBMISSION_NOTES.md) | Decisions taken for App Store and Play Store submission |
+| [NATIVE_CI.md](NATIVE_CI.md) | The Android and iOS build workflows and the secrets they need |
+| [VALLO_IOS_RELEASE_CHECKLIST.md](VALLO_IOS_RELEASE_CHECKLIST.md), [VALLO_ANDROID_RELEASE_CHECKLIST.md](VALLO_ANDROID_RELEASE_CHECKLIST.md) | Release checklists per platform |
+| [VALLO_NATIVE_RELEASE_AUDIT.md](VALLO_NATIVE_RELEASE_AUDIT.md), [VALLO_NATIVE_TEST_MATRIX.md](VALLO_NATIVE_TEST_MATRIX.md) | The native release audit and the device test matrix |
 
 ## Notifications and email
 
@@ -86,9 +88,9 @@ For setup, architecture and the repository layout, start with the [repository RE
 ## Research and history
 
 - [research/](research/) holds research reports and audits written during the build. They are evidence behind decisions, not specifications. Where one disagrees with a live document above, the live document wins.
-- [archive/](archive/) holds retired documents and the scaffolding of earlier build sessions: handoffs, ledgers, sprint notes and audits. It is kept for history and governs nothing. Its [README](archive/README.md) explains more.
+- [archive/](archive/) holds retired documents and dated build records: handoffs, build ledgers, sprint notes and one-off audits. It is kept for history and governs nothing. Its [README](archive/README.md) explains more.
 
-The build sessions have closed. Their handoffs, ledgers, scope files, close-out reports, prompts, proof runs, surveys, the platform status cycle reports and the founder's working list were moved to `archive/` on 23 September 2026. The founder's still-open items are in [THE_AUDIT.md](THE_AUDIT.md) section 11.
+Dated build records (handoffs, ledgers, scope files, close-out reports, proof runs, surveys and status reports) live in `archive/`, not at the top of `docs/`. New ones go straight there. The founder's still-open items are in [THE_AUDIT.md](THE_AUDIT.md) section 11.
 
 `research/` is kept where it is, because code comments and one script cite files in it by path. Its [README](research/README.md) says what it is: evidence, not documentation.
 

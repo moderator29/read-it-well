@@ -136,10 +136,27 @@ wondering why.
 
 ---
 
-## 5. Test-harness only
+## 5. Test-harness and build tooling only
 
 Read by specs under `apps/web/tests/`, never by the application: `BASE_URL`,
-`SOCIAL_AREA`, `SOCIAL_HANDLE`, `SOCIAL_STANDIN_PORT`, `SOCIAL_STANDIN_DELAY_MS`.
+`QA_MEMBER_EMAIL`, `QA_MEMBER_PASSWORD`, `SOCIAL_AREA`, `SOCIAL_HANDLE`,
+`SOCIAL_STANDIN_PORT`, `SOCIAL_STANDIN_DELAY_MS`, `CHROMIUM_PATH`, and the
+`PROOF_*` / `PROBE_*` names used by individual scripts under `scripts/`.
+
+Read by build tooling, never by the running app:
+
+| Name | Read by |
+|---|---|
+| `CAPACITOR_SERVER_URL` | `capacitor.config.ts` during `npx cap sync`: the origin the native shell loads. Unset, the build succeeds but the app opens on its offline page |
+| `VALLO_BUILD` | `scripts/sync-native-versions.mjs`: the native build number |
+| `NEXT_DIST_DIR` | `next.config.ts`: an alternative `.next` output directory for parallel builds |
+| `VALLO_AUTH_EMAIL_OUT_DIR` | `scripts/build-auth-emails.mjs`: where the auth email templates are written |
+| `SEED_REVIEWER_EMAIL`, `SEED_REVIEWER_PASSWORD` | `npm run seed:reviewer` only |
+| `DATABASE_URL` | `scripts/db-probes/run.mjs`, the database probe runner. CI reads it from the `PROBES_DATABASE_URL` repository secret |
+
+Vercel and Node set `NODE_ENV`, `NEXT_RUNTIME`, `VERCEL_ENV`, `VERCEL_URL`,
+`VERCEL_GIT_COMMIT_SHA` and `VERCEL_PROJECT_PRODUCTION_URL` themselves. Do not
+set them.
 
 ---
 
