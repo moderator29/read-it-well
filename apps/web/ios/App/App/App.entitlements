@@ -22,7 +22,7 @@
 	2. Xcode, the App target, Signing and Capabilities, the plus button,
 	   Associated Domains. Xcode finds this file at `App/App.entitlements`,
 	   adopts it rather than creating a second one, and sets the build setting
-	   itself. The two domains below should appear already filled in.
+	   itself. The domain below should appear already filled in.
 	3. Publish `apps/web/public/.well-known/apple-app-site-association` on the
 	   live origin with the real Team ID in it. That file carries an obvious
 	   placeholder today, `PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID`, and the
@@ -48,16 +48,16 @@
 	`?mode=developer` to bypass the CDN, which is the only sane way to test a
 	change to the file.
 
-	The two domains are `vallospaces.com` and `www.vallospaces.com`, matching the Android
-	manifest's verified hosts and the domain this repository defaults to in
-	`src/lib/email/render.ts`. If `NEXT_PUBLIC_SITE_URL` ends up somewhere else,
-	these change with it, because an associated domain is an exact host and not
-	a suffix.
+	The one domain is `www.vallospaces.com`, the canonical host, matching the
+	Android manifest. The apex is NOT claimed: `vallospaces.com` answers every
+	path, `/.well-known/apple-app-site-association` included, with a 308 to www
+	(Vercel's domain setting), and Apple's CDN does not follow redirects, so an
+	apex entry could never verify. The reasoning and the way back are in the
+	App Links note in `AndroidManifest.xml` ("THE APEX").
 -->
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:vallospaces.com</string>
 		<string>applinks:www.vallospaces.com</string>
 	</array>
 

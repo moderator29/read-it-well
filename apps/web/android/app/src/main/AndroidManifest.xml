@@ -98,13 +98,23 @@
                 a file that was never filled in fails verification loudly rather
                 than looking plausible.
 
-                Hosts are `vallospaces.com` and `www.vallospaces.com`
-                because that is the domain this repository defaults to
-                everywhere, in
-                `src/lib/email/render.ts` and in the profile share copy. If the
-                owner sets `NEXT_PUBLIC_SITE_URL` to anything else, these two
-                lines have to change with it, because a verified host is an
-                exact string and not a suffix.
+                THE HOST IS `www.vallospaces.com` ALONE (native release audit,
+                28 September 2026). It is the canonical host: the live site's
+                canonical and og:url are www, and every link the product prints
+                is built from the request's own host, which is www.
+
+                THE APEX, AND WHY IT IS NOT CLAIMED. `https://vallospaces.com/`
+                answers EVERY path, `/.well-known/assetlinks.json` included,
+                with a 308 to www. That redirect is Vercel's domain setting,
+                not repository code. Android's verifier does not follow
+                redirects, so the apex can never verify while it stands, and
+                on Android 11 and below verification is ALL OR NOTHING: one
+                host that fails means NO host is verified, so claiming the apex
+                would have cost www its App Links on exactly the older handsets
+                this product is built for. To bring the apex back, the owner
+                must first make the apex serve `/.well-known/*` with a 200 and
+                no redirect, then add the host here, in `App.entitlements`,
+                and in `src/lib/brand-domain.test.ts`.
 
                 The path prefixes are the shareable half of the product and
                 nothing else. A listing forwarded on WhatsApp is the case that
@@ -181,7 +191,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="vallospaces.com" />
+                <!-- www ONLY, and the apex is out on purpose: see "THE APEX"
+                     in the note above this filter. -->
                 <data android:scheme="https" android:host="www.vallospaces.com" />
                 <data android:pathPrefix="/listing/" />
                 <data android:pathPrefix="/stay/" />

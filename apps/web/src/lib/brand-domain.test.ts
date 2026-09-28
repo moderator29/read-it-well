@@ -51,16 +51,24 @@ describe("the brand domain, and the native files that must agree with it", () =>
     expect(BRAND_ORIGIN).toBe(`https://${BRAND_DOMAIN}`);
   });
 
-  it("is the host the Android manifest verifies, apex and www", () => {
-    const manifest = read("apps/web/android/app/src/main/AndroidManifest.xml");
-    expect(manifest).toContain(`android:host="${BRAND_DOMAIN}"`);
+  /*
+   * www only. The apex 308s every path to www (Vercel's domain setting), App
+   * Link and AASA verification never follow a redirect, and on Android 11 and
+   * below one failing host un-verifies them all. See "THE APEX" in the
+   * manifest. If the apex ever serves `/.well-known/*` with a 200, flip these.
+   */
+  const stripComments = (text: string) => text.replace(/<!--[\s\S]*?-->/g, "");
+
+  it("is the host the Android manifest verifies: www, and not the redirecting apex", () => {
+    const manifest = stripComments(read("apps/web/android/app/src/main/AndroidManifest.xml"));
     expect(manifest).toContain(`android:host="www.${BRAND_DOMAIN}"`);
+    expect(manifest).not.toContain(`android:host="${BRAND_DOMAIN}"`);
   });
 
-  it("is the host the iOS entitlements claim, apex and www", () => {
-    const entitlements = read("apps/web/ios/App/App/App.entitlements");
-    expect(entitlements).toContain(`applinks:${BRAND_DOMAIN}`);
+  it("is the host the iOS entitlements claim: www, and not the redirecting apex", () => {
+    const entitlements = stripComments(read("apps/web/ios/App/App/App.entitlements"));
     expect(entitlements).toContain(`applinks:www.${BRAND_DOMAIN}`);
+    expect(entitlements).not.toContain(`applinks:${BRAND_DOMAIN}<`);
   });
 
   it("leaves no trace of the domain that was never registered", () => {
