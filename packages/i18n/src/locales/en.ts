@@ -2505,6 +2505,8 @@ export const en = {
       stepsLabel: "Listing steps",
       stepCounter: "Step {current} of {total}",
       stepAria: "Step {number}, {name}",
+      saveUnreached:
+        "We could not reach Vallo to save this step. Nothing you typed is lost. Check your connection and press Next again.",
       steps: {
         basics: "Basic info",
         photos: "Photos",

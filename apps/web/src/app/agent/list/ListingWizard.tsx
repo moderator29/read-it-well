@@ -1012,6 +1012,10 @@ export function ListingWizard({
   }, []);
   const [submitted, setSubmitted] = useState(false);
   const [pending, startTransition] = useTransition();
+  /** Whether the last `persist` reached the server and was accepted. */
+  const lastSaveOk = useRef(true);
+  /** Whether step one's title refusal is currently being shown. */
+  const titleGateOpen = useRef(false);
   const restored = useRef(false);
   const fileInput = useRef<HTMLInputElement | null>(null);
 
@@ -1205,6 +1209,16 @@ export function ListingWizard({
    * field the gate grows later falls through to the message it carried, which
    * is English but never blank.
    */
+  type ChecklistRow = { field: string; label: string; covers?: string[] };
+  /** The checklist rows, plus one for any unmet field no row stands for. */
+  function withUncovered(rows: ChecklistRow[]): ChecklistRow[] {
+    const covered = new Set(rows.flatMap((row) => row.covers ?? [row.field]));
+    const extra = unmet
+      .filter((u) => !covered.has(u.field))
+      .map((u) => ({ field: u.field, label: gateText(u.field, u.message) }));
+    return [...rows, ...extra];
+  }
+
   function gateText(field: string, fallback: string): string {
     const g = copy.gate;
     switch (field) {
@@ -1402,7 +1416,14 @@ export function ListingWizard({
     if (!canPersist) return null;
     if (values.title.trim().length < 2) return listingId;
 
-    const result = await saveDraft({
+    /* A server action can throw rather than answer: a dropped connection, or a
+       deploy between two taps ("Failed to find Server Action"). Uncaught, that
+       unmounted the whole wizard to the error page. It is caught here, said
+       plainly, and recorded so `go` does not move on from a step that did not
+       save. */
+    let result: Awaited<ReturnType<typeof saveDraft>>;
+    try {
+      result = await saveDraft({
       id: listingId ?? undefined,
       /* V-09: the unconfirmed set goes to the server in the same save. */
       broadcastUnconfirmed: marksUnread ? undefined : [...fromMessage],
@@ -1464,15 +1485,29 @@ export function ListingWizard({
       ...(untouchedUnread(unread, "unit", values.unit, EMPTY_UNIT_FORM) ? {} : unitPayload(values.unit, values.bedrooms)),
       ...(untouchedUnread(unread, "flood", values.flooding, "") ? {} : { flooding: values.flooding === "" ? null : values.flooding }),
     });
+    } catch {
+      lastSaveOk.current = false;
+      setNotice(copy.wizard.saveUnreached);
+      return listingId;
+    }
 
     if (!result.ok) {
+      lastSaveOk.current = false;
       setNotice(result.error);
       setFieldErrors(result.fieldErrors ?? {});
       return listingId;
     }
 
+    lastSaveOk.current = true;
     setNotice(null);
-    setFieldErrors({});
+    /* Only the server's own field errors are cleared by a good save. The
+       step-one title refusal is the client gate's, not the server's, and a
+       save that succeeds with a two-letter title must not wipe the sentence
+       explaining why Next did not move (the draft saves from two characters,
+       the step needs eight). */
+    setFieldErrors((prev): Record<string, string> =>
+      prev.title && titleGateOpen.current ? { title: prev.title } : {},
+    );
     setListingId(result.data.id);
     setSavedAt(formatDate(new Date(), locale, { hour: "2-digit", minute: "2-digit" }));
 
@@ -1495,9 +1530,10 @@ export function ListingWizard({
     if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
-  }, [canPersist, chosenAmenities, listingId, values, unread, fromMessage, marksUnread]);
+  }, [canPersist, chosenAmenities, listingId, values, unread, fromMessage, marksUnread, copy.wizard.saveUnreached]);
 
   function go(next: number) {
+    if (pending) return;
     const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
 
     // The title is the one thing asked for before moving on, and the sentence
@@ -1506,15 +1542,29 @@ export function ListingWizard({
     // before we stop, because a refusal must never cost the agent their work.
     const titleIssue = unmet.find((item) => item.field === "title");
     if (target > step && step === 0 && titleIssue) {
+      titleGateOpen.current = true;
       setFieldErrors((prev) => ({ ...prev, title: gateText("title", titleIssue.message) }));
+      /* On a phone the title sits far above Next, so the refusal was
+         happening off screen. Bring the field and its sentence into view. */
+      const field = document.getElementById("listing-title-field");
+      field?.scrollIntoView({ behavior: "smooth", block: "center" });
+      field?.querySelector("input")?.focus({ preventScroll: true });
       startTransition(async () => {
         await persist();
       });
       return;
     }
+    titleGateOpen.current = false;
 
     startTransition(async () => {
       await persist();
+      /* Moving forward from a step whose save was refused left the refusal
+         on a step no longer shown, and every later autosave failed on the
+         same field. Stay, and show why. Going back is always allowed. */
+      if (!lastSaveOk.current && target > step) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
       setStep(target);
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -1834,7 +1884,7 @@ export function ListingWizard({
                 <button
                   type="button"
                   onClick={() => index <= step && go(index)}
-                  disabled={index > step}
+                  disabled={index > step || pending}
                   aria-current={index === step ? "step" : undefined}
                   aria-label={fill(copy.wizard.stepAria, { number: index + 1, name })}
                   className="block h-full w-full"
@@ -1888,6 +1938,7 @@ export function ListingWizard({
               `border-color` underneath it. A screen reader knew the title was
               rejected; nobody else did.
             */}
+            <div id="listing-title-field">
             <TextField
               label={copy.basics.titleLabel}
               /* STORE-16: a warning, never a refusal. */
@@ -1898,6 +1949,7 @@ export function ListingWizard({
               placeholder={copy.basics.titlePlaceholder}
               maxLength={80}
             />
+            </div>
             {mark("title")}
 
             <div>
@@ -3459,7 +3511,17 @@ export function ListingWizard({
             </p>
 
             <ul className="mt-group space-y-row">
-              {[
+              {/*
+                EVERY UNMET REQUIREMENT HAS A ROW. The rows used to be keyed by
+                one field each, and the "price" row by a field the gate never
+                reports: an unset rent, rate, sale price, tenure or period, or
+                a missing unit shape or bedroom count, disabled Send for review
+                while every row showed green. A row now owns every gate field
+                it stands for, and anything the gate reports that no row owns
+                gets a row of its own, so the button is never disabled with
+                nothing on screen saying why.
+              */}
+              {withUncovered([
                 { field: "title", label: copy.submit.checklist.title },
                 {
                   field: "description",
@@ -3475,16 +3537,21 @@ export function ListingWizard({
                 { field: "amenities", label: copy.submit.checklist.amenities },
                 {
                   field: "price",
+                  covers: ["rent", "rentPeriod", "rate", "ratePeriod", "salePrice", "tenure"],
                   label: rental
                     ? copy.submit.checklist.priceYear
                     : copy.submit.checklist.priceNight,
                 },
-                { field: "bathrooms", label: copy.submit.checklist.rooms },
+                {
+                  field: "bathrooms",
+                  covers: ["bathrooms", "bedrooms", "unitShape"],
+                  label: copy.submit.checklist.rooms,
+                },
                 ...(remainderCopy && unmet.some((u) => u.field === "totalMoveIn")
                   ? [{ field: "totalMoveIn", label: remainderCopy.gateShort }]
                   : []),
-              ].map((item) => {
-                const problem = unmet.find((u) => u.field === item.field);
+              ]).map((item) => {
+                const problem = unmet.find((u) => (item.covers ?? [item.field]).includes(u.field));
                 return (
                   <li key={item.field} className="flex items-start gap-row">
                     <span
