@@ -5,7 +5,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * phone is the reason people reset a password, and the thief's session used
  * to survive it. The password change itself must not depend on that step.
  */
-const seam = vi.hoisted(() => ({ updateUser: vi.fn(), signOut: vi.fn(), consume: vi.fn() }));
+const seam = vi.hoisted(() => ({
+  updateUser: vi.fn(),
+  signOut: vi.fn(),
+  consume: vi.fn(),
+  getClaims: vi.fn(),
+  reauthenticate: vi.fn(),
+}));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/headers", () => ({
@@ -25,27 +31,44 @@ vi.mock("@/lib/alerts", () => ({ recordAlert: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
-      getUser: async () => ({ data: { user: { id: "957b3bd2-cce3-425d-bba9-5cd876ca3d62" } } }),
+      getUser: async () => ({
+        data: {
+          user: {
+            id: "957b3bd2-cce3-425d-bba9-5cd876ca3d62",
+            email: "member@example.invalid",
+            identities: [{ provider: "email" }],
+          },
+        },
+      }),
+      getClaims: seam.getClaims,
       updateUser: seam.updateUser,
       signOut: seam.signOut,
     },
   }),
 }));
+vi.mock("@/lib/account-deletion/reauthenticate", () => ({ reauthenticate: seam.reauthenticate }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from: vi.fn() }) }));
 vi.mock("@/lib/site", () => ({ authOrigin: async () => "https://example.invalid" }));
 vi.mock("./providers", () => ({ getProviderStates: () => [{ id: "email", configured: true }] }));
 
-function form(password: string): FormData {
+function form(password: string, currentPassword?: string): FormData {
   const data = new FormData();
   data.set("password", password);
   data.set("confirmPassword", password);
+  if (currentPassword !== undefined) data.set("currentPassword", currentPassword);
   return data;
 }
+
+const nowSeconds = () => Math.floor(Date.now() / 1000);
+const recoverySession = () => ({ data: { claims: { amr: [{ method: "recovery", timestamp: nowSeconds() - 30 }] } } });
+const passwordSession = () => ({ data: { claims: { amr: [{ method: "password", timestamp: nowSeconds() - 30 }] } } });
 
 beforeEach(() => {
   seam.updateUser.mockReset().mockResolvedValue({ error: null });
   seam.signOut.mockReset().mockResolvedValue({ error: null });
   seam.consume.mockReset().mockResolvedValue({ allowed: true, degraded: false });
+  seam.getClaims.mockReset().mockImplementation(async () => recoverySession());
+  seam.reauthenticate.mockReset().mockResolvedValue(false);
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://project.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
   vi.stubEnv("RESEND_API_KEY", "re_test");
@@ -74,5 +97,31 @@ describe("changing the password", () => {
     const state = await updatePassword({ ok: false }, form("a-new-password-3"));
     expect(state.ok).toBe(false);
     expect(seam.signOut).not.toHaveBeenCalled();
+  });
+
+  it("asks an ordinary session for the current password and changes nothing without it", async () => {
+    seam.getClaims.mockImplementation(async () => passwordSession());
+    const { updatePassword } = await import("./actions");
+    const state = await updatePassword({ ok: false }, form("a-new-password-4"));
+    expect(state.fieldErrors?.currentPassword).toBeTruthy();
+    expect(seam.updateUser).not.toHaveBeenCalled();
+    expect(seam.signOut).not.toHaveBeenCalled();
+  });
+
+  it("refuses a wrong current password", async () => {
+    seam.getClaims.mockImplementation(async () => passwordSession());
+    seam.reauthenticate.mockResolvedValue(false);
+    const { updatePassword } = await import("./actions");
+    const state = await updatePassword({ ok: false }, form("a-new-password-5", "not-it"));
+    expect(state.fieldErrors?.currentPassword).toBeTruthy();
+    expect(seam.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("changes it once the current password checks out", async () => {
+    seam.getClaims.mockImplementation(async () => passwordSession());
+    seam.reauthenticate.mockResolvedValue(true);
+    const { updatePassword } = await import("./actions");
+    await expect(updatePassword({ ok: false }, form("a-new-password-6", "the-old-one"))).rejects.toThrow("REDIRECT:/home");
+    expect(seam.updateUser).toHaveBeenCalledWith({ password: "a-new-password-6" });
   });
 });

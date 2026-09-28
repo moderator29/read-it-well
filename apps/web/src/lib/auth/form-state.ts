@@ -33,6 +33,9 @@ export type AuthField =
      verify screen reports a bad code exactly the way every other field on
      every other auth form reports a bad value. */
   | "code"
+  /* The current password, asked on /reset-password of any session that was
+     not made by the recovery link in the last half hour. */
+  | "currentPassword"
   /* The agreement tick on sign-up. It is in the union because the SERVER
      refuses a sign-up that does not carry the current terms version, and a
      server refusal has to be able to land on the control it is about. */

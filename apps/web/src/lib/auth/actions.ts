@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { passwordChangeProof } from "./password-change-proof";
+import { reauthenticate } from "@/lib/account-deletion/reauthenticate";
 import { createClientWithAgent } from "@/lib/security/agent-client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -1014,11 +1016,14 @@ export async function requestPasswordReset(
 /**
  * Set the new password.
  *
- * Only reachable with the session the recovery link created, and that is the
- * authorisation: `updateUser` acts on whoever the cookies say is signed in, so
- * without a valid recovery exchange there is nobody to act on and Supabase
- * refuses. The screen checks for the session too, so somebody who opens the
- * URL directly gets an explanation rather than a form that cannot work.
+ * `updateUser` acts on whoever the cookies say is signed in, so the question
+ * is which sessions may do it. A session made by the recovery link (or an
+ * emailed code) in the last half hour may: that is exactly the proof the
+ * forgot-password email exists to give. ANY OTHER SESSION must type the
+ * current password first. Before, any signed-in session could set a new
+ * password, and because a new password ends every other session, somebody
+ * holding a stolen session could lock the owner out (the devices screen's
+ * "this was not me" even linked here). See `password-change-proof.ts`.
  */
 export async function updatePassword(
   _prev: AuthFormState,
@@ -1053,6 +1058,25 @@ export async function updatePassword(
       message:
         "That reset link has expired or was already used. Ask for a new one and open it from the same device.",
     };
+  }
+
+  const proof = await passwordChangeProof(supabase, userData.user);
+  if (proof === "link-only") {
+    return {
+      ok: false,
+      message:
+        "To set a password on this account, ask for a reset link and open it within half an hour. The link is the proof it is you.",
+    };
+  }
+  if (proof === "current-password") {
+    const currentPassword = field(formData, "currentPassword");
+    if (!currentPassword) {
+      return { ok: false, fieldErrors: { currentPassword: "Enter your current password." } };
+    }
+    const itIsThem = await reauthenticate(userData.user, { password: currentPassword });
+    if (!itIsThem) {
+      return { ok: false, fieldErrors: { currentPassword: "That is not your current password." } };
+    }
   }
 
   const { error } = await supabase.auth.updateUser({ password });

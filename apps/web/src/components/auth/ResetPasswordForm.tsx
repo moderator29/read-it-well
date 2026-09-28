@@ -15,17 +15,30 @@ const EMPTY: AuthFormState = { ok: false };
  *
  * Reached only through the recovery link, which lands on `/auth/callback`,
  * exchanges its code for a session and forwards here. That session IS the
- * authorisation - `updateUser` acts on whoever the cookies say is signed in -
- * so this screen never asks for the old password and never carries a token in
- * its own URL, which is what stops one being left in a browser history or a
- * shared link.
+ * authorisation for half an hour, so the old password is not asked. Any other
+ * session (signed in the ordinary way) is asked for the current password
+ * first, because a stolen session must not be able to change it. The screen
+ * never carries a token in its own URL, which is what stops one being left in
+ * a browser history or a shared link.
  *
  * Same strength meter and same confirm check as sign-up, from the same module,
  * so the rules a person met when they created the account are the rules they
  * meet when they replace it.
  */
-export function ResetPasswordForm({ t }: { t: Dictionary }) {
+export function ResetPasswordForm({
+  t,
+  askCurrent = false,
+}: {
+  t: Dictionary;
+  /**
+   * The session did not come from a recent recovery link, so the server will
+   * ask for the current password; the field is drawn up front rather than
+   * after a refusal.
+   */
+  askCurrent?: boolean;
+}) {
   const [state, formAction, pending] = useActionState(updatePassword, EMPTY);
+  const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
@@ -40,6 +53,18 @@ export function ResetPasswordForm({ t }: { t: Dictionary }) {
       </p>
 
       <form action={formAction} className="space-y-md text-left" noValidate>
+        {(askCurrent || state.fieldErrors?.currentPassword) && (
+          <PasswordField
+            t={t}
+            id="currentPassword"
+            label={CURRENT_LABEL}
+            placeholder={CURRENT_PLACEHOLDER}
+            autoComplete="current-password"
+            error={state.fieldErrors?.currentPassword}
+            value={current}
+            onChange={setCurrent}
+          />
+        )}
         <PasswordField
           t={t}
           id="password"
@@ -81,3 +106,6 @@ export function ResetPasswordForm({ t }: { t: Dictionary }) {
     </div>
   );
 }
+
+const CURRENT_LABEL = "Current password";
+const CURRENT_PLACEHOLDER = "The password you use now";
