@@ -18,7 +18,7 @@ import { fixtureRefusal } from "./refusal";
 const REFUSALS: Record<string, AuthFormState> = {
   refused: {
     ok: false,
-    message: "That email and password do not match. Check them and try again.",
+    message: "That email and password do not match. Check both, or reset your password.",
   },
   unconfirmed: {
     ok: false,
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
  *
  *   ?state=chooser   the chooser, as live, with a notice
  *   ?state=google    an address whose account signs in with Google
- *   ?state=none      an address no account uses
+ *   ?state=none      an address no account uses (the plain password step)
  *   ?state=refused      a password the server refused ("do not match")
  *   ?state=unconfirmed  an address not yet confirmed
  *   ?state=throttled    the per-connection or per-address limit tripped

@@ -16,7 +16,13 @@ const NATIVE_START_PATH = JSON.parse(
   readFileSync(fileURLToPath(new URL("../native-shell/start-path.json", import.meta.url)), "utf8"),
 ).startPath;
 
-const origin = (process.env.CAPACITOR_SERVER_URL ?? "").trim().replace(/\/+$/, "");
+/* The apex 308-redirects to www, so an apex value is rewritten to the www host
+   here exactly as `capacitor.config.ts` does, and the offline card retries the
+   same origin the shell loads. */
+const origin = (process.env.CAPACITOR_SERVER_URL ?? "")
+  .trim()
+  .replace(/\/+$/, "")
+  .replace(/^https:\/\/vallospaces\.com$/i, "https://www.vallospaces.com");
 if (!/^https:\/\/[^/\s]+$/.test(origin)) {
   console.error(
     `write-shell-config: CAPACITOR_SERVER_URL must be an https origin such as https://www.vallospaces.com (got ${JSON.stringify(origin)}).`,

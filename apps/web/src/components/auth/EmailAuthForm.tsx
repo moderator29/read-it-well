@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { AcceptTerms } from "./AcceptTerms";
 import { withNext } from "@/lib/auth/next-link";
 import Link from "next/link";
@@ -56,8 +56,9 @@ export function EmailAuthForm({
   /** Where to land afterwards. Re-validated in the action, never trusted. */
   next?: string | undefined;
   /**
-   * The address typed on the chooser, carried here as a query parameter so
-   * the email-first flow of the governing render holds: the first screen
+   * The address typed on the chooser, carried here in a short-lived cookie
+   * (`continueWithEmail`, or `?email=` on a link that carries it) so the
+   * email-first flow of the governing render holds: the first screen
    * takes the address, this one takes the password, and nobody types their
    * email twice. Anything not shaped like an address is ignored.
    */
@@ -66,8 +67,8 @@ export function EmailAuthForm({
    * Sign-in only: how the address typed on the chooser signs in, read on the
    * server by the page. "google" means there is no password to ask for, so
    * the screen says so and offers the Google door instead of a password field
-   * that can only ever answer "do not match". "none" means no account uses the
-   * address, and the way on is sign-up with the address carried over.
+   * that can only ever answer "do not match". "none" draws the same password
+   * step as "unknown", so the screen never says whether an account exists.
    * "unknown" (the default, and the answer whenever the lookup is refused or
    * unavailable) draws the ordinary password step.
    */
@@ -79,6 +80,22 @@ export function EmailAuthForm({
   initialState?: AuthFormState;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
+  /*
+   * F-12: A REFUSED SUBMIT PUTS THE CURSOR ON THE FIRST THING TO FIX. The
+   * sign-up form is several screens tall on a phone, and a refusal used to
+   * leave focus on the button at the bottom with the first error scrolled out
+   * of sight. Every field marks itself `aria-invalid` when it carries an
+   * error, so the first one in document order is the one to fix first;
+   * focusing it also scrolls it into view and has a screen reader read it.
+   */
+  const formRef = useRef<HTMLFormElement>(null);
+  const [refusedLocally, setRefusedLocally] = useState(0);
+  useEffect(() => {
+    const refusedByServer =
+      state !== initialState && Object.keys(state.fieldErrors ?? {}).length > 0;
+    if (!refusedByServer && refusedLocally === 0) return;
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [state, initialState, refusedLocally]);
   /*
    * EVERY TEXT FIELD IS CONTROLLED, AND IT HAS TO BE.
    *
@@ -194,22 +211,13 @@ export function EmailAuthForm({
           )}
         </div>
       )}
-      {!isSignUp && accountMethod === "none" && (
-        <p className="nf-auth__notice mb-md" role="status">
-          {t.auth.accountNotFound}{" "}
-          <Link
-            href={`/sign-up/email?email=${encodeURIComponent(initialEmail)}${
-              next ? `&next=${encodeURIComponent(next)}` : ""
-            }`}
-            className="nf-auth__notice-link"
-          >
-            {t.auth.accountCreate}
-          </Link>
-        </p>
-      )}
+      {/* No "no account uses this address" notice here any more (F-08): it
+          contradicted the "do not match" refusal and told anyone which
+          addresses have accounts. "none" draws the plain password step. */}
 
       <form
         action={formAction}
+        ref={formRef}
         onSubmit={(e) => {
           /* UX-14: the action is dispatched here rather than by `<form
              action>`, because React resets a form after a `<form action>`
@@ -221,10 +229,13 @@ export function EmailAuthForm({
              submit made before the page has hydrated. */
           e.preventDefault();
           /* Sign up only. Signing in is not the moment somebody agrees to
-             anything: they agreed when they made the account. */
+             anything: they agreed when they made the account. The refusal
+             is drawn here without a round trip, and the cursor goes to the
+             first unticked box (F-12), once the error has rendered. */
           if (isSignUp && (!accepted || !adult)) {
             setAcceptError(!accepted);
             setAdultError(!adult);
+            setRefusedLocally((n) => n + 1);
             return;
           }
           const data = new FormData(e.currentTarget);
@@ -437,7 +448,7 @@ export function EmailAuthForm({
           <p className="text-center">
             <Link
               href="/forgot-password"
-              className="nf-auth__aside text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="nf-tap nf-auth__aside text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               {t.auth.forgotPassword}
             </Link>

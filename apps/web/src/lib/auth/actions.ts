@@ -1,6 +1,8 @@
 "use server";
 
 import { safeReturnPath } from "@/lib/security/return-path";
+import { withNext } from "./next-link";
+import { emailFromQuery } from "@/components/auth/auth-intent";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -193,7 +195,9 @@ const NOT_CONNECTED_MESSAGE =
 function authMessage(raw: string): string {
   const text = raw.toLowerCase();
   if (text.includes("invalid login credentials")) {
-    return "That email and password do not match. Check them and try again.";
+    /* One neutral sentence whether or not an account uses the address (F-08):
+       the password step never says which it was. */
+    return "That email and password do not match. Check both, or reset your password.";
   }
   if (text.includes("email not confirmed")) {
     return "Confirm your email first. Open the link we sent you, then sign in.";
@@ -367,6 +371,7 @@ export async function signInWithEmail(
 
   // The session cookies are set. Drop every cached render so the shell picks
   // up the real identity instead of the signed out view.
+  (await cookies()).delete(CHOOSER_EMAIL_COOKIE);
   revalidatePath("/", "layout");
   redirect(landing);
 }
@@ -532,6 +537,43 @@ export async function pendingSignUpEmail(): Promise<string> {
 async function forgetPendingEmail(): Promise<void> {
   const store = await cookies();
   store.delete(PENDING_EMAIL_COOKIE);
+}
+
+/**
+ * The address typed on the chooser, carried to the email step.
+ *
+ * It used to travel as `?email=` on a GET, which put somebody's address in
+ * the address bar, in history and in any referrer that left the page. It rides
+ * a cookie now, the same shape as the pending-signup one above but its own
+ * name, so a sign-in chooser can never pre-fill the sign-up code screen. The
+ * email pages still read `?email=` too, for links that carry it on purpose
+ * (the sign-up form's "sign in instead" and older bookmarks).
+ */
+const CHOOSER_EMAIL_COOKIE = "nf_chooser_email";
+const CHOOSER_EMAIL_MAX_AGE = 10 * 60;
+
+export async function continueWithEmail(formData: FormData): Promise<void> {
+  const route = formData.get("mode") === "sign-up" ? "/sign-up/email" : "/sign-in/email";
+  const email = emailFromQuery(field(formData, "email"));
+  const store = await cookies();
+  if (email) {
+    store.set(CHOOSER_EMAIL_COOKIE, email, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: CHOOSER_EMAIL_MAX_AGE,
+    });
+  } else {
+    store.delete(CHOOSER_EMAIL_COOKIE);
+  }
+  redirect(withNext(route, field(formData, "next") || null));
+}
+
+/** The address the chooser handed forward, if it is still fresh. */
+export async function chooserEmail(): Promise<string> {
+  const store = await cookies();
+  return emailFromQuery(store.get(CHOOSER_EMAIL_COOKIE)?.value);
 }
 
 /*

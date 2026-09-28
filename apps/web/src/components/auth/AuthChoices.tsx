@@ -3,7 +3,7 @@ import Link from "next/link";
 import { withNext } from "@/lib/auth/next-link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/providers";
-import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
+import { continueWithEmail, startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
 import { AppleMark, NativeAppleSignIn } from "./NativeAppleSignIn";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -17,8 +17,10 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * EMAIL FIRST, AND THE FIELD IS REAL. The render puts the address on the
  * first screen and the password on the next, which is the flow this platform
  * already runs: the chooser here, the form at `/sign-in/email`. So the field
- * is a form that posts the address forward as a query parameter, and the
- * email screen opens with it filled in and the cursor on the password. The
+ * is a form that posts the address to `continueWithEmail`, which holds it in
+ * a short-lived httpOnly cookie (never the URL, where it would sit in history
+ * and referrers) and redirects to the email screen, which opens with it
+ * filled in and the cursor on the password. The
  * browser's back button still undoes the step, because it is still a route
  * and not an in-place expansion.
  *
@@ -61,7 +63,6 @@ export function AuthChoices({
   const emailReady = configured("email");
   const googleReady = configured("google") && surface === "web";
   const appleReady = configured("apple");
-  const emailRoute = isSignUp ? "/sign-up/email" : "/sign-in/email";
 
   return (
     /* `nf-auth--narrow`: this card is drawn at the render's measured width
@@ -77,13 +78,15 @@ export function AuthChoices({
       ) : null}
 
       {/*
-        The address travels as a GET. Nothing is submitted to an action here:
-        the email screen reads `email` off the URL to fill its field, and
+        The address is posted to a server action that keeps it in a cookie
+        and redirects to the email step, so it never lands in the URL.
         `next` rides along so the chain to the person's original destination
-        does not break at this hop.
+        does not break at this hop. A server action form still submits before
+        hydration, so this works with no JavaScript.
       */}
-      <form action={emailRoute} method="get" className="nf-auth__form" noValidate={false}>
+      <form action={continueWithEmail} className="nf-auth__form" noValidate={false}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
+        <input type="hidden" name="mode" value={mode} />
         <label htmlFor="auth-email" className="sr-only">
           {t.auth.emailLabel}
         </label>

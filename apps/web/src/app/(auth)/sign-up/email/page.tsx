@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { signUpWithEmail } from "@/lib/auth/actions";
+import { chooserEmail, signUpWithEmail } from "@/lib/auth/actions";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { listStates } from "@/lib/places/queries";
 import { emailFromQuery } from "@/components/auth/auth-intent";
@@ -34,7 +34,7 @@ export default async function SignUpEmailPage({
       action={signUpWithEmail}
       states={states}
       next={next}
-      initialEmail={emailFromQuery(email)}
+      initialEmail={emailFromQuery(email) || (await chooserEmail())}
     />
   );
 }

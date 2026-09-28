@@ -3,7 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
-import { signInWithEmail, signUpMethodForEmail } from "@/lib/auth/actions";
+import { chooserEmail, signInWithEmail, signUpMethodForEmail } from "@/lib/auth/actions";
 import type { EmailStatus } from "@/lib/auth/form-state";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { emailFromQuery } from "@/components/auth/auth-intent";
@@ -22,9 +22,17 @@ export const metadata: Metadata = {
  * `signup_method_for_email`, behind the same per-connection limiter the
  * sign-up form's check uses (sixty an hour). An account made with Google has
  * no password, and before this the screen asked for one anyway and answered
- * every attempt with "do not match". Anything but a clear "google" or "none"
- * draws the ordinary password step, so a refused or unavailable lookup costs
- * nothing.
+ * every attempt with "do not match". Anything but a clear "google" draws the
+ * ordinary password step, so a refused or unavailable lookup costs nothing.
+ *
+ * "none" IS DRAWN AS THE PASSWORD STEP TOO (F-08). It used to show "No account
+ * uses this address yet" above the form, and then a wrong password added "do
+ * not match" under it: two contradictory messages, and a page that told anyone
+ * which addresses have accounts. The password step now says one neutral thing
+ * either way.
+ *
+ * The address comes from the chooser's cookie (`continueWithEmail`), or from
+ * `?email=` for links that carry it on purpose.
  */
 export default async function SignInEmailPage({
   searchParams,
@@ -34,14 +42,15 @@ export default async function SignInEmailPage({
   const { next, email } = await searchParams;
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const address = emailFromQuery(email);
+  const address = emailFromQuery(email) || (await chooserEmail());
   const providers = await resolveProviderStates(await requestSurface());
   const googleReady = providers.some((p) => p.id === "google" && p.configured);
 
   let accountMethod: EmailStatus = "unknown";
   if (address) {
     try {
-      accountMethod = await signUpMethodForEmail(address);
+      const method = await signUpMethodForEmail(address);
+      accountMethod = method === "none" ? "unknown" : method;
     } catch {
       accountMethod = "unknown";
     }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -40,21 +41,28 @@ export function DockMore({
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
 
+  /*
+   * F-15: THE TRAY IS AN OVERLAY LIKE EVERY OTHER. It handled Escape and a tap
+   * outside by itself, and took no part in `useOverlay`, so the Android back
+   * button (`lib/native/back-button.ts`, which asks "is an overlay up?" of
+   * the body lock that hook holds) could not see it: back left the page with
+   * the tray still open. Registering it gives it the shared Escape (the same
+   * path the back button dispatches), the body lock and focus return. It
+   * keeps its own focus: opening it does not move the cursor into the tray.
+   */
+  const close = useCallback(() => {
+    setOpenOn(null);
+    button.current?.focus();
+  }, []);
+  useOverlay({ open, onClose: close, panelRef: root, autoFocus: false });
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpenOn(null);
-        button.current?.focus();
-      }
-    };
     const onPointer = (event: PointerEvent) => {
       if (root.current && !root.current.contains(event.target as Node)) setOpenOn(null);
     };
-    window.addEventListener("keydown", onKey);
     window.addEventListener("pointerdown", onPointer);
     return () => {
-      window.removeEventListener("keydown", onKey);
       window.removeEventListener("pointerdown", onPointer);
     };
   }, [open]);

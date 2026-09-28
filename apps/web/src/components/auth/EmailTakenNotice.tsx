@@ -86,7 +86,7 @@ export function EmailTakenNotice({
               {a.takenGoogleLead}{" "}
               <span className="font-semibold text-[var(--nf-content-primary)]">{a.continueWithGoogle}</span>{" "}
               {a.takenGoogleOn}{" "}
-              <Link href="/sign-in" className="font-semibold underline underline-offset-4">
+              <Link href="/sign-in" className="nf-tap font-semibold underline underline-offset-4">
                 {a.signInScreen}
               </Link>
               {a.takenGoogleTail}
@@ -94,13 +94,13 @@ export function EmailTakenNotice({
           ) : (
             <>
               {a.takenLead}{" "}
-              <Link href="/sign-in" className="font-semibold underline underline-offset-4">
+              <Link href="/sign-in" className="nf-tap font-semibold underline underline-offset-4">
                 {a.signInInstead}
               </Link>
               {a.takenOr}{" "}
               <Link
                 href="/forgot-password"
-                className="font-semibold underline underline-offset-4"
+                className="nf-tap font-semibold underline underline-offset-4"
               >
                 {a.resetPassword}
               </Link>{" "}

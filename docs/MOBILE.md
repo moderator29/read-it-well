@@ -32,8 +32,14 @@ that in full and `MOBILE_READINESS.md` section 2 has the evidence.
 ## 2. The one variable that decides whether a build works
 
 ```bash
-export CAPACITOR_SERVER_URL="https://vallospaces.com"    # the production origin
+export CAPACITOR_SERVER_URL="https://www.vallospaces.com"    # the production origin
 ```
+
+Use the **www** host. The apex `https://vallospaces.com` answers every path
+with a 308 to www, and a shell whose `server.url` redirects to another host can
+hand its first launch to the system browser. `capacitor.config.ts` rewrites an
+apex value to www and lists both hosts in `server.allowNavigation`, and
+`capacitor-origin.test.ts` pins that.
 
 `capacitor.config.ts` reads it when `npx cap sync` runs. Set it in the shell
 that performs the sync, and set it in CI.
@@ -52,7 +58,7 @@ npm install
 npm run build                       # the web build, still the source of truth
 
 cd apps/web
-CAPACITOR_SERVER_URL="https://vallospaces.com" npx cap sync
+CAPACITOR_SERVER_URL="https://www.vallospaces.com" npx cap sync
 ```
 
 `cap sync` copies `native-shell/` into both projects, writes the resolved

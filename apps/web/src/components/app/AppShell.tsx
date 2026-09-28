@@ -3,6 +3,7 @@
 import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { useSwipeToClose } from "@/lib/ui/use-swipe-to-close";
 import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -193,6 +194,8 @@ export function AppShell({
     />
   );
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
+  /* F-15: the drawer also closes on a swipe back towards the left edge. */
+  const drawerSwipe = useSwipeToClose(closeDrawer);
 
   /*
    * THE HEADER IS NOT A BAR UNTIL THERE IS SOMETHING UNDER IT.
@@ -285,7 +288,7 @@ export function AppShell({
               the dimmed app beside it, not a slab welded to the screen edge,
               and the safe areas are part of that geometry. Utilities here
               would outrank the component layer and pin it back to the edge. */}
-          <div className="nf-drawer nf-drawer--left absolute">
+          <div className="nf-drawer nf-drawer--left absolute" {...drawerSwipe}>
             {/* The panel draws the moving edge light (edge-m.css) and holds
                 still; this inner layer is what scrolls, so the light stays on
                 the panel's edge instead of scrolling away with the rows. */}

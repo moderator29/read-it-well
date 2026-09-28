@@ -1370,6 +1370,8 @@ export const en = {
     resetExpiredLead: "A reset link lasts an hour and works once. Ask for a new one and open it on the same device.",
     newPasswordTitle: "Choose a new password",
     newPasswordLead: "Pick something you have not used here before. You will be signed in as soon as it is saved.",
+    currentPasswordLabel: "Current password",
+    currentPasswordPlaceholder: "The password you use now",
     newPasswordLabel: "New password",
     newPasswordSave: "Save and sign in",
     confirmPasswordLabel: "Confirm password",

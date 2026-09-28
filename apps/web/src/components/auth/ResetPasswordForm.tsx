@@ -57,8 +57,8 @@ export function ResetPasswordForm({
           <PasswordField
             t={t}
             id="currentPassword"
-            label={CURRENT_LABEL}
-            placeholder={CURRENT_PLACEHOLDER}
+            label={t.auth.currentPasswordLabel}
+            placeholder={t.auth.currentPasswordPlaceholder}
             autoComplete="current-password"
             error={state.fieldErrors?.currentPassword}
             value={current}
@@ -93,7 +93,7 @@ export function ResetPasswordForm({
             className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
           >
             {state.message}{" "}
-            <Link href="/forgot-password" className="font-semibold underline underline-offset-4">
+            <Link href="/forgot-password" className="nf-tap font-semibold underline underline-offset-4">
               {t.auth.resetSend}
             </Link>
           </p>
@@ -107,5 +107,3 @@ export function ResetPasswordForm({
   );
 }
 
-const CURRENT_LABEL = "Current password";
-const CURRENT_PLACEHOLDER = "The password you use now";
