@@ -170,28 +170,16 @@ const nextConfig: NextConfig = {
       { source: "/agents/apply", destination: "/profile/setup/owner", permanent: false },
       { source: "/agents/status", destination: "/profile/application", permanent: false },
       /*
-       * `/support`, which the product offers and this build has never served
-       * (R2 finding 5).
+       * `/support` IS SERVED NOW, SO IT NO LONGER REDIRECTS.
        *
-       * `app/agent/verification/page.tsx` gives an agent whose verification
-       * has stalled a full-width "Ask about this check" button pointing here,
-       * and its own comment says "Messaging support is the real next step, so
-       * it is the one offered". The address was never built, so the one person
-       * on the platform who most needs a human was tapping into a 404.
-       *
-       * `/contact` is that next step and always was: it files a real support
-       * ticket, hands back its VAL-SUP reference, and carries a Verification
-       * topic in `lib/trust/support-topics.ts`. 307 like the three above,
-       * because `/support` is an address we may yet want to serve properly.
-       *
-       * The better fix is one line rather than this one: the button should
-       * point at `/contact?topic=verification` so the topic arrives
-       * preselected, exactly as the safety centre's report control already
-       * does with `?topic=safety`. That file is F5's, so it is a line in the
-       * report rather than an edit here, and this redirect closes the hole in
-       * the meantime and stays as the net for anything already shared.
+       * It used to 307 to `/contact`, because the product offered the address
+       * (the agent verification page's "Ask about this check", and two emails
+       * in `lib/email/messages.ts`) and no page lived there. It is now the
+       * in-app help and support home, `app/(app)/support/page.tsx`, with the
+       * member's support conversations under `/support/messages`, and a
+       * redirect here would shadow the page: `redirects()` runs before the
+       * filesystem. `/contact` is still one tap away from it.
        */
-      { source: "/support", destination: "/contact", permanent: false },
       /*
        * `/verify`: the link `private.review_kyc_document` writes into every KYC
        * decision notification (migrations 20260809052558 and 20260925134322).

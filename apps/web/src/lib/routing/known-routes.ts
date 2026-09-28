@@ -7,9 +7,10 @@
  * The proxy now answers an unknown first segment with the site's real 404
  * instead. `known-routes.test.ts` walks `src/app` and fails when a routable
  * directory is added or removed without this list following it. The
- * extra names are `next.config.ts` redirects (`/agents…`, `/support`, and
- * `/trips`, folded into Plans by V-76, and `/wallet` and `/escrow`, retired by
- * Track A on 25 September 2026 and sent to `/agreements`).
+ * extra names are `next.config.ts` redirects (`/agents…` and `/trips`,
+ * folded into Plans by V-76, and `/wallet` and `/escrow`, retired by Track A
+ * on 25 September 2026 and sent to `/agreements`). `/support` was one until
+ * it became a page of its own, the in-app help and support home.
  */
 export const KNOWN_TOP_SEGMENTS: ReadonlySet<string> = new Set([
   "about", "admin", "agent", "agents", "agreements", "api", "areas", "around", "assistant", "auth", "bookings",
@@ -23,7 +24,7 @@ export const KNOWN_TOP_SEGMENTS: ReadonlySet<string> = new Set([
 ]);
 
 /** The redirect sources in `next.config.ts`, which have no directory. */
-export const REDIRECT_ONLY_SEGMENTS: ReadonlySet<string> = new Set(["agents", "escrow", "support", "trips", "wallet"]);
+export const REDIRECT_ONLY_SEGMENTS: ReadonlySet<string> = new Set(["agents", "escrow", "trips", "wallet"]);
 
 /** Whether the first segment of `path` is one this app can answer at. */
 export function isKnownRoute(path: string): boolean {

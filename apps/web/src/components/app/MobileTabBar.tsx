@@ -356,7 +356,7 @@ export function MobileTabBar({
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
         { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
         { href: "/settings", label: t.nav.settings, icon: "settings-gear" },
-        { href: "/settings/help", label: t.nav.helpSupport, icon: "ticket" },
+        { href: "/support", label: t.nav.helpSupport, icon: "ticket" },
       ]
     : [
         { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },

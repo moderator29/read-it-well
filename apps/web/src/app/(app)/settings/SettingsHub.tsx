@@ -282,7 +282,7 @@ export function SettingsHub({
 
       <SettingsGroup label="Help and legal">
         <RowLink
-          href="/settings/help"
+          href="/support"
           glyph={<HubGlyph name="headset" />}
           label={hub.help}
           sub={hub.helpSub}
