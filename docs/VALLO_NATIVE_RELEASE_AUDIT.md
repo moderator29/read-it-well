@@ -14,6 +14,9 @@ Companion files:
 - [`VALLO_ANDROID_RELEASE_CHECKLIST.md`](VALLO_ANDROID_RELEASE_CHECKLIST.md)
 - [`VALLO_NATIVE_TEST_MATRIX.md`](VALLO_NATIVE_TEST_MATRIX.md)
 
+- [`NATIVE_CI.md`](NATIVE_CI.md): the GitHub Actions builds (Android debug APK and unsigned iOS compile run on every relevant push; the signed iOS archive waits on four secrets)
+- [`store/FOUNDER_CHECKLIST.md`](store/FOUNDER_CHECKLIST.md): the same next actions in plain English, for the founder
+
 Still authoritative and not repeated here: `store/FOUNDER_STEPS.md` (console
 click paths), `store/PRIVACY_LABELS.md` (App Privacy and Data safety answers),
 `store/LISTING_COPY.md`, `STORE_SUBMISSION_NOTES.md` (reviewer account).

@@ -38,12 +38,12 @@ Console click paths: `store/FOUNDER_STEPS.md`.
 | --- | --- | --- |
 | Associated Domains | `applinks:www.vallospaces.com` only (apex removed, F-06) | NEEDS CONFIGURATION in Xcode; BLOCKED BY APPLE DEVELOPER ACCOUNT |
 | `aps-environment` | `development` (distribution signing writes `production`) | BLOCKED BY APPLE DEVELOPER ACCOUNT; check the archive's entitlements once |
-| Sign in with Apple | present | Do NOT enable the capability yet: the plugin has no Capacitor 8 release (F-10) |
+| Sign in with Apple | present | Tick the capability on the App ID anyway: signing refuses an entitlement the App ID lacks. The button still cannot show until a Capacitor 8 plugin exists (F-10) |
 
 ## Steps, in order
 
 1. [ ] Apple Developer Program enrolment as VALLO SPACES LTD (waiting on D-U-N-S).
-2. [ ] App ID `com.vallospaces.app` with Push Notifications and Associated Domains.
+2. [ ] App ID `com.vallospaces.app` with Push Notifications, Associated Domains and Sign In with Apple (all three are in the entitlements file).
 3. [ ] APNs key: set `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_PRODUCTION=true` in Vercel Production. Never commit the `.p8`.
 4. [ ] Team ID into `apps/web/public/.well-known/apple-app-site-association`; deploy; confirm at `https://app-site-association.cdn-apple.com/a/v1/www.vallospaces.com`.
 5. [ ] On the Mac: `npm ci`, then `CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync --workspace @vallo/web` (refuses until step 4 and the Android fingerprints are in; use `cap:sync:dev` for a device test before then).
@@ -52,6 +52,8 @@ Console click paths: `store/FOUNDER_STEPS.md`.
 8. [ ] `VALLO_BUILD=<n> npm run sync:versions`, archive, validate, upload.
 9. [ ] App Store Connect: app record, App Privacy (`store/PRIVACY_LABELS.md` Part A), age rating, screenshots from this build, review notes and reviewer account (`STORE_SUBMISSION_NOTES.md`), support URL `https://www.vallospaces.com/help`, privacy URL `https://www.vallospaces.com/privacy`.
 10. [ ] TestFlight internal testing, then submit.
+
+Steps 5 to 8 can instead run on GitHub Actions (`.github/workflows/native-ios.yml`, the signed archive job) once the four secrets in `docs/NATIVE_CI.md` exist; no Mac is then needed for the build itself.
 
 A personal (free) team can build step 7 to a device before enrolment finishes,
 without the Push and Associated Domains capabilities. That is the fastest way
