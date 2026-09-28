@@ -129,12 +129,16 @@ export const WATCHED_JOBS: readonly WatchedJob[] = [
   /* The reconciliation, matched by the action it writes rather than by an
      entity id it does not write. Three hours of silence on an hourly job that
      recovers money is already too long; see the note above for what three
-     WEEKS of it looked like from the outside, which was nothing at all. */
+     WEEKS of it looked like from the outside, which was nothing at all.
+     The action became `payment.reconciliation.run` when custody was retired
+     (the route's recordMoneyAudit call); watching the old wallet name read a
+     healthy hourly job as 76 hours silent and raised a critical alert every
+     hour. The entity type is still `wallet_entry` (lib/money/audit.ts). */
   {
     job: "paystack-reconcile",
     schedule: "hourly at :10",
     maxGapHours: 3,
-    audit: { entityType: "wallet_entry", action: "wallet.reconciliation.run" },
+    audit: { entityType: "wallet_entry", action: "payment.reconciliation.run" },
   },
 ];
 
