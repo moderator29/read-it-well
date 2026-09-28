@@ -41,6 +41,7 @@ import { fail, formDataToObject, ok, validate, type ActionResult } from "../acti
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "../security/rate-limit";
+import { revokeTokens } from "../push/revoke";
 import { createAdminClient } from "../supabase/admin";
 import { isSupabaseConfigured } from "../supabase/env";
 import { writeDeletionAudit } from "./audit";
@@ -207,6 +208,15 @@ export async function startDeletion(
   } catch {
     // The ban below covers this. A session that cannot be ended explicitly
     // stops refreshing within the hour.
+  }
+  // A deactivated account sends no pushes. The purge deletes `push_tokens` at
+  // the end of the window, but the drain only skips REVOKED rows, so without
+  // this every device kept receiving the account's notifications for thirty
+  // days. Restoring does not re-enable them; the person turns push back on.
+  try {
+    await revokeTokens(user.id, { all: true });
+  } catch {
+    // Best effort, like the session end above.
   }
   try {
     await admin.auth.admin.updateUserById(user.id, {
