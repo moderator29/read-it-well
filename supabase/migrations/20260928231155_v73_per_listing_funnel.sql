@@ -15,8 +15,8 @@
  *                         drew) and unique viewers who OPENED it. Counts only.
  *   listing_view_marks    the one-day memory that makes "unique" true: an
  *                         HMAC of the viewer under a random salt that exists
- *                         for one Lagos day (private.view_salts). The salt and
- *                         the marks are deleted when the day ends (an hourly
+ *                         for one Lagos day (private.listing_view_salts). The
+ *                         salt and the marks are deleted when the day ends (an hourly
  *                         purge, not only on the next call), after which no
  *                         mark can be tied to anybody. Nothing here can answer
  *                         "who looked at my flat".
@@ -32,13 +32,18 @@
  * Example listings are never counted (they must never feed a real aggregate),
  * and a lister opening their own listing is not a view.
  *
+ * ITS OWN SALT TABLE. The salt table is private.listing_view_salts, not
+ * private.view_salts: that name already belongs to the social post counter
+ * (private.view_bucket, salt text, which keeps yesterday's salt). Sharing it
+ * would have made `create table if not exists` skip silently, left this code
+ * reading a text salt as bytea, and let the purge below delete the salt the
+ * social counter still needs for today-1.
+ *
  * BORN LOCKED. Both tables have RLS on and no grants to anon or authenticated.
  * Writes happen only through `record_listing_views`, a security definer
  * function only the server (service role) may call; reads only through
  * `listing_funnel`, which answers only the listing's own lister or staff.
  */
-
-begin;
 
 create table if not exists public.listing_daily_stats (
   listing_id uuid not null references public.listings(id) on delete cascade,
@@ -63,7 +68,7 @@ comment on table public.listing_view_marks is
   'V-73: one day of memory so a count is of unique viewers. Holds an HMAC of the viewer under a salt that lives one Lagos day, never an id; private.purge_view_marks deletes every row from before today, hourly, with the salt.';
 
 /* One random salt per Lagos day, and a per-person daily call count. */
-create table if not exists private.view_salts (
+create table if not exists private.listing_view_salts (
   day date primary key,
   salt bytea not null
 );
@@ -73,7 +78,7 @@ create table if not exists private.view_calls (
   calls integer not null default 0,
   primary key (user_id, day)
 );
-revoke all on private.view_salts from public, anon, authenticated;
+revoke all on private.listing_view_salts from public, anon, authenticated;
 revoke all on private.view_calls from public, anon, authenticated;
 
 alter table public.listing_daily_stats enable row level security;
@@ -116,9 +121,9 @@ begin
     return;
   end if;
 
-  insert into private.view_salts (day, salt) values (today, extensions.gen_random_bytes(32))
+  insert into private.listing_view_salts (day, salt) values (today, extensions.gen_random_bytes(32))
   on conflict (day) do nothing;
-  select vs.salt into today_salt from private.view_salts vs where vs.day = today;
+  select vs.salt into today_salt from private.listing_view_salts vs where vs.day = today;
   who := encode(extensions.hmac(convert_to(p_viewer::text, 'UTF8'), today_salt, 'sha256'), 'hex');
 
   for target in
@@ -173,7 +178,7 @@ security definer
 set search_path = ''
 as $$
   delete from public.listing_view_marks where day < (now() at time zone 'Africa/Lagos')::date;
-  delete from private.view_salts where day < (now() at time zone 'Africa/Lagos')::date;
+  delete from private.listing_view_salts where day < (now() at time zone 'Africa/Lagos')::date;
   delete from private.view_calls where day < (now() at time zone 'Africa/Lagos')::date;
 $$;
 revoke all on function private.purge_view_marks() from public, anon, authenticated;
@@ -271,10 +276,157 @@ grant execute on function public.record_listing_views(uuid, uuid[], uuid) to ser
 revoke execute on function public.listing_funnel(uuid) from public, anon;
 grant execute on function public.listing_funnel(uuid) to authenticated;
 
-commit;
-
-/* Outside the transaction: cron.schedule commits its own row. Minute 41, clear
-   of the other hourly sweeps. */
+/* The hourly purge. Minute 41, clear of the other hourly sweeps. The whole
+   file runs as one transaction, so the job row lands with the tables. */
 select cron.unschedule('vallo_purge_view_marks')
  where exists (select 1 from cron.job where jobname = 'vallo_purge_view_marks');
 select cron.schedule('vallo_purge_view_marks', '41 * * * *', 'select private.purge_view_marks();');
+
+/*
+ * Read-back. The objects are as described, the social counter's
+ * private.view_salts is exactly as it was, and one render is counted once,
+ * read by its lister and refused to everybody else. The behaviour probe runs
+ * in a subtransaction that is always rolled back.
+ */
+do $readback$
+declare
+  v_social_before text;
+  v_social_after  text;
+  v_vb_before     text;
+  v_l      uuid;
+  v_lister uuid;
+  v_viewer uuid;
+  v_today  date := (now() at time zone 'Africa/Lagos')::date;
+  v_imp    integer;
+  v_opn    integer;
+  v_seen   bigint;
+  v_opened bigint;
+  v_rows   integer;
+  v_state  text;
+begin
+  select coalesce(string_agg(day::text || ':' || md5(salt), ',' order by day), '') into v_social_before from private.view_salts;
+  select md5(pg_get_functiondef('private.view_bucket(text)'::regprocedure)) into v_vb_before;
+
+  if format_type((select atttypid from pg_attribute where attrelid = 'private.listing_view_salts'::regclass and attname = 'salt'), null) <> 'bytea' then
+    raise exception 'V-73 read-back: private.listing_view_salts.salt is not bytea';
+  end if;
+  if format_type((select atttypid from pg_attribute where attrelid = 'private.view_salts'::regclass and attname = 'salt'), null) <> 'text' then
+    raise exception 'V-73 read-back: private.view_salts (social) changed shape';
+  end if;
+  if not (select relrowsecurity from pg_class where oid = 'public.listing_daily_stats'::regclass)
+     or not (select relrowsecurity from pg_class where oid = 'public.listing_view_marks'::regclass) then
+    raise exception 'V-73 read-back: RLS is off on a V-73 table';
+  end if;
+  if has_table_privilege('anon', 'public.listing_daily_stats', 'select')
+     or has_table_privilege('authenticated', 'public.listing_daily_stats', 'select')
+     or has_table_privilege('anon', 'public.listing_view_marks', 'select')
+     or has_table_privilege('authenticated', 'public.listing_view_marks', 'select')
+     or has_table_privilege('authenticated', 'public.listing_daily_stats', 'insert')
+     or has_table_privilege('authenticated', 'public.listing_view_marks', 'insert') then
+    raise exception 'V-73 read-back: a V-73 table is granted to anon or authenticated';
+  end if;
+  if has_function_privilege('anon', 'public.record_listing_views(uuid,uuid[],uuid)', 'execute')
+     or has_function_privilege('authenticated', 'public.record_listing_views(uuid,uuid[],uuid)', 'execute')
+     or not has_function_privilege('service_role', 'public.record_listing_views(uuid,uuid[],uuid)', 'execute')
+     or has_function_privilege('anon', 'public.listing_funnel(uuid)', 'execute')
+     or not has_function_privilege('authenticated', 'public.listing_funnel(uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.purge_view_marks()', 'execute') then
+    raise exception 'V-73 read-back: function grants are not as designed';
+  end if;
+  if position('private.view_salts' in pg_get_functiondef('private.purge_view_marks()'::regprocedure)) > 0
+     or position('private.view_salts' in pg_get_functiondef('public.record_listing_views(uuid,uuid[],uuid)'::regprocedure)) > 0 then
+    raise exception 'V-73 read-back: a V-73 function still touches the social salt table';
+  end if;
+  if not exists (select 1 from cron.job where jobname = 'vallo_purge_view_marks' and schedule = '41 * * * *') then
+    raise exception 'V-73 read-back: the purge job is not scheduled';
+  end if;
+
+  begin
+    select l.id, a.user_id into v_l, v_lister
+      from public.listings l join public.agents a on a.id = l.agent_id
+     where l.status = 'PUBLISHED' order by l.id limit 1;
+    select u.id into v_viewer from auth.users u
+     where u.id <> v_lister
+       and not private.has_role(u.id, 'admin'::public.app_role)
+       and not private.has_role(u.id, 'super_admin'::public.app_role)
+     order by u.created_at limit 1;
+    if v_l is null or v_viewer is null then
+      raise exception 'probe_fixture_missing';
+    end if;
+    -- Fixture: only a real (non-example) listing is counted.
+    update public.listings set is_demo = false where id = v_l;
+
+    perform public.record_listing_views(v_viewer, array[v_l], v_l);
+    perform public.record_listing_views(v_viewer, array[v_l], v_l);
+    select impressions, opens into v_imp, v_opn from public.listing_daily_stats where listing_id = v_l and day = v_today;
+    if v_imp is distinct from 1 or v_opn is distinct from 1 then
+      raise exception 'probe: one viewer twice should count once (impressions %, opens %)', v_imp, v_opn;
+    end if;
+    if not exists (select 1 from private.listing_view_salts where day = v_today and octet_length(salt) = 32) then
+      raise exception 'probe: no 32-byte salt for today in private.listing_view_salts';
+    end if;
+    if exists (select 1 from public.listing_view_marks where listing_id = v_l and viewer_hash = v_viewer::text) then
+      raise exception 'probe: a view mark holds the raw viewer id';
+    end if;
+
+    -- The lister reads their funnel.
+    perform set_config('request.jwt.claim.sub', v_lister::text, true);
+    perform set_config('request.jwt.claims', json_build_object('sub', v_lister, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select sum(mine) filter (where stage = 'seen'), sum(mine) filter (where stage = 'opened'), count(*)
+      into v_seen, v_opened, v_rows
+      from public.listing_funnel(v_l);
+    reset role;
+    if v_rows <> 6 or v_seen <> 1 or v_opened <> 1 then
+      raise exception 'probe: lister funnel wrong (rows %, seen %, opened %)', v_rows, v_seen, v_opened;
+    end if;
+
+    -- Somebody else gets nothing.
+    perform set_config('request.jwt.claim.sub', v_viewer::text, true);
+    perform set_config('request.jwt.claims', json_build_object('sub', v_viewer, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into v_rows from public.listing_funnel(v_l);
+    reset role;
+    if v_rows <> 0 then
+      raise exception 'probe: a stranger read another lister''s funnel (% rows)', v_rows;
+    end if;
+
+    -- A signed-in member cannot record views directly.
+    v_state := null;
+    begin
+      set local role authenticated;
+      perform public.record_listing_views(v_viewer, array[v_l], v_l);
+    exception when others then
+      v_state := sqlstate;
+    end;
+    reset role;
+    if v_state is distinct from '42501' then
+      raise exception 'probe: authenticated could call record_listing_views (sqlstate %)', v_state;
+    end if;
+
+    -- The purge keeps today's rows and never touches the social salts.
+    perform private.purge_view_marks();
+    if not exists (select 1 from public.listing_view_marks where listing_id = v_l and day = v_today) then
+      raise exception 'probe: the purge deleted today''s marks';
+    end if;
+    select coalesce(string_agg(day::text || ':' || md5(salt), ',' order by day), '') into v_social_after from private.view_salts;
+    if v_social_after <> v_social_before then
+      raise exception 'probe: private.view_salts (social) changed';
+    end if;
+
+    raise exception 'probe_passed';
+  exception when others then
+    if sqlerrm = 'probe_passed' then
+      raise notice 'V-73 probe passed (rolled back)';
+    else
+      raise exception 'V-73 probe failed: %', sqlerrm;
+    end if;
+  end;
+
+  select coalesce(string_agg(day::text || ':' || md5(salt), ',' order by day), '') into v_social_after from private.view_salts;
+  if v_social_after <> v_social_before
+     or md5(pg_get_functiondef('private.view_bucket(text)'::regprocedure)) <> v_vb_before then
+    raise exception 'V-73 read-back: the social view counter changed';
+  end if;
+end
+$readback$;

@@ -4,7 +4,7 @@
  * Six stages for one listing over seven days: seen in results, opened, saved,
  * enquired, viewing booked, viewed. Beside each, the median for similar
  * listings (same property type, same city, published, not examples), read by
- * `public.listing_funnel` (migration `20260924150500`). Below them, ONE fix,
+ * `public.listing_funnel` (migration `20260928231155`). Below them, ONE fix,
  * chosen by the first rule that fires in the table below, because an agent
  * shown five suggestions acts on none.
  *
