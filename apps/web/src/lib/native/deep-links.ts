@@ -2,6 +2,7 @@
 
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
+import { BRAND_DOMAIN } from "@/lib/brand-domain";
 
 /**
  * The way back in. The other half of `external-links.ts`.
@@ -11,9 +12,9 @@ import { Browser } from "@capacitor/browser";
  * when the third party finishes and redirects. Both of ours redirect to a URL
  * on OUR OWN ORIGIN:
  *
- *   - Paystack returns to `/wallet?funded=1&reference=...` or to
- *     `/checkout/<id>?paid=1&reference=...`, built in `lib/payments/split-attempt.ts`
- *     and `lib/bookings/checkout.ts`.
+ *   - Paystack returns to `/checkout/<id>?paid=1&reference=...`, built in
+ *     `lib/bookings/checkout.ts`. (The `/wallet?funded=1` return this line
+ *     used to name went with the wallet in Track A; `docs/MONEY_ARCHITECTURE.md`.)
  *   - Supabase returns to `/auth/callback?code=...&next=...`, built in
  *     `lib/auth/actions.ts`.
  *
@@ -27,8 +28,9 @@ import { Browser } from "@capacitor/browser";
  *
  * Two independent reasons, and either one alone would settle it.
  *
- * First, `/auth/callback` is a Route Handler, not a page. The Next client
- * router cannot navigate to one; it has to be requested by the browser.
+ * First, `/auth/callback` completes the exchange in a server action as the
+ * page is requested (`app/auth/callback/page.tsx`), and a full request is
+ * what guarantees that request carries this web view's cookies.
  *
  * Second, and this is the subtle one that decides whether sign in actually
  * works: THE SESSION COOKIES MUST LAND IN THE WEB VIEW'S COOKIE JAR, NOT THE
@@ -87,11 +89,24 @@ import { Browser } from "@capacitor/browser";
  * sign in.
  */
 
-/** A path on our own origin, or null for anything else. */
-function pathOnThisOrigin(raw: string): string | null {
+/**
+ * A path on one of our own hosts, or null for anything else. Pure, so the
+ * rule is tested (`deep-links.test.ts`).
+ *
+ * The web view runs on `www.vallospaces.com`, and an exact origin match used
+ * to be the whole test, so a link written with the bare apex (which the
+ * product prints nowhere, but people type) was dropped on the floor. Both
+ * brand hosts are ours; the path is resolved against the web view's own
+ * origin, so the navigation never leaves it. https only.
+ */
+export function pathOnOurOrigin(raw: string, currentOrigin: string): string | null {
   try {
     const url = new URL(raw);
-    if (url.origin !== window.location.origin) return null;
+    const current = new URL(currentOrigin);
+    const ours =
+      url.origin === current.origin ||
+      (url.protocol === "https:" && (url.host === BRAND_DOMAIN || url.host === `www.${BRAND_DOMAIN}`));
+    if (!ours) return null;
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return null;
@@ -108,7 +123,7 @@ export async function startDeepLinks(): Promise<() => void> {
      */
     void Browser.close().catch(() => {});
 
-    const path = pathOnThisOrigin(url);
+    const path = pathOnOurOrigin(url, window.location.origin);
     /* A custom scheme, or a link for some other host. Nothing here knows what
        to do with it, and guessing at a route from an unrecognised URL is how
        an application ends up navigable from outside itself. */

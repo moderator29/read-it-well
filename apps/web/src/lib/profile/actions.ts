@@ -23,6 +23,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { isDeviceRef, revokeTokens } from "../push/revoke";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { contentRefusal } from "../safety/content-refusal";
 import {
@@ -215,8 +216,8 @@ export async function setAvatar(input: unknown): Promise<ActionResult<{ avatarUr
  * on a phone threw the laptop out too. `signOutEverywhere` is the explicit,
  * separate action for the case where that is what somebody wants.
  */
-export async function signOut(): Promise<ActionResult<null>> {
-  return endSessions("local");
+export async function signOut(deviceRef?: string): Promise<ActionResult<null>> {
+  return endSessions("local", deviceRef);
 }
 
 /** Every device on the account, this one included. */
@@ -224,10 +225,36 @@ export async function signOutEverywhere(): Promise<ActionResult<null>> {
   return endSessions("global");
 }
 
-async function endSessions(scope: "local" | "global"): Promise<ActionResult<null>> {
+/*
+ * NATIVE RELEASE AUDIT, 28 SEPTEMBER 2026: A SIGNED-OUT PHONE KEPT RECEIVING
+ * THE ACCOUNT'S PUSHES. Nothing here touched `push_tokens`, so a shared or
+ * handed-on handset went on showing the previous person's messages and
+ * bookings on its lock screen until somebody else enrolled on it.
+ *
+ * "Log out" retires THIS device's row: the client passes the `device_ref` the
+ * register route gave it (`components/app/push/device-state.ts`), which is a
+ * digest, never the token. "Log out everywhere" retires every row. Both go
+ * through `revokeTokens`, whose ownership filter is the verified session's
+ * user id, so a ref naming somebody else's device changes nothing.
+ *
+ * Best effort, and BEFORE the sign out, because afterwards there is no user
+ * id to filter by. A failed revoke never keeps somebody signed in.
+ */
+async function retirePushDevices(userId: string, scope: "local" | "global", deviceRef?: string) {
+  if (scope === "local" && !isDeviceRef(deviceRef)) return;
+  try {
+    await revokeTokens(userId, scope === "global" ? { all: true } : { deviceRef: deviceRef as string });
+  } catch {
+    /* The drain still stops at the provider's own "gone" for a dead token. */
+  }
+}
+
+async function endSessions(scope: "local" | "global", deviceRef?: string): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return ok(null);
+
+  await retirePushDevices(session.user.id, scope, deviceRef);
 
   const { error } = await session.supabase.auth.signOut({ scope });
   if (error) {

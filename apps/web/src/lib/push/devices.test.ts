@@ -125,7 +125,7 @@ describe("reading a person's devices", () => {
 });
 
 describe("retiring a device", () => {
-  async function revoke(target: { deviceId: string } | { all: true }) {
+  async function revoke(target: { deviceId: string } | { deviceRef: string } | { all: true }) {
     const { calls, client } = recorder({ data: [{ id: "a" }], error: null });
     vi.resetModules();
     vi.doMock("@/lib/supabase/admin", () => ({ createAdminClient: () => client }));
@@ -139,6 +139,12 @@ describe("retiring a device", () => {
     const { calls } = await revoke({ deviceId: "44444444-3333-4222-8111-000000000000" });
     expect(argsOf(calls, "eq")).toContainEqual(["user_id", OWNER]);
     expect(argsOf(calls, "eq")).toContainEqual(["id", "44444444-3333-4222-8111-000000000000"]);
+  });
+
+  it("filters by owner when signing out retires this device by its ref", async () => {
+    const { calls } = await revoke({ deviceRef: "0123456789ab" });
+    expect(argsOf(calls, "eq")).toContainEqual(["user_id", OWNER]);
+    expect(argsOf(calls, "eq")).toContainEqual(["device_ref", "0123456789ab"]);
   });
 
   it("filters by owner when retiring every device, which is the dangerous one", async () => {

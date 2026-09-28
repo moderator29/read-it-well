@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -20,6 +21,13 @@
             backup and landing on a second handset. There is nothing in here
             worth restoring: the account lives on the server and signing in
             again takes seconds.
+
+            `dataExtractionRules` closes the half `allowBackup` does not. From
+            Android 12, for an application targeting 31 or above,
+            `allowBackup="false"` stops CLOUD backup but NOT device-to-device
+            transfer (the cable or wifi migration to a new phone). The rules
+            file excludes every domain from both, so the cookie jar and its
+            session never travel either way.
 
             `usesCleartextTraffic` is already false by default at this target
             SDK, and it is written out anyway because it is the flag that
@@ -90,13 +98,23 @@
                 a file that was never filled in fails verification loudly rather
                 than looking plausible.
 
-                Hosts are `vallospaces.com` and `www.vallospaces.com`
-                because that is the domain this repository defaults to
-                everywhere, in
-                `src/lib/email/render.ts` and in the profile share copy. If the
-                owner sets `NEXT_PUBLIC_SITE_URL` to anything else, these two
-                lines have to change with it, because a verified host is an
-                exact string and not a suffix.
+                THE HOST IS `www.vallospaces.com` ALONE (native release audit,
+                28 September 2026). It is the canonical host: the live site's
+                canonical and og:url are www, and every link the product prints
+                is built from the request's own host, which is www.
+
+                THE APEX, AND WHY IT IS NOT CLAIMED. `https://vallospaces.com/`
+                answers EVERY path, `/.well-known/assetlinks.json` included,
+                with a 308 to www. That redirect is Vercel's domain setting,
+                not repository code. Android's verifier does not follow
+                redirects, so the apex can never verify while it stands, and
+                on Android 11 and below verification is ALL OR NOTHING: one
+                host that fails means NO host is verified, so claiming the apex
+                would have cost www its App Links on exactly the older handsets
+                this product is built for. To bring the apex back, the owner
+                must first make the apex serve `/.well-known/*` with a 200 and
+                no redirect, then add the host here, in `App.entitlements`,
+                and in `src/lib/brand-domain.test.ts`.
 
                 The path prefixes are the shareable half of the product and
                 nothing else. A listing forwarded on WhatsApp is the case that
@@ -173,7 +191,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="vallospaces.com" />
+                <!-- www ONLY, and the apex is out on purpose: see "THE APEX"
+                     in the note above this filter. -->
                 <data android:scheme="https" android:host="www.vallospaces.com" />
                 <data android:pathPrefix="/listing/" />
                 <data android:pathPrefix="/stay/" />
@@ -198,6 +217,7 @@
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
 
         <!--
             FCM's defaults for a notification that arrives while the
@@ -209,16 +229,25 @@
             OR A LOG LINE. `vallo_default` is the id the server puts on every
             Android message (`src/lib/push/transport/fcm.ts`), so the two have
             to agree; if this ever changes, that file changes with it. The
-            channel itself is created by the push plugin at registration.
+            channel itself is created at boot by `src/lib/native/push-taps.ts`.
+
+            THESE THREE MUST BE DIRECT CHILDREN OF <application>. Until 28
+            September 2026 they sat inside the FileProvider's <provider>
+            element, where they were provider metadata that Firebase never
+            reads (it reads `ApplicationInfo.metaData`). The file was well
+            formed, so nothing complained. `src/lib/native/native-projects.test.ts`
+            now holds the placement.
 
             The icon must be a silhouette: Android 5 and above renders a
             notification icon as a mask, so anything with colour in it comes
             out a white blob. `@mipmap/ic_launcher` is wrong for the same
             reason and is the default people fall back to.
 
-            NONE OF THIS DOES ANYTHING WITHOUT `app/google-services.json`,
-            which is not in this repository and comes from a Firebase project
-            only the owner can create.
+            NONE OF THIS DOES ANYTHING WITHOUT A VALID `app/google-services.json`.
+            The file is in the repository for Firebase project `vallo-44059`
+            but its `current_key` is still a placeholder, so `app/build.gradle`
+            refuses a release build until the owner pastes the real Android
+            API key in.
         -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
@@ -229,7 +258,6 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/vallo_notification" />
-        </provider>
     </application>
 
     <!--
@@ -386,14 +414,18 @@
         This one is worth stating precisely rather than by habit, because
         Capacitor's `onShowFileChooser` DOES request the camera permission, and
         the condition it does it under is `fileChooserParams.isCaptureEnabled()`
-        together with an `image/*` accept. That flag comes from the `capture`
-        attribute on the input, and there is no `capture` attribute anywhere in
-        `src`: every one of the eleven file inputs on the platform names its
-        accepted types and leaves the choice of source to the person. So the
-        branch that needs the camera cannot be reached, and declaring the
-        permission would ask for something no code path uses. If a `capture`
-        attribute is ever added, this comment is where the consequence is
-        written down.
+        together with an `image/*` accept. That flag comes from the `capture` attribute on the input.
+
+        CORRECTED 28 SEPTEMBER 2026: this used to say no `capture` attribute
+        existed. Two do (`ShowMePanel` for video, `ArrivalCheckCard` for
+        photos), and the listing wizard calls the Camera plugin. None of them
+        needs this permission, and that is the reason it stays undeclared:
+        `BridgeWebChromeClient.isMediaCaptureSupported()` returns true when
+        CAMERA is NOT declared, and the bridge then hands the capture to the
+        system camera app by intent, which needs no grant of ours. Declaring
+        CAMERA would flip that branch into a runtime prompt, and a refusal
+        would return nothing to the input. The Camera plugin's own manifest
+        declares no permission either.
 
         READ_EXTERNAL_STORAGE and READ_MEDIA_IMAGES. Same reason, and this is
         the one people get wrong. The Storage Access Framework hands back a

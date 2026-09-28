@@ -1,0 +1,254 @@
+# Native iOS (28 September 2026). Two jobs.
+#
+# 1. `compile`: an UNSIGNED Release build for the iOS Simulator. It needs no
+#    Apple Developer account, no certificate and no secret, so it can run
+#    today and is the first place the iOS project is ever compiled (the
+#    Claude sandbox has no macOS). It proves the Swift sources, the
+#    `CapApp-SPM` package graph and the Xcode project are sound. It does not
+#    prove signing, entitlements or a device install.
+#
+# 2. `archive`: the signed App Store build. SCAFFOLDED, AND INERT until the
+#    founder adds the secrets below; it only runs when started by hand
+#    (Actions, Native iOS, Run workflow, "archive" ticked). With a secret
+#    missing it fails at its first step and names what is missing, never a
+#    silent pass. Signing is Xcode's automatic (cloud-managed) signing,
+#    authenticated with an App Store Connect API key, so NO certificate or
+#    provisioning profile file is ever exported, stored or committed:
+#
+#      APPLE_TEAM_ID                   ten characters, Membership details
+#      APP_STORE_CONNECT_KEY_ID        App Store Connect, Users and Access,
+#                                      Integrations, Keys (role App Manager)
+#      APP_STORE_CONNECT_ISSUER_ID     same page, above the key list
+#      APP_STORE_CONNECT_KEY_P8_BASE64 the downloaded AuthKey_XXXX.p8,
+#                                      base64 encoded (`base64 -i AuthKey.p8`)
+#
+#    All four are encrypted Actions SECRETS (Settings, Secrets and variables,
+#    Actions, Secrets). docs/NATIVE_CI.md has the click path.
+#
+# THE RUNNER. macOS 14 images carry Xcode up to 16.x. Capacitor 8.5 is tested
+# upstream on Xcode 26, and App Store Connect sets a minimum Xcode/SDK for
+# uploads each spring, so the default here is `macos-15`, which carries
+# Xcode 26. Set the repository VARIABLE `IOS_RUNNER` (e.g. `macos-14`,
+# `macos-26`) to override without editing this file. The newest Xcode on the
+# image is selected and printed in every run.
+name: Native iOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/ios/**"
+      - "apps/web/capacitor.config.ts"
+      - "apps/web/native-shell/**"
+      - "apps/web/package.json"
+      - "package-lock.json"
+      - "scripts/sync-native-versions.mjs"
+      - ".github/workflows/native-ios.yml"
+  workflow_dispatch:
+    inputs:
+      archive:
+        description: "Also build the signed App Store archive (needs the four Apple secrets)"
+        type: boolean
+        default: false
+      upload:
+        description: "Upload the archive to App Store Connect / TestFlight (implies archive)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: native-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CAPACITOR_SERVER_URL: https://www.vallospaces.com
+
+jobs:
+  compile:
+    name: iOS compile (unsigned, simulator)
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-15' }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Select the newest Xcode on the image
+        run: |
+          xcode=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$xcode" ]; then sudo xcode-select -s "$xcode/Contents/Developer"; fi
+          xcodebuild -version
+          major=$(xcodebuild -version | head -1 | awk '{print $2}' | cut -d. -f1)
+          if [ "$major" -lt 26 ]; then
+            echo "::warning title=Old Xcode::This image's newest Xcode is $(xcodebuild -version | head -1). Capacitor 8.5 is tested on Xcode 26 and App Store uploads need a current SDK. Set the IOS_RUNNER variable to an image with Xcode 26."
+          fi
+
+      - name: Native versions match package.json
+        run: npm run sync:versions -- --check
+
+      - name: Capacitor sync (production origin, dev gate)
+        run: npm run cap:sync:dev --workspace @vallo/web
+
+      - name: Resolve Swift packages
+        working-directory: apps/web/ios/App
+        run: xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme App
+
+      - name: Build for the simulator, unsigned
+        working-directory: apps/web/ios/App
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee "$RUNNER_TEMP/xcodebuild.log" | grep -E "error:|warning: .*deprecated|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" "$RUNNER_TEMP/xcodebuild.log"
+
+      - name: Summary
+        if: ${{ success() }}
+        run: |
+          {
+            echo "## iOS simulator build compiled"
+            echo ""
+            echo "Commit \`${GITHUB_SHA}\`, $(xcodebuild -version | head -1), unsigned, Release, iphonesimulator."
+            echo "This proves the project compiles. It is not signed and cannot be installed on a phone or uploaded."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the build log
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-compile-log-${{ github.sha }}
+          path: ${{ runner.temp }}/xcodebuild.log
+          retention-days: 14
+          if-no-files-found: ignore
+
+  archive:
+    name: iOS signed archive (App Store)
+    needs: compile
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.archive || inputs.upload) }}
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-15' }}
+    timeout-minutes: 60
+    env:
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      ASC_KEY_P8_BASE64: ${{ secrets.APP_STORE_CONNECT_KEY_P8_BASE64 }}
+    steps:
+      - name: Every Apple secret is present
+        run: |
+          missing=""
+          for v in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8_BASE64; do
+            [ -z "${!v}" ] && missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=Apple signing is not configured::Missing secrets:$missing. See docs/NATIVE_CI.md. Nothing was built or signed."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Select the newest Xcode on the image
+        run: |
+          xcode=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$xcode" ]; then sudo xcode-select -s "$xcode/Contents/Developer"; fi
+          xcodebuild -version
+
+      # The build number must rise with every upload; the run number does.
+      - name: Write versions
+        run: VALLO_BUILD=${{ github.run_number }} npm run sync:versions
+
+      # The RELEASE gate: refuses while the association files carry
+      # placeholders, so no binary claims links that cannot verify.
+      - name: Capacitor sync (release gate)
+        run: npm run cap:sync --workspace @vallo/web
+
+      - name: Write the API key to the runner only
+        run: |
+          mkdir -p "$RUNNER_TEMP/asc"
+          echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/asc/AuthKey.p8"
+          chmod 600 "$RUNNER_TEMP/asc/AuthKey.p8"
+
+      # CODE_SIGN_ENTITLEMENTS adopts App/App.entitlements (Associated
+      # Domains, aps-environment, Sign in with Apple). The App ID must carry
+      # all three capabilities or signing stops here, by name.
+      - name: Archive (automatic signing via the API key)
+        working-directory: apps/web/ios/App
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Vallo.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_ENTITLEMENTS=App/App.entitlements \
+            | tee "$RUNNER_TEMP/archive.log" | grep -E "error:|ARCHIVE (SUCCEEDED|FAILED)" || true
+          grep -q "ARCHIVE SUCCEEDED" "$RUNNER_TEMP/archive.log"
+
+      - name: Export the IPA
+        run: |
+          destination=export
+          if [ "${{ inputs.upload }}" = "true" ]; then destination=upload; fi
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>${destination}</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Vallo.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Keep the IPA
+        if: ${{ success() && !inputs.upload }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vallo-ios-${{ github.run_number }}
+          path: ${{ runner.temp }}/export/*.ipa
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Remove the API key from the runner
+        if: ${{ always() }}
+        run: rm -rf "$RUNNER_TEMP/asc"

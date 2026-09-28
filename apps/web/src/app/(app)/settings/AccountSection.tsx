@@ -11,6 +11,7 @@ import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
+import { clearLocalDevice, readLocalDevice } from "@/components/app/push/device-state";
 import { playThreshold } from "@/lib/motion/threshold";
 import { DeleteAccountPanel } from "./DeleteAccountPanel";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
@@ -65,7 +66,8 @@ export function AccountSection({
     startSignOut(async () => {
       /* V-98: the widget stops reading this account before the session ends. */
       await revokeWidgetTokens().catch(() => undefined);
-      const result = await signOut();
+      /* The push row for THIS device is retired with the session. */
+      const result = await signOut(readLocalDevice()?.deviceRef);
       if (!result.ok) {
         setSignOutError(result.error);
         return;
@@ -79,6 +81,7 @@ export function AccountSection({
       await clearOutbox();
       await forgetWidget();
       clearAllInflight();
+      clearLocalDevice();
       /* Track M: the page recedes and the panels close on the mark. */
       await playThreshold("leave");
       router.replace("/");

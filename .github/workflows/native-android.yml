@@ -1,0 +1,122 @@
+# Native Android: the first real compile of the app (28 September 2026).
+#
+# The Claude sandbox cannot build Android at all (its network policy blocks
+# dl.google.com, so neither the SDK nor the Android Gradle Plugin can be
+# fetched). GitHub's ubuntu runners ship the Android SDK and reach Google's
+# Maven, so this job is the first place the Android project is ever compiled.
+#
+# WHAT IT BUILDS: a DEBUG APK (`assembleDebug`). It needs no secret and no
+# founder value:
+#   - `cap:sync:dev` is used, not `cap:sync`, because the release sync refuses
+#     while the association files carry placeholders (DOC-13). The dev sync
+#     prints the same warnings and carries on. The ORIGIN is still production.
+#   - `app/build.gradle` refuses only RELEASE builds while
+#     `google-services.json` holds the placeholder API key; a debug build logs
+#     the error and builds without Firebase. The APK then installs and runs,
+#     and turning notifications on reports a failure instead of crashing (the
+#     bridge catches the plugin's FirebaseApp exception).
+#
+# WHAT IT DOES NOT PROVE: that R8 and the release signing config produce a
+# working bundle (`bundleRelease`), which needs the upload keystore and the
+# Firebase key. The signed release job belongs here once those exist, reading
+# ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and
+# ANDROID_KEY_PASSWORD from encrypted Actions secrets; see
+# docs/NATIVE_CI.md. Nothing secret is, or will be, in this repository.
+name: Native Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/android/**"
+      - "apps/web/capacitor.config.ts"
+      - "apps/web/native-shell/**"
+      - "apps/web/package.json"
+      - "apps/web/scripts/write-shell-config.mjs"
+      - "apps/web/scripts/check-deep-links.mjs"
+      - "package-lock.json"
+      - "scripts/sync-native-versions.mjs"
+      - ".github/workflows/native-android.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/android/**"
+      - "apps/web/capacitor.config.ts"
+      - "apps/web/native-shell/**"
+      - "apps/web/package.json"
+      - "package-lock.json"
+      - ".github/workflows/native-android.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: native-android-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  debug:
+    name: Android debug build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      # The production origin, the same value every release sync uses. Not a
+      # secret: it is the public website.
+      CAPACITOR_SERVER_URL: https://www.vallospaces.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Capacitor 8's android library compiles with Java 21.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Native versions match package.json
+        run: npm run sync:versions -- --check
+
+      - name: Capacitor sync (production origin, dev gate)
+        run: npm run cap:sync:dev --workspace @vallo/web
+
+      - name: Assemble debug APK
+        working-directory: apps/web/android
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      - name: Describe the APK
+        if: ${{ success() }}
+        run: |
+          apk=apps/web/android/app/build/outputs/apk/debug/app-debug.apk
+          size=$(du -h "$apk" | cut -f1)
+          sum=$(sha256sum "$apk" | cut -d' ' -f1)
+          {
+            echo "## Android debug build compiled"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| APK | \`app-debug.apk\`, ${size} |"
+            echo "| SHA-256 | \`${sum}\` |"
+            echo "| Origin | ${CAPACITOR_SERVER_URL} |"
+            echo ""
+            echo "Debug-signed, for testing on a handset only (\`adb install app-debug.apk\`). Push is inactive until the Firebase Android key is in google-services.json. Not uploadable to Play."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the APK
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vallo-android-debug-${{ github.sha }}
+          path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+          if-no-files-found: error

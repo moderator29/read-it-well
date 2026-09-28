@@ -4,7 +4,7 @@ How to build, sign and ship the Android and iOS applications. The reasoning
 behind the architecture is in `docs/MOBILE_READINESS.md`; this file is the
 operating manual.
 
-Written 2026-08-07, against Capacitor 8.5.0.
+Written 2026-08-07, against Capacitor 8.5.0. Current release status: `docs/VALLO_NATIVE_RELEASE_AUDIT.md` (28 September 2026).
 
 ---
 
@@ -221,7 +221,7 @@ fetched, and there is no macOS and no Xcode. What was actually verified here:
 | Checked | How |
 |---|---|
 | Both native projects generate | `npx cap add android`, `npx cap add ios`, both succeeded |
-| The config loads and syncs | `npx cap sync`, succeeded, 5 plugins found for each platform |
+| The config loads and syncs | `npx cap sync`, succeeded; 9 plugins for each platform on 28 September 2026 |
 | Every Gradle file is valid Groovy | Parsed with Gradle 8.14.3's own Groovy 3.0.24 |
 | Gradle itself runs | `./gradlew --version`, 8.14.3 on JDK 21 |
 | The manifest, plist and entitlements are well formed | `xml.dom.minidom` and `plistlib` |
@@ -249,10 +249,8 @@ fetched, and there is no macOS and no Xcode. What was actually verified here:
 - Apple's App Review guideline 4.2. The native integration in `src/lib/native/`
   is the argument that this is more than a web view, and it is not a guarantee.
 
-**One template dependency left in place deliberately.** The Android build
-resolves `com.google.gms:google-services`, which is Capacitor's scaffolding for
-Firebase. This product has no Firebase, no push and no `google-services.json`,
-so the plugin is never applied, only the classpath entry resolves. It was left
-alone rather than removed because no Gradle build can be run here to prove the
-removal safe, and an unverified edit to a build file is worse than an unused
-dependency. Remove it when somebody can build.
+**Firebase is now real, and the release build guards it.** *(28 Sep)* Push
+uses FCM on Android: `app/google-services.json` is committed for Firebase
+project `vallo-44059` with a placeholder `current_key`, and `app/build.gradle`
+applies `com.google.gms.google-services` only when the file is valid, failing
+any release build until the owner pastes the real Android API key in.

@@ -893,11 +893,11 @@ export function AssistantChat({
             role="dialog"
             aria-modal="true"
             aria-label="Conversation history"
-            className={`nf-panel nf-panel--card nf-panel--glass absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col rounded-l-none p-0 transition-transform duration-200 ease-out ${
+            className={`nf-panel nf-panel--card nf-panel--glass absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col rounded-l-none p-0 pb-[env(safe-area-inset-bottom,0px)] transition-transform duration-200 ease-out ${
               historyShown ? "translate-x-0" : "-translate-x-full"
             }`}
           >
-            <div className="flex items-center justify-between border-b border-[var(--nf-panel-hair)] py-xs pl-md pr-xs">
+            <div className="flex items-center justify-between border-b border-[var(--nf-panel-hair)] pb-xs pl-md pr-xs pt-[calc(var(--nf-space-xs)+env(safe-area-inset-top,0px))]">
               <p className="text-[length:var(--nf-text-body-sm)] font-semibold">Conversations</p>
               <button
                 type="button"

@@ -252,7 +252,7 @@ export function ChoicePicker({
               ref={panelRef}
               className="nf-rise absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
             >
-              <div className="border-b border-[var(--nf-border-subtle)] px-lg pb-md pt-lg">
+              <div className="border-b border-[var(--nf-border-subtle)] px-lg pb-md pt-[calc(var(--nf-space-lg)+env(safe-area-inset-top,0px))]">
                 <div className="flex items-center gap-sm">
                   <button
                     type="button"

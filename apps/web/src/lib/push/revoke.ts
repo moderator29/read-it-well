@@ -29,7 +29,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * difference is visible in the row.
  */
 
-export type RevokeTarget = { deviceId: string } | { all: true };
+export type RevokeTarget = { deviceId: string } | { deviceRef: string } | { all: true };
+
+/** `device_ref` is `left(md5(token), 12)`, generated in the table. */
+export function isDeviceRef(value: unknown): value is string {
+  return typeof value === "string" && /^[0-9a-f]{12}$/.test(value);
+}
 
 export type RevokeOutcome =
   /** How many live rows were retired. Zero is a legitimate answer. */
@@ -65,7 +70,11 @@ export async function revokeTokens(
     .is("revoked_at", null);
 
   const { data, error } =
-    "all" in target ? await query.select("id") : await query.eq("id", target.deviceId).select("id");
+    "all" in target
+      ? await query.select("id")
+      : "deviceRef" in target
+        ? await query.eq("device_ref", target.deviceRef).select("id")
+        : await query.eq("id", target.deviceId).select("id");
 
   if (error) return { ok: false, reason: "not_saved" };
   /* The COUNT, never the ids, and never the rows. A row of this table carries

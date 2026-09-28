@@ -336,9 +336,15 @@ async function enrolNative(): Promise<EnrolOutcome> {
        very easy mistake to make and an invisible one. */
     const token = await new Promise<string | null>((resolve) => {
       let done = false;
+      /* Every attempt used to add a fresh `registration` and
+         `registrationError` pair and never remove it, so a person who tried
+         twice had two listeners posting two registrations. Both handles are
+         kept and removed the moment this attempt settles. */
+      const handles: Array<Promise<{ remove: () => Promise<void> }>> = [];
       const settle = (value: string | null): void => {
         if (done) return;
         done = true;
+        for (const handle of handles) void handle.then((h) => h.remove()).catch(() => undefined);
         resolve(value);
       };
 
@@ -346,14 +352,16 @@ async function enrolNative(): Promise<EnrolOutcome> {
          person is told it did not work rather than being left on a spinner. */
       const timer = setTimeout(() => settle(null), 10_000);
 
-      void plugin.addListener("registration", (payload) => {
-        clearTimeout(timer);
-        settle(typeof payload.value === "string" ? payload.value : null);
-      });
-      void plugin.addListener("registrationError", () => {
-        clearTimeout(timer);
-        settle(null);
-      });
+      handles.push(
+        plugin.addListener("registration", (payload) => {
+          clearTimeout(timer);
+          settle(typeof payload.value === "string" ? payload.value : null);
+        }),
+        plugin.addListener("registrationError", () => {
+          clearTimeout(timer);
+          settle(null);
+        }),
+      );
       void plugin.register().catch(() => {
         clearTimeout(timer);
         settle(null);

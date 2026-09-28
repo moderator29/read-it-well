@@ -21,6 +21,7 @@ import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
+import { clearLocalDevice, readLocalDevice } from "@/components/app/push/device-state";
 import { playThreshold } from "@/lib/motion/threshold";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -323,7 +324,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
             startSignOut(async () => {
               /* V-98: the widget stops reading this account before the session ends. */
               await revokeWidgetTokens().catch(() => undefined);
-              const result = await signOut();
+              /* The push row for THIS device is retired with the session. */
+              const result = await signOut(readLocalDevice()?.deviceRef);
               if (!result.ok) {
                 setError(result.error);
                 return;
@@ -337,6 +339,7 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
               await clearOutbox();
               await forgetWidget();
               clearAllInflight();
+              clearLocalDevice();
               /* Track M: the page recedes and the panels close on the mark. */
               await playThreshold("leave");
               router.replace("/");

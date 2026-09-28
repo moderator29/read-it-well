@@ -356,7 +356,7 @@ function DeleteDrawer({
 
       <div
         ref={panelRef}
-        className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-lg pb-xl pt-lg"
+        className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-lg pb-[calc(var(--nf-space-xl)+env(safe-area-inset-bottom,0px))] pt-[calc(var(--nf-space-lg)+env(safe-area-inset-top,0px))]"
       >
         <div className="mx-auto max-w-lg">
           <div className="mb-md flex items-center justify-between gap-md">
