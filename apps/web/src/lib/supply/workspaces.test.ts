@@ -74,6 +74,12 @@ describe("where a workspace opens", () => {
     );
   });
 
+  it("sends a refused or suspended host to its own business standing, never the agent pitch", () => {
+    for (const standing of ["refused", "suspended"] as const) {
+      expect(makeWorkspace({ kind: "host", id: "b", name: "n", standing }).href).toBe("/host");
+    }
+  });
+
   it("sends a pending workspace to its own desk, which carries the standing banner", () => {
     expect(makeWorkspace({ kind: "owner", id: "a", name: "n", standing: "pending" }).href).toBe(
       "/agent/dashboard",

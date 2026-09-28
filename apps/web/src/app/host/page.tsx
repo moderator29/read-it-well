@@ -32,6 +32,24 @@ const STATUS_WORD: Record<string, string> = {
 };
 
 /**
+ * What a stopped business can and cannot do, said on its own row.
+ *
+ * A refused or suspended host workspace opens here (`makeWorkspace`), so this
+ * row is where somebody who has been stopped learns why. The reviewer's words
+ * come first when there are any; these sentences say what the state means and
+ * stand in for the reason when none was recorded, so a stop is never silent.
+ */
+const STOPPED_MEANS: Partial<Record<string, string>> = {
+  SUSPENDED:
+    "Our team has stopped this business. Guests cannot find or book it until the stop is lifted. Bookings already confirmed still stand.",
+  REJECTED: "This application did not pass review, so guests cannot find it.",
+  MORE_INFO_REQUIRED: "A reviewer needs something more before this can go live. Open the application to answer.",
+};
+
+/** Said when a stop carries no reviewer's note, rather than saying nothing. */
+const NO_REASON_ON_FILE = "No reason was written on the business. Contact us and a person will tell you why.";
+
+/**
  * /host: where a host stands.
  *
  * Every business on the account with its state, the reviewer's words where
@@ -166,8 +184,29 @@ export function HostStandingBody({
                       {STATUS_WORD[business.status] ?? business.status}
                     </StatusPill>
                   </div>
-                  {business.reviewNotes && (
-                    <p className={`${TYPE.rowMeta} whitespace-pre-wrap`}>{business.reviewNotes}</p>
+                  {STOPPED_MEANS[business.status] ? (
+                    <div
+                      className="nf-panel nf-panel--card p-sm"
+                      role="status"
+                      data-testid="host-business-stopped"
+                    >
+                      <p className={TYPE.rowMeta}>{STOPPED_MEANS[business.status]}</p>
+                      <p className={`${TYPE.rowMeta} mt-2xs whitespace-pre-wrap`}>
+                        {business.reviewNotes
+                          ? `The reviewer wrote: ${business.reviewNotes}`
+                          : NO_REASON_ON_FILE}
+                      </p>
+                      <Link
+                        href="/contact?topic=verification"
+                        className="mt-2xs inline-block text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+                      >
+                        Contact us
+                      </Link>
+                    </div>
+                  ) : (
+                    business.reviewNotes && (
+                      <p className={`${TYPE.rowMeta} whitespace-pre-wrap`}>{business.reviewNotes}</p>
+                    )
                   )}
                   {/*
                     THE DOORS A VENUE OWNER NEEDS, and none of them existed.

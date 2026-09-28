@@ -6,8 +6,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * The inbox's Recent / Archived / Reported views (track G), read for one
  * person over the conversations the inbox already loaded.
  *
- *   archived   rows in `conversation_archives` (pending migration; see
- *              `archive.ts`). A thread archived BEFORE its latest message is
+ *   archived   rows in `conversation_archives` (applied; see `archive.ts`).
+ *              A thread archived BEFORE its latest message is
  *              shown back in Recent, so a reply is never buried.
  *   reported   what this person reported, from the existing `reports` table
  *              under its select-own policy: a report on the conversation, on a
@@ -17,7 +17,7 @@ export type InboxViews = {
   /** conversation id -> ISO archived_at */
   archived: Map<string, string>;
   reported: Set<string>;
-  /** False while the archive table does not exist yet. */
+  /** False when the archive table cannot be read (an environment without it). */
   archiveOpen: boolean;
 };
 

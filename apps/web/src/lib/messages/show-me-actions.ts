@@ -21,6 +21,8 @@ export async function requestShowMe(conversationId: string, item: string, note?:
     });
     if (error) return "failed";
     revalidatePath(`/messages/${conversationId}`);
+    /* The lister's copy of the thread, opened from the agent inbox. */
+    revalidatePath(`/agent/messages/${conversationId}`);
     return readShowMeResult(data);
   } catch {
     return "failed";
@@ -46,6 +48,8 @@ export async function answerShowMe(
     });
     if (error) return "failed";
     revalidatePath(`/messages/${conversationId}`);
+    /* The lister's copy of the thread, opened from the agent inbox. */
+    revalidatePath(`/agent/messages/${conversationId}`);
     return readShowMeResult(data);
   } catch {
     return "failed";

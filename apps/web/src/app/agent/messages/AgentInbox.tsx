@@ -49,7 +49,9 @@ function ThreadRow({
   return (
     <li>
       <Link
-        href={`/messages/${thread.id}`}
+        /* Inside the workspace: the same thread screen under the agent shell,
+           so a phone keeps the workspace drawer (app/agent/messages/[id]). */
+        href={`/agent/messages/${thread.id}`}
         /* `.nf-card` paints its border from a conic brand gradient through a
            transparent border-color, so setting `border-color` on hover threw
            the gradient away and left a flat 22 per cent white outline, which

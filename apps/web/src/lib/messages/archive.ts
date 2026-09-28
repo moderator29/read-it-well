@@ -10,12 +10,13 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
  *
  * Per person: archiving never hides a thread from the other party, so it is a
  * row in `conversation_archives` (one per person and conversation), not a
- * column on `conversations`. That table is written in
- * `supabase/migrations/pending/20260925150000_track_g_archive_a_conversation_for_yourself.sql`
- * and is NOT applied yet; until it is, both actions answer with a sentence and
- * the inbox says Archive is not open. The client handle is untyped because
- * the generated types do not carry the table yet; it is the caller's own RLS
- * session, never the service role.
+ * column on `conversations`. That table is created by
+ * `supabase/migrations/20260925142401_track_g_archive_a_conversation_for_yourself.sql`,
+ * which is applied, with RLS on `(user_id, conversation_id)`. The missing-table
+ * branch stays as a guard for an environment without it: both actions then
+ * answer with a sentence and the inbox says Archive is not open. The client
+ * handle is untyped only because the generated types do not carry the table
+ * yet; it is the caller's own RLS session, never the service role.
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

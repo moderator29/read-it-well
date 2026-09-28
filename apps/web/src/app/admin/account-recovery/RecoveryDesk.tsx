@@ -137,7 +137,7 @@ export function RecoveryDesk({ rows, isSuperAdmin }: { rows: RecoveryRow[]; isSu
             </p>
             {row.status === "completed" && row.completed_at && (
               <p className="mt-3xs">
-                {`Money held until ${when(holdEnd(row.completed_at))}: no withdrawals, sends, wallet payments or bank account changes.`}
+                {`Payout details locked until ${when(holdEnd(row.completed_at))}: no new or changed bank or payout accounts.`}
               </p>
             )}
             {row.last_error && <p className="mt-3xs">Last attempt failed: {row.last_error}</p>}

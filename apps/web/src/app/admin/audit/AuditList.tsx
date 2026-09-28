@@ -25,7 +25,7 @@ export const AUDIT_COPY = {
   emptyTitle: "Nothing has been written yet",
   emptyBody: "The first decision taken in this console, or the first kobo that moves, will appear here.",
   searchLabel: "Search the log",
-  searchPlaceholder: "An action like wallet., a reference like rm-wd-, or a user id",
+  searchPlaceholder: "An action like agent.suspend, a payment reference, or a user id",
   system: "Processor or schedule",
   all: "All",
   tabsLabel: "Target types",
@@ -88,7 +88,7 @@ export function auditTabs(base: string, query: QueueQuery): QueueTab[] {
  * is the processor or the clock and is labelled so; the target is its type
  * and its id, and the id is a link that narrows the log rather than a link
  * into the record, because this desk reads decisions and does not open
- * wallets.
+ * records.
  *
  * A server component with no state, shared by the real desk and by the
  * preview harness so the screenshot is of the same rows the desk draws.

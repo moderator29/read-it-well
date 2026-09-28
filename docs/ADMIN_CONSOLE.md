@@ -585,7 +585,7 @@ reconcile job settles any that did).
 | By channel | Attempts in thirty days by channel (card, bank, USSD and so on; "unrecorded" where the row does not say), and the value that came in on each | same |
 | Where payments ended | One bar on the status four with a word on every segment wide enough and a key naming all five with their counts | same |
 | Every payment | Every attempt, newest first: when it started, the provider reference in full, the kind (a checkout links to its stay), the channel, the outcome and the amount. Narrow by outcome and by kind; numbered pages of 12 | same |
-| Health | Ledger shortfall, money frozen by stuck holds and money waiting on the provider; the overdrawn wallets, the stuck withdrawal holds with the release control, and payments the provider has not settled | `getPaymentHealth()` (Session A), calling `public.admin_payment_health` |
+| Health | Money frozen by stuck holds and money waiting on the provider; the stuck withdrawal holds with the release control, and payments the provider has not settled. The overdrawn-wallets table and its shortfall figure were removed with custody (`admin_payment_health` still returns an always-empty `overdrawn`) | `getPaymentHealth()` (Session A), calling `public.admin_payment_health` |
 | Look up a person | Saved cards and bank accounts (masked) and their terms standing, with removal | `findAdminSubject`, `getSavedMethods`, `getTermsStanding` (Session A) |
 
 **Actions, all Session A's, unchanged.** Release stuck holds
