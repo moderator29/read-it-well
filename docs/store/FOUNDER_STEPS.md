@@ -38,8 +38,15 @@ Apple Developer account (organisation, VALLO SPACES LTD) first.
      months**; put a reminder in the calendar.
    - Save.
 5. **The iPhone app only:** it also needs the `SignInWithApple` plugin in the
-   binary. It is added to `apps/web/package.json` with the other native
-   plugins; on the Mac that builds the app run
+   binary, and **it is NOT installed** (corrected 28 September 2026; this line
+   used to say it was). The only release, `@capacitor-community/apple-sign-in`
+   7.1.0, declares `capacitor-swift-pm from: "7.0.0"` in its `Package.swift`,
+   which Swift Package Manager reads as `7.0.0 ..< 8.0.0`; this app pins
+   Capacitor `8.5.0` exactly, so adding it today makes iOS package resolution
+   fail. Until a Capacitor 8 release exists the iPhone app is email-only,
+   which is allowed (guideline 4.8 applies only when another third-party
+   login is offered, and none is in the shell). When a compatible version
+   ships: `npm install @capacitor-community/apple-sign-in --workspace @vallo/web`, then on the Mac that builds the app run
    `npm ci && CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync --workspace @vallo/web`,
    then in Xcode → App target → Signing & Capabilities → **+ Sign In with
    Apple** (Xcode adopts `App/App.entitlements`, which already carries it).
@@ -76,6 +83,13 @@ marks every run with them.
   Play Console → the app → Test and release → Setup → App signing → "App
   signing key certificate" SHA-256, and the "Upload key certificate" SHA-256.
   Both, uppercase, colon separated, replacing the two placeholders.
+- **Only `www.vallospaces.com` is claimed** (28 September 2026). The apex
+  `vallospaces.com` answers `/.well-known/*` with a 308 to www (Vercel's
+  domain redirect), and neither Apple nor Android follows a redirect when
+  verifying, so the apex was removed from the manifest and entitlements. If
+  you ever want apex links to open the app, make the apex serve
+  `/.well-known/*` with a 200 first; the steps are in
+  `apps/web/android/app/src/main/AndroidManifest.xml` ("THE APEX").
 - Then `npm run check:deep-links --workspace @vallo/web` must print "both
   association files are real", and the `continue-on-error: true` line under
   "Deep links (founder values)" in `.github/workflows/ci.yml` can be deleted.
