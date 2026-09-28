@@ -101,7 +101,7 @@ export const metadata: Metadata = {
     template: "%s | Vallo",
   },
   description:
-    "Homes, land, hotels and shortlets across Nigeria. See what you will actually pay before you call anybody, know who is behind every listing, and keep the record. Vallo Stays carries hotels, apartments, guest houses, resorts and restaurant tables on the same account and the same naira wallet.",
+    "Homes, land, hotels and shortlets across Nigeria. See what you will actually pay before you call anybody, know who is behind every listing, and keep the record. Vallo Stays carries hotels, apartments, guest houses, resorts and restaurant tables on the same account and the same inbox.",
   applicationName: "Vallo",
   /*
    * BOTH SIDES, because the list carried nine property words and not one
@@ -144,7 +144,7 @@ export const metadata: Metadata = {
     url: "./",
     title: "Vallo. Rent, buy or stay, without the runaround.",
     description:
-      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
+      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one inbox.",
     siteName: "Vallo",
     locale: "en_NG",
     type: "website",
@@ -153,7 +153,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Vallo. Rent, buy or stay, without the runaround.",
     description:
-      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
+      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one inbox.",
   },
   /* UI-16: no site-wide robots tag. Indexable is the default with no tag at
      all; stating "index, follow" here put it beside the "noindex" that a

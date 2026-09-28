@@ -68,13 +68,13 @@ export default function DeleteAccountPage() {
                 <span className="font-semibold text-[var(--nf-content-primary)]">
                   3. Clear anything still open.
                 </span>{" "}
-                Your wallet has to be empty (spend it or send it to another Vallo member;
-                withdrawal to a bank is not available yet, so if you cannot do either,{" "}
+                Vallo holds no money for you, so there is no balance to empty. Your bookings and
+                table reservations have to be finished or cancelled, any rent refund owed to or by
+                you settled (if one is stuck,{" "}
                 <a href={SUPPORT_HREF} className="font-semibold underline">
                   {SUPPORT_LABEL}
                 </a>{" "}
-                and we will settle it with you), your bookings and table reservations finished or
-                cancelled, any withdrawal settled, and any listing of yours unpublished or handed
+                and we will settle it with you), and any listing of yours unpublished or handed
                 to another agent. The screen names whichever of those applies to you and links
                 straight to the control that clears it.
               </li>

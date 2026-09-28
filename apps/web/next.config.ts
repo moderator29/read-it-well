@@ -193,6 +193,13 @@ const nextConfig: NextConfig = {
        */
       { source: "/support", destination: "/contact", permanent: false },
       /*
+       * `/verify`: the link `private.review_kyc_document` writes into every KYC
+       * decision notification (migrations 20260809052558 and 20260925134322).
+       * No page ever lived there, so the notice about a person's own documents
+       * opened a 404. The redirect also mends every notification already sent.
+       */
+      { source: "/verify", destination: "/verification", permanent: false },
+      /*
        * `/agent`, the console's own root, which has never rendered anything.
        *
        * `app/agent/` holds thirteen folders and no `page.tsx`, so the agent
