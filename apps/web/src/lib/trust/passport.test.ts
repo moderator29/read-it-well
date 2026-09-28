@@ -46,7 +46,7 @@ describe("the renter passport (V-100)", () => {
 
   it("is off by default and read by the lister only through the thread function", () => {
     const sql = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924131500_v100_the_renter_passport.sql"),
+      join(__dirname, "../../../../../supabase/migrations/20260928224733_v100_the_renter_passport.sql"),
       "utf8",
     );
     expect(sql).toContain("enabled    boolean not null default false");
@@ -77,7 +77,7 @@ describe("where the passport is drawn", () => {
 describe("after review (V-100)", () => {
   const root = join(__dirname, "..", "..");
   it("counts an inspection only when both phones recorded it, and never with the renter's shadow", () => {
-    const sql = readFileSync(join(root, "../../../supabase/migrations/20260924131500_v100_the_renter_passport.sql"), "utf8");
+    const sql = readFileSync(join(root, "../../../supabase/migrations/20260928224733_v100_the_renter_passport.sql"), "utf8");
     expect(sql).toContain("k.role = 'shower' and k.result = 'shown'");
     expect(sql).toContain("cardinality(private.shares_identity_with(p_user, r.lister_id)) = 0");
     expect(copy.attended).toContain("both phones");

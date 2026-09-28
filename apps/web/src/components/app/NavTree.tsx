@@ -87,7 +87,7 @@ export function NavTree({
                 step; `md` is 24 and is what a row this tall wants beside 16px
                 type. */}
             {GLASS_FOR[item.icon] ? (
-              <BrandIcon name={GLASS_FOR[item.icon]!} size={30} />
+              <BrandIcon name={GLASS_FOR[item.icon]!} size={30} loading="eager" />
             ) : (
               <UiIcon name={item.icon} size="md" filled={current} />
             )}

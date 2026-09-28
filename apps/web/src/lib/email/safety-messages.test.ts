@@ -25,7 +25,7 @@ describe("the scam recall email (V-60)", () => {
     expect(entry?.build({ listing_title: "Flat", category: "scam" }, context)?.subject).toContain("stopped");
     expect(entry?.build({ listing_title: "Flat", category: "fraud" }, context)).toBeNull();
     const sql = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924131300_v60_scam_exposure_recall.sql"),
+      join(__dirname, "../../../../../supabase/migrations/20260928224613_v60_scam_exposure_recall.sql"),
       "utf8",
     );
     expect(sql).toContain("'safety.scam_recall'");

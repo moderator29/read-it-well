@@ -308,6 +308,7 @@ export function BrandIcon({
   fill,
   label,
   priority,
+  loading,
   tile = false,
   state,
   className,
@@ -320,6 +321,13 @@ export function BrandIcon({
   /** Accessible name. Omit for decorative icons. */
   label?: string;
   priority?: boolean;
+  /**
+   * "eager" for an icon that mounts off screen and slides in (the drawer).
+   * iOS Safari fetches a lazy image only once layout puts it in the
+   * viewport, and a transform-only slide-in never re-triggers that check, so
+   * the drawer's icons were never requested and its rows drew blank.
+   */
+  loading?: "eager" | "lazy";
   /**
    * Draw the full glass chip behind the object. OFF by default: see the note
    * at the top of this file. Turn it on only where the object is the subject
@@ -410,6 +418,7 @@ export function BrandIcon({
       alt={label ?? ""}
       src={`/brand/glass/${object}.png`}
       priority={priority}
+      {...(loading && !priority ? { loading } : {})}
       className={`nf-brand-icon ${fill || insideTile ? "h-full w-full" : ""}`}
     />
   );

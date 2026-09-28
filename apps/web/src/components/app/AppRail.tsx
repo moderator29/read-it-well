@@ -130,7 +130,13 @@ export function AppRail({
           onClick={onNavigate}
           className={drawer ? "nf-nav__who nf-nav__who--hero" : "nf-nav__who"}
         >
-          <span className="nf-nav__avatar" aria-hidden="true">
+          <span className="nf-nav__avatar relative" aria-hidden="true">
+            {/* The initial is always drawn, and the photo sits over it. An
+                unloaded photo used to leave only the gradient ground, which
+                is what the drawer showed on iPhone. The photo is eager for
+                the same reason as the drawer's icons: the drawer mounts off
+                screen and Safari never fetched a lazy image inside it. */}
+            {initial(userName)}
             {avatarUrl ? (
               /* 28px in the rail, 64px in the drawer head: the CSS decides,
                  so `sizes` has to follow the same branch or the browser
@@ -141,10 +147,10 @@ export function AppRail({
                 width={drawer ? 64 : 28}
                 height={drawer ? 64 : 28}
                 sizes={drawer ? "64px" : "28px"}
+                loading="eager"
+                className="absolute inset-0 h-full w-full object-cover"
               />
-            ) : (
-              initial(userName)
-            )}
+            ) : null}
           </span>
           <span className="nf-nav__whobody">
             <span className="nf-nav__whoname">
