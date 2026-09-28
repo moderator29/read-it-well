@@ -435,7 +435,7 @@ below (the `private.agent_tier` law):
 Tier names on the `TIER_NAME` pattern; tier 0 is "Approved", never
 "unverified", because a human read the application. The **Verified badge**
 on a stay means what it means on a listing today: a named rung ladder with
-dates, not a boolean tick (`docs/audit/AGENT1_RESEARCH_PRODUCT_UX_GROWTH.md`
+dates, not a boolean tick (`docs/archive/audit-2026-09-15/PRODUCT_UX_GROWTH.md`
 A1-032's argument applies from day one here). Licence and hygiene
 attestations render as dated facts on the detail page ("Health permit
 attested, June 2026"), never as rungs and never as the badge.

@@ -177,9 +177,9 @@ to fail outright.
 
 | Report | Lines | Entries |
 | --- | ---: | ---: |
-| `AGENT1_RESEARCH_PRODUCT_UX_GROWTH.md` | 2,196 | 152 |
-| `AGENT2_ENGINEERING_BACKEND_DB_SECURITY.md` | 3,665 | 157 |
-| `AGENT3_FRONTEND_DESIGN_MOTION_QA.md` | 2,942 | 172 |
+| `PRODUCT_UX_GROWTH.md` | 2,196 | 152 |
+| `ENGINEERING_BACKEND_DB_SECURITY.md` | 3,665 | 157 |
+| `FRONTEND_DESIGN_MOTION_QA.md` | 2,942 | 172 |
 
 `RECOMMENDATIONS.md` and its 177 existing entries are untouched, not renumbered
 and not discarded, as section 8 requires.
