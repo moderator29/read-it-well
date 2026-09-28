@@ -631,6 +631,7 @@
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-glass-card-fill);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
     box-shadow: var(--nf-rim-lit), var(--nf-glow-edge);
     font-size: var(--nf-text-caption);

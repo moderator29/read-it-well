@@ -351,6 +351,7 @@
        scrim. That one rung is what let the page grain paint over it. */
     z-index: var(--nf-z-modal);
     background: color-mix(in oklab, var(--nf-canvas-base) 72%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
     animation: nf-rows-sheet-in var(--nf-duration-base) var(--nf-ease-standard) both;
   }
