@@ -1077,6 +1077,87 @@
       transform-origin: 50% 0;
     }
   }
+  /*
+   * UNDER 40REM: ONE SIDEWAYS SWIPE ROW (the founder's request of 29
+   * September; the stack ran about 1,850px at 390). `.nf-steps` becomes the
+   * scroller and bleeds to the screen edges through the shell's gutter, so
+   * the row's own box is exactly the viewport and only the row scrolls. Each
+   * step is about three quarters of the screen, so the next one peeks in, and
+   * snaps to the gutter. The scrollbar is hidden; swiping, a trackpad and the
+   * arrow keys (the scroller takes focus) still move it. The cards are the
+   * compact rung: a 36px object, the small card padding, the h4 and small
+   * body steps. The number sits above each card and the line runs across
+   * the top, one segment from each number to the next.
+   */
+  @media (max-width: 39.999rem) {
+    .nf-steps {
+      --nf-step-dot: 2.25rem;
+      margin-inline: calc(-1 * var(--nf-pad-shell));
+      padding-inline: var(--nf-pad-shell);
+      padding-block: var(--nf-space-3xs) var(--nf-space-xs);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--nf-pad-shell);
+      scrollbar-width: none;
+    }
+    .nf-steps::-webkit-scrollbar {
+      display: none;
+    }
+    .nf-steps:focus-visible {
+      outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+      outline-offset: -2px;
+    }
+    .nf-steps__list {
+      --nf-step-gap: var(--nf-gap-inline);
+      display: flex;
+      align-items: stretch;
+    }
+    .nf-step {
+      flex: 0 0 76vw;
+      grid-template-columns: none;
+      grid-template-rows: auto 1fr;
+      gap: var(--nf-gap-inline);
+      scroll-snap-align: start;
+    }
+    .nf-step__num {
+      font-size: var(--nf-text-body-sm);
+    }
+    /* The segments turn to run across, from this number to the next. */
+    .nf-step:not(:last-child)::before,
+    .nf-step:not(:last-child)::after {
+      top: calc(var(--nf-step-dot) / 2 - 1px);
+      bottom: auto;
+      left: var(--nf-step-dot);
+      width: calc(100% + var(--nf-step-gap) - var(--nf-step-dot));
+      height: 2px;
+    }
+    .nf-step:not(:last-child)::after {
+      background: linear-gradient(90deg, var(--nf-brand-primary), var(--nf-brand-secondary));
+      transform-origin: 0 50%;
+    }
+    .nf-step__card {
+      padding: var(--nf-pad-card-sm);
+    }
+    .nf-step .nf-step__glass {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
+    .nf-step__label {
+      margin-top: var(--nf-gap-inline);
+    }
+    .nf-step__title {
+      font-size: var(--nf-text-h4);
+    }
+    .nf-step__body {
+      font-size: var(--nf-text-body-sm);
+      line-height: 1.5;
+    }
+    .nf-step__ui {
+      padding-top: var(--nf-gap-inline);
+    }
+  }
+
   @media (min-width: 64rem) {
     .nf-steps__list {
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1111,11 +1192,20 @@
       .nf-steps {
         view-timeline: --nf-steps block;
       }
-      @media (max-width: 63.999rem) {
+      @media (min-width: 40rem) and (max-width: 63.999rem) {
         .nf-step:not(:last-child)::after {
           animation: nf-steps-down linear both;
           animation-timeline: view();
           animation-range: cover 25% cover 65%;
+        }
+      }
+      /* In the swipe row a segment fills as its step crosses the row's own
+         width: the inline axis of the scroller, not the page. */
+      @media (max-width: 39.999rem) {
+        .nf-step:not(:last-child)::after {
+          animation: nf-steps-across linear both;
+          animation-timeline: view(inline);
+          animation-range: entry 60% cover 50%;
         }
       }
       @media (min-width: 64rem) {
@@ -1164,6 +1254,55 @@
   .nf-bento__cell {
     display: flex;
     min-width: 0;
+  }
+  /*
+   * UNDER 40REM THE BENTO IS A SWIPE ROW TOO (the founder: "mobile shorter";
+   * the stacked grid ran about 2,400px at 390). The gate that holds it is
+   * the scroller, bled to the screen edges so only the row scrolls; every
+   * card is a link, so the keyboard reaches each one and the browser scrolls
+   * it into view. Cards are one height and compact: a smaller stage, the h4
+   * title, the small card padding.
+   */
+  @media (max-width: 39.999rem) {
+    .nf-bento-gate {
+      margin-inline: calc(-1 * var(--nf-pad-shell));
+      padding-inline: var(--nf-pad-shell);
+      padding-block: var(--nf-space-3xs) var(--nf-space-xs);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--nf-pad-shell);
+      scrollbar-width: none;
+    }
+    .nf-bento-gate::-webkit-scrollbar {
+      display: none;
+    }
+    .nf-bento {
+      display: flex;
+      gap: var(--nf-gap-inline);
+    }
+    .nf-bento__cell {
+      flex: 0 0 74vw;
+      scroll-snap-align: start;
+    }
+    .nf-bento .nf-bento__card {
+      min-height: 0;
+      padding: var(--nf-pad-card-sm);
+      gap: var(--nf-gap-inline);
+    }
+    .nf-bento .nf-scene,
+    .nf-bento .nf-bento__cell--tall .nf-scene {
+      flex: none;
+      height: 5.5rem;
+      min-height: 0;
+    }
+    .nf-bento .nf-scene__obj img {
+      max-width: 4rem;
+      max-height: 4rem;
+    }
+    .nf-bento .nf-bento__title {
+      font-size: var(--nf-text-h4);
+    }
   }
   .nf-bento__card {
     position: relative;
@@ -1287,7 +1426,7 @@
     z-index: 1;
     display: inline-grid;
     place-items: center;
-    filter: drop-shadow(0 10px 22px var(--nf-glow-2));
+    filter: drop-shadow(0 6px 14px var(--nf-glow-1));
   }
   .nf-scene__obj--front {
     z-index: 2;

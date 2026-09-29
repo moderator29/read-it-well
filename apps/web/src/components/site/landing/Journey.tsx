@@ -21,10 +21,16 @@ import { SectionHead } from "./SectionHead";
  * "Straight to their bank"). The fragment repeats what the sentence says, so
  * it is `aria-hidden`; the sentence carries the meaning.
  *
+ * UNDER 40REM IT IS A SIDEWAYS SWIPE ROW (the founder, 29 September: "the
+ * four steps must be horizontal and smaller on mobile"): compact cards about
+ * three quarters of the screen wide, snapping, the next one peeking in, the
+ * numbered line still across the top. Only the row scrolls, never the page.
+ *
  * THE LINE FILLS AS THE READER SCROLLS, from CSS alone (landing-rooms.css):
  * from 64rem one horizontal line across the four numbers, on the list's own
- * view timeline; below it three vertical segments, number to number, each
- * filling as its own step passes through the view.
+ * view timeline; from 40rem to 64rem three vertical segments, number to
+ * number, each filling as its own step passes through the view; under 40rem
+ * the same three segments laid across, filling as the row is swiped.
  * Where the browser has no scroll timelines, and under reduced motion, the
  * line is simply drawn full. There is no script and nothing is pinned.
  *
@@ -74,7 +80,10 @@ export function Journey({ t }: { t: Dictionary }) {
   return (
     <section className="nf-shell nf-room" data-chapter="journey" aria-labelledby="nf-landing-journey-title">
       <SectionHead id="nf-landing-journey-title" eyebrow={j.overline} title={j.title} lede={j.body} align="center" />
-      <div className="nf-steps">
+      {/* Under 40rem the steps are a sideways swipe row, and this is its
+          scroller: focusable and named, so a keyboard can move it (the cards
+          hold no links to tab through). From 40rem nothing scrolls here. */}
+      <div className="nf-steps" tabIndex={0} role="region" aria-label={j.title}>
         <span className="nf-steps__line" aria-hidden="true">
           <span className="nf-steps__fill" />
         </span>
