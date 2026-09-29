@@ -1,10 +1,11 @@
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { fill } from "../_copy";
 import type { AgentEarnings } from "@/lib/agent/earnings-queries";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount, Figure } from "@/components/ui/Amount";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The host's earnings console: what has actually settled, read straight from
@@ -38,15 +39,15 @@ function Tile({
   label,
   value,
 }: {
-  icon: BrandIconName;
+  icon: UiIconName;
   label: string;
   value: React.ReactNode;
 }) {
   return (
     <div className="nf-panel nf-panel--card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
-      <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10">
-        <BrandIcon name={icon} fill />
-      </span>
+      <IconPlate size="sm" className="shrink-0">
+        <UiIcon name={icon} size={20} />
+      </IconPlate>
       <div className="min-w-0">
         <p className="leading-snug text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]">{label}</p>
         <p className="mt-3xs leading-tight">{value}</p>
@@ -83,9 +84,9 @@ export function EarningsWorkspace({
   if (earnings.months.length === 0) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-md py-10 text-center sm:py-14">
-        <span className="block h-20 w-20">
-          <BrandIcon name="bank-column" fill />
-        </span>
+        <IconPlate size="lg">
+          <UiIcon name="bank" size={24} />
+        </IconPlate>
         <h2 className="nf-h3">{t.emptyTitle}</h2>
         <p className="mx-auto max-w-[40ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}
@@ -103,7 +104,7 @@ export function EarningsWorkspace({
     <div className="space-y-lg">
       <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
         <Tile
-          icon="bank-column"
+          icon="bank"
           label={t.totals.yourShare}
           value={
             <Amount
@@ -114,7 +115,7 @@ export function EarningsWorkspace({
           }
         />
         <Tile
-          icon="naira-hand"
+          icon="hand-coins"
           label={t.totals.guestsPaid}
           value={
             <Amount
@@ -132,7 +133,7 @@ export function EarningsWorkspace({
           }
         />
         <Tile
-          icon="chart-growth"
+          icon="trending-up"
           label={t.totals.thisMonth}
           value={<Amount minorUnits={thisMonthMinor} locale={locale} className={TILE_FIGURE} />}
         />

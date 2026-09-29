@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { AgentNumbers, ListingStatus } from "@/lib/agent/listings-queries";
 import { fill } from "../_copy";
@@ -121,7 +120,7 @@ export function RealDashboard({
           <p className={`mt-row ${TYPE.bodyLg}`}>{fill(d.standing, { name: displayName })}</p>
         </div>
         <ButtonLink href="/agent/list" variant="primary">
-          <BrandIcon name="homes-sparkle" size={24} />
+          <UiIcon name="plus" size={20} />
           {a.addListing}
         </ButtonLink>
       </div>

@@ -3,12 +3,13 @@ import Link from "next/link";
 import { getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { loadSessions, type DeviceSession } from "@/lib/security/sessions";
 import { sessionWhen } from "@/lib/security/when";
 import { phrase } from "./when-words";
 import { groupSessions, type SessionGroup } from "@/lib/security/session-groups";
 import { DeviceList, type DeviceGroupRow, type DeviceRow } from "./DeviceList";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -62,9 +63,9 @@ export default async function DevicesPage() {
       <div className="mx-auto max-w-lg">
         <PageHeader title={copy.screenTitle} fallback="/settings" />
         <div className="nf-panel nf-panel--card block p-card text-center">
-          <span className="mx-auto block h-16 w-16">
-            <BrandIcon name="globe-pin" fill />
-          </span>
+          <IconPlate size="lg" className="mx-auto">
+            <UiIcon name="user" size={24} />
+          </IconPlate>
           <h2 className="nf-h3 mt-heading">{copy.accountTitle}</h2>
           <p className="mx-auto mt-block max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {state.state === "unconfigured"

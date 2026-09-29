@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { AgentInbox as Inbox, AgentThread } from "@/lib/agent/messages-queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { countByStage, STAGES, type DeskStage, type Stage } from "@/lib/enquiry/stage";
 import { countOf, type Dictionary } from "@vallo/i18n/core";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The host inbox.
@@ -232,9 +232,9 @@ export function AgentInbox({
         </div>
       ) : (
         <div className="nf-panel nf-panel--card block mt-md p-xl text-center">
-          <span className="mx-auto block h-16 w-16">
-            <BrandIcon name="chat-duo" fill />
-          </span>
+          <IconPlate size="lg">
+            <UiIcon name="messages" size={24} />
+          </IconPlate>
           <p className="mt-md font-semibold text-[var(--nf-content-primary)]">
             {filter === "waiting" ? "Nobody is waiting on you" : "No enquiries yet"}
           </p>

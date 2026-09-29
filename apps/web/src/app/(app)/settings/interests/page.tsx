@@ -3,9 +3,10 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { InterestChoices } from "@/components/app/welcome/InterestChoices";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export const metadata: Metadata = {
   title: "What you are here for",
@@ -35,9 +36,9 @@ export default async function InterestsSettingsPage() {
       <div className="mx-auto max-w-lg">
         <PageHeader title={t.interests.screenTitle} fallback="/settings" />
         <div className="nf-panel nf-panel--card block p-lg text-center sm:p-xl">
-          <span className="mx-auto block h-16 w-16">
-            <BrandIcon name="globe-pin" fill />
-          </span>
+          <IconPlate size="lg" className="mx-auto">
+            <UiIcon name="user" size={24} />
+          </IconPlate>
           <h2 className="nf-h3 mt-md">{t.interests.accountTitle}</h2>
           <p className="mx-auto mt-xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {state.state === "unconfigured"

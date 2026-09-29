@@ -7,11 +7,11 @@ import { sendMessage } from "@/lib/messages/actions";
 import { shareBody, type SharedRef } from "@/components/app/messages/share";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { type BadgeTier } from "@/lib/trust/badge-tier";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The share picker, both ways round.
@@ -50,7 +50,7 @@ export type ShareItem = {
   title: string;
   /** "Lekki Phase 1, Lagos" or "Fri 14 Aug to Sun 16 Aug". */
   line: string;
-  icon: BrandIconName;
+  icon: UiIconName;
 };
 
 export function ShareToThread({
@@ -169,9 +169,9 @@ export function ShareIntoThread({
                   onClick={() => setChosen(item)}
                   data-testid="share-item-row"
                 >
-                  <span className="h-11 w-11 shrink-0" aria-hidden="true">
-                    <BrandIcon name={item.icon} fill />
-                  </span>
+                  <IconPlate size="sm" className="shrink-0">
+                    <UiIcon name={item.icon} size={20} />
+                  </IconPlate>
                   <span className="min-w-0 flex-1">
                     <span className={`block truncate ${TYPE.rowTitle}`}>{item.title}</span>
                     <span className={`block truncate ${TYPE.rowMeta}`}>{item.line}</span>

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { countOf, formatNumber, formatRating, type Locale } from "@vallo/i18n/core";
 import type { AgentReview, AgentReviewsSummary } from "@/lib/agent/reviews-queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { ReplyForm } from "./ReplyForm";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The host reviews console.
@@ -51,9 +51,9 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
   return (
     <div className="nf-panel nf-panel--card block p-panel">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-sm">
-        <span className="block h-14 w-14 shrink-0">
-          <BrandIcon name="reviews" fill />
-        </span>
+        <IconPlate size="md" className="shrink-0">
+          <UiIcon name="star" size={20} />
+        </IconPlate>
         <p className="flex items-baseline gap-xs">
           <span className="nf-numeric text-[length:var(--nf-text-h2)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {formatRating(summary.average, locale)}
@@ -165,9 +165,9 @@ export function ReviewsWorkspace({
   if (summary.total === 0) {
     return (
       <div className="nf-panel nf-panel--card block p-xl text-center">
-        <span className="mx-auto block h-16 w-16">
-          <BrandIcon name="reviews" fill />
-        </span>
+        <IconPlate size="lg">
+          <UiIcon name="star" size={24} />
+        </IconPlate>
         <p className="mt-md font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
         <p className="mx-auto mt-2xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
           A guest can review a stay once they have checked out and paid. The first
@@ -229,9 +229,9 @@ export function ReviewsWorkspace({
         </ul>
       ) : (
         <div className="nf-panel nf-panel--card block mt-md p-xl text-center">
-          <span className="mx-auto block h-16 w-16">
-            <BrandIcon name="listing-review" fill />
-          </span>
+          <IconPlate size="lg">
+            <UiIcon name="file-search" size={24} />
+          </IconPlate>
           <p className="mt-md font-semibold text-[var(--nf-content-primary)]">
             Every review has your answer
           </p>

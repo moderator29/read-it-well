@@ -9,11 +9,11 @@ import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState, Row, RowList, Section, Stack, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { HostShell } from "@/components/host/HostShell";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { businessArrival } from "@/lib/ui/arrival-moments";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export const metadata: Metadata = {
   title: "Host",
@@ -137,7 +137,7 @@ export function HostStandingBody({
             GOVERNING-09; a host with an application already open goes straight
             back to it, because the question has been answered. */}
         <ButtonLink href={open ? "/host/apply" : "/profile/setup?side=stays"} variant="primary">
-          <BrandIcon name="hotel" size={24} />
+          <UiIcon name="building-hotel" size={20} />
           {open ? "Continue the application" : "Start an application"}
         </ButtonLink>
       </div>
@@ -156,7 +156,9 @@ export function HostStandingBody({
           >
             <Link href="/host/apply" className="nf-panel nf-panel--card nf-host-choice">
               <span className="nf-host-choice__mark" aria-hidden="true">
-                <BrandIcon name="doc-review" fill />
+                <IconPlate size="md">
+                  <UiIcon name="file-text" size={20} />
+                </IconPlate>
               </span>
               <span className="min-w-0 flex-1">
                 <span className={`block ${TYPE.rowTitle}`}>{open.name || "Your business"}</span>

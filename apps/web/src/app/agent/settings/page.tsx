@@ -9,12 +9,12 @@ import { getPayoutAccounts, type PayoutAccount } from "@/lib/agent/payout-querie
 import { loadSettingsState } from "@/lib/profile/queries";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { groupNuban } from "@/lib/agent/payout-schema";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { AccountNotificationsCard } from "../../(app)/settings/AccountToggles";
 import { AgentLookupCard } from "@/components/app/doors/AgentLookupCard";
 import { readMyAgentLookup, type MyAgentLookup } from "@/lib/doors/queries";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -55,9 +55,9 @@ export default async function Page() {
     return (
       <AgentShell t={t} locale={locale} active="/agent/settings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
-          <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="doc-shield" fill />
-          </span>
+          <IconPlate size="lg">
+            <UiIcon name="settings-gear" size={24} />
+          </IconPlate>
           <h1 className="nf-h2 mt-5">{t.agent.nav.settings}</h1>
           <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             We cannot reach your preferences right now.

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon, type BrandIconObject } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandAssemble } from "@/components/motion/BrandAssemble";
 import {
   DEFAULT_MOTION,
@@ -17,6 +16,7 @@ import {
   type MotionPref,
 } from "@/lib/motion/motion-pref";
 import { RowButton, RowSwitch, SettingsGroup } from "./rows";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 function subscribe(onChange: () => void): () => void {
   window.addEventListener(MOTION_EVENT, onChange);
@@ -27,11 +27,11 @@ const snapshot = () => serializeMotion(readMotion());
 const serverSnapshot = () => serializeMotion(DEFAULT_MOTION);
 
 /* The platform's glass objects, not line glyphs (the founder, Track M). */
-const LEVEL_ICON: Record<MotionLevel, BrandIconObject> = {
-  cinematic: "tour-360",
-  standard: "progress-ring",
-  calm: "clock-check",
-  off: "hourglass",
+const LEVEL_ICON: Record<MotionLevel, UiIconName> = {
+  cinematic: "sparkle",
+  standard: "circle-play",
+  calm: "clock",
+  off: "circle-pause",
 };
 
 /**
@@ -139,7 +139,9 @@ export function MotionSettings({ t }: { t: Dictionary }) {
                 data-level={level.value}
               >
                 <span className="nf-motion-level__glyph" aria-hidden="true">
-                  <BrandIcon name={LEVEL_ICON[level.value]} size={32} />
+                  <IconPlate size="sm">
+                    <UiIcon name={LEVEL_ICON[level.value]} size={20} />
+                  </IconPlate>
                 </span>
                 <span className="nf-motion-level__name">{level.label}</span>
                 <span className="nf-motion-level__sub">{level.sub}</span>
