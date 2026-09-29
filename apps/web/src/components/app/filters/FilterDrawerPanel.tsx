@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { useRouter } from "next/navigation";
-import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoney, formatNumber } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconTiles } from "./IconTiles";
 import { priceScale } from "@/lib/listings/price-bounds";
@@ -11,11 +11,10 @@ import {
   hasBackupPower,
   matchesFacts,
   rentMeansTenancy,
-  type ListingFacts,
 } from "@/lib/listings/filter";
 
 import { UNIT_SHAPES, takesShape, type UnitShape } from "@/lib/listings/unit-shape";
-import { RUSH_WITHIN, commuteCount, type Anchor } from "@/lib/listings/commute";
+import { RUSH_WITHIN, commuteCount } from "@/lib/listings/commute";
 
 /* V-65: the drawer's one upfront choice, "One year upfront at most". */
 const ONE_YEAR = 12;

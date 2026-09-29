@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoney } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
 import {
