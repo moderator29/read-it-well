@@ -1,0 +1,252 @@
+{
+  "base": "https://www.vallospaces.com",
+  "report": [
+    {
+      "shot": 1,
+      "screen": 1,
+      "result": "captured",
+      "url": "/home",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 2,
+      "screen": 1,
+      "result": "captured",
+      "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 3,
+      "screen": 2,
+      "result": "captured",
+      "url": "/stays",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 4,
+      "screen": 1,
+      "result": "captured",
+      "url": "/stay/ea000000-0000-4000-8000-000000000003",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 5,
+      "screen": 1,
+      "result": "captured",
+      "url": "/around",
+      "at": "2026-09-29T01:34:03.396Z"
+    },
+    {
+      "shot": 6,
+      "screen": 1,
+      "result": "captured",
+      "url": "/search?market=rent",
+      "at": "2026-09-29T01:34:33.693Z"
+    },
+    {
+      "shot": 7,
+      "screen": 1,
+      "result": "captured",
+      "url": "/search?filters=open",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 8,
+      "screen": 1,
+      "result": "captured",
+      "url": "/messages/d140e186-9fa3-41f4-8234-32ef75a1060e",
+      "at": "2026-09-29T01:43:38.149Z"
+    },
+    {
+      "shot": 9,
+      "screen": 1,
+      "result": "captured",
+      "url": "/messages",
+      "at": "2026-09-29T01:43:59.992Z"
+    },
+    {
+      "shot": 10,
+      "screen": 1,
+      "result": "captured",
+      "url": "/notifications",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 11,
+      "screen": 1,
+      "result": "captured",
+      "url": "/assistant",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 12,
+      "screen": 1,
+      "result": "captured",
+      "url": "/saved",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start; recaptured at about 01:20 after three favourites were saved"
+    },
+    {
+      "shot": 13,
+      "screen": 1,
+      "result": "captured",
+      "url": "/restaurants",
+      "at": "2026-09-29T01:34:54.435Z"
+    },
+    {
+      "shot": 14,
+      "screen": 1,
+      "result": "captured",
+      "url": "/agent/dashboard",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 15,
+      "screen": 1,
+      "result": "captured",
+      "url": "/agent/list",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 16,
+      "screen": 1,
+      "result": "captured",
+      "url": "/profile/application",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 17,
+      "screen": 1,
+      "result": "captured",
+      "url": "/host",
+      "at": "2026-09-29T01:35:20.128Z"
+    },
+    {
+      "shot": 18,
+      "screen": 1,
+      "result": "captured",
+      "url": "/price?state=LA&area=Lekki&lat=6.44&lng=3.47&type=apartment&intent=rent&period=year&beds=2",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 19,
+      "screen": 1,
+      "result": "captured",
+      "url": "/profile",
+      "at": "2026-09-29T01:35:33.623Z"
+    },
+    {
+      "shot": 20,
+      "screen": 1,
+      "result": "captured",
+      "url": "/welcome",
+      "at": "2026-09-29T01:35:40.555Z"
+    },
+    {
+      "shot": 21,
+      "screen": 1,
+      "result": "captured",
+      "url": "/welcome",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 22,
+      "screen": 1,
+      "result": "captured",
+      "url": "/stays/search?filters=open",
+      "at": "2026-09-29T01:35:51.688Z"
+    },
+    {
+      "shot": 23,
+      "screen": 1,
+      "result": "captured",
+      "url": "/verification",
+      "at": "2026-09-29T01:36:00.172Z"
+    },
+    {
+      "shot": 24,
+      "screen": 1,
+      "result": "captured",
+      "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
+      "at": "2026-09-29T01:36:14.810Z"
+    },
+    {
+      "shot": 26,
+      "screen": 1,
+      "result": "captured",
+      "url": "/home",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 27,
+      "screen": 1,
+      "result": "captured",
+      "url": "/listing/ed000000-0000-4000-8000-000000000040",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 28,
+      "screen": 1,
+      "result": "captured",
+      "url": "/search?market=rent",
+      "at": "2026-09-29T00:49:00.000Z",
+      "note": "captured in the first run of 29 September under the earlier shot list and renamed to this shot; the time is that run's start"
+    },
+    {
+      "shot": 30,
+      "screen": 1,
+      "result": "captured",
+      "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+      "at": "2026-09-29T01:36:34.476Z"
+    },
+    {
+      "shot": 32,
+      "screen": 1,
+      "result": "captured",
+      "url": "/restaurant/eb000000-0000-4000-8000-000000000006",
+      "at": "2026-09-29T01:44:17.393Z"
+    },
+    {
+      "shot": 33,
+      "screen": 1,
+      "result": "captured",
+      "url": "/settings/notifications",
+      "at": "2026-09-29T01:44:27.968Z"
+    },
+    {
+      "shot": 34,
+      "screen": 1,
+      "result": "captured",
+      "url": "/sign-in",
+      "at": "2026-09-29T02:28:04.566Z"
+    },
+    {
+      "shot": 35,
+      "screen": 1,
+      "result": "captured",
+      "url": "/sign-up",
+      "at": "2026-09-29T02:28:31.782Z"
+    },
+    {
+      "shot": 36,
+      "screen": 1,
+      "result": "captured",
+      "url": "/settings/payments",
+      "at": "2026-09-29T02:28:48.732Z"
+    }
+  ]
+}

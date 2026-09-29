@@ -112,7 +112,9 @@ Play allows the same text, and one text is easier to keep true.
 
 ---
 
-## Graphics still owed (not text, so not here)
+## Graphics (not text, so not here)
+
+Produced on 29 September 2026: a pool of 33 screenshots for each store and the Play feature graphic, in `docs/store/screenshots/`. `APP_STORE_SCREENSHOTS_HANDBOOK.md` says which to submit. What follows is the brief they were made against.
 
 - **App Store:** 6.9" screenshots (1320×2868), 3 to 10 of them. They must come
   from the shipped build (guideline 2.3.3), taken on a simulator or a device.

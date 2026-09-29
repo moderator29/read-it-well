@@ -59,6 +59,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [store/LISTING_COPY.md](store/LISTING_COPY.md), [store/PRIVACY_LABELS.md](store/PRIVACY_LABELS.md) | Draft store listing copy and the store privacy answers |
 | [MOBILE_READINESS.md](MOBILE_READINESS.md) | Why the native apps load the live origin, and store posture |
 | [STORE_SUBMISSION_NOTES.md](STORE_SUBMISSION_NOTES.md) | Decisions taken for App Store and Play Store submission |
+| [store/APP_STORE_SCREENSHOTS_HANDBOOK.md](store/APP_STORE_SCREENSHOTS_HANDBOOK.md) | The App Store and Google Play screenshots: what to submit, how each was made, and how to regenerate them |
 | [NATIVE_CI.md](NATIVE_CI.md) | The Android and iOS build workflows and the secrets they need |
 | [VALLO_IOS_RELEASE_CHECKLIST.md](VALLO_IOS_RELEASE_CHECKLIST.md), [VALLO_ANDROID_RELEASE_CHECKLIST.md](VALLO_ANDROID_RELEASE_CHECKLIST.md) | Release checklists per platform |
 | [VALLO_NATIVE_RELEASE_AUDIT.md](VALLO_NATIVE_RELEASE_AUDIT.md), [VALLO_NATIVE_TEST_MATRIX.md](VALLO_NATIVE_TEST_MATRIX.md) | The native release audit and the device test matrix |
