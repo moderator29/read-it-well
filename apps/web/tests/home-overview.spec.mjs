@@ -23,13 +23,22 @@
  *    names and one identical destination, which is a promise the product could
  *    not keep.
  *
- * This sandbox cannot reach the Supabase host, so nobody is signed in and there
- * are no areas to pin. That is a real product state and every assertion below
- * holds in it: the empty city card is designed, and the greeting still has to
- * be the right one.
+ * WHERE. Since 23 September `/home` answers a signed-out visitor with the
+ * sign-in wall (asserted first). The overview is read through the preview
+ * harness at `/preview/session-b/sweep-home/home-empty`, which renders the
+ * ROUTE'S OWN PAGE (`HomePage`) inside the real AppShell with no rows behind
+ * it: the greeting is the page's own Lagos clock, and the city row is the
+ * designed invitation.
+ *
+ * TWO EXPECTATIONS MOVED WITH THE PRODUCT. "Explore your city" became the
+ * CityRow invitation, "Choose the city you explore from" with "Set yours to
+ * see what is happening around you" (`components/app/home/CityRow.tsx`), and
+ * the avatar left the top row in Track M: signed in, the tail is the bell
+ * alone and the account is behind the menu (`components/app/AppShell.tsx`).
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -83,9 +92,8 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme} 390px] /home`);
-    await page.goto(`${BASE_URL}/home`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    console.log(`\n[${theme} 390px] /preview/session-b/sweep-home/home-empty (the /home page)`);
+    if (!(await openPreview(page, "/preview/session-b/sweep-home/home-empty", check, { wait: WAIT }))) return;
 
     const applied = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
     check(`the ${theme} theme actually applied`, applied === theme);
@@ -100,13 +108,16 @@ async function run(theme) {
     );
     check("no other daypart is on the page", wrong.length === 0, wrong.join(", "));
 
-    check('"Explore your city" is present', body.includes("Explore your city"));
+    check(
+      "the city row invites the reader to set a city rather than guessing one",
+      body.includes("Set yours to see what is happening around you"),
+    );
 
     /* The city control has to lead somewhere. Signed out that is the sign-in
        screen; signed in it is the screen that changes the city. Either is a
        real destination, and a label with no link is what this guards against. */
     const cityLink = page.locator(
-      'a[href="/settings/place"], a[href="/sign-in"]',
+      'a[href="/settings/place"][aria-label*="city" i], a[href="/sign-in"][aria-label*="city" i]',
     );
     check("the city control links to a real screen", (await cityLink.count()) > 0);
 
@@ -136,8 +147,8 @@ async function run(theme) {
       (await page.locator('header a[href="/notifications"]').count()) > 0,
     );
     check(
-      "the avatar is in the top row",
-      (await page.locator('header a[href="/profile"], header a[href="/sign-in"]').count()) > 0,
+      "the account is reached from the menu in the top row (the avatar left in Track M)",
+      (await page.locator('header button[aria-label="Open menu"]').count()) > 0,
     );
 
     /* No numeric badge may appear from a literal. Zero unread renders nothing,
@@ -166,6 +177,8 @@ async function run(theme) {
 }
 
 try {
+  console.log("signed out");
+  await expectSignInWall(check, "/home");
   await run("dark");
   await run("light");
 } finally {
