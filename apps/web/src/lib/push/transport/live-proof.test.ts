@@ -244,18 +244,49 @@ describe("web push, carried the whole way to a real browser", () => {
         subject: "mailto:hello@vallospaces.com",
       });
 
-      const response = await fetch(subscription.endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Encoding": "aes128gcm",
-          "Content-Type": "application/octet-stream",
-          TTL: "60",
-          Urgency: "high",
-          Authorization: authorization,
-        },
-        body: new Uint8Array(encrypted.body),
-      });
+      const send = () =>
+        fetch(subscription.endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Encoding": "aes128gcm",
+            "Content-Type": "application/octet-stream",
+            TTL: "60",
+            Urgency: "high",
+            Authorization: authorization,
+          },
+          body: new Uint8Array(encrypted.body),
+        });
+
+      /* 404 AND 410 ARE THE SUBSCRIBING SIDE, NOT THE SENDING SIDE (seen on a
+         GitHub runner, 29 September 2026: 410 for an endpoint Chrome minted
+         seconds earlier). They mean the push service holds no registration
+         for this endpoint: Chrome's registration had not finished reaching
+         it, the same gap the mtalk preflight exists for, found later. A
+         fault in what THIS code sends answers differently (400 for a bad
+         body or headers, 401 or 403 for a bad VAPID signature, 413 for
+         size), and those still fail. So a missing registration is waited on
+         briefly, and if it never appears the proof reports NOT RUN, exactly
+         as the preflight does: nothing was proved and nothing disproved. */
+      let response = await send();
+      for (let attempt = 1; attempt <= 4 && (response.status === 404 || response.status === 410); attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 2_000));
+        response = await send();
+      }
       console.warn(`  push service answered ${response.status} from ${new URL(subscription.endpoint).host}`);
+      if (response.status === 404 || response.status === 410) {
+        console.warn(
+          [
+            "",
+            "  NOT RUN: the live web push proof did not run on this host.",
+            `  Reason: the push service answered ${response.status} for the subscription Chrome had just`,
+            "  made, so the registration never reached it. Nothing was sent to a browser.",
+            "  This is not a failure. Nothing was proved and nothing was disproved.",
+            "",
+          ].join("\n"),
+        );
+        context.skip();
+        return;
+      }
       expect(response.status).toBeGreaterThanOrEqual(200);
       expect(response.status).toBeLessThan(300);
 

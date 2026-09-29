@@ -18,6 +18,7 @@ import { recordAlert } from "@/lib/alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
 import { BOOKING_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
 import { refundChargeToCard } from "@/lib/payments/refund";
+import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
 
 /**
  * Paystack webhook.
@@ -223,6 +224,11 @@ async function handleBookingChargeSuccess(
       reason: settlement.reason,
       actor: { kind: "webhook" },
     });
+    // The payer's return or the sweep is already refunding this charge (or
+    // has): this delivery sent nothing, which is the point.
+    if (!refund.ok && refund.reason === REFUND_ALREADY_CLAIMED) {
+      return verdict("duplicate", `booking_refund_due:${settlement.reason}:refund_already_claimed`, 200, { amountMinor });
+    }
     return verdict(
       refund.ok ? "posted" : "failed",
       `booking_refund_due:${settlement.reason}:${refund.ok ? "refund_submitted" : "refund_failed"}`,
@@ -289,6 +295,9 @@ async function dispatch(
         reason: "wallet_retired",
         actor: { kind: "webhook" },
       });
+      if (!refund.ok && refund.reason === REFUND_ALREADY_CLAIMED) {
+        return verdict("duplicate", "wallet_topup_refund_already_claimed", 200);
+      }
       return verdict(refund.ok ? "posted" : "failed", `wallet_topup_refunded:${refund.ok}`, 200);
     }
     return verdict("ignored", "reference_not_ours", 200);
