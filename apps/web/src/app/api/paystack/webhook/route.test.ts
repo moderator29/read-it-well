@@ -177,6 +177,23 @@ describe("a booking charge", () => {
     const args = (refund.refundChargeToCard.mock.calls[0] as unknown as [unknown, { amountMinor?: number }])[1];
     expect(args.amountMinor).toBeUndefined();
   });
+
+  it("is a duplicate, not a failure, when the payer's return already claimed the refund", async () => {
+    settlement.settleBookingCharge.mockResolvedValue({
+      outcome: "refund-due",
+      bookingId: "b1",
+      reason: "already_paid",
+      amountMinor: AMOUNT_MINOR,
+      reference: BOOK_REFERENCE,
+    });
+    refund.refundChargeToCard.mockResolvedValueOnce({ ok: false, reason: "refund_already_claimed" } as never);
+    const response = await POST(delivery(chargeSuccess()));
+    expect(response.status).toBe(200);
+    expect(audit.recordWebhookDelivery).toHaveBeenCalledWith(
+      ADMIN,
+      expect.objectContaining({ outcome: "duplicate", httpStatus: 200 }),
+    );
+  });
 });
 
 describe("the retired wallet", () => {

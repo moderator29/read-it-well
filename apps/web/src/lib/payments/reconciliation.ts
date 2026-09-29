@@ -8,6 +8,7 @@ import { failureReason, logMoney } from "./observability";
 import { PaystackError, isPaystackConfigured, listSuccessfulCharges, type ChargeSummary } from "./paystack";
 import { isBookingReference, isFundReference } from "./references";
 import { refundChargeToCard } from "./refund";
+import { REFUND_ALREADY_CLAIMED } from "./refund-outcomes";
 
 /**
  * THE SCHEDULED MONEY RECONCILIATION, AFTER THE WALLET.
@@ -89,6 +90,8 @@ async function handleBookingGap(
     });
     if (settlement.outcome === "refund-due") {
       const sent = await refundChargeToCard(admin, { reference: charge.reference, reason: settlement.reason, actor });
+      // Another path is refunding it (or did): reported, never sent twice.
+      if (!sent.ok && sent.reason === REFUND_ALREADY_CLAIMED) return { ...base, action: "reported", reason: REFUND_ALREADY_CLAIMED };
       return { ...base, action: sent.ok ? "refunded" : "failed", reason: settlement.reason };
     }
     if (settlement.outcome === "unknown-reference") return { ...base, action: "unmatched", reason: "unknown_reference" };
@@ -159,13 +162,14 @@ export async function runMoneyReconciliation(
     } else {
       const sent = await refundChargeToCard(admin, { reference: charge.reference, reason: "wallet_retired", actor });
       if (sent.ok) refundedMinor += charge.amountMinor;
+      const claimed = !sent.ok && sent.reason === REFUND_ALREADY_CLAIMED;
       gaps.push({
         reference: charge.reference,
         amountMinor: charge.amountMinor,
         paidAt: charge.paidAt,
         family,
-        action: sent.ok ? "refunded" : "failed",
-        reason: "wallet_retired",
+        action: sent.ok ? "refunded" : claimed ? "reported" : "failed",
+        reason: claimed ? REFUND_ALREADY_CLAIMED : "wallet_retired",
       });
     }
   }
