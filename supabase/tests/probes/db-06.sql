@@ -11,7 +11,8 @@
 -- conversation_archives idu, inspection_truth i, kyc_consents i,
 -- listing_broadcast_marks idu, member_notes i (admins), refund_requests i,
 -- support_ticket_attachments i, tenancy_pins i, tenancy_reviews i,
--- viewing_windows idu. agent_verification_checks lost its delete; wallet_pots
+-- viewing_windows idu, admin_saved_views id (admins insert, owner deletes).
+-- agent_verification_checks lost its delete; wallet_pots
 -- and wallet_entries went with custody (Track A).
 do $$
 declare
@@ -27,6 +28,7 @@ begin
       ('accommodation_amenities', 'idu'),
       ('accommodation_photos', 'idu'),
       ('accommodations', 'idu'),
+      ('admin_saved_views', 'id'),
       ('agent_applications', 'iu'),
       ('agent_documents', 'iu'),
       ('agent_verification_checks', 'iu'),
