@@ -1,5 +1,13 @@
 /*
- * The type scale. Display, three headings, the overline and gradient text.
+ * The type scale. Display, three headings, the overline and gradient text,
+ * and since the clean unified sweep (docs/design/CLEAN_UNIFIED_DIRECTION.md
+ * section 2) the mobile large title, the row title, the section label and
+ * the two figures.
+ *
+ * THREE WEIGHTS PER SCREEN. 400 for body, 500 or 600 for titles, rows and
+ * figures, and 700 only for the landing display. Sentence case everywhere,
+ * buttons included; the section label is the one uppercase role, and it is
+ * uppercase by CSS so its string stays in sentence case.
  *
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
@@ -48,14 +56,19 @@
   .nf-h0 {
     font-size: var(--nf-text-h0);
     line-height: 1.05;
-    font-weight: 800;
+    /* 600, down from 800: the clean unified rule is three weights on a
+       screen, and a figure carries its weight in its size. */
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
     letter-spacing: var(--nf-tracking-display);
   }
 
+  /* In-app titles are 600 (spec section 2); 700 is the landing display's
+     alone. */
   .nf-h1 {
     font-size: var(--nf-text-h1);
     line-height: 1.14;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--nf-tracking-tight);
   }
 
@@ -146,5 +159,55 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /*
+   * THE CLEAN UNIFIED ROLES (spec section 2).
+   *
+   * `.nf-title-lg` is the phone's large title ("Today", "Saved", "Inbox"):
+   * Poppins 30/36 at 600. `.nf-row-title` is the 15/20 title of a list row.
+   * `.nf-section-label` is the 11px uppercase label above a group, in muted
+   * ink; it is NOT `.nf-label`, which is the form field label (controls.css)
+   * on well over a hundred fields and stays sentence case. `.nf-figure` is a
+   * summary's hero figure, 40/44 at 500, and `.nf-figure-xl` the share
+   * card's numeral; both are always tabular.
+   */
+  .nf-title-lg {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-title-lg);
+    line-height: var(--nf-leading-title-lg);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-row-title {
+    font-size: var(--nf-text-row);
+    line-height: var(--nf-leading-row);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-section-label {
+    font-size: var(--nf-text-label);
+    line-height: var(--nf-leading-label);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--nf-tracking-label);
+    color: var(--nf-content-muted);
+  }
+  .nf-figure {
+    font-size: var(--nf-text-figure);
+    line-height: var(--nf-leading-figure);
+    font-weight: 500;
+    letter-spacing: var(--nf-tracking-figure);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-figure-xl {
+    font-size: var(--nf-text-figure-xl);
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: var(--nf-tracking-figure-xl);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
   }
 }

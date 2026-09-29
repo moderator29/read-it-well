@@ -2166,6 +2166,15 @@
    * design system's own six have been moved.
    * ------------------------------------------------------------------ */
   --nf-radius-control: var(--nf-radius-md);
+  /* The clean unified radii (docs/design/CLEAN_UNIFIED_DIRECTION.md section
+     1.3). Every one of them obeys the 0.30 ratio on the box it names. */
+  --nf-radius-card: var(--nf-radius-lg);
+  --nf-radius-card-sm: var(--nf-radius-md);
+  --nf-radius-well: var(--nf-radius-md);
+  --nf-radius-control-sm: var(--nf-radius-sm);
+  --nf-radius-badge: var(--nf-radius-xs);
+  /* 10px on a 36px plate; `--nf-plate-radius-md` is the 12px on 44. */
+  --nf-radius-plate: var(--nf-radius-sm);
 
   /* --------------------------------------------------------------------
    * `--nf-radius-control-pill` IS GONE, AND THE ARGUMENT THAT CREATED IT WAS
@@ -2830,7 +2839,9 @@
    * A single number is therefore always a phone problem or a desktop problem,
    * never neither, and this one was the phone's.
    */
-  --nf-tracking-display: -0.035em;
+  /* -0.03em since the clean unified sweep (spec section 2): at -0.035 the
+     landing headline's letters touched at 1440. */
+  --nf-tracking-display: -0.03em;
   --nf-tracking-display-sm: -0.02em;
   --nf-tracking-tight: -0.02em;
   --nf-tracking-normal: 0em;
@@ -2850,6 +2861,26 @@
    * argument for a token over a literal restated in one line.
    */
   --nf-tracking-overline: 0.1em;
+
+  /*
+   * THE CLEAN UNIFIED TYPE ROLES (docs/design/CLEAN_UNIFIED_DIRECTION.md
+   * section 2). The mobile large title, the row title, the section label's
+   * tracking and the two figures. Figures are Inter at a REGULAR-to-medium
+   * weight and always tabular; the classes that read these live in
+   * `apps/web/src/app/css/typography.css`.
+   */
+  --nf-text-title-lg: 1.875rem;
+  --nf-leading-title-lg: 2.25rem;
+  --nf-text-row: 0.9375rem;
+  --nf-leading-row: 1.25rem;
+  --nf-text-label: 0.6875rem;
+  --nf-leading-label: 0.875rem;
+  --nf-tracking-label: 0.06em;
+  --nf-text-figure: 2.5rem;
+  --nf-leading-figure: 2.75rem;
+  --nf-tracking-figure: -0.03em;
+  --nf-text-figure-xl: 5.5rem;
+  --nf-tracking-figure-xl: -0.04em;
 
   /* ---------------------------------------------------------------------
    * LAYOUT, AND THE MEASURE.
@@ -3134,7 +3165,7 @@
   --nf-plate-sheen: none;
   --nf-panel-fill: var(--nf-glass-sheen), var(--nf-panel-fill-base);
   --nf-panel-fill-card: var(--nf-glass-sheen), var(--nf-panel-fill-card-base);
-  --nf-plate-fill: var(--nf-plate-sheen), var(--nf-plate-fill-base);
+  --nf-plate-fill: var(--nf-plate-fill-base);
   /* The edge: one colour for the `border` shorthand, then lit per side (top,
      right, foot, left) over it. Blue, not near-white. */
   --nf-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
@@ -3156,36 +3187,33 @@
   /* The hairline that divides the inside of a panel. */
   --nf-panel-hair: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
 
-  /* THE ICON PLATE. The lit blue glass square behind a line glyph: a lit
-     centre, a bright rim, per-side edges, a glow of its own and a glyph that
-     glows. Sizes step 36 / 44, and 56 for a hero plate. */
+  /* THE ICON PLATE, VERSION 2 (docs/design/CLEAN_UNIFIED_DIRECTION.md
+     section 4): a soft flat square behind a lean line glyph, neutral by
+     default. No fill gradient, no edge, no rim, no inner light, no glow and
+     no sheen in either theme, so the roughly fifteen ad-hoc tiles that read
+     the legacy names flatten with it. Sizes 36 / 44 / 56 on radii 10 / 12 /
+     14. The tones are the `--nf-plate-{neutral,brand,solid}-*` pairs. */
   --nf-plate-size-sm: 2.25rem;
   --nf-plate-size-md: 2.75rem;
   --nf-plate-size-lg: 3.5rem;
   --nf-plate-radius: var(--nf-radius-sm);
   --nf-plate-radius-sm: var(--nf-radius-xs);
-  --nf-plate-fill-base:
-    radial-gradient(60% 55% at 50% 48%, color-mix(in oklab, var(--nf-lit) 55%, transparent), transparent 70%),
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-lit) 72%, var(--nf-surface-canvas)) 0,
-      color-mix(in oklab, var(--nf-lit) 46%, var(--nf-surface-canvas)) 18%,
-      color-mix(in oklab, var(--nf-lit) 38%, var(--nf-surface-canvas)) 60%,
-      color-mix(in oklab, var(--nf-lit) 66%, var(--nf-surface-canvas)) 100%
-    );
-  --nf-plate-edge: color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
-  --nf-plate-edges:
-    color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-lit))
-    color-mix(in oklab, var(--nf-lit) 60%, var(--nf-surface-canvas))
-    color-mix(in oklab, var(--nf-lit) 60%, var(--nf-surface-canvas))
-    color-mix(in oklab, var(--nf-state-info) 90%, white);
-  --nf-plate-rim:
-    inset 1px 0 0 color-mix(in oklab, var(--nf-state-info) 70%, transparent),
-    inset 0 1px 0 color-mix(in oklab, var(--nf-lit-cyan) 55%, transparent);
-  --nf-plate-inner-light: inset 0 -2px 3px -1px color-mix(in oklab, var(--nf-lit) 60%, transparent);
-  --nf-plate-glow: 0 0 8px color-mix(in oklab, var(--nf-lit) calc(25% * var(--nf-glow-scale)), transparent);
-  --nf-plate-shadow: var(--nf-plate-rim), var(--nf-plate-inner-light), var(--nf-plate-glow);
-  --nf-plate-glyph-glow: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-lit-cyan) 80%, transparent));
+  --nf-plate-radius-md: 0.75rem;
+  --nf-plate-radius-lg: var(--nf-radius-md);
+  --nf-plate-neutral-fill: rgb(255 255 255 / 0.07);
+  --nf-plate-neutral-ink: var(--nf-mist-200);
+  --nf-plate-brand-fill: var(--nf-brand-tint-2);
+  --nf-plate-brand-ink: color-mix(in oklab, var(--nf-brand-quiet) 72%, var(--nf-content-primary));
+  --nf-plate-solid-fill: var(--nf-mist-100);
+  --nf-plate-solid-ink: var(--nf-ink-900);
+  --nf-plate-fill-base: linear-gradient(var(--nf-plate-neutral-fill), var(--nf-plate-neutral-fill));
+  --nf-plate-edge: transparent;
+  --nf-plate-edges: transparent;
+  --nf-plate-rim: 0 0 0 0 transparent;
+  --nf-plate-inner-light: 0 0 0 0 transparent;
+  --nf-plate-glow: 0 0 0 0 transparent;
+  --nf-plate-shadow: none;
+  --nf-plate-glyph-glow: none;
 
   /* THE SELECTED STATE. The open rail row and the open tab: the brand
      gradient, cyan-lit edges, a white rim along the top and a blue bloom. */
@@ -3342,11 +3370,10 @@
 :root[data-theme="light"] [data-theme="light"] {
   --nf-panel-halo: 0 0 6px color-mix(in oklab, var(--nf-state-info) calc(52% * var(--nf-glow-scale)), transparent);
   --nf-panel-catch: color-mix(in oklab, var(--nf-lit) 62%, var(--nf-state-info));
-  --nf-plate-glow: 0 0 12px color-mix(in oklab, var(--nf-lit) calc(40% * var(--nf-glow-scale)), transparent);
   --nf-glass-sheen:
     radial-gradient(60% 70% at 0% 0%, color-mix(in oklab, var(--nf-lit-cyan) 12%, transparent), transparent 70%),
     linear-gradient(135deg, color-mix(in oklab, white 7%, transparent) 0%, color-mix(in oklab, white 2%, transparent) 22%, transparent 38%);
-  --nf-plate-sheen: linear-gradient(135deg, color-mix(in oklab, white 26%, transparent) 0%, color-mix(in oklab, white 6%, transparent) 30%, transparent 50%);
+  --nf-plate-sheen: none;
   --nf-selected-shadow:
     var(--nf-selected-rim),
     0 0 22px color-mix(in oklab, var(--nf-brand-primary) calc(64% * var(--nf-glow-scale)), transparent),
@@ -3384,6 +3411,73 @@
   --nf-bar-glow:
     0 1px 0 var(--nf-bar-edge-lit),
     0 2px 6px -1px color-mix(in oklab, var(--nf-state-info) 52%, transparent);
+}
+
+/*
+ * THE NIGHT, CALMED (docs/design/CLEAN_UNIFIED_DIRECTION.md sections 1.1,
+ * 1.2 and 12; the clean unified sweep, 29 September 2026).
+ *
+ * The references feel clean for three reasons: a canvas, a card one step up
+ * from it, and edges drawn with one hairline rather than colour. The night
+ * takes the same three moves. This block comes after the glow block above
+ * and wins over it and over the base palette by source order, so it is the
+ * one place the calm lives:
+ *
+ *  - The card ladder steps up from the canvas in small navy steps
+ *    (`#040A1F`, `#060D26`, `#08102C`, `#0A1231`).
+ *  - `--nf-container-edge` drops from the electric blue at 70 per cent (a
+ *    neon outline on every settings group, profile row and listing card) to
+ *    20 per cent: a hairline with a blue breath.
+ *  - The lit panel material (gradient fill, per-side lit edges, rim, halo,
+ *    sheen) is flat: a card is `--nf-surface-primary` on `--nf-card-border`.
+ *  - THE GLOW BUDGET. Glow stays on the primary button, the dock and its
+ *    centre "+", the logo pill, a selected segmented thumb and the focus
+ *    ring; those read their own tokens (`--nf-btn-lit-*`, `--nf-selected-*`,
+ *    `--nf-dock-*`), which this block leaves alone. A card, a row, a chip, a
+ *    plate, a badge and an input never glow.
+ *
+ * The light theme answers every token here in its own block below, so a
+ * page on paper never reads these values.
+ */
+:root,
+[data-theme="dark"],
+:root[data-theme="light"] [data-theme="light"] {
+  --nf-surface-primary: #040A1F;
+  --nf-surface-secondary: #060D26;
+  --nf-surface-elevated: #08102C;
+  --nf-surface-raised: #0A1231;
+  --nf-divider: rgb(255 255 255 / 0.07);
+
+  /* The one hairline on every card, and the three shadows of the ladder. At
+     night a resting card has no shadow at all: the step in fill and the
+     hairline carry it. */
+  --nf-card-border: rgb(255 255 255 / 0.08);
+  --nf-card-shadow: 0 0 0 0 transparent;
+  --nf-float-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.6);
+  --nf-card-shadow-hover: 0 0 0 1px rgb(255 255 255 / 0.12);
+
+  --nf-container-edge: color-mix(in oklab, var(--nf-container-ink) 20%, transparent);
+  --nf-container-edge-lit: color-mix(in oklab, var(--nf-container-ink) 45%, transparent);
+  --nf-brand-edge-soft: var(--nf-card-border);
+
+  /* The resting lit edge becomes the hairline; the strong rung (the one
+     object a screen is built around) keeps its light. */
+  --nf-glow-edge: 0 0 0 1px var(--nf-card-border);
+  --nf-bloom-card: 0 0 0 0 transparent;
+
+  /* The lit panel, flattened to a card. */
+  --nf-glass-sheen: none;
+  --nf-panel-fill-base: linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary));
+  --nf-panel-fill-card-base: linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary));
+  --nf-panel-edge: var(--nf-card-border);
+  --nf-panel-edges: var(--nf-card-border);
+  --nf-panel-catch: transparent;
+  --nf-panel-rim: 0 0 0 0 transparent;
+  --nf-panel-halo: 0 0 0 0 transparent;
+  --nf-panel-glow: 0 0 0 0 transparent;
+  --nf-panel-hair: var(--nf-divider);
+  --nf-bar-edge-lit: var(--nf-divider);
+  --nf-bar-glow: 0 1px 0 var(--nf-divider);
 }
 
 /*
@@ -3493,9 +3587,10 @@
  *      the artwork is drawn for that ground, so it reads exactly as it does at
  *      night. See `app/css/light.css`, "the icon tiles".
  *  R2  The container ladder collapsed (white on white, rims white on white).
- *      Containers here are WHITE with a soft 1px neutral border and a real,
- *      low shadow, and the canvas is white: the reference is a clean white
- *      ground with rounded cards on soft hairlines.
+ *      Containers here are WHITE with one soft hairline (`--nf-card-border`)
+ *      and a barely-there shadow (`--nf-card-shadow`), on a WARM PAPER
+ *      canvas (`#F4F4F1`) since the clean unified sweep of 29 September, so
+ *      a card is a white sheet on paper and not white on white.
  *  R3  Glass fills that LIFT at night (white at 7.5 per cent) inverted to
  *      white at 86 per cent and lifted nothing. Every wash, glass fill and
  *      hover here is INK at a low alpha, so a lift is still a visible step.
@@ -3505,8 +3600,8 @@
  *  R5  Nothing checked it. `apps/web/scripts/design/light/sweep.mjs` measures contrast
  *      and overflow on every main route in both themes.
  *
- * Contrast, measured on #FFFFFF: content-primary 18.9:1, secondary 9.7:1,
- * subtle 7.6:1, muted 5.8:1, brand-primary 5.5:1 (and white on it 5.5:1),
+ * Contrast, measured on #FFFFFF when the canvas was white (the inks moved
+ * with the paper; their paper figures sit beside them below), brand-primary 5.5:1 (and white on it 5.5:1),
  * brand-quiet 7.0:1, success 5.5:1, warning 5.4:1, error 5.9:1, info 5.9:1.
  *
  * WHAT DELIBERATELY STAYS DARK: anything drawn over a PHOTOGRAPH (scrims,
@@ -3522,19 +3617,30 @@
 :root[data-theme="light"],
 :root[data-theme="light"] [data-theme="light"] {
   /* ----------------------------------------------------------- the ground */
-  --nf-surface-canvas: #FFFFFF;
-  --nf-canvas-base: #FFFFFF;
+  /* Warm paper (the clean unified sweep, 29 September 2026; spec section
+     1.1): the canvas is NOT white and the cards are, so a card exists
+     because of its fill, not only its border. */
+  --nf-surface-canvas: #F4F4F1;
+  --nf-canvas-base: #F4F4F1;
   --nf-surface-primary: #FFFFFF;
-  --nf-surface-secondary: #F6F7F9;
+  --nf-surface-secondary: #FAFAF8;
   --nf-surface-elevated: #FFFFFF;
-  --nf-surface-raised: #F3F5F8;
-  --nf-surface-inset: #EEF1F5;
+  --nf-surface-raised: #F0F0EC;
+  --nf-surface-inset: #ECECE7;
+  --nf-card-border: rgb(17 19 24 / 0.08);
+  --nf-card-shadow: 0 1px 2px rgb(17 19 24 / 0.04), 0 2px 8px -2px rgb(17 19 24 / 0.05);
+  --nf-float-shadow: 0 1px 3px rgb(17 19 24 / 0.05), 0 8px 24px -6px rgb(17 19 24 / 0.10);
+  --nf-card-shadow-hover: 0 2px 4px rgb(17 19 24 / 0.05), 0 10px 24px -8px rgb(17 19 24 / 0.10);
 
   /* ------------------------------------------------------------ the inks */
-  --nf-content-primary: #0B0D17;
-  --nf-content-secondary: #363C4A;
-  --nf-content-subtle: #464E5E;
-  --nf-content-muted: #5A6273;
+  /* Measured on #F4F4F1, #FFFFFF and the raised well #F0F0EC: primary
+     16.3:1 at worst, secondary 7.1:1, subtle 5.4:1, muted 4.8:1. Muted is a
+     step deeper than the spec's #686E78, which measured 4.49:1 on the raised
+     well (the segmented track's off labels). */
+  --nf-content-primary: #111318;
+  --nf-content-secondary: #4A505A;
+  --nf-content-subtle: #5C626C;
+  --nf-content-muted: #646A74;
   --nf-content-on-brand: #FFFFFF;
   --nf-content-inverse: #FFFFFF;
   --nf-content-link: var(--nf-brand-quiet);
@@ -3561,9 +3667,9 @@
 
   /* ------------------------------------------------ edges and interaction */
   --nf-border-subtle: rgb(11 13 23 / 0.08);
-  --nf-border-default: rgb(11 13 23 / 0.12);
-  --nf-border-strong: rgb(11 13 23 / 0.22);
-  --nf-divider: rgb(11 13 23 / 0.09);
+  --nf-border-default: rgb(17 19 24 / 0.12);
+  --nf-border-strong: rgb(17 19 24 / 0.20);
+  --nf-divider: rgb(17 19 24 / 0.07);
   --nf-interactive-hover: rgb(11 13 23 / 0.05);
   --nf-interactive-active: rgb(11 13 23 / 0.09);
   --nf-interactive-disabled: rgb(11 13 23 / 0.04);
@@ -3646,7 +3752,7 @@
                    0 8px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
   --nf-glow-accent: 0 6px 18px -10px color-mix(in oklab, var(--nf-brand-accent) 28%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 60%, transparent);
-  --nf-bloom-card: 0 1px 2px rgb(11 13 23 / 0.05), 0 8px 24px -12px rgb(11 13 23 / 0.14);
+  --nf-bloom-card: var(--nf-card-shadow);
   --nf-bloom-lit: 0 1px 2px rgb(0 50 150 / 0.16), 0 6px 16px -6px rgb(0 80 220 / 0.30);
   --nf-bloom-lit-press: 0 1px 3px rgb(0 50 150 / 0.22);
   --nf-bloom-lit-hover: 0 2px 4px rgb(0 50 150 / 0.18), 0 10px 22px -8px rgb(0 80 220 / 0.36);
@@ -3659,14 +3765,14 @@
   /* ------------------------------ containers: white, soft hairline (R2) */
   --nf-container-ink: var(--nf-brand-primary);
   --nf-container-edge-quiet: var(--nf-border-default);
-  --nf-container-edge: rgb(11 13 23 / 0.12);
-  --nf-container-edge-lit: color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+  --nf-container-edge: var(--nf-card-border);
+  --nf-container-edge-lit: color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
   --nf-container-fill: linear-gradient(#FFFFFF, #FFFFFF);
-  --nf-brand-edge-soft: rgb(11 13 23 / 0.08);
+  --nf-brand-edge-soft: var(--nf-card-border);
   --nf-brand-edge: var(--nf-container-edge);
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
   --nf-border-brand: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
-  --nf-glow-edge: 0 0 0 1px var(--nf-container-edge), 0 1px 2px rgb(11 13 23 / 0.05);
+  --nf-glow-edge: 0 0 0 1px var(--nf-card-border), var(--nf-card-shadow);
   --nf-glow-edge-strong: 0 0 0 1px var(--nf-brand-edge-strong), 0 2px 8px -2px rgb(0 80 220 / 0.20);
   --nf-edge-stride-base: var(--nf-container-edge);
   --nf-edge-stride-lit: var(--nf-container-edge);
@@ -3681,24 +3787,27 @@
   --nf-lit: var(--nf-brand-primary);
   --nf-panel-fill-base: linear-gradient(#FFFFFF, #FFFFFF);
   --nf-panel-fill-card-base: linear-gradient(#FFFFFF, #FFFFFF);
-  --nf-panel-edge: rgb(11 13 23 / 0.10);
-  --nf-panel-edges: rgb(11 13 23 / 0.10) rgb(11 13 23 / 0.10) rgb(11 13 23 / 0.12) rgb(11 13 23 / 0.10);
-  --nf-panel-catch: var(--nf-brand-primary);
-  --nf-panel-rim: inset 0 1px 0 rgb(255 255 255 / 0.6);
-  --nf-panel-halo: 0 1px 2px rgb(11 13 23 / 0.05);
-  --nf-panel-glow: 0 1px 2px rgb(11 13 23 / 0.05), 0 4px 14px -6px rgb(11 13 23 / 0.10);
-  --nf-panel-hair: rgb(11 13 23 / 0.09);
-  --nf-plate-fill-base: linear-gradient(180deg, #EEF4FF 0%, #E6EEFD 100%);
-  --nf-plate-edge: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
-  --nf-plate-edges:
-    color-mix(in oklab, var(--nf-brand-primary) 18%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 18%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 22%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
-  --nf-plate-rim: inset 0 1px 0 rgb(255 255 255 / 0.8);
-  --nf-plate-inner-light: inset 0 0 0 rgb(255 255 255 / 0);
-  --nf-plate-glow: 0 1px 2px rgb(11 13 23 / 0.06);
-  --nf-plate-glyph-glow: drop-shadow(0 0 0 rgb(255 255 255 / 0));
+  --nf-panel-edge: var(--nf-card-border);
+  --nf-panel-edges: var(--nf-card-border);
+  --nf-panel-catch: transparent;
+  --nf-panel-rim: 0 0 0 0 transparent;
+  --nf-panel-halo: 0 0 0 0 transparent;
+  --nf-panel-glow: var(--nf-card-shadow);
+  --nf-panel-hair: var(--nf-divider);
+  --nf-plate-neutral-fill: var(--nf-surface-raised);
+  --nf-plate-neutral-ink: var(--nf-content-primary);
+  --nf-plate-brand-fill: var(--nf-brand-tint-2);
+  --nf-plate-brand-ink: var(--nf-brand-primary);
+  --nf-plate-solid-fill: var(--nf-content-primary);
+  --nf-plate-solid-ink: var(--nf-surface-primary);
+  --nf-plate-fill-base: linear-gradient(var(--nf-plate-neutral-fill), var(--nf-plate-neutral-fill));
+  --nf-plate-edge: transparent;
+  --nf-plate-edges: transparent;
+  --nf-plate-rim: 0 0 0 0 transparent;
+  --nf-plate-inner-light: 0 0 0 0 transparent;
+  --nf-plate-glow: 0 0 0 0 transparent;
+  --nf-plate-shadow: none;
+  --nf-plate-glyph-glow: none;
   --nf-selected-fill: var(--nf-gradient-cta);
   --nf-selected-edge: var(--nf-brand-primary);
   --nf-selected-edges: var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary-strong) var(--nf-brand-primary);
@@ -3717,8 +3826,8 @@
   --nf-btn-glass-fill: linear-gradient(#FFFFFF, #FFFFFF);
   --nf-btn-glass-edge: rgb(11 13 23 / 0.18);
   --nf-btn-glass-shadow: 0 1px 2px rgb(11 13 23 / 0.05);
-  --nf-bar-edge-lit: rgb(11 13 23 / 0.08);
-  --nf-bar-glow: 0 1px 0 rgb(11 13 23 / 0.06);
+  --nf-bar-edge-lit: var(--nf-divider);
+  --nf-bar-glow: 0 1px 0 var(--nf-divider);
 
   /* --------------------------- drawn placeholders (no photograph yet) */
   --nf-media-ground-from: #E3E8F0;
