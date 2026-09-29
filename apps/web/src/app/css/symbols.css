@@ -7,6 +7,34 @@
  * the cascade: do not move this one.
  */
 @layer components {
+  /* ------------------------------------------------------ the two weights */
+
+  /*
+   * Lean in a page, bold in the navigation chrome (29 September 2026; the
+   * founder: inner icons "clean, lean and neat", not bold like the side nav
+   * and the bottom nav). Every stroked glyph in the family carries both
+   * widths as custom properties (`uiIconStrokeProps` in
+   * design-system/icons/UiIcon.tsx) and the lean one as its attribute.
+   *
+   * Zero specificity throughout (`:where`), so any rule that already sizes a
+   * particular glyph's line (the dock's +, the workspace bell) keeps winning,
+   * while these still beat the presentation attribute. A `weight` prop pins
+   * one glyph either way.
+   */
+  :where(.nf-ui-icon) {
+    stroke-width: var(--nf-sw-lean);
+  }
+  :where(.nf-tabbar, .nf-dockrow, .nf-dockmore, .nf-nav, .nf-nav__glyph, .nf-drawer, .nf-admin-rail, .nf-icons-bold)
+    :where(.nf-ui-icon) {
+    stroke-width: var(--nf-sw-bold);
+  }
+  :where(.nf-ui-icon[data-nf-weight="bold"]) {
+    stroke-width: var(--nf-sw-bold);
+  }
+  :where(.nf-ui-icon[data-nf-weight="lean"]) {
+    stroke-width: var(--nf-sw-lean);
+  }
+
   /* ------------------------------------------------------- symbol effects */
 
   /*

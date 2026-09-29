@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { UiIcon, snapUiIconSize, uiIconStrokeWidth, type UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon, snapUiIconSize, uiIconStrokeProps, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
  * The console's own line glyphs: the rail rows and card marks the governing
@@ -153,10 +153,10 @@ export function AdminGlyph({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={uiIconStrokeWidth(edge)}
+      {...uiIconStrokeProps(edge)}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      className={className ? `nf-ui-icon ${className}` : "nf-ui-icon"}
       aria-hidden="true"
     >
       {PATHS[name]}

@@ -1,4 +1,4 @@
-import { uiIconStrokeWidth } from "@/design-system/icons/UiIcon";
+import { uiIconStrokeProps } from "@/design-system/icons/UiIcon";
 
 /**
  * Feature icons that move once (Track M).
@@ -47,11 +47,11 @@ export function FeatureGlyph({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={uiIconStrokeWidth(size)}
+      {...uiIconStrokeProps(size)}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className={`nf-fx nf-fx--${name} ${className ?? ""}`.trim()}
+      className={`nf-ui-icon nf-fx nf-fx--${name} ${className ?? ""}`.trim()}
     >
       {name === "shield" && (
         <>

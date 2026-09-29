@@ -1,4 +1,4 @@
-import { snapUiIconSize, uiIconStrokeWidth } from "@/design-system/icons/UiIcon";
+import { snapUiIconSize, uiIconStrokeProps } from "@/design-system/icons/UiIcon";
 
 /**
  * FOUR LINE GLYPHS THE FEED IMAGE DRAWS AND THE ICON SET DOES NOT HAVE YET.
@@ -9,7 +9,7 @@ import { snapUiIconSize, uiIconStrokeWidth } from "@/design-system/icons/UiIcon"
  * `UiIcon` has none of the first three and draws its repost standing on end, and `design-system/icons/UiIcon.tsx` is not
  * this surface's file, so they are drawn here on exactly its terms: the 24
  * grid, round caps and joins, `currentColor`, the same snapped size scale and
- * the same rendered weight (`uiIconStrokeWidth`, 2.25 CSS px at 20 and 24).
+ * the same rendered weight (`uiIconStrokeProps`: the lean line in a page, the bold one in the nav chrome).
  * Asking for them to move into `UiIcon` is request FEED-1 in the scope file;
  * when they land there, the call sites switch and this file is deleted.
  */
@@ -70,10 +70,10 @@ export function LineGlyph({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={uiIconStrokeWidth(edge)}
+      {...uiIconStrokeProps(edge)}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      className={className ? `nf-ui-icon ${className}` : "nf-ui-icon"}
       aria-hidden
     >
       {PATHS[name]}
