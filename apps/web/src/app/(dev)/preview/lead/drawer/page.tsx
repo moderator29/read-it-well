@@ -12,7 +12,7 @@ export default function DrawerPreview() {
     <SideFlip side="property" t={t}>
       <div className="relative min-h-dvh bg-[var(--nf-surface-canvas)]">
         <div className="absolute inset-0 bg-[var(--nf-overlay-backdrop)]" />
-        <div className="nf-drawer nf-drawer--left absolute inset-y-0 left-0 overflow-y-auto">
+        <div className="nf-drawer nf-drawer--left absolute inset-y-0 left-0 overflow-y-auto" data-theme="dark">
           <AppRail
             t={t}
             side="property"

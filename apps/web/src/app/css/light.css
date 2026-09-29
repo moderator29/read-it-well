@@ -28,39 +28,104 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE LOGO: A DAYLIGHT LOCKUP, NOT A NIGHT PLATE (29 September 2026).
+   * THE LOGO: A NAVY PILL WITH A LIGHT RUNNING ROUND ITS EDGE (the founder,
+   * 29 September 2026, second pass: "like snakes moving around the edges").
    *
-   * The lockup used to sit in a navy pill in light, with two conic lights
-   * looping round its rim forever. The founder read it as wrapped oddly and
-   * not bright enough, and it was the heaviest, only endlessly moving object
-   * in a white header. `Logo.tsx` now renders both artworks, the night file
-   * and its paper twin (`vallo-*-light.png`, deep ink with brighter
-   * catch-lights, every opaque pixel at 3:1 or more on white), and these
-   * three rules choose. They key on `data-theme`, set before first paint, so
-   * switching themes swaps the artwork in the same frame with no fetch and no
-   * flash; a night island keeps the night artwork through the guard. No plate,
-   * no animation, so nothing here needs a reduced-motion answer.
+   * The morning's pass took the pill away and drew a paper twin of the
+   * artwork instead; the founder wants the brand's own night lockup back, on
+   * navy, everywhere the lockup appears in light. So in light every `.nf-logo`
+   * (the lockup: header, site bar, rail, auth, loading) is a navy pill, the
+   * NIGHT artwork is shown inside it and the paper twin is not, and two short
+   * arcs of light chase each other round the rim.
    *
-   * The first rule is unguarded on purpose: in the dark theme the twin must
-   * be hidden too, and this file is where the pair is explained.
+   * The paper twin still serves a bare `LogoMark` outside a pill and outside
+   * a night island (the home greeting's small mark), which is why the day
+   * and night rules below exclude `.nf-logo *` rather than going away.
+   *
+   * MOTION. The arcs turn on a registered angle (`@property`), one lap in
+   * 7.5s. Under `prefers-reduced-motion`, data saving, and the app's Calm or
+   * Off motion setting the lap stops and the rim is a steady soft glow
+   * instead, so the pill is never left with two frozen dashes on it.
    *
    * THE DISPLAY IS `!important`, because a host that styles its own image
    * (`.nf-assemble__mark img { display: block }` in threshold.css outranks a
-   * single class) would otherwise show both artworks at once. The two of a
-   * pair must never both paint; the three rules below are the only place
-   * that decides which one does.
+   * single class) would otherwise show both artworks at once.
    * ---------------------------------------------------------------- */
   .nf-logo-art--day {
     display: none !important;
   }
-  :root[data-theme="light"] .nf-logo-art--day:not(:where([data-theme="dark"] *)) {
+  :root[data-theme="light"] .nf-logo-art--day:not(:where([data-theme="dark"] *, .nf-logo *)) {
     display: block !important;
-    /* A white halo, invisible on paper, that keeps the ink legible where
-       the header runs over a photograph (the profile cover). */
     filter: var(--nf-logo-day-halo);
   }
-  :root[data-theme="light"] .nf-logo-art--night:not(:where([data-theme="dark"] *)) {
+  :root[data-theme="light"] .nf-logo-art--night:not(:where([data-theme="dark"] *, .nf-logo *)) {
     display: none !important;
+  }
+
+  :root[data-theme="light"] .nf-logo {
+    position: relative;
+    isolation: isolate;
+    padding: 0.25rem 0.75rem 0.25rem 0.5rem;
+    border-radius: var(--nf-radius-pill);
+    background:
+      radial-gradient(120% 160% at 18% 0%, color-mix(in oklab, var(--nf-glow-ink) 30%, transparent), transparent 62%),
+      var(--nf-night-tile-ground);
+    box-shadow:
+      inset 0 0 0 1px var(--nf-night-tile-rim),
+      inset 0 1px 0 color-mix(in oklab, var(--nf-glow-ink) 30%, transparent),
+      0 6px 16px -8px color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
+  }
+  :root[data-theme="light"] .nf-logo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: 1.5px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--nf-logo-lap),
+      transparent 0deg 110deg,
+      color-mix(in oklab, var(--nf-glow-ink) 70%, transparent) 150deg,
+      color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 176deg,
+      transparent 180deg 290deg,
+      color-mix(in oklab, var(--nf-glow-ink) 70%, transparent) 330deg,
+      color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 356deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(var(--nf-mask-opaque) 0 0) content-box,
+      linear-gradient(var(--nf-mask-opaque) 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(var(--nf-mask-opaque) 0 0) content-box exclude,
+      linear-gradient(var(--nf-mask-opaque) 0 0);
+    animation: nf-logo-lap 7.5s linear infinite;
+  }
+  :root[data-theme="light"] .nf-logo > * {
+    position: relative;
+    z-index: 2;
+  }
+  @keyframes nf-logo-lap {
+    to {
+      --nf-logo-lap: 360deg;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-theme="light"] .nf-logo::before {
+      animation: none;
+      background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
+    }
+  }
+  :root[data-theme="light"]:is(
+      [data-save-data="on"],
+      [data-motion-ambient="off"],
+      [data-motion="calm"],
+      [data-motion="off"]
+    )
+    .nf-logo::before {
+    animation: none;
+    background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
   }
 
   /* ------------------------------------------------------------------
@@ -102,93 +167,82 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE ICON TILES: A CALM PLATE, THE ARTWORK ONE STEP DEEPER (29
-   * September 2026, the founder's second light pass).
+   * THE GLASS OBJECTS IN DAYLIGHT: A BLUE TILE WITH A WHITE LINE GLYPH (the
+   * founder, 29 September 2026, on a live light profile: "pale blue blobs
+   * with fuzzy inner glyphs").
    *
-   * Track M took every plate away and left the night-drawn glass object
-   * alone on white, held up by a blue drop shadow, `saturate(1.3)`,
-   * `contrast(1.12)` and a mask fading the outer tenth of the image. Beside
-   * the flat line glyphs in the same rows that read as glossy stickers from
-   * another app, and the mask ate a tenth of each edge of a 16 to 25px
-   * object (audit C3: "Add a workspace" almost white on white).
+   * The glass artwork was drawn for a night ground, and on paper no filter,
+   * plate or fade made it crisp. So in light, outside a night island, every
+   * `BrandIcon` covers its object with its daylight twin (`.nf-brand-flat`,
+   * drawn by the component itself from `brand-flat.ts`): a solid brand-blue
+   * rounded tile, a soft highlight along its top, and the matching `UiIcon`
+   * in white. White on `--nf-brand-primary` is well over the 3:1 a graphic
+   * needs. A box under 28px has no room for a tile, so there the glyph is
+   * drawn bare in brand blue (`data-bare`).
    *
-   * Now the object stands on one pale plate (`--nf-icon-plate-day`, a 1px
-   * brand-tinted hairline, no shadow), and the artwork takes one quiet step
-   * deeper, `--nf-icon-art-day`, in place of the shadow and the contrast
-   * boost. Measured on the plate at 390 (canvas, median opaque pixel), the
-   * profile tiles went from 3.30, 3.00, 2.99 and 2.10:1 as supplied to
-   * 4.05, 3.55, 3.59 and 2.74:1; `person-card` is a pale object and stays
-   * under 3:1 at any filter a reader would call calm. The plate gives the see-through glass something to be glass against,
-   * which is what `docs/BRAND_MARKS.md` section 3 found the navy chip did,
-   * without the navy. 23 objects are drawn on their own glass square whose
-   * glow runs to the edge of the image (edge alpha 0.17 to 0.43); inside a
-   * plate a 5 per cent fade is enough to end that square softly.
+   * The object stays in the layout, hidden, so every host keeps its size.
+   * Inside a night island (header, drawer, rail, the profile and home top
+   * blocks) none of this applies and the glass is shown as drawn.
    * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-brand-icon-ground:not(:where([data-theme="dark"] *)),
-  :root[data-theme="light"] .nf-icon-tile:not(:where([data-theme="dark"] *)) {
-    background: var(--nf-icon-plate-day);
-    box-shadow: inset 0 0 0 1px var(--nf-icon-plate-day-edge);
+  .nf-brand-flat {
+    position: absolute;
+    inset: 12%;
+    display: none;
+    place-items: center;
+    border-radius: 28%;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-content-on-brand) 22%, transparent) 0%,
+        transparent 46%
+      ),
+      linear-gradient(160deg, var(--nf-brand-primary) 0%, var(--nf-brand-primary-strong) 100%);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 45%, transparent),
+      inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary-strong) 60%, transparent),
+      0 3px 8px -4px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-brand-flat > svg {
+    width: 52%;
+    height: 52%;
+  }
+  .nf-brand-flat[data-bare] {
+    inset: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--nf-brand-primary);
+  }
+  .nf-brand-flat[data-bare] > svg {
+    width: 80%;
+    height: 80%;
+  }
+  :root[data-theme="light"] .nf-brand-flat:not(:where([data-theme="dark"] *)) {
+    display: grid;
+  }
+  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
+    background: none;
     border-color: transparent;
-  }
-  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) img {
-    filter: var(--nf-icon-art-day);
-    -webkit-mask-image:
-      linear-gradient(to right, transparent, var(--nf-mask-opaque) 5%, var(--nf-mask-opaque) 95%, transparent),
-      linear-gradient(to bottom, transparent, var(--nf-mask-opaque) 5%, var(--nf-mask-opaque) 95%, transparent);
-    -webkit-mask-composite: source-in;
-    mask-image:
-      linear-gradient(to right, transparent, var(--nf-mask-opaque) 5%, var(--nf-mask-opaque) 95%, transparent),
-      linear-gradient(to bottom, transparent, var(--nf-mask-opaque) 5%, var(--nf-mask-opaque) 95%, transparent);
-    mask-composite: intersect;
-  }
-  /* A plate around a glass object is the same calm plate, the object
-     standing in it on its own. A plate holding a line glyph stays pale with
-     the glyph in the brand ink. */
-  :root[data-theme="light"] .nf-plate:has(> .nf-brand-icon-ground, > .nf-icon-tile):not(:where([data-theme="dark"] *)) {
-    background: var(--nf-icon-plate-day);
-    border-color: var(--nf-icon-plate-day-edge);
     box-shadow: none;
   }
-  :root[data-theme="light"] .nf-plate > :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
+  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) > .nf-brand-icon {
+    visibility: hidden;
+  }
+  /* A plate around a glass object steps back: the blue tile is the plate. A
+     plate holding a line glyph stays pale with the glyph in the brand ink. */
+  :root[data-theme="light"] .nf-plate:has(> .nf-brand-icon-ground, > .nf-icon-tile):not(:where([data-theme="dark"] *)) {
     background: none;
+    border-color: transparent;
     box-shadow: none;
   }
   :root[data-theme="light"] .nf-plate--brand:not(:where([data-theme="dark"] *)) {
     color: var(--nf-brand-primary);
   }
 
-  /* ------------------------------------------------------------------
-   * THE DOCK IN DAYLIGHT: white glass with a blue glow, the same material
-   * language as the night's blue glass, and no highlight behind the
-   * current tab: that tab is its deep blue glyph and label alone (the
-   * founder: "it should only make that one have deep blue").
-   * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-tabbar,
-  :root[data-theme="light"] .nf-dock-island {
-    background: color-mix(in oklab, var(--nf-surface-primary) 86%, transparent);
-    border-color: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 10%, transparent),
-      0 12px 32px -14px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent),
-      var(--nf-elev-2);
-  }
-  :root[data-theme="light"] .nf-tabbar__pill {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-tab__link[aria-current="page"],
-  :root[data-theme="light"] .nf-tab__link[data-on] {
-    color: var(--nf-brand-primary);
-    text-shadow: none;
-  }
-  :root[data-theme="light"] .nf-tab__link[aria-current="page"] .nf-tab__icon,
-  :root[data-theme="light"] .nf-tab__link[data-on] .nf-tab__icon {
-    color: var(--nf-brand-primary);
-    filter: none;
-  }
+  /* THE DOCK IS A NIGHT ISLAND IN BOTH THEMES (29 September 2026): the
+     white-glass daylight dock that stood here is gone, and `MobileTabBar`
+     wraps the capsule and the More button in `data-theme="dark"`, so the
+     navy glass, the lit centre and the moving rim are the night's own. */
 
   /* ------------------------------------------------------------------
    * THE PROFILE ROWS AND THE ROLE SWITCH. Their plates hold artwork that
@@ -200,19 +254,19 @@
    * card on a soft hairline.
    * ---------------------------------------------------------------- */
   :root[data-theme="light"] .nf-pf-plate:not(:where([data-theme="dark"] *)) {
-    /* No navy ground in light (the founder, Track M), and no lit blue glass
-       either: the calm plate every icon tile uses, with no saturation boost.
-       The row's gradients still read `--nf-pf-*`, so both stay defined. */
+    /* The daylight twin's blue tile is the plate in light, so the plate
+       itself draws nothing. The row's gradients still read `--nf-pf-*`, so
+       both stay defined. */
     --nf-pf-ground: var(--nf-surface-primary);
     --nf-pf-ink: var(--nf-brand-accent);
-    background: var(--nf-icon-plate-day);
-    border-color: var(--nf-icon-plate-day-edge);
+    background: none;
+    border-color: transparent;
     filter: none;
   }
-  :root[data-theme="light"] .nf-pf-plate .nf-brand-icon-ground,
-  :root[data-theme="light"] .nf-pf-plate .nf-icon-tile {
-    background: none;
-    box-shadow: none;
+  /* The plate's object box is drawn oversized for the glass's own margin;
+     the daylight tile fills the plate exactly instead. */
+  :root[data-theme="light"] .nf-pf-plate:not(:where([data-theme="dark"] *)) .nf-brand-flat {
+    inset: 14%;
   }
   :root[data-theme="light"] .nf-pf-row:not(:where([data-theme="dark"] *)) {
     --nf-pf-row-fill: linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary));
@@ -294,4 +348,12 @@
     background: none;
     box-shadow: none;
   }
+}
+
+/* The angle the logo pill's two lights turn on. Registered so it can be
+   animated; outside any layer because `@property` is document-global. */
+@property --nf-logo-lap {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
 }

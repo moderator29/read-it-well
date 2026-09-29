@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { UiIcon } from "./UiIcon";
+import { FLAT_BARE_BELOW, FLAT_FOR, flatGlyphSize } from "./brand-flat";
 
 /**
  * Vallo brand icon.
@@ -427,6 +429,26 @@ export function BrandIcon({
     />
   );
 
+  /*
+   * THE DAYLIGHT TWIN (29 September 2026). A brand-blue tile with the
+   * matching line glyph in white, drawn beside the glass object and shown
+   * by `app/css/light.css` only in the light theme outside a night island,
+   * where it covers the object. Hidden everywhere else, so the dark theme
+   * and every night island keep the glass. `fill` boxes have no pixel size
+   * here, so they take the tile at a 40px-equivalent glyph and CSS scales
+   * it; a box too small for a tile draws the glyph bare.
+   */
+  const flatSize = fill ? 40 : size;
+  const flat = (
+    <span
+      className="nf-brand-flat"
+      data-bare={!fill && size < FLAT_BARE_BELOW ? true : undefined}
+      aria-hidden="true"
+    >
+      <UiIcon name={FLAT_FOR[object]} size={flatGlyphSize(flatSize)} />
+    </span>
+  );
+
   if (!tile) {
     /*
      * The ground hugs the image rather than being sized here: the artwork
@@ -461,11 +483,12 @@ export function BrandIcon({
     return (
       <span
         data-object={object}
-        className={`nf-brand-icon-ground ${
+        className={`nf-brand-icon-ground relative ${
           fill ? "block h-full w-full" : "inline-flex"
         } ${className ?? ""}`}
       >
         {img}
+        {flat}
       </span>
     );
   }
@@ -477,6 +500,7 @@ export function BrandIcon({
       className={`nf-icon-tile ${fill ? "h-full w-full" : ""} ${className ?? ""}`}
     >
       {img}
+      {flat}
     </span>
   );
 }
