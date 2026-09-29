@@ -1623,6 +1623,33 @@
     }
   }
 
+  /* The tall cells carry a true fragment between the plate and the words
+     (the Stays kinds, the assistant's languages), so no cell is half
+     empty. Desktop only: the phone's swipe row keeps its cards compact. */
+  .nf-bento__chips {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-bento__chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: center;
+      gap: 0.5rem;
+      flex: 1;
+    }
+  }
+  .nf-bento__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-surface-raised);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+
   /* -------------------------------------------------------- the journey */
 
   .nf-step__num {
@@ -2290,6 +2317,36 @@
     from {
       transform: scaleX(0);
     }
+  }
+
+  /* The hands-on room from 64rem: head left, deck right. */
+  @media (min-width: 64rem) {
+    .nf-stack-room {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--nf-space-3xl);
+      align-items: start;
+    }
+    .nf-stack-room > .nf-sec-head--center {
+      align-items: flex-start;
+      margin: var(--nf-space-2xl) 0 0;
+      text-align: start;
+    }
+    .nf-stack-room .nf-sec-head--center .nf-sec-lede {
+      text-wrap: pretty;
+    }
+  }
+
+  /* Under 64rem the category tiles are a little wider than tall, so the
+     eight scroll by in less of the page (UIUX item 9's height target). The
+     column count is lane C's and is untouched. */
+  @media (max-width: 63.999rem) {
+    .nf-landing-cat {
+      aspect-ratio: 4 / 3;
+    }
+  }
+  .nf-cities__map .nf-ngmap__svg {
+    max-width: 24rem;
   }
 
   /* ------------------------------------------------ the final card */

@@ -61,6 +61,19 @@ export function Bento({ t, door }: { t: Dictionary; door: Door }) {
                 <IconPlate size="md" tone={c.tone} className="nf-bento__plate">
                   <UiIcon name={c.glyph} size={ICON_PLATE_GLYPH.md} />
                 </IconPlate>
+                {(() => {
+                  const card = b.cards[c.key];
+                  const chips = "chips" in card ? card.chips : null;
+                  return chips && c.size === "tall" ? (
+                    <span className="nf-bento__chips" aria-hidden="true">
+                      {chips.map((chip) => (
+                        <span key={chip} className="nf-bento__chip">
+                          {chip}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null;
+                })()}
                 <span className="nf-bento__text">
                   <span className="nf-bento__title">
                     {b.cards[c.key].title}

@@ -199,8 +199,19 @@ export const landingRoomsEn = {
     body: "Search, stays, the assistant, agreements and messages, side by side.",
     cards: {
       rent: { title: "Rent and buy", body: "Homes, land, shops and offices, with the move-in total printed on the card." },
-      stays: { title: "Vallo Stays", body: "Hotels, shortlets and guest houses, with the free nights and the full total before you book." },
-      ai: { title: "Vallo AI", body: "Ask in English, Yorùbá, Hausa or Igbo. It names only places that are on Vallo." },
+      stays: {
+        title: "Vallo Stays",
+        body: "Hotels, shortlets and guest houses, with the free nights and the full total before you book.",
+        /* The kinds the Stays side lists (lib/stays/types.ts), shown on the
+           tall card from 64rem. */
+        chips: ["Hotels", "Shortlets", "Guest houses", "Resorts"],
+      },
+      ai: {
+        title: "Vallo AI",
+        body: "Ask in English, Yorùbá, Hausa or Igbo. It names only places that are on Vallo.",
+        /* The four languages it answers in. */
+        chips: ["English", "Yorùbá", "Hausa", "Igbo"],
+      },
       price: { title: "Price Check", body: "What similar places nearby are advertised for, or a plain \"not enough to tell\"." },
       agree: { title: "Agreements and the Guarantee", body: "Both of you confirm the agreement before any payment opens." },
       messages: { title: "Messages", body: "Every conversation with the lister stays on the platform, so there is a record." },

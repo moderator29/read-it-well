@@ -182,11 +182,15 @@ export function StackRoom({ t, locale }: { t: Dictionary; locale: Locale }) {
 
   return (
     <section className="nf-shell nf-room" data-chapter="stack" aria-labelledby="nf-landing-stack-title">
-      <SectionHead id="nf-landing-stack-title" eyebrow={s.overline} title={s.title} lede={s.body} align="center" />
-      <DemoStack
-        cards={cards}
-        labels={{ region: s.title, prev: s.prev, next: s.next, position: s.position, hint: s.hint }}
-      />
+      {/* Centred over the deck on a phone; from 64rem the head sits to the
+          left of the deck, top-aligned, so the room is one screen tall. */}
+      <div className="nf-stack-room">
+        <SectionHead id="nf-landing-stack-title" eyebrow={s.overline} title={s.title} lede={s.body} align="center" />
+        <DemoStack
+          cards={cards}
+          labels={{ region: s.title, prev: s.prev, next: s.next, position: s.position, hint: s.hint }}
+        />
+      </div>
     </section>
   );
 }
