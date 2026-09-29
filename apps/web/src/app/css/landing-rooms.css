@@ -2044,7 +2044,9 @@
   .nf-stack__dot {
     display: inline-grid;
     place-items: center;
-    width: 1.5rem;
+    /* 44 by 44, as the showcase pips: 24 wide was under the floor on
+       every tablet, where these dots are drawn. */
+    width: 2.75rem;
     height: 2.75rem;
     border: 0;
     background: transparent;
