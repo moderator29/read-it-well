@@ -62,8 +62,8 @@ export function FilterDrawer({
   /* Once the body has been drawn it stays drawn while closed, so a draft the
      reader has not applied is still there when the sheet opens again. */
   const [wanted, setWanted] = useState(openOnMount);
-  const sheet = useLazySheet(loadPanel, openOnMount);
   const close = useCallback(() => setOpen(false), []);
+  const sheet = useLazySheet(loadPanel, { eager: openOnMount, onEagerFail: close });
 
   const activeCount = shelfActiveCount(query);
   const pending = open && !sheet.ready;

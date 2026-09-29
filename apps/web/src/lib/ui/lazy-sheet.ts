@@ -35,8 +35,15 @@ const arrived = new WeakSet<() => Promise<unknown>>();
 
 export function useLazySheet(
   load: () => Promise<unknown>,
-  /** Fetch at mount: for a sheet that opens on mount (`openOnMount`). */
-  eager = false,
+  {
+    eager = false,
+    onEagerFail,
+  }: {
+    /** Fetch at mount: for a sheet that opens on mount (`openOnMount`). */
+    eager?: boolean;
+    /** Called when that fetch fails, so the caller can shut the sheet. */
+    onEagerFail?: () => void;
+  } = {},
 ) {
   const [ready, setReady] = useState(() => arrived.has(load));
 
@@ -53,9 +60,15 @@ export function useLazySheet(
     [load],
   );
 
+  /* Mount only: `eager` is the initial `openOnMount`, not a live switch. */
+  const [eagerAtMount] = useState(eager);
+  const [failAtMount] = useState(() => onEagerFail);
   useEffect(() => {
-    if (eager) void warm();
-  }, [eager, warm]);
+    if (!eagerAtMount) return;
+    void warm().then((ok) => {
+      if (!ok) failAtMount?.();
+    });
+  }, [eagerAtMount, failAtMount, warm]);
 
   const prefetch = useCallback(() => {
     void warm();

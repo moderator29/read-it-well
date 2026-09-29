@@ -65,6 +65,13 @@
     z-index: -1;
     pointer-events: none;
     background:
+      /* THE SCRIM BEHIND THE HEAD (light only; the dark ground below has its
+         own). White on the bright brand blue measured 3.3:1 for the tagline
+         in Chromium at 360 to 1280 wide, under the 4.5:1 WCAG AA floor for
+         body-size text. A soft ellipse of the night artwork colour behind
+         the name and the line darkens exactly that band, so the page keeps
+         its blue lifting to white and the line reads. */
+      radial-gradient(90% 12rem at 50% 7rem, color-mix(in oklab, var(--nf-surface-artwork) 34%, transparent) 0%, color-mix(in oklab, var(--nf-surface-artwork) 24%, transparent) 55%, transparent 100%),
       radial-gradient(150% 62% at 108% 104%, var(--nf-surface-canvas) 0%, color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 42%, transparent 64%),
       linear-gradient(
         172deg,
