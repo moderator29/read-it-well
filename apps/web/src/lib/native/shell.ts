@@ -58,20 +58,23 @@ export function isShellRequest(input: {
 }
 
 /**
- * Where the shell opens. Never `/`.
+ * Where the shell (and the installed PWA, whose `start_url` is the same
+ * decider) opens. Never `/`.
  *
- *   signed in                          `/home`
- *   signed out, first run not seen     `/welcome` (the four slides are the
- *                                      most native-looking screens we have)
- *   signed out, first run seen         `/sign-in`
+ *   signed in     `/home`
+ *   signed out    `/welcome`, the welcome intro, EVERY cold start (the
+ *                 founder, 29 September: the intro is the first screen and
+ *                 is not skippable; it leads to the sign-up options and to
+ *                 sign in). It used to be `/sign-in` once first run had been
+ *                 seen on the device. `firstRunSeen` is still accepted so the
+ *                 callers need not change, and no longer decides anything.
  *
  * Unconfigured (no platform keys) is treated as signed out, which lands on
  * `/welcome`: a screen that renders without a database, rather than `/home`,
  * which cannot.
  */
 export function shellStartPath(input: { signedIn: boolean; firstRunSeen: boolean }): string {
-  if (input.signedIn) return "/home";
-  return input.firstRunSeen ? "/sign-in" : "/welcome";
+  return input.signedIn ? "/home" : "/welcome";
 }
 
 /** The shell's own start address, for the landing page's redirect. */

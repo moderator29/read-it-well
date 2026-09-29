@@ -11,6 +11,7 @@
  *   node apps/web/tests/theme-choice.spec.mjs
  */
 import { chromium } from "playwright-core";
+import { markEveryTab, passcodeReady } from "./_passcode.mjs";
 import { existsSync } from "node:fs";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
@@ -41,10 +42,13 @@ await lp.waitForSelector("#password", { timeout: 30_000 });
 await lp.fill("#password", password);
 await lp.click("button[type=submit]:has-text('Sign in')");
 await lp.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 60_000 });
+/* The passcode layer (docs/PASSCODE.md): set or type the QA code, and take the unlock cookie into the state. */
+await passcodeReady(login, lp, { baseUrl: BASE });
 const state = await login.storageState();
 await login.close();
 
 const ctx = await browser.newContext({ ...PHONE, storageState: state, colorScheme: "light" });
+await markEveryTab(ctx);
 const page = await ctx.newPage();
 const theme = () => page.evaluate(() => document.documentElement.dataset.theme);
 await page.goto(`${BASE}/home`, { waitUntil: "load" });

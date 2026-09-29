@@ -42,8 +42,9 @@ export const SLATE_CURVE_PATH = "M0 0H390V64C354 168 262 256 150 256C88 256 38 2
 const SLATE_EDGE_PATH = "M390 64C354 168 262 256 150 256C88 256 38 236 0 206";
 
 /**
- * The top block. `start` and `end` are the toolbar cells (the way back, the
- * language control); `line` is the sentence under the wordmark.
+ * The top block. `start` and `end` are the toolbar cells (the auth screens
+ * put the way back in `start` and nothing in `end`: language is changed in
+ * Settings only); `line` is the sentence under the wordmark.
  *
  * `compact` draws the short version, for a screen whose content is the whole
  * point (the passcode keypad). The block also shortens itself on any auth
@@ -56,6 +57,7 @@ export function AuthCurveBlock({
   end,
   brandHref = "/",
   brandLabel,
+  wordmark,
   compact = false,
   id,
 }: {
@@ -66,6 +68,8 @@ export function AuthCurveBlock({
   brandHref?: string | null;
   /** The link's accessible name, from the dictionary (`a11y.logoHome`). */
   brandLabel: string;
+  /** The spaced-capitals name, from the dictionary (`auth.wordmark`). */
+  wordmark: string;
   compact?: boolean;
   id?: string;
 }) {
@@ -92,7 +96,7 @@ export function AuthCurveBlock({
         className="nf-slate-top__mark nf-slate-top__mark--on-paper"
       />
       <span className="nf-slate-top__word" aria-hidden="true">
-        VALLO
+        {wordmark}
       </span>
     </>
   );
@@ -213,6 +217,7 @@ export function AuthPillLink({
   className,
   prefetch,
   onClick,
+  testId,
 }: {
   href: string;
   children: ReactNode;
@@ -220,6 +225,7 @@ export function AuthPillLink({
   className?: string;
   prefetch?: boolean;
   onClick?: MouseEventHandler<HTMLAnchorElement>;
+  testId?: string;
 }) {
   return (
     <ButtonLink
@@ -229,6 +235,7 @@ export function AuthPillLink({
       full
       {...(prefetch === undefined ? {} : { prefetch })}
       {...(onClick ? { onClick } : {})}
+      {...(testId ? { "data-testid": testId } : {})}
       className={`nf-slate-pill${quiet ? " nf-slate-pill--quiet" : ""}${className ? ` ${className}` : ""}`}
     >
       {children}

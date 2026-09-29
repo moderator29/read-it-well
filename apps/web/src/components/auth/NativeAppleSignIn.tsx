@@ -79,7 +79,8 @@ export function NativeAppleSignIn({
 }: {
   label: string;
   next?: string | undefined;
-  /** The Slate round door (`SocialDoors`): the mark alone, the label as its name. */
+  /** The Slate round door (`SocialDoors`): the mark alone, the label as its
+      name. Otherwise a full-width Slate row with the mark and the words. */
   round?: boolean;
 }) {
   const a = useClientCopy().authFlow;
@@ -136,7 +137,11 @@ export function NativeAppleSignIn({
         data-testid="apple-native-sign-in"
         aria-label={round ? label : undefined}
         title={round ? label : undefined}
-        className={round ? "nf-slate-social" : "nf-btn nf-btn--glass nf-btn--full nf-auth__door"}
+        className={
+          round
+            ? "nf-slate-social"
+            : "nf-btn nf-btn--ghost nf-btn--lg nf-btn--full nf-slate-pill nf-slate-pill--quiet"
+        }
       >
         <AppleMark />
         {round ? null : label}

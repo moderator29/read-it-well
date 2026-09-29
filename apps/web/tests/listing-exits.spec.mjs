@@ -24,6 +24,7 @@
  *   BASE_URL=http://localhost:3000 node apps/web/tests/listing-exits.spec.mjs
  */
 import { chromium } from "playwright-core";
+import { markEveryTab, passcodeReady } from "./_passcode.mjs";
 import { existsSync } from "node:fs";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
@@ -76,6 +77,8 @@ async function signIn(browser) {
   await page.fill("#password", password);
   await page.click("button[type=submit]:has-text('Sign in')");
   await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 60_000 });
+  /* The passcode layer (docs/PASSCODE.md): set or type the QA code, and take the unlock cookie into the state. */
+  await passcodeReady(ctx, page, { baseUrl: BASE });
   const state = await ctx.storageState();
   await ctx.close();
   return state;
@@ -87,6 +90,7 @@ const state = await signIn(browser);
 for (const reducedMotion of ["no-preference", "reduce"]) {
   console.log(`\n== the photo viewer (${reducedMotion})`);
   const ctx = await browser.newContext({ ...PHONE, storageState: state, reducedMotion });
+  await markEveryTab(ctx);
   const page = await ctx.newPage();
   await page.goto(`${BASE}/search`, { waitUntil: "load" });
   await page.goto(`${BASE}${LISTING}`, { waitUntil: "load" });
@@ -182,6 +186,7 @@ for (const [label, path, parent] of [
 ]) {
   console.log(`\n== a ${label}, opened with no history`);
   const ctx = await browser.newContext({ ...PHONE, storageState: state });
+  await markEveryTab(ctx);
   const page = await ctx.newPage();
   await page.goto(`${BASE}${path}`, { waitUntil: "load" });
   await page.waitForTimeout(2000);

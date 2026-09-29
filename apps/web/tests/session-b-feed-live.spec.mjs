@@ -16,6 +16,7 @@
  * rather than with numbers written into it.
  */
 import { chromium } from "playwright-core";
+import { passcodeReady } from "./_passcode.mjs";
 import { mkdirSync } from "node:fs";
 
 const BASE_URL = process.argv[2] ?? "http://127.0.0.1:3185";
@@ -62,6 +63,8 @@ await page.waitForURL(/\/sign-in\/email/, { timeout: 20000 });
 await fillAndWaitHydrated("#password", password);
 await page.click("button[type=submit]:has-text('Sign in')");
 await page.waitForURL((u) => u.pathname === "/around", { timeout: 40000 }).catch(() => {});
+/* The passcode layer (docs/PASSCODE.md): set or type the QA code before walking the feed. */
+await passcodeReady(ctx, page, { baseUrl: BASE_URL });
 check("sign-in lands on /around", path().startsWith("/around"), path());
 /* The streamed skeleton also wears `.nf-post`; a real card has its open link. */
 await page.waitForSelector("a.nf-post__open", { timeout: 40000 }).catch(() => {});

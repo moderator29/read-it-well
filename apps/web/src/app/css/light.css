@@ -62,11 +62,15 @@
     display: none !important;
   }
 
+  /* The pill's box is the same in both themes, so switching themes never
+     moves the lockup or what is beside it: at night it is simply unpainted. */
+  .nf-logo {
+    padding: 0.25rem 0.75rem 0.25rem 0.5rem;
+    border-radius: var(--nf-radius-pill);
+  }
   :root[data-theme="light"] .nf-logo {
     position: relative;
     isolation: isolate;
-    padding: 0.25rem 0.75rem 0.25rem 0.5rem;
-    border-radius: var(--nf-radius-pill);
     background:
       radial-gradient(120% 160% at 18% 0%, color-mix(in oklab, var(--nf-glow-ink) 30%, transparent), transparent 62%),
       var(--nf-night-tile-ground);
@@ -83,6 +87,20 @@
     padding: 1.5px;
     border-radius: inherit;
     pointer-events: none;
+    -webkit-mask:
+      linear-gradient(var(--nf-mask-opaque) 0 0) content-box,
+      linear-gradient(var(--nf-mask-opaque) 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(var(--nf-mask-opaque) 0 0) content-box exclude,
+      linear-gradient(var(--nf-mask-opaque) 0 0);
+    /* Still everywhere but the chrome: a steady rim of light. */
+    background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
+  }
+  /* The lights run only on the lockup in the chrome (the app header, the
+     site bar and the rail), where it is the brand's signature; anywhere
+     else a moving object would compete with the page it sits on. */
+  :root[data-theme="light"] :is(.nf-app-header, .nf-site-nav, .nf-nav--rail) .nf-logo::before {
     background: conic-gradient(
       from var(--nf-logo-lap),
       transparent 0deg 110deg,
@@ -93,13 +111,6 @@
       color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 356deg,
       transparent 360deg
     );
-    -webkit-mask:
-      linear-gradient(var(--nf-mask-opaque) 0 0) content-box,
-      linear-gradient(var(--nf-mask-opaque) 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(var(--nf-mask-opaque) 0 0) content-box exclude,
-      linear-gradient(var(--nf-mask-opaque) 0 0);
     animation: nf-logo-lap 7.5s linear infinite;
   }
   :root[data-theme="light"] .nf-logo > * {
@@ -112,7 +123,7 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    :root[data-theme="light"] .nf-logo::before {
+    :root[data-theme="light"] :is(.nf-app-header, .nf-site-nav, .nf-nav--rail) .nf-logo::before {
       animation: none;
       background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
     }
@@ -123,6 +134,7 @@
       [data-motion="calm"],
       [data-motion="off"]
     )
+    :is(.nf-app-header, .nf-site-nav, .nf-nav--rail)
     .nf-logo::before {
     animation: none;
     background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
@@ -181,9 +193,8 @@
    * ---------------------------------------------------------------- */
   :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
     margin-inline: calc(-1 * var(--nf-pad-shell));
-    margin-block-start: calc(-1 * var(--nf-gap-section-tight));
-    padding: var(--nf-gap-section-tight) var(--nf-pad-shell) var(--nf-space-lg);
-    border-radius: 0 0 var(--nf-radius-2xl) var(--nf-radius-2xl);
+    padding: var(--nf-space-lg) var(--nf-pad-shell);
+    border-radius: var(--nf-radius-2xl);
     background:
       radial-gradient(90% 40% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 72%),
       radial-gradient(70% 30% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 14%, transparent), transparent 70%),
@@ -192,8 +203,18 @@
       inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
       0 18px 36px -26px var(--nf-glow-3);
   }
+  /* Only when it opens the page does it take back the shell's top padding
+     and meet the header square-topped. Under a verification prompt it is a
+     rounded block below it, so it never rides up over the prompt. */
+  :root[data-theme="light"] .nf-home > .nf-home-top[data-theme="dark"]:first-child {
+    margin-block-start: calc(-1 * var(--nf-gap-section-tight));
+    padding-block-start: var(--nf-gap-section-tight);
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+  }
   @media (min-width: 40rem) {
-    :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
+    :root[data-theme="light"] .nf-home-top[data-theme="dark"],
+    :root[data-theme="light"] .nf-home > .nf-home-top[data-theme="dark"]:first-child {
       margin-inline: 0;
       margin-block-start: 0;
       padding: var(--nf-space-lg);

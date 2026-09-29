@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * The sign-up form in two steps, reached from the email-first chooser or a
- * link that carries `?email=`. `/sign-up` itself draws the same form; this
- * address stays because links and the chooser's action point at it.
+ * The sign-up form in two steps, reached from "Sign up with email" on the
+ * options page (`/sign-up`), from the email-first chooser, or from a link
+ * that carries `?email=`.
  *
  * The 37 states come down with the page because they are small and every
  * sign-up needs them. The 774 local governments and 749 occupations do not:

@@ -5,7 +5,10 @@
  *
  * What this proves that `src/app/welcome/plan.test.ts` cannot: that a
  * stranger really reaches `/welcome` signed out, that `/start` hands over to
- * it, that the slides move by button, key and dot with each move announced,
+ * it, that a cold start opens on the welcome intro with no way to skip it
+ * and Get started leads to the sign-up options page (the founder, 29
+ * September), that the slides (now the tour, `?tour=1`, and the arrival
+ * screen) move by button, key and dot with each move announced,
  * that back (drawn, browser, and so Android's hardware back in the web view)
  * steps to the previous slide, that first run shows every time it is asked
  * for, and that the device cookie the sign up detour reads is still written.
@@ -60,9 +63,46 @@ try {
     [`${start.status()} ${start.headers()["location"] ?? ""}`],
   );
 
-  console.log("\nThe slides");
+  console.log("\nThe intro, and the options behind Get started");
+  const intro = await ctx.newPage();
+  await intro.goto(`${BASE_URL}/welcome?next=%2Fsign-up`, { waitUntil: "domcontentloaded" });
+  await intro.getByTestId("welcome-intro").waitFor();
+  check("a cold start opens on the intro, not the slides", (await intro.locator(".nf-gs-dot").count()) === 0);
+  check(
+    "the intro cannot be skipped: no Skip, no close, no tour door",
+    (await intro.getByTestId("welcome-skip-all").count()) === 0 &&
+      (await intro.locator('a:has-text("Skip"), button:has-text("Skip"), a[href*="tour=1"]').count()) === 0,
+  );
+  const introHrefs = {
+    start: await intro.getByTestId("intro-get-started").getAttribute("href"),
+    signIn: await intro.getByTestId("intro-sign-in").getAttribute("href"),
+  };
+  check(
+    "Get started goes to the sign-up options, Sign in to sign in",
+    introHrefs.start === "/sign-up" && introHrefs.signIn === "/sign-in",
+    [JSON.stringify(introHrefs)],
+  );
+  await intro.waitForFunction(() => document.cookie.includes("vallo_first_run=seen"), null, { timeout: 10000 }).catch(() => {});
+  check(
+    "showing the intro records the device, so the sign-in gate does not bounce it back",
+    (await ctx.cookies()).some((c) => c.name === "vallo_first_run" && c.value === "seen"),
+  );
+  await ctx.clearCookies();
+  await intro.goto(`${BASE_URL}/sign-up`, { waitUntil: "domcontentloaded" });
+  const options = {
+    email: await intro.getByTestId("options-email").getAttribute("href"),
+    have: await intro.getByTestId("options-have-account").getAttribute("href"),
+  };
+  check(
+    "the options page offers email sign up and the way to sign in",
+    options.email === "/sign-up/email" && options.have === "/sign-in",
+    [JSON.stringify(options)],
+  );
+  await intro.close();
+
+  console.log("\nThe slides (the tour)");
   const page = await ctx.newPage();
-  await page.goto(`${BASE_URL}/welcome?next=%2Fsign-up`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/welcome?tour=1&next=%2Fsign-up`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("welcome-get-started").waitFor();
   await goToSlide(page, 1);
   check("the first slide is the render's", (await page.locator("h1").innerText()).includes("One platform"));
@@ -124,7 +164,7 @@ try {
   const seen = (await ctx.cookies()).find((c) => c.name === "vallo_first_run");
   check("the device remembers, for the sign up and sign in detour", seen?.value === "seen", [JSON.stringify(seen)]);
 
-  await page.goto(`${BASE_URL}/welcome?next=%2Fsign-in`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/welcome?tour=1&next=%2Fsign-in`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("welcome-get-started").waitFor();
   check(
     "asked for again, first run shows again from the first slide (the founder's rule)",
@@ -150,7 +190,7 @@ try {
   console.log("\nReaching the end is seeing it");
   const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const p2 = await ctx2.newPage();
-  await p2.goto(`${BASE_URL}/welcome`, { waitUntil: "domcontentloaded" });
+  await p2.goto(`${BASE_URL}/welcome?tour=1`, { waitUntil: "domcontentloaded" });
   await goToSlide(p2, 4);
   await p2.getByTestId("welcome-create").waitFor();
   check(

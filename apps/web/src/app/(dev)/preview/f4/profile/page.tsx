@@ -37,7 +37,7 @@ export default function ProfilePreview() {
           copy={{
             bookings: t.nav.bookings,
             saved: t.nav.saved,
-            wallet: t.nav.wallet,
+            agreements: t.nav.agreements,
             messages: t.nav.messages,
             settings: t.nav.settings,
             belongings: t.socialProfile.belongings,
@@ -45,7 +45,7 @@ export default function ProfilePreview() {
             myBookings: t.socialProfile.myBookings,
             myBookingsSub: t.socialProfile.myBookingsRow,
             savedSub: t.socialProfile.savedRow,
-            walletSub: t.socialProfile.walletRow,
+            agreementsSub: t.socialProfile.agreementsSub,
           }}
           email="seyi@example.com"
           placeLabel="Eti-Osa, Lagos"

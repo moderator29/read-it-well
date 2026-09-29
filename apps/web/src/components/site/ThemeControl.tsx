@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { THEME_EVENT, readThemeChoice, setThemeChoice, watchSystemTheme } from "@/lib/theme/theme-client";
 import type { ThemeChoice } from "@/lib/theme/theme";
 
@@ -118,7 +117,11 @@ export function ThemeRow({
         data-testid="theme-row"
       >
         <span className="nf-nav__glyph" aria-hidden="true">
-          <BrandIcon name="palette" size={30} />
+          {/* A line glyph, like every other row in the navigation it sits
+              in (the founder, 29 September 2026: the side nav keeps its
+              blue line icons). `contrast` is the theme mark; `UiIcon` has
+              no `palette` glyph yet. */}
+          <UiIcon name="contrast" size="md" />
         </span>
         <span className="nf-theme-row__label">{labels.group}</span>
         <span className="nf-theme-row__value">{labels[current.key]}</span>

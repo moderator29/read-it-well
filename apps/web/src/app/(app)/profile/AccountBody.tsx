@@ -35,16 +35,15 @@ import { COVER_INPUT_ID } from "./AccountHero";
  *
  * The render, measured (ledger section 1): a two-segment glass control,
  * Belongings with a house glyph lit in blue and Posts with a chat glyph on the
- * glass, 20px under it four glass rows 66px tall on an 8px rhythm, each a
- * 49px glass plate carrying the render's own object, a title, a muted line and a
+ * glass, 20px under it three glass rows on an 8px rhythm, each a line glyph
+ * on the shared icon plate, a title, a muted line and a
  * chevron, then a larger gap and a quieter Switch role row, 60px tall.
  *
  * WHAT IS REAL ON EACH ROW. The rows are links to the real routes
- * (`/bookings`, `/saved`, `/wallet`, `/inspections`). The render draws no
+ * (`/bookings`, `/saved`, `/agreements`). The render draws no
  * figures on them; the brief for this surface allows one where the database
  * returns it, so each row may carry a quiet value on its right: upcoming
- * stays, saved places, the wallet balance through the shared money formatter,
- * open inspection requests. A figure the read could not produce is not drawn
+ * stays, saved places, open agreements where the read returns them. A figure the read could not produce is not drawn
  * at all, and a zero count is not drawn either (see `rowValue`).
  *
  * NOTHING THE PAGE USED TO REACH HAS GONE. The render ends at Switch role
@@ -62,7 +61,7 @@ export type AccountCounts = { trips: number; saved: number; reviews: number };
 export type AccountRowsCopy = {
   bookings: string;
   saved: string;
-  wallet: string;
+  agreements: string;
   messages: string;
   settings: string;
   belongings: string;
@@ -70,7 +69,7 @@ export type AccountRowsCopy = {
   myBookings: string;
   myBookingsSub: string;
   savedSub: string;
-  walletSub: string;
+  agreementsSub: string;
 };
 
 type Tab = "account" | "posts";
@@ -167,10 +166,9 @@ export function AccountBody({
   ];
 
   /*
-   * THE FOUR OBJECTS ARE THE RENDER'S FOUR, cropped from `50E032EA` itself
-   * into the glass pack (`scripts/icon-manifest.mjs`, the profile block):
-   * a calendar, a bookmark, a wallet, a ticked shield. Saved takes the
-   * bookmark and not the heart because the render draws a bookmark here.
+   * THE THREE ROWS' GLYPHS are line glyphs on the shared plate (the founder,
+   * 29 September 2026): a calendar for Plans, a bookmark for Saved (the render
+   * draws a bookmark, not the heart), a document for Agreements.
    */
   const rows: Belonging[] = [
     {
@@ -191,8 +189,8 @@ export function AccountBody({
       key: "payments",
       href: "/agreements",
       glyph: "document",
-      title: copy.wallet,
-      sub: copy.walletSub,
+      title: copy.agreements,
+      sub: copy.agreementsSub,
     },
   ];
 

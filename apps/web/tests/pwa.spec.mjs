@@ -54,7 +54,9 @@ try {
     check("name is Vallo", manifest.name === "Vallo");
     check("short_name is Vallo", manifest.short_name === "Vallo");
     check("description is present", typeof manifest.description === "string" && manifest.description.length > 20);
-    check("start_url is /home", manifest.start_url === "/home");
+    /* The shell's decider: Home signed in, the welcome intro signed out
+       (the founder, 29 September). Never a walled product route. */
+    check("start_url is the start decider", manifest.start_url === "/home-or-landing?app=1");
     check("scope is /", manifest.scope === "/");
     check("display is standalone", manifest.display === "standalone");
     check("orientation is portrait", manifest.orientation === "portrait");

@@ -14,6 +14,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, sideOfPlansQuery, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
+import { CreateDock } from "./CreateDock";
 import { SideSync } from "./SideSync";
 import { useHydrated } from "@/components/motion/useInView";
 import { isDataSaver } from "@/lib/ui/data-saver";
@@ -194,7 +195,22 @@ export function AppShell({
       /* The chooser is side dependent: three property doors or three stays
          doors, which is the founder's ruling for Track O on both sides. */
       addHref={effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
+      /* No trigger of its own any more: the dock's centre is the "+" (the
+         founder, 29 September 2026), and its sheet's Switch workspace row,
+         like the profile's Switch role row, opens this one by the named
+         event. The sheet stays mounted here, next to the list it needs. */
+      renderTrigger={() => null}
     />
+  );
+  const createControl = (
+    <>
+      <CreateDock
+        t={t}
+        isHost={isHost}
+        listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
+      />
+      {switchControl}
+    </>
   );
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
   /* F-15: the drawer also closes on a swipe back towards the left edge. */
@@ -456,7 +472,7 @@ export function AppShell({
           active={active}
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
-          switchSlot={switchControl}
+          switchSlot={createControl}
           prefetchFull={hydrated && !isDataSaver()}
         />
       )}

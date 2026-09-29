@@ -16,6 +16,7 @@
  */
 
 import { chromium } from "playwright-core";
+import { passcodeReady } from "./_passcode.mjs";
 import { mkdirSync } from "node:fs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://127.0.0.1:3173";
@@ -98,6 +99,8 @@ if (!SIGNED_IN) {
   await fillAndWaitHydrated("#password", password);
   await page.click("button[type=submit]:has-text('Sign in')");
   await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 30000 }).catch(() => {});
+  /* The passcode layer (docs/PASSCODE.md) stands in front of /wallet until the QA code is set or typed. */
+  await passcodeReady(ctx, page, { baseUrl: BASE_URL });
   check("a real sign-in lands on next", path().startsWith("/wallet"), path());
   /* Let the wallet finish its first read so the proof shows the page, not
      its skeleton. */

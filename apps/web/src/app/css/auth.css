@@ -60,9 +60,6 @@
     --nf-slate-hair: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
     --nf-slate-top-h: 15.5rem;
     --nf-auth-gutter: var(--nf-space-md);
-    /* The page's own text colour, resolved here, for the language list's
-       options, which open on the page's surface and not on the block. */
-    --nf-slate-text: var(--nf-content-primary);
     /* THE FOCUS RING. The platform's ring is one unlayered rule
        (`base.css`) that reads `--nf-focus-ring`; it is steered here rather
        than redrawn, so there is still one ring: the page's ink below the
@@ -236,7 +233,7 @@
     transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
-  /* The way back and the language control, as quiet chips on the block. */
+  /* The way back, as a quiet chip on the block. */
   .nf-slate-top .nf-auth__back-btn {
     width: 2.75rem;
     height: 2.75rem;
@@ -249,27 +246,6 @@
     color: var(--nf-slate-top-ink);
     border-color: var(--nf-slate-top-ink);
   }
-  .nf-auth .nf-slate-top .nf-auth__lang select.nf-btn {
-    min-height: 2.75rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-slate-top-chip-edge);
-    background: var(--nf-slate-top-chip);
-    color: var(--nf-slate-top-ink);
-    box-shadow: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  .nf-slate-top .nf-auth__lang option {
-    color: var(--nf-slate-text);
-  }
-  @media (hover: hover) {
-    .nf-auth .nf-slate-top .nf-auth__lang select.nf-btn:hover:not(:disabled) {
-      border-color: var(--nf-slate-top-ink);
-    }
-  }
-
   /* The keyboard: a touch screen with a field in focus gets the short block. */
   @media (pointer: coarse) {
     .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top {
@@ -555,6 +531,17 @@
   }
   .nf-slate-social-slot {
     display: contents;
+  }
+
+  /* ================================================ THE OPTIONS PAGE */
+  /* `/sign-up`: a column of full-width doors, the brand pill first. */
+  .nf-slate-options {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-lg);
+  }
+  .nf-slate-options .nf-slate-or {
+    margin-top: 0;
   }
 
   /* ============================================= THE TWO STEPS OF SIGN UP */

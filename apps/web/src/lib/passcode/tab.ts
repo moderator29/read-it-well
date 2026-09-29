@@ -6,7 +6,7 @@
  * Storage that throws (a private window, blocked site data) reads as "new
  * tab", which only ever asks for the passcode once more.
  */
-const TAB_KEY = "vallo.passcode.tab";
+export const TAB_KEY = "vallo.passcode.tab";
 
 export function markTabUnlocked(): void {
   try {

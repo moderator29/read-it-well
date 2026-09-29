@@ -15,20 +15,31 @@ import { useId } from "react";
  * THE SET WAS REDRAWN ON 29 SEPTEMBER 2026, ON LUCIDE GEOMETRY.
  *
  * The founder's references for the visual pass (`docs/design/references/
- * 2026-09-29/`) draw thin, even line icons with round joins, the family SF
- * Symbols, Lucide and Phosphor regular all belong to. The previous set was
- * hand-drawn glyph by glyph over two months and it showed: live areas from
- * 14 to 19 units, corner radii from 1.2 to 4.2, three different ways of
- * drawing a dot. The outlines below are Lucide's (ISC, see
- * `THIRD_PARTY_NOTICES.md` beside this file), copied in as path data with no
- * runtime dependency, so every glyph now shares one live area (2 to 22), one
- * corner radius (2, 1 on small parts), one dot (`h.01` on a round cap) and
- * round caps and joins throughout. Where Vallo had a drawing Lucide does not
- * (the four property-type houses, the two-card feed, the shorter third menu
- * line), it is drawn here to the same rules.
+ * 2026-09-29/`) draw even line icons with round joins, the family SF Symbols,
+ * Lucide and Phosphor all belong to. The previous set was hand-drawn glyph by
+ * glyph over two months and it showed: live areas from 14 to 19 units, corner
+ * radii from 1.2 to 4.2, three different ways of drawing a dot. The outlines
+ * below are Lucide's (ISC, see `THIRD_PARTY_NOTICES.md` beside this file),
+ * copied in as path data with no runtime dependency, so every glyph now shares
+ * one live area (2 to 22), one corner radius (2, 1 on small parts), one dot
+ * (`h.01` on a round cap) and round caps and joins throughout. Where Vallo had
+ * a drawing Lucide does not (the four property-type houses, the two-card
+ * feed, the shorter third menu line, the naira-free fee glyphs: `survey`,
+ * `gate`), it is drawn here to the same rules.
  *
- * The weight is still Vallo's, not Lucide's 2: `UI_ICON_STROKE_PX` below,
- * computed per size so a glyph renders the same line at every step.
+ * THE WEIGHT WENT BOLD THE SAME DAY (the founder, 29 September 2026: "premium,
+ * bolder, solid, clean and sharp", with pump.fun's app icons as the target,
+ * `22-pumpfun-drawer-bold-icons.png`). Those draw about 2 to 2.25 CSS px at
+ * 24 with round joins and a SOLID twin for the selected state. The set stays
+ * on Lucide rather than moving to Ionicons (the web face of `@expo/vector-
+ * icons`) or Phosphor Bold, because 2 is the weight Lucide's geometry was
+ * DRAWN for: its counters, gaps and dot spacing are tuned at 2, so raising
+ * the line to it makes every glyph cleaner rather than clogging it, and the
+ * set stays one family with one licence. Ionicons' outline set draws 1.5 at
+ * 24 (32 on its 512 grid), which is the weight being left behind; Phosphor
+ * Bold is a heavier 2.25 on rounder, wider geometry that would have meant a
+ * second redraw of all ninety glyphs in a week. `UI_ICON_STROKE_PX` below is
+ * 2, computed per size so a glyph renders the same line at every step.
  *
  * `docs/ICON_SYSTEM.md` carries the scale, the weight and the filled twins.
  */
@@ -126,7 +137,17 @@ export type UiIconName =
   | "phone"
   /* The dock's centre switch: two straight opposed arrows. NOT `repost`,
      which turns two corners and means a post sent on. */
-  | "switch-profile";
+  | "switch-profile"
+  /* THE LISTING PAGE'S COST AND UTILITY GLYPHS (29 September 2026). They
+     replaced the glass objects on the fee rows and the light, water and gate
+     rows, so each cost reads as one thing at 20px on a plate. */
+  | "coins"
+  | "scale"
+  | "certificate"
+  | "stamp"
+  | "survey"
+  | "droplet"
+  | "gate";
 
 /*
  * THE OUTLINES. Lucide names in brackets where the drawing is Lucide's, so the
@@ -744,6 +765,67 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" />
     </>
   ),
+  // [coins]: the total a buyer or a tenant has to find.
+  coins: (
+    <>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+      <path d="M7 6h1v4" />
+      <path d="m16.71 13.88.7.71-2.82 2.82" />
+    </>
+  ),
+  // [scale]: the legal fee. The law's own mark, not a document.
+  scale: (
+    <>
+      <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+      <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+      <path d="M7 21h10" />
+      <path d="M12 3v18" />
+      <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+    </>
+  ),
+  /* [award]: Governor's consent. A seal on a ribbon, the certificate a
+     transfer is not valid without. */
+  certificate: (
+    <>
+      <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />
+      <circle cx="12" cy="8" r="6" />
+    </>
+  ),
+  // [stamp]: stamp duty.
+  stamp: (
+    <>
+      <path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13" />
+      <path d="M20 15.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1z" />
+      <path d="M5 22h14" />
+    </>
+  ),
+  /* Survey and registration: a pin set on a measuring rule. Vallo's own, on
+     the family's radius and dot. */
+  survey: (
+    <>
+      <path d="M17 7.5c0 3.2-3.6 6-4.6 6.8a.7.7 0 0 1-.8 0C10.6 13.5 7 10.7 7 7.5a5 5 0 0 1 10 0" />
+      <path d="M12 7.5h.01" />
+      <rect x="2" y="17" width="20" height="5" rx="1" />
+      <path d="M6 17v2M10 17v2M14 17v2M18 17v2" />
+    </>
+  ),
+  // [droplet]: water supply.
+  droplet: (
+    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
+  ),
+  /* The estate gate: two posts, an arched top rail and three bars. Vallo's
+     own; `key` is a lock and a door, `verified` a judgement, and neither is
+     the gate a tenant is let through. */
+  gate: (
+    <>
+      <path d="M4 21V4" />
+      <path d="M20 21V4" />
+      <path d="M4 9c4-3 12-3 16 0" />
+      <path d="M8 7.5V21M12 6.8V21M16 7.5V21" />
+      <path d="M4 15h16" />
+    </>
+  ),
 };
 
 /*
@@ -907,6 +989,53 @@ const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
   eye: {
     body: <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />,
     cut: <circle cx="12" cy="12" r="3" />,
+  },
+  /* THE BOLD PASS'S TWINS (29 September 2026). Solid bodies for the glyphs a
+     row or a chip can hold in a selected state, cut on the same rules. */
+  sun: {
+    body: <circle cx="12" cy="12" r="4" />,
+    keep: <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />,
+  },
+  briefcase: {
+    body: <rect width="20" height="14" x="2" y="6" rx="2" />,
+    cut: <path d="M8 6v14M16 6v14" />,
+    keep: <path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />,
+  },
+  parking: {
+    body: <rect width="18" height="18" x="3" y="3" rx="2" />,
+    cut: <path d="M9 17V7h4a3 3 0 0 1 0 6H9" />,
+  },
+  kitchen: {
+    body: <path d="M5 6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6Z" />,
+    cut: <path d="M5 10h14M15 7v0M15 13v3" />,
+  },
+  droplet: { body: PATHS.droplet },
+  certificate: {
+    body: <circle cx="12" cy="8" r="6" />,
+    keep: <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />,
+  },
+  stamp: {
+    body: (
+      <>
+        <path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13z" />
+        <path d="M20 15.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1z" />
+      </>
+    ),
+    keep: <path d="M5 22h14" />,
+  },
+  survey: {
+    body: (
+      <>
+        <path d="M17 7.5c0 3.2-3.6 6-4.6 6.8a.7.7 0 0 1-.8 0C10.6 13.5 7 10.7 7 7.5a5 5 0 0 1 10 0z" />
+        <rect x="2" y="17" width="20" height="5" rx="1" />
+      </>
+    ),
+    cut: (
+      <>
+        <circle cx="12" cy="7.5" r="1.5" fill="black" stroke="none" />
+        <path d="M6 17v2M10 17v2M14 17v2M18 17v2" />
+      </>
+    ),
   },
 };
 

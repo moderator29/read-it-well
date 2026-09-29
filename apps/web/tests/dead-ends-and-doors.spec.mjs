@@ -57,6 +57,9 @@ const decider = read("app/home-or-landing/route.ts");
 const panel = read("components/auth/VerifyingPanel.tsx");
 const callback = read("app/auth/callback/page.tsx");
 const choices = read("components/auth/AuthChoices.tsx");
+const doors = read("components/auth/SocialDoors.tsx");
+const options = read("components/auth/SignUpOptions.tsx");
+const emailForm = read("components/auth/EmailAuthForm.tsx");
 const actions = read("lib/auth/actions.ts");
 
 /* --------------------------------------------------------------- home */
@@ -100,9 +103,16 @@ check(
   "the tab title is neutral, because one page serves both doors",
   /title: "One moment"/.test(callback),
 );
+/* The provider doors are one component (`SocialDoors`) since the Slate pass:
+   it posts the intent it is given, and every screen that draws it names the
+   intent of its own door (the chooser and the email form their mode, the
+   sign-up options page "sign-up"). */
 check(
   "the intent travels from the button that started the handshake",
-  /name="intent" value=\{isSignUp \? "sign-up" : "sign-in"\}/.test(choices),
+  /name="intent" value=\{intent\}/.test(doors) &&
+    /intent=\{mode\}/.test(choices) &&
+    /intent=\{mode\}/.test(emailForm) &&
+    /intent="sign-up"/.test(options),
 );
 check(
   "and rides the provider round trip in the callback URL",

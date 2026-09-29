@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { openProfileSwitcher } from "@/components/supply/profile-switcher-event";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { ROW_GLYPH } from "@/components/app/account/rows";
@@ -16,29 +17,22 @@ import { ROW_GLYPH } from "@/components/app/account/rows";
  * opens THAT sheet rather than a second one, because two sheets answering the
  * same question would drift apart the first time either changed.
  *
- * HOW, AND WHY IT IS A CLICK. The sheet's open state lives inside the dock's
- * component and its only trigger is the dock button, which is a supply file
- * and not this surface's to change. So the row presses that button. It is in
- * the DOM on every route the dock renders on, including this one, at every
- * width (the dock is hidden by CSS on desktop, not removed), and
- * `HTMLElement.click()` fires the handler whether or not the button is
- * visible. Where no dock is rendered the row goes to `/profile/setup`, the
- * workspace chooser, which is the other half of the same sheet.
- *
- * The coupling to a class name is deliberate and temporary: a trigger prop on
- * the dock's switch would let it go.
+ * HOW. The row fires the named event the sheet listens for
+ * (`profile-switcher-event.ts`) when the dock is on screen, which it knows
+ * from the dock's centre "+" (`data-dock-create`). The dock is hidden by CSS
+ * on desktop, not removed, so this holds at every width. Where no dock is
+ * rendered the row goes to `/profile/setup`, the workspace chooser, which is
+ * the other half of the same sheet.
  */
-export const DOCK_SWITCH_SELECTOR = ".nf-tab__link--switch";
+/* The dock is on screen when its centre "+" is (`CreateDock`); the
+   workspace sheet is mounted beside it and opens on the named event. */
+export const DOCK_SWITCH_SELECTOR = "[data-dock-create]";
 
 export function SwitchRoleRow({ line, title }: { line: string; title: string }) {
   const router = useRouter();
 
   function open() {
-    const dock = document.querySelector<HTMLButtonElement>(DOCK_SWITCH_SELECTOR);
-    if (dock) {
-      dock.click();
-      return;
-    }
+    if (document.querySelector(DOCK_SWITCH_SELECTOR) && openProfileSwitcher()) return;
     router.push("/profile/setup");
   }
 

@@ -1,0 +1,120 @@
+"use client";
+
+import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
+import { useState } from "react";
+import Link from "next/link";
+import { Sheet } from "@/components/ui/Sheet";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { Row, RowList, TYPE } from "@/components/app/Screen";
+import { openProfileSwitcher } from "@/components/supply/profile-switcher-event";
+
+/**
+ * THE DOCK'S CENTRE "+", AND THE SHEET IT OPENS (the founder, 29 September
+ * 2026, reference `17-dock-plus-centre.png`).
+ *
+ * The centre slot was the workspace switch: the account's photograph or the
+ * current workspace's glyph in a container. The founder wants the centre to
+ * be the one thing a person makes from anywhere: a round brand-blue button
+ * with a bold white plus. It opens a sheet of what can be created (a
+ * listing, a post, a viewing, and a stay listing for a host) and, as its
+ * last row, Switch workspace, which fires the named event the switcher
+ * listens for (`profile-switcher-event.ts`), so nothing the old centre did
+ * is lost. The switcher's own sheet is still mounted by `AppShell`, with no
+ * trigger of its own.
+ *
+ * `data-dock-create` marks the button so a surface that wants to know the
+ * dock is on screen (the profile's Switch role row) can ask without
+ * depending on a class name.
+ */
+export function CreateDock({
+  t,
+  listHref,
+  isHost = false,
+}: {
+  t: ShellDictionary;
+  /** Where "List a property" goes: the agent wizard for an agent, the chooser otherwise. */
+  listHref: string;
+  isHost?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const copy = t.nav.create;
+
+  const items: { href: string; icon: UiIconName; title: string; sub: string }[] = [
+    { href: listHref, icon: "house", title: copy.list, sub: copy.listSub },
+    { href: "/around/new", icon: "chat-bubble", title: copy.post, sub: copy.postSub },
+    { href: "/search", icon: "calendar-booking", title: copy.viewing, sub: copy.viewingSub },
+    ...(isHost
+      ? [{ href: "/host/rooms", icon: "bed" as const, title: copy.stay, sub: copy.staySub }]
+      : []),
+  ];
+
+  const plate = (icon: UiIconName) => (
+    <IconPlate size="sm" tone="brand">
+      <UiIcon name={icon} size={20} />
+    </IconPlate>
+  );
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={copy.trigger}
+        className="nf-tab__link nf-tab__link--create"
+        data-dock-create=""
+      >
+        <span className="nf-dock-plus" aria-hidden="true">
+          <UiIcon name="plus" size="md" />
+        </span>
+      </button>
+
+      <Sheet
+        open={open}
+        onOpenChange={setOpen}
+        title={copy.title}
+        detents={[0.6, 0.92]}
+        closeLabel={t.pickers.close}
+      >
+        <RowList inset className="nf-create-sheet [--nf-row-divider-lead:3.25rem]">
+          {items.map((item) => (
+            <Row key={item.href} className="p-0">
+              <Link
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="nf-row nf-row--tap w-full px-2xs text-left"
+              >
+                {plate(item.icon)}
+                <span className="min-w-0 flex-1">
+                  <span className={`block ${TYPE.rowTitle}`}>{item.title}</span>
+                  <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{item.sub}</span>
+                </span>
+                <UiIcon name="chevron-right" size="sm" className="shrink-0 text-[var(--nf-content-muted)]" />
+              </Link>
+            </Row>
+          ))}
+          <Row className="p-0">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                openProfileSwitcher();
+              }}
+              className="nf-row nf-row--tap w-full px-2xs text-left"
+              data-testid="create-switch-workspace"
+            >
+              {plate("switch-profile")}
+              <span className="min-w-0 flex-1">
+                <span className={`block ${TYPE.rowTitle}`}>{copy.switch}</span>
+                <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{copy.switchSub}</span>
+              </span>
+              <UiIcon name="chevron-right" size="sm" className="shrink-0 text-[var(--nf-content-muted)]" />
+            </button>
+          </Row>
+        </RowList>
+      </Sheet>
+    </>
+  );
+}

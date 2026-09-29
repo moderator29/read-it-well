@@ -82,6 +82,11 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
       heading: t.nav.accountLabel,
       items: [
         { href: "/agent/verification", label: t.agent.nav.verification, icon: "verified" },
+        /* The assistant INSIDE the workspace (29 September 2026): the same
+           concierge as `/assistant`, framed by this shell and told it is
+           speaking to a lister, so asking it never drops an agent into the
+           consumer app. */
+        { href: "/agent/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
         { href: "/agent/settings", label: t.agent.nav.settings, icon: "settings-gear" },
         /* Track B: help from every workspace, not only the member side. */
         { href: "/support", label: t.nav.helpSupport, icon: "ticket" },

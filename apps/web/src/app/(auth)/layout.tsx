@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { AuthCurveBlock } from "@/components/auth/slate";
 import { AuthBackBar } from "./AuthBackBar";
 import { AuthHeroLine } from "./AuthHeroLine";
@@ -13,7 +12,8 @@ import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
  * September (`docs/design/references/2026-09-29`, 12 and 14).
  *
  * Top to bottom: the CURVED TOP BLOCK, full bleed at every width (the way
- * back and the language control in its toolbar, the wordmark in spaced
+ * back in its toolbar; language lives in Settings only, the founder's rule
+ * of 29 September, the wordmark in spaced
  * capitals, one line under it chosen by the screen), then the screen's own
  * content in one centred column on the page colour, and the small print at
  * the foot. Every auth screen renders inside the same shell, so sign in, sign
@@ -35,12 +35,8 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <KeepPillInView />
       <AuthCurveBlock
         brandLabel={t.a11y.logoHome}
+        wordmark={t.auth.wordmark}
         start={<AuthBackBar />}
-        end={
-          <div className="nf-auth__lang">
-            <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
-          </div>
-        }
         line={
           <AuthHeroLine
             lines={{

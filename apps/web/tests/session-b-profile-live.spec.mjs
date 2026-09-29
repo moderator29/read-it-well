@@ -12,6 +12,7 @@
  * written except the sign in and sign out of the QA account.
  */
 import { chromium } from "playwright-core";
+import { passcodeReady } from "./_passcode.mjs";
 import { mkdirSync } from "node:fs";
 
 const BASE = (process.env.BASE_URL ?? "http://127.0.0.1:3171").replace(/\/$/, "");
@@ -94,6 +95,8 @@ if (!email || !password) {
   await fillAndWaitHydrated("#password", password);
   await page.click("button[type=submit]:has-text('Sign in')");
   await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 30000 }).catch(() => {});
+  /* The passcode layer (docs/PASSCODE.md): set or type the QA code before the signed-in links. */
+  await passcodeReady(context, page, { baseUrl: BASE });
   const landed = new URL(page.url()).pathname;
   record("sign in as the QA member lands on /profile (next)", landed === "/profile", `${stamp()} landed ${landed}`);
   if (landed !== "/profile") await page.goto(`${BASE}/profile`, { waitUntil: "load" });

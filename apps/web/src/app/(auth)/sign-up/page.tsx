@@ -3,9 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
-import { chooserEmail, signUpWithEmail } from "@/lib/auth/actions";
-import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
-import { listStates } from "@/lib/places/queries";
+import { SignUpOptions } from "@/components/auth/SignUpOptions";
 
 export const metadata: Metadata = {
   title: "Create your account",
@@ -13,12 +11,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * The sign-up form itself, in two steps on one page (the Slate pass, 29
- * September): the account first, with Google and Apple as round doors under
- * it, then everything else. It was a chooser that sent the email route on to
- * `/sign-up/email`; the two-step form keeps the providers on the first step,
- * so the chooser hop is gone. `/sign-up/email` still draws the same form for
- * the links and the action that point at it.
+ * The sign-up OPTIONS page, where Get started on the welcome intro leads
+ * (the founder, 29 September): Sign up with email (to the two-step form at
+ * `/sign-up/email`), Google and Apple where they work, and "I already have
+ * an account". The pieces are `SignUpOptions` and the Slate system.
  *
  * IT CARRIES `next`, AND UNTIL 23 SEPTEMBER IT WAS THE ONE HOP THAT DROPPED IT.
  *
@@ -35,8 +31,8 @@ export const metadata: Metadata = {
  * shared link on Vallo ending somewhere other than the thing that was shared.
  *
  * It is read and passed on, never trusted: `safeReturnPath` in `proxy.ts` is
- * what put the value in the URL, the form re-reads it into its own hidden
- * field, and the auth action validates it again before redirecting. A
+ * what put the value in the URL, every door here carries it on, the form
+ * re-reads it into its own hidden field, and the auth action validates it again before redirecting. A
  * `next` typed by hand into this address is checked at the same gate as one
  * the middleware wrote.
  */
@@ -54,16 +50,12 @@ export default async function SignUpPage({
   const providers = await resolveProviderStates(surface);
   const ready = (id: "google" | "apple") => providers.some((p) => p.id === id && p.configured);
   return (
-    <EmailAuthForm
-      mode="sign-up"
+    <SignUpOptions
       t={t}
-      action={signUpWithEmail}
-      states={await listStates()}
-      next={next}
-      initialEmail={await chooserEmail()}
       googleReady={ready("google")}
       appleReady={ready("apple")}
       surface={surface}
+      next={next}
     />
   );
 }

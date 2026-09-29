@@ -541,6 +541,25 @@ export const en = {
     messages: "Messages",
     wallet: "Wallet",
     agreements: "Agreements",
+    /*
+     * The dock's centre "+" and the sheet it opens (29 September 2026). The
+     * workspace switch that button used to be moved into this sheet as its
+     * last row, so nothing it did was lost.
+     */
+    create: {
+      trigger: "Create",
+      title: "Create",
+      list: "List a property",
+      listSub: "Rent it out or sell it, with the move-in total on the card",
+      post: "Post to the feed",
+      postSub: "Say something about a place you know",
+      viewing: "Book a viewing",
+      viewingSub: "Find a place and choose a time to see it",
+      stay: "Create a stay listing",
+      staySub: "A room type or a whole place for guests",
+      switch: "Switch workspace",
+      switchSub: "Personal, or a workspace you hold",
+    },
     helpSupport: "Help and support",
     aiAssistant: "AI Assistant",
     profile: "Profile",
@@ -634,7 +653,6 @@ export const en = {
     myBookings: "Plans",
     myBookingsSub: "Inspections, move-ins, stays and tables",
     savedSub: "Your saved properties, hotels and places",
-    walletSub: "Your agreements, payments and Guarantee claims",
     agreementsSub: "Your agreements, payments and Guarantee claims",
     /*
      * The same four rows, said in one line each.
@@ -646,7 +664,6 @@ export const en = {
      */
     myBookingsRow: "Property and stays bookings",
     savedRow: "Saved properties and places",
-    walletRow: "Agreements, payments and Guarantee claims",
     /*
      * The account page itself (`/profile`). Row values carry the
      * figure in `{count}`; the Switch role line names only the roles the
@@ -1426,6 +1443,14 @@ export const en = {
     googleShort: "Google",
     appleShort: "Apple",
     socialLabel: "Or continue with",
+    /* The wordmark in the curved block and on the intro: the brand's own
+       name, set in spaced capitals, the same in every language. */
+    wordmark: "VALLO",
+    /* The sign-up options page, after Get started on the intro. */
+    optionsTitle: "Create your account",
+    optionsLead: "Choose how you want to sign up. It takes a minute.",
+    signUpWithEmail: "Sign up with email",
+    haveAccountCta: "I already have an account",
   },
 
   /**

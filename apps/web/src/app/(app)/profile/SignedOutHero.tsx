@@ -64,7 +64,12 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
   const monogram = initial(name, "G");
 
   return (
-    <header className="nf-pf-hero" data-testid="signed-out-hero" data-theme="dark">
+    <header data-testid="signed-out-hero">
+      {/* The navy hero block (reference 05) is the cover, the face and the
+          name only: a night island in both themes, painted in light by
+          `profile.css`. The note, the sign-in and the device rows under it
+          stay on the page's own palette. */}
+      <div className="nf-pf-hero" data-theme="dark">
       <div className="nf-pf-cover">
         <Image
           src="/brand/photos/villa-pool-skyline-02.jpg"
@@ -90,6 +95,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
           </h1>
           <p className="nf-pf-handle">Not signed in</p>
         </div>
+      </div>
       </div>
 
       {since && (

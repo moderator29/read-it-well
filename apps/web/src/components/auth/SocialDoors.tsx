@@ -2,7 +2,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import type { SignInSurface } from "@/lib/auth/providers";
 import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
 import { AppleMark, NativeAppleSignIn } from "./NativeAppleSignIn";
-import { AuthOrRule, AuthSocialButton, AuthSocialRow, GoogleMark } from "./slate";
+import { AuthOrRule, AuthPillButton, AuthSocialButton, AuthSocialRow, GoogleMark } from "./slate";
 
 /**
  * The round provider doors under the "Or" rule: Google and Apple, the two
@@ -29,6 +29,7 @@ export function SocialDoors({
   surface = "web",
   next,
   intent,
+  layout = "round",
 }: {
   t: Dictionary;
   googleReady: boolean;
@@ -36,10 +37,46 @@ export function SocialDoors({
   surface?: SignInSurface;
   next?: string | undefined;
   intent: "sign-in" | "sign-up";
+  /**
+   * `round`: the reference's round buttons under an "Or" rule, beside a form.
+   * `rows`: full-width pills with the mark and the words, for the sign-up
+   * options page, where the doors ARE the page and need no rule.
+   */
+  layout?: "round" | "rows";
 }) {
   const google = googleReady && surface === "web";
   const apple = appleReady && (surface === "web" || surface === "ios-native");
   if (!google && !apple) return null;
+
+  if (layout === "rows") {
+    return (
+      <>
+        {google && (
+          <form action={startGoogleOAuth}>
+            {next ? <input type="hidden" name="next" value={next} /> : null}
+            <input type="hidden" name="intent" value={intent} />
+            <AuthPillButton type="submit" quiet>
+              <GoogleMark size={20} />
+              {t.auth.continueWithGoogle}
+            </AuthPillButton>
+          </form>
+        )}
+        {apple &&
+          (surface === "ios-native" ? (
+            <NativeAppleSignIn label={t.auth.continueWithApple} next={next} />
+          ) : (
+            <form action={startAppleOAuth}>
+              {next ? <input type="hidden" name="next" value={next} /> : null}
+              <input type="hidden" name="intent" value={intent} />
+              <AuthPillButton type="submit" quiet>
+                <AppleMark />
+                {t.auth.continueWithApple}
+              </AuthPillButton>
+            </form>
+          ))}
+      </>
+    );
+  }
 
   return (
     <>

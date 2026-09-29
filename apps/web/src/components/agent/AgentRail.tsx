@@ -1,7 +1,5 @@
-import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { AgentProfile } from "@/lib/agent/types";
-import { Logo } from "@/design-system/brand/Logo";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { AgentIdentityCard, AgentModePill } from "./AgentNav";
 import { noWorkspaceDoor } from "./agent-doors";
@@ -13,7 +11,7 @@ import { NavTree } from "@/components/app/NavTree";
  *
  * Ten destinations, frozen (Master Rule 17). This IA is identical across the
  * three source-of-truth references that show the agent workspace, so it is
- * settled and must not drift. The "Agent Mode" pill under the logo, the
+ * settled and must not drift. The "Agent Mode" pill at the head, the
  * identity card and the "Switch to Personal Mode" control are all part of the
  * established chrome, not decoration. Below lg the same content renders inside
  * the slide-in drawer (AgentMobileNav), built from the same shared pieces so
@@ -38,9 +36,8 @@ export function AgentRail({
       aria-label={t.agent.mode.workspaceLabel}
     >
       <div className="nf-nav__head flex-col items-start gap-xs">
-        <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
-          <Logo size={42} wordSize={21} />
-        </Link>
+        {/* No Vallo lockup inside a workspace (founder, 29 September 2026):
+            the workspace's own marker heads the rail, as it heads the drawer. */}
         <AgentModePill label={t.agent.mode.agent} />
       </div>
 

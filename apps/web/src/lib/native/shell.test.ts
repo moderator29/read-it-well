@@ -20,10 +20,12 @@ describe("the app never opens on the website", () => {
     }
   });
 
-  it("opens a signed-in member on home, a new device on welcome, a returning one on sign in", () => {
+  it("opens a signed-in member on home and every signed-out cold start on the welcome intro", () => {
     expect(shellStartPath({ signedIn: true, firstRunSeen: false })).toBe("/home");
     expect(shellStartPath({ signedIn: false, firstRunSeen: false })).toBe("/welcome");
-    expect(shellStartPath({ signedIn: false, firstRunSeen: true })).toBe("/sign-in");
+    /* The founder, 29 September: the intro is the first screen, not skippable,
+       even on a device that has seen it before. */
+    expect(shellStartPath({ signedIn: false, firstRunSeen: true })).toBe("/welcome");
   });
 
   it("recognises the shell on both platforms and nothing else", () => {

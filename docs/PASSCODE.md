@@ -50,7 +50,7 @@ The lock is the "Welcome back" screen.
 
 ### The gate
 
-- **Where it runs.** `components/passcode/PasscodeGate.tsx` sits inside the `(app)` layout. That is a one-element edit, and `AppShell` is untouched.
+- **Where it runs.** `components/passcode/PasscodeGate.tsx` sits inside the `(app)` layout. That is a one-element edit, and `AppShell` is untouched. The workspaces (`/agent`, `/host`, `/admin`) wrap their pages in the same gate through `PasscodeLayer` (section 10).
 - **What it draws.** It draws the page only when the session is unlocked. Otherwise it draws the lock or the setup screen *instead of* the page, so none of the page's markup reaches the browser.
 - **The decision.** The rules are pure and tested in `lib/passcode/decide.ts`.
 - **After unlocking.** A client guard, `PasscodeGuard.tsx`, wraps the page and runs the inactivity timer. When it locks, it clears the cookie through `lockPasscodeAction`, and the route re-renders as the lock.
@@ -69,7 +69,6 @@ A locked session cannot pay, and cannot change where money is paid out.
 - The public site.
 - The auth pages.
 - The signed-out catalogue (the gate answers `open` with no session).
-- The consoles (`/admin`, `/agent`, `/host`), which have layouts of their own. See section 9.
 
 ### Never fails into the page
 
@@ -132,12 +131,31 @@ Biometric unlock is out of scope for now. The hook is `lib/passcode/native-unloc
 
 A biometric unlock must not trust a local "passed". It should run the V-81 WebAuthn ceremony that the money lock already has (`lib/security/webauthn.ts`, `money-step-up.ts`) with an `unlock` purpose. The server writes the unlock cookie only after verifying that assertion.
 
-## 9. Known limits and open decisions
+## 9. Browser specs and the store reviewer
 
-- **Forcing existing members.** Existing members are shown setup on their next visit, and it cannot be skipped (the only way out is Sign out). *Founder decision:* keep this, allow a "Later" for a grace period, or ask only at the next full sign-in.
-- **The consoles.** `/admin`, `/agent` and `/host` are outside the `(app)` layout, so they are not visually locked. Their money actions are still refused on a locked session. *Founder decision:* add `PasscodeGate` to those layouts too.
-- **The demo and reviewer account.** The account the app stores use will meet the setup screen. Set its passcode before submission and put it in the reviewer notes (`docs/STORE_SUBMISSION_NOTES.md`).
-- **The browser specs.** The Playwright specs in `apps/web/tests/` that sign in and then walk `(app)` pages will stop at the setup screen until they set a code or seed one.
+**Browser specs.** A spec that signs in would otherwise stop at the setup or lock screen. `apps/web/tests/_passcode.mjs` gets it through the way a member would. Call `passcodeReady(context, page)` straight after the spec's own sign-in. It does three things:
+
+1. It marks every tab in the context as unlocked.
+2. If the setup screen shows, it types `QA_MEMBER_PASSCODE` twice on the real keypad. The default code is 480913.
+3. It posts `/api/passcode/touch`. Straight after a sign-in, that stores the signed unlock cookie in the context, so a `storageState` taken afterwards carries it.
+
+For a context built from that state, call `markEveryTab(context)`. For a run longer than 15 idle minutes, `addUnlockCookie(context)` writes the cookie directly. It needs the server's `SUPABASE_SERVICE_ROLE_KEY` in the spec environment. `src/lib/passcode/spec-helper.test.ts` keeps the helper's signing identical to the app's.
+
+The five QA-login specs already call it:
+
+- `session-b-signin-live`
+- `session-b-feed-live`
+- `session-b-profile-live`
+- `listing-exits`
+- `theme-choice`
+
+**The store reviewer.** Run `scripts/seed/store-reviewer.mjs` with `SEED_REVIEWER_PASSCODE=<6 digits>`. It sets the reviewer's code on the session it has just proved, and never prints it. Then give the code in the review notes beside the login. `docs/STORE_SUBMISSION_NOTES.md`, section 2, has the wording.
+
+## 10. Decisions taken, and known limits
+
+- **Every member, now.** This was the founder's decision of 29 September. Existing members are shown setup on their next visit, and it cannot be skipped. The only way out is Sign out.
+- **The workspaces are locked too.** `/agent`, `/host` and `/admin` wrap their pages in `PasscodeLayer` (`components/passcode/PasscodeLayer.tsx`), which is `PasscodeGate` with its own dictionary and identity reads. `/agent` and `/host` had no layout, so each now has one that does nothing else. In `/admin`, the gate wraps the page inside both the operator frame and the staff frame.
+- **The success sheet.** When `components/ui/SuccessSheet.tsx` lands, it should show "Passcode set" (`passcode.setDone`) after a code is set, from `PasscodeSetup`'s success branch. It did not exist when this was built, so today the screen closes straight into the app.
 - **New tabs.** A new tab is detected in the browser. Its server-rendered page can paint for a moment before the lock covers it. The server boundary (the cookie, and money) is not affected.
 - **Offline.** An offline tab locks locally, and unlocking it needs the network.
 - **No key.** A deployment with no `SUPABASE_SERVICE_ROLE_KEY` cannot mint an unlock. Members then get in only for 5 minutes after each full sign-in. Every real deployment has the key.

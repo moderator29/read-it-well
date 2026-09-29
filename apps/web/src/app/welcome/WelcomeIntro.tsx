@@ -2,7 +2,6 @@
 
 import "./intro.css";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useRef, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n/core";
@@ -18,7 +17,9 @@ import { rememberFirstRunSeen, withPassedFlag } from "@/components/app/welcome/f
  * line under them, a small moving scene in the middle made of Vallo's own
  * glass objects (the house, its keys, the receipt, and a chip that says what
  * the product prints for you), then the two doors: Get started (to sign up)
- * and Sign in. The four first-run slides stay one tap away as the tour.
+ * and Sign in. NOT SKIPPABLE (the founder, 29 September): there is no Skip,
+ * no close and no tour door; Get started leads to the sign-up options page
+ * (`/sign-up`), and Sign in is the one other way on.
  *
  * THEMES, by the Slate rule: in light the page is brand blue lifting to
  * white and the pill is the brand's navy; in dark the page is the night navy
@@ -54,10 +55,9 @@ export function WelcomeIntro({ t, next = null }: { t: Dictionary; next?: string 
     event.preventDefault();
     router.push(withPassedFlag(href));
   };
-  const tour = next ? `/welcome?tour=1&next=${encodeURIComponent(next)}` : "/welcome?tour=1";
 
   return (
-    <main id="main" className="nf-intro nf-slate">
+    <main id="main" className="nf-intro nf-slate" data-testid="welcome-intro">
       <div className="nf-intro__ground" aria-hidden="true" />
 
       <div className="nf-intro__col">
@@ -73,7 +73,7 @@ export function WelcomeIntro({ t, next = null }: { t: Dictionary; next?: string 
               priority
               className="nf-intro__mark"
             />
-            <span className="nf-intro__name">VALLO</span>
+            <span className="nf-intro__name">{t.auth.wordmark}</span>
           </p>
           <h1 className="nf-intro__tagline">{c.tagline}</h1>
         </header>
@@ -108,15 +108,12 @@ export function WelcomeIntro({ t, next = null }: { t: Dictionary; next?: string 
         </div>
 
         <div className="nf-intro__actions">
-          <AuthPillLink href={signUp} prefetch={false} onClick={follow(signUp)}>
+          <AuthPillLink href={signUp} prefetch={false} onClick={follow(signUp)} testId="intro-get-started">
             {c.getStarted}
           </AuthPillLink>
-          <AuthPillLink href={signIn} quiet prefetch={false} onClick={follow(signIn)}>
+          <AuthPillLink href={signIn} quiet prefetch={false} onClick={follow(signIn)} testId="intro-sign-in">
             {c.signIn}
           </AuthPillLink>
-          <Link href={tour} prefetch={false} className="nf-tap nf-intro__tour">
-            {c.tour}
-          </Link>
         </div>
       </div>
     </main>

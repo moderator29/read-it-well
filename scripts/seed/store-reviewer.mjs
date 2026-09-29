@@ -20,7 +20,7 @@
  * RUNNING IT
  * ===========================================================================
  *
- *   SEED_REVIEWER_EMAIL=... SEED_REVIEWER_PASSWORD=... \
+ *   SEED_REVIEWER_EMAIL=... SEED_REVIEWER_PASSWORD=... SEED_REVIEWER_PASSCODE=... \
  *   NEXT_PUBLIC_SUPABASE_URL=... NEXT_PUBLIC_SUPABASE_ANON_KEY=... \
  *   SUPABASE_SERVICE_ROLE_KEY=... \
  *   node scripts/seed/store-reviewer.mjs
@@ -170,6 +170,7 @@ async function main() {
     line("email confirmed", existing?.email_confirmed_at ? "already" : "would be set");
     line("terms receipt", `would record ${LEGAL_VERSIONS.map((l) => `${l.document}@${l.version}`).join(", ")}`);
     line("wallet", "would be created if absent");
+    line("passcode", process.env.SEED_REVIEWER_PASSCODE ? "would be set from SEED_REVIEWER_PASSCODE" : "would be left for the reviewer to create");
     console.log("");
     console.log("DRY RUN COMPLETE. Nothing was written. Drop --dry-run to do it.");
     return;
@@ -258,6 +259,20 @@ async function main() {
     return;
   }
   console.log("SIGN IN PROVED. A session came back from the anon front door.");
+
+  /* THE PASSCODE (docs/PASSCODE.md). Every member meets the passcode setup
+     screen after signing in; a reviewer should not have to invent a code.
+     With SEED_REVIEWER_PASSCODE set (4 or 6 digits, not a trivial one), it is
+     set as the reviewer, on the session just proved, which is fresh enough
+     for `passcode_set` to replace an earlier code. Never printed. */
+  const passcode = process.env.SEED_REVIEWER_PASSCODE ?? "";
+  if (passcode) {
+    const { data: set, error: setError } = await front.rpc("passcode_set", { p_code: passcode, p_length: passcode.length });
+    line("passcode", setError ? `NOT set: ${setError.message}` : set?.ok ? `set (${passcode.length} digits, not printed)` : `NOT set: ${set?.reason ?? "no answer"}`);
+    if (setError || !set?.ok) process.exitCode = 1;
+  } else {
+    line("passcode", "not set: the reviewer will be asked to create one (set SEED_REVIEWER_PASSCODE)");
+  }
   await front.auth.signOut();
 
   console.log("");
