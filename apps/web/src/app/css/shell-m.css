@@ -674,3 +674,199 @@
       0 4px 14px -8px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
   }
 }
+
+/*
+ * THE DOCK (the founder, 29 September 2026: "make the capsule REALLY
+ * premium", references 04, 17 and 23).
+ *
+ * The capsule, the round More button and the tray are one material, in both
+ * themes, because the dock is a night island in both (`MobileTabBar`):
+ *
+ *  - REFINED GLASS: a navy fill falling from a lit top to a deeper foot
+ *    (`--nf-dock-fill-*`, lifted bluer in light by light.css), blurred and
+ *    saturated behind; a crisp 1px hairline, brighter along the top edge; an
+ *    inner highlight; one soft drop under it and a faint blue bloom.
+ *  - A PRECISE ACTIVE PILL: the travelling pill is a small lit glass lozenge
+ *    with its own hairline and highlight, and the current tab's glyph and
+ *    label are WHITE on it. The label was brand blue on navy at 4.08:1; white
+ *    on the pill clears AA with room.
+ *  - BOLD, SOLID GLYPHS: the current tab draws its filled twin (MobileTabBar
+ *    already asks for it), the others the line set at full ink, not muted.
+ *  - THE CENTRE "+" (`CreateDock`): a round brand-blue button, a bold white
+ *    plus, an inner highlight and a restrained glow, and a press that sinks
+ *    it. Under reduced motion the press is still.
+ *  - THE TRAY: the same glass on a clean four-column grid of line glyphs.
+ */
+@layer components {
+  .nf-tabbar,
+  .nf-dock-island,
+  .nf-dockmore__tray {
+    --nf-dock-fill-top: color-mix(in oklab, var(--nf-container-ink) 18%, var(--nf-surface-canvas));
+    --nf-dock-fill-foot: color-mix(in oklab, var(--nf-container-ink) 6%, var(--nf-surface-canvas));
+    --nf-dock-drop: 0 16px 34px -14px var(--nf-shade-3);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    border-block-start-color: color-mix(in oklab, var(--nf-content-primary) 24%, transparent);
+    background: linear-gradient(180deg, var(--nf-dock-fill-top) 0%, var(--nf-dock-fill-foot) 100%);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 14%, transparent),
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 22%, transparent),
+      0 0 0 0.5px color-mix(in oklab, var(--nf-container-ink) 30%, transparent),
+      0 0 22px -10px var(--nf-glow-3),
+      var(--nf-dock-drop);
+  }
+
+  /* The tabs: full ink, one weight. */
+  .nf-tabbar .nf-tab__link {
+    color: color-mix(in oklab, var(--nf-content-primary) 78%, transparent);
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-tabbar .nf-tab__label {
+    font-weight: 650;
+    letter-spacing: 0.005em;
+  }
+  .nf-tabbar .nf-tab__link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+
+  /* The pill: a lit glass lozenge under the current tab. */
+  .nf-tabbar .nf-tabbar__pill {
+    border: 1px solid color-mix(in oklab, var(--nf-container-ink) 62%, transparent);
+    border-block-start-color: color-mix(in oklab, var(--nf-container-ink) 55%, var(--nf-content-primary));
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 58%, var(--nf-surface-canvas)) 0%,
+      color-mix(in oklab, var(--nf-container-ink) 34%, var(--nf-surface-canvas)) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 22%, transparent),
+      0 0 12px -4px var(--nf-glow-3);
+  }
+  .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]),
+  .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]) .nf-tab__icon {
+    color: var(--nf-content-primary);
+    text-shadow: none;
+    filter: none;
+  }
+
+  /* THE CENTRE "+". */
+  .nf-tab__link--create {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0;
+  }
+  .nf-dock-plus {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 28%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-content-primary) 22%, transparent) 0%,
+        transparent 50%
+      ),
+      linear-gradient(160deg, var(--nf-brand-primary) 0%, var(--nf-brand-primary-strong) 100%);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 40%, transparent),
+      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 16%, transparent),
+      0 6px 16px -6px var(--nf-glow-3);
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dock-plus > svg {
+    stroke-width: 2.6;
+  }
+  .nf-tab__link--create:active .nf-dock-plus {
+    transform: scale(0.9);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 30%, transparent),
+      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent),
+      0 2px 8px -4px var(--nf-glow-3);
+  }
+  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus {
+    transform: rotate(45deg);
+  }
+  .nf-tab__link--create:focus-visible {
+    outline: none;
+  }
+  .nf-tab__link--create:focus-visible .nf-dock-plus {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+
+  /* The round More button: the capsule's glass, the glyph at full ink. */
+  .nf-dock-island {
+    color: var(--nf-content-primary);
+  }
+  .nf-dockmore[data-open] .nf-dockmore__button {
+    border-color: color-mix(in oklab, var(--nf-container-ink) 62%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 58%, var(--nf-surface-canvas)) 0%,
+      color-mix(in oklab, var(--nf-container-ink) 34%, var(--nf-surface-canvas)) 100%
+    );
+  }
+
+  /* THE TRAY: the same glass, a clean grid of line glyphs. */
+  .nf-dockmore__tray {
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-2xl);
+  }
+  .nf-dockmore__item {
+    gap: var(--nf-space-2xs);
+    min-height: 4.5rem;
+    border: 1px solid transparent;
+  }
+  .nf-dockmore__item:hover {
+    background: color-mix(in oklab, var(--nf-container-ink) 14%, transparent);
+  }
+  .nf-dockmore__glyph {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-container-ink) 16%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-container-ink) 34%, transparent);
+    color: color-mix(in oklab, var(--nf-brand-quiet) 70%, var(--nf-content-primary));
+  }
+  .nf-dockmore__glyph > svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .nf-dockmore__label {
+    color: color-mix(in oklab, var(--nf-content-primary) 82%, transparent);
+  }
+  .nf-dockmore__item[aria-current="page"] {
+    border-color: color-mix(in oklab, var(--nf-container-ink) 55%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 40%, var(--nf-surface-canvas)) 0%,
+      color-mix(in oklab, var(--nf-container-ink) 22%, var(--nf-surface-canvas)) 100%
+    );
+  }
+  .nf-dockmore__item[aria-current="page"] :is(.nf-dockmore__glyph, .nf-dockmore__label) {
+    color: var(--nf-content-primary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dock-plus,
+    .nf-tabbar .nf-tab__link {
+      transition: none;
+    }
+    .nf-tab__link--create:active .nf-dock-plus,
+    .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus {
+      transform: none;
+    }
+  }
+}

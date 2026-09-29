@@ -1,4 +1,4 @@
-import { UI_ICON_STROKE_PX } from "@/design-system/icons/UiIcon";
+import { uiIconStrokeWidth } from "@/design-system/icons/UiIcon";
 
 /**
  * Feature icons that move once (Track M).
@@ -47,7 +47,7 @@ export function FeatureGlyph({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={(UI_ICON_STROKE_PX * 24) / size}
+      strokeWidth={uiIconStrokeWidth(size)}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

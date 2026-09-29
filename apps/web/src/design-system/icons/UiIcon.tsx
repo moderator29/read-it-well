@@ -39,7 +39,7 @@ import { useId } from "react";
  * 24 (32 on its 512 grid), which is the weight being left behind; Phosphor
  * Bold is a heavier 2.25 on rounder, wider geometry that would have meant a
  * second redraw of all ninety glyphs in a week. `UI_ICON_STROKE_PX` below is
- * 2, computed per size so a glyph renders the same line at every step.
+ * 2 at the 20 and 24 steps, scaled optically per size by `uiIconStrokeWidth`.
  *
  * `docs/ICON_SYSTEM.md` carries the scale, the weight and the filled twins.
  */
@@ -1007,7 +1007,7 @@ const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
   },
   kitchen: {
     body: <path d="M5 6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6Z" />,
-    cut: <path d="M5 10h14M15 7v0M15 13v3" />,
+    cut: <path d="M5 10h14M15 6v1.5M15 12.5v3" />,
   },
   droplet: { body: PATHS.droplet },
   certificate: {
@@ -1045,8 +1045,8 @@ const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
  * 12 left the scale once, on the argument that a stroked glyph on a 24 grid
  * renders a 0.7 CSS pixel line at 12px. That was true of a FIXED
  * `strokeWidth`, and it had already been fixed: `strokeWidth` is computed per
- * size, `(UI_ICON_STROKE_PX * 24) / edge`, so 12px renders 1.5 CSS px like
- * every other step. 12 is also the second most requested size in the product
+ * size (`uiIconStrokeWidth` below), so 12px renders a real 1.5 CSS px line
+ * rather than a hairline. 12 is also the second most requested size in the product
  * (35 of 197 explicit call sites when counted), so it came back.
  * `docs/ICON_SYSTEM.md` carries the longer account.
  */
@@ -1079,12 +1079,42 @@ export type IconSize = keyof typeof ICON_SIZE;
  * number on the 24 grid. `strokeWidth` is in viewBox units, so a fixed number
  * renders thinner the smaller the glyph; the grid number is derived from the
  * size instead, and every stroked glyph on the platform renders this many CSS
- * pixels at every step. 1.5 is the thin, even line of the founder's
- * references (SF Symbols regular, Lucide and Phosphor at their light
- * settings), and it is what the sibling glyph components (`LineGlyph`,
- * `SettingsGlyph`, `AdminGlyph`, `FeatureGlyph`) import, so they stay matched.
+ * pixels at every step. 2 is the bold, even line of the founder's
+ * 29 September target (pump.fun's app icons, about 2 to 2.25 at 24) and the
+ * weight Lucide's geometry is drawn for. It was 1.5 until then, the thin line
+ * of SF Symbols regular, which read as hesitant beside the bold type. The
+ * sibling glyph components (`LineGlyph`, `SettingsGlyph`, `FeatureGlyph`)
+ * take their width from `uiIconStrokeWidth`, so they went bold with the set
+ * and stay matched.
+ *
+ * SCALED BY SIZE, OPTICALLY. One fixed pixel weight at every step clogs the
+ * small steps (2px on a 12px glyph is a third of a counter) and starves the
+ * display step; one fixed grid number does the opposite. The rendered line
+ * therefore steps with the size, on quarter pixels so it lands on the device
+ * grid at 2x: 1.5 at 12, 1.75 at 16, 2 at 20 and 24 (the reference), then a
+ * quarter more per step to 2.75 at 40.
  */
-export const UI_ICON_STROKE_PX = 1.5;
+export const UI_ICON_STROKE_PX = 2;
+
+export const UI_ICON_STROKE_BY_EDGE: Record<UiIconSize, number> = {
+  12: 1.5,
+  16: 1.75,
+  20: UI_ICON_STROKE_PX,
+  24: UI_ICON_STROKE_PX,
+  28: 2.25,
+  32: 2.5,
+  40: 2.75,
+};
+
+/**
+ * The `strokeWidth` (in 24-grid units) that renders the set's weight at a
+ * rendered edge of `size` CSS px. Any size is accepted: the weight comes from
+ * the nearest step and the grid number from the true size, so an off-scale
+ * glyph still draws the family's line.
+ */
+export function uiIconStrokeWidth(size: number): number {
+  return (UI_ICON_STROKE_BY_EDGE[snapUiIconSize(size)] * 24) / size;
+}
 
 /**
  * Symbol effects: a class, not a prop-driven animation, so it costs nothing
@@ -1141,7 +1171,7 @@ export function UiIcon({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={(UI_ICON_STROKE_PX * 24) / edge}
+      strokeWidth={uiIconStrokeWidth(edge)}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={[

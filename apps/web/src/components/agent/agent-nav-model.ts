@@ -101,3 +101,25 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
      */
   ];
 }
+
+/**
+ * The bar's title for a workspace address: the row's own label where the
+ * address is a row, and the few screens that are not rows by their own name.
+ * The workspace's name is the last resort, never a blank bar.
+ */
+export function agentTitleFor(t: Dictionary, active: string): string {
+  for (const section of buildAgentNav(t)) {
+    const hit = section.items.find((item) => item.href === active);
+    if (hit) return hit.label;
+  }
+  switch (active) {
+    case "/agent/list":
+      return t.agentListings.workspace.start;
+    case "/agent/notifications":
+      return t.nav.notifications;
+    case "/agent/firm":
+      return t.frontDoor.firm.title;
+    default:
+      return t.agent.mode.agent;
+  }
+}

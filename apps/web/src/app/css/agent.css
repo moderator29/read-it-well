@@ -50,59 +50,131 @@
     color: var(--nf-content-primary);
   }
 
-  /* The top bar's search well, in the same material as the console's. */
-  .nf-agent-bar__search {
-    position: relative;
-    display: none;
-    flex: 1 1 auto;
+  /* ----------------------------------------------- the workspace header
+
+     `WorkspaceHeader`, drawn by the agent console and the host console
+     alike: back, the drawer toggle, the page's title and the bell, on one
+     row. No lockup, no pill, no language (founder, 29 September 2026). The
+     bar's glass is the platform's chrome (`nf-glass--chrome`); this is only
+     the row and its three kinds of object. */
+  .nf-ws-bar__row {
+    display: flex;
     align-items: center;
-    max-width: 28rem;
+    gap: var(--nf-space-2xs);
+    height: var(--nf-header-height-sm);
+    padding-inline: var(--nf-space-xs) var(--nf-space-sm);
   }
   @media (min-width: 640px) {
-    .nf-agent-bar__search {
-      display: flex;
+    .nf-ws-bar__row {
+      gap: var(--nf-space-xs);
+      padding-inline: var(--nf-space-md) var(--nf-space-lg);
     }
   }
-  .nf-agent-bar__search input {
+  /* Back and the toggle: bare glyphs on a 44px target, like the back arrow
+     everywhere else (`BackButton`). A plate around them is the boxed look
+     reference 24 was taken to show. */
+  .nf-ws-bar__btn {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-content-primary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-ws-bar__btn:hover {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-ws-bar__title {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    padding-inline-start: var(--nf-space-3xs);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    letter-spacing: var(--nf-tracking-tight);
+    line-height: 1.2;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--nf-content-primary);
+  }
+  /* THE BELL, to reference 23: a bold line bell of about 22px with nothing
+     drawn around it and a small dot for unread. The glyph is the 24 step
+     drawn into a 22px box, and its line is set heavier than the icon
+     system's hairline because this one object is meant to read as bold. */
+  .nf-ws-bell {
+    position: relative;
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-content-primary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-ws-bell:hover {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-ws-bell__glyph {
+    width: 1.375rem;
+    height: 1.375rem;
+    stroke-width: 2.1;
+  }
+  .nf-ws-bell__dot {
+    position: absolute;
+    top: 0.6875rem;
+    right: 0.6875rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    /* The platform's unread mark, the same token as the app header's dot. */
+    background: var(--nf-mark-unread);
+    box-shadow: 0 0 0 2px var(--nf-surface-canvas);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-ws-bar__btn,
+    .nf-ws-bell {
+      transition: none;
+    }
+  }
+
+  /* My listings' search: the well that used to sit in the workspace bar,
+     now on the one screen it ever searched. Same field material. */
+  .nf-agent-find {
+    position: relative;
+    display: flex;
+    align-items: center;
+    max-width: 28rem;
+    margin-bottom: var(--nf-space-md);
+  }
+  .nf-agent-find input {
     width: 100%;
-    /* 44px, the platform's target floor (audit 2 follow-up; it was 40). */
+    /* 44px, the platform's target floor. */
     min-height: 2.75rem;
     padding: var(--nf-space-2xs) var(--nf-space-sm) var(--nf-space-2xs) 2.5rem;
-    /* The shared field material (controls.css `.nf-field`, Phase 1): the
-       glass door fill over the well, the panel edge, the lit rim. */
     border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: var(--nf-btn-glass-fill), var(--nf-well-fill);
     color: var(--nf-content-primary);
-    font-size: var(--nf-text-body-sm);
+    /* 16px: a focused field under 16px makes iOS Safari zoom the page. */
+    font-size: var(--nf-text-body);
     box-shadow:
       inset 0 1px 3px var(--nf-shade-2),
       var(--nf-rim-lit);
   }
-  .nf-agent-bar__search input:focus {
+  .nf-agent-find input:focus {
     outline: none;
     border-color: var(--nf-focus-ring);
     box-shadow: var(--nf-selected-rim), 0 0 0 3px var(--nf-glow-2);
   }
-  .nf-agent-bar__glyph {
+  .nf-agent-find__glyph {
     position: absolute;
     left: var(--nf-space-xs);
     color: var(--nf-content-muted);
     pointer-events: none;
-  }
-  /* The signed-in agent's initial, the same plate the console bar uses. */
-  .nf-agent-bar__avatar {
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-brand-tint-2);
-    color: var(--nf-content-primary);
-    font-size: var(--nf-text-caption);
-    font-weight: 700;
   }
 
   /* The mode picker's options are `Panel` cards; the one in force wears the

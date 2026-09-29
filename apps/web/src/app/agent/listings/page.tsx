@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { listingBoardIsOn } from "@/lib/listings/board-queries";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AgentShell } from "@/components/agent/AgentShell";
 import {
   agentProfileFrom,
@@ -103,6 +104,19 @@ export default async function Page({
           </ButtonLink>
         )}
       </div>
+
+      {/* The search that used to sit in the workspace bar, on the one screen
+          it ever searched. A real GET form, so `?q=` narrows server side. */}
+      <form action="/agent/listings" method="get" role="search" className="nf-agent-find">
+        <UiIcon name="search" size={20} className="nf-agent-find__glyph" />
+        <input
+          type="search"
+          name="q"
+          defaultValue={query}
+          aria-label={t.common.search}
+          placeholder={`${t.common.search} ${t.agent.nav.myListings.toLowerCase()}`}
+        />
+      </form>
 
       <ListingsWorkspace
         t={t.agentListings}

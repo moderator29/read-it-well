@@ -293,53 +293,17 @@
 
   /* ------------------------------------------------------------------
    * THE DOCK IN DAYLIGHT: A NEON NAVY CAPSULE (the founder, 29 September
-   * 2026). `MobileTabBar` wraps the capsule and the More button in
-   * `data-theme="dark"` in both themes, so they take the night palette; in
-   * light the capsule is lifted a step further so it reads as the brand's
-   * one lit object at the foot of a white page: a navy-to-blue glass fill,
-   * a highlight along its top, a soft blue edge glow, white icons and
-   * labels, and the current tab a brighter blue pill with its white filled
-   * glyph. The centre switch and the round More button share the fill. At
-   * night none of this applies and the dock is exactly as it was.
+   * 2026). The dock is a night island in both themes (`MobileTabBar`), and
+   * its whole material is in shell-m.css ("THE DOCK"). In light the fill is
+   * lifted one step bluer, so it reads as the brand's one lit object at the
+   * foot of a white page, and the shadow under it is blue rather than
+   * black, which on white would read as dirt. The More tray takes the same
+   * fill, so the capsule, the round button and the tray are one material.
    * ---------------------------------------------------------------- */
-  :root[data-theme="light"] [data-theme="dark"] :is(.nf-tabbar, .nf-dock-island) {
-    border-color: color-mix(in oklab, var(--nf-container-ink) 70%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-content-primary) 10%, transparent) 0%,
-        transparent 38%
-      ),
-      linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--nf-container-ink) 26%, var(--nf-surface-canvas)) 0%,
-        color-mix(in oklab, var(--nf-container-ink) 44%, var(--nf-surface-canvas)) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 22%, transparent),
-      0 0 0 1px color-mix(in oklab, var(--nf-container-ink) 25%, transparent),
-      0 0 18px -6px var(--nf-glow-3),
-      0 14px 30px -16px color-mix(in oklab, var(--nf-container-ink) 80%, transparent);
-  }
-  :root[data-theme="light"] [data-theme="dark"] .nf-tab__link,
-  :root[data-theme="light"] [data-theme="dark"] .nf-dock-island {
-    color: var(--nf-content-primary);
-  }
-  :root[data-theme="light"] [data-theme="dark"] .nf-tabbar__pill {
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-container-ink) 80%, var(--nf-content-primary)) 0%,
-      var(--nf-container-ink) 100%
-    );
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 35%, transparent),
-      0 0 14px -4px var(--nf-glow-3);
-  }
-  :root[data-theme="light"] [data-theme="dark"] :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]),
-  :root[data-theme="light"] [data-theme="dark"] :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]) .nf-tab__icon {
-    color: var(--nf-content-primary);
-    text-shadow: none;
-    filter: none;
+  :root[data-theme="light"] [data-theme="dark"] :is(.nf-tabbar, .nf-dock-island, .nf-dockmore__tray) {
+    --nf-dock-fill-top: color-mix(in oklab, var(--nf-container-ink) 34%, var(--nf-surface-canvas));
+    --nf-dock-fill-foot: color-mix(in oklab, var(--nf-container-ink) 18%, var(--nf-surface-canvas));
+    --nf-dock-drop: 0 14px 30px -14px color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
   }
 
   /* ------------------------------------------------------------------

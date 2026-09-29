@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { UI_ICON_STROKE_PX, UiIcon, snapUiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon, snapUiIconSize, uiIconStrokeWidth, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
  * The console's own line glyphs: the rail rows and card marks the governing
@@ -7,7 +7,7 @@ import { UI_ICON_STROKE_PX, UiIcon, snapUiIconSize, type UiIconName } from "@/de
  * a ticked square, the naira square, a bar chart, the alert marks).
  *
  * Drawn in the same house style as `UiIcon` so they sit beside it without a
- * seam: a 24 unit box, round caps and joins, and the same 1.5px on-screen
+ * seam: a 24 unit box, round caps and joins, and the same on-screen
  * stroke at every size. They live here rather than in the design system
  * because they are console-only so far; if they earn a
  * place in the shared set, they move there whole.
@@ -153,7 +153,7 @@ export function AdminGlyph({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={(UI_ICON_STROKE_PX * 24) / edge}
+      strokeWidth={uiIconStrokeWidth(edge)}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}

@@ -614,7 +614,7 @@ export function ListingsWorkspace({
   reference: Dictionary["listingReference"];
   listings: ListingSummary[];
   locale: Locale;
-  /** The top bar's search term. Narrows by title; empty shows everything. */
+  /** The page's search term (`?q=`). Narrows by title; empty shows everything. */
   query?: string;
   /**
    * V-08, "Print or paint your board". Present only while
