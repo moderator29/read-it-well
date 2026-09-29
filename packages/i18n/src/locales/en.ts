@@ -938,7 +938,7 @@ export const en = {
       },
       app: {
         title: "Take Vallo with you.",
-        body: "Both sides in your pocket: property to rent or buy, and stays and tables to book. Vallo installs from your browser on iPhone and Android.",
+        body: "Both sides in your pocket: property to rent or buy, and stays and tables to book.",
         /*
          * The store badges' own wording, which is set by Apple's and Google's
          * guidelines rather than by us: "Download on the / App Store" and
@@ -957,12 +957,11 @@ export const en = {
            answer already says. */
         eyebrow: "On your phone",
         installTitle: "Add it to your home screen",
-        installBody: "Open Vallo in your phone's browser and choose Add to Home Screen from the browser menu. No download needed.",
+        installBody: "Open Vallo in your phone's browser and choose Add to Home Screen (on iPhone, from the Share button). No download needed.",
         /* STORE-06 / UI-07: "Full access to all features" and "Secure and
            fast" were claims nothing backs, and they are gone. */
         points: {
-          notify: "Instant notifications",
-          design: "Beautiful, intuitive design",
+          notify: "Notifications for replies, bookings and payments",
           sides: "Property and stays on the same account",
           record: "Messages, agreements and bookings kept on the record",
         },
@@ -1006,10 +1005,10 @@ export const en = {
      *
      * IT IS NOW READ BY EXACTLY ONE SURFACE: the lockup on the auth screens.
      * It used to be read by three. The metadata moved to the approved position
-     * on 22 September, and the landing's phone mock moved to `appMockLine`
-     * below, because that mock is a picture OF THE APP on the marketing front
-     * page and it was the last place the retired positioning still showed to a
-     * visitor.
+     * on 22 September, and the landing's phone mock moved to a key of its own,
+     * because that mock was a picture OF THE APP on the marketing front page
+     * and the last place the retired positioning still showed to a visitor.
+     * The mock and its key were deleted on 29 September with the phones.
      *
      * WHETHER THE AUTH LOCKUP KEEPS IT IS THE FOUNDER'S CALL AND IT IS IN THE
      * LEDGER. "Real Estate reimagined!" is the OLD positioning line, and this
@@ -1020,17 +1019,6 @@ export const en = {
      * rules, without dragging the auth screen along by accident.
      */
     slogan: "Real Estate reimagined!",
-    /*
-     * The line inside the landing's phone mock, which is a picture of the
-     * product shown to somebody who has never opened it. It says what the
-     * product is FOR, which since 22 September is the approved position. It is
-     * its own key rather than a reference to `face.hero` so that the mock can
-     * be composed for its own narrow box without editing the headline, and its
-     * own key rather than `slogan` so the auth lockup can hold a different
-     * decision. Same three words as the headline and the search control, which
-     * `headline-coupling.test.ts` holds.
-     */
-    appMockLine: "Rent, buy or stay. Without the runaround.",
     /*
      * The property card's own words. Small on purpose: a card is read at a
      * glance and every one of these is one or two words on a 390px grid cell.

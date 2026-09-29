@@ -110,6 +110,18 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 
+  /* "Instant" (29 September): the word promises speed, so it is a claim word
+     now. Instant book is a listing setting, the boolean the lister turns on,
+     and the words below only ever name that setting; the assistant's "I
+     answer instantly" is its own reply, drawn from local notes with no
+     queue in front of it. Anything else "instant" (notifications, payouts,
+     approvals) has to name its mechanism here first. */
+  {
+    phrase: /^instant(?: book)?(?: available| only| against a request)?\.?$|\binstant book only\b/i,
+    mechanism: "listings.instant_book (supabase/migrations/20260728152229_listings_core.sql), set by the lister; with it on a guest pays without waiting for the lister to accept",
+  },
+  { phrase: /\bI answer instantly\b/i, mechanism: "the support assistant answers from its local notes (lib/support/faq.ts) in the same request; anything beyond them goes to the human team, who reply by email" },
+
   /* Sentences deleted on the release branch by another change. */
   { phrase: /^secure and fast$/i, mechanism: "none", pendingRemoval: "STORE-06, fix/a4 b36e00e2 (already integrated)" },
 ];

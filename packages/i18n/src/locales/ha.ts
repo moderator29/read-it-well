@@ -497,7 +497,6 @@ export const ha: Dictionary = withFallback({
         rightTitle: "Tafiyar gidanka, yanzu a waya.",
         points: {
           notify: "Sanarwa nan take",
-          design: "An yi don hannu ɗaya",
         },
       },
       footer: {
@@ -522,7 +521,6 @@ export const ha: Dictionary = withFallback({
     /* Not translated, like the slogan and for the same reason: it is the
        approved position and it carries the same three words as the search
        control on every locale. */
-    appMockLine: "Rent, buy or stay. Without the runaround.",
     card: {
       moveIn: "don shiga",
       rent: "Haya",

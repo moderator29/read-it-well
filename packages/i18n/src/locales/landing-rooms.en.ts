@@ -111,11 +111,11 @@ export const landingRoomsEn = {
     join: "Create your account",
   },
   /*
-   * The journey (Track M, second pass): four chapters told down the page
-   * beside one phone. The money chapters' bodies are NOT here: Inspect,
+   * The journey (Track M, second pass; no phone since 29 September): four
+   * numbered step cards. The money chapters' bodies are NOT here: Inspect,
    * Agree and Move in print `NO_INSPECTION_FEE`, `PAYMENT_GATE_SENTENCE` and
-   * `NO_CUSTODY_SENTENCE` from `lib/money/copy.ts`. The screen labels are
-   * the few words drawn inside the phone.
+   * `NO_CUSTODY_SENTENCE` from `lib/money/copy.ts`. The `screen` labels are
+   * the few product words shown as small chips on each card.
    */
   journey: {
     overline: "From search to keys",
@@ -131,14 +131,11 @@ export const landingRoomsEn = {
       search: "Search Lagos",
       inspection: "Inspection",
       booked: "Booked",
-      noFee: "No inspection fee",
-      agreement: "Agreement",
       you: "You",
       owner: "Owner",
       approved: "Approved by Vallo",
       paid: "Paid",
       theirBank: "Straight to their bank",
-      keys: "Keys",
     },
   },
   bento: {

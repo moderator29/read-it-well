@@ -44,7 +44,7 @@ export function PlacesBand({ t }: { t: Dictionary }) {
           {p.cta}
         </ButtonLink>
       </SectionHead>
-      <VerticalColumns photos={WALL} />
+      <VerticalColumns photos={WALL} pauseLabel={p.pause} playLabel={p.play} />
     </section>
   );
 }

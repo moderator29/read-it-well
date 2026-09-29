@@ -492,7 +492,6 @@ export const yo: Dictionary = withFallback({
         rightTitle: "Ìrìn àjò ohun ìní rẹ, báyìí lórí fóònù.",
         points: {
           notify: "Ìfitónilétí lẹ́sẹ̀kẹsẹ̀",
-          design: "A ṣe fún ọwọ́ kan",
         },
       },
       footer: {
@@ -517,7 +516,6 @@ export const yo: Dictionary = withFallback({
     /* Not translated, like the slogan and for the same reason: it is the
        approved position and it carries the same three words as the search
        control on every locale. */
-    appMockLine: "Rent, buy or stay. Without the runaround.",
     card: {
       moveIn: "láti wọlé",
       rent: "Owó ilé",

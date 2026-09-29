@@ -494,7 +494,6 @@ export const ig: Dictionary = withFallback({
         rightTitle: "Njem ụlọ gị, ugbu a na ekwentị.",
         points: {
           notify: "Ọkwa ozugbo",
-          design: "Emere maka otu aka",
         },
       },
       footer: {
@@ -519,7 +518,6 @@ export const ig: Dictionary = withFallback({
     /* Not translated, like the slogan and for the same reason: it is the
        approved position and it carries the same three words as the search
        control on every locale. */
-    appMockLine: "Rent, buy or stay. Without the runaround.",
     card: {
       moveIn: "maka mbata",
       rent: "Ego ụlọ",

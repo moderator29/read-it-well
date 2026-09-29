@@ -133,6 +133,21 @@
   .nf-landing .nf-btn--primary::after {
     opacity: 0.35;
   }
+  /*
+   * NO RUNNING EDGE LIGHT ON THE LANDING'S BUTTONS. The platform draws a
+   * short line of light that laps every button's rim (edge-m.css, the long
+   * edge runner on `::before`). On the landing's secondary buttons, over the
+   * white card and the night photograph alike, a still frame of it reads as
+   * a stray blue bar under "Explore Stays" (the audit found it in the hero
+   * at 390 and in the closing call to action at 1440), and on a page the
+   * founder asked to carry less glow it is one more moving light per
+   * button. Scoped to the landing; everywhere else keeps its runner. Small
+   * buttons are left alone: their `::before` is the 44pt touch target.
+   */
+  .nf-landing .nf-btn:not(.nf-btn--sm)::before {
+    content: none;
+    animation: none;
+  }
 
   /*
    * ONE ENTRANCE TEMPO. The shared scroll reveal runs 520ms; on the landing

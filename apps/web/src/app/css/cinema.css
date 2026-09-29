@@ -47,8 +47,41 @@
   .nf-vcols[data-playing="true"] .nf-vcols__strip {
     animation-play-state: running;
   }
-  .nf-vcols:hover .nf-vcols__strip {
+  .nf-vcols:hover .nf-vcols__strip,
+  .nf-vcols:focus-within .nf-vcols__strip,
+  .nf-vcols-host:focus-within .nf-vcols__strip {
     animation-play-state: paused;
+  }
+  /* The wall and its pause toggle, which sits in the wall's foot corner
+     above the fade. */
+  .nf-vcols-host {
+    position: relative;
+  }
+  .nf-vcols__toggle {
+    position: absolute;
+    right: var(--nf-space-sm);
+    bottom: var(--nf-space-sm);
+    z-index: 1;
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-glass-fill-strong);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    color: var(--nf-content-primary);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-vcols__toggle:hover {
+      border-color: var(--nf-brand-edge);
+    }
+  }
+  .nf-vcols__toggle:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
   }
   @keyframes nf-vcol-up {
     to {
