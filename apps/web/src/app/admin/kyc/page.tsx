@@ -11,6 +11,8 @@ import { Panel } from "../_review/parts";
 import { ageShort } from "../_review/metrics";
 import { LiveRefresh } from "../_review/LiveRefresh";
 import { KIND_LABEL, SUBTYPE_LABEL, SubjectCard } from "./SubjectCard";
+import { InternalNotes } from "../_components/InternalNotes";
+import { notesOf, readMemberNotesFor } from "@/lib/admin/notes";
 import { VerificationDesk, type RecentDecision, type VerificationRow } from "./VerificationDesk";
 import "../_review/review.css";
 
@@ -98,7 +100,12 @@ export default async function AdminKycPage({
   const { waiting, decided } = read.data;
   const now = nowMs();
   const waitingIds = waiting.map((subject) => subject.userId).filter((id): id is string => Boolean(id));
-  const [roles, badges] = await Promise.all([getSupplyRoles(waitingIds), getBadgeTiers(waitingIds)]);
+  /* Every waiting person's internal notes in one read, not one per row. */
+  const [roles, badges, notes] = await Promise.all([
+    getSupplyRoles(waitingIds),
+    getBadgeTiers(waitingIds),
+    readMemberNotesFor(waitingIds),
+  ]);
   const ROLE_WORD = { owner: "Owner", agent: "Agent", firm: "Firm" } as const;
   const toRow = (subject: KycSubjectView, decidable: boolean): VerificationRow => {
     const latest = subject.documents.reduce<string | null>(
@@ -118,7 +125,14 @@ export default async function AdminKycPage({
       rungsPassed: subject.rungs.filter((rung) => rung.status === "passed").length,
       submitted: latest ? ui.when(latest) : common.notRecorded,
       pending: subject.documents.filter((doc) => doc.reviewStatus === "pending").length,
-      body: <SubjectCard subject={subject} ui={ui} decidable={decidable} />,
+      body: (
+        <>
+          <SubjectCard subject={subject} ui={ui} decidable={decidable} />
+          {decidable && subject.userId ? (
+            <InternalNotes subjectId={subject.userId} path="/admin/kyc" preloaded={notesOf(notes, subject.userId)} />
+          ) : null}
+        </>
+      ),
     };
   };
 

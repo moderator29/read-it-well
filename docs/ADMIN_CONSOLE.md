@@ -13,18 +13,117 @@ the desks live in `apps/web/src/lib/admin/**`, which the other session owns;
 where a desk needs something that layer does not return yet, the gap is named
 here and raised as a request in the scope file.
 
+## 0. The team console (29 September 2026)
+
+The console is run by a team, not only by admins. This section is what
+changed and where each piece lives; the desks themselves are described from
+section 1 on.
+
+**Staff scopes.** A super admin grants a person one or more scopes at
+Settings > Staff (`/admin/staff`). A scope opens exactly one area, and a
+desk that asks for no scope is closed to every staff member. Admins and super
+admins hold every scope.
+
+| Scope | Opens |
+|---|---|
+| `listing_approval` | Listings (`/admin/listings`) |
+| `kyc_review` | Verification (`/admin/kyc`) and filed identity documents |
+| `moderation` | The moderation lanes of the Unified queue (`/admin/queue`) |
+| `support` | Support (`/admin/support`) |
+| `agreements` | Agreements (`/admin/agreements`) |
+| `guarantee` | Guarantee claims (`/admin/agreements#claims`) |
+| `finance` | Money (`/admin/money`, read only) and Payments (`/admin/payments`) |
+| `compliance` | Compliance (`/admin/compliance`) and the audit log export |
+| `operations` | Operations, Alerts, Bookings and Team oversight |
+
+A CFO or a compliance officer is therefore never made a full admin to see
+their own area. Nobody decides their own case: a reviewer cannot approve
+their own listing, application or identity check (the app refuses, and a
+database trigger refuses again).
+
+**Named positions.** A grant can carry a position: Moderator, Support Agent,
+KYC Reviewer, Listings Reviewer, Agreements Officer, Head of Trust and
+Safety, Compliance Officer, Finance Officer, Operations Manager, Chief
+Financial Officer, Chief Operating Officer, Chief Executive Officer. Each
+comes with a default bundle of scopes (the super admin may add or remove
+any) and a job description, which is sent in the access email and shown to
+the holder at Handbook > Your role (`/admin/handbook/position`). The list
+lives in `lib/admin/staff-positions.ts` and the database
+(`private.staff_position_scopes`); a test keeps the two identical.
+
+**The staff directory** (`/admin/staff`) lists every admin, super admin and
+staff member, with their position and scopes, who granted and who revoked
+them, and when each was last active.
+
+**Queues for a team.**
+- Counts on the rail and the Unified queue count only the work your scopes
+  reach, and its tabs show only the lanes you may decide.
+- Claims are binding: a claimed item can be decided only by the person who
+  holds it (or an admin who reassigns it). Two people deciding the same item
+  at once cannot overwrite each other: the second is told it was decided
+  elsewhere.
+- New work in a scoped queue notifies the people who hold that scope.
+- A reason is required for every listing rejection (at least eight
+  characters), every report dismissal (at least eight characters) and every
+  ticket closure. The reason is kept on the record and in the audit log.
+- Held posts are decided through `moderation_decide`, which stamps who
+  decided and when.
+
+**Internal notes.** The support ticket, the person file and the listing
+under review carry internal notes (`member_notes`). A note is never shown to
+the member, and it is visible only to the desk it was written on (and to
+admins).
+
+**Team oversight** (`/admin/oversight`, operations scope): who decided what,
+how long each queue waits, and SLA breaches, per person and per desk.
+
+**CSV exports.** Money (`/admin/money/export`, finance), the audit log
+(`/admin/audit/export`, compliance) and team oversight
+(`/admin/oversight/export`, operations). Every export is itself written to
+the audit log, and every cell is neutralised against spreadsheet formula
+injection (`lib/admin/csv.ts`).
+
+**Audit that cannot be lost quietly.** An audit write that fails is retried;
+if it still fails, a critical `audit.write_failed` alert is raised on the
+Alerts desk rather than the failure being swallowed.
+
+**Staff sign-ins.** Every new session for a staff account writes a
+`staff.sign_in` row to the audit log with the network it came from and a
+hash of the browser. A sign-in from a network and device not seen for that
+account in 60 days notifies the account holder and every super admin.
+
+**Payments and earnings.** Members see their own history at `/payments`,
+agents at `/agent/earnings`, hosts at `/host/earnings`; the Money desk shows
+the platform-wide history with its CSV export. All of it is read from what
+already moved through Paystack; Vallo holds no customer money.
+
 ## 1. Before you start
 
 **Who can enter.** Anyone whose account holds the `admin` or `super_admin`
-role in `public.user_roles`. The check is `requireAdmin()` in
-`lib/admin/guard.ts`, called once in `app/admin/layout.tsx` before a single
-figure is read. Signed out, you are asked to sign in; signed in without the
-role, you see "This area is for the Vallo operations team" and nothing else.
-No console page renders its data for anyone else, and every read on the
-overview, operations and analytics desks runs through your own session, so
-the database's row level security (the `*_select_admin` and `*_admin_all`
-policies) decides what you may read, not the page. Roles are granted by a
-super admin; the console has no screen for granting them.
+role in `public.user_roles`, or a live staff grant (section 0) whose holder
+has acknowledged the current staff handbook. The check is `requireAdmin()` /
+`requireConsole()` in `lib/admin/guard.ts`, called in `app/admin/layout.tsx`
+before a single figure is read. Signed out, you are asked to sign in. Signed
+in without a role or a grant, `/admin` answers "not found", exactly as an
+address that does not exist would, so the console does not confirm it is
+there. Every read on the overview, operations and analytics desks runs
+through your own session, so the database's row level security decides what
+you may read, not the page.
+
+**Your security key, every sign-in.** A password alone never opens the
+console. Before any desk opens, every admin, super admin and staff member
+confirms with their security key (the passkey on their phone or computer,
+set up at Settings > Privacy), once per sign-in session and again after
+twelve hours (`app/admin/_components/ConsoleStepUp.tsx`). The database
+enforces it, not the page: `private.has_role` and `private.staff_can` treat
+your role or scope as held only while your session has a live proof in
+`public.console_step_ups` (migration `20260929122514`). A stolen password
+therefore reads exactly what an ordinary member reads, even straight through
+the API. A staff account's first key takes the password AND a code emailed
+to you; any later key, or removing one, takes an existing key; every key
+added to or removed from a staff account is written to the audit log and
+announced to its holder and every super admin. A lost key is reset by the
+founder from the database.
 
 **Where you land.** Entering the console always opens the Overview at
 `/admin`, including when you arrive by address. The first time in a browser

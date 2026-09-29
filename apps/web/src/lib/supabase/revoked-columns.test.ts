@@ -223,6 +223,9 @@ export function embedded(select: string): { table: Table; columns: string[] }[] 
   return out;
 }
 
+/** The point columns withPublicPoint rewrites to their public twins. */
+const REWRITTEN_POINT = new Set(["latitude", "longitude"]);
+
 /** Check one select on one table. */
 export function offences(
   where: string,
@@ -237,6 +240,10 @@ export function offences(
   const revoked = authRevoked.get(table) ?? new Set<string>();
   const anonReads = anon.tables.has(table) && !publicPoint && !signedInOnly;
   for (const column of columns) {
+    /* pointSelect / withPublicPoint send `latitude:latitude_public` and
+       `longitude:longitude_public` for every caller (29 September), so the
+       exact columns never reach PostgREST. `location` is not rewritten. */
+    if (publicPoint && REWRITTEN_POINT.has(column)) continue;
     if (column === "*") {
       if (authRevoked.has(table) || anonReads) found.push(`${where} ${table}: select * (step 2 revokes columns of this table)`);
     } else if (revoked.has(column)) {
@@ -315,10 +322,16 @@ async function scan(): Promise<string[]> {
 describe("no own-client read names a column the step-2 grants take away", () => {
   it("reads the revoked columns out of the step-2 migrations", () => {
     const auth = revokedFromAuthenticated();
-    expect(auth.get("listings")).toContain("ownership_verified_at");
-    expect(auth.get("listings")).toContain("mandate_verified_at");
+    /* 29 September: step 2 again. Members lose the private columns AND the
+       exact point; the "checked" marks stay public on purpose. */
+    expect(auth.get("listings")).toContain("address");
+    expect(auth.get("listings")).toContain("review_notes");
+    expect(auth.get("listings")).toContain("latitude");
+    expect(auth.get("listings")).not.toContain("ownership_verified_at");
     expect(auth.get("businesses")).toContain("verification_tier");
+    expect(auth.get("businesses")).toContain("tin");
     expect(auth.get("accommodations")).toContain("address");
+    expect(auth.get("catalogue_entries")).toContain("location");
     const anon = revokedFromAnon();
     expect([...anon.columns].sort()).toEqual(["latitude", "location", "longitude"]);
     expect(anon.tables).toContain("listings");
@@ -329,9 +342,11 @@ describe("no own-client read names a column the step-2 grants take away", () => 
     const anon = revokedFromAnon();
     const broke = "id,title,latitude,longitude,ownership_verified_at,mandate_verified_at,listing_photos(storage_path)";
     const found = offences("fixture", "listings", topLevelColumns(broke), false, false, auth, anon).join("\n");
-    expect(found).toMatch(/ownership_verified_at/);
-    expect(found).toMatch(/mandate_verified_at/);
-    expect(found).toMatch(/latitude: revoked from anon/);
+    expect(found).toMatch(/latitude: revoked from authenticated/);
+    expect(found).toMatch(/longitude: revoked from authenticated/);
+    /* The exact point through pointSelect is the public twin; location is not rewritten. */
+    expect(offences("fixture", "listings", topLevelColumns("id, latitude, longitude"), true, false, auth, anon)).toEqual([]);
+    expect(offences("fixture", "listings", topLevelColumns("id, location"), true, false, auth, anon)).toHaveLength(1);
     const nested = embedded("id, listings!inner(id, address), status");
     expect(offences("fixture", nested[0]!.table, nested[0]!.columns, false, false, auth, anon)).toHaveLength(1);
     expect(offences("fixture", "listings", topLevelColumns("id, latitude"), true, false, auth, anon)).toEqual([]);

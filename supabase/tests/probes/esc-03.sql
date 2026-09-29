@@ -26,9 +26,19 @@ declare
   s4 uuid := 'ed000000-0000-4000-8000-000000000018';
   rental uuid := 'ed000000-0000-4000-8000-000000000007';
   lagos date := (now() at time zone 'Africa/Lagos')::date;
-  claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated')::text;
+  claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text;
   b uuid; b_old uuid; b_paying uuid; b_capped uuid; d1 uuid; d2 uuid; bid uuid; ag uuid; amt bigint; g bigint; host uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'; insp uuid; r jsonb; st text;
 begin
+  -- 29 September: the console's second factor. An admin or a staff member
+  -- holds their role only on a session that proved a security key, so this
+  -- probe's session carries one for every admin and for the QA member (who
+  -- some probes make staff), rolled back with everything else.
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  select console_probe_uid, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
+    from (select user_id from public.user_roles where role in ('admin', 'super_admin')
+          union select '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'::uuid
+          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(console_probe_uid)
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
   -- approved mandate. The fixture files one as the platform would.
   insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,

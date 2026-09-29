@@ -10,10 +10,20 @@
  * what it did instead (the pending sheet, the refusal), so it is not passing
  * merely because it looked too early.
  */
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Page } from "playwright-core";
-import { closeBrowser, hasBrowser, mountInBrowser } from "@/lib/testing/mount-in-browser";
+import {
+  BROWSER_TEST_TIMEOUT,
+  closeBrowser,
+  hasBrowser,
+  mountInBrowser,
+  warmBrowser,
+} from "@/lib/testing/mount-in-browser";
 
+/* Every test here mounts a real bundle in Chromium: the browser starts in the
+   hook, and each test gets the budget its own waits add up to. */
+vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
+beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
 const SHEET = '[data-testid="success-sheet"]';

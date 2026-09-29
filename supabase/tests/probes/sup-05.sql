@@ -13,6 +13,16 @@ declare
   n int;
   r record;
 begin
+  -- 29 September: the console's second factor. An admin or a staff member
+  -- holds their role only on a session that proved a security key, so this
+  -- probe's session carries one for every admin and for the QA member (who
+  -- some probes make staff), rolled back with everything else.
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  select console_probe_uid, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
+    from (select user_id from public.user_roles where role in ('admin', 'super_admin')
+          union select '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'::uuid
+          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(console_probe_uid)
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- Somebody else's listing and document, for the two ownership refusals.
   select id into others_listing from public.listings limit 1;
   insert into public.agent_documents (uploader_id, kind, storage_path)
@@ -20,7 +30,7 @@ begin
   returning id into others_doc;
 
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- REFUSAL: an application filed already decided.
   begin
@@ -52,14 +62,14 @@ begin
   returning id into app;
 
   -- The admin sends it back, through their own client.
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.agent_applications
      set status = 'MORE_INFO_REQUIRED', reviewer_id = admin, reviewed_at = now(), review_notes = 'your bvn'
    where id = app;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL sup-05: admin send-back rows=%', n; end if;
 
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- REFUSALS: deciding or rewriting the review.
   begin update public.agent_applications set status = 'APPROVED' where id = app;
@@ -116,7 +126,7 @@ begin
   if n <> 0 then raise exception 'PROBE_FAIL sup-05: applicant edited while in review rows=%', n; end if;
 
   -- CONTROL: the admin approves.
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.agent_applications set status = 'APPROVED', reviewer_id = admin, reviewed_at = now(), review_notes = 'ok'
    where id = app;
   get diagnostics n = row_count;

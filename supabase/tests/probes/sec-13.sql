@@ -38,6 +38,16 @@ declare
   canon  text;
   rule   text;
 begin
+  -- 29 September: the console's second factor. An admin or a staff member
+  -- holds their role only on a session that proved a security key, so this
+  -- probe's session carries one for every admin and for the QA member (who
+  -- some probes make staff), rolled back with everything else.
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  select console_probe_uid, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
+    from (select user_id from public.user_roles where role in ('admin', 'super_admin')
+          union select '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'::uuid
+          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(console_probe_uid)
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
                           created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
   values
@@ -112,7 +122,7 @@ begin
 
   -- A member may still only ask about themself.
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', clean, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', clean, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     perform public.account_deletion_blockers(rich);
     raise exception 'PROBE_FAIL sec-13: a member read somebody else''s blockers';
@@ -223,7 +233,7 @@ begin
     raise exception 'PROBE_FAIL sec-13: the expired record is not listed with its file: %', due_j;
   end if;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     perform public.destroy_expired_kyc(agent);
     raise exception 'PROBE_FAIL sec-13: a signed-in caller destroyed a retained record';
@@ -243,7 +253,7 @@ begin
   -- 3c. A member cannot schedule the destruction of their own record: the
   -- applicant guard forces kyc_retain_until on insert and on update.
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   insert into public.agent_applications (user_id, status, kyc_retain_until)
   values (member, 'DRAFT', now() - interval '1 day') returning id into app_m;
   update public.agent_applications set kyc_retain_until = now() - interval '1 day' where id = app_m;
@@ -262,13 +272,13 @@ begin
   values (again, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
           'probecleansec13@gmail.com', '', now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.admin_erased_identity_matches() m
    where m.user_id = again and m.erased_user_id = clean;
   if n <> 1 then
     raise exception 'PROBE_FAIL sec-13: staff could not match the new account to the erased mailbox';
   end if;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     perform public.admin_erased_identity_matches();
     raise exception 'PROBE_FAIL sec-13: a member read the erased-mailbox matches';

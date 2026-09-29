@@ -16,7 +16,11 @@ const state = vi.hoisted(() => ({
   writeBookedNights: vi.fn(async () => undefined),
   announceConfirmedStay: vi.fn(async () => undefined),
   sent: vi.fn(async () => undefined),
+  /* An admin override needs the console's key proof (actsAsProvedAdmin). */
+  provedAdmin: false,
 }));
+
+vi.mock("../admin/guard", () => ({ actsAsProvedAdmin: async () => state.provedAdmin }));
 
 vi.mock("../actions/session", () => ({
   resolveSession: async () => state.session,
@@ -168,7 +172,8 @@ describe("cancel (the guest's own booking)", () => {
 });
 
 describe("confirm (the listing's agent, or an admin)", () => {
-  function setup(opts: { status?: string; agentUser?: string | null; roles?: string[] } = {}) {
+  function setup(opts: { status?: string; agentUser?: string | null; roles?: string[]; proved?: boolean } = {}) {
+    state.provedAdmin = (opts.roles ?? []).length > 0 && (opts.proved ?? true);
     const admin = fakeSupabase({
       bookings: {
         select: {
@@ -187,7 +192,6 @@ describe("confirm (the listing's agent, or an admin)", () => {
       listings: {
         select: { data: opts.agentUser === null ? null : { agent_id: "a1", agents: { user_id: opts.agentUser ?? AGENT_USER } } },
       },
-      user_roles: { select: { data: (opts.roles ?? []).map((role) => ({ role })) } },
     });
     state.admin = admin.client;
     return admin;
@@ -209,6 +213,13 @@ describe("confirm (the listing's agent, or an admin)", () => {
     signedIn(GUEST, fakeSupabase().client);
     expect(await confirm(BOOKING)).toMatchObject({ ok: true });
     expect(admin.of("bookings", "update")).toHaveLength(1);
+  });
+
+  it("refuses an admin whose session has not proved their security key, and writes nothing", async () => {
+    const admin = setup({ roles: ["admin"], proved: false });
+    signedIn(GUEST, fakeSupabase().client);
+    expect((await confirm(BOOKING)).ok).toBe(false);
+    expect(admin.of("bookings", "update")).toHaveLength(0);
   });
 
   it("refuses the guest (or anyone who is neither the agent nor an admin), and writes nothing", async () => {

@@ -5,9 +5,18 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterAll, describe, expect, it } from "vitest";
-import { closeBrowser, hasBrowser, mountInBrowser } from "@/lib/testing/mount-in-browser";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  BROWSER_TEST_TIMEOUT,
+  closeBrowser,
+  hasBrowser,
+  mountInBrowser,
+  warmBrowser,
+} from "@/lib/testing/mount-in-browser";
 
+/* The browser starts in the hook; each test gets the budget its mount needs. */
+vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
+beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
 /* The product's own stylesheet for this component, unwrapped from its layer,

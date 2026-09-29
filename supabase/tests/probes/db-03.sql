@@ -1,6 +1,8 @@
 -- DB-03 (with SUP-01): an agent's first save of a listing, in the exact
 -- shape PostgREST sends for `.insert({...}).select("id, status").single()`
--- (a data-modifying CTE with RETURNING), must succeed. Strangers still see
+-- (a data-modifying CTE whose RETURNING names only the selected columns:
+-- PostgREST never sends `RETURNING *`, and a member cannot select every
+-- column since DB-10 step 2), must succeed. Strangers still see
 -- and change nothing; a firm member sees the firm's listing without 42P17.
 --
 -- The QA member is made an ordinary agent inside the transaction, as an
@@ -18,6 +20,16 @@ declare
   st text;
   n int;
 begin
+  -- 29 September: the console's second factor. An admin or a staff member
+  -- holds their role only on a session that proved a security key, so this
+  -- probe's session carries one for every admin and for the QA member (who
+  -- some probes make staff), rolled back with everything else.
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  select console_probe_uid, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
+    from (select user_id from public.user_roles where role in ('admin', 'super_admin')
+          union select '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'::uuid
+          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(console_probe_uid)
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into public.agents (user_id, display_name) values (member, 'Probe DB-03 lister') returning id into agent;
   insert into public.agents (user_id, display_name) values (other, 'Probe DB-03 principal') returning id into other_agent;
   insert into public.businesses (owner_id, kind, name, slug, status)
@@ -28,7 +40,7 @@ begin
   values (firm_listing, other_agent, 'Probe DB-03 firm listing', 'apartment', 'DRAFT', firm, 'firm');
 
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- The app path: saveDraft's column set plus agent_id and status, RETURNING.
   -- supabase-js drops undefined keys, so only the columns a rent draft
@@ -47,7 +59,7 @@ begin
         'year', 15000000, 10000000, 5000000, 200000000,
         12, current_date, false,
         'NONE', true, agent, 'DRAFT')
-      returning *
+      returning public.listings.id, public.listings.status
     )
     select id, status::text into lid, st from pgrst_source;
   exception when others then
@@ -93,7 +105,7 @@ begin
   end;
 
   -- CONTROL: a stranger sees and changes nothing.
-  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.listings where id in (lid, firm_listing);
   if n <> 0 then raise exception 'PROBE_FAIL db-03: stranger sees drafts rows=%', n; end if;
   update public.listings set title = 'stranger' where id = lid;
@@ -101,7 +113,7 @@ begin
   if n <> 0 then raise exception 'PROBE_FAIL db-03: stranger update rows=%', n; end if;
 
   -- CONTROL: the lister deletes their own draft (deleteListing).
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   delete from public.listings where id = lid and agent_id = agent;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-03: owner delete own draft rows=%', n; end if;

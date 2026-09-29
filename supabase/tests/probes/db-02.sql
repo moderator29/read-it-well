@@ -17,11 +17,21 @@ declare
   r record;
   attack text;
 begin
+  -- 29 September: the console's second factor. An admin or a staff member
+  -- holds their role only on a session that proved a security key, so this
+  -- probe's session carries one for every admin and for the QA member (who
+  -- some probes make staff), rolled back with everything else.
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  select console_probe_uid, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
+    from (select user_id from public.user_roles where role in ('admin', 'super_admin')
+          union select '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'::uuid
+          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(console_probe_uid)
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into public.agents (user_id, display_name) values (member, 'Probe DB-02 lister')
   returning id into agent;
 
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- CONTROL: the wizard's first save shape (lib/agent/listings-actions.ts
   -- saveDraft), without RETURNING so this probe does not depend on DB-03.
@@ -55,9 +65,13 @@ begin
     physically_inspected_at, address_verified_at, verified_by, reviewed_at, reviewer_id, listing_fee_charged_at)
   values (forged, agent, 'Probe DB-02 stamped draft', 'apartment', 'DRAFT', true,
     now(), now(), member, now(), member, now());
+  -- Read as the service role: a member no longer selects moderator columns
+  -- (DB-10 step 2); what matters is what was stored.
+  reset role;
   select featured, physically_inspected_at, address_verified_at, verified_by, reviewed_at, reviewer_id,
          listing_fee_charged_at, listing_role::text as role
     into r from public.listings where id = forged;
+  set local role authenticated;
   if r.featured or r.physically_inspected_at is not null or r.address_verified_at is not null
      or r.verified_by is not null or r.reviewed_at is not null or r.reviewer_id is not null
      or r.listing_fee_charged_at is not null or r.role is distinct from 'agent' then
@@ -103,7 +117,7 @@ begin
   exception when insufficient_privilege then null; end;
 
   -- CONTROL: somebody else cannot touch it.
-  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.listings set description = 'stranger' where id = lid;
   get diagnostics n = row_count;
   if n <> 0 then raise exception 'PROBE_FAIL db-02: stranger update rows=%', n; end if;
@@ -119,7 +133,7 @@ begin
     from public.listings where id = lid and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
   set local role authenticated;
   -- CONTROL: the admin review (lib/admin/actions.ts) as authenticated.
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.listings set status = 'APPROVED', reviewer_id = admin, reviewed_at = now(), review_notes = 'probe'
    where id = lid;
   get diagnostics n = row_count;
@@ -138,7 +152,7 @@ begin
   end if;
 
   -- REFUSALS: the owner rewrites or reprices the live listing, or deletes it.
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     update public.listings set title = 'Pay the caution to 0123456789 GTB', description = 'transfer first',
            rent_amount_minor = 1 where id = lid;

@@ -43,6 +43,7 @@ import { isFeatureEnabled } from "../flags";
 import { checkConstraintMessage, NOT_LIVE_MESSAGE } from "./reserve-refusals";
 import { getListingRepository } from "../listings/repository";
 import { createAdminClient } from "../supabase/admin";
+import { actsAsProvedAdmin } from "../admin/guard";
 import {
   cancelInputSchema,
   lagosToday,
@@ -540,20 +541,17 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     // ------------------------------------------------- authorisation
     // listings.agent_id points at public.agents, whose user_id is the auth
     // user, so the ownership check walks that join.
-    const [{ data: listing }, { data: roles }] = await Promise.all([
+    const [{ data: listing }, provedAdmin] = await Promise.all([
       admin
         .from("listings")
         .select("agent_id, agents!listings_agent_id_fkey!inner(user_id)")
         .eq("id", booking.listing_id)
         .maybeSingle(),
-      admin
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .in("role", ["admin", "super_admin"]),
+      /* An admin override needs the console's key proof, not the role alone. */
+      actsAsProvedAdmin(),
     ]);
     const isAgent = listing?.agents?.user_id === session.user.id;
-    const isAdmin = (roles?.length ?? 0) > 0;
+    const isAdmin = provedAdmin;
     if (!isAgent && !isAdmin) {
       return fail(
         "Only the listing's agent or an administrator can confirm a booking. If this listing is yours, sign in with the account that hosts it.",
