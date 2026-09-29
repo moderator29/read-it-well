@@ -16,8 +16,17 @@ begin
   insert into public.agents (user_id, display_name) values (member, 'Probe NEW-A4-01 lister') returning id into agent;
   insert into public.listings (id, agent_id, title, property_type, status, listing_role, listing_intent,
                                rent_amount_minor, rent_period, latitude, longitude, state_code, city, area)
-  values (lid, agent, 'Probe NEW-A4-01', 'apartment', 'PUBLISHED', 'agent', 'rent',
+  values (lid, agent, 'Probe NEW-A4-01', 'apartment', 'DRAFT', 'agent', 'rent',
           150000000, 'year', 6.51234, 3.38765, 'LA', 'Lagos', 'Yaba');
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate, and a mandate needs its listing to exist, so the
+  -- fixture is filed as a draft, given a mandate as the platform would, then
+  -- published.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  values (lid, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now());
+  update public.listings set status = 'PUBLISHED' where id = lid;
 
   set local role anon;
   perform set_config('request.jwt.claims', '{"role":"anon"}', true);

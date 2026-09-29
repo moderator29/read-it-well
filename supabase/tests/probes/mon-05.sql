@@ -1,25 +1,54 @@
 -- MON-05 (with OPS-01), OPS-02 (a)(c), MON-P2-02, and V-33's card path: one
 -- SQL function settles a card charge under the booking's lock. The first
 -- matching charge settles and confirms; a replay moves nothing; a second
--- charge, a charge on a cancelled booking and a wrong amount go back to the
--- payer's wallet with an alert; a customer-borne fee is accepted; a paid
--- booking is refunded in parts in any status, bounded cumulatively across both
--- refund doors; a
--- card-paid rent charge credits the lister once, gross less the fee, and a
--- refund of it takes that back. API roles cannot call either door. Rolls back.
+-- charge, a charge on a cancelled booking and a wrong amount are marked for a
+-- refund to the card with an alert; a paid booking is refunded in parts in any
+-- status, bounded cumulatively across both refund doors; a card-paid rent
+-- charge settles the lister's share once, less the processor's fee, and a
+-- second charge on it settles nothing. API roles cannot call either door.
+-- Rolls back.
+--
+-- 29 September 2026: rewritten for Track A (docs/MONEY_ARCHITECTURE.md). There
+-- is no wallet: a charge that cannot be applied is now outcome 'refund-due'
+-- (the attempt FAILED, an alert, a refund to the card) instead of
+-- 'returned-to-wallet', and every charge is opened with its split and an
+-- approved agreement, as transactions_00_payment_gate requires, so the
+-- fixture files an approved deal_agreements row per booking. Replaced:
+-- "the duplicate went back to the wallet" is now "the duplicate is FAILED,
+-- refund-due, and writes no ledger row"; the duplicate's replay is checked
+-- after the app has marked it REFUNDED (what refundChargeToCard does), since a
+-- FAILED attempt is re-evaluated on replay by design; "refunds landed in the
+-- wallet" is now "the refunds are recorded for the card (booking_refunds,
+-- processor_status pending) and reversed in the ledger"; "the lister's wallet
+-- was credited gross less the fee" is now "the ledger row gives the lister the
+-- split's share less the processor's fee, once". Dropped: the customer-borne
+-- fee case (price plus fee is not a mismatch). The processor's fee is now
+-- borne by the lister's subaccount as the split's bearer, so the payer is
+-- charged the price exactly; price plus a fee is now an amount mismatch, and
+-- the fee is checked on the lister's share instead.
+-- The heal of a charge with no attempt row now records the charge and marks
+-- it refund-due ('no_split'): without an attempt there is no split to apply.
 do $$
 declare
   member uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
   admin  uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
   stay   uuid := 'ed000000-0000-4000-8000-000000000003';
   lagos  date := (now() at time zone 'Africa/Lagos')::date;
-  rate bigint; mw uuid; b1 uuid; b2 uuid; b3 uuid; b4 uuid; b5 uuid; rb uuid; b6 uuid; lw uuid; insp uuid; rtotal bigint; lbal0 bigint;
-  lister uuid := 'e0000000-0000-4000-8000-000000000001'; rental uuid := 'ed000000-0000-4000-8000-000000000007'; r jsonb; n int; bal bigint; st text;
+  gbps   int  := 150;
+  rate bigint; b1 uuid; b2 uuid; b3 uuid; b4 uuid; rb uuid; b6 uuid; insp uuid; rtotal bigint;
+  a1 uuid; a2 uuid; a3 uuid; a6 uuid; ra uuid; g bigint;
+  lister uuid := 'e0000000-0000-4000-8000-000000000001'; rental uuid := 'ed000000-0000-4000-8000-000000000007'; r jsonb; n int; st text; s bigint;
 begin
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = stay and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
   select rate_minor into rate from public.listings where id = stay;
-  insert into public.wallets (user_id) values (member) on conflict do nothing;
-  select id into mw from public.wallets where user_id = member;
   insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
   values (stay, member, lagos + 20, lagos + 22, 2, rate, rate * 2, rate * 2, 'PENDING') returning id into b1;
   insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
@@ -28,59 +57,95 @@ begin
   values (stay, member, lagos + 40, lagos + 41, 1, rate, rate, rate, 'PENDING') returning id into b3;
   insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
   values (stay, member, lagos + 50, lagos + 51, 1, rate, rate, rate, 'PENDING') returning id into b4;
-  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status) values
-    (b1, 'paystack', 'probe-b2-A', rate * 2, 'PENDING'),
-    (b1, 'paystack', 'probe-b2-B', rate * 2, 'PENDING'),
-    (b2, 'paystack', 'probe-b2-C', rate, 'PENDING'),
-    (b3, 'paystack', 'probe-b2-D', rate, 'PENDING');
+  -- Each payable booking carries an approved agreement for its price.
+  insert into public.deal_agreements (kind, listing_id, booking_id, renter_id, owner_id, amount_minor, terms, status)
+  values ('stay', stay, b1, member, lister, rate * 2, '{}'::jsonb, 'approved') returning id into a1;
+  insert into public.deal_agreements (kind, listing_id, booking_id, renter_id, owner_id, amount_minor, terms, status)
+  values ('stay', stay, b2, member, lister, rate, '{}'::jsonb, 'approved') returning id into a2;
+  insert into public.deal_agreements (kind, listing_id, booking_id, renter_id, owner_id, amount_minor, terms, status)
+  values ('stay', stay, b3, member, lister, rate, '{}'::jsonb, 'approved') returning id into a3;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, agreement_id,
+         payee_user_id, payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor) values
+    (b1, 'paystack', 'probe-b2-A', rate * 2, 'PENDING', a1, lister, 'ACCT_probe_lister', 'ACCT_probe_reserve',
+       rate * 2 - rate * 2 * gbps / 10000, rate * 2 * gbps / 10000, 0),
+    (b1, 'paystack', 'probe-b2-B', rate * 2, 'PENDING', a1, lister, 'ACCT_probe_lister', 'ACCT_probe_reserve',
+       rate * 2 - rate * 2 * gbps / 10000, rate * 2 * gbps / 10000, 0),
+    (b2, 'paystack', 'probe-b2-C', rate, 'PENDING', a2, lister, 'ACCT_probe_lister', 'ACCT_probe_reserve',
+       rate - rate * gbps / 10000, rate * gbps / 10000, 0),
+    (b3, 'paystack', 'probe-b2-D', rate, 'PENDING', a3, lister, 'ACCT_probe_lister', 'ACCT_probe_reserve',
+       rate - rate * gbps / 10000, rate * gbps / 10000, 0);
 
-  -- CONTROL: the first matching charge settles and confirms.
+  -- CONTROL: the first matching charge settles and confirms, with one ledger
+  -- row, one Guarantee contribution, and the agreement marked paid.
   r := private.settle_booking_charge('probe-b2-A', rate * 2, 1500, null);
   if r->>'outcome' <> 'settled' or (r->>'confirmed')::boolean is not true then raise exception 'PROBE_FAIL mon-05: first charge %', r; end if;
   select status::text into st from public.bookings where id = b1;
   if st <> 'CONFIRMED' then raise exception 'PROBE_FAIL mon-05: booking %', st; end if;
   select count(*) into n from public.ledger_entries where booking_id = b1;
   if n <> 1 then raise exception 'PROBE_FAIL mon-05: % ledger rows', n; end if;
+  -- The processor's fee comes out of the lister's share (the split's bearer).
+  if (r->'ledger'->>'agentShareMinor')::bigint <> rate * 2 - rate * 2 * gbps / 10000 - 1500
+     or (r->'ledger'->>'guaranteeMinor')::bigint <> rate * 2 * gbps / 10000 then
+    raise exception 'PROBE_FAIL mon-05: settled split %', r->'ledger';
+  end if;
+  select count(*) into n from public.guarantee_reserve_entries where booking_id = b1 and kind = 'contribution';
+  if n <> 1 then raise exception 'PROBE_FAIL mon-05: % Guarantee contributions', n; end if;
+  select status::text into st from public.deal_agreements where id = a1;
+  if st <> 'paid' then raise exception 'PROBE_FAIL mon-05: agreement is % after payment', st; end if;
   -- A replay moves nothing.
   r := private.settle_booking_charge('probe-b2-A', rate * 2, 1500, null);
   if r->>'outcome' <> 'already-settled' then raise exception 'PROBE_FAIL mon-05: replay %', r; end if;
 
-  -- A second charge on a paid booking goes back to the guest's wallet.
-  bal := private.wallet_spendable_locked(mw);
+  -- A second charge on a paid booking settles nothing and is due back to the card.
   r := private.settle_booking_charge('probe-b2-B', rate * 2, 1500, null);
-  if r->>'outcome' <> 'returned-to-wallet' or r->>'reason' <> 'already_paid' then raise exception 'PROBE_FAIL mon-05: duplicate %', r; end if;
-  if private.wallet_spendable_locked(mw) - bal <> rate * 2 then raise exception 'PROBE_FAIL mon-05: duplicate not returned'; end if;
+  if r->>'outcome' <> 'refund-due' or r->>'reason' not in ('already_paid', 'agreement_paid') then
+    raise exception 'PROBE_FAIL mon-05: duplicate %', r;
+  end if;
   select status::text into st from public.transactions where provider_ref = 'probe-b2-B';
-  if st <> 'REFUNDED' then raise exception 'PROBE_FAIL mon-05: duplicate attempt is %', st; end if;
+  if st <> 'FAILED' then raise exception 'PROBE_FAIL mon-05: duplicate attempt is %', st; end if;
   select count(*) into n from public.ledger_entries where booking_id = b1;
   if n <> 1 then raise exception 'PROBE_FAIL mon-05: duplicate wrote a ledger row'; end if;
+  select count(*) into n from public.guarantee_reserve_entries where booking_id = b1;
+  if n <> 1 then raise exception 'PROBE_FAIL mon-05: duplicate wrote a Guarantee contribution'; end if;
   select count(*) into n from public.risk_alerts where entity_id = b1::text and status = 'open';
   if n < 1 then raise exception 'PROBE_FAIL mon-05: no alert for the duplicate'; end if;
-  -- ... and its replay moves nothing either.
+  -- ... and once its card refund is submitted (the app marks it REFUNDED), a
+  -- replay moves nothing either.
+  update public.transactions set status = 'REFUNDED' where provider_ref = 'probe-b2-B';
   r := private.settle_booking_charge('probe-b2-B', rate * 2, 1500, null);
   if r->>'outcome' <> 'already-settled' then raise exception 'PROBE_FAIL mon-05: duplicate replay %', r; end if;
 
-  -- OPS-02 (a): a charge landing on a cancelled booking goes back, no "host accepted".
+  -- OPS-02 (a): a charge landing on a cancelled booking is refund-due, no "host accepted".
   r := private.settle_booking_charge('probe-b2-C', rate, 0, null);
-  if r->>'outcome' <> 'returned-to-wallet' or r->>'reason' <> 'booking_cancelled' then raise exception 'PROBE_FAIL ops-02: late charge %', r; end if;
+  if r->>'outcome' <> 'refund-due' or r->>'reason' <> 'booking_cancelled' then raise exception 'PROBE_FAIL ops-02: late charge %', r; end if;
   select count(*) into n from public.booking_state_events where booking_id = b2;
   if n <> 0 then raise exception 'PROBE_FAIL ops-02: history written for a cancelled booking'; end if;
+  select count(*) into n from public.ledger_entries where booking_id = b2;
+  if n <> 0 then raise exception 'PROBE_FAIL ops-02: a ledger row for a cancelled booking'; end if;
 
-  -- OPS-02 (c): an amount that is not the booking's price goes back.
+  -- OPS-02 (c): an amount that is not the booking's price is refund-due.
   r := private.settle_booking_charge('probe-b2-D', 1, 0, null);
-  if r->>'outcome' <> 'returned-to-wallet' or r->>'reason' <> 'amount_mismatch' then raise exception 'PROBE_FAIL ops-02: mismatch %', r; end if;
+  if r->>'outcome' <> 'refund-due' or r->>'reason' <> 'amount_mismatch' then raise exception 'PROBE_FAIL ops-02: mismatch %', r; end if;
   select status::text into st from public.bookings where id = b3;
   if st <> 'PENDING' then raise exception 'PROBE_FAIL ops-02: mismatch moved the booking to %', st; end if;
-
-  -- Healing a missing attempt from the processor's metadata still settles.
-  r := private.settle_booking_charge('probe-b2-E', rate, 0, b4);
-  if r->>'outcome' <> 'settled' then raise exception 'PROBE_FAIL mon-05: heal %', r; end if;
-  -- A customer-borne processor fee (price + fee) is not a mismatch.
-  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
-  values (stay, member, lagos + 60, lagos + 61, 1, rate, rate, rate, 'PENDING') returning id into b5;
-  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status) values (b5, 'paystack', 'probe-b2-G', rate, 'PENDING');
+  select status::text into st from public.deal_agreements where id = a3;
+  if st <> 'approved' then raise exception 'PROBE_FAIL ops-02: mismatch moved the agreement to %', st; end if;
+  -- Price plus a fee is a mismatch too: the payer is charged the price exactly.
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, agreement_id,
+         payee_user_id, payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor)
+  values (b3, 'paystack', 'probe-b2-G', rate, 'PENDING', a3, lister, 'ACCT_probe_lister', 'ACCT_probe_reserve',
+          rate - rate * gbps / 10000, rate * gbps / 10000, 0);
   r := private.settle_booking_charge('probe-b2-G', rate + 1500, 1500, null);
-  if r->>'outcome' <> 'settled' or (r->'ledger'->>'grossMinor')::bigint <> rate then raise exception 'PROBE_FAIL mon-05: customer-borne fee %', r; end if;
+  if r->>'outcome' <> 'refund-due' or r->>'reason' <> 'amount_mismatch' then raise exception 'PROBE_FAIL ops-02: price plus fee %', r; end if;
+
+  -- A charge with no attempt row, named by the processor's metadata, is
+  -- recorded against its booking and marked refund-due: there is no split.
+  r := private.settle_booking_charge('probe-b2-E', rate, 0, b4);
+  if r->>'outcome' <> 'refund-due' or r->>'reason' <> 'no_split' then raise exception 'PROBE_FAIL mon-05: heal %', r; end if;
+  select status::text into st from public.transactions where provider_ref = 'probe-b2-E' and booking_id = b4;
+  if st is distinct from 'FAILED' then raise exception 'PROBE_FAIL mon-05: healed attempt is %', st; end if;
+  select status::text into st from public.bookings where id = b4;
+  if st <> 'PENDING' then raise exception 'PROBE_FAIL mon-05: a charge without a split moved the booking to %', st; end if;
   r := private.settle_booking_charge('probe-b2-F', rate, 0, null);
   if r->>'outcome' <> 'unknown-reference' then raise exception 'PROBE_FAIL mon-05: unknown %', r; end if;
 
@@ -101,7 +166,6 @@ begin
   reset role;
   r := private.refund_booking_payment(member, b1, 1000, 'probe-b2-ref-0', 'goodwill', null);
   if r->>'status' <> 'forbidden' then raise exception 'PROBE_FAIL mon-p2-02: member refund %', r; end if;
-  bal := private.wallet_spendable_locked(mw);
   r := private.refund_booking_payment(admin, b1, 1000, 'probe-b2-ref-1', 'goodwill', 'part refund');
   if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL mon-p2-02: part refund %', r; end if;
   r := private.refund_booking_payment(admin, b1, rate * 2, 'probe-b2-ref-2', 'not_as_listed', null);
@@ -110,7 +174,13 @@ begin
   if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL mon-p2-02: rest refund %', r; end if;
   r := private.refund_booking_payment(admin, b1, 1, 'probe-b2-ref-4', 'goodwill', null);
   if r->>'status' <> 'over_refund' then raise exception 'PROBE_FAIL mon-p2-02: past the total %', r; end if;
-  if private.wallet_spendable_locked(mw) - bal <> rate * 2 then raise exception 'PROBE_FAIL mon-p2-02: refunds landed %', private.wallet_spendable_locked(mw) - bal; end if;
+  -- The refunds go to the card: recorded pending for the processor, and
+  -- reversed in the ledger, for exactly what was paid.
+  select coalesce(sum(refund_minor), 0), count(*) filter (where processor_status <> 'pending')
+    into s, n from public.booking_refunds where booking_id = b1;
+  if s <> rate * 2 or n <> 0 then raise exception 'PROBE_FAIL mon-p2-02: refunds recorded % (% not pending for the card)', s, n; end if;
+  select coalesce(sum(gross_minor), 0) into s from public.ledger_entries where booking_id = b1 and gross_minor < 0;
+  if s <> -(rate * 2) then raise exception 'PROBE_FAIL mon-p2-02: ledger reversed %', s; end if;
   select status::text into st from public.bookings where id = b1;
   if st <> 'COMPLETED' then raise exception 'PROBE_FAIL mon-p2-02: refund moved the status to %', st; end if;
 
@@ -119,7 +189,12 @@ begin
   -- the old one, is refused; the remainder is allowed.
   insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
   values (stay, member, lagos + 80, lagos + 82, 2, rate, rate * 2, rate * 2, 'PENDING') returning id into b6;
-  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status) values (b6, 'paystack', 'probe-b2-H', rate * 2, 'PENDING');
+  insert into public.deal_agreements (kind, listing_id, booking_id, renter_id, owner_id, amount_minor, terms, status)
+  values ('stay', stay, b6, member, lister, rate * 2, '{}'::jsonb, 'approved') returning id into a6;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, agreement_id,
+         payee_user_id, payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor)
+  values (b6, 'paystack', 'probe-b2-H', rate * 2, 'PENDING', a6, lister, 'ACCT_probe_lister', 'ACCT_probe_reserve',
+          rate * 2 - rate * 2 * gbps / 10000, rate * 2 * gbps / 10000, 0);
   r := private.settle_booking_charge('probe-b2-H', rate * 2, 0, null);
   if r->>'outcome' <> 'settled' then raise exception 'PROBE_FAIL mon-05: two-door setup %', r; end if;
   r := private.refund_booking_payment(admin, b6, 1000, 'probe-b2-ref-h1', 'goodwill', 'part refund');
@@ -129,27 +204,41 @@ begin
   r := private.refund_and_cancel_booking(admin, b6, rate * 2 - 1000, 'probe-b2-ref-h3', 'not_as_listed', 'the rest');
   if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL mon-p2-02: the remainder %', r; end if;
 
-  -- V-33 with MON-05: a card-paid rent charge settled by the function credits
-  -- the lister once, gross less the fee; a second charge goes back to the payer.
+  -- V-33 with MON-05: a card-paid rent charge settled by the function gives
+  -- the lister the split's share less the fee, once; a second charge settles nothing.
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = rental and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
          rent_amount_minor = 150000000, rent_period = 'year', rate_minor = 0, rate_period = null,
-         total_move_in_cost_minor = null
+         caution_deposit_minor = null, service_charge_minor = null, agency_fee_minor = null,
+         legal_fee_minor = null, agreement_fee_minor = null, total_move_in_cost_minor = null
    where id = rental;
-  insert into public.wallets (user_id) values (lister) on conflict do nothing;
-  select id into lw from public.wallets where user_id = lister;
   insert into public.inspection_requests (listing_id, requester_id, lister_id, state, requested_at, slot_at)
   values (rental, member, lister, 'CONFIRMED', now(), now() + interval '1 day') returning id into insp;
+  insert into public.deal_agreements (kind, listing_id, inspection_id, renter_id, owner_id, amount_minor, terms, status)
+  values ('rent', rental, insp, member, lister, 150000000, '{}'::jsonb, 'approved') returning id into ra;
   r := private.open_rent_charge(member, insp, lagos + 7);
+  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL mon-05: rent charge did not open %', r; end if;
   rb := (r->>'booking_id')::uuid; rtotal := (r->>'total_minor')::bigint;
-  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status) values
-    (rb, 'paystack', 'probe-b2-R1', rtotal, 'PENDING'), (rb, 'paystack', 'probe-b2-R2', rtotal, 'PENDING');
-  lbal0 := private.wallet_spendable_locked(lw);
+  g := rtotal * gbps / 10000;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, agreement_id,
+         payee_user_id, payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor) values
+    (rb, 'paystack', 'probe-b2-R1', rtotal, 'PENDING', ra, lister, 'ACCT_probe_lister', 'ACCT_probe_reserve', rtotal - g, g, 0),
+    (rb, 'paystack', 'probe-b2-R2', rtotal, 'PENDING', ra, lister, 'ACCT_probe_lister', 'ACCT_probe_reserve', rtotal - g, g, 0);
   r := private.settle_booking_charge('probe-b2-R1', rtotal, 150000, null);
   if r->>'outcome' <> 'settled' then raise exception 'PROBE_FAIL mon-05: rent card %', r; end if;
-  if private.wallet_spendable_locked(lw) - lbal0 <> rtotal - 150000 then raise exception 'PROBE_FAIL v-33: rent card credit %', private.wallet_spendable_locked(lw) - lbal0; end if;
+  select coalesce(sum(net_settlement_minor), 0), count(*) into s, n from public.ledger_entries where booking_id = rb and gross_minor > 0;
+  if n <> 1 or s <> rtotal - g - 150000 then raise exception 'PROBE_FAIL v-33: rent card settled % to the lister in % rows', s, n; end if;
   r := private.settle_booking_charge('probe-b2-R2', rtotal, 150000, null);
-  if r->>'outcome' <> 'returned-to-wallet' then raise exception 'PROBE_FAIL mon-05: second rent charge %', r; end if;
-  if private.wallet_spendable_locked(lw) - lbal0 <> rtotal - 150000 then raise exception 'PROBE_FAIL v-33: second charge credited the lister'; end if;
+  if r->>'outcome' <> 'refund-due' then raise exception 'PROBE_FAIL mon-05: second rent charge %', r; end if;
+  select count(*) into n from public.ledger_entries where booking_id = rb;
+  if n <> 1 then raise exception 'PROBE_FAIL v-33: second charge settled to the lister (% ledger rows)', n; end if;
 
   raise exception 'PROBE_OK mon-05';
 end $$;

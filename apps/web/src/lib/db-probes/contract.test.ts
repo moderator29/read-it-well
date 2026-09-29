@@ -19,6 +19,9 @@ type Contract = {
   probeIdFromPath: (p: string) => string;
   checkProbeSource: (p: string, sql: string) => string[];
   judgeRun: (id: string, output: string, exitCode: number | null) => { ok: boolean; reason: string };
+  normaliseDatabaseUrl: (raw: unknown) => string;
+  connectionError: (output: string) => string | null;
+  redactPassword: (text: string, url: string) => string;
 };
 
 async function contract(): Promise<Contract> {
@@ -172,5 +175,33 @@ describe("no SQL check reads grants through information_schema", () => {
     for (const f of APPLIED_AND_SUPERSEDED) {
       expect(OBSERVER_VIEWS.test(withoutComments(readFileSync(join(ROOT, f), "utf8"))), f).toBe(true);
     }
+  });
+});
+
+describe("the runner says why it could not reach the database", () => {
+  const REFUSED =
+    'psql: error: connection to server at "db.x.supabase.co" (2a05::1), port 5432 failed: Network is unreachable\n\tIs the server running on that host and accepting TCP/IP connections?\n';
+
+  it("trims a connection string pasted with a trailing newline", async () => {
+    const { normaliseDatabaseUrl } = await contract();
+    expect(normaliseDatabaseUrl("postgresql://u:p@h:5432/postgres\n")).toBe("postgresql://u:p@h:5432/postgres");
+    expect(normaliseDatabaseUrl("  postgresql://u:p@h/db \r\n")).toBe("postgresql://u:p@h/db");
+    expect(normaliseDatabaseUrl(undefined)).toBe("");
+  });
+
+  it("reports psql's connection error instead of a bare exit code", async () => {
+    const { judgeRun, connectionError } = await contract();
+    expect(connectionError(REFUSED)).toMatch(/^psql: error: connection to server .* Network is unreachable/);
+    const verdict = judgeRun("db-99", REFUSED, 2);
+    expect(verdict.ok).toBe(false);
+    expect(verdict.reason).toMatch(/Network is unreachable/);
+    expect(connectionError("ERROR:  something else")).toBeNull();
+  });
+
+  it("never prints the password", async () => {
+    const { redactPassword } = await contract();
+    const url = "postgresql://postgres.ref:p%40ss%2Fw0rd@aws-0-eu-west-1.pooler.supabase.com:5432/postgres";
+    expect(redactPassword("auth failed for p@ss/w0rd and p@ss/w0rd", url)).toBe("auth failed for *** and ***");
+    expect(redactPassword("nothing secret here", "not a url")).toBe("nothing secret here");
   });
 });

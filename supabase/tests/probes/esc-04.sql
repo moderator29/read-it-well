@@ -11,9 +11,18 @@ declare
   stay2 constant uuid := 'ed000000-0000-4000-8000-000000000018';
   home constant uuid := 'ed000000-0000-4000-8000-000000000004';
   lagos date := (now() at time zone 'Africa/Lagos')::date;
-  today_bk uuid; past_bk uuid; rent_bk uuid; insp uuid;
+  admin constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';    -- approves the agreement
+  today_bk uuid; past_bk uuid; rent_bk uuid; insp uuid; ag uuid;
   r jsonb; n int;
 begin
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id in (stay, stay2, home) and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id in (stay, stay2, home);
 
   -- Check-in today: too early, even at the door.
@@ -44,15 +53,45 @@ begin
   exception when exclusion_violation then null; end;
 
   -- A rent charge is never a host's no show.
+  -- 29 September 2026: a move-in charge now opens only on an approved deal
+  -- agreement (rent_payments_00_needs_approved_agreement, Track A), so the
+  -- fixture takes the platform's path: a one-kobo rental, the lister's yes to
+  -- the inspection, a submitted report (eight items, the policy's photos),
+  -- agreement_open_rent_as, both parties' agreement_confirm_as, the QA admin's
+  -- admin_decide_agreement, then open_rent_charge. The charge is then moved
+  -- back and confirmed as before. The assertion is unchanged.
+  update public.listings set listing_intent = 'rent', sale_status = null, rent_period = 'year',
+         rent_amount_minor = 1, total_move_in_cost_minor = 1
+   where id = home;
   insert into public.inspection_requests (listing_id, requester_id, lister_id, requested_at)
   values (home, member, lister, now()) returning id into insp;
+  update public.inspection_requests set state = 'CONFIRMED', slot_at = now() - interval '1 hour' where id = insp;
+  insert into public.inspection_reports (inspection_id, author_id) values (insp, member);
+  insert into public.inspection_report_items (inspection_id, item, checked, checked_at)
+  select insp, i, true, now()
+    from unnest(array['exterior', 'interior', 'kitchen', 'bathrooms', 'utilities', 'appliances', 'safety', 'overall']) i;
+  insert into public.inspection_report_photos (inspection_id, item, storage_path)
+  select insp, 'overall', 'probe/esc-04/' || g || '.jpg'
+    from generate_series(1, greatest(1, (select m.min_inspection_photos from public.money_policy m))) g;
+  update public.inspection_reports set submitted_at = now() where inspection_id = insp;
+  r := public.agreement_open_rent_as(member, insp, lagos, null, null);
+  if r ->> 'status' is distinct from 'ok' then raise exception 'PROBE_FAIL esc-04: fixture agreement not opened: %', r; end if;
+  ag := (r ->> 'agreement_id')::uuid;
+  r := public.agreement_confirm_as(member, ag, 1);
+  r := public.agreement_confirm_as(lister, ag, 1);
+  if r ->> 'agreement_status' is distinct from 'in_review' then raise exception 'PROBE_FAIL esc-04: fixture agreement not submitted: %', r; end if;
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  r := public.admin_decide_agreement(ag, 'approve', null);
+  reset role;
+  if r ->> 'agreement_status' is distinct from 'approved' then raise exception 'PROBE_FAIL esc-04: fixture agreement not approved: %', r; end if;
+  r := public.open_rent_charge(member, insp, lagos);
+  if r ->> 'status' is distinct from 'ok' then raise exception 'PROBE_FAIL esc-04: fixture move-in charge not opened: %', r; end if;
+  rent_bk := (r ->> 'booking_id')::uuid;
   -- A move-in charge is written by open_rent_charge, not priced as a stay.
   alter table public.bookings disable trigger bookings_priced_by_the_listing;
-  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
-  values (home, member, lagos - 3, lagos - 2, 1, 1, 1, 1, 'CONFIRMED') returning id into rent_bk;
+  update public.bookings set check_in = lagos - 3, check_out = lagos - 2, status = 'CONFIRMED' where id = rent_bk;
   alter table public.bookings enable trigger bookings_priced_by_the_listing;
-  insert into public.rent_payments (inspection_id, listing_id, tenant_id, lister_id, booking_id, move_in, total_minor)
-  values (insp, home, member, lister, rent_bk, lagos - 3, 1);
   r := private.record_booking_no_show(rent_bk, lister, 'probe');
   if r ->> 'outcome' <> 'rent_charge' then raise exception 'PROBE_FAIL esc-04: a move-in charge was %', r; end if;
 

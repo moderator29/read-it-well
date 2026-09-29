@@ -3,6 +3,11 @@
 -- purged inside this transaction; always rolls back. Also: an approved
 -- agent's identification record is kept for the AML period, staff can match
 -- a new account to an erased mailbox, and delivered emails are pruned.
+--
+-- 29 September 2026: "money on the account" was a wallet pot. Vallo no longer
+-- holds money (Track A), so it is now what private.deletion_money_blockers
+-- counts: a rent refund the account owes as a lister. The purge must still
+-- park such an account, and leave the refund owed exactly as it was.
 do $$
 declare
   rich   constant uuid := 'a5ec1300-0000-4000-8000-00000000000a';
@@ -19,7 +24,8 @@ declare
   o_old  uuid;
   o_new  uuid;
   o_fail uuid;
-  pot    uuid;
+  bk     uuid;
+  stay   constant uuid := 'ed000000-0000-4000-8000-000000000003';
   app_old uuid;
   app_m  uuid;
   due_j  jsonb;
@@ -61,17 +67,20 @@ begin
   values (agent, 'REJECTED', 'Probe Agent Earlier', 'nin', '55555555555')
   returning id into app_old;
 
-  -- The rich account has money in a savings pot, as the ledger records it:
-  -- a deposit, then the same amount moved into the pot.
-  insert into public.wallets (user_id) values (rich) on conflict (user_id) do nothing;
-  insert into public.wallet_pots (user_id, name) values (rich, 'Rent pot') returning id into pot;
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-  select w.id, 'deposit', 'credit', 250000, 'PROBE-SEC13-D-' || gen_random_uuid(), 'COMPLETED'
-    from public.wallets w where w.user_id = rich;
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status, metadata)
-  select w.id, 'pot_hold', 'debit', 250000, 'PROBE-SEC13-P-' || gen_random_uuid(), 'COMPLETED',
-         jsonb_build_object('pot_id', pot)
-    from public.wallets w where w.user_id = rich;
+  -- The rich account owes a guest a rent refund, as a lister: money the
+  -- platform must not let a deletion erase. The booking it hangs on is a
+  -- far-future stay on an example listing made live for this transaction
+  -- (an agent listing goes live only on an approved mandate, SCUML item 17).
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', admin, now(), 'owner', 'call_back', admin, now()
+    from public.listings where id = stay and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
+  update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (stay, member, (now() at time zone 'Africa/Lagos')::date + 300, (now() at time zone 'Africa/Lagos')::date + 302,
+          2, 125000, 250000, 250000, 'CONFIRMED')
+  returning id into bk;
+  insert into public.rent_refunds_owed (booking_id, lister_id, amount_minor) values (bk, rich, 250000);
 
   -- The clean account has device and behavioural rows the purge used to leave.
   insert into public.push_tokens (user_id, platform, token, p256dh, auth)
@@ -89,11 +98,11 @@ begin
     raise exception 'PROBE_FAIL sec-13: setup canonical was %', canon;
   end if;
 
-  -- The screen's question now sees the pot (the service role asks it).
+  -- The screen's question sees the refund owed (the service role asks it).
   perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
   res := public.account_deletion_blockers(rich);
-  if not (res ->> 'blocked')::boolean or (res ->> 'pot_balance_minor')::bigint <> 250000 then
-    raise exception 'PROBE_FAIL sec-13: blockers did not see the pot: %', res;
+  if not (res ->> 'blocked')::boolean or (res ->> 'rent_refunds_owed_minor')::bigint <> 250000 then
+    raise exception 'PROBE_FAIL sec-13: blockers did not see the refund owed: %', res;
   end if;
   res := public.account_deletion_blockers(clean);
   if (res ->> 'blocked')::boolean then
@@ -119,7 +128,7 @@ begin
   -- 1. Money on the account: parked, nothing erased, alert opened.
   res := public.purge_account_rows(req_r);
   if (res ->> 'purged')::boolean is true or res ->> 'reason' <> 'held_money' then
-    raise exception 'PROBE_FAIL sec-13: the account with a pot was purged: %', res;
+    raise exception 'PROBE_FAIL sec-13: the account owing a refund was purged: %', res;
   end if;
   select status, purge_after into st, due from public.account_deletion_requests where id = req_r;
   if st <> 'SCHEDULED' or due <= now() + interval '6 days' then
@@ -128,8 +137,9 @@ begin
   if (select display_name from public.profiles where id = rich) = 'Deleted account' then
     raise exception 'PROBE_FAIL sec-13: the parked account was scrubbed';
   end if;
-  if private.pot_balance_minor(pot) <> 250000 then
-    raise exception 'PROBE_FAIL sec-13: the pot changed';
+  if not exists (select 1 from public.rent_refunds_owed r
+                  where r.booking_id = bk and r.lister_id = rich and r.amount_minor = 250000 and r.cleared_at is null) then
+    raise exception 'PROBE_FAIL sec-13: the refund owed changed';
   end if;
   select count(*) into n from public.risk_alerts
    where entity_type = 'account_deletion_request' and entity_id = req_r::text and status = 'open' and severity = 'high';

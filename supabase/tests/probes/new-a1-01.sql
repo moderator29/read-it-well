@@ -32,6 +32,16 @@ begin
   if n <> 1 then raise exception 'PROBE_FAIL new-a1-01: owner storage update on a draft rows=%', n; end if;
 
   update public.listings set status = 'SUBMITTED' where id = lid;
+  -- SCUML item 17 (live 29 Sep): an agent listing is published only on an
+  -- approved mandate. It is filed here as the platform files it, outside the
+  -- API role, and the admin's publish below is then the real review path.
+  reset role;
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = lid and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
+  set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
   update public.listings set status = 'PUBLISHED', reviewer_id = admin, reviewed_at = now(), published_at = now() where id = lid;
 

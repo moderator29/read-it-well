@@ -43,7 +43,14 @@ import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { checkProbeSource, judgeRun, probeIdFromPath } from "./contract.mjs";
+import {
+  checkProbeSource,
+  connectionError,
+  judgeRun,
+  normaliseDatabaseUrl,
+  probeIdFromPath,
+  redactPassword,
+} from "./contract.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const args = process.argv.slice(2);
@@ -99,7 +106,7 @@ if (flag("--check")) {
   process.exit(0);
 }
 
-const url = process.env.DATABASE_URL ?? "";
+const url = normaliseDatabaseUrl(process.env.DATABASE_URL);
 if (url.length === 0) {
   console.error("db-probes: DATABASE_URL is not set, so no probe can run. This is a failure, not a skip.");
   process.exit(2);
@@ -107,6 +114,28 @@ if (url.length === 0) {
 const psqlCheck = spawnSync("psql", ["--version"], { encoding: "utf8" });
 if (psqlCheck.status !== 0) {
   console.error("db-probes: psql is not installed (apt-get install postgresql-client).");
+  process.exit(2);
+}
+
+/*
+ * ONE CONNECTION FIRST. If the database cannot be reached, every probe fails
+ * the same way, and sixty identical lines hide the one fact that matters. So
+ * the runner connects once, and on failure prints psql's own words (password
+ * removed) and stops with the "could not run" status. The two usual causes on
+ * Supabase are named: the direct `db.<ref>.supabase.co` host is IPv6 only and
+ * GitHub's runners have no IPv6, and a wrong password.
+ */
+const reach = spawnSync("psql", ["-X", "-q", "-t", "-c", "select 1", url], {
+  encoding: "utf8",
+  env: { ...process.env, PGAPPNAME: "db-probe preflight", PGCONNECT_TIMEOUT: "15" },
+  timeout: 60_000,
+});
+if (reach.error || reach.status !== 0) {
+  const said = connectionError(`${reach.stdout ?? ""}\n${reach.stderr ?? ""}`) ?? (reach.error?.message || (reach.stderr ?? "").trim() || `psql exited ${reach.status}`);
+  console.error(`db-probes: could not connect to the database, so no probe ran.\n  ${redactPassword(said, url)}`);
+  console.error(
+    "  Use the Supabase SESSION pooler URI (aws-0-<region>.pooler.supabase.com:5432, user postgres.<ref>), not the direct db.<ref>.supabase.co host, which is IPv6 only and unreachable from GitHub runners; and check the password. See supabase/tests/README.md.",
+  );
   process.exit(2);
 }
 
@@ -134,6 +163,7 @@ for (const f of files) {
   const verdict = run.error
     ? { ok: false, reason: `psql did not finish: ${run.error.message}` }
     : judgeRun(id, output, run.status);
+  verdict.reason = redactPassword(verdict.reason, url);
   results.push({ id, file: relative(ROOT, f), ms: Date.now() - started, ...verdict });
   console.log(`${verdict.ok ? "PASS" : "FAIL"} ${id} (${Date.now() - started} ms) ${verdict.ok ? "" : verdict.reason}`);
 }

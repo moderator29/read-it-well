@@ -39,12 +39,17 @@ on:
       - ".github/workflows/native-android.yml"
   pull_request:
     branches: [main]
+    # The same list as push: a pull request that changes the sync scripts
+    # changes what this build does.
     paths:
       - "apps/web/android/**"
       - "apps/web/capacitor.config.ts"
       - "apps/web/native-shell/**"
       - "apps/web/package.json"
+      - "apps/web/scripts/write-shell-config.mjs"
+      - "apps/web/scripts/check-deep-links.mjs"
       - "package-lock.json"
+      - "scripts/sync-native-versions.mjs"
       - ".github/workflows/native-android.yml"
   workflow_dispatch:
 
@@ -65,9 +70,9 @@ jobs:
       # secret: it is the public website.
       CAPACITOR_SERVER_URL: https://www.vallospaces.com
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -77,7 +82,7 @@ jobs:
         run: npm ci
 
       # Capacitor 8's android library compiles with Java 21.
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -99,6 +104,9 @@ jobs:
           apk=apps/web/android/app/build/outputs/apk/debug/app-debug.apk
           size=$(du -h "$apk" | cut -f1)
           sum=$(sha256sum "$apk" | cut -d' ' -f1)
+          # In the log as well as the summary: the API exposes job logs but
+          # not step summaries, and this is the line people quote.
+          echo "APK $(stat -c %s "$apk") bytes (${size}), sha256 ${sum}, commit ${GITHUB_SHA}"
           {
             echo "## Android debug build compiled"
             echo ""
@@ -114,7 +122,7 @@ jobs:
 
       - name: Keep the APK
         if: ${{ success() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: vallo-android-debug-${{ github.sha }}
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk

@@ -9,23 +9,85 @@ declare
   stay constant uuid := 'ed000000-0000-4000-8000-000000000003';
   home constant uuid := 'ed000000-0000-4000-8000-000000000004';
   lagos date := (now() at time zone 'Africa/Lagos')::date;
+  admin constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';   -- approves the agreements
   tenancy uuid; night uuid; insp uuid; r jsonb; st text; n int;
+  rent_ag uuid; stay_ag uuid; ag uuid;
 begin
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id in (stay, home) and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id in (stay, home);
-  -- Both booked in the past, set aside from the stay pricing trigger.
-  alter table public.bookings disable trigger bookings_priced_by_the_listing;
-  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
-  values (home, member, lagos - 3, lagos - 2, 1, 1, 1, 1, 'CONFIRMED') returning id into tenancy;
-  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
-  values (stay, member, lagos - 3, lagos - 2, 1, 1, 1, 1, 'CONFIRMED') returning id into night;
-  alter table public.bookings enable trigger bookings_priced_by_the_listing;
+  -- 29 September 2026: a charge now opens only on an approved deal agreement
+  -- (transactions_00_payment_gate and rent_payments_00_needs_approved_agreement,
+  -- Track A), so the fixture takes the platform's path instead of writing
+  -- SUCCESSFUL transactions and a bare rent_payments row. The tenancy: a
+  -- one-kobo rental, the lister's yes to the inspection, a submitted report,
+  -- agreement_open_rent_as, both parties' agreement_confirm_as, the QA
+  -- admin's admin_decide_agreement, open_rent_charge. The stay: the host
+  -- accepts a PENDING booking (bookings_open_stay_agreement draws up the
+  -- agreement), both confirm, the admin approves. Each is then paid by a
+  -- PENDING split charge settled through settle_booking_charge (no Paystack
+  -- call), and both are moved back to three days ago with the stay pricing
+  -- trigger set aside. Every assertion below is unchanged.
+  update public.listings set listing_intent = 'rent', sale_status = null, rent_period = 'year',
+         rent_amount_minor = 1, total_move_in_cost_minor = 1
+   where id = home;
   insert into public.inspection_requests (listing_id, requester_id, lister_id, requested_at)
   values (home, member, lister, now()) returning id into insp;
-  insert into public.rent_payments (inspection_id, listing_id, tenant_id, lister_id, booking_id, move_in, total_minor)
-  values (insp, home, member, lister, tenancy, lagos - 3, 1);
-  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status)
-  values (tenancy, 'paystack', 'probe-escp202-tenancy', 1, 'SUCCESSFUL'),
-         (night, 'paystack', 'probe-escp202-night', 1, 'SUCCESSFUL');
+  update public.inspection_requests set state = 'CONFIRMED', slot_at = now() - interval '1 hour' where id = insp;
+  insert into public.inspection_reports (inspection_id, author_id) values (insp, member);
+  insert into public.inspection_report_items (inspection_id, item, checked, checked_at)
+  select insp, i, true, now()
+    from unnest(array['exterior', 'interior', 'kitchen', 'bathrooms', 'utilities', 'appliances', 'safety', 'overall']) i;
+  insert into public.inspection_report_photos (inspection_id, item, storage_path)
+  select insp, 'overall', 'probe/esc-p2-02/' || g || '.jpg'
+    from generate_series(1, greatest(1, (select m.min_inspection_photos from public.money_policy m))) g;
+  update public.inspection_reports set submitted_at = now() where inspection_id = insp;
+  r := public.agreement_open_rent_as(member, insp, lagos, null, null);
+  if r ->> 'status' is distinct from 'ok' then raise exception 'PROBE_FAIL esc-p2-02: fixture rent agreement not opened: %', r; end if;
+  rent_ag := (r ->> 'agreement_id')::uuid;
+
+  alter table public.bookings disable trigger bookings_priced_by_the_listing;
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (stay, member, lagos, lagos + 1, 1, 1, 1, 1, 'PENDING') returning id into night;
+  update public.bookings set status = 'CONFIRMED' where id = night;
+  alter table public.bookings enable trigger bookings_priced_by_the_listing;
+  select id into stay_ag from public.deal_agreements where booking_id = night;
+  if stay_ag is null then raise exception 'PROBE_FAIL esc-p2-02: fixture stay agreement not drawn up on acceptance'; end if;
+
+  foreach ag in array array[rent_ag, stay_ag] loop
+    r := public.agreement_confirm_as(member, ag, 1);
+    r := public.agreement_confirm_as(lister, ag, 1);
+    if r ->> 'agreement_status' is distinct from 'in_review' then raise exception 'PROBE_FAIL esc-p2-02: fixture agreement not submitted: %', r; end if;
+    set local role authenticated;
+    perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+    r := public.admin_decide_agreement(ag, 'approve', null);
+    reset role;
+    if r ->> 'agreement_status' is distinct from 'approved' then raise exception 'PROBE_FAIL esc-p2-02: fixture agreement not approved: %', r; end if;
+  end loop;
+
+  r := public.open_rent_charge(member, insp, lagos);
+  if r ->> 'status' is distinct from 'ok' then raise exception 'PROBE_FAIL esc-p2-02: fixture move-in charge not opened: %', r; end if;
+  tenancy := (r ->> 'booking_id')::uuid;
+
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, agreement_id, payee_user_id,
+         payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor)
+  values (tenancy, 'paystack', 'probe-escp202-tenancy', 1, 'PENDING', rent_ag, lister, 'ACCT_probe', 'ACCT_probe_reserve', 1, 0, 0),
+         (night, 'paystack', 'probe-escp202-night', 1, 'PENDING', stay_ag, lister, 'ACCT_probe', 'ACCT_probe_reserve', 1, 0, 0);
+  r := public.settle_booking_charge('probe-escp202-tenancy', 1);
+  if r ->> 'outcome' is distinct from 'settled' then raise exception 'PROBE_FAIL esc-p2-02: fixture move-in not settled: %', r; end if;
+  r := public.settle_booking_charge('probe-escp202-night', 1);
+  if r ->> 'outcome' is distinct from 'settled' then raise exception 'PROBE_FAIL esc-p2-02: fixture stay not settled: %', r; end if;
+
+  -- Both moved into the past, set aside from the stay pricing trigger.
+  alter table public.bookings disable trigger bookings_priced_by_the_listing;
+  update public.bookings set check_in = lagos - 3, check_out = lagos - 2 where id in (tenancy, night);
+  alter table public.bookings enable trigger bookings_priced_by_the_listing;
 
   -- The announcement first, while the tenancy is the only CONFIRMED booking
   -- that has ended: it must yield no post.

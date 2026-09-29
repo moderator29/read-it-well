@@ -108,19 +108,32 @@ begin
   get diagnostics n = row_count;
   if n <> 0 then raise exception 'PROBE_FAIL db-02: stranger update rows=%', n; end if;
 
+  -- SCUML item 17 (live 29 Sep): an agent listing is published only on an
+  -- approved mandate. It is filed here as the platform files it, outside the
+  -- API role, and the admin's publish below is then the real review path.
+  reset role;
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = lid and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
+  set local role authenticated;
   -- CONTROL: the admin review (lib/admin/actions.ts) as authenticated.
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
   update public.listings set status = 'APPROVED', reviewer_id = admin, reviewed_at = now(), review_notes = 'probe'
    where id = lid;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-02: admin approve rows=%', n; end if;
+  -- 29 September 2026: `featured` is no longer set by anybody, staff included
+  -- (v06, no paid placement; the check listings_featured_is_never_set), so
+  -- the admin's decision stamps the review and the checks, never featured.
   update public.listings set status = 'PUBLISHED', reviewer_id = admin, reviewed_at = now(), published_at = now(),
-         physically_inspected_at = now(), address_verified_at = now(), verified_by = admin, featured = true
+         physically_inspected_at = now(), address_verified_at = now(), verified_by = admin
    where id = lid;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-02: admin publish rows=%', n; end if;
   select status::text as status, featured, physically_inspected_at into r from public.listings where id = lid;
-  if r.status <> 'PUBLISHED' or not r.featured or r.physically_inspected_at is null then
+  if r.status <> 'PUBLISHED' or r.featured or r.physically_inspected_at is null then
     raise exception 'PROBE_FAIL db-02: admin decision did not land: %', row_to_json(r);
   end if;
 

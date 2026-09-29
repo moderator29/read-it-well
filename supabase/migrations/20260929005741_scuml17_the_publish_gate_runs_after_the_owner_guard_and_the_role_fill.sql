@@ -1,0 +1,16 @@
+-- Found 29 September 2026 by the first database probe run since CI stopped
+-- starting jobs on 23 September (db-02, sec-06, new-a1-01, sup-p2-03).
+--
+-- PostgreSQL fires BEFORE triggers in name order. The SCUML item 17 publish
+-- gate was created as `listing_supply_proof_gate`, which sorts ahead of
+--   * `listings_00_guard_owner_write`, named `00` so that an owner's write is
+--     judged before anything else. An owner forging a PUBLISHED listing was
+--     now refused by the gate (check_violation) instead of by the owner guard
+--     (insufficient_privilege), so the guard behind it was no longer the one
+--     answering, and nothing could tell whether it still worked; and
+--   * `listings_fill_listing_role`, so on INSERT the gate read listing_role
+--     before it had been filled from the lister.
+--
+-- Renamed into the `zz_` slot beside its sibling `listings_zz_scuml15_edd_gate`.
+-- The function, its checks and every refusal are unchanged; only the order is.
+alter trigger listing_supply_proof_gate on public.listings rename to listings_zz_scuml17_supply_proof_gate;

@@ -17,7 +17,16 @@ declare
   lagos date := (now() at time zone 'Africa/Lagos')::date;
   done_bk uuid; open_bk uuid; ahead_bk uuid; gone_bk uuid; noshow_bk uuid; rent_bk uuid; insp uuid;
   deals_before int; deals_after int; n int; i int; refused text;
+  ag uuid; r jsonb;
 begin
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id in (stay, stay2, home) and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id in (stay, stay2, home);
   update public.agents set is_demo = false where user_id = lister;
   delete from public.user_badges where user_id in (member, admin, lister) and badge_code in ('first_stay', 'ten_stays');
@@ -36,18 +45,63 @@ begin
   values (stay, member, lagos - 32, lagos - 30, 2, 1, 2, 2, 'CANCELLED') returning id into gone_bk;
   insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
   values (stay, member, lagos - 28, lagos - 26, 2, 1, 2, 2, 'NO_SHOW') returning id into noshow_bk;
-  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
-  values (home, admin, lagos - 24, lagos - 23, 1, 1, 1, 1, 'CONFIRMED') returning id into rent_bk;
   -- Nine more finished stays at the lister's listing, for ten_stays.
   for i in 1..9 loop
     insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
     values (stay2, member, lagos - 100 + i * 3, lagos - 99 + i * 3, 1, 1, 1, 1, 'CONFIRMED');
   end loop;
   alter table public.bookings enable trigger bookings_priced_by_the_listing;
+
+  -- The tenancy. 29 September 2026: a move-in charge now opens only on an
+  -- approved deal agreement (rent_payments_00_needs_approved_agreement,
+  -- Track A), so the fixture takes the platform's path instead of writing a
+  -- bare rent_payments row: a one-kobo rental, the lister's yes to the
+  -- inspection, a submitted report, agreement_open_rent_as, both parties'
+  -- agreement_confirm_as, admin_decide_agreement, open_rent_charge; the
+  -- charge is then moved back 24 days and confirmed as before. The tenant here
+  -- is the QA admin, and nobody decides an agreement they are a party to, so
+  -- the QA member holds the 'agreements' staff scope (with the handbook
+  -- acknowledged) only for that decision and it is revoked straight after.
+  -- Every assertion below is unchanged.
+  update public.listings set listing_intent = 'rent', sale_status = null, rent_period = 'year',
+         rent_amount_minor = 1, total_move_in_cost_minor = 1
+   where id = home;
   insert into public.inspection_requests (listing_id, requester_id, lister_id, requested_at)
   values (home, admin, lister, now()) returning id into insp;
-  insert into public.rent_payments (inspection_id, listing_id, tenant_id, lister_id, booking_id, move_in, total_minor)
-  values (insp, home, admin, lister, rent_bk, lagos - 24, 1);
+  update public.inspection_requests set state = 'CONFIRMED', slot_at = now() - interval '1 hour' where id = insp;
+  insert into public.inspection_reports (inspection_id, author_id) values (insp, admin);
+  insert into public.inspection_report_items (inspection_id, item, checked, checked_at)
+  select insp, it, true, now()
+    from unnest(array['exterior', 'interior', 'kitchen', 'bathrooms', 'utilities', 'appliances', 'safety', 'overall']) it;
+  insert into public.inspection_report_photos (inspection_id, item, storage_path)
+  select insp, 'overall', 'probe/new-a1-03/' || g || '.jpg'
+    from generate_series(1, greatest(1, (select m.min_inspection_photos from public.money_policy m))) g;
+  update public.inspection_reports set submitted_at = now() where inspection_id = insp;
+  r := public.agreement_open_rent_as(admin, insp, lagos, null, null);
+  if r ->> 'status' is distinct from 'ok' then raise exception 'PROBE_FAIL new-a1-03: fixture agreement not opened: %', r; end if;
+  ag := (r ->> 'agreement_id')::uuid;
+  r := public.agreement_confirm_as(admin, ag, 1);
+  r := public.agreement_confirm_as(lister, ag, 1);
+  if r ->> 'agreement_status' is distinct from 'in_review' then raise exception 'PROBE_FAIL new-a1-03: fixture agreement not submitted: %', r; end if;
+  insert into public.staff_grants (user_id, scopes, note, granted_by)
+  values (member, array['agreements']::public.staff_scope[], 'probe new-a1-03', admin)
+  on conflict (user_id) do update set scopes = excluded.scopes, revoked_at = null, revoked_by = null, revoke_reason = null;
+  insert into public.staff_handbook_acks (user_id, version)
+  select member, private.staff_handbook_version()
+   where not exists (select 1 from public.staff_handbook_acks a
+                      where a.user_id = member and a.version = private.staff_handbook_version());
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  r := public.admin_decide_agreement(ag, 'approve', null);
+  reset role;
+  if r ->> 'agreement_status' is distinct from 'approved' then raise exception 'PROBE_FAIL new-a1-03: fixture agreement not approved: %', r; end if;
+  update public.staff_grants set revoked_at = now(), revoked_by = admin, revoke_reason = 'probe new-a1-03' where user_id = member;
+  r := public.open_rent_charge(admin, insp, lagos);
+  if r ->> 'status' is distinct from 'ok' then raise exception 'PROBE_FAIL new-a1-03: fixture move-in charge not opened: %', r; end if;
+  rent_bk := (r ->> 'booking_id')::uuid;
+  alter table public.bookings disable trigger bookings_priced_by_the_listing;
+  update public.bookings set check_in = lagos - 24, check_out = lagos - 23, status = 'CONFIRMED' where id = rent_bk;
+  alter table public.bookings enable trigger bookings_priced_by_the_listing;
 
   -- What the nightly job does the morning after check-out.
   update public.bookings set status = 'COMPLETED'

@@ -3,10 +3,8 @@
 -- never for their own account, and never for one being closed or banned.
 -- TWO PEOPLE: the opener cannot begin, and only the one who began can
 -- finish. The old address must have been told, and the 72 hours count from
--- that notice. On completion every session ends and money cannot leave for
--- 7 days (withdrawal, send, wallet payment and escrow hold entries; new or
--- repointed payout accounts); credits pass and removing an account still
--- works. Every step writes audit_log; the owner can cancel. The auth row
+-- that notice. On completion every session ends and no new or repointed
+-- payout account can be filed for 7 days; removing an account still works. Every step writes audit_log; the owner can cancel. The auth row
 -- change itself is the server's (service role) and is not exercised here.
 -- A second super admin is granted inside the transaction only. Rolls back.
 do $$
@@ -16,7 +14,6 @@ declare
   superu uuid;
   req    uuid;
   req2   uuid;
-  wallet uuid;
   bank   uuid;
   n      int;
   st     text;
@@ -165,49 +162,14 @@ begin
    where entity_id = member::text and action like 'account.email_recovery.%' and metadata ->> 'request_id' = req::text;
   if n <> 3 then raise exception 'PROBE_FAIL sec-15: % audit rows for the request, expected 3', n; end if;
 
-  -- The money hold: money out of the wallet (withdrawal, send, payment,
-  -- escrow hold) is refused, and so is a new payout account; money coming in
-  -- is not.
-  insert into public.wallets (user_id) values (member) on conflict (user_id) do nothing;
-  select w.id into wallet from public.wallets w where w.user_id = member;
-  refused := false;
-  begin
-    insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-    values (wallet, 'withdrawal', 'debit', 100, 'PROBE-SEC15-W', 'PENDING');
-  exception when sqlstate 'RM050' then refused := true;
-  end;
-  if not refused then raise exception 'PROBE_FAIL sec-15: a withdrawal left during the hold'; end if;
-  refused := false;
-  begin
-    insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-    values (wallet, 'transfer_out', 'debit', 100, 'PROBE-SEC15-T', 'COMPLETED');
-  exception when sqlstate 'RM050' then refused := true;
-  end;
-  if not refused then raise exception 'PROBE_FAIL sec-15: a send left during the hold'; end if;
-  refused := false;
-  begin
-    insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-    values (wallet, 'payment', 'debit', 100, 'PROBE-SEC15-P', 'COMPLETED');
-  exception when sqlstate 'RM050' then refused := true;
-  end;
-  if not refused then raise exception 'PROBE_FAIL sec-15: a wallet payment left during the hold'; end if;
-  refused := false;
-  begin
-    insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-    values (wallet, 'escrow_hold', 'debit', 100, 'PROBE-SEC15-E', 'COMPLETED');
-  exception when sqlstate 'RM050' then refused := true;
-  end;
-  if not refused then raise exception 'PROBE_FAIL sec-15: an escrow hold left during the hold'; end if;
-  -- Money coming in is never held.
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-  values (wallet, 'deposit', 'credit', 100, 'PROBE-SEC15-D', 'PENDING');
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-  values (wallet, 'refund', 'credit', 100, 'PROBE-SEC15-R', 'COMPLETED');
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-  values (wallet, 'escrow_release', 'credit', 100, 'PROBE-SEC15-X', 'COMPLETED');
-
-  set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  -- The money hold. Vallo holds no money any more (Track A: no wallet, no
+  -- send, no escrow), so the way money could leave a recovered account is a
+  -- new payout destination. Adding one is refused for the hold, whoever files
+  -- it: since DB-05 step 2 the server files bank accounts, so the add is made
+  -- as the service role, and the hold trigger refuses it all the same.
+  -- (29 September 2026: the wallet withdrawal, send, payment and escrow-hold
+  -- entries this section tested went with custody.)
+  set local role service_role;
   refused := false;
   begin
     insert into public.bank_accounts (user_id, bank_code, bank_name, account_number, resolved_account_name, resolved_at)

@@ -5,6 +5,13 @@
 -- the deployed reserve() insert and the rent charge still work; neither the
 -- guest nor an admin over the API can rewrite a booking, the owner role cannot
 -- change its price, and a status change leaves an audit row. Always rolls back.
+-- 29 September 2026: custody is retired (docs/MONEY_ARCHITECTURE.md), so the
+-- wallet fixture and the pay_booking_from_wallet check are gone. "The 3-kobo
+-- booking cannot be paid for 3 kobo" is now checked where payment opens: the
+-- host's acceptance draws the stay agreement at the listing's price, and once
+-- it is approved the payment gate refuses a 3-kobo charge and accepts only the
+-- agreed amount with its split. The rent charge control files the approved
+-- rent agreement that rent_payments_00_needs_approved_agreement now requires.
 do $$
 declare
   member uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
@@ -14,19 +21,31 @@ declare
   rental uuid := 'ed000000-0000-4000-8000-000000000007';
   lagos  date := (now() at time zone 'Africa/Lagos')::date;
   claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated')::text;
-  bk uuid; bk2 uuid; insp uuid; r jsonb; mw uuid; n int; t bigint; rate bigint;
+  bk uuid; bk2 uuid; insp uuid; r jsonb; n int; t bigint; rate bigint; ag public.deal_agreements%rowtype; g bigint;
 begin
   -- An example stay made real inside the transaction, and an example rental.
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = stay and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
   select rate_minor into rate from public.listings where id = stay;
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = rental and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
          rent_amount_minor = 150000000, rent_period = 'year', rate_minor = 0, rate_period = null,
          total_move_in_cost_minor = null
    where id = rental;
-  insert into public.wallets (user_id) values (member) on conflict do nothing;
-  select id into mw from public.wallets where user_id = member;
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-  values (mw, 'deposit', 'credit', 1000, 'probe-esc02-dep-' || gen_random_uuid(), 'COMPLETED');
 
   -- ATTACK: three nights at 1 kobo, total 3. Stored price must be the listing's.
   set local role authenticated;
@@ -37,11 +56,36 @@ begin
   returning id into bk2;
   select total_minor into t from public.bookings where id = bk2;
   if t <> rate * 3 then raise exception 'PROBE_FAIL esc-02: 3-kobo booking stored total %', t; end if;
-  -- ...and paying it cannot succeed for 3 kobo.
+  -- ...and paying it cannot succeed for 3 kobo. The host accepts (the
+  -- trigger draws the agreement from the stored booking), an admin approves,
+  -- and the payment gate then takes only the agreed amount.
   reset role;
-  r := private.pay_booking_from_wallet(member, bk2, 'probe-esc02-pay-' || gen_random_uuid());
-  if r->>'status' <> 'insufficient' then raise exception 'PROBE_FAIL esc-02: pay answered %', r; end if;
-  delete from public.bookings where id = bk2;
+  update public.bookings set status = 'CONFIRMED' where id = bk2;
+  select * into ag from public.deal_agreements where booking_id = bk2;
+  if ag.id is null or ag.kind <> 'stay' or ag.amount_minor <> rate * 3 then
+    raise exception 'PROBE_FAIL esc-02: the accepted 3-kobo booking drew agreement % for %', ag.id, ag.amount_minor;
+  end if;
+  update public.deal_agreements set status = 'approved', decided_at = now(), decided_by = admin where id = ag.id;
+  r := public.payment_split_for_booking(bk2);
+  if r->>'status' not in ('ok', 'payee_not_set_up') or (r->>'status' = 'ok' and (r->>'amount_minor')::bigint <> rate * 3) then
+    raise exception 'PROBE_FAIL esc-02: split for the 3-kobo booking answered %', r;
+  end if;
+  begin
+    insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, agreement_id,
+      payee_user_id, payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor)
+    values (bk2, 'paystack', 'probe-esc02-3kobo-' || gen_random_uuid(), 3, 'PENDING', ag.id,
+      ag.owner_id, 'ACCT_probe_payee', 'ACCT_probe_reserve', 3, 0, 0);
+    raise exception 'PROBE_FAIL esc-02: a 3-kobo charge opened against the agreement';
+  exception when insufficient_privilege then
+    if sqlerrm not like 'payment_gate:%' then raise; end if;
+  end;
+  -- CONTROL: the agreed amount, with its split, opens.
+  g := (rate * 3 * coalesce((ag.terms ->> 'guarantee_bps')::int, 150)) / 10000;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, agreement_id,
+    payee_user_id, payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor)
+  values (bk2, 'paystack', 'probe-esc02-agreed-' || gen_random_uuid(), rate * 3, 'PENDING', ag.id,
+    ag.owner_id, 'ACCT_probe_payee', 'ACCT_probe_reserve', rate * 3 - g - (rate * 3 * coalesce((ag.terms ->> 'commission_bps')::int, 0)) / 10000,
+    g, (rate * 3 * coalesce((ag.terms ->> 'commission_bps')::int, 0)) / 10000);
 
   -- ATTACK: the same insert with the rent charge's mark set. The mark is
   -- honoured only for a non-API session role, so this is priced too.
@@ -124,11 +168,22 @@ begin
   exception when check_violation then null;
   end;
   reset role;
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = stay and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set status = 'PUBLISHED' where id = stay;
 
   -- CONTROL: the rent charge still opens, priced from the move-in figures.
   insert into public.inspection_requests (listing_id, requester_id, lister_id, state, requested_at, slot_at)
   values (rental, member, lister, 'CONFIRMED', now(), now() + interval '1 day') returning id into insp;
+  insert into public.deal_agreements (kind, listing_id, inspection_id, renter_id, owner_id, amount_minor, terms,
+         status, decided_at, decided_by)
+  values ('rent', rental, insp, member, lister, 150000000, '{}'::jsonb, 'approved', now(), admin);
   r := private.open_rent_charge(member, insp, lagos + 7);
   if r->>'status' <> 'ok' or (r->>'total_minor')::bigint <> 150000000 then
     raise exception 'PROBE_FAIL esc-02: rent charge %', r;

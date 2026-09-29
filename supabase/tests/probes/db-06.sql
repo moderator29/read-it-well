@@ -4,6 +4,16 @@
 -- allowlist below (i = insert, u = update, d = delete); each pair has a
 -- permissive policy behind it. A new write grant, or one left without a
 -- policy, fails this probe until it is added here deliberately.
+--
+-- 29 September 2026: the list was brought up to the live database after CI
+-- had run no job since 23 September. Added, each checked against its policy
+-- (all `to authenticated`, all scoped to auth.uid() or an admin role):
+-- conversation_archives idu, inspection_truth i, kyc_consents i,
+-- listing_broadcast_marks idu, member_notes i (admins), refund_requests i,
+-- support_ticket_attachments i, tenancy_pins i, tenancy_reviews i,
+-- viewing_windows idu, admin_saved_views id (admins insert, owner deletes).
+-- agent_verification_checks lost its delete; wallet_pots
+-- and wallet_entries went with custody (Track A).
 do $$
 declare
   member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
@@ -18,9 +28,10 @@ begin
       ('accommodation_amenities', 'idu'),
       ('accommodation_photos', 'idu'),
       ('accommodations', 'idu'),
+      ('admin_saved_views', 'id'),
       ('agent_applications', 'iu'),
       ('agent_documents', 'iu'),
-      ('agent_verification_checks', 'idu'),
+      ('agent_verification_checks', 'iu'),
       ('agents', 'idu'),
       ('ai_conversations', 'idu'),
       ('ai_messages', 'idu'),
@@ -38,6 +49,7 @@ begin
       ('business_verification_checks', 'idu'),
       ('businesses', 'idu'),
       ('cancellation_policies', 'idu'),
+      ('conversation_archives', 'idu'),
       ('conversations', 'i'),
       ('event_attendees', 'idu'),
       ('events', 'idu'),
@@ -49,14 +61,18 @@ begin
       ('inspection_report_photos', 'i'),
       ('inspection_reports', 'iu'),
       ('inspection_requests', 'idu'),
+      ('inspection_truth', 'i'),
+      ('kyc_consents', 'i'),
       ('landmarks', 'idu'),
       ('listing_access', 'idu'),
       ('listing_amenities', 'idu'),
+      ('listing_broadcast_marks', 'idu'),
       ('listing_mandates', 'idu'),
       ('listing_photos', 'idu'),
       ('listing_videos', 'idu'),
       ('listings', 'idu'),
       ('local_governments', 'idu'),
+      ('member_notes', 'i'),
       ('message_attachments', 'i'),
       ('message_flags', 'u'),
       ('messages', 'i'),
@@ -74,6 +90,7 @@ begin
       ('profiles', 'u'),
       ('rate_calendar', 'idu'),
       ('rate_plans', 'idu'),
+      ('refund_requests', 'i'),
       ('reports', 'idu'),
       ('reservations', 'iu'),
       ('restaurant_profiles', 'idu'),
@@ -92,12 +109,15 @@ begin
       ('story_comments', 'idu'),
       ('story_reactions', 'id'),
       ('story_views', 'i'),
+      ('support_ticket_attachments', 'i'),
       ('support_ticket_messages', 'i'),
       ('support_tickets', 'idu'),
+      ('tenancy_pins', 'i'),
+      ('tenancy_reviews', 'i'),
       ('units', 'idu'),
       ('user_badges', 'idu'),
       ('user_roles', 'idu'),
-      ('wallet_pots', 'iu')
+      ('viewing_windows', 'idu')
   ),
   expected as (
     select tbl, case c when 'i' then 'INSERT' when 'u' then 'UPDATE' else 'DELETE' end cmd
@@ -186,8 +206,8 @@ begin
   begin insert into public.user_roles default values;
     raise exception 'PROBE_FAIL db-06: anon inserted a role';
   exception when insufficient_privilege then null; end;
-  begin insert into public.wallet_entries default values;
-    raise exception 'PROBE_FAIL db-06: anon inserted a wallet entry';
+  begin insert into public.bank_accounts default values;
+    raise exception 'PROBE_FAIL db-06: anon inserted a bank account';
   exception when insufficient_privilege then null; end;
   begin update public.profiles set updated_at = now() where false;
     raise exception 'PROBE_FAIL db-06: anon could update profiles';
