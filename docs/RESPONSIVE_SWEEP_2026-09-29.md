@@ -50,7 +50,7 @@ Screenshots and JSON reports are in the session scratchpad under `responsive/bef
 | 16 | "Your saved places" (/saved/searches) | phones | Target was 26px tall. | `nf-tap`. |
 | 17 | Landing card-stack dots | tablets | Targets were 24 wide. | 44 by 44. The row still fits between its arrows. |
 
-### P2 (in the tree, committed by Builder 1 with `tokens.css`)
+### P2 (committed by Builder 1 with their `tokens.css` change, 0e2ee18f)
 
 | # | Where | What |
 |---|---|---|
