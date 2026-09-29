@@ -102,7 +102,13 @@ export function PageHeader({
 
   return (
     <div
-      className={`mb-heading flex items-center gap-md rounded-[var(--nf-radius-lg)] ${
+      /* WRAPS RATHER THAN BREAKS A WORD. At 360 the back square, a title
+         and a text action ("Mark all read") left the title about 115px, and
+         "Notifications" broke as "Notificatio / ns". The title now keeps a
+         basis wide enough for a whole word at `nf-h2`, and when the row
+         cannot hold that beside the actions, the actions take their own
+         line at the end instead. An icon action still fits on the row. */
+      className={`mb-heading flex flex-wrap items-center gap-x-md gap-y-inline rounded-[var(--nf-radius-lg)] ${
         tone === "verified" ? "nf-page-header--verified" : ""
       }`}
     >
@@ -120,7 +126,7 @@ export function PageHeader({
       */}
       {backButton}
       {leading}
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-[11rem]">
         {/*
           NEITHER OF THESE TRUNCATES, AND THE COMMENT THAT SAID SO WAS WRONG.
           A header that reads "Places on R..." tells somebody nothing and cannot
@@ -156,7 +162,7 @@ export function PageHeader({
             </p>
           ))}
       </div>
-      {actions}
+      {actions ? <div className="ms-auto flex shrink-0 items-center gap-inline">{actions}</div> : null}
     </div>
   );
 }

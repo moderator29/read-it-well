@@ -130,10 +130,12 @@ export function Segmented<T extends string>({
   };
 
   const pad = size === "sm" ? "p-3xs" : "p-2xs";
+  /* A full-width track shares its width equally, so a segment's room is
+     fixed and the padding is the first thing to give (12px, not 16). */
   const seg =
     size === "sm"
       ? "h-9 px-sm text-[length:var(--nf-text-caption)]"
-      : "h-11 px-md text-[length:var(--nf-text-body-sm)]";
+      : `h-11 ${full ? "px-sm" : "px-md"} text-[length:var(--nf-text-body-sm)]`;
   const pill = shape === "pill";
 
   return (
@@ -225,7 +227,20 @@ export function Segmented<T extends string>({
             {/* `truncate` is nowrap PLUS the clip. The nowrap was already
                 here and was doing half the job: it stopped the word wrapping
                 and had nothing to stop it escaping. */}
-            <span className="min-w-0 truncate">{o.label}</span>
+            {/* ON A FULL-WIDTH TRACK A LABEL WRAPS BEFORE IT CLIPS. Three equal
+                segments at 360 left "Three months" 57px and it read "Three
+                ...": a choice nobody can read is not a choice. There, a long
+                label takes a second balanced line inside the same 44px item
+                (clamped at two); a hugging track still truncates. */}
+            <span
+              className={
+                full
+                  ? "min-w-0 text-center leading-tight [text-wrap:balance] line-clamp-2"
+                  : "min-w-0 truncate"
+              }
+            >
+              {o.label}
+            </span>
             {typeof o.count === "number" ? (
               <span className="nf-numeric text-[length:max(0.75em,0.6875rem)] opacity-70">{o.count}</span>
             ) : null}
