@@ -11,7 +11,10 @@ export const reelEn = {
   places: {
     overline: "Every kind of place",
     title: "A flat for the year. A table for tonight.",
-    body: "Rent, buy, book a room for the weekend or a table for dinner, from the same search.",
+    /* "Account", not "search": tables are booked on /restaurants, which the
+       property and stays searches do not reach (independent audit, 29
+       September). */
+    body: "Rent, buy, book a room for the weekend or a table for dinner, on the same account.",
     /* The wall's pause toggle (WCAG 2.2.2: moving content that runs past
        five seconds can be paused). */
     pause: "Pause the moving photos",
