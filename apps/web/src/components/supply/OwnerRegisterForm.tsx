@@ -93,7 +93,6 @@ export function OwnerRegisterForm({
    */
   startAt?: number;
 }) {
-  const router = useRouter();
   const leave = useBack("/profile/setup");
   const copy = t.supply.register;
   const own = copy.owner;

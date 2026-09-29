@@ -74,7 +74,6 @@ export function AgentRegisterForm({
   /** The preview harness only. See the note on the owner form. */
   startAt?: number;
 }) {
-  const router = useRouter();
   const leave = useBack("/profile/setup");
   const copy = t.supply.register;
   const mine = copy.agent;

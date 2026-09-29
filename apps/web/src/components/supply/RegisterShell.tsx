@@ -5,7 +5,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
 import { BackControl } from "@/components/ui/BackControl";
-import { ICON, Surface, TYPE } from "@/components/app/Screen";
+import { Surface, TYPE } from "@/components/app/Screen";
 
 /**
  * THE FRAME EVERY SCREEN OF THE THREE REGISTRATION FORMS STANDS IN.
