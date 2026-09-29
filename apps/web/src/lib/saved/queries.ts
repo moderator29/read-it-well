@@ -1,6 +1,6 @@
 import "server-only";
 
-import { withPublicPoint } from "../supabase/public-point";
+import { pointSelect } from "../supabase/public-point";
 import { resolveSession } from "../actions/session";
 import { getListingRepository } from "../listings/repository";
 import { loadListingsByIds } from "../listings/supabase-repository";
@@ -192,7 +192,7 @@ export async function getSavedPlaces(): Promise<SavedPlaceEntry[]> {
       .from("catalogue_entries")
       /* Named columns, never "*": the exact point is not granted to members,
          and a card only needs the public one. */
-      .select(withPublicPoint(SAVED_CARD_COLUMNS) as typeof SAVED_CARD_COLUMNS)
+      .select(await pointSelect(stays, SAVED_CARD_COLUMNS))
       .in(
         "entity_id",
         wanted.map((save) => save.entity_id),
