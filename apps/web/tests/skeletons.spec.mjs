@@ -15,7 +15,13 @@
  *   1. Every route that reads before it renders has a loading state. A route
  *      without one shows the PREVIOUS screen until its data lands and then
  *      replaces it wholesale, which on a slow connection reads as a tap that
- *      did nothing followed by a page that jumps.
+ *      did nothing followed by a page that jumps. Since SPEED-2 that state may
+ *      be its own `loading.tsx` OR a boundary above it inside the app tree:
+ *      `(app)/loading.tsx`, `admin/loading.tsx`, `agent/loading.tsx` and
+ *      `host/loading.tsx` sit below their layouts, so the shell stays put and
+ *      the page area shows the shape those screens share. What still counts
+ *      as missing is a route whose only boundary would be the ROOT one, which
+ *      sits above the app layout.
  *   2. None of them is a spinner. A centred spinner says only that something
  *      is happening and then moves everything when it stops.
  *   3. Every one announces itself. A pile of grey boxes is nothing at all to a
@@ -58,7 +64,7 @@ const NO_WAIT = [
   "/", "/about", "/careers", "/contact", "/help", "/safety", "/standards",
   "/cancellations", "/privacy", "/terms", "/docs", "/docs/[slug]", "/styleguide",
   "/sign-in", "/sign-in/email", "/sign-up", "/sign-up/email", "/sign-up/verify",
-  "/forgot-password", "/reset-password", "/offline", "/agents", "/agents/apply",
+  "/forgot-password", "/reset-password", "/offline",
   "/welcome",
   /* B-2: "Finish setting up" reads one row set of the person's own; the
      `(auth)` group's own loading.tsx is its boundary, the same card shell
@@ -69,28 +75,37 @@ const NO_WAIT = [
   "/auth/callback",
 ];
 
-/** Walk the app directory and collect every route with a page. */
-function routes(dir, url = "", out = []) {
+/**
+ * Walk the app directory and collect every route with a page. `covered` is
+ * whether a boundary exists at the page's own folder or at any folder between
+ * it and the app root, the root itself excluded (the root boundary sits above
+ * the app layout, which is the gap rule 1 is about).
+ */
+function routes(dir, url = "", out = [], inherited = false) {
   const entries = readdirSync(dir);
+  const here = dir !== APP && entries.includes("loading.tsx");
   if (entries.includes("page.tsx")) {
-    out.push({ url: url || "/", dir, loading: entries.includes("loading.tsx") });
+    out.push({ url: url || "/", dir, loading: entries.includes("loading.tsx"), covered: here || inherited });
   }
   for (const entry of entries) {
     const full = join(dir, entry);
     if (!statSync(full).isDirectory()) continue;
     /* A bracketed group is not a URL segment. */
-    routes(full, entry.startsWith("(") ? url : `${url}/${entry}`, out);
+    routes(full, entry.startsWith("(") ? url : `${url}/${entry}`, out, inherited || here);
   }
   return out;
 }
 
-const all = routes(APP);
+/* The `(dev)` group is the preview harness and the gallery: fixtures only,
+   closed in production by `previewHarnessIsOpen`, never a screen a member
+   waits on. They are left out by name rather than by a loading file each. */
+const all = routes(APP).filter((r) => !relative(APP, r.dir).split("\\").join("/").startsWith("(dev)"));
 console.log(`\n${all.length} routes`);
 
 /* --------------------------------------------------------- 1. coverage */
 
 const missing = all
-  .filter((r) => !r.loading && !NO_WAIT.includes(r.url))
+  .filter((r) => !r.covered && !NO_WAIT.includes(r.url))
   .map((r) => r.url)
   .sort();
 check("every route that reads has a loading state", missing.length === 0, missing);
@@ -119,7 +134,7 @@ console.log(`${files.length} loading states`);
  * and `LoadingPeople` all carry the announcement; a file that uses one of them
  * has it, and a file that draws its own markup has to say so itself.
  */
-const ANNOUNCERS = /LoadingShell|AgentScreenSkeleton|QueueSkeleton|LoadingPeople|ScreenSkeleton/;
+const ANNOUNCERS = /LoadingShell|AgentScreenSkeleton|QueueSkeleton|LoadingPeople|ScreenSkeleton|<State\s+kind="loading"/;
 
 const spinners = [];
 const silent = [];
@@ -140,6 +155,13 @@ for (const file of files) {
 check("no loading state is a spinner", spinners.length === 0, spinners);
 check("every loading state announces itself", silent.length === 0, silent);
 check("no loading state hand-draws its own grey boxes", handDrawn.length === 0, handDrawn);
+
+/* `<State kind="loading">` is on the announcer list, so it has to announce. */
+const state = readFileSync(join(APP, "../components/ui/State.tsx"), "utf8");
+check(
+  'State kind="loading" really sets aria-busy and a live region',
+  /kind === "loading"[\s\S]{0,900}aria-busy="true"[\s\S]{0,80}aria-live="polite"/.test(state),
+);
 
 /* The shared piece really is the shimmering one, so the rule above means
    something. */

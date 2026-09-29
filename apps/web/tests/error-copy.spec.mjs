@@ -108,6 +108,10 @@ function sentences(text) {
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
+    /* The `(dev)` group is the preview harness: its stubs refuse on purpose
+       ("Nothing is charged from the preview harness.") and never reach a
+       member, because the harness is closed in production. */
+    if (entry === "(dev)") continue;
     if (statSync(full).isDirectory()) walk(full, out);
     else if (/\.tsx?$/.test(full)) out.push(full);
   }
@@ -231,10 +235,11 @@ for (const [message, { where, read }] of messages) {
   if (!/^[A-Z]/.test(message) || !/[.!?]$/.test(message)) {
     notASentence.push(`${message}   (${where})`);
   }
-  /* `${SUPPORT_EMAIL}` is an interpolation slot, not shouting. It is stripped
+  /* File-format and ID names are how those things are written (PDF, JPEG),
+     not codes. `${SUPPORT_EMAIL}` is an interpolation slot, not shouting. It is stripped
      before the test rather than added to the allowed list, because the next
      one will have a different name. */
-  const spoken = message.replace(/\$\{[^}]*\}/g, "").replace(/Vallo|SMS|BVN|NIN|PDF/g, "");
+  const spoken = message.replace(/\$\{[^}]*\}/g, "").replace(/Vallo|SMS|BVN|NIN|PDF|JPEG/g, "");
   if (/[A-Z]{4,}/.test(spoken)) {
     shouting.push(`${message}   (${where})`);
   }

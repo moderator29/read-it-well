@@ -1310,6 +1310,20 @@
     border-radius: var(--nf-container-radius);
     background: var(--nf-panel-fill-card);
     box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+    /* THE MESSAGE BUTTON STEPS DOWN A ROW RATHER THAN SITTING ON THE BADGE
+       (independent audit, 29 September 2026). At 390 the avatar, the
+       unwrappable "Verified agent" pill and the Message button did not fit on
+       one line, and the text column, shrunk to what was left, let the pill run
+       under the button. The column now asks for 10rem before it shares its
+       row; when it cannot have that, the button wraps and sits at the end. */
+    flex-wrap: wrap;
+  }
+  .nf-agent-card__body {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+  .nf-agent-card__cta {
+    margin-inline-start: auto;
   }
   .nf-agent-card__avatar {
     display: block;

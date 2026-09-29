@@ -97,7 +97,9 @@ export function ListingAgentCard({
           <UiIcon name="user" size={24} />
         </span>
       </span>
-      <div className="min-w-0 flex-1">
+      {/* `nf-agent-card__body`, not `flex-1`: the column holds 10rem before it
+          shares a row with the button, so the badge is never run under it. */}
+      <div className="nf-agent-card__body">
         {/* The paragraph is dropped entirely when there is neither a heading
             nor a badge, so an owner's card does not carry an empty line where
             a name used to be. */}
@@ -127,7 +129,7 @@ export function ListingAgentCard({
         </p>
       </div>
       <AuthGate action="message">
-        <ButtonLink href={messageHref} variant="secondary" leadingIcon="chat-bubble" className="shrink-0">
+        <ButtonLink href={messageHref} variant="secondary" leadingIcon="chat-bubble" className="nf-agent-card__cta shrink-0">
           {copy.message}
         </ButtonLink>
       </AuthGate>

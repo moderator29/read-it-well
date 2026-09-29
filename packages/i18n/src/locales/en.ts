@@ -3284,8 +3284,9 @@ export const en = {
        * the two places it appears, because it does.
        *
        * `reportTarget`'s mixed case is the schema's, not a typo: `listing` is
-       * written by lib/reports/schema.ts and POST and SOCIAL_PROFILE by
-       * lib/social/posts-actions.ts.
+       * written by lib/reports/schema.ts; the social kinds were written as
+       * POST and SOCIAL_PROFILE until B-7a and are lower case since
+       * (lib/social/report-kinds.ts), so both spellings have words.
        *
        * The escrow kinds say where the money is and never who holds it,
        * because the terms say in bold that we hold none.
@@ -3329,6 +3330,12 @@ export const en = {
         },
         reportTarget: {
           listing: "A listing",
+          /* B-7a: the social kinds are written lower case now
+             (lib/social/report-kinds.ts). The upper-case keys stay for rows
+             filed before, which the pending B-7 migration lower-cases. */
+          post: "A post",
+          story_comment: "A comment on a story",
+          social_profile: "A profile",
           POST: "A post",
           SOCIAL_PROFILE: "A profile",
         },
