@@ -142,21 +142,43 @@ export type DoneFlag = keyof typeof DONE_FLAGS;
  * so the root layout's host may show them wherever they land: a sign-up can
  * finish on /home or on the listing somebody started from. Everything else
  * is shown by the page that can check it.
+ *
+ * THESE NEVER RIDE IN THE ADDRESS. The host has no record to check them
+ * against, so a `?done=` link would let anybody say "Password changed" to
+ * anybody. They arrive by `rememberSuccess()` (a one-shot cookie a server
+ * action sets after it succeeded, lib/ui/success-cookie.ts) or by
+ * `showSuccess()` from the client screen that just succeeded.
  */
-export const GLOBAL_DONE_FLAGS: readonly DoneFlag[] = [
+export const GLOBAL_DONE_FLAGS = [
   "account-created",
   "email-verified",
   "password-changed",
   "passcode-set",
   "passcode-changed",
-];
+] as const satisfies readonly DoneFlag[];
+
+export type GlobalDoneFlag = (typeof GLOBAL_DONE_FLAGS)[number];
+
+/** A flag a page can check against its record: the only kind a URL may carry. */
+export type RecordDoneFlag = Exclude<DoneFlag, GlobalDoneFlag>;
+
+export function isGlobalDoneFlag(value: unknown): value is GlobalDoneFlag {
+  return typeof value === "string" && (GLOBAL_DONE_FLAGS as readonly string[]).includes(value);
+}
+
+/** The one-shot cookie an account moment rides on (lib/ui/success-cookie.ts). */
+export const SUCCESS_COOKIE = "nf_done";
 
 export function isDoneFlag(value: unknown): value is DoneFlag {
   return typeof value === "string" && Object.hasOwn(DONE_FLAGS, value);
 }
 
-/** `href` with `?done=<flag>` added, keeping its query and hash. */
-export function withDone(href: string, flag: DoneFlag, extra: Record<string, string> = {}): string {
+/**
+ * `href` with `?done=<flag>` added, keeping its query and hash. Record flags
+ * only: an account moment in an address is a forgeable link (see
+ * `GLOBAL_DONE_FLAGS`), so the type refuses it and the host ignores it.
+ */
+export function withDone(href: string, flag: RecordDoneFlag, extra: Record<string, string> = {}): string {
   const hashAt = href.indexOf("#");
   const hash = hashAt === -1 ? "" : href.slice(hashAt);
   const base = hashAt === -1 ? href : href.slice(0, hashAt);
@@ -191,7 +213,7 @@ export function readDone(value: string | string[] | undefined | null): DoneFlag 
 
 export const SUCCESS_EVENT = "nf:success";
 
-export type SuccessEventDetail = { flag: DoneFlag };
+export type SuccessEventDetail = { flag: GlobalDoneFlag };
 
 /**
  * Show an ACCOUNT moment from anywhere on the client, with no navigation:
@@ -199,7 +221,7 @@ export type SuccessEventDetail = { flag: DoneFlag };
  * whose owners call this rather than render a sheet of their own. Only the
  * global flags are accepted; a record's moment belongs to its page.
  */
-export function showSuccess(flag: DoneFlag): void {
-  if (typeof window === "undefined" || !GLOBAL_DONE_FLAGS.includes(flag)) return;
+export function showSuccess(flag: GlobalDoneFlag): void {
+  if (typeof window === "undefined" || !isGlobalDoneFlag(flag)) return;
   window.dispatchEvent(new CustomEvent<SuccessEventDetail>(SUCCESS_EVENT, { detail: { flag } }));
 }
