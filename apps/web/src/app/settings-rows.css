@@ -201,6 +201,17 @@
     flex: 1 1 0;
     line-height: 1.3;
   }
+  /*
+   * A ROW WITH A SENTENCE UNDER ITS LABEL NEEDS A WIDER FLOOR. At 360,
+   * "What you are looking for" with its one-line note and the value "Nothing
+   * in particular" kept the body at the 6.5rem floor: the note ran to six
+   * lines of two words and only the chevron wrapped, alone, to the row's
+   * foot. With a 9.5rem floor the value and the chevron go to the next line
+   * together, right-aligned, and the note reads as a sentence.
+   */
+  .nf-srow__body:has(> .nf-srow__sub) {
+    min-width: min(100%, 9.5rem);
+  }
 
   /*
    * THE LABEL IS THE DEFAULT READING SIZE NOW, NOT A STEP UNDER IT.
