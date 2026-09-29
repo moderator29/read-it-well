@@ -71,13 +71,13 @@ export const HOST_NAV: readonly HostNavEntry[] = [
   { href: HOST_DASHBOARD, key: "overview", icon: "grid" },
   { href: "/host/reservations", key: "reservations", icon: "calendar-booking" },
   /* ROOM BOOKINGS 1: guests' requests for rooms, to accept or decline. */
-  { href: "/host/bookings", key: "roomBookings", icon: "bed" },
+  { href: "/host/bookings", key: "roomBookings", icon: "calendar-check" },
   { href: "/host/rooms", key: "rooms", icon: "bed" },
   { href: "/host/photos", key: "photos", icon: "picture" },
-  { href: "/host/arrival", key: "arrival", icon: "price-tag" },
+  { href: "/host/arrival", key: "arrival", icon: "receipt" },
   { href: "/host/transfer", key: "transfer", icon: "key" },
   /* Read-only: what guests' payments paid this host, by Paystack split. */
-  { href: "/host/earnings", key: "earnings", icon: "history" },
+  { href: "/host/earnings", key: "earnings", icon: "wallet" },
   /* THE WORKSPACE KEEPS ITS OWN ASSISTANT AND ITS OWN SETTINGS (29 September
      2026), so a host never leaves the console to ask a question or change
      what reaches them. Account-wide settings are one link away from the
@@ -103,7 +103,7 @@ export function buildHostNav(labels: HostNavLabels): NavSection[] {
       items: [
         ...items.filter((item) => OWN.has(item.href)),
         { href: "/settings", label: labels.accountSettings, icon: "user" },
-        { href: "/support", label: labels.help, icon: "ticket" },
+        { href: "/support", label: labels.help, icon: "headset" },
       ],
     },
   ];

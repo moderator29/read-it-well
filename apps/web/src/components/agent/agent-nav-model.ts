@@ -74,8 +74,8 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
            argument for putting the chart ON the earnings page, not for hiding
            a second destination behind a disclosure arrow. They are two screens,
            so they are two rows. */
-        { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "price-tag" },
-        { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map" },
+        { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet" },
+        { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "chart-bar" },
       ],
     },
     {
@@ -89,7 +89,7 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
         { href: "/agent/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
         { href: "/agent/settings", label: t.agent.nav.settings, icon: "settings-gear" },
         /* Track B: help from every workspace, not only the member side. */
-        { href: "/support", label: t.nav.helpSupport, icon: "ticket" },
+        { href: "/support", label: t.nav.helpSupport, icon: "headset" },
       ],
     },
     /*
