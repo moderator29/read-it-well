@@ -9,8 +9,9 @@ import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
 import { EmptyState } from "@/components/app/Screen";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 import {
+  ROW_GLYPH,
   RowButton,
   RowLink,
   RowValue,
@@ -77,8 +78,12 @@ type Tab = "account" | "posts";
 type Belonging = {
   key: "bookings" | "saved" | "payments";
   href: string;
-  /** The render's own object, cropped from `50E032EA` into the glass pack. */
-  object: BrandIconName;
+  /**
+   * The row's line glyph. Line, not glass (the founder, 29 September 2026):
+   * the profile rows are one set with the "More of your account" rows under
+   * them, the same plate, the same glyph size, stroke and blue.
+   */
+  glyph: UiIconName;
   title: string;
   sub: string;
 };
@@ -91,10 +96,13 @@ type Belonging = {
 function BelongingRow({ row, value }: { row: Belonging; value: string | null }) {
   return (
     <Link href={row.href} className="nf-pf-row" data-testid={`row-${row.key}`}>
-      <span className="nf-pf-plate" aria-hidden="true">
-        <span className="nf-pf-plate__object">
-          <BrandIcon name={row.object} size={68} />
-        </span>
+      {/* The shared icon plate every account row uses (`IconPlate`): a
+          soft brand-tinted tile with a hairline in light, the navy glass
+          plate at night, and the glyph at the rows' one size. */}
+      <span className="nf-pf-glyph" aria-hidden="true">
+        <IconPlate size="sm" tone="brand">
+          <UiIcon name={row.glyph} size={ROW_GLYPH} />
+        </IconPlate>
       </span>
       <span className="nf-pf-row__body">
         <span className="nf-pf-row__title">{row.title}</span>
@@ -168,21 +176,21 @@ export function AccountBody({
     {
       key: "bookings",
       href: "/bookings",
-      object: "calendar-grid",
+      glyph: "calendar-booking",
       title: copy.myBookings,
       sub: copy.myBookingsSub,
     },
     {
       key: "saved",
       href: "/saved",
-      object: "bookmark-ribbon",
+      glyph: "bookmark",
       title: copy.saved,
       sub: copy.savedSub,
     },
     {
       key: "payments",
       href: "/agreements",
-      object: "wallet-tile",
+      glyph: "document",
       title: copy.wallet,
       sub: copy.walletSub,
     },

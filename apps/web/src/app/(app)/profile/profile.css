@@ -762,3 +762,23 @@
   }
 }
 
+/*
+ * THE ROWS' GLYPHS (the founder, 29 September 2026, final for this surface).
+ * Plans, Saved, Agreements and Switch role carry the same line-glyph plate as
+ * the "More of your account" rows under them (`IconPlate`, small, the rows'
+ * one glyph size), so the whole page is one set: in light a soft brand-tinted
+ * tile with a hairline and the glyph in brand blue, at night the navy glass
+ * plate with the glyph in the bright brand blue rather than white. The glass
+ * objects and `.nf-pf-plate` are no longer drawn here.
+ */
+@layer components {
+  .nf-pf-glyph {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+  }
+  :root:not([data-theme="light"]) .nf-pf-body .nf-plate--brand {
+    color: var(--nf-brand-quiet);
+  }
+}
+

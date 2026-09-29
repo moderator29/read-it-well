@@ -272,22 +272,10 @@
      navy glass, the lit centre and the moving rim are the night's own. */
 
   /* ------------------------------------------------------------------
-   * THE PROFILE ROWS AND THE ROLE SWITCH. Their plates hold artwork that
-   * carries its own glass square, drawn for a night ground: on white the
-   * square's dark corners showed as ink artefacts around the object. The
-   * plate is the calm daylight plate here (the row's own `--nf-pf-ground`
-   * hook is re-pointed at paper, so every gradient it draws is re-derived
-   * from it) and the object's ground steps back. The row becomes a white
-   * card on a soft hairline.
+   * THE PROFILE ROWS AND THE ROLE SWITCH. Since 29 September they carry the
+   * shared line-glyph plate (`IconPlate`), which has its own daylight answer;
+   * the row becomes a white card on a soft hairline.
    * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-pf-plate:not(:where([data-theme="dark"] *)) {
-    /* The navy tile, drawn by the plate's own gradients: its ground hook is
-       re-pointed at the night tile's navy and its ink at the glow blue, so
-       the plate is the same object it is at night, on white. */
-    --nf-pf-ground: var(--nf-night-tile-ground);
-    --nf-pf-ink: var(--nf-glow-ink);
-    box-shadow: 0 4px 12px -6px var(--nf-night-tile-bloom);
-  }
   :root[data-theme="light"] .nf-pf-row:not(:where([data-theme="dark"] *)) {
     --nf-pf-row-fill: linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary));
     border-color: var(--nf-border-default);
