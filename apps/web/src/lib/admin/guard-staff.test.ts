@@ -47,6 +47,7 @@ const acked = (scopes: string[], acknowledged = true) => ({
 describe("requireAdmin with a staff scope", () => {
   it("admits an admin on any scope, with their own client", async () => {
     roles = ["admin"];
+    staff = { ...acked([]), is_admin: true };
     const a = await requireAdmin("guarantee");
     expect(a.state).toBe("admin");
     if (a.state === "admin") expect(a.isStaff).toBe(false);
@@ -86,5 +87,32 @@ describe("requireAdmin with a staff scope", () => {
   it("keeps an ordinary member out of the console", async () => {
     staff = acked([]);
     expect((await requireConsole()).state).toBe("not-admin");
+  });
+});
+
+describe("the console's second factor", () => {
+  it("sends an admin whose session has not proved its key to the key screen", async () => {
+    roles = ["super_admin"];
+    staff = { ...acked([]), is_admin: false, is_super_admin: true, console_verified: false };
+    expect((await requireAdmin()).state).toBe("step-up");
+  });
+
+  it("admits an admin once the session proved its key", async () => {
+    roles = ["admin"];
+    staff = { ...acked([]), is_admin: true, console_verified: true };
+    expect((await requireAdmin()).state).toBe("admin");
+  });
+
+  it("refuses an admin when the database cannot say whether the key was proved", async () => {
+    roles = ["admin"];
+    staff = null;
+    expect((await requireAdmin()).state).toBe("not-admin");
+  });
+
+  it("sends a scoped staff member to the key screen before any desk", async () => {
+    staff = { ...acked(["support"]), console_verified: false };
+    expect((await requireAdmin("support")).state).toBe("step-up");
+    const door = await requireConsole();
+    expect(door.state).toBe("step-up");
   });
 });

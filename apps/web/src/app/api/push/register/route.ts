@@ -108,6 +108,31 @@ export async function POST(request: Request): Promise<NextResponse> {
   const admin = createAdminClient();
   const nowIso = new Date().toISOString();
 
+  /* A LIVE TOKEN DOES NOT CHANGE HANDS ON A CLAIM (29 September). Upserting
+     on the token alone let anybody who learned another person's token move
+     that device's notifications onto their own account. A live row owned by
+     somebody else moves only with proof of holding the device: for Web Push,
+     the subscription's own keys (a leaked endpoint URL does not carry them);
+     for a native token, only once its previous owner revoked it or has not
+     been seen on it for 30 days. */
+  const { data: existing } = await admin
+    .from("push_tokens")
+    .select("user_id, revoked_at, p256dh, auth, last_seen_at")
+    .eq("token", parsed.token)
+    .maybeSingle();
+  if (existing && existing.user_id !== user.id && !existing.revoked_at) {
+    const staleMs = 30 * 86_400_000;
+    const stale = existing.last_seen_at ? Date.now() - Date.parse(existing.last_seen_at) > staleMs : true;
+    const provesWeb =
+      parsed.platform === "web" &&
+      Boolean(existing.p256dh) &&
+      existing.p256dh === parsed.p256dh &&
+      existing.auth === parsed.auth;
+    if (!provesWeb && !(parsed.platform !== "web" && stale)) {
+      return NextResponse.json({ ok: false, reason: "registered_elsewhere" }, { status: 409 });
+    }
+  }
+
   /* ONE ROW PER TOKEN, EVER. `upsert` on the unique token does all three
      cases at once: a new device inserts, the same person relaunching updates
      `last_seen_at`, and a handset that changed hands has `user_id` moved to
