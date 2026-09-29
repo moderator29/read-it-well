@@ -41,6 +41,8 @@ on:
       - "apps/web/capacitor.config.ts"
       - "apps/web/native-shell/**"
       - "apps/web/package.json"
+      - "apps/web/scripts/write-shell-config.mjs"
+      - "apps/web/scripts/check-deep-links.mjs"
       - "package-lock.json"
       - "scripts/sync-native-versions.mjs"
       - ".github/workflows/native-ios.yml"

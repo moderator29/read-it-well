@@ -46,6 +46,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # By hand (Actions, CI, Run workflow): re-check the whole accumulated state
+  # of a branch without a new commit. Added 29 September 2026, after CI
+  # started no job at all for days and nothing on main was ever validated.
+  workflow_dispatch:
 
 # DOC-23: a pull request cancels its own superseded runs; a push to main never
 # does, so every commit on main gets its verdict and a regression can be

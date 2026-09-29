@@ -39,12 +39,17 @@ on:
       - ".github/workflows/native-android.yml"
   pull_request:
     branches: [main]
+    # The same list as push: a pull request that changes the sync scripts
+    # changes what this build does.
     paths:
       - "apps/web/android/**"
       - "apps/web/capacitor.config.ts"
       - "apps/web/native-shell/**"
       - "apps/web/package.json"
+      - "apps/web/scripts/write-shell-config.mjs"
+      - "apps/web/scripts/check-deep-links.mjs"
       - "package-lock.json"
+      - "scripts/sync-native-versions.mjs"
       - ".github/workflows/native-android.yml"
   workflow_dispatch:
 
