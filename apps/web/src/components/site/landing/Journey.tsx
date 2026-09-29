@@ -33,7 +33,10 @@ import { SectionHead } from "./SectionHead";
  * `NO_CUSTODY_SENTENCE`, verbatim from `lib/money/copy.ts`. No fragment
  * carries money copy of its own.
  */
-const CHAPTER_OBJECT: readonly BrandIconName[] = ["listing-search", "inspect-ring", "contract-sign", "keys-handover"];
+/* Full-bleed glass objects only: `inspect-ring` drew a small, faint object
+   inside a ring beside the other three, so Inspect takes `calendar-home`
+   (booking the viewing) at the same visual weight. */
+const CHAPTER_OBJECT: readonly BrandIconName[] = ["listing-search", "calendar-home", "contract-sign", "keys-handover"];
 const CHAPTER_MOTION: readonly GlassMotion[] = ["rise", "pop", "tilt", "turn"];
 
 type Fragment = { icon: UiIconName; label: string; tone?: "ok" };
