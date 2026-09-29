@@ -94,7 +94,9 @@
        shouting this rule was written to stop. */
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    box-shadow: var(--nf-rim-lit);
+    /* No lit rim since the clean unified sweep (spec section 12): a chip is
+       a neutral control, the secondary button's surface and hairline. */
+    box-shadow: none;
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
@@ -179,10 +181,13 @@
    * without it a brighter shadow is just a brighter shadow.
    */
   .nf-chip--active {
-    color: var(--nf-content-on-brand);
-    background: var(--nf-selected-fill);
-    border-color: var(--nf-selected-edges);
-    box-shadow: var(--nf-selected-shadow-inline);
+    /* THE CLEAN UNIFIED SELECTED CHIP (29 September 2026, spec sections 1.2
+       and 12): the brand tint with the brand ink on a brand hairline, and no
+       glow. A row of filters is not where the screen's one light goes. */
+    color: var(--nf-content-link);
+    background: var(--nf-brand-tint-2);
+    border-color: var(--nf-border-brand);
+    box-shadow: none;
   }
 
   /* ------------------------------------------------------- the feed tabs */
@@ -830,17 +835,19 @@
     }
   }
   /*
-   * Selected: filled brand with the render's glow. The class is set by the
+   * Selected (it was filled brand with the render's glow). The class is set by the
    * component for every behaviour (filter, choice, link), because
    * `aria-pressed` only exists on the toggle form and a selected radio or a
    * current link chip must light the same way.
    */
   .nf-chip--pill.nf-chip--active,
   .nf-chip--pill[aria-pressed="true"] {
-    color: var(--nf-content-on-brand);
-    background: var(--nf-selected-fill);
-    border-color: var(--nf-selected-edges);
-    box-shadow: var(--nf-selected-shadow-inline);
+    /* The same calm selected chip as `.nf-chip--active` above (clean
+       unified sweep): brand tint and ink, no glow. */
+    color: var(--nf-content-link);
+    background: var(--nf-brand-tint-2);
+    border-color: var(--nf-border-brand);
+    box-shadow: none;
   }
   /* The leading glyph: a glass object or a line glyph in the brand's quiet
      ink, which is the ink the renders draw their chip glyphs in. */
@@ -887,16 +894,17 @@
    * standing segment are rounded rectangles there. Same radius on both, which
    * is what the base `.nf-segmented` in buttons.css already does.
    */
+  /* The solid segmented (`Segmented variant="solid"`): since the clean
+     unified sweep its track is the quiet one's raised well (spec section 7);
+     only the thumb differs, the brand fill that is lit at night. */
   .nf-segmented--pill {
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-btn-glass-fill);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
-    backdrop-filter: var(--nf-btn-glass-backdrop);
-    box-shadow: var(--nf-rim-lit);
+    border-radius: var(--nf-plate-radius-md);
+    background: var(--nf-surface-raised);
+    border: 0;
+    box-shadow: none;
   }
   .nf-segmented--pill .nf-segmented__capsule {
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-control-sm);
     background: var(--nf-selected-fill);
     box-shadow: var(--nf-selected-shadow-inline);
   }

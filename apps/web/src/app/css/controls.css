@@ -1708,12 +1708,16 @@
     flex-shrink: 0;
     color: var(--nf-content-muted);
   }
+  /* Up to two lines, then clipped: a two-up grid on a phone must still say
+     "Requests waiting" whole. */
   .nf-kpi__label {
     flex: 1 1 auto;
     min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .nf-kpi__door {
     display: inline-grid;

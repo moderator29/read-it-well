@@ -227,7 +227,8 @@ html {
  * lands on a brand FILL rather than on the page, which is the active dock
  * island and a pressed chip. Those redefine the token locally to the ink that
  * is already correct on a brand fill, so there is still exactly one ring and
- * one place its colour is decided. (The active dock tab left this list on
+ * one place its colour is decided. (A pressed chip left this list with the
+ * clean unified sweep: it is a brand tint now, not a brand fill.) (The active dock tab left this list on
  * 29 September 2026: it no longer sits on a pill, and in daylight the dock is
  * white, where a white ring would vanish.)
  */
@@ -255,9 +256,7 @@ html {
  * correct on it at night and at noon.
  */
 :where(
-    .nf-dock-island[aria-current="page"],
-    .nf-chip[aria-pressed="true"],
-    .nf-chip--active
+    .nf-dock-island[aria-current="page"]
   ):focus-visible {
   --nf-focus-ring: var(--nf-content-on-brand);
 }

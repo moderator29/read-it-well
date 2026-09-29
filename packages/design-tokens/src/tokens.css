@@ -1832,9 +1832,11 @@
   --nf-container-edge: color-mix(in oklab, var(--nf-container-ink) 70%, transparent);
   --nf-container-edge-lit: color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
   --nf-container-fill: var(--nf-well-fill);
-  /* The container corner, the console's measured 10px (it had no reader
-     while it stood on --nf-radius-lg). */
-  --nf-container-radius: var(--nf-radius-sm);
+  /* The container corner. It was the console's measured 10px; the clean
+     unified sweep (29 September 2026, spec section 1.3) puts every card and
+     panel on `--nf-radius-card`, 18px, so a panel and a list group are the
+     same object. */
+  --nf-container-radius: var(--nf-radius-card);
 
   --nf-brand-edge: var(--nf-container-edge);
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
