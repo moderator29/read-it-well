@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveSession } from "@/lib/actions/session";
 import { buildDataExport, type ExportClient } from "@/lib/account/export";
 import { consume } from "@/lib/security/rate-limit";
@@ -33,7 +34,13 @@ export async function GET(): Promise<NextResponse> {
     );
   }
 
-  const data = await buildDataExport(session.supabase as unknown as ExportClient, session.user);
+  let ownRecords: ExportClient;
+  try {
+    ownRecords = createAdminClient() as unknown as ExportClient;
+  } catch {
+    ownRecords = session.supabase as unknown as ExportClient;
+  }
+  const data = await buildDataExport(session.supabase as unknown as ExportClient, session.user, new Date(), ownRecords);
   const day = data.generatedAt.slice(0, 10);
   return new NextResponse(JSON.stringify(data, null, 2), {
     status: 200,

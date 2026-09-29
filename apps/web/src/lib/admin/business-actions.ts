@@ -31,6 +31,7 @@
  * must not turn a real decision into an error the operator cannot act on.
  */
 
+import { withPublicPoint } from "../supabase/public-point";
 import { revalidatePath } from "next/cache";
 import { ARRIVAL_DECLARATION_NEEDED, arrivalChargesDeclared } from "../stays/arrival-gate";
 import { withBusinessPrivate } from "../supabase/private-fields";
@@ -218,6 +219,9 @@ const publishSchema = z.object({
   accommodationId: z.uuid("That property could not be identified."),
 });
 
+const PUBLISH_READ =
+  "id, name, status, latitude, longitude, business_id, accommodation_photos(id), room_types(id, status, units_total, rate_plans(id, active)), businesses(id, name, status, owner_id, source)";
+
 /**
  * Put one property on the shelf: APPROVED to PUBLISHED.
  *
@@ -242,9 +246,9 @@ export async function publishAccommodation(input: {
 
   const { data: property, error: readError } = await access.supabase
     .from("accommodations")
-    .select(
-      "id, name, status, latitude, longitude, business_id, accommodation_photos(id), room_types(id, status, units_total, rate_plans(id, active)), businesses(id, name, status, owner_id, source)",
-    )
+    /* The public point is enough to know a pin was placed; it is null exactly
+       when the exact one is. */
+    .select(withPublicPoint(PUBLISH_READ) as typeof PUBLISH_READ)
     .eq("id", parsed.data.accommodationId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);

@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../supabase/database.types";
+import { createAdminClient } from "../../supabase/admin";
 import { requireAdmin } from "../guard";
 import { getPersonTiers } from "./shared";
 
@@ -337,8 +338,17 @@ export async function getListingReviewExtras(
   id: string,
   statusFilter?: string,
 ): Promise<Read<ListingReviewExtras | null>> {
-  const db = await adminDb();
-  if (!db) return UNAVAILABLE;
+  const guarded = await adminDb();
+  if (!guarded) return UNAVAILABLE;
+  /* The review map needs the exact point, which no member role reads; the
+     caller has just been proved staff for this desk, so this read runs on the
+     service role. */
+  let db: Db;
+  try {
+    db = createAdminClient();
+  } catch {
+    return UNAVAILABLE;
+  }
   try {
     const { data: row, error } = await db
       .from("listings")

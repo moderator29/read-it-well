@@ -10,7 +10,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * denied, so a signed-out select must name the twins, aliased back to the
  * usual keys so every mapper downstream reads the same shape.
  *
- * Signed-in members keep the exact point.
+ * 29 September: signed-in members read the public point too. An account is
+ * free, so "signed in" was never a reason to know where somebody lives;
+ * `authenticated` no longer holds the exact columns either. The exact point
+ * reaches only the lister, staff, and a party with a confirmed inspection or
+ * a live agreement, through `public.listing_exact_location`.
  */
 export const ANON_DENIED_POINT_COLUMNS = ["latitude", "longitude", "location"] as const;
 
@@ -40,10 +44,11 @@ export async function readsSignedIn(supabase: HasAuth): Promise<boolean> {
 }
 
 /**
- * The select to use for this client: exact when signed in, the public point
- * otherwise. Typed as the literal it was given, because the aliased form
- * returns the same keys (`latitude:latitude_public` arrives as `latitude`).
+ * The select to use for a catalogue read: always the public point, whoever is
+ * asking. Typed as the literal it was given, because the aliased form returns
+ * the same keys (`latitude:latitude_public` arrives as `latitude`). The client
+ * parameter is kept so callers need not change.
  */
-export async function pointSelect<S extends string>(supabase: HasAuth, select: S): Promise<S> {
-  return ((await readsSignedIn(supabase)) ? select : withPublicPoint(select)) as S;
+export async function pointSelect<S extends string>(_supabase: HasAuth, select: S): Promise<S> {
+  return withPublicPoint(select) as S;
 }
