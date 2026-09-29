@@ -89,9 +89,18 @@ const readDock = (page) =>
   });
 
 /* A real scroll, then a frame for the rAF-coalesced handler and the
-   transition to finish. */
+   transition to finish. `html` scrolls smoothly, so the scroll itself is an
+   animation: wait for scrollY to stop moving before the 400ms transition
+   wait, or a loaded server reads the dock halfway through its slide. */
 const scrollBy = async (page, dy) => {
   await page.evaluate((d) => window.scrollBy(0, d), dy);
+  let last = -1;
+  for (let i = 0; i < 30; i += 1) {
+    await page.waitForTimeout(100);
+    const y = await page.evaluate(() => window.scrollY);
+    if (y === last) break;
+    last = y;
+  }
   await page.waitForTimeout(400);
 };
 
