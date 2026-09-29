@@ -146,8 +146,16 @@ export function CreateBloom({
   const fieldRef = useRef<HTMLTextAreaElement>(null);
 
   const close = useCallback(() => setOpen(false), []);
-  const closeComposer = useCallback(() => setComposing(false), []);
-  const closeReview = useCallback(() => setReviewing(false), []);
+  /* Both hand focus back to the plus. The plate that opened them has left
+     with the fan, so the sheet's own return would land on the page body. */
+  const closeComposer = useCallback(() => {
+    setComposing(false);
+    fabRef.current?.focus();
+  }, []);
+  const closeReview = useCallback(() => {
+    setReviewing(false);
+    fabRef.current?.focus();
+  }, []);
 
   /* Escape, the Tab trap, the counted scroll lock and the focus return, from
      the one hook every overlay on the platform uses. `autoFocus` is off

@@ -77,7 +77,13 @@ export function ProfileMenu({
 
   const who = displayLabel || `@${handle}`;
 
-  const cancelBlock = useCallback(() => setConfirmBlock(false), []);
+  /* Focus goes back to the `…` that started this. The sheet's own return
+     would aim at the Block row, which left with the menu, and land on the
+     page body. */
+  const cancelBlock = useCallback(() => {
+    setConfirmBlock(false);
+    openerRef.current?.focus();
+  }, []);
   /* The blocked result has no dismiss. See the note on its hook below. */
   const noop = useCallback(() => {}, []);
 
