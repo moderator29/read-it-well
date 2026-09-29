@@ -134,6 +134,8 @@ export function useOverlay({
 
     document.addEventListener("keydown", onKeyDown, true);
     return () => {
+      const at = overlayStack.indexOf(token);
+      if (at !== -1) overlayStack.splice(at, 1);
       document.removeEventListener("keydown", onKeyDown, true);
       releaseScroll();
       // Only take focus back if it is still somewhere in the overlay we are

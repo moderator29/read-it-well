@@ -249,6 +249,9 @@ export async function reportStoryComment(input: {
         ? `${parsed.data.reason}: ${parsed.data.detail}`
         : parsed.data.reason,
     });
+    /* One open report per person per target is a unique index; a second
+       tap is the report already filed, which is the outcome they wanted. */
+    if (error?.code === "23505") return ok(null);
     if (error) return fail(dbLimitRefusal(error) ?? REPORT_DOWN);
     return ok(null);
   } catch {

@@ -86,6 +86,20 @@
   :root[data-theme="light"] .nf-site-nav[data-theme="dark"]:not([data-variant="landing"]) .nf-site-bar::after {
     display: none;
   }
+  /* The profile cover ran up behind the header's clear glass (`--nf-pf-lift`,
+     profile.css). Behind a solid block it is hidden, so in light it starts
+     under the header, lifted only through the shell's top padding so there
+     is no white band between the navy and the photograph; `--nf-social-bar`
+     does the same for the social covers (social.css). The gear no longer
+     has a header row above it on the cover, so it takes the corner inset it
+     already has from a tablet up. */
+  :root[data-theme="light"] .nf-pf:not(:where([data-theme="dark"] *)) {
+    --nf-pf-lift: var(--nf-gap-section-tight);
+  }
+  :root[data-theme="light"] .nf-pf-cover .nf-pf-gear:not(:where([data-theme="dark"] *)) {
+    inset-block-start: var(--nf-space-sm);
+    inset-inline-end: var(--nf-space-sm);
+  }
 
   /* ------------------------------------------------------------------
    * THE ICON TILES: A CALM PLATE, THE ARTWORK ONE STEP DEEPER (29

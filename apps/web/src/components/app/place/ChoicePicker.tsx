@@ -255,7 +255,7 @@ export function ChoicePicker({
                   Sticky, so the search stays in reach over a long list, and a
                   fixed height so the group headings can stick under it.
                 */}
-                <div className="sticky top-0 z-20 -mx-gutter flex h-[4rem] items-center border-b border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-gutter">
+                <div className="sticky top-0 z-20 -mx-gutter flex h-[4rem] items-center border-b border-[var(--nf-border-subtle)] bg-[var(--nf-panel-fill)] px-gutter">
                   <TextField
                     className="w-full"
                     label={searchPlaceholder ?? t.pickers.search}
@@ -288,7 +288,7 @@ export function ChoicePicker({
                   filtered.map((group) => (
                     <section key={group.category || "all"} className="pt-md first:pt-xs">
                       {group.category && (
-                        <h3 className="nf-overline sticky top-[4rem] z-10 -mx-gutter bg-[var(--nf-surface-primary)] px-gutter py-xs">
+                        <h3 className="nf-overline sticky top-[4rem] z-10 -mx-gutter bg-[var(--nf-panel-fill)] px-gutter py-xs">
                           {group.category}
                         </h3>
                       )}

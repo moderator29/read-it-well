@@ -130,6 +130,11 @@ export function CreateBloom({
   const [reviewing, setReviewing] = useState(false);
   const [picking, setPicking] = useState(false);
   const [areaId, setAreaId] = useState<string | undefined>(currentAreaId);
+  /* The composer's words, held here rather than in the composer, because the
+     composer unmounts with its sheet and a sheet closes on a drag, a flick or
+     Back. A post half-written and closed by accident comes back when the plus
+     is opened again; sending one clears it. */
+  const [draft, setDraft] = useState("");
 
   const fabRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -426,6 +431,8 @@ export function CreateBloom({
                   areaName={chosen?.name}
                   signedIn={signedIn}
                   fieldRef={fieldRef}
+                  draft={draft}
+                  onDraftChange={setDraft}
                   autoFocus
                   onDone={() => {
                     setComposing(false);

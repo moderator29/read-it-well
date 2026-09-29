@@ -79,6 +79,8 @@ export function Composer({
   initialKind = "GIST",
   onDone,
   fieldRef,
+  draft,
+  onDraftChange,
 }: {
   areaId?: string;
   parentId?: string;
@@ -90,11 +92,19 @@ export function Composer({
   onDone?: () => void;
   /** The text field, for a sheet that wants to put first focus on it. */
   fieldRef?: RefObject<HTMLTextAreaElement | null>;
+  /** The words, held by the caller. Pass both or neither. */
+  draft?: string;
+  onDraftChange?: (next: string) => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [kind, setKind] = useState<ComposableKind>(initialKind);
-  const [body, setBody] = useState("");
+  /* The words live with the caller when it asks to hold them, so a sheet that
+     is closed by a stray drag or Back does not throw a half-written post
+     away. Otherwise they are this component's own. */
+  const [ownBody, setOwnBody] = useState("");
+  const body = draft ?? ownBody;
+  const setBody = (next: string) => (onDraftChange ? onDraftChange(next) : setOwnBody(next));
   const [error, setError] = useState<string | null>(null);
   /* V-40: the post was kept for when the signal returns. */
   const [keptNote, setKeptNote] = useState<string | null>(null);

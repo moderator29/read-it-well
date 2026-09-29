@@ -41,6 +41,7 @@ export default function SheetsPreview() {
           signUp="Get started"
           openLabel="Open menu"
           closeLabel="Close menu"
+          menuLabel={t.a11y.railNav}
         />
         <DeleteAccountPanel t={t} locale="en" method="password" blockers={[]} purgeAfter={null} daysLeft={0} unavailable={false} />
         <SheetsHarness t={t} />

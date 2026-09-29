@@ -30,6 +30,11 @@
   /* How far the cover runs up behind the app's own translucent top bar. */
   --nf-social-bar: 64px;
 }
+/* In light the app header is a solid navy block (reference 05), so a cover
+   running up behind it would be hidden, not seen through glass. */
+:root[data-theme="light"] {
+  --nf-social-bar: 0px;
+}
 
 @layer components {
   /* ------------------------------------------------------------- the card */

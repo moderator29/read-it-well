@@ -200,7 +200,10 @@ export function Feed({
       ...initial,
       ...posts.filter(
         (post, index) =>
-          !fresh.has(post.id) && (!firstPage.has(post.id) || (tail !== -1 && index > tail)),
+          /* `tail === -1`: the fresh page's last row is not in what we hold,
+             so the whole old first page sits below the fresh one and was
+             pushed down rather than removed. */
+          !fresh.has(post.id) && (!firstPage.has(post.id) || tail === -1 || index > tail),
       ),
     ]);
   }

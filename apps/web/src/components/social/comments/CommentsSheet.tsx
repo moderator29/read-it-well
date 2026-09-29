@@ -103,6 +103,8 @@ export function CommentsSheet({
   const [body, setBody] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  /* Whether the open menu rises above its button. See `.nf-comment__menu--up`. */
+  const [menuUp, setMenuUp] = useState(false);
   const [reporting, setReporting] = useState<CommentRow | null>(null);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -384,7 +386,12 @@ export function CommentsSheet({
                         aria-label={`More actions for this comment`}
                         aria-haspopup="menu"
                         aria-expanded={menuFor === comment.id}
-                        onClick={() => setMenuFor(menuFor === comment.id ? null : comment.id)}
+                        onClick={(event) => {
+                          const box = event.currentTarget.getBoundingClientRect();
+                          const viewport = window.visualViewport?.height ?? window.innerHeight;
+                          setMenuUp(box.top > viewport / 2);
+                          setMenuFor(menuFor === comment.id ? null : comment.id);
+                        }}
                       >
                         <UiIcon name="more" size={17} />
                       </button>
@@ -396,7 +403,10 @@ export function CommentsSheet({
                             className="fixed inset-0 z-20 cursor-default"
                             onClick={() => setMenuFor(null)}
                           />
-                          <div role="menu" className="nf-post__menu nf-comment__menu">
+                          <div
+                            role="menu"
+                            className={`nf-post__menu nf-comment__menu${menuUp ? " nf-comment__menu--up" : ""}`}
+                          >
                             {comment.isMine ? (
                               onDelete ? (
                                 <button

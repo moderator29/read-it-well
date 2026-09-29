@@ -34,7 +34,11 @@
  */
 
 :root,
-[data-theme="dark"] {
+[data-theme="dark"],
+/* A light popover inside a night island re-runs this block, so every token
+   derived here resolves again against the light block below (see the
+   light block's second selector). */
+:root[data-theme="light"] [data-theme="light"] {
   /* ---------------------------------------------------------------------
    * LAYER 1: raw palette. Internal. Do not use directly in components.
    * ------------------------------------------------------------------ */
@@ -3289,7 +3293,8 @@
  * adds at most 7% white at the very corner, so no text contrast moves.
  */
 :root,
-[data-theme="dark"] {
+[data-theme="dark"],
+:root[data-theme="light"] [data-theme="light"] {
   --nf-panel-halo: 0 0 6px color-mix(in oklab, var(--nf-state-info) 52%, transparent);
   --nf-panel-catch: color-mix(in oklab, var(--nf-lit) 62%, var(--nf-state-info));
   --nf-plate-glow: 0 0 12px color-mix(in oklab, var(--nf-lit) 40%, transparent);
@@ -3386,7 +3391,8 @@
      photograph region) redeclares the palette and with it the durations, so
      it is named here too or reduced motion would stop at its edge. */
   :root,
-  [data-theme="dark"] {
+  [data-theme="dark"],
+  :root[data-theme="light"] [data-theme="light"] {
     --nf-duration-instant: 1ms;
     --nf-duration-fast: 1ms;
     --nf-duration-base: 1ms;
@@ -3458,8 +3464,15 @@
  * WHAT DELIBERATELY STAYS DARK: anything drawn over a PHOTOGRAPH (scrims,
  * the on-media controls, the photo viewer's ground) and the ARTWORK ground,
  * because the photograph and the artwork do not change with the theme.
+ *
+ * THE SECOND SELECTOR is a way back out of a night island: the header is
+ * dark in both themes (reference 05), and a popover inside it that belongs
+ * to the page (the site bar's More menu) carries `data-theme="light"` to
+ * take this palette again. It only matches under a light root, so in the
+ * dark theme the same attribute changes nothing.
  */
-:root[data-theme="light"] {
+:root[data-theme="light"],
+:root[data-theme="light"] [data-theme="light"] {
   /* ----------------------------------------------------------- the ground */
   --nf-surface-canvas: #FFFFFF;
   --nf-canvas-base: #FFFFFF;

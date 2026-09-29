@@ -44,6 +44,7 @@ export function MobileMenu({
   signUp,
   openLabel,
   closeLabel,
+  menuLabel,
 }: {
   links: { href: string; label: string }[];
   locale: Locale;
@@ -52,6 +53,8 @@ export function MobileMenu({
   signUp: string;
   openLabel: string;
   closeLabel: string;
+  /** The dialog's accessible name, in the reader's language. */
+  menuLabel: string;
 }) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
@@ -78,7 +81,7 @@ export function MobileMenu({
         onOpenChange={(next) => {
           if (!next) close();
         }}
-        title="Menu"
+        title={menuLabel}
         hideTitle
         fullPage
       >

@@ -178,6 +178,9 @@ export function ProfileMenu({
       const result = await blockUser({ userId });
       if (!result.ok) {
         setConfirmBlock(false);
+        /* The sheet's own return aims at the Block row, which left with the
+           menu; the `…` is where the keyboard belongs. */
+        openerRef.current?.focus();
         show(result.error, "error");
         return;
       }
@@ -338,7 +341,9 @@ export function ProfileMenu({
       <Sheet
         open={confirmBlock}
         onOpenChange={(next) => {
-          if (!next) cancelBlock();
+          /* Not while the block is being written: a drag, Back or Escape then
+             would hide the sheet with the block still landing behind it. */
+          if (!next && !pending) cancelBlock();
         }}
         title={`Block ${who}?`}
         fullPage

@@ -1943,7 +1943,7 @@
     align-items: center;
     gap: 8px;
     padding-block: 2px 10px;
-    background: var(--nf-surface-raised);
+    background: var(--nf-panel-fill);
     border-block-end: 1px solid var(--nf-border-subtle);
   }
   .nf-comments__title {
@@ -2038,6 +2038,13 @@
   .nf-comment__menu {
     inset-inline-end: 0;
     top: 34px;
+  }
+  /* Opened from the lower half of the sheet, the menu rises above its button:
+     dropped downward it ran under the pinned composer and out of the sheet's
+     scrolling body, which clips it. */
+  .nf-comment__menu--up {
+    top: auto;
+    bottom: 34px;
   }
   .nf-comment__body {
     margin-block-start: 3px;

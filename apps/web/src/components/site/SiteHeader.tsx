@@ -109,6 +109,7 @@ export function SiteHeader({
               signUp={nav.getStarted}
               openLabel={t.a11y.openMenu}
               closeLabel={t.a11y.closeMenu}
+              menuLabel={t.a11y.railNav}
             />
           </div>
         </div>

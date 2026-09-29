@@ -559,6 +559,10 @@ export async function reportPost(input: {
       : parsed.data.reason,
   });
 
+  /* One open report per person per target is a unique index; a second tap
+     is the report already filed, which is the outcome they wanted, not a
+     failure to show them. */
+  if (error?.code === "23505") return ok(null);
   if (error) return fail(dbLimitRefusal(error) ?? POST_FAILURE.down);
   return ok(null);
 }
@@ -610,6 +614,10 @@ export async function reportProfile(input: {
       : parsed.data.reason,
   });
 
+  /* One open report per person per target is a unique index; a second tap
+     is the report already filed, which is the outcome they wanted, not a
+     failure to show them. */
+  if (error?.code === "23505") return ok(null);
   if (error) return fail(dbLimitRefusal(error) ?? POST_FAILURE.down);
   return ok(null);
 }

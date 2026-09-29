@@ -324,8 +324,8 @@ The recipe, so the twins can be rebuilt from any new night render:
 
 `Logo.tsx` renders both files and `app/css/light.css` shows one, keyed on
 `data-theme`, which the before-paint script sets. A night island
-(`data-theme="dark"`) keeps the night artwork. The twin is loaded eagerly so
-the first switch to Light never shows an empty slot.
+(`data-theme="dark"`) keeps the night artwork. The hidden twin loads lazily,
+so the first switch of theme in a session can show the logo a moment late.
 
 Draw the logo through `Logo`, `LogoMark` or `LogoWordmark`, never a raw
 `<Image>` of `vallo-mark.png` or `vallo-wordmark.png`: a raw image has no twin

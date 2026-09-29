@@ -46,11 +46,11 @@ import Image from "next/image";
  * BOTH FILES ARE IN THE DOCUMENT AND CSS PICKS ONE (`app/css/light.css`, "the
  * logo"), keyed on `data-theme`, which the before-paint script sets. Nothing
  * waits for React, so a theme change never shows the wrong artwork or a blank
- * frame, and a night island inside a light page (`data-theme="dark"`: the
- * landing hero, auth, the system moments) keeps the night artwork. The twin
- * loads eagerly for that reason: a lazy image under `display: none` is not
- * fetched until it is shown, which would flash the first time somebody picks
- * Light.
+ * frame once both are loaded, and a night island inside a light page
+ * (`data-theme="dark"`: the landing hero, auth, the system moments) keeps the
+ * night artwork. The hidden twin loads lazily, so the page does not pay for
+ * artwork it is not showing; the cost is that the FIRST switch to the other
+ * theme in a session can show the logo a moment after the rest of the page.
  */
 
 /**
@@ -98,20 +98,25 @@ export function LogoMark({
   const art = (night: boolean) => (
     <Image
       src={night ? "/brand/vallo-mark.png" : "/brand/vallo-mark-light.png"}
-      /* Only the visible twin may carry the name: the other is display none,
-         which already removes it from the accessibility tree, and the empty
-         alt keeps a broken-image fallback from speaking twice. */
-      alt={title ?? ""}
-      aria-hidden={title ? undefined : true}
+      /* The images are pictures only; the name, when there is one, is on the
+         wrapper below, so it is spoken once whichever twin is showing. */
+      alt=""
+      aria-hidden
       width={size}
       height={markHeight(size)}
       priority={night ? priority : undefined}
-      loading={night ? undefined : "eager"}
       className={`nf-logo-art nf-logo-art--${night ? "night" : "day"} ${className ?? ""}`}
       style={{ width, height: "auto" }}
     />
   );
-  return (
+  /* `contents` keeps the wrapper out of layout, so a call site that styles
+     the mark as a direct child of its own box sees the image as before. */
+  return title ? (
+    <span role="img" aria-label={title} className="contents">
+      {art(true)}
+      {art(false)}
+    </span>
+  ) : (
     <>
       {art(true)}
       {art(false)}
@@ -200,7 +205,6 @@ export function Logo({
                optimiser served the 1920-wide version for a 78 px logo. */
             sizes={`${Math.ceil((wordSize * 758) / 167)}px`}
             priority={when === "night" ? priority : undefined}
-            loading={when === "day" ? "eager" : undefined}
             className={`nf-logo__word nf-logo-art nf-logo-art--${when}`}
             style={{ height: wordFontSize, width: "auto" }}
           />
@@ -244,7 +248,6 @@ export function LogoWordmark({
           height={height}
           sizes={sizes}
           priority={when === "night" ? priority : undefined}
-          loading={when === "day" ? "eager" : undefined}
           className={`nf-logo-art nf-logo-art--${when} ${className ?? ""}`}
           style={style}
         />
