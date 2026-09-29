@@ -2,6 +2,7 @@ import "server-only";
 
 import type { JobVerdict } from "../../bookings/lifecycle";
 import type { AdminClient } from "../rpc";
+import type { CronRunRecord } from "../report";
 import { isPaystackConfigured } from "../../payments/paystack";
 import { dueShareRefunds, stuckShareRefunds, submitShareRefunds } from "../../tenancy/share-refunds";
 
@@ -19,7 +20,7 @@ export async function rentShareRefunds(admin: AdminClient): Promise<JobVerdict> 
   // A share refund a person must look at, whatever else this run does:
   // claimed but never answered for 15 minutes, or failed three times.
   const stuck = await stuckShareRefunds(admin);
-  const stuckAlert =
+  const stuckAlert: CronRunRecord["alert"] =
     stuck === null
       ? { kind: "cron.rent_share_refunds", severity: "warning" as const, detail: { read: "rent_share_refunds_stuck failed" } }
       : stuck.length > 0

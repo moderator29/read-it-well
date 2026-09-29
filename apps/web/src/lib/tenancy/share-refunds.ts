@@ -56,8 +56,9 @@ type Claimed = { reference: string; amountMinor: number };
 
 async function claim(admin: AdminClient, refundId: string): Promise<Claimed | null> {
   const { data, error } = await admin.rpc("claim_rent_share_refund" as never, { p_refund: refundId } as never);
-  if (error || !Array.isArray(data) || data.length === 0) return null;
-  const row = data[0] as Record<string, unknown>;
+  const rows = data as unknown;
+  if (error || !Array.isArray(rows) || rows.length === 0) return null;
+  const row = rows[0] as Record<string, unknown>;
   const amount = Number(row.amount_minor);
   if (typeof row.reference !== "string" || !Number.isSafeInteger(amount) || amount <= 0) return null;
   return { reference: row.reference, amountMinor: amount };
