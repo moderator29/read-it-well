@@ -157,15 +157,15 @@ export function AppShell({
   const openDrawer = useCallback(() => setDrawer(true), []);
 
   /*
-   * THE SWITCH, BUILT ONCE AND PLACED ONCE.
+   * THE WORKSPACE SHEET, MOUNTED ONCE, AND THE DOCK'S "+".
    *
-   * It was placed twice: the centre slot of the dock and a row near the foot
-   * of the side drawer. The founder has cut the drawer row - "it lives in the
-   * dock now and two entrances to the same sheet in the same product is
-   * clutter" - so the shell builds one control for one placement. It is still
-   * built HERE rather than inside `MobileTabBar` because the sheet needs the
-   * account's own workspace list, which the shell has already resolved once,
-   * and the dock is a server component that has no business fetching one.
+   * The workspace switch was the dock's centre control; since 29 September
+   * the centre is the "+" (`CreateDock`) and the switch is its Create sheet's
+   * last row, which opens this sheet by the named event, as the profile's
+   * Switch role row does. The sheet is still built HERE rather than inside
+   * `MobileTabBar` because it needs the account's own workspace list, which
+   * the shell has already resolved once, and the dock is a server component
+   * that has no business fetching one.
    *
    * The copy is assembled from the dictionary rather than written inline,
    * because this is new copy and new copy is going to be edited.

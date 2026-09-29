@@ -790,7 +790,7 @@ export const en = {
         title1: "Rent, buy or stay.",
         title2: "Without the runaround.",
         subtitle:
-          "Homes, land and stays across Nigeria, with the real cost shown before you call anybody.",
+          "Homes, land and stays across Nigeria, with the real cost up front.",
         explore: "Explore Properties",
       },
       search: {

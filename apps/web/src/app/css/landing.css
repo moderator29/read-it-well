@@ -104,31 +104,6 @@
     color: var(--nf-content-primary);
   }
 
-  /*
-   * LESS GLOW, ON THE NIGHT PALETTE (29 September, the founder: "less glow").
-   *
-   * Every panel on the landing is the shared panel, and on the night
-   * palette the shared panel is lit: a bright blue edge on all four sides,
-   * a second line of light inside the top, and a 6px halo outside. Twenty
-   * of them down one page read as neon. The landing keeps the panel and
-   * turns its light down: a quiet brand hairline for the edge, one faint
-   * catch inside the top, no halo. The lit primary button keeps its bar and
-   * rim and loses most of its bloom. Paper is untouched (its panels were
-   * never lit). A property that reads another resolves where it is
-   * declared, so the islands declare it again for their own palette.
-   */
-  :root:not([data-theme="light"]) .nf-landing,
-  .nf-landing [data-theme="dark"] {
-    --nf-panel-edges: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
-    --nf-panel-rim: inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 7%, transparent);
-    --nf-panel-glow: 0 1px 2px color-mix(in oklab, var(--nf-surface-canvas) 60%, transparent);
-    --nf-btn-lit-shadow:
-      var(--nf-btn-lit-rim), var(--nf-btn-lit-inner),
-      0 4px 12px -6px color-mix(in srgb, var(--nf-brand-primary) 60%, transparent);
-    --nf-btn-lit-shadow-hover:
-      var(--nf-btn-lit-rim), var(--nf-btn-lit-inner-hover),
-      0 6px 16px -6px color-mix(in srgb, var(--nf-brand-primary) 70%, transparent);
-  }
   /* The pool of light cast under the lit bar, at a third of its strength. */
   .nf-landing .nf-btn--primary::after {
     opacity: 0.35;
@@ -655,7 +630,7 @@
   }
   @media (min-width: 64rem) {
     .nf-landing-sub {
-      max-width: 52ch;
+      max-width: 64ch;
       font-size: var(--nf-text-body-lg);
       line-height: 1.55;
     }
@@ -1440,3 +1415,37 @@
       transition: none;
     }
   }}
+
+/*
+ * LESS GLOW, ON THE NIGHT PALETTE (29 September, the founder: "less glow").
+ *
+ * Every panel on the landing is the shared panel, and on the night
+ * palette the shared panel is lit: a bright blue edge on all four sides,
+ * a second line of light inside the top, and a 6px halo outside. Twenty
+ * of them down one page read as neon. The landing keeps the panel and
+ * turns its light down: a quiet brand hairline for the edge, one faint
+ * catch inside the top, no halo. The lit primary button keeps its bar and
+ * rim and loses most of its bloom. Paper is untouched (its panels were
+ * never lit). A property that reads another resolves where it is
+ * declared, so the islands declare it again for their own palette.
+ *
+ * OUTSIDE THE COMPONENTS LAYER, ON PURPOSE. The night palette is declared
+ * on `[data-theme="dark"]` in tokens.css, which is unlayered, and unlayered
+ * rules beat every layered one whatever their specificity. On the page root
+ * that did not matter (this block sits on `.nf-landing`, below `html`), but
+ * a night island carries `data-theme="dark"` itself (a category tile, the
+ * app panel), so inside the layer the island's own lit edges won and those
+ * tiles kept their blue glow in light mode.
+ */
+:root:not([data-theme="light"]) .nf-landing,
+.nf-landing [data-theme="dark"] {
+  --nf-panel-edges: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  --nf-panel-rim: inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 7%, transparent);
+  --nf-panel-glow: 0 1px 2px color-mix(in oklab, var(--nf-surface-canvas) 60%, transparent);
+  --nf-btn-lit-shadow:
+    var(--nf-btn-lit-rim), var(--nf-btn-lit-inner),
+    0 4px 12px -6px color-mix(in srgb, var(--nf-brand-primary) 60%, transparent);
+  --nf-btn-lit-shadow-hover:
+    var(--nf-btn-lit-rim), var(--nf-btn-lit-inner-hover),
+    0 6px 16px -6px color-mix(in srgb, var(--nf-brand-primary) 70%, transparent);
+}

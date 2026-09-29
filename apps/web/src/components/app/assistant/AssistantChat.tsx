@@ -630,11 +630,12 @@ export function AssistantChat({
           chrome: back, the lockup, history on a phone, settings; then the
           name pair beneath. */}
       {frame ? (
-        /* Inside a workspace the shell's bar is the chrome, so this surface
-           draws only the name pair, with history and settings beside it. */
+        /* Inside a workspace the shell's bar is the chrome and already names
+           the screen, so the name stays for a screen reader and what shows is
+           the workspace's line, with history and settings beside it. */
         <div className="nf-ai__ident nf-ai__ident--row">
           <div className="min-w-0 flex-1">
-            <h1 className="nf-ai__title">{copy.title}</h1>
+            <h1 className="sr-only">{copy.title}</h1>
             <p className="nf-ai__sub">{frame.sub}</p>
           </div>
           {barActions}
