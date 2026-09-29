@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ThreadContext } from "@/lib/messages/live";
 import { deriveBookingSteps, lagosToday, type BookingStepKey } from "./booking-steps";
 import { lagosDay, lagosWhen } from "./when";
+import { StatusTrack } from "@/components/app/status/StatusTrack";
 
 /**
  * THE BOOKING FACE: the stay's four steps, as a timeline that draws itself.
@@ -96,72 +97,27 @@ export function BookingFace({
       <div className="nf-booking-fold__body">
         <p className={TYPE.rowTitle}>{booking.title}</p>
 
-        <ol
-          className="relative mt-row grid grid-cols-4 gap-inline-tight"
-          aria-label={current ? copy[LABEL[current.key]] : copy.label}
-        >
-          {/* The rule sits behind the discs, from the centre of the first to
-              the centre of the last, and draws itself across on arrival. */}
-          <span
-            aria-hidden="true"
-            className="nf-rule-draw absolute top-2"
-            /* Centre of the first disc to centre of the last: one eighth of the
-               row in from each edge, because each of four columns is a quarter. */
-            style={{ left: "12.5%", right: "12.5%" }}
-          />
-          {steps.map((step) => {
-            const done = step.state === "done";
-            const now = step.state === "current";
-            const ink = done
-              ? "var(--nf-state-success)"
-              : now
-                ? "var(--nf-brand-primary)"
-                : "var(--nf-content-muted)";
-            const when =
+        {/* The shared status track (spec section 14): done steps a filled
+            disc with a tick, the current one a ring with a halo, steps still
+            ahead hollow; horizontal once the fold is wide enough, vertical
+            on a phone. Every time is the booking's own. */}
+        <StatusTrack
+          className="mt-row"
+          label={copy.label}
+          testId="booking-face-track"
+          steps={steps.map((step) => ({
+            key: step.key,
+            label: copy[LABEL[step.key]],
+            when:
               step.at === null
-                ? ""
+                ? null
                 : step.key === "arrival"
                   ? lagosDay(step.at, locale)
-                  : lagosWhen(step.at, locale);
-            return (
-              <li key={step.key} className="relative flex min-w-0 flex-col items-center text-center">
-                <span
-                  aria-hidden="true"
-                  className="flex h-4 w-4 items-center justify-center rounded-full"
-                  style={{
-                    boxSizing: "border-box",
-                    border: `var(--nf-border-width-strong) solid ${ink}`,
-                    background: now
-                      ? "var(--nf-surface-elevated)"
-                      : done
-                        ? ink
-                        : "var(--nf-surface-elevated)",
-                  }}
-                >
-                  {now && (
-                    <span
-                      className="block h-2 w-2 rounded-full nf-confirm-pop"
-                      style={{ background: ink }}
-                    />
-                  )}
-                </span>
-                <span
-                  aria-current={now ? "step" : undefined}
-                  className={`mt-inline-tight block ${TYPE.caption} ${
-                    now ? "font-semibold text-[var(--nf-content-primary)]" : ""
-                  }`}
-                >
-                  {copy[LABEL[step.key]]}
-                </span>
-                {when && (
-                  <span className={`nf-numeric mt-3xs block ${TYPE.caption} [overflow-wrap:anywhere]`}>
-                    {when}
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ol>
+                  : lagosWhen(step.at, locale),
+            /* A cancelled stay stops on the step it was standing on. */
+            state: cancelled && step.state === "current" ? "failed" : step.state,
+          }))}
+        />
 
         {cancelled && (
           <p role="status" className={`mt-row ${TYPE.rowMeta}`}>

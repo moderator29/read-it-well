@@ -15,8 +15,16 @@ import {
   staffByline,
   summariseThread,
   type TicketMessage,
+import { StatusTrack } from "@/components/app/status/StatusTrack";
+import { ticketTrack, type TicketStepKey } from "@/components/app/status/tracks";
 } from "@/lib/support/tickets";
 import { ReplyBox } from "./ReplyBox";
+
+const TICKET_STEP: Record<TicketStepKey, (status: string) => string> = {
+  filed: () => "Filed",
+  picked: () => "Picked up",
+  resolved: (status) => (status === "closed" ? "Closed" : "Resolved"),
+};
 import { RateResolution, ReopenTicket, ResolveButton } from "./TicketActions";
 
 function stamp(iso: string, locale: Locale): string {
@@ -164,6 +172,24 @@ export function TicketThreadView({
             </span>
           </div>
           <p className="nf-body-sm mt-row text-[var(--nf-content-secondary)]">{state.meaning}</p>
+          {/* Where it stands, on the shared status track (spec section 14):
+              filed, picked up (dated by the team's first reply), resolved. */}
+          <StatusTrack
+            className="mt-block"
+            label="Support progress"
+            testId="support-track"
+            steps={ticketTrack({
+              status: ticket.status,
+              createdAt: ticket.createdAt,
+              firstStaffReplyAt: thread.find((m) => m.senderRole === "admin")?.createdAt ?? null,
+              resolvedAt: ticket.resolvedAt,
+            }).map((step) => ({
+              key: step.key,
+              label: TICKET_STEP[step.key](ticket.status),
+              when: step.at ? stamp(step.at, locale) : null,
+              state: step.state,
+            }))}
+          />
           {replyable && summary.supportSpokeLast === false && (
             <p className="nf-caption mt-row flex items-center gap-inline text-[var(--nf-content-muted)]">
               <UiIcon name="history" size={16} className="shrink-0" />

@@ -11,6 +11,8 @@ import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
 import { agreementArrival } from "@/lib/ui/arrival-moments";
 import { Section, TYPE } from "@/components/app/Screen";
 import { AGREEMENT_STATUS_LABEL, CLAIM_STATUS_LABEL } from "@/components/app/agreements/status";
+import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { agreementTrack, type AgreementStepKey } from "@/components/app/status/tracks";
 import { AmendTerms, CancelAgreement, ClaimForm, ConfirmTerms } from "@/components/app/agreements/AgreementControls";
 import {
   GUARANTEE_SCOPE,
@@ -139,6 +141,13 @@ export default async function AgreementPage({
       <p className={`${TYPE.rowMeta} mt-2xs`} data-testid="agreement-status">
         {AGREEMENT_STATUS_LABEL[a.status] ?? a.status}
       </p>
+
+      {/* Where it stands, on the shared status track (spec section 14): drawn
+          up, both confirmed, approved, paid, each dated from this agreement's
+          own events. Sent back or cancelled stops the track where it stood. */}
+      <div className="nf-panel nf-panel--card mt-block p-card">
+        <StatusTrack label="Agreement progress" steps={agreementSteps(a.status, a.events)} testId="agreement-track" />
+      </div>
 
       {a.status === "rejected" && a.decisionReason ? (
         <div className="nf-card mt-block p-card" role="note">
@@ -291,6 +300,35 @@ export default async function AgreementPage({
       <p className={`${TYPE.rowMeta} mt-block`}>{OFF_PLATFORM_SENTENCE}</p>
     </main>
   );
+}
+
+const TRACK_LABEL: Record<AgreementStepKey, string> = {
+  drawn: "Drawn up",
+  confirmed: "Both confirmed",
+  approved: "Vallo approved",
+  paid: "Paid",
+};
+
+function agreementSteps(status: string, events: { at: string; action: string }[]): TrackStep[] {
+  return agreementTrack({ status, events }).map((step) => ({
+    key: step.key,
+    label:
+      step.state === "failed"
+        ? status === "rejected"
+          ? "Sent back by Vallo"
+          : "Cancelled"
+        : TRACK_LABEL[step.key],
+    when: step.at
+      ? new Date(step.at).toLocaleString("en-NG", {
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Africa/Lagos",
+        })
+      : null,
+    state: step.state,
+  }));
 }
 
 function FragmentLine({ label, value }: { label: string; value: string }) {

@@ -1,0 +1,342 @@
+/*
+ * THE SHARE CARD (spec section 10, references 33 and 34; plan item 23).
+ *
+ * One frame for every score, share and trust card: a header row (title and a
+ * tinted chip, or a chip and a round-cornered info button), an inner well, a
+ * big figure, a ten bar meter with its word, a checklist of round status
+ * marks, the honest line, and a stat strip in one hairline box. Drawn by
+ * `components/share/ShareCardFrame.tsx`; the Open Graph twin is
+ * `components/share/og-share-card.tsx`, which cannot read these tokens.
+ *
+ * Shapes: the frame and its controls obey the 0.30 radius law (the chip and
+ * the info button are rounded rectangles, never capsules). The circles here
+ * are the status marks and the meter's bars, which are shapes and not
+ * controls.
+ *
+ * The spec's NEW tokens (`--nf-card-border`, `--nf-radius-well`,
+ * `--nf-text-figure-xl`, `--nf-tracking-label`) are read with a fallback to
+ * the nearest existing token, so this renders before and after they land.
+ */
+
+.nf-share-card {
+  container-type: inline-size;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: var(--nf-space-xs);
+  border-radius: var(--nf-radius-xl);
+  background: var(--nf-surface-primary);
+  border: 1px solid var(--nf-card-border, var(--nf-border-subtle));
+  box-shadow: var(--nf-card-shadow, none);
+  color: var(--nf-content-primary);
+}
+
+.nf-share-card--tinted {
+  background: var(--nf-brand-tint-2);
+  border-color: transparent;
+}
+
+/* ------------------------------------------------------------- the head */
+
+.nf-share-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nf-space-sm);
+  min-height: 2.5rem;
+  padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
+}
+
+.nf-share-card__title {
+  min-width: 0;
+  font-size: var(--nf-text-h4);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--nf-content-primary);
+}
+
+.nf-share-card__chip {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--nf-space-2xs);
+  min-height: 1.75rem;
+  padding: var(--nf-space-2xs) var(--nf-space-xs);
+  border-radius: var(--nf-radius-badge, var(--nf-radius-xs));
+  background: var(--nf-brand-tint-2);
+  color: var(--nf-content-primary);
+  font-size: var(--nf-text-caption);
+  line-height: 1.2;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.nf-share-card__chip svg {
+  color: var(--nf-content-link);
+}
+
+/* In the tinted frame the chip is the surface itself, as reference 34 draws. */
+.nf-share-card--tinted .nf-share-card__chip {
+  min-height: 2.25rem;
+  padding: var(--nf-space-xs) var(--nf-space-sm);
+  border-radius: var(--nf-radius-sm);
+  background: var(--nf-surface-primary);
+  font-size: var(--nf-text-body-sm);
+}
+
+.nf-share-card__info {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--nf-radius-sm);
+  background: var(--nf-surface-primary);
+  color: var(--nf-content-primary);
+  border: 0;
+  cursor: pointer;
+}
+
+.nf-share-card__info:focus-visible {
+  outline: 2px solid var(--nf-brand-primary);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------- the well */
+
+
+
+.nf-share-card__well {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nf-space-md);
+  padding: var(--nf-space-md);
+  border-radius: var(--nf-radius-well, var(--nf-radius-lg));
+  background: var(--nf-surface-raised);
+}
+
+@container (min-width: 26rem) {
+  .nf-share-card__well {
+    padding: var(--nf-space-lg) 1.25rem;
+  }
+}
+
+.nf-share-card__eyebrow {
+  font-size: var(--nf-text-body-sm);
+  line-height: 1.4;
+  color: var(--nf-content-secondary);
+}
+
+.nf-share-card__lead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nf-space-sm) var(--nf-space-lg);
+}
+
+.nf-share-card[data-meter="below"] .nf-share-card__lead {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.nf-share-card__figure {
+  font-size: var(--nf-text-figure-xl, clamp(3.5rem, 2.4rem + 5vw, 5.5rem));
+  line-height: 0.95;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--nf-content-primary);
+}
+
+.nf-share-card__figure[data-size="lg"] {
+  font-size: var(--nf-text-h1);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.nf-share-card__figure-unit {
+  margin-left: var(--nf-space-2xs);
+  font-size: var(--nf-text-body);
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--nf-content-muted);
+}
+
+/* ------------------------------------------------------------ the meter */
+
+.nf-share-card__meter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nf-space-xs);
+  min-width: 0;
+}
+
+.nf-share-card[data-meter="below"] .nf-share-card__meter {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--nf-space-md);
+}
+
+.nf-share-card__bars {
+  display: flex;
+  gap: 4px;
+}
+
+.nf-share-card__bar {
+  width: 0.625rem;
+  height: 1.75rem;
+  border-radius: 5px;
+  background: var(--nf-wash-3);
+}
+
+.nf-share-card[data-meter="below"] .nf-share-card__bar {
+  width: 0.75rem;
+  height: 2rem;
+  border-radius: 6px;
+}
+
+.nf-share-card--tinted .nf-share-card__bar {
+  background: var(--nf-surface-primary);
+}
+
+.nf-share-card__bars[data-level="high"] .nf-share-card__bar[data-lit] {
+  background: var(--nf-brand-primary);
+}
+
+.nf-share-card__bars[data-level="mid"] .nf-share-card__bar[data-lit] {
+  background: var(--nf-state-warning);
+}
+
+.nf-share-card__bars[data-level="low"] .nf-share-card__bar[data-lit] {
+  background: var(--nf-content-muted);
+}
+
+.nf-share-card__word {
+  font-size: var(--nf-text-body);
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--nf-content-primary);
+}
+
+.nf-share-card__qualifier {
+  font-weight: 400;
+  color: var(--nf-content-muted);
+}
+
+/* -------------------------------------------------------- the checklist */
+
+.nf-share-card__checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--nf-space-sm);
+}
+
+.nf-share-card__check {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--nf-space-sm);
+  font-size: var(--nf-text-body-sm);
+  line-height: 1.4;
+  color: var(--nf-content-primary);
+}
+
+.nf-share-card__mark {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--nf-radius-circle);
+  color: var(--nf-content-on-brand);
+}
+
+.nf-share-card__mark svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.nf-share-card__check[data-tone="success"] .nf-share-card__mark {
+  background: var(--nf-state-success);
+}
+
+.nf-share-card__check[data-tone="warning"] .nf-share-card__mark {
+  background: var(--nf-state-warning);
+}
+
+.nf-share-card__check[data-tone="pending"] .nf-share-card__mark {
+  border: 1.5px solid var(--nf-border-strong);
+  color: var(--nf-content-muted);
+}
+
+/* ---------------------------------------------------- the honest line */
+
+.nf-share-card__honest {
+  font-size: var(--nf-text-caption);
+  line-height: 1.45;
+  color: var(--nf-content-muted);
+}
+
+/* ------------------------------------------------------ the stat strip */
+
+.nf-share-card__stats {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  margin: 0;
+  border: 1px solid var(--nf-card-border, var(--nf-border-default));
+  border-radius: var(--nf-radius-md);
+  overflow: hidden;
+}
+
+.nf-share-card__stat {
+  min-width: 0;
+  padding: var(--nf-space-xs) var(--nf-space-sm);
+}
+
+.nf-share-card__stat + .nf-share-card__stat {
+  border-left: 1px solid var(--nf-card-border, var(--nf-border-default));
+}
+
+.nf-share-card__stat dt {
+  font-size: var(--nf-text-overline);
+  line-height: 1.35;
+  color: var(--nf-content-muted);
+  overflow-wrap: anywhere;
+}
+
+.nf-share-card__stat dd {
+  margin: var(--nf-space-3xs) 0 0;
+  font-size: var(--nf-text-body-sm);
+  line-height: 1.35;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--nf-content-primary);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------- the foot */
+
+.nf-share-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nf-space-sm);
+  padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-2xs);
+  font-size: var(--nf-text-overline);
+  color: var(--nf-content-muted);
+}
+
+/* Reference 34's inner well: the card's own surface, washed with the tint,
+   so it reads one step lighter than the tinted frame around it. */
+.nf-share-card--tinted .nf-share-card__well {
+  background-color: var(--nf-surface-primary);
+  background-image: linear-gradient(var(--nf-brand-tint-1), var(--nf-brand-tint-1));
+}
+
+.nf-share-card--tinted .nf-share-card__bar {
+  background: var(--nf-wash-3);
+}

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { Amount } from "@/components/ui/Amount";
 import { ButtonLink } from "@/components/ui/Button";
-import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
+import { EmptyState, Section, Stack } from "@/components/app/Screen";
 import { PageHeader } from "@/components/app/PageHeader";
 import { listStates } from "@/lib/places/queries";
 import { shareById } from "@/lib/price-check/queries";
+import { AreaShareCard } from "@/components/share/AreaShareCard";
 import { shareLines, shareMonth } from "@/lib/price-check/share-card";
-import { Disclaimer, PriceCheckMark } from "@/components/app/price/ResultPanel";
+import { Disclaimer } from "@/components/app/price/ResultPanel";
 import { shareCardCopy } from "@/components/app/price/share-copy";
 import "@/app/css/price-check.css";
 
@@ -145,36 +145,13 @@ export default async function AreaSharePage({ params }: Params) {
       <PageHeader title={t.priceCheck.title} subtitle={copy.pageLead} fallback="/price" />
       <Stack>
         <Section>
-          <article className="nf-pc-card" data-testid="nf-pc-share-card">
-            <PriceCheckMark />
-            <h1 className={`${TYPE.sectionTitle} mt-block`}>{lines.headline}</h1>
-
-            {/*
-              ALL THREE FIGURES AT ONE SIZE, and the midpoint is not drawn at
-              all. A range whose middle is emphasised is a point estimate with
-              decoration, which is the thing this feature exists to refuse to
-              build. `mid_minor` is stored so the card is a complete record of
-              the check; it is not something a reader is shown as the answer.
-            */}
-            <p className="nf-pc-range mt-block">
-              <Amount minorUnits={share.lowMinor} locale={locale} glance className="nf-h1" />
-              <span className="nf-pc-range__join nf-h3">to</span>
-              <Amount minorUnits={share.highMinor} locale={locale} glance className="nf-h1" />
-              <span className="nf-pc-range__suffix nf-body-sm">
-                {share.listingIntent === "rent"
-                  ? t.priceCheck.result.perYear
-                  : t.priceCheck.result.perProperty}
-              </span>
-            </p>
-
-            {/* THE COUNT THE FIGURE CAME FROM, ALWAYS PRESENT, NEVER BEHIND A
-                TAP. This is the artefact most likely to be read by somebody
-                who never saw the screen it came from, so it carries its own
-                basis and depends on no surrounding page. */}
-            <p className="nf-pc-basis nf-body-sm">{lines.basis}</p>
-
-            <p className="mt-block nf-caption text-[var(--nf-content-muted)]">{lines.footer}</p>
-          </article>
+          {/* THE SHARE CARD FRAME (spec section 10), the same card the unfurl
+              image draws. ALL FIGURES AT ONE SIZE and the midpoint is not
+              drawn at all; THE COUNT THE FIGURE CAME FROM is on it, always,
+              never behind a tap, because this is the artefact most likely to
+              be read by somebody who never saw the screen it came from. */}
+          <h1 className="sr-only">{lines.headline}</h1>
+          <AreaShareCard lines={lines} chip={copy.cardChip} testId="nf-pc-share-card" />
         </Section>
 
         <Section>

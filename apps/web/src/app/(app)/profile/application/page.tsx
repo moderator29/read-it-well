@@ -9,6 +9,8 @@ import { EmptyState, Row, RowList, Section, Stack, TYPE } from "@/components/app
 import { ButtonLink } from "@/components/ui/Button";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { RespondToReview } from "@/components/agent/RespondToReview";
+import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { applicationTrack } from "@/components/app/status/tracks";
 
 export const metadata: Metadata = {
   title: "Your application",
@@ -107,29 +109,33 @@ export default async function ProfileApplicationPage() {
     approved || application.status === "REJECTED" || application.status === "SUSPENDED";
 
   /*
-   * Timeline model. Three stages; how far the application has travelled maps
-   * straight off the canonical status. MORE_INFO_REQUIRED holds at the review
-   * stage because the review is still open, just waiting on the applicant.
+   * The track (spec section 14): submitted, under review, decided. How far it
+   * has travelled maps straight off the canonical status in `applicationTrack`;
+   * MORE_INFO_REQUIRED holds at review because the review is still open, and a
+   * refusal is the decision step, stopped. Times only from the row.
    */
-  const stageIndex = decided ? 2 : application.status === "DRAFT" ? -1 : 1;
-  const stages: { label: string; note?: string }[] = [
-    {
-      label: s.submittedTitle,
-      note: application.submittedAt
-        ? `${s.submittedOn} ${formatDate(new Date(application.submittedAt), locale)}`
-        : undefined,
-    },
-    {
-      label: s.underReview,
-      note: application.status === "MORE_INFO_REQUIRED" ? s.moreInfo : s.reviewNote,
-    },
-    {
-      label: decided ? statusLabel[application.status] : s.approved,
-      note: application.reviewedAt
-        ? `${s.reviewedOn} ${formatDate(new Date(application.reviewedAt), locale)}`
-        : undefined,
-    },
-  ];
+  const track = applicationTrack({
+    status: application.status,
+    submittedAt: application.submittedAt,
+    reviewedAt: application.reviewedAt,
+  });
+  const trackLabels: Record<(typeof track)[number]["key"], string> = {
+    submitted: s.submittedTitle,
+    review: s.underReview,
+    decision: decided ? statusLabel[application.status] : s.approved,
+  };
+  const trackSteps: TrackStep[] = track.map((step) => ({
+    key: step.key,
+    label: trackLabels[step.key],
+    when: step.at ? formatDate(new Date(step.at), locale) : null,
+    note:
+      step.key === "review" && step.state === "current"
+        ? application.status === "MORE_INFO_REQUIRED"
+          ? s.moreInfo
+          : s.reviewNote
+        : null,
+    state: step.state,
+  }));
 
   const reviewerNote = (application.reviewNotes ?? "").trim();
 
@@ -161,73 +167,9 @@ export default async function ProfileApplicationPage() {
               </StatusPill>
             </Row>
 
-            {/* The journey. Dots and a hairline rail; completed stages solid,
-                the current one warm, upcoming ones quiet. */}
+            {/* The journey, on the shared status track. */}
             <Row className="flex-col items-stretch py-lg">
-              <ol className="w-full">
-                {stages.map((stage, i) => {
-                  const done = i < stageIndex || (i === stageIndex && decided);
-                  const current = i === stageIndex && !decided;
-                  return (
-                    <li key={stage.label} className="relative flex gap-md pb-lg last:pb-0">
-                      {i < stages.length - 1 && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute left-[0.5rem] top-5 h-[calc(100%-1rem)] w-px"
-                          style={{
-                            background: done
-                              ? "var(--nf-state-success)"
-                              : "var(--nf-border-subtle)",
-                            opacity: done ? 0.45 : 1,
-                          }}
-                        />
-                      )}
-                      <span
-                        aria-hidden="true"
-                        className="mt-2xs grid h-[1.05rem] w-[1.05rem] shrink-0 place-items-center rounded-full border"
-                        style={
-                          done
-                            ? {
-                                background: "var(--nf-status-approved-surface)",
-                                borderColor: "var(--nf-status-approved)",
-                              }
-                            : current
-                              ? {
-                                  background: "var(--nf-status-pending-surface)",
-                                  borderColor: "var(--nf-status-pending)",
-                                }
-                              : { borderColor: "var(--nf-border-subtle)" }
-                        }
-                      >
-                        {done && (
-                          <span
-                            className="h-1.5 w-1.5 rounded-full"
-                            style={{ background: "var(--nf-state-success)" }}
-                          />
-                        )}
-                        {current && (
-                          <span
-                            className="h-1.5 w-1.5 rounded-full"
-                            style={{ background: "var(--nf-state-warning)" }}
-                          />
-                        )}
-                      </span>
-                      <span className="min-w-0">
-                        <span
-                          className={
-                            done || current ? TYPE.rowTitle : `${TYPE.rowTitle} opacity-60`
-                          }
-                        >
-                          {stage.label}
-                        </span>
-                        {stage.note && (done || current) && (
-                          <span className={`mt-3xs block ${TYPE.rowMeta}`}>{stage.note}</span>
-                        )}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ol>
+              <StatusTrack label={s.status} steps={trackSteps} testId="application-track" />
             </Row>
 
             {reviewerNote.length > 0 && (

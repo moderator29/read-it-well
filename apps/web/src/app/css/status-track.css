@@ -1,0 +1,358 @@
+/*
+ * THE STATUS TRACK (spec section 14, reference 36).
+ *
+ * One stepper for every record that moves through stages: a stay, a viewing,
+ * an agreement, an application, a support question. Drawn by
+ * `components/app/status/StatusTrack.tsx`; the step sets are decided in
+ * `components/app/status/tracks.ts`.
+ *
+ * Nodes are 20px circles (a status mark is a shape, not a control, so the
+ * circle is allowed): done is a solid brand disc with a tick, current is a
+ * brand ring with a filled centre and a soft halo, upcoming is a hollow ring,
+ * failed is the error hue with a cross. The connector into a reached step is
+ * solid brand, into a step still ahead it is dashed and muted, and after a
+ * failed step it is not drawn.
+ *
+ * Vertical by default, and horizontal once the TRACK (not the viewport) is
+ * wide enough for its step count: a container query, because the same track
+ * sits full width on a page and inside a narrow thread panel on desktop.
+ */
+
+.nf-track {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.nf-track__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--nf-space-sm);
+  margin-bottom: var(--nf-space-md);
+}
+
+.nf-track__title {
+  font-size: var(--nf-text-overline);
+  font-weight: 600;
+  letter-spacing: var(--nf-tracking-label, 0.06em);
+  text-transform: uppercase;
+  color: var(--nf-content-muted);
+}
+
+.nf-track__meta {
+  font-size: var(--nf-text-overline);
+  color: var(--nf-content-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.nf-track__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+/* ---------------------------------------------------------------- a step */
+
+.nf-track__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  column-gap: var(--nf-space-sm);
+  align-items: center;
+  min-height: 1.25rem;
+  padding-bottom: var(--nf-space-md);
+}
+
+.nf-track__step:last-child {
+  padding-bottom: 0;
+}
+
+.nf-track__node {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--nf-radius-circle);
+  /* Transparent, so a node sits on whatever card or well holds the track:
+     the connectors stop short of it, so nothing shows through. */
+  background: transparent;
+  color: var(--nf-content-on-brand);
+}
+
+.nf-track__node svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.nf-track__step[data-state="done"] .nf-track__node {
+  background: var(--nf-brand-primary);
+}
+
+.nf-track__step[data-state="current"] .nf-track__node {
+  border: 2px solid var(--nf-brand-primary);
+  box-shadow: 0 0 0 4px var(--nf-brand-tint-2);
+}
+
+.nf-track__step[data-state="current"] .nf-track__node::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--nf-radius-circle);
+  background: var(--nf-brand-primary);
+}
+
+.nf-track__step[data-state="upcoming"] .nf-track__node {
+  border: 1.5px solid var(--nf-border-strong);
+}
+
+.nf-track__step[data-state="failed"] .nf-track__node {
+  background: var(--nf-state-error);
+}
+
+/* The halo fades in once and never pulses (item 21, reduced motion). */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-track__step[data-state="current"] .nf-track__node {
+    animation: nf-track-halo var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+}
+
+@keyframes nf-track-halo {
+  from {
+    box-shadow: 0 0 0 0 var(--nf-brand-tint-2);
+  }
+}
+
+/* ------------------------------------------------------- label and time */
+
+.nf-track__text {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--nf-space-xs);
+  min-width: 0;
+}
+
+.nf-track__label {
+  font-size: var(--nf-text-caption);
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--nf-content-primary);
+  min-width: 0;
+}
+
+.nf-track__step[data-state="current"] .nf-track__label {
+  font-weight: 600;
+  color: var(--nf-content-link);
+}
+
+.nf-track__step[data-state="upcoming"] .nf-track__label {
+  color: var(--nf-content-muted);
+}
+
+.nf-track__step[data-state="failed"] .nf-track__label {
+  font-weight: 600;
+  color: var(--nf-state-error);
+}
+
+.nf-track__when {
+  flex-shrink: 0;
+  font-size: var(--nf-text-overline);
+  line-height: 1.35;
+  color: var(--nf-content-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.nf-track__note {
+  grid-column: 2;
+  margin-top: var(--nf-space-3xs);
+  font-size: var(--nf-text-overline);
+  line-height: 1.4;
+  color: var(--nf-content-secondary);
+}
+
+/* -------------------------------------------------- the connector, vertical */
+
+.nf-track__step::after {
+  content: "";
+  position: absolute;
+  left: calc(0.625rem - 1px);
+  top: 1.25rem;
+  bottom: 0;
+  width: 2px;
+}
+
+.nf-track__step:last-child::after,
+.nf-track__step[data-link="none"]::after {
+  display: none;
+}
+
+.nf-track__step[data-link="solid"]::after {
+  background: var(--nf-brand-primary);
+}
+
+.nf-track__step[data-link="dashed"]::after {
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--nf-border-strong) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+/* A track that stopped: what was still ahead is quieter than a live one. */
+.nf-track[data-stopped] .nf-track__step[data-state="upcoming"] {
+  opacity: 0.55;
+}
+
+/* -------------------------------------------------- horizontal, when it fits */
+
+@container (min-width: 20rem) {
+  .nf-track[data-steps="2"] .nf-track__list,
+  .nf-track[data-steps="3"] .nf-track__list {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+}
+
+@container (min-width: 27rem) {
+  .nf-track[data-steps="4"] .nf-track__list {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+}
+
+@container (min-width: 36rem) {
+  .nf-track .nf-track__list {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+}
+
+@container (min-width: 20rem) {
+  .nf-track[data-steps="2"] .nf-track__step,
+  .nf-track[data-steps="3"] .nf-track__step {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-items: start;
+    align-content: start;
+    row-gap: var(--nf-space-xs);
+    padding: 0 var(--nf-space-3xs);
+    text-align: center;
+  }
+
+  .nf-track[data-steps="2"] .nf-track__text,
+  .nf-track[data-steps="3"] .nf-track__text {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+  }
+
+  .nf-track[data-steps="2"] .nf-track__note,
+  .nf-track[data-steps="3"] .nf-track__note {
+    grid-column: 1;
+    margin-top: 0;
+  }
+
+  .nf-track[data-steps="2"] .nf-track__step::after,
+  .nf-track[data-steps="3"] .nf-track__step::after {
+    top: calc(0.625rem - 1px);
+    bottom: auto;
+    left: calc(50% + 0.625rem + 4px);
+    right: calc(-50% + 0.625rem + 4px);
+    width: auto;
+    height: 2px;
+  }
+
+  .nf-track[data-steps="2"] .nf-track__step[data-link="dashed"]::after,
+  .nf-track[data-steps="3"] .nf-track__step[data-link="dashed"]::after {
+    background: repeating-linear-gradient(
+      to right,
+      var(--nf-border-strong) 0 4px,
+      transparent 4px 8px
+    );
+  }
+}
+
+@container (min-width: 27rem) {
+  .nf-track[data-steps="4"] .nf-track__step {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-items: start;
+    align-content: start;
+    row-gap: var(--nf-space-xs);
+    padding: 0 var(--nf-space-3xs);
+    text-align: center;
+  }
+
+  .nf-track[data-steps="4"] .nf-track__text {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+  }
+
+  .nf-track[data-steps="4"] .nf-track__note {
+    grid-column: 1;
+    margin-top: 0;
+  }
+
+  .nf-track[data-steps="4"] .nf-track__step::after {
+    top: calc(0.625rem - 1px);
+    bottom: auto;
+    left: calc(50% + 0.625rem + 4px);
+    right: calc(-50% + 0.625rem + 4px);
+    width: auto;
+    height: 2px;
+  }
+
+  .nf-track[data-steps="4"] .nf-track__step[data-link="dashed"]::after {
+    background: repeating-linear-gradient(
+      to right,
+      var(--nf-border-strong) 0 4px,
+      transparent 4px 8px
+    );
+  }
+}
+
+@container (min-width: 36rem) {
+  .nf-track .nf-track__step {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-items: start;
+    align-content: start;
+    row-gap: var(--nf-space-xs);
+    padding: 0 var(--nf-space-3xs);
+    text-align: center;
+  }
+
+  .nf-track .nf-track__text {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+  }
+
+  .nf-track .nf-track__note {
+    grid-column: 1;
+    margin-top: 0;
+  }
+
+  .nf-track .nf-track__step::after {
+    top: calc(0.625rem - 1px);
+    bottom: auto;
+    left: calc(50% + 0.625rem + 4px);
+    right: calc(-50% + 0.625rem + 4px);
+    width: auto;
+    height: 2px;
+  }
+
+  .nf-track .nf-track__step[data-link="dashed"]::after {
+    background: repeating-linear-gradient(
+      to right,
+      var(--nf-border-strong) 0 4px,
+      transparent 4px 8px
+    );
+  }
+}

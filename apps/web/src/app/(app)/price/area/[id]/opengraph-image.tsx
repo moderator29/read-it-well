@@ -5,14 +5,9 @@ import { listStates } from "@/lib/places/queries";
 import { shareById } from "@/lib/price-check/queries";
 import { shareLines } from "@/lib/price-check/share-card";
 import { shareCardCopy } from "@/components/app/price/share-copy";
-import {
-  OG_BRAND,
-  OG_CANVAS,
-  OG_INK,
-  OG_INK_MUTED,
-  OG_INK_SECONDARY,
-  OG_PANEL,
-} from "@/lib/price-check/og-palette";
+import { OG_CANVAS, OG_INK_MUTED } from "@/lib/price-check/og-palette";
+import { ogShareCard } from "@/components/share/og-share-card";
+import { countFill } from "@/lib/ui/meter";
 
 /**
  * THE CARD AS AN IMAGE, GENERATED AT REQUEST TIME FROM THE STORED ROW.
@@ -158,89 +153,25 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const stateName = states.find((row) => row.code === share.stateCode)?.name ?? share.stateCode;
   const lines = shareLines(share, shareCardCopy(t), DEFAULT_LOCALE, stateName);
 
+  /*
+   * THE SHARE CARD FRAME (spec section 10, plan item 23), the same card the
+   * share door's area face draws: the headline, the range as the figure at
+   * one size from end to end (a range whose middle is emphasised is a point
+   * estimate with decoration, so the midpoint is not drawn at all), one meter
+   * bar per listing it came from with the count as its word, and EVERY FIGURE
+   * PRINTS THE COUNT IT CAME FROM, on the image as on the screen, because the
+   * image is the part that travels.
+   */
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: OG_CANVAS,
-          padding: 72,
-          fontFamily: "Inter",
-        }}
-      >
-        {/* The lit rim along the top edge, which is the platform's identity
-            reduced to the one element that survives at this size. */}
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: 1200,
-            height: 6,
-            background: OG_BRAND,
-          }}
-        />
-
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div
-            style={{
-              display: "flex",
-              color: OG_INK_MUTED,
-              fontSize: 28,
-              letterSpacing: 4,
-              textTransform: "uppercase",
-            }}
-          >
-            Vallo Price Check
-          </div>
-          <div
-            style={{
-              display: "flex",
-              marginTop: 28,
-              color: OG_INK,
-              fontSize: 62,
-              lineHeight: 1.15,
-              letterSpacing: -1.5,
-            }}
-          >
-            {lines.headline}
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {/* THE RANGE, AT ONE SIZE FROM END TO END. The midpoint is not drawn
-              at all: a range whose middle is emphasised is a point estimate
-              with decoration. */}
-          <div
-            style={{
-              display: "flex",
-              background: OG_PANEL,
-              borderRadius: 24,
-              borderTop: `2px solid ${OG_BRAND}`,
-              padding: "36px 44px",
-              color: OG_INK,
-              fontSize: 56,
-              letterSpacing: -1,
-            }}
-          >
-            {lines.range}
-          </div>
-          {/* EVERY FIGURE PRINTS THE COUNT IT CAME FROM, on the image as on
-              the screen, because the image is the part that travels. */}
-          <div style={{ display: "flex", marginTop: 26, color: OG_INK_SECONDARY, fontSize: 30 }}>
-            {lines.basis}
-          </div>
-          <div style={{ display: "flex", marginTop: 14, color: OG_INK_MUTED, fontSize: 28 }}>
-            {lines.footer}
-          </div>
-        </div>
-      </div>
-    ),
+    ogShareCard({
+      ...size,
+      title: lines.headline,
+      chip: t.priceCheck.share.cardChip,
+      figure: lines.range,
+      meter: { filled: countFill(lines.count), word: lines.meterWord },
+      checks: [{ tone: "success", label: lines.basis }],
+      honest: lines.footer,
+    }),
     { ...size, fonts },
   );
 }
