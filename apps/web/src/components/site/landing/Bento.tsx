@@ -14,7 +14,7 @@ import { SectionHead } from "./SectionHead";
  * scene built on the platform's own glass objects: the keys swing on their
  * tag by the house, the calendar turns, the assistant bobs while it types,
  * the Price Check report floats, the shield pops and a light
- * crosses it, two messages trade places behind the chat, the people float.
+ * crosses it, two messages trade places behind the chat, the map pin floats.
  * No line glyph illustrates anything here (the founder's rule for content
  * surfaces). The scenes are slow,
  * run only while the grid is on screen (LoopGate), and stop entirely under
@@ -132,9 +132,12 @@ function SceneArt({ scene }: { scene: Scene }) {
         </>
       );
     case "feed":
+      /* `map-spot`, not `people-ring`: the ring assets draw a small, faint
+         object inside a glowing ring and read as missing beside the
+         full-size objects on the other cards. Around is places near you. */
       return (
         <span className="nf-scene__obj nf-scene__obj--bob">
-          <BrandIcon name="people-ring" size={88} />
+          <BrandIcon name="map-spot" size={88} />
         </span>
       );
   }
