@@ -388,10 +388,13 @@ function ListingRow({
             property's name: a workspace listing four properties showed
             "Fo...", "Mo..." and "Lu...". The pill takes its own line on a
             phone and comes back beside the title where there is room, and
-            the title wraps to two lines rather than losing its words.
+            the title wraps to up to three lines rather than losing its words.
           */}
           <div className="flex flex-col items-start gap-2xs sm:flex-row sm:items-start sm:justify-between sm:gap-xs">
-            <h3 className="line-clamp-2 min-w-0 text-[length:var(--nf-text-body-sm)] font-semibold">
+            <h3
+              className="line-clamp-3 min-w-0 text-[length:var(--nf-text-body-sm)] font-semibold [overflow-wrap:anywhere]"
+              title={listing.title}
+            >
               {listing.title}
             </h3>
             {closedReason && closeCopy ? (
@@ -411,7 +414,10 @@ function ListingRow({
           {(listing.area || listing.city) && (
             <p className="mt-2xs flex items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               <UiIcon name="location" size={12} className="shrink-0" />
-              <span className="truncate">
+              <span
+                className="min-w-0 line-clamp-2 [overflow-wrap:anywhere]"
+                title={[listing.area, listing.city].filter(Boolean).join(", ")}
+              >
                 {[listing.area, listing.city].filter(Boolean).join(", ")}
               </span>
             </p>

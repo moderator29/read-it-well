@@ -665,6 +665,9 @@ export const ha: Dictionary = withFallback({
     confirmPasswordPlaceholder: "Sake rubuta kalmar sirrinka",
     signInSub: "Shiga asusun Vallo naka",
     signUpSub: "Buɗe asusun Vallo naka cikin minti ɗaya",
+    /* The line under the wordmark on the sign-up screens, reusing signUpSub
+       above; a native speaker should confirm. */
+    heroSignUp: "Buɗe asusun Vallo naka cikin minti ɗaya.",
   },
 
   signUp: {

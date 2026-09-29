@@ -685,6 +685,9 @@ export const yo: Dictionary = withFallback({
     confirmPasswordPlaceholder: "Tún ọ̀rọ̀ ìpamọ́ rẹ tẹ",
     signInSub: "Wọlé sí àkọọ́lẹ̀ Vallo rẹ",
     signUpSub: "Ṣí àkọọ́lẹ̀ Vallo rẹ ní ìṣẹ́jú kan",
+    /* The line under the wordmark on the sign-up screens, reusing signUpSub
+       above; a native speaker should confirm. */
+    heroSignUp: "Ṣí àkọọ́lẹ̀ Vallo rẹ ní ìṣẹ́jú kan.",
   },
 
   signUp: {

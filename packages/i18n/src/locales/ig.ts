@@ -687,6 +687,9 @@ export const ig: Dictionary = withFallback({
     confirmPasswordPlaceholder: "Pịghachi okwuntughe gị",
     signInSub: "Banye n'akaụntụ Vallo gị",
     signUpSub: "Mepee akaụntụ Vallo gị n'ime otu nkeji",
+    /* The line under the wordmark on the sign-up screens, reusing signUpSub
+       above; a native speaker should confirm. */
+    heroSignUp: "Mepee akaụntụ Vallo gị n'ime otu nkeji.",
   },
 
   signUp: {

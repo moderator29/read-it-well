@@ -263,7 +263,9 @@ function BookingCard({
             </h3>
             <p className="mt-3xs flex items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
               <UiIcon name="house" size={12} className="shrink-0" />
-              <span className="truncate">{booking.listingTitle}</span>
+              <span className="min-w-0 line-clamp-2 [overflow-wrap:anywhere]" title={booking.listingTitle}>
+                {booking.listingTitle}
+              </span>
             </p>
           </div>
           {/* The CANCELLED branch used to return a bare `.nf-badge`, which

@@ -151,6 +151,16 @@ const SWEEP = ({ long, allowed, skipTags }) => {
     el.closest(".sr-only") !== null ||
     ([...el.classList].some((c) => /(^|:)sr-only$/.test(c)) && el.getBoundingClientRect().width <= 1);
 
+  /* The whole text is one hover or long-press away: the element, or the
+     link or button it sits in, carries it as its title. That is the "proper
+     ellipsis with the full text available" the polish pass asks for; a
+     sentence under a one-line ellipsis still fails check 2 regardless. */
+  const titled = (el) => {
+    const text = (el.textContent || "").trim().replace(/\s+/g, " ");
+    const holder = el.closest("[title]");
+    return Boolean(holder && text && holder.getAttribute("title").includes(text));
+  };
+
   const clipped = [];
   const sentences = [];
   const targets = [];
@@ -173,11 +183,11 @@ const SWEEP = ({ long, allowed, skipTags }) => {
       const expandable =
         region !== null &&
         document.querySelector(`[aria-controls="${CSS.escape(region.id)}"][aria-expanded="false"]`) !== null;
-      if (el.scrollHeight > el.clientHeight + line * 0.5 && !expandable && !allowed.some((a) => cls.includes(a))) {
+      if (el.scrollHeight > el.clientHeight + line * 0.5 && !expandable && !titled(el) && !allowed.some((a) => cls.includes(a))) {
         clipped.push(`${kind} "${text.slice(0, 46)}" .${cls.slice(0, 44)}`);
       }
     } else if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth) {
-      if (!allowed.some((a) => cls.includes(a))) {
+      if (!allowed.some((a) => cls.includes(a)) && !titled(el)) {
         clipped.push(`${kind} ${el.clientWidth}/${el.scrollWidth} "${text.slice(0, 46)}" .${cls.slice(0, 44)}`);
       }
     }

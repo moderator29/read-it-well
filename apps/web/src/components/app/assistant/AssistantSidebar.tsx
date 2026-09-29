@@ -144,6 +144,7 @@ export function AssistantSidebar({
                           ? "text-[var(--nf-content-primary)]"
                           : "text-[var(--nf-content-secondary)]"
                       }`}
+                      title={t.title}
                     >
                       {t.title}
                     </span>
