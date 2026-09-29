@@ -355,7 +355,14 @@ export async function readMemberExtras(userId: string): Promise<Read<MemberExtra
     const bookingRows = bookings.data ?? [];
     const noteRows = rowsOf<{ id: string; body: string; author_id: string | null; created_at: string }>(notes);
 
-    const listingIds = [...new Set([...agreementRows.map((a) => a.listing_id), ...bookingRows.map((b) => b.listing_id)])];
+    /* A hotel-room booking or agreement has no listing (ROOM BOOKINGS 1). */
+    const listingIds = [
+      ...new Set(
+        [...agreementRows.map((a) => a.listing_id), ...bookingRows.map((b) => b.listing_id)].filter(
+          (id): id is string => Boolean(id),
+        ),
+      ),
+    ];
     const authorIds = [...new Set(noteRows.map((n) => n.author_id).filter((id): id is string => Boolean(id)))];
     const [titles, authors] = await Promise.all([
       listingIds.length ? db.from("listings").select("id, title").in("id", listingIds) : Promise.resolve({ data: [] as { id: string; title: string | null }[] }),
@@ -412,7 +419,7 @@ export async function readMemberExtras(userId: string): Promise<Read<MemberExtra
           kind: a.kind,
           status: String(a.status),
           side: a.renter_id === userId ? ("renter" as const) : ("owner" as const),
-          listingTitle: titleOf.get(a.listing_id) ?? null,
+          listingTitle: (a.listing_id && titleOf.get(a.listing_id)) || null,
           amountMinor: Number(a.amount_minor) || 0,
           createdAt: a.created_at,
         })),
@@ -422,7 +429,7 @@ export async function readMemberExtras(userId: string): Promise<Read<MemberExtra
           checkIn: b.check_in,
           checkOut: b.check_out,
           totalMinor: Number(b.total_minor) || 0,
-          listingTitle: titleOf.get(b.listing_id) ?? null,
+          listingTitle: (b.listing_id && titleOf.get(b.listing_id)) || null,
         })),
         tickets: (tickets.data ?? []).map((t) => ({
           id: t.id,

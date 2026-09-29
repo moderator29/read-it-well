@@ -30,6 +30,7 @@ Payment opens only after an agreement is approved. The database enforces this wi
 
 1. **Rental.** The renter inspects and submits the inspection report: eight items, each with photographs. The minimum number of photos is `money_policy.min_inspection_photos`. `agreement_open_rent_as` then draws up the agreement from the listing's own figures and the report, including the move-in date and the handover date.
 2. **Stay.** The host accepts the booking. A trigger on bookings going from PENDING to CONFIRMED draws up the agreement.
+   A hotel room is a stay too (ROOM BOOKINGS 1, off until `room_bookings` is switched on): the agreement names the accommodation, the owner is the hotel's business owner, and a host who is not an agent is paid through their default bank account's Paystack subaccount. See [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
 3. **Both parties confirm the same version** with `agreement_confirm_as`. An agent confirming for an owner must hold a live mandate for the listing. Any amendment (`agreement_amend_as`) moves the version, and both confirmations lapse.
 4. **An admin, or staff holding the `agreements` scope, approves or rejects** with `admin_decide_agreement`. A rejection needs a reason. Nobody decides an agreement they are a party to. The decision is written to `deal_agreement_events` (append-only) and to `audit_log`. Both parties are told in the app and by email: `agreement.approved` and `agreement.rejected`.
 5. **Payment opens.** `payment_split_for_booking` returns the split, and the app opens a split attempt (`lib/payments/split-attempt.ts`). Without `PAYSTACK_GUARANTEE_SUBACCOUNT`, or without a lister subaccount, nothing opens.
@@ -162,6 +163,7 @@ Vallo never receives, holds or forwards crypto, a key, an address of its own, or
 | The reserve balance | `admin_guarantee_reserve()`, or the Money desk |
 | A refund's state | `booking_refunds.processor_status` |
 | A refund's clock | `admin_refund_clock()`, or the refund clock on the Money desk |
+| How a hotel room is booked and paid | [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md) |
 | A caution's position | `private.caution_position(obligation)`; staff rule on it on the Money desk (Cautions) |
 | A flatmate's share and its refund | `transactions.share_payer_id`, `rent_share_refunds`, `my_rent_share(contributor)` |
 | A crypto payment's state and history | `crypto_payments`, `crypto_payment_events` |

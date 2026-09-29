@@ -1,4 +1,5 @@
 import "server-only";
+import { subjectHref, subjectKey, subjectTitles, type AgreementSubject } from "./subject";
 
 import { resolveSession } from "../actions/session";
 
@@ -11,6 +12,8 @@ export type AgreementSummary = {
   kind: "rent" | "stay";
   status: string;
   listingId: string;
+  /** The listing's page, or the hotel's for a room stay (ROOM BOOKINGS 1). */
+  subjectHref: string;
   listingTitle: string;
   amountMinor: number;
   /**
@@ -53,22 +56,27 @@ export async function readMyAgreements(): Promise<AgreementSummary[] | null> {
   if (session.state !== "signed-in") return null;
   const { data, error } = await session.supabase
     .from("deal_agreements")
-    .select("id, kind, status, listing_id, amount_minor, renter_id, owner_id, updated_at")
+    .select("id, kind, status, listing_id, accommodation_id, amount_minor, renter_id, owner_id, updated_at")
     .order("updated_at", { ascending: false })
     .limit(100);
   if (error) return null;
-  const rows = data ?? [];
-  const listingIds = [...new Set(rows.map((r) => r.listing_id))];
-  const { data: listings } = listingIds.length
-    ? await session.supabase.from("listings").select("id, title").in("id", listingIds)
-    : { data: [] as { id: string; title: string | null }[] };
-  const title = new Map((listings ?? []).map((l) => [l.id, l.title ?? ""]));
+  const rows = (data ?? []) as unknown as (AgreementSubject & {
+    id: string;
+    kind: string;
+    status: string;
+    amount_minor: number;
+    renter_id: string;
+    owner_id: string;
+    updated_at: string;
+  })[];
+  const title = await subjectTitles(session.supabase, rows);
   return rows.map((r) => ({
     id: r.id,
     kind: r.kind === "stay" ? "stay" : "rent",
     status: r.status,
-    listingId: r.listing_id,
-    listingTitle: title.get(r.listing_id) || "A property",
+    listingId: r.listing_id ?? "",
+    subjectHref: subjectHref(r),
+    listingTitle: title.get(subjectKey(r)) || "A property",
     amountMinor: r.amount_minor,
     role: partyRole(session.user.id, r.renter_id, r.owner_id),
     updatedAt: r.updated_at,
@@ -94,7 +102,7 @@ export async function readAgreement(id: string): Promise<AgreementDetail | null>
   const { data: a } = await session.supabase.from("deal_agreements").select("*").eq("id", id).maybeSingle();
   if (!a) return null;
   const [listing, people, events, claims, policy] = await Promise.all([
-    session.supabase.from("listings").select("title").eq("id", a.listing_id).maybeSingle(),
+    subjectTitles(session.supabase, [a as unknown as AgreementSubject]),
     session.supabase.from("profiles").select("id, display_name").in("id", [a.renter_id, a.owner_id]),
     session.supabase
       .from("deal_agreement_events")
@@ -121,8 +129,9 @@ export async function readAgreement(id: string): Promise<AgreementDetail | null>
     id: a.id,
     kind: a.kind === "stay" ? "stay" : "rent",
     status: a.status,
-    listingId: a.listing_id,
-    listingTitle: listing.data?.title || "A property",
+    listingId: a.listing_id ?? "",
+    subjectHref: subjectHref(a as unknown as AgreementSubject),
+    listingTitle: listing.get(subjectKey(a as unknown as AgreementSubject)) || "A property",
     amountMinor: a.amount_minor,
     role,
     updatedAt: a.updated_at,

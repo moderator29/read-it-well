@@ -119,6 +119,8 @@ export type AdminBookingRow = {
   /** What has already gone back to the guest across every refund on this stay. */
   refundedMinor: number;
   listingId: string;
+  /** The listing's page, or the hotel's for a room stay (ROOM BOOKINGS 1). */
+  stayHref: string;
   listingTitle: string;
   area: string | null;
   city: string | null;
@@ -142,7 +144,9 @@ export type AdminBookingBoard = {
 
 type BookingSelect = {
   id: string;
-  listing_id: string;
+  /** Null for a hotel room (ROOM BOOKINGS 1), which is at accommodation_id. */
+  listing_id: string | null;
+  accommodation_id: string | null;
   guest_id: string;
   check_in: string;
   check_out: string;
@@ -157,7 +161,7 @@ type BookingSelect = {
 };
 
 const BOOKING_COLUMNS =
-  "id, listing_id, guest_id, check_in, check_out, nights, adults, children, currency, total_minor, status, guest_name, created_at";
+  "id, listing_id, accommodation_id, guest_id, check_in, check_out, nights, adults, children, currency, total_minor, status, guest_name, created_at";
 
 /** Money already settled against each of these bookings, in kobo. */
 async function paidByBooking(db: Db, bookingIds: string[]): Promise<Map<string, number>> {
@@ -208,9 +212,21 @@ type ListingFacts = {
   agentName: string | null;
 };
 
-async function listingsFor(db: Db, listingIds: string[]): Promise<Map<string, ListingFacts>> {
+/** A hotel room's hotel, keyed by accommodation id, in the same shape as a listing's facts. */
+async function hotelsFor(db: Db, accommodationIds: string[]): Promise<Map<string, ListingFacts>> {
+  const hotels = new Map<string, ListingFacts>();
+  const wanted = [...new Set(accommodationIds)];
+  if (wanted.length === 0) return hotels;
+  const { data } = await db.from("accommodations").select("id, name, area, city, businesses(name)").in("id", wanted);
+  for (const row of (data ?? []) as { id: string; name: string; area: string | null; city: string | null; businesses: { name?: string } | null }[]) {
+    hotels.set(row.id, { title: row.name, area: row.area, city: row.city, agentName: row.businesses?.name ?? null });
+  }
+  return hotels;
+}
+
+async function listingsFor(db: Db, listingIds: (string | null)[]): Promise<Map<string, ListingFacts>> {
   const listings = new Map<string, ListingFacts>();
-  const wanted = [...new Set(listingIds)];
+  const wanted = [...new Set(listingIds.filter((id): id is string => Boolean(id)))];
   if (wanted.length === 0) return listings;
   const { data } = await db
     .from("listings")
@@ -230,15 +246,16 @@ async function listingsFor(db: Db, listingIds: string[]): Promise<Map<string, Li
 
 /** Turn the raw rows into list rows, filling in listing, guest and money. */
 async function decorate(db: Db, rows: BookingSelect[]): Promise<AdminBookingRow[]> {
-  const [paid, refunded, listings, names] = await Promise.all([
+  const [paid, refunded, listings, hotels, names] = await Promise.all([
     paidByBooking(db, rows.map((row) => row.id)),
     refundedByBooking(db, rows.map((row) => row.id)),
     listingsFor(db, rows.map((row) => row.listing_id)),
+    hotelsFor(db, rows.filter((row) => !row.listing_id && row.accommodation_id).map((row) => row.accommodation_id as string)),
     namesFor(db, rows.map((row) => row.guest_id)),
   ]);
 
   return rows.map((row) => {
-    const listing = listings.get(row.listing_id);
+    const listing = row.listing_id ? listings.get(row.listing_id) : hotels.get(row.accommodation_id ?? "");
     return {
       id: row.id,
       status: row.status,
@@ -251,7 +268,8 @@ async function decorate(db: Db, rows: BookingSelect[]): Promise<AdminBookingRow[
       totalMinor: row.total_minor,
       paidMinor: paid.get(row.id) ?? 0,
       refundedMinor: refunded.get(row.id) ?? 0,
-      listingId: row.listing_id,
+      listingId: row.listing_id ?? "",
+      stayHref: row.listing_id ? `/listing/${row.listing_id}` : `/stay/${row.accommodation_id ?? ""}`,
       listingTitle: listing?.title ?? "This listing is no longer there",
       area: listing?.area ?? null,
       city: listing?.city ?? null,

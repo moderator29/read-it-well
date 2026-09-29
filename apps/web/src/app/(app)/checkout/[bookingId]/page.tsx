@@ -217,7 +217,7 @@ export default async function CheckoutPage({
             verdict={c.bookingCancelled}
             consequence={c.bookingCancelledBody}
             actions={[
-              { label: c.backToStay, href: `/listing/${view.listingId}`, tone: "primary" },
+              { label: c.backToStay, href: view.stayHref, tone: "primary" },
             ]}
           />
         </Reveal>
@@ -297,7 +297,7 @@ export default async function CheckoutPage({
       {/* V-57: what the host declared at the door, and the sentence for the gate. */}
       {view.status !== "CANCELLED" && (await bookingChargeKind(view.bookingId)) === "stay" && (
         <div className="mt-lg">
-          <ArrivalChargesLine listingId={view.listingId} bookingId={view.bookingId} locale={view.locale} />
+          <ArrivalChargesLine listingId={view.listingId} accommodationId={view.accommodationId} bookingId={view.bookingId} locale={view.locale} />
         </div>
       )}
 

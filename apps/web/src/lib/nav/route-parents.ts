@@ -424,6 +424,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/host/apply": "/host",
   "/host/photos": "/host",
   "/host/reservations": "/host",
+  "/host/bookings": "/host",
   "/host/rooms": "/host",
   "/host/start": "/host",
   "/host/transfer": "/host",

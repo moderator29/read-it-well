@@ -393,7 +393,7 @@ async function readBookings(client: Db, userId: string): Promise<BookingContext 
   if (error || !rows) return null;
 
   const ids = rows.map((row) => row.id);
-  const listingIds = [...new Set(rows.map((row) => row.listing_id))];
+  const listingIds = [...new Set(rows.map((row) => row.listing_id).filter((id): id is string => Boolean(id)))];
 
   const titles = new Map<string, { title: string; area: string | null; city: string | null }>();
   if (listingIds.length > 0) {
@@ -446,7 +446,7 @@ async function readBookings(client: Db, userId: string): Promise<BookingContext 
   const money: BookingContext["money"] = new Map();
 
   for (const row of rows) {
-    const listing = titles.get(row.listing_id);
+    const listing = row.listing_id ? titles.get(row.listing_id) : undefined;
     const paidMinor = paidByBooking ? (paidByBooking.get(row.id) ?? 0) : null;
     const refund = refunds.get(row.id);
     const stage: SupportBooking["stage"] =

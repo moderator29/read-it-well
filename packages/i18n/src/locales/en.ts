@@ -42,6 +42,7 @@ import { passcodeEn } from "./passcode.en";
 const counts: CountForms = {
   nights: { one: "1 night", other: "{count} nights" },
   guests: { one: "1 guest", other: "{count} guests" },
+  rooms: { one: "1 room", other: "{count} rooms" },
   adults: { one: "1 adult", other: "{count} adults" },
   children: { one: "1 child", other: "{count} children" },
   party: "{adults}, {children}",
@@ -89,6 +90,12 @@ export const en = {
    * share every sentence that does not name what is being paid for.
    */
   checkout: {
+    /* ROOM BOOKINGS 1: asking for a hotel room. */
+    roomsLabel: "Rooms",
+    requestRoom: "Request this room",
+    requestRoomBody:
+      "The hotel confirms your request first. Nothing is charged now: once they accept and the stay agreement is approved, you pay here by card, and the payment goes straight to the hotel.",
+    signInToRequestRoom: "Sign in to request this room",
     dates: "Dates",
     guests: "Guests",
     totalToPay: "Total to pay",
@@ -603,6 +610,7 @@ export const en = {
   hostNav: {
     overview: "Overview",
     reservations: "Reservations",
+    roomBookings: "Room bookings",
     rooms: "Rooms and nights",
     photos: "Photographs",
     arrival: "Charges at the door",

@@ -50,7 +50,12 @@ export type CheckoutLine = { label: string; display: string; minor: number };
 
 export type CheckoutView = {
   bookingId: string;
-  listingId: string;
+  /** The listing a listing stay is for; null for a hotel room (ROOM BOOKINGS 1). */
+  listingId: string | null;
+  /** The hotel a room booking is at; null for a listing stay. */
+  accommodationId: string | null;
+  /** Where "back to the stay" goes: the listing, or the hotel's page. */
+  stayHref: string;
   title: string;
   /** "Lekki, Lagos", or empty when the listing carries no locality. */
   location: string;
@@ -100,6 +105,60 @@ export type CheckoutRead =
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * The booking row as this page reads it. A booking is for a listing OR, since
+ * ROOM BOOKINGS 1, a room at a hotel (accommodation, room type, rooms); the
+ * generated types predate the room columns, so the shape is named here.
+ */
+type CheckoutBookingRow = {
+  id: string;
+  listing_id: string | null;
+  accommodation_id: string | null;
+  room_type_id: string | null;
+  rooms: number;
+  check_in: string;
+  check_out: string;
+  nights: number;
+  adults: number;
+  children: number;
+  price_per_night_minor: number;
+  cleaning_fee_minor: number;
+  service_fee_minor: number;
+  subtotal_minor: number;
+  total_minor: number;
+  currency: string;
+  status: Database["public"]["Enums"]["booking_status"];
+  created_at: string;
+};
+
+/** The stay's name and place: the listing's, or the hotel's and the room's. */
+async function readStayPlace(
+  supabase: Awaited<ReturnType<typeof resolveSession>> extends infer S
+    ? S extends { state: "signed-in"; supabase: infer C }
+      ? C
+      : never
+    : never,
+  booking: CheckoutBookingRow,
+  locale: Locale,
+): Promise<{ title: string | null; area: string | null; city: string | null } | null> {
+  if (booking.listing_id) {
+    const { data } = await supabase.from("listings").select("title, area, city").eq("id", booking.listing_id).maybeSingle();
+    return data ?? null;
+  }
+  if (!booking.accommodation_id) return null;
+  const [place, room] = await Promise.all([
+    supabase.from("accommodations").select("name, area, city").eq("id", booking.accommodation_id).maybeSingle(),
+    booking.room_type_id
+      ? supabase.from("room_types").select("name").eq("id", booking.room_type_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  if (!place.data) return null;
+  const roomName = room.data?.name
+    ? `, ${room.data.name} (${plural(booking.rooms, getDictionary(locale).counts.rooms, locale)})`
+    : "";
+  return { title: `${place.data.name}${roomName}`, area: place.data.area, city: place.data.city };
+}
+
+/**
  * Everything the checkout page needs for one booking, or an honest state
  * explaining why there is nothing to show.
  */
@@ -116,7 +175,7 @@ export async function getCheckoutView(
     const { data: booking, error } = await session.supabase
       .from("bookings")
       .select(
-        "id, listing_id, check_in, check_out, nights, adults, children, price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, currency, status, created_at",
+        "id, listing_id, accommodation_id, room_type_id, rooms, check_in, check_out, nights, adults, children, price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, currency, status, created_at",
       )
       .eq("id", bookingId)
       .maybeSingle();
@@ -125,11 +184,7 @@ export async function getCheckoutView(
     if (!booking) return { state: "missing" };
 
     const [listingRead, settledRead, agreementRead] = await Promise.all([
-      session.supabase
-        .from("listings")
-        .select("title, area, city")
-        .eq("id", booking.listing_id)
-        .maybeSingle(),
+      readStayPlace(session.supabase, booking, locale),
       session.supabase
         .from("transactions")
         .select("id")
@@ -184,15 +239,17 @@ export async function getCheckoutView(
       Date.parse(booking.created_at) + HOLD_WINDOW_HOURS * 3_600_000;
     const holdExpiresAt = new Date(holdExpiresAtMs).toISOString();
 
-    const area = listingRead.data?.area ?? "";
-    const city = listingRead.data?.city ?? "";
-    const title = (listingRead.data?.title ?? "").trim();
+    const area = listingRead?.area ?? "";
+    const city = listingRead?.city ?? "";
+    const title = (listingRead?.title ?? "").trim();
 
     return {
       state: "ready",
       view: {
         bookingId: booking.id,
         listingId: booking.listing_id,
+        accommodationId: booking.accommodation_id,
+        stayHref: booking.listing_id ? `/listing/${booking.listing_id}` : `/stay/${booking.accommodation_id}`,
         title: title.length > 0 ? title : "Reserved stay",
         location: [area, city].filter((part) => part.length > 0).join(", "),
         checkIn: booking.check_in,

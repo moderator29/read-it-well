@@ -33,6 +33,8 @@ export type PluralForms = { other: string } & Partial<Record<Intl.LDMLPluralRule
 export type CountForms = {
   nights: PluralForms;
   guests: PluralForms;
+  /** ROOM BOOKINGS 1: hotel rooms on one booking. */
+  rooms: PluralForms;
   adults: PluralForms;
   children: PluralForms;
   party: string;

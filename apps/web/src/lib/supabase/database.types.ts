@@ -1053,6 +1053,8 @@ export type Database = {
       }
       bank_accounts: {
         Row: {
+          paystack_subaccount_code: string | null
+          subaccount_created_at: string | null
           account_number: string
           bank_code: string
           bank_name: string
@@ -1067,6 +1069,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          paystack_subaccount_code?: string | null
+          subaccount_created_at?: string | null
           account_number: string
           bank_code: string
           bank_name: string
@@ -1081,6 +1085,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          paystack_subaccount_code?: string | null
+          subaccount_created_at?: string | null
           account_number?: string
           bank_code?: string
           bank_name?: string
@@ -1244,6 +1250,10 @@ export type Database = {
       }
       bookings: {
         Row: {
+          accommodation_id: string | null
+          rate_plan_id: string | null
+          room_type_id: string | null
+          rooms: number
           adults: number
           check_in: string
           check_out: string
@@ -1257,7 +1267,7 @@ export type Database = {
           guest_name: string | null
           guest_phone: string | null
           id: string
-          listing_id: string
+          listing_id: string | null
           nights: number
           price_per_night_minor: number
           service_fee_minor: number
@@ -1267,6 +1277,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accommodation_id?: string | null
+          rate_plan_id?: string | null
+          room_type_id?: string | null
+          rooms?: number
           adults?: number
           check_in: string
           check_out: string
@@ -1280,7 +1294,7 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
-          listing_id: string
+          listing_id?: string | null
           nights: number
           price_per_night_minor: number
           service_fee_minor?: number
@@ -1290,6 +1304,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accommodation_id?: string | null
+          rate_plan_id?: string | null
+          room_type_id?: string | null
+          rooms?: number
           adults?: number
           check_in?: string
           check_out?: string
@@ -1303,7 +1321,7 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
-          listing_id?: string
+          listing_id?: string | null
           nights?: number
           price_per_night_minor?: number
           service_fee_minor?: number
@@ -5722,6 +5740,7 @@ export type Database = {
       }
       deal_agreements: {
         Row: {
+          accommodation_id: string | null
           amount_minor: number
           booking_id: string | null
           created_at: string
@@ -5731,7 +5750,7 @@ export type Database = {
           id: string
           inspection_id: string | null
           kind: string
-          listing_id: string
+          listing_id: string | null
           mandate_id: string | null
           owner_confirmed_at: string | null
           owner_confirmed_version: number | null
@@ -5747,6 +5766,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accommodation_id?: string | null
           amount_minor: number
           booking_id?: string | null
           created_at?: string
@@ -5756,7 +5776,7 @@ export type Database = {
           id?: string
           inspection_id?: string | null
           kind: string
-          listing_id: string
+          listing_id?: string | null
           mandate_id?: string | null
           owner_confirmed_at?: string | null
           owner_confirmed_version?: number | null
@@ -5772,6 +5792,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accommodation_id?: string | null
           amount_minor?: number
           booking_id?: string | null
           created_at?: string
@@ -5781,7 +5802,7 @@ export type Database = {
           id?: string
           inspection_id?: string | null
           kind?: string
-          listing_id?: string
+          listing_id?: string | null
           mandate_id?: string | null
           owner_confirmed_at?: string | null
           owner_confirmed_version?: number | null

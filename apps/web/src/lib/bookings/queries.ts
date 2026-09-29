@@ -1,6 +1,7 @@
 import "server-only";
 
 import { formatMoney, type Locale } from "@vallo/i18n/core";
+import { getDictionary, plural } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { RENT_PERIOD_LABEL, type RentPeriod } from "../listings/pricing";
 import { getListingRepository } from "../listings/repository";
@@ -49,6 +50,10 @@ export async function getBlockedDates(listingId: string): Promise<string[]> {
 export type BookingView = {
   id: string;
   listingId: string;
+  /** The listing's page, or the hotel's for a room stay (ROOM BOOKINGS 1). */
+  stayHref: string;
+  /** A hotel room's hotel, for its arrival charges; null for a listing stay. */
+  accommodationId: string | null;
   title: string;
   area: string;
   city: string;
@@ -174,7 +179,7 @@ export async function getMyBookings(
   const { data: rows, error } = await session.supabase
     .from("bookings")
     .select(
-      "id, listing_id, check_in, check_out, nights, adults, children, total_minor, currency, status, guest_name, guest_phone",
+      "id, listing_id, accommodation_id, room_type_id, rooms, check_in, check_out, nights, adults, children, total_minor, currency, status, guest_name, guest_phone",
     )
     .eq("guest_id", session.user.id)
     .order("check_in", { ascending: false })
@@ -232,7 +237,22 @@ export async function getMyBookings(
 
   // Display data: platform listing rows first, seed catalogue as the
   // fallback for titles and photography, a plain placeholder after that.
-  const listingIds = [...new Set(rows.map((r) => r.listing_id))];
+  /* ROOM BOOKINGS 1: a hotel room has no listing; it is named by its hotel and room. */
+  const listingIds = [...new Set(rows.map((r) => r.listing_id).filter((id): id is string => Boolean(id)))];
+  const placeIds = [
+    ...new Set(rows.filter((r) => !r.listing_id).map((r) => r.accommodation_id).filter((id): id is string => Boolean(id))),
+  ];
+  const roomIds = [...new Set(rows.map((r) => r.room_type_id).filter((id): id is string => Boolean(id)))];
+  const [placeRows, roomRows] = await Promise.all([
+    placeIds.length
+      ? session.supabase.from("accommodations").select("id, name, area, city").in("id", placeIds)
+      : Promise.resolve({ data: [] }),
+    roomIds.length ? session.supabase.from("room_types").select("id, name").in("id", roomIds) : Promise.resolve({ data: [] }),
+  ]);
+  const places = new Map(
+    ((placeRows.data ?? []) as { id: string; name: string; area: string | null; city: string | null }[]).map((p) => [p.id, p]),
+  );
+  const roomNames = new Map(((roomRows.data ?? []) as { id: string; name: string }[]).map((r) => [r.id, r.name]));
   const dbListings = new Map<string, { title: string; area: string | null; city: string | null }>();
   if (listingIds.length > 0) {
     const { data: listingRows } = await session.supabase
@@ -293,14 +313,20 @@ export async function getMyBookings(
   const groups: BookingGroups = { upcoming: [], completed: [], cancelled: [], rent: [] };
 
   for (const row of stays) {
-    const db = dbListings.get(row.listing_id);
-    const seed = seedListings.get(row.listing_id);
+    const place = row.listing_id ? null : places.get(row.accommodation_id ?? "");
+    const db = row.listing_id ? dbListings.get(row.listing_id) : undefined;
+    const seed = row.listing_id ? seedListings.get(row.listing_id) : undefined;
+    const roomName = row.room_type_id ? roomNames.get(row.room_type_id) : undefined;
     const view: BookingView = {
       id: row.id,
-      listingId: row.listing_id,
-      title: db?.title ?? seed?.title ?? "Reserved stay",
-      area: db?.area ?? seed?.area ?? "",
-      city: db?.city ?? seed?.city ?? "",
+      listingId: row.listing_id ?? "",
+      stayHref: row.listing_id ? `/listing/${row.listing_id}` : `/stay/${row.accommodation_id ?? ""}`,
+      accommodationId: row.listing_id ? null : row.accommodation_id,
+      title: place
+        ? `${place.name}${roomName ? `, ${roomName} (${plural(row.rooms, getDictionary(locale).counts.rooms, locale)})` : ""}`
+        : db?.title ?? seed?.title ?? "Reserved stay",
+      area: place?.area ?? db?.area ?? seed?.area ?? "",
+      city: place?.city ?? db?.city ?? seed?.city ?? "",
       photo: seed?.photos[0] ?? null,
       checkIn: row.check_in,
       checkOut: row.check_out,
@@ -337,6 +363,7 @@ export async function getMyBookings(
        * charges were filtered out above, so none reaches this view.
        */
       reviewable:
+        Boolean(row.listing_id) &&
         reviewIneligibility({ status: row.status, checkOut: row.check_out, isTenancy: false }, today) === null &&
         !reviewedBookingIds.has(row.id),
     };
@@ -373,13 +400,15 @@ export async function getMyBookings(
   for (const row of rows) {
     const charge = chargeByBooking.get(row.id);
     if (!charge) continue;
-    const db = dbListings.get(row.listing_id);
-    const seed = seedListings.get(row.listing_id);
+    /* A tenancy charge is always on a listing. */
+    const rentListing = row.listing_id ?? charge.listing_id;
+    const db = dbListings.get(rentListing);
+    const seed = seedListings.get(rentListing);
     const paid = paidBookingIds.has(row.id);
     groups.rent.push({
       id: row.id,
       inspectionId: charge.inspection_id,
-      listingId: row.listing_id,
+      listingId: rentListing,
       title: db?.title ?? seed?.title ?? "Your tenancy",
       area: db?.area ?? seed?.area ?? "",
       city: db?.city ?? seed?.city ?? "",

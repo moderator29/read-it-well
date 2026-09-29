@@ -47,7 +47,9 @@ type AdminClient = SupabaseClient<Database>;
 
 type BookingRow = {
   guest_id: string;
-  listing_id: string;
+  /** Null for a hotel room (ROOM BOOKINGS 1), which is at accommodation_id. */
+  listing_id: string | null;
+  accommodation_id: string | null;
   check_in: string;
   check_out: string;
   nights: number;
@@ -81,6 +83,18 @@ async function readAccess(
     return anything ? access : null;
   } catch {
     return null;
+  }
+}
+
+/** A hotel room's stay is named by the hotel. */
+async function readPlaceTitle(admin: AdminClient, accommodationId: string | null): Promise<string> {
+  if (!accommodationId) return FALLBACK_TITLE;
+  try {
+    const { data } = await admin.from("accommodations").select("name").eq("id", accommodationId).maybeSingle();
+    const name = (data?.name ?? "").trim();
+    return name.length > 0 ? name : FALLBACK_TITLE;
+  } catch {
+    return FALLBACK_TITLE;
   }
 }
 
@@ -123,7 +137,7 @@ export async function announceConfirmedStay(
     const { data } = await admin
       .from("bookings")
       .select(
-        "guest_id, listing_id, check_in, check_out, nights, total_minor, guest_name, guest_phone, guest_email",
+        "guest_id, listing_id, accommodation_id, check_in, check_out, nights, total_minor, guest_name, guest_phone, guest_email",
       )
       .eq("id", params.bookingId)
       .maybeSingle();
@@ -138,10 +152,10 @@ export async function announceConfirmedStay(
        stay mail is skipped rather than reworded. */
     if (await isRentBooking(admin, params.bookingId)) return;
 
-    const [listingTitle, access] = await Promise.all([
-      readTitle(admin, booking.listing_id),
-      readAccess(admin, booking.listing_id),
-    ]);
+    /* A hotel room has no listing gate row: the hotel's front desk is the gate. */
+    const [listingTitle, access] = booking.listing_id
+      ? await Promise.all([readTitle(admin, booking.listing_id), readAccess(admin, booking.listing_id)])
+      : [await readPlaceTitle(admin, booking.accommodation_id), null];
 
     const arrivingName = (booking.guest_name ?? "").trim();
     const arrivingPhone = (booking.guest_phone ?? "").trim();

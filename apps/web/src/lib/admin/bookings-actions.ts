@@ -38,6 +38,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { stayTitle } from "../bookings/stay-title";
 import { readFrozenTerms } from "../after-gate/refunds";
 import { z } from "zod";
 import { formatMoney } from "@vallo/i18n/core";
@@ -172,7 +173,7 @@ export async function cancelBookingAsAdmin(
   // role on the read as well as on the write.
   const { data: booking, error: readError } = await access.supabase
     .from("bookings")
-    .select("id, listing_id, guest_id, status, check_in, check_out, total_minor")
+    .select("id, listing_id, accommodation_id, guest_id, status, check_in, check_out, total_minor")
     .eq("id", bookingId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
@@ -276,14 +277,9 @@ export async function cancelBookingAsAdmin(
     await bestEffortEmail(async () => {
       const guest = await contactForUser(admin, booking.guest_id, "bookings");
       if (!guest) return;
-      const { data: listing } = await admin
-        .from("listings")
-        .select("title")
-        .eq("id", booking.listing_id)
-        .maybeSingle();
       const message = bookingRefunded({
         guestName: guest.name,
-        listingTitle: (listing?.title ?? "").trim() || "your stay",
+        listingTitle: await stayTitle(admin, booking),
         checkIn: booking.check_in,
         checkOut: booking.check_out,
         paidMinor: settledMinor,

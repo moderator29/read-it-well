@@ -1,0 +1,86 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { requestRoomStay } from "@/lib/stays/room-booking-actions";
+
+/**
+ * ROOM BOOKINGS 1: "Request this room". Writes the PENDING booking (priced
+ * and held by the database) and hands over to /checkout/[bookingId], which
+ * shows the request waiting on the hotel and, once the stay agreement is
+ * approved, takes the payment.
+ */
+export function RoomRequestForm({
+  stayId,
+  roomTypeId,
+  ratePlanId,
+  checkIn,
+  checkOut,
+  guests,
+  maxRooms,
+  copy,
+}: {
+  stayId: string;
+  roomTypeId: string;
+  ratePlanId: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  maxRooms: number;
+  /** The dictionary's words, chosen on the server for the reader's locale. */
+  copy: { roomsLabel: string; requestRoom: string; requestRoomBody: string; roomChoices: string[] };
+}) {
+  const [rooms, setRooms] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  const choices = Array.from({ length: Math.max(1, Math.min(10, maxRooms)) }, (_, i) => i + 1);
+
+  return (
+    <form
+      className="nf-panel nf-panel--card mt-row grid gap-xs p-card"
+      data-testid="room-request"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setError(null);
+        start(async () => {
+          const result = await requestRoomStay({ stayId, roomTypeId, ratePlanId, checkIn, checkOut, guests, rooms });
+          if (!result.ok) {
+            setError(result.error);
+            return;
+          }
+          router.push(`/checkout/${result.data.bookingId}`);
+        });
+      }}
+    >
+      {choices.length > 1 && (
+        <label className="grid gap-2xs">
+          <span className="nf-caption">{copy.roomsLabel}</span>
+          <select
+            className="nf-input"
+            value={rooms}
+            onChange={(event) => setRooms(Number(event.target.value))}
+            disabled={pending}
+            data-testid="room-count"
+          >
+            {choices.map((n) => (
+              <option key={n} value={n}>
+                {copy.roomChoices[n - 1] ?? String(n)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <p className="nf-body">{copy.requestRoomBody}</p>
+      <Button type="submit" variant="primary" size="lg" loading={pending} disabled={pending}>
+        {copy.requestRoom}
+      </Button>
+      {error && (
+        <p className="nf-body text-[var(--nf-state-error)]" role="alert">
+          {error}
+        </p>
+      )}
+    </form>
+  );
+}

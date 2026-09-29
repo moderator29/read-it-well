@@ -101,7 +101,7 @@ export function TripSpine({
     where: [booking.area, booking.city].filter(Boolean).join(", "),
     when: booking.dateRange,
     meta: booking.totalDisplay,
-    href: `/listing/${booking.listingId}`,
+    href: booking.stayHref,
     photo: booking.photo,
     status: booking.status,
     justBooked: booking.id === justBookedId,

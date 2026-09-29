@@ -20,6 +20,8 @@ export const ha: Dictionary = withFallback({
   counts: {
     nights: { one: "dare ɗaya", other: "darare {count}" },
     guests: { one: "baƙo ɗaya", other: "baƙi {count}" },
+    /* English until translated, like the units below. */
+    rooms: { one: "1 room", other: "{count} rooms" },
     adults: { one: "babba ɗaya", other: "manya {count}" },
     children: { one: "yaro ɗaya", other: "yara {count}" },
     party: "{adults}, {children}",

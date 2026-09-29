@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { bpsAsPercentText } from "@/lib/money/percent";
 import { stayDateLabel } from "@/lib/stays/date-label";
 import { redirect } from "next/navigation";
-import { getDictionary } from "@vallo/i18n";
+import { getDictionary, plural } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getStayDetail } from "@/lib/stays/queries";
 import { readStayDates } from "@/components/app/stays/model";
@@ -14,6 +14,11 @@ import { Panel } from "@/components/ui/Panel";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { cancelStanding, termsFromPolicyRules } from "@/lib/trust/cancellation";
+import { ROOM_BOOKINGS_FLAG, flagIsOn } from "@/lib/flags/read";
+import { resolveSession } from "@/lib/actions/session";
+import { authHref, returnHref } from "@/components/auth/auth-intent";
+import { ButtonLink } from "@/components/ui/Button";
+import { RoomRequestForm } from "./RoomRequestForm";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false, follow: false } };
 
@@ -46,7 +51,12 @@ export default async function RoomCheckoutPage({
   const rateId = typeof query.rate === "string" ? query.rate : "";
   if (!stayId) redirect("/stays");
 
-  const [locale, detail] = await Promise.all([getLocale(), getStayDetail(stayId)]);
+  const [locale, detail, roomsOn, session] = await Promise.all([
+    getLocale(),
+    getStayDetail(stayId),
+    flagIsOn(ROOM_BOOKINGS_FLAG),
+    resolveSession(),
+  ]);
   const t = getDictionary(locale);
   const copy = t.stayDetail;
   const { checkIn, checkOut, nights, guests } = readStayDates(query);
@@ -132,6 +142,36 @@ export default async function RoomCheckoutPage({
         </Panel>
       )}
 
+      {/* ROOM BOOKINGS 1: with rooms switched on, a priced pick is requested for real. */}
+      {roomsOn && detail && room && plan && checkIn && checkOut && total !== null ? (
+        session.state === "signed-in" ? (
+          <RoomRequestForm
+            stayId={detail.accommodation.id}
+            roomTypeId={room.id}
+            ratePlanId={plan.id}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            guests={guests}
+            maxRooms={room.units_total}
+            copy={{
+              roomsLabel: t.checkout.roomsLabel,
+              requestRoom: t.checkout.requestRoom,
+              requestRoomBody: t.checkout.requestRoomBody,
+              roomChoices: Array.from({ length: Math.min(10, room.units_total) }, (_, i) => plural(i + 1, t.counts.rooms, locale)),
+            }}
+          />
+        ) : (
+          <div className="mt-row">
+            <ButtonLink
+              href={authHref(returnHref("/checkout", new URLSearchParams(query as Record<string, string>).toString(), "list"), "sign-in")}
+              variant="primary"
+              size="lg"
+            >
+              {t.checkout.signInToRequestRoom}
+            </ButtonLink>
+          </div>
+        )
+      ) : (
       <ResultScreen
         state={detail ? "expired" : "missing"}
         mark={detail ? "calendar-check" : undefined}
@@ -147,6 +187,7 @@ export default async function RoomCheckoutPage({
         ]}
         data-testid="room-checkout-state"
       />
+      )}
 
       <p className={`flex items-start gap-inline ${TYPE.caption}`}>
         <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />

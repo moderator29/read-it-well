@@ -57,11 +57,12 @@ async function bookings(client: Client, userId: string, locale: Locale, only: On
   if (only) query = query.eq("id", only.id);
   const { data, error } = await query;
   if (error || !data) return [];
-  const names = await titles(client, data.map((row) => row.listing_id));
+  /* A hotel-room booking or agreement has no listing (ROOM BOOKINGS 1). */
+  const names = await titles(client, data.map((row) => row.listing_id).filter((id): id is string => Boolean(id)));
   return data.map((row) => ({
     kind: "booking",
     id: row.id,
-    label: `${names.get(row.listing_id) ?? "A property"}, ${day(row.check_in, locale)} to ${day(row.check_out, locale)}`,
+    label: `${(row.listing_id && names.get(row.listing_id)) || "A property"}, ${day(row.check_in, locale)} to ${day(row.check_out, locale)}`,
     sub: words(row.status),
   }));
 }
@@ -77,11 +78,12 @@ async function agreements(client: Client, userId: string, only: Only): Promise<R
   if (only) query = query.eq("id", only.id);
   const { data, error } = await query;
   if (error || !data) return [];
-  const names = await titles(client, data.map((row) => row.listing_id));
+  /* A hotel-room booking or agreement has no listing (ROOM BOOKINGS 1). */
+  const names = await titles(client, data.map((row) => row.listing_id).filter((id): id is string => Boolean(id)));
   return data.map((row) => ({
     kind: "agreement",
     id: row.id,
-    label: `${row.kind === "stay" ? "Stay" : "Rent"} agreement, ${names.get(row.listing_id) ?? "A property"}`,
+    label: `${row.kind === "stay" ? "Stay" : "Rent"} agreement, ${(row.listing_id && names.get(row.listing_id)) || "A property"}`,
     sub: words(row.status),
   }));
 }
@@ -142,11 +144,12 @@ async function inspections(client: Client, userId: string, locale: Locale, only:
   if (only) query = query.eq("id", only.id);
   const { data, error } = await query;
   if (error || !data) return [];
-  const names = await titles(client, data.map((row) => row.listing_id));
+  /* A hotel-room booking or agreement has no listing (ROOM BOOKINGS 1). */
+  const names = await titles(client, data.map((row) => row.listing_id).filter((id): id is string => Boolean(id)));
   return data.map((row) => ({
     kind: "inspection",
     id: row.id,
-    label: `Inspection, ${names.get(row.listing_id) ?? "A property"}`,
+    label: `Inspection, ${(row.listing_id && names.get(row.listing_id)) || "A property"}`,
     sub: [day(row.slot_at ?? row.requested_at, locale), words(row.state)].filter(Boolean).join(" · "),
   }));
 }

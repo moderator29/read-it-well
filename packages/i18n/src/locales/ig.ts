@@ -21,6 +21,8 @@ export const ig: Dictionary = withFallback({
   counts: {
     nights: { other: "abalị {count}" },
     guests: { other: "ọbịa {count}" },
+    /* English until translated, like the units below. */
+    rooms: { one: "1 room", other: "{count} rooms" },
     adults: { other: "okenye {count}" },
     children: { other: "nwa {count}" },
     party: "{adults}, {children}",

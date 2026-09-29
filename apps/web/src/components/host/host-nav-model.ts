@@ -33,6 +33,7 @@ export type HostNavItem = {
 export type HostNavLabels = {
   overview: string;
   reservations: string;
+  roomBookings: string;
   rooms: string;
   photos: string;
   arrival: string;
@@ -69,6 +70,8 @@ type HostNavEntry = { href: string; key: keyof HostNavLabels; icon: UiIconName }
 export const HOST_NAV: readonly HostNavEntry[] = [
   { href: HOST_DASHBOARD, key: "overview", icon: "grid" },
   { href: "/host/reservations", key: "reservations", icon: "calendar-booking" },
+  /* ROOM BOOKINGS 1: guests' requests for rooms, to accept or decline. */
+  { href: "/host/bookings", key: "roomBookings", icon: "bed" },
   { href: "/host/rooms", key: "rooms", icon: "bed" },
   { href: "/host/photos", key: "photos", icon: "picture" },
   { href: "/host/arrival", key: "arrival", icon: "price-tag" },

@@ -56,10 +56,13 @@ export function nightsOf(checkIn: string, checkOut: string): string[] {
  */
 export async function writeBookedNights(
   admin: AdminClient,
-  listingId: string,
+  listingId: string | null,
   checkIn: string,
   checkOut: string,
 ): Promise<void> {
+  /* ROOM BOOKINGS 1: a hotel room's nights live in room_inventory, held and
+     released by the booking's own trigger; there is no listing calendar. */
+  if (!listingId) return;
   const rows = nightsOf(checkIn, checkOut).map((date) => ({
     listing_id: listingId,
     date,
@@ -78,10 +81,11 @@ export async function writeBookedNights(
  */
 export async function releaseBookedNights(
   admin: AdminClient,
-  listingId: string,
+  listingId: string | null,
   checkIn: string,
   checkOut: string,
 ): Promise<void> {
+  if (!listingId) return;
   const { error } = await admin
     .from("availability")
     .delete()

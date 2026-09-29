@@ -10,11 +10,25 @@ import { readBookingSnapshot, readDeclaration } from "@/lib/stays/arrival-querie
  * not whatever the host has declared since. Callers render it only for a
  * stay: never on a rent charge.
  */
-export async function ArrivalChargesLine({ listingId, bookingId, locale }: { listingId: string; bookingId?: string; locale: Locale }) {
+export async function ArrivalChargesLine({
+  listingId,
+  accommodationId,
+  bookingId,
+  locale,
+}: {
+  /** A listing stay's listing, or null for a hotel room. */
+  listingId: string | null;
+  /** A hotel room's hotel (ROOM BOOKINGS 1). */
+  accommodationId?: string | null;
+  bookingId?: string;
+  locale: Locale;
+}) {
   const copy = getDictionary(locale).afterTheGate.arrival;
   const snapshot = bookingId ? await readBookingSnapshot(bookingId) : null;
   if (snapshot === undefined) return null;
-  const declaration = snapshot ? snapshot.charges : await readDeclaration({ listingId });
+  const declaration = snapshot
+    ? snapshot.charges
+    : await readDeclaration(listingId ? { listingId } : { accommodationId: accommodationId ?? undefined });
   if (declaration === undefined) return null;
   const owed = declaration ? declaredCharges(declaration) : [];
   return (
