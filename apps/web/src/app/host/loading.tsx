@@ -19,6 +19,14 @@ export default function LoadingHost() {
           <Skeleton circle width="2.25rem" className="shrink-0" />
           <Skeleton width="8rem" height="1rem" radius="sm" className="max-w-[40%]" />
         </div>
+        {/* HostNav's chip row, which sits inside the same bar: `px-gutter
+            pb-xs` around small chips (h-9), so the bar reaches its real
+            height before the page arrives. */}
+        <div aria-hidden="true" className="flex gap-xs overflow-hidden px-gutter pb-xs">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} width="6rem" height="2.25rem" radius="pill" className="shrink-0" />
+          ))}
+        </div>
       </header>
       <LoadingShell label="Loading" className="nf-host__body">
         <TitleBlockSkeleton className="mb-lg" />

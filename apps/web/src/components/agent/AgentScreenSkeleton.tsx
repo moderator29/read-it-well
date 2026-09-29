@@ -49,8 +49,10 @@ export function AgentScreenSkeleton({
         {/* Real chrome, not a skeleton: the header is glass and sticky whether
             or not the page beneath it has arrived, and drawing a grey slab in
             its place would be a bigger change than leaving it empty. */}
-        <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
-          <div className="flex h-header-sm items-center gap-xs px-sm sm:h-header sm:gap-md sm:px-5 md:px-xl">
+        {/* The same bar AgentShell draws now: `WorkspaceHeader`, one
+            `nf-ws-bar__row` at the small header height at every width. */}
+        <header className="nf-ws-bar nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
+          <div className="nf-ws-bar__row">
             <Skeleton circle width="2.25rem" className="shrink-0 sm:hidden" />
             <Skeleton circle width="2.5rem" className="hidden shrink-0 sm:block" />
             <Skeleton width="9rem" height="1rem" radius="sm" className="max-w-[40%]" />

@@ -700,8 +700,13 @@ async function readSessionUser(
     if (typeof sub === "string" && sub.length > 0) return sub;
     if (hasSessionCookie && isAuthRetryableFetchError(answer.error)) return "unknown";
     return null;
-  } catch {
-    return hasSessionCookie ? "unknown" : null;
+  } catch (thrown) {
+    /* Only an outage is "unknown". `getClaims()` THROWS (rather than
+       answering an error) on a token it cannot parse or an algorithm it does
+       not know, e.g. a header that is not JSON, or `alg: "PS256"` beside a
+       real key id. Those are forgeries, and treating every throw as an
+       outage let a hand-made cookie walk through the gate. */
+    return hasSessionCookie && isAuthRetryableFetchError(thrown) ? "unknown" : null;
   } finally {
     clearTimeout(timer);
   }

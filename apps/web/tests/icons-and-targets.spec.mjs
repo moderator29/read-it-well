@@ -114,8 +114,8 @@ check("no call site overrides the stroke weight", strokeOverrides.length === 0, 
 
 const uiIconSource = readFileSync(join(SRC, "design-system/icons/UiIcon.tsx"), "utf8");
 check(
-  "the stroke attribute is derived from the size, so the rendered weight is constant",
-  /strokeWidth=\{\(UI_ICON_STROKE_PX \* 24\) \/ edge\}/.test(uiIconSource),
+  "the stroke attribute is derived from the size by the optical scale",
+  /strokeWidth=\{uiIconStrokeWidth\(edge\)\}/.test(uiIconSource),
 );
 check(
   "UiIcon takes no strokeWidth prop at all",

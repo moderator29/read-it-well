@@ -147,7 +147,11 @@ export function AuthChoices({
           redirect and was prefetched on every render of this card. */}
       {isSignUp && (
         <p className="nf-auth__swap nf-auth__swap--quiet">
-          <Link href={`/welcome?next=${encodeURIComponent(withNext("/sign-up", next))}`} prefetch={false}>
+          <Link
+            href={`/welcome?next=${encodeURIComponent(withNext("/sign-up", next))}`}
+            prefetch={false}
+            className="nf-tap"
+          >
             {t.welcomeCards.label}
           </Link>
         </p>

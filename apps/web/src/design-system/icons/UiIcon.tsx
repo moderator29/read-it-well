@@ -25,7 +25,7 @@ import { useId } from "react";
  * (`h.01` on a round cap) and round caps and joins throughout. Where Vallo had
  * a drawing Lucide does not (the four property-type houses, the two-card
  * feed, the shorter third menu line, the naira-free fee glyphs: `survey`,
- * `gate`), it is drawn here to the same rules.
+ * and the estate `gate` keyhole shield), it is drawn here to the same rules.
  *
  * THE WEIGHT WENT BOLD THE SAME DAY (the founder, 29 September 2026: "premium,
  * bolder, solid, clean and sharp", with pump.fun's app icons as the target,
@@ -39,7 +39,7 @@ import { useId } from "react";
  * 24 (32 on its 512 grid), which is the weight being left behind; Phosphor
  * Bold is a heavier 2.25 on rounder, wider geometry that would have meant a
  * second redraw of all ninety glyphs in a week. `UI_ICON_STROKE_PX` below is
- * 2 at the 20 and 24 steps, scaled optically per size by `uiIconStrokeWidth`.
+ * 2.25 at the 20 and 24 steps, scaled optically per size by `uiIconStrokeWidth`.
  *
  * `docs/ICON_SYSTEM.md` carries the scale, the weight and the filled twins.
  */
@@ -814,18 +814,18 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   droplet: (
     <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
   ),
-  /* The estate gate: two piers standing proud of an arched top rail, with
-     two bars and one cross rail. Vallo's own; `key` is a lock and a door,
-     `verified` a judgement, and neither is the gate a tenant is let through.
-     Two bars and no ground line: at 20px three bars and a ground line closed
-     into a comb. */
+  /* The estate gate: a shield with a keyhole, controlled access. Vallo's own,
+     on `verified`'s Lucide shield so the two sit as a pair; the tick is a
+     judgement, the keyhole is a way in. It replaced a drawn gate (two piers,
+     an arched rail, two bars, a cross rail) on 29 September 2026: at 20px
+     on the bold line its five parallel strokes closed into a hash and read
+     as a grid, not a gate. The keyhole is a solid dot on a short stem so it
+     stays open inside the shield at 2.25px. */
   gate: (
     <>
-      <path d="M4 21V3" />
-      <path d="M20 21V3" />
-      <path d="M4 11c3-3 13-3 16 0" />
-      <path d="M9.5 9V21M14.5 9V21" />
-      <path d="M4 16h16" />
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      <circle cx="12" cy="10.5" r="1.25" fill="currentColor" />
+      <path d="M12 12v3.5" />
     </>
   ),
 };
@@ -1081,10 +1081,11 @@ export type IconSize = keyof typeof ICON_SIZE;
  * number on the 24 grid. `strokeWidth` is in viewBox units, so a fixed number
  * renders thinner the smaller the glyph; the grid number is derived from the
  * size instead, and every stroked glyph on the platform renders this many CSS
- * pixels at every step. 2 is the bold, even line of the founder's
- * 29 September target (pump.fun's app icons, about 2 to 2.25 at 24) and the
- * weight Lucide's geometry is drawn for. It was 1.5 until then, the thin line
- * of SF Symbols regular, which read as hesitant beside the bold type. The
+ * pixels at every step. 2.25 is the bold, even line of the founder's
+ * 29 September target (pump.fun's app icons, about 2 to 2.25 at 24), a
+ * quarter over the weight Lucide's geometry is drawn for. It was 1.5 until
+ * then, the thin line of SF Symbols regular, which read as hesitant beside
+ * the bold type. The
  * sibling glyph components (`LineGlyph`, `SettingsGlyph`, `FeatureGlyph`)
  * take their width from `uiIconStrokeWidth`, so they went bold with the set
  * and stay matched.
@@ -1093,19 +1094,25 @@ export type IconSize = keyof typeof ICON_SIZE;
  * small steps (2px on a 12px glyph is a third of a counter) and starves the
  * display step; one fixed grid number does the opposite. The rendered line
  * therefore steps with the size, on quarter pixels so it lands on the device
- * grid at 2x: 1.5 at 12, 1.75 at 16, 2 at 20 and 24 (the reference), then a
- * quarter more per step to 2.75 at 40.
+ * grid at 2x: 1.5 at 12, 1.75 at 16, 2.25 at 20 and 24 (the reference),
+ * then a quarter more per step to 3 at 40.
+ *
+ * RAISED TO 2.25 AT 20 AND 24 (the ICONS3 audit, 29 September 2026). At 2
+ * the nav, dock and detail-row glyphs still read a shade lighter than
+ * pump.fun's beside 600-weight labels; the founder's "a bit more bold" is the
+ * top of the 2 to 2.25 range those icons draw. 12 and 16 stay where they
+ * were, because a heavier line there closes Lucide's counters.
  */
-export const UI_ICON_STROKE_PX = 2;
+export const UI_ICON_STROKE_PX = 2.25;
 
 export const UI_ICON_STROKE_BY_EDGE: Record<UiIconSize, number> = {
   12: 1.5,
   16: 1.75,
   20: UI_ICON_STROKE_PX,
   24: UI_ICON_STROKE_PX,
-  28: 2.25,
-  32: 2.5,
-  40: 2.75,
+  28: 2.5,
+  32: 2.75,
+  40: 3,
 };
 
 /**

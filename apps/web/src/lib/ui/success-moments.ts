@@ -22,6 +22,13 @@ export type SuccessVariant = "success" | "submitted" | "approved";
 
 export type SuccessMomentId = keyof Dictionary["success"]["moments"];
 
+/**
+ * The whole `success` namespace, as a server page hands it to a client
+ * component (`t.success`). Only a few moments ride in `ClientCopy` on every
+ * screen; the rest come down this way, which is the house pattern.
+ */
+export type SuccessWords = Dictionary["success"];
+
 export const SUCCESS_VARIANT: Readonly<Record<SuccessMomentId, SuccessVariant>> = {
   stayPaid: "success",
   stayPaidRecorded: "success",
@@ -79,13 +86,22 @@ export const SUCCESS_FEEL: Readonly<Record<SuccessVariant, FeedbackKind>> = {
 
 export type SuccessCopy = { variant: SuccessVariant; title: string; body: string };
 
-/** The words and the variant for one moment, with `{placeholders}` filled. */
-export function successCopy(
-  copy: Dictionary["success"],
-  id: SuccessMomentId,
+type MomentWords = { title: string; body: string };
+
+/**
+ * The words and the variant for one moment, with `{placeholders}` filled.
+ *
+ * Takes any slice of `success.moments`: the whole dictionary a page hands
+ * down, or the few moments `ClientCopy` carries on every screen
+ * (lib/i18n/client-copy-of.ts). Asking a slice for a moment it does not
+ * carry is a type error, not an empty sheet.
+ */
+export function successCopy<M extends Partial<Record<SuccessMomentId, MomentWords>>>(
+  copy: { moments: M },
+  id: keyof M & SuccessMomentId,
   values: Record<string, string> = {},
 ): SuccessCopy {
-  const words = copy.moments[id];
+  const words = copy.moments[id] as MomentWords;
   const fill = (text: string) =>
     Object.entries(values).reduce((out, [key, value]) => out.split(`{${key}}`).join(value), text);
   return { variant: SUCCESS_VARIANT[id], title: fill(words.title), body: fill(words.body) };

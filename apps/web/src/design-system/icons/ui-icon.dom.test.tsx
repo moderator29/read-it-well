@@ -12,8 +12,9 @@ import {
 /**
  * THE BOLD PASS (29 September 2026), held in place.
  *
- * The founder asked for bolder, solid icons at about 2px on a 24px glyph, with
- * the line stepped by size. These specs catch the three ways that decays: the
+ * The founder asked for bolder, solid icons at pump.fun's weight (2 to 2.25px
+ * on a 24px glyph), with the line stepped by size; the ICONS3 audit took the
+ * 20 and 24 steps to the top of that range. These specs catch the three ways that decays: the
  * weight quietly slides back to the old 1.5, a size step renders a line the
  * scale does not name, or a glyph the listing page draws goes missing from the
  * set or from the checked-in vectors that `scripts/build-icon-vectors.mjs`
@@ -27,10 +28,15 @@ function renderedPx(edge: number) {
 }
 
 describe("UiIcon weight", () => {
-  it("draws 2 CSS px at the 20 and 24 steps", () => {
-    expect(UI_ICON_STROKE_PX).toBe(2);
-    expect(renderedPx(24)).toBeCloseTo(2);
-    expect(renderedPx(20)).toBeCloseTo(2);
+  it("draws 2.25 CSS px at the 20 and 24 steps", () => {
+    expect(UI_ICON_STROKE_PX).toBe(2.25);
+    expect(renderedPx(24)).toBeCloseTo(2.25);
+    expect(renderedPx(20)).toBeCloseTo(2.25);
+  });
+
+  it("keeps the small steps light enough to hold Lucide's counters", () => {
+    expect(renderedPx(12)).toBeCloseTo(1.5);
+    expect(renderedPx(16)).toBeCloseTo(1.75);
   });
 
   it("steps the line with the size, never thinner than 1.5 or backwards", () => {

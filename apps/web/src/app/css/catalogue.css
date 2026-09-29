@@ -2223,8 +2223,24 @@
   .nf-movein__plate {
     flex-shrink: 0;
   }
-  .nf-movein__row:not([data-declared]) .nf-movein__plate {
-    opacity: 0.55;
+  /* The quiet plate keeps the family's full line and steps back by COLOUR,
+     not by opacity: at 0.55 the glyph fell to about 2.3:1 in light and 2.8:1
+     at night and read as pale rather than as quiet. It drops the lit blue
+     (fill, rim, glow) for the raised neutral surface and draws the glyph at
+     the muted ink, which clears 3:1 non-text contrast on it in both themes
+     (about 5.9:1 in light, 6.8:1 at night). */
+  .nf-movein__row:not([data-declared]) .nf-movein__plate.nf-plate {
+    background: var(--nf-surface-raised);
+    border-color: var(--nf-border-subtle);
+    box-shadow: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-movein__row:not([data-declared]) .nf-movein__plate.nf-plate > svg {
+    filter: none;
+  }
+  :root:not([data-theme="light"]) .nf-movein__row:not([data-declared]) .nf-movein__plate.nf-plate,
+  [data-theme="dark"] .nf-movein__row:not([data-declared]) .nf-movein__plate.nf-plate {
+    color: var(--nf-content-muted);
   }
   /* The detail pages' plated glyphs at night: the bright end of the brand
      blue rather than white, as the profile rows draw it, lifted a third

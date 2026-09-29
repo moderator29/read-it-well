@@ -310,6 +310,21 @@ export function EmailAuthForm({
       <form
         action={formAction}
         ref={formRef}
+        onKeyDown={(e) => {
+          /* Enter in a step-one field is Next. Step one has no submit button
+             (Next is `type="button"`), so the browser's implicit submission
+             never fires there and Enter would otherwise do nothing. */
+          if (
+            isSignUp &&
+            step === 1 &&
+            e.key === "Enter" &&
+            !e.nativeEvent.isComposing &&
+            e.target instanceof HTMLInputElement
+          ) {
+            e.preventDefault();
+            goNext();
+          }
+        }}
         onSubmit={(e) => {
           /* UX-14: the action is dispatched here rather than by `<form
              action>`, because React resets a form after a `<form action>`
@@ -611,6 +626,7 @@ export function EmailAuthForm({
           <Link
             href={`/welcome?tour=1&next=${encodeURIComponent(withNext("/sign-up/email", next))}`}
             prefetch={false}
+            className="nf-tap"
           >
             {t.welcomeCards.label}
           </Link>

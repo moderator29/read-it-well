@@ -9,7 +9,7 @@ import { snapUiIconSize, uiIconStrokeWidth } from "@/design-system/icons/UiIcon"
  * `UiIcon` has none of the first three and draws its repost standing on end, and `design-system/icons/UiIcon.tsx` is not
  * this surface's file, so they are drawn here on exactly its terms: the 24
  * grid, round caps and joins, `currentColor`, the same snapped size scale and
- * the same rendered weight (`uiIconStrokeWidth`, 2 CSS px at 20 and 24).
+ * the same rendered weight (`uiIconStrokeWidth`, 2.25 CSS px at 20 and 24).
  * Asking for them to move into `UiIcon` is request FEED-1 in the scope file;
  * when they land there, the call sites switch and this file is deleted.
  */
