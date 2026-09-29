@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "../supabase/server";
+import { requireAdmin } from "../admin/guard";
 import { hashListingPhotos } from "./hash-server";
 import { coverageFrom, photoMatchesFrom, type PhotoMatch } from "./dhash";
 
@@ -29,10 +29,15 @@ export type PhotoProvenance =
   | { state: "ok"; matches: PhotoMatch[]; coverage: HashCoverage };
 
 export async function readPhotoProvenance(listingId: string): Promise<PhotoProvenance> {
+  /* The listing desk's scope. The two functions decide on auth.uid() with
+     `private.staff_can(..., 'listing_approval')`, so they are called with the
+     caller's OWN client, never the service client a staff member is handed. */
+  const access = await requireAdmin("listing_approval");
+  if (access.state !== "admin") return { state: "failed" };
   const hashed = await hashListingPhotos(listingId);
   if (hashed === null) return { state: "not-compared" };
   try {
-    const supabase = (await createClient()) as unknown as SupabaseClient;
+    const supabase = access.userClient as unknown as SupabaseClient;
     const [matches, coverage] = await Promise.all([
       supabase.rpc("listing_photo_matches", { p_listing: listingId }),
       supabase.rpc("listing_photo_hash_coverage", { p_listing: listingId }),

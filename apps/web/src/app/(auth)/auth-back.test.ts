@@ -14,6 +14,7 @@ const EXPECTED: Record<string, string> = {
   "/sign-up/email": "/sign-up",
   "/sign-up/verify": "/sign-up/email",
   "/forgot-password": "/sign-in",
+  "/forgot-password/code": "/forgot-password",
   "/reset-password": "/sign-in",
   "/auth/callback": "/sign-in",
 };

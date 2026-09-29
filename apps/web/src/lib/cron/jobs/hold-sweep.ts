@@ -8,6 +8,7 @@ import {
   type JobVerdict,
 } from "../../bookings/lifecycle";
 import { callServiceFunction, type AdminClient } from "../rpc";
+import { sweepStaleAttempts, withAttemptSweep } from "../../payments/attempt-sweep";
 
 /**
  * The hold TTL sweep. A PENDING request nobody confirmed within the hold
@@ -23,9 +24,17 @@ import { callServiceFunction, type AdminClient } from "../rpc";
  * PENDING, and a second run finds nothing.
  */
 export async function holdSweep(admin: AdminClient): Promise<JobVerdict> {
+  /* The holds first, so a slow Paystack can never keep them from being
+     released: the database's own in-flight rule (45 minutes since the
+     checkout was last opened) already judges them without the sweep. */
   const data = await callServiceFunction(admin, "expire_booking_holds", {
     p_ttl: `${HOLD_TTL_HOURS} hours`,
     p_limit: HOLD_SWEEP_LIMIT,
   });
-  return holdSweepVerdict(parseHoldSweepResult(data));
+  const verdict = holdSweepVerdict(parseHoldSweepResult(data));
+  /* Then close card attempts Paystack says were abandoned, failed or paid
+     (lib/payments/attempt-sweep.ts), inside its own 40-second budget. It never
+     throws, so the hold verdict above is always reported. */
+  const attempts = await sweepStaleAttempts(admin);
+  return withAttemptSweep(verdict, attempts);
 }

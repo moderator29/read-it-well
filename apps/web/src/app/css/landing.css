@@ -243,6 +243,26 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
+  /*
+   * THE BAR AT 320PX RAN 4PX PAST THE SCREEN (measured, every site page).
+   * Under 360px the gutters leave 272px, and the logo (122), Get Started
+   * (111), the menu (44) and two gaps (24) need 301. The root clips it, so
+   * nothing scrolled: the menu button's right edge was simply cut off.
+   * Below 22.5rem the row gap drops a rung (`gap-inline` on the row in
+   * `SiteHeader.tsx`, a utility, because a components-layer rule cannot
+   * outrank one), the button's side padding drops a rung, and the wordmark
+   * is capped at 14px tall (`max-height` beats the inline height `Logo`
+   * writes, and the width follows the aspect ratio). 267px, inside the 272.
+   * The 44px heights are untouched.
+   */
+  @media (max-width: 22.49rem) {
+    .nf-site-bar .nf-logo__word {
+      max-height: 0.875rem;
+    }
+    .nf-site-bar .nf-btn--sm {
+      padding-inline: var(--nf-space-sm);
+    }
+  }
 
   /* The More menu. A popover under the link, in the glass. */
   .nf-site-nav-menu {
@@ -1325,7 +1345,27 @@
   .nf-landing-stack {
     position: relative;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-gap-row);
+  }
+  /*
+   * THE FLOATING CARDS FLOAT ON A PHONE TOO.
+   * Under 64rem the three pieces used to stack as three unrelated boxes: a
+   * villa photograph, then a listing card carrying a second photograph, then
+   * the partner note. The render's idea is a listing card lying ON the
+   * photograph. So the card rides up over the photograph's lower third, held
+   * in from the start edge so the photo still frames it, and the partner
+   * note follows underneath. A negative block margin inside a grid moves
+   * nothing sideways, so this cannot widen the page.
+   */
+  @media (max-width: 63.999rem) {
+    .nf-landing-stack-card--a {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 2 * var(--nf-space-md), var(--nf-landing-card-w));
+      margin-top: calc(-1 * var(--nf-space-4xl));
+      margin-inline-start: var(--nf-space-md);
+    }
   }
   .nf-landing-stack-photo {
     position: relative;

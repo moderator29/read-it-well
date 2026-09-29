@@ -19,6 +19,8 @@ import {
 import { Constants } from "@/lib/supabase/database.types";
 import { dueChip } from "../_components/due";
 import { gradeForTopic, supportTopicLabel } from "@/lib/trust/support-topics";
+import { getSupportTicket, getTicketDesk } from "@/lib/admin/support-desk";
+import { TicketClaim } from "./TicketClaim";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -152,10 +154,18 @@ export default async function AdminSupportPage({
   }
 
   const rows = tickets.data.rows;
-  const selected = selectedId
-    ? (rows.find((ticket) => ticket.id === selectedId) ?? null)
-    : null;
-  const thread = selected ? await getTicketThread(selected.id) : null;
+  /* A ticket opened by link (a notification, the person file, a colleague)
+     may not be on this page of the queue, or may be filtered out of it. It is
+     read by its id rather than silently not opening. */
+  const onPage = selectedId ? (rows.find((ticket) => ticket.id === selectedId) ?? null) : null;
+  const byId = selectedId && !onPage ? await getSupportTicket(selectedId) : null;
+  const selected = onPage ?? (byId?.state === "ok" ? byId.data : null);
+  const missing = Boolean(selectedId) && !selected;
+  const [thread, desk] = selected
+    ? await Promise.all([getTicketThread(selected.id), getTicketDesk(selected.id)])
+    : [null, null];
+  const deskData = desk?.state === "ok" ? desk.data : null;
+  const selectedOpen = selected ? selected.status === "open" || selected.status === "pending" : false;
 
   const open = rows.filter(
     (ticket) => ticket.status === "open" || ticket.status === "pending",
@@ -175,10 +185,25 @@ export default async function AdminSupportPage({
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
+      {missing && (
+        <p role="status" className="nf-panel nf-panel--card nf-admin-card mb-lg p-md nf-body-sm text-[var(--nf-content-secondary)]">
+          {byId?.state === "unavailable" ? "That ticket could not be read just now. Reload to try again." : "No ticket has that id."}
+        </p>
+      )}
+
       {selected && (
         <section className="nf-panel nf-panel--card nf-admin-card mb-lg p-md sm:p-lg">
           <div className="flex flex-wrap items-center gap-xs">
             <ui.StatusChip status={selected.status} />
+            {/* The clock runs from the member's oldest unanswered message, not
+                from when the ticket was filed: after our reply the wait is
+                over until they write again (lib/admin/support-rules.ts). */}
+            {selectedOpen && deskData?.waitingSince && (
+              <ui.StatusChip {...dueChip(deskData.waitingSince, gradeForTopic(selected.topic), common)} />
+            )}
+            {selectedOpen && deskData && !deskData.waitingSince && (
+              <ui.StatusChip label="We answered last" tone="success" />
+            )}
             <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {selected.reference}
             </span>
@@ -203,7 +228,34 @@ export default async function AdminSupportPage({
               value={selected.hasAccount ? copy.signedInWhenFiled : copy.noAccountAttached}
             />
             <ui.DetailRow label={copy.fields.filed} value={ui.when(selected.createdAt)} />
+            {deskData?.waitingSince && (
+              <ui.DetailRow label="Waiting on us since" value={ui.when(deskData.waitingSince)} />
+            )}
+            {deskData && deskData.otherTickets > 0 && (
+              <ui.DetailRow
+                label="Other tickets"
+                value={`${deskData.otherTickets} more from this account`}
+              />
+            )}
           </ui.DetailSection>
+
+          {deskData?.canOpenFile && deskData.userId && (
+            <p className="mt-xs nf-caption">
+              <Link
+                href={`/admin/people/${deskData.userId}`}
+                className="inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              >
+                Open their member file
+              </Link>
+            </p>
+          )}
+
+          {selectedOpen && deskData && (
+            <TicketClaim
+              ticketId={selected.id}
+              holder={deskData.claim ? { name: deskData.claim.name, mine: deskData.claim.mine } : null}
+            />
+          )}
 
           <div className="mt-md rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm">
             <p className="nf-overline text-[var(--nf-content-muted)]">
@@ -230,7 +282,11 @@ export default async function AdminSupportPage({
                 >
                   <span className="flex flex-wrap items-center gap-xs">
                     <span className="nf-overline text-[var(--nf-content-muted)]">
-                      {message.senderRole === "admin" ? copy.supportSender : selected.name}
+                      {message.senderRole === "admin"
+                        ? deskData?.replierOf[message.id]
+                          ? `${copy.supportSender} · ${deskData.replierOf[message.id]}`
+                          : copy.supportSender
+                        : selected.name}
                     </span>
                     <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {ui.when(message.createdAt)}

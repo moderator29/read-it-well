@@ -6,6 +6,7 @@ import type { Database } from "../supabase/database.types";
 import { readClosedReasons } from "../landlord/queries";
 import { SUPABASE_URL } from "../supabase/env";
 import { resolveSession } from "../actions/session";
+import { loadUnreadCounts } from "../messages/unread";
 import type { AgentProfile } from "./types";
 import {
   AMENITY_CHOICES,
@@ -678,12 +679,21 @@ export async function readMyListings(
   }
 }
 
+/**
+ * A draft read that failed, as distinct from one that found nothing. The page
+ * says "could not load, try again" for this rather than treating it as "not
+ * yours" or, worse, opening a blank wizard whose first save files a second
+ * listing.
+ */
+export const DRAFT_READ_FAILED = "read-failed" as const;
+export type DraftRead = WizardDraft | null | typeof DRAFT_READ_FAILED;
+
 /** One listing, fully hydrated for the wizard. Null when it is not theirs. */
 export async function readDraft(
   supabase: SupabaseClient<Database>,
   agentId: string,
   listingId: string,
-): Promise<WizardDraft | null> {
+): Promise<DraftRead> {
   const { data, error } = await supabase
     .from("listings")
     .select(LISTING_PUBLIC_SELECT)
@@ -691,9 +701,10 @@ export async function readDraft(
     .eq("agent_id", agentId)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error) return DRAFT_READ_FAILED;
+  if (!data) return null;
   const row = await withListingPrivateOrNull(supabase, data as unknown as ListingWithChildren);
-  return row ? toDraft(supabase, row) : null;
+  return row ? toDraft(supabase, row) : DRAFT_READ_FAILED;
 }
 
 /**
@@ -721,7 +732,7 @@ export async function readDraft(
 export async function readOpenDraft(
   supabase: SupabaseClient<Database>,
   agentId: string,
-): Promise<WizardDraft | null> {
+): Promise<DraftRead> {
   const { data, error } = await supabase
     .from("listings")
     .select(LISTING_PUBLIC_SELECT)
@@ -731,9 +742,12 @@ export async function readOpenDraft(
     .limit(1)
     .maybeSingle();
 
-  if (error || !data) return null;
+  /* A failed read is not "no draft": opening blank here would file a second
+     listing beside the one the host came back to finish. */
+  if (error) return DRAFT_READ_FAILED;
+  if (!data) return null;
   const row = await withListingPrivateOrNull(supabase, data as unknown as ListingWithChildren);
-  return row ? toDraft(supabase, row) : null;
+  return row ? toDraft(supabase, row) : DRAFT_READ_FAILED;
 }
 
 /* ------------------------------------------------------- reference data */
@@ -775,7 +789,8 @@ export type AgentNumbers = {
   drafts: number;
   upcomingBookings: AgentBookingRow[];
   upcomingBookingCount: number;
-  unreadMessages: number;
+  /** Null when the count could not be read: shown as unknown, never as 0. */
+  unreadMessages: number | null;
 };
 
 const EMPTY_STATUS_COUNTS: Record<ListingStatus, number> = {
@@ -802,21 +817,26 @@ function lagosToday(): string {
 export async function readAgentNumbers(
   supabase: SupabaseClient<Database>,
   agentId: string,
-  userId: string,
+  /* Kept for the callers; the unread count now comes from auth.uid() in
+     my_unread_counts(), which cannot be pointed at somebody else. */
+  _userId: string,
 ): Promise<AgentNumbers> {
   const today = lagosToday();
 
-  const [statusRes, bookingRes, conversationRes] = await Promise.all([
+  const [statusRes, bookingRes, unreadCounts] = await Promise.all([
     supabase.from("listings").select("id, status").eq("agent_id", agentId),
     supabase
       .from("bookings")
-      .select("id, check_in, check_out, total_minor, status, listings!inner(title, agent_id)")
+      .select("id, check_in, check_out, total_minor, status, listings!inner(title, agent_id)", { count: "exact" })
       .eq("listings.agent_id", agentId)
       .gte("check_out", today)
       .in("status", ["PENDING", "CONFIRMED"])
       .order("check_in", { ascending: true })
       .limit(6),
-    supabase.from("conversations").select("id").eq("agent_id", userId),
+    /* DB2: my_unread_counts() says which side of each thread the caller is
+       on, so the lister side is summed without listing its conversations
+       (a list PostgREST capped at 1000). */
+    loadUnreadCounts(supabase),
   ]);
 
   /* V-48: a listing closed with a reason is SUSPENDED underneath and is not a
@@ -847,17 +867,7 @@ export async function readAgentNumbers(
     status: b.status,
   }));
 
-  let unreadMessages = 0;
-  const conversationIds = (conversationRes.data ?? []).map((c) => c.id);
-  if (conversationIds.length > 0) {
-    const { count } = await supabase
-      .from("messages")
-      .select("id", { count: "exact", head: true })
-      .in("conversation_id", conversationIds)
-      .is("read_at", null)
-      .neq("sender_id", userId);
-    unreadMessages = count ?? 0;
-  }
+  const unreadMessages = unreadCounts ? unreadCounts.asAgent : null;
 
   const totalListings = Object.values(byStatus).reduce((sum, n) => sum + n, 0);
 
@@ -866,9 +876,13 @@ export async function readAgentNumbers(
     totalListings,
     liveListings: byStatus.PUBLISHED + byStatus.APPROVED,
     inReview: byStatus.SUBMITTED + byStatus.UNDER_REVIEW,
-    drafts: byStatus.DRAFT + byStatus.MORE_INFO_REQUIRED,
+    /* Everything the lister can still edit, which is the set
+       `guard_owner_write` calls editable. REJECTED was counted nowhere, so a
+       listing sent back by review vanished from every figure. */
+    drafts: byStatus.DRAFT + byStatus.MORE_INFO_REQUIRED + byStatus.REJECTED,
     upcomingBookings,
-    upcomingBookingCount: upcomingBookings.length,
+    /* The rows are capped at six for the list; the figure is the real count. */
+    upcomingBookingCount: bookingRes.count ?? upcomingBookings.length,
     unreadMessages,
   };
 }

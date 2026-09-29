@@ -145,4 +145,16 @@
     border-radius: var(--nf-radius-circle);
     background: var(--nf-mark-unread);
     box-shadow: 0 0 10px var(--nf-glow-3);
-  }}
+  }
+  /* A read or a mark that did not persist, said under the list. */
+  .nf-notif__problem {
+    margin-top: var(--nf-space-md);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-notif__more {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--nf-space-md);
+  }
+}

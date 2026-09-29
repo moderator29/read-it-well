@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { LogoMark, LogoWordmark } from "@/design-system/brand/Logo";
 
 /**
  * THE BRAND ASSEMBLING ITSELF (Track M, 25 September 2026).
@@ -27,7 +27,9 @@ export function BrandAssemble({ size = 64, className }: { size?: number; classNa
   return (
     <span className={`nf-assemble ${className ?? ""}`} aria-hidden="true">
       <span className="nf-assemble__mark">
-        <Image src="/brand/vallo-mark.png" alt="" width={size} height={Math.round((size * 587) / 614)} priority />
+        {/* `LogoMark` and `LogoWordmark` carry both artworks, so a light page
+            assembles the daylight lockup and a night island the night one. */}
+        <LogoMark size={size} priority />
       </span>
       <span className="nf-assemble__word" style={{ width: wordWidth, height: wordHeight }}>
         {CUTS.slice(0, -1).map((from, i) => (
@@ -41,14 +43,7 @@ export function BrandAssemble({ size = 64, className }: { size?: number; classNa
               } as React.CSSProperties
             }
           >
-            <Image
-              src="/brand/vallo-wordmark.png"
-              alt=""
-              width={wordWidth}
-              height={wordHeight}
-              sizes={`${wordWidth}px`}
-              priority
-            />
+            <LogoWordmark width={wordWidth} height={wordHeight} sizes={`${wordWidth}px`} priority />
           </span>
         ))}
       </span>

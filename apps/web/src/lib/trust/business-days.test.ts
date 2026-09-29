@@ -72,8 +72,9 @@ describe("the refund clock", () => {
 
 describe("the database twin", () => {
   it("seeds exactly the same holidays as this file", () => {
-    const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
-    const file = readdirSync(dir).find((name) => name.startsWith("20260924140100_"));
+    // The applied migration (MONEY redesign, 29 September 2026), not the superseded draft.
+    const dir = join(__dirname, "../../../../../supabase/migrations");
+    const file = readdirSync(dir).find((name) => name.includes("_money_v24_") && name.endsWith(".sql"));
     expect(file, "the V-24 migration").toBeDefined();
     const sql = readFileSync(join(dir, file!), "utf8");
     const seeded = [...sql.matchAll(/\('(\d{4}-\d{2}-\d{2})', '((?:[^']|'')+)', (true|false)\)/g)].map((m) => ({

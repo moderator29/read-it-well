@@ -15,15 +15,8 @@ import { withoutComments } from "@/lib/copy/source-scan";
  * one must be taken off the list.
  */
 const KNOWN = [
-  "app/(app)/settings/DeleteAccountPanel.tsx",
-  "components/agent/AgentMobileNav.tsx",
   "components/app/AppShell.tsx",
-  "components/app/ReportSheet.tsx",
   "components/app/assistant/AssistantChat.tsx",
-  "components/app/filters/FilterDrawer.tsx",
-  "components/app/place/ChoicePicker.tsx",
-  "components/app/stays/StayFilterSheet.tsx",
-  "components/site/MobileMenu.tsx",
 ];
 
 const SRC = join(__dirname, "..", "..");

@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { useCallback, useState } from "react";
+import { Sheet } from "@/components/ui/Sheet";
 import Link from "next/link";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -55,11 +54,12 @@ export function MobileMenu({
   closeLabel: string;
 }) {
   const [open, setOpen] = useState(false);
-  const panel = useRef<HTMLDivElement | null>(null);
   const close = useCallback(() => setOpen(false), []);
-  /* This panel carried aria-modal and no Escape handler, so a keyboard could
-     open it and not get out. One hook, the same contract everywhere. */
-  useOverlay({ open, onClose: close, panelRef: panel });
+  /* The platform's `Sheet` in its page shape: Escape, Back, the focus trap
+     and return, the scroll lock and drag or flick down to close. The sheet
+     portals itself to <body>, which matters here: the sticky header's
+     backdrop-filter makes it the containing block for fixed descendants, and
+     a panel rendered inside it was clipped to the 64px header bar. */
 
   return (
     <div className="lg:hidden">
@@ -73,29 +73,16 @@ export function MobileMenu({
         <UiIcon name="panel-left" size={20} />
       </button>
 
-      {/*
-       * Portalled to <body>: the sticky header's backdrop-filter makes it the
-       * containing block for fixed descendants, which trapped and clipped the
-       * panel inside the 64px header bar. From the body it truly covers the
-       * viewport and slides in like it should.
-       */}
-      {open &&
-        createPortal(
-        <div
-          ref={panel}
-          tabIndex={-1}
-          className="fixed inset-0 z-[75] outline-none"
-          role="dialog"
-          aria-modal="true"
-        >
-          <button
-            type="button"
-            aria-label={closeLabel}
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
-          />
-
-          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-heading pb-[calc(var(--nf-gap-block)+env(safe-area-inset-bottom,0px))] pt-[calc(var(--nf-gap-heading)+env(safe-area-inset-top,0px))]">
+      <Sheet
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) close();
+        }}
+        title="Menu"
+        hideTitle
+        fullPage
+      >
+          <div className="flex min-h-full flex-col">
             <div className="mb-block flex items-center justify-between">
               <Logo size={50} wordSize={21} />
               <button
@@ -183,9 +170,7 @@ export function MobileMenu({
               </ButtonLink>
             </div>
           </div>
-        </div>,
-        document.body,
-      )}
+      </Sheet>
     </div>
   );
 }

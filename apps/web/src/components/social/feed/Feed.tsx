@@ -184,10 +184,25 @@ export function Feed({
     setLastInitial(initial);
     /* A refresh re-reads the FIRST page. The pages read after it are still
        what the person scrolled through, so they are kept, minus anything the
-       fresh first page now carries, rather than thrown away by a like. */
+       fresh first page now carries, rather than thrown away by a like.
+
+       A post the old first page held and the fresh one does not has either
+       gone (deleted, blocked, muted) or been PUSHED DOWN by something new at
+       the top. Dropping both lost the pushed one: the next page was already
+       read past it, so it vanished from the scroll for good. The two are told
+       apart by position: the fresh page is newest first, so an old post that
+       sat below the fresh page's last row was pushed out and is kept, and
+       one above it that is missing really has gone. */
     const fresh = new Set(initial.map((post) => post.id));
     const firstPage = new Set(lastInitial.map((post) => post.id));
-    setPosts([...initial, ...posts.filter((post) => !firstPage.has(post.id) && !fresh.has(post.id))]);
+    const tail = initial.length > 0 ? posts.findIndex((post) => post.id === initial[initial.length - 1]!.id) : -1;
+    setPosts([
+      ...initial,
+      ...posts.filter(
+        (post, index) =>
+          !fresh.has(post.id) && (!firstPage.has(post.id) || (tail !== -1 && index > tail)),
+      ),
+    ]);
   }
 
   /*
@@ -392,6 +407,10 @@ export function Feed({
               : POST_COPY.mutedDone
             : result.error,
         );
+        /* Their posts leave the list now. The refresh re-reads only the first
+           page, so anything of theirs on a page read further down stayed on
+           screen after the block said it was done. */
+        if (result.ok) setPosts((all) => all.filter((p) => p.author?.id !== target));
         router.refresh();
         return;
       }

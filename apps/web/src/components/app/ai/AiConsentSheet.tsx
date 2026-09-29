@@ -23,9 +23,10 @@ export function AiConsentSheet({
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   return (
+    /* A labelled region, not a dialog: this card sits inline in the chat
+       (inside the support sheet), traps nothing and covers nothing, so
+       `role="dialog"` told a screen reader it had entered a modal it had not. */
     <section
-      role="dialog"
-      aria-modal="false"
       aria-labelledby="ai-consent-title"
       data-testid="ai-consent-sheet"
       className="nf-panel nf-panel--card block p-card"

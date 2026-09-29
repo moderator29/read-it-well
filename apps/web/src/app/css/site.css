@@ -84,6 +84,8 @@
     align-items: center;
     /* UI-09: a 44px target, the floor every other control here keeps. */
     min-height: 2.75rem;
+    /* And 44px wide: "Buy" drew a 25px-wide target (measured, every page). */
+    min-width: 2.75rem;
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
@@ -310,6 +312,27 @@
           color-mix(in oklab, var(--nf-landing-ink) 48%, transparent) 55%,
           var(--nf-surface-canvas) 100%
         );
+    }
+    /*
+     * AUDIT C1: IN LIGHT, THE LAST LINES OF THE LEDE WENT WHITE ON WHITE.
+     * The copy is on-ink white from 64rem, and the scrim's last stop is the
+     * canvas, which in light is white; the lede's foot sat inside that fade,
+     * so "/about" printed its closing lines white on near-white at 1440. In
+     * light the plate now holds its ink to 7rem above the foot, the fade to
+     * the canvas happens in those 7rem only, and the section's foot is
+     * 8rem, so no line of copy ever stands in the fade. Dark is unchanged:
+     * its canvas is the ink.
+     */
+    :root[data-theme="light"] .nf-site-head:not(:where([data-theme="dark"] *)) {
+      padding-bottom: var(--nf-space-5xl);
+    }
+    :root[data-theme="light"] .nf-site-head:not(:where([data-theme="dark"] *)) .nf-site-head-plate::after {
+      background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-landing-ink) 72%, transparent) 0%,
+        color-mix(in oklab, var(--nf-landing-ink) 55%, transparent) calc(100% - 7rem),
+        var(--nf-surface-canvas) 100%
+      );
     }
   }
   /*

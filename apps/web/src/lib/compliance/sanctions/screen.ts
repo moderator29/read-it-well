@@ -16,11 +16,11 @@ import { createMatcher, outcomeOf, type ListedName, type NameMatch, type PersonF
  * WHICH NAMES. A person: the profile's first name and surname and display
  * name, the name on their agent application and the business name, and the
  * account names their banks returned (bank accounts and agent payout
- * accounts). A card payment or its settlement ledger line: the guest (and the
- * name on the booking) and the listing's agent. A wallet entry: the wallet's
- * owner and, on a withdrawal, the name on the receiving account. A rent
- * payment: tenant and lister. A held payment (escrow): payer and payee. A
- * business transfer: both people.
+ * accounts). A split-settlement card payment (public.transactions): the guest
+ * (and the name on the booking), the listing's agent and the split's payee. A
+ * rent payment: tenant and lister. A business transfer: both people. Vallo
+ * holds no customer money (ADR 0002), so there are no wallet or held-payment
+ * kinds.
  *
  * A screening whose matches could not be recorded as hits is NOT done: the
  * queue row stays open and the run counts it failed, so no match is lost.
@@ -39,7 +39,7 @@ type QueueRow = {
   enqueued_at: string;
   subject_kind: "person" | "transaction";
   person_id: string | null;
-  transaction_kind: "card_payment" | "wallet_entry" | "rent_payment" | "escrow" | "ledger_entry" | "business_transfer" | null;
+  transaction_kind: "card_payment" | "rent_payment" | "business_transfer" | null;
   transaction_id: string | null;
   trigger: string;
 };
@@ -123,16 +123,12 @@ async function partiesFor(admin: Admin, row: QueueRow): Promise<Party[]> {
     const data = await one("rent_payments", "tenant_id, lister_id");
     return data ? people(data.tenant_id, data.lister_id) : [];
   }
-  if (row.transaction_kind === "escrow") {
-    const data = await one("escrows", "payer_id, payee_id");
-    return data ? people(data.payer_id, data.payee_id) : [];
-  }
   if (row.transaction_kind === "business_transfer") {
     const data = await one("business_transfers", "from_user_id, to_user_id");
     return data ? people(data.from_user_id, data.to_user_id) : [];
   }
-  if (row.transaction_kind === "card_payment" || row.transaction_kind === "ledger_entry") {
-    const tx = await one(row.transaction_kind === "card_payment" ? "transactions" : "ledger_entries", "booking_id");
+  if (row.transaction_kind === "card_payment") {
+    const tx = await one("transactions", "booking_id, payee_user_id");
     if (!tx?.booking_id) return [];
     const booking = await must<Row>(admin.from("bookings").select("guest_id, guest_name, listing_id").eq("id", tx.booking_id).maybeSingle());
     if (!booking) return [];
@@ -145,18 +141,10 @@ async function partiesFor(admin: Admin, row: QueueRow): Promise<Party[]> {
       const agent = await must<Row>(admin.from("agents").select("user_id").eq("id", listing.agent_id).maybeSingle());
       if (agent?.user_id) parties.push({ personId: agent.user_id, names: await namesForPerson(admin, agent.user_id) });
     }
-    return parties;
-  }
-  if (row.transaction_kind === "wallet_entry") {
-    const entry = await one("wallet_entries", "wallet_id, kind, metadata");
-    if (!entry) return [];
-    const wallet = await must<Row>(admin.from("wallets").select("user_id").eq("id", entry.wallet_id).maybeSingle());
-    const parties: Party[] = [];
-    if (wallet?.user_id) parties.push({ personId: wallet.user_id, names: await namesForPerson(admin, wallet.user_id) });
-    const payee = entry.kind === "withdrawal" && typeof entry.metadata?.account_name === "string" ? entry.metadata.account_name : null;
-    /* The receiving account's holder is screened; a hit on it belongs to the
-       wallet's owner, who sent money there. */
-    if (payee && wallet?.user_id) parties.push({ personId: wallet.user_id, names: [payee] });
+    /* The split's payee, when it is somebody not already screened. */
+    if (tx.payee_user_id && !parties.some((p) => p.personId === tx.payee_user_id)) {
+      parties.push({ personId: tx.payee_user_id, names: await namesForPerson(admin, tx.payee_user_id) });
+    }
     return parties;
   }
   return [];

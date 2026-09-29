@@ -62,7 +62,10 @@ export type MoneyAction =
   | "removePaymentMethod"
   | "setDefaultBankAccount"
   | "removeBankAccount"
-  | "paymentState";
+  | "paymentState"
+  | "cryptoQuote"
+  | "cryptoStart"
+  | "cryptoState";
 
 export type MoneyLimit = {
   bucket: string;
@@ -176,6 +179,27 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     limit: 40,
     windowSeconds: TEN_MINUTES,
     refusal: "We have checked that payment many times in the last few minutes and have stopped for now. This does not mean it failed: if it went through, this page updates on its own.",
+  },
+  /* Crypto (lib/crypto/actions.ts). A quote costs a provider call, so it is
+     counted like opening a payment page. The status poll is sized like
+     `paymentState`: one honest payment polls for up to the quote's life. */
+  cryptoQuote: {
+    bucket: "money_crypto_quote",
+    limit: 12,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have asked for several crypto quotes in the last few minutes, so this one was not fetched. Nothing has been paid.",
+  },
+  cryptoStart: {
+    bucket: "money_crypto_start",
+    limit: 6,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have opened several crypto payments in the last few minutes, so this one was not opened. Nothing has been paid.",
+  },
+  cryptoState: {
+    bucket: "money_crypto_state",
+    limit: 60,
+    windowSeconds: TEN_MINUTES,
+    refusal: "We have looked up that crypto payment many times and have stopped for now. This does not mean it failed: the payment page updates when the provider reports.",
   },
 };
 

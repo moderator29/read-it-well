@@ -4,9 +4,8 @@ import { DataMeterRecorder } from "@/components/app/DataMeterRecorder";
 import { OfflineTray } from "@/components/app/OfflineTray";
 import { WidgetBridge } from "@/components/app/WidgetBridge";
 import { getLocale } from "@/lib/locale";
-import { getShellIdentity } from "@/lib/app/shell-queries";
+import { getShellIdentity, getShellWorkspaces } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
-import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
 import { shellDictionary } from "@/lib/i18n/shell-dictionary";
 import { AppShell } from "@/components/app/AppShell";
 
@@ -75,12 +74,17 @@ export default async function AppLayout({
    * switch sits in two places in that shell and both must show the same list.
    *
    * IT IS WHAT THEY HOLD, NOT WHAT THEY MAY DO. Every route gates itself.
+   *
+   * PERF-DB 4: identity and workspaces come from ONE `shell_context()` read
+   * (cached per request and shared by both getters), on a caller id verified
+   * locally from the token, instead of nine PostgREST calls after a GoTrue
+   * round trip. See `lib/app/shell-queries.ts`.
    */
   const [
     side,
-    { userName, userHandle, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin },
+    { userName, userHandle, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin, isHost },
     { workspaces, current },
-  ] = await Promise.all([getSide(), getShellIdentity(), resolveWorkspaces()]);
+  ] = await Promise.all([getSide(), getShellIdentity(), getShellWorkspaces()]);
 
   return (
     <AppShell
@@ -94,6 +98,7 @@ export default async function AppLayout({
       signedIn={signedIn}
       isAgent={isAgent}
       isAdmin={isAdmin}
+      isHost={isHost}
       workspaces={workspaces}
       currentProfile={current}
     >

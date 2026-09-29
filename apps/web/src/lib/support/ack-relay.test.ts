@@ -55,7 +55,7 @@ const { fileSupportTicket } = await import("./actions");
 const ATTACK = {
   name: "Wallet-frozen-verify-at-evil.example",
   email: "someone@example.invalid",
-  topic: "Your Vallo wallet is frozen",
+  topic: "other" as const,
   body: "Verify now at evil example dot com or lose your funds",
 };
 
@@ -73,12 +73,12 @@ describe("the support acknowledgement is not a relay", () => {
     expect(state.sent).toHaveLength(1);
     const mail = JSON.stringify(state.sent[0]);
     expect(mail).toMatch(/VAL-SUP-\d{5}/);
-    for (const words of ["evil", "frozen", "Wallet-frozen"]) expect(mail).not.toContain(words);
+    for (const words of ["evil", "Wallet-frozen"]) expect(mail).not.toContain(words);
   });
 
   it("still echoes a signed-in member's own question back to them (control)", async () => {
     state.signedIn = true;
-    await fileSupportTicket({ ...ATTACK, topic: "Refund timing", body: "When does my refund land?" });
+    await fileSupportTicket({ ...ATTACK, topic: "payment", body: "When does my refund land?" });
     expect(JSON.stringify(state.sent[0])).toContain("When does my refund land?");
   });
 

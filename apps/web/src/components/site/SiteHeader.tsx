@@ -52,16 +52,19 @@ export function SiteHeader({
       id={id}
       className="nf-site-nav sticky top-0 z-50"
       data-variant={variant}
-      /* The landing's bar floats over the hero's night photograph, so it
-         starts as a night island; NavScrollState hands it back to the
-         reader's theme once the page scrolls under it. */
-      data-theme={variant === "landing" ? "dark" : undefined}
+      /* The bar is a night island. The landing's floats over the hero's night
+         photograph and NavScrollState hands it back to the reader's theme
+         once the page scrolls under it. Every other page keeps it: in light
+         it is the navy VALLO band over light content (founder reference 05,
+         29 September 2026), the bar's canvas glass resolving to the night
+         canvas, and the logo in it keeps the night artwork. */
+      data-theme="dark"
       data-over-night={variant === "landing" ? "" : undefined}
       suppressHydrationWarning
     >
       {variant === "landing" && <NavScrollState target={id} />}
       <div className="nf-site-bar nf-safe-top">
-        <div className="nf-shell flex h-header-sm items-center gap-group sm:h-header lg:gap-block">
+        <div className="nf-shell flex h-header-sm items-center gap-inline min-[22.5rem]:gap-group sm:h-header lg:gap-block">
           <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap shrink-0">
             <Logo size={44} wordSize={22} responsive priority />
           </Link>

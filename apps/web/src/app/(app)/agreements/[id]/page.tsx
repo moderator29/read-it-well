@@ -35,6 +35,31 @@ function str(terms: Record<string, unknown>, key: string): string | null {
   return typeof v === "string" && v.length > 0 ? v : null;
 }
 
+/** A terms date (`YYYY-MM-DD`, a Lagos calendar day) in words. */
+function day(value: string | null): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  return new Date(`${value}T12:00:00+01:00`).toLocaleDateString("en-NG", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Africa/Lagos",
+  });
+}
+
+/** `deal_agreement_events.action`, as the person reads it. */
+const EVENT_LABEL: Record<string, string> = {
+  opened: "Drawn up",
+  confirmed: "Confirmed",
+  amended: "Terms changed",
+  submitted: "Sent to Vallo for review",
+  released: "Its inspection was used for a new agreement",
+  approved: "Approved by Vallo",
+  rejected: "Sent back by Vallo",
+  cancelled: "Cancelled",
+  paid: "Paid",
+};
+
 function num(terms: Record<string, unknown>, key: string): number | null {
   const v = terms[key];
   return typeof v === "number" && Number.isFinite(v) ? v : null;
@@ -64,6 +89,9 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
   const cap = Math.max(0, a.amountMinor - claimedApproved);
   const payHref = a.kind === "rent" && a.inspectionId ? `/rent/pay/${a.inspectionId}` : a.bookingId ? `/checkout/${a.bookingId}` : null;
   const guaranteeBps = num(a.terms, "guarantee_bps");
+  /* Staff read every agreement under RLS but are not a party to it: they see
+     the record and none of the parties' controls. */
+  const party = a.role !== null;
 
   return (
     <main className="nf-page nf-md" data-testid="agreement-page" data-status={a.status}>
@@ -79,7 +107,11 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
         <div className="nf-card mt-block p-card" role="note">
           <p className="font-semibold">Vallo sent this back</p>
           <p className={TYPE.body}>{a.decisionReason}</p>
-          <p className={TYPE.rowMeta}>Change the terms below and both of you confirm again.</p>
+          <p className={TYPE.rowMeta}>
+            {a.kind === "rent"
+              ? "Change the terms below and both of you confirm again."
+              : "A stay's terms are its booking, so they cannot be changed here. Message the host about the reason, or cancel this agreement."}
+          </p>
         </div>
       ) : null}
 
@@ -92,16 +124,16 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
           {str(a.terms, "move_in") ? (
             <>
               <dt className={TYPE.rowMeta}>Move in</dt>
-              <dd>{str(a.terms, "move_in")}</dd>
+              <dd>{day(str(a.terms, "move_in"))}</dd>
               <dt className={TYPE.rowMeta}>Keys handed over</dt>
-              <dd>{str(a.terms, "handover_on")}</dd>
+              <dd>{day(str(a.terms, "handover_on") ?? str(a.terms, "move_in"))}</dd>
             </>
           ) : null}
           {str(a.terms, "check_in") ? (
             <>
               <dt className={TYPE.rowMeta}>Stay</dt>
               <dd>
-                {str(a.terms, "check_in")} to {str(a.terms, "check_out")}
+                {day(str(a.terms, "check_in"))} to {day(str(a.terms, "check_out"))}
               </dd>
             </>
           ) : null}
@@ -129,8 +161,8 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
         </p>
       </Section>
 
-      {a.status === "awaiting_parties" || a.status === "rejected" ? (
-        <Section title="Confirm">
+      {party && (a.status === "awaiting_parties" || a.status === "rejected") ? (
+        <Section title={a.status === "rejected" ? "What happens next" : "Confirm"}>
           <p className={TYPE.body}>
             {a.youConfirmedCurrent ? "You confirmed this version." : "You have not confirmed this version yet."}{" "}
             {a.otherConfirmedCurrent ? "The other side confirmed it." : "The other side has not confirmed it yet."}
@@ -157,14 +189,23 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
             Both of you confirmed. A person at Vallo is reviewing the agreement. You will get an email and a notification
             the moment it is decided. Payment opens only after approval.
           </p>
+          {party ? <CancelAgreement agreementId={a.id} /> : null}
         </Section>
       ) : null}
 
-      {a.status === "approved" && a.role === "renter" && payHref ? (
+      {a.status === "approved" ? (
         <Section title="Payment is open">
-          <Link href={payHref} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-pay">
-            Pay {formatMoney(a.amountMinor, locale)}
-          </Link>
+          {a.role === "renter" && payHref ? (
+            <Link href={payHref} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-pay">
+              Pay {formatMoney(a.amountMinor, locale)}
+            </Link>
+          ) : a.role === "owner" ? (
+            <p className={TYPE.body} data-testid="agreement-awaiting-payment">
+              Vallo approved the agreement. The {a.kind === "rent" ? "renter" : "guest"} can pay now, and your share
+              settles straight to your bank account from the same payment.
+            </p>
+          ) : null}
+          {party ? <CancelAgreement agreementId={a.id} /> : null}
         </Section>
       ) : null}
 
@@ -189,7 +230,13 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
               ))}
             </ul>
           ) : null}
-          {windowOpen && cap > 0 ? <ClaimForm agreementId={a.id} capNaira={(cap / 100).toLocaleString("en-NG")} /> : null}
+          {!party ? null : windowOpen && cap > 0 && a.claims.some((c) => c.mine && c.status === "submitted") ? (
+            <p className={TYPE.rowMeta} data-testid="claim-waiting">
+              Your claim is with Vallo. You can make another once it is decided.
+            </p>
+          ) : windowOpen && cap > 0 ? (
+            <ClaimForm agreementId={a.id} capNaira={(cap / 100).toLocaleString("en-NG")} />
+          ) : null}
         </Section>
       ) : null}
 
@@ -197,7 +244,7 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
         <ol className="grid gap-2xs">
           {a.events.map((e, i) => (
             <li key={`${e.at}-${i}`} className={TYPE.rowMeta}>
-              {new Date(e.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}: {e.action}
+              {new Date(e.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}: {EVENT_LABEL[e.action] ?? e.action}
               {e.note ? ` · ${e.note}` : ""}
             </li>
           ))}

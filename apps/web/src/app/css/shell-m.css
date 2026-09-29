@@ -122,35 +122,12 @@
     font-weight: 500;
     color: var(--nf-content-primary);
   }
-  /* The glyph slot holds the platform's glass object now (the founder: "use
-     the current platform icons, not the old black and white"), so it grows
-     to the object's size and keeps the brand blue for any line glyph that
-     has no glass twin yet. */
+  /* The glyph slot is a 24px line glyph from the stroked set (29 September
+     2026), at the family's one weight, in the brand blue. */
   .nf-nav .nf-nav__glyph {
-    width: 1.875rem;
-    height: 1.875rem;
+    width: 1.5rem;
+    height: 1.5rem;
     color: var(--nf-brand-secondary);
-  }
-  .nf-nav__glyph img {
-    display: block;
-  }
-  /*
-   * A LINE GLYPH BESIDE THE GLASS IS DRAWN LARGER, AND HEAVIER WITH IT (25
-   * September 2026: Settings read small and thin between the glass objects).
-   * A glass object's body fills about three quarters of its canvas, and so
-   * does a line glyph, but the glyph was drawn in a 24px box: beside the
-   * tray's 40px objects it stood about 40 percent shorter (a fifth shorter
-   * beside this slot's 30px ones), and a 1.5px line against a solid body
-   * read as a fraction of the weight. In this slot, and in the tray's below,
-   * the glyph is scaled as a drawing: nine tenths of the object's box, and
-   * its line grows with it, 1.7px here and 2.25px in the tray. This is a
-   * deliberate exception to the one weight (`UI_ICON_STROKE_PX`), and only
-   * where a line glyph stands in a column of glass objects: Settings, and any
-   * row whose destination has no glass twin.
-   */
-  .nf-nav .nf-nav__glyph > svg {
-    width: 1.6875rem;
-    height: 1.6875rem;
   }
   .nf-nav--drawer .nf-nav__row--on {
     color: var(--nf-content-primary);

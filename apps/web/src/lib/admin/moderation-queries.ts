@@ -128,7 +128,7 @@ const PAGE = 50;
 export async function getModerationQueue(
   filter?: AdminQueueFilter,
 ): Promise<ModerationQueue> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") return EMPTY;
   const db = access.supabase;
 

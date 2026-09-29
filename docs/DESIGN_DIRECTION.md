@@ -243,6 +243,12 @@ A surface closes only when ALL of these hold:
    `:root[data-theme="light"]` block in `tokens.css` plus
    `apps/web/src/app/css/light.css`, and
    `apps/web/scripts/design/light/sweep.mjs` screenshots both themes.
+   The auth screens (sign in, sign up, the email steps, the code, the reset
+   and the recovery) are no longer pinned dark: the auth layout follows the
+   document's theme and `app/css/auth.css` sets its ground, fields and lines
+   for each theme. First run (`WelcomeStage`) still pins dark. Auth is
+   checked at 390x844 and 360x740 in both themes, with the primary button
+   in the first screen with the keyboard up.
 3. Every control on the screen is FUNCTIONAL end to end (the ONE LAW):
    real action, real data, real state change, notification where deserved.
    Nothing ships as a picture of a feature.

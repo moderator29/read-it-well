@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
+import { useState, useTransition } from "react";
+import { Sheet } from "@/components/ui/Sheet";
 import { REPORT_REASON_LABEL, type ReportReason } from "@/lib/social/posts-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Reporting something, with a reason.
@@ -15,9 +14,10 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * triaged, and a destructive-feeling action that fires on the first tap with no
  * way back is a control people learn not to touch.
  *
- * So: a full page rather than a partial sheet, which is the house rule and also
- * the right shape, because choosing why is the whole job and it deserves the
- * screen. One reason, chosen deliberately. An optional sentence, because the
+ * So: the platform's `Sheet` at its near-full height, because choosing why is
+ * the whole job and it deserves the screen, and because the sheet brings the
+ * drag and flick to close, Back, Escape, the focus trap and the safe areas
+ * that a hand-built panel here did not have. One reason, chosen deliberately. An optional sentence, because the
  * category is rarely the whole story. And a confirmation that says what happens
  * next, including the part people actually worry about, which is whether the
  * person being reported gets told.
@@ -48,17 +48,6 @@ export function ReportSheet({
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [pending, startTransition] = useTransition();
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  /* Escape closes, focus starts inside, the page behind does not scroll, Tab
-     stays in and focus goes home on close. All five from the one hook.
-
-     This sheet opens FROM the action sheet, which is the case the hand-rolled
-     version got wrong twice over: its bare overflow flag captured "hidden"
-     from the sheet underneath and restored that on close, and nothing trapped
-     Tab, so a keyboard could leave a report form mid-sentence and land in the
-     feed it was reporting. */
-  useOverlay({ open: true, onClose, panelRef });
 
   const send = () => {
     if (!reason) return;
@@ -73,31 +62,29 @@ export function ReportSheet({
     });
   };
 
+  /* Escape, Back, the Tab trap, the counted scroll lock and the focus return
+     all come with `Sheet`. This sheet opens FROM the action sheet, and the
+     counted lock is what keeps the page still until the last one closes. */
   return (
-    <div className="nf-social-sheet" role="dialog" aria-modal="true" aria-label={title}>
-      <div ref={panelRef} className="nf-social-sheet__panel">
-        <header className="mb-md flex items-start justify-between gap-sm">
-          <div className="min-w-0">
-            <h2 className="nf-h3 text-[length:var(--nf-text-body-lg)]">{sent ? "Thank you" : title}</h2>
-            <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-              {subject}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="nf-post__act shrink-0"
-          >
-            <UiIcon name="close" size={20} />
-          </button>
-        </header>
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={sent ? "Thank you" : title}
+      closeLabel="Close"
+      fullPage
+    >
+      <div>
+        <p className="mb-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+          {subject}
+        </p>
 
         {sent ? (
           <>
             <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-              Somebody will read this. We never tell the person who reported
-              them, and we do not tell them what was said about them either.
+              Somebody will read this. We never tell the person you reported
+              that it was you, and we do not tell them what was said either.
             </p>
             <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               If you would rather not see them at all in the meantime, mute or
@@ -173,6 +160,6 @@ export function ReportSheet({
           </>
         )}
       </div>
-    </div>
+    </Sheet>
   );
 }

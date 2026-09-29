@@ -21,8 +21,11 @@ export const SUPPORT_TOPICS = [
   "safety",
   "booking",
   "payment",
+  "inspection",
+  "agreement",
   "listing",
   "verification",
+  "account",
   "other",
 ] as const;
 
@@ -37,10 +40,13 @@ export const DEFAULT_SUPPORT_TOPIC: SupportTopic = "booking";
  */
 export const SUPPORT_TOPIC_LABEL: Record<SupportTopic, string> = {
   safety: "Someone asked me to pay outside Vallo",
-  booking: "A booking",
+  booking: "A booking or stay",
   payment: "A payment or refund",
+  inspection: "An inspection",
+  agreement: "An agreement",
   listing: "Listing a property",
   verification: "Verification",
+  account: "My account",
   other: "Something else",
 };
 

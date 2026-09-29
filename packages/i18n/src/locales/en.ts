@@ -12,6 +12,7 @@ import { shapeEn } from "./shape.en";
 import { frontDoorEn } from "./front-door.en";
 import { landingRoomsEn } from "./landing-rooms.en";
 import { afterTheGateEn } from "./after-the-gate.en";
+import { cryptoPayEn } from "./crypto-pay.en";
 import { trustVisibleEn } from "./trust-visible.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
@@ -539,6 +540,7 @@ export const en = {
     places: "Places",
     people: "People",
     agentMode: "Agent workspace",
+    hostMode: "Host workspace",
     consoleLabel: "Console",
     workspacesLabel: "Workspaces",
     becomeAgent: "Become an agent",
@@ -1368,6 +1370,16 @@ export const en = {
     resetNotArrived: "Nothing after a few minutes? Look in spam, and check the address you typed. You can ask again from the sign-in screen.",
     resetExpiredTitle: "That link has expired",
     resetExpiredLead: "A reset link lasts an hour and works once. Ask for a new one and open it on the same device.",
+    /* The code fallback for a reset link opened somewhere else: another
+       phone, another browser, or a mail app's own browser. The code works
+       on any device, where the link only works where it was asked for. */
+    resetHaveCode: "Opened the email somewhere else? Type the code from it instead.",
+    resetEnterCode: "Enter the code",
+    resetCodeTitle: "Enter your reset code",
+    resetCodeLead: "Type your email address and the code from the reset email. The code works on any device, once.",
+    resetCodeLabel: "Code",
+    resetCodeSubmit: "Check the code",
+    resetCodeAskAgain: "Ask for a new code",
     newPasswordTitle: "Choose a new password",
     newPasswordLead: "Pick something you have not used here before. You will be signed in as soon as it is saved.",
     currentPasswordLabel: "Current password",
@@ -1799,6 +1811,29 @@ export const en = {
       sub: "Your account, profile, bookings, agreements, messages you sent and more, as one JSON file.",
       note: "It is made when you ask and holds only your own records. Files you uploaded are listed, not included. For anything it leaves out, contact support.",
       signedOut: "Sign in to download the data held on your account.",
+    },
+
+    blocked: {
+      rowLabel: "Blocked accounts",
+      rowNote: "People you blocked cannot message you or see you, and you cannot see them.",
+      rowValueNone: "None",
+      rowValueOne: "1 blocked",
+      rowValueMany: "{count} blocked",
+      screenTitle: "Blocked accounts",
+      intro:
+        "Nobody on this list can message you, and neither of you sees the other anywhere on Vallo. They were not told when you blocked them, and they will not be told if you unblock them.",
+      emptyTitle: "You have not blocked anyone",
+      emptyBody:
+        "If someone makes you uncomfortable, open their profile or your conversation with them and choose Block. They will appear here.",
+      unreadable: "Your blocked list could not be loaded just now. Try again in a moment.",
+      signedOut: "Sign in to see the people you have blocked.",
+      blockedOn: "Blocked {when}",
+      unblock: "Unblock",
+      unblocking: "Unblocking",
+      unblockConfirm: "Unblock {name}? Your block on them will be lifted.",
+      unblockFailed: "That did not work. Please try again.",
+      someone: "A Vallo member",
+      showingSome: "Showing the {shown} most recent of {count}. Unblock some to see the rest.",
     },
 
     devices: {
@@ -2568,7 +2603,7 @@ export const en = {
     photos: {
       intro:
         "Add at least {min} photos, up to {max}. The first one is the cover, so lead with the wide shot that sells the place.",
-      tooNarrow: "Photos must be at least {width}px wide so they look sharp on every screen.",
+      tooNarrow: "Photos need at least {width}px on their longest side so they look sharp on every screen.",
       choose: "Choose photos",
       /* STORE-04: the app's own camera, shown only inside the native app. */
       takePhoto: "Take a photo",
@@ -2584,6 +2619,13 @@ export const en = {
       notPrepared:
         "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
       uploadFailed: "That photo did not finish uploading. Please try it again.",
+      /* The photo gate's refusals, one per cause, each naming what to do. */
+      heicUndecodable:
+        "This photo is in the iPhone HEIC format, which this browser cannot open. On the iPhone, set Camera, Formats to Most Compatible, or share the photo as a JPEG, then add it again.",
+      undecodable: "This file could not be opened as a photo. Try exporting it again as a JPEG.",
+      uploadTooBig: "That photo is over {max}. Most phones can export a smaller copy.",
+      uploadWrongType: "That file type cannot be stored. Use a JPEG, PNG or WebP photo.",
+      uploadSignedOut: "Your session has expired, so the photo was not stored. Sign in again, then add it.",
       needsKeys: "We cannot upload photos right now. Everything else you have typed is saved.",
       needsTitle: "Add a title on step one first, then your photos attach to this listing.",
     },
@@ -2712,6 +2754,7 @@ export const en = {
       amenities: "Choose at least one amenity guests will find.",
       priceNight: "Set the price per night in naira.",
       priceYear: "Set the yearly rent in naira.",
+      rent: "Set the rent in naira.",
       bedrooms: "Say how many bedrooms the property has.",
       bathrooms: "Say how many bathrooms the property has.",
       maxGuests: "Say how many guests the property sleeps.",
@@ -2822,6 +2865,8 @@ export const en = {
       drafts: "Drafts",
       upcomingStays: "Upcoming stays",
       unreadMessages: "Unread messages",
+      /* DB2: the count could not be read; never shown as 0. */
+      unreadUnknown: "Not known",
       noListings:
         "No properties yet. Your first listing takes about ten minutes, and drafts are saved as you go.",
       noStays: "No stays booked yet. Listings that are live in search are the ones guests can book.",
@@ -5770,6 +5815,7 @@ export const en = {
   frontDoor: frontDoorEn,
   landingRooms: landingRoomsEn,
   afterTheGate: afterTheGateEn,
+  cryptoPay: cryptoPayEn,
   trustVisible: trustVisibleEn,
 
   landlord: landlordEn,

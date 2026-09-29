@@ -54,8 +54,26 @@ export type TenancyDeduction = {
   amount: string;
   note: string | null;
   answer: "accepted" | "disputed" | null;
+  /** What Vallo staff allowed on a disputed line, formatted, once ruled. */
+  ruledAllowed: string | null;
+  ruledReason: string | null;
   photoId: string | null;
   photoUrl: string | null;
+};
+
+export type TenancyCautionReturn = {
+  id: string;
+  amount: string;
+  date: string;
+  method: "bank_transfer" | "cash" | "other";
+  reference: string | null;
+  recordedAs: "lister_sent" | "tenant_received";
+  /** The viewer recorded it themselves (so they cannot contest it). */
+  ownRecord: boolean;
+  standing: "counted" | "in_doubt" | "not_received";
+  contested: boolean;
+  ruling: "received" | "not_received" | null;
+  rulingReason: string | null;
 };
 
 export type TenancyCaution = {
@@ -69,10 +87,15 @@ export type TenancyCaution = {
   deducted: string;
   outstanding: string;
   outstandingMinor: number;
-  /** What a return can still be: the caution less returns and every line not disputed. */
-  returnableMinor: number;
+  guaranteed: string | null;
+  inDoubt: string | null;
+  claimable: string;
+  claimableMinor: number;
+  claimOpen: boolean;
+  /** The tenant may ask the Vallo Guarantee: the due date has passed and something is claimable. */
+  canEscalate: boolean;
   deductions: TenancyDeduction[];
-  returns: { amount: string; date: string }[];
+  returns: TenancyCautionReturn[];
 };
 
 export type TenancyReportView = {
@@ -158,20 +181,29 @@ export type TenancyRenewal = {
   unavailable: boolean;
 };
 
+export type ShareRefundStatus = "pending" | "sending" | "unknown" | "submitted" | "processed" | "failed";
+
 export type TenancyFlatmates = {
   rows: {
     id: string;
     name: string | null;
     share: string;
     answer: "accepted" | "declined" | null;
+    /** Paid by card, straight to the lister (V-86). */
     paid: boolean;
-    /** What was paid, in kobo, which a return moves back (V-81 binds the proof to it). */
-    paidMinor: number | null;
-    returned: boolean;
+    /** The share went back to the card that paid it, and where Paystack has it. */
+    refund: ShareRefundStatus | null;
     cautionPart: string | null;
   }[];
   leadShare: string;
   leadCautionPart: string | null;
+  /** The lead's own card payment of the remainder. */
+  leadPaid: boolean;
+  leadRefund: ShareRefundStatus | null;
+  /** The first share was paid, so shares can no longer be added or removed. */
+  locked: boolean;
+  /** Something is paid and the total is not complete: the lead may still cancel the split. */
+  cancellable: boolean;
   unavailable: boolean;
 };
 
@@ -293,48 +325,103 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     const amountMinor = obligation ? kobo(obligation.amount_minor) : null;
     const dueOn = obligation ? str(obligation.due_on) : null;
     if (obligationId && amountMinor !== null && dueOn) {
-      const [deductionsRead, returnsRead] = await Promise.all([
+      const [deductionsRead, returnsRead, claimsRead] = await Promise.all([
         loose.from("caution_deductions").select("*").eq("obligation_id", obligationId).order("created_at"),
-        loose.from("caution_returns").select("*").eq("obligation_id", obligationId).order("returned_at"),
+        loose.from("caution_returns").select("*").eq("obligation_id", obligationId).order("recorded_at"),
+        // Readable by the claimant and both parties to the agreement (and admins) under
+        // `guarantee_claims_read`, so tenant and lister see the same Guarantee position.
+        loose.from("guarantee_claims").select("status, approved_minor").eq("caution_obligation_id", obligationId),
       ]);
       const deductionRows = rows(deductionsRead.data);
-      const answersRead = deductionRows.length
-        ? await loose
-            .from("caution_deduction_answers")
-            .select("deduction_id, answer")
-            .in("deduction_id", deductionRows.map((row) => String(row.id)))
-        : { data: [] };
+      const returnRows = rows(returnsRead.data);
+      const deductionIds = deductionRows.map((row) => String(row.id));
+      const returnIds = returnRows.map((row) => String(row.id));
+      const [answersRead, rulingsRead, contestsRead, returnRulingsRead] = await Promise.all([
+        deductionIds.length
+          ? loose.from("caution_deduction_answers").select("deduction_id, answer").in("deduction_id", deductionIds)
+          : Promise.resolve({ data: [] }),
+        deductionIds.length
+          ? loose.from("caution_dispute_rulings").select("deduction_id, allowed_minor, reason").in("deduction_id", deductionIds)
+          : Promise.resolve({ data: [] }),
+        returnIds.length
+          ? loose.from("caution_return_contests").select("return_id").in("return_id", returnIds)
+          : Promise.resolve({ data: [] }),
+        returnIds.length
+          ? loose.from("caution_return_rulings").select("return_id, outcome, reason").in("return_id", returnIds)
+          : Promise.resolve({ data: [] }),
+      ]);
       const answers = new Map(rows(answersRead.data).map((row) => [String(row.deduction_id), row.answer]));
+      const allowed = new Map(rows(rulingsRead.data).map((row) => [String(row.deduction_id), kobo(row.allowed_minor)]));
+      const contested = new Set(rows(contestsRead.data).map((row) => String(row.return_id)));
+      const ruleReasons = new Map(
+        [...rows(rulingsRead.data), ...rows(returnRulingsRead.data)].map((row) => [String(row.deduction_id ?? row.return_id), str(row.reason)]),
+      );
+      const returnRulings = new Map(rows(returnRulingsRead.data).map((row) => [String(row.return_id), row.outcome]));
+      const answerOf = (deductionId: string) => {
+        const answer = answers.get(deductionId);
+        return answer === "accepted" || answer === "disputed" ? answer : null;
+      };
       const deductions = deductionRows.flatMap((row): TenancyDeduction[] => {
         const idValue = str(row.id);
         const amount = kobo(row.amount_minor);
         if (!idValue || amount === null || !isRoomItem(row.item)) return [];
-        const answer = answers.get(idValue);
+        const ruled = allowed.get(idValue);
         return [
           {
             id: idValue,
             item: row.item,
             amount: money(amount),
             note: str(row.note),
-            answer: answer === "accepted" || answer === "disputed" ? answer : null,
+            answer: answerOf(idValue),
+            ruledAllowed: typeof ruled === "number" ? money(ruled) : null,
+            ruledReason: ruleReasons.get(idValue) ?? null,
             photoId: str(row.photo_id),
             photoUrl: null,
           },
         ];
       });
-      const returns = rows(returnsRead.data).flatMap((row) => {
+      const returns = returnRows.flatMap((row): (TenancyCautionReturn & { amountMinor: number })[] => {
+        const idValue = str(row.id);
         const amount = kobo(row.amount_minor);
-        return amount === null ? [] : [{ amountMinor: amount, date: str(row.returned_at) }];
+        const method = row.method;
+        const recordedAs = row.recorded_as;
+        if (!idValue || amount === null) return [];
+        if (method !== "bank_transfer" && method !== "cash" && method !== "other") return [];
+        if (recordedAs !== "lister_sent" && recordedAs !== "tenant_received") return [];
+        const ruling = returnRulings.get(idValue);
+        const ruled = ruling === "received" || ruling === "not_received" ? ruling : null;
+        const isContested = contested.has(idValue);
+        return [
+          {
+            id: idValue,
+            amountMinor: amount,
+            amount: money(amount),
+            date: day(str(row.returned_on)),
+            method,
+            reference: str(row.reference),
+            recordedAs,
+            ownRecord: row.recorded_by === session.user.id,
+            standing: !isContested || ruled === "received" ? "counted" : ruled === "not_received" ? "not_received" : "in_doubt",
+            contested: isContested,
+            ruling: ruled,
+            rulingReason: ruleReasons.get(idValue) ?? null,
+          },
+        ];
       });
+      const claimRows = claimsRead.error ? [] : rows(claimsRead.data);
       const reading = cautionState({
         amountMinor,
         deductions: deductionRows.flatMap((row) => {
           const amount = kobo(row.amount_minor);
           if (amount === null) return [];
-          const answer = answers.get(String(row.id));
-          return [{ amountMinor: amount, answer: answer === "accepted" || answer === "disputed" ? answer : null }];
+          const ruled = allowed.get(String(row.id));
+          return [{ amountMinor: amount, answer: answerOf(String(row.id)), allowedMinor: typeof ruled === "number" ? ruled : null }];
         }),
-        returns,
+        returns: returns.map((row) => ({ amountMinor: row.amountMinor, standing: row.standing })),
+        guaranteedMinor: claimRows
+          .filter((row) => row.status === "approved" || row.status === "paid")
+          .reduce((sum, row) => sum + (kobo(row.approved_minor) ?? 0), 0),
+        claimOpen: claimRows.some((row) => row.status === "submitted"),
       });
       caution = {
         obligationId,
@@ -347,17 +434,15 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         deducted: money(reading.deductedMinor),
         outstanding: money(reading.outstandingMinor),
         outstandingMinor: reading.outstandingMinor,
-        returnableMinor: Math.max(
-          0,
-          amountMinor -
-            reading.returnedMinor -
-            deductionRows.reduce((sum, row) => {
-              const value = kobo(row.amount_minor) ?? 0;
-              return answers.get(String(row.id)) === "disputed" ? sum : sum + value;
-            }, 0),
-        ),
+        guaranteed: reading.guaranteedMinor > 0 ? money(reading.guaranteedMinor) : null,
+        inDoubt: reading.inDoubtMinor > 0 ? money(reading.inDoubtMinor) : null,
+        claimable: money(reading.claimableMinor),
+        claimableMinor: reading.claimableMinor,
+        claimOpen: claimRows.some((row) => row.status === "submitted"),
+        // The database decides for real (escalate_caution_to_guarantee); this only offers the button.
+        canEscalate: viewer === "tenant" && today > dueOn && reading.claimableMinor > 0 && !claimRows.some((row) => row.status === "submitted"),
         deductions,
-        returns: returns.map((row) => ({ amount: money(row.amountMinor), date: day(row.date) })),
+        returns,
       };
     }
 
@@ -518,23 +603,42 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       return share === null ? [] : [{ id: String(row.id), userId: String(row.user_id), shareMinor: share }];
     });
     const shareIds = coShares.map((row) => row.id);
-    const [sharePaidRead, namesRead, answersRead, returnsRead] = coShares.length
-      ? await Promise.all([
-          loose.from("rent_share_payments").select("contributor_id, amount_minor").in("contributor_id", shareIds),
-          db.from("profiles").select("id, first_name").in("id", coShares.map((row) => row.userId)),
-          loose.from("rent_share_answers").select("contributor_id, answer").in("contributor_id", shareIds),
-          loose.from("rent_share_returns").select("contributor_id").in("contributor_id", shareIds),
-        ])
-      : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
-    const sharePaid = new Set(rows(sharePaidRead.data).map((row) => String(row.contributor_id)));
-    const sharePaidMinor = new Map(rows(sharePaidRead.data).map((row) => [String(row.contributor_id), kobo(row.amount_minor)]));
-    const shareReturned = new Set(rows(returnsRead.data).map((row) => String(row.contributor_id)));
+    const [namesRead, answersRead, sharePaymentsRead, shareRefundsRead] = await Promise.all([
+      coShares.length
+        ? db.from("profiles").select("id, first_name").in("id", coShares.map((row) => row.userId))
+        : Promise.resolve({ data: [], error: null }),
+      coShares.length
+        ? loose.from("rent_share_answers").select("contributor_id, answer").in("contributor_id", shareIds)
+        : Promise.resolve({ data: [], error: null }),
+      // Each share is its own card charge on the one booking (V-86); the lead reads them all.
+      loose
+        .from("transactions")
+        .select("share_payer_id")
+        .eq("booking_id", rp.booking_id)
+        .eq("status", "SUCCESSFUL")
+        .not("share_payer_id", "is", null),
+      loose.from("rent_share_refunds").select("payer_id, processor_status").eq("rent_payment_id", id),
+    ]);
+    const paidBy = new Set(rows(sharePaymentsRead.data).map((row) => String(row.share_payer_id)));
+    const refundOf = new Map(
+      rows(shareRefundsRead.data).flatMap((row): [string, ShareRefundStatus][] => {
+        const status = row.processor_status;
+        return status === "pending" || status === "sending" || status === "unknown" || status === "submitted" ||
+          status === "processed" || status === "failed"
+          ? [[String(row.payer_id), status]]
+          : [];
+      }),
+    );
     const shareAnswer = new Map(rows(answersRead.data).map((row) => [String(row.contributor_id), row.answer]));
     // A declined share does not count: the lead carries it again.
     const standing = coShares.filter((row) => shareAnswer.get(row.id) !== "declined");
     const firstNames = new Map(rows(namesRead.data).map((row) => [String(row.id), str(row.first_name)]));
     const cautionMinor = rp.caution_minor ?? 0;
     const attributed = attributeCaution(cautionMinor, rp.total_minor, standing);
+    const anyPaid = paidBy.size > 0;
+    // The tenancy records open when the charge is paid in full, so a snapshot says complete too.
+    const paidSum = (txRead.data ?? []).reduce((sum, tx) => sum + (kobo(tx.amount_minor) ?? 0), 0);
+    const complete = paidSum >= rp.total_minor || (!snapshotRead.error && snapshotRead.data !== null);
     const flatmates: TenancyFlatmates = {
       rows: coShares.map((row) => ({
         id: row.id,
@@ -544,14 +648,19 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
           const value = shareAnswer.get(row.id);
           return value === "accepted" || value === "declined" ? value : null;
         })(),
-        paid: sharePaid.has(row.id),
-        paidMinor: sharePaidMinor.get(row.id) ?? null,
-        returned: shareReturned.has(row.id),
+        paid: paidBy.has(row.userId),
+        refund: refundOf.get(row.userId) ?? null,
         cautionPart: cautionMinor > 0 && attributed.byId[row.id] !== undefined ? money(attributed.byId[row.id] ?? 0) : null,
       })),
       leadShare: money(leadShare(rp.total_minor, standing)),
       leadCautionPart: cautionMinor > 0 ? money(attributed.lead) : null,
-      unavailable: Boolean(contributorsRead.error || sharePaidRead.error || answersRead.error || returnsRead.error),
+      leadPaid: paidBy.has(rp.tenant_id),
+      leadRefund: refundOf.get(rp.tenant_id) ?? null,
+      locked: anyPaid,
+      cancellable: anyPaid && !complete && viewer === "tenant",
+      unavailable: Boolean(
+        contributorsRead.error || namesRead.error || answersRead.error || sharePaymentsRead.error || shareRefundsRead.error,
+      ),
     };
 
     /* ---------------------------------------------------------- pin candidates */
@@ -604,7 +713,8 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         // The lister cannot read the tenant's transactions under RLS, so the
         // snapshot, written in the same transaction as the settlement, also
         // says the charge was paid.
-        paid: receipts.length > 0 || snap !== null,
+        // With flatmates' shares (V-86) one receipt is not the whole charge: paid means paid in full.
+        paid: complete,
         ended: today >= endsOn,
         void: voidRead.error ? false : voidRead.data === true,
         lines: (ledger?.lines ?? []).map((line) => ({ label: line.label, display: money(line.minor) })),

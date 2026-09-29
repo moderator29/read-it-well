@@ -215,7 +215,7 @@ export function deepLinksCheck(
  */
 export const PROCESSORS: readonly { name: string; env: readonly string[] }[] = [
   { name: "Sentry", env: ["SENTRY_DSN", "NEXT_PUBLIC_SENTRY_DSN"] },
-  { name: "Paystack", env: ["PAYSTACK_SECRET_KEY"] },
+  { name: "Paystack", env: ["PAYSTACK_SECRET_KEY", "PAYSTACK_TEST_SECRET_KEY"] },
   { name: "Yellow Card", env: ["YELLOWCARD_API_KEY", "YELLOWCARD_API_SECRET"] },
   { name: "Anthropic", env: ["ANTHROPIC_API_KEY"] },
   { name: "Resend", env: ["RESEND_API_KEY"] },

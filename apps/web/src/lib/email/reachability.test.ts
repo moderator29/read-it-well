@@ -62,6 +62,7 @@ const DECLARING = [
   "lib/email/agreement-messages.ts",
   "lib/email/payment-instrument-messages.ts",
   "lib/email/welcome-message.ts",
+  "lib/email/lifecycle-messages.ts",
   "lib/account-deletion/emails.ts",
 ];
 
@@ -137,13 +138,10 @@ async function walk(dir: string, out: string[] = []): Promise<string[]> {
  * stops being true, the fix is to wire the builder and delete the entry, in
  * that order.
  */
-const REFUSED: Record<string, string> = {
-  passwordReset:
-    "GoTrue owns it. `resetPasswordForEmail` mints the recovery token inside " +
-    "GoTrue and sends its own mail; the token never reaches this process, so " +
-    "ours would be a SECOND email with no working link, arriving beside the " +
-    "real one on the one screen where somebody is already locked out.",
-};
+/* `passwordReset` stood here, refused because GoTrue sent the reset itself.
+   With the Send Email Hook on, the recovery token reaches the hook and the
+   hook sends `passwordReset` (link and code), so the refusal is deleted. */
+const REFUSED: Record<string, string> = {};
 
 describe("no email builder is built and unreachable", () => {
   it("every builder either has a path to the wire or a written refusal", async () => {
@@ -211,9 +209,21 @@ describe("no email builder is built and unreachable", () => {
     const dir = path.resolve(SRC, "..", "..", "..", "supabase", "migrations");
     const names = (await readdir(dir)).filter((name) => name.endsWith(".sql"));
     expect(names.length).toBeGreaterThan(50);
+    /*
+     * AND THE DRAFTS IN `pending/`. A trigger for a new template is written
+     * and held there until the code that builds the template is deployed,
+     * because the drain drops a row whose template the running code does not
+     * know. So during that window the key is written by a pending migration,
+     * which is the correct order, not a gap.
+     */
+    const pendingDir = path.join(dir, "pending");
+    const pending = (await readdir(pendingDir).catch(() => [] as string[])).filter((name) => name.endsWith(".sql"));
 
     const all = (
-      await Promise.all(names.map((name) => readFile(path.join(dir, name), "utf8")))
+      await Promise.all([
+        ...names.map((name) => readFile(path.join(dir, name), "utf8")),
+        ...pending.map((name) => readFile(path.join(pendingDir, name), "utf8")),
+      ])
     ).join("\n");
 
     const missing = OUTBOX_TEMPLATE_KEYS.filter((key) => {

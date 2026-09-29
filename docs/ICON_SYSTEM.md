@@ -212,8 +212,53 @@ listing cards, not in any object.
 set. Used for the dock capsule, headers, chips and small controls, and as the
 fallback for any navigation row with no glass object mapped.
 
+**Redrawn 29 September 2026 on Lucide geometry.** Against the founder's
+references of that date (`docs/design/references/2026-09-29/`), most
+outlines are now Lucide's path data (ISC; notice in
+`design-system/icons/THIRD_PARTY_NOTICES.md`), copied in with no runtime
+dependency. Not all of them: the four brand marks are the owners' own, and
+seven glyphs are Vallo's drawings on Lucide's rules (listed below; the menu
+and `house` start from Lucide geometry and are altered). The rules the set now
+holds, glyph for glyph:
+
+- One live area, 2 to 22 on the 24 grid. The old set ranged from 14 to 19
+  units wide, so neighbours in the dock read as different sizes.
+- One corner radius, 2 (1 on small parts such as the archive lid), one dot
+  (`h.01` on a round cap, so it scales with the line), round caps and joins.
+- Vallo's weight, not Lucide's 2: `UI_ICON_STROKE_PX`, 1.5 rendered CSS px.
+- Where Lucide has no drawing, Vallo draws one on the same rules: the
+  shorter-third menu, the two-card feed, `house` (Lucide's house with a
+  chimney, so it never reads as the Home tab), and the four property-type
+  houses (`house-duplex`, `house-terrace`, `house-bungalow`,
+  `tower-penthouse`).
+- Every name kept its meaning, so no call site changed. The Lucide source of
+  each glyph is named in a bracket above it in the TSX.
+
+**Filled twins.** 32 names have a drawn filled twin (`FILLED` in the TSX):
+every tab in the dock except Search (a solid lens reads as a dot on a stick), the drawer's destinations that have a closed shape to
+fill, and the saved and rated states (heart, star, bookmark). Line-only
+glyphs (`search`, `settings-gear`, `sliders`, `history`, the arrows) have no honest
+solid form and keep their outline when selected; the selected pill and the
+colour carry the state. A twin is the outline's own
+geometry in three layers: a `body` painted solid and stroked at the family
+weight, so its outer edge sits exactly where the outline's does; a `cut`
+knocked out of the body through an SVG mask at the same weight (the door of
+the house, the tick on the calendar, the fold of the document); and `keep`
+strokes drawn on top (the clapper, the mast). The mask id is built from
+the name, the size and `useId`. A name with no twin ignores `filled` and draws its outline.
+
+**The gallery.** `/preview/icons` draws every name at 16, 20 and 24, regular
+and filled, with the real `Button` and `Chip` and a dock-shaped row above;
+`?grid=1` outlines each cell. Shoot it with `data-theme` set to each theme.
+
+**The drawer went back to line glyphs (29 September 2026).** `NavTree.tsx`
+drew each row's glass object at 30px, under the 32px where the glass set
+reads, and the rows blurred into coloured squares. Every drawer and rail row
+now draws its `UiIcon` at 24, with the filled twin on the current row. The
+paragraph below describes the dock tray only, which keeps glass at 40px.
+
 **Navigation does use glass objects (Track M, 25 September 2026).** The side
-navigation drawer rows (`components/app/NavTree.tsx`) and the dock's sub-nav
+navigation drawer rows (`components/app/NavTree.tsx`, until 29 September) and the dock's sub-nav
 tray (`components/app/DockMore.tsx`) draw the glass object that
 `GLASS_FOR` in `apps/web/src/lib/nav/glass-glyph.ts` maps to each line glyph.
 A destination missing from that map falls back to its `UiIcon`, and Settings

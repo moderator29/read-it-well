@@ -73,6 +73,7 @@ export function AppShell({
   signedIn = false,
   isAgent = false,
   isAdmin = false,
+  isHost = false,
   workspaces = [],
   currentProfile = { kind: "personal" },
   preview,
@@ -89,6 +90,8 @@ export function AppShell({
   signedIn?: boolean;
   isAgent?: boolean;
   isAdmin?: boolean;
+  /** Holds a Stays host business; adds the host workspace row. */
+  isHost?: boolean;
   /**
    * Every workspace this account actually holds, resolved on the server from
    * the caller's own RLS bound reads and handed down.
@@ -260,6 +263,7 @@ export function AppShell({
         unreadNotifications={unreadNotifications}
         isAgent={isAgent}
         isAdmin={isAdmin}
+        isHost={isHost}
         signedIn={signedIn}
       />
 
@@ -305,6 +309,7 @@ export function AppShell({
               unreadNotifications={unreadNotifications}
               isAgent={isAgent}
               isAdmin={isAdmin}
+              isHost={isHost}
               signedIn={signedIn}
               variant="drawer"
               onNavigate={closeDrawer}
@@ -325,6 +330,12 @@ export function AppShell({
         {showsHeader && (
         <header
           data-scrolled={scrolled || undefined}
+          /* THE NAVY TOP BLOCK (founder reference 05, 29 September 2026). The
+             header is a night island in both themes: in light it is the dark
+             VALLO band over light content, painted by `app/css/light.css`,
+             and the logo inside it keeps the night artwork. In dark the
+             attribute changes nothing. */
+          data-theme="dark"
           className={`nf-safe-top nf-app-header sticky top-0 z-40 ${
             signedIn ? "lg:hidden" : ""
           }`}

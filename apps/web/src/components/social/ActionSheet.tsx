@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { useOverlay } from "@/lib/ui/use-overlay";
+import { Sheet } from "@/components/ui/Sheet";
 import { countOf } from "@vallo/i18n/core";
 
 /**
@@ -20,9 +19,11 @@ import { countOf } from "@vallo/i18n/core";
  * cannot work should not be there to press. What is offered is decided by the
  * caller and passed in, so this component holds no knowledge of what a post is.
  *
- * Escape closes it, focus starts inside, and the page behind does not scroll
- * underneath. All three are what makes a sheet feel like part of the page
- * rather than something stuck on top of it.
+ * The surface is the platform's `Sheet`: drag or flick down to close, Escape,
+ * Back, the focus trap and return, the counted scroll lock, the home-indicator
+ * inset and a body that scrolls when eight two-line rows are taller than a
+ * phone held sideways. It used to build its own panel, which had none of the
+ * gestures and pushed its top rows off a landscape screen.
  */
 
 export type SheetAction = {
@@ -47,54 +48,42 @@ export function ActionSheet({
   onChoose: (key: string) => void;
   onClose: () => void;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  /* Escape, the Tab trap, the counted scroll lock and the focus return, all
-     from the one hook. This sheet used to hand-roll Escape and a bare
-     `document.body.style.overflow` flag, which is the uncounted lock: open
-     the report sheet over this one and closing the inner sheet gave the page
-     its scroll back while this one was still up. Tab was never trapped at
-     all, so it walked straight out into the feed behind. */
-  useOverlay({ open: true, onClose, panelRef });
-
   return (
-    <div className="nf-actions" role="dialog" aria-modal="true" aria-label={label}>
-      <button
-        type="button"
-        aria-label="Close"
-        className="absolute inset-0 cursor-default"
-        onClick={onClose}
-      />
-      <div ref={panelRef} className="nf-actions__panel">
-        <span className="nf-actions__grab" aria-hidden="true" />
-        <div role="menu" aria-label={label}>
-          {actions.map((action) => (
-            <button
-              key={action.key}
-              type="button"
-              role="menuitem"
-              className={`nf-actions__row${action.danger ? " nf-actions__row--danger" : ""}`}
-              onClick={() => {
-                onClose();
-                onChoose(action.key);
-              }}
-            >
-              <span className="nf-actions__icon">
-                {action.glyph ? (
-                  <UiIcon name={action.glyph} size={19} />
-                ) : (
-                  <UiIcon name={action.icon ?? "sliders"} size={19} />
-                )}
-              </span>
-              <span className="min-w-0">
-                <span className="nf-actions__title">{action.title}</span>
-                <span className="nf-actions__note">{action.note}</span>
-              </span>
-            </button>
-          ))}
-        </div>
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={label}
+      hideTitle
+    >
+      <div role="menu" aria-label={label} className="nf-actions__list">
+        {actions.map((action) => (
+          <button
+            key={action.key}
+            type="button"
+            role="menuitem"
+            className={`nf-actions__row${action.danger ? " nf-actions__row--danger" : ""}`}
+            onClick={() => {
+              onClose();
+              onChoose(action.key);
+            }}
+          >
+            <span className="nf-actions__icon">
+              {action.glyph ? (
+                <UiIcon name={action.glyph} size={19} />
+              ) : (
+                <UiIcon name={action.icon ?? "sliders"} size={19} />
+              )}
+            </span>
+            <span className="min-w-0">
+              <span className="nf-actions__title">{action.title}</span>
+              <span className="nf-actions__note">{action.note}</span>
+            </span>
+          </button>
+        ))}
       </div>
-    </div>
+    </Sheet>
   );
 }
 

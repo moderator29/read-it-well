@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { LogoMark } from "@/design-system/brand/Logo";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import "@/app/css/system.css";
@@ -28,16 +28,10 @@ export default function LoadingRoot() {
       {/* 48 by 46, which is the mark's real 614:587 shape. It was declared
           square here and squared again by `.nf-wait__mark`, so the first
           thing a stranger saw on the slowest page in the product was the
-          logo stretched 4.6 per cent. See `design-system/brand/Logo.tsx`. */}
-      <Image
-        src="/brand/vallo-mark.png"
-        alt=""
-        aria-hidden="true"
-        width={48}
-        height={46}
-        priority
-        className="nf-wait__mark"
-      />
+          logo stretched 4.6 per cent. See `design-system/brand/Logo.tsx`.
+          `LogoMark` carries the daylight twin, so a light page waits on the
+          ink mark rather than pale night glass. */}
+      <LogoMark size={48} priority className="nf-wait__mark" />
 
       <div className="mt-xl max-w-2xl">
         {/* Three display lines, which is what the hero is. */}

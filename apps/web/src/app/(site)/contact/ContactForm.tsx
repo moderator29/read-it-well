@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { submitContactForm } from "@/lib/support/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -33,7 +34,7 @@ export function ContactForm({
   defaultTopic?: ContactTopic;
 }) {
   const [state, formAction, pending] = useActionState<
-    ActionResult<{ reference: string }> | null,
+    ActionResult<{ reference: string; id?: string }> | null,
     FormData
   >(submitContactForm, null);
 
@@ -57,6 +58,19 @@ export function ContactForm({
         <p className="nf-numeric mt-group inline-block nf-panel nf-panel--card px-group py-inline text-[1.0625rem] font-bold tracking-wide text-[var(--nf-content-primary)]">
           {state.data.reference}
         </p>
+        {/* Filed while signed in: the ticket is on the account, so the reply
+            lands in the in-app thread as well as by email. */}
+        {state.data.id && (
+          <p className="mt-group">
+            <Link
+              href={`/support/messages/${state.data.id}`}
+              className="nf-link-quiet inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)]"
+              data-testid="contact-open-thread"
+            >
+              Open the conversation
+            </Link>
+          </p>
+        )}
         <p className="mt-group text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
           {SUPPORT_MAILBOX ? (
             <>

@@ -274,6 +274,30 @@
     cursor: grabbing;
   }
 
+  /*
+   * THE PAGE SHAPE. The same sheet, the full height of the screen, square at
+   * the top and clear of the status bar. For the dialogs designed as a page
+   * (see `fullPage` in Sheet.tsx), which used to be hand-built `fixed inset-0`
+   * panels with no drag, and now slide up, drag and flick down, and answer
+   * Back like every other sheet.
+   */
+  .nf-sheet--page {
+    top: 0;
+    max-height: none;
+    height: 100dvh;
+    border-radius: 0;
+    border-inline: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  @media (min-width: 48rem) {
+    .nf-sheet--side {
+      inset-inline-start: auto;
+      width: min(28rem, 100%);
+      border-radius: var(--nf-container-radius) 0 0 var(--nf-container-radius);
+      border-inline-start: var(--nf-border-width) solid var(--nf-panel-edge);
+    }
+  }
+
   .nf-sheet__body {
     flex: 1 1 auto;
     min-height: 0;

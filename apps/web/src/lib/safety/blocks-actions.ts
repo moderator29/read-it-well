@@ -100,5 +100,8 @@ export async function unblockUserSafely(input: {
   if (error) return fail(POST_FAILURE.down);
   revalidatePath("/around");
   revalidatePath("/messages");
+  /* DB2: the list this is pressed from, and the count on the row leading to it. */
+  revalidatePath("/settings/privacy");
+  revalidatePath("/settings/privacy/blocked");
   return ok(null);
 }

@@ -22,9 +22,17 @@ describe("readMoveInQuote", () => {
 
 describe("readRefundRow and readRefundRequest", () => {
   it("reads a refund and refuses one missing its money", () => {
-    const row = { id: "r", booking_id: "b", created_at: "t", paid_minor: 10, refund_minor: 10, retained_minor: 0, wallet_entry_id: null };
-    expect(readRefundRow(row)).toMatchObject({ refundMinor: 10, walletEntryId: null });
+    const row = {
+      id: "r", booking_id: "b", created_at: "t", paid_minor: 10, refund_minor: 10, retained_minor: 0,
+      processor_status: "submitted", processor_submitted_at: "s", processor_settled_at: null,
+    };
+    expect(readRefundRow(row)).toMatchObject({ refundMinor: 10, processorStatus: "submitted", submittedAt: "s", settledAt: null });
     expect(readRefundRow({ ...row, refund_minor: -1 })).toBeNull();
+  });
+  it("reads an unknown processor state as not sent yet, or not needed when nothing is owed", () => {
+    const row = { id: "r", booking_id: "b", created_at: "t", paid_minor: 10, refund_minor: 10, retained_minor: 0 };
+    expect(readRefundRow({ ...row, processor_status: "held" })?.processorStatus).toBe("pending");
+    expect(readRefundRow({ ...row, refund_minor: 0, retained_minor: 10 })?.processorStatus).toBe("not_needed");
   });
   it("reads an ask with or without a due-by", () => {
     expect(readRefundRequest({ id: "q", booking_id: "b", requested_at: "t", due_by: "d" })).toEqual({ id: "q", bookingId: "b", requestedAt: "t", dueBy: "d" });

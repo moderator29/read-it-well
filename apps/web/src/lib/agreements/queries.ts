@@ -13,7 +13,11 @@ export type AgreementSummary = {
   listingId: string;
   listingTitle: string;
   amountMinor: number;
-  role: "renter" | "owner";
+  /**
+   * The reader's side, or null when they are not a party (staff read every
+   * agreement under RLS). Null draws no party controls.
+   */
+  role: "renter" | "owner" | null;
   updatedAt: string;
 };
 
@@ -32,7 +36,16 @@ export type AgreementDetail = AgreementSummary & {
   paidAt: string | null;
   claimWindow: { opens: string; closes: string } | null;
   events: { at: string; action: string; note: string | null }[];
-  claims: { id: string; status: string; requestedMinor: number; approvedMinor: number | null; reason: string | null; createdAt: string }[];
+  claims: {
+    id: string;
+    status: string;
+    requestedMinor: number;
+    approvedMinor: number | null;
+    reason: string | null;
+    createdAt: string;
+    /** Filed by the person reading. `guarantee_claim_file_as` allows one open claim each. */
+    mine: boolean;
+  }[];
 };
 
 export async function readMyAgreements(): Promise<AgreementSummary[] | null> {
@@ -40,7 +53,7 @@ export async function readMyAgreements(): Promise<AgreementSummary[] | null> {
   if (session.state !== "signed-in") return null;
   const { data, error } = await session.supabase
     .from("deal_agreements")
-    .select("id, kind, status, listing_id, amount_minor, renter_id, updated_at")
+    .select("id, kind, status, listing_id, amount_minor, renter_id, owner_id, updated_at")
     .order("updated_at", { ascending: false })
     .limit(100);
   if (error) return null;
@@ -57,9 +70,15 @@ export async function readMyAgreements(): Promise<AgreementSummary[] | null> {
     listingId: r.listing_id,
     listingTitle: title.get(r.listing_id) || "A property",
     amountMinor: r.amount_minor,
-    role: r.renter_id === session.user.id ? "renter" : "owner",
+    role: partyRole(session.user.id, r.renter_id, r.owner_id),
     updatedAt: r.updated_at,
   }));
+}
+
+function partyRole(me: string, renterId: string, ownerId: string): "renter" | "owner" | null {
+  if (me === renterId) return "renter";
+  if (me === ownerId) return "owner";
+  return null;
 }
 
 function lagosStart(date: string | null): number | null {
@@ -84,20 +103,20 @@ export async function readAgreement(id: string): Promise<AgreementDetail | null>
       .order("created_at", { ascending: true }),
     session.supabase
       .from("guarantee_claims")
-      .select("id, status, requested_minor, approved_minor, decision_reason, created_at")
+      .select("id, status, requested_minor, approved_minor, decision_reason, created_at, claimant_id")
       .eq("agreement_id", a.id)
       .order("created_at", { ascending: false }),
     session.supabase.from("money_policy").select("claim_window_hours").maybeSingle(),
   ]);
   const name = new Map((people.data ?? []).map((p) => [p.id, p.display_name ?? ""]));
-  const role = a.renter_id === session.user.id ? "renter" : "owner";
+  const role = partyRole(session.user.id, a.renter_id, a.owner_id);
   const terms = (a.terms ?? {}) as Record<string, unknown>;
   const start = lagosStart(
     (typeof terms.move_in === "string" ? terms.move_in : null) ?? (typeof terms.check_in === "string" ? terms.check_in : null),
   );
   const hours = policy.data?.claim_window_hours ?? 72;
-  const mine = role === "renter" ? a.renter_confirmed_version : a.owner_confirmed_version;
-  const theirs = role === "renter" ? a.owner_confirmed_version : a.renter_confirmed_version;
+  const mine = role === "renter" ? a.renter_confirmed_version : role === "owner" ? a.owner_confirmed_version : null;
+  const theirs = role === "renter" ? a.owner_confirmed_version : role === "owner" ? a.renter_confirmed_version : null;
   return {
     id: a.id,
     kind: a.kind === "stay" ? "stay" : "rent",
@@ -131,6 +150,7 @@ export async function readAgreement(id: string): Promise<AgreementDetail | null>
       approvedMinor: c.approved_minor,
       reason: c.decision_reason,
       createdAt: c.created_at,
+      mine: c.claimant_id === session.user.id,
     })),
   };
 }

@@ -99,6 +99,9 @@ export function Sheet({
   closeLabel,
   reset,
   apply,
+  fullPage = false,
+  sideOnWide = false,
+  testId,
   children,
 }: {
   open: boolean;
@@ -129,6 +132,23 @@ export function Sheet({
    */
   initialFocus?: RefObject<HTMLElement | null>;
   footer?: ReactNode;
+  /**
+   * The whole screen rather than a sheet over part of it, for the dialogs that
+   * are designed as a page: a long searchable picker, the filters, a report
+   * form, closing an account. It is the same component so those get the same
+   * drag and flick to close, Back, Escape, focus trap and return, scroll lock
+   * and safe areas as every other sheet; only the geometry changes. The
+   * detents are ignored: a page has one height.
+   */
+  fullPage?: boolean;
+  /**
+   * With `fullPage`: on a wide screen, a panel docked to the right edge
+   * rather than the whole window, which is how the filter drawers have always
+   * sat on a tablet or a desktop. A phone still gets the page.
+   */
+  sideOnWide?: boolean;
+  /** Put on the dialog element itself, for a spec to find. */
+  testId?: string;
   children: ReactNode;
 }) {
   const titleId = useId();
@@ -237,7 +257,7 @@ export function Sheet({
    * so `heights` is stable while the detents are, and the subscription happens
    * once per open.
    */
-  const detentKey = [...detents].sort((a, b) => a - b).join(",");
+  const detentKey = fullPage ? "1" : [...detents].sort((a, b) => a - b).join(",");
 
   const heights = useCallback(() => {
     const vh = viewportHeight();
@@ -251,7 +271,21 @@ export function Sheet({
   /* Escape, the Tab trap, the counted scroll lock and the focus return, from
      the one shared implementation. `autoFocus` is off because the effect below
      needs `preventScroll`, which the hook does not pass. */
-  const close = useCallback(() => onOpenChange(false), [onOpenChange]);
+  /*
+   * STABLE ACROSS RENDERS, WHATEVER THE CALLER PASSES.
+   *
+   * `useOverlay` re-runs its effect when `onClose` changes, and its cleanup
+   * hands focus back to the opener. A caller writing `onOpenChange={(o) => …}`
+   * inline gives a new function on every render, so every re-render of the
+   * page under an open sheet threw focus out of it onto the opener. Found on
+   * the post menu, the comments sheet and the delete drawer: open, and the
+   * keyboard was already back on the page behind.
+   */
+  const onOpenChangeRef = useRef(onOpenChange);
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange;
+  }, [onOpenChange]);
+  const close = useCallback(() => onOpenChangeRef.current(false), []);
   useOverlay({ open, onClose: close, panelRef: sheetRef, autoFocus: false });
   /* UX-19: the browser's Back closes the sheet instead of leaving the page. */
   useSheetHistory(open, titleId, close);
@@ -403,7 +437,12 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="nf-sheet outline-none"
+        className={
+          fullPage
+            ? `nf-sheet nf-sheet--page${sideOnWide ? " nf-sheet--side" : ""} outline-none`
+            : "nf-sheet outline-none"
+        }
+        data-testid={testId}
         data-open={entered}
         data-dragging={dragging || undefined}
         /*

@@ -114,9 +114,9 @@ begin
   out := out || '24.3 Paystack initiation is recorded (the append-only guard used to refuse it), nothing else moves, and the ask is decided; ';
 
   -- V-24.4 the success webhook
-  r := public.record_processor_refund_outcome('RF-PROBE-1', null, 'processed');
+  r := public.record_processor_refund_outcome('RF-PROBE-1', null, 'processed', 4000000);
   if r->>'status' <> 'ok' then raise exception 'FAIL 24.4 %', r; end if;
-  r := public.record_processor_refund_outcome('RF-PROBE-1', null, 'processed');
+  r := public.record_processor_refund_outcome('RF-PROBE-1', null, 'processed', 4000000);
   if r->>'status' <> 'already' then raise exception 'FAIL 24.4 replay %', r; end if;
   if (select processor_settled_at from public.booking_refunds where id = rf) is null then raise exception 'FAIL 24.4 not stamped'; end if;
   perform private.alert_overdue_refunds();
@@ -153,9 +153,10 @@ begin
   if n <> 1 then raise exception 'FAIL 86.6 refund not due'; end if;
   sp := public.payment_split_for_rent_share(rp, tenant);
   if sp->>'status' = 'ok' then raise exception 'FAIL 86.6 a cancelled split still opens a share'; end if;
+  perform public.claim_rent_share_refund(rf);
   r := public.record_rent_share_refund(rf, 'submitted', 'RF-PROBE-2');
   if r->>'status' <> 'ok' then raise exception 'FAIL 86.6 submit %', r; end if;
-  r := public.record_processor_refund_outcome(null, 'rm-book-00000000-0000-4000-8000-0000000ee2f1', 'processed');
+  r := public.record_processor_refund_outcome(null, 'rm-book-00000000-0000-4000-8000-0000000ee2f1', 'processed', 30000000);
   if r->>'status' <> 'ok' or (r->>'share_refund_id')::uuid <> rf then raise exception 'FAIL 86.6 webhook %', r; end if;
   begin
     update public.rent_share_refunds set amount_minor = 1 where id = rf;

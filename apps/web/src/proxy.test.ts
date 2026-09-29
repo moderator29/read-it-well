@@ -238,6 +238,7 @@ const EXPECTED_PUBLIC = new Set([
   /* The doors. */
   "/auth/callback",
   "/forgot-password",
+  "/forgot-password/code",
   "/reset-password",
   "/sign-in",
   "/sign-in/email",
@@ -269,6 +270,7 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/complete-stays",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
+  "/api/cron/rent-share-refunds",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/sanctions-lists",
@@ -276,6 +278,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/pg-cron-watch",
   /* SCUML item 15: the daily risk classification, behind the cron bearer. */
   "/api/cron/risk-classes",
+  /* Crypto payments read back from the provider, behind the cron bearer. */
+  "/api/cron/crypto-reconcile",
   "/api/cron/saved-search-alerts",
   "/api/cron/store-readiness",
   "/api/cron/new-match-alerts",

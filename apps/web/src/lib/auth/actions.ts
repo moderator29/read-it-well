@@ -1056,6 +1056,69 @@ export async function requestPasswordReset(
 }
 
 /**
+ * The reset code, for a reset email opened somewhere other than where it was
+ * asked for.
+ *
+ * The link in the email is a PKCE link: the callback can only exchange it in
+ * the browser that holds the matching verifier, so opened in a mail app's own
+ * browser, on a second device or in another browser it reads as expired. The
+ * same email carries the one-time recovery code (the Send Email Hook renders
+ * it where GoTrue hands the hook the token), and `verifyOtp` with the address
+ * and that code needs no verifier. It makes a session whose `amr` is the
+ * recovery proof, which is what `passwordChangeProof` accepts for half an
+ * hour, so /reset-password then sets the new password without the old one,
+ * exactly as it does after the link.
+ *
+ * NEUTRAL, AND COUNTED BEFORE SUPABASE IS ASKED. A wrong code, a spent code
+ * and an address with no account all get the same sentence, so this screen is
+ * not an account-existence oracle. Ten an hour per address and twenty per
+ * connection in ten minutes: a person mistyping twice never meets it, and a
+ * six digit code cannot be walked through it.
+ */
+export async function verifyPasswordResetCode(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const email = field(formData, "email").trim().toLowerCase();
+  const token = field(formData, "code").replace(/\s+/g, "");
+
+  const fieldErrors: Partial<Record<AuthField, string>> = {};
+  if (!email) fieldErrors.email = "Enter your email address.";
+  else if (email.length > 254 || !EMAIL_RE.test(email)) {
+    fieldErrors.email = "That does not look like a valid email.";
+  }
+  if (!CONFIRMATION_CODE_RE.test(token)) {
+    fieldErrors.code = `The code is the ${codeLengthWord()} digits in the reset email.`;
+  }
+  if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
+
+  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  /* The connection first, so one place walking many addresses is stopped
+     without spending each address's own allowance. */
+  const pacedIp = await throttle("password_reset_code_ip", subjectForIp(await callerIp()), 20, 600);
+  if (pacedIp) return pacedIp;
+  const pacedEmail = await throttle("password_reset_code", subjectForEmail(email), 10, 3_600);
+  if (pacedEmail) return pacedEmail;
+
+  const supabase = await createClientWithAgent(); // V-19: GoTrue records the browser, not Node
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "recovery" });
+
+  if (error || !data.session) {
+    return {
+      ok: false,
+      fieldErrors: {
+        code: "That code did not match or has run out. Check the digits in the email, or ask for a new one.",
+      },
+    };
+  }
+
+  // The recovery session's cookies are set; drop the signed-out renders.
+  revalidatePath("/", "layout");
+  redirect("/reset-password");
+}
+
+/**
  * Set the new password.
  *
  * `updateUser` acts on whoever the cookies say is signed in, so the question

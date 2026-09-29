@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getDictionary } from "@vallo/i18n";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
-import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { adminRefusal, requireAdmin } from "../admin/guard";
 import { credentialRefusal } from "./credential-answer";
 
 /**
@@ -28,12 +28,14 @@ const schema = z.object({
 type RpcCaller = { rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: unknown }> };
 
 export async function recordCredential(input: unknown): Promise<ActionResult<{ recorded: true }>> {
-  const session = await resolveSession();
-  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
-  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  /* The KYC desk's scope. The call still goes through the caller's OWN
+     client, because `record_credential` decides on auth.uid() with
+     `private.staff_can(actor, 'kyc_review')`. */
+  const access = await requireAdmin("kyc_review");
+  if (access.state !== "admin") return fail(adminRefusal(access));
   const parsed = validate(schema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-  const { data, error } = await (session.supabase as unknown as RpcCaller).rpc("record_credential", {
+  const { data, error } = await (access.userClient as unknown as RpcCaller).rpc("record_credential", {
     p_subject: parsed.data.subjectId,
     p_kind: parsed.data.kind,
     p_number: parsed.data.number,

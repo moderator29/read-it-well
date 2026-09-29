@@ -142,6 +142,12 @@ export type ChargeSettlement =
        */
       confirmed: boolean;
       amountMinor: number;
+      /**
+       * What the booking cost in all: the move-in total for a rent charge
+       * (which the last flatmate's share completes, so it is more than this
+       * charge), the gross otherwise. The confirmation announces this.
+       */
+      totalMinor: number;
       ledger: ChargeDecomposition;
     }
   /**
@@ -152,8 +158,30 @@ export type ChargeSettlement =
    * card (`refundChargeToCard`). Nothing is announced as paid.
    */
   | { outcome: "refund-due"; bookingId: string; reason: string; amountMinor: number; reference: string }
-  /** The reference was already settled. Nothing moved, nothing to announce. */
-  | { outcome: "already-settled"; bookingId: string | null }
+  /**
+   * V-86. A flatmate's share of a shared move-in settled to the lister, but
+   * the shares do not yet reach the move-in total, so the booking stays
+   * PENDING and nothing is announced as confirmed. Money moved on this call.
+   */
+  | {
+      outcome: "share-settled";
+      bookingId: string;
+      amountMinor: number;
+      paidMinor: number;
+      totalMinor: number;
+      ledger: ChargeDecomposition;
+    }
+  /**
+   * The reference was already settled, or already found refund-due (the
+   * database answers transaction_status REFUND_DUE and the refund is not
+   * sent again). Nothing moved, nothing to announce.
+   */
+  | {
+      outcome: "already-settled";
+      bookingId: string | null;
+      /** SUCCESSFUL, REFUNDED, or REFUND_DUE (found refund-due before; the refund may not have gone out). */
+      transactionStatus?: string | null;
+    }
   /** No transaction carries this reference and no booking was named for it. */
   | { outcome: "unknown-reference" };
 
@@ -174,6 +202,7 @@ export function readSettlement(data: unknown): ChargeSettlement {
         bookingId,
         confirmed: r.confirmed === true,
         amountMinor: num(r.amount_minor),
+        totalMinor: num(r.total_minor) > 0 ? num(r.total_minor) : num(r.amount_minor),
         ledger: {
           grossMinor: num(l.grossMinor),
           platformFeeMinor: num(l.platformFeeMinor),
@@ -193,8 +222,31 @@ export function readSettlement(data: unknown): ChargeSettlement {
         amountMinor: num(r.amount_minor),
         reference: typeof r.reference === "string" ? r.reference : "",
       };
+    case "share-settled": {
+      if (!bookingId) throw new Error("settle_booking_charge settled a share of no booking");
+      const l = (typeof r.ledger === "object" && r.ledger !== null ? r.ledger : {}) as Record<string, unknown>;
+      return {
+        outcome: "share-settled",
+        bookingId,
+        amountMinor: num(r.amount_minor),
+        paidMinor: num(r.paid_minor),
+        totalMinor: num(r.total_minor),
+        ledger: {
+          grossMinor: num(l.grossMinor),
+          platformFeeMinor: num(l.platformFeeMinor),
+          agentShareMinor: num(l.agentShareMinor),
+          processorFeeMinor: num(l.processorFeeMinor),
+          netSettlementMinor: num(l.netSettlementMinor),
+          guaranteeMinor: num(l.guaranteeMinor),
+        },
+      };
+    }
     case "already-settled":
-      return { outcome: "already-settled", bookingId };
+      return {
+        outcome: "already-settled",
+        bookingId,
+        transactionStatus: typeof r.transaction_status === "string" ? r.transaction_status : null,
+      };
     case "unknown-reference":
       return { outcome: "unknown-reference" };
     default:

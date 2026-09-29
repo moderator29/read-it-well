@@ -5349,6 +5349,60 @@ export type Database = {
           },
         ]
       }
+      support_ticket_attachments: {
+        Row: {
+          created_at: string
+          height: number | null
+          id: string
+          message_id: string | null
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          ticket_id: string
+          uploader_id: string | null
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          message_id?: string | null
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          ticket_id: string
+          uploader_id?: string | null
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          message_id?: string | null
+          mime_type?: string
+          size_bytes?: number
+          storage_path?: string
+          ticket_id?: string
+          uploader_id?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "support_ticket_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_ticket_messages: {
         Row: {
           body: string
@@ -5356,6 +5410,7 @@ export type Database = {
           id: string
           sender_id: string | null
           sender_role: string
+          staff_name: string | null
           ticket_id: string
         }
         Insert: {
@@ -5364,6 +5419,7 @@ export type Database = {
           id?: string
           sender_id?: string | null
           sender_role: string
+          staff_name?: string | null
           ticket_id: string
         }
         Update: {
@@ -5372,6 +5428,7 @@ export type Database = {
           id?: string
           sender_id?: string | null
           sender_role?: string
+          staff_name?: string | null
           ticket_id?: string
         }
         Relationships: [
@@ -5390,6 +5447,17 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          kind: string
+          last_member_reply_at: string | null
+          member_read_at: string | null
+          queue_at: string | null
+          rated_at: string | null
+          rating: number | null
+          rating_comment: string | null
+          related_id: string | null
+          related_kind: string | null
+          related_label: string | null
+          resolved_at: string | null
           name: string
           reference: string
           status: Database["public"]["Enums"]["support_ticket_status"]
@@ -5402,6 +5470,17 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          kind?: string
+          last_member_reply_at?: string | null
+          member_read_at?: string | null
+          queue_at?: never
+          rated_at?: string | null
+          rating?: number | null
+          rating_comment?: string | null
+          related_id?: string | null
+          related_kind?: string | null
+          related_label?: string | null
+          resolved_at?: string | null
           name: string
           reference: string
           status?: Database["public"]["Enums"]["support_ticket_status"]
@@ -5414,6 +5493,17 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          kind?: string
+          last_member_reply_at?: string | null
+          member_read_at?: string | null
+          queue_at?: never
+          rated_at?: string | null
+          rating?: number | null
+          rating_comment?: string | null
+          related_id?: string | null
+          related_kind?: string | null
+          related_label?: string | null
+          resolved_at?: string | null
           name?: string
           reference?: string
           status?: Database["public"]["Enums"]["support_ticket_status"]
@@ -5468,6 +5558,13 @@ export type Database = {
           guarantee_minor: number | null
           commission_minor: number | null
           agreement_id: string | null
+          access_code: string | null
+          authorization_url: string | null
+          checkout_opened_at: string | null
+          paystack_mode: string | null
+          processor_status: string | null
+          processor_checked_at: string | null
+          closed_reason: string | null
         }
         Insert: {
           amount_minor: number
@@ -5486,6 +5583,13 @@ export type Database = {
           guarantee_minor?: number | null
           commission_minor?: number | null
           agreement_id?: string | null
+          access_code?: string | null
+          authorization_url?: string | null
+          checkout_opened_at?: string | null
+          paystack_mode?: string | null
+          processor_status?: string | null
+          processor_checked_at?: string | null
+          closed_reason?: string | null
         }
         Update: {
           amount_minor?: number
@@ -5504,6 +5608,13 @@ export type Database = {
           guarantee_minor?: number | null
           commission_minor?: number | null
           agreement_id?: string | null
+          access_code?: string | null
+          authorization_url?: string | null
+          checkout_opened_at?: string | null
+          paystack_mode?: string | null
+          processor_status?: string | null
+          processor_checked_at?: string | null
+          closed_reason?: string | null
         }
         Relationships: [
           {
@@ -6240,6 +6351,14 @@ export type Database = {
           user_agent: string
         }[]
       }
+      my_unread_counts: {
+        Args: never
+        Returns: {
+          as_agent: boolean
+          conversation_id: string
+          unread: number
+        }[]
+      }
       offer_business_transfer: {
         Args: {
           p_business: string
@@ -6253,6 +6372,18 @@ export type Database = {
       open_rent_charge: {
         Args: { p_inspection: string; p_move_in: string; p_tenant: string }
         Returns: Json
+      }
+      payment_attempts_due_for_check: {
+        Args: { p_mode: string; p_limit?: number }
+        Returns: {
+          id: string
+          provider_ref: string
+          booking_id: string
+          created_at: string
+          checkout_opened_at: string | null
+          processor_status: string | null
+          paystack_mode: string
+        }[]
       }
       platform_stats: {
         Args: never
@@ -6447,6 +6578,22 @@ export type Database = {
         }[]
       }
       story_count: { Args: { p_author: string }; Returns: number }
+      support_ticket_member_mark_read: {
+        Args: { p_ticket: string }
+        Returns: Json
+      }
+      support_ticket_member_rate: {
+        Args: { p_comment: string | null; p_rating: number; p_ticket: string }
+        Returns: Json
+      }
+      support_ticket_member_reopen: {
+        Args: { p_ticket: string }
+        Returns: Json
+      }
+      support_ticket_member_resolve: {
+        Args: { p_ticket: string }
+        Returns: Json
+      }
       suspend_agent: {
         Args: {
           acting_admin: string
@@ -6699,7 +6846,12 @@ export type Database = {
       supply_role: "owner" | "agent"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
       thread_context: "listing" | "reservation" | "booking" | "business"
-      transaction_status: "SUCCESSFUL" | "PENDING" | "FAILED" | "REFUNDED"
+      transaction_status:
+        | "SUCCESSFUL"
+        | "PENDING"
+        | "FAILED"
+        | "REFUNDED"
+        | "ABANDONED"
       wallet_entry_direction: "credit" | "debit"
       wallet_entry_kind:
         | "deposit"
@@ -7090,7 +7242,7 @@ export const Constants = {
       supply_role: ["owner", "agent"],
       support_ticket_status: ["open", "pending", "resolved", "closed"],
       thread_context: ["listing", "reservation", "booking", "business"],
-      transaction_status: ["SUCCESSFUL", "PENDING", "FAILED", "REFUNDED"],
+      transaction_status: ["SUCCESSFUL", "PENDING", "FAILED", "REFUNDED", "ABANDONED"],
       wallet_entry_direction: ["credit", "debit"],
       wallet_entry_kind: [
         "deposit",

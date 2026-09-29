@@ -95,6 +95,11 @@ async function handleBookingGap(
       return { ...base, action: sent.ok ? "refunded" : "failed", reason: settlement.reason };
     }
     if (settlement.outcome === "unknown-reference") return { ...base, action: "unmatched", reason: "unknown_reference" };
+    // Found refund-due on an earlier call: the database will not refund it
+    // again, and nothing here says the refund went out, so a person looks.
+    if (settlement.outcome === "already-settled" && settlement.transactionStatus === "REFUND_DUE") {
+      return { ...base, action: "failed", reason: "refund_due_unsent" };
+    }
     return { ...base, action: "settled", reason: settlement.outcome };
   } catch (error) {
     return { ...base, action: "failed", reason: failureReason(error) };

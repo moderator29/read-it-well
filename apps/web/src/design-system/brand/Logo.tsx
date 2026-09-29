@@ -33,10 +33,24 @@ import Image from "next/image";
  * is the record, including the approaches that failed and the one-line render
  * to ask the founder for that would beat the extraction.
  *
- * ON PAPER the mark still reads correctly, as glass with a soft blue halo
- * rather than a dark slab, so there is still exactly one asset for both themes
- * and still no ink variant. The reasoning about recolouring survives: an ink
- * version of a photographic glass render is a new render, not a filter.
+ * ON PAPER THERE IS A DAYLIGHT TWIN (29 September 2026). The night artwork on
+ * white reads as pale glass: 28 per cent of the wordmark's opaque pixels are
+ * near-white catch-lights, and they vanish into the page. The light theme used
+ * to hide that by putting the lockup in a navy pill with two looping lights
+ * round its rim, which the founder found wrapped and dim. `vallo-mark-light.png`
+ * and `vallo-wordmark-light.png` are the same drawing re-toned for paper: the
+ * glow keyed away, the body a deep ink and the catch-lights a brighter blue, so
+ * every opaque pixel clears 3:1 on white and the glass modelling survives.
+ * `docs/BRAND_MARKS.md` section 8 is the recipe.
+ *
+ * BOTH FILES ARE IN THE DOCUMENT AND CSS PICKS ONE (`app/css/light.css`, "the
+ * logo"), keyed on `data-theme`, which the before-paint script sets. Nothing
+ * waits for React, so a theme change never shows the wrong artwork or a blank
+ * frame, and a night island inside a light page (`data-theme="dark"`: the
+ * landing hero, auth, the system moments) keeps the night artwork. The twin
+ * loads eagerly for that reason: a lazy image under `display: none` is not
+ * fetched until it is shown, which would flash the first time somebody picks
+ * Light.
  */
 
 /**
@@ -81,17 +95,27 @@ export function LogoMark({
   const width = responsive
     ? `clamp(${Math.round(size * 0.72)}px, 6vw, ${size}px)`
     : size;
-  return (
+  const art = (night: boolean) => (
     <Image
-      src="/brand/vallo-mark.png"
+      src={night ? "/brand/vallo-mark.png" : "/brand/vallo-mark-light.png"}
+      /* Only the visible twin may carry the name: the other is display none,
+         which already removes it from the accessibility tree, and the empty
+         alt keeps a broken-image fallback from speaking twice. */
       alt={title ?? ""}
       aria-hidden={title ? undefined : true}
       width={size}
       height={markHeight(size)}
-      priority={priority}
-      className={className}
+      priority={night ? priority : undefined}
+      loading={night ? undefined : "eager"}
+      className={`nf-logo-art nf-logo-art--${night ? "night" : "day"} ${className ?? ""}`}
       style={{ width, height: "auto" }}
     />
+  );
+  return (
+    <>
+      {art(true)}
+      {art(false)}
+    </>
   );
 }
 
@@ -164,20 +188,67 @@ export function Logo({
         {/* V-78 and OPS-10: `sizes` names the DRAWN width, so the optimiser
             serves a file the size of the lockup instead of 828 or 1920 wide
             on every page. */}
-        <Image
-          src="/brand/vallo-wordmark.png"
-          alt=""
-          aria-hidden="true"
-          width={758}
-          height={167}
-          /* OPS-10: drawn at most about wordSize × 4.5 wide; without this the
-             optimiser served the 1920-wide version for a 78 px logo. */
-          sizes={`${Math.ceil((wordSize * 758) / 167)}px`}
-          priority={priority}
-          className="nf-logo__word"
-          style={{ height: wordFontSize, width: "auto" }}
-        />
+        {(["night", "day"] as const).map((when) => (
+          <Image
+            key={when}
+            src={when === "night" ? "/brand/vallo-wordmark.png" : "/brand/vallo-wordmark-light.png"}
+            alt=""
+            aria-hidden="true"
+            width={758}
+            height={167}
+            /* OPS-10: drawn at most about wordSize × 4.5 wide; without this the
+               optimiser served the 1920-wide version for a 78 px logo. */
+            sizes={`${Math.ceil((wordSize * 758) / 167)}px`}
+            priority={when === "night" ? priority : undefined}
+            loading={when === "day" ? "eager" : undefined}
+            className={`nf-logo__word nf-logo-art nf-logo-art--${when}`}
+            style={{ height: wordFontSize, width: "auto" }}
+          />
+        ))}
       </span>
     </span>
+  );
+}
+
+/**
+ * The wordmark alone, both artworks, for a surface that sets the word apart
+ * from the mark (the assistant's bar, the letter-by-letter assembly). The
+ * pair is chosen by `app/css/light.css` exactly as in `Logo`, so a light page
+ * gets the daylight twin and a night island keeps the night file.
+ */
+export function LogoWordmark({
+  width,
+  height,
+  sizes,
+  priority,
+  className,
+  style,
+}: {
+  /** Declared intrinsic box, as `next/image` wants it. */
+  width: number;
+  height: number;
+  sizes?: string;
+  priority?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <>
+      {(["night", "day"] as const).map((when) => (
+        <Image
+          key={when}
+          src={when === "night" ? "/brand/vallo-wordmark.png" : "/brand/vallo-wordmark-light.png"}
+          alt=""
+          aria-hidden="true"
+          width={width}
+          height={height}
+          sizes={sizes}
+          priority={when === "night" ? priority : undefined}
+          loading={when === "day" ? "eager" : undefined}
+          className={`nf-logo-art nf-logo-art--${when} ${className ?? ""}`}
+          style={style}
+        />
+      ))}
+    </>
   );
 }

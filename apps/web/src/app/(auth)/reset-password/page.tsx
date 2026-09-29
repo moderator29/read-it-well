@@ -45,17 +45,19 @@ export default async function ResetPasswordPage() {
 
   if (!proof) {
     return (
-      <div className="w-full text-center">
-        <h1 className="nf-h2">{t.auth.resetExpiredTitle}</h1>
-        <p className="mx-auto mt-2 max-w-[36ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {t.auth.resetExpiredLead}
-        </p>
-        <Link
-          href="/forgot-password"
-          className="nf-btn nf-btn--primary nf-btn--lg mt-6 w-full justify-center"
-        >
-          {t.auth.resetSend}
-        </Link>
+      <div className="nf-auth__screen">
+        <h1 className="nf-auth__title">{t.auth.resetExpiredTitle}</h1>
+        <p className="nf-auth__sub">{t.auth.resetExpiredLead}</p>
+        <div className="nf-auth__form">
+          <Link href="/forgot-password" className="nf-btn nf-btn--primary nf-btn--full nf-auth__cta">
+            {t.auth.resetSend}
+          </Link>
+          {/* A link opened in another browser lands here, and the code in the
+              same email works anywhere. */}
+          <Link href="/forgot-password/code" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
+            {t.auth.resetEnterCode}
+          </Link>
+        </div>
       </div>
     );
   }

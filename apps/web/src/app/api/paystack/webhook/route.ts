@@ -18,6 +18,7 @@ import { recordAlert } from "@/lib/alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
 import { BOOKING_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
 import { refundChargeToCard } from "@/lib/payments/refund";
+import { handleRefundEvent, readRefundEvent } from "@/lib/payments/refund-events";
 import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
 
 /**
@@ -236,6 +237,10 @@ async function handleBookingChargeSuccess(
       { amountMinor },
     );
   }
+  if (settlement.outcome === "share-settled") {
+    // V-86: a flatmate's share moved money on this call; the booking waits for the rest.
+    return verdict("posted", "booking_share_settled", 200, { amountMinor });
+  }
   if (settlement.outcome !== "settled") {
     return verdict("duplicate", `booking_${settlement.outcome}`, 200, { amountMinor });
   }
@@ -246,7 +251,7 @@ async function handleBookingChargeSuccess(
   // can confirm a booking.
   await announceConfirmedStay(admin, {
     bookingId: settlement.bookingId,
-    totalMinor: settlement.ledger.grossMinor,
+    totalMinor: settlement.totalMinor,
   });
 
   return verdict("posted", "booking_settled", 200, { amountMinor });
@@ -306,6 +311,16 @@ async function dispatch(
   if (event === "charge.failed") {
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeFailed(admin, data);
     return verdict("ignored", "reference_not_ours", 200);
+  }
+
+  // V-24: the processor's word that a refund reached the card (or did not).
+  // Recorded only; Vallo holds no balance to credit (lib/payments/refund-events.ts).
+  if (event === "refund.processed" || event === "refund.failed") {
+    const refund = readRefundEvent(event, data);
+    if (!refund) return verdict("ignored", "refund_event_unreadable", 200);
+    const recorded = await handleRefundEvent(admin, refund);
+    if (recorded === "error") return verdict("failed", "refund_event_not_recorded", 500);
+    return verdict(recorded === "recorded" ? "posted" : "duplicate", `refund_${refund.status}:${recorded}`, 200);
   }
 
   if (event.startsWith("transfer.")) {

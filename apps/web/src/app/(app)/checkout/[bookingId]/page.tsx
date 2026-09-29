@@ -20,6 +20,7 @@ import { PaymentReturn } from "./PaymentReturn";
 import { chargeSavedCardFor } from "./saved-card-action";
 import { listPaymentMethods } from "@/lib/payments/methods-actions";
 import type { PaymentMethod } from "@/lib/payments/methods";
+import { cryptoOfferForViewer } from "@/lib/crypto/offer";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -138,6 +139,8 @@ export default async function CheckoutPage({
   const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
   const savedCardKey = crypto.randomUUID();
   const chargeSavedCard = chargeSavedCardFor.bind(null, bookingId, savedCardKey);
+  /* Crypto, decided here on the server: null while it is off for the platform. */
+  const cryptoOffer = await cryptoOfferForViewer();
 
   /* ----------------------------------------------------------- the screen */
 
@@ -273,7 +276,7 @@ export default async function CheckoutPage({
             fired is content that sometimes does not exist.
           */}
           <div className="mt-block">
-            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} />
+            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} crypto={cryptoOffer} />
           </div>
         </>
       )}

@@ -293,14 +293,47 @@
     line-height: 1.55;
     color: var(--nf-content-secondary);
   }
+  /*
+   * THE THREE RULES READ AS A LIST ON A PHONE, NOT AS THREE POSTERS.
+   * Stacked, each card spent a whole row on a 56px object and then started
+   * its title under it, so three short rules took a screen and a half and
+   * read as three unrelated boxes. Under 48rem (where the grid is still one
+   * column) the object sits beside its title and the sentence runs full
+   * width beneath both: the same three cards, the same object and its
+   * motion, a third less height, and each one reads "rule: reason".
+   */
+  @media (max-width: 47.999rem) {
+    .nf-protect-card {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      column-gap: var(--nf-gap-group);
+      row-gap: var(--nf-gap-row);
+    }
+    .nf-protect-title {
+      margin-top: 0;
+    }
+    .nf-protect-body,
+    .nf-protect-card .nf-room-link {
+      grid-column: 1 / -1;
+    }
+    .nf-protect-card .nf-room-link {
+      justify-self: start;
+    }
+  }
   .nf-protect-card .nf-room-link {
     margin-top: auto;
   }
 
   /* ===================================================== the AI room */
 
+  /* `minmax(0, 1fr)`, not the implicit `auto` track. An auto track is as wide
+     as its widest child's min-content, and the showcase bar's caption is
+     `nowrap`: at 320px that pushed both columns to 324px, 28px past the
+     screen (measured). A zero floor lets the caption ellipsis do its job. */
   .nf-ai-room {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-gap-block);
     align-items: center;
   }
@@ -936,6 +969,51 @@
   }
   .nf-journey__stage {
     display: none;
+  }
+
+  /*
+   * FOUR STEPS SHOULD READ AS FOUR STEPS UNDER 64REM.
+   *
+   * Stacked, each chapter was a text block and then a 400px phone, so the
+   * section ran over 3,000px at 360 and the four cards read as four
+   * separate posters rather than one sequence. Layout only; the phone's
+   * screens and every entrance are untouched:
+   *
+   *   - a short brand line joins each card to the next across the gap, the
+   *     way the desktop rail joins the chapter names;
+   *   - under 40rem the phone is drawn at 80% (`zoom`, which scales the
+   *     layout box too, so nothing is left overhanging by a transform);
+   *   - from 40rem to 64rem the phone sits beside its text instead of
+   *     under it, which is what a tablet's width is for.
+   */
+  @media (max-width: 63.999rem) {
+    .nf-journey__chapters {
+      gap: var(--nf-gap-group);
+    }
+    .nf-journey__chapter {
+      position: relative;
+    }
+    .nf-journey__chapter + .nf-journey__chapter::before {
+      content: "";
+      position: absolute;
+      bottom: 100%;
+      left: calc(var(--nf-pad-card) + 1.75rem - 1px);
+      width: 2px;
+      height: var(--nf-gap-group);
+      background: linear-gradient(180deg, var(--nf-brand-secondary), var(--nf-brand-primary));
+      opacity: 0.7;
+    }
+  }
+  @media (max-width: 39.999rem) {
+    .nf-journey__inline .nf-phone--sm {
+      zoom: 0.8;
+    }
+  }
+  @media (min-width: 40rem) and (max-width: 63.999rem) {
+    .nf-journey__chapter {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
   }
 
   @media (min-width: 64rem) {
@@ -2081,6 +2159,24 @@
     }
     .nf-marquee__copy {
       display: none;
+    }
+  }
+
+  /* ONE PADDING STEP FOR THE NARROWEST PHONES. Under 360px the page gutter
+     (24) plus the card's own 24 on each side left a 224px text column at
+     320, 28 characters of body a line. These cards take the next rung down,
+     `--nf-pad-card-sm` (16), the step the footer and the stats band already
+     take; 360px and up are unchanged. Last in the file so it follows each
+     card's own padding rule. */
+  @media (max-width: 22.49rem) {
+    .nf-protect-card,
+    .nf-bento__card,
+    .nf-journey__chapter,
+    .nf-worlds__stage {
+      padding: var(--nf-pad-card-sm);
+    }
+    .nf-journey__chapter + .nf-journey__chapter::before {
+      left: calc(var(--nf-pad-card-sm) + 1.75rem - 1px);
     }
   }
 }

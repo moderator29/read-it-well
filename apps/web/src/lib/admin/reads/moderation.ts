@@ -36,7 +36,9 @@ export const REPORT_CATEGORIES = [
 export type ReportCategory = (typeof REPORT_CATEGORIES)[number] | "uncategorised";
 
 async function adminDb(): Promise<Db | null> {
-  const access = await requireAdmin();
+  /* Scoped: the Held and Reports lanes read through here, and staff holding
+     the moderation scope work those lanes. Admins pass either way. */
+  const access = await requireAdmin("moderation");
   return access.state === "admin" ? access.supabase : null;
 }
 

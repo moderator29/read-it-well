@@ -166,6 +166,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/sign-up/email": "/sign-up",
   "/sign-up/verify": "/sign-up/email",
   "/forgot-password": "/sign-in",
+  "/forgot-password/code": "/forgot-password",
   "/reset-password": "/sign-in",
   /* The landing place of every link out of Supabase Auth. A person pressing
      back here has abandoned a verification, and `/sign-in` is where its own
@@ -239,6 +240,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/bookings/[bookingId]/review": "/bookings/[bookingId]",
   "/checkout": "/stays",
   "/checkout/[bookingId]": "/bookings/[bookingId]",
+  /* One crypto payment, opened from its notification or email. */
+  "/pay/crypto/[reference]": "/bookings",
 
   /* ------------------------------------------------------------- messages */
   "/messages": "/home",
@@ -293,12 +296,15 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* The in-app help and support home, and the member's ticket inbox under it. */
   "/support": "/home",
   "/support/messages": "/support",
+  "/support/new": "/support",
   "/support/messages/[id]": "/support/messages",
   "/settings/interests": "/settings",
   "/settings/notifications": "/settings",
   "/settings/payments": "/settings",
   "/settings/place": "/settings",
   "/settings/privacy": "/settings",
+  /* DB2: the people you blocked, one level inside Privacy & Security. */
+  "/settings/privacy/blocked": "/settings/privacy",
   "/settings/phone": "/settings",
   "/legal/privacy": "/settings",
   "/legal/terms": "/settings",
@@ -335,6 +341,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* V-80: field speed, one panel read from real phones. */
   "/admin/field-speed": "/admin/operations",
   "/admin/payments": "/admin",
+  "/admin/people": "/admin",
   /*
    * `/admin/queue` is a DESK, not the console's landing screen, and that is the
    * whole of the founder's item 5: the queue used to BE `/admin` and the
@@ -347,7 +354,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/social": "/admin",
   "/admin/standing": "/admin",
   "/admin/stops": "/admin",
-  "/admin/people/[id]": "/admin/stops",
+  "/admin/people/[id]": "/admin/people",
   "/admin/supply": "/admin",
   "/admin/support": "/admin",
   "/admin/switches": "/admin",
@@ -484,8 +491,10 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
+  "/api/cron/crypto-reconcile": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
+  "/api/cron/rent-share-refunds": "scheduled job, bearer token.",
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
   "/api/cron/landlord-line": "scheduled job, bearer token.",
   "/api/cron/sanctions-lists": "scheduled job, bearer token.",

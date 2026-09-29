@@ -10,10 +10,18 @@ import {
   readDraft,
   readOpenDraft,
   readStates,
-  type WizardDraft,
+  type DraftRead,
 } from "@/lib/agent/listings-queries";
 import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
 import { readBroadcastMarks } from "@/lib/agent/broadcast-marks-queries";
+import {
+  DRAFT_READ_FAILED_SENTENCE,
+  MISSING_LISTING_SENTENCE,
+  lockedSentence,
+  wizardOpening,
+} from "@/lib/agent/listings-edit-state";
+import { EmptyState } from "@/components/app/Screen";
+import { ButtonLink } from "@/components/ui/Button";
 import { ListingWizard } from "./ListingWizard";
 import { ListingPitch } from "./ListingPitch";
 
@@ -100,9 +108,39 @@ export default async function Page({
     id
       ? readDraft(context.supabase, context.agent.id, id)
       : startFresh
-        ? Promise.resolve<WizardDraft | null>(null)
+        ? Promise.resolve<DraftRead>(null)
         : readOpenDraft(context.supabase, context.agent.id),
   ]);
+
+  /* A live or reviewing listing is not opened as a form that refuses every
+     save, and an id that names nothing does not open a blank form whose
+     first save files a new listing. */
+  const opening = wizardOpening(id, draft);
+  if (opening.kind !== "edit" || draft === "read-failed") {
+    const failed = opening.kind === "failed";
+    const retry = id ? `/agent/list?id=${encodeURIComponent(id)}` : "/agent/list";
+    return (
+      <AgentShell t={t} locale={locale} active="/agent/list" profile={agentProfileFrom(context.agent)}>
+        <EmptyState
+          icon="doc-lock"
+          title={draft && draft !== "read-failed" ? draft.title : t.agent.nav.myListings}
+          body={
+            opening.kind === "locked"
+              ? lockedSentence(opening.status)
+              : failed
+                ? DRAFT_READ_FAILED_SENTENCE
+                : MISSING_LISTING_SENTENCE
+          }
+          action={
+            <ButtonLink href={failed ? retry : "/agent/listings"} variant="primary">
+              {failed ? "Try again" : t.agent.nav.myListings}
+            </ButtonLink>
+          }
+          data-testid={opening.kind === "locked" ? "listing-locked" : failed ? "listing-read-failed" : "listing-missing"}
+        />
+      </AgentShell>
+    );
+  }
 
   /* V-09: which figures from a pasted message are still unchecked, as the
      server holds them for this draft. */

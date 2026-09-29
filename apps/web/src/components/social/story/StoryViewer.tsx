@@ -1,7 +1,7 @@
 "use client";
 
 import { initial } from "@/lib/text/initial";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -16,6 +16,7 @@ import {
   commentOnStory,
   recordStoryView,
   removeStory,
+  reportStoryComment,
   toggleStoryCommentLike,
   toggleStoryMark,
 } from "@/lib/social/stories-actions";
@@ -199,7 +200,11 @@ export function StoryViewer({
 
   /* The sheet knows nothing about stories or posts. It is handed rows and two
      functions, so the same component serves both sources. */
-  const commentRows: CommentRow[] = comments.map((comment) => ({
+  /* Memoised on the server's list, because the sheet resets its own rows
+     whenever this reference changes. A fresh array on every render of this
+     page (a toast, a like on the story) wiped the sheet's optimistic comment
+     likes and put back the comments of somebody just blocked. */
+  const commentRows: CommentRow[] = useMemo(() => comments.map((comment) => ({
     id: comment.id,
     parentId: comment.parentId,
     body: comment.body,
@@ -212,7 +217,7 @@ export function StoryViewer({
     liked: comment.liked,
     isMine: comment.isMine,
     removed: comment.removed,
-  }));
+  })), [comments]);
 
   return (
     <div className="nf-story">
@@ -490,6 +495,7 @@ export function StoryViewer({
             commentOnStory({ storyId: story.id, parentId, body })
           }
           onLike={(commentId) => toggleStoryCommentLike({ commentId })}
+          onReport={(input) => reportStoryComment(input)}
         />
       ) : null}
 

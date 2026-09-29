@@ -178,27 +178,14 @@ export function EmailAuthForm({
     : state.fieldErrors?.confirmPassword;
 
   return (
-    /* Sign in is the render's card and takes its measured width (ledger
-       R-C); the nine-field sign-up form keeps the wider card. */
-    <div className={isSignUp ? "w-full" : "nf-auth--narrow w-full"}>
-      {/* The way back sits above the heading, where a screen reader and a thumb
-          both find it first, and it names where it goes rather than saying
-          "back" to somebody who arrived here on a deep link. */}
-      <Link
-        href={withNext(isSignUp ? "/sign-up" : "/sign-in", next)}
-        className="nf-tap nf-auth__aside -ml-1 mb-sm inline-flex items-center gap-xs text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
-      >
-        <UiIcon name="arrow-left" size={16} />
-        {t.auth.otherWays}
-      </Link>
-
+    <div className={isSignUp ? "nf-auth__screen nf-auth__screen--form" : "nf-auth__screen"}>
       <h1 className="nf-auth__title">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
-      <p className="nf-auth__sub mb-lg">
+      <p className="nf-auth__sub">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
 
       {!isSignUp && accountMethod === "google" && (
-        <div className="nf-auth__notice mb-md" role="status">
+        <div className="nf-auth__notice" role="status">
           <p>{googleReady ? t.auth.accountUsesGoogle : t.auth.accountUsesGoogleOff}</p>
           {googleReady && (
             <form action={startGoogleOAuth} className="mt-sm">
@@ -241,7 +228,7 @@ export function EmailAuthForm({
           const data = new FormData(e.currentTarget);
           startTransition(() => formAction(data));
         }}
-        className={isSignUp ? "text-left" : "space-y-md text-left"}
+        className={isSignUp ? "nf-auth__form nf-auth__form--groups" : "nf-auth__form nf-auth__form--fields"}
         noValidate
       >
         {/* Where the middleware was sending them before it asked them to sign
@@ -438,18 +425,18 @@ export function EmailAuthForm({
           />
         )}
 
-        <div className={isSignUp ? "mt-7" : ""}>
-          <Button type="submit" variant="primary" size="lg" full loading={pending}>
+        {/* On sign up the button rides a bar pinned to the foot of the
+            screen, so the one primary action is in view from the first
+            field to the last without scrolling to find it. */}
+        <div className={isSignUp ? "nf-auth__actions nf-auth__actions--sticky" : "nf-auth__actions"}>
+          <Button type="submit" variant="primary" size="lg" full loading={pending} className="nf-auth__cta">
             {isSignUp ? t.common.signUp : t.common.signIn}
           </Button>
         </div>
 
         {!isSignUp && (
-          <p className="text-center">
-            <Link
-              href="/forgot-password"
-              className="nf-tap nf-auth__aside text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
-            >
+          <p className="nf-auth__links">
+            <Link href="/forgot-password" className="nf-tap nf-auth__aside">
               {t.auth.forgotPassword}
             </Link>
           </p>
@@ -460,6 +447,15 @@ export function EmailAuthForm({
         {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
         <Link href={withNext(isSignUp ? "/sign-in" : "/sign-up", next)}>
           {isSignUp ? t.common.signIn : t.common.signUp}
+        </Link>
+      </p>
+
+      {/* The way back to the three choices, named for where it goes rather
+          than "back" (the top bar's control is the generic one). */}
+      <p className="nf-auth__links">
+        <Link href={withNext(isSignUp ? "/sign-up" : "/sign-in", next)} className="nf-tap nf-auth__aside">
+          <UiIcon name="arrow-left" size={16} />
+          {t.auth.otherWays}
         </Link>
       </p>
 

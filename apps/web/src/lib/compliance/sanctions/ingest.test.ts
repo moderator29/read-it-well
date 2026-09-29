@@ -42,7 +42,16 @@ function fakeAdmin() {
     };
     return api;
   };
-  return { admin: { from: chain }, versions, entries };
+  /* The database's own activation: a URL file, whole and not short, and nothing else. */
+  const rpc = async (fn: string, args?: Record<string, unknown>) => {
+    if (fn !== "sanctions_list_autoactivate") return { data: null, error: { message: "unknown" } };
+    const v = versions.find((x) => x.id === args?.p_version) as (typeof versions)[number] & { origin?: string; complete?: boolean };
+    if (!v || v.origin !== "url") return { data: { status: "upload" }, error: null };
+    if (v.complete === false) return { data: { status: "incomplete" }, error: null };
+    v.activated_at = new Date().toISOString();
+    return { data: { status: "ok" }, error: null };
+  };
+  return { admin: { from: chain, rpc }, versions, entries };
 }
 
 describe("loading a list version (SCUML items 8 and 9)", () => {

@@ -23,6 +23,8 @@ import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getDictionary, type Dictionary } from "@vallo/i18n";
+import { CryptoPayOption } from "@/components/app/payments/crypto/CryptoPayOption";
+import type { CryptoOffer } from "@/components/app/payments/crypto/offer";
 
 /**
  * The three ways to pay the rent.
@@ -107,8 +109,11 @@ export function PayPanel({
   savedCards = [],
   chargeSavedCard,
   payCopy,
+  crypto = null,
 }: {
   view: RentPayView;
+  /** Pay with crypto (lib/crypto), decided on the server. Null while crypto is off. */
+  crypto?: CryptoOffer | null;
   /** V-25: the large-payment sentences, from `t.afterTheGate.pay`. */
   payCopy?: Dictionary["afterTheGate"]["pay"];
   savedCards?: PaymentMethod[];
@@ -289,6 +294,11 @@ export function PayPanel({
             body={c.cardUnavailable}
             note={c.cardUnavailableRentNote}
           />
+        )}
+        {/* Pay with crypto, once the rent charge exists: the provider settles
+            naira to the same legs. Absent unless the server opened it. */}
+        {crypto && view.bookingId && view.chargeOpen && (
+          <CryptoPayOption offer={crypto} bookingId={view.bookingId} totalMinor={view.totalMinor} locale={view.locale} />
         )}
       </ul>
       <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]" data-testid="rent-no-custody">

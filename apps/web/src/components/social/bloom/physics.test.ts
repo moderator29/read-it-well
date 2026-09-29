@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  BLOOM_EDGE_GUTTER,
   BLOOM_FAN_SHIFT_X,
   BLOOM_ITEM,
+  bloomHalfExtentX,
   BLOOM_MEASURED,
   BLOOM_PLUS,
   BLOOM_SPRING,
@@ -89,24 +91,37 @@ describe("the bloom geometry", () => {
     expect(c.rotate).toBeLessThan(b.rotate);
   });
 
-  it("keeps every plate's centre and label on a 390px phone, as drawn", () => {
-    /* The image runs Review's rounded end past the screen; its label and the
-       whole of Story and Post stay on it. The label spans the middle 60px. */
-    const plusX = 390 - BLOOM_PLUS.inset - BLOOM_PLUS.size / 2;
-    expect(390 - plusX).toBeCloseTo(30, 0);
-    for (let i = 0; i < 3; i += 1) {
-      const slot = bloomSlot(i);
-      const rad = (Math.abs(slot.rotate) * Math.PI) / 180;
-      const labelReach = 30 * Math.cos(rad);
-      expect(plusX + slot.x + labelReach).toBeLessThan(390);
-      expect(plusX + slot.x - (BLOOM_ITEM.width / 2) * Math.cos(rad)).toBeGreaterThan(8);
+  it("keeps the whole of every plate on the screen, with air, at every phone width", () => {
+    /* The image's own centres ran Review's rotated box 18px off a 390 screen
+       and cut its label. The plus is pinned to the right edge, so the fit is
+       the same at every width; 320 is the narrowest phone checked. */
+    for (const vw of [320, 360, 390, 430]) {
+      const plusX = vw - BLOOM_PLUS.inset - BLOOM_PLUS.size / 2;
+      expect(vw - plusX).toBeCloseTo(30, 0);
+      for (let i = 0; i < 3; i += 1) {
+        const slot = bloomSlot(i);
+        const half = bloomHalfExtentX(slot.rotate);
+        expect(plusX + slot.x + half).toBeLessThanOrEqual(vw - BLOOM_EDGE_GUTTER);
+        expect(plusX + slot.x - half).toBeGreaterThan(BLOOM_EDGE_GUTTER);
+      }
     }
   });
 
-  it("sits the nearest plate on the plus's rim, not inside it", () => {
-    /* The render seats Review's lower edge on the top of the plus. */
+  it("moves the fan by the smallest whole-pixel shift that fits", () => {
+    expect(BLOOM_FAN_SHIFT_X).toBe(-26);
+    expect(Number.isInteger(BLOOM_FAN_SHIFT_X)).toBe(true);
+  });
+
+  it("keeps the nearest plate clear of the plus and its halo ring", () => {
+    /* The plus paints above the fan, so any overlap hides part of Review.
+       Distance from the plus's centre to Review's lower edge, measured in the
+       plate's own tilted frame, must clear the 29px sphere plus its 6px ring. */
     const nearest = bloomSlot(0);
-    expect(nearest.y + BLOOM_ITEM.height / 2).toBeLessThanOrEqual(-BLOOM_PLUS.size / 2 + 2);
+    const rad = (nearest.rotate * Math.PI) / 180;
+    const vx = -nearest.x;
+    const vy = -nearest.y;
+    const localY = -vx * Math.sin(rad) + vy * Math.cos(rad);
+    expect(localY - BLOOM_ITEM.height / 2).toBeGreaterThan(BLOOM_PLUS.size / 2 + 6);
   });
 
   it("draws a trail from each plate's trailing end into the plus", () => {

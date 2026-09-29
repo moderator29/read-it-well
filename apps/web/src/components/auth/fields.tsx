@@ -73,7 +73,10 @@ function LabelRow({
       <label htmlFor={htmlFor} className="nf-label">
         {label}
       </label>
-      {optional && <span className="nf-chip mb-xs px-2 py-0.5 text-[0.625rem]">{optional}</span>}
+      {/* A plain word, not a chip: a chip at the tap floor read as a button. */}
+      {optional && (
+        <span className="mb-xs text-[0.8125rem] text-[var(--nf-content-muted)]">{optional}</span>
+      )}
     </span>
   );
 }

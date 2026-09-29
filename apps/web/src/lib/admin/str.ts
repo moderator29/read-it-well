@@ -6,7 +6,7 @@ import { formatDate, type Dictionary } from "@vallo/i18n/core";
  * Shapes the rows `public.str_cases()` and `public.str_register()` return, and
  * turns each database answer into the desk's sentence. The rules (who may
  * approve, what is append-only, the clock) are the database's, in
- * `20260924173000_scuml_item_6_suspicious_transaction_reports.sql`; nothing
+ * `20260929002643_scuml_6_str_desk_and_hold_claims_on_live_tables.sql`; nothing
  * here decides anything. Staff only: nothing in this file reaches a member.
  */
 

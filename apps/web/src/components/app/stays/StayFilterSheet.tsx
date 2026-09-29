@@ -1,12 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { useClientMount } from "@/lib/ui/client-mount";
+import { Sheet } from "@/components/ui/Sheet";
 import {
   DEFAULT_RADIUS_KM,
   MAX_RADIUS_KM,
@@ -228,11 +226,8 @@ export function StayFilterSheet({
   const router = useRouter();
   const copy = t.catalogue;
   const [open, setOpen] = useState(openOnMount);
-  const mounted = useClientMount();
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
   const openerRef = useRef<HTMLButtonElement | null>(null);
-  const closeRef = useRef<HTMLButtonElement | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
 
   const [lastQuery, setLastQuery] = useState(query);
   if (query !== lastQuery) {
@@ -240,15 +235,12 @@ export function StayFilterSheet({
     setDraft(draftFrom(query));
   }
 
+  /* Escape, Back, the focus trap and its return to the opener, the scroll
+     lock and drag or flick down to close are the platform's `Sheet`, in its
+     page shape with the right-hand panel on a wide screen. */
   const close = useCallback(() => {
     setOpen(false);
-    openerRef.current?.focus();
   }, []);
-  useOverlay({ open, onClose: close, panelRef, autoFocus: false });
-  useEffect(() => {
-    if (!open) return;
-    closeRef.current?.focus();
-  }, [open]);
 
   const activeCount = activeFilterCount(query);
   const pending = useMemo(() => queryFrom(query, draft), [query, draft]);
@@ -289,24 +281,27 @@ export function StayFilterSheet({
   const sliderMax = Math.min(nairaOf(draft.maxNaira) ?? CEILING_NAIRA, CEILING_NAIRA);
 
   const panel = (
-    <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label={copy.filters.title}>
-      <button
-        type="button"
-        aria-label={copy.filters.close}
-        tabIndex={-1}
-        onClick={close}
-        className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
-      />
-      <div ref={panelRef} data-testid="stay-filters" className="nf-filters">
-        <span className="nf-filters__grip" aria-hidden="true" />
-        <header className="nf-filters__head">
-          <p className="nf-filters__title">{copy.filters.title}</p>
-          <button ref={closeRef} type="button" onClick={close} aria-label={copy.filters.close} className="nf-icon-btn h-11 w-11">
-            <UiIcon name="close" size={ICON.inline} />
-          </button>
-        </header>
-
-        <div className="nf-filters__body">
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) close();
+      }}
+      title={copy.filters.title}
+      closeLabel={copy.filters.close}
+      fullPage
+      sideOnWide
+      testId="stay-filters"
+      footer={
+        <div className="grid grid-cols-[1fr_1.4fr] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
+          <Button variant="secondary" data-testid="stay-filters-reset" onClick={reset} full size="lg">
+            {copy.filters.reset}
+          </Button>
+          <Button variant="primary" data-testid="stay-filters-apply" onClick={apply} full size="lg">
+            {copy.filters.apply.replace(" ({count})", "")}
+          </Button>
+        </div>
+      }
+    >
           <div className="mx-auto max-w-2xl">
             {/* ------------------------------------------- dates and party */}
             <Group id="stay-dates" title={copy.stays.checkIn} clearLabel={copy.filters.clear}
@@ -460,18 +455,7 @@ export function StayFilterSheet({
               </label>
             </Group>
           </div>
-        </div>
-
-        <div className="nf-filters__foot">
-          <Button variant="secondary" data-testid="stay-filters-reset" onClick={reset} full size="lg">
-            {copy.filters.reset}
-          </Button>
-          <Button variant="primary" data-testid="stay-filters-apply" onClick={apply} full size="lg">
-            {copy.filters.apply.replace(" ({count})", "")}
-          </Button>
-        </div>
-      </div>
-    </div>
+    </Sheet>
   );
 
   return (
@@ -486,7 +470,7 @@ export function StayFilterSheet({
           </span>
         )}
       </button>
-      {mounted && open ? createPortal(panel, document.body) : null}
+      {panel}
     </>
   );
 }

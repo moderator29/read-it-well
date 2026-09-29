@@ -74,6 +74,9 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
   { name: "sanctions-screen", cron: "7,22,37,52 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "sanctions-screen" } },
   /* SCUML item 15: every customer's risk class, derived and dated. */
   { name: "risk-classes", cron: "50 3 * * *", schedule: "Daily at 04:50", maxGapHours: 26, audit: { entityType: "cron_job", term: "risk-classes" } },
+  /* Crypto payments read back from the provider (lib/crypto/reconcile.ts). A no-op while nothing is moving. */
+  { name: "crypto-reconcile", cron: "3,18,33,48 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "crypto-reconcile" } },
+  { name: "rent-share-refunds", cron: "35 * * * *", schedule: "Hourly at :35", maxGapHours: 2, audit: { entityType: "cron_job", term: "rent-share-refunds" } },
 ];
 
 /**

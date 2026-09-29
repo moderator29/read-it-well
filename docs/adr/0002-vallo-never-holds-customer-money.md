@@ -4,7 +4,7 @@
 
 ## Decision
 
-No custody. There is no wallet, no balance, no escrow and no held payment, and no flag that could turn any of them back on. Every charge is split by Paystack in the same transaction: the lister's share to their own subaccount, 1 to 2 percent to a separate Vallo Guarantee reserve, and Vallo's commission (zero today) to Vallo. Crypto is naira-only through Yellow Card, settling straight to the same legs. Payment opens only after both parties confirm an agreement and an admin approves it; a rental's agreement is drawn from a submitted, photographed inspection report.
+No custody. There is no wallet, no balance, no escrow and no held payment, and no flag that could turn any of them back on. Every charge is split by Paystack in the same transaction: the lister's share to their own subaccount, 1 to 2 percent to a separate Vallo Guarantee reserve, and Vallo's commission (zero today) to Vallo. Crypto is naira-only through Yellow Card, settling straight to the same legs: the deposit address is the provider's, and Vallo never holds crypto or naira (29 September 2026: built as an alternative way to pay an existing charge, off until configured; see MONEY_ARCHITECTURE.md, "Crypto"). Payment opens only after both parties confirm an agreement and an admin approves it; a rental's agreement is drawn from a submitted, photographed inspection report.
 
 ## Why
 

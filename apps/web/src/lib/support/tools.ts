@@ -14,7 +14,7 @@ import {
   refundForCancellation,
 } from "../trust/cancellation";
 import { RESPONSE_COMMITMENTS } from "../trust/standards";
-import { SUPPORT_TOPICS, gradeForTopic, supportTopicLabel } from "../trust/support-topics";
+import { SUPPORT_TOPICS, gradeForTopic, supportTopicLabel, type SupportTopic } from "../trust/support-topics";
 import { AGREEMENT_STATUS_LABEL } from "@/components/app/agreements/status";
 import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, PAYMENT_GATE_SENTENCE } from "../money/copy";
 import { searchFaq } from "./faq";
@@ -927,7 +927,7 @@ async function runFileTicket(session: SessionState, input: unknown): Promise<Too
    * topic it can sort.
    */
   const asked = asString(raw.topic);
-  const topic = (SUPPORT_TOPICS as readonly string[]).includes(asked) ? asked : "other";
+  const topic: SupportTopic = (SUPPORT_TOPICS as readonly string[]).includes(asked) ? (asked as SupportTopic) : "other";
   const grade = gradeForTopic(topic);
 
   const signedIn = session.state === "signed-in";

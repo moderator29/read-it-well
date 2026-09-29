@@ -34,6 +34,10 @@ This confirmation was requested for {{ .Email }}. If it was not you,
 ignore this message. No account is activated and nothing further
 happens.
 
+Help and support: {{ .SiteURL }}/support
+Privacy: {{ .SiteURL }}/legal/privacy
+Terms: {{ .SiteURL }}/legal/terms
+
 Vallo
 VALLO SPACES LTD (RC 9870413), Abuja, Nigeria
 {{ .SiteURL }}

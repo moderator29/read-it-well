@@ -93,10 +93,22 @@ export function canSubmit(
   state: InspectionState,
   report: InspectionReport | null,
   outcome: InspectionOutcome | null,
+  needPhotos = 0,
 ): boolean {
   if (state !== "CONFIRMED") return false;
   if (!live) return outcome !== null;
-  return !report?.submittedAt && allChecked(report?.items ?? {});
+  return !report?.submittedAt && allChecked(report?.items ?? {}) && (report?.photoCount ?? 0) >= needPhotos;
+}
+
+/**
+ * How many more photos a report needs before it can be submitted. A rental's
+ * report is what its agreement is drawn up from, and both
+ * `private.inspection_report_submission` and `agreement_open_rent_as` refuse
+ * one with fewer than `money_policy.min_inspection_photos`. A submitted report
+ * takes no more photos, so this is asked before, never after.
+ */
+export function photosShort(report: InspectionReport | null, needPhotos: number): number {
+  return Math.max(0, needPhotos - (report?.photoCount ?? 0));
 }
 
 /** The shape `saveInspectionReport` returns (lib/inspections/actions.ts). */

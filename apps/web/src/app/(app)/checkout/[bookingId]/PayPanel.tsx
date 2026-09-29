@@ -24,6 +24,8 @@ import { Panel } from "@/components/ui/Panel";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { CryptoPayOption } from "@/components/app/payments/crypto/CryptoPayOption";
+import type { CryptoOffer } from "@/components/app/payments/crypto/offer";
 
 /**
  * The two ways to pay.
@@ -156,7 +158,13 @@ export function PayPanel({
   savedCards = [],
   chargeSavedCard,
   plansAction,
+  crypto = null,
 }: {
+  /**
+   * Pay with crypto (lib/crypto), decided on the server by the page. Null
+   * whenever crypto is off for the platform, so nothing about it renders.
+   */
+  crypto?: CryptoOffer | null;
   view: CheckoutView;
   /** Where "done" sends somebody, in the dictionary's words (V-76 review). */
   plansAction: { label: string; href: string };
@@ -400,6 +408,11 @@ export function PayPanel({
                only part the reader could act on anyway. */
             note={c.cardUnavailableStayNote}
           />
+        )}
+        {/* Pay with crypto: the same charge, the same split legs, settled in
+            naira by a licensed provider. Absent unless the server opened it. */}
+        {crypto && (
+          <CryptoPayOption offer={crypto} bookingId={view.bookingId} totalMinor={view.totalMinor} locale={view.locale} />
         )}
       </ul>
       {/* Where the money goes, said before the tap. Vallo never holds it. */}

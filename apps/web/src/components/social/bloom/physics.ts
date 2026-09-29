@@ -71,25 +71,28 @@ export function isSettled(state: SpringState, target: number): boolean {
  * Nearest the thumb is least tilted and the tilt grows outward, so the three
  * lie along one arc that leans further the further it is thrown.
  *
- * NO DIFFERENCE BUT ONE (the founder, 23 September: "no single difference
- * from this image"). Centres, tilts, sizes (91 x 37) and the plus's place
- * (its centre 30 CSS px in from the screen's edge) are the image's. The one
- * translation is his own ruling: the plates are rounded rectangles on the
- * control radius rather than capsules. Review's rounded end runs past the
- * screen's edge exactly as it does in the image, where it is drawn over the
- * phone's frame; on a phone the screen's edge cuts it there, and the label
- * stays on the screen. Each plate's tap target is 44 tall by a pseudo-element,
- * which paints nothing.
+ * Tilts, sizes (91 x 37), the spacing along the arc and the plus's place (its
+ * centre 30 CSS px in from the screen's edge) are the image's. The plates are
+ * rounded rectangles on the control radius rather than capsules, the
+ * founder's own ruling. Each plate's tap target is 44 tall by a
+ * pseudo-element, which paints nothing.
+ *
+ * THE ONE PLACE THE IMAGE CANNOT BE COPIED. The image draws Review over the
+ * phone's frame: its centre sits 0.7px left of the plus's, and the plus's
+ * centre is 30px from the edge, but a 91px plate tilted 13 degrees is 97px
+ * wide. On a real screen that put Review's right end 18px off the glass and
+ * cut the last letters of its label, and its foot ran under the plus, which
+ * paints above the fan. So the whole fan moves left by `BLOOM_FAN_SHIFT_X`,
+ * derived below from that constraint rather than chosen by eye: the smallest
+ * uniform shift that leaves every plate's rotated box `BLOOM_EDGE_GUTTER`
+ * clear of the screen's edge. Uniform, so the arc, the spacing and the tilts
+ * are unchanged; the geometry test holds both.
  *
  * Index 0 is the plate nearest the plus. It opens first and closes last, so
  * the fan grows outward and folds inward, and it paints on top, as the render
  * lays Review over Story and Story over Post.
  */
 export type BloomSlot = { x: number; y: number; rotate: number };
-
-/** No shift: the fan sits where the image draws it. Kept as a named zero so
-    the geometry test states the decision rather than implying it. */
-export const BLOOM_FAN_SHIFT_X = 0;
 
 /** The measured centres and tilts, before the shift. */
 export const BLOOM_MEASURED: readonly BloomSlot[] = [
@@ -98,17 +101,42 @@ export const BLOOM_MEASURED: readonly BloomSlot[] = [
   { x: -63.5, y: -114.8, rotate: -20 },
 ];
 
-const SLOTS: BloomSlot[] = BLOOM_MEASURED.map((slot) => ({
-  x: Math.round((slot.x + BLOOM_FAN_SHIFT_X) * 10) / 10,
-  y: slot.y,
-  rotate: slot.rotate,
-}));
-
 /** A plate's width and height, as the stylesheet draws them. */
 export const BLOOM_ITEM = { width: 91, height: 37 } as const;
 
 /** The plus: 58px across (98 image px), its centre 30px in from the edge. */
 export const BLOOM_PLUS = { size: 58, inset: 1 } as const;
+
+/** Air kept between any plate's rotated box and the screen's edge. It also
+    covers the plate's 1px outer ring. */
+export const BLOOM_EDGE_GUTTER = 8;
+
+/** Half the width of a plate's axis-aligned box once it is tilted. */
+export function bloomHalfExtentX(rotate: number): number {
+  const rad = (Math.abs(rotate) * Math.PI) / 180;
+  return (BLOOM_ITEM.width / 2) * Math.cos(rad) + (BLOOM_ITEM.height / 2) * Math.sin(rad);
+}
+
+/**
+ * The uniform leftward move that keeps every plate on the screen: for each
+ * plate, how far its right side may sit from the plus's centre, less where
+ * the image put it, and the tightest of the three wins. Rounded down to a
+ * whole pixel so it only ever errs further on to the screen.
+ */
+export const BLOOM_FAN_SHIFT_X = Math.min(
+  0,
+  ...BLOOM_MEASURED.map((slot) =>
+    Math.floor(
+      BLOOM_PLUS.inset + BLOOM_PLUS.size / 2 - BLOOM_EDGE_GUTTER - bloomHalfExtentX(slot.rotate) - slot.x,
+    ),
+  ),
+);
+
+const SLOTS: BloomSlot[] = BLOOM_MEASURED.map((slot) => ({
+  x: Math.round((slot.x + BLOOM_FAN_SHIFT_X) * 10) / 10,
+  y: slot.y,
+  rotate: slot.rotate,
+}));
 
 export function bloomSlot(index: number): BloomSlot {
   return SLOTS[Math.min(index, SLOTS.length - 1)] ?? SLOTS[0]!;

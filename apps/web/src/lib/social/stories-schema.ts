@@ -37,6 +37,7 @@
 
 import { z } from "zod";
 import { DB_LIMIT_CODE, DB_LIMIT_MESSAGE } from "@/lib/security/db-limit";
+import { REPORT_REASONS } from "./posts-schema";
 
 export const STORY_HEADLINE_MIN = 3;
 export const STORY_HEADLINE_MAX = 120;
@@ -82,6 +83,13 @@ export type StoryInput = z.infer<typeof storyInputSchema>;
 
 export const storyIdSchema = z.object({ storyId: z.string().uuid() });
 export const storyCommentIdSchema = z.object({ commentId: z.string().uuid() });
+
+/** A report against one story comment. Same reasons and limits as a post's. */
+export const reportStoryCommentSchema = z.object({
+  commentId: z.string().uuid(),
+  reason: z.enum(REPORT_REASONS),
+  detail: z.string().trim().max(600).optional().or(z.literal("")),
+});
 
 export const storyMarkSchema = z.object({
   storyId: z.string().uuid(),

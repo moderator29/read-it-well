@@ -1,6 +1,7 @@
 import "server-only";
 
 import { loadConversationSummaries, type LiveConversationSummary } from "../messages/live";
+import { loadUnreadCounts } from "../messages/unread";
 import { getAgentContext } from "./listings-queries";
 
 /**
@@ -99,15 +100,9 @@ export async function getUnreadMessageCount(): Promise<number> {
   const context = await getAgentContext();
   if (context.state !== "agent" && context.state !== "not-agent") return 0;
 
-  try {
-    const { count, error } = await context.supabase
-      .from("messages")
-      .select("id", { count: "exact", head: true })
-      .is("read_at", null)
-      .neq("sender_id", context.user.id);
-    if (error) return 0;
-    return count ?? 0;
-  } catch {
-    return 0;
-  }
+  /* DB2: my_unread_counts() counts only the caller's own threads. The old
+     count ran under RLS with no conversation filter, so for an admin (who may
+     read every conversation) it was the platform's unread total. */
+  const counts = await loadUnreadCounts(context.supabase);
+  return counts?.total ?? 0;
 }

@@ -102,13 +102,26 @@ if (icons.length === 0) {
   process.exit(1);
 }
 
+/*
+ * JSX to SVG. Every camelCase attribute becomes its kebab-case SVG name
+ * (`strokeLinejoin` to `stroke-linejoin`, `fillRule` to `fill-rule`), because
+ * a standalone file is read by tools that do not know React's spelling. A
+ * design token has no meaning outside the app, so the one the set uses (the
+ * identity tick's ink) is written as the white it resolves to on the brand.
+ */
+function toSvgMarkup(jsx) {
+  return jsx
+    .replace(/\b([a-z]+)([A-Z][A-Za-z]*)=/g, (_m, head, tail) => `${head}${tail.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}=`)
+    .replace(/var\(--nf-content-on-brand\)/g, "#fff");
+}
+
 const check = process.argv.includes("--check");
 mkdirSync(outDir, { recursive: true });
 
 let drift = 0;
 for (const { key, body } of icons) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${EDGE}" height="${EDGE}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">
-${body.replace(/strokeWidth=/g, "stroke-width=").replace(/strokeLinecap=/g, "stroke-linecap=")}
+${toSvgMarkup(body)}
 </svg>
 `;
   const file = join(outDir, `${key}.svg`);

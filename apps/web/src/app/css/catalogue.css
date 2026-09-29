@@ -645,62 +645,9 @@
      3EB3E2A9's right-hand panel: a glass sheet with a grip, groups headed by
      a title and a Clear link, rectangles for the choice sets, switches for
      the amenities, two rows for location and sort, Reset and Apply. */
-  .nf-filters {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    background: var(--nf-panel-fill);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
-    backdrop-filter: blur(var(--nf-panel-blur));
-    isolation: isolate;
-  }
-  @media (min-width: 48rem) {
-    .nf-filters {
-      inset: auto 0 0 auto;
-      width: min(28rem, 100%);
-      height: 100%;
-    border-radius: var(--nf-container-radius) 0 0 var(--nf-container-radius);
-  }
-  }
-  /* The grabber above the title, as the render draws it.
-
-     LEFT ROUND ON PURPOSE under the founder's shape law: this is a 4px bar
-     with no letters on it and it is not a control. Squaring its ends would
-     make a grabber look like a broken divider. */
-  .nf-filters__grip {
-    display: block;
-    width: 2.5rem;
-    height: 0.25rem;
-    flex-shrink: 0;
-    margin: var(--nf-space-xs) auto 0;
-    margin-top: calc(var(--nf-space-xs) + env(safe-area-inset-top, 0px));
-    border-radius: var(--nf-radius-pill);
-    background: var(--nf-panel-catch);
-  }
-  .nf-filters__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--nf-space-sm);
-    padding: var(--nf-space-sm) var(--nf-pad-shell);
-    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
-  }
-  .nf-filters__title {
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h3);
-    font-weight: 700;
-    color: var(--nf-content-primary);
-  }
-  .nf-filters__body {
-    min-height: 0;
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--nf-space-md) var(--nf-pad-shell) var(--nf-space-xl);
-  }
+  /* The surface, grip, head, body and foot are the platform's `Sheet` in its
+     page shape (`fullPage` + `sideOnWide`, overlays.css); what follows is
+     the inside of the sheet. */
   .nf-filters__group + .nf-filters__group {
     margin-top: var(--nf-space-lg);
     padding-top: var(--nf-space-lg);
@@ -908,15 +855,6 @@
     font-weight: 700;
     color: var(--nf-content-primary);
   }
-  .nf-filters__foot {
-    display: grid;
-    grid-template-columns: 1fr 1.4fr;
-    gap: var(--nf-space-xs);
-    padding: var(--nf-space-sm) var(--nf-pad-shell);
-    padding-bottom: calc(var(--nf-space-sm) + env(safe-area-inset-bottom, 0px));
-    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
-  }
-
   /* ======================================================== listing detail
      The founder's send-back: the hero carries the marks, a lit glass lead
      card overlaps it, and there is no thumbnail strip. The strip's rules

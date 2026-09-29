@@ -68,6 +68,41 @@ export const resolveSession = cache(async function resolveSession(): Promise<Ses
   return { state: "signed-in", supabase, user };
 });
 
+/**
+ * WHO IS ASKING, WHEN THE ANSWER NEEDED IS ONLY AN ID.
+ *
+ * `resolveSession()` above calls `auth.getUser()`, a GoTrue round trip, and
+ * hands back the whole `User`. The app shell needs one thing from it, the
+ * caller's id, and every shell read then goes through PostgREST, which
+ * authorises on the same access token by its signature alone. So the shell
+ * resolves the id the way PostgREST does: `auth.getClaims()` verifies the
+ * token's ES256 signature against the project's published JWKS (cached for ten
+ * minutes per server instance) and its expiry, locally, with no call to auth.
+ * A symmetric (HS256) token or a runtime without WebCrypto makes getClaims fall
+ * back to `getUser()` itself, so nothing is ever trusted unverified.
+ *
+ * WHAT IS NOT LOST. Revocation is still checked on every request: `proxy.ts`
+ * calls `getUser()` for every in-app route before render, and that call is the
+ * one that refreshes the token. Every page and action that needs the full user
+ * (email, metadata, factors) keeps calling `resolveSession()`; this is for
+ * readers that need the id and nothing else.
+ *
+ * Memoised per request, like `resolveSession`, for the same reasons.
+ */
+export type ClaimsSessionState =
+  | { state: "unconfigured" }
+  | { state: "signed-out" }
+  | { state: "signed-in"; supabase: SupabaseClient<Database>; userId: string };
+
+export const resolveSessionClaims = cache(async function resolveSessionClaims(): Promise<ClaimsSessionState> {
+  if (!isSupabaseConfigured()) return { state: "unconfigured" };
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+  const sub = error ? undefined : data?.claims?.sub;
+  if (typeof sub !== "string" || sub.length === 0) return { state: "signed-out" };
+  return { state: "signed-in", supabase, userId: sub };
+});
+
 /** The two copy lines every action reuses for the non-signed-in outcomes. */
 export const NOT_CONFIGURED_MESSAGE =
   "We cannot reach this part of the platform right now. Nothing you entered was lost.";

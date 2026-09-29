@@ -24,7 +24,7 @@ const USER = "11111111-1111-4111-8111-111111111111";
 const ID = "44444444-4444-4444-8444-444444444444";
 
 type Answer = { data: unknown; error: unknown };
-type Write = { table: string; op: string; payload: unknown };
+type Write = { table: string; op: string; payload: unknown; options?: unknown };
 
 /** A client that records every write and answers reads from a small store. */
 function mount(opts: { refuse?: Record<string, string> } = {}) {
@@ -46,10 +46,10 @@ function mount(opts: { refuse?: Record<string, string> } = {}) {
         return { data: null, error: null };
       };
       for (const method of ["select", "eq", "is", "in"]) chain[method] = () => chain;
-      const write = (name: string) => (value: unknown) => {
+      const write = (name: string) => (value: unknown, options?: unknown) => {
         op = name;
         payload = value;
-        writes.push({ table, op: name, payload: value });
+        writes.push({ table, op: name, payload: value, options });
         if (table === "inspection_reports" && name === "upsert") {
           store.report = { inspection_id: ID, notes: (value as { notes: string | null }).notes, submitted_at: null };
         }
@@ -88,8 +88,12 @@ describe("ticking a room", () => {
       submit: false,
     });
     expect(result.ok).toBe(true);
-    expect(writes.map((w) => `${w.table}:${w.op}`)).toEqual(["inspection_reports:upsert", "inspection_report_items:upsert"]);
-    const item = (writes[1]!.payload as Record<string, unknown>[])[0]!;
+    expect(writes.map((w) => `${w.table}:${w.op}`)).toEqual([
+      "inspection_reports:upsert",
+      "inspection_reports:update",
+      "inspection_report_items:upsert",
+    ]);
+    const item = (writes[2]!.payload as Record<string, unknown>[])[0]!;
     expect(item).toMatchObject({ inspection_id: ID, item: "kitchen", checked: true });
     expect(typeof item.checked_at).toBe("string");
     if (result.ok) {
@@ -102,8 +106,18 @@ describe("ticking a room", () => {
   it("unticking clears the stamp", async () => {
     const { writes } = mount();
     await saveInspectionReport({ inspectionId: ID, items: [{ item: "kitchen", checked: false }], notes: null, submit: false });
-    const item = (writes[1]!.payload as Record<string, unknown>[])[0]!;
+    const item = (writes[2]!.payload as Record<string, unknown>[])[0]!;
     expect(item.checked_at).toBeNull();
+  });
+
+  it("creates the report once and never re-authors it: the notes are written on their own", async () => {
+    const { writes } = mount();
+    await saveInspectionReport({ inspectionId: ID, items: [], notes: "Damp by the window.", submit: false });
+    const [create, notes] = writes;
+    expect(create).toMatchObject({ table: "inspection_reports", op: "upsert", payload: { author_id: USER } });
+    expect(create!.options).toMatchObject({ onConflict: "inspection_id", ignoreDuplicates: true });
+    expect(notes).toMatchObject({ table: "inspection_reports", op: "update", payload: { notes: "Damp by the window." } });
+    expect(notes!.payload).not.toHaveProperty("author_id");
   });
 
   it("I5: a save without notes writes notes as null, which is why the screen sends them every time", async () => {
@@ -129,6 +143,17 @@ describe("submitting", () => {
     mount({ refuse: { "inspection_reports:update": "a report is submitted only when all eight rooms are checked" } });
     const result = await saveInspectionReport({ inspectionId: ID, items: [], notes: null, submit: true });
     expect(result).toEqual({ ok: false, error: "Tick all eight rooms before you submit the report." });
+  });
+
+  it("a rental report short of photos says how many more, before it is locked", async () => {
+    mount({
+      refuse: {
+        "inspection_reports:update": "an inspection report for a rental is submitted with at least 3 photos, and 1 are attached",
+      },
+    });
+    const result = await saveInspectionReport({ inspectionId: ID, items: [], notes: null, submit: true });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe("Add at least 3 photos taken at the property before you submit. 1 added so far.");
   });
 
   it("a closed or submitted report refuses as a state, not a permission", async () => {

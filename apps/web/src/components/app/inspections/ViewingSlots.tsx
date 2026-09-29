@@ -36,15 +36,21 @@ export function ViewingSlots({ listingId, slots, copy, locale }: { listingId: st
   const [chosen, setChosen] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [booked, setBooked] = useState<string | null>(null);
+  const [booked, setBooked] = useState<{ at: string; id: string } | null>(null);
   const [pending, start] = useTransition();
   const current = days.find((d) => d.day === day) ?? days[0];
 
   if (booked) {
     return (
       <section className="nf-panel nf-panel--card p-card-sm" data-testid="viewing-booked" aria-live="polite">
-        <p className="nf-body-sm text-[var(--nf-content-primary)]">{copy.booked.replace("{when}", when(booked, locale, true))}</p>
-        <ButtonLink href="/bookings" variant="secondary" full className="mt-row">
+        <p className="nf-body-sm text-[var(--nf-content-primary)]">{copy.booked.replace("{when}", when(booked.at, locale, true))}</p>
+        {/* Straight to the booked viewing's own card, not the top of Plans. */}
+        <ButtonLink
+          href={`/bookings?kind=inspection&from=property&changed=${booked.id}#ix-${booked.id}`}
+          variant="secondary"
+          full
+          className="mt-row"
+        >
           {copy.openPlans}
         </ButtonLink>
       </section>
@@ -100,7 +106,7 @@ export function ViewingSlots({ listingId, slots, copy, locale }: { listingId: st
                   setError(result.error);
                   return;
                 }
-                setBooked(chosen);
+                setBooked({ at: chosen, id: result.data.id });
               });
             }}
           >

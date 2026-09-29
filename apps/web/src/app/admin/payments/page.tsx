@@ -19,6 +19,7 @@ import { readPage } from "@/lib/admin/reads/money-derive";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { CalmNote, DeskHead, Panel, flatParams } from "../money/_desk/Desk";
 import { PaymentsCharts, PaymentsKpis, PaymentsTable } from "./PaymentsFlow";
+import { currentPaystack, describePaystackMode } from "@/lib/payments/paystack-mode";
 import "../money/_desk/desk.css";
 
 /** Payment attempts per page. */
@@ -76,8 +77,20 @@ export default async function AdminPaymentsPage({
     }),
   ]);
   const payments = flow.state === "ok" ? flow.data : null;
+  /* Read-only: which Paystack account this deployment is talking to, so a
+     sandbox deployment can never be mistaken for the live one. */
+  const paystack = currentPaystack();
   const head = (
-    <DeskHead title={t.admin.shell.nav.payments} lede={c.lede} />
+    <>
+      <DeskHead title={t.admin.shell.nav.payments} lede={c.lede} />
+      <p
+        className="nf-caption mt-sm text-[var(--nf-content-muted)]"
+        data-testid="paystack-mode"
+        data-mode={paystack.mode}
+      >
+        {describePaystackMode(paystack)}
+      </p>
+    </>
   );
   const found =
     lookup && lookup.state === "ok" && lookup.data?.state === "found"

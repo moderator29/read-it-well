@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { GLASS_FOR } from "@/lib/nav/glass-glyph";
 import { isCurrent, type NavLeaf, type NavSection } from "./nav-model";
 
 /**
@@ -82,15 +80,14 @@ export function NavTree({
           className={`nf-nav__row${current ? " nf-nav__row--on" : ""}`}
         >
           <span className="nf-nav__glyph" aria-hidden="true">
-            {/* On the named scale, and a step up with it. This was a literal
-                16, which is now the FLOOR of the scale rather than a middle
-                step; `md` is 24 and is what a row this tall wants beside 16px
-                type. */}
-            {GLASS_FOR[item.icon] ? (
-              <BrandIcon name={GLASS_FOR[item.icon]!} size={30} loading="eager" />
-            ) : (
-              <UiIcon name={item.icon} size="md" filled={current} />
-            )}
+            {/* Line glyphs only, 29 September 2026. The rows drew the glass
+                object `GLASS_FOR` maps each glyph to, at 30px, which is below
+                the 32px where a glass object reads (docs/ICON_SYSTEM.md): at
+                that size the tiles blurred into coloured squares and the drawer
+                read as noise. The stroked set at `md` (24) is crisp beside 16px
+                type, and the current row takes its drawn filled twin. The
+                dock's tray keeps its glass objects at 40px. */}
+            <UiIcon name={item.icon} size="md" filled={current} />
           </span>
           <span className="nf-nav__label">{item.label}</span>
           {item.badge ? <span className="nf-count-badge nf-nav__badge nf-numeric">{item.badge}</span> : null}

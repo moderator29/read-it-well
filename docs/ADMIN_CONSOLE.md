@@ -340,6 +340,13 @@ through (no reason needed) or Take it down (a reason is required, and the
 author receives it word for word through the status triggers). Taking a bio
 down empties it and leaves the profile.
 
+Both decisions go through one database function, `public.moderation_decide`
+(`20260929012228`), called as the operator: it checks the moderation scope,
+changes the row only while it is HELD, and writes the `moderation.release` or
+`moderation.remove` audit row in the same transaction. Staff holding the
+moderation scope decide here too; the tables' update guards accept the change
+only when it comes through that function (`private.may_moderate`).
+
 **Cannot:** ban a member (Standing), or act on a message flag (Flags).
 
 ## 6. Verification
@@ -370,6 +377,16 @@ database function `review_kyc_document`): approving needs no reason;
 rejecting needs one of at least twelve characters, which the person receives
 word for word. The function writes the audit row and the notification.
 
+**Documents sent from Get verified** (`/verification`) carry their uploader
+and no application; the desk groups them by uploader like any other, marks the
+person "From Get verified", and names them from their registered first name
+and surname when they have not chosen a display name. Each person's card
+carries the **consent receipt**: the three agreements the form records in
+`kyc_consents` (accuracy, terms, processing), in the words the person was
+shown, with when each was last given, and any not given named in rose. A
+failed read of the receipt says so rather than "none recorded"
+(`getKycQueue` in `lib/admin/kyc-queries.ts`).
+
 **The render draws a "match score" and "provider performance" (NIMC, BVN,
 Bank, Selfie). Nothing records a provider or a score**, so the desk shows rungs
 passed and results per rung instead, which are real.
@@ -382,6 +399,27 @@ status and date, page forty at a time. Open a ticket to read who filed it and
 the thread, reply (`replySupportTicket`; the database tells the person), and
 change its status (`setTicketStatus`). A ticket about being asked to pay
 outside Vallo carries the four-hour commitment rather than the ordinary day.
+
+An open ticket also shows (`lib/admin/support-desk.ts`):
+
+- **The clock from the member's unanswered message.** The row's chip counts
+  from filing; the open ticket's counts from the first message the member
+  sent after our last reply, and reads "We answered last" when we did
+  (`waitingSince`, `lib/admin/support-rules.ts`). "Waiting on us since" gives
+  the time.
+- **Who has it.** Take it / Hand it back, the same claim the unified queue
+  uses (`queue_take` / `queue_release`, kind `ticket`, audited as
+  `queue.take` / `queue.release`), under the support scope, so a
+  support-only staff member can take their own tickets. A claim lapses after
+  thirty minutes untouched.
+- **Who replied.** Each staff reply names the colleague who wrote it (staff
+  side only; the member still reads "Vallo support").
+- **Other tickets** from the same account, and for an admin a link to the
+  member file.
+
+A ticket opened by link (`/admin/support?ticket=<id>`: from a notification,
+the member file or a colleague) opens even when it is not on the page of the
+queue on screen; an unknown id says so.
 The Admin Queue (`/admin/queue`) is one table across listings, agents,
 reports, tickets and flags, newest first, each row leading to the desk that
 decides it; it decides nothing itself.
@@ -631,7 +669,9 @@ a fall is emerald. The line is alerts raised per day.
 |---|---|---|---|---|
 | canary | Vercel Cron `*/5 * * * *` | every 5 min | 1 h | reads the published catalogue as the public role against the service role's count, and pages a person when it is refused, short or empty (`lib/ops/catalogue-canary.ts`) |
 | email-outbox | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | sends the queued emails in `email_outbox` |
-| hold-sweep | Vercel Cron `5 * * * *` | hourly at :05 | 3 h | releases wallet holds past their window |
+| crypto-reconcile | Vercel Cron `3,18,33,48 * * * *` | every 15 min | 2 h | re-reads open crypto payments from the provider and applies any report the webhook missed; off until the crypto flag is on (`lib/crypto/reconcile.ts`) |
+| hold-sweep | Vercel Cron `5 * * * *` | hourly at :05 | 3 h | releases booking holds past their window and closes stale card attempts |
+| rent-share-refunds | Vercel Cron `35 * * * *` | hourly at :35 | 2 h | asks Paystack for the card refunds of flatmate shares whose split was cancelled or fell short, and records each answer (`lib/cron/jobs/rent-share-refunds.ts`) |
 | paystack-reconcile | Vercel Cron `10 * * * *` | hourly at :10 | 3 h | matches Paystack charges to the ledger |
 | pg-cron-watch | Vercel Cron `20 * * * *` | hourly at :20 | 3 h | watches the database's own jobs and raises failures |
 | complete-stays | Vercel Cron `30 2 * * *` | daily 03:30 | 26 h | completes stays whose check-out has passed |
@@ -676,7 +716,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-15 Vercel Cron jobs and 31 pg_cron jobs in all. The numbers are derived,
+17 Vercel Cron jobs and 31 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by
@@ -992,7 +1032,44 @@ Owned by admin-money; handbook section 12.
 - **Rejected** mixing examples into supply figures: a seeded market is a
   false window.
 
-### 15.16 What no desk shows yet
+### 15.16 People and the member file (`/admin/people`, `/admin/people/<id>`)
+
+- **Shows** a member search: by name (display name, first name, surname; two
+  words also match first name and surname), `@handle`, full email address
+  (through `admin_user_id_by_email`) or account id, the first 25 matches
+  newest first; with nothing typed, the twenty newest sign-ups. Results show
+  name, handle, roles, lister status and tier, and join date, never an email
+  or phone. Each opens the member file.
+- **The member file** is V-90's person file (`admin_person_file`: who, the
+  lister record and ladder, a standing stop, linked accounts, fraud matches,
+  the timeline) plus, from `readMemberExtras` (`lib/admin/member-queries.ts`):
+  account (signed up as, terms accepted and version, whether a phone is on
+  file, staff access and its history, shown to super admins only under
+  `staff_grants_read`), verification (state, each document
+  with subtype, issue date and where it came from, and the consent receipt),
+  listings (count and the newest twenty by status), agreements (either side)
+  and stays booked, support tickets (each opens on the support desk),
+  reports filed and reports about them, devices (the device's own words and
+  first and last seen; the fingerprint is never shown), and team notes.
+- **Actions** one: **Add a note** (`addMemberNote`). Notes live in
+  `public.member_notes` (`20260928233527`): admin and super admin read and
+  write under RLS through their own client, only as themselves; the server
+  stamps the time; there is no edit and no delete; each note writes a
+  `member_note.add` audit row with its length, never its words, so the
+  timeline shows it.
+- **Who** admins and super admins. Scoped staff are refused: the person file
+  is admin-only in the database, and the search is the widest read in the
+  console.
+- **Limits** a section whose read failed says "could not be read", never
+  "none". Lists stop at twenty with the total where one is counted. The route
+  needs `"/admin/people": "/admin"` in `lib/nav/route-parents.ts` (not yet
+  declared), and has no rail row yet; it is linked from Stops and from every
+  member file.
+- **Not built** suspending or reinstating a member who is not a lister (only
+  lister stops exist, `agent_suspensions`), a read-only "view as", and
+  per-session sign-out (sessions live in GoTrue; the console sees devices).
+
+### 15.17 What no desk shows yet
 
 Inspections are on Operations > In flight, push notifications on Operations >
 Notifications, price checks on Analytics. Account deletions (A12), business
@@ -1132,7 +1209,21 @@ console needs and does not have yet)
   place. A listing whose title contains a comma or brackets may not be found
   that way; the page says it could not be opened rather than guessing.
 - **Verification cannot be searched by name**: the name is not on the
-  document row. Status and date narrow it.
+  document row. Status and date narrow it. Find the person on People and
+  open their file instead.
+- **Scoped staff reach the whole of their desk.** A `listing_approval` staff
+  member gets the photo provenance, property matches, reopening, principal
+  consent, mandate decisions and the photo backfill; a `kyc_review` staff
+  member records credentials and opens documents in the viewer. Each door
+  names its scope and calls the database with the caller's own client, and
+  each function gates on `private.staff_can(<caller>, '<scope>')`
+  (`20260929010611`). The document viewer opens every document for
+  `kyc_review`, and for `listing_approval` only an ownership or mandate
+  proof filed against a listing. `lib/admin/staff-scopes.test.ts` pins each scope.
+- **Safety holds stay admin-only.** `open_safety_holds`, `clear_safety_hold`
+  and `extend_safety_hold` check the admin role in the database; the Held
+  lane hides the panel from moderation staff rather than drawing buttons that
+  refuse.
 - **No provider match score exists** in the schema, so none is shown.
 - **The desks decide nothing of their own.** Approve, Publish, Ask for more,
   Reject, report decisions, held-item decisions and document decisions all

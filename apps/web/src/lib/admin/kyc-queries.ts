@@ -8,6 +8,7 @@ import { documentMedia, type DocumentMedia } from "./documents";
 import { requireAdmin } from "./guard";
 import { lagosDayEnd, lagosDayStart, pickStatus, type AdminQueueFilter } from "./queue-filter";
 import type { AdminRead } from "./money-queries";
+import { personName, type ConsentRow } from "./member-file-rules";
 
 /**
  * The verification review queue.
@@ -93,6 +94,16 @@ export type KycSubjectView = {
    * is no resolved payout name or no application name to compare.
    */
   payoutNameCheck: { match: boolean; reason: string; holder: string; onRecord: string } | null;
+  /**
+   * The consent receipt: every agreement this person gave on `/verification`
+   * (`kyc_consents`: accuracy, terms, processing), newest first. A reviewer
+   * approves nothing a person did not agree to have checked, so the receipt
+   * sits beside the documents. Empty for documents filed by an older path
+   * that recorded no consent, which the card says in words.
+   */
+  consents: ConsentRow[];
+  /** False when the consent read failed, so the card says so instead of "none recorded". */
+  consentsRead: boolean;
 };
 
 export type KycQueue = {
@@ -209,7 +220,7 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
       agentsFor(access.supabase, userIds),
     ]);
 
-    const [ladders, payoutNames] = await Promise.all([
+    const [ladders, payoutNames, consents] = await Promise.all([
       laddersFor(
         access.supabase,
         [...agents.values()].map((a) => a.id),
@@ -218,6 +229,7 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
         access.supabase,
         [...agents.values()].map((a) => a.id),
       ),
+      consentsFor(access.supabase, userIds),
     ]);
 
     const bySubject = new Map<string, KycSubjectView>();
@@ -255,6 +267,8 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
             application?.full_name ?? null,
             application?.business_name ?? null,
           ),
+          consents: owner ? (consents.rows.get(owner) ?? []) : [],
+          consentsRead: consents.ok,
         };
         bySubject.set(key, subject);
       }
@@ -332,6 +346,40 @@ export function payoutSuggestion(
   return { match: hit.match, reason: hit.reason, holder, onRecord };
 }
 
+/* ---------------------------------------------------------- consent receipt */
+
+/*
+ * `kyc_consents` is not in the generated types yet, so it is read through a
+ * narrow shape. The admin RLS client reads it under `kyc_consents_select_admin`;
+ * a kyc_review staff member arrives with the service client the door handed
+ * out after the scope check.
+ */
+async function consentsFor(
+  supabase: SupabaseClient<Database>,
+  userIds: string[],
+): Promise<{ ok: boolean; rows: Map<string, ConsentRow[]> }> {
+  const rows = new Map<string, ConsentRow[]>();
+  if (userIds.length === 0) return { ok: true, rows };
+  const { data, error } = await (supabase as unknown as {
+    from: (t: string) => {
+      select: (c: string) => {
+        in: (c: string, v: string[]) => {
+          order: (c: string, o: { ascending: boolean }) => PromiseLike<{ data: unknown; error: unknown }>;
+        };
+      };
+    };
+  })
+    .from("kyc_consents")
+    .select("user_id, consent, consented_at")
+    .in("user_id", userIds)
+    .order("consented_at", { ascending: false });
+  if (error || !Array.isArray(data)) return { ok: false, rows };
+  for (const row of data as { user_id: string; consent: string; consented_at: string }[]) {
+    rows.set(row.user_id, [...(rows.get(row.user_id) ?? []), { consent: row.consent, consentedAt: row.consented_at }]);
+  }
+  return { ok: true, rows };
+}
+
 /* ------------------------------------------------------------------ shared */
 
 async function displayNames(
@@ -341,8 +389,14 @@ async function displayNames(
   const out = new Map<string, string>();
   const unique = [...new Set(ids.filter(Boolean))];
   if (unique.length === 0) return out;
-  const { data } = await supabase.from("profiles").select("id, display_name").in("id", unique);
-  for (const row of data ?? []) if (row.display_name) out.set(row.id, row.display_name);
+  /* The registered first name and surname stand in for a missing display
+     name: somebody who verifies from `/verification` before choosing one
+     otherwise reached the queue as "No display name". */
+  const { data } = await supabase.from("profiles").select("id, display_name, first_name, surname").in("id", unique);
+  for (const row of data ?? []) {
+    const name = personName(row);
+    if (name) out.set(row.id, name);
+  }
   return out;
 }
 

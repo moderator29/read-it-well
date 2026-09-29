@@ -101,14 +101,27 @@ vi.mock("../bookings/settlement", () => ({
 /* Track A: every card attempt opens with the processor split, read from the
    database. The split itself is proved in split-attempt's own tests; here it
    answers a fixed attempt so the return path is what is under test. */
-vi.mock("../payments/split-attempt", () => ({
-  openSplitAttempt: async () => ({
-    reference: REFERENCE,
-    amountMinor: 150_000_000,
-    agreementId: "agreement-1",
-    split: { subaccount: "ACCT_lister", reserveSubaccount: "ACCT_reserve", listerShareMinor: 147_750_000, guaranteeMinor: 2_250_000 },
-  }),
-  isRefusal: (v: { refused?: boolean }) => v.refused === true,
+vi.mock("../payments/split-attempt", () => {
+  const split = { listerSubaccount: "ACCT_lister", reserveSubaccount: "ACCT_reserve", listerShareMinor: 147_750_000, guaranteeMinor: 2_250_000 };
+  const opened = { reference: REFERENCE, amountMinor: 150_000_000, agreementId: "agreement-1", split };
+  return {
+    openSplitAttempt: async () => opened,
+    /* The hosted path quotes first, then inserts (so a retry can reuse). */
+    quoteSplit: async () => ({ amountMinor: 150_000_000, agreementId: "agreement-1", payeeUserId: null, commissionMinor: 0, mode: "live", split }),
+    insertSplitAttempt: async () => opened,
+    isRefusal: (v: { refused?: boolean }) => v.refused === true,
+  };
+});
+/* The attempt lifecycle (reuse, the in-flight check, the open lease) has its
+   own tests in lib/payments; here nothing is live, so a new attempt opens and
+   the return path is what is under test. */
+vi.mock("../payments/attempts", () => ({
+  reuseLiveAttempt: async () => ({ kind: "none" }),
+  recordCheckoutHandle: async () => undefined,
+  bookingHasPaymentInFlight: async () => false,
+}));
+vi.mock("../payments/booking-lease", () => ({
+  withBookingOpenLease: async (_subject: string, work: () => Promise<unknown>) => ({ status: "done", result: await work() }),
 }));
 vi.mock("@/lib/supabase/service", () => ({
   getAdminClient: () => ({

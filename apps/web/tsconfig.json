@@ -72,7 +72,9 @@
        that reappears here is redundant, and you may delete it on sight
        without checking what it was for. */
     ".next-*/types/**/*.ts",
-    ".next-*/dev/types/**/*.ts"
+    ".next-*/dev/types/**/*.ts",
+    ".next-catalogue/types/**/*.ts",
+    ".next-catalogue/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -10,6 +10,7 @@ import {
   type TemplateContext,
   type TemplateLookups,
 } from "./templates";
+import { LIFECYCLE_PAYLOADS } from "./lifecycle-fixtures";
 
 /**
  * THE TEST THAT THE OLD SUITE COULD NOT WRITE.
@@ -84,7 +85,22 @@ const TEMPLATES_THE_TRIGGERS_WRITE = [
   "verification.rung_passed",
   "listing.new_enquiry",
   "safety.scam_recall",
+  /* 29 September: the lifecycle migration (supabase/migrations/pending). */
+  "agreement.submitted",
+  "agreement.cancelled",
+  "guarantee.claim_opened",
+  "inspection.proposed",
+  "inspection.declined",
+  "inspection.withdrawn",
+  "inspection.completed",
+  "support.replied",
+  "listing.submitted",
+  "reservation.confirmed",
+  "reservation.cancelled",
+  "refund.requested",
+  "verification.rung_failed",
 ] as const;
+
 
 /** One real payload per template, of the shape its own trigger composes. */
 const PAYLOADS: Record<(typeof TEMPLATES_THE_TRIGGERS_WRITE)[number], Payload> = {
@@ -125,7 +141,76 @@ const PAYLOADS: Record<(typeof TEMPLATES_THE_TRIGGERS_WRITE)[number], Payload> =
   },
   /* `public.scam_recall_send` (V-60) writes the listing title and the category. */
   "safety.scam_recall": { listing_title: "Two bedroom flat in Ikeja GRA", category: "off_platform_payment" },
+  /* The lifecycle payloads, from the fixture `outbox-delivery.test.ts` shares. */
+  "agreement.submitted": LIFECYCLE_PAYLOADS["agreement.submitted"]!,
+  "agreement.cancelled": LIFECYCLE_PAYLOADS["agreement.cancelled"]!,
+  "guarantee.claim_opened": LIFECYCLE_PAYLOADS["guarantee.claim_opened"]!,
+  "inspection.proposed": LIFECYCLE_PAYLOADS["inspection.proposed"]!,
+  "inspection.declined": LIFECYCLE_PAYLOADS["inspection.declined"]!,
+  "inspection.withdrawn": LIFECYCLE_PAYLOADS["inspection.withdrawn"]!,
+  "inspection.completed": LIFECYCLE_PAYLOADS["inspection.completed"]!,
+  "support.replied": LIFECYCLE_PAYLOADS["support.replied"]!,
+  "listing.submitted": LIFECYCLE_PAYLOADS["listing.submitted"]!,
+  "reservation.confirmed": LIFECYCLE_PAYLOADS["reservation.confirmed"]!,
+  "reservation.cancelled": LIFECYCLE_PAYLOADS["reservation.cancelled"]!,
+  "refund.requested": LIFECYCLE_PAYLOADS["refund.requested"]!,
+  "verification.rung_failed": LIFECYCLE_PAYLOADS["verification.rung_failed"]!,
 };
+
+describe("the lifecycle templates (29 September)", () => {
+  const build = (name: string) => templateFor(name)?.build(PAYLOADS[name as keyof typeof PAYLOADS], contextFor(PAYER, "Ada"));
+
+  it("answer to the Bookings switch for viewings, tables and refunds, and to nothing for obligations", () => {
+    for (const name of [
+      "inspection.proposed",
+      "inspection.declined",
+      "inspection.withdrawn",
+      "inspection.completed",
+      "reservation.confirmed",
+      "reservation.cancelled",
+      "refund.requested",
+    ]) {
+      expect(templateFor(name)?.channel, name).toBe("bookings");
+    }
+    for (const name of [
+      "agreement.submitted",
+      "agreement.cancelled",
+      "guarantee.claim_opened",
+      "support.replied",
+      "listing.submitted",
+      "verification.rung_failed",
+    ]) {
+      expect(templateFor(name)?.channel, name).toBeUndefined();
+    }
+  });
+
+  it("say the thing that happened, with the facts the trigger carried", () => {
+    expect(build("inspection.proposed")?.text).toContain("2 bedroom flat, Yaba");
+    expect(build("inspection.declined")?.html).toContain("The flat is let from Friday.");
+    expect(build("inspection.withdrawn")?.html).toContain("Chidi");
+    expect(build("inspection.completed")?.text).toContain("agreement");
+    expect(build("support.replied")?.subject).toContain("VAL-SUP-4K2P");
+    expect(build("support.replied")?.html).toContain("/support/messages/5c5c5c5c-5c5c-4c5c-8c5c-5c5c5c5c5c5c");
+    expect(build("listing.submitted")?.subject).toContain("2 bedroom flat, Yaba");
+    expect(build("agreement.submitted")?.text).toContain("Nothing is paid until it is approved");
+    expect(build("agreement.cancelled")?.subject).toContain("cancelled");
+    expect(build("guarantee.claim_opened")?.text).toContain("30,000");
+    expect(build("reservation.confirmed")?.subject).toContain("Terra Kulture");
+    expect(build("reservation.cancelled")?.text).toContain("4 people");
+    expect(build("refund.requested")?.html).toContain("/bookings/5f5f5f5f-5f5f-4f5f-8f5f-5f5f5f5f5f5f");
+    expect(build("verification.rung_failed")?.subject).toBe("Your identity check did not pass");
+    expect(build("verification.rung_failed")?.html).toContain("too blurred");
+  });
+
+  it("send nothing rather than a message with a hole in it", () => {
+    const ctx = contextFor(PAYER, "Ada");
+    expect(templateFor("inspection.proposed")?.build({ listing_id: "unknown" }, ctx)).toBeNull();
+    expect(templateFor("inspection.completed")?.build({ listing_id: LISTING, audience: "nobody" }, ctx)).toBeNull();
+    expect(templateFor("support.replied")?.build({ ticket_id: "x" }, ctx)).toBeNull();
+    expect(templateFor("verification.rung_failed")?.build({ rung: "phone" }, ctx)).toBeNull();
+    expect(templateFor("refund.requested")?.build({}, ctx)).toBeNull();
+  });
+});
 
 describe("the registry covers every template a trigger writes", () => {
   it("has an entry for each one, and no entry nobody writes", () => {

@@ -50,7 +50,10 @@
   .nf-cine-title {
     margin-top: var(--nf-space-sm);
     font-family: var(--nf-font-display);
-    font-size: clamp(2rem, 5.2vw, 4rem);
+    /* The phone floor is the display heading rung the section heads use
+       (`--nf-text-h0`, 30px at 320), not its own 32px: at 320-390 the
+       cinema titles stood as tall as the hero's own headline. */
+    font-size: clamp(var(--nf-text-h0), 5.2vw, 4rem);
     font-weight: 700;
     line-height: 1.02;
     letter-spacing: -0.035em;
@@ -151,10 +154,19 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
-  /* A touch screen has no pointer to move across the pattern. */
-  @media (hover: none) {
+  /* A touch screen has no pointer to move across the pattern. `pointer:
+     coarse` as well as `hover: none`: some Android browsers report hover on
+     a phone, and the line then asked a thumb to do something it cannot. */
+  @media (hover: none), (pointer: coarse) {
     .nf-system__note {
       display: none;
+    }
+  }
+  /* At 320 the panel's 32px sides inside the band's 24px gutter left the
+     three steps a 208px column. The ordinary card padding on a phone. */
+  @media (max-width: 29.999rem) {
+    .nf-system__panel {
+      padding: var(--nf-space-xl) var(--nf-pad-card-sm);
     }
   }
 

@@ -46,13 +46,11 @@ export function ResetPasswordForm({
   const confirmError = mismatch ? t.authFlow.passwordsDiffer : state.fieldErrors?.confirmPassword;
 
   return (
-    <div className="w-full">
-      <h1 className="nf-h2 text-center">{t.auth.newPasswordTitle}</h1>
-      <p className="mb-6 mt-xs text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-        {t.auth.newPasswordLead}
-      </p>
+    <div className="nf-auth__screen">
+      <h1 className="nf-auth__title">{t.auth.newPasswordTitle}</h1>
+      <p className="nf-auth__sub">{t.auth.newPasswordLead}</p>
 
-      <form action={formAction} className="space-y-md text-left" noValidate>
+      <form action={formAction} className="nf-auth__form nf-auth__form--fields" noValidate>
         {(askCurrent || state.fieldErrors?.currentPassword) && (
           <PasswordField
             t={t}
@@ -99,9 +97,11 @@ export function ResetPasswordForm({
           </p>
         )}
 
-        <Button type="submit" variant="primary" size="lg" full loading={pending}>
-          {t.auth.newPasswordSave}
-        </Button>
+        <div className="nf-auth__actions">
+          <Button type="submit" variant="primary" size="lg" full loading={pending} className="nf-auth__cta">
+            {t.auth.newPasswordSave}
+          </Button>
+        </div>
       </form>
     </div>
   );

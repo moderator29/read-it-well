@@ -22,10 +22,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const SECRET_BASE64 = Buffer.from("a-test-signing-key-32-bytes-long").toString("base64");
 
-const sent: { to: string }[] = [];
+type Sent = { to: string; message?: { subject: string; html: string; text: string } };
+const sent: Sent[] = [];
 vi.mock("@/lib/email/client", () => ({
-  sendMessage: vi.fn(async (to: string) => {
-    sent.push({ to });
+  sendMessage: vi.fn(async (to: string, message?: Sent["message"]) => {
+    sent.push(message ? { to, message } : { to });
     return { sent: true as const, id: "test-message-id" };
   }),
 }));
@@ -97,5 +98,85 @@ describe("the auth email hook", () => {
     );
     expect(response.status).toBe(401);
     expect(sent).toEqual([]);
+  });
+
+  describe("a password reset", () => {
+    const CALLBACK = "https://www.vallospaces.com/auth/callback?next=%2Freset-password";
+    const before = {
+      supabase: process.env["NEXT_PUBLIC_SUPABASE_URL"],
+      site: process.env["NEXT_PUBLIC_SITE_URL"],
+    };
+    beforeEach(() => {
+      process.env["NEXT_PUBLIC_SUPABASE_URL"] = "https://project.supabase.co";
+      process.env["NEXT_PUBLIC_SITE_URL"] = "https://www.vallospaces.com";
+    });
+    afterEach(() => {
+      if (before.supabase === undefined) delete process.env["NEXT_PUBLIC_SUPABASE_URL"];
+      else process.env["NEXT_PUBLIC_SUPABASE_URL"] = before.supabase;
+      if (before.site === undefined) delete process.env["NEXT_PUBLIC_SITE_URL"];
+      else process.env["NEXT_PUBLIC_SITE_URL"] = before.site;
+    });
+
+    function recovery(emailData: Record<string, string>) {
+      return {
+        user: { email: "person@example.com", user_metadata: { first_name: "Ada" } },
+        email_data: { email_action_type: "recovery", ...emailData },
+      };
+    }
+
+    it("carries GoTrue's own link and the code, with where to type it", async () => {
+      const response = await post(recovery({ token: "482913", token_hash: "pkce_abc123", redirect_to: CALLBACK }));
+      expect(response.status).toBe(200);
+      expect(sent).toHaveLength(1);
+      const message = sent[0]?.message;
+      /* The link is the one the dashboard template printed: verify, the
+         hash, the type, and our callback as the way back. */
+      const link = new URL("https://project.supabase.co/auth/v1/verify");
+      link.searchParams.set("token", "pkce_abc123");
+      link.searchParams.set("type", "recovery");
+      link.searchParams.set("redirect_to", CALLBACK);
+      expect(message?.text).toContain(link.toString());
+      expect(message?.text).toContain("482913");
+      expect(message?.text).toContain("https://www.vallospaces.com/forgot-password/code");
+      /* The code never rides in the subject, where a lock screen shows it. */
+      expect(message?.subject).not.toContain("482913");
+    });
+
+    it("prints the canonical origin for the code, never the host redirect_to names", async () => {
+      const response = await post(
+        recovery({
+          token: "482913",
+          token_hash: "pkce_abc123",
+          redirect_to: "http://localhost:3000/auth/callback?next=%2Freset-password",
+        }),
+      );
+      expect(response.status).toBe(200);
+      const text = sent[0]?.message?.text ?? "";
+      expect(text).toContain("https://www.vallospaces.com/forgot-password/code");
+      expect(text).not.toContain("http://localhost:3000/forgot-password/code");
+    });
+
+    it("prints no code when the hook was handed none, and still sends the link", async () => {
+      const response = await post(recovery({ token_hash: "pkce_abc123", redirect_to: CALLBACK }));
+      expect(response.status).toBe(200);
+      const text = sent[0]?.message?.text ?? "";
+      expect(text).toContain("/auth/v1/verify");
+      expect(text).not.toContain("/forgot-password/code");
+      expect(sent[0]?.message?.subject).toBe("Set a new Vallo password");
+    });
+
+    it("sends the code alone when there is no hash to build the link from", async () => {
+      const response = await post(recovery({ token: "482913" }));
+      expect(response.status).toBe(200);
+      const text = sent[0]?.message?.text ?? "";
+      expect(text).toContain("482913");
+      expect(text).not.toContain("/auth/v1/verify");
+    });
+
+    it("refuses a recovery with neither a code nor a hash", async () => {
+      const response = await post(recovery({}));
+      expect(response.status).toBe(400);
+      expect(sent).toEqual([]);
+    });
   });
 });

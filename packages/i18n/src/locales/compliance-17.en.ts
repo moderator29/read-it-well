@@ -36,11 +36,11 @@ export const complianceBeneficialOwnershipEn = {
     lastMandate: { none: "No mandate filed", pending: "Mandate waiting", approved: "Mandate expired", rejected: "Mandate refused" },
     decideOn: "Decide mandates on the listings desk",
     lookupTitle: "Look up who a lister was acting for",
-    lookupHint: "Paste the id of a transaction, booking, rent payment, escrow or listing. Every lookup is recorded.",
+    lookupHint: "Paste the id of a transaction, booking, rent payment or listing. Every lookup is recorded.",
     kindLabel: "Record",
     idLabel: "Id",
     find: "Look up",
-    kinds: { transaction: "Transaction", booking: "Booking", rent_payment: "Rent payment", escrow: "Escrow", listing: "Listing" },
+    kinds: { transaction: "Transaction", booking: "Booking", rent_payment: "Rent payment", listing: "Listing" },
   },
   actingFor: {
     title: "Acting for",

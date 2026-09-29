@@ -1,14 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useId, useRef, useState, useTransition } from "react";
-import { createPortal } from "react-dom";
+import { useActionState, useEffect, useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { useClientMount } from "@/lib/ui/client-mount";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
@@ -298,7 +296,6 @@ function DeleteDrawer({
   const [codeSent, setCodeSent] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [sending, startSending] = useTransition();
-  const mounted = useClientMount();
   const phraseId = useId();
   const proofId = useId();
 
@@ -307,8 +304,10 @@ function DeleteDrawer({
     null,
   );
 
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  useOverlay({ open: true, onClose, panelRef });
+  /* Escape, Back, the focus trap and return, the scroll lock and drag or
+     flick down to close are the platform's `Sheet` in its page shape. This
+     was a hand-built full-page panel with its own copy of the first four and
+     no gesture. */
 
   // The window is open and the session is gone with it, so there is nothing
   // behind this drawer to return to.
@@ -328,8 +327,6 @@ function DeleteDrawer({
     return () => window.clearTimeout(timer);
   }, [state, router]);
 
-  if (!mounted) return null;
-
   const ready = phraseValue.trim() === DELETE_CONFIRM_PHRASE;
 
   const askForCode = () => {
@@ -344,33 +341,18 @@ function DeleteDrawer({
     });
   };
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[80]"
-      role="dialog"
-      aria-modal="true"
-      aria-label={copy.title}
-      data-testid="delete-drawer"
+  return (
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={copy.title}
+      closeLabel={copy.close}
+      fullPage
+      testId="delete-drawer"
     >
-      <div className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm" />
-
-      <div
-        ref={panelRef}
-        className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-lg pb-[calc(var(--nf-space-xl)+env(safe-area-inset-bottom,0px))] pt-[calc(var(--nf-space-lg)+env(safe-area-inset-top,0px))]"
-      >
         <div className="mx-auto max-w-lg">
-          <div className="mb-md flex items-center justify-between gap-md">
-            <h2 className="nf-h3">{copy.title}</h2>
-            <button
-              type="button"
-              aria-label={copy.close}
-              onClick={onClose}
-              className="nf-icon-btn h-10 w-10"
-            >
-              <UiIcon name="arrow-left" size={20} />
-            </button>
-          </div>
-
           {state?.ok ? (
             <div className="nf-panel nf-panel--card block p-lg" data-testid="delete-done">
               <p className="flex items-center gap-xs text-[length:var(--nf-text-body-lg)] font-semibold">
@@ -557,8 +539,6 @@ function DeleteDrawer({
             </form>
           )}
         </div>
-      </div>
-    </div>,
-    document.body,
+    </Sheet>
   );
 }

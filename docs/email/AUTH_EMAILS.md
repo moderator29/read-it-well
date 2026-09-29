@@ -30,6 +30,28 @@ nothing itself: it hands each message to our endpoint, which verifies the
 signature, renders it from the catalogue (`verificationCode` for a sign-up
 code) and sends it through Resend from our own domain.
 
+**The password reset (`recovery`) is the one action with its own message**,
+`passwordReset`. It carries two ways through:
+
+- **The link**, rebuilt exactly as GoTrue's `{{ .ConfirmationURL }}`:
+  `<NEXT_PUBLIC_SUPABASE_URL>/auth/v1/verify?token=<token_hash>&type=recovery&redirect_to=<redirect_to>`.
+  It is a PKCE link, so it only works in the browser that asked for the
+  reset. Opened in a mail app's own browser, on another device or in another
+  browser, `/auth/callback` reports it as expired.
+- **The code** (the hook's `token`), with the address to type it at,
+  `<siteUrl()>/forgot-password/code` (the canonical origin, never
+  `redirect_to`). The subject never carries the code. `verifyPasswordResetCode` checks it with
+  `verifyOtp({ email, token, type: "recovery" })`, which needs no verifier,
+  and redirects to `/reset-password`. The session it makes counts as fresh
+  email proof for `passwordChangeProof`, so the new password is set without
+  the old one. Refusals use one neutral sentence and are throttled per
+  address and per connection.
+
+The code is printed only when the hook receives a token, and the link only
+when it receives a `token_hash`. A recovery with neither is refused with a
+400. Before this, a recovery fell through to the generic code email, which
+had no link and pointed at no screen that took a recovery code.
+
 **Measured on 23 September 2026** from `auth_logs`: every sign-up that day
 (15:56:59Z, 16:14:56Z and 20:38:27Z UTC) carries a `run_hook` row against that
 URL with "Hook ran successfully", no row carries a `mail_from`, and each of
@@ -81,58 +103,64 @@ links in email is right to. Both halves work in the code already:
 also carries `{{ .NewEmail }}` so the reader can audit both addresses before
 approving anything.
 
-`{{ .SiteURL }}` is the origin the lockup images are loaded from, so the
+`{{ .SiteURL }}` is the origin the lockup image is loaded from, so the
 dashboard's Site URL must be the real deployment. With it set to localhost
 every auth email ships a broken lockup.
 
-## 3. The design: the sign-in screen, in an inbox
+## 3. The design: a navy band over a light page (29 September 2026)
 
-The templates are the register of the sign-in render
-(`docs/design/references/55A56F21-0654-4F2D-984B-60A8CE97BB17.png`): the
-navy ground, a glass card with a lit rim, the lockup, one blue button. Built
-the only way email allows.
+Every message, the five auth templates and the whole transactional catalogue
+alike, is one document (`documentHtml` in `apps/web/src/lib/email/render.ts`,
+mirrored in the generator): a deep navy brand band carrying the lockup, a
+white card with one headline, short body copy, at most one primary button and
+the secondary facts in a quiet table, and a footer on the ground with the
+support and legal links, the sign-off and the legal line. The founder
+references of 29 September (`docs/design/references/2026-09-29/`, plate 05)
+set it: brand navy where it earns attention, light surfaces for reading.
+It replaces the all-dark design of 22 September.
 
-- **Dark in the layer every client honours.** The product is dark by default
-  and the operating system does not override it, so the email is too. The
-  ground (`#010118`, `--nf-ink-950`) is painted three times: on the body, on
-  the outer table as a `bgcolor` attribute, which Outlook's Word engine has
-  honoured since 2007, and on the card cell. Every text colour is inline
-  beside the background it sits on. A client that strips the `<style>` block
-  loses nothing, because the block carries no layout and no legibility: it
-  declares `color-scheme: dark` so Apple Mail does not invert the palette, and
-  re-asserts the same values under `prefers-color-scheme: dark`, with an
-  `[data-ogsc]` twin beside it for Outlook.com, which strips standard media
-  queries in webmail.
-
-  **That block does not hold Gmail, which this line used to claim it did.**
-  Gmail strips `@media (prefers-color-scheme: ...)` entirely and runs its own
-  dark-mode pass whatever the message declares, and Gmail is most of this
-  product's readers. The inline layer above is the only load bearing one, and
-  it is why the ground is painted three times and every colour sits beside the
-  background it paints. The query is kept because it is free and it helps the
-  clients that honour it. It is not leaned on.
-- **The glass card is a solid.** No mail client renders a backdrop blur, so
-  the card is `--nf-ink-850` with a one pixel rim in a lighter blue and the
-  luminous cap rule above it. Depth by tone, not by filter.
-- **The lockup is two hosted images.** The glass mark (alt empty, it carries no
-  words) and the wordmark (alt `Vallo`, it is the word), both from
-  `{{ .SiteURL }}/brand/`, both with an explicit box so a blocked image
-  reserves its own space. With images off the reader sees "Vallo" once, in
-  its place. Every other word in the message is live text; nothing is baked
-  into a picture.
-- **One blue family.** The button is `--nf-electric-400` over a gradient with a
-  solid fallback declared first; links and the brand word as text are the
-  lighter `#5C7CFF`, because the button blue on the navy card measures 2.7:1
-  as text. There is no red or amber anywhere, including on the security note:
-  weight and a lit left edge carry the emphasis.
-- **The quiet footer.** The closing sentence tuned per template, the sign-off
-  "Vallo. Real Estate reimagined!", and the legal line
-  "VALLO SPACES LTD, Abuja, Nigeria". The brand is Vallo everywhere a person
-  reads; the company name appears only where the law asks who sent this,
-  which is the foot of the message and nowhere else.
+- **Readable whatever the client does with dark mode.** The inline layer, the
+  one no client strips, is the light palette (`LIGHT` in `theme.ts`, each value
+  the light theme's own token), and every body, table and cell carries its
+  colour twice, as a `bgcolor` attribute and an inline `background-color`
+  (`paintExplicit`), so nothing is left for a client to guess. The one
+  `<style>` block declares `color-scheme: light dark` and, under
+  `prefers-color-scheme: dark`, repaints the reading surfaces in the designed
+  dark palette (`DARK`) for Apple Mail, iOS Mail and the others that honour
+  it. A cell painted only because its container is inherits the container's
+  class too, so no white cell is left inside a dark card.
+- **Gmail inverts, and the light layer survives it.** Gmail strips the media
+  query and its apps invert what they are given. Every ink/ground pair is AA
+  both as written and inverted (`invert(1) hue-rotate(180deg)`), checked for
+  every message in `email-dark-paint.test.ts`.
+- **Outlook.com is followed by the ground it repaints.** It marks a repainted
+  ground `data-ogsb`; the `[data-ogsb]` rules then give that ground and every
+  ink inside it the dark palette, so a mid-tone ink it left alone cannot end
+  up on a ground it darkened. The rules never key on `data-ogsc` alone.
+- **The lockup is one hosted image on its own navy tile.** `vallo-email-lockup.png`
+  (built by `scripts/build-email-lockup.mjs` from the mark and the wordmark),
+  alt `Vallo`, with an explicit box. Mail clients do not invert images, so even
+  where a client inverts the band the lockup stays the brand on navy. With
+  images off the reader sees "Vallo" once, in white on the band. Every other
+  word is live text.
+- **One blue family.** The button is `--nf-brand-primary` (light) with white
+  text (5.5:1), over `--nf-gradient-cta` with the solid declared first for
+  Outlook's Word engine. Links are `--nf-brand-quiet` (light), 7.0:1 on the
+  card. No red or amber anywhere; weight and position carry emphasis.
+- **The footer.** The closing sentence tuned per template, Help and support,
+  Privacy and Terms, the sign-off "Vallo", and the legal line with the RC
+  number, the only place the company name appears.
 - **Hex is correct here.** Email cannot read a CSS custom property, so the
-  palette is resolved once in `apps/web/src/lib/email/theme.ts`, mirrored by
-  hand in the generator, and the two are asserted equal by `shell.test.ts`.
+  palette is resolved once in `theme.ts`, mirrored by hand in the generator,
+  and `shell.test.ts` asserts the two equal and every light value equal to the
+  light theme block of `tokens.css`.
+
+**What was measured and what was not.** Every template was rendered and
+screenshotted in Chromium light, dark, with a simulated Gmail inversion and
+with two simulated Outlook.com dark modes, and every text/ground pair measured
+(28 and 29 September). No real Gmail, Outlook or Apple Mail was available, so
+how those clients actually draw these messages is still unproved until a
+person reads one in each.
 
 The palette, the measurements and the primitives are the same ones
 `apps/web/src/lib/email/render.ts` uses for every transactional message, so

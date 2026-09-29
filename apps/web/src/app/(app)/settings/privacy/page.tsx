@@ -13,6 +13,8 @@ import { loadMoneyHoldUntil, loadPendingAddressMove } from "@/lib/auth/pending-a
 import { PendingAddressMove } from "./PendingAddressMove";
 import { MoneyLockGroup } from "../MoneyLockGroup";
 import { loadMoneyCredentials } from "@/lib/security/money-step-up";
+import { countMyBlocks } from "@/lib/safety/blocks-queries";
+import { RowLink } from "@/components/app/account/rows";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -25,12 +27,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacySettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions, pendingMove, moneyHoldUntil, moneyLock] = await Promise.all([
+  const [account, sessions, pendingMove, moneyHoldUntil, moneyLock, blockedCount] = await Promise.all([
     loadSettingsState(),
     loadSessions(),
     loadPendingAddressMove(locale),
     loadMoneyHoldUntil(locale),
     loadMoneyCredentials().catch(() => ({ state: "unreadable" as const })),
+    countMyBlocks().catch(() => null),
   ]);
   const signedIn = account.state === "signed-in";
   const deviceCount =
@@ -71,6 +74,23 @@ export default async function PrivacySettingsPage() {
         <section id="settings-security" className="scroll-mt-28">
           <SecurityCard t={t}>
             <DevicesRow t={t} signedIn={signedIn} count={deviceCount} />
+            {/* DB2: the people you blocked, with Unblock, one tap away. */}
+            <RowLink
+              href={signedIn ? "/settings/privacy/blocked" : "/sign-in"}
+              icon="block"
+              label={t.settings.blocked.rowLabel}
+              sub={signedIn ? t.settings.blocked.rowNote : t.settings.blocked.signedOut}
+              value={
+                !signedIn || blockedCount === null
+                  ? undefined
+                  : blockedCount === 0
+                    ? t.settings.blocked.rowValueNone
+                    : blockedCount === 1
+                      ? t.settings.blocked.rowValueOne
+                      : t.settings.blocked.rowValueMany.replace("{count}", String(blockedCount))
+              }
+              testId="settings-blocked-row"
+            />
           </SecurityCard>
         </section>
         {/* V-81: face or fingerprint as the lock on money. */}

@@ -11,11 +11,12 @@ import type { ComplianceLane, ComplianceLaneProps } from "./lane";
 /**
  * SCUML ITEM 7: THRESHOLD REPORTS.
  *
- * Every settled transaction above ₦5,000,000 (individual) or ₦10,000,000
- * (corporate), and every run of smaller ones for one party that passes it
- * within a week, raised by the ledger monitor in
- * `20260924174000_scuml_item_7_threshold_reports.sql` with a due date seven
- * days after it took place. The officer files on goAML outside Vallo,
+ * Every settled card charge, processed refund and paid Guarantee claim above
+ * ₦5,000,000 (individual) or ₦10,000,000 (corporate), and every run of smaller
+ * ones for one party that passes it within a week, raised by the monitor in
+ * `20260929003449_scuml_7_threshold_reports_on_split_settlement.sql` and
+ * `20260929011120_scuml_7_refunds_and_guarantee_payouts_are_watched.sql`, with
+ * a due date seven days after it took place. The officer files on goAML outside Vallo,
  * records the reference here, and a second member of staff approves
  * (SCUML item 19). Overdue items are marked; staff are notified three days and
  * one day before. Staff only: nothing here reaches the member.

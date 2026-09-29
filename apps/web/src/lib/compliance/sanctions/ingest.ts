@@ -23,7 +23,7 @@ import type { ListSource } from "./sources";
  */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Admin = { from: (table: string) => any };
+type Admin = { from: (table: string) => any; rpc: (fn: string, args?: Record<string, unknown>) => any };
 
 export type IngestResult =
   | { state: "loaded"; versionId: string; entries: number }
@@ -108,17 +108,24 @@ export async function ingestList(admin: Admin, source: ListSource, loadedBy: str
   const entries = parsed.entries.length;
   const verdict = activatesItself(source.origin, entries, inForce, parsed.complete);
 
-  const { error: activateError } = await admin
+  const { error: countError } = await admin
     .from("sanctions_list_versions")
     .update({
       entry_count: entries,
       previous_entries: inForce,
       /* An incomplete file (no END row) can never be activated: staff load a whole one. */
       complete: parsed.complete,
-      ...(verdict === "yes" ? { activated_at: new Date().toISOString() } : {}),
     })
     .eq("id", versionId)
     .is("activated_at", null);
+  if (countError) return { state: "failed", reason: "activate" };
+  if (verdict !== "yes") return { state: "waiting", versionId, entries, why: verdict };
+  /* The service role cannot write activated_at. The database activates a URL
+     file itself, and refuses an upload, a short file or an incomplete one,
+     whatever this process believes (sanctions_list_autoactivate). */
+  const { data: activated, error: activateError } = await admin.rpc("sanctions_list_autoactivate", { p_version: versionId });
   if (activateError) return { state: "failed", reason: "activate" };
-  return verdict === "yes" ? { state: "loaded", versionId, entries } : { state: "waiting", versionId, entries, why: verdict };
+  const status = (activated as { status?: unknown } | null)?.status;
+  if (status === "ok") return { state: "loaded", versionId, entries };
+  return { state: "waiting", versionId, entries, why: status === "short" ? "shrunk" : status === "incomplete" ? "unverified" : "upload" };
 }

@@ -63,6 +63,22 @@ describe("the answers", () => {
       expect(sql).toMatch(new RegExp(`${TRUTH_COLUMN[q]}\\s+text not null check \\(${TRUTH_COLUMN[q]} in \\('yes', 'no', 'not_sure'\\)\\)`));
     }
   });
+
+  it("freezes the agreed slot for an inspection born CONFIRMED as well as one moved there", () => {
+    /* A viewing booked from a window (`book_viewing_slot`) is inserted
+       CONFIRMED. With the freeze on UPDATE only it got no agreed slot, and
+       the insert policy refused every truth answer. */
+    const sql = readFileSync(
+      join(
+        __dirname,
+        "../../../../../supabase/migrations/20260928233552_a_booked_viewing_opens_its_truth_questions_and_a_rental_report_needs_its_photos.sql",
+      ),
+      "utf8",
+    );
+    expect(sql).toMatch(
+      /create trigger inspection_requests_freeze_agreed_slot\s+after insert or update of state on public\.inspection_requests\s+for each row execute function private\.freeze_agreed_slot\(\)/,
+    );
+  });
 });
 
 describe("the wiring", () => {

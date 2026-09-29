@@ -6,7 +6,7 @@ import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { countOf, formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { GateHandshake } from "./GateHandshake";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -35,6 +35,7 @@ import {
   canSubmit,
   checkedCount,
   fromSaved,
+  photosShort,
   type InspectionReport,
   type RoomItem,
 } from "@/lib/inspections/report";
@@ -50,6 +51,7 @@ import { statusFor, type BadgeTone } from "./status";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { TruthQuestions } from "./TruthQuestions";
 import { DrawUpAgreement } from "@/components/app/agreements/DrawUpAgreement";
+import { AGREEMENT_STATUS_LABEL } from "@/components/app/agreements/status";
 import { NO_INSPECTION_FEE, PRIVATE_FEE_NOTE, NO_INSPECTION_FEE_HEADLINE } from "@/lib/money/copy";
 import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 
@@ -87,6 +89,11 @@ export type InspectionListingFacts = {
    * example can never pass as a real property someone is going to see.
    */
   isDemo?: boolean;
+  /**
+   * The listing is let (`listing_intent = 'rent'`). Only then is an agreement
+   * drawn up from the report, and only then does the report need photos.
+   */
+  isRental?: boolean;
 };
 
 /** The listing card's badge: what the appointment is. */
@@ -172,6 +179,8 @@ export function InspectionSheet({
   tenancyReview = null,
   unsafe = null,
   gateCopy,
+  needPhotos = 0,
+  agreement = null,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
@@ -196,6 +205,13 @@ export function InspectionSheet({
   unsafe?: Dictionary["trustVisible"]["unsafe"] | null;
   /** V-35: the gate handshake's copy. Absent, no gate section is drawn. */
   gateCopy?: Dictionary["platform"]["gate"];
+  /**
+   * `money_policy.min_inspection_photos`. Applied only to a rental, whose
+   * report the agreement is drawn up from; the database holds the same rule.
+   */
+  needPhotos?: number;
+  /** The agreement already drawn up from this inspection, when there is one. */
+  agreement?: { id: string; status: string } | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -217,7 +233,10 @@ export function InspectionSheet({
   const status = statusFor(inspection, side);
   const editable = canEditReport(reportLive, inspection.state, saved);
   const rooms = checkedCount(saved.items);
-  const submittable = canSubmit(reportLive, inspection.state, saved, outcome);
+  const isRental = facts?.isRental === true;
+  const photoNeed = isRental ? needPhotos : 0;
+  const submittable = canSubmit(reportLive, inspection.state, saved, outcome, photoNeed);
+  const photosMissing = photosShort(saved, photoNeed);
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>) {
     setError(null);
@@ -704,13 +723,62 @@ export function InspectionSheet({
           {inspection.state !== "CONFIRMED" && inspection.state !== "COMPLETED" && (
             <p className="nf-ix-hint">The report opens once a time is agreed on both sides.</p>
           )}
-          {/* TRACK A: the agreement is drawn up from the renter's submitted report. */}
-          {side === "requester" && reportLive && saved.submittedAt && (
-            <DrawUpAgreement
-              inspectionId={inspection.id}
-              minDate={new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" })}
-            />
+          {/* A submitted report takes no more photos, and the agreement needs
+              them, so this is said while there is still time to add them. */}
+          {editable && photosMissing > 0 && rooms.done === rooms.total && (
+            <p className="nf-ix-hint" data-testid="inspection-photos-short">
+              Still needed: {countOf(photosMissing, "photos", locale)} taken at the property. Add them, then submit. The
+              agreement is drawn up from this report, and photos cannot be added once it is sent.
+            </p>
           )}
+          {/* TRACK A: the agreement is drawn up from the renter's submitted
+              report. While one is live both sides are taken to it. A
+              cancelled one no longer holds the inspection
+              (`agreement_open_rent_as` releases it, migration
+              20260929012543), so the renter may draw up a new one from the
+              same report, and both sides are told so. */}
+          {agreement?.status === "cancelled" && isRental && reportLive && saved.submittedAt ? (
+            <>
+              <p className="nf-ix-hint" data-testid="inspection-agreement-cancelled">
+                {side === "requester"
+                  ? "The agreement drawn up from this report was cancelled. You can draw up a new one from the same report."
+                  : "The agreement drawn up from this report was cancelled. The renter can draw up a new one from the same report."}{" "}
+                <Link href={`/agreements/${agreement.id}`} className="underline">
+                  See the cancelled agreement
+                </Link>
+              </p>
+              {side === "requester" && (
+                <DrawUpAgreement
+                  inspectionId={inspection.id}
+                  minDate={new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" })}
+                />
+              )}
+            </>
+          ) : agreement ? (
+            <>
+              {/* The status sits under the button: `.nf-btn` does not wrap,
+                  and the longest status overflows a phone-width button. */}
+              <Link
+                href={`/agreements/${agreement.id}`}
+                className="nf-btn nf-btn--primary nf-btn--md nf-btn--full"
+                data-testid="inspection-agreement"
+              >
+                Open the agreement
+              </Link>
+              <p className="nf-ix-hint">{AGREEMENT_STATUS_LABEL[agreement.status] ?? agreement.status}</p>
+            </>
+          ) : isRental && reportLive && saved.submittedAt ? (
+            side === "requester" ? (
+              <DrawUpAgreement
+                inspectionId={inspection.id}
+                minDate={new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" })}
+              />
+            ) : (
+              <p className="nf-ix-hint" data-testid="inspection-agreement-waiting">
+                The renter draws up the agreement from this report. You will be told when it is waiting for you.
+              </p>
+            )
+          ) : null}
         </div>
       </div>
 

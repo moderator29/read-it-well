@@ -83,6 +83,7 @@ describe("readSettlement", () => {
       bookingId: "b1",
       confirmed: true,
       amountMinor: 1000,
+      totalMinor: 1000,
       ledger: {
         grossMinor: 1000,
         platformFeeMinor: 0,
@@ -92,6 +93,29 @@ describe("readSettlement", () => {
         guaranteeMinor: 0,
       },
     });
+  });
+
+  it("carries the transaction status on already-settled, so a refund-due replay is visible", () => {
+    expect(readSettlement({ outcome: "already-settled", booking_id: "b1", transaction_status: "REFUND_DUE" })).toEqual({
+      outcome: "already-settled",
+      bookingId: "b1",
+      transactionStatus: "REFUND_DUE",
+    });
+  });
+
+  it("reads the move-in total the last share completed (V-86)", () => {
+    const ledger = { grossMinor: 500, platformFeeMinor: 0, agentShareMinor: 493, processorFeeMinor: 7, netSettlementMinor: 493 };
+    expect(readSettlement({ outcome: "settled", booking_id: "b1", confirmed: true, amount_minor: 500, total_minor: 1000, ledger })).toMatchObject({
+      amountMinor: 500,
+      totalMinor: 1000,
+    });
+  });
+
+  it("reads a flatmate's share settled short of the total (V-86)", () => {
+    const ledger = { grossMinor: 500, platformFeeMinor: 0, agentShareMinor: 493, processorFeeMinor: 7, netSettlementMinor: 493 };
+    expect(
+      readSettlement({ outcome: "share-settled", booking_id: "b1", amount_minor: 500, paid_minor: 500, total_minor: 1000, ledger }),
+    ).toMatchObject({ outcome: "share-settled", bookingId: "b1", amountMinor: 500, paidMinor: 500, totalMinor: 1000 });
   });
 
   it("refuses an answer it was never promised", () => {

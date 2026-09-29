@@ -10,7 +10,7 @@ import {
 } from "./messages";
 import { agreementApproved } from "./agreement-messages";
 import { greetingName, hello, money } from "./render";
-import { LEGAL_LINE, MARK_PATH, SIGN_OFF, WORDMARK_ALT, WORDMARK_PATH } from "./theme";
+import { LEGAL_LINE, LOCKUP_PATH, SIGN_OFF, WORDMARK_ALT } from "./theme";
 
 /**
  * The invariants that hold for every message, checked against every message.
@@ -99,24 +99,22 @@ describe("every message in the catalogue", () => {
     expect(emoji.test(message.text)).toBe(false);
   });
 
-  it.each(EVERY_MESSAGE)("$name is dark in the register and says so", ({ message }) => {
-    expect(message.html).toContain('name="color-scheme" content="dark"');
+  it.each(EVERY_MESSAGE)("$name declares light and dark and carries its dark scheme", ({ message }) => {
+    expect(message.html).toContain('name="color-scheme" content="light dark"');
     expect(message.html).toContain("@media (prefers-color-scheme: dark)");
   });
 
   it.each(EVERY_MESSAGE)("$name carries the lockup and puts no other words inside an image", ({ message }) => {
     /*
-     * The two images in the shell are the lockup: the glass mark, decorative,
-     * alt empty; the wordmark, whose alt is the brand name and nothing more.
-     * Any image carrying copy would need alt text of its own, so an img with
-     * any other alt is the signal that somebody has put words in a picture.
+     * The one image in the shell is the lockup on its navy tile, whose alt is
+     * the brand name and nothing more. Any image carrying copy would need alt
+     * text of its own, so an img with any other alt is the signal that
+     * somebody has put words in a picture.
      */
     const images = message.html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images).toHaveLength(2);
-    expect(images[0]).toContain(MARK_PATH);
-    expect(images[0]).toContain('alt=""');
-    expect(images[1]).toContain(WORDMARK_PATH);
-    expect(images[1]).toContain(`alt="${WORDMARK_ALT}"`);
+    expect(images).toHaveLength(1);
+    expect(images[0]).toContain(LOCKUP_PATH);
+    expect(images[0]).toContain(`alt="${WORDMARK_ALT}"`);
   });
 
   it.each(EVERY_MESSAGE)("$name closes with the sign-off and the legal line, in both renderings", ({ message }) => {

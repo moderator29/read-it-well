@@ -20,7 +20,9 @@ import { supportTicketFiled } from "../email/messages";
 import { isFeatureEnabled } from "../flags";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createAdminClient } from "../supabase/admin";
-import { SUPPORT_TOPICS } from "../trust/support-topics";
+import { SUPPORT_TOPICS, supportTopicLabel, type SupportTopic } from "../trust/support-topics";
+import { getLocale } from "../locale";
+import { readMyRelatedRecord } from "./related-records";
 
 /**
  * Support ticket filing.
@@ -48,14 +50,32 @@ import { SUPPORT_TOPICS } from "../trust/support-topics";
  */
 
 const ticketSchema = z.object({
-  name: z.string().trim().min(1, "Add your name so we know who to reply to.").max(120),
-  email: z
-    .string()
-    .trim()
-    .min(1, "Add an email address so we can reply.")
-    .email("Enter a valid email address.")
-    .max(200),
-  topic: z.string().trim().max(140).optional(),
+  /*
+   * Optional for a signed-in member, whose name and sign-in email are read
+   * from their account below. Required for everybody else, and the check for
+   * that sits after the session is known.
+   */
+  name: z.string().trim().max(120).optional(),
+  email: z.union([z.literal(""), z.string().trim().email("Enter a valid email address.").max(200)]).optional(),
+  /**
+   * A code from `SUPPORT_TOPICS`, never free text: the queue grades and labels
+   * by the code, and a free-text topic was one more field a caller could fill
+   * with whatever the staff screen would print.
+   */
+  topic: z.enum(SUPPORT_TOPICS).optional(),
+  /** A question or a problem, from the in-app query flow. */
+  kind: z.enum(["question", "problem"]).optional(),
+  /**
+   * One of the member's own records the query is about. Signed-in only; the
+   * label stored with it is rebuilt from the member's own read, never taken
+   * from the request, and the insert policy checks ownership again.
+   */
+  related: z
+    .object({
+      kind: z.enum(["booking", "agreement", "listing", "payment", "inspection"]),
+      id: z.string().uuid(),
+    })
+    .optional(),
   body: z.string().trim().min(1, "Tell us what you need help with.").max(4000),
   /**
    * The AI agent's short account of the conversation, written when support
@@ -65,7 +85,7 @@ const ticketSchema = z.object({
   summary: z.string().trim().max(4000).optional(),
 });
 
-export type SupportTicketInput = z.infer<typeof ticketSchema>;
+export type SupportTicketInput = z.input<typeof ticketSchema>;
 
 const FILE_FAILED_MESSAGE =
   "We could not file your ticket just now. Your question is kept in this conversation, so please try again shortly.";
@@ -107,9 +127,35 @@ async function attachFirstMessage(
   }
 }
 
+/**
+ * A signed-in member's name and reply address, from their own account.
+ *
+ * Not exported, for the same reason as `attachFirstMessage`. The name is the
+ * profile's first name (or the first word of the display name); the address is
+ * the one they sign in with, which is the one the acknowledgement should reach.
+ */
+async function accountContact(
+  client: SupabaseClient<Database>,
+  userId: string,
+  sessionEmail: string | undefined,
+): Promise<{ name: string; email: string }> {
+  let name = "";
+  try {
+    const { data } = await client
+      .from("profiles")
+      .select("first_name, display_name")
+      .eq("id", userId)
+      .maybeSingle();
+    name = (data?.first_name?.trim() || data?.display_name?.trim().split(/\s+/)[0] || "").slice(0, 120);
+  } catch {
+    // A missing name is filled with a plain word below; the ticket still files.
+  }
+  return { name: name || "Vallo member", email: (sessionEmail ?? "").trim() };
+}
+
 export async function fileSupportTicket(
   input: SupportTicketInput,
-): Promise<ActionResult<{ reference: string }>> {
+): Promise<ActionResult<{ reference: string; id?: string }>> {
   const parsed = validate(ticketSchema, input);
   if (!parsed.ok) return parsed;
 
@@ -139,7 +185,25 @@ export async function fileSupportTicket(
     );
   }
 
-  const { name, email, topic, body, summary } = parsed.data;
+  const { topic, body, summary, kind, related } = parsed.data;
+
+  let name = parsed.data.name ?? "";
+  let email = parsed.data.email ?? "";
+  if (session.state === "signed-in" && (!name || !email)) {
+    const fromAccount = await accountContact(session.supabase, session.user.id, session.user.email);
+    name = name || fromAccount.name;
+    email = email || fromAccount.email;
+  }
+  if (!name || !email) {
+    return fail("Add your name and an email address so we can reply.", {
+      ...(name ? {} : { name: "Add your name so we know who to reply to." }),
+      ...(email ? {} : { email: "Add an email address so we can reply." }),
+    });
+  }
+
+  if (related && session.state !== "signed-in") {
+    return fail("Sign in to link one of your bookings or payments.");
+  }
 
   try {
     // Signed-in users file as themselves under RLS; everyone else goes through
@@ -147,6 +211,13 @@ export async function fileSupportTicket(
     const client: SupabaseClient<Database> =
       session.state === "signed-in" ? session.supabase : createAdminClient();
     const userId = session.state === "signed-in" ? session.user.id : null;
+
+    let relatedRow: { related_kind: string; related_id: string; related_label: string } | null = null;
+    if (related && session.state === "signed-in") {
+      const record = await readMyRelatedRecord(session.supabase, session.user.id, await getLocale(), related.kind, related.id);
+      if (!record) return fail("That record could not be found on your account. Choose it again, or leave it out.");
+      relatedRow = { related_kind: record.kind, related_id: record.id, related_label: record.label.slice(0, 200) };
+    }
 
     // The reference is random; on the rare collision, roll again.
     for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -161,6 +232,8 @@ export async function fileSupportTicket(
           topic: topic && topic.length > 0 ? topic : null,
           body,
           status: "open",
+          ...(kind ? { kind } : {}),
+          ...(relatedRow ?? {}),
         })
         .select("id")
         .single();
@@ -192,12 +265,14 @@ export async function fileSupportTicket(
           await bestEffortEmail(async () => {
             const message =
               session.state === "signed-in"
-                ? supportTicketFiled({ name, reference, topic: topic ?? null, body })
+                ? supportTicketFiled({ name, reference, topic: supportTopicLabel(topic ?? null), body })
                 : supportTicketFiled({ reference });
             await sendMessage(email, message);
           });
         }
-        return ok({ reference });
+        // The id only goes back to the member who owns the ticket: it is the
+        // address of a thread nobody else can open.
+        return ok({ reference, ...(userId && data?.id ? { id: data.id } : {}) });
       }
       if (error.code !== "23505") return fail(FILE_FAILED_MESSAGE);
     }
@@ -278,9 +353,9 @@ const contactSchema = z.object({
  * person reaching support.
  */
 export async function submitContactForm(
-  _prev: ActionResult<{ reference: string }> | null,
+  _prev: ActionResult<{ reference: string; id?: string }> | null,
   formData: FormData,
-): Promise<ActionResult<{ reference: string }>> {
+): Promise<ActionResult<{ reference: string; id?: string }>> {
   const parsed = validate(contactSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
@@ -303,5 +378,5 @@ export async function submitContactForm(
   }
 
   const { name, email, topic, message } = parsed.data;
-  return fileSupportTicket({ name, email, topic, body: message });
+  return fileSupportTicket({ name, email, topic: topic as SupportTopic, body: message });
 }

@@ -6,6 +6,7 @@ import { getRentPayView } from "@/lib/rent/queries";
 import { isBookingReference } from "@/lib/payments/references";
 import { listPaymentMethods } from "@/lib/payments/methods-actions";
 import type { PaymentMethod } from "@/lib/payments/methods";
+import { cryptoOfferForViewer } from "@/lib/crypto/offer";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
@@ -187,6 +188,8 @@ export default async function RentPayPage({
   const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
   const savedCardKey = crypto.randomUUID();
   const chargeSavedCard = chargeRentSavedCardFor.bind(null, inspectionId, savedCardKey);
+  /* Crypto, decided on the server: null while it is off for the platform. */
+  const cryptoOffer = await cryptoOfferForViewer();
 
   return (
     <Shell subtitle={view.title}>
@@ -211,6 +214,7 @@ export default async function RentPayPage({
           view={view}
           savedCards={savedCards}
           chargeSavedCard={chargeSavedCard}
+          crypto={cryptoOffer}
           payCopy={getDictionary(locale).afterTheGate.pay}
         />
       </div>

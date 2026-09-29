@@ -33,11 +33,7 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
-import {
-  compoundColumns,
-  isMissingColumnError,
-  type CompoundPayload,
-} from "../listings/compound";
+import { compoundColumns, type CompoundPayload } from "../listings/compound";
 import { serviceColumns, type ServicePayload } from "../listings/service";
 import { unitColumns, type UnitPayload } from "../listings/unit-shape";
 import { flagIsOn, NEIGHBOURS_FLAG } from "../flags/read";
@@ -448,12 +444,12 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
 /**
  * THE COMPOUND'S FIVE ANSWERS (V-28), WRITTEN BY THEIR OWN UPDATE.
  *
- * Separate from `columns` above for one reason: an update naming a column that
- * does not exist fails whole, so if this code reaches production before
- * migration `20260924150200`, folding these into the main write would stop
- * every draft saving. Written on their own, a missing column costs the five
- * answers and nothing else, and `isMissingColumnError` treats that as saved.
- * Any other failure is a failure. Nothing is sent when no answer changed.
+ * Separate from `columns` above because it was written before the columns
+ * existed in production. They exist now (V-28, V-66, V-68 and V-41 are all
+ * applied), so a refusal of any kind, including a missing column, is a failed
+ * save: it used to be treated as saved, and the answers were silently lost on
+ * every save while the wizard said "Saved". Nothing is sent when no answer
+ * changed.
  */
 async function writeCompound(
   supabase: SupabaseClient<Database>,
@@ -480,7 +476,7 @@ async function writeCompound(
     .update(row as never)
     .eq("id", listingId)
     .eq("agent_id", agentId);
-  return !error || isMissingColumnError(error);
+  return !error;
 }
 
 /**
@@ -511,7 +507,7 @@ async function writeService(
     .update(row as never)
     .eq("id", listingId)
     .eq("agent_id", agentId);
-  return !error || isMissingColumnError(error);
+  return !error;
 }
 
 /**
@@ -539,7 +535,7 @@ async function writeUnit(
     .update(row as never)
     .eq("id", listingId)
     .eq("agent_id", agentId);
-  return !error || isMissingColumnError(error);
+  return !error;
 }
 
 /** V-41: the lister's flooding answer, by its own update for the same reason. */
@@ -557,10 +553,14 @@ async function writeFlooding(
     .update({ flooding } as never)
     .eq("id", listingId)
     .eq("agent_id", agentId);
-  return !error || isMissingColumnError(error);
+  return !error;
 }
 
-/** V-66: the shape for the submit gate. Undefined when the column cannot be read. */
+/**
+ * V-66: the shape for the submit gate, or undefined when it could not be read.
+ * The caller refuses the submit on undefined: skipping the check on a failed
+ * read would let a listing past the gate without the one answer it requires.
+ */
 async function readUnitShape(
   supabase: SupabaseClient<Database>,
   listingId: string,
@@ -580,6 +580,34 @@ function formatKobo(minor: number): string {
   const naira = (minor - kobo) / 100;
   const grouped = naira.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return kobo === 0 ? `${grouped} naira` : `${grouped}.${String(kobo).padStart(2, "0")} naira`;
+}
+
+/**
+ * Remove an uploaded photo object that no photo row points at. Best effort:
+ * the refusal the caller is returning is the answer either way.
+ *
+ * Narrow on purpose. The path must be `<uid>/<this listing>/<file>` (the
+ * caller has already checked the uid prefix, and storage RLS limits removal
+ * to the caller's own folder), and no `listing_photos` row may name it.
+ */
+async function discardUnattached(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  storagePath: string,
+): Promise<void> {
+  const parts = storagePath.split("/");
+  if (parts.length !== 3 || parts[1] !== listingId) return;
+  try {
+    const { data, error } = await supabase
+      .from("listing_photos")
+      .select("id")
+      .eq("storage_path", storagePath)
+      .limit(1);
+    if (error || (data ?? []).length > 0) return;
+    await supabase.storage.from(PHOTO_BUCKET).remove([storagePath]);
+  } catch {
+    /* the object costs storage, not correctness */
+  }
 }
 
 /* --------------------------------------------------------------- photos */
@@ -611,19 +639,34 @@ export async function addPhoto(input: {
     );
   }
 
+  /*
+   * EVERY REFUSAL FROM HERE ON TAKES THE UPLOADED OBJECT WITH IT.
+   *
+   * The browser uploads first and attaches second, so a refused attach (a
+   * listing that moved to review, the ten photo ceiling, a wrong type, a
+   * failed insert) left the object sitting in the PUBLIC bucket, unlisted
+   * but downloadable, for ever. `discardUnattached` removes it, and only
+   * when it is in this listing's own folder and no photo row names it, so a
+   * path pointing at a photo already attached elsewhere is never deleted.
+   */
+  const refuse = async (message: string): Promise<ActionResult<{ photoId: string; position: number }>> => {
+    await discardUnattached(gate.supabase, listingId, storagePath);
+    return fail(message);
+  };
+
   const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
-  if (!listing) return fail(NOT_FOUND_MESSAGE);
-  if (!EDITABLE.includes(listing.status)) return fail(LOCKED_MESSAGE);
+  if (!listing) return refuse(NOT_FOUND_MESSAGE);
+  if (!EDITABLE.includes(listing.status)) return refuse(LOCKED_MESSAGE);
 
   const { data: existing, error: readError } = await gate.supabase
     .from("listing_photos")
     .select("id, position")
     .eq("listing_id", listingId);
-  if (readError) return fail(PHOTO_FAILED_MESSAGE);
+  if (readError) return refuse(PHOTO_FAILED_MESSAGE);
 
   const taken = new Set((existing ?? []).map((p) => p.position));
   if (taken.size >= MAX_PHOTOS) {
-    return fail(`A listing holds up to ${MAX_PHOTOS} photos. Remove one to add another.`);
+    return refuse(`A listing holds up to ${MAX_PHOTOS} photos. Remove one to add another.`);
   }
 
   let slot = position !== undefined && !taken.has(position) ? position : -1;
@@ -636,7 +679,7 @@ export async function addPhoto(input: {
     }
   }
   if (slot < 0) {
-    return fail(`A listing holds up to ${MAX_PHOTOS} photos. Remove one to add another.`);
+    return refuse(`A listing holds up to ${MAX_PHOTOS} photos. Remove one to add another.`);
   }
 
   /*
@@ -662,20 +705,20 @@ export async function addPhoto(input: {
   const { data: objects, error: objectError } = await gate.supabase.storage
     .from(PHOTO_BUCKET)
     .list(folder, { search: fileName, limit: 100 });
-  if (objectError) return fail(PHOTO_FAILED_MESSAGE);
+  if (objectError) return refuse(PHOTO_FAILED_MESSAGE);
 
   const object = (objects ?? []).find((entry) => entry.name === fileName);
-  if (!object) return fail("That upload did not finish. Try the photo again.");
+  if (!object) return refuse("That upload did not finish. Try the photo again.");
 
   const size = Number(object.metadata?.["size"] ?? 0);
   const mime = String(object.metadata?.["mimetype"] ?? "");
   if (size > MAX_PHOTO_BYTES) {
-    return fail(
+    return refuse(
       `That photo is over ${MAX_PHOTO_LABEL}. Most phones can export a smaller copy.`,
     );
   }
   if (!(PHOTO_MIME_TYPES as readonly string[]).includes(mime)) {
-    return fail("That file is not a photo we can show. Use JPEG, PNG or WebP.");
+    return refuse("That file is not a photo we can show. Use JPEG, PNG or WebP.");
   }
 
   /*
@@ -684,7 +727,7 @@ export async function addPhoto(input: {
    * server strips it here too, before the row makes the object public.
    */
   const scrubbed = await scrubPublicPhoto(PHOTO_BUCKET, storagePath);
-  if (!scrubbed.ok) return fail(SCRUB_REFUSED_MESSAGE);
+  if (!scrubbed.ok) return refuse(SCRUB_REFUSED_MESSAGE);
 
   const { data: created, error } = await gate.supabase
     .from("listing_photos")
@@ -692,7 +735,7 @@ export async function addPhoto(input: {
     .select("id, position")
     .single();
 
-  if (error || !created) return fail(PHOTO_FAILED_MESSAGE);
+  if (error || !created) return refuse(PHOTO_FAILED_MESSAGE);
 
   /* V-45: hash the stored photograph after the response, as the service
      role, so the review desk can compare it. Never slows the upload and
@@ -752,10 +795,22 @@ async function applyOrder(
 
   // Ten photos and ten slots leaves nowhere to step aside, so park the row
   // that belongs last and put it back once the rest have settled.
-  let parked: { path: string; to: number } | null = null;
+  /*
+   * Parking deletes the row, and V-70's shot label (`listing_photo_slots`)
+   * hangs off the photo id with ON DELETE CASCADE, so the parked photo lost
+   * its label on every reorder at ten photos. The label is read first and put
+   * back on the new row.
+   */
+  let parked: { path: string; to: number; slot: string | null } | null = null;
   if (ordered.length >= MAX_PHOTOS) {
     const tail = ordered[ordered.length - 1];
     if (tail) {
+      const loose = supabase as unknown as SupabaseClient;
+      const { data: label } = await loose
+        .from("listing_photo_slots")
+        .select("slot")
+        .eq("photo_id", tail.id)
+        .maybeSingle();
       const { error: deleteError } = await supabase
         .from("listing_photos")
         .delete()
@@ -765,7 +820,11 @@ async function applyOrder(
       const from = position.get(tail.id);
       if (from !== undefined) occupant.delete(from);
       position.delete(tail.id);
-      parked = { path: tail.path, to: ordered.length - 1 };
+      parked = {
+        path: tail.path,
+        to: ordered.length - 1,
+        slot: typeof (label as { slot?: unknown } | null)?.slot === "string" ? (label as { slot: string }).slot : null,
+      };
     }
   }
 
@@ -796,10 +855,29 @@ async function applyOrder(
   }
 
   if (parked) {
-    const { error: insertError } = await supabase
+    const { data: back, error: insertError } = await supabase
       .from("listing_photos")
-      .insert({ listing_id: listingId, storage_path: parked.path, position: parked.to });
-    if (insertError) return false;
+      .insert({ listing_id: listingId, storage_path: parked.path, position: parked.to })
+      .select("id")
+      .single();
+    if (insertError || !back) return false;
+    if (parked.slot) {
+      /* Best effort: a label that does not come back is a label the lister
+         can set again, and the order itself is already right. */
+      const { data: relabel, error: relabelError } = await (supabase as unknown as SupabaseClient).rpc(
+        "set_listing_photo_slot",
+        { p_photo: back.id, p_slot: parked.slot },
+      );
+      const relabelStatus =
+        relabel && typeof relabel === "object" ? String((relabel as Record<string, unknown>).status) : null;
+      if (relabelError || relabelStatus !== "ok") {
+        console.warn(
+          `[applyOrder] shot label "${parked.slot}" not restored on photo ${back.id} of listing ${listingId}: ${relabelError?.message ?? relabelStatus ?? "no answer"}`,
+        );
+      }
+    }
+    /* The new row has no V-45 hash yet; the desk also hashes on open. */
+    after(() => hashListingPhotos(listingId));
   }
 
   return true;
@@ -900,6 +978,45 @@ export async function reorderPhotos(input: {
   });
 }
 
+/**
+ * Remove an uploaded walkthrough, and its still, when no row names them. The
+ * same narrow rule as `discardUnattached`: only inside this listing's own
+ * folder, and never an object a `listing_videos` or `listing_photos` row
+ * still points at. Best effort.
+ */
+async function discardUnattachedVideo(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  storagePath: string,
+  posterPath: string | undefined,
+): Promise<void> {
+  const inFolder = (path: string) => {
+    const parts = path.split("/");
+    return parts.length === 3 && parts[1] === listingId;
+  };
+  try {
+    if (inFolder(storagePath)) {
+      const { data, error } = await supabase
+        .from("listing_videos")
+        .select("id")
+        .eq("storage_path", storagePath)
+        .limit(1);
+      if (!error && (data ?? []).length === 0) await supabase.storage.from(VIDEO_BUCKET).remove([storagePath]);
+    }
+    if (posterPath && inFolder(posterPath)) {
+      const [asPoster, asPhoto] = await Promise.all([
+        supabase.from("listing_videos").select("id").eq("poster_path", posterPath).limit(1),
+        supabase.from("listing_photos").select("id").eq("storage_path", posterPath).limit(1),
+      ]);
+      if (!asPoster.error && !asPhoto.error && (asPoster.data ?? []).length === 0 && (asPhoto.data ?? []).length === 0) {
+        await supabase.storage.from(PHOTO_BUCKET).remove([posterPath]);
+      }
+    }
+  } catch {
+    /* the objects cost storage, not correctness */
+  }
+}
+
 /* --------------------------------------------------------------- videos */
 
 /**
@@ -940,9 +1057,24 @@ export async function addVideo(input: {
     );
   }
 
+  if (posterPath !== undefined && !posterPath.startsWith(`${gate.user.id}/`)) {
+    return fail(
+      "That video's still was not uploaded to your own folder, so we did not attach it. Choose the file again.",
+    );
+  }
+
+  /* Every refusal from here on takes the uploaded video, and its still, with
+     it, for the reason `addPhoto` gives: the browser uploads before it
+     attaches, so a refused attach left the objects behind for ever. */
+  type Attached = ActionResult<{ videoId: string; position: number }>;
+  const refuse = async (message: string): Promise<Attached> => {
+    await discardUnattachedVideo(gate.supabase, listingId, storagePath, posterPath);
+    return fail(message);
+  };
+
   const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
-  if (!listing) return fail(NOT_FOUND_MESSAGE);
-  if (!EDITABLE.includes(listing.status)) return fail(LOCKED_MESSAGE);
+  if (!listing) return refuse(NOT_FOUND_MESSAGE);
+  if (!EDITABLE.includes(listing.status)) return refuse(LOCKED_MESSAGE);
 
   /*
    * What the object actually is, read from storage rather than believed.
@@ -959,33 +1091,33 @@ export async function addVideo(input: {
   const { data: objects, error: listError } = await gate.supabase.storage
     .from(VIDEO_BUCKET)
     .list(folder, { search: fileName, limit: 100 });
-  if (listError) return fail(VIDEO_FAILED_MESSAGE);
+  if (listError) return refuse(VIDEO_FAILED_MESSAGE);
 
   const object = (objects ?? []).find((entry) => entry.name === fileName);
   if (!object) {
-    return fail("That upload did not finish. Try the video again.");
+    return refuse("That upload did not finish. Try the video again.");
   }
 
   const size = Number(object.metadata?.["size"] ?? 0);
   const mime = String(object.metadata?.["mimetype"] ?? "");
   if (size > MAX_UPLOAD_BYTES) {
-    return fail(
+    return refuse(
       `That video is over ${MAX_UPLOAD_LABEL}. Record a shorter clip, or export it at a lower resolution.`,
     );
   }
   if (!(VIDEO_MIME_TYPES as readonly string[]).includes(mime)) {
-    return fail("That file is not a video we can play. Use MP4, MOV or WebM.");
+    return refuse("That file is not a video we can play. Use MP4, MOV or WebM.");
   }
 
   const { data: existing, error: countError } = await gate.supabase
     .from("listing_videos")
     .select("id, position")
     .eq("listing_id", listingId);
-  if (countError) return fail(VIDEO_FAILED_MESSAGE);
+  if (countError) return refuse(VIDEO_FAILED_MESSAGE);
 
   const held = existing ?? [];
   if (held.length >= MAX_VIDEOS) {
-    return fail(
+    return refuse(
       `A listing holds up to ${MAX_VIDEOS} walkthroughs. Remove one to add another.`,
     );
   }
@@ -1007,11 +1139,11 @@ export async function addVideo(input: {
   if (error || !created) {
     // 23514 is the ceiling trigger winning a race this action's own count lost.
     if (error?.code === "23514") {
-      return fail(
+      return refuse(
         `A listing holds up to ${MAX_VIDEOS} walkthroughs. Remove one to add another.`,
       );
     }
-    return fail(VIDEO_FAILED_MESSAGE);
+    return refuse(VIDEO_FAILED_MESSAGE);
   }
 
   refreshAgentSurfaces();
@@ -1036,7 +1168,7 @@ export async function removeVideo(input: {
 
   const { data: video } = await gate.supabase
     .from("listing_videos")
-    .select("id, storage_path")
+    .select("id, storage_path, poster_path")
     .eq("id", videoId)
     .eq("listing_id", listingId)
     .maybeSingle();
@@ -1054,6 +1186,8 @@ export async function removeVideo(input: {
   // Best effort: the listing is already correct either way, and an orphaned
   // object costs storage rather than correctness.
   await gate.supabase.storage.from(VIDEO_BUCKET).remove([video.storage_path]);
+  /* The still went nowhere before; it lives in the public photo bucket. */
+  if (video.poster_path) await gate.supabase.storage.from(PHOTO_BUCKET).remove([video.poster_path]);
 
   refreshAgentSurfaces();
   return ok(null);
@@ -1130,6 +1264,11 @@ export async function setListingAccess(
 
   const listing = await ownedListing(gate.supabase, gate.agentId, value.listingId);
   if (!listing) return fail(NOT_FOUND_MESSAGE);
+  /* NO `EDITABLE` CHECK HERE, ON PURPOSE. Unlike every other write in this
+     file, the gate details may be corrected on a live or in-review listing:
+     a changed gate code or security number is an operational fact the next
+     guest needs tonight, not content for review, and it lives in its own
+     table that the public page cannot read. */
 
   const row = {
     listing_id: value.listingId,
@@ -1207,6 +1346,11 @@ export async function submitListing(input: {
     readUnitShape(gate.supabase, listingId),
   ]);
 
+  /* Fail closed: a gate that could not read its own inputs does not pass. */
+  if (photoRes.error || amenityRes.error || unitShape === undefined) {
+    return fail("We could not check this listing just now. Nothing has changed. Please try again.");
+  }
+
   const photos = photoRes.data ?? [];
   const unmet = submitRequirements({
     title: listing.title,
@@ -1224,7 +1368,7 @@ export async function submitListing(input: {
     tenure: listing.tenure,
     bedrooms: listing.bedrooms,
     bathrooms: listing.bathrooms,
-    ...(unitShape !== undefined ? { unitShape } : {}),
+    unitShape,
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
     hasCover: photos.some((p) => p.position === 0),

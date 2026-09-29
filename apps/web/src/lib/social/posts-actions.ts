@@ -792,12 +792,16 @@ export async function loadMoreFeed(
   const at = parsedCursor.data;
   const chosen = parsedMode.data;
   try {
-    if (chosen.kind === "area") return ok(await getAreaFeed(chosen.areaId, at));
-    if (chosen.kind === "joined") {
-      if (session.state !== "signed-in") return ok(ENDED);
-      return ok(await getJoinedFeed(session.user.id, at));
-    }
-    return ok(await getEverywhereFeed(at));
+    const page =
+      chosen.kind === "area"
+        ? await getAreaFeed(chosen.areaId, at)
+        : chosen.kind === "joined"
+          ? await getJoinedFeed(session.user.id, at)
+          : await getEverywhereFeed(at);
+    /* A dropped read is a failure the control can say and retry, never the
+       end of the timeline. */
+    if (page.failed) return fail("The next page did not load. Check your connection and try again.");
+    return ok(page);
   } catch {
     return fail("The next page did not load. Pull to refresh and try again.");
   }

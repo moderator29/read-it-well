@@ -14,12 +14,14 @@
  * `render.ts` renders a closed set of blocks, which is right for a receipt and
  * too plain for this. The welcome needs the two world tiles, numbered step
  * plates, a lit button with a bright top edge and a bloom, and mobile stacking.
- * It is built here from the SAME palette, type stack, measurements, lockup,
- * sign-off and legal line (`theme.ts`) and the same escaping and URL helpers
- * (`render.ts`), so it is visibly the same family, and it satisfies every
- * structural rule `shell.test.ts` holds the whole catalogue to: tables only,
- * one style block that nothing depends on, the ground painted three times,
- * exactly two images (the lockup), a hidden inbox line, 600px and fluid.
+ * It is built INSIDE the same document as every other message
+ * (`documentHtml` in `render.ts`: the navy brand band, the white card, the
+ * footer with the support and legal links, the one style block with the dark
+ * scheme) from the same palette (`theme.ts`), so it is visibly the same
+ * family, and it satisfies every structural rule `shell.test.ts` holds the
+ * whole catalogue to: tables only, one style block that nothing depends on,
+ * every ground painted, one image (the lockup), a hidden inbox line, 600px
+ * and fluid.
  *
  * WHO SENDS IT. Not this file. `lib/notify/welcome.ts` (`welcomeOnce`) sends
  * it once, on confirmation, guarded by `profiles.welcomed_at`, and picks the
@@ -33,27 +35,18 @@
  */
 
 import type { EmailMessage } from "./messages";
-import { appUrl, escapeHtml, greetingName, hello, paintExplicit, siteUrl } from "./render";
 import {
-  DARK,
-  ELECTRIC,
-  FONT_SANS,
-  GLOW,
-  GRADIENT,
-  GRADIENT_CAP,
-  LEGAL_LINE,
-  MARK_HEIGHT,
-  MARK_PATH,
-  MARK_WIDTH,
-  MAX_WIDTH,
-  PAD_X,
-  SIGN_OFF,
-  SKY,
-  WORDMARK_ALT,
-  WORDMARK_HEIGHT,
-  WORDMARK_PATH,
-  WORDMARK_WIDTH,
-} from "./theme";
+  appUrl,
+  documentHtml,
+  escapeHtml,
+  footerLinksText,
+  footerRows,
+  greetingName,
+  hello,
+  paintExplicit,
+  siteUrl,
+} from "./render";
+import { BRAND, FONT_SANS, GRADIENT_LIGHT, LEGAL_LINE, LIGHT, LINK, SIGN_OFF } from "./theme";
 
 /**
  * What somebody said they came here to do.
@@ -94,6 +87,10 @@ export const WELCOME_ROUTES = [
   "/verification",
   "/agent/list",
   "/settings/notifications",
+  /* The shared footer's support and legal links (`FOOTER_LINKS` in render.ts). */
+  "/support",
+  "/legal/privacy",
+  "/legal/terms",
 ] as const;
 
 export type WelcomeRoute = (typeof WELCOME_ROUTES)[number];
@@ -365,33 +362,13 @@ function wrap(text: string, width = 72, indent = ""): string {
 const TEXT = `font-family:${FONT_SANS};`;
 
 /**
- * The style block. Nothing the message depends on lives here: it re-asserts
- * the inline palette for the clients that repaint a dark email (Apple Mail and
- * iOS by the media query, Outlook.com by `[data-ogsc]`; Gmail strips both and
- * the inline layer holds it), and it stacks the two world tiles and tightens
- * the card on a phone. A client that drops it still gets a complete, legible,
- * fluid message.
+ * The welcome's own phone rules, added to the shared style block
+ * (`schemeStyle` in render.ts, which carries the dark scheme). Nothing the
+ * message depends on lives here: a client that drops the block still gets a
+ * complete, legible, fluid message.
  */
-const STYLE = `
-      :root { color-scheme: dark; supported-color-schemes: dark; }
-      @media (prefers-color-scheme: dark) {
-        .rm-base   { background: ${DARK.ground} !important; }
-        .rm-card   { background: ${DARK.card} !important; border-color: ${DARK.rim} !important; }
-        .rm-panel  { background: ${DARK.panel} !important; border-color: ${DARK.edge} !important; }
-        .rm-title  { color: ${DARK.text} !important; }
-        .rm-body   { color: ${DARK.body} !important; }
-        .rm-muted  { color: ${DARK.muted} !important; }
-        .rm-brand  { color: ${SKY} !important; }
-      }
-      [data-ogsc] .rm-base   { background: ${DARK.ground} !important; }
-      [data-ogsc] .rm-card   { background: ${DARK.card} !important; border-color: ${DARK.rim} !important; }
-      [data-ogsc] .rm-panel  { background: ${DARK.panel} !important; border-color: ${DARK.edge} !important; }
-      [data-ogsc] .rm-title  { color: ${DARK.text} !important; }
-      [data-ogsc] .rm-body   { color: ${DARK.body} !important; }
-      [data-ogsc] .rm-muted  { color: ${DARK.muted} !important; }
-      [data-ogsc] .rm-brand  { color: ${SKY} !important; }
+const PHONE_STYLE = `
       @media only screen and (max-width: 480px) {
-        .wm-card  { padding: 30px 22px 32px !important; }
         .wm-h1    { font-size: 27px !important; }
         .wm-hero  { padding: 22px 18px 18px !important; }
         .wm-value { padding: 16px 16px 16px 14px !important; }
@@ -403,17 +380,17 @@ const STYLE = `
 function valueCard(step: Step, index: number): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 12px;">
                   <tr>
-                    <td class="rm-panel wm-value" bgcolor="${DARK.panel}" style="background-color:${DARK.panel};border:1px solid ${DARK.edge};border-radius:16px;padding:18px 20px 18px 18px;">
+                    <td class="rm-panel wm-value" bgcolor="${LIGHT.panel}" style="background-color:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:16px;padding:18px 20px 18px 18px;">
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;"><tr>
                         <td class="wm-plate" width="50" valign="top" style="width:50px;vertical-align:top;padding-right:14px;">
                           <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                            <td class="rm-brand" align="center" valign="middle" width="36" height="36" bgcolor="${DARK.card}" style="width:36px;height:36px;background-color:${DARK.card};border:1px solid ${DARK.edge};border-top:1px solid ${SKY};border-radius:10px;${TEXT}font-size:15px;line-height:36px;font-weight:700;text-align:center;color:${SKY};mso-line-height-rule:exactly;">${index + 1}</td>
+                            <td class="rm-card rm-link" align="center" valign="middle" width="36" height="36" bgcolor="${LIGHT.card}" style="width:36px;height:36px;background-color:${LIGHT.card};border:1px solid ${LIGHT.edge};border-top:1px solid ${LINK};border-radius:10px;${TEXT}font-size:15px;line-height:36px;font-weight:700;text-align:center;color:${LINK};mso-line-height-rule:exactly;">${index + 1}</td>
                           </tr></table>
                         </td>
                         <td valign="top" style="vertical-align:top;">
-                          <p class="rm-title" style="margin:0 0 6px;${TEXT}font-size:16px;line-height:1.4;font-weight:700;letter-spacing:-0.01em;color:${DARK.text};">${escapeHtml(step.title)}</p>
-                          <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:15px;line-height:1.6;color:${DARK.body};">${escapeHtml(step.body)}</p>
-                          <p style="margin:0;${TEXT}font-size:14px;line-height:20px;font-weight:600;color:${SKY};"><a class="rm-brand" href="${escapeHtml(href(step.link))}" target="_blank" style="color:${SKY};text-decoration:underline;text-underline-offset:3px;">${escapeHtml(step.link.label)}&nbsp;&rarr;</a></p>
+                          <p class="rm-title" style="margin:0 0 6px;${TEXT}font-size:16px;line-height:1.4;font-weight:700;letter-spacing:-0.01em;color:${LIGHT.text};">${escapeHtml(step.title)}</p>
+                          <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:15px;line-height:1.6;color:${LIGHT.body};">${escapeHtml(step.body)}</p>
+                          <p class="rm-link" style="margin:0;${TEXT}font-size:14px;line-height:20px;font-weight:600;color:${LINK};"><a class="rm-link" href="${escapeHtml(href(step.link))}" target="_blank" style="color:${LINK};text-decoration:underline;text-underline-offset:3px;">${escapeHtml(step.link.label)}&nbsp;&rarr;</a></p>
                         </td>
                       </tr></table>
                     </td>
@@ -425,7 +402,7 @@ function litButton(label: string, url: string): string {
   const safeUrl = escapeHtml(url);
   const safeLabel = escapeHtml(label);
   return `<!--[if mso]>
-                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${safeUrl}" style="height:52px;v-text-anchor:middle;width:240px;" arcsize="27%" strokecolor="${SKY}" strokeweight="1px" fillcolor="${GLOW}">
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${safeUrl}" style="height:52px;v-text-anchor:middle;width:240px;" arcsize="27%" strokecolor="${LINK}" strokeweight="1px" fillcolor="${BRAND}">
                     <w:anchorlock/>
                     <center style="color:#FFFFFF;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;">${safeLabel}</center>
                   </v:roundrect>
@@ -433,8 +410,8 @@ function litButton(label: string, url: string): string {
                   <!--[if !mso]><!-->
                   <table role="presentation" class="wm-btn" cellpadding="0" cellspacing="0" style="margin:6px 0 0;">
                     <tr>
-                      <td align="center" bgcolor="${GLOW}" style="border-radius:14px;background-color:${GLOW};background-image:${GRADIENT};box-shadow:0 12px 28px -8px ${rgba(GLOW, 0.65)},0 0 0 1px ${rgba(ELECTRIC, 0.6)},inset 0 1px 0 ${rgba("#FFFFFF", 0.32)};">
-                        <a href="${safeUrl}" target="_blank" style="display:inline-block;padding:15px 36px 16px;${TEXT}font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;border-top:1px solid ${SKY};">${safeLabel}&nbsp;&nbsp;&rarr;</a>
+                      <td align="center" bgcolor="${BRAND}" style="border-radius:14px;background-color:${BRAND};background-image:${GRADIENT_LIGHT};box-shadow:0 10px 24px -10px ${rgba(BRAND, 0.55)};">
+                        <a href="${safeUrl}" target="_blank" style="display:inline-block;padding:15px 36px 16px;${TEXT}font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${safeLabel}&nbsp;&nbsp;&rarr;</a>
                       </td>
                     </tr>
                   </table>
@@ -442,24 +419,23 @@ function litButton(label: string, url: string): string {
 }
 
 function renderHtml(version: Version, greetingLine: string): string {
-  /* THE HERO: a lit panel carrying the eyebrow, the greeting headline, the
+  /* THE HERO: a quiet panel carrying the eyebrow, the greeting headline, the
      one-sentence lede and the two sides of the account as two labelled lines.
-     The reference layout (a hero, three value blocks, one primary button) in
-     Vallo's night: the panel is solid navy for every client and carries a
+     The panel is a solid light rung for every client and carries a faint
      brand wash only where a gradient is honoured. */
   const worldLines = WORLDS.map(
     (world) => `<tr>
-                          <td width="92" valign="top" class="rm-brand" style="width:92px;vertical-align:top;padding:8px 12px 0 0;${TEXT}font-size:12px;line-height:18px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${SKY};">${escapeHtml(world.name)}</td>
-                          <td valign="top" class="rm-body" style="vertical-align:top;padding:8px 0 0;${TEXT}font-size:14px;line-height:18px;color:${DARK.body};">${escapeHtml(world.line)}</td>
+                          <td width="92" valign="top" class="rm-link" style="width:92px;vertical-align:top;padding:8px 12px 0 0;${TEXT}font-size:12px;line-height:18px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${LINK};">${escapeHtml(world.name)}</td>
+                          <td valign="top" class="rm-body" style="vertical-align:top;padding:8px 0 0;${TEXT}font-size:14px;line-height:18px;color:${LIGHT.body};">${escapeHtml(world.line)}</td>
                         </tr>`,
   ).join("\n                        ");
   const hero = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
                   <tr>
-                    <td class="rm-panel wm-hero" bgcolor="${DARK.panel}" style="background-color:${DARK.panel};background-image:linear-gradient(160deg,${rgba(GLOW, 0.34)} 0%,${rgba(GLOW, 0)} 62%);border:1px solid ${DARK.edge};border-top:1px solid ${DARK.rim};border-radius:18px;padding:26px 24px 22px;">
-                      <p class="rm-brand" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${SKY};">${escapeHtml(EYEBROW)}</p>
-                      <h1 class="wm-h1" style="margin:0 0 14px;${TEXT}font-size:31px;line-height:1.18;font-weight:700;letter-spacing:-0.025em;color:${DARK.text};"><span class="rm-title" style="color:${DARK.text};">${escapeHtml(greetingLine)}</span><br /><span class="rm-brand" style="color:${SKY};">${escapeHtml(HEADLINE_TWO)}</span></h1>
-                      <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:17px;line-height:1.6;color:${DARK.body};">${escapeHtml(WHAT_VALLO_IS)}</p>
-                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid ${DARK.edge};margin-top:12px;">
+                    <td class="rm-panel wm-hero" bgcolor="${LIGHT.panel}" style="background-color:${LIGHT.panel};background-image:linear-gradient(160deg,${rgba(BRAND, 0.08)} 0%,${rgba(BRAND, 0)} 62%);border:1px solid ${LIGHT.edge};border-top:1px solid ${BRAND};border-radius:18px;padding:26px 24px 22px;">
+                      <p class="rm-link" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${LINK};">${escapeHtml(EYEBROW)}</p>
+                      <h1 class="wm-h1" style="margin:0 0 14px;${TEXT}font-size:31px;line-height:1.18;font-weight:700;letter-spacing:-0.025em;color:${LIGHT.text};"><span class="rm-title" style="color:${LIGHT.text};">${escapeHtml(greetingLine)}</span><br /><span class="rm-link" style="color:${LINK};">${escapeHtml(HEADLINE_TWO)}</span></h1>
+                      <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:17px;line-height:1.6;color:${LIGHT.body};">${escapeHtml(WHAT_VALLO_IS)}</p>
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid ${LIGHT.edge};margin-top:12px;">
                         ${worldLines}
                       </table>
                     </td>
@@ -471,100 +447,42 @@ function renderHtml(version: Version, greetingLine: string): string {
      and a desktop read the same order. */
   const valueCards = version.steps.map((step, index) => valueCard(step, index)).join("\n                ");
 
-  return `<!doctype html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="supported-color-schemes" content="dark" />
-    <title>Welcome to Vallo</title>
-    <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
-    <style>${STYLE}
-    </style>
-  </head>
-  <body class="rm-base" bgcolor="${DARK.ground}" style="margin:0;padding:0;width:100%;background:${DARK.ground};color:${DARK.body};${TEXT}-webkit-font-smoothing:antialiased;">
-    <!-- The hidden inbox line, with spacer entities after it so a client does
-         not pull the first words of the body in behind it. -->
-    <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(version.preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" bgcolor="${DARK.ground}" style="width:100%;background:${DARK.ground};">
-      <tr>
-        <td align="center" style="padding:36px 12px 44px;">
-          <!--[if mso]><table role="presentation" width="${MAX_WIDTH}" cellpadding="0" cellspacing="0" align="center"><tr><td><![endif]-->
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:${MAX_WIDTH}px;width:100%;">
-            <!-- The lit rim: a luminous rule along the top edge of the glass
-                 card, brightest at its centre. A solid electric blue first, for
-                 Outlook, which drops the gradient. -->
-            <tr><td style="height:4px;line-height:4px;font-size:0;background-color:${GLOW};background-image:${GRADIENT_CAP};border-radius:20px 20px 0 0;mso-line-height-rule:exactly;">&nbsp;</td></tr>
-            <tr>
-              <td class="rm-card wm-card" bgcolor="${DARK.card}" style="background:${DARK.card};border:1px solid ${DARK.rim};border-top:0;border-radius:0 0 20px 20px;padding:${PAD_X}px ${PAD_X}px 38px;">
-                <!-- The lockup. The mark carries no words (alt empty); the
-                     wordmark is the word (alt Vallo), so with images off the
-                     reader sees the name once, in its place. -->
-                <table role="presentation" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="vertical-align:middle;padding-right:10px;">
-                      <img src="${siteUrl()}${MARK_PATH}" width="${MARK_WIDTH}" height="${MARK_HEIGHT}" alt="" style="display:block;width:${MARK_WIDTH}px;height:${MARK_HEIGHT}px;border:0;outline:none;text-decoration:none;" />
-                    </td>
-                    <td style="vertical-align:middle;">
-                      <img src="${siteUrl()}${WORDMARK_PATH}" width="${WORDMARK_WIDTH}" height="${WORDMARK_HEIGHT}" alt="${WORDMARK_ALT}" class="rm-brand" style="display:block;width:${WORDMARK_WIDTH}px;height:${WORDMARK_HEIGHT}px;border:0;outline:none;text-decoration:none;${TEXT}font-size:22px;line-height:26px;font-weight:700;letter-spacing:-0.025em;color:${SKY};" />
-                    </td>
-                  </tr>
-                </table>
-                <div style="height:34px;line-height:34px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
-                ${hero}
-                <p class="rm-body" style="margin:0 0 24px;${TEXT}font-size:16px;line-height:1.65;color:${DARK.body};">${escapeHtml(version.opening)}</p>
-                <p class="rm-muted" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${DARK.muted};">${escapeHtml(SECTION_LABEL)}</p>
+  return documentHtml({
+    title: "Welcome to Vallo",
+    preheader: version.preheader,
+    htmlAttrs: ' xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"',
+    headExtra:
+      "\n    <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->",
+    extraStyle: PHONE_STYLE,
+    card: `${hero}
+                <p class="rm-body" style="margin:0 0 24px;${TEXT}font-size:16px;line-height:1.65;color:${LIGHT.body};">${escapeHtml(version.opening)}</p>
+                <p class="rm-muted" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${LIGHT.muted};">${escapeHtml(SECTION_LABEL)}</p>
                 ${valueCards}
                 <div style="height:14px;line-height:14px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
                 ${litButton(BUTTON_LABEL, appUrl(WELCOME_LANDING))}
-                <p class="rm-muted" style="margin:14px 0 30px;${TEXT}font-size:13px;line-height:1.6;color:${DARK.muted};">${escapeHtml(BUTTON_AFTER)}</p>
+                <p class="rm-muted" style="margin:14px 0 30px;${TEXT}font-size:13px;line-height:1.6;color:${LIGHT.muted};">${escapeHtml(BUTTON_AFTER)}</p>
                 <!-- The calm panel: one safety sentence and a small round glyph. -->
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                   <tr>
-                    <td class="rm-panel" bgcolor="${DARK.panel}" style="background:${DARK.panel};border:1px solid ${DARK.edge};border-radius:14px;padding:14px 16px;">
+                    <td class="rm-panel" bgcolor="${LIGHT.panel}" style="background:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:14px;padding:14px 16px;">
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;"><tr>
                         <td width="34" valign="top" style="width:34px;vertical-align:top;padding-top:1px;">
                           <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                            <td class="rm-brand" align="center" width="22" height="22" style="width:22px;height:22px;border:1px solid ${SKY};border-radius:11px;${TEXT}font-size:13px;line-height:22px;font-weight:700;text-align:center;color:${SKY};mso-line-height-rule:exactly;">i</td>
+                            <td class="rm-link" align="center" width="22" height="22" style="width:22px;height:22px;border:1px solid ${LINK};border-radius:11px;${TEXT}font-size:13px;line-height:22px;font-weight:700;text-align:center;color:${LINK};mso-line-height-rule:exactly;">i</td>
                           </tr></table>
                         </td>
-                        <td valign="top" class="rm-body" style="vertical-align:top;${TEXT}font-size:14px;line-height:1.6;color:${DARK.body};">${escapeHtml(version.note)}</td>
+                        <td valign="top" class="rm-body" style="vertical-align:top;${TEXT}font-size:14px;line-height:1.6;color:${LIGHT.body};">${escapeHtml(version.note)}</td>
                       </tr></table>
                     </td>
                   </tr>
-                </table>
-              </td>
-            </tr>
-            <!-- The small print sits on the ground outside the card. -->
-            <tr>
-              <td style="padding:26px ${PAD_X - 12}px 0;">
-                <p class="rm-muted" style="margin:0 0 8px;${TEXT}font-size:13px;line-height:20px;color:${DARK.muted};">${escapeHtml(FOOTER_REASON)}</p>
-                <p class="rm-muted" style="margin:0 0 8px;${TEXT}font-size:13px;line-height:20px;color:${DARK.muted};"><a href="${escapeHtml(appUrl("/settings/notifications"))}" target="_blank" style="color:${SKY};text-decoration:underline;">${escapeHtml(FOOTER_LINK_LABEL)}</a></p>
-                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:12px 0 0;">
-                  <tr>
-                    <td style="vertical-align:middle;padding-right:9px;">
-                      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                        <td style="width:18px;height:2px;line-height:2px;font-size:0;background-color:${GLOW};background-image:${GRADIENT};border-radius:1px;mso-line-height-rule:exactly;">&nbsp;</td>
-                      </tr></table>
-                    </td>
-                    <td style="vertical-align:middle;">
-                      <p class="rm-muted" style="margin:0;${TEXT}font-size:13px;line-height:20px;font-weight:600;color:${DARK.muted};">${SIGN_OFF}</p>
-                    </td>
-                  </tr>
-                </table>
-                <p class="rm-muted" style="margin:10px 0 0;${TEXT}font-size:12px;line-height:18px;color:${DARK.muted};">${LEGAL_LINE}</p>
-              </td>
-            </tr>
-          </table>
-          <!--[if mso]></td></tr></table><![endif]-->
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
-`;
+                </table>`,
+    footer: footerRows([FOOTER_REASON], {
+      label: FOOTER_LINK_LABEL,
+      href: appUrl("/settings/notifications"),
+    }),
+  });
 }
+
 
 /* ------------------------------------------------------------------- text */
 
@@ -605,6 +523,8 @@ function renderText(version: Version, greetingLine: string): string {
       "",
       wrap(FOOTER_REASON),
       `${FOOTER_LINK_LABEL}: ${appUrl("/settings/notifications")}`,
+      "",
+      footerLinksText(),
       "",
       SIGN_OFF,
       LEGAL_LINE,

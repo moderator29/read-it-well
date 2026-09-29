@@ -7,13 +7,20 @@ import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState, FactGrid, Section, Stack, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { ROOM_COPY } from "@/lib/inspections/report";
-import { DeductionAnswer, ProposeDeduction } from "@/components/app/tenancy/CautionControls";
-import { MONEY_BETWEEN_PEOPLE_RETIRED } from "@/lib/tenancy/money-copy";
+import {
+  ContestReturn,
+  DeductionAnswer,
+  EscalateCaution,
+  ProposeDeduction,
+  RecordReturn,
+} from "@/components/app/tenancy/CautionControls";
+import { lagosToday } from "@/lib/rent/schema";
 import { koboToNairaInput } from "@/lib/agent/listings-schema";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
 import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";
 import { PinMessages } from "@/components/app/tenancy/PinMessages";
-import { AddFlatmate, RemoveFlatmate } from "@/components/app/tenancy/FlatmateControls";
+import { AddFlatmate, CancelSplit, PayShare, RemoveFlatmate, SettleShareOnReturn } from "@/components/app/tenancy/FlatmateControls";
+import type { ShareRefundStatus } from "@/lib/tenancy/queries";
 import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
 
 /** A private record. Never indexed, never in a tab title. */
@@ -39,8 +46,17 @@ export const dynamic = "force-dynamic";
  * exist, so a stranger guessing ids learns nothing. A read that failed says
  * so rather than claiming there is nothing.
  */
-export default async function TenancyPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TenancyPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  const query = await searchParams;
+  // Back from Paystack after the lead paid their own share (V-86).
+  const returnedRef = query.paid === "1" && typeof query.reference === "string" ? query.reference : null;
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.afterTheGate.tenancy;
@@ -75,9 +91,10 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
   return shell(
     <Stack>
       <TenancyHead file={file} copy={copy} />
+      {file.viewer === "tenant" && returnedRef && <SettleShareOnReturn tenancyId={file.id} reference={returnedRef} />}
       <MoneySection file={file} copy={copy} />
       {/* Flatmates' shares are the lead tenant's business, not the lister's. */}
-      {file.viewer === "tenant" && (!file.void || file.flatmates.rows.some((row) => row.paid)) && (
+      {file.viewer === "tenant" && (!file.void || file.flatmates.locked) && (
         <FlatmatesSection file={file} copy={mates} locale={locale} />
       )}
       {file.viewer === "tenant" && file.paid && (
@@ -218,11 +235,35 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale:
             <p className="nf-caption mt-xs">{copy.cautionNotHeld}</p>
           </div>
 
+          {caution.guaranteed && (
+            <p className="nf-body-sm nf-numeric">{copy.cautionGuaranteed.replace("{amount}", caution.guaranteed)}</p>
+          )}
+          {caution.inDoubt && <p className="nf-body-sm nf-numeric">{copy.cautionInDoubt.replace("{amount}", caution.inDoubt)}</p>}
+
           {caution.returns.length > 0 && (
-            <ul className="grid gap-2xs">
-              {caution.returns.map((row, index) => (
-                <li key={index} className="nf-body-sm nf-numeric">
-                  {copy.returnedLine.replace("{amount}", row.amount).replace("{date}", row.date)}
+            <ul className="grid gap-sm" data-testid="tenancy-caution-returns">
+              {caution.returns.map((row) => (
+                <li key={row.id} className="nf-card p-card">
+                  <p className="nf-body-sm nf-numeric font-semibold">
+                    {copy.returnedLine.replace("{amount}", row.amount).replace("{date}", row.date)}
+                  </p>
+                  <p className="nf-caption mt-2xs">
+                    {copy.returnMethods[row.method]}
+                    {row.reference ? ` · ${row.reference}` : ""} ·{" "}
+                    {row.recordedAs === "lister_sent" ? copy.returnedByLister : copy.returnedByTenant}
+                  </p>
+                  {row.ruling ? (
+                    <p className="nf-caption mt-2xs">
+                      {copy.returnRuled
+                        .replace("{outcome}", row.ruling === "received" ? copy.returnRuledReceived : copy.returnRuledNotReceived)
+                        .replace("{reason}", row.rulingReason ?? "")}
+                    </p>
+                  ) : row.contested ? (
+                    <p className="nf-caption mt-2xs">{copy.returnContested}</p>
+                  ) : null}
+                  {file.viewer === "tenant" && !row.ownRecord && !row.contested && row.recordedAs === "lister_sent" && (
+                    <ContestReturn tenancyId={file.id} returnId={row.id} copy={copy} />
+                  )}
                 </li>
               ))}
             </ul>
@@ -247,7 +288,9 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale:
                       {deduction.answer === "accepted"
                         ? copy.deductionAccepted
                         : deduction.answer === "disputed"
-                          ? copy.deductionDisputed
+                          ? deduction.ruledAllowed
+                            ? copy.deductionRuled.replace("{amount}", deduction.ruledAllowed).replace("{reason}", deduction.ruledReason ?? "")
+                            : copy.deductionDisputed
                           : copy.deductionPending}
                     </p>
                     {file.viewer === "tenant" && deduction.answer === null && (
@@ -260,38 +303,68 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy; locale:
           )}
 
           {file.viewer === "lister" && caution.state !== "returned" && (
-            <>
-              <div className="nf-panel nf-panel--card block p-md">
-                <h3 className="nf-h4">{copy.proposeHeading}</h3>
-                <div className="mt-sm">
-                  {file.ended ? (
-                    <ProposeDeduction
-                      tenancyId={file.id}
-                      obligationId={caution.obligationId}
-                      copy={copy}
-                      photos={file.reports
-                        .filter((report) => report.stage === "move_out" && report.authorIsViewer && report.submitted)
-                        .flatMap((report) => report.photos)
-                        .map((photo, index) => ({
-                          id: photo.id,
-                          item: photo.item,
-                          label: `${photo.item ? ROOM_COPY[photo.item].title : copy.moveOut} ${index + 1}`,
-                        }))}
-                    />
-                  ) : (
-                    <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-                      {copy.proposeNotEnded.replace("{date}", file.endsOnLabel)}
+            <div className="nf-panel nf-panel--card block p-md">
+              <h3 className="nf-h4">{copy.proposeHeading}</h3>
+              <div className="mt-sm">
+                {file.ended ? (
+                  <ProposeDeduction
+                    tenancyId={file.id}
+                    obligationId={caution.obligationId}
+                    copy={copy}
+                    photos={file.reports
+                      .filter((report) => report.stage === "move_out" && report.authorIsViewer && report.submitted)
+                      .flatMap((report) => report.photos)
+                      .map((photo, index) => ({
+                        id: photo.id,
+                        item: photo.item,
+                        label: `${photo.item ? ROOM_COPY[photo.item].title : copy.moveOut} ${index + 1}`,
+                      }))}
+                  />
+                ) : (
+                  <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+                    {copy.proposeNotEnded.replace("{date}", file.endsOnLabel)}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Paid back between the parties, outside Vallo; either side records it, the other can contest. */}
+          {file.viewer !== "staff" && caution.outstandingMinor > 0 && !caution.claimOpen && (
+            <div className="nf-panel nf-panel--card block p-md">
+              <h3 className="nf-h4">{copy.returnHeading}</h3>
+              <div className="mt-sm">
+                <RecordReturn
+                  tenancyId={file.id}
+                  obligationId={caution.obligationId}
+                  outstanding={caution.outstanding}
+                  outstandingNaira={koboToNairaInput(caution.outstandingMinor)}
+                  viewer={file.viewer}
+                  today={lagosToday()}
+                  copy={copy}
+                />
+              </div>
+            </div>
+          )}
+
+          {file.viewer === "tenant" && (caution.claimOpen || caution.canEscalate) && (
+            <div className="nf-panel nf-panel--card block p-md" data-testid="tenancy-caution-escalate">
+              <h3 className="nf-h4">{copy.escalateHeading}</h3>
+              <div className="mt-sm">
+                {caution.claimOpen ? (
+                  <p className="nf-body-sm">{copy.escalateOpen}</p>
+                ) : (
+                  <>
+                    <p className="nf-body-sm nf-numeric">
+                      {copy.escalateHelp.replace("{date}", caution.dueOnLabel).replace("{amount}", caution.claimable)}
                     </p>
-                  )}
-                </div>
+                    <div className="mt-sm">
+                      <EscalateCaution tenancyId={file.id} obligationId={caution.obligationId} copy={copy} />
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="nf-panel nf-panel--card block p-md">
-                <h3 className="nf-h4">{copy.returnHeading}</h3>
-                <div className="mt-sm">
-                  <p className={TYPE.body} data-testid="money-between-people-retired">{MONEY_BETWEEN_PEOPLE_RETIRED}</p>
-                </div>
-              </div>
-            </>
+            </div>
           )}
         </div>
       )}
@@ -327,8 +400,8 @@ function FlatmatesSection({
                     {copy.row.replace("{name}", row.name ?? copy.someone).replace("{share}", row.share)}
                   </p>
                   <p className="nf-caption mt-2xs">
-                    {row.returned
-                      ? copy.returnedLine
+                    {row.refund
+                      ? refundLine(row.refund, copy)
                       : row.paid
                         ? copy.paid
                         : row.answer === "declined"
@@ -341,10 +414,7 @@ function FlatmatesSection({
                     <p className="nf-caption mt-2xs nf-numeric">{copy.cautionPart.replace("{amount}", row.cautionPart)}</p>
                   )}
                 </div>
-                {!row.paid && !file.void && <RemoveFlatmate tenancyId={file.id} contributorId={row.id} copy={copy} />}
-                {row.paid && !row.returned && file.void && row.paidMinor !== null && (
-                  <p className={TYPE.rowMeta}>{MONEY_BETWEEN_PEOPLE_RETIRED}</p>
-                )}
+                {!mates.locked && !file.void && <RemoveFlatmate tenancyId={file.id} contributorId={row.id} copy={copy} />}
               </li>
             ))}
           </ul>
@@ -356,14 +426,36 @@ function FlatmatesSection({
             {mates.leadCautionPart && mates.rows.length > 0 && (
               <p className="nf-caption nf-numeric">{copy.leadCautionPart.replace("{amount}", mates.leadCautionPart)}</p>
             )}
-            <div className="nf-panel nf-panel--card block p-md">
-              <AddFlatmate tenancyId={file.id} copy={copy} />
-            </div>
+            {/* Only a split move-in is paid share by share here; a whole one is paid from the booking. */}
+            {mates.rows.length > 0 && !file.paid && !file.void && (
+              mates.leadPaid ? (
+                <p className="nf-caption">{copy.paid}</p>
+              ) : (
+                <PayShare tenancyId={file.id} label={copy.payMine} help={copy.sharePayHelp} />
+              )
+            )}
+            {mates.locked ? (
+              <p className="nf-caption">{copy.locked}</p>
+            ) : (
+              <div className="nf-panel nf-panel--card block p-md">
+                <AddFlatmate tenancyId={file.id} copy={copy} />
+              </div>
+            )}
+            {mates.cancellable && (
+              <div className="nf-panel nf-panel--card block p-md">
+                <CancelSplit tenancyId={file.id} copy={copy} />
+              </div>
+            )}
           </>
         )}
+        {file.void && mates.leadRefund && <p className="nf-caption">{refundLine(mates.leadRefund, copy)}</p>}
       </div>
     </Section>
   );
+}
+
+function refundLine(status: ShareRefundStatus, copy: ReturnType<typeof getDictionary>["afterTheGate"]["flatmates"]): string {
+  return status === "processed" ? copy.refunded : copy.refunding;
 }
 
 function RenewalSection({ file, copy }: { file: TenancyFile; copy: Copy }) {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useCallback, useEffect, useId, useRef, useState } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
+import { useActionState, useCallback, useId, useRef, useState } from "react";
+import { Sheet } from "@/components/ui/Sheet";
 import Link from "next/link";
 import { reportSomething, type ReportReceipt } from "@/lib/reports/actions";
 import {
@@ -22,10 +22,12 @@ import { useClientCopy } from "@/lib/i18n/client-copy";
 /**
  * Report this.
  *
- * A full-page drawer, because a half sheet over a listing photo is not the
- * frame for telling us somebody asked you to send money to a personal account.
- * It follows the filter drawer exactly: a real dialog, escape closes it, the
- * body stops scrolling behind it, and focus lands on the way out.
+ * The platform's `Sheet` at its near-full height, because a half sheet over a
+ * listing photo is not the frame for telling us somebody asked you to send
+ * money to a personal account. The sheet is a real dialog: Escape and Back
+ * close it, it drags and flicks down to close, the body stops scrolling
+ * behind it, and focus returns to the opener on the way out. It used to be a
+ * hand-built full-page panel with none of the gestures.
  *
  * The categories are the ones the database will accept, imported from the same
  * client-safe module the server action validates against, so a new category is
@@ -70,8 +72,6 @@ export function ReportSheet({
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<ReportCategory | null>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
-  const closeRef = useRef<HTMLButtonElement | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
 
   const [state, formAction, pending] = useActionState<
     ActionResult<ReportReceipt> | null,
@@ -83,12 +83,6 @@ export function ReportSheet({
     openerRef.current?.focus();
   }, []);
 
-  useOverlay({ open, onClose: close, panelRef, autoFocus: false });
-
-  useEffect(() => {
-    if (!open) return;
-    closeRef.current?.focus();
-  }, [open]);
 
   return (
     <>
@@ -132,42 +126,19 @@ export function ReportSheet({
         </button>
       )}
 
-      {open && (
-        <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label="Report">
-          <button
-            type="button"
-            aria-label="Close report"
-            tabIndex={-1}
-            onClick={close}
-            className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
-          />
-          <div
-            ref={panelRef}
-            data-testid="report-sheet"
-            className="absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
-          >
-            <header className="nf-glass flex items-center gap-sm border-b border-[var(--nf-border-subtle)] px-md pb-sm pt-[calc(var(--nf-space-sm)+env(safe-area-inset-top,0px))]">
-              <button
-                ref={closeRef}
-                type="button"
-                onClick={close}
-                aria-label="Close report"
-                className="nf-icon-btn h-11 w-11"
-              >
-                <UiIcon name="arrow-left" size={20} />
-              </button>
-              <div className="min-w-0 flex-1">
-                <p className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
-                  Report this {noun}
-                </p>
+      <Sheet
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) close();
+        }}
+        title={`Report this ${noun}`}
+        closeLabel="Close report"
+        fullPage
+      >
+              <div data-testid="report-sheet" className="mx-auto grid max-w-2xl gap-md">
                 <p className="truncate text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {targetLabel}
                 </p>
-              </div>
-            </header>
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-md py-md">
-              <div className="mx-auto grid max-w-2xl gap-md pb-[calc(var(--nf-space-xl)+env(safe-area-inset-bottom,0px))]">
                 {state?.ok ? (
                   <div className={panelClass({ variant: "card", className: "block p-lg text-center" })} data-testid="report-filed">
                     <span className="mx-auto block h-16 w-16">
@@ -302,10 +273,7 @@ export function ReportSheet({
                   </form>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </Sheet>
     </>
   );
 }

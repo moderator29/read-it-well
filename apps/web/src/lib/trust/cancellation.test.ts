@@ -28,8 +28,9 @@ describe("the platform schedule as terms", () => {
   });
 
   it("equals the database's own copy, character for character in meaning", () => {
-    const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
-    const file = readdirSync(dir).find((name) => name.startsWith("20260924140200_"));
+    // The applied migration (MONEY redesign, 29 September 2026), not the superseded draft.
+    const dir = join(__dirname, "../../../../../supabase/migrations");
+    const file = readdirSync(dir).find((name) => name.includes("_money_v20_") && name.endsWith(".sql"));
     const sql = readFileSync(join(dir, file!), "utf8");
     const json = sql.match(/select '(\{"version":1[^']+\})'::jsonb/)?.[1];
     expect(json).toBeDefined();

@@ -27,10 +27,12 @@ import {
   resolveSession,
 } from "../actions/session";
 import { consume, retryIn, subjectForUser } from "../security/rate-limit";
+import { dbLimitRefusal } from "../security/db-limit";
 import { POST_LIMITS } from "./posts-schema";
 import {
   STORY_FAILURE,
   messageForStoryError,
+  reportStoryCommentSchema,
   storyCommentIdSchema,
   storyCommentSchema,
   storyIdSchema,
@@ -206,6 +208,51 @@ export async function commentOnStory(input: {
     return ok({ commentId: data.id, held: data.status === "HELD" });
   } catch {
     return fail(STORY_FAILURE.down);
+  }
+}
+
+const REPORT_DOWN = "We could not send that report just now. Please try again in a moment.";
+
+/**
+ * Report one comment under a story.
+ *
+ * Its own target type, because a story comment is a `story_comments` row and
+ * not a post. The comments sheet used to file these through `reportPost`, so
+ * the queue received `POST <id>` for an id no post carries and a moderator
+ * following it found nothing to act on.
+ */
+export async function reportStoryComment(input: {
+  commentId: string;
+  reason: string;
+  detail?: string;
+}): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
+  const parsed = validate(reportStoryCommentSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const verdict = await consume({
+    ...POST_LIMITS.report,
+    subject: subjectForUser(session.user.id),
+  });
+  if (!verdict.allowed) return fail(paced(verdict.retryAfterSeconds));
+
+  try {
+    const { error } = await session.supabase.from("reports").insert({
+      reporter_id: session.user.id,
+      target_type: "STORY_COMMENT",
+      target_id: parsed.data.commentId,
+      reason: parsed.data.detail
+        ? `${parsed.data.reason}: ${parsed.data.detail}`
+        : parsed.data.reason,
+    });
+    if (error) return fail(dbLimitRefusal(error) ?? REPORT_DOWN);
+    return ok(null);
+  } catch {
+    return fail(REPORT_DOWN);
   }
 }
 

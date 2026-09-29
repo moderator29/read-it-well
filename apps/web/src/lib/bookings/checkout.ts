@@ -28,6 +28,7 @@
  * Every amount is integer kobo, end to end (Master Rule 50).
  */
 
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -46,9 +47,11 @@ import {
 } from "../payments/paystack";
 import { chargeSavedCard, type ChargeSavedCardOutcome } from "../payments/charge-saved-card";
 import { isBookingReference } from "../payments/references";
-import { isRefusal, openSplitAttempt } from "../payments/split-attempt";
+import { insertSplitAttempt, isRefusal, openSplitAttempt, quoteSplit } from "../payments/split-attempt";
+import { bookingHasPaymentInFlight, recordCheckoutHandle, reuseLiveAttempt } from "../payments/attempts";
+import { withBookingOpenLease } from "../payments/booking-lease";
 import { refundChargeToCard } from "../payments/refund";
-import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
+import { IN_FLIGHT_MESSAGE, withIdempotency, type IdempotentRun } from "../security/idempotency";
 import { bookingPaymentSubject } from "./payment-subject";
 import { checkoutReturnPath } from "../rent/return-path";
 import { guardMoney } from "../security/money-limits";
@@ -292,10 +295,29 @@ async function startCardCheckoutWork(
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
+  // What this charge is, as the database computes it now. No approved
+  // agreement or no payee account means no attempt, new or reused.
+  const quote = await quoteSplit(admin, booking);
+  if (isRefusal(quote)) return fail(quote.message);
+
+  /* ONE OPEN ATTEMPT PER PAYER AND CHARGE. A payer who closed the Paystack
+     window, lost the tab or tapped again gets the checkout they already have
+     rather than a second pending attempt, provided it is the same charge
+     (same agreement, amount, split and Paystack mode) and was opened within
+     the reuse window. Paystack is asked first, so a checkout that was paid,
+     failed or never existed is not handed back. */
+  const reused = await reuseLiveAttempt(admin, booking.id, quote, { kind: "user", userId });
+  if (reused.kind === "checkout") return ok(reused.checkout);
+  if (reused.kind === "paid") {
+    revalidatePath("/bookings");
+    revalidatePath(`/checkout/${booking.id}`);
+    return fail(reused.message);
+  }
+
   // The attempt row goes in first, with its split, so a webhook that beats
   // the redirect back has something to settle and never has to invent a
-  // booking. No approved agreement or no payee account means no attempt.
-  const opened = await openSplitAttempt(admin, booking);
+  // booking.
+  const opened = await insertSplitAttempt(admin, booking, quote);
   if (isRefusal(opened)) return fail(opened.message);
   const { reference, amountMinor } = opened;
 
@@ -317,6 +339,17 @@ async function startCardCheckoutWork(
       },
       split: opened.split,
     });
+    /* Kept on the attempt so the next retry can resume this checkout instead
+       of opening another. Best effort: without it a retry opens a new one,
+       which is what happened before. */
+    try {
+      await recordCheckoutHandle(admin, reference, {
+        accessCode: tx.accessCode,
+        authorizationUrl: tx.authorizationUrl,
+      });
+    } catch {
+      // The checkout still opens; only its reuse is lost.
+    }
     return ok({
       authorizationUrl: tx.authorizationUrl,
       accessCode: tx.accessCode,
@@ -363,11 +396,73 @@ export async function startCardCheckout(
       subject: bookingPaymentSubject(guarded.booking.id),
       shouldRecord: (result) => result.ok,
     },
-    () => startCardCheckoutWork(guarded.booking, guarded.userId, guarded.email),
+    () => withBookingOpenLock(guarded.booking.id, () => startCardCheckoutWork(guarded.booking, guarded.userId, guarded.email)),
   );
 
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+
+  /* A REPLAY OF A CHECKOUT THAT HAS SINCE CLOSED IS NOT AN ANSWER. The same
+     key replays the first answer for its lease, which is right for a double
+     tap and wrong once that attempt was abandoned or failed: the payer would
+     be handed a checkout the platform has already closed. Then the work runs
+     again under a key derived from the closed reference (hashed, so it stays a
+     fixed length however many times it is derived), so it is still claimed
+     once, and it reuses or opens exactly as a fresh tap would. At most
+     MAX_REPLAY_HOPS times: a chain longer than that is answered as it stands. */
+  let current: IdempotentRun<ActionResult<CardCheckout | null>> = run;
+  let key = input.idempotencyKey ?? null;
+  for (let hop = 0; hop < MAX_REPLAY_HOPS; hop += 1) {
+    if (!(current.status === "done" && current.replayed && current.result.ok && current.result.data && key)) break;
+    if (!(await attemptClosed(current.result.data.reference))) break;
+    key = derivedKey(key, current.result.data.reference);
+    const nextKey = key;
+    current = await withIdempotency<ActionResult<CardCheckout | null>>(
+      {
+        scope: BOOKING_PAYMENT_SCOPE,
+        key: nextKey,
+        subject: bookingPaymentSubject(guarded.booking.id),
+        shouldRecord: (result) => result.ok,
+      },
+      () => withBookingOpenLock(guarded.booking.id, () => startCardCheckoutWork(guarded.booking, guarded.userId, guarded.email)),
+    );
+    if (current.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  }
+  return current.status === "done" ? current.result : fail(IN_FLIGHT_MESSAGE);
+}
+
+/** How many closed replays one tap may step past before answering as it stands. */
+const MAX_REPLAY_HOPS = 3;
+
+/** The key a replay of a closed attempt runs under: fixed length, one per closed reference. */
+function derivedKey(key: string, closedReference: string): string {
+  return createHash("sha256").update(`${key}:after:${closedReference}`).digest("hex");
+}
+
+/**
+ * One attempt opens at a time per booking, whatever the key: two tabs carry
+ * two idempotency keys, and both could otherwise find no live attempt and each
+ * open one. The lease, and why it is a lease rather than a recorded answer or
+ * an advisory lock, is in `lib/payments/booking-lease.ts`.
+ */
+async function withBookingOpenLock<T>(
+  bookingId: string,
+  work: () => Promise<ActionResult<T>>,
+): Promise<ActionResult<T>> {
+  const run = await withBookingOpenLease(bookingPaymentSubject(bookingId), work);
+  if (run.status === "busy") return fail(IN_FLIGHT_MESSAGE);
   return run.result;
+}
+
+/** True when the attempt behind a reference has left PENDING without being paid. */
+async function attemptClosed(reference: string): Promise<boolean> {
+  const admin = getAdminClient();
+  if (!admin) return false;
+  const { data } = await admin
+    .from("transactions")
+    .select("status")
+    .eq("provider_ref", reference)
+    .maybeSingle();
+  return data?.status === "ABANDONED" || data?.status === "FAILED";
 }
 
 /* ------------------------------------------------------ saved card path */
@@ -385,6 +480,16 @@ async function payWithSavedCardWork(
 
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
+
+  /* Never beside an open hosted checkout for the same booking: the payer could
+     complete both. A checkout the payer closed is released on close
+     (lib/payments/attempt-actions.ts); one left open stops counting 45 minutes
+     after it was last opened. */
+  if (await bookingHasPaymentInFlight(admin, booking.id)) {
+    return fail(
+      "A card payment window is already open for this booking. Finish or close it first, so nothing is charged twice.",
+    );
+  }
 
   // The same attempt row, with the same split, the hosted path writes: a
   // saved-card charge is just a charge with a reference, settled by the
@@ -411,6 +516,20 @@ async function payWithSavedCardWork(
       // Reconciliation settles it against the processor's own records.
     }
     return charged;
+  }
+
+  if (charged.data.kind === "needs_hosted_checkout") {
+    /* The fallback checkout is the same attempt under the same reference.
+       Keeping its handle lets a retry resume it (lib/payments/attempts.ts)
+       instead of opening a second attempt. Best effort, as on the card path. */
+    try {
+      await recordCheckoutHandle(admin, reference, {
+        accessCode: charged.data.accessCode,
+        authorizationUrl: charged.data.authorizationUrl,
+      });
+    } catch {
+      // The checkout still opens; only its reuse is lost.
+    }
   }
 
   if (charged.data.kind === "charged") {
@@ -453,7 +572,7 @@ export async function payWithSavedCard(
       subject: bookingPaymentSubject(guarded.booking.id),
       shouldRecord: (result) => result.ok,
     },
-    () => payWithSavedCardWork(guarded.booking, input.methodId),
+    () => withBookingOpenLock(guarded.booking.id, () => payWithSavedCardWork(guarded.booking, input.methodId)),
   );
 
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
@@ -563,7 +682,7 @@ export async function settleCardPayment(
   // Only a transition that actually happened here sends the email. A guest
   // whose webhook already confirmed the stay is not told twice.
   if (confirmed && settlement.outcome === "settled") {
-    await sendConfirmationEmail(settlement.bookingId, settlement.ledger.grossMinor, session.user.id);
+    await sendConfirmationEmail(settlement.bookingId, settlement.totalMinor, session.user.id);
   }
 
   revalidatePath("/bookings");

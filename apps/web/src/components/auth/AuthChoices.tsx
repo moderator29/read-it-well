@@ -65,9 +65,7 @@ export function AuthChoices({
   const appleReady = configured("apple");
 
   return (
-    /* `nf-auth--narrow`: this card is drawn at the render's measured width
-       (ledger R-C); the stage reads it with `:has()`. */
-    <div className="nf-auth--narrow w-full">
+    <div className="nf-auth__screen">
       <h1 className="nf-auth__title">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
       <p className="nf-auth__sub">{isSignUp ? t.auth.signUpSub : t.auth.signInSub}</p>
 
@@ -83,6 +81,10 @@ export function AuthChoices({
         `next` rides along so the chain to the person's original destination
         does not break at this hop. A server action form still submits before
         hydration, so this works with no JavaScript.
+
+        Email comes first and carries the one primary button, so the button
+        sits in the first screen at every phone size with the keyboard up;
+        the provider doors follow as rows of the same height and width.
       */}
       <form action={continueWithEmail} className="nf-auth__form" noValidate={false}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
@@ -117,42 +119,37 @@ export function AuthChoices({
         )}
       </form>
 
-      {googleReady && (
-        <>
-          <div className="nf-auth__rule" aria-hidden="true">
-            {t.auth.orDivider}
-          </div>
+      {(googleReady || (appleReady && surface !== "android-native")) && (
+        <div className="nf-auth__rule" aria-hidden="true">
+          {t.auth.orDivider}
+        </div>
+      )}
+
+      <div className="nf-auth__doors">
+        {googleReady && (
           <form action={startGoogleOAuth}>
             {next ? <input type="hidden" name="next" value={next} /> : null}
             <input type="hidden" name="intent" value={mode} />
             <button type="submit" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
               {/*
                 THE GOOGLE G, IN GOOGLE'S OWN FOUR COLOURS, and it is the one
-                place the house palette steps aside. The render draws it this
-                way, and Google's sign-in branding rules require the standard
-                mark on a "Continue with Google" control. It is a third party's
-                logo standing for that party, the same exception the catalogue
-                makes for the Verve card mark. Nothing else on the screen takes
-                these colours.
+                place the house palette steps aside. Google's sign-in branding
+                rules require the standard mark on a "Continue with Google"
+                control. It is a third party's logo standing for that party,
+                the same exception the catalogue makes for the Verve card
+                mark. Nothing else on the screen takes these colours.
               */}
               <GoogleMark />
               {t.auth.continueWithGoogle}
             </button>
           </form>
-        </>
-      )}
+        )}
 
-      {appleReady && (
-        <>
-          {!googleReady && (
-            <div className="nf-auth__rule" aria-hidden="true">
-              {t.auth.orDivider}
-            </div>
-          )}
-          {surface === "ios-native" ? (
+        {appleReady &&
+          (surface === "ios-native" ? (
             <NativeAppleSignIn label={t.auth.continueWithApple} next={next} />
           ) : surface === "web" ? (
-            <form action={startAppleOAuth} className={googleReady ? "mt-sm" : undefined}>
+            <form action={startAppleOAuth}>
               {next ? <input type="hidden" name="next" value={next} /> : null}
               <input type="hidden" name="intent" value={mode} />
               <button type="submit" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
@@ -160,9 +157,8 @@ export function AuthChoices({
                 {t.auth.continueWithApple}
               </button>
             </form>
-          ) : null}
-        </>
-      )}
+          ) : null)}
+      </div>
 
       <p className="nf-auth__swap">
         {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
@@ -179,13 +175,12 @@ export function AuthChoices({
           this door as the way back (request W2), not to `/start`, which is a
           redirect and was prefetched on every render of this card. */}
       {isSignUp && (
-        <p className="nf-auth__swap mt-xs">
+        <p className="nf-auth__swap nf-auth__swap--quiet">
           <Link href={`/welcome?next=${encodeURIComponent(withNext("/sign-up", next))}`} prefetch={false}>
             {t.welcomeCards.label}
           </Link>
         </p>
       )}
-
     </div>
   );
 }

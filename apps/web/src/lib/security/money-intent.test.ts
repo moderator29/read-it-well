@@ -1,32 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { intentFromForm, intentLine, sendIntent, withdrawIntent } from "./money-intent";
+import { MONEY_KINDS, intentLine, isMoneyIntent } from "./money-intent";
 
-function form(entries: Record<string, string>): FormData {
-  const data = new FormData();
-  for (const [key, value] of Object.entries(entries)) data.set(key, value);
-  return data;
-}
-
-describe("money intents (V-81)", () => {
-  it("reads the form the way the action reads its validated input", () => {
-    expect(intentLine(intentFromForm("send", form({ amount: "5,000", recipientEmail: "Ada@Example.com" })))).toBe(
-      intentLine(sendIntent(500_000, "ada@example.com")),
+describe("money intents (V-81, payout destinations only)", () => {
+  it("guards only the actions that decide where money lands", () => {
+    expect([...MONEY_KINDS].sort()).toEqual(
+      ["bank_add", "bank_default", "payout_add", "payout_default", "payout_remove", "remove_lock"].sort(),
     );
-    expect(intentLine(intentFromForm("withdraw", form({ amount: "5000", bankAccountId: "abc" })))).toBe(
-      intentLine(withdrawIntent(500_000, { bankAccountId: "abc" })),
-    );
-    expect(intentLine(intentFromForm("withdraw", form({ amount: "5000", bankCode: "058", accountNumber: "0123 456 789" })))).toBe(
-      intentLine(withdrawIntent(500_000, { bankCode: "058", accountNumber: "0123456789" })),
-    );
+    for (const retired of ["send", "withdraw", "pay_wallet", "escrow_fund", "escrow_confirm", "caution_return", "rent_share"]) {
+      expect(isMoneyIntent({ kind: retired })).toBe(false);
+    }
   });
-  it("gives a saved account, a typed account, another amount and another recipient different lines", () => {
+  it("gives another account, another kind and another case of the same account the right lines", () => {
     const lines = new Set([
-      intentLine(withdrawIntent(500_000, { bankAccountId: "abc" })),
-      intentLine(withdrawIntent(500_000, { bankCode: "058", accountNumber: "0123456789" })),
-      intentLine(withdrawIntent(500_001, { bankAccountId: "abc" })),
-      intentLine(sendIntent(500_000, "ada@example.com")),
-      intentLine(sendIntent(500_000, "thief@example.com")),
+      intentLine({ kind: "bank_add", target: "058:0123456789" }),
+      intentLine({ kind: "bank_add", target: "058:0123456780" }),
+      intentLine({ kind: "payout_add", target: "058:0123456789" }),
     ]);
-    expect(lines.size).toBe(5);
+    expect(lines.size).toBe(3);
+    expect(intentLine({ kind: "bank_default", target: "ABC " })).toBe(intentLine({ kind: "bank_default", target: "abc" }));
   });
 });

@@ -269,8 +269,11 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/account-purge",
   "/api/cron/canary",
   "/api/cron/complete-stays",
+  /* Crypto payments read back from the provider, behind the cron bearer. */
+  "/api/cron/crypto-reconcile",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
+  "/api/cron/rent-share-refunds",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",

@@ -16,17 +16,29 @@ const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED"
 /**
  * Report storage is live on production (I1), so the harness draws it live
  * with no rooms saved. `rooms=<n>` draws the first n rooms as saved; `rooms=off`
- * draws the flag off. FIXTURE: the look of a report, never a save.
+ * draws the flag off. `photos=<n>` sets the photo count, `rental=0` draws a
+ * listing that is not let (no photo rule, no agreement), `submitted=1` draws
+ * the report as sent, and `agreement=<status>` draws the agreement it led to.
+ * FIXTURE: the look of a report, never a save.
  */
 export async function InspectionFixture({
   side: sideParam,
   state: stateParam,
   rooms: roomsParam,
+  photos: photosParam,
+  rental: rentalParam,
+  submitted: submittedParam,
+  agreement: agreementParam,
 }: {
   side?: string;
   state?: string;
   rooms?: string;
+  photos?: string;
+  rental?: string;
+  submitted?: string;
+  agreement?: string;
 }) {
+  const photoCount = Math.max(0, Number.parseInt(photosParam ?? "0", 10) || 0);
   const live = roomsParam !== "off";
   const rooms = live ? Math.max(0, Math.min(8, Number.parseInt(roomsParam ?? "0", 10) || 0)) : 0;
   const locale = await getLocale();
@@ -50,7 +62,10 @@ export async function InspectionFixture({
             kindLabel: "2 Bedroom Apartment",
             priceLabel: formatMoney(250_000_000, locale),
             periodLabel: "per year",
+            isRental: rentalParam !== "0",
           }}
+          needPhotos={3}
+          agreement={agreementParam ? { id: "00000000-0000-4000-8000-000000000000", status: agreementParam } : null}
           locale={locale}
           open
           reportLive={live}
@@ -59,8 +74,8 @@ export async function InspectionFixture({
               ? {
                   notes: null,
                   items: Object.fromEntries(ROOM_ITEMS.slice(0, rooms).map((item) => [item, true])),
-                  photoCount: 0,
-                  submittedAt: null,
+                  photoCount,
+                  submittedAt: submittedParam === "1" ? "2026-09-28T10:00:00Z" : null,
                 }
               : null
           }

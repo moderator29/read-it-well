@@ -34,8 +34,8 @@ insert into public.inspection_report_photos (inspection_id, item, storage_path)
 select '00000000-0000-4000-8000-0000000ee0d1', 'overall', '00000000-0000-4000-8000-0000000ee0a1/probe-' || g || '.jpg'
   from generate_series(1, 5) g;
 update public.inspection_reports set submitted_at = now() where inspection_id = '00000000-0000-4000-8000-0000000ee0d1';
-insert into public.listings (id, agent_id, title, property_type, is_demo, status, listing_intent, state_code, city, area, rate_minor, rate_period)
-values ('00000000-0000-4000-8000-0000000ee0c2', '00000000-0000-4000-8000-0000000ee0b1', 'Money probe shortlet', 'shortlet', false, 'PUBLISHED', 'rent', 'LA', 'Lagos', 'Yaba', 5000000, 'night');
+insert into public.listings (id, agent_id, title, property_type, is_demo, status, listing_intent, listing_role, state_code, city, area, rate_minor, rate_period)
+values ('00000000-0000-4000-8000-0000000ee0c2', '00000000-0000-4000-8000-0000000ee0b1', 'Money probe shortlet', 'shortlet', false, 'PUBLISHED', 'rent', 'owner', 'LA', 'Lagos', 'Yaba', 5000000, 'night');
 do $$
 declare
   tenant constant uuid := '00000000-0000-4000-8000-0000000ee0a1';

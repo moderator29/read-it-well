@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 import Link from "next/link";
-import { LogoMark } from "@/design-system/brand/Logo";
+import { LogoMark, LogoWordmark } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { DepthWords } from "@/components/motion/DepthWords";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -606,14 +606,7 @@ export function AssistantChat({
         </button>
         <Link href="/home" aria-label={t.a11y.logoHome} className="nf-ai__lockup nf-tap">
           <LogoMark size={32} />
-          <Image
-            src="/brand/vallo-wordmark.png"
-            alt=""
-            width={72}
-            height={15}
-            priority
-            className="nf-ai__word"
-          />
+          <LogoWordmark width={72} height={15} priority className="nf-ai__word" />
         </Link>
         <div className="nf-ai__bar-actions">
           <button

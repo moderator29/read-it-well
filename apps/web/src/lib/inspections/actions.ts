@@ -401,10 +401,22 @@ export async function saveInspectionReport(
 
   /* The report row is created on first save rather than when the inspection is
      confirmed, so an inspection nobody wrote up carries no empty report. */
-  const { error: reportError } = await db.from("inspection_reports").upsert(
-    { inspection_id: inspectionId, author_id: session.user.id, notes: notes ?? null },
-    { onConflict: "inspection_id" },
-  );
+  /* Created once, by whoever writes first, and never re-authored: an upsert
+     carrying `author_id` rewrote it to whichever party saved last. So the row
+     is inserted if missing (a conflict does nothing) and the notes are then
+     written on their own. */
+  const { error: createError } = await db
+    .from("inspection_reports")
+    .upsert(
+      { inspection_id: inspectionId, author_id: session.user.id, notes: notes ?? null },
+      { onConflict: "inspection_id", ignoreDuplicates: true },
+    );
+  if (createError) return fail(reportRefusal(createError.message));
+  const { error: reportError } = await db
+    .from("inspection_reports")
+    .update({ notes: notes ?? null })
+    .eq("inspection_id", inspectionId)
+    .is("submitted_at", null);
   if (reportError) return fail(reportRefusal(reportError.message));
 
   if (items.length > 0) {
@@ -599,6 +611,12 @@ async function readReport(db: unknown, inspectionId: string): Promise<Inspection
 function reportRefusal(raw: string): string {
   if (raw.includes("all eight rooms are checked")) {
     return "Tick all eight rooms before you submit the report.";
+  }
+  /* A rental's report needs the photos its agreement is drawn up from, and
+     cannot take one once it is submitted (migration 20260928233552). */
+  const photos = /submitted with at least (\d+) photos, and (\d+) are attached/.exec(raw);
+  if (photos) {
+    return `Add at least ${photos[1]} photos taken at the property before you submit. ${photos[2]} added so far.`;
   }
   if (raw.includes("row-level security") || raw.includes("violates row-level security policy")) {
     return "This report cannot be changed now. It is either submitted already or the inspection is closed.";

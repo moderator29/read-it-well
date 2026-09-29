@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { Sheet } from "@/components/ui/Sheet";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -54,7 +53,6 @@ import { amenityLabel, sortAmenityCodes } from "./amenities";
 import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
-import { useClientMount } from "@/lib/ui/client-mount";
 import { isDataSaver } from "@/lib/ui/data-saver";
 
 /**
@@ -410,11 +408,8 @@ export function FilterDrawer({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
-  const mounted = useClientMount();
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
   const openerRef = useRef<HTMLButtonElement | null>(null);
-  const closeRef = useRef<HTMLButtonElement | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
 
   const [lastQuery, setLastQuery] = useState(query);
   if (query !== lastQuery) {
@@ -422,17 +417,14 @@ export function FilterDrawer({
     setDraft(draftFrom(query));
   }
 
+  /* Escape, Back, the focus trap and its return to the opener, the counted
+     scroll lock and drag or flick down to close are the platform's `Sheet`,
+     in its page shape with the right-hand panel on a wide screen. This used
+     to be a hand-built `fixed inset-0` panel with a painted grip that did not
+     drag. */
   const close = useCallback(() => {
     setOpen(false);
-    openerRef.current?.focus();
   }, []);
-
-  useOverlay({ open, onClose: close, panelRef, autoFocus: false });
-
-  useEffect(() => {
-    if (!open) return;
-    closeRef.current?.focus();
-  }, [open]);
 
   const activeCount = shelfActiveCount(query);
 
@@ -664,32 +656,33 @@ export function FilterDrawer({
   }));
 
   const panel = (
-    <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label={copy.title}>
-      <button
-        type="button"
-        aria-label={copy.close}
-        tabIndex={-1}
-        onClick={close}
-        className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
-      />
-      <div ref={panelRef} data-testid="filters-drawer" className="nf-filters">
-        {/* The grabber of the render. Decoration, not a control: the sheet is
-            closed by the X beside it, by the backdrop and by Escape. */}
-        <span className="nf-filters__grip" aria-hidden="true" />
-        <header className="nf-filters__head">
-          <p className="nf-filters__title">{copy.title}</p>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={close}
-            aria-label={copy.close}
-            className="nf-icon-btn h-11 w-11"
-          >
-            <UiIcon name="close" size={ICON.inline} />
-          </button>
-        </header>
-
-        <div className="nf-filters__body">
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) close();
+      }}
+      title={copy.title}
+      closeLabel={copy.close}
+      fullPage
+      sideOnWide
+      testId="filters-drawer"
+      footer={
+        <div className="grid grid-cols-[1fr_1.4fr] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
+          <Button variant="secondary" data-testid="filters-clear" onClick={clearAll} full size="lg">
+            {copy.reset}
+          </Button>
+          <Button variant="primary" data-testid="filters-apply" onClick={apply} full size="lg">
+            {matchCount === 0
+              ? copy.applyNone
+              : copy.apply.replace("{count}", formatNumber(matchCount, locale))}
+            <span className="sr-only">
+              {" "}
+              {matchCount === 1 ? noun.one : noun.many}
+            </span>
+          </Button>
+        </div>
+      }
+    >
           <div className="mx-auto max-w-2xl">
             {/* ------------------------------------------- property type */}
             {kindOptions.length > 0 && (
@@ -1269,24 +1262,7 @@ export function FilterDrawer({
               )}
             </Group>
           </div>
-        </div>
-
-        <div className="nf-filters__foot">
-          <Button variant="secondary" data-testid="filters-clear" onClick={clearAll} full size="lg">
-            {copy.reset}
-          </Button>
-          <Button variant="primary" data-testid="filters-apply" onClick={apply} full size="lg">
-            {matchCount === 0
-              ? copy.applyNone
-              : copy.apply.replace("{count}", formatNumber(matchCount, locale))}
-            <span className="sr-only">
-              {" "}
-              {matchCount === 1 ? noun.one : noun.many}
-            </span>
-          </Button>
-        </div>
-      </div>
-    </div>
+    </Sheet>
   );
 
   return (
@@ -1312,7 +1288,7 @@ export function FilterDrawer({
           </span>
         )}
       </button>
-      {mounted && open ? createPortal(panel, document.body) : null}
+      {panel}
     </>
   );
 }
