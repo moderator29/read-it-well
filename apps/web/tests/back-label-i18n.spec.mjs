@@ -25,19 +25,22 @@
  * So every console message is captured for the whole run and any hydration
  * complaint fails the spec, alongside the label assertions.
  *
- * Four locales, four screens, one of them a site page rather than an app one so
- * both components are covered:
+ * Four locales, four screens, so both components are covered:
  *
- *   /settings and /wallet and /saved  ->  PageHeader
- *   /agents                           ->  BackButton
+ *   /preview/session-b/sweep-settings?v=help  ->  PageHeader (Settings, Help)
+ *   /preview/f3/saved                         ->  PageHeader (Saved)
+ *   /about, /help                             ->  BackButton (SiteBackBar)
  *
- * This sandbox cannot reach Supabase, so all four render their signed-out or
- * unconfigured state. That does not weaken the check: the chrome is what is
- * under test, it renders in every one of those states, and a back control that
- * only worked for a signed-in user would be the more surprising bug.
+ * WHY THE PREVIEW HARNESS. Since 23 September `/settings` and `/saved` answer
+ * a signed-out visitor with the sign-in wall (asserted below), `/wallet` is a
+ * redirect to `/agreements` since the wallet was retired, and `/agents` is a
+ * redirect to `/profile`. The harness pages render the same PageHeader inside
+ * the real AppShell with fixture props, and the site pages are public, so the
+ * chrome under test is exactly the chrome a member sees.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE = "/opt/pw-browsers/chromium";
@@ -53,8 +56,8 @@ const EXPECTED = {
   ig: "Laghachi",
 };
 
-/* PageHeader on the first three, BackButton on the last. */
-const ROUTES = ["/settings", "/wallet", "/saved", "/agents"];
+/* PageHeader on the first two, BackButton on the last two. */
+const ROUTES = ["/preview/session-b/sweep-settings?v=help", "/preview/f3/saved", "/about", "/help"];
 
 let failures = 0;
 function check(name, condition, detail) {
@@ -76,6 +79,10 @@ const HYDRATION = /hydrat|did not match|text content does not match/i;
 const browser = await chromium.launch({ executablePath: EXECUTABLE });
 
 try {
+  console.log("signed out, the real product routes");
+  await expectSignInWall(check, "/settings");
+  await expectSignInWall(check, "/saved");
+
   for (const [locale, expected] of Object.entries(EXPECTED)) {
     console.log(`\n[${locale}] expecting "${expected}"`);
 
@@ -96,11 +103,14 @@ try {
     page.on("pageerror", (e) => noise.push(`pageerror: ${e.message}`));
 
     for (const route of ROUTES) {
-      const response = await page.goto(`${BASE_URL}${route}`, { waitUntil: "load" });
       // Long enough for hydration to have run and the hook to have settled.
-      await page.waitForTimeout(1500);
-
-      check(`${route} responds without a server error`, (response?.status() ?? 500) < 500);
+      if (route.startsWith("/preview/")) {
+        if (!(await openPreview(page, route, check, { wait: 1500 }))) continue;
+      } else {
+        const response = await page.goto(`${BASE_URL}${route}`, { waitUntil: "load" });
+        await page.waitForTimeout(1500);
+        check(`${route} responds without a server error`, (response?.status() ?? 500) < 500);
+      }
 
       const labels = await page.evaluate(() =>
         [...document.querySelectorAll("button[aria-label]")].map((n) =>
