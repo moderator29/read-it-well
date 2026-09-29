@@ -87,7 +87,9 @@ export function VerticalColumns({
         <button
           type="button"
           className="nf-vcols__toggle nf-m-press"
-          aria-pressed={paused}
+          /* The name says what a press does next ("Pause…" / "Play…"), so
+             there is no `aria-pressed`: a pressed "Play" button reads as a
+             contradiction. */
           aria-label={paused ? playLabel : pauseLabel}
           onClick={() => setPaused((p) => !p)}
         >
