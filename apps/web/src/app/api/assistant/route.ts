@@ -1,4 +1,5 @@
 import { requestSignal, roundWatchdog } from "@/lib/ai/upstream-deadline";
+import { parseAssistantWorkspace, WORKSPACE_FRAMES } from "@/lib/assistant/workspace";
 import { NextRequest } from "next/server";
 import { formatMoney } from "@vallo/i18n/core";
 import { getListingRepository } from "@/lib/listings/repository";
@@ -697,6 +698,7 @@ type RoundResult = {
 async function streamOneRound(
   apiKey: string,
   model: string,
+  system: string,
   messages: unknown[],
   signal: AbortSignal,
   onText: (text: string) => void,
@@ -715,7 +717,7 @@ async function streamOneRound(
         model,
         max_tokens: MAX_TOKENS,
         stream: true,
-        system: SYSTEM_PROMPT,
+        system,
         tools: [SEARCH_TOOL, COMPARE_TOOL, AREA_TOOL],
         messages,
       }),
@@ -916,6 +918,11 @@ export async function POST(req: NextRequest) {
     );
   }
   const threadId = typeof record.threadId === "string" ? record.threadId : undefined;
+  /* A workspace assistant says which workspace by KEY; the sentence is looked
+     up in `lib/assistant/workspace.ts`, so nothing the browser writes reaches
+     the system prompt. Anything that is not a known key is the plain one. */
+  const workspace = parseAssistantWorkspace(record.workspace);
+  const system = workspace ? `${SYSTEM_PROMPT}\n\n${WORKSPACE_FRAMES[workspace].system}` : SYSTEM_PROMPT;
 
   const apiKey = process.env.ANTHROPIC_API_KEY ?? "";
   if (!apiKey) {
@@ -991,7 +998,7 @@ export async function POST(req: NextRequest) {
       try {
         const upstream = requestSignal(req.signal);
         for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
-          const result = await streamOneRound(apiKey, model, convo, upstream, (t) => {
+          const result = await streamOneRound(apiKey, model, system, convo, upstream, (t) => {
             fullText += t;
             emit({ type: "text", text: t });
           });

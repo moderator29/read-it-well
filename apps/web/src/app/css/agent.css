@@ -213,6 +213,18 @@
     min-height: 100dvh;
     background: var(--nf-surface-canvas);
   }
+  /* The workspace assistant: the page is the viewport, the thread scrolls
+     inside it and the composer stays on the bottom edge. */
+  .nf-host--immersive {
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .nf-host__fill {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
   .nf-host__body {
     width: 100%;
     max-width: 40rem;

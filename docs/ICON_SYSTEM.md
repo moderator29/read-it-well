@@ -225,7 +225,8 @@ holds, glyph for glyph:
   units wide, so neighbours in the dock read as different sizes.
 - One corner radius, 2 (1 on small parts such as the archive lid), one dot
   (`h.01` on a round cap, so it scales with the line), round caps and joins.
-- Vallo's weight, not Lucide's 2: `UI_ICON_STROKE_PX`, 1.5 rendered CSS px.
+- Lucide's own weight since the bold pass (below): `UI_ICON_STROKE_PX`, 2
+  rendered CSS px at 20 and 24, scaled optically per size.
 - Where Lucide has no drawing, Vallo draws one on the same rules: the
   shorter-third menu, the two-card feed, `house` (Lucide's house with a
   chimney, so it never reads as the Home tab), and the four property-type
@@ -234,7 +235,44 @@ holds, glyph for glyph:
 - Every name kept its meaning, so no call site changed. The Lucide source of
   each glyph is named in a bracket above it in the TSX.
 
-**Filled twins.** 32 names have a drawn filled twin (`FILLED` in the TSX):
+**Bold pass, 29 September 2026 (same day, second round).** The founder asked
+for the icons to read premium: bolder, solid, clean and sharp, with pump.fun's
+app icons as the weight target (`22-pumpfun-drawer-bold-icons.png`,
+`23-pumpfun-home-bell-dock.png`: about 2 to 2.25 CSS px at 24, round joins, a
+solid twin for the active state such as their filled gear). What changed:
+
+- **The weight.** `UI_ICON_STROKE_PX` went from 1.5 to 2, and the rendered
+  line now steps with the size through `UI_ICON_STROKE_BY_EDGE` and
+  `uiIconStrokeWidth(size)`: 1.5 at 12, 1.75 at 16, 2 at 20 and 24, 2.25 at
+  28, 2.5 at 32, 2.75 at 40. One fixed pixel weight clogged the 12 step (2px
+  is a third of a counter there) and starved the 40 step; the quarter-pixel
+  steps land on the device grid at 2x. `LineGlyph`, `SettingsGlyph`,
+  `FeatureGlyph` and the console's `AdminGlyph` call the same helper, so they
+  went bold with the set.
+- **The library stayed Lucide.** The founder also named "expo icons"
+  (`@expo/vector-icons`), which is a React Native package; its web-usable
+  faces are Ionicons (MIT) and MaterialCommunityIcons (Apache 2.0). Ionicons'
+  outline set draws 32 on a 512 grid, 1.5 at 24, which is the thin line being
+  left behind, and its filled set is a different drawing rather than a twin.
+  Phosphor Bold (MIT) is 2.25 on rounder, wider geometry and would have meant
+  redrawing all ninety glyphs again in the same week. Lucide's geometry is
+  DRAWN at 2: its counters, gaps and dot spacing are tuned for exactly the
+  weight the founder asked for, so raising the line makes each glyph cleaner
+  rather than heavier, and the set stays one family under one licence.
+- **Seven glyphs added** for the listing page's cost and utility rows, which
+  dropped their glass objects for plated line glyphs: `coins` (the total,
+  Lucide), `scale` (legal fee, Lucide), `certificate` (Governor's consent,
+  Lucide `award`), `stamp` (stamp duty, Lucide), `droplet` (water, Lucide),
+  and two of Vallo's own on the same rules, `survey` (a pin on a measuring
+  rule, survey and registration) and `gate` (two posts, an arched rail and
+  three bars, the estate gate). Light keeps `bolt`, which already existed.
+- **More twins**, so a selected row can go solid: `sun`, `briefcase`,
+  `parking`, `kitchen`, `droplet`, `certificate`, `stamp`, `survey`. The
+  existing twins needed no redraw: their body is stroked at the family weight
+  and their cuts at the same weight, so they thickened with it and read as
+  cleaner, sharper solids.
+
+**Filled twins.** 40 names have a drawn filled twin (`FILLED` in the TSX):
 every tab in the dock except Search (a solid lens reads as a dot on a stick), the drawer's destinations that have a closed shape to
 fill, and the saved and rated states (heart, star, bookmark). Line-only
 glyphs (`search`, `settings-gear`, `sliders`, `history`, the arrows) have no honest
@@ -266,8 +304,10 @@ is left out of the map on purpose. The five-icon dock capsule keeps its line
 glyphs. The older rule that navigation never uses the 3D pack is superseded
 for those two surfaces.
 
-**One weight.** `UI_ICON_STROKE_PX` is 1.5 RENDERED CSS pixels, and the
-`stroke-width` attribute is computed from the size rather than passed in.
+**One weight.** `UI_ICON_STROKE_PX` is 2 RENDERED CSS pixels at the 20 and
+24 steps (1.5 until the bold pass of 29 September 2026), stepped optically
+per size by `uiIconStrokeWidth`, and the `stroke-width` attribute is computed
+from the size rather than passed in.
 There is no `strokeWidth` prop. A fixed number on the 24 grid renders thinner
 the smaller the glyph gets, which is why thirty-two call sites had each
 hand-tuned a value between 1.5 and 2.6 and the platform ended up with a dozen
@@ -291,10 +331,11 @@ been retired two hundred lines below the decision.**
 The argument was that a stroked glyph drawn on a 24 grid renders a 0.7 CSS
 pixel line at 12px, which a display either drops or smears. That is true of a
 FIXED `strokeWidth`: a constant 1.8 renders 1.8 at 24 and 0.9 at 12. It is the
-very thing the weight fix addressed. `stroke-width` is computed per size now,
-`(UI_ICON_STROKE_PX * 24) / edge`, which at 12 is 3 grid units, and 3 units on a
-glyph drawn at half the grid renders at **1.5 CSS pixels, not 0.7**. The
-objection was dead before the ban was written down.
+very thing the weight fix addressed. `stroke-width` is computed per size now
+(then `(UI_ICON_STROKE_PX * 24) / edge`, today `uiIconStrokeWidth(edge)`), which
+at 12 is 3 grid units, and 3 units on a glyph drawn at half the grid renders at
+**1.5 CSS pixels, not 0.7**. The objection was dead before the ban was written
+down.
 
 And 12 is the SECOND MOST REQUESTED SIZE IN THE PRODUCT. Counted across `src`,
 197 call sites pass an explicit number, and 12 appears at 35 of them, behind
@@ -316,12 +357,50 @@ nearest one, so a size cannot drift off the grid whatever a caller passes.
 BrandIcon sits on an 8px grid from 24 up; below 24 the plinth in the artwork
 collapses into a coloured square.
 
-**Vector sources are checked in.** `assets/icons/ui/*.svg`, **40 files**, one per
+**Vector sources are checked in.** `assets/icons/ui/*.svg`, **88 files**, one per
 glyph, generated from this component by `node scripts/build-icon-vectors.mjs` and
 verified by `--check`, which exits non-zero if the two copies have drifted. Edit
 the TSX and re-run the script, never the other way round. Nobody has to trace a
 glyph from a screenshot. See `assets/icons/README.md` for where the artwork
-lives.
+lives. The files are drawn at the 24 step, so they carry `stroke-width="2"`.
+
+## Listing and stays detail: plated line glyphs, not glass (29 September 2026)
+
+The founder's `20-listing-fees-glass-now.png` and
+`21-listing-amenities-glass-now.png` showed the fee rows and the light, water
+and gate rows carrying glass objects at 40px, blurred and inconsistent beside
+the bold type. They now draw `DetailGlyph`
+(`components/app/listing/DetailGlyph.tsx`): the shared `IconPlate` (a soft
+brand-tinted tile with a hairline in light, the navy glass plate at night) with
+a brand-blue `UiIcon` at 20, the same treatment as the profile rows. At night
+the glyph takes the bright end of the brand blue, as the profile page does.
+
+| Row | Glyph |
+| --- | --- |
+| Asking price | `price-tag` |
+| Rent | `key` |
+| Agency fee | `briefcase` |
+| Legal fee | `scale` |
+| Agreement fee | `document` |
+| Caution deposit | `verified` |
+| Service charge | `building-apartment` |
+| Governor's consent | `certificate` |
+| Stamp duty | `stamp` |
+| Survey and registration | `survey` |
+| Buy-from and move-in total | `coins` (large plate) |
+| Unexplained remainder | `info` (pending plate) |
+| Light | `bolt` |
+| Water | `droplet` |
+| The gate | `gate` |
+
+The same sweep put line glyphs on the rest of the detail pages: the host and
+agent avatar fallbacks (`user`), the rooms line of the move-in block (`bed`),
+the stay's property type (`building-hotel`, `building-apartment`,
+`house-bungalow`, `pool`, `key`), the rental panel's safety note (`verified`)
+and the booking-requested confirmation (`calendar-booking`, filled, on the
+success plate). The cost models (`move-in-lines.ts`, `purchase-lines.ts`) keep
+their `icon` (a `BrandIconName`) for the listing wizard's preview and carry the
+line glyph as `glyph`.
 
 ## Deleted: TrustIcon
 

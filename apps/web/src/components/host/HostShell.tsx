@@ -1,31 +1,33 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { BackButton } from "@/components/site/BackButton";
-import { LogoMark } from "@/design-system/brand/Logo";
+import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
+import { getShellIdentity } from "@/lib/app/shell-queries";
 import { HostNav } from "./HostNav";
-import { HOST_DASHBOARD } from "./host-nav-model";
+import { HostDrawer, HostTitle } from "./HostDrawer";
 
 /**
- * The Host surfaces' shell: the glass chrome with the way back, the lockup
- * and the row of host destinations (`HostNav`), then a single column. The
- * lockup goes to the host overview, not the consumer home: inside a
- * workspace the mark is the way to that workspace's front page, as the agent
- * rail's is. The wizard lives outside the consumer shell
- * on purpose, as the agent application does: a person in the middle of
- * uploading their CAC certificate does not need the dock under their thumb.
+ * The Host surfaces' shell, for hotels, shortlets, guest houses, serviced
+ * apartments and restaurants: `WorkspaceHeader` (the same bar the agent
+ * console draws: back, the drawer toggle, the page's title, the bell), the
+ * row of host destinations (`HostNav`) under it, then a single column.
+ *
+ * No lockup and no workspace pill in the bar (founder, 29 September 2026);
+ * the drawer is headed by the workspace's marker instead. The wizard lives
+ * outside the consumer shell on purpose, as the agent application does: a
+ * person in the middle of uploading their CAC certificate does not need the
+ * dock under their thumb.
  */
-export function HostShell({
+export async function HostShell({
   children,
   fallback = "/home",
   chromeBack = true,
   nav = chromeBack,
+  immersive = false,
 }: {
   children: ReactNode;
   fallback?: string;
   /**
-   * @deprecated The mark now leads to the host overview and names itself so;
-   * a "Vallo home" label on it would announce the wrong destination. Still
-   * accepted so the host pages need no edit.
+   * @deprecated The bar draws no lockup any more, so there is nothing for a
+   * label to name. Still accepted so the host pages need no edit.
    */
   logoLabel?: string;
   /**
@@ -42,28 +44,39 @@ export function HostShell({
    */
   chromeBack?: boolean;
   /**
-   * Whether the bar carries the row of host destinations. Follows
-   * `chromeBack` unless told otherwise: the flows that draw their own single
-   * control (the wizard) are the ones a person should finish rather than
-   * wander out of, so they get neither.
+   * Whether the bar carries the host's navigation (the chip row and the
+   * drawer). Follows `chromeBack` unless told otherwise: the flows that draw
+   * their own single control (the wizard) are the ones a person should finish
+   * rather than wander out of, so they get neither.
    */
   nav?: boolean;
+  /**
+   * The content owns the rest of the viewport: the workspace assistant, whose
+   * composer is pinned to the bottom edge. The same contract as `AgentShell`.
+   */
+  immersive?: boolean;
 }) {
+  /* The bell's dot, failing soft to zero: a badge is never worth a page. */
+  const unread = await getShellIdentity().then(
+    (identity) => identity.unreadNotifications,
+    () => 0,
+  );
   return (
-    <div className="nf-host">
-      <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
-        <div className="flex h-header-sm items-center gap-inline px-gutter sm:h-header">
-          {chromeBack ? (
-            <BackButton fallback={fallback} className="h-10 w-10 shrink-0" />
-          ) : null}
-          <Link href={HOST_DASHBOARD} aria-label="Host overview">
-            <LogoMark size={30} />
-          </Link>
-          <span className="nf-caption ml-inline-tight font-semibold text-[var(--nf-brand-secondary)]">Host</span>
-        </div>
+    <div className={immersive ? "nf-host nf-host--immersive" : "nf-host"}>
+      <WorkspaceHeader
+        back={chromeBack ? fallback : false}
+        menu={nav ? <HostDrawer /> : undefined}
+        title={<HostTitle />}
+        bell={{
+          href: "/host/notifications",
+          label: "Notifications",
+          unreadLabel: "Notifications, {count} unread",
+          unread,
+        }}
+      >
         {nav ? <HostNav label="Host workspace" /> : null}
-      </header>
-      <main id="main" className="nf-host__body">
+      </WorkspaceHeader>
+      <main id="main" className={immersive ? "nf-host__fill" : "nf-host__body"}>
         {children}
       </main>
     </div>
