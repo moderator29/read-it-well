@@ -212,6 +212,19 @@ const SWEEP = () => {
   /* The same excerpt as the inbox row draws it now (Inbox.tsx: the last
      message is the row's `nf-body-sm ... truncate` line). */
   const isInboxExcerpt = (el, cls) => Boolean(el.closest('[data-testid="inbox-row"]')) && cls.includes("nf-body-sm");
+  /* The whole text is one hover or long-press away: the element, or the
+     link or button it sits in, carries it as its title. That is the "proper
+     ellipsis with the full text available" the polish pass asks for. */
+  const titled = (el) => {
+    const text = (el.textContent || "").trim().replace(/\s+/g, " ");
+    const holder = el.closest("[title]");
+    return Boolean(holder && text && holder.getAttribute("title").includes(text.replace(/…$/, "")));
+  };
+  /* A clamp inside the region a collapsed disclosure owns ("Read more"). */
+  const expandable = (el) => {
+    const region = el.closest("[id]");
+    return Boolean(region && document.querySelector(`[aria-controls="${CSS.escape(region.id)}"][aria-expanded="false"]`));
+  };
   const clipped = [];
   const images = [];
   for (const el of document.querySelectorAll("*")) {
@@ -219,7 +232,7 @@ const SWEEP = () => {
     const cls = typeof el.className === "string" ? el.className : "";
     if (cs.textOverflow === "ellipsis" && cs.overflow !== "visible") {
       if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth) {
-        if (!ALLOWED.some((a) => cls.includes(a)) && !isInboxExcerpt(el, cls)) {
+        if (!ALLOWED.some((a) => cls.includes(a)) && !isInboxExcerpt(el, cls) && !titled(el)) {
           clipped.push(`${el.tagName.toLowerCase()} ${el.clientWidth}/${el.scrollWidth} "${(el.textContent || "").trim().slice(0, 44)}" .${cls.slice(0, 50)}`);
         }
       }
@@ -229,7 +242,7 @@ const SWEEP = () => {
          scrollHeight two pixels past its clientHeight from the descender
          alone, which is not a clamp. */
       const line = parseFloat(cs.lineHeight) || 20;
-      if (el.scrollHeight > el.clientHeight + line * 0.5) {
+      if (el.scrollHeight > el.clientHeight + line * 0.5 && !expandable(el) && !titled(el)) {
         clipped.push(`clamp-${cs.webkitLineClamp} "${(el.textContent || "").trim().slice(0, 44)}" .${cls.slice(0, 50)}`);
       }
     }

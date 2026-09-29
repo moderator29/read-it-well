@@ -245,7 +245,10 @@ export function RealDashboard({
                     <UiIcon name="calendar-booking" size={ICON.row} />
                   </span>
                   <span className="min-w-0 flex-1 leading-tight">
-                    <span className={`block truncate ${TYPE.rowTitle}`}>
+                    <span
+                      className={`line-clamp-2 [overflow-wrap:anywhere] ${TYPE.rowTitle}`}
+                      title={booking.listingTitle}
+                    >
                       {booking.listingTitle}
                     </span>
                     <span className={`block ${TYPE.rowMeta}`}>

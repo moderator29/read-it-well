@@ -54,17 +54,21 @@ export function ListingMini({
         {saveLabel && (
           <span className="nf-landing-float-save" aria-hidden="true">
             <span>
-              <UiIcon name="heart" size={14} />
+              <UiIcon name="heart" size={16} />
             </span>
           </span>
         )}
       </div>
       <div className="nf-landing-float-body">
-        <h3 className="nf-landing-float-title">{listing.title}</h3>
+        <h3 className="nf-landing-float-title" title={listing.title}>
+          {listing.title}
+        </h3>
         <div className="nf-landing-float-row">
           <span className="nf-landing-float-place">
             <UiIcon name="location" size={12} aria-hidden />
-            <span className="truncate">{listing.place}</span>
+            <span className="line-clamp-2 [overflow-wrap:anywhere]" title={listing.place}>
+              {listing.place}
+            </span>
           </span>
           <span className="nf-landing-float-price">
             <Amount

@@ -103,7 +103,7 @@ export function AssistantSidebar({
           autoComplete="off"
         />
         <Button variant="primary" size="sm" full onClick={onNew}>
-          <UiIcon name="plus" size={15} />
+          <UiIcon name="plus" size={16} />
           New chat
         </Button>
       </div>
@@ -144,6 +144,7 @@ export function AssistantSidebar({
                           ? "text-[var(--nf-content-primary)]"
                           : "text-[var(--nf-content-secondary)]"
                       }`}
+                      title={t.title}
                     >
                       {t.title}
                     </span>
@@ -157,7 +158,7 @@ export function AssistantSidebar({
                     onClick={() => onDelete(t.id)}
                     className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[var(--nf-radius-sm)] text-[var(--nf-content-muted)] opacity-70 transition-colors hover:bg-[image:var(--nf-btn-glass-fill)] hover:text-[var(--nf-content-primary)] group-hover:opacity-100"
                   >
-                    <UiIcon name="trash" size={15} />
+                    <UiIcon name="trash" size={16} />
                   </button>
                 </li>
               );
@@ -186,7 +187,7 @@ export function AssistantSidebar({
           aria-haspopup="dialog"
           className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] px-sm py-sm text-left text-[var(--nf-content-secondary)] transition-colors hover:bg-[image:var(--nf-btn-glass-fill)] hover:text-[var(--nf-content-primary)]"
         >
-          <UiIcon name="settings-gear" size={18} className="shrink-0" />
+          <UiIcon name="settings-gear" size={20} className="shrink-0" />
           <span className="flex-1 text-[length:var(--nf-text-caption)] font-medium">Settings</span>
           {/* The current reply style, on the row. A settings entry that says
               only "Settings" makes somebody open it to find out what it is
@@ -195,7 +196,7 @@ export function AssistantSidebar({
           <span className="shrink-0 text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {tone}
           </span>
-          <UiIcon name="chevron-right" size={14} className="shrink-0" />
+          <UiIcon name="chevron-right" size={16} className="shrink-0" />
         </button>
       </div>
 

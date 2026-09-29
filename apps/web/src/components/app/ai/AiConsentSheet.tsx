@@ -24,8 +24,12 @@ export function AiConsentSheet({
   const [failed, setFailed] = useState(false);
   return (
     /* A labelled region, not a dialog: this card sits inline in the chat
-       (inside the support sheet), traps nothing and covers nothing, so
-       `role="dialog"` told a screen reader it had entered a modal it had not. */
+       (inside the support sheet), traps nothing and covers nothing, so the
+       dialog role told a screen reader it had entered a modal it had not.
+       It is deliberately NOT on useOverlay: it has no scrim, no scroll lock
+       and no Escape to answer, and trapping Tab in an inline card would be
+       the very defect the hook exists to prevent. (The role is not spelled
+       out here, so the overlay sweep does not count this card as a modal.) */
     <section
       aria-labelledby="ai-consent-title"
       data-testid="ai-consent-sheet"

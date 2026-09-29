@@ -149,7 +149,7 @@ export function ProfileHeader({
         <div className="nf-social-cover__scrim" aria-hidden="true" />
 
         <div className="nf-social-float nf-social-float--start">
-          <BackChevron fallback="/around" label={copy.back} />
+          <BackChevron fallback="/around" label={copy.back} labelled />
         </div>
         {share ? (
           <div className="nf-social-float nf-social-float--end">{share}</div>
@@ -218,6 +218,29 @@ export function ProfileHeader({
           </p>
 
           {profile.bio && <p className="nf-social-bio">{profile.bio}</p>}
+
+          {/* ------------------------------------------------------- the meta: where and since when, before the counts (the doc order above) */}
+          {(place || homeArea || joinedLabel) && (
+            <div className="nf-social-meta" data-testid="profile-meta">
+              {place ? (
+                <span>
+                  <UiIcon name="location" size={16} />
+                  {place.label}
+                </span>
+              ) : homeArea ? (
+                <span>
+                  <UiIcon name="location" size={16} />
+                  {homeArea.name}, {homeArea.city}
+                </span>
+              ) : null}
+              {joinedLabel ? (
+                <span>
+                  <UiIcon name="calendar-booking" size={16} />
+                  {copy.joined.replace("{month}", joinedLabel)}
+                </span>
+              ) : null}
+            </div>
+          )}
 
           {/*
             Followers and Following, with a rule between them. Both lists exist
@@ -304,29 +327,6 @@ export function ProfileHeader({
           <UiIcon name="share" size={16} />
           {linkLabel(profile.link)}
         </ExternalLinkSheet>
-      )}
-
-      {/* ------------------------------------------------------- the meta */}
-      {(place || homeArea || joinedLabel) && (
-        <div className="nf-social-meta" data-testid="profile-meta">
-          {place ? (
-            <span>
-              <UiIcon name="location" size={16} />
-              {place.label}
-            </span>
-          ) : homeArea ? (
-            <span>
-              <UiIcon name="location" size={16} />
-              {homeArea.name}, {homeArea.city}
-            </span>
-          ) : null}
-          {joinedLabel ? (
-            <span>
-              <UiIcon name="calendar-booking" size={16} />
-              {copy.joined.replace("{month}", joinedLabel)}
-            </span>
-          ) : null}
-        </div>
       )}
 
       {/* V-64. The owner sees their occupation and home town; nobody else

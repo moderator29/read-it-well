@@ -87,7 +87,7 @@ export function SiteHeader({
               aria-label={nav.search}
               className="nf-site-nav-glass nf-site-nav-glass--icon hidden sm:inline-flex"
             >
-              <UiIcon name="search" size={18} aria-hidden />
+              <UiIcon name="search" size={20} aria-hidden />
             </Link>
             <Link href="/sign-in" prefetch className="nf-site-nav-glass hidden sm:inline-flex">
               {nav.signIn}

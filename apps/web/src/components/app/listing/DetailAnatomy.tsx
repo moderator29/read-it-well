@@ -91,7 +91,7 @@ export function DetailPriceRow({
         <p className="nf-detail-rating" data-testid="detail-rating">
           {/* Blue. The renders draw this star gold and the direction is
               explicit that a warm hue becomes its blue-family equivalent. */}
-          <UiIcon name="star" size={14} filled />
+          <UiIcon name="star" size={16} filled />
           <span className="nf-numeric font-semibold">{rating.average}</span>
           <span className="nf-detail-rating__count">{rating.reviews}</span>
         </p>
@@ -117,7 +117,7 @@ export function DetailCapsules({
     <ul className="nf-detail-capsules nf-scroll-x" aria-label={label} tabIndex={0} data-testid="detail-capsules">
       {shown.map((item) => (
         <li key={item.key} className="nf-detail-capsule">
-          <UiIcon name={item.icon} size={14} />
+          <UiIcon name={item.icon} size={16} />
           <span>{item.label}</span>
         </li>
       ))}
@@ -197,7 +197,7 @@ export function DetailAboutCard({
             <span className="nf-host-row__body">
               {host.verified ? (
                 <span className="nf-host-row__title">
-                  <UiIcon name="verified" size={14} />
+                  <UiIcon name="verified" size={16} />
                   {host.verifiedLabel}
                 </span>
               ) : (

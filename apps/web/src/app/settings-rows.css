@@ -457,20 +457,19 @@
     letter-spacing: -0.005em;
   }
   /*
-   * THE SUB LINE NEVER WRAPS, and this is the rule the whole screen's rhythm
-   * hangs on. Three of the six rows wrapped their second line at caption
-   * ("Name, email, phone number", "Password, sign-in and devices", "Theme,
-   * text size, motion"), and a wrapped sub grows its row by 18px, so the
-   * card that the render fits above the fold ran a third of a screen past it.
-   * Overline with an ellipsis: the sub is a hint at what is behind the door,
-   * never a sentence anybody has to finish, and the label above it and the
-   * value beside it both carry the meaning on their own.
+   * THE SUB LINE WRAPS, at overline size. It used to be held to one line
+   * with an ellipsis, to keep the card above the fold, and at 390 that cut
+   * seven of the nine hints mid-word ("Name, email, phone num...", "Leaves out
+   * the decorative art...") with nothing anywhere that showed the rest, and
+   * the data saver's hint is a sentence somebody has to read to decide. A
+   * clipped hint is a hint nobody can finish; at overline a wrapped one costs
+   * about 13px per extra line, and every hint fits in two lines at 390 (the
+   * data saver's was four until it was cut to "Skips decorative art and
+   * loading pages ahead.").
    */
   .nf-hub .nf-srow__sub {
     margin-top: 1px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     font-size: var(--nf-text-overline);
     line-height: 1.35;
   }

@@ -77,7 +77,7 @@ export function ThemeControl({
             onClick={() => setThemeChoice(option.value)}
             className="nf-theme-control__option"
           >
-            <UiIcon name={option.icon} size={18} />
+            <UiIcon name={option.icon} size={20} />
             <span>{labels[option.key]}</span>
           </button>
         );

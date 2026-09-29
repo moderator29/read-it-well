@@ -158,7 +158,7 @@ export function ShelfBar({
           >
             <UiIcon name={chip.icon} size={16} />
             {chip.label}
-            <UiIcon name="chevron-down" size={14} />
+            <UiIcon name="chevron-down" size={16} />
           </Link>
         ))}
       </nav>

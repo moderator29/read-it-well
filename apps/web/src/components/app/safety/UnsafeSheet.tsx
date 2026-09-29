@@ -122,7 +122,7 @@ export function UnsafeSheet({
           <p className="nf-body text-[var(--nf-content-secondary)]">{copy.lede}</p>
 
           <a href="tel:112" className="nf-btn nf-btn--danger w-full min-h-[44px]" data-testid="unsafe-call">
-            <UiIcon name="phone" size={18} className="shrink-0" />
+            <UiIcon name="phone" size={20} className="shrink-0" />
             {copy.call}
           </a>
           <p className="nf-caption text-[var(--nf-content-muted)]">{copy.callHint}</p>

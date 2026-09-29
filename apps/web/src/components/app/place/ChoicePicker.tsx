@@ -199,6 +199,7 @@ export function ChoicePicker({
               ? "min-w-0 flex-1 truncate text-[var(--nf-content-primary)]"
               : "min-w-0 flex-1 truncate text-[var(--nf-content-muted)]"
           }
+          title={selected ? selected.name : placeholder}
         >
           {selected ? selected.name : placeholder}
         </span>

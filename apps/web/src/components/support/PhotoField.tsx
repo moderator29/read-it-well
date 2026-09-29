@@ -91,7 +91,7 @@ export function PhotoField({
           aria-label="Attach a photo or screenshot"
           className="nf-btn nf-btn--glass nf-btn--icon inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center p-0"
         >
-          <UiIcon name="picture" size={18} />
+          <UiIcon name="picture" size={20} />
         </label>
         {error && (
           <p role="alert" className="nf-caption basis-full text-[var(--nf-state-error)]">

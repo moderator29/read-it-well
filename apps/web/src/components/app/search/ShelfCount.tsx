@@ -108,9 +108,9 @@ export function ShelfCount({
       {(count > 1 || query.view === "map") && (
         <details className="nf-shelf-sort shrink-0" data-testid="sort-control">
           <summary>
-            <UiIcon name="sliders" size={14} />
+            <UiIcon name="sliders" size={16} />
             {t.shape.sorts[current.key]}
-            <UiIcon name="chevron-down" size={14} />
+            <UiIcon name="chevron-down" size={16} />
           </summary>
           <ul className="nf-shelf-sort__menu" aria-label={copy.sort}>
             {SORTS.map((sort) => {
@@ -124,7 +124,7 @@ export function ShelfCount({
                     className="nf-shelf-sort__item"
                   >
                     {t.shape.sorts[sort.key]}
-                    {active && <UiIcon name="verified" size={14} />}
+                    {active && <UiIcon name="verified" size={16} />}
                   </Link>
                 </li>
               );

@@ -46,7 +46,7 @@ export function StoryRing({
     <div className="nf-story-ring" data-testid="story-ring">
       <ul className="nf-story-ring__row" aria-label="Stories">
         <li>
-          <Link href="/stories/new" className="nf-story-ring__item" data-testid="your-story">
+          <Link href="/stories/new" className="nf-story-ring__item" data-testid="your-story" title={yourStoryLabel}>
             <span className="nf-story-ring__disc nf-story-ring__disc--you">
               {you?.avatarUrl ? (
                 <RemoteImage src={you.avatarUrl} alt="" width={128} height={128} sizes="64px" />
@@ -64,7 +64,7 @@ export function StoryRing({
         </li>
         {people.map((story) => (
           <li key={story.id}>
-            <Link href={`/stories/${story.id}`} className="nf-story-ring__item">
+            <Link href={`/stories/${story.id}`} className="nf-story-ring__item" title={story.authorLabel}>
               <span className="nf-story-ring__disc">
                 {story.imageUrl ? (
                   <RemoteImage

@@ -801,7 +801,7 @@ export function MapCanvas({
           <div
             className="nf-panel nf-panel--card isolate pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] items-center p-lg text-center"
           >
-            <BrandIcon name="map-spot" size={44} className="mx-auto" />
+            <BrandIcon name="map-spot" size={40} className="mx-auto" />
             <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">
               No places here
             </p>

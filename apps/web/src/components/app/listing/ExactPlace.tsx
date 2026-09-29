@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { formatNumber } from "@vallo/i18n/core";
+
+/* A map link's coordinate: six places, no grouping, through the one formatter. */
+const coordinate = (value: number) =>
+  formatNumber(value, "en", { minimumFractionDigits: 6, maximumFractionDigits: 6, useGrouping: false });
 
 type Place = { address: string | null; landmark: string | null; latitude: number | null; longitude: number | null; why: string };
 
@@ -29,7 +34,7 @@ export async function ExactPlace({ listingId }: { listingId: string }) {
   if (!place || (!place.address && place.latitude === null)) return null;
   const pin =
     place.latitude !== null && place.longitude !== null
-      ? `https://www.google.com/maps/search/?api=1&query=${place.latitude.toFixed(6)},${place.longitude.toFixed(6)}`
+      ? `https://www.google.com/maps/search/?api=1&query=${coordinate(place.latitude)},${coordinate(place.longitude)}`
       : null;
   const lead =
     place.why === "inspection"

@@ -110,7 +110,9 @@ export function StayCard({
         <div className="nf-pcard__body">
           <div className="nf-stay-card__head">
             <div className="min-w-0">
-              <h3 className="nf-pcard__title">{stay.title}</h3>
+              <h3 className="nf-pcard__title" title={stay.title}>
+                {stay.title}
+              </h3>
               {stay.where && (
                 <p className="nf-pcard__where mt-2xs">
                   <UiIcon name="location" size={12} />
@@ -119,7 +121,7 @@ export function StayCard({
               )}
               {stay.rating && (
                 <p className="nf-stay-card__rating mt-2xs nf-numeric">
-                  <UiIcon name="star" size={14} filled />
+                  <UiIcon name="star" size={16} filled />
                   {formatRating(stay.rating.average, locale)}
                   <span className="font-normal text-[var(--nf-content-muted)]">
                     {copy.reviews.replace("{count}", String(stay.rating.count))}

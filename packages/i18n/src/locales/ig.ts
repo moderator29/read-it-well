@@ -306,6 +306,9 @@ export const ig: Dictionary = withFallback({
     myBookings: "Ndebe m",
     myBookingsSub: "Lee ndebe ụlọ na nke ebe obibi gị",
     savedSub: "Ụlọ, ụlọ oriri na ebe ndị i chekwara",
+    /* Draft built from this file's words for agreements and payments; a
+       native speaker should confirm, especially the word for claims. */
+    agreementsSub: "Nkwekọrịta, ịkwụ ụgwọ na arịrịọ nkwụghachi",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ndebe ụlọ na ebe obibi",
     savedRow: "Ụlọ, ụlọ oriri na ebe",
@@ -686,6 +689,9 @@ export const ig: Dictionary = withFallback({
     confirmPasswordPlaceholder: "Pịghachi okwuntughe gị",
     signInSub: "Banye n'akaụntụ Vallo gị",
     signUpSub: "Mepee akaụntụ Vallo gị n'ime otu nkeji",
+    /* The line under the wordmark on the sign-up screens, reusing signUpSub
+       above; a native speaker should confirm. */
+    heroSignUp: "Mepee akaụntụ Vallo gị n'ime otu nkeji.",
   },
 
   signUp: {
@@ -726,6 +732,10 @@ export const ig: Dictionary = withFallback({
     },
     referralLabel: "Koodu ntụzi",
     referralPlaceholder: "Tinye koodu gị",
+    /* The two step headings of the sign-up form. Reused from wording already
+       in this file; a native speaker should confirm. */
+    stepAccount: "Akaụntụ gị",
+    stepAbout: "Maka gị",
   },
 
   pickers: {

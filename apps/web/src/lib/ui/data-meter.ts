@@ -13,6 +13,8 @@
  * per-device convenience, never sent anywhere, and losing it loses nothing.
  */
 
+import { DEFAULT_LOCALE, formatNumber } from "@vallo/i18n/core";
+
 export type MeterDays = Record<string, number>;
 
 export const METER_KEY = "vallo_data_meter";
@@ -64,5 +66,7 @@ export function weekBytes(days: MeterDays, epochMs: number): number {
 /** Megabytes, rounded for reading: one decimal under ten, whole above. */
 export function megabytes(bytes: number): string {
   const mb = bytes / 1_000_000;
-  return mb < 10 ? mb.toFixed(1) : String(Math.round(mb));
+  return mb < 10
+    ? formatNumber(mb, DEFAULT_LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+    : formatNumber(Math.round(mb), DEFAULT_LOCALE);
 }

@@ -42,7 +42,7 @@ export function ListingMoveInBlock({
       <div className="min-w-0">
         <p className="nf-detail-movein__label">
           {hasTotal ? (stated ? copy.moveInTotal : copy.moveInFrom) : t.catalogue.card.rent}
-          <UiIcon name="info" size={14} className="text-[var(--nf-content-muted)]" />
+          <UiIcon name="info" size={16} className="text-[var(--nf-content-muted)]" />
         </p>
         <p className="nf-detail-movein__figure mt-inline-tight">
           <Amount

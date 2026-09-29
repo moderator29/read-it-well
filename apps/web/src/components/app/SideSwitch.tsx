@@ -81,7 +81,7 @@ export function SideSwitch({
     >
       <span className="nf-side-switch__ring" aria-hidden="true">
         <span className="nf-side-switch__coin">
-          <BrandIcon name={other === "stays" ? "hotel" : "keys-home"} size={30} />
+          <BrandIcon name={other === "stays" ? "hotel" : "keys-home"} size={32} />
         </span>
       </span>
       <span className="min-w-0 flex-1">
@@ -93,7 +93,7 @@ export function SideSwitch({
           {other === "stays" ? t.side.staysSubShort : t.side.propertySubShort}
         </span>
       </span>
-      <UiIcon name="chevron-right" size={18} className="nf-side-switch__chev" />
+      <UiIcon name="chevron-right" size={20} className="nf-side-switch__chev" />
     </button>
   );
 }

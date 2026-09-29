@@ -131,6 +131,7 @@ export function AppRail({
           href="/profile"
           onClick={onNavigate}
           className={drawer ? "nf-nav__who nf-nav__who--hero" : "nf-nav__who"}
+          title={userName}
         >
           <span className="nf-nav__avatar relative" aria-hidden="true">
             {/* The initial is always drawn, and the photo sits over it. An

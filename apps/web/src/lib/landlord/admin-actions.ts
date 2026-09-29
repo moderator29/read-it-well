@@ -52,7 +52,7 @@ export async function recordPrincipalConsent(input: {
       return fail("This number asked us to stop before. Record what the principal said on this call.");
     }
     if ((error.message ?? "").includes("no number")) {
-      return fail("This mandate has no number for the principal, so there is nobody to ask.");
+      return fail("This mandate has no number for the principal, so there is nobody to ask. Ask the lister to add the principal's number to the mandate.");
     }
     return fail(FAILED_CONSENT);
   }

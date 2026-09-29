@@ -132,7 +132,7 @@ function DeltaLine({ delta, fallback, locale }: { delta: Delta | null; fallback?
     <p className="nf-md-delta">
       <span className={`nf-md-delta__figure nf-md-delta__figure--${tone}`}>
         {direction !== "flat" && (
-          <UiIcon name={direction === "up" ? "arrow-up" : "arrow-down"} size={14} />
+          <UiIcon name={direction === "up" ? "arrow-up" : "arrow-down"} size={16} />
         )}
         {Math.abs(percent)}%
         <span className="sr-only">{` ${direction === "up" ? c.up : direction === "down" ? c.down : c.unchanged}`}</span>

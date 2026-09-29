@@ -36,7 +36,7 @@ export async function respondToReview(input: unknown): Promise<ActionResult<{ re
   const { supabase, user } = session;
 
   if (!pathsBelongTo(user.id, value.documents)) {
-    return fail("Those uploads did not come from your own account, so we did not file them.");
+    return fail("Those uploads did not come from your own account, so we did not file them. Upload the documents again from this account.");
   }
 
   const { data: application, error: readError } = await supabase

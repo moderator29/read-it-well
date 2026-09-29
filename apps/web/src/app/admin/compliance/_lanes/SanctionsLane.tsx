@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import { formatNumber, type Dictionary } from "@vallo/i18n/core";
 import { requireAdmin } from "@/lib/admin/guard";
 import { readSanctionsDesk, strHref, type SanctionsDesk, type SanctionsHit } from "@/lib/compliance/sanctions/desk";
 import { adminUi } from "../../_components/ui";
@@ -46,7 +46,7 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
   const openHit = (hit: SanctionsHit) => (
     <li key={hit.id} className="nf-panel nf-panel--card nf-admin-card p-card" data-testid="sanctions-hit">
       <p className="nf-body font-semibold text-content">
-        {hit.kind === "exact" ? c.exact : fill(c.fuzzy, { score: hit.score.toFixed(2) })}
+        {hit.kind === "exact" ? c.exact : fill(c.fuzzy, { score: formatNumber(hit.score, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) })}
       </p>
       <p className="nf-body mt-inline">{fill(c.screenedAs, { name: hit.screenedName })}</p>
       <p className="nf-body">

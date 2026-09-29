@@ -47,11 +47,11 @@ export function VerifiedAgentBadge({ label }: { label: string }) {
         data-testid="verified-agent-badge"
         className="nf-agent-card__pill nf-tap"
       >
-        <UiIcon name="verified" size={11} />
+        <UiIcon name="verified" size={12} />
         {label}
         {/* The affordance, at the size the pill can carry: without it the
             control reads as a label and nobody taps it. */}
-        <UiIcon name="info" size={11} className="opacity-70" />
+        <UiIcon name="info" size={12} className="opacity-70" />
       </button>
 
       <Sheet

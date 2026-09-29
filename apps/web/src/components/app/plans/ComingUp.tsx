@@ -80,7 +80,7 @@ export function ComingUp({
                 {groups[band.key].map((item) => (
                   <li key={`${item.kind}-${item.id}`}>
                     <Link href={item.href} className="flex min-h-11 items-center gap-md py-sm">
-                      <UiIcon name={KIND_ICON[item.kind]} size={18} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+                      <UiIcon name={KIND_ICON[item.kind]} size={20} className="shrink-0 text-[var(--nf-brand-secondary)]" />
                       <span className="min-w-0 flex-1 leading-tight">
                         <span className={`block ${TYPE.rowTitle}`}>{item.title}</span>
                         <span className={`mt-3xs block ${TYPE.rowMeta}`}>

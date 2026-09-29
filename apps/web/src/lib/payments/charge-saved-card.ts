@@ -85,7 +85,7 @@ export async function chargeSavedCard(params: {
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
   if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
-    return fail("That amount is not one we can charge.");
+    return fail("That amount is not one we can charge. Nothing was charged. Refresh the page and try again.");
   }
   if (!isPaystackConfigured()) {
     return fail("Card payments are unavailable right now. Nothing was charged.");

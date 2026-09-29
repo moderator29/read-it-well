@@ -37,7 +37,7 @@ export function RefundRow({
     <li className="flex flex-wrap items-baseline gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
       {/* The row's glass object, small: money going back to a person. The
           render carries one per row and this is the row's subject in a mark. */}
-      <BrandIcon name="payment-received" size={26} className="mt-3xs shrink-0" />
+      <BrandIcon name="payment-received" size={24} className="mt-3xs shrink-0" />
       <span className="min-w-0 flex-1">
         <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
           {refund.guestName ?? c.noDisplayName}

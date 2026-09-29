@@ -318,12 +318,12 @@ export function ListingGallery({
       {mark && (
         <p className="nf-gallery-marks" data-testid="gallery-marks">
           <span className="nf-badge nf-badge--info nf-gallery-mark">
-            {mark.icon && <UiIcon name={mark.icon} size={14} />}
+            {mark.icon && <UiIcon name={mark.icon} size={16} />}
             {mark.label}
           </span>
           {mark.verified && (
             <span className="nf-badge nf-badge--verified nf-gallery-mark">
-              <UiIcon name="verified" size={14} />
+              <UiIcon name="verified" size={16} />
               {mark.verifiedLabel ?? t.common.verified}
             </span>
           )}
@@ -365,7 +365,7 @@ export function ListingGallery({
              above it. See the note there. */
           className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-2xs font-semibold sm:bottom-14 sm:right-4"
         >
-          <UiIcon name="picture" size={14} className="mr-2xs inline-block align-[-2px]" />
+          <UiIcon name="picture" size={16} className="mr-2xs inline-block align-[-2px]" />
           <span className="sr-only">Photo </span>
           {Math.min(active + 1, count)}/{count}
         </p>

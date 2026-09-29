@@ -95,7 +95,7 @@ export function RegisterShell({
         <h1 className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{formTitle}</h1>
         {mark ? (
           <span className="shrink-0" aria-hidden="true">
-            <BrandIcon name={mark} size={44} />
+            <BrandIcon name={mark} size={40} />
           </span>
         ) : null}
       </div>

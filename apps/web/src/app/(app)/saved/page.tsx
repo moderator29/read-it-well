@@ -114,7 +114,7 @@ export default async function SavedPage() {
           <Link
             href="/saved/searches"
             prefetch
-            className="nf-link-quiet nf-body-sm text-[var(--nf-content-link)]"
+            className="nf-link-quiet nf-body-sm inline-flex min-h-11 items-center text-[var(--nf-content-link)]"
             data-testid="saved-searches-link"
           >
             Saved searches

@@ -2936,8 +2936,10 @@
     box-shadow: 0 0 10px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
   }
   /* Names: "Your story" runs 77 image px (45 CSS): 9.1px. */
+  /* Held inside its ring's column: it ran 3px either side of it, into the
+     neighbour's gap. The whole name is the link's title. */
   .nf-story-ring__name {
-    max-inline-size: calc(100% + 6px);
+    max-inline-size: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2992,10 +2994,16 @@
       background var(--nf-duration-base) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
+  /* The tap target, centred and floored at 44. A fixed -4.4px inset measured
+     from the padding box, which the 1px border sits outside, so it came to
+     42. */
   .nf-feed-seg__link::after {
     content: "";
     position: absolute;
-    inset: -4.4px 0;
+    inset-inline: 0;
+    top: 50%;
+    translate: 0 -50%;
+    height: max(100%, 44px);
   }
   .nf-feed-seg__link:hover {
     color: var(--nf-content-primary);

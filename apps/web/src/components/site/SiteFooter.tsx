@@ -152,7 +152,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
                       target="_blank"
                       rel="me noopener noreferrer"
                     >
-                      <UiIcon name={row.icon} size={18} label={row.label} />
+                      <UiIcon name={row.icon} size={20} label={row.label} />
                     </a>
                   </li>
                 ))}

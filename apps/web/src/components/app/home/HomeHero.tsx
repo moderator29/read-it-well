@@ -75,7 +75,7 @@ export function HomeHero({
             carries the answer when there is one. */}
         {place && (
           <p className="nf-hero-plate__chip" data-testid="home-hero-place">
-            <UiIcon name="location" size={14} />
+            <UiIcon name="location" size={16} />
             {place}
           </p>
         )}
@@ -114,7 +114,7 @@ export function HomeHero({
             className="nf-hero-plate__filters"
             data-testid="home-hero-filters"
           >
-            <UiIcon name="sliders" size={18} />
+            <UiIcon name="sliders" size={20} />
           </ButtonLink>
         </form>
       </div>

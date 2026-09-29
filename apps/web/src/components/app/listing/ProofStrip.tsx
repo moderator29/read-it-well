@@ -109,7 +109,7 @@ export function ProofStrip({
             >
               <UiIcon
                 name={ICON[line.kind]}
-                size={18}
+                size={20}
                 className="mt-3xs shrink-0 text-[var(--nf-status-verified)]"
               />
               <span className={`min-w-0 flex-1 break-words ${TYPE.body}`}>
