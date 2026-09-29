@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { respondToReservation } from "@/lib/reservations/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { HostReservationView } from "@/lib/reservations/queries";
 import type { HostTableBoard } from "./board";
 import { Button } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
+import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
@@ -67,11 +69,17 @@ function partyLabel(size: number, locale: Locale): string {
   return countOf(size, "guests", locale);
 }
 
-function Decision({ reservationId }: { reservationId: string }) {
+function Decision({ table }: { table: HostReservationView }) {
+  const reservationId = table.id;
   const [state, formAction, pending] = useActionState<ActionResult<null> | null, FormData>(
     respondToReservation,
     null,
   );
+  /* Which answer is being confirmed (plan item 22). The forms, their hidden
+     fields and `respondToReservation` are exactly what they were; they now
+     sit in the confirm panel's foot instead of on the card. */
+  const [asking, setAsking] = useState<"CONFIRMED" | "CANCELLED" | null>(null);
+  const locale = useClientLocale();
 
   if (state?.ok) {
     return (
@@ -79,28 +87,73 @@ function Decision({ reservationId }: { reservationId: string }) {
     );
   }
 
+  const first = table.guestName.split(" ")[0] || table.guestName;
+  const facts = [
+    { label: "Guest", value: table.guestName },
+    { label: "When", value: whenLabel(table.reservedFor) },
+    { label: "Party", value: partyLabel(table.partySize, locale) },
+  ];
+  const accept = asking === "CONFIRMED";
+
   return (
     <>
       <div className="mt-row flex flex-wrap gap-inline">
-        {/* Two forms rather than one with two submit values, so a decision
-            cannot be changed by a stray Enter key landing on the wrong
-            button. */}
-        <form action={formAction}>
-          <input type="hidden" name="reservationId" value={reservationId} />
-          <input type="hidden" name="decision" value="CONFIRMED" />
-          <Button type="submit" variant="primary" disabled={pending}>
-            {pending ? "Saving" : "Accept"}
-          </Button>
-        </form>
-        <form action={formAction}>
-          <input type="hidden" name="reservationId" value={reservationId} />
-          <input type="hidden" name="decision" value="CANCELLED" />
-          <Button type="submit" variant="secondary" disabled={pending}>
-            Decline
-          </Button>
-        </form>
+        <Button variant="primary" disabled={pending} onClick={() => setAsking("CONFIRMED")}>
+          Accept
+        </Button>
+        <Button variant="secondary" disabled={pending} onClick={() => setAsking("CANCELLED")}>
+          Decline
+        </Button>
       </div>
-      {state && !state.ok && (
+      <Sheet
+        open={asking !== null}
+        onOpenChange={(next) => {
+          if (!next && !pending) setAsking(null);
+        }}
+        title={accept ? `Accept ${first}'s table?` : `Decline ${first}'s table?`}
+        hideTitle
+        card
+        detents={[0.9]}
+      >
+        {asking ? (
+          <ConfirmPanel
+            icon={accept ? "utensils" : "circle-x"}
+            tone={accept ? "brand" : "error"}
+            title={accept ? `Accept ${first}'s table?` : `Decline ${first}'s table?`}
+            context={table.listingTitle}
+            summary={facts}
+            next={
+              accept
+                ? [{ icon: "calendar-check", text: "The table is booked for this time." }]
+                : [{ icon: "calendar-check", text: "The request is closed." }]
+            }
+            told={`${first} is told at once.`}
+            error={state && !state.ok ? state.error : null}
+            cancel={
+              <Button variant="secondary" disabled={pending} onClick={() => setAsking(null)}>
+                Cancel
+              </Button>
+            }
+            primary={
+              /* One form per answer, as before, so a decision cannot be
+                 changed by a stray Enter key landing on the wrong button. */
+              <form action={formAction}>
+                <input type="hidden" name="reservationId" value={reservationId} />
+                <input type="hidden" name="decision" value={asking} />
+                <Button
+                  type="submit"
+                  variant={accept ? "primary" : "secondary"}
+                  disabled={pending}
+                  className={accept ? undefined : "text-[var(--nf-state-error)]"}
+                >
+                  {pending ? "Saving" : accept ? "Accept table" : "Decline table"}
+                </Button>
+              </form>
+            }
+          />
+        ) : null}
+      </Sheet>
+      {state && !state.ok && asking === null && (
         <p role="alert" className={`mt-row ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
           {state.error}
         </p>
@@ -166,7 +219,7 @@ function TableCard({
         </Link>
       )}
 
-      {decidable && <Decision reservationId={table.id} />}
+      {decidable && <Decision table={table} />}
     </li>
   );
 }

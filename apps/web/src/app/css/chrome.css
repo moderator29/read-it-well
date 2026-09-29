@@ -1598,9 +1598,18 @@
     justify-content: flex-end;
     gap: 0.5rem;
   }
+  /* A flow's primary may arrive inside its own form (the same form it
+     always had); the form lays its button out as the button would be. */
+  .nf-confirm__actions > form {
+    display: flex;
+  }
+  .nf-confirm__actions > form > * {
+    flex: 1 1 auto;
+  }
   @media (max-width: 39.99rem) {
     .nf-confirm__actions > * {
       flex: 1 1 0;
+      min-width: max-content;
     }
   }
 }
