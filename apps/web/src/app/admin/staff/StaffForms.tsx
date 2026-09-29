@@ -5,8 +5,17 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { grantStaff, revokeStaff } from "@/lib/admin/staff-actions";
 
-export function GrantStaffForm({ scopes }: { scopes: { value: string; label: string }[] }) {
+export type PositionOption = { value: string; label: string; summary: string; scopes: string[] };
+
+export function GrantStaffForm({
+  scopes,
+  positions,
+}: {
+  scopes: { value: string; label: string }[];
+  positions: PositionOption[];
+}) {
   const [email, setEmail] = useState("");
+  const [position, setPosition] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -18,11 +27,12 @@ export function GrantStaffForm({ scopes }: { scopes: { value: string; label: str
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const result = await grantStaff({ email, scopes: picked, note });
+          const result = await grantStaff({ email, scopes: picked, position: position || null, note });
           if (!result.ok) setMessage({ ok: false, text: result.error });
           else {
             setMessage({ ok: true, text: "Access given. They have been told by email and in the app." });
             setEmail("");
+            setPosition("");
             setPicked([]);
             setNote("");
             router.refresh();
@@ -34,8 +44,34 @@ export function GrantStaffForm({ scopes }: { scopes: { value: string; label: str
         <span>Email on their Vallo account</span>
         <input className="nf-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
+      <label className="grid gap-2xs nf-body">
+        <span>Position</span>
+        <select
+          className="nf-input"
+          value={position}
+          onChange={(e) => {
+            const next = e.target.value;
+            setPosition(next);
+            /* A position sets its default bundle in one step; the boxes below
+               stay editable so the bundle can be adjusted. */
+            setPicked(positions.find((p) => p.value === next)?.scopes ?? []);
+          }}
+        >
+          <option value="">No named position (choose access areas)</option>
+          {positions.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+        {position ? (
+          <span className="nf-caption text-[var(--nf-content-secondary)]">
+            {positions.find((p) => p.value === position)?.summary}
+          </span>
+        ) : null}
+      </label>
       <fieldset className="grid gap-2xs">
-        <legend className="nf-body">Access areas</legend>
+        <legend className="nf-body">Access areas{position ? " (the position's defaults, adjust if needed)" : ""}</legend>
         {scopes.map((s) => (
           <label key={s.value} className="flex items-center gap-xs nf-body">
             <input
@@ -54,7 +90,7 @@ export function GrantStaffForm({ scopes }: { scopes: { value: string; label: str
         <input className="nf-input" value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />
       </label>
       <div>
-        <Button type="submit" variant="primary" size="md" disabled={pending || picked.length === 0}>
+        <Button type="submit" variant="primary" size="md" disabled={pending || (picked.length === 0 && !position)}>
           Give access
         </Button>
       </div>
