@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { countOf, formatMoney } from "@vallo/i18n/core";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
@@ -93,7 +92,7 @@ export function RatesStep({
                    the optimiser would proxy it for no gain. */
                 <img src={cover} alt="" />
               ) : (
-                <BrandIcon name="hotel-room" size={40} />
+                <UiIcon name="bed" size={24} />
               )}
             </span>
             <span className="min-w-0 flex-1">

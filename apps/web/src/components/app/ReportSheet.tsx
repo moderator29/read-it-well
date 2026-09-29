@@ -3,9 +3,9 @@
 import { useCallback, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { REPORT_TARGET_NOUN, type ReportTarget } from "@/lib/reports/categories";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useLazySheet } from "@/lib/ui/lazy-sheet";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /* The body and its prefetch name the same module, so the bundler makes one
    chunk and the second `import()` is answered from the module cache. */
@@ -106,9 +106,9 @@ export function ReportSheet({
           data-testid="report-opener"
           className="nf-share-row mt-md w-full text-left"
         >
-          <span className="h-11 w-11 shrink-0" aria-hidden="true">
-            <BrandIcon name="shield-lock" fill />
-          </span>
+          <IconPlate size="sm" className="shrink-0">
+            <UiIcon name="shield-lock" size={20} />
+          </IconPlate>
           <span className="min-w-0 flex-1">
             <span className="block nf-body font-semibold text-[var(--nf-content-primary)]">
               Report this {noun}

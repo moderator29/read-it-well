@@ -9,7 +9,6 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
@@ -17,6 +16,7 @@ import { Switch } from "@/components/ui/Switch";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
 import { Chip, ChipRow } from "@/components/ui/Chip";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The next fourteen days, as ISO dates.
@@ -262,9 +262,9 @@ export function ReservePanel({
         ) : null}
         <span aria-hidden="true" className="nf-confirm-dim" />
         <div className="flex flex-col items-center gap-xs text-center">
-          <span className="h-14 w-14 shrink-0">
-            <BrandIcon name="calendar-check" state="confirmed" fill />
-          </span>
+          <IconPlate size="lg" tone="success" className="shrink-0">
+            <UiIcon name="calendar-check" size={24} />
+          </IconPlate>
           <p className="nf-lede font-semibold text-[var(--nf-content-primary)]">
             Booking requested
           </p>

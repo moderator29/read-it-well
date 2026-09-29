@@ -4,9 +4,9 @@ import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { feelUnsafe } from "@/lib/safety/unsafe-actions";
 import { responseTimeFor } from "@/lib/trust/standards";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * "I FEEL UNSAFE" (V-63): one control in every thread and on every
@@ -90,9 +90,9 @@ export function UnsafeSheet({
         data-testid="unsafe-opener"
         className="nf-share-row mt-md w-full text-left"
       >
-        <span className="h-11 w-11 shrink-0" aria-hidden="true">
-          <BrandIcon name="shield-lock" fill />
-        </span>
+        <IconPlate size="sm" className="shrink-0">
+          <UiIcon name="shield-lock" size={20} />
+        </IconPlate>
         <span className="min-w-0 flex-1">
           <span className="block nf-body font-semibold text-[var(--nf-content-primary)]">{copy.opener}</span>
           <span className="block nf-caption text-[var(--nf-content-muted)]">{copy.openerHint}</span>

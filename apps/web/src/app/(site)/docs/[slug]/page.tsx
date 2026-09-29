@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CHAPTER_INDEX, chapterBySlug, chapterNeighbours } from "../chapters";
 import { OnThisPage } from "../OnThisPage";
 import { DepthWords } from "@/components/motion/DepthWords";
 import { MotionReveal } from "@/components/motion/Reveal";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * One chapter.
@@ -68,9 +69,9 @@ export default async function DocChapterPage({
         </nav>
 
         <div className="flex items-start gap-row">
-          <span className="inline-grid h-12 w-12 shrink-0 place-items-center sm:h-14 sm:w-14">
-            <BrandIcon name={chapter.icon} fill priority />
-          </span>
+          <IconPlate size="md" className="shrink-0">
+            <UiIcon name={lineGlyphFor(chapter.icon)} size={20} />
+          </IconPlate>
           <div className="min-w-0">
             <span className="nf-numeric block text-[0.6875rem] font-semibold tracking-[var(--nf-tracking-overline)] text-[var(--nf-content-muted)] uppercase">
               Chapter {chapter.number} of {CHAPTER_INDEX.length}

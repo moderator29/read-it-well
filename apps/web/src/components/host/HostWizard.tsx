@@ -7,7 +7,7 @@ import { useBack } from "@/lib/nav/use-back";
 import { countOf, getDictionary, type Locale } from "@vallo/i18n";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -49,6 +49,8 @@ import { RestaurantStep } from "./stays/RestaurantStep";
 import { RoomTypesStep } from "./stays/RoomTypesStep";
 import { StaysHead } from "./stays/StaysParts";
 import { TablesStep } from "./stays/TablesStep";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * THE HOST WIZARD, ON `lib/host`.
@@ -606,9 +608,9 @@ function HostTypeStep({ draft, set }: StepProps) {
                 set("kind", type === "restaurant" ? "restaurant" : definition.kinds.includes(draft.kind as BusinessKind) ? draft.kind : null);
               }}
             >
-              <span className="nf-host-choice__mark" aria-hidden="true">
-                <BrandIcon name={TYPE_MARK[type]} fill />
-              </span>
+              <IconPlate size="sm" className="nf-host-choice__mark">
+                <UiIcon name={lineGlyphFor(TYPE_MARK[type])} size={20} />
+              </IconPlate>
               <span className="min-w-0 flex-1">
                 <span className={`block ${TYPE.rowTitle}`}>{definition.title}</span>
                 <span className={`block ${TYPE.rowMeta}`}>{definition.meaning}</span>
@@ -1032,9 +1034,9 @@ function Fact({ label, value, onEdit }: { label: string; value: string; onEdit: 
 function Sent({ businessName }: { businessName: string }) {
   return (
     <div className="flex flex-col items-center px-lg py-section text-center">
-      <span className="block h-20 w-20" aria-hidden="true">
-        <BrandIcon name="seal-pending" fill />
-      </span>
+      <IconPlate size="lg" tone="brand">
+        <UiIcon name="hourglass" size={24} />
+      </IconPlate>
       <p className={`mt-block ${TYPE.sectionTitle}`}>{businessName || "Your application"} is with our team</p>
       <p className={`mt-inline max-w-[42ch] ${TYPE.body}`}>
         A person reads it next. You will hear from us when it has been read, and you can see where it stands on your host page.

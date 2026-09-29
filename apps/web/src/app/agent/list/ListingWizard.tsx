@@ -68,7 +68,7 @@ import {
 } from "@/lib/agent/listings-schema";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
 import { moveInLines } from "@/components/app/listing/move-in-lines";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -98,6 +98,9 @@ import {
 } from "@/lib/listings/photo-gate";
 import { reviewerAsked } from "@/lib/agent/listings-edit-state";
 import Link from "next/link";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -531,9 +534,9 @@ function StepHead({
         {sub && <p className="nf-lw-head__sub">{sub}</p>}
       </div>
       {object && (
-        <span className="nf-lw-head__object" aria-hidden="true">
-          <BrandIcon name={object} fill />
-        </span>
+        <IconPlate size="md" tone="brand" className="nf-lw-head__object">
+          <UiIcon name={lineGlyphFor(object)} size={20} />
+        </IconPlate>
       )}
     </div>
   );
@@ -593,9 +596,9 @@ function Choice({
       className={`nf-lw-choice${centred ? " nf-lw-choice--centred" : ""}`}
     >
       {object ? (
-        <span className="nf-lw-choice__object" aria-hidden="true">
-          <BrandIcon name={object} fill />
-        </span>
+        <IconPlate size="sm" tone={chosen ? "brand" : "neutral"} className="nf-lw-choice__object">
+          <UiIcon name={lineGlyphFor(object)} size={20} />
+        </IconPlate>
       ) : glyph ? (
         <span className="nf-lw-choice__glyph" aria-hidden="true">
           <UiIcon name={glyph} size={24} />
@@ -766,9 +769,7 @@ function TenantPays({
               data-declared={isDeclared || undefined}
               data-testid={`wizard-pays-${line.key}`}
             >
-              <span className="nf-movein__plate" aria-hidden="true">
-                <BrandIcon name={line.icon} fill />
-              </span>
+              <DetailGlyph name={line.glyph} className="nf-movein__plate" />
               <span className="nf-movein__name">
                 <span className="nf-movein__label">
                   {line.label}
@@ -798,9 +799,7 @@ function TenantPays({
       </ul>
 
       <div className="nf-movein__total" data-testid="wizard-pays-total">
-        <span className="nf-movein__plate nf-movein__plate--total" aria-hidden="true">
-          <BrandIcon name="naira-coins" fill />
-        </span>
+        <DetailGlyph name="coins" size="lg" className="nf-movein__plate nf-movein__plate--total" />
         <span className="min-w-0">
           <span className="nf-movein__total-label">{moveInCopy.totalFrom}</span>
           <span className="nf-movein__total-figure">

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Composer } from "../feed/Composer";
 import { LineGlyph, type LineGlyphName } from "../feed/LineGlyph";
 import {
@@ -18,6 +17,7 @@ import {
   stepSpring,
   type SpringState,
 } from "./physics";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * THE PLUS, AND WHAT BLOOMS OUT OF IT.
@@ -473,9 +473,9 @@ export function CreateBloom({
               </ul>
             ) : (
               <div className="nf-panel nf-panel--card p-lg text-center">
-                <div className="mx-auto w-fit">
-                  <BrandIcon name="reviews" size={44} />
-                </div>
+                <IconPlate size="lg" tone="brand">
+                  <UiIcon name="star" size={24} />
+                </IconPlate>
                 <h3 className="nf-h3 mt-md text-[length:var(--nf-text-body-lg)]">Nothing to review yet</h3>
                 <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   A stay can be reviewed once you have checked out of it. Your stays, past and

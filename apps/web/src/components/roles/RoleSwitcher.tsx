@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { writeModeCookie } from "@/lib/mode.constants";
 import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
@@ -16,6 +15,7 @@ import {
   type RoleId,
   type RoleState,
 } from "./roles";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * Switching what you are here to do.
@@ -169,7 +169,9 @@ export function RoleSwitcher({
           squares. Keep it bare.
         */}
         <span className="nf-belong__tile" aria-hidden="true">
-          <BrandIcon name="role-switch-tile" size={40} />
+          <IconPlate size="sm">
+            <UiIcon name="switch-profile" size={20} />
+          </IconPlate>
         </span>
         <span className="min-w-0 flex-1 text-left">
           <span className={`block ${TYPE.rowTitle}`}>{currentCopy.label}</span>

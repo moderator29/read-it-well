@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { findFaqEntry } from "@/lib/support/faq";
 import { chatTranscript } from "@/lib/support/new-query";
@@ -15,6 +14,7 @@ import { TextField } from "@/components/ui/Field";
 import { useDeviceIdentity } from "./device-identity";
 import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
 import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * Help and support, AI first.
@@ -453,9 +453,9 @@ export function SupportChat({
          (measured on /help at 320). The text column's 12rem basis is the
          width below which it yields the row to the chip. */
       <div className="flex flex-wrap items-center gap-group">
-        <span className="block h-14 w-14 shrink-0">
-          <BrandIcon name="support-shield" fill />
-        </span>
+        <IconPlate size="md" className="shrink-0">
+          <UiIcon name="headset" size={20} />
+        </IconPlate>
         <div className="min-w-0 flex-1 basis-[10rem]">
           <h2 className="nf-body font-semibold leading-tight">Help and support</h2>
           {/* A title and its own subtitle are two rows of one object, so they
@@ -565,9 +565,9 @@ export function SupportChat({
 
               {awaitingFirstToken && (
                 <div className="nf-rise flex items-end gap-row">
-                  <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
-                    <BrandIcon name="bot-chat" fill />
-                  </span>
+                  <IconPlate size="sm" className="shrink-0">
+                    <UiIcon name="bot" size={20} />
+                  </IconPlate>
                   <div
                     className="rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-row"
                     aria-label="Support is typing"
@@ -704,9 +704,9 @@ function AgentBubble({
 }) {
   return (
     <div className="nf-rise flex items-end gap-row">
-      <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
-        <BrandIcon name="bot-chat" fill />
-      </span>
+      <IconPlate size="sm" className="shrink-0">
+        <UiIcon name="bot" size={20} />
+      </IconPlate>
       <div className="min-w-0 max-w-[85%] rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-xs">
         {text.trim() && (
           <p

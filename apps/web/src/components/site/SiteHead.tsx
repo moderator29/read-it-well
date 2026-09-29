@@ -1,7 +1,9 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { photo, type PhotoName } from "@/lib/site/photos";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * The plate head every public content page opens on.
@@ -44,9 +46,7 @@ export function SiteHead({
       <div className="nf-shell">
         <div className="nf-site-head-body mx-auto max-w-3xl">
           <span className="nf-chip nf-rise">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name={icon} fill drawn={16} />
-            </span>
+            <UiIcon name={lineGlyphFor(icon)} size={16} />
             {chip}
           </span>
           <Title className="nf-site-head-title nf-rise nf-rise-2 max-w-measure-display">{title}</Title>

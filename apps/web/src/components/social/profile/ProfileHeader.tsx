@@ -7,7 +7,7 @@ import { ShareCardFrame } from "@/components/share/ShareCardFrame";
 import { BADGE_TIER_LABEL } from "@/lib/trust/badge-tier";
 import { ratingFill } from "@/lib/ui/meter";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { BackChevron } from "./BackChevron";
 import { ButtonLink } from "@/components/ui/Button";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
@@ -16,6 +16,7 @@ import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profile
 import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import "./social-profile.css";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * The top of a person's page.
@@ -291,7 +292,7 @@ export function ProfileHeader({
           ) : null}
           {standing.map((badge) => (
             <span key={badge.code} className="nf-social-chip nf-social-chip--brand">
-              <BrandIcon name={objectFor(badge.objectName)} size={16} />
+              <UiIcon name={lineGlyphFor(objectFor(badge.objectName))} size={16} />
               {badge.name}
             </span>
           ))}

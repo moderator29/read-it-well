@@ -1,10 +1,12 @@
 "use client";
 
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Feed } from "@/components/social/feed/Feed";
 import { ButtonLink } from "@/components/ui/Button";
 import type { PostView } from "@/components/social/feed/PostCard";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * One tab's worth of somebody's page.
@@ -108,9 +110,9 @@ export function ProfilePosts({
         tabIndex={-1}
       >
         <div className="nf-panel nf-panel--card items-center p-lg text-center sm:p-xl">
-          <div className="mx-auto w-fit">
-            <BrandIcon name={copy.icon} size={44} />
-          </div>
+          <IconPlate size="lg" tone="brand">
+            <UiIcon name={lineGlyphFor(copy.icon)} size={24} />
+          </IconPlate>
           <h3 className="nf-h3 mt-sm text-[length:var(--nf-text-body-lg)]">
             {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}
           </h3>

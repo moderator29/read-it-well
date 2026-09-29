@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { SiteHead } from "@/components/site/SiteHead";
 import { Reveal } from "@/components/site/Reveal";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 export const metadata: Metadata = {
   title: "About",
@@ -131,9 +134,9 @@ export default function AboutPage() {
             {categories.map((c, i) => (
               <Reveal key={c.title} as="li" delay={i * 70} className="h-full">
                 <div className="nf-panel nf-panel--card flex h-full flex-col items-start gap-row p-card-sm">
-                  <span className="inline-grid h-13 w-13 place-items-center">
-                    <BrandIcon name={c.icon} fill />
-                  </span>
+                  <IconPlate size="md">
+                    <UiIcon name={lineGlyphFor(c.icon)} size={20} />
+                  </IconPlate>
                   <span className="font-semibold">{c.title}</span>
                   <span className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
                     {c.body}
@@ -151,9 +154,9 @@ export default function AboutPage() {
             {values.map((v, i) => (
               <Reveal key={v.title} delay={i * 60}>
                 <div className="nf-panel nf-panel--card flex flex-row items-start gap-group p-card">
-                  <span className="inline-grid h-16 w-16 shrink-0 place-items-center">
-                    <BrandIcon name={v.icon} fill />
-                  </span>
+                  <IconPlate size="lg" className="shrink-0">
+                    <UiIcon name={lineGlyphFor(v.icon)} size={24} />
+                  </IconPlate>
                   <span className="min-w-0">
                     <span className="block font-semibold">{v.title}</span>
                     <span className="mt-inline-tight block text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">

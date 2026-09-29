@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { ContactForm } from "./ContactForm";
 import { ButtonLink } from "@/components/ui/Button";
 import { CONTACT_TOPICS, DEFAULT_CONTACT_TOPIC, type ContactTopic } from "./topics";
 import { SUPPLY_DOOR_HREF } from "@/lib/supply/roles";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -117,9 +118,9 @@ export default async function ContactPage({
         <Reveal as="section" className="mt-heading">
           <div className="nf-panel nf-panel--card flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-group">
-              <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
-                <BrandIcon name="support-chat" fill />
-              </span>
+              <IconPlate size="md" className="shrink-0">
+                <UiIcon name="headset" size={20} />
+              </IconPlate>
               <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
                 Many questions already have written answers: the switch between
                 the two sides, booking a stay, holding a table, payments, refunds
@@ -136,9 +137,9 @@ export default async function ContactPage({
         <Reveal as="section" className="mt-heading">
           <div className="nf-panel nf-panel--card flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-group">
-              <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
-                <BrandIcon name="shield-check" fill />
-              </span>
+              <IconPlate size="md" className="shrink-0">
+                <UiIcon name="shield-check" size={20} />
+              </IconPlate>
               <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
                 Asked to pay into an account, or to move the conversation off
                 Vallo? Say so in the form below and we answer within{" "}

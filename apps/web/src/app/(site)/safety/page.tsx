@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { NEVER_ASK, NO_FEES_LINE, RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
 import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
 import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { e164 } from "@/lib/notify/whatsapp";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export const metadata: Metadata = {
   title: "Safety centre",
@@ -313,9 +314,9 @@ export default function SafetyCentrePage() {
         {/* ------------------------------------------------------- close */}
         <div className="nf-panel nf-panel--card mt-section-tight flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-group">
-            <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
-              <BrandIcon name="support-shield" fill />
-            </span>
+            <IconPlate size="md" className="shrink-0">
+              <UiIcon name="headset" size={20} />
+            </IconPlate>
             <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
               Not sure whether something is a scam? Ask us before you pay, not
               after.

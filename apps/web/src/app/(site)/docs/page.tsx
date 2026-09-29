@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { CHAPTERS, CHAPTER_INDEX } from "./chapters";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 export const metadata: Metadata = {
   title: "Documentation",
@@ -64,9 +65,9 @@ export default function DocsHomePage() {
               className="nf-panel nf-panel--card nf-card--interactive nf-fx-host flex h-full flex-col p-card-sm"
             >
               <div className="flex items-start gap-row">
-                <span className="nf-glass-fx inline-grid h-11 w-11 shrink-0 place-items-center" data-motion="rise">
-                  <BrandIcon name={chapter.icon} fill />
-                </span>
+                <IconPlate size="sm" className="shrink-0">
+                  <UiIcon name={lineGlyphFor(chapter.icon)} size={20} />
+                </IconPlate>
                 <div className="min-w-0">
                   <span className="nf-numeric block text-[0.6875rem] font-semibold text-[var(--nf-content-muted)]">
                     Chapter {chapter.number}

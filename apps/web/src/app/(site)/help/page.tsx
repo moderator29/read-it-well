@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { SupportChat } from "@/components/app/account/SupportChat";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { HelpSearch } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
 import { aiConsentForViewer } from "@/lib/ai/consent-server";
 import { FAQS, TRUST_LINKS } from "@/lib/support/help-articles";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 export const metadata: Metadata = {
   title: "Help centre",
@@ -45,9 +47,9 @@ export default async function HelpPage() {
         >
           {TRUST_LINKS.map((link) => (
             <Link key={link.href} href={link.href} className="nf-panel nf-panel--card block nf-card--interactive p-card-sm">
-              <span className="inline-grid h-9 w-9 place-items-center">
-                <BrandIcon name={link.icon} fill />
-              </span>
+              <IconPlate size="sm">
+                <UiIcon name={lineGlyphFor(link.icon)} size={20} />
+              </IconPlate>
               <span className="mt-inline block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 {link.title}
               </span>
@@ -71,9 +73,9 @@ export default async function HelpPage() {
         {/* ------------------------------------------------ still stuck */}
         <div className="nf-panel nf-panel--card mt-section-tight flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-group">
-            <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
-              <BrandIcon name="chat" fill />
-            </span>
+            <IconPlate size="md" className="shrink-0">
+              <UiIcon name="chat-bubble" size={20} />
+            </IconPlate>
             <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
               Still stuck? A person replies within one business day.
             </p>

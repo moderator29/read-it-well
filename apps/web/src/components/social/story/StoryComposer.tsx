@@ -4,7 +4,6 @@ import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { createClient } from "@/lib/supabase/client";
 import { publishStory } from "@/lib/social/stories-actions";
@@ -18,6 +17,7 @@ import {
   STORY_PLACE_MAX,
   STORY_STANDFIRST_MAX,
 } from "@/lib/social/stories-schema";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * Writing a story.
@@ -67,9 +67,9 @@ export function StoryComposer({
   if (!signedIn || !userId) {
     return (
       <div className="nf-panel nf-panel--card p-xl text-center">
-        <div className="mx-auto w-fit">
-          <BrandIcon name="camera" size={44} />
-        </div>
+        <IconPlate size="lg" tone="brand">
+          <UiIcon name="camera" size={24} />
+        </IconPlate>
         <h2 className="nf-h3 mt-md text-[length:var(--nf-text-body-lg)]">Sign in to write a story</h2>
         <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           A story is a picture, a headline and a line or two about a place. It
@@ -85,9 +85,9 @@ export function StoryComposer({
   if (areas.length === 0) {
     return (
       <div className="nf-panel nf-panel--card p-xl text-center">
-        <div className="mx-auto w-fit">
-          <BrandIcon name="pin-map" size={44} />
-        </div>
+        <IconPlate size="lg" tone="brand">
+          <UiIcon name="location" size={24} />
+        </IconPlate>
         <h2 className="nf-h3 mt-md text-[length:var(--nf-text-body-lg)]">A story belongs to a place</h2>
         <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           You are not in any place yet. Join one and you can write about it
@@ -105,9 +105,9 @@ export function StoryComposer({
   if (held) {
     return (
       <div className="nf-panel nf-panel--card p-xl text-center">
-        <div className="mx-auto w-fit">
-          <BrandIcon name="doc-shield" size={44} />
-        </div>
+        <IconPlate size="lg" tone="brand">
+          <UiIcon name="file-check" size={24} />
+        </IconPlate>
         <h2 className="nf-h3 mt-md text-[length:var(--nf-text-body-lg)]">It is with us</h2>
         <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {STORY_COPY.held}
@@ -215,7 +215,9 @@ export function StoryComposer({
           <img src={preview} alt="The picture you chose" />
         ) : (
           <span className="nf-story-pick__prompt">
-            <BrandIcon name="camera" size={48} />
+            <IconPlate size="lg">
+              <UiIcon name="camera" size={24} />
+            </IconPlate>
             <span className="nf-story-pick__label">{STORY_COPY.imagePrompt}</span>
             <span className="nf-story-pick__note">{STORY_COPY.imageNote}</span>
           </span>

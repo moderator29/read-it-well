@@ -5,7 +5,6 @@ import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 import Link from "next/link";
 import { LogoMark, LogoWordmark } from "@/design-system/brand/Logo";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { DepthWords } from "@/components/motion/DepthWords";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import {
@@ -44,6 +43,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
 import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
 import { WORKSPACE_FRAMES, type AssistantWorkspace } from "@/lib/assistant/workspace";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * Vallo AI, to its governing image (`docs/design/references/BF49B814`).
@@ -675,9 +675,9 @@ export function AssistantChat({
                     greeting arrives word by word out of depth, and the line
                     under it rises after. All of it waits for the app-open
                     door and is still under reduced motion. */}
-                <span className="nf-ai-hello-bot block h-24 w-24">
-                  <BrandIcon name="bot" fill />
-                </span>
+                <IconPlate size="lg" tone="brand" className="nf-ai-hello-bot">
+                  <UiIcon name="bot" size={24} />
+                </IconPlate>
                 <div>
                   {/* Both of these were English constants in the markup, on a
                       screen whose composer, chips and thinking pill all come
@@ -745,7 +745,7 @@ export function AssistantChat({
                         className={`nf-ai__avatar ${thisStreaming ? "nf-bot-thinking" : ""}`}
                         aria-hidden="true"
                       >
-                        <BrandIcon name="bot" size={24} />
+                        <UiIcon name="bot" size={20} />
                       </span>
                       <div className="nf-ai__bubble nf-ai__bubble--theirs">
                         {m.text}

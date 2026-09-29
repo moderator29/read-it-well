@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { SiteHead } from "@/components/site/SiteHead";
 import { Reveal } from "@/components/site/Reveal";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { SUPPORT_HREF } from "@/lib/support-email";
 import { SUPPLY_DOOR_HREF } from "@/lib/supply/roles";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -73,9 +75,9 @@ export default function CareersPage() {
             {culture.map((c, i) => (
               <Reveal key={c.title} delay={(i % 2) * 80} className="h-full">
                 <div className="nf-panel nf-panel--card flex h-full flex-col gap-row p-card">
-                  <span className="inline-grid h-13 w-13 place-items-center">
-                    <BrandIcon name={c.icon} fill />
-                  </span>
+                  <IconPlate size="md">
+                    <UiIcon name={lineGlyphFor(c.icon)} size={20} />
+                  </IconPlate>
                   <span className="font-semibold">{c.title}</span>
                   <span className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                     {c.body}
@@ -90,9 +92,9 @@ export default function CareersPage() {
         <Reveal as="section" className="mt-section">
           <h2 className="nf-overline text-center">Open roles</h2>
           <div className="nf-panel nf-panel--card block mt-group p-card text-center-lg">
-            <span className="mx-auto inline-grid h-16 w-16 place-items-center">
-              <BrandIcon name="home-search" fill />
-            </span>
+            <IconPlate size="lg" className="mx-auto">
+              <UiIcon name="search" size={24} />
+            </IconPlate>
             <h3 className="nf-h3 mx-auto mt-group max-w-[26ch]">
               No advertised openings right now
             </h3>
@@ -146,9 +148,9 @@ export default function CareersPage() {
             {wanted.map((w, i) => (
               <Reveal key={w} as="li" delay={i * 60}>
                 <div className="nf-panel nf-panel--card flex flex-row items-center gap-group p-card-sm">
-                  <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
-                    <BrandIcon name="user-check" fill />
-                  </span>
+                  <IconPlate size="md" className="shrink-0">
+                    <UiIcon name="user-check" size={20} />
+                  </IconPlate>
                   <span className="text-[0.9375rem] font-medium leading-snug">{w}</span>
                 </div>
               </Reveal>
