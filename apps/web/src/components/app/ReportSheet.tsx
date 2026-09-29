@@ -133,7 +133,7 @@ export function ReportSheet({
           aria-expanded={open}
           aria-busy={pending || undefined}
           data-testid="report-opener"
-          className="inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
+          className="nf-tap inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
         >
           {pending ? (
             <span className="nf-spinner shrink-0" aria-hidden="true" data-testid="report-pending" />
