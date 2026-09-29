@@ -46,6 +46,15 @@ Rules kept: only transform and opacity; nothing waits on an animation; `::view-t
 - **Sign-in to sign-up, at 390 and 1440:** a view transition ran with `data-nav-dir="forward"`. The animations were `nf-route-fade-out` 160 and `nf-route-out` 240 on the old page, and `nf-route-fade-in` 240 and `nf-route-in` 240 on the new one. No console errors.
 - **About to Help, warm, at 1440:** the same four animations ran on both page groups. The site header stayed still in the mid-transition frame.
 - **Cold first visit to a route in dev:** the page arrived under its loading skeleton with no page animation, only the root. That is a dev-compile artefact, not something the transition code does.
+- **Sign-up back arrow to /welcome, at 820, after the root template:** `data-nav-dir="back"`, the same four animations, and the page arrives from the leading edge.
+- **Calm, at 390:** fades only, at 100ms: `nf-route-fade-out` and `nf-route-fade-in`, with no travel.
+- **Off, at 390:** no view-transition animation at all.
+- **Pressing the browser back button:** no transition. This is expected (see above).
+- **Signed-in surfaces were not checked in a browser:** the dock crossfade, the rail, the listing photo morph, the tab stagger and the row press.
+  - The QA member's passcode gate did not clear on the dev server. There was no wrong-code message, and the keypad returned after the refresh.
+  - I stopped rather than risk locking the account.
+  - Those surfaces are covered only by the unit tests and by review.
+- **One page error in the Off run:** "Router action dispatched before initialization". It did not recur in the other runs, and the dev server was reloading at the time.
 - Screenshots are in the session scratchpad under `motion/`.
 
 ## Left for later
