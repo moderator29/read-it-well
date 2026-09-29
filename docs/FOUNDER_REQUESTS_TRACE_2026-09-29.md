@@ -57,7 +57,7 @@ The latest founder message wins wherever two conflict.
 | 23 | 03:31 | Welcome intro like ref 11 | DONE | `components/app/welcome/WelcomeStage.tsx`, `trace/welcome-390-{light,dark}.png` |
 | 24 | 03:44 | "Get started" not skippable, leads to the options page | DONE | `app/(auth)/start/route.ts` → `/welcome?next=/sign-up` → `/sign-up` options (`trace/signup-options-390-light.png`). Android Back is covered (`5049c1c5`). The tour's Skip was relabelled (E2E L-5, `FirstRun.tsx:118`) |
 | 25 | 03:31 | Passcode: 6 digits by default, 4 optional, end to end | DONE | `lib/passcode/rules.ts:15` (`DEFAULT_PASSCODE_LENGTH = 6`); `PasscodeSetup.tsx:208,250` (the 4 or 6 toggle); `PasscodeLayer` in `app/(app)/layout.tsx`, `app/agent/layout.tsx`, `app/host/layout.tsx` and `app/admin/layout.tsx`; migration `20260929034124_passcode_member_app_lock_code_bcrypt_only.sql`; `/settings/passcode`; `trace/passcode-390-*.png` |
-| 26 | 03:44 | Success screens everywhere (payments, inspections, approvals, listing submitted, applications), with 2 agents | DONE; one exclusion is open (B-6) | `lib/ui/success-moments.ts` (39 moments), `components/ui/SuccessSheet.tsx`, 26 call sites; `docs/SUCCESS_MOMENTS.md`; `trace/success-390-*.png`. Money success is gated on server settlement (`800cbb94`). Forged flags use a one-shot cookie (`1dc539af`). Saving a card (the ₦100 check) gets no card because it reads as pending: see B-6 |
+| 26 | 03:44 | Success screens everywhere (payments, inspections, approvals, listing submitted, applications), with 2 agents | DONE; the card-save exclusion is closed (B-6) | `lib/ui/success-moments.ts` (39 moments), `components/ui/SuccessSheet.tsx`, 26 call sites; `docs/SUCCESS_MOMENTS.md`; `trace/success-390-*.png`. Money success is gated on server settlement (`800cbb94`). Forged flags use a one-shot cookie (`1dc539af`). Saving a card (the ₦100 check) now gets "Card saved" once Paystack verifies it: see B-6 |
 | 27 | 02:45 | Landing Journey ("four steps") horizontal and smaller on mobile | DONE | `app/css/landing-rooms.css:849-878` (`.nf-steps` swipe row under 40rem). Computed height is 343px at 390 |
 | 28 | 02:45 (by implication) | Bento as a horizontal swipe row | DONE | `landing-rooms.css:1015-1043` (`.nf-bento-gate`), 234px at 390 |
 | 29 | 01:54 | Remove the phone mockups | DONE | There is no mockup component or class in `components/site/landing/` or the landing CSS |
@@ -143,9 +143,9 @@ The latest founder message wins wherever two conflict.
 | C-16 | A full reload into the app flashes the landing loading screen | NOT DONE | Brief B-3 |
 | C-17 | The member (non-agent) desktop rail is about 27px too tall at 1440×900, so Settings is cut off | NOT DONE (low) | Auto-scroll to the current row mitigates it (`NavTree.tsx:86-97`). Tighten `.nf-nav--rail` row padding under `max-height: 56rem` |
 | C-18 | 129 KB of shared CSS blocks first paint | NOT DONE | Brief B-4 |
-| C-19 | Saving a card (the ₦100 check) always reads pending, so it gets no success card | NOT DONE (money-adjacent) | Brief B-6 |
+| C-19 | Saving a card (the ₦100 check) always reads pending, so it gets no success card | DONE (B-6, tests with mocked Paystack only; no live call) | `confirmCardSetup` in `lib/payments/methods-actions.ts`, rules in `lib/payments/card-setup.ts`, "Card saved" moment; see B-6 |
 | C-20 | A forged `?done=` stays visible in the address bar (it opens nothing) | Open, cosmetic | `router.replace` the param away on site pages |
-| C-21 | Feed follow-ups: video posts; deleting your own story comment; report notifications don't link to the post (letter-case mismatch) | NOT DONE | Brief B-7 |
+| C-21 | Feed follow-ups: video posts; deleting your own story comment; report notifications don't link to the post (letter-case mismatch) | (a) DONE in code, (b) DONE in code and switched on by a migration awaiting approval, (c) BRIEF only | See B-7. Migration `supabase/migrations/pending/20260929120000_b7_report_links_and_own_story_comment_removal.sql` is NOT applied |
 | C-22 | 12 dev-only preview pages overflow at small widths | Open, dev-only | |
 | C-23 | `apps/web/scripts/write-shell-config.mjs:40` `console.log` | Not a bug | A CLI script reporting what it wrote |
 | C-24 | Crypto HMAC timestamp check | Waits on the provider's docs | FOUNDER ACTION (Yellow Card) |
@@ -167,6 +167,7 @@ The latest founder message wins wherever two conflict.
 - **Product call:** keep the email-first split (it serves account-enumeration neutrality and magic-link routing), or collapse it to one screen.
 - **If collapsing:** render `components/auth/fields.tsx`'s password field on `/sign-in`, post to the same `signInWithPassword` action, and keep the neutral refusal.
 - **Owner:** auth. **Size:** medium.
+- **CLOSED (29 Sep):** collapsed to one screen. `/sign-in` draws `EmailAuthForm` (email, password, Forgot, pill, "Or", round doors) posting to the same `signInWithEmail` (both rate limits, the neutral refusal, `next` re-checked). The notice lookup and first-run gate are unchanged; a prefilled address (`?email=` or the old chooser cookie) still gets the "google"-only lookup, and "none" still draws the plain password step. `/sign-in/email` forwards to `/sign-in` carrying `next`, `email` and `notice`. E2E specs moved to `#email` + `#password` on one screen. Shots: scratchpad `authB/signin-*-390-{light,dark}.png`.
 
 **B-2. The social account terms step (#21).** This must exist before Google or Apple is switched on.
 - **The step:** after `verifyEmailLinkOrCode` / the OAuth callback succeeds and `socialProviderOfSession` is non-null for a profile with no `terms_accepted_at`, redirect to a new `/sign-up/finish` screen. It uses `AcceptTerms` plus the 18+ tick and calls `recordTermsAcceptance(user.id, "signup_social", …)`.
@@ -174,6 +175,7 @@ The latest founder message wins wherever two conflict.
 - **Tests:** in `lib/auth/providers.test.ts` and the callback.
 - **Then, founder:** enable Apple in Supabase, and set `VALLO_SOCIAL_SIGN_IN=google` with the Google provider on.
 - **Size:** medium.
+- **CLOSED (29 Sep), code side:** `/sign-up/finish` (`FinishSetupForm`: name prefilled from the provider, the 18+ tick and the terms tick) calls `finishSocialSetup`, which refuses without the current terms version and `18+` on the server, writes `recordTermsAcceptance(user.id, "signup_oauth", { ageConfirmed: true })`, reads the receipt back before moving on, then lands on `next` with the "account-created" success cookie. The callback and `signInWithAppleIdToken` route a social-only account with no complete record there. The gate is in `proxy.ts` (runs on every navigation, unlike a layout): social-only accounts without the service-role `app_metadata.vallo_setup_done` flag read their own `terms_acceptances` rows under RLS; never holds the step, `/legal/*`, public pages, `/api`, or server actions (sign-out); a failed read lets through. No migration: the existing table, RLS select-own policy and writer are reused. The founder steps above still stand.
 
 **B-3. The landing loader flash on a full reload (C-16).**
 - **Cause:** `app/loading.tsx` (the landing-shaped skeleton) wraps every segment, including `(app)`.
@@ -192,17 +194,21 @@ The latest founder message wins wherever two conflict.
 - **Buttons:** move the 429 raw `<button>`s that carry an `nf-btn` class onto `components/ui/Button`, file group by file group, with `button-classes.test.ts` guarding.
 - **Size:** large (a dedicated design agent).
 
-**B-6. The saved-card ₦100 check (C-19).**
-- **What happens:** the card-save verification charge resolves as pending in the UI, so no "Card saved" moment ever fires.
-- **What to check:** trace the Paystack authorization webhook for the ₦100 charge and whether the refund-of-verification marks it settled.
-- **The success:** show "Card saved" once the authorization row exists server-side (not the charge).
-- **Constraints:** no live charge; use sandbox keys when the founder adds them.
-- **Size:** medium.
+**B-6. The saved-card ₦100 check (C-19). CLOSED 29 September.**
+- **Why it always read pending:** the in-app checkout confirmed the setup with `paymentState`, which only knows booking references (`rm-book-`) and reads the booking settlement's `transactions` row. A card setup is an `rm-fund-` charge and never has one. Worse, nothing filed the card: the webhook treats every `rm-fund-` charge as a retired wallet top-up and refunds it without reading `save_card`.
+- **The fix:** `confirmCardSetup(reference)` (`lib/payments/methods-actions.ts`), judged by `judgeCardSetupCharge` (`lib/payments/card-setup.ts`). It asks Paystack's verify and files the card only when all of these hold: our own audit row says this person opened this setup; the charge's metadata (written by our server) names this person and `purpose: card-setup`; the status is `success` (or `reversed`, because the webhook refund can land first); NGN; exactly ₦100; a reusable token. The card is written by the existing service-role `savePaymentMethodFromCharge`, keyed on the card signature, so a repeat is a refresh. "A card was saved" is announced once. The panel shows `SuccessSheet` "Card saved" on `saved` only; pending keeps the confirming state; a refused check says what happens to the ₦100.
+- **The ₦100 is unchanged:** the webhook still refunds every `rm-fund-` charge to the card in full (`wallet_retired`), and the sweep does the same for one the webhook missed. Nothing is credited. The copy now says so before the tap ("We charge ₦100 to check the card and return it to the same card in full") and after ("goes back to the same card").
+- **Counted:** new money-limit row `confirmCardSetup` (`card_setup_confirm`, 30 in 10 minutes), because every poll is a Paystack verify.
+- **Tests:** `lib/payments/card-setup.test.ts`, with mocked Paystack answers for success, reversed, pending (six statuses and a timeout), failed, wrong user (by metadata, and by our own record, where Paystack is never asked), wrong amount, wrong currency and a non-reusable token. No test can reach Paystack.
+- **Left:** the webhook itself still does not file the card, so a person who closes the tab before the confirm lands gets the ₦100 back and no card. Filing it there means touching the retired-wallet `rm-fund-` branch, which was out of bounds for this pass. A founder check with sandbox keys is still worth doing once they exist.
 
-**B-7. The feed follow-ups (C-21).**
-- **(a) The report notification link.** Normalise the kind or target case in the report notification (`lib/social/*` report actions, and the notify template's target) and add a test. **Small.**
-- **(b) Deleting your own story comment.** Needs a delete policy migration (own rows only) plus the UI. **Small to medium.**
-- **(c) Video in posts and stories.** A new upload pipeline. **Large;** it needs a product decision.
+**B-7. The feed follow-ups (C-21). CLOSED 29 September, except (c), which is a brief.**
+- **(a) The report notification link. DONE.** `private.notify_report()` links with a case-sensitive `when 'post'`; the social actions wrote `POST`, `STORY_COMMENT` and `SOCIAL_PROFILE`, so every social "Report received" linked to `/notifications`. The actions now write lower case from one place (`lib/social/report-kinds.ts`), which fixes post reports against the live trigger with no migration. The reporter's own list has words for all three. The link carries an id only and opens the post page, which renders the same not found for a removed, held or blocked post as for one that never existed, so a reporter sees nothing policy hides. The pending migration (below) makes the trigger case-insensitive, links a story comment to its story and a profile to `/u/<handle>`, lower-cases old rows and repoints the notifications they already sent.
+- **(b) Deleting your own story comment. DONE in code; switched on by the migration.** Deletion stays soft (`status = REMOVED`, like posts and stories), because `parent_id` cascades and a hard delete would take other people's replies. So there is still no DELETE policy, by design. The author could already do the update under `story_comments_update_own`, but the status trigger would then tell them their comment "broke the rules". The migration silences that for a self-deletion and adds `public.remove_own_story_comment(uuid)`, SECURITY INVOKER (held to the caller's RLS: own row, LIVE only). `deleteStoryComment` calls it; until the migration is applied it answers "Deleting a comment is not switched on yet." The comments sheet already had the menu item; `StoryViewer` now passes `onDelete`. A held comment still cannot be deleted by its author (the policy covers LIVE only; widening it would let an author touch a row a moderator is deciding). Tests: `lib/social/feed-followups.test.ts`.
+- **Migration awaiting approval (NOT applied):** `supabase/migrations/pending/20260929120000_b7_report_links_and_own_story_comment_removal.sql`. It weakens no policy, adds no delete policy, and reads itself back.
+- **(c) Video in posts and stories. NOT BUILT: the pipeline does not exist.** What exists: the `social-media` bucket already accepts `video/mp4`, `video/quicktime`, `video/webm` up to 50 MB (`20260809051809`, applied), and listings have a resumable (tus) uploader (`lib/agent/resumable-upload.ts`, `VideoWalkthrough.tsx`) with a poster stored separately. What does not: any transcode (no ffmpeg, no edge function, no provider), any way for `post_media` to say a row is a video (it has only `storage_path`, `width`, `height`, `position`), duration or poster columns, a `stories` video column (`image_path` is `not null`), a client picker that accepts video (`POST_IMAGE_TYPES` is three image types), and moderation for video (the scanner reads text; photos are reviewed as stills).
+  - **Decisions for the founder:** (1) transcode or not. Serving the phone's original `.mov` means HEVC files that Android and Chrome cannot play; a hosted service (Mux, Cloudflare Stream) costs per minute stored and streamed, and a self-run ffmpeg worker needs somewhere to run. (2) Length and size caps (suggest 60 seconds, 50 MB, matching the bucket). (3) Whether stories get video at all, or posts only. (4) How video is moderated before it is public (held until a person looks, like a scanned comment, is the cautious default).
+  - **Build, once decided:** a migration adding `kind` (`image`\|`video`), `mime_type`, `duration_seconds` and `poster_path` to `post_media` (and a nullable `video_path` on `stories`, relaxing `image_path` to "one of the two"), with the object's real size and type read back from storage, as `addVideo` does for listings; reuse `resumableUpload` in the composer; a transcode step that writes an H.264 MP4 and a poster and only then marks the row playable; a `<video>` card with the poster, muted autoplay off by default and no preload on cellular; the CSP `media-src` entry for the signed URLs; and purge and account-deletion coverage (both already list the `social-media` bucket). **Size:** large, one agent for the pipeline and one for the UI, after the decision.
 
 ---
 
@@ -212,10 +218,10 @@ Items 1–83 in sections A and B (founder requests), plus 33 agent-found items i
 
 | Status | Founder requests (A+B) | Agent-found (C) |
 |---|---|---|
-| DONE | 58 | 12 |
+| DONE | 58 | 13 (C-19 closed by B-6) |
 | FIXED NOW (in this audit) | 3 (#8 logo lap everywhere; #45 undefined button class; #65 HEIC copy) | 0 |
-| PARTIAL | 10 (#20, 21, 30, 31, 33, 34, 45 rest, 59, 78 and parts of 75/77 by keys) | 0 |
-| NOT DONE | 1 (#44 glow reduction) plus the code half of #21 | 5 (C-16, 17, 18, 19, 21) |
+| PARTIAL | 10 (#20, 21, 30, 31, 33, 34, 45 rest, 59, 78 and parts of 75/77 by keys) | 1 (C-21: migration awaiting approval, video is a brief) |
+| NOT DONE | 1 (#44 glow reduction) plus the code half of #21 | 3 (C-16, 17, 18) |
 | FOUNDER ACTION | 5 (#21 providers, 36, 49/80, 51 device check, 75/77 keys) | 10 (C-1, 2, 24, 26–31) |
 | SUPERSEDED | 4 (#1 in part, #2, #3, #37) | 0 |
 | Open, low / dev / ops / taste | n/a | 16 |

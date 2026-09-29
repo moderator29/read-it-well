@@ -1,7 +1,7 @@
 /*
  * The whole landing page, at three widths, in dark.
  *
- * Exists to prove a spacing migration moves NOTHING. `src/app/page.tsx` is the
+ * Exists to prove a spacing migration moves NOTHING. `src/app/(landing)/page.tsx` is the
  * one file the spacing rule does not cover, because the owner asked for this
  * page to be restored to its pre-scale state and the honest answer at the time
  * was to say so rather than restyle the page he had just asked to be put back.

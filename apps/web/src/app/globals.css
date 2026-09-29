@@ -91,7 +91,14 @@
 /* The filter drawer's icon tiles: property type and space. */
 @import "./css/filter-tiles.css";
 @import "./css/threads.css";
-@import "./css/admin.css";
+/*
+ * `admin.css` STOOD HERE AND IS IMPORTED BY `app/admin/layout.tsx` NOW (B-4,
+ * 29 September 2026): 75 KB of the staff console that no member, visitor or
+ * workspace page uses. Nothing after this point names an admin selector, and
+ * every rule in it is scoped to the console's own `nf-admin-*` classes inside
+ * `@layer components`, so loading it after this bundle changes no cascade
+ * outcome. The dev preview layout imports it too, for the console decks.
+ */
 @import "./css/agent.css";
 /*
  * The stays set-up screens of `GOVERNING-10` and `GOVERNING-11`: the labelled

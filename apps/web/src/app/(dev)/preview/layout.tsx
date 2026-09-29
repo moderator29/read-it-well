@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
+/* The staff console decks (f5, bc, bd, session-b) draw the console's own
+   classes, which left `globals.css` for `app/admin/layout.tsx` (B-4). */
+import "@/app/css/admin.css";
 
 /**
  * The dev-only preview harness. Real components, fixture props, so a

@@ -33,8 +33,11 @@
   /* ------------------------------------------------------------- posts */
 
   @supports (animation-timeline: view()) {
+    /* `forwards`, not `both`: a post not yet reached is shown, not held at
+       opacity 0, so a page laid out without scrolling still has its posts
+       (see detail-m.css). */
     .nf-post {
-      animation: nf-feed-arrive linear both;
+      animation: nf-feed-arrive linear forwards;
       animation-timeline: view();
       animation-range: entry 0% entry 60%;
     }
@@ -42,6 +45,12 @@
       animation: nf-feed-settle linear both;
       animation-timeline: view();
       animation-range: entry 0% cover 35%;
+    }
+  }
+  @media print {
+    .nf-post,
+    .nf-post__media img {
+      animation: none;
     }
   }
   @keyframes nf-feed-arrive {

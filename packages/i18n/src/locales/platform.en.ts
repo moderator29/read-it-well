@@ -398,7 +398,16 @@ export const platformEn = {
       dismissed: "Closed without action",
       withdrawn: "You took it back",
     },
-    target: { listing: "A listing", user: "A person", message: "A message", review: "A review", post: "A post" },
+    /* B-7a: the social kinds are lower case now, so they get words too. */
+    target: {
+      listing: "A listing",
+      user: "A person",
+      message: "A message",
+      review: "A review",
+      post: "A post",
+      story_comment: "A comment on a story",
+      social_profile: "A person's profile",
+    },
     targetOther: "Something on Vallo",
     reportedOn: "Reported {date}",
     note: "From the moderator: {note}",

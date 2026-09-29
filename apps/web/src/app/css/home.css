@@ -371,8 +371,8 @@
     color: var(--nf-brand-secondary);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-ai__result-where {
@@ -473,8 +473,8 @@
     color: var(--nf-content-secondary);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-ai__ring {
@@ -584,8 +584,8 @@
       transform var(--nf-duration-press) var(--nf-ease-press);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
     border-radius: var(--nf-radius-control);
   }

@@ -18,9 +18,20 @@
  * a designed page was promised, every state carries a way onward, the whole walk
  * stays inside the one blue family, and both themes are actually rendered rather
  * than dark being screenshotted twice.
+ *
+ * SINCE 23 SEPTEMBER every one of these routes answers a signed-out visitor
+ * with the sign-in wall (asserted first), so the walk above runs signed in as
+ * the QA member (SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD). Two parts
+ * are read without a session, in the preview harness: the profile header's
+ * counts as links (`/preview/f4/public-profile`) and the plus on the feed
+ * (`/preview/session-b/feed?state=bloom`). The six-petal create ring this used
+ * to open is retired: the plus now blooms Review, Story and Post, where Post
+ * is the composer for an update and a question alike, and listing a flat is
+ * the agent console's first action (`components/social/bloom/CreateBloom.tsx`).
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
@@ -90,8 +101,57 @@ async function outOfFamily(page) {
   });
 }
 
-async function run(theme) {
-  const context = await browser.newContext({
+/** The bloom, open: what the plus offers and where Story goes. */
+async function bloomOffers(page) {
+  const lozenges = await page.locator(".nf-bloom__item").allInnerTexts();
+  const joined = lozenges.join(" ");
+  check("the plus offers a story", /Story/.test(joined));
+  check("the plus offers a post, which is the update and the question", /Post/.test(joined));
+  check("the plus offers a review of a stay", /Review/.test(joined));
+  check("every lozenge leads somewhere (three of them)", lozenges.length === 3);
+}
+
+async function previewWalk(theme) {
+  const context = await browser.newContext({ colorScheme: theme, viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  await context.addInitScript((choice) => {
+    try {
+      window.localStorage.setItem("nf_theme", choice);
+    } catch {
+      /* storage can be unavailable */
+    }
+  }, theme);
+  const page = await context.newPage();
+  try {
+    console.log(`\n[${theme}] /preview/f4/public-profile (the profile header)`);
+    if (await openPreview(page, "/preview/f4/public-profile", check, { base: BASE_URL, wait: WAIT })) {
+      const applied = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
+      check(`the ${theme} theme actually took`, applied === theme);
+      /* Both counts lead somewhere. A count that is not a link is a dead end. */
+      check("the follower count is a link", (await page.locator(`a[href$="/followers"]`).count()) > 0);
+      check("the following count is a link", (await page.locator(`a[href$="/following"]`).count()) > 0);
+      const strays = await outOfFamily(page);
+      check(`no orange, amber, gold, violet or magenta (${strays.length} found)`, strays.length === 0);
+      for (const stray of strays) console.log(`          ${stray}`);
+    }
+    console.log(`\n[${theme}] /preview/session-b/feed?state=bloom (the plus)`);
+    if (await openPreview(page, "/preview/session-b/feed?state=bloom", check, { base: BASE_URL, wait: WAIT })) {
+      await bloomOffers(page);
+      const requested = [];
+      page.on("request", (r) => requested.push(new URL(r.url()).pathname));
+      await page.locator('[data-testid="bloom-story"]').click();
+      await page.waitForTimeout(1500);
+      check(
+        "writing a story is a real destination (/stories/new)",
+        requested.includes("/stories/new") || new URL(page.url()).pathname === "/stories/new" || page.url().includes("next=%2Fstories%2Fnew"),
+      );
+    }
+  } finally {
+    await context.close();
+  }
+}
+
+async function run(theme, state) {
+  const context = await qaContext(browser, state, {
     colorScheme: theme,
     viewport: { width: 390, height: 844 },
     /* Groups arrive on a `Reveal`, held at opacity 0 until scrolled into view.
@@ -254,24 +314,11 @@ async function run(theme) {
     await page.waitForTimeout(WAIT);
     check("/around answers 200", around !== null && around.status() === 200);
 
-    const fab = page.getByRole("button", { name: /Create something/ });
+    const fab = page.locator('[data-testid="bloom-fab"]');
     if ((await fab.count()) > 0) {
       await fab.click();
-      await page.waitForTimeout(400);
-      /* The flat two-item menu became the create ring: Apartment, Story,
-         Update, Question, Review, around a glowing centre. Event is absent and
-         that is deliberate, not missing: there is no events table and meetups
-         are deferred in the design, so a sixth petal would open nothing. */
-      const ring = await page.locator(".nf-ring__petal").allInnerTexts();
-      const joined = ring.join(" ");
-      check("the ring offers a story", /Story/.test(joined));
-      check("the ring offers an apartment", /Apartment/.test(joined));
-      check("the ring offers an update and a question", /Update/.test(joined) && /Question/.test(joined));
-      check("every petal leads somewhere", ring.length >= 5);
-      check(
-        "writing a story is a real destination",
-        (await page.locator("a[href='/stories/new']").count()) > 0,
-      );
+      await page.waitForTimeout(900);
+      await bloomOffers(page);
       await page.keyboard.press("Escape");
     } else {
       /* The dock renders nothing at all when the platform has no keys, which is
@@ -360,8 +407,18 @@ async function run(theme) {
   }
 }
 
-await run("dark");
-await run("light");
+console.log("signed out");
+for (const path of [`/u/${HANDLE}`, `/u/${HANDLE}/followers`, `/u/${HANDLE}/following`, "/around", "/u"]) {
+  await expectSignInWall(check, path, BASE_URL);
+}
+await previewWalk("dark");
+await previewWalk("light");
+console.log("\nsigned in as the QA member, for the real routes");
+const qaState = await signInAsQa(browser, { base: BASE_URL });
+if (qaState) {
+  await run("dark", qaState);
+  await run("light", qaState);
+}
 await browser.close();
 
 console.log(

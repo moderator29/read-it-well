@@ -18,7 +18,7 @@ import { parentOf } from "@/lib/nav/resolve";
  * history behind them and nothing of ours.
  *
  * ONE MOUNT, IN THE LAYOUT, RATHER THAN FOURTEEN EDITS. The `(site)` group is
- * exactly those fourteen pages; the landing page is `app/page.tsx` and sits
+ * exactly those fourteen pages; the landing page is `app/(landing)/page.tsx` and sits
  * OUTSIDE the group, so nothing here can put a back control on the root of the
  * site. A future page added to the group inherits the control on the day it is
  * added rather than on the day somebody notices.

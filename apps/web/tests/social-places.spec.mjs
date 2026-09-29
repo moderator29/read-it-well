@@ -43,7 +43,34 @@
  * with `set local role authenticated`, which is the only way to test a policy.
  */
 
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { register } from "node:module";
+
+/*
+ * THE SAME RESOLVER THE BUILD HAS. The modules under test now reach into the
+ * i18n package, whose sources import each other without an extension
+ * (`./negotiate`), and through the app's `@/` alias. Node resolves neither on
+ * its own, so this hook maps `@/x` onto `src/x` and tries `.ts`, `.tsx` and
+ * `/index.ts` for a bare relative specifier. It changes where a file is
+ * found, never what is asserted about it.
+ */
+{
+  const SRC_URL = pathToFileURL(fileURLToPath(new URL("../src/", import.meta.url))).href;
+  const HOOK = `
+const SRC = ${JSON.stringify(SRC_URL)};
+export async function resolve(specifier, context, next) {
+  let spec = specifier;
+  if (spec.startsWith("@/")) spec = new URL(spec.slice(2), SRC).href;
+  const relative = spec.startsWith(".") || spec.startsWith("file:");
+  if (relative && !/\\.[a-z]+$/.test(spec)) {
+    for (const suffix of [".ts", ".tsx", "/index.ts", "/index.tsx"]) {
+      try { return await next(spec + suffix, context); } catch {}
+    }
+  }
+  return next(spec, context);
+}`;
+  register("data:text/javascript," + encodeURIComponent(HOOK), import.meta.url);
+}
 
 /* Node 22 needs the flag to import a TypeScript module; 23 and later do not. */
 if (!process.execArgv.includes("--experimental-strip-types")) {
@@ -630,6 +657,9 @@ try {
   rendered = stateCount === 37;
 
   if (!rendered) {
+    console.log(
+      `  SKIP    the screen half needs a server built against the stand-in PostgREST (port ${STANDIN_PORT}); this one cannot read the reference tables`,
+    );
     console.log(
       `\n  The picker did not render 37 states (saw ${stateCount}). This build cannot\n` +
         "  read the reference tables, so the screen half did not run and nothing\n" +

@@ -40,6 +40,7 @@ import {
   storyMarkSchema,
 } from "./stories-schema";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
+import { SOCIAL_REPORT_KIND } from "./report-kinds";
 
 /* The generated types are regenerated after a migration, not before it, so the
    two disagree until the generator is run.
@@ -243,7 +244,7 @@ export async function reportStoryComment(input: {
   try {
     const { error } = await session.supabase.from("reports").insert({
       reporter_id: session.user.id,
-      target_type: "STORY_COMMENT",
+      target_type: SOCIAL_REPORT_KIND.storyComment,
       target_id: parsed.data.commentId,
       reason: parsed.data.detail
         ? `${parsed.data.reason}: ${parsed.data.detail}`
@@ -258,6 +259,71 @@ export async function reportStoryComment(input: {
     return fail(REPORT_DOWN);
   }
 }
+
+/**
+ * Delete your own story comment (B-7b).
+ *
+ * A soft delete, like every other deletion in the social model
+ * (`deleted-posts.ts`): the row's status becomes REMOVED and the reads drop
+ * it, or keep it as a one-line tombstone while somebody's reply still hangs
+ * off it. A hard delete would cascade through `parent_id` and take other
+ * people's replies with it, which is why there is no DELETE policy on
+ * `story_comments` and this does not ask for one.
+ *
+ * THROUGH THE CALLER'S OWN RLS. `public.remove_own_story_comment` is
+ * SECURITY INVOKER: the update inside it is held to the existing
+ * `story_comments_update_own` policy (your own row, while it is LIVE), so it
+ * can do nothing the person could not already do. It exists for one reason:
+ * the same migration stops `notify_story_comment_status` telling somebody who
+ * deleted their own comment that it "broke the rules". Until that migration is
+ * applied the function is missing (PGRST202 / 42883) and this answers that
+ * deleting is not available yet, rather than sending that false notice.
+ *
+ * A held comment cannot be deleted by its author yet: the update policy only
+ * covers LIVE rows, and widening it would let an author touch a row a
+ * moderator is deciding. Said plainly when it happens.
+ */
+export async function deleteStoryComment(input: {
+  commentId: string;
+}): Promise<ActionResult<null>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
+  const parsed = validate(storyCommentIdSchema, input);
+  if (!parsed.ok) return fail(STORY_COMMENT_DELETE.gone);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const verdict = await consume({
+    ...POST_LIMITS.mark,
+    subject: subjectForUser(session.user.id),
+  });
+  if (!verdict.allowed) return fail(paced(verdict.retryAfterSeconds));
+
+  try {
+    const { data, error } = await loose(session.supabase).rpc("remove_own_story_comment", {
+      p_comment_id: parsed.data.commentId,
+    });
+    if (error) {
+      if (error.code === "PGRST202" || error.code === "42883") return fail(STORY_COMMENT_DELETE.notYet);
+      return fail(STORY_COMMENT_DELETE.down);
+    }
+    /* The function answers the story id it removed from, or null when no row
+       matched: not yours, already gone, or held for a check. */
+    if (typeof data !== "string" || data.length === 0) return fail(STORY_COMMENT_DELETE.gone);
+
+    revalidatePath(`/stories/${data}`);
+    return ok(null);
+  } catch {
+    return fail(STORY_COMMENT_DELETE.down);
+  }
+}
+
+const STORY_COMMENT_DELETE = {
+  gone: "That comment could not be deleted from here. It may be gone already, or it is being checked; a comment being checked can be deleted once the check finishes. Refresh to see the comments as they are.",
+  down: "We could not delete that comment just now. It is still there. Please try again in a moment.",
+  notYet: "Deleting a comment is not switched on yet. Your comment is still there.",
+} as const;
 
 /** Like a comment, or undo it. */
 export async function toggleStoryCommentLike(input: {

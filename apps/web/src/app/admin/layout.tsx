@@ -15,6 +15,9 @@ import { BackButton } from "@/components/site/BackButton";
 import { getPersonTiers } from "@/lib/admin/reads/shared";
 import { ENTRY_COOKIE } from "./_components/entry";
 import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
+/* The console's stylesheet, loaded by the console alone (B-4): it left
+   `globals.css`, where every page paid for it. */
+import "@/app/css/admin.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());

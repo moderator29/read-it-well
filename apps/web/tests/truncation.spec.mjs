@@ -27,12 +27,22 @@
  * The text is put back immediately and nothing is written anywhere. This is a
  * measurement of the boxes, not a seeded catalogue.
  *
+ * WHICH PAGES. Since 23 September every product route answers a signed-out
+ * visitor with the sign-in wall (asserted for each below). The sweep reads the
+ * public pages directly and each product screen through its preview-harness
+ * twin (the real components in the real AppShell with fixture rows, so the
+ * truncating rows have real names and titles in them for once), and, signed
+ * in as the QA member, the real product routes (SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD). `/wallet`, `/agents` and `/agents/apply` are redirects
+ * now and are not swept as pages of their own.
+ *
  * Run with the server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/truncation.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, skip } from "./_gate.mjs";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -52,15 +62,43 @@ function check(name, condition, detail) {
   }
 }
 
-const ROUTES = [
-  "/", "/home", "/search", "/search?view=map", "/listing/lekki-palm-grove", "/saved",
-  "/messages", "/notifications", "/profile", "/settings", "/settings/notifications",
-  "/wallet", "/bookings", "/search?market=rent", "/agents", "/agents/apply", "/assistant",
-  "/help", "/contact", "/about", "/careers", "/safety", "/standards", "/cancellations",
-  "/docs", "/styleguide", "/legal/privacy", "/legal/terms", "/privacy", "/terms",
-  "/agent/dashboard", "/agent/bookings", "/agent/listings", "/agent/calendar",
-  "/agent/earnings", "/admin", "/admin/support", "/around", "/u", "/stories",
+const PUBLIC_ROUTES = [
+  "/", "/help", "/contact", "/about", "/careers", "/safety", "/standards", "/cancellations",
+  "/docs", "/privacy", "/terms",
 ];
+
+/** Each gated product route with its preview-harness twin (null: none). */
+const PRODUCT = [
+  ["/home", "/preview/session-b/sweep-home/home"],
+  ["/search", "/preview/session-b/sweep-home/search"],
+  ["/search?view=map", null],
+  ["/listing/lekki-palm-grove", "/preview/f3/listing"],
+  ["/saved", "/preview/f3/saved"],
+  ["/messages", "/preview/f5/inbox"],
+  ["/notifications", "/preview/f4/notifications"],
+  ["/profile", "/preview/session-b/profile"],
+  ["/settings", "/preview/session-b/sweep-settings?v=hub"],
+  ["/settings/notifications", "/preview/session-b/sweep-settings?v=notifications"],
+  ["/bookings", "/preview/f3/bookings"],
+  ["/search?market=rent", null],
+  ["/assistant", "/preview/f1/assistant"],
+  ["/styleguide", null],
+  ["/agent/dashboard", "/preview/f5/agent-dashboard"],
+  ["/agent/bookings", "/preview/f5/agent-bookings"],
+  ["/agent/listings", "/preview/f5/agent-listings"],
+  ["/agent/calendar", "/preview/o3/agent-calendar"],
+  ["/agent/earnings", "/preview/f5/agent-earnings"],
+  ["/admin", "/preview/f5/admin-overview"],
+  ["/admin/support", null],
+  ["/around", "/preview/session-b/feed"],
+  ["/u", null],
+  ["/stories", null],
+  /* The in-app copies of the legal pages sit inside the platform; the public
+     /privacy and /terms above are the ones a stranger reads. */
+  ["/legal/privacy", null],
+  ["/legal/terms", null],
+];
+const ROUTES = [...PUBLIC_ROUTES, ...PRODUCT.map(([, twin]) => twin).filter(Boolean)];
 
 const WIDTHS = [320, 390, 768, 1280];
 
@@ -81,8 +119,10 @@ const LONG = "Adebayo-Oluwaseun Chukwuemeka Ogundimu-Adeyemi";
  * box we put it in.
  */
 const SENTENCE_ALLOWED = [
-  /* The last message in a conversation, in the inbox list. */
+  /* The last message in a conversation, in the inbox list (as it was drawn). */
   "leading-relaxed",
+  /* The same excerpt as the inbox row draws it now (`Inbox.tsx`). */
+  "nf-body-sm mt-3xs block truncate",
   /* The guest message preview in the agent workspace. */
   "text-[var(--nf-content-muted)]",
 ];
@@ -104,7 +144,12 @@ const SWEEP = ({ long, allowed, skipTags }) => {
 
   /* A screen reader label is a one-pixel box on purpose. It reports as clipped
      because it IS clipped, and that is the entire technique. */
-  const visuallyHidden = (el) => el.classList.contains("sr-only") || el.closest(".sr-only") !== null;
+  /* `sm:sr-only` and the like are the same technique at a breakpoint: hidden
+     on purpose when their responsive class applies and the box is 1px. */
+  const visuallyHidden = (el) =>
+    el.classList.contains("sr-only") ||
+    el.closest(".sr-only") !== null ||
+    ([...el.classList].some((c) => /(^|:)sr-only$/.test(c)) && el.getBoundingClientRect().width <= 1);
 
   const clipped = [];
   const sentences = [];
@@ -192,13 +237,19 @@ const SWEEP = ({ long, allowed, skipTags }) => {
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 let reached = 0;
 
+console.log("\nSigned out, every product route is behind the wall");
+for (const [route] of PRODUCT) await expectSignInWall(check, route, BASE_URL);
+console.log("\nThe QA session, for the real routes");
+const qaState = await signInAsQa(browser, { base: BASE_URL });
+const passes = [["public pages and harness twins", ROUTES, null]];
+if (qaState) passes.push(["the real routes, signed in", PRODUCT.map(([route]) => route), qaState]);
+
 try {
+  for (const [which, routes, state] of passes)
   for (const width of WIDTHS) {
-    console.log(`\n${width}px`);
-    const context = await browser.newContext({
-      viewport: { width, height: 900 },
-      colorScheme: "dark",
-    });
+    console.log(`\n${width}px: ${which}`);
+    const options = { viewport: { width, height: 900 }, colorScheme: "dark" };
+    const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
     await context.addInitScript(() => {
       try {
         window.localStorage.setItem("nf_theme", "dark");
@@ -212,10 +263,14 @@ try {
     const burst = [];
     const sideways = [];
 
-    for (const route of ROUTES) {
+    for (const route of routes) {
       const page = await context.newPage();
       try {
-        await page.goto(BASE_URL + route, { waitUntil: "load", timeout: 45000 });
+        const response = await page.goto(BASE_URL + route, { waitUntil: "load", timeout: 45000 });
+        if (route.startsWith("/preview/") && response?.status() === 404) {
+          skip(`${route}: the preview harness is closed on this server (VALLO_PREVIEW_HARNESS=1)`);
+          continue;
+        }
         await page.waitForTimeout(700);
         const res = await page.evaluate(SWEEP, {
           long: LONG,

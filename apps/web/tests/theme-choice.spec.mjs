@@ -27,8 +27,10 @@ function check(name, condition) {
 const email = process.env.QA_MEMBER_EMAIL;
 const password = process.env.QA_MEMBER_PASSWORD ?? process.env.QA_PASSWORD;
 if (!email || !password) {
-  console.error("theme-choice: set QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD (or QA_PASSWORD).");
-  process.exit(2);
+  /* Conditional on a missing secret, not disabled: with the variables set
+     this runs. Reported to run.mjs as SKIP (exit 77), never as a pass. */
+  console.log("  SKIP    theme-choice: QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD (or QA_PASSWORD) are not set; this walk needs a signed-in member");
+  process.exit(77);
 }
 
 const browser = await chromium.launch(EXECUTABLE ? { executablePath: EXECUTABLE } : {});
@@ -36,9 +38,9 @@ const login = await browser.newContext(PHONE);
 const lp = await login.newPage();
 await lp.goto(`${BASE}/sign-in`, { waitUntil: "domcontentloaded" });
 await lp.waitForTimeout(1500);
-await lp.fill("#auth-email", email);
-await lp.click("button:has-text('Continue')");
+/* One screen (B-1): email and password together on /sign-in. */
 await lp.waitForSelector("#password", { timeout: 30_000 });
+await lp.fill("#email", email);
 await lp.fill("#password", password);
 await lp.click("button[type=submit]:has-text('Sign in')");
 await lp.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 60_000 });

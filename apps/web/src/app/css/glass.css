@@ -250,6 +250,10 @@
       var(--nf-glass-card-fill);
     border-color: var(--nf-brand-edge);
     border-radius: var(--nf-radius-xl);
+    /* No backdrop blur: a card rests on the flat canvas (tokens.css,
+       `--nf-card-backdrop`, B-5). */
+    -webkit-backdrop-filter: var(--nf-card-backdrop);
+    backdrop-filter: var(--nf-card-backdrop);
     box-shadow:
       var(--nf-glow-edge),
       inset 0 -1px 0 var(--nf-glass-floor),

@@ -24,11 +24,21 @@
  * `private.probe_as` + `set local role authenticated` returns a LIVE row, and
  * `anon` can read it back. This file proves the application half.
  *
+ * SINCE THIS WAS WRITTEN. The plus's sheet moved out of `FabDock.tsx` into the
+ * create bloom (`components/social/bloom/CreateBloom.tsx`), so the dock
+ * checks read that file. `/around` answers a signed-out visitor with the
+ * sign-in wall since 23 September (asserted), so the tabs are measured on the
+ * preview harness's feed (`/preview/session-b/feed`: the real FeedTabs in the
+ * real AppShell), and there are two of them now, For you and Following: New
+ * came off the row on purpose (`FeedMasthead.tsx`) and `?tab=new` still
+ * answers.
+ *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/public-feed.spec.mjs
  */
 
 import { chromium } from "playwright-core";
-import { readFileSync } from "node:fs";
+import { expectSignInWall, openPreview } from "./_gate.mjs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -63,7 +73,7 @@ function check(name, condition, detail) {
 const schema = read("lib/social/posts-schema.ts");
 const actions = read("lib/social/posts-actions.ts");
 const composer = read("components/social/feed/Composer.tsx");
-const dock = read("components/social/FabDock.tsx");
+const dock = read("components/social/bloom/CreateBloom.tsx");
 const feed = read("components/social/feed/Feed.tsx");
 const queries = read("lib/social/posts-queries.ts");
 const around = read("app/(app)/around/page.tsx");
@@ -133,13 +143,15 @@ const context = await browser.newContext({ viewport: { width: 390, height: 844 }
 
 try {
   const page = await context.newPage();
-  await page.goto(`${BASE_URL}/around`, { waitUntil: "load" });
-  await page.waitForTimeout(700);
+  await expectSignInWall(check, "/around", BASE_URL);
 
-  console.log("\nThe tabs, measured rather than assumed");
+  console.log("\nThe tabs, measured rather than assumed (preview harness)");
+  if (!(await openPreview(page, "/preview/session-b/feed", check, { base: BASE_URL, wait: 700 }))) {
+    throw Object.assign(new Error("harness closed"), { harnessClosed: true });
+  }
 
   const tabs = await page.locator('[data-testid^="feed-tab-"]').all();
-  check("all three are there", tabs.length === 3, [`${tabs.length}`]);
+  check("both are there, For you and Following", tabs.length === 2, [`${tabs.length}`]);
 
   const shapes = [];
   for (const tab of tabs) {
@@ -151,7 +163,9 @@ try {
           text: (el.textContent ?? "").trim(),
           radius: parseFloat(s.borderRadius),
           height: Math.round(el.getBoundingClientRect().height),
-          hit: parseFloat(after.minHeight),
+          /* The overlay is sized by its inset now (`inset: -4.4px 0` on a
+             35.2px tab), not by a min-height, so read its used height. */
+          hit: Math.max(parseFloat(after.minHeight) || 0, parseFloat(after.height) || 0),
         };
       }),
     );
@@ -183,6 +197,8 @@ try {
     "exactly one is marked as where the reader is",
     (await page.locator('[data-testid^="feed-tab-"][aria-current="page"]').count()) === 1,
   );
+} catch (error) {
+  if (!error?.harnessClosed) throw error;
 } finally {
   await context.close();
   await browser.close();
@@ -192,10 +208,12 @@ try {
 
 console.log("\nVallo says one thing a day, and it is a thing that stays true");
 
-const daily = readFileSync(
-  join(ROOT, "../../supabase/migrations/20260807150000_vallo_says_one_useful_thing_a_day.sql"),
-  "utf8",
-);
+/* Found by what it is rather than by one filename: the migration carries its
+   name from the live migration history (`..._rentme_says_one_useful_thing_a_day.sql`). */
+const MIGRATIONS = join(ROOT, "../../supabase/migrations");
+const dailyFile = readdirSync(MIGRATIONS).find((f) => /_says_one_useful_thing_a_day\.sql$/.test(f));
+check("the daily-note migration is on disk", Boolean(dailyFile), [String(dailyFile)]);
+const daily = dailyFile ? readFileSync(join(MIGRATIONS, dailyFile), "utf8") : "";
 
 check("it posts to everybody rather than into one room", /area_id, author_kind[\s\S]{0,80}?values \(null, 'SYSTEM'/.test(daily));
 check(

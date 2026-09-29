@@ -53,7 +53,34 @@
  * be pointed at an ordinary build rather than at this one.
  */
 
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { register } from "node:module";
+
+/*
+ * THE SAME RESOLVER THE BUILD HAS. The modules under test now reach into the
+ * i18n package, whose sources import each other without an extension
+ * (`./negotiate`), and through the app's `@/` alias. Node resolves neither on
+ * its own, so this hook maps `@/x` onto `src/x` and tries `.ts`, `.tsx` and
+ * `/index.ts` for a bare relative specifier. It changes where a file is
+ * found, never what is asserted about it.
+ */
+{
+  const SRC_URL = pathToFileURL(fileURLToPath(new URL("../src/", import.meta.url))).href;
+  const HOOK = `
+const SRC = ${JSON.stringify(SRC_URL)};
+export async function resolve(specifier, context, next) {
+  let spec = specifier;
+  if (spec.startsWith("@/")) spec = new URL(spec.slice(2), SRC).href;
+  const relative = spec.startsWith(".") || spec.startsWith("file:");
+  if (relative && !/\\.[a-z]+$/.test(spec)) {
+    for (const suffix of [".ts", ".tsx", "/index.ts", "/index.tsx"]) {
+      try { return await next(spec + suffix, context); } catch {}
+    }
+  }
+  return next(spec, context);
+}`;
+  register("data:text/javascript," + encodeURIComponent(HOOK), import.meta.url);
+}
 
 /* Node 22 needs the flag to import a TypeScript module; 23 and later do not.
    Re-exec once rather than asking whoever runs the specs to remember it. */
@@ -664,6 +691,7 @@ async function run(theme) {
             : solid.every((s) => s.luminance < 0.5)),
       );
     } else {
+      console.log("  SKIP    the render checks need a server built against the stand-in (see below); the thread did not mount here");
       console.log(
         "  ....    the thread did not mount, so the render checks did not run.\n" +
           "          Build against the stand-in to prove the answer on screen:\n" +

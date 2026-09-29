@@ -60,6 +60,10 @@ const NO_WAIT = [
   "/sign-in", "/sign-in/email", "/sign-up", "/sign-up/email", "/sign-up/verify",
   "/forgot-password", "/reset-password", "/offline", "/agents", "/agents/apply",
   "/welcome",
+  /* B-2: "Finish setting up" reads one row set of the person's own; the
+     `(auth)` group's own loading.tsx is its boundary, the same card shell
+     every door draws. */
+  "/sign-up/finish",
   /* The callback awaits nothing before painting. It IS the wait, and it draws
      its own: a heading, a sentence and a bar, on the first frame. */
   "/auth/callback",

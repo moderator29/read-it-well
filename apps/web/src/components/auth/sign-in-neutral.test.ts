@@ -24,8 +24,35 @@ describe("the sign-in password step", () => {
   });
 
   it("treats an address with no account as the ordinary password step", () => {
-    expect(src("app/(auth)/sign-in/email/page.tsx")).toMatch(
+    expect(src("app/(auth)/sign-in/page.tsx")).toMatch(
       /accountMethod = method === "none" \? "unknown" : method;/,
+    );
+  });
+});
+
+describe("B-1: sign-in is one screen, email and password together", () => {
+  it("draws the email and password form on /sign-in, posting to the same action", () => {
+    const page = src("app/(auth)/sign-in/page.tsx");
+    expect(page).toContain("<EmailAuthForm");
+    expect(page).toMatch(/mode="sign-in"/);
+    expect(page).toContain("action={signInWithEmail}");
+    /* The notice (wall, callback, passcode lock) still reaches the screen. */
+    expect(page).toContain("notice={noticeText}");
+    expect(page).not.toContain("<AuthChoices");
+    const form = src("components/auth/EmailAuthForm.tsx");
+    expect(form).toMatch(/autoComplete="current-password"/);
+    expect(form).toMatch(/!isSignUp && notice \?/);
+  });
+
+  it("forwards the old second step to /sign-in, carrying only next, email and notice", () => {
+    const page = src("app/(auth)/sign-in/email/page.tsx");
+    expect(page).toMatch(/for \(const key of \["next", "email", "notice"\] as const\)/);
+    expect(page).toMatch(/redirect\(`\/sign-in\$\{query/);
+  });
+
+  it("an old chooser post for sign-in lands back on the one screen", () => {
+    expect(src("lib/auth/actions.ts")).toMatch(
+      /formData\.get\("mode"\) === "sign-up" \? "\/sign-up\/email" : "\/sign-in";/,
     );
   });
 });
@@ -40,8 +67,8 @@ describe("the chooser's address", () => {
     expect(actions).toMatch(/httpOnly: true,[\s\S]{0,120}maxAge: CHOOSER_EMAIL_MAX_AGE/);
   });
 
-  it("is read back by both email steps", () => {
-    for (const page of ["app/(auth)/sign-in/email/page.tsx", "app/(auth)/sign-up/email/page.tsx"]) {
+  it("is read back by the sign-in screen and the sign-up email step", () => {
+    for (const page of ["app/(auth)/sign-in/page.tsx", "app/(auth)/sign-up/email/page.tsx"]) {
       expect(src(page), page).toContain("await chooserEmail()");
     }
   });

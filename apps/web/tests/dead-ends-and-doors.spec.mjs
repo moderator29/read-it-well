@@ -180,7 +180,8 @@ try {
   );
   check(
     "the way out without JavaScript matches the door, so a sign-in is not sent to a code screen",
-    /\/sign-in\/email/.test(signIn.html) && !/\/sign-up\/verify/.test(signIn.html),
+    /* `/sign-in` since B-1: sign-in is one screen, email and password. */
+    /href="\/sign-in"/.test(signIn.html) && !/\/sign-up\/verify/.test(signIn.html),
   );
 
   /* The decider, live. Unconfigured here, which is the branch this sandbox

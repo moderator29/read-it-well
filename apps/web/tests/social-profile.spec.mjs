@@ -21,9 +21,17 @@
  * The write itself, the row level security behind it and the three triggers on
  * `public.social_profiles` are proven against live Postgres by database probes,
  * not from here.
+ *
+ * SINCE 23 SEPTEMBER `/u/<handle>` and its editor answer a signed-out visitor
+ * with the sign-in wall (asserted), and every state above is decided by what
+ * the server reads for a real caller, which the preview harness's fixtures
+ * cannot stand in for. So the walk runs signed in as the QA member and the
+ * spec is reported as SKIP (exit 77) without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, SKIP_EXIT } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -92,8 +100,8 @@ async function warmColours(page) {
   });
 }
 
-async function run(theme) {
-  const context = await browser.newContext({
+async function run(theme, state) {
+  const context = await qaContext(browser, state, {
     colorScheme: theme,
     viewport: { width: 390, height: 844 },
   });
@@ -208,8 +216,20 @@ async function run(theme) {
   }
 }
 
-await run("dark");
-await run("light");
+console.log("signed out");
+for (const path of [`/u/${FREE_HANDLE}`, `/u/${NOT_A_HANDLE}`, `/u/${FREE_HANDLE}/edit`]) {
+  await expectSignInWall(check, path, BASE_URL);
+}
+console.log("\nsigned in as the QA member");
+const qaState = await signInAsQa(browser, { base: BASE_URL });
+if (!qaState) {
+  await browser.close();
+  if (failures > 0) process.exit(1);
+  console.log("\nsocial-profile: the wall holds; the walk needs a session and was skipped");
+  process.exit(SKIP_EXIT);
+}
+await run("dark", qaState);
+await run("light", qaState);
 await browser.close();
 
 console.log(failures === 0 ? "\nsocial-profile: all checks passed" : `\nsocial-profile: ${failures} FAILED`);

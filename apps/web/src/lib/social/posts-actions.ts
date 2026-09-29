@@ -40,6 +40,7 @@ import {
   reportProfileSchema,
 } from "./posts-schema";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
+import { SOCIAL_REPORT_KIND } from "./report-kinds";
 import { getAreaFeed, getEverywhereFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
 import { parseFeedCursor } from "./posts-cursor";
 import { blockUserSafely, unblockUserSafely } from "../safety/blocks-actions";
@@ -549,10 +550,11 @@ export async function reportPost(input: {
   if (!verdict.allowed) return fail(paced(verdict.retryAfterSeconds));
 
   // public.reports.target_type is already text, so a social target needs no
-  // migration at all.
+  // migration at all. Lower case, like every other kind (report-kinds.ts):
+  // the notify trigger links a `post` report to the post.
   const { error } = await session.supabase.from("reports").insert({
     reporter_id: session.user.id,
-    target_type: "POST",
+    target_type: SOCIAL_REPORT_KIND.post,
     target_id: parsed.data.postId,
     reason: parsed.data.detail
       ? `${parsed.data.reason}: ${parsed.data.detail}`
@@ -607,7 +609,7 @@ export async function reportProfile(input: {
 
   const { error } = await session.supabase.from("reports").insert({
     reporter_id: session.user.id,
-    target_type: "SOCIAL_PROFILE",
+    target_type: SOCIAL_REPORT_KIND.profile,
     target_id: parsed.data.userId,
     reason: parsed.data.detail
       ? `${parsed.data.reason}: ${parsed.data.detail}`

@@ -70,7 +70,7 @@ export function VerifyingPanel({ moment = "sign-up" }: { moment?: AuthMoment }) 
             <p className="mt-7 leading-relaxed text-[var(--nf-content-secondary)]">
               {a.noScriptSignIn}
             </p>
-            <ButtonLink href="/sign-in/email" variant="primary" size="lg" className="mt-5">
+            <ButtonLink href="/sign-in" variant="primary" size="lg" className="mt-5">
               {a.signInWithYourEmail}
             </ButtonLink>
           </>

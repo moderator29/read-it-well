@@ -4,17 +4,19 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import "@/app/css/system.css";
 
 /**
- * The wait, at the root, and therefore the platform's floor.
+ * The landing page's wait.
  *
- * It is here for the landing page above all. `/` is the one route with no
- * segment of its own to hang a boundary on, and it is the most expensive
- * page on the platform to render. It was also the only page a stranger ever
- * sees first, and it had no loading state at all.
+ * `/` is the most expensive page on the platform to render and the one a
+ * stranger sees first, so it has a loading state drawn in its own shape.
  *
- * As a ROOT boundary it is also the fallback for any segment that has not
- * got a closer one. A nested `loading.tsx` always wins for its own subtree,
- * so `(app)`, `(auth)` and `(site)` keep the skeletons that mirror their
- * screens and nothing here overrides them.
+ * IT LIVES IN THE `(landing)` GROUP, NOT AT THE ROOT (trace B-3, 29 September
+ * 2026). At the root of `app/` it was the Suspense boundary around EVERY
+ * segment's layout, and `loading.tsx` never wraps the layout of its own
+ * segment: while `(app)/layout.tsx` read the session on a full reload into
+ * `/home`, the fallback on screen was this one, the landing hero, before the
+ * app shell and its own skeleton arrived. In a group of its own it wraps
+ * `/` alone; `(app)`, `(auth)`, `(site)`, `agent`, `host` and `admin` wait
+ * on their own boundaries.
  *
  * It draws the landing hero's shape in the register rather than a spinner:
  * the mark, three display lines, a lede, the search pill at its real height

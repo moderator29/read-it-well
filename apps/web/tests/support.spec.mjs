@@ -16,14 +16,25 @@
  * path these checks pin. With a key present the same bubble fills token by
  * token from the model instead, and every other check here is unchanged.
  *
- *   1. The support surface opens on /settings and again on /help.
+ *   1. The support surface opens in Settings and again on /help.
  *   2. Sending a question renders a reply bubble with real content.
  *   3. Talk to a person shows the name and email form, and the form refuses an
  *      empty email and a malformed one before anything is filed.
  *   4. Nothing overflows horizontally at 390px.
+ *
+ * WHAT MOVED. The settings entry is `/settings/help` now, and since 23
+ * September it answers a signed-out visitor with the sign-in wall (asserted);
+ * its card is read in the preview harness (`/preview/session-b/sweep-settings
+ * ?v=help`, the real SupportChat). `/help` is public and is read as it is.
+ * Nothing reaches the model before the reader agrees: the AI consent sheet
+ * asks first, and this spec agrees to it, which is what a person does before
+ * the unconfigured line and the keyword answer can come back. The unconfigured
+ * line itself was reworded: "The AI helper wakes the moment its key lands"
+ * (`app/api/support/route.ts`).
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE = "/opt/pw-browsers/chromium";
@@ -50,6 +61,8 @@ async function noHorizontalOverflow(page) {
 const browser = await chromium.launch({ executablePath: EXECUTABLE });
 
 try {
+  console.log("signed out");
+  await expectSignInWall((label, ok) => check(label, ok), "/settings/help", BASE_URL);
   for (const colorScheme of ["dark", "light"]) {
     console.log(`\n=== ${colorScheme} ===`);
     const context = await browser.newContext({ colorScheme, viewport: VIEWPORT });
@@ -57,9 +70,10 @@ try {
 
     try {
       /* ------------------------------------------- 1. the surface opens */
-      console.log("support surface on settings");
-      await page.goto(`${BASE_URL}/settings`, { waitUntil: "load" });
-      await page.waitForTimeout(1500);
+      console.log("support surface on settings (preview harness)");
+      if (!(await openPreview(page, "/preview/session-b/sweep-settings?v=help", check, { base: BASE_URL, wait: 1500 }))) {
+        continue;
+      }
 
       const card = page.locator('section[aria-label="Help and support"]');
       check(`${colorScheme}: support card renders`, await card.first().isVisible());
@@ -86,6 +100,11 @@ try {
       console.log("a question gets a reply");
       await page.locator('[data-testid="support-input"]').fill("How do cancellations work?");
       await page.locator('[data-testid="support-send"]').click();
+      await page.waitForTimeout(800);
+      /* Nothing goes to the model before the reader has agreed. */
+      const agree = card.first().locator('button:has-text("I understand, continue")');
+      check(`${colorScheme}: the AI consent sheet asks first`, (await agree.count()) === 1);
+      if ((await agree.count()) === 1) await agree.click();
       await page.waitForTimeout(4000);
 
       const replies = card.first().locator('[data-testid="support-reply"]');
@@ -97,7 +116,7 @@ try {
       check(`${colorScheme}: the reply has real content`, answer.trim().length > 20);
       check(
         `${colorScheme}: the reply is the honest unconfigured line`,
-        answer.includes("The support agent wakes the moment its key lands"),
+        answer.includes("The AI helper wakes the moment its key lands"),
       );
       check(
         `${colorScheme}: the keyword help store still answers the question`,

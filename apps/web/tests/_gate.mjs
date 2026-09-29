@@ -123,8 +123,8 @@ async function fillHydrated(page, selector, value) {
 
 /**
  * Sign the QA member in and return a storage state for new contexts, or null
- * with a SKIP printed when no credentials are set. Uses the email-first door
- * (`/sign-in` then `/sign-in/email`) and the passcode layer.
+ * with a SKIP printed when no credentials are set. Uses the one-screen door
+ * (`/sign-in`, email and password together, B-1) and the passcode layer.
  */
 export async function signInAsQa(browser, { base = BASE_URL, contextOptions = {} } = {}) {
   const creds = qaCredentials();
@@ -137,9 +137,9 @@ export async function signInAsQa(browser, { base = BASE_URL, contextOptions = {}
   await ctx.addCookies([{ name: "vallo_first_run", value: "seen", url: base }]);
   const page = await ctx.newPage();
   await page.goto(`${base}/sign-in`, { waitUntil: "domcontentloaded" });
-  await fillHydrated(page, "#auth-email", creds.email);
-  await page.click("button:has-text('Continue')");
+  /* One screen (B-1): the email and the password are both on `/sign-in`. */
   await page.waitForSelector("#password", { timeout: 30_000 });
+  await fillHydrated(page, "#email", creds.email);
   await fillHydrated(page, "#password", creds.password);
   await page.click("button[type=submit]:has-text('Sign in')");
   await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 60_000 });

@@ -17,6 +17,7 @@
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, skip } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 900;
@@ -84,7 +85,10 @@ async function run(theme) {
 
     check(
       "the no-fees sentence is on the page in full",
-      /Vallo charges no fees\. Not to book, not to list, not to be paid\./.test(safety),
+      /* Track A's wording (lib/trust/standards.ts NO_FEES_LINE). */
+      safety.includes(
+        "Vallo charges no fees to look, to book or to list, and its commission is zero. The Vallo Guarantee contribution, 1 to 2 percent of a payment, comes out of the lister's share into a separate reserve.",
+      ),
     );
     check(
       "it says nobody should ever ask you to pay outside the platform",
@@ -100,8 +104,9 @@ async function run(theme) {
     check("how paying works is explained", /How paying on Vallo works/i.test(safety));
     check("how inspections work is explained", /How inspections work/i.test(safety));
     check(
-      "message, inspect, then pay is stated as the order",
-      /message, inspect, then pay/i.test(safety),
+      /* Agreements (Track A) put a step between inspecting and paying. */
+      "message, inspect, agree, then pay is stated as the order",
+      /message, inspect, agree, then pay/i.test(safety),
     );
     check("how to report is explained", /How to report something/i.test(safety));
     check(
@@ -181,7 +186,8 @@ async function run(theme) {
     check("the 72 hour boundary is stated", /72/.test(cancellations));
     check(
       "an unpaid hold is said to cost nothing",
-      /Cancel it from Bookings at any hour, for nothing/i.test(cancellations),
+      /* Bookings is called Plans now. */
+      /Cancel it from Plans, at any hour, for nothing/i.test(cancellations),
     );
     check(
       "a host cancellation always returns everything",
@@ -227,7 +233,7 @@ async function run(theme) {
     );
     check(
       "and it says plainly that there are no fees",
-      /Vallo charges no fees at all/i.test(help),
+      /Vallo charges (you )?no fees/i.test(help),
     );
     check(
       "the unbuilt escrow promise is gone",
@@ -259,33 +265,27 @@ async function run(theme) {
  *
  * Inbox item 66 asks for the policy as a timeline rather than a paragraph, and
  * the timeline has existed for a while on /cancellations and in the safety
- * centre. Those are the two places somebody goes AFTER they want out. The
- * point of a timeline is that it can be read in four seconds while deciding,
- * so it now renders on a listing, as the plain platform policy, and again at
- * checkout against the guest's own dates and their own total.
+ * centre. Those are the two places somebody goes AFTER they want out, so it
+ * also renders on a listing and at checkout.
  *
- * NEITHER OF THOSE CAN BE REACHED TODAY. The catalogue is empty, so every
- * /listing route 404s, and a checkout needs a booking, which needs a listing.
- * This section says so out loud rather than passing quietly, because a spec
- * that skips silently is indistinguishable from one that proves something.
+ * Since 23 September a listing answers a signed-out visitor with the sign-in
+ * wall (asserted), so the listing placement is read signed in as the QA member
+ * (SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD), and it still needs a
+ * listing to exist: without one it says so out loud rather than passing.
  */
 async function decisionSurfaces() {
   console.log("\n[dark] where the decision is made");
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    colorScheme: "dark",
-  });
+  await expectSignInWall(check, "/listing/lekki-palm-grove", BASE_URL);
+  const state = await signInAsQa(browser, { base: BASE_URL });
+  if (!state) return;
+  const context = await qaContext(browser, state, { viewport: { width: 390, height: 844 }, colorScheme: "dark" });
   try {
     const page = await context.newPage();
     const res = await page.goto(`${BASE_URL}/listing/lekki-palm-grove`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
     const found = await page.locator('[data-testid="cancellation-timeline"]').count();
-
-    if (res.status() === 404 || (await page.locator("text=404").count()) > 0) {
-      console.log("  SKIPPED the listing and checkout placements.");
-      console.log("          The catalogue is empty, so /listing 404s and there is no");
-      console.log("          booking to reach a checkout with. Both placements are");
-      console.log("          UNPROVED and stay unproved until somebody signs up.");
+    if (res.status() === 404 || (await page.locator('[data-testid="listing-gallery"]').count()) === 0) {
+      skip("no listing behind /listing/lekki-palm-grove, so the listing placement of the schedule is unproved");
       return;
     }
     check("the schedule is on the listing, before anyone has committed", found === 1);

@@ -16,6 +16,7 @@ import {
   commentOnStory,
   recordStoryView,
   removeStory,
+  deleteStoryComment,
   reportStoryComment,
   toggleStoryCommentLike,
   toggleStoryMark,
@@ -495,6 +496,8 @@ export function StoryViewer({
             commentOnStory({ storyId: story.id, parentId, body })
           }
           onLike={(commentId) => toggleStoryCommentLike({ commentId })}
+          /* B-7b: your own comment can be deleted (soft, like a post). */
+          onDelete={(commentId) => deleteStoryComment({ commentId })}
           onReport={(input) => reportStoryComment(input)}
         />
       ) : null}

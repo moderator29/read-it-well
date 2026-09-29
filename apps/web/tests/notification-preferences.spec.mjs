@@ -18,13 +18,17 @@
  * /agent/settings, which was an eleven-line coming-soon stub, is the second
  * door to that one preference document, described in a host's words.
  *
- * This sandbox has no route to the Supabase host, so the signed-out cards
- * render. What a browser proves is that both surfaces are real, that the wallet
- * row no longer promises what it cannot keep, and that both themes render at
- * 390px.
+ * Since 23 September both routes answer a signed-out visitor with the sign-in
+ * wall (asserted first). The surfaces are then read in the preview harness
+ * (`/preview/f5/agent-settings` and `/preview/session-b/sweep-settings?v=hub`,
+ * the real components with a fixture member), and signed in as the QA member
+ * on the real routes (SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
+ * What a browser proves is that both surfaces are real and that both themes
+ * render at 390px.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -41,11 +45,16 @@ function check(name, condition) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
+async function open(page, path) {
+  if (path.startsWith("/preview/")) return openPreview(page, path, check, { base: BASE_URL, wait: WAIT });
+  await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
+  await page.waitForTimeout(WAIT);
+  return true;
+}
+
+async function run(theme, { state = null, agentPath, settingsPath }) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((t) => {
     try {
       window.localStorage.setItem("nf_theme", t);
@@ -63,9 +72,8 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme}] /agent/settings`);
-    await page.goto(`${BASE_URL}/agent/settings`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    console.log(`\n[${theme}] ${agentPath}`);
+    if (!(await open(page, agentPath))) return;
 
     const appliedTheme = await page.evaluate(
       () => document.documentElement.dataset.theme ?? "dark",
@@ -90,9 +98,8 @@ async function run(theme) {
     );
     check(`no horizontal scroll at 390px (${overflow}px)`, overflow <= 1);
 
-    console.log(`[${theme}] /settings`);
-    await page.goto(`${BASE_URL}/settings`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    console.log(`[${theme}] ${settingsPath}`);
+    if (!(await open(page, settingsPath))) return;
 
     const text = await page.locator("body").innerText();
     check("the settings page renders", text.trim().length > 0);
@@ -109,8 +116,18 @@ async function run(theme) {
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  await expectSignInWall(check, "/agent/settings", BASE_URL);
+  await expectSignInWall(check, "/settings", BASE_URL);
+  const PREVIEW = { agentPath: "/preview/f5/agent-settings", settingsPath: "/preview/session-b/sweep-settings?v=hub" };
+  await run("dark", PREVIEW);
+  await run("light", PREVIEW);
+  console.log("\nsigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    await run("dark", { state, agentPath: "/agent/settings", settingsPath: "/settings" });
+    await run("light", { state, agentPath: "/agent/settings", settingsPath: "/settings" });
+  }
 } finally {
   await browser.close();
 }

@@ -89,9 +89,8 @@ if (!email || !password) {
   /* The first-run door has been seen; the sign-in form is what is being proven. */
   await context.addCookies([{ name: "vallo_first_run", value: "seen", url: BASE }]);
   await page.goto(`${BASE}/sign-in?next=${encodeURIComponent("/profile")}`, { waitUntil: "domcontentloaded" });
-  await fillAndWaitHydrated("#auth-email", email);
-  await page.click("button:has-text('Continue')");
-  await page.waitForURL(/\/sign-in\/email/, { timeout: 15000 });
+  /* One screen (B-1): email and password together on /sign-in. */
+  await fillAndWaitHydrated("#email", email);
   await fillAndWaitHydrated("#password", password);
   await page.click("button[type=submit]:has-text('Sign in')");
   await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 30000 }).catch(() => {});

@@ -143,6 +143,41 @@ const PUBLIC = [
   "/reset-password",
   "/welcome",
   "/start",
+  /* Added since: the disclaimer is a legal page like the other four; `/check`
+     is "Is this a Vallo agent?" for a renter holding a flyer (V-61); `/r` is
+     the receipt check a tenant hands to an employer or an embassy (V-55). */
+  "/disclaimer",
+  "/check",
+  "/r",
+];
+
+/**
+ * Public doors that only exist with something after them: a share card
+ * (`/s/<token>`), the landlord's reply page and a trusted contact's page (a
+ * token each), the area price pages (`/areas/<state>/<area>`, a 404 below the
+ * Price Check minimum), and `/open`, which sends a stranger to `/welcome`.
+ * The gate must not take any of them; an unknown token is entitled to its own
+ * not-found. Each is in PUBLIC_SEGMENTS in `src/proxy.ts` with its reason.
+ */
+const PUBLIC_DOORS = [
+  "/s/not-a-real-token",
+  "/landlord/not-a-real-token",
+  "/safe/not-a-real-token",
+  "/areas/lagos/lekki",
+  "/open",
+];
+
+/**
+ * Retired or renamed addresses, answered by `next.config.ts` before the gate,
+ * and where each must land. The wallet and escrow were retired with custody
+ * (every old link lands on agreements); `/inspections` and `/rent` are the
+ * short names for two views of pages already in PRODUCT.
+ */
+const REDIRECTS = [
+  ["/wallet", "/agreements"],
+  ["/escrow", "/agreements"],
+  ["/inspections", "/bookings?kind=inspection&from=property"],
+  ["/rent", "/search?market=rent"],
 ];
 
 /** Public, but not pages: fetched by machines that will never have a cookie. */
@@ -179,17 +214,20 @@ const PRODUCT = [
   "/notifications",
   "/profile",
   "/settings",
-  "/wallet",
+  "/agreements",
   "/bookings",
   "/checkout/anything",
   "/bookings?side=stays",
   "/host",
-  "/escrow",
   "/bookings?kind=inspection",
   "/verification",
   "/assistant",
   "/stories",
-  "/crypto",
+  /* The crypto checkout moved under /pay (it was /crypto). */
+  "/pay/crypto/anything",
+  "/record",
+  "/support",
+  "/tenancy",
   "/legal/privacy",
   "/legal/terms",
   "/admin",
@@ -214,7 +252,6 @@ const API_CLOSED = [
   "/api/crypto/coins/bitcoin",
   "/api/assistant",
   "/api/documents/anything",
-  "/api/push/key",
   "/api/push/register",
   "/api/push/revoke",
   "/api/push/self-test",
@@ -230,6 +267,10 @@ const API_CLOSED = [
  * failure is the middleware's own refusal, which is identifiable by its code.
  */
 const API_OPEN = [
+  /* The PUBLIC half of the VAPID pair, opened on purpose on 23 September so a
+     home-screen web app (its own cookie store, no session) can subscribe; see
+     the note beside it in src/proxy.ts. */
+  "/api/push/key",
   "/api/csp-report",
   "/api/client-error",
   "/api/support",
@@ -379,6 +420,36 @@ try {
     if (!bounced) leaked.push(`${path} answered ${res.status()} ${location}`);
   }
   check(`all ${PRODUCT.length} product routes bounce to sign-in`, leaked.length === 0, leaked);
+
+  console.log("\nRetired and renamed addresses, signed out");
+  const misrouted = [];
+  for (const [path, want] of REDIRECTS) {
+    const res = await context.request.get(BASE_URL + path, { maxRedirects: 0 });
+    const location = res.headers()["location"] ?? "";
+    let landed = "";
+    try {
+      const u = new URL(location, BASE_URL);
+      landed = `${u.pathname}${u.search}`;
+    } catch {
+      landed = location;
+    }
+    if (![307, 308].includes(res.status()) || landed !== want) misrouted.push(`${path} answered ${res.status()} ${location}`);
+  }
+  check(`all ${REDIRECTS.length} retired addresses land where they should`, misrouted.length === 0, misrouted);
+  check(
+    "and every place they land is itself behind the wall",
+    REDIRECTS.every(([, want]) => PRODUCT.includes(want) || PRODUCT.includes(want.split("&")[0])),
+  );
+
+  console.log("\nThe public doors that need a token, signed out");
+  const doorsTaken = [];
+  for (const path of PUBLIC_DOORS) {
+    const res = await context.request.get(BASE_URL + path, { maxRedirects: 0 });
+    const location = res.headers()["location"] ?? "";
+    if (location.includes("/sign-in")) doorsTaken.push(`${path} was sent to sign-in`);
+    if (res.status() >= 500) doorsTaken.push(`${path} answered ${res.status()}`);
+  }
+  check(`the gate takes none of the ${PUBLIC_DOORS.length} token doors`, doorsTaken.length === 0, doorsTaken);
 
   /* --------------------------------------------------------- the deep link */
   console.log("\nThe way back to a shared link");
@@ -560,7 +631,7 @@ try {
   /* The two development harnesses are closed by `previewHarnessIsOpen`, not by
      the gate, so they are declared here rather than smuggled into PUBLIC. */
   const known = new Set([
-    ...[...PUBLIC, ...PRODUCT, ...API_CLOSED, ...API_OPEN].map(
+    ...[...PUBLIC, ...PUBLIC_DOORS, ...REDIRECTS.map(([from]) => from), ...PRODUCT, ...API_CLOSED, ...API_OPEN].map(
       (p) => (p.split("?")[0] ?? "").split("/")[1] ?? "",
     ),
     "preview",

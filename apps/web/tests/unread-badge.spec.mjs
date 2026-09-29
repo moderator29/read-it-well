@@ -15,13 +15,24 @@
  *    name now comes from the caller's profile, falling back to Guest only when
  *    nobody is signed in, which in this sandbox is always.
  *
- * This sandbox has no route to the Supabase host, so nobody is signed in and
- * both correct answers are the empty ones: no badge, and Guest. That is exactly
- * what a fabricated badge would fail. Checked at 390px and at desktop width,
- * dark and light.
+ * WHERE. Since 23 September `/home` answers a signed-out visitor with the
+ * sign-in wall (asserted). The chrome is read in the preview harness, which
+ * mounts the real AppShell with the count handed to it, both ways round:
+ *
+ *   `/preview/session-b/sweep-home/home-empty`  unread 0: no badge anywhere,
+ *                                               and the profile tab claims none;
+ *   `/preview/session-b/sweep-settings?v=hub`   unread 2: the badge says 2 and
+ *                                               the profile tab says so too,
+ *                                               which proves the badge is fed
+ *                                               by the count rather than absent
+ *                                               by accident.
+ *
+ * Checked at 390px and at desktop width, dark and light. (The count badge is
+ * `.nf-count-badge`, not `.nf-badge`, so both classes are read.)
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -38,7 +49,7 @@ function check(name, condition) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme, width) {
+async function run(theme, width, { path, unread }) {
   const context = await browser.newContext({
     colorScheme: theme,
     viewport: { width, height: 900 },
@@ -60,9 +71,8 @@ async function run(theme, width) {
   });
 
   try {
-    console.log(`\n[${theme} ${width}px] /home`);
-    await page.goto(`${BASE_URL}/home`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    console.log(`\n[${theme} ${width}px] ${path} (unread ${unread})`);
+    if (!(await openPreview(page, path, check, { base: BASE_URL, wait: WAIT }))) return;
 
     const appliedTheme = await page.evaluate(
       () => document.documentElement.dataset.theme ?? "dark",
@@ -77,7 +87,7 @@ async function run(theme, width) {
        broken navigation (docs/archive/HANDOFF.md section 6). */
     const numericBadges = await page.evaluate(() => {
       const out = [];
-      for (const el of document.querySelectorAll(".nf-badge")) {
+      for (const el of document.querySelectorAll(".nf-badge, .nf-count-badge")) {
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 && rect.height === 0) continue;
         const text = (el.textContent ?? "").trim();
@@ -85,20 +95,39 @@ async function run(theme, width) {
       }
       return out;
     });
-    check(
-      `no invented unread count in the chrome (saw ${JSON.stringify(numericBadges)})`,
-      numericBadges.length === 0,
-    );
+    if (unread === 0) {
+      check(
+        `no invented unread count in the chrome (saw ${JSON.stringify(numericBadges)})`,
+        numericBadges.length === 0,
+      );
+    } else if (width >= 1024) {
+      check(
+        `the rail's badge is the count it was handed (saw ${JSON.stringify(numericBadges)})`,
+        numericBadges.length > 0 && numericBadges.every((n) => n === String(unread)),
+      );
+    } else {
+      check(
+        `no number other than the count it was handed (saw ${JSON.stringify(numericBadges)})`,
+        numericBadges.every((n) => n === String(unread)),
+      );
+    }
 
     /* The profile dot on the phone dock is the mobile half of the same count,
        and must be absent for the same reason. */
     const profileTab = page.locator('.nf-tabbar a[href="/profile"]').first();
     if ((await profileTab.count()) > 0) {
       const label = (await profileTab.getAttribute("aria-label")) ?? "";
-      check(
-        `the profile tab carries a real label and claims no unread (label: "${label}")`,
-        label.length > 0 && !/unread/i.test(label),
-      );
+      if (unread === 0) {
+        check(
+          `the profile tab carries a real label and claims no unread (label: "${label}")`,
+          label.length > 0 && !/unread/i.test(label),
+        );
+      } else {
+        check(
+          `the profile tab says the count it was handed (label: "${label}")`,
+          new RegExp(`\\b${unread} unread\\b`).test(label),
+        );
+      }
     } else {
       /* Above lg the dock is gone by design, so there is nothing to assert. */
       console.log("  note    phone dock not present at this width, as expected");
@@ -114,9 +143,15 @@ async function run(theme, width) {
 }
 
 try {
-  await run("dark", 390);
-  await run("light", 390);
-  await run("dark", 1280);
+  console.log("signed out");
+  await expectSignInWall(check, "/home", BASE_URL);
+  const NONE = { path: "/preview/session-b/sweep-home/home-empty", unread: 0 };
+  const TWO = { path: "/preview/session-b/sweep-settings?v=hub", unread: 2 };
+  await run("dark", 390, NONE);
+  await run("light", 390, NONE);
+  await run("dark", 1280, NONE);
+  await run("dark", 390, TWO);
+  await run("dark", 1280, TWO);
 } finally {
   await browser.close();
 }

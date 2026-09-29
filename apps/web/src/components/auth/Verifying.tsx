@@ -143,7 +143,7 @@ export function Verifying({
           </span>
           <h1 className="nf-h2 mt-md">{a.signInWithYourEmail}</h1>
           <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
-          <ButtonLink href="/sign-in/email" variant="primary" size="lg" className="mt-lg">
+          <ButtonLink href="/sign-in" variant="primary" size="lg" className="mt-lg">
             {a.signInWithEmail}
           </ButtonLink>
         </div>

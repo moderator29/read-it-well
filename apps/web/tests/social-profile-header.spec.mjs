@@ -33,9 +33,17 @@
  * removed before this file was written; what it showed is in the session report
  * and is not asserted here, because an assertion nobody can re-run is worse
  * than an honest gap.
+ *
+ * SINCE 23 SEPTEMBER `/u/[handle]` answers a signed-out visitor with the
+ * sign-in wall (asserted), so the browser half now reads the found-state header
+ * in the preview harness (`/preview/f4/public-profile`, the real ProfileHeader
+ * with a fixture person; the gap above is closed by it), and the real route
+ * signed in as the QA member (SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD).
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -244,11 +252,9 @@ check(
 const HANDLE = "aduke_from_yaba";
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    colorScheme: theme,
-  });
+async function run(theme, { state = null, path }) {
+  const options = { viewport: { width: 390, height: 844 }, colorScheme: theme };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   /* Only a stored choice moves the theme. The operating system never does. */
   await context.addInitScript((choice) => {
     try {
@@ -265,14 +271,14 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme} 390px] /u/${HANDLE}`);
-    const response = await page.goto(`${BASE_URL}/u/${HANDLE}`, {
-      waitUntil: "load",
-      timeout: 60000,
-    });
-    await page.waitForTimeout(900);
-
-    check("a handle nobody holds answers 200, never a 404", response?.status() === 200);
+    console.log(`\n[${theme} 390px] ${path}`);
+    if (!state) {
+      if (!(await openPreview(page, path, check, { base: BASE_URL, wait: 900 }))) return;
+    } else {
+      const response = await page.goto(`${BASE_URL}${path}`, { waitUntil: "load", timeout: 60000 });
+      await page.waitForTimeout(900);
+      check("a handle nobody holds answers 200, never a 404", response?.status() === 200);
+    }
     check(
       "the chosen theme actually took",
       (await page.evaluate(() => document.documentElement.dataset.theme ?? "dark")) === theme,
@@ -280,26 +286,28 @@ async function run(theme) {
 
     const text = await page.evaluate(() => document.body.innerText);
     const mounted = (await page.getByTestId("profile-header").count()) === 1;
-
-    /*
-     * Both branches are named out loud, so a green run can never be mistaken
-     * for a run that had a real profile behind it. In this sandbox it is always
-     * the second.
-     */
-    console.log(`          (${mounted ? "a profile rendered" : "no route to Supabase, so the designed notice"})`);
+    /* Both branches are named out loud, so a green run can never be mistaken
+       for a run that had a real profile behind it. */
+    console.log(`          (${mounted ? "a profile rendered" : "no profile could be read, so the designed notice"})`);
 
     if (mounted) {
-      check("the back control carries its word", (await page.getByTestId("profile-back").innerText()).length > 0);
+      const backText = (await page.getByTestId("profile-back").innerText().catch(() => "")).trim();
+      const backName = (await page.getByTestId("profile-back").getAttribute("aria-label").catch(() => "")) ?? "";
+      check("the back control carries its word", backText.length > 0, `drawn "${backText}", aria-label "${backName}"`);
       check("the handle line is there", (await page.getByTestId("profile-handle-line").count()) === 1);
       check("three counts", (await page.getByTestId("profile-counts").count()) === 1);
-      check("the tab row has exactly one live tab", (await page.locator('.nf-social-tabs [role="tab"][aria-selected="true"]').count()) === 1);
-    } else {
+      if (state) {
+        check("the tab row has exactly one live tab", (await page.locator('.nf-social-tabs [role="tab"][aria-selected="true"]').count()) === 1);
+      }
+    } else if (state) {
       check(
         "the unreadable state is a designed page, not a crash",
         /cannot reach profiles right now|Nothing to show|not a handle/i.test(text),
         text.slice(0, 200),
       );
       check("and it carries a way onward", (await page.locator('a[href="/home"]').count()) >= 1);
+    } else {
+      check("the harness mounts the header", false);
     }
 
     check(
@@ -308,9 +316,7 @@ async function run(theme) {
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       )) === 0,
     );
-    /* Zero em dashes anywhere in the product's copy, in every language. */
-    /* Escaped, so this file stays clean of the character it is looking for.
-       Same form the other social specs use. */
+    /* Escaped, so this file stays clean of the character it is looking for. */
     const emDashes = (text.match(/\u2014/g) ?? []).length;
     check(`no em dashes in the copy (${emDashes} found)`, emDashes === 0);
     check("no route returned a server error", serverErrors.length === 0, serverErrors.join("\n"));
@@ -319,8 +325,16 @@ async function run(theme) {
   }
 }
 
-await run("dark");
-await run("light");
+console.log("\n[browser] signed out");
+await expectSignInWall(check, `/u/${HANDLE}`, BASE_URL);
+await run("dark", { path: "/preview/f4/public-profile" });
+await run("light", { path: "/preview/f4/public-profile" });
+console.log("\n[browser] signed in as the QA member");
+const qaState = await signInAsQa(browser, { base: BASE_URL });
+if (qaState) {
+  await run("dark", { state: qaState, path: `/u/${HANDLE}` });
+  await run("light", { state: qaState, path: `/u/${HANDLE}` });
+}
 await browser.close();
 
 console.log(failures === 0 ? "\nall checks passed" : `\n${failures} check(s) failed`);

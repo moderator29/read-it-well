@@ -58,7 +58,7 @@ export function FinishSetupForm({
     <div className="nf-auth__screen">
       <div className="nf-slate-stagger">
         <h1 className="nf-auth__title">{t.auth.finishTitle}</h1>
-        <p className="nf-slate-note">{t.auth.finishLead}</p>
+        <p className="nf-slate-note mt-sm">{t.auth.finishLead}</p>
       </div>
 
       <form

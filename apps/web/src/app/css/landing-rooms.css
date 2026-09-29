@@ -71,7 +71,7 @@
   }
 
   /* Once per visit: the second time the landing opens this session, the
-     hero is simply there (the flag is set by the script in app/page.tsx). */
+     hero is simply there (the flag is set by the script in app/(landing)/page.tsx). */
   :root[data-intro="seen"] .nf-landing-title .nf-depth-word,
   :root[data-intro="seen"] .nf-landing-hero .nf-rise,
   :root[data-intro="seen"] .nf-depth-last {

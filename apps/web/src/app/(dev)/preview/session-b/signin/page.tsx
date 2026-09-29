@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import AuthLayout from "@/app/(auth)/layout";
-import { AuthChoices } from "@/components/auth/AuthChoices";
+import { FinishSetupForm } from "@/components/auth/FinishSetupForm";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import type { AuthFormState, EmailStatus } from "@/lib/auth/form-state";
 import { deactivatedAccountNotice } from "@/lib/auth/deactivated-notice";
@@ -43,13 +43,14 @@ export const metadata: Metadata = {
 /**
  * Welcome back, the states a sandbox cannot reach live (rule R-G).
  *
- * The real shell, the real `AuthChoices` and the real `EmailAuthForm`, on
- * fixture props, behind the preview gate in `../../layout.tsx`. The live
- * `/sign-in` needs no fixtures for its chooser; these are the password-step
- * answers that depend on an account existing, which no test user may be
- * created to show:
+ * The real shell and the real `EmailAuthForm` (one screen, email and
+ * password together, B-1), on fixture props, behind the preview gate in
+ * `../../layout.tsx`. These are the answers that depend on an account
+ * existing, which no test user may be created to show:
  *
- *   ?state=chooser   the chooser, as live, with a notice
+ *   ?state=chooser   the one screen, as live, with a notice and the doors
+ *   ?state=finish    "Finish setting up" for a new Google account (B-2),
+ *                    with the provider's name filled in
  *   ?state=google    an address whose account signs in with Google
  *   ?state=none      an address no account uses (the plain password step)
  *   ?state=refused      a password the server refused ("do not match")
@@ -96,12 +97,18 @@ export default async function SignInPreview({
         initialState={REFUSALS[state]}
       />
     );
+  } else if (state === "finish") {
+    body = (
+      <FinishSetupForm t={t} action={fixtureRefusal} initialFirstName="Ada" initialSurname="Obi" />
+    );
   } else {
     body = (
-      <AuthChoices
+      <EmailAuthForm
         mode="sign-in"
         t={t}
-        providers={providers}
+        action={fixtureRefusal}
+        googleReady={providers.some((p) => p.id === "google" && p.configured)}
+        appleReady
         notice="Sign in to open that. It takes a moment, and new accounts are free."
       />
     );

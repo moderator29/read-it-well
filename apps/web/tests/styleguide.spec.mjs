@@ -15,12 +15,19 @@
  * three times: a static scan of source is a guess, the running artefact is the
  * answer.
  *
+ * SINCE 23 SEPTEMBER `/styleguide` is behind the sign-in wall like every
+ * route not on the proxy's public list (a new route is born locked; the
+ * audit's L-6 notes only that `robots.ts` still names it). The wall is
+ * asserted, and the page is read signed in as the QA member; without
+ * QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD the spec is reported as SKIP (exit 77).
+ *
  * Run with the dev server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/styleguide.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, SKIP_EXIT } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 900;
@@ -38,10 +45,21 @@ function check(name, condition, detail) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
+console.log("signed out");
+await expectSignInWall(check, "/styleguide", BASE_URL);
+console.log("\nsigned in as the QA member");
+const qaState = await signInAsQa(browser, { base: BASE_URL });
+if (!qaState) {
+  await browser.close();
+  if (failures > 0) process.exit(1);
+  console.log("\nstyleguide: the wall holds; the page needs a session and was skipped");
+  process.exit(SKIP_EXIT);
+}
+
 for (const colorScheme of ["dark", "light"]) {
   for (const width of [390, 1280]) {
     console.log(`\nstyleguide  (${colorScheme}, ${width}px)`);
-    const context = await browser.newContext({
+    const context = await qaContext(browser, qaState, {
       colorScheme,
       viewport: { width, height: 900 },
     });

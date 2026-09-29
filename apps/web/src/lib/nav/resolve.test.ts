@@ -73,7 +73,9 @@ describe("the map itself", () => {
 
   it("names its roots and nothing else", () => {
     const roots = PATTERNS.filter((p) => ROUTE_PARENTS[p] === ROOT);
-    expect(roots.sort()).toEqual(["/", "/home", "/stays", "/welcome"]);
+    /* `/sign-up/finish` (B-2) is a root on purpose: a signed-in person the
+       gate holds there has nothing above it to go back to. */
+    expect(roots.sort()).toEqual(["/", "/home", "/sign-up/finish", "/stays", "/welcome"]);
   });
 
   it("puts a dynamic route under the shelf it came off, not under home", () => {

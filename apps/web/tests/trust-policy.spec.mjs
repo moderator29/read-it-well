@@ -225,9 +225,13 @@ check(
   "an unparseable timestamp does not silently read as on time",
   clock.garbage.overdue === false && clock.garbage.hoursLeft >= 0,
 );
+/* Track A (split settlement and the Vallo Guarantee) rewrote the sentence:
+   still no fee to look, book or list and a zero commission, and now it names
+   the Guarantee contribution and whose share it comes out of. */
 check(
   "the no-fees sentence is the one the safety centre prints",
-  clock.noFees === "Vallo charges no fees. Not to book, not to list, not to be paid.",
+  clock.noFees ===
+    "Vallo charges no fees to look, to book or to list, and its commission is zero. The Vallo Guarantee contribution, 1 to 2 percent of a payment, comes out of the lister's share into a separate reserve.",
 );
 check("four things we never ask for", clock.neverAsk === 4);
 

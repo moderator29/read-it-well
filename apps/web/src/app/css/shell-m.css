@@ -914,3 +914,32 @@
     border: 1.5px solid var(--nf-surface-canvas);
   }
 }
+
+/*
+ * THE GLOW KEEPERS (B-5, 29 September 2026).
+ *
+ * The platform's glow runs through one dial, `--nf-glow-scale` in tokens.css,
+ * turned down to 0.4 at night, 0.35 in daylight and 0.3 on a night island in
+ * daylight. The founder named the objects that keep their light: the side
+ * navigation panel's glass and glow in the dark theme only, and the dock
+ * capsule (with its More tray and button). Here they set the dial back to 1
+ * and restate the rungs, because a custom property built from another is
+ * resolved where it is declared: without the restatement they would inherit
+ * the page's already-dimmed rungs. The logo's lap and the success sheet's one
+ * bloom are drawn from `--nf-glow-ink` and the brand primary, not the rungs,
+ * so they are unaffected either way.
+ *
+ * Unlayered on purpose: tokens.css is unlayered, and a layered rule loses to
+ * it whatever its specificity.
+ */
+:root:not([data-theme="light"]) :is(.nf-drawer--left, .nf-nav--rail),
+.nf-tabbar,
+.nf-dock-island,
+.nf-dockmore__tray {
+  --nf-glow-scale: 1;
+  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) calc(5% * var(--nf-glow-scale)), transparent);
+  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) calc(10% * var(--nf-glow-scale)), transparent);
+  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) calc(19% * var(--nf-glow-scale)), transparent);
+  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) calc(32% * var(--nf-glow-scale)), transparent);
+  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) calc(46% * var(--nf-glow-scale)), transparent);
+}

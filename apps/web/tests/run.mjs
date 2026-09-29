@@ -76,6 +76,19 @@ export const PROD = ["csp", "fonts", "pwa", "save-data"];
 
 export const SKIP_EXIT = 77;
 
+/**
+ * Specs that sweep dozens of routes at several widths and need longer than
+ * the default per-spec timeout on a dev server that compiles as it goes. The
+ * runner uses the larger of this and `--timeout`.
+ */
+export const SLOW = {
+  truncation: 720,
+  "polish-overlays-copy-status": 720,
+  "icons-and-targets": 600,
+  "money-and-numbers": 480,
+  csp: 480,
+};
+
 export function specsFor(tier, available) {
   if (tier === "full") return [...available].sort();
   if (tier === "prod") {
@@ -197,7 +210,7 @@ async function main(argv) {
       console.log(`  prod  ${name}  (production-build property; run with --tier prod against next start)`);
       continue;
     }
-    const result = await runOne(name, env, timeoutMs);
+    const result = await runOne(name, env, Math.max(timeoutMs, (SLOW[name] ?? 0) * 1000));
     results.push(result);
     const label = result.skipped ? "skip" : result.ok ? "pass" : "FAIL";
     const note = result.ok && result.skips.length > 0 ? `, ${result.skips.length} section(s) skipped` : "";

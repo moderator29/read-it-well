@@ -1395,9 +1395,14 @@ let parseError = null;
 try {
   const { bundle } = await import("lightningcss");
   const entry = join(ROOT, "src/app/globals.css");
+  /* Route stylesheets: partials a route layout imports instead of
+     `globals.css` (B-4). They are parsed after the global graph, which is
+     the order the browser receives them in. */
+  const ROUTE_STYLESHEETS = ["./css/admin.css"];
   const graph = readFileSync(entry, "utf8")
     .split("\n")
-    .flatMap((line) => [...line.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]));
+    .flatMap((line) => [...line.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]))
+    .concat(ROUTE_STYLESHEETS);
   const shim = join(ROOT, "src/app", ".parse-check.css");
   writeFileSync(shim, graph.map((f) => `@import "${f}";`).join("\n"));
   try {

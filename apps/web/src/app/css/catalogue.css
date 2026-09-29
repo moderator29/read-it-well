@@ -365,8 +365,8 @@
     pointer-events: none;
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
     top: 50%;
     left: 50%;
@@ -483,8 +483,8 @@
     color: var(--nf-brand-secondary);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
     border-radius: var(--nf-radius-control);
   }
@@ -540,8 +540,8 @@
       transform var(--nf-duration-press) var(--nf-ease-press);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-shelf-chip > svg:first-child {
@@ -592,8 +592,8 @@
     list-style: none;
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
     border-radius: var(--nf-radius-control);
     min-height: 2.75rem;

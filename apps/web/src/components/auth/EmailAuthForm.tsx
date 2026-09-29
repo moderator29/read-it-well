@@ -54,9 +54,13 @@ type StepOneErrors = Partial<
 /**
  * The email form, on its own screen, in the Slate dress.
  *
- * SIGN IN is the reference screen itself: the big title, the email and
- * password cards, "Forgot password?" on the right, the pill, the "Or" rule,
- * the round Google and Apple doors and the line to sign up.
+ * SIGN IN is the reference screen itself, ON ONE SCREEN (B-1, the founder,
+ * 29 September; refs 12 and 14): the big title, the email and password cards
+ * together, "Forgot password?" on the right, the pill, the "Or" rule, the
+ * round Google and Apple doors and the line to sign up. It is what `/sign-in`
+ * draws; the old second step, `/sign-in/email`, now forwards here. Nothing
+ * about the door's safety moved with it: the same `signInWithEmail` action,
+ * its two rate limits, its one neutral refusal, its `next` check.
  *
  * SIGN UP IS TWO STEPS ON ONE PAGE (the founder, 29 September). Step one is
  * the account: first name and surname, email, password and its confirmation,
@@ -90,6 +94,8 @@ export function EmailAuthForm({
   appleReady = false,
   surface = "web",
   initialState = EMPTY,
+  notice,
+  emailReady = true,
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
@@ -125,6 +131,15 @@ export function EmailAuthForm({
   /** The form's state before any submit. Only the preview harness passes it,
       to draw a refusal without a live account. */
   initialState?: AuthFormState;
+  /**
+   * Sign-in only: a sentence from the callback, the wall or the passcode lock
+   * (`?notice=` looked up in the dictionary by the page, own keys only), drawn
+   * under the title as a status.
+   */
+  notice?: string | undefined;
+  /** False when accounts cannot be reached at all: the pill gives way to
+      the sentence that says so, as the chooser used to. */
+  emailReady?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const isSignUp = mode === "sign-up";
@@ -347,6 +362,12 @@ export function EmailAuthForm({
         ) : (
           <h1 className="nf-auth__title">{t.common.signIn}</h1>
         )}
+
+        {!isSignUp && notice ? (
+          <p role="status" className="nf-auth__notice">
+            {notice}
+          </p>
+        ) : null}
 
         {isSignUp && (
           <div className="nf-slate-steps">
@@ -600,8 +621,9 @@ export function EmailAuthForm({
               inputMode="email"
               error={state.fieldErrors?.email}
             />
-            {/* The address arrived from the chooser, so the cursor goes to
-                the one thing left to type. */}
+            {/* Email and password on one screen (B-1). When the address
+                arrived already filled in (a link carrying it, or an old
+                chooser post), the cursor goes to the one thing left to type. */}
             <div>
               <PasswordField
                 t={t}
@@ -660,6 +682,8 @@ export function EmailAuthForm({
             >
               {t.common.next}
             </AuthPillButton>
+          ) : !isSignUp && !emailReady ? (
+            <p className="nf-auth__notice">{t.auth.providerUnavailable}</p>
           ) : (
             <AuthPillButton key="submit" type="submit" loading={pending} className="nf-auth__cta">
               {isSignUp ? t.signUp.createAccountCta : t.common.signIn}

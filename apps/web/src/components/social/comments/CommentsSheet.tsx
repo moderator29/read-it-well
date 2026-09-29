@@ -378,7 +378,9 @@ export function CommentsSheet({
                   <div className="nf-comment__head">
                     <span className="nf-comment__who">{comment.authorLabel}</span>
                     <span className="nf-comment__when">{comment.createdLabel}</span>
-                    {comment.isMine && !onDelete ? null : (
+                    {/* Your own comment offers Delete when the source has a
+                        path for it, and nothing once it is already deleted. */}
+                    {comment.isMine && (!onDelete || comment.removed) ? null : (
                     <div className="relative ms-auto">
                       <button
                         type="button"

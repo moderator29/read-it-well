@@ -409,8 +409,8 @@
     color: var(--nf-content-primary);
     background: var(--nf-btn-glass-fill);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-btn--glass::after {

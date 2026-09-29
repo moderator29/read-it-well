@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getDictionary, type Dictionary } from "@vallo/i18n";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
@@ -12,6 +12,7 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import {
+  confirmCardSetup,
   removePaymentMethod,
   setDefaultPaymentMethod,
   startCardSetup,
@@ -22,7 +23,6 @@ import {
   type BankAccount,
 } from "@/lib/payments/bank-accounts-actions";
 import type { PaymentMethod } from "@/lib/payments/methods";
-import { paymentState } from "@/lib/payments/payment-state";
 import { cardBrandLabel, cardExpired, cardExpiry, maskNumber } from "./format";
 import { AddBankAccountSheet } from "./AddBankAccountSheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -43,10 +43,10 @@ import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
  * can do to a card (make it the default, remove it, with the confirm inside
  * the sheet and rose on the confirming control only); a bank row does the
  * same for payouts. "+ Add" asks which, then runs the real path: a card is
- * saved by charging ₦100 into the person's own wallet through the hosted
- * window, because the processor only returns a reusable token from a real
- * charge, and the sheet says so before the tap; a bank account is resolved
- * with the bank before it is saved.
+ * saved by a ₦100 check charge in the in-app window, because the processor
+ * only returns a reusable token from a real charge; the ₦100 is returned to
+ * the same card, and the sheet says so before the tap. A bank account is
+ * resolved with the bank before it is saved.
  *
  * VERIFIED MEANS THE BANK CONFIRMED THE NAME. Every account in this list
  * was resolved before it was stored (`addBankAccount` refuses otherwise),
@@ -101,6 +101,13 @@ export function PaymentMethodsPanel({
   /* This panel already carries the dictionary for its locale. */
   const success = dict.success;
   const addedWords = successCopy(success, "bankAccountAdded");
+  const cardSavedWords = successCopy(success, "cardSaved");
+  /* B-6: set only when `confirmCardSetup` answered `saved`. */
+  const [cardSaved, setCardSaved] = useState(false);
+  /* A settled check that will not save a card carries its own sentence (what
+     happened to the ₦100). The checkout only knows paid, pending and failed,
+     so the sentence waits here for its `onFailed`. */
+  const setupRefusal = useRef<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -160,21 +167,33 @@ export function PaymentMethodsPanel({
   };
 
   /**
-   * Ask OUR OWN server whether the setup charge has landed.
+   * Ask our server whether the card setup went through, and file the card.
    *
-   * `paymentState` reads the `wallet_entries` row the webhook writes, keyed on
-   * the same unique reference. It does not call Paystack: this runs every two
-   * seconds and `verifyFunding`, which was the obvious thing to reach for,
-   * would have spent the person's whole verification allowance inside one
-   * payment. The card itself is filed by the webhook exactly as before;
-   * nothing about tokenisation changes because the window moved.
+   * B-6. This used to ask `paymentState`, which only knows booking references
+   * and so answered "pending" for every setup: no card was ever saved from
+   * here and "Card saved" never opened. `confirmCardSetup` verifies the ₦100
+   * check with Paystack (this person's setup, exactly ₦100, reusable token),
+   * files the card, and only then answers `saved`. It is polled on the
+   * checkout's backoff and counted on its own row of the money limits.
    */
   const confirmSetup = async (reference: string): Promise<ConfirmOutcome> => {
-    const result = await paymentState(reference);
-    return result.ok ? result.data : "pending";
+    const result = await confirmCardSetup(reference);
+    if (!result.ok) return "pending";
+    switch (result.data.state) {
+      case "saved":
+        return "paid";
+      case "failed":
+        return "failed";
+      case "refused":
+        setupRefusal.current = result.data.message;
+        return "failed";
+      default:
+        return "pending";
+    }
   };
 
   const closeSetup = () => {
+    setupRefusal.current = null;
     setSetup(null);
     setAddingCard(false);
     setSetupKey(newIdempotencyKey());
@@ -492,12 +511,14 @@ export function PaymentMethodsPanel({
           confirm={confirmSetup}
           onPaid={() => {
             closeSetup();
+            setCardSaved(true);
             router.refresh();
           }}
           onCancelled={closeSetup}
           onFailed={(message) => {
+            const said = setupRefusal.current ?? message;
             closeSetup();
-            setError(message);
+            setError(said);
           }}
         />
       )}
@@ -521,6 +542,16 @@ export function PaymentMethodsPanel({
         title={addedWords.title}
         body={addedWords.body}
         primary={{ label: success.continue }}
+      />
+
+      <SuccessSheet
+        open={cardSaved}
+        onOpenChange={setCardSaved}
+        variant={cardSavedWords.variant}
+        title={cardSavedWords.title}
+        body={cardSavedWords.body}
+        primary={{ label: success.continue }}
+        testId="card-saved-success"
       />
     </>
   );

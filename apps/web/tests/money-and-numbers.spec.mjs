@@ -15,12 +15,21 @@
  * recomputes what `Intl` should have produced and compares, so the assertions
  * cannot drift away from the formatter they are testing.
  *
+ * WHICH PAGES. Since 23 September every product route answers a signed-out
+ * visitor with the sign-in wall (asserted below). The runtime half reads "/"
+ * directly and each product screen through its preview-harness twin (the real
+ * components with fixture prices, which is also the first run of this spec
+ * that has had money to read). Signed in as the QA member it reads the real
+ * routes as well (SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
+ * `/wallet` was retired (a redirect to `/agreements`) and is not read.
+ *
  * Run with the server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/money-and-numbers.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, skip } from "./_gate.mjs";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -86,10 +95,20 @@ check("no number is grouped by the browser's locale", browserLocale.length === 0
  * set. Ratings were rendered that way in six places. Geometry is exempt: an
  * SVG path coordinate is not a number anybody reads.
  */
-const GEOMETRY = /mapGeo|Sparkline|StatChart|TiltField|BalanceCard/;
+/* The two chart modules that came later (the admin money desk's `smoothPath`
+   and the agent's area chart) write SVG path data and nothing else with it. */
+/* The files added since, each of which uses toFixed only for SVG path data,
+   an SVG transform or a CSS width: the admin money desk's charts, the agent's
+   area chart and meter bar, the shared TimeSeries chart, the landing page's
+   Nigeria map and the success sheet's burst. */
+const GEOMETRY =
+  /mapGeo|Sparkline|StatChart|TiltField|BalanceCard|admin\/money\/_desk\/charts\.tsx|agent\/charts\/(AreaTimeChart|MeterBar)\.tsx|ui\/charts\/TimeSeries\.tsx|landing\/NigeriaMap\.tsx|ui\/SuccessSheet\.tsx/;
 const handRounded = [];
 for (const f of files) {
   if (GEOMETRY.test(f.rel)) continue;
+  /* A unit test never reaches a screen (lib/email/email-dark-paint.test.ts
+     rounds a contrast ratio in its own assertion message). */
+  if (/\.test\.tsx?$/.test(f.rel)) continue;
   for (const m of f.src.matchAll(/\.toFixed\(\d\)/g)) {
     handRounded.push(`${f.rel}:${f.src.slice(0, m.index).split("\n").length}`);
   }
@@ -110,10 +129,18 @@ for (const f of files) {
 }
 check("no surface pairs a naira sign with its own figure", handMoney.length === 0, handMoney);
 
-const i18n = readFileSync(join(here, "../../../packages/i18n/src/index.ts"), "utf8");
+/* The formatter moved from the package index into `core.ts` (the index
+   re-exports it); read it where it lives. */
+const i18n = readFileSync(join(here, "../../../packages/i18n/src/core.ts"), "utf8");
+/* The compact branch now states its digits on purpose (one fraction digit,
+   truncated, so ₦14.7m is never ₦15m): what must never come back is a cap of
+   zero on it, which is what turned ₦1.2m into ₦1m. */
+const compactBlock = /notation: "compact",[\s\S]*?\}\s*as Intl\.NumberFormatOptions\)/.exec(i18n)?.[0] ?? "";
 check(
   "compact notation is not flattened by a fraction-digit cap",
-  /notation: "compact",\s*\}\)/.test(i18n) && !/maximumFractionDigits: 0,\s*\n\s*notation/.test(i18n),
+  compactBlock.length > 0 &&
+    /maximumFractionDigits: 1,/.test(compactBlock) &&
+    !/maximumFractionDigits: 0/.test(compactBlock),
 );
 check("kobo shows whenever there is kobo", /hasKobo \? 2 : 0/.test(i18n));
 check("there is one glance threshold, stated once", /GLANCE_COMPACT_FROM_MINOR = 100_000_000/.test(i18n));
@@ -186,17 +213,39 @@ const SWEEP = () => {
   return { money: [...money], ungrouped: [...ungrouped] };
 };
 
-const ROUTES = [
-  "/", "/home", "/search", "/search?view=map", "/listing/lekki-palm-grove", "/search?market=rent",
-  "/wallet", "/bookings", "/saved",
-  "/agent/dashboard", "/agent/listings", "/agent/earnings", "/agent/reviews",
+/** Each product route with its preview-harness twin (null: no twin). */
+const PRODUCT = [
+  ["/home", "/preview/session-b/sweep-home/home"],
+  ["/search", "/preview/session-b/sweep-home/search"],
+  ["/search?view=map", null],
+  ["/listing/lekki-palm-grove", "/preview/f3/listing"],
+  ["/search?market=rent", null],
+  ["/bookings", "/preview/f3/bookings"],
+  ["/saved", "/preview/f3/saved"],
+  ["/agent/dashboard", "/preview/f5/agent-dashboard"],
+  ["/agent/listings", "/preview/f5/agent-listings"],
+  ["/agent/earnings", "/preview/f5/agent-earnings"],
+  ["/agent/reviews", "/preview/f5/agent-reviews"],
 ];
+const ROUTES = ["/", ...PRODUCT.map(([, twin]) => twin).filter(Boolean)];
 
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
+
+console.log("\nSigned out, every product route is behind the wall");
+for (const [route] of PRODUCT) await expectSignInWall(check, route, BASE_URL);
+
+const qaState = await (async () => {
+  console.log("\nThe QA session, for the real routes");
+  return signInAsQa(browser);
+})();
+const LIVE_ROUTES = qaState ? ["/", ...PRODUCT.map(([route]) => route)] : [];
 
 try {
   console.log("\nWhat actually rendered, 390px");
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "dark" });
+  const live = qaState
+    ? await qaContext(browser, qaState, { viewport: { width: 390, height: 844 }, colorScheme: "dark" })
+    : null;
   await context.addInitScript(() => {
     try {
       window.localStorage.setItem("nf_theme", "dark");
@@ -207,10 +256,18 @@ try {
 
   const seen = new Set();
   const ungrouped = [];
-  for (const route of ROUTES) {
-    const page = await context.newPage();
+  const visits = [
+    ...ROUTES.map((route) => [context, route]),
+    ...LIVE_ROUTES.map((route) => [live, route]),
+  ];
+  for (const [ctx, route] of visits) {
+    const page = await ctx.newPage();
     try {
-      await page.goto(BASE_URL + route, { waitUntil: "load", timeout: 45000 });
+      const response = await page.goto(BASE_URL + route, { waitUntil: "load", timeout: 45000 });
+      if (route.startsWith("/preview/") && response?.status() === 404) {
+        skip(`${route}: the preview harness is closed on this server (VALLO_PREVIEW_HARNESS=1)`);
+        continue;
+      }
       await page.waitForTimeout(WAIT);
       const res = await page.evaluate(SWEEP);
       for (const s of res.money) seen.add(s);
@@ -290,6 +347,7 @@ try {
   );
 
   await context.close();
+  if (live) await live.close();
 
   /* ------------------------------------------- the same page, four locales */
   console.log("\nThe same price, four locales");
@@ -304,7 +362,8 @@ try {
       }
     }, locale);
     const page = await ctx.newPage();
-    await page.goto(BASE_URL + "/search", { waitUntil: "load", timeout: 45000 });
+    /* The search screen's harness twin: the real result cards, fixture prices. */
+    await page.goto(BASE_URL + "/preview/session-b/sweep-home/search", { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(WAIT);
     const res = await page.evaluate(SWEEP);
     const shapes = res.money.filter((s) => !grouped.test(s) && !compact.test(s) && !/^₦\s?\d/.test(s));

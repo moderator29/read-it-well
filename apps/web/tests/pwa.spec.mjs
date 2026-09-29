@@ -87,7 +87,9 @@ try {
     const shortcuts = Array.isArray(manifest.shortcuts) ? manifest.shortcuts : [];
     const shortcutUrls = shortcuts.map((shortcut) => shortcut.url);
     check("three app shortcuts are declared", shortcuts.length === 3);
-    for (const url of ["/search", "/bookings", "/wallet"]) {
+    /* The wallet was retired (custody): `/wallet` redirects to `/agreements`,
+       and the manifest's third shortcut is Agreements (`app/manifest.ts`). */
+    for (const url of ["/search", "/bookings", "/agreements"]) {
       check(`shortcut targets ${url}`, shortcutUrls.includes(url));
     }
     for (const shortcut of shortcuts) {
@@ -105,27 +107,38 @@ try {
   const manifestHref = await page.locator('link[rel="manifest"]').first().getAttribute("href");
   check("the document links the manifest route", manifestHref === "/manifest.webmanifest");
   /*
-   * There are two theme-color tags now, one per colour scheme: a single navy
-   * for both themes put near-black browser chrome above a near-white canvas in
-   * light mode. The dark one must track --nf-surface-canvas so install, splash
-   * and app canvas stay one continuous colour.
+   * ONE theme-color tag, set by the chosen theme rather than by the operating
+   * system (light mode reintroduced 25 September: only an explicit choice moves
+   * the theme). The server writes the dark chrome colour, which tracks the
+   * app canvas, and the before-paint theme script rewrites it to white when
+   * the stored choice is light (`lib/theme/chrome.ts`, `lib/theme/theme.ts`).
+   * This spec used to expect two tags split by `media`; the product replaced
+   * them on purpose.
    */
-  const darkThemeColor = await page
-    .locator('meta[name="theme-color"][media*="dark"]')
-    .first()
-    .getAttribute("content");
-  check(
-    "the dark theme-color meta matches the app canvas",
-    String(darkThemeColor).toLowerCase() === "#010118",
+  const themeColors = await page.locator('meta[name="theme-color"]').evaluateAll((els) =>
+    els.map((el) => el.getAttribute("content")),
   );
-  const lightThemeColor = await page
-    .locator('meta[name="theme-color"][media*="light"]')
-    .first()
-    .getAttribute("content");
+  check(`one theme-color tag (${themeColors.length})`, themeColors.length === 1);
   check(
-    "the light theme-color meta matches the paper canvas",
-    String(lightThemeColor).toLowerCase() === "#f4f5f7",
+    "by default it is the dark chrome colour, the app canvas",
+    String(themeColors[0]).toLowerCase() === "#010118",
   );
+  {
+    const light = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await light.addInitScript(() => {
+      try {
+        window.localStorage.setItem("nf_theme", "light");
+      } catch {
+        /* storage can be unavailable */
+      }
+    });
+    const lp = await light.newPage();
+    await lp.goto(`${BASE_URL}/`, { waitUntil: "load" });
+    await lp.waitForTimeout(WAIT);
+    const lightColor = await lp.locator('meta[name="theme-color"]').first().getAttribute("content");
+    check("a stored light choice turns the chrome white before paint", String(lightColor).toUpperCase() === "#FFFFFF");
+    await light.close();
+  }
   check(
     "apple-mobile-web-app-capable is set",
     (await page.locator('meta[name="apple-mobile-web-app-capable"][content="yes"]').count()) === 1,

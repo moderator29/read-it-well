@@ -84,11 +84,11 @@ Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference
 | 40 | Agent application approved | `/profile/application` | Status APPROVED, decided in the last 14 days (the admin notice links here) | Status panel | `SuccessFromFlag` (approved) "Application approved", once per device per application |
 | 41 | Business approved or published (host) | `/host` | The most recent business APPROVED or PUBLISHED in the last 14 days (the admin notice links here) | Status pill | "Business approved" or "Your business is live" (approved), once per device per business per step |
 | 39 | Passcode set or changed | Passcode setup | `setPasscodeAction` ok | Inline message and haptic | `showSuccess("passcode-set" \| "passcode-changed")` (PASSCODE wired) |
+| 42 | Card saved (the ₦100 check) | `/settings/payments` | `confirmCardSetup` answers `saved`: Paystack verify says success (or reversed), exactly ₦100 in NGN, this person's setup by our audit row and by the charge's metadata, a reusable token, and the card filed | The checkout polled `paymentState`, which knows only `rm-book-`, so it always read pending and ended on "we could not confirm" (B-6) | `SuccessSheet` "Card saved". The line says the ₦100 goes back to the same card and names no date. Pending keeps the checkout's confirming state; a refused check (wrong amount, not reusable) says what happens to the ₦100 |
 
 ## Deliberately not celebrated
 
 - **Pending or unknown payments, 3DS "your bank wants to check", declines, and stalls.** These stay on `ResultSheet`.
-- **Card saved by the ₦100 setup charge** (`PaymentMethodsPanel` card setup). The audit found that `confirmSetup` asks `paymentState`, which knows only `rm-book-` references, so a setup always reads pending. That needs fixing before anything is celebrated there.
 - **Booking cancelled, and caution or deduction steps.** A cancellation is not good news. A refund due is shown in the booking's money record in the words "on its way", never "refunded".
 - **Safety share and "I feel unsafe"** (`SafetyShareControl`, `UnsafeSheet`). A celebration is the wrong tone for safety.
 - **Profile edits, saved searches, alert toggles, phone confirmed, newsletter, briefs and price-check watches.** These are routine saves where a modal on every save interrupts. They keep their inline confirmations, and the audit's A7 and T8 fall here on purpose.

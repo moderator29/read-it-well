@@ -74,7 +74,7 @@ function showcaseCandidates(catalogue: Listing[]): Listing[] {
 
 /**
  * The landing's sections in the fullpage render's order, on data the caller
- * supplies. `app/page.tsx` passes the live read; `app/(dev)/preview/f2`
+ * supplies. `app/(landing)/page.tsx` passes the live read; `app/(dev)/preview/f2`
  * passes fixtures so the look can be proven in a sandbox that cannot reach
  * the catalogue. Both render this same tree.
  */

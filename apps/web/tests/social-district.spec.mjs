@@ -21,15 +21,22 @@
  *    render a paragraph saying reviews lived on each place's own page. A
  *    control that explains its own impossibility is still a dead end, and the
  *    sentence must not come back.
- * 2. **The create ring's six petals do not touch each other and do not push the
- *    page sideways at 390px.** The ring is a transform over ordinary buttons and
- *    its geometry lives entirely in CSS custom properties, so the layout can be
- *    exercised by injecting the same markup the component emits. That is a CSS
- *    test and it says so; the React wiring is covered by typecheck and the
- *    build.
+ * 2. **What the plus throws out does not overlap and does not push the page
+ *    sideways at 390px.** The six-petal create ring this used to measure is
+ *    retired: the plus now blooms three lozenges, Review, Story and Post
+ *    (`components/social/bloom/CreateBloom.tsx`, which records where Apartment
+ *    and Place went). The bloom is measured as the component actually draws
+ *    it, open and settled, on the preview harness's feed
+ *    (`/preview/session-b/feed?state=bloom`), rather than by injecting markup.
+ *
+ * SINCE 23 SEPTEMBER `/around`, `/around/<place>` and `/around/new` answer a
+ * signed-out visitor with the sign-in wall (asserted). The district and the
+ * suggest-a-place form are read signed in as the QA member (SKIP without
+ * QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1300;
@@ -94,89 +101,71 @@ async function outOfFamily(page) {
 }
 
 /**
- * The ring, laid out from the same six options and the same angle formula the
- * component uses, over the shipped stylesheet.
+ * The bloom as drawn: its lozenges, the plus they came out of, the page.
+ *
+ * The lozenges are TILTED, so their axis-aligned bounding boxes overlap even
+ * where the drawn shapes do not. Each one's real outline is rebuilt from its
+ * untransformed box and its computed transform, and two outlines overlap only
+ * if no separating axis exists between them (the separating axis theorem).
  */
-async function measureRing(page) {
+async function measureBloom(page) {
   return await page.evaluate(() => {
-    const options = [
-      ["Apartment", "List a place"],
-      ["Story", "One picture"],
-      ["Update", "Happening now"],
-      ["Question", "Ask the area"],
-      ["Review", "A stay you had"],
-      ["Place", "Somewhere new"],
-    ];
-    const host = document.querySelector(".nf-shell") ?? document.body;
-    const wrap = document.createElement("div");
-    wrap.className = "nf-ring";
-    wrap.dataset.probe = "ring";
-    const step = 360 / options.length;
-    const petals = options
-      .map(
-        ([label, note], index) =>
-          `<button type="button" class="nf-ring__petal" style="--nf-ring-angle:${
-            -90 + step + step * index
-          }deg">
-             <span class="nf-ring__tile"></span>
-             <span class="nf-ring__label">${label}</span>
-             <span class="nf-ring__note">${note}</span>
-           </button>`,
-      )
-      .join("");
-    wrap.innerHTML = `
-      <div class="nf-ring__scrim"></div>
-      <div class="nf-ring__panel">
-        <p class="nf-ring__ask">What do you want to create today?</p>
-        <div class="nf-ring__wheel nf-ring__wheel--in">
-          <span class="nf-ring__core"></span>
-          ${petals}
-        </div>
-        <button type="button" class="nf-ring__close"></button>
-      </div>`;
-    host.appendChild(wrap);
-
-    const boxes = [...wrap.querySelectorAll(".nf-ring__petal")].map((el) =>
-      el.getBoundingClientRect(),
-    );
+    const quads = [...document.querySelectorAll(".nf-bloom__item")].map((el) => {
+      const cs = getComputedStyle(el);
+      const matrix = new DOMMatrix(cs.transform === "none" ? undefined : cs.transform);
+      const inline = el.style.transform;
+      el.style.transform = "none";
+      const box = el.getBoundingClientRect();
+      el.style.transform = inline;
+      const [ox, oy] = cs.transformOrigin.split(" ").map(parseFloat);
+      return [
+        [0, 0],
+        [box.width, 0],
+        [box.width, box.height],
+        [0, box.height],
+      ].map(([x, y]) => {
+        const p = new DOMPoint(x - ox, y - oy).matrixTransform(matrix);
+        return [box.x + ox + p.x, box.y + oy + p.y];
+      });
+    });
+    const axes = (q) =>
+      q.map((pt, i) => {
+        const next = q[(i + 1) % q.length];
+        return [-(next[1] - pt[1]), next[0] - pt[0]];
+      });
+    const project = (q, [ax, ay]) => {
+      const values = q.map(([x, y]) => x * ax + y * ay);
+      return [Math.min(...values), Math.max(...values)];
+    };
+    const intersects = (a, b) =>
+      [...axes(a), ...axes(b)].every((axis) => {
+        const [minA, maxA] = project(a, axis);
+        const [minB, maxB] = project(b, axis);
+        return maxA > minB && maxB > minA;
+      });
     let overlaps = 0;
-    for (let i = 0; i < boxes.length; i += 1) {
-      for (let j = i + 1; j < boxes.length; j += 1) {
-        const a = boxes[i];
-        const b = boxes[j];
-        if (a.x < b.right && b.x < a.right && a.y < b.bottom && b.y < a.bottom) overlaps += 1;
-      }
+    for (let i = 0; i < quads.length; i += 1) {
+      for (let j = i + 1; j < quads.length; j += 1) if (intersects(quads[i], quads[j])) overlaps += 1;
     }
-    /* A note that wraps to a second line is fourteen pixels straight out of the
-       gap between the rows, so the single-line rule is asserted rather than
-       assumed. */
-    const wrapped = [...wrap.querySelectorAll(".nf-ring__note")].filter((el) => {
-      const line = parseFloat(getComputedStyle(el).lineHeight) || 14;
-      return el.getBoundingClientRect().height > line * 1.6;
-    }).length;
-
-    const result = {
-      count: boxes.length,
+    const xs = quads.flat().map(([x]) => x);
+    const ys = quads.flat().map(([, y]) => y);
+    const fab = document.querySelector('[data-testid="bloom-fab"]')?.getBoundingClientRect();
+    return {
+      count: quads.length,
       overlaps,
-      wrapped,
-      left: Math.min(...boxes.map((b) => b.x)),
-      right: Math.max(...boxes.map((b) => b.right)),
-      top: Math.min(...boxes.map((b) => b.y)),
-      askBottom: wrap.querySelector(".nf-ring__ask").getBoundingClientRect().bottom,
+      left: Math.min(...xs),
+      right: Math.max(...xs),
+      top: Math.min(...ys),
+      fabTop: fab ? fab.top : Number.NaN,
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       width: document.documentElement.clientWidth,
     };
-    wrap.remove();
-    return result;
   });
 }
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
-
+async function themed(theme, state) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   /* The product ignores the operating system: only an explicit stored choice
      moves the theme, so the harness stores one exactly as a person would. */
   await context.addInitScript((choice) => {
@@ -186,163 +175,142 @@ async function run(theme) {
       /* storage can be unavailable; the assertion below catches the result */
     }
   }, theme);
-
-  const page = await context.newPage();
-  const serverErrors = [];
-  page.on("response", (r) => {
-    if (r.status() >= 500) serverErrors.push(`${r.status()} ${r.url()}`);
-  });
-
-  try {
-    /* ------------------------------------------------------ the directory */
-    console.log(`\n[${theme}] /around`);
-    const directory = await page.goto(`${BASE_URL}/around`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
-    check("the directory answers 200", directory !== null && directory.status() === 200);
-
-    const applied = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
-    check(`the ${theme} theme actually took`, applied === theme);
-
-    /* ------------------------------------------------------ the kill switch */
-    /*
-     * `public.feature_flags` carries `social`, and it ships false. Whichever
-     * side of that switch the app under test is on, the contract is asserted:
-     * paused means a designed page with a way onward and no create control, and
-     * running means the directory renders. There is no third answer, and in
-     * particular there is no answer where the switch says off and the surface
-     * is on, which is what this product shipped until it was wired.
-     */
-    const paused = (await page.locator("body").innerText()).includes("Around is paused");
-    if (paused) {
-      console.log("      (the social flag is OFF for this app)");
-      check(
-        "paused answers 200 rather than a 404 or a 500",
-        directory !== null && directory.status() === 200,
-      );
-      check(
-        "paused offers a way onward",
-        (await page.getByRole("link", { name: /Back to home/i }).count()) > 0,
-      );
-      check(
-        "paused shows no create control",
-        (await page.getByRole("button", { name: /Create something/i }).count()) === 0,
-      );
-      check(
-        "paused never says the feature does not exist",
-        !/coming soon|not available|does not exist/i.test(
-          await page.locator("body").innerText(),
-        ),
-      );
-    } else {
-      check(
-        "running renders the directory rather than a blank",
-        (await page.locator("body").innerText()).trim().length > 0,
-      );
-    }
-
-    /* ---------------------------------------------------- the create ring */
-    const ring = await measureRing(page);
-    check("the ring draws six petals", ring.count === 6);
-    check(`no two petals overlap (${ring.overlaps} pairs)`, ring.overlaps === 0);
-    check(`every note holds one line (${ring.wrapped} wrapped)`, ring.wrapped === 0);
-    check(
-      `the ring stays inside 390px (${Math.round(ring.left)} to ${Math.round(ring.right)})`,
-      ring.left >= 0 && ring.right <= ring.width,
-    );
-    check(
-      "the top petal clears the question above it",
-      ring.top > ring.askBottom,
-    );
-    check(`the ring adds no horizontal scroll (${ring.overflow}px)`, ring.overflow === 0);
-
-    /* ------------------------------------------------------- the district */
-    console.log(`\n[${theme}] /around/${SLUG}`);
-    const district = await page.goto(`${BASE_URL}/around/${SLUG}`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
-    check(
-      "the district answers 200 or a designed 404, never a 500",
-      district !== null && district.status() < 500,
-    );
-
-    const text = await page.locator("body").innerText();
-    check(
-      "the Reviews chip does not explain why it cannot work",
-      !text.includes("on each place"),
-    );
-
-    const chips = await page.getByRole("tab").count();
-    if (chips > 0) {
-      /* The strong path: this app can read a place. */
-      const labels = await page.getByRole("tab").allInnerTexts();
-      check(
-        `the chip row names all five kinds (${labels.length} found)`,
-        labels.length === 5,
-      );
-      const reviews = page.getByRole("tab", { name: /Reviews/ });
-      await reviews.click();
-      await page.waitForTimeout(700);
-      const after = await page.locator("body").innerText();
-      check(
-        "the Reviews chip shows either reviews or a designed empty answer",
-        /reviewed a stay around/i.test(after) || after.includes("out of 5") || after.length > 0,
-      );
-      check("choosing Reviews does not empty the page", after.trim().length > 0);
-    } else {
-      console.log("      (no chip row here: this build cannot read a place)");
-      check(
-        "the district still answers with a designed page and a way onward",
-        text.trim().length > 0 &&
-          (await page.locator("a, button").count()) > 0,
-      );
-    }
-
-    /* --------------------------------------------------- suggest a place */
-    console.log(`\n[${theme}] /around/new`);
-    const propose = await page.goto(`${BASE_URL}/around/new`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
-    check("suggest a place answers 200", propose !== null && propose.status() === 200);
-    if (paused) {
-      check(
-        "suggest a place is paused with the rest of the layer",
-        (await page.locator("body").innerText()).includes("Around is paused"),
-      );
-    } else {
-      /*
-       * Scoped to the page rather than to the document. The app shell carries a
-       * search field on every screen, so `form, input, select` counted across
-       * the whole document is true even on a page with no form on it, which is
-       * an assertion that passes for the wrong reason.
-       */
-      check(
-        "it is a real form, which is what the ring's sixth petal opens",
-        (await page.locator("main form, main select, main textarea").count()) > 0,
-      );
-    }
-
-    /* ---------------------------------------------------- the house rules */
-    const strays = await outOfFamily(page);
-    check(`no orange, amber, gold, violet or magenta (${strays.length} found)`, strays.length === 0);
-    for (const stray of strays) console.log(`          ${stray}`);
-
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    check(`no horizontal scroll at 390px (${overflow}px)`, overflow === 0);
-
-    /* Written as an escape so this file stays clean under the same scan. */
-    const body = await page.locator("body").innerText();
-    const emDashes = (body.match(/\u2014/g) ?? []).length;
-    check(`no em dashes in the copy (${emDashes} found)`, emDashes === 0);
-
-    check(`no 5xx anywhere in the walk (${serverErrors.length} seen)`, serverErrors.length === 0);
-    for (const seen of serverErrors) console.log(`          ${seen}`);
-  } finally {
-    await context.close();
-  }
+  return context;
 }
 
-await run("dark");
-await run("light");
+/** The house rules, on whatever page is open. */
+async function houseRules(page) {
+  const strays = await outOfFamily(page);
+  check(`no orange, amber, gold, violet or magenta (${strays.length} found)`, strays.length === 0);
+  for (const stray of strays) console.log(`          ${stray}`);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  check(`no horizontal scroll at 390px (${overflow}px)`, overflow === 0);
+  /* Written as an escape so this file stays clean under the same scan. */
+  const body = await page.locator("body").innerText();
+  const emDashes = (body.match(/\u2014/g) ?? []).length;
+  check(`no em dashes in the copy (${emDashes} found)`, emDashes === 0);
+}
+
+async function run(theme, state) {
+  const serverErrors = [];
+  const watch = (page) =>
+    page.on("response", (r) => {
+      if (r.status() >= 500) serverErrors.push(`${r.status()} ${r.url()}`);
+    });
+
+  /* --------------------------------------------- the bloom (preview) */
+  {
+    const context = await themed(theme, null);
+    const page = await context.newPage();
+    watch(page);
+    try {
+      console.log(`\n[${theme}] /preview/session-b/feed?state=bloom (the plus, open)`);
+      if (await openPreview(page, "/preview/session-b/feed?state=bloom", check, { base: BASE_URL, wait: WAIT })) {
+        const applied = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
+        check(`the ${theme} theme actually took`, applied === theme);
+        const bloom = await measureBloom(page);
+        check("the plus blooms three lozenges: Review, Story, Post", bloom.count === 3);
+        check(
+          "each is a real destination",
+          (await page.locator('[data-testid="bloom-review"], [data-testid="bloom-story"], [data-testid="bloom-post"]').count()) === 3,
+        );
+        check(`no two lozenges overlap (${bloom.overlaps} pairs)`, bloom.overlaps === 0);
+        check(
+          `the bloom stays inside 390px (${Math.round(bloom.left)} to ${Math.round(bloom.right)})`,
+          bloom.left >= 0 && bloom.right <= bloom.width,
+        );
+        check("the lozenges clear the plus they came out of", bloom.top < bloom.fabTop);
+        check(`the bloom adds no horizontal scroll (${bloom.overflow}px)`, bloom.overflow === 0);
+        await houseRules(page);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  /* ------------------------------------ the real routes (QA member) */
+  if (state) {
+    const context = await themed(theme, state);
+    const page = await context.newPage();
+    watch(page);
+    try {
+      console.log(`\n[${theme}] /around (signed in)`);
+      const directory = await page.goto(`${BASE_URL}/around`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+      check("the feed answers 200", directory !== null && directory.status() === 200);
+
+      /*
+       * `public.feature_flags` carries `social`. Paused means a designed page
+       * with a way onward and no create control; running means the feed.
+       */
+      const paused = (await page.locator("body").innerText()).includes("Around is paused");
+      if (paused) {
+        console.log("      (the social flag is OFF for this app)");
+        check("paused offers a way onward", (await page.getByRole("link", { name: /Back to home/i }).count()) > 0);
+        check("paused shows no create control", (await page.locator('[data-testid="bloom-fab"]').count()) === 0);
+        check(
+          "paused never says the feature does not exist",
+          !/coming soon|not available|does not exist/i.test(await page.locator("body").innerText()),
+        );
+      } else {
+        check("running renders the feed rather than a blank", (await page.locator("body").innerText()).trim().length > 0);
+      }
+
+      console.log(`\n[${theme}] /around/${SLUG} (signed in)`);
+      const district = await page.goto(`${BASE_URL}/around/${SLUG}`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+      check("the district answers 200 or a designed 404, never a 500", district !== null && district.status() < 500);
+      const text = await page.locator("body").innerText();
+      check("the Reviews chip does not explain why it cannot work", !text.includes("on each place"));
+      const chips = await page.getByRole("tab").count();
+      if (chips > 0) {
+        const labels = await page.getByRole("tab").allInnerTexts();
+        check(`the chip row names all five kinds (${labels.length} found)`, labels.length === 5);
+        const reviews = page.getByRole("tab", { name: /Reviews/ });
+        await reviews.click();
+        await page.waitForTimeout(700);
+        const after = await page.locator("body").innerText();
+        check(
+          "the Reviews chip shows either reviews or a designed empty answer",
+          /reviewed a stay around/i.test(after) || after.includes("out of 5") || after.length > 0,
+        );
+        check("choosing Reviews does not empty the page", after.trim().length > 0);
+      } else {
+        console.log("      (no chip row here: this place cannot be read)");
+        check(
+          "the district still answers with a designed page and a way onward",
+          text.trim().length > 0 && (await page.locator("a, button").count()) > 0,
+        );
+      }
+
+      console.log(`\n[${theme}] /around/new (signed in)`);
+      const propose = await page.goto(`${BASE_URL}/around/new`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+      check("suggest a place answers 200", propose !== null && propose.status() === 200);
+      if (paused) {
+        check("suggest a place is paused with the rest of the layer", (await page.locator("body").innerText()).includes("Around is paused"));
+      } else {
+        /* Scoped to the page: the shell carries a search field on every screen. */
+        check("it is a real form", (await page.locator("main form, main select, main textarea").count()) > 0);
+      }
+      await houseRules(page);
+    } finally {
+      await context.close();
+    }
+  }
+
+  check(`no 5xx anywhere in the walk (${serverErrors.length} seen)`, serverErrors.length === 0);
+  for (const seen of serverErrors) console.log(`          ${seen}`);
+}
+
+console.log("signed out");
+for (const path of ["/around", `/around/${SLUG}`, "/around/new"]) await expectSignInWall(check, path, BASE_URL);
+console.log("\nsigned in as the QA member, for the real routes");
+const qaState = await signInAsQa(browser, { base: BASE_URL });
+await run("dark", qaState);
+await run("light", qaState);
 await browser.close();
 
 console.log(

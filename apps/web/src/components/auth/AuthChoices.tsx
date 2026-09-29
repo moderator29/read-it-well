@@ -15,6 +15,12 @@ import { AuthPillButton } from "./slate";
  * Apple doors, and the line to the other door. The pieces are the shared
  * Slate system in `./slate.tsx`.
  *
+ * SIGN-UP'S DOOR ONLY SINCE B-1 (29 September). `/sign-in` is one screen now
+ * (`EmailAuthForm`, email and password together, refs 12 and 14), so this
+ * chooser serves `/sign-up`; its sign-in mode is kept for any caller that
+ * still asks for it and posts to `continueWithEmail`, which sends a sign-in
+ * back to `/sign-in` with the address filled in.
+ *
  * EMAIL FIRST, AND THE FIELD IS REAL. The render puts the address on the
  * first screen and the password on the next, which is the flow this platform
  * already runs: the chooser here, the form at `/sign-in/email`. So the field

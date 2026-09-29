@@ -1097,7 +1097,7 @@ export async function finishSocialSetup(
     /* The receipt is what matters, and it is on file. */
   }
 
-  await welcomeOnce(user.id);
+  /* The welcome email was already queued at the callback (`welcomeOnce`). */
   revalidatePath("/", "layout");
   /* "Welcome to Vallo" on arrival, by the one-shot HttpOnly cookie, exactly
      as the email sign-up does (lib/ui/success-cookie.ts). */

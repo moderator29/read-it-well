@@ -23,9 +23,18 @@
  * Proving the counter itself denies the twenty fifth question needs a service
  * key and the applied migration; that check belongs to a live run, not
  * to a keyless sandbox.
+ *
+ * SINCE 23 SEPTEMBER `/api/assistant` answers a caller with no session with
+ * the proxy's own refusal (401, `{ code: "sign-in-required" }`) before the
+ * route or its limiter runs, and `/assistant` itself is behind the sign-in
+ * wall. So the burst is run twice: signed out, where every one of the twelve
+ * must be that same readable, leak-free refusal; and signed in as the QA
+ * member, where the contract above applies (SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD).
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE = "/opt/pw-browsers/chromium";
@@ -55,22 +64,9 @@ const LEAKS = [
   "undefined",
 ];
 
-const browser = await chromium.launch({ executablePath: EXECUTABLE });
-const context = await browser.newContext({
-  colorScheme: "dark",
-  viewport: { width: 390, height: 844 },
-});
-const page = await context.newPage();
-
-try {
-  /* ------------------------------------- 1. the route answers, over and over */
-  console.log(`POST /api/assistant ${ATTEMPTS} times`);
-
-  await page.goto(`${BASE_URL}/assistant`, { waitUntil: "load" });
-  await page.waitForTimeout(1500);
-
-  // Fetch from inside the page so cookies and origin match a real caller.
-  const results = await page.evaluate(async (attempts) => {
+/** Twelve POSTs from inside `page`, so cookies and origin match a real caller. */
+function burst(page) {
+  return page.evaluate(async (attempts) => {
     const out = [];
     for (let i = 0; i < attempts; i += 1) {
       try {
@@ -97,83 +93,96 @@ try {
     }
     return out;
   }, ATTEMPTS);
+}
 
-  check(`all ${ATTEMPTS} attempts answered`, results.length === ATTEMPTS);
+const leaks = (message) => LEAKS.some((needle) => message.toLowerCase().includes(needle.toLowerCase()));
 
-  const statuses = [...new Set(results.map((r) => r.status))].sort((a, b) => a - b);
-  console.log(`  statuses seen: ${statuses.join(", ")}`);
+const browser = await chromium.launch({ executablePath: EXECUTABLE });
+const VIEW = { colorScheme: "dark", viewport: { width: 390, height: 844 } };
 
-  check(
-    "no attempt returned a server error",
-    results.every((r) => r.status !== 0 && r.status < 500),
-  );
-  check(
-    "every status is either the graceful 200 or the friendly 429",
-    results.every((r) => r.status === 200 || r.status === 429),
-  );
-  check(
-    "every response is JSON",
-    results.every((r) => r.contentType.includes("application/json")),
-  );
-  check(
-    "every response parses",
-    results.every((r) => r.parsed !== null && typeof r.parsed === "object"),
-  );
-  check(
-    "every response carries a readable message",
-    results.every(
-      (r) => typeof r.parsed?.message === "string" && r.parsed.message.trim().length > 20,
-    ),
-  );
-  check(
-    "no message leaks an internal detail",
-    results.every((r) => {
-      const message = String(r.parsed?.message ?? "");
-      return !LEAKS.some((needle) => message.toLowerCase().includes(needle.toLowerCase()));
-    }),
-  );
-  check(
-    "no response body contains a stack trace",
-    results.every((r) => !r.text.includes("    at ") && !r.text.includes('"stack"')),
-  );
-  check(
-    "no message contains a long dash",
-    results.every((r) => !String(r.parsed?.message ?? "").includes("\u2014")),
-  );
-
-  const refusals = results.filter((r) => r.status === 429);
-  check(
-    "every refusal says when to try again",
-    refusals.every(
-      (r) =>
-        typeof r.retryAfter === "string" &&
-        Number(r.retryAfter) > 0 &&
-        /\b(in|tomorrow)\b/i.test(String(r.parsed?.message ?? "")),
-    ),
-  );
-  if (refusals.length === 0) {
-    console.log("  note  no refusal in this run: the limiter is failing open without its key");
+try {
+  /* ------------------------------------------ 0. signed out, the wall */
+  console.log("signed out");
+  await expectSignInWall(check, "/assistant", BASE_URL);
+  {
+    const context = await browser.newContext(VIEW);
+    const page = await context.newPage();
+    await page.goto(`${BASE_URL}/help`, { waitUntil: "load" });
+    console.log(`POST /api/assistant ${ATTEMPTS} times, signed out`);
+    const results = await burst(page);
+    check(`all ${ATTEMPTS} attempts answered`, results.length === ATTEMPTS);
+    check("every one is the proxy's 401 refusal", results.every((r) => r.status === 401 && r.parsed?.code === "sign-in-required"));
+    check("every response is JSON", results.every((r) => r.contentType.includes("application/json")));
+    check(
+      "every refusal carries a readable sentence",
+      results.every((r) => typeof r.parsed?.error === "string" && r.parsed.error.trim().length > 8),
+    );
+    check("no refusal leaks an internal detail", results.every((r) => !leaks(String(r.parsed?.error ?? ""))));
+    check("no response body contains a stack trace", results.every((r) => !r.text.includes("    at ") && !r.text.includes('"stack"')));
+    await context.close();
   }
 
-  /* ---------------------------------- 2. the UI still renders a real answer */
-  console.log("assistant surface after the burst");
+  /* ------------------------------------ 1. signed in, the graceful path */
+  console.log("signed in as the QA member");
+  const state = await signInAsQa(browser, { base: BASE_URL });
+  if (state) {
+    const context = await qaContext(browser, state, VIEW);
+    const page = await context.newPage();
+    console.log(`POST /api/assistant ${ATTEMPTS} times`);
+    await page.goto(`${BASE_URL}/assistant`, { waitUntil: "load" });
+    await page.waitForTimeout(1500);
+    const results = await burst(page);
 
-  await page.locator("#assistant-input").fill("Find me a shortlet in Lagos");
-  await page.locator('button[aria-label="Send message"]').click();
-  await page.waitForTimeout(4000);
+    check(`all ${ATTEMPTS} attempts answered`, results.length === ATTEMPTS);
+    const statuses = [...new Set(results.map((r) => r.status))].sort((x, y) => x - y);
+    console.log(`  statuses seen: ${statuses.join(", ")}`);
+    check("no attempt returned a server error", results.every((r) => r.status !== 0 && r.status < 500));
+    check(
+      "every status is either the graceful 200 or the friendly 429",
+      results.every((r) => r.status === 200 || r.status === 429),
+    );
+    check("every response is JSON", results.every((r) => r.contentType.includes("application/json")));
+    check("every response parses", results.every((r) => r.parsed !== null && typeof r.parsed === "object"));
+    check(
+      "every response carries a readable message",
+      results.every((r) => typeof r.parsed?.message === "string" && r.parsed.message.trim().length > 20),
+    );
+    check("no message leaks an internal detail", results.every((r) => !leaks(String(r.parsed?.message ?? ""))));
+    check("no response body contains a stack trace", results.every((r) => !r.text.includes("    at ") && !r.text.includes('"stack"')));
+    check("no message contains a long dash", results.every((r) => !String(r.parsed?.message ?? "").includes("\u2014")));
 
-  const thread = await page
-    .locator('section[aria-label="Conversation"], div[aria-label="Conversation"]')
-    .first()
-    .innerText()
-    .catch(() => "");
+    const refusals = results.filter((r) => r.status === 429);
+    check(
+      "every refusal says when to try again",
+      refusals.every(
+        (r) =>
+          typeof r.retryAfter === "string" &&
+          Number(r.retryAfter) > 0 &&
+          /\b(in|tomorrow)\b/i.test(String(r.parsed?.message ?? "")),
+      ),
+    );
+    if (refusals.length === 0) {
+      console.log("  note  no refusal in this run: the limiter is failing open without its key");
+    }
 
-  check("the user message is in the thread", thread.includes("Find me a shortlet in Lagos"));
-  check(
-    "an answer bubble rendered rather than a blank or a raw error",
-    thread.replace("Find me a shortlet in Lagos", "").trim().length > 20,
-  );
-  check("no stack trace rendered in the thread", !thread.includes("    at "));
+    /* ---------------------------------- 2. the UI still renders a real answer */
+    console.log("assistant surface after the burst");
+    await page.locator("#assistant-input").fill("Find me a shortlet in Lagos");
+    await page.locator('button[aria-label="Send message"]').click();
+    await page.waitForTimeout(4000);
+    const thread = await page
+      .locator('section[aria-label="Conversation"], div[aria-label="Conversation"]')
+      .first()
+      .innerText()
+      .catch(() => "");
+    check("the user message is in the thread", thread.includes("Find me a shortlet in Lagos"));
+    check(
+      "an answer bubble rendered rather than a blank or a raw error",
+      thread.replace("Find me a shortlet in Lagos", "").trim().length > 20,
+    );
+    check("no stack trace rendered in the thread", !thread.includes("    at "));
+    await context.close();
+  }
 } catch (error) {
   failures.push(`unexpected error: ${error?.message ?? error}`);
   console.error(error);
