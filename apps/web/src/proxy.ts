@@ -21,6 +21,7 @@ import {
   publicCatalogueEnabled,
 } from "@/lib/catalogue/public-access";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
+import { deadlineFetch, PROXY_CUT_PATHS, PROXY_DEADLINE_MS } from "./lib/supabase/deadline-fetch";
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { isKnownRoute } from "@/lib/routing/known-routes";
 import { detailIsMissing, type ListingCounter } from "@/lib/routing/listing-exists";
@@ -510,7 +511,13 @@ export async function proxy(request: NextRequest) {
      * That is why `my_sessions()` does not return the column and why the screen
      * shows no location at all.
      */
-    global: { headers: forwardedAgent(request) },
+    /* PERF-SWEEP 6: the guard's table reads fail open, so a stalled one is
+       cut after PROXY_DEADLINE_MS rather than holding the navigation. Auth
+       keeps its own deadline below. */
+    global: {
+      headers: forwardedAgent(request),
+      fetch: deadlineFetch({ ms: PROXY_DEADLINE_MS, paths: PROXY_CUT_PATHS }),
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();

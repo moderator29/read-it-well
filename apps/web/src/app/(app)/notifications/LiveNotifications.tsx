@@ -133,18 +133,26 @@ export function LiveNotifications({
     if (!last || loadingOlder) return;
     setLoadingOlder(true);
     setProblem(null);
-    void loadOlderNotifications({ createdAt: last.createdAt, id: last.id }).then((result) => {
-      setLoadingOlder(false);
-      if (!result.ok) {
-        setProblem(result.error);
-        return;
-      }
-      setItems((prev) => {
-        const seen = new Set(prev.map((n) => n.id));
-        return [...prev, ...result.data.rows.map(toNotificationItem).filter((n) => !seen.has(n.id))];
+    /* PERF-SWEEP 8: a request that never reached the server (a dropped
+       connection) used to leave the button spinning for good. It now ends
+       the wait and says so, like a refused read does. */
+    void loadOlderNotifications({ createdAt: last.createdAt, id: last.id })
+      .then((result) => {
+        setLoadingOlder(false);
+        if (!result.ok) {
+          setProblem(result.error);
+          return;
+        }
+        setItems((prev) => {
+          const seen = new Set(prev.map((n) => n.id));
+          return [...prev, ...result.data.rows.map(toNotificationItem).filter((n) => !seen.has(n.id))];
+        });
+        setMore(result.data.more);
+      })
+      .catch(() => {
+        setLoadingOlder(false);
+        setProblem("Older notifications did not load. Check your connection and try again.");
       });
-      setMore(result.data.more);
-    });
   }, [items, loadingOlder]);
 
   const unreadCount = items.filter((n) => !n.read).length;

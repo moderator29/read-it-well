@@ -606,7 +606,12 @@ export function ThreadView({
     }
     setConfirmBusy(true);
     setConfirmNote(null);
-    const result = await confirmInspection({ conversationId, listingId: listing.id });
+    /* PERF-SWEEP 8: a dropped connection used to leave the button busy for
+       good; it now ends the wait and says the step did not go through. */
+    const result = await confirmInspection({ conversationId, listingId: listing.id }).catch(() => ({
+      ok: false as const,
+      error: "That did not go through. Check your connection and try again.",
+    }));
     setConfirmBusy(false);
     if (result.ok) {
       setInspected(true);
