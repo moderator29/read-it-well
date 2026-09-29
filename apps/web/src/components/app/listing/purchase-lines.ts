@@ -54,6 +54,7 @@ export function purchaseLines(listing: Listing, copy: Dictionary["purchase"]): P
       label: copy.askingPrice,
       keeper: copy.keptBySeller,
       icon: "keys-home",
+      glyph: "price-tag",
       /* A sale listing with a zero asking price has not declared a price, it
          has an empty field, and a property is not being given away. Treated as
          undeclared for the same reason the rent line treats a zero headline as
@@ -67,6 +68,7 @@ export function purchaseLines(listing: Listing, copy: Dictionary["purchase"]): P
       label: copy.agencyFee,
       keeper: copy.keptByAgent,
       icon: "person-card",
+      glyph: "briefcase",
       minor: listing.saleAgencyFeeMinor,
     },
     {
@@ -74,6 +76,7 @@ export function purchaseLines(listing: Listing, copy: Dictionary["purchase"]): P
       label: copy.legalFee,
       keeper: copy.keptByAgent,
       icon: "doc-shield",
+      glyph: "scale",
       minor: listing.saleLegalFeeMinor,
     },
     {
@@ -82,6 +85,7 @@ export function purchaseLines(listing: Listing, copy: Dictionary["purchase"]): P
       basis: copy.consentBasis,
       keeper: copy.keptByState,
       icon: "doc-lock",
+      glyph: "certificate",
       minor: listing.governorsConsentFeeMinor,
     },
     {
@@ -89,6 +93,7 @@ export function purchaseLines(listing: Listing, copy: Dictionary["purchase"]): P
       label: copy.stampDuty,
       keeper: copy.keptByState,
       icon: "doc-home",
+      glyph: "stamp",
       minor: listing.stampDutyMinor,
     },
     {
@@ -101,6 +106,7 @@ export function purchaseLines(listing: Listing, copy: Dictionary["purchase"]): P
          is all twinned or none: mixing them draws one pale frosted mark beside
          five navy chips on paper and looks perfectly correct at night. */
       icon: "land-plot",
+      glyph: "survey",
       minor: listing.surveyRegistrationFeeMinor,
     },
   ];

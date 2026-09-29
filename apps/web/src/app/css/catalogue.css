@@ -1119,10 +1119,7 @@
     box-shadow: var(--nf-btn-glass-shadow);
     border-radius: var(--nf-radius-control);
   }
-  .nf-detail-movein__rooms > span:first-child {
-    display: block;
-    width: 2.75rem;
-    height: 2.75rem;
+  .nf-detail-movein__rooms > .nf-plate {
     flex-shrink: 0;
   }
   /* The section tabs. Anchors, so they are shareable and need no script. */
@@ -2091,9 +2088,6 @@
     box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-stay-type__object {
-    display: block;
-    width: 3rem;
-    height: 3rem;
     flex-shrink: 0;
   }
   .nf-room-tiles {
@@ -2223,18 +2217,36 @@
   .nf-movein__row[data-declared] {
     border-color: var(--nf-panel-edge);
   }
+  /* THE ROW GLYPH (29 September 2026): a bold line glyph on the shared
+     `IconPlate` (`DetailGlyph`), no longer a glass object, so the plate draws
+     its own size. An undeclared cost's plate steps back with its row. */
   .nf-movein__plate {
-    display: block;
-    width: 2.5rem;
-    height: 2.5rem;
     flex-shrink: 0;
-  }
-  .nf-movein__plate--total {
-    width: 3rem;
-    height: 3rem;
   }
   .nf-movein__row:not([data-declared]) .nf-movein__plate {
     opacity: 0.55;
+  }
+  /* The detail pages' plated glyphs at night: the bright end of the brand
+     blue rather than white, as the profile rows draw it, lifted a third
+     towards white so the line clears 3:1 on the lit navy plate. In light the
+     shared rule already paints `.nf-plate--brand` glyphs brand blue. */
+  :root:not([data-theme="light"]) .nf-detail-glyph.nf-plate--brand,
+  [data-theme="dark"] .nf-detail-glyph.nf-plate--brand {
+    color: color-mix(in oklab, var(--nf-brand-quiet) 68%, var(--nf-content-primary));
+  }
+  /* A glyph standing in for a missing photo inside a round avatar: the
+     plate's material filling the circle, the glyph centred in brand blue. */
+  .nf-detail-avatar-glyph {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    background: var(--nf-plate-fill);
+    color: var(--nf-brand-primary);
+  }
+  :root:not([data-theme="light"]) .nf-detail-avatar-glyph,
+  [data-theme="dark"] .nf-detail-avatar-glyph {
+    color: color-mix(in oklab, var(--nf-brand-quiet) 68%, var(--nf-content-primary));
   }
   .nf-movein__name {
     display: grid;

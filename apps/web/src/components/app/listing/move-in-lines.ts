@@ -2,6 +2,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { RENT_PERIOD_LABEL, type RentPeriod } from "@/lib/listings/pricing";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { UiIconName } from "@/design-system/icons/UiIcon";
 import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
 
 /**
@@ -25,7 +26,16 @@ export type Part = {
   basis?: string;
   /** Who ends up with the money. Quiet, and only where we honestly know. */
   keeper?: string;
+  /**
+   * The glass object, still drawn by the listing wizard's preview of this
+   * block. The listing page no longer draws it.
+   */
   icon: BrandIconName;
+  /**
+   * The bold line glyph the listing page draws on its plate (29 September
+   * 2026, `DetailGlyph`). One per row and never repeated in a block.
+   */
+  glyph: UiIconName;
   /** Kobo, or undefined when the lister declared nothing. */
   minor?: number;
 };
@@ -89,6 +99,7 @@ export function moveInLines(
       basis: RENT_PERIOD_LABEL[rentPeriod].toLowerCase(),
       keeper: keeper("rent"),
       icon: "keys-home",
+      glyph: "key",
       minor: listing.priceMinor > 0 ? listing.priceMinor : undefined,
     },
     {
@@ -96,6 +107,7 @@ export function moveInLines(
       label: copy.agencyFee,
       keeper: keeper("agency"),
       icon: "person-card",
+      glyph: "briefcase",
       minor: listing.agencyFeeMinor,
     },
     {
@@ -109,6 +121,7 @@ export function moveInLines(
          `home-light-black-icon-plates-as-shipped.jpg` defect in its mirror.
          A set of objects drawn side by side is all twinned or none. */
       icon: "doc-shield",
+      glyph: "scale",
       minor: listing.legalFeeMinor,
     },
     {
@@ -116,6 +129,7 @@ export function moveInLines(
       label: copy.agreementFee,
       keeper: keeper("agreement"),
       icon: "doc-home",
+      glyph: "document",
       minor: listing.agreementFeeMinor,
     },
     {
@@ -124,6 +138,7 @@ export function moveInLines(
       basis: copy.cautionBasis,
       keeper: keeper("caution"),
       icon: "shield-check",
+      glyph: "verified",
       minor: listing.cautionDepositMinor,
     },
     {
@@ -132,6 +147,7 @@ export function moveInLines(
       basis: servicePeriod ? RENT_PERIOD_LABEL[servicePeriod].toLowerCase() : undefined,
       keeper: keeper("service"),
       icon: "manage-ring",
+      glyph: "building-apartment",
       minor: listing.serviceChargeMinor,
     },
   ];

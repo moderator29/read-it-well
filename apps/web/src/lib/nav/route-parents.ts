@@ -383,6 +383,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/portfolio": "/agent/dashboard",
   "/agent/verification": "/agent/dashboard",
   "/agent/firm": "/agent/dashboard",
+  /* The assistant inside the workspace (29 September 2026). */
+  "/agent/assistant": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
   "/host": "/home",
@@ -392,6 +394,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/host/rooms": "/host",
   "/host/start": "/host",
   "/host/transfer": "/host",
+  /* The host workspace's own assistant, settings and bell (29 September 2026). */
+  "/host/assistant": "/host",
+  "/host/settings": "/host",
+  "/host/notifications": "/host",
 
   /* ------------------------------------------------- the design harnesses
    *

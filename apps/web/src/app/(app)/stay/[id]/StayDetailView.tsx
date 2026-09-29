@@ -7,7 +7,7 @@ import { ReportSheet } from "@/components/app/ReportSheet";
 import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { ICON, Section, Stack, TYPE } from "@/components/app/Screen";
@@ -39,12 +39,14 @@ type StaysCopy = Dictionary["stayDetail"];
 
 const STAR_LABEL: Record<number, string> = { 1: "1 star", 2: "2 star", 3: "3 star", 4: "4 star", 5: "5 star" };
 
-const BUSINESS_OBJECT: Record<string, BrandIconName> = {
-  hotel: "hotel",
-  serviced_apartments: "serviced-apartment",
-  guest_house: "bungalow",
-  resort: "beach-house",
-  shortlet_operator: "shortlet",
+/* The property type as a plated line glyph (29 September 2026), the detail
+   page's one row treatment, rather than a glass object at 48px. */
+const BUSINESS_GLYPH: Record<string, UiIconName> = {
+  hotel: "building-hotel",
+  serviced_apartments: "building-apartment",
+  guest_house: "house-bungalow",
+  resort: "pool",
+  shortlet_operator: "key",
 };
 
 const BUSINESS_LABEL: Record<string, string> = {
@@ -427,9 +429,10 @@ export function StayDetailView({
 
           {/* ---------------------------------------------- property type */}
           <div className="nf-stay-type" data-testid="stay-type">
-            <span className="nf-stay-type__object" aria-hidden="true">
-              <BrandIcon name={BUSINESS_OBJECT[businessKind] ?? "hotel"} fill />
-            </span>
+            <DetailGlyph
+              name={BUSINESS_GLYPH[businessKind] ?? "building-hotel"}
+              className="nf-stay-type__object"
+            />
             <span className="min-w-0">
               <span className={`block ${TYPE.label}`}>{catalogue.propertyType}</span>
               <span className={`block ${TYPE.rowTitle}`}>{BUSINESS_LABEL[businessKind] ?? "Hotel"}</span>

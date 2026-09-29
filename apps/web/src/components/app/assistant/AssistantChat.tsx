@@ -205,6 +205,10 @@ export function AssistantChat({
 }) {
   const copy = t.home.assistant;
   const frame = workspace ? WORKSPACE_FRAMES[workspace] : null;
+  /* The opening prompts: the workspace's own inside one, the finder's here. */
+  const starters = frame
+    ? frame.starters
+    : STARTERS.map((starter) => ({ icon: starter.icon, text: copy.chips[starter.key] }));
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -594,56 +598,77 @@ export function AssistantChat({
     />
   );
 
+  /* History (on a phone) and settings: in the surface's own bar on
+     `/assistant`, beside the name pair inside a workspace. */
+  const barActions = (
+    <div className="nf-ai__bar-actions">
+      <button
+        type="button"
+        aria-label="Conversation history"
+        aria-expanded={historyOpen}
+        onClick={openHistory}
+        className="nf-icon-btn h-11 w-11 lg:hidden"
+      >
+        <UiIcon name="history" size={20} />
+      </button>
+      <button
+        type="button"
+        aria-label="Assistant settings"
+        aria-haspopup="dialog"
+        onClick={() => setSettingsOpen(true)}
+        className="nf-icon-btn h-11 w-11"
+      >
+        <UiIcon name="settings-gear" size={20} />
+      </button>
+    </div>
+  );
+
   return (
     <div className="nf-ai px-md pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-lg lg:px-xl">
       {/* --------------------------------------------------------- header */}
-      {/* This route is immersive, so this bar is the whole chrome: back, the
-          lockup, history on a phone, settings; then the name pair beneath. */}
-      <div className="nf-ai__bar">
-        <button
-          type="button"
-          aria-label="Back"
-          onClick={back}
-          /* THE WALKER'S HANDLE. `scripts/design/proof-nav.mjs` finds every
-             drawn back control by this attribute. Five of the platform's seven
-             back controls did not carry it, so a browser walk reported them as
-             drawing nothing at all and two route lists were built on that
-             reading. The attribute says what the object IS, which is why it is
-             not a class name and not the accessible name. */
-          data-nav-back=""
-          className="nf-icon-btn h-11 w-11 shrink-0"
-        >
-          <UiIcon name="arrow-left" size={20} />
-        </button>
-        <Link href="/home" aria-label={t.a11y.logoHome} className="nf-ai__lockup nf-tap">
-          <LogoMark size={32} />
-          <LogoWordmark width={72} height={15} priority className="nf-ai__word" />
-        </Link>
-        <div className="nf-ai__bar-actions">
-          <button
-            type="button"
-            aria-label="Conversation history"
-            aria-expanded={historyOpen}
-            onClick={openHistory}
-            className="nf-icon-btn h-11 w-11 lg:hidden"
-          >
-            <UiIcon name="history" size={20} />
-          </button>
-          <button
-            type="button"
-            aria-label="Assistant settings"
-            aria-haspopup="dialog"
-            onClick={() => setSettingsOpen(true)}
-            className="nf-icon-btn h-11 w-11"
-          >
-            <UiIcon name="settings-gear" size={20} />
-          </button>
+      {/* On `/assistant` the route is immersive, so this bar is the whole
+          chrome: back, the lockup, history on a phone, settings; then the
+          name pair beneath. */}
+      {frame ? (
+        /* Inside a workspace the shell's bar is the chrome, so this surface
+           draws only the name pair, with history and settings beside it. */
+        <div className="nf-ai__ident nf-ai__ident--row">
+          <div className="min-w-0 flex-1">
+            <h1 className="nf-ai__title">{copy.title}</h1>
+            <p className="nf-ai__sub">{frame.sub}</p>
+          </div>
+          {barActions}
         </div>
-      </div>
-      <div className="nf-ai__ident">
-        <h1 className="nf-ai__title">{copy.title}</h1>
-        <p className="nf-ai__sub">{copy.sub}</p>
-      </div>
+      ) : (
+        <>
+          <div className="nf-ai__bar">
+            <button
+              type="button"
+              aria-label="Back"
+              onClick={back}
+              /* THE WALKER'S HANDLE. `scripts/design/proof-nav.mjs` finds every
+                 drawn back control by this attribute. Five of the platform's seven
+                 back controls did not carry it, so a browser walk reported them as
+                 drawing nothing at all and two route lists were built on that
+                 reading. The attribute says what the object IS, which is why it is
+                 not a class name and not the accessible name. */
+              data-nav-back=""
+              className="nf-icon-btn h-11 w-11 shrink-0"
+            >
+              <UiIcon name="arrow-left" size={20} />
+            </button>
+            <Link href="/home" aria-label={t.a11y.logoHome} className="nf-ai__lockup nf-tap">
+              <LogoMark size={32} />
+              <LogoWordmark width={72} height={15} priority className="nf-ai__word" />
+            </Link>
+            {barActions}
+          </div>
+          <div className="nf-ai__ident">
+            <h1 className="nf-ai__title">{copy.title}</h1>
+            <p className="nf-ai__sub">{copy.sub}</p>
+          </div>
+        </>
+      )}
 
       <div className="flex min-h-0 flex-1 gap-lg">
         {/* --------------------------------------------- desktop sidebar */}
@@ -787,11 +812,11 @@ export function AssistantChat({
 
           {/* ---------------------------------------------- suggestions */}
           <div className="nf-ai__chips" role="group" aria-label="Suggested questions">
-            {STARTERS.map((s, i) => (
+            {starters.map((s, i) => (
               <button
-                key={s.key}
+                key={s.text}
                 type="button"
-                onClick={() => send(copy.chips[s.key])}
+                onClick={() => send(s.text)}
                 disabled={streamingHere}
                 className={`nf-ai__chip nf-tap ${empty ? "nf-rise-seq" : ""}`}
                 style={empty ? ({ "--nf-rise-i": i + 2 } as React.CSSProperties) : undefined}
@@ -801,7 +826,7 @@ export function AssistantChat({
                     node inside the flex row had nothing to clamp ON, which is
                     why a long starter was cut by the rail rather than ended
                     by an ellipsis (R1 A4). */}
-                <span className="nf-ai__chip-label">{copy.chips[s.key]}</span>
+                <span className="nf-ai__chip-label">{s.text}</span>
               </button>
             ))}
           </div>

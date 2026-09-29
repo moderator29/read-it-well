@@ -3,7 +3,6 @@ import { panelClass } from "@/components/ui/Panel";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { MessageVenue } from "@/components/stays/MessageVenue";
@@ -187,9 +186,12 @@ export function DetailAboutCard({
               {host.photoUrl ? (
                 <Image src={host.photoUrl} alt="" fill sizes="48px" className="object-cover" />
               ) : (
-                /* UX-09: the person-with-a-tick is the verified mark's own
-                   shape, so an unchecked host gets the plain person card. */
-                <BrandIcon name={host.verified ? "user-check" : "person-card"} fill />
+                /* No photo: the person glyph on the plate's material. The
+                   check is the tick in the title beside it, not a second
+                   drawing of the person. */
+                <span className="nf-detail-avatar-glyph">
+                  <UiIcon name="user" size={24} />
+                </span>
               )}
             </span>
             <span className="nf-host-row__body">

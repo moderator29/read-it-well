@@ -1,7 +1,7 @@
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { Amount } from "@/components/ui/Amount";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { DetailGlyph } from "./DetailGlyph";
 import { TYPE } from "@/components/app/Screen";
 import { purchaseLines } from "./purchase-lines";
 
@@ -21,8 +21,8 @@ import { purchaseLines } from "./purchase-lines";
  *
  * IT SHARES `ListingMoveIn`'s ANATOMY AND ITS CLASSES ON PURPOSE. That is the
  * `GOVERNING-08` screen two row, recorded in the ledger as a register
- * extension: one row per cost, a glass object on a rounded plate, the cost's
- * name with its basis beneath, the figure on the right and a quiet note saying
+ * extension: one row per cost, a bold line glyph on a rounded plate
+ * (`DetailGlyph`), the cost's name with its basis beneath, the figure on the right and a quiet note saying
  * who keeps it, with the total in its own lit panel under them. A second look
  * invented for the sale side would be a second pattern where one already
  * exists.
@@ -91,9 +91,7 @@ export function ListingPurchase({
               data-declared={isDeclared || undefined}
               data-testid={`purchase-line-${line.key}`}
             >
-              <span className="nf-movein__plate" aria-hidden="true">
-                <BrandIcon name={line.icon} fill />
-              </span>
+              <DetailGlyph name={line.glyph} className="nf-movein__plate" />
               <span className="nf-movein__name">
                 <span className="nf-movein__label">
                   {line.label}
@@ -128,9 +126,7 @@ export function ListingPurchase({
       </ul>
 
       <div className="nf-movein__total" data-testid="purchase-total">
-        <span className="nf-movein__plate nf-movein__plate--total" aria-hidden="true">
-          <BrandIcon name="naira-coins" fill />
-        </span>
+        <DetailGlyph name="coins" size="lg" className="nf-movein__plate" />
         <span className="min-w-0">
           <span className="nf-movein__total-label">
             {stated ? copy.totalStated : copy.totalFrom}

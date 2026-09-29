@@ -168,6 +168,10 @@ export const en = {
     alreadyRecorded: "This payment was already recorded, so your stay is confirmed.",
     stillChecking: "Still checking",
     returnStalled: "We have not heard back from the payment service. Do not pay again. Your stay appears under your stays the moment it settles, and the reference above is what support will trace it by.",
+    /* A charge the processor took that has not yet been applied to this
+       booking: never "paid", never "not charged". */
+    chargedConfirming:
+      "Your card was charged and we are applying it to this booking. Do not pay again. If it cannot be applied, the whole amount goes back to your card.",
     paymentNotConfirmed: "Payment not confirmed",
     returnFailed: "Your card has not been charged. If money did leave your account, it returns within 24 hours.",
     cannotReachPayment: "We cannot reach payment right now",
@@ -5896,6 +5900,166 @@ export const en = {
   complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
 
   passcode: passcodeEn,
+
+  /*
+   * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).
+   *
+   * One title and one line per moment, and the line says what is now true,
+   * never more. A request is "requested" or "sent", never "booked"; a review
+   * is "in review", never "approved"; money is "paid" only after the server
+   * settled it against this exact booking. A pending or unknown payment never
+   * reaches these strings: it keeps the "Confirming your payment" sheet.
+   */
+  success: {
+    continue: "Continue",
+    close: "Close",
+    detail: {
+      amount: "Amount",
+      reference: "Reference",
+      when: "When",
+      for: "For",
+    },
+    moments: {
+      stayPaid: { title: "Stay paid", body: "Your payment is in and these dates are confirmed." },
+      stayPaidRecorded: {
+        title: "Stay paid",
+        body: "Your payment is recorded against this stay. Everything about it is under your stays.",
+      },
+      rentPaid: {
+        title: "Rent paid",
+        body: "The move-in total is paid and recorded. Arrange the keys with the agent in your thread.",
+      },
+      sharePaid: {
+        title: "Your share is paid",
+        body: "Your part of the move-in is recorded. The move-in completes when every share is in.",
+      },
+      moveInPaid: {
+        title: "Move-in paid in full",
+        body: "The last share is in, so the whole move-in total is paid.",
+      },
+      cryptoPaid: {
+        title: "Crypto payment received",
+        body: "The charge is settled. Your receipt is on this page.",
+      },
+      inspectionRequested: {
+        title: "Inspection requested",
+        body: "Whoever listed it can confirm your time or offer another. Their answer shows under Inspections.",
+      },
+      inspectionBooked: {
+        title: "Inspection booked",
+        body: "Your viewing is set for {when}. It is in your plans.",
+      },
+      inspectionReportSubmitted: {
+        title: "Inspection report submitted",
+        body: "It is now the record of what you saw at the property.",
+      },
+      inspectionRecorded: {
+        title: "Inspection recorded",
+        body: "The outcome is saved on this inspection.",
+      },
+      agreementDrawn: {
+        title: "Agreement drawn up",
+        body: "Read the terms and confirm them. Payment opens once both of you confirm and Vallo approves it.",
+      },
+      agreementConfirmed: {
+        title: "Terms confirmed",
+        body: "We will tell you when the other side confirms too.",
+      },
+      agreementInReview: {
+        title: "Your agreement is in review",
+        body: "Both of you have confirmed. Vallo reviews it next, and payment opens once it is approved.",
+      },
+      agreementApprovedRenter: {
+        title: "Agreement approved",
+        body: "Vallo has approved these terms, so you can pay the move-in total now.",
+      },
+      agreementApprovedOwner: {
+        title: "Agreement approved",
+        body: "Vallo has approved these terms. The renter can pay the move-in total now.",
+      },
+      claimFiled: {
+        title: "Claim filed",
+        body: "Your Guarantee claim is with the team. Its status shows on this agreement.",
+      },
+      refundRequested: {
+        title: "Refund requested",
+        body: "Your request is dated and with the team. Every step of it shows on this booking.",
+      },
+      listingSubmitted: {
+        title: "Your listing is in review",
+        body: "A person at Vallo reads it before it goes live. We will tell you the moment it is decided.",
+      },
+      listingApproved: {
+        title: "Your listing passed review",
+        body: "It goes live in search once it is published.",
+      },
+      listingLive: {
+        title: "Your listing is live",
+        body: "It is in search now, so people can find it.",
+      },
+      agentApplied: {
+        title: "Application sent",
+        body: "Your agent application is in review. We will tell you when it is decided.",
+      },
+      hostApplied: {
+        title: "Application sent",
+        body: "Your host application is in review. We will tell you when it is decided.",
+      },
+      registrationFiled: {
+        title: "Application sent",
+        body: "It is filed under {reference}. You can follow it from your profile.",
+      },
+      kycSubmitted: {
+        title: "Documents sent",
+        body: "A person at Vallo reviews them, usually within one working day.",
+      },
+      identityMatched: {
+        title: "Identity matched",
+        body: "Your identity was matched with NIMC. The next step is your address.",
+      },
+      verificationApproved: {
+        title: "Documents approved",
+        body: "A reviewer approved your documents, and your account moved up a level.",
+      },
+      ticketFiled: {
+        title: "Message sent to support",
+        body: "Your reference is {reference}. Replies land in your support messages.",
+      },
+      contactSent: {
+        title: "Message sent",
+        body: "Your reference is {reference}. We reply to the email address you gave.",
+      },
+      reportFiled: { title: "Report received", body: "{promise}" },
+      stayRequested: {
+        title: "Booking requested",
+        body: "The agent confirms your dates personally. Pay now to hold them, or later from your bookings.",
+      },
+      stayHeld: {
+        title: "Dates held",
+        body: "Your dates are held. Paying now confirms the stay straight away.",
+      },
+      tableRequested: {
+        title: "Table request sent",
+        body: "The restaurant confirms or declines it, and the answer shows in your bookings.",
+      },
+      bankAccountAdded: {
+        title: "Bank account added",
+        body: "It is saved on your account and ready to use.",
+      },
+      payoutAccountAdded: {
+        title: "Payout account added",
+        body: "It is saved, and your earnings can be paid into it.",
+      },
+      accountCreated: { title: "Welcome to Vallo", body: "Your account is ready." },
+      emailVerified: { title: "Email confirmed", body: "Your email address is confirmed on this account." },
+      passwordChanged: {
+        title: "Password changed",
+        body: "Your new password is set. Use it the next time you sign in.",
+      },
+      passcodeSet: { title: "Passcode set", body: "It unlocks Vallo on this device from now on." },
+      passcodeChanged: { title: "Passcode changed", body: "Use your new passcode to unlock Vallo on this device." },
+    },
+  },
 
 };
 

@@ -140,6 +140,11 @@ const PRODUCT = [
   "/agent/dashboard",
   "/agent/listings",
   "/agent/bookings",
+  /* The workspaces' own assistant, settings and bell (29 September 2026). */
+  "/agent/assistant",
+  "/host/assistant",
+  "/host/settings",
+  "/host/notifications",
   "/styleguide",
 ];
 

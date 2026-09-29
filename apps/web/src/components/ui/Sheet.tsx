@@ -101,6 +101,8 @@ export function Sheet({
   apply,
   fullPage = false,
   sideOnWide = false,
+  card = false,
+  className,
   testId,
   children,
 }: {
@@ -147,6 +149,17 @@ export function Sheet({
    * sat on a tablet or a desktop. A phone still gets the page.
    */
   sideOnWide?: boolean;
+  /**
+   * A CARD IN THE MIDDLE OF THE SCREEN, on every width, for the moments that
+   * are an answer rather than a task: the success sheet. It keeps everything
+   * else this file owns (portal, backdrop, focus trap and return, Escape,
+   * Back, scroll lock); it has no grip and no drag, because a card that is
+   * not attached to an edge has nowhere to be thrown to. It scales and fades
+   * in, and under reduced motion it simply appears. The detents are ignored.
+   */
+  card?: boolean;
+  /** Extra classes on the dialog surface, for a composed sheet's own dress. */
+  className?: string;
   /** Put on the dialog element itself, for a spec to find. */
   testId?: string;
   children: ReactNode;
@@ -257,7 +270,7 @@ export function Sheet({
    * so `heights` is stable while the detents are, and the subscription happens
    * once per open.
    */
-  const detentKey = fullPage ? "1" : [...detents].sort((a, b) => a - b).join(",");
+  const detentKey = fullPage || card ? "1" : [...detents].sort((a, b) => a - b).join(",");
 
   const heights = useCallback(() => {
     const vh = viewportHeight();
@@ -437,11 +450,16 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={
+        className={[
           fullPage
             ? `nf-sheet nf-sheet--page${sideOnWide ? " nf-sheet--side" : ""} outline-none`
-            : "nf-sheet outline-none"
-        }
+            : card
+              ? "nf-sheet nf-sheet--card outline-none"
+              : "nf-sheet outline-none",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
         data-testid={testId}
         data-open={entered}
         data-dragging={dragging || undefined}
@@ -464,14 +482,16 @@ export function Sheet({
           The grip owns the drag. Putting it on the whole surface would fight
           every scrollable list and every slider inside the sheet.
         */}
-        <div
-          className="nf-sheet__grip"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          aria-hidden="true"
-        />
+        {card ? null : (
+          <div
+            className="nf-sheet__grip"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            aria-hidden="true"
+          />
+        )}
         {closeLabel ? (
           <div className="nf-sheet__head px-gutter">
             <h2

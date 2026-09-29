@@ -1,5 +1,5 @@
 import type { Dictionary } from "@vallo/i18n/core";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { VerifiedAgentBadge } from "./VerifiedAgentBadge";
@@ -93,7 +93,9 @@ export function ListingAgentCard({
       data-agent-noun={copy.agentRole}
     >
       <span className="nf-agent-card__avatar" aria-hidden="true">
-        <BrandIcon name="user-check" fill />
+        <span className="nf-detail-avatar-glyph">
+          <UiIcon name="user" size={24} />
+        </span>
       </span>
       <div className="min-w-0 flex-1">
         {/* The paragraph is dropped entirely when there is neither a heading

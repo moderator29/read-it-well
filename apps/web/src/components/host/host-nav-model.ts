@@ -60,6 +60,7 @@ export function hostTitleFor(pathname: string | null | undefined): string {
   const active = hostNavActive(pathname);
   if (active) return HOST_NAV.find((item) => item.href === active)?.label ?? "Host";
   if (pathname?.startsWith("/host/apply")) return "Application";
+  if (pathname?.startsWith("/host/notifications")) return "Notifications";
   return "Host";
 }
 

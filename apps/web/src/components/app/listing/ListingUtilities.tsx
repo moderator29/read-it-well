@@ -1,5 +1,5 @@
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { DetailGlyph } from "./DetailGlyph";
 import type { Listing } from "@/lib/listings/types";
 import type { ListingAccessView } from "@/lib/listings/access-queries";
 import { ICON, TYPE } from "@/components/app/Screen";
@@ -109,7 +109,7 @@ export function ListingUtilities({
   return (
     <dl className="divide-y divide-[var(--nf-panel-hair)]">
       <Row
-        icon="chart-growth"
+        icon="bolt"
         term="Light"
         answered={powerAnswered}
         value={
@@ -137,7 +137,7 @@ export function ListingUtilities({
       />
 
       <Row
-        icon="shield-check"
+        icon="droplet"
         term="Water"
         answered={Boolean(water)}
         value={
@@ -154,9 +154,7 @@ export function ListingUtilities({
 
       {utilities.hasEstateAccess && (
         <div className="flex gap-sm py-md">
-          <span className="block h-10 w-10 shrink-0">
-            <BrandIcon name="keys-home" fill />
-          </span>
+          <DetailGlyph name="gate" />
           <div className="min-w-0 flex-1">
             <dt className={TYPE.label}>The gate</dt>
             <dd className="mt-2xs">
@@ -216,7 +214,7 @@ function Row({
   answered,
   value,
 }: {
-  icon: BrandIconName;
+  icon: UiIconName;
   term: string;
   answered: boolean;
   value: React.ReactNode;
@@ -233,9 +231,9 @@ function Row({
   return (
     <div className="flow-root py-md first:pt-0">
       <dt className={TYPE.label}>
-        <span aria-hidden="true" className="float-left mr-sm block h-10 w-10">
-          <BrandIcon name={icon} fill />
-        </span>
+        {/* The plate's own box, floated, so the term and the answer run
+            beside it as they did beside the glass object it replaced. */}
+        <DetailGlyph name={icon} className="float-left mr-sm" />
         {term}
       </dt>
       <dd className="mt-2xs min-w-0 overflow-hidden">

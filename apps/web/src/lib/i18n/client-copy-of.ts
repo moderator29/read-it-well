@@ -46,6 +46,7 @@ const AUTH_FLOW_KEYS = [
  *   frontDoor.share            the listing page's share control
  *   offPlatform                the sheet before a link leaves Vallo
  *   socialProfile.accountPage  the profile's hero and rows
+ *   success                    every success sheet (components/ui/SuccessSheet)
  *
  * A server-side function, not part of the client module, so the root layout
  * can call it.
@@ -63,6 +64,7 @@ export type ClientCopy = {
   frontDoor: Pick<Dictionary["frontDoor"], "share">;
   offPlatform: Dictionary["offPlatform"];
   socialProfile: Pick<Dictionary["socialProfile"], "accountPage">;
+  success: Dictionary["success"];
 };
 
 export function clientCopyOf(t: Dictionary): ClientCopy {
@@ -84,5 +86,6 @@ export function clientCopyOf(t: Dictionary): ClientCopy {
     frontDoor: { share: t.frontDoor.share },
     offPlatform: t.offPlatform,
     socialProfile: { accountPage: t.socialProfile.accountPage },
+    success: t.success,
   };
 }

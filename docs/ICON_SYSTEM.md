@@ -396,9 +396,12 @@ the glyph takes the bright end of the brand blue, as the profile page does.
 The same sweep put line glyphs on the rest of the detail pages: the host and
 agent avatar fallbacks (`user`), the rooms line of the move-in block (`bed`),
 the stay's property type (`building-hotel`, `building-apartment`,
-`house-bungalow`, `pool`, `key`), the rental panel's safety note (`verified`)
-and the booking-requested confirmation (`calendar-booking`, filled, on the
-success plate). The cost models (`move-in-lines.ts`, `purchase-lines.ts`) keep
+`house-bungalow`, `pool`, `key`) and the rental panel's safety note
+(`verified`). One glass object stays on purpose: the booking-requested
+confirmation draws `calendar-check` at 56px, above the 32px where the glass
+set reads, and its pop-in is keyed to the object's own tile. The stays
+category tiles on `/stays` are browse tiles, not detail rows, and keep glass
+too. The listing cards drew no glass. The cost models (`move-in-lines.ts`, `purchase-lines.ts`) keep
 their `icon` (a `BrandIconName`) for the listing wizard's preview and carry the
 line glyph as `glyph`.
 

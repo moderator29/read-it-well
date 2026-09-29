@@ -3,7 +3,7 @@ import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { DetailGlyph } from "./DetailGlyph";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -85,9 +85,7 @@ export function ListingMoveInBlock({
       </div>
       {(listing.bedrooms > 0 || listing.bathrooms > 0) && (
         <div className="nf-detail-movein__rooms">
-          <span aria-hidden="true">
-            <BrandIcon name="keys-home" fill />
-          </span>
+          <DetailGlyph name="bed" />
           <span className="nf-numeric">
             {listing.bedrooms > 0 && (
               <span className="block">

@@ -125,6 +125,14 @@
   .nf-ai__ident {
     padding-bottom: var(--nf-space-sm);
   }
+  /* Inside a workspace the shell draws the bar, so the name pair carries the
+     history and settings controls on its own row. */
+  .nf-ai__ident--row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding-top: var(--nf-space-sm);
+  }
   .nf-ai__title {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h4);
