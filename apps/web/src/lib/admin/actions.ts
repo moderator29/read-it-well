@@ -57,6 +57,8 @@ const SERVICE_DOWN =
   "The console could not reach the platform data just now. Nothing was changed. Please try again.";
 
 const GONE = "That record is no longer there. Refresh the queue to see the current state.";
+/** Two reviewers on one item: the other decision landed first. */
+const DECIDED_ELSEWHERE = "Somebody else decided this a moment ago. Refresh the queue to see the current state.";
 
 /** ------------------------------------------------------------ message flags */
 
@@ -218,7 +220,7 @@ export async function resolveReport(input: {
   }
 
   const closing = decision === "resolved" || decision === "dismissed";
-  const { error: updateError } = await access.supabase
+  const { data: movedReport, error: updateError } = await access.supabase
     .from("reports")
     .update({
       status: decision,
@@ -227,8 +229,11 @@ export async function resolveReport(input: {
       // row either way, so an item sitting in review is visibly somebody's.
       resolved_by: access.user.id,
     })
-    .eq("id", report.id);
+    .eq("id", report.id)
+    .eq("status", report.status)
+    .select("id");
   if (updateError) return fail(SERVICE_DOWN);
+  if (!movedReport || movedReport.length === 0) return fail(DECIDED_ELSEWHERE);
 
   try {
     await writeAudit(createAdminClient(), {
@@ -289,6 +294,11 @@ export async function reviewAgentApplication(input: {
   if (readError) return fail(SERVICE_DOWN);
   if (!application) return fail(GONE);
 
+  /* Nobody decides their own application, whatever their access. */
+  if (application.user_id === access.user.id) {
+    return fail("You cannot decide your own application. Leave it for another reviewer.");
+  }
+
   const decidable = ["SUBMITTED", "UNDER_REVIEW", "MORE_INFO_REQUIRED"];
   if (!decidable.includes(application.status)) {
     return fail(
@@ -301,7 +311,9 @@ export async function reviewAgentApplication(input: {
   const nextStatus =
     decision === "approve" ? "APPROVED" : decision === "reject" ? "REJECTED" : "MORE_INFO_REQUIRED";
 
-  const { error: updateError } = await access.supabase
+  /* Compare and set: the write lands only on the status that was read, so two
+     reviewers deciding at once cannot both win and both notify. */
+  const { data: decidedRows, error: updateError } = await access.supabase
     .from("agent_applications")
     .update({
       status: nextStatus,
@@ -309,13 +321,16 @@ export async function reviewAgentApplication(input: {
       reviewed_at: new Date().toISOString(),
       review_notes: notes,
     })
-    .eq("id", application.id);
+    .eq("id", application.id)
+    .eq("status", application.status)
+    .select("id");
   /* V-90: an application matching an identity stopped for fraud is decided by
      a senior reviewer; the database says which identity and when. */
   if (updateError && updateError.code === "42501" && (updateError.message ?? "").includes("senior reviewer")) {
     return fail(updateError.message);
   }
   if (updateError) return fail(SERVICE_DOWN);
+  if (!decidedRows || decidedRows.length === 0) return fail(DECIDED_ELSEWHERE);
 
   /*
    * APPROVAL IS THREE WRITES AND THE APPLICANT IS TOLD ONLY WHEN ALL THREE
@@ -575,6 +590,10 @@ export async function reviewListing(input: {
   if (readError) return fail(SERVICE_DOWN);
   if (!listing) return fail(GONE);
 
+  /* Nobody reviews their own listing, whatever their access. */
+  if (listing.agents?.user_id && listing.agents.user_id === access.user.id) {
+    return fail("You cannot review your own listing. Leave it for another reviewer.");
+  }
   if (listing.status === "DRAFT") {
     return fail("This listing is still a draft, so there is nothing to review yet.");
   }
@@ -600,7 +619,7 @@ export async function reviewListing(input: {
           : "MORE_INFO_REQUIRED";
 
   const now = new Date().toISOString();
-  const { error: updateError } = await access.supabase
+  const { data: decidedListing, error: updateError } = await access.supabase
     .from("listings")
     .update({
       status: nextStatus,
@@ -613,13 +632,18 @@ export async function reviewListing(input: {
          all read this column. */
       ...(decision === "publish" && !listing.published_at ? { published_at: now } : {}),
     })
-    .eq("id", listing.id);
+    .eq("id", listing.id)
+    /* Compare and set, as for applications: a second reviewer's click on a
+       row somebody already moved changes nothing. */
+    .eq("status", listing.status)
+    .select("id");
   if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);
   /* SCUML item 15: a high-risk lister's listing waits for a cleared EDD review. */
   if (isEddGateRefusal(updateError)) return fail(eddGateMessage("admin"));
   /* SCUML item 17: the publish gate refuses an agent or firm listing without an approved mandate. */
   if (isMandateRefusal(updateError)) return fail(MANDATE_NEEDED_MESSAGE);
   if (updateError) return fail(SERVICE_DOWN);
+  if (!decidedListing || decidedListing.length === 0) return fail(DECIDED_ELSEWHERE);
 
   try {
     const admin = createAdminClient();

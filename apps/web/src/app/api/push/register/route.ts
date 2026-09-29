@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOriginRequest } from "@/lib/security/request-origin";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
@@ -81,6 +82,9 @@ const Body = z
   });
 
 export async function POST(request: Request): Promise<NextResponse> {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ ok: false, reason: "forbidden" }, { status: 403 });
+  }
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ ok: false, reason: "unconfigured" }, { status: 503 });
   }
