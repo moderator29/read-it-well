@@ -43,6 +43,7 @@ import {
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
 import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
+import { WORKSPACE_FRAMES, type AssistantWorkspace } from "@/lib/assistant/workspace";
 
 /**
  * Vallo AI, to its governing image (`docs/design/references/BF49B814`).
@@ -177,9 +178,17 @@ export function AssistantChat({
   viewer,
   seed,
   aiConsented = false,
+  workspace,
   t,
 }: {
   locale: Locale;
+  /**
+   * Opened inside a workspace (`/agent/assistant`, `/host/assistant`). The
+   * workspace's shell draws the bar, so this surface draws no back control or
+   * lockup of its own; the prompts are the workspace's, and the route is told
+   * which workspace by key (`lib/assistant/workspace.ts`).
+   */
+  workspace?: AssistantWorkspace;
   /** STORE-07: whether this person has agreed to the AI disclosure. The
       server route refuses without it either way. */
   aiConsented?: boolean;
@@ -195,6 +204,7 @@ export function AssistantChat({
   t: AssistantCopy;
 }) {
   const copy = t.home.assistant;
+  const frame = workspace ? WORKSPACE_FRAMES[workspace] : null;
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -365,6 +375,7 @@ export function AssistantChat({
           body: JSON.stringify({
             messages: history,
             ...(serverId ? { threadId: serverId } : {}),
+            ...(workspace ? { workspace } : {}),
           }),
           signal: controller.signal,
         });
@@ -452,7 +463,7 @@ export function AssistantChat({
         if (streamSeq.current === seq) setStreamingThread(null);
       }
     },
-    [dropMessageIfEmpty, patchMessage],
+    [dropMessageIfEmpty, patchMessage, workspace],
   );
 
   const send = useCallback(

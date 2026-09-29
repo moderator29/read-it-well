@@ -768,20 +768,20 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   // [coins]: the total a buyer or a tenant has to find.
   coins: (
     <>
-      <circle cx="8" cy="8" r="6" />
-      <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
-      <path d="M7 6h1v4" />
-      <path d="m16.71 13.88.7.71-2.82 2.82" />
+      <path d="M13.744 17.736a6 6 0 1 1-7.48-7.48" />
+      <path d="M15 6h1v4" />
+      <path d="m6.134 14.768.866-.5 2 3.464" />
+      <circle cx="16" cy="8" r="6" />
     </>
   ),
   // [scale]: the legal fee. The law's own mark, not a document.
   scale: (
     <>
-      <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-      <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-      <path d="M7 21h10" />
       <path d="M12 3v18" />
-      <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+      <path d="m19 8 3 8a5 5 0 0 1-6 0zV7" />
+      <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" />
+      <path d="m5 8 3 8a5 5 0 0 1-6 0zV7" />
+      <path d="M7 21h10" />
     </>
   ),
   /* [award]: Governor's consent. A seal on a ribbon, the certificate a
