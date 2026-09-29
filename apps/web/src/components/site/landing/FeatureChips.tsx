@@ -28,7 +28,7 @@ export function FeatureChips({ t }: { t: Dictionary }) {
     { key: "manage", icon: "chat-duo" },
   ];
   return (
-    <section className="nf-shell pb-section" data-chapter="features" aria-label={c.one.title}>
+    <section className="nf-shell nf-room" data-chapter="features" aria-label={c.one.title}>
       <Reveal>
         <ul className="nf-landing-chiprow">
           {cells.map((cell) => (

@@ -26,6 +26,11 @@ import { SectionHead } from "./SectionHead";
  *
  * Every card is a real link to the surface it describes, and every sentence
  * on it describes what that surface does today.
+ *
+ * THE SIZES TILE EXACTLY. Four columns by three rows from 64rem is twelve
+ * cells: two wide (2), two tall (2), two base (1) and the closing wide pair
+ * (2 + 2). With the assistant as a base card and Around as a base card the
+ * grid held ten, and the last row ended half empty beside the Guarantee.
  */
 type Scene = "tag" | "calendar" | "typing" | "bars" | "shield" | "messages" | "feed";
 
@@ -34,11 +39,11 @@ export function Bento({ t }: { t: Dictionary }) {
   const cards: { key: keyof typeof b.cards; href: string; scene: Scene; size: "wide" | "tall" | "base" }[] = [
     { key: "rent", href: "/search", scene: "tag", size: "wide" },
     { key: "stays", href: "/stays", scene: "calendar", size: "tall" },
-    { key: "ai", href: "/assistant", scene: "typing", size: "base" },
+    { key: "ai", href: "/assistant", scene: "typing", size: "tall" },
     { key: "price", href: "/price", scene: "bars", size: "base" },
     { key: "agree", href: "/safety", scene: "shield", size: "wide" },
     { key: "messages", href: "/messages", scene: "messages", size: "base" },
-    { key: "feed", href: "/around", scene: "feed", size: "base" },
+    { key: "feed", href: "/around", scene: "feed", size: "wide" },
   ];
   return (
     <section className="nf-shell nf-room" data-chapter="bento" aria-labelledby="nf-landing-bento-title">

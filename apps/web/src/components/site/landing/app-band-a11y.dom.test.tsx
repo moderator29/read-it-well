@@ -1,42 +1,63 @@
 /**
- * DOC-21: the landing page's phone illustration was `aria-hidden` but held a
- * real, focusable listing link (axe `aria-hidden-focus`): a keyboard user
- * tabbed into a region a screen reader said was not there.
+ * The landing's app band and journey without a device frame (29 September).
+ *
+ * DOC-21 was the reason this file existed: the phone illustration beside the
+ * store badges was `aria-hidden` but held a real, focusable listing link
+ * (axe `aria-hidden-focus`). The phones are gone, so the band now has no
+ * hidden region at all, and the check that stays is the one that matters:
+ * nothing a keyboard can reach is hidden, the band reads as a list and a
+ * heading, and the journey tells its four steps without a drawn phone.
  */
 import { getDictionary } from "@vallo/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, describe, expect, it } from "vitest";
 import { axe, closeAxe, hasBrowser } from "@/lib/a11y/axe";
+import { NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
 import { AppBand } from "./AppBand";
+import { Journey } from "./Journey";
 
 afterAll(closeAxe);
 
-describe.skipIf(!hasBrowser && !process.env.CI)("AppBand (axe)", () => {
-  it("the hidden phone illustration holds nothing a keyboard can reach", async () => {
-    const html = renderToStaticMarkup(
-      <AppBand
-        t={getDictionary("en")}
-        locale="en"
-        listing={{
-          id: "l1",
-          href: "/listing/l1",
-          title: "Two bedroom flat, Yaba",
-          place: "Yaba, Lagos",
-          priceMinor: 250_000_000,
-          currency: "NGN",
-          suffix: "/year",
-          photo: null,
-          hue: 200,
-          kind: "apartment",
-          verified: false,
-          market: "To rent",
-        }}
-      />,
-    );
-    expect(html).toContain("nf-landing-phones");
-    /* The card's media box as the landing stylesheet sizes it: without a box
-       the link has no area and axe does not count it as reachable. */
-    const css = `.nf-landing-float-media{position:relative;width:180px;height:120px}`;
-    expect(await axe(html, { rules: ["aria-hidden-focus"], css, strict: true })).toEqual([]);
+const t = getDictionary("en");
+/* The class names the drawn phones and their screens used. None may return. */
+const DEVICE = /nf-(landing-)?phone|nf-jscreen|nf-journey__screen/;
+
+describe("AppBand", () => {
+  const html = renderToStaticMarkup(<AppBand t={t} />);
+
+  it("draws no device frame", () => {
+    expect(html).not.toMatch(DEVICE);
+    expect(html).toContain("nf-app-panel");
+  });
+
+  it("prints the install line when no store badge is live, and every point", () => {
+    expect(html).toContain(t.landing.face.app.installTitle);
+    for (const point of [t.landing.face.app.points.notify, t.landing.face.app.points.sides, t.landing.face.app.points.record]) {
+      expect(html).toContain(point);
+    }
+  });
+
+  it.skipIf(!hasBrowser && !process.env.CI)("hides nothing a keyboard can reach (axe)", async () => {
+    expect(await axe(html, { rules: ["aria-hidden-focus", "list", "listitem"], strict: true })).toEqual([]);
+  });
+});
+
+describe("Journey", () => {
+  const html = renderToStaticMarkup(<Journey t={t} />);
+
+  it("tells four numbered steps with no phone", () => {
+    expect(html).not.toMatch(DEVICE);
+    expect(html.match(/class="nf-step"/g)?.length).toBe(4);
+    for (const n of ["01", "02", "03", "04"]) expect(html).toContain(`>${n}<`);
+  });
+
+  it("prints the money sentences verbatim", () => {
+    for (const sentence of [NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE, NO_CUSTODY_SENTENCE]) {
+      expect(html).toContain(renderToStaticMarkup(<>{sentence}</>));
+    }
+  });
+
+  it.skipIf(!hasBrowser && !process.env.CI)("is a list with a heading per step (axe)", async () => {
+    expect(await axe(html, { rules: ["aria-hidden-focus", "list", "listitem"], strict: true })).toEqual([]);
   });
 });

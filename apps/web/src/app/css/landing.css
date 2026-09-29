@@ -43,7 +43,7 @@
      * (32px) and the growth rate with it; the desktop ceiling is untouched,
      * because nothing was ever wrong there.
      */
-    --nf-landing-title: clamp(2rem, 1.05rem + 3.9vw, 4.75rem);
+    --nf-landing-title: clamp(2rem, 1.05rem + 3.9vw, 4.25rem);
     --nf-landing-pill-max: 47.5rem;
     --nf-landing-card-w: 15.5rem;
     --nf-landing-hero-h: min(100svh, 56rem);
@@ -65,8 +65,7 @@
     /*
      * ON THE PHOTOGRAPH, THE THEME DOES NOT CHANGE. A dusk plate is dark in
      * daylight too, so everything that sits on one (the hero copy, the city
-     * capsules, the pill, the floating card, the category tiles, the drawn
-     * phone) is inked from these, which never flip. The ink is written out
+     * capsules, the pill, the floating card, the category tiles) is inked from these, which never flip. The ink is written out
      * here rather than read from `--nf-surface-pin`: that token was once the
      * same in both themes, but tokens.css now turns it white in light, which
      * put white hero copy on a white-washed photograph (/about at desktop in
@@ -103,6 +102,48 @@
   .nf-site {
     background: var(--nf-surface-canvas);
     color: var(--nf-content-primary);
+  }
+
+  /*
+   * LESS GLOW, ON THE NIGHT PALETTE (29 September, the founder: "less glow").
+   *
+   * Every panel on the landing is the shared panel, and on the night
+   * palette the shared panel is lit: a bright blue edge on all four sides,
+   * a second line of light inside the top, and a 6px halo outside. Twenty
+   * of them down one page read as neon. The landing keeps the panel and
+   * turns its light down: a quiet brand hairline for the edge, one faint
+   * catch inside the top, no halo. The lit primary button keeps its bar and
+   * rim and loses most of its bloom. Paper is untouched (its panels were
+   * never lit). A property that reads another resolves where it is
+   * declared, so the islands declare it again for their own palette.
+   */
+  :root:not([data-theme="light"]) .nf-landing,
+  .nf-landing [data-theme="dark"] {
+    --nf-panel-edges: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    --nf-panel-rim: inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 7%, transparent);
+    --nf-panel-glow: 0 1px 2px color-mix(in oklab, var(--nf-surface-canvas) 60%, transparent);
+    --nf-btn-lit-shadow:
+      var(--nf-btn-lit-rim), var(--nf-btn-lit-inner),
+      0 4px 12px -6px color-mix(in srgb, var(--nf-brand-primary) 60%, transparent);
+    --nf-btn-lit-shadow-hover:
+      var(--nf-btn-lit-rim), var(--nf-btn-lit-inner-hover),
+      0 6px 16px -6px color-mix(in srgb, var(--nf-brand-primary) 70%, transparent);
+  }
+  /* The pool of light cast under the lit bar, at a third of its strength. */
+  .nf-landing .nf-btn--primary::after {
+    opacity: 0.35;
+  }
+
+  /*
+   * ONE ENTRANCE TEMPO. The shared scroll reveal runs 520ms; on the landing
+   * every card and head arrives in 240ms, staggered 60ms a child, so a room
+   * is settled by the time the eye reaches it. Reduced motion and Calm never
+   * hide anything in the first place (MotionReveal), and the duration tokens
+   * collapse to 1ms under reduced motion.
+   */
+  .nf-landing .nf-m-reveal[data-reveal="in"],
+  .nf-landing .nf-m-stagger[data-reveal="in"] > * {
+    animation-duration: var(--nf-duration-base);
   }
   @media (min-width: 64rem) {
     .nf-landing,
@@ -507,10 +548,49 @@
     inset: calc(-1 * var(--nf-space-3xl)) calc(-1 * var(--nf-space-2xl));
     z-index: -1;
   }
+  /* The scrim's box had a visible edge on the photograph: its gradient was
+     still a quarter strong where the box ended, so a darker rectangle stood
+     behind the copy with a hard top and right side. Feathered to nothing at
+     every edge; the plate's own left-third scrim carries the rest. */
+  @media (min-width: 64rem) {
+    .nf-landing-hero-copy > .nf-photo-scrim {
+      -webkit-mask-image: radial-gradient(farthest-side at 40% 50%, black 55%, transparent 100%);
+      mask-image: radial-gradient(farthest-side at 40% 50%, black 55%, transparent 100%);
+    }
+  }
+  /*
+   * THE HERO'S ONE SCROLL MOTION: a slow parallax on the photograph. As the
+   * first 100vh scrolls away the villa sinks 5 per cent behind the copy,
+   * scaled 8 per cent so no edge ever shows. A scroll timeline, so no script
+   * and nothing runs while the page is still; from 64rem only (on a phone
+   * the plate is a band), and never under reduced motion, Calm or Off
+   * (landing-rooms.css) or data saver.
+   */
+  @supports (animation-timeline: scroll()) {
+    @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+      .nf-landing-hero-plate img {
+        animation: nf-hero-drift linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 100vh;
+      }
+    }
+  }
+  @keyframes nf-hero-drift {
+    from {
+      transform: scale(1.08) translate3d(0, 0, 0);
+    }
+    to {
+      transform: scale(1.08) translate3d(0, 5%, 0);
+    }
+  }
+  :root[data-save-data="on"] .nf-landing-hero-plate img {
+    animation: none;
+  }
   @media (max-width: 63.999rem) {
+    /* Centred: pushed to the end it left a 60-70px empty strip beside it at
+       390 (the responsive sweep, 29 September). */
     .nf-landing-hero-body > .nf-landing-float-wrap {
-      margin-top: var(--nf-gap-block);
-      margin-inline-start: auto;
+      margin-inline: auto;
       width: min(100%, var(--nf-landing-card-w));
       position: relative;
       z-index: 1;
@@ -531,7 +611,7 @@
       /* Static, so the plate's `inset: 0` measures the whole hero (nav
          height included) and not the shell's box inside it. */
       position: static;
-      grid-template-columns: minmax(0, 33rem) 1fr;
+      grid-template-columns: minmax(0, 40rem) 1fr;
       align-items: center;
       /* THE HEADER'S SCROLLED STATE USED TO LAND ON THE OVERLINE (R1 finding
          A10). The hero already offsets the header's resting height; what it
@@ -595,11 +675,12 @@
   }
   .nf-landing-title > span {
     display: block;
+    text-wrap: balance;
   }
   .nf-landing-title .nf-gradient-text {
     /* The word "reimagined." carries the brand ramp and a soft bloom under it,
        which is what makes it read as lit rather than printed. */
-    filter: drop-shadow(0 0 22px var(--nf-glow-2));
+    filter: drop-shadow(0 0 10px var(--nf-glow-1));
   }
   /*
    * The sub-line came down with the headline. At body-lg over 36ch it ran to
@@ -616,7 +697,7 @@
   }
   @media (min-width: 64rem) {
     .nf-landing-sub {
-      max-width: 36ch;
+      max-width: 44ch;
       font-size: var(--nf-text-body-lg);
       line-height: 1.55;
     }
@@ -799,8 +880,8 @@
    * TWO LINES, AND THE CARD KEEPS ITS SHAPE.
    *
    * The title had no ceiling, so a long one simply made the body taller. In
-   * the drawn phone, where the card is pinned to the foot of the screen, the
-   * body grew UPWARDS over the photograph behind it (the founder photographed
+   * the drawn phone the landing used to carry, where the card was pinned to
+   * the foot of the screen, the body grew UPWARDS over the photograph behind it (the founder photographed
    * exactly that), and at 320px it reached seven lines and pushed the place
    * and the price out of the slab. The render draws the title under the
    * photograph on two lines at most, so that is what it gets; the full title
@@ -837,20 +918,6 @@
     font-size: var(--nf-text-body-sm);
     font-weight: 700;
     color: var(--nf-landing-on-ink);
-  }
-  /*
-   * The card drawn on the phone screen is about 105px wide, which is one
-   * line's worth of title and no room for a place beside a price: the place
-   * collapsed to a pin and one letter with the price jammed against it. Inside
-   * the phone the card carries the title and the price, which is what the
-   * render's phone card shows at this size; the place is on the card
-   * everywhere the card is big enough to read it.
-   */
-  .nf-landing-phone-card .nf-landing-float-title {
-    -webkit-line-clamp: 1;
-  }
-  .nf-landing-phone-card .nf-landing-float-place {
-    display: none;
   }
   .nf-landing-pager {
     display: flex;
@@ -893,9 +960,21 @@
     max-width: var(--nf-landing-pill-max);
     margin-inline: auto;
   }
+  /* From 64rem the grid places the three in-flow children itself: the copy
+     and the card on the first row, the search across both on the second.
+     (The DOM order, copy then search then card, is the phone's order.) */
   @media (min-width: 1024px) {
-    .nf-landing-pill-wrap {
-      margin-top: calc(-1 * var(--nf-space-xl));
+    .nf-landing-hero-body > .nf-landing-hero-copy {
+      grid-row: 1;
+      grid-column: 1;
+    }
+    .nf-landing-hero-body > .nf-landing-float-wrap {
+      grid-row: 1;
+      grid-column: 2;
+    }
+    .nf-landing-hero-body > .nf-landing-pill-wrap {
+      grid-row: 2;
+      grid-column: 1 / -1;
     }
   }
   /* The stats band rides up over the foot of the photograph on desktop. */
@@ -1755,150 +1834,100 @@
 
   /* ---------------------------------------------------- the app band */
 
-  .nf-landing-app {
+  /*
+   * ONE BRANDED PANEL, NO DEVICE FRAME (29 September: the two drawn phones,
+   * their screens and the checklist card beside them are deleted). A night
+   * island in both themes (`data-theme="dark"` on the panel), the navy the
+   * light header is, with one soft wash of brand light in its far corner:
+   * the promise and the badges (or the install line) on the left, the three
+   * points on an inner card on the right.
+   */
+  .nf-app-panel {
     display: grid;
     gap: var(--nf-gap-block);
     align-items: center;
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-app {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
-    }
-  }
-  /*
-   * The two install badges, shaped like the render's store badges: a deep
-   * capsule with a mark, a small line over a strong one. The WORDS are not
-   * the render's. There is no App Store or Play listing (native identifiers
-   * are on the stop list), so a badge reading "Download on the App Store"
-   * would be a claim about something that does not exist; these say what
-   * actually happens, which is that Vallo installs from the browser.
-   */
-  .nf-landing-store {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    min-height: 3.25rem;
-    padding: 0 var(--nf-space-lg) 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-landing-ink);
-    color: var(--nf-landing-on-ink);
-    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    box-shadow: var(--nf-btn-glass-shadow);
-  }
-  .nf-landing-store > span {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.15;
-  }
-  .nf-landing-store small {
-    font-size: var(--nf-text-overline);
-    color: var(--nf-landing-on-ink-secondary);
-  }
-  .nf-landing-store strong {
-    font-size: var(--nf-text-body-sm);
-    font-weight: 650;
-  }
-  @media (hover: hover) {
-    .nf-landing-store:hover {
-      border-color: var(--nf-brand-edge);
-    }
-  }
-  .nf-landing-store:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-
-  /*
-   * TWO phones, drawn. Not device frames cropped from the render: rounded
-   * glass slabs, one carrying the portrait villa with a real listing card on
-   * it, one carrying the brand face the app opens on, offset as the render
-   * offsets them.
-   */
-  .nf-landing-phones {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: var(--nf-space-sm);
-  }
-  .nf-landing-phone--back {
-    margin-bottom: var(--nf-space-xl);
-  }
-  .nf-landing-phone-screen--brand {
-    display: grid;
-    place-content: center;
-    justify-items: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-md);
-    text-align: center;
+    padding: var(--nf-space-xl) var(--nf-pad-card);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background:
-      radial-gradient(90% 60% at 50% 42%, var(--nf-glow-2) 0%, transparent 70%),
-      linear-gradient(180deg, var(--nf-landing-ink) 0%, var(--nf-landing-ink) 100%);
-  }
-  /* The lockup stacks inside the drawn screen, as the render draws the app's
-     opening face, rather than running side by side and losing half the
-     wordmark off the edge of a 184px slab. */
-  .nf-landing-phone-screen--brand .nf-logo {
-    flex-direction: column;
-    gap: var(--nf-gap-row);
-  }
-  .nf-landing-phone-slogan {
-    font-size: var(--nf-text-overline);
-    font-weight: 600;
-    color: var(--nf-landing-on-ink-secondary);
-  }
-  .nf-landing-phone {
-    position: relative;
-    flex: 1 1 0;
-    width: auto;
-    max-width: 11.5rem;
-    margin-inline: auto;
-    aspect-ratio: 9 / 18.5;
-    padding: var(--nf-space-xs);
-    border-radius: var(--nf-radius-2xl);
-    background: var(--nf-surface-primary);
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 0 1px var(--nf-brand-edge-soft),
-      0 0 60px var(--nf-glow-2),
-      var(--nf-elev-4);
-  }
-  .nf-landing-phone-screen {
-    position: relative;
-    height: 100%;
-    overflow: hidden;
-    border-radius: calc(var(--nf-radius-2xl) - var(--nf-space-xs));
-  }
-  .nf-landing-phone-screen img {
-    object-fit: cover;
-  }
-  .nf-landing-phone-screen::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--nf-scrim-media);
-  }
-  .nf-landing-phone-card {
-    position: absolute;
-    left: var(--nf-space-sm);
-    right: var(--nf-space-sm);
-    bottom: var(--nf-space-md);
-    z-index: 1;
-  }
-  .nf-landing-checks {
-    display: grid;
-    gap: var(--nf-gap-row);
-  }
-  .nf-landing-checks li {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    font-size: var(--nf-text-body-sm);
+      radial-gradient(70% 90% at 100% 0%, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent) 0%, transparent 70%),
+      var(--nf-surface-primary);
     color: var(--nf-content-primary);
   }
-  .nf-landing-checks li > svg {
+  @media (min-width: 64rem) {
+    .nf-app-panel {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: var(--nf-space-3xl);
+      padding: var(--nf-space-3xl);
+    }
+  }
+  .nf-app-panel__badges {
+    margin-top: var(--nf-gap-heading);
+  }
+  .nf-app-panel__install {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-gap-row);
+    max-width: var(--nf-measure-lede);
+    margin-top: var(--nf-gap-heading);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    background: var(--nf-glass-fill);
+  }
+  .nf-app-panel__install > svg {
     flex: none;
+    margin-top: var(--nf-space-3xs);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-app-panel__install-title {
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-app-panel__install-body {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-app-panel__aside {
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    background: var(--nf-glass-fill);
+  }
+  .nf-app-panel__mark {
+    display: inline-flex;
+  }
+  .nf-app-panel__aside-title {
+    margin-top: var(--nf-gap-group);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+  }
+  .nf-app-panel__points {
+    display: grid;
+    gap: var(--nf-gap-row);
+    margin-top: var(--nf-gap-group);
+  }
+  .nf-app-panel__points li {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-app-panel__tick {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-sm);
+    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
     color: var(--nf-brand-secondary);
   }
 

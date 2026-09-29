@@ -64,6 +64,15 @@ function focusableWithin(root: HTMLElement): HTMLElement[] {
   });
 }
 
+/**
+ * The overlays open right now, oldest first. Only the top one answers Escape
+ * and traps Tab: with a report sheet open over a comments sheet, one Escape
+ * used to close both (each had its own capture listener), and Tab was trapped
+ * by whichever listener ran first. A token per open, so a StrictMode double
+ * effect removes exactly what it added.
+ */
+const overlayStack: symbol[] = [];
+
 export function useOverlay({
   open,
   onClose,
@@ -88,7 +97,11 @@ export function useOverlay({
       (first ?? panel).focus?.();
     }
 
+    const token = Symbol("overlay");
+    overlayStack.push(token);
+
     const onKeyDown = (event: KeyboardEvent) => {
+      if (overlayStack[overlayStack.length - 1] !== token) return;
       if (event.key === "Escape") {
         event.stopPropagation();
         onClose();

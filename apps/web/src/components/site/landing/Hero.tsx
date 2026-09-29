@@ -19,8 +19,8 @@ import { Sweep } from "./Sweep";
  * Full-bleed dusk villa plate; the overline breadcrumb; the headline, white
  * over the brand ramp; the sub-line; Explore Properties primary and Explore
  * Stays glass; the four city capsules linking to real searches; the floating
- * listing card on the right of the photograph; and the search pill hanging
- * off the bottom edge.
+ * listing card on the right of the photograph; and the search pill on its
+ * own row beneath them.
  *
  * THE HEADLINE AND THE PILL BELOW IT SAY THE SAME THREE WORDS, AND THAT IS
  * NOT A COINCIDENCE TO BE TIDIED AWAY. "Rent, buy or stay. Without the
@@ -50,7 +50,9 @@ import { Sweep } from "./Sweep";
  * small shape the client pager needs), so the preview harness can hand the
  * hero fixtures where this sandbox cannot reach the catalogue. Nothing here
  * is ambient motion except the aurora, which is the one loop this viewport
- * is allowed and which pauses whenever the hero is off screen.
+ * is allowed and which pauses whenever the hero is off screen. From 64rem the
+ * photograph also drifts a few per cent as the page scrolls away (a scroll
+ * timeline in landing.css, off under reduced motion and Calm).
  */
 export function Hero({
   t,
@@ -143,13 +145,23 @@ export function Hero({
           </div>
         </div>
 
+        {/* THE SEARCH IS PART OF THE FIRST SCREEN (29 September). It sat in
+            a shell of its own under the hero body, so on a phone it came
+            after the listing card, about 1,000px down: below the fold on
+            the one screen whose job is headline, action, search. It is in
+            the body now, straight after the copy; from 64rem the grid puts
+            it on its own row under the copy and the card, spanning both. */}
+        <div className="nf-landing-pill-wrap nf-depth-last">
+          <SearchPill labels={face.search} />
+        </div>
+
         <div className="nf-landing-hero-plate" aria-hidden="true">
           <Image
             src={photo("villa-pool-skyline-02")}
             alt=""
             fill
             priority
-            sizes="(max-width: 64rem) 78vw, 60vw"
+            sizes="(max-width: 64rem) 84vw, 100vw"
           />
         </div>
 
@@ -157,11 +169,8 @@ export function Hero({
       </div>
 
       <div className="nf-shell">
-        {/* The search rises last, once the headline has landed, and the store
-            badges with it (only where a real store address exists). */}
-        <div className="nf-landing-pill-wrap nf-depth-last">
-          <SearchPill labels={face.search} />
-        </div>
+        {/* The store badges rise last, with the search (only where a real
+            store address exists). */}
         <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-depth-last nf-landing-hero-badges" />
       </div>
     </section>
