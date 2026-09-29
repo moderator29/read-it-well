@@ -76,6 +76,26 @@ export async function expectSignInWall(check, path, base = BASE_URL) {
 }
 
 /**
+ * Assert that a signed-out call to a gated API answers the proxy's own
+ * refusal: 401 with `{ code: "sign-in-required" }`, never data.
+ */
+export async function expectApiWall(check, path, init = {}, base = BASE_URL) {
+  let status = 0;
+  let body = null;
+  try {
+    const res = await fetch(`${base}${path}`, { redirect: "manual", ...init });
+    status = res.status;
+    body = await res.json().catch(() => null);
+  } catch (error) {
+    check(`${path} answers signed out (${error instanceof Error ? error.message : error})`, false);
+    return false;
+  }
+  const ok = status === 401 && body?.code === "sign-in-required";
+  check(`signed out, ${path} answers 401 sign-in-required (${status} ${body?.code ?? "no code"})`, ok);
+  return ok;
+}
+
+/**
  * Load a preview harness page. Returns true when it rendered; false (after
  * printing a SKIP) when the harness is closed on this server. A harness page
  * that is open but broken is a failure, not a skip.
