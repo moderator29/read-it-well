@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { countOf } from "@vallo/i18n/core";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
@@ -212,7 +213,7 @@ function Row({ row, selected, href, now }: { row: SupportQueueRow; selected: boo
           {row.replyCount > 0 ? (
             <>
               <span aria-hidden="true">·</span>
-              <span>{row.replyCount === 1 ? "1 message" : `${row.replyCount} messages`}</span>
+              <span>{countOf(row.replyCount, "replies")}</span>
             </>
           ) : null}
           <span className="ml-auto font-semibold text-[var(--nf-content-secondary)]">
@@ -371,7 +372,11 @@ function Ticket({
 }) {
   const row = detail.row;
   const open = row.status === "open" || row.status === "pending";
-  const status = statusWord(row.status);
+  /* The same word the state control below uses, so the chip and the control agree. */
+  const status = {
+    ...statusWord(row.status),
+    label: (copy.states as Record<string, string | undefined>)[row.status] ?? statusWord(row.status).label,
+  };
   const live = (detail.escalations ?? []).filter((e) => !e.returnedAt);
   const past = (detail.escalations ?? []).filter((e) => e.returnedAt);
   const supportMode = detail.mode === "support";
@@ -547,7 +552,9 @@ export function SupportDesk({ now, tab, q, queue, selected, missing, copy }: Sup
       </header>
 
       {queue.state === "ok" ? (
-        <>
+        /* On a phone an open ticket gets the screen; the tiles, search and
+           lanes come back with "The queue". */
+        <div className={selected ? "hidden lg:block" : undefined}>
           <Tiles rows={rows} q={q} now={now} />
           <div className="mt-md flex flex-wrap items-end gap-xs">
             <form action="/admin/support" method="get" className="flex min-w-0 flex-1 flex-wrap items-end gap-xs" role="search">
@@ -575,7 +582,7 @@ export function SupportDesk({ now, tab, q, queue, selected, missing, copy }: Sup
             </form>
           </div>
           <Tabs rows={rows} tab={tab} q={q} />
-        </>
+        </div>
       ) : null}
 
       {missing ? (

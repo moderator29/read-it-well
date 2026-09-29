@@ -29,7 +29,8 @@ export function SupportKeys({
 
   const go = useCallback(
     (id: string | null) => {
-      if (id && id !== current && hrefFor[id]) router.push(hrefFor[id], { scroll: false });
+      const href = id && id !== current ? hrefFor[id] : undefined;
+      if (href) router.push(href, { scroll: false });
     },
     [current, hrefFor, router],
   );

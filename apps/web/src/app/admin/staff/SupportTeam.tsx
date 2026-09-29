@@ -84,7 +84,7 @@ function AddToSupport() {
             setMessage({
               ok: true,
               text:
-                r.data.scopes.length === 1
+                r.data.scopes.join(",") === "support"
                   ? "Added as a Support Agent. They have been told by email and in the app."
                   : "Support added to their access. They have been told.",
             });

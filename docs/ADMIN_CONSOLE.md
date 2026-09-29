@@ -492,6 +492,13 @@ passed and results per rung instead, which are real.
 
 ## 7. Support
 
+**Support staff (29 September):** the desk was rebuilt as a support agent's
+workspace (lanes, the four-hour and one-day clocks, saved replies, hand-off to
+money, safety or verification, member summary, ticket audit trail, keys), and
+Settings > Staff gained a Support team panel. How to add a support person,
+what they can and cannot see, and the SLA rules: [`docs/SUPPORT_STAFF.md`](/docs/SUPPORT_STAFF.md).
+Some of what follows describes the earlier layout.
+
 **Where:** `/admin/support`. Tickets filed from the contact form and by the
 assistant when it cannot answer. Search by reference or email, filter by
 status and date, page forty at a time. Open a ticket to read who filed it and

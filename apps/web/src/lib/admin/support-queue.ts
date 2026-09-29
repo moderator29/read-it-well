@@ -9,6 +9,7 @@ import { readMemberNotes } from "./notes";
 import { waitingSince } from "./support-rules";
 import {
   compareTickets,
+  ESCALATION_TARGET_LABEL,
   ESCALATION_TARGETS,
   isEscalationTarget,
   slaState,
@@ -341,7 +342,7 @@ async function readTrail(db: Loose, ticketId: string): Promise<TrailEntry[] | nu
         if (m.closing_note) detail += `: ${String(m.closing_note)}`;
       } else if (r.action === "support_ticket.escalate") {
         const to = String(m.to_scope ?? "");
-        detail = `${isEscalationTarget(to) ? to : "another desk"}: ${String(m.reason ?? "")}`;
+        detail = `to ${isEscalationTarget(to) ? ESCALATION_TARGET_LABEL[to].name.toLowerCase() : "another desk"}: ${String(m.reason ?? "")}`;
       } else if (r.action === "support_ticket.escalation_return") {
         detail = String(m.note ?? "") || null;
       } else if (r.action === "support_ticket.reply" && typeof m.characters === "number") {

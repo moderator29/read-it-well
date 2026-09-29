@@ -191,7 +191,7 @@ export function detailFor(id: string, opts: { escalationsInstalled: boolean; mod
               toScope: "finance",
               reason: "Refund marked sent by Paystack on 27 September, member's bank says nothing arrived. Please trace the refund reference.",
               by: "Ifeoma",
-              byMe: true,
+              byMe: opts.mode !== "escalated",
               at: at(1.5),
               returnedAt: null,
               returnedBy: null,
@@ -231,7 +231,7 @@ export function detailFor(id: string, opts: { escalationsInstalled: boolean; mod
         },
     trail: refund
       ? [
-          { at: at(1.5), who: "Ifeoma Eze", what: "escalated the ticket", detail: "finance: Refund marked sent by Paystack on 27 September, member's bank says nothing arrived." },
+          { at: at(1.5), who: "Ifeoma Eze", what: "escalated the ticket", detail: "to money: Refund marked sent by Paystack on 27 September, member's bank says nothing arrived." },
           { at: at(28), who: "Ifeoma Eze", what: "replied to the member", detail: "164 characters" },
           { at: at(28.2), who: "Ifeoma Eze", what: "changed the status", detail: "open to pending" },
           { at: at(28.3), who: "Ifeoma Eze", what: "took the ticket", detail: null },

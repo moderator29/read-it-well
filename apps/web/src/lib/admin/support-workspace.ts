@@ -26,6 +26,7 @@
  * Client-safe: no server imports.
  */
 
+import { countOf } from "@vallo/i18n/core";
 import { dueBy, RESPONSE_COMMITMENTS, type ResponseGrade } from "../trust/standards";
 import { gradeForTopic } from "../trust/support-topics";
 import type { StaffScope } from "./guard";
@@ -141,8 +142,7 @@ export type SlaState = {
 function promiseWord(grade: ResponseGrade): string {
   const hours = RESPONSE_COMMITMENTS[grade].hours;
   if (hours < 24) return `${hours}h`;
-  const days = Math.round(hours / 24);
-  return days === 1 ? "1 day" : `${days} days`;
+  return countOf(Math.round(hours / 24), "days");
 }
 
 /**

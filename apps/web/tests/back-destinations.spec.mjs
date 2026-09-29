@@ -76,6 +76,9 @@ function backControl(page) {
  */
 async function pressBack(page, { via = "click", label = null } = {}) {
   const control = backControl(page);
+  /* A client navigation paints its loading skeleton first; wait for the
+     screen's own control rather than for a fixed time. */
+  await control.waitFor({ state: "visible", timeout: 30_000 }).catch(() => {});
   if ((await control.count()) === 0) return { drawn: false, landed: here(page) };
   const box = await control.boundingBox();
   const name = (await control.getAttribute("aria-label")) ?? (await control.innerText());
@@ -91,7 +94,9 @@ async function pressBack(page, { via = "click", label = null } = {}) {
     .waitForURL((u) => `${u.pathname}${u.search}` !== before, { timeout: 45_000 })
     .catch(() => {});
   await page.waitForTimeout(SETTLE);
-  const sized = box !== null && box.width >= 44 && box.height >= 44;
+  /* Half a pixel of tolerance: a screen still settling its entrance
+     transform measures 43.99996. */
+  const sized = box !== null && box.width >= 43.5 && box.height >= 43.5;
   if (!sized) check(`the control on ${before} is 44 by 44`, false, JSON.stringify(box));
   if (!name?.startsWith("Back")) check(`the control on ${before} is named Back...`, false, name);
   if (label && name !== label) check(`the control on ${before} is named "${label}"`, false, name);
@@ -205,13 +210,13 @@ if (!state) {
     steps: ["/settings/account"],
     want: "/settings",
   });
-  if (thread) {
-    await flow(ctx, "25 not back into the new-message form", {
-      start: "/messages/new",
-      steps: [thread],
-      want: "/messages",
-    });
-  }
+  /* A ticket list reached from the new-ticket form (as a filed ticket is)
+     goes to its parent, not back into the form. Nothing is filed. */
+  await flow(ctx, "25 not back into the new-ticket form", {
+    start: "/support/new",
+    steps: ["/support/messages"],
+    want: "/support",
+  });
   {
     ran += 1;
     /* Inbox -> thread -> Back (history, the inbox) -> Back must go Home, not
@@ -272,6 +277,25 @@ if (!state) {
     const name = await backControl(page).getAttribute("aria-label");
     check("30 the control says where it goes", name === "Back to Settings", name);
     await page.close();
+  }
+
+  console.log("\n== the workspaces, when this member has one");
+  for (const [landing, inner] of [
+    ["/agent/dashboard", "/agent/listings"],
+    ["/host", "/host/settings"],
+    ["/admin", "/admin/queue"],
+  ]) {
+    const probe = await cold(ctx, landing);
+    const opened = pathOf(probe) === landing;
+    await probe.close();
+    if (!opened) {
+      skip(`${landing}: the QA member cannot open this workspace`);
+      skipped += 1;
+      continue;
+    }
+    await flow(ctx, `${landing} cold inner screen`, { start: inner, want: landing });
+    await flow(ctx, `${landing} inner from landing`, { start: landing, steps: [inner], want: landing });
+    await flow(ctx, `${landing} help from the drawer`, { start: landing, steps: ["/support"], want: landing });
   }
 
   await ctx.close();
