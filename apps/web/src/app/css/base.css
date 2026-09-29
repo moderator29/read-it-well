@@ -307,12 +307,6 @@ html {
   /* Never let the expanded target paint or capture text selection. */
   pointer-events: auto;
 }
-/* A link stacked a small gap under another control: the grown target leans
-   down by 8px so it stops at the gap instead of covering the control above
-   (the tenancy card's "split" link under its Pay button). Still 44 tall. */
-.nf-tap--below::after {
-  top: calc(50% + 0.5rem);
-}
 
 /* One decision, two themes; see `--nf-selection-bg`. It was 40% of the brand
    here and 18% of it in light.css, written out in both places, which is a

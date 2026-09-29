@@ -463,8 +463,9 @@
    * the decorative art...") with nothing anywhere that showed the rest, and
    * the data saver's hint is a sentence somebody has to read to decide. A
    * clipped hint is a hint nobody can finish; at overline a wrapped one costs
-   * about 13px per extra line, and every hint but the data saver's fits in
-   * two lines at 390.
+   * about 13px per extra line, and every hint fits in two lines at 390 (the
+   * data saver's was four until it was cut to "Skips decorative art and
+   * loading pages ahead.").
    */
   .nf-hub .nf-srow__sub {
     margin-top: 1px;

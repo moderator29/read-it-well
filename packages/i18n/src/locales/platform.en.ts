@@ -246,7 +246,7 @@ export const platformEn = {
      depends on the network and the bundle, which the code cannot know. */
   lite: {
     label: "Data saver",
-    sub: "Leaves out the decorative artwork and does not load pages before you open them. For small bundles.",
+    sub: "Skips decorative art and loading pages ahead.",
     on: "On",
     off: "Off",
     meterOn: "This week Vallo used about {mb} MB that this phone could measure. Data saver is on.",

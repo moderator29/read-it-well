@@ -111,14 +111,18 @@ export function TenancyCard({
           </span>
         </p>
         {tenancy.payable ? (
-          <div className="flex shrink-0 flex-col items-end gap-2xs">
+          /* gap-sm, not less: the card clips (overflow-hidden), so the split
+             link's 44px target has only the gap, the link and the bar's
+             bottom padding to live in. 12 + 20 (a fixed line) + 12 is 44 exactly, starting
+             at the Pay button's edge and never over it. */
+          <div className="flex shrink-0 flex-col items-end gap-sm">
             <ButtonLink href={tenancy.href} variant="primary" size="sm">
               {copy.pay}
             </ButtonLink>
             {/* V-86: flatmates' shares live in the tenancy file. */}
             <Link
               href={`${tenancy.fileHref}#flatmates`}
-              className="nf-tap nf-tap--below text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="nf-tap text-[length:var(--nf-text-caption)] leading-[1.25rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
               data-testid="tenancy-split-link"
             >
               {t.afterTheGate.flatmates.split}

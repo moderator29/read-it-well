@@ -161,10 +161,12 @@ export function RoleSwitcher({
           `role-switch-tile` (a person with a swap arrow on a glass tile,
           `docs/ICON_SYSTEM.md`). One name.
 
-          The tile slot is 44 and the object is drawn at 44, which is the rule
-          written out at `.nf-belong__tile` in `social.css`: every object in
-          this pack draws its own rounded-square ground, so a smaller object in
-          a bordered slot ships two concentric squares.
+          The tile slot is 44 and the object is drawn at 40, the display step
+          of the icon scale (`docs/ICON_SYSTEM.md`, "One size scale"). The slot
+          (`.nf-belong__tile` in `social.css`) carries no border or fill: every
+          object in this pack draws its own rounded-square ground, so a
+          bordered slot around a smaller object would ship two concentric
+          squares. Keep it bare.
         */}
         <span className="nf-belong__tile" aria-hidden="true">
           <BrandIcon name="role-switch-tile" size={40} />

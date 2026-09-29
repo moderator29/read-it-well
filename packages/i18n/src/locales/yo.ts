@@ -303,7 +303,9 @@ export const yo: Dictionary = withFallback({
     myBookingsSub: "Wo ìfipamọ́ ilé àti ibùgbé rẹ",
     savedSub: "Àwọn ilé, hótẹ́ẹ̀lì àti ibi tí o fipamọ́",
     /* Draft built from this file's words for agreements and payments; a
-       native speaker should confirm, especially the word for claims. */
+       native speaker should confirm, especially the word for claims:
+       "ẹ̀san" also reads as "revenge", and the English means deposit
+       claims (a request to be paid back from a deposit). */
     agreementsSub: "Àwọn àdéhùn, ìsanwó àti ìbéèrè ẹ̀san",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ìfipamọ́ ilé àti ibùgbé",

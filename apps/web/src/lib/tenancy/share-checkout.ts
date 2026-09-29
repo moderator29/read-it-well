@@ -233,11 +233,11 @@ export type ShareSettlement = {
 export async function settleShareReturn(input: { reference: string; tenancyId: string }): Promise<ActionResult<ShareSettlement | null>> {
   const parsed = validate(z.object({ reference: z.string().min(8).max(100), tenancyId: z.uuid() }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-  if (!isBookingReference(parsed.data.reference)) return fail("That payment reference is not recognised. Nothing was charged. Open your tenancy and try again.");
+  if (!isBookingReference(parsed.data.reference)) return fail("That payment reference is not recognised. Open your tenancy to see what has been paid, and do not pay again until you have checked.");
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
-  if (!isPaystackConfigured()) return fail("We cannot reach card payment right now. Nothing has been charged. Try again in a few minutes.");
+  if (!isPaystackConfigured()) return fail("We cannot check card payments right now. If you completed the payment, do not pay again: open your tenancy in a few minutes to see it recorded.");
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
   const { data: row } = await admin
