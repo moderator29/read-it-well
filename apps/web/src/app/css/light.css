@@ -221,8 +221,7 @@
    * ONE PLACE, EVERY USAGE. The ground (`.nf-brand-icon-ground`) and the
    * chip (`.nf-icon-tile`) are the two elements `BrandIcon` draws, so keying
    * the tile on them reaches all of its call sites. Where a host already
-   * draws a plate around the object (`.nf-plate`, the profile's
-   * `.nf-pf-plate`), the HOST becomes the navy tile and the ground inside it
+   * draws a plate around the object (`.nf-plate`), the HOST becomes the navy tile and the ground inside it
    * steps back, so there is never a tile inside a tile. Night islands (the
    * header, drawer, rail, home and profile top blocks) keep the glass as it
    * is at night.
@@ -249,17 +248,22 @@
     transform: scale(0.84);
   }
   /* A host plate is the tile; the object inside it is not tiled again and
-     keeps the host's own sizing. */
+     keeps the host's own sizing. The list is every host that draws its own
+     plate or sits the object inline in a control: the shared `.nf-plate`,
+     the flip coin, the landing's two-worlds faces, footer seal and list
+     marks, and a chip or button carrying an object beside its words. A new
+     host opts out with `data-host-plate` on itself rather than a new entry
+     here. */
   :root[data-theme="light"] .nf-plate:has(> .nf-brand-icon-ground, > .nf-icon-tile):not(:where([data-theme="dark"] *)) {
     background: var(--nf-day-tile-fill);
     border-color: transparent;
     box-shadow: var(--nf-day-tile-shadow);
   }
-  :root[data-theme="light"] :is(.nf-plate, .nf-pf-plate, .nf-side-switch__coin) :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
+  :root[data-theme="light"] :is(.nf-plate, .nf-side-switch__coin, .nf-worlds__face, .nf-site-footer-seal, .nf-landing-list a > span:first-child, .nf-chip, .nf-btn, [data-host-plate]) :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
     background: none;
     box-shadow: none;
   }
-  :root[data-theme="light"] :is(.nf-plate, .nf-pf-plate, .nf-side-switch__coin) :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) > img {
+  :root[data-theme="light"] :is(.nf-plate, .nf-side-switch__coin, .nf-worlds__face, .nf-site-footer-seal, .nf-landing-list a > span:first-child, .nf-chip, .nf-btn, [data-host-plate]) :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) > img {
     transform: none;
   }
   :root[data-theme="light"] .nf-plate--brand:not(:where([data-theme="dark"] *)) {

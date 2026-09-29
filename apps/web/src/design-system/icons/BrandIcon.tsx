@@ -393,7 +393,6 @@ export function BrandIcon({
    * the tile happens to sit inside.
    */
   const tilePadding = Math.max(2, Math.round(size * 0.09));
-  const insideTile = tile;
   const shared = {
     "aria-hidden": decorative || undefined,
     width: fill ? 160 : size,
@@ -423,7 +422,7 @@ export function BrandIcon({
       src={`/brand/glass/${object}.png`}
       priority={priority}
       {...(loading && !priority ? { loading } : {})}
-      className={`nf-brand-icon ${fill || insideTile ? "h-full w-full" : ""}`}
+      className="nf-brand-icon h-full w-full"
     />
   );
 
@@ -461,6 +460,17 @@ export function BrandIcon({
     return (
       <span
         data-object={object}
+        /* The ground owns its box and its padding in pixels when it has a
+           size, for the reason the tiled branch below does: `padding: 7%`
+           in glass.css resolves against the CONTAINING block, so a 22px
+           object inside a wide button was handed a padding that crushed the
+           image to nothing, and in light, where the ground now paints a
+           navy tile, that showed as an empty tile ("Add New Listing"). */
+        style={
+          fill
+            ? undefined
+            : { width: size, height: size, padding: Math.max(1, Math.round(size * 0.07)) }
+        }
         className={`nf-brand-icon-ground ${
           fill ? "block h-full w-full" : "inline-flex"
         } ${className ?? ""}`}
