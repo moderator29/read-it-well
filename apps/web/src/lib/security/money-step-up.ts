@@ -241,19 +241,48 @@ export async function recordStepUp(
   return error || !data ? null : (data as { id: string }).id;
 }
 
-/** Use a step-up once. True only if it was this person's, for this action, fresh and unused. */
-export async function consumeStepUp(a: Admin, userId: string, id: string, digest: string): Promise<boolean> {
+/**
+ * Use a step-up once. True only if it was this person's, for this action,
+ * fresh and unused, and (with `keyOnly`) made with an enrolled key rather
+ * than the password or an emailed code.
+ */
+export async function consumeStepUp(
+  a: Admin,
+  userId: string,
+  id: string,
+  digest: string,
+  keyOnly = false,
+): Promise<boolean> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return false;
-  const { data, error } = await loose(a)
+  let query = loose(a)
     .from("money_step_ups")
     .update({ used_at: new Date().toISOString() })
     .eq("id", id)
     .eq("user_id", userId)
     .eq("digest", digest)
     .is("used_at", null)
-    .gt("expires_at", new Date().toISOString())
-    .select("id");
+    .gt("expires_at", new Date().toISOString());
+  if (keyOnly) query = query.eq("method", "biometric");
+  const { data, error } = await query.select("id");
   return !error && Array.isArray(data) && data.length === 1;
+}
+
+/**
+ * Does this account hold an admin role or a live staff grant? Its keys then
+ * also open the console (`console-step-up.ts`), so a password alone must
+ * never add or remove one. FAILS CLOSED: an unreadable answer is "staff".
+ */
+export async function isStaffAccount(a: Admin, userId: string): Promise<boolean> {
+  try {
+    const [roles, grants] = await Promise.all([
+      loose(a).from("user_roles").select("role").eq("user_id", userId).in("role", ["admin", "super_admin"]).limit(1),
+      loose(a).from("staff_grants").select("user_id").eq("user_id", userId).is("revoked_at", null).limit(1),
+    ]);
+    if (roles.error || grants.error) return true;
+    return (roles.data?.length ?? 0) > 0 || (grants.data?.length ?? 0) > 0;
+  } catch {
+    return true;
+  }
 }
 
 /**
@@ -275,7 +304,7 @@ export type MoneyCredentialList =
   | { state: "signed-out" }
   | { state: "not-deployed" }
   | { state: "unreadable" }
-  | { state: "ok"; rows: MoneyCredentialRow[]; fallback: "password" | "email-code" };
+  | { state: "ok"; rows: MoneyCredentialRow[]; fallback: "password" | "email-code"; staff: boolean };
 
 /**
  * The phones that lock this person's money, read AS the person: the column
@@ -303,9 +332,11 @@ async function readMoneyCredentials(): Promise<MoneyCredentialList> {
     .order("created_at", { ascending: true });
   if (error && lockNotDeployed(error)) return { state: "not-deployed" };
   if (error || !Array.isArray(data)) return { state: "unreadable" };
+  const a = getAdminClient();
   return {
     state: "ok",
     fallback: reauthMethodFor(session.user),
+    staff: a ? await isStaffAccount(a, session.user.id) : false,
     rows: (data as { id: string; label: string | null; created_at: string; last_used_at: string | null }[]).map((r) => ({
       id: r.id,
       label: r.label,

@@ -27,6 +27,7 @@ import {
   consumeStepUp,
   enrolKey,
   intentDigest,
+  isStaffAccount,
   listCredentialIds,
   mintChallenge,
   passwordChangedRecently,
@@ -140,16 +141,53 @@ export async function confirmWithFallback(input: unknown): Promise<{ stepUp: str
   return id ? { stepUp: id } : { error: "failed" };
 }
 
+const enrolProofSchema = proofSchema.extend({ stepUp: z.string().uuid().optional() });
+
+/**
+ * A STAFF ACCOUNT'S KEYS ALSO OPEN THE CONSOLE, so a stolen password must
+ * never be enough to add one:
+ *  - with a key already enrolled, another is added only on a proof made WITH
+ *    an existing key (a step-up for `add_lock`, never the password);
+ *  - the first key takes the emailed code AND, for an account with one, the
+ *    password: the inbox and the password together.
+ * Every staff key added or removed is also audited and announced to the
+ * holder and every super admin by the database
+ * (`private.announce_staff_key_change`).
+ */
+async function staffEnrolProven(
+  a: NonNullable<ReturnType<typeof admin>>,
+  user: Parameters<typeof reauthenticate>[0],
+  proof: z.infer<typeof enrolProofSchema>,
+): Promise<true | FallbackError> {
+  const keys = await listCredentialIds(a, user.id);
+  if (keys === null) return "failed";
+  if (keys.length > 0) {
+    if (!proof.stepUp) return "rejected";
+    return (await consumeStepUp(a, user.id, proof.stepUp, intentDigest({ kind: "add_lock" }), true)) ? true : "rejected";
+  }
+  if (!(await attemptAllowed(user.id))) return "rejected";
+  const code = proof.code ?? "";
+  if (code.length === 0) return "rejected";
+  if (reauthMethodFor(user) === "password") {
+    if ((proof.password ?? "").length === 0) return "rejected";
+    if (await passwordChangedRecently(a, user.id)) return "password_recent";
+    if (!(await reauthenticate(user, { password: proof.password }))) return "rejected";
+  }
+  return (await spendEmailCodeMarker(a, user.id, () => reauthenticate(user, { emailCode: code }))) ? true : "rejected";
+}
+
 /** Enrolling starts with the fallback proof, so a thief with an open session cannot. */
 export async function beginEnrol(
   proof: unknown,
 ): Promise<{ challenge: string; userId: string; email: string; rpId: string } | { error: FallbackError }> {
-  const parsed = proofSchema.safeParse(proof);
+  const parsed = enrolProofSchema.safeParse(proof);
   if (!parsed.success) return { error: "rejected" };
   const session = await resolveSession();
   const a = admin();
   if (session.state !== "signed-in" || !a || !session.user.email) return { error: "failed" };
-  const proven = await fallbackProven(session.user, parsed.data);
+  const proven = (await isStaffAccount(a, session.user.id))
+    ? await staffEnrolProven(a, session.user, parsed.data)
+    : await fallbackProven(session.user, parsed.data);
   if (proven !== true) return { error: proven };
   const challenge = await mintChallenge(a, session.user.id, "enrol");
   const { rpId } = await ceremonyOrigin();
@@ -185,7 +223,9 @@ export async function removeMoneyCredential(input: unknown): Promise<{ ok: true 
   const a = admin();
   if (session.state !== "signed-in" || !a) return { error: "failed" };
   const digest = intentDigest({ kind: "remove_lock", target: parsed.data.id });
-  if (!(await consumeStepUp(a, session.user.id, parsed.data.stepUp, digest))) return { error: "rejected" };
+  /* A staff account's key is removed only on a proof made with a key. */
+  const keyOnly = await isStaffAccount(a, session.user.id);
+  if (!(await consumeStepUp(a, session.user.id, parsed.data.stepUp, digest, keyOnly))) return { error: "rejected" };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (a as any).from("money_credentials").delete().eq("id", parsed.data.id).eq("user_id", session.user.id);
   if (error) return { error: "failed" };

@@ -451,5 +451,11 @@ export const platformEn = {
     settingsUnknown: "We could not read which phones lock your money just now. Try again in a moment.",
     settingsRemoveNeedsProof: "Removing a phone asks for the same proof as sending money.",
     added: "Added {when}",
+    /* A staff account's keys also open the Vallo console, so a password alone never adds or removes one. */
+    staffFirstKey:
+      "This is a staff account, so setting up its first key takes your password and a code we email you.",
+    staffAnotherKey:
+      "This is a staff account, so adding another key needs your existing key first. A password alone cannot add one.",
+    staffKeyOnly: "This is a staff account, so only your existing key can confirm this. A password alone cannot.",
   },
 };

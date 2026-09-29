@@ -24,6 +24,8 @@ export const MONEY_KINDS = [
   "bank_default",
   "payout_remove",
   "remove_lock",
+  /* A staff account adding another key: its keys also open the console. */
+  "add_lock",
 ] as const;
 export type MoneyKind = (typeof MONEY_KINDS)[number];
 

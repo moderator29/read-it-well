@@ -33,6 +33,7 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
   const [supported, setSupported] = useState<boolean | null>(null);
   const [enrolling, setEnrolling] = useState(false);
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
   /* A password changed in the last day is refused; the emailed code takes over. */
   const [forceCode, setForceCode] = useState(false);
@@ -53,14 +54,28 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
   /* Signed out, or the lock is not deployed on this database: nothing to offer. */
   if (list.state === "signed-out" || list.state === "not-deployed") return null;
   const byCode = (list.state === "ok" && list.fallback === "email-code") || forceCode;
+  /* A staff account's keys also open the console (`staffEnrolProven`). */
+  const staff = list.state === "ok" && list.staff;
+  const staffHasKey = staff && list.state === "ok" && list.rows.length > 0;
+  const staffNeedsPassword = staff && list.state === "ok" && list.fallback === "password";
 
   const enrol = () =>
     start(async () => {
       setError(null);
-      const proof = byCode ? { code: password.trim() } : { password };
+      let proof: { code?: string; password?: string; stepUp?: string };
+      if (staffHasKey) {
+        const stepUp = await lock.prove({ kind: "add_lock" });
+        if (stepUp === null) return;
+        proof = { stepUp };
+      } else if (staff) {
+        proof = { code: code.trim(), password: staffNeedsPassword ? password : undefined };
+      } else {
+        proof = byCode ? { code: password.trim() } : { password };
+      }
       const begun = await beginEnrol(proof).catch(() => ({ error: "failed" as const }));
       if ("error" in begun) {
-        setError(begun.error === "rejected" ? copy.rejected : begun.error === "password_recent" ? copy.passwordRecent : copy.failed);
+        const refused = staffHasKey ? copy.staffAnotherKey : copy.rejected;
+        setError(begun.error === "rejected" ? refused : begun.error === "password_recent" ? copy.passwordRecent : copy.failed);
         if (begun.error === "password_recent") {
           setForceCode(true);
           setCodeSent(false);
@@ -89,6 +104,7 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
       }
       setEnrolling(false);
       setPassword("");
+      setCode("");
       setNote(copy.settingsDone);
       router.refresh();
     });
@@ -102,7 +118,7 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
       if (stepUp === null) return;
       const done = await removeMoneyCredential({ id, stepUp }).catch(() => ({ error: "failed" as const }));
       if ("error" in done) {
-        setError(done.error === "rejected" ? copy.rejected : copy.failed);
+        setError(done.error === "rejected" ? (staff ? copy.staffKeyOnly : copy.rejected) : copy.failed);
         return;
       }
       setNote(copy.settingsRemoved);
@@ -138,7 +154,8 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
           onClick={() => {
             setError(null);
             setNote(null);
-            setEnrolling(true);
+            if (staffHasKey) enrol();
+            else setEnrolling(true);
           }}
           testId="money-lock-enrol"
         />
@@ -146,8 +163,58 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
       {lock.sheet}
       <Sheet open={enrolling} onOpenChange={(open) => !pending && setEnrolling(open)} title={copy.settingsTitle} detents={[0.6]}>
         <div className="space-y-row">
-          <p className="nf-body text-[var(--nf-content-secondary)]">{copy.settingsPasswordFirst}</p>
-          {byCode && !codeSent ? (
+          <p className="nf-body text-[var(--nf-content-secondary)]">{staff ? copy.staffFirstKey : copy.settingsPasswordFirst}</p>
+          {staff ? (
+            <>
+              {staffNeedsPassword && (
+                <TextField
+                  label={copy.passwordLabel}
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              )}
+              {codeSent ? (
+                <>
+                  <TextField
+                    label={copy.codeLabel}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    value={code}
+                    onChange={(event) => setCode(event.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    full
+                    loading={pending}
+                    disabled={pending || code.trim().length === 0 || (staffNeedsPassword && password.length === 0)}
+                    onClick={enrol}
+                  >
+                    {copy.settingsEnrol}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  variant="primary"
+                  full
+                  loading={pending}
+                  disabled={pending}
+                  onClick={() =>
+                    start(async () => {
+                      const sent = await sendFallbackCode().catch(() => ({ error: "failed" as const }));
+                      if ("error" in sent) setError(copy.failed);
+                      else setCodeSent(true);
+                    })
+                  }
+                >
+                  {copy.sendCode}
+                </Button>
+              )}
+            </>
+          ) : byCode && !codeSent ? (
             <Button
               type="button"
               variant="primary"

@@ -119,6 +119,8 @@ export async function finishConsoleStepUp(input: unknown): Promise<{ ok: true } 
     .update({ sign_count: verdict.signCount, last_used_at: new Date().toISOString() })
     .eq("id", row.id);
   const expires = new Date(Date.now() + STEP_UP_HOURS * 3_600_000).toISOString();
+  /* This person's lapsed proofs go as the new one is written. */
+  await loose.from("console_step_ups").delete().eq("user_id", userId).lt("expires_at", new Date().toISOString());
   const { error } = await loose.from("console_step_ups").upsert(
     { user_id: userId, session_id: now.sessionId, credential_id: parsed.data.credentialId, verified_at: new Date().toISOString(), expires_at: expires },
     { onConflict: "user_id,session_id" },
