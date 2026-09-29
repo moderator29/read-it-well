@@ -8,13 +8,23 @@
  * catalogue results, every one of them verified, and not one "Partner" tag
  * anywhere on the page.
  *
- * Self-contained Playwright script: no runner, no config. Exits non-zero on the
- * first broken expectation. Run with the dev server already up:
+ * Since 23 September `/search`, `/listing/<id>` and every market shelf answer
+ * a signed-out visitor with the sign-in wall (asserted first). The provider
+ * layer is a property of the SERVER'S reads on those real routes, which the
+ * preview harness (fixture rows) cannot stand in for, so the walk runs signed
+ * in as the QA member and is reported as SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD. (Signed out, every marker check below would pass
+ * against the sign-in page, which proves nothing; that is why they are not
+ * run against it.)
+ *
+ * Self-contained Playwright script: no runner, no config. Run with the dev
+ * server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/hybrid.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, SKIP_EXIT } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -30,7 +40,31 @@ function check(name, condition) {
 }
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const context = await browser.newContext({
+
+console.log("signed out");
+for (const path of [
+  "/search",
+  "/search?type=hotel",
+  "/search?type=restaurant",
+  "/search?market=rent",
+  "/listing/seed-9",
+  "/listing/partner-places-unknown",
+]) {
+  await expectSignInWall(check, path);
+}
+
+console.log("\nsigned in as the QA member");
+const state = await signInAsQa(browser);
+if (!state) {
+  await browser.close();
+  if (failures > 0) {
+    console.log(`\nhybrid: ${failures} failed`);
+    process.exit(1);
+  }
+  console.log("\nhybrid: the wall holds; the provider-layer walk needs a session and was skipped");
+  process.exit(SKIP_EXIT);
+}
+const context = await qaContext(browser, state, {
   colorScheme: "dark",
   viewport: { width: 390, height: 844 },
 });
