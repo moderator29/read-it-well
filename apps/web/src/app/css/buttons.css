@@ -889,6 +889,12 @@
       transform var(--nf-duration-base) var(--nf-ease-standard),
       width var(--nf-duration-base) var(--nf-ease-standard);
   }
+  /* The selected label on the quiet thumb is ink, whatever a hand-built
+     track set for the old brand thumb (the search view toggle marks its
+     current link `data-on`). */
+  .nf-segmented:not(.nf-segmented--pill) :is([data-on="true"], [aria-current="true"], [aria-selected="true"], [aria-checked="true"]) {
+    color: var(--nf-content-primary);
+  }
   .nf-segmented:not(.nf-segmented--pill) .nf-segmented__link[aria-current="true"] {
     background: var(--nf-surface-elevated);
     color: var(--nf-content-primary);
