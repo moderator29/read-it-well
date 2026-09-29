@@ -84,7 +84,7 @@ export function EarningsWorkspace({
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-md py-10 text-center sm:py-14">
         <span className="block h-20 w-20">
-          <BrandIcon name="wallet-secure" fill />
+          <BrandIcon name="bank-column" fill />
         </span>
         <h2 className="nf-h3">{t.emptyTitle}</h2>
         <p className="mx-auto max-w-[40ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -103,7 +103,7 @@ export function EarningsWorkspace({
     <div className="space-y-lg">
       <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
         <Tile
-          icon="wallet-secure"
+          icon="bank-column"
           label={t.totals.yourShare}
           value={
             <Amount

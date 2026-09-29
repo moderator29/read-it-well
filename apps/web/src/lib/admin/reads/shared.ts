@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../supabase/database.types";
-import { requireAdmin } from "../guard";
+import { requireAdmin, type StaffScope } from "../guard";
 
 /**
  * THE SHARED GROUND UNDER EVERY CONSOLE READ in `lib/admin/reads/`.
@@ -31,9 +31,13 @@ export const UNAVAILABLE = { state: "unavailable" } as const;
 
 export type AdminReader = SupabaseClient<Database>;
 
-/** The operator's own client, or null when the caller is not staff. */
-export async function adminReader(): Promise<AdminReader | null> {
-  const access = await requireAdmin();
+/**
+ * The operator's own client, or null when the caller is not staff. With a
+ * scope, a staff member holding it is admitted too (on the service client,
+ * after the scope is proved), exactly as `requireAdmin(scope)` does.
+ */
+export async function adminReader(scope?: StaffScope): Promise<AdminReader | null> {
+  const access = await requireAdmin(scope);
   return access.state === "admin" ? access.supabase : null;
 }
 

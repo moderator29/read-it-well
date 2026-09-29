@@ -35,7 +35,7 @@ const BUCKET_LIMIT = 40;
 type Db = SupabaseClient<Database>;
 
 async function adminClient(): Promise<Db | null> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("operations");
   if (access.state !== "admin") return null;
   try {
     return createAdminClient();

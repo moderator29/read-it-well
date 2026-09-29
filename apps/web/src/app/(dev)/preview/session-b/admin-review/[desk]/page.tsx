@@ -237,6 +237,7 @@ export default async function Harness({
           longitude: fail ? null : 3.47,
           availableFrom: "Immediately",
           lister: {
+            userId: "00000000-0000-4000-8000-000000000001",
             name: "Tunde A.",
             role: "owner",
             avatarUrl: null,

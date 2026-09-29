@@ -75,7 +75,28 @@ const updates = () => seam.calls.filter((c) => c.table === "agent_applications" 
 beforeEach(() => {
   seam.calls = [];
   seam.announce.mockReset();
-  seam.results = { "agent_applications.select": { data: APPLICATION, error: null } };
+  seam.results = {
+    "agent_applications.select": { data: APPLICATION, error: null },
+    "agent_applications.update": { data: [{ id: APPLICATION.id }], error: null },
+  };
+});
+
+describe("reviewAgentApplication refusals", () => {
+  it("refuses a reviewer deciding their own application and writes nothing", async () => {
+    seam.results["agent_applications.select"] = { data: { ...APPLICATION, user_id: "staff-1" }, error: null };
+    const result = await approve();
+    expect(result.ok).toBe(false);
+    expect(updates()).toHaveLength(0);
+    expect(seam.announce).not.toHaveBeenCalled();
+  });
+
+  it("writes only onto the status it read, and says so when another reviewer won", async () => {
+    seam.results["agent_applications.update"] = { data: [], error: null };
+    const result = await approve();
+    expect(result.ok).toBe(false);
+    expect(updates()[0]?.filters).toContainEqual(["status", APPLICATION.status]);
+    expect(seam.announce).not.toHaveBeenCalled();
+  });
 });
 
 describe("reviewAgentApplication approval side effects (SUP-14)", () => {

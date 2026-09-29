@@ -99,9 +99,9 @@ function readPeople(v: unknown): RiskPerson[] {
 }
 
 export async function readRiskDesk(): Promise<RiskDesk> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return { state: "unavailable" };
-  const { data, error } = await callRpc(access.supabase, "risk_desk");
+  const { data, error } = await callRpc(access.userClient, "risk_desk");
   if (error || !data || typeof data !== "object") return { state: "unavailable" };
   const d = data as Record<string, unknown>;
   if (!d.counts || typeof d.counts !== "object" || !Array.isArray(d.people) || !Array.isArray(d.open)) {

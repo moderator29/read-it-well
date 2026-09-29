@@ -171,7 +171,7 @@ export function buildBookings(
 }
 
 export async function getBookingsDesk(filter: BookingsFilter, now = Date.now()): Promise<AdminRead<BookingsDesk>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("operations");
   if (access.state !== "admin") return UNAVAILABLE;
   const db: Client = access.supabase;
 

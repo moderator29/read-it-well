@@ -716,6 +716,18 @@ export async function signUpMethodForEmail(email: string): Promise<EmailStatus> 
   }
 }
 
+/** The `sub` of an access token, read only to compare, never trusted. */
+function tokenSubject(token: string): string | null {
+  const payload = token.split(".")[1];
+  if (!payload) return null;
+  try {
+    const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { sub?: unknown };
+    return typeof claims.sub === "string" ? claims.sub : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Finish an email confirmation, whichever shape the link arrived in.
  *
@@ -785,6 +797,14 @@ export async function completeEmailVerification(input: {
     const { error } = await supabase.auth.verifyOtp({ token_hash: input.tokenHash, type });
     if (error) return { ok: false, reason: "expired" };
   } else if (input.accessToken && input.refreshToken) {
+    /* LOGIN CSRF. Tokens in a fragment are not tied to this browser: anybody
+       can mint a link carrying their own. So they never replace a session
+       that is already signed in as somebody else; the person would otherwise
+       be switched silently into a stranger's account. */
+    const { data: current } = await supabase.auth.getUser();
+    if (current?.user && tokenSubject(input.accessToken) !== current.user.id) {
+      return { ok: false, reason: "invalid" };
+    }
     const { error } = await supabase.auth.setSession({
       access_token: input.accessToken,
       refresh_token: input.refreshToken,

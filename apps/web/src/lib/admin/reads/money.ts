@@ -75,7 +75,7 @@ export async function getReconciliationHealth(
   days = 7,
   now = Date.now(),
 ): Promise<AdminRead<ReconciliationHealth>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("finance");
   if (access.state !== "admin") return UNAVAILABLE;
   const db: Client = access.supabase;
   try {
@@ -138,7 +138,7 @@ const IN_CHUNK = 200;
  * the panel prints. Select only; nothing here writes.
  */
 export async function getRentCharges(latest = 6): Promise<AdminRead<RentCharges>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("finance");
   if (access.state !== "admin") return UNAVAILABLE;
   const db: Client = access.supabase;
   try {

@@ -61,6 +61,7 @@ import { ValloRecord } from "@/components/app/trust/ValloRecord";
 import { readListingCredentials } from "@/lib/trust/credentials-read";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
 import { OwnerAvailabilityLine, PropertyOffers } from "@/components/app/listing/LandlordFacts";
+import { ExactPlace } from "@/components/app/listing/ExactPlace";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { readPayeeRecords } from "@/lib/after-gate/payee";
@@ -912,6 +913,14 @@ export default async function ListingDetailPage({
                     <span className="min-w-0">{where}</span>
                     <UiIcon name="arrow-right" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
                   </a>
+
+                  {/* The street address and exact pin, only for the lister,
+                      staff, a confirmed viewing or a live agreement. */}
+                  {!listing.isDemo && (
+                    <Suspense fallback={null}>
+                      <ExactPlace listingId={listing.id} />
+                    </Suspense>
+                  )}
 
                   {/* Above the price, and that position is the point: the
                       disclosure lands before the belief the figure forms. */}

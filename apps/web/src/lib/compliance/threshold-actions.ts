@@ -18,10 +18,10 @@ type Rpc = { rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unk
 
 async function call(fn: string, args: Record<string, unknown>): Promise<ActionResult<null>> {
   const words = getDictionary(await getLocale()).complianceThreshold.words;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail(words.not_staff);
   try {
-    const { data, error } = await (access.supabase as unknown as Rpc).rpc(fn, args);
+    const { data, error } = await (access.userClient as unknown as Rpc).rpc(fn, args);
     const status = !error && data && typeof data === "object" ? String((data as { status?: unknown }).status) : null;
     if (status !== "ok") return fail((status && (words as Record<string, string>)[status]) || words.failed);
   } catch {

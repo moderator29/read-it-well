@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../supabase/database.types";
+import { createAdminClient } from "../../supabase/admin";
 import { requireAdmin } from "../guard";
 import { getPersonTiers } from "./shared";
 
@@ -229,6 +230,8 @@ export type ListerRole = "owner" | "agent" | "firm";
 export type RungKind = "identity" | "address" | "payout" | "in_person";
 
 export type ListerVerification = {
+  /** The lister's account, for internal notes about them. */
+  userId: string;
   name: string;
   role: ListerRole | null;
   avatarUrl: string | null;
@@ -337,8 +340,17 @@ export async function getListingReviewExtras(
   id: string,
   statusFilter?: string,
 ): Promise<Read<ListingReviewExtras | null>> {
-  const db = await adminDb();
-  if (!db) return UNAVAILABLE;
+  const guarded = await adminDb();
+  if (!guarded) return UNAVAILABLE;
+  /* The review map needs the exact point, which no member role reads; the
+     caller has just been proved staff for this desk, so this read runs on the
+     service role. */
+  let db: Db;
+  try {
+    db = createAdminClient();
+  } catch {
+    return UNAVAILABLE;
+  }
   try {
     const { data: row, error } = await db
       .from("listings")
@@ -383,6 +395,7 @@ export async function getListingReviewExtras(
         getBadgeTiers([agent.user_id]),
       ]);
       lister = {
+        userId: agent.user_id,
         name: agent.display_name,
         role: roleOf(agent.application_id ? roles.get(agent.application_id) : null, agent.type),
         avatarUrl: profile.data?.avatar_url ?? null,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MoneyHistoryPanel } from "../_components/MoneyHistoryPanel";
 import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { requireAdmin } from "@/lib/admin/guard";
@@ -55,7 +56,7 @@ export default async function AdminMoneyPage({
   };
   const narrowed = Boolean(query.q || query.from || query.to);
 
-  const access = await requireAdmin();
+  const access = await requireAdmin("finance");
   if (access.state !== "admin") {
     return (
       <div className="nf-console">
@@ -65,7 +66,7 @@ export default async function AdminMoneyPage({
   }
 
   const [guarantee, refunds, runs, rent, clock] = await Promise.all([
-    readGuaranteeDesk(access.supabase),
+    readGuaranteeDesk(access.supabase, access.userClient),
     getRefundConsole(query),
     getReconciliationHealth(),
     getRentCharges(),
@@ -115,6 +116,10 @@ export default async function AdminMoneyPage({
       ) : null}
 
       <RefundClock board={clock} copy={t.afterTheGate.admin} />
+
+      {/* Every payment and refund that has already moved, platform-wide, read
+          as the caller (the finance scope decides), with its CSV export. */}
+      <MoneyHistoryPanel userClient={access.userClient} locale={locale} />
     </div>
   );
 }

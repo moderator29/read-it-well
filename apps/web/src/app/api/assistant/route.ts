@@ -1,4 +1,5 @@
 import { requestSignal, roundWatchdog } from "@/lib/ai/upstream-deadline";
+import { isSameOriginRequest } from "@/lib/security/request-origin";
 import { NextRequest } from "next/server";
 import { formatMoney } from "@vallo/i18n/core";
 import { getListingRepository } from "@/lib/listings/repository";
@@ -900,6 +901,9 @@ function parseTurns(value: unknown): AssistantTurn[] | null {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isSameOriginRequest(req)) {
+    return Response.json({ message: "Forbidden." }, { status: 403 });
+  }
   let body: unknown;
   try {
     body = await req.json();

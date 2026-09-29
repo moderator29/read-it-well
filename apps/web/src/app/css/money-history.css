@@ -1,0 +1,223 @@
+/*
+  money-history: the payments and earnings histories (/payments, the earnings
+  history on /agent/earnings and /host/earnings, and the history panel on the
+  admin Money desk).
+
+  THE LOOK IS THE CUSTODY-ERA MONEY HOME'S, AND ONLY THE LOOK. A total card of
+  lit blue glass with the naira large and the kobo small, then one glass card
+  holding the whole record, a day heading inside it and hairlines between the
+  rows. The rules were copied from the old partial into names of their own,
+  because the old names described a product Vallo no longer runs and these
+  screens must not borrow its words: the figure here is a record of money that
+  already moved, never an amount anybody is holding.
+
+  Everything is drawn from layer-two tokens, so the light theme follows from
+  the palette. The glass mixes the brand colour into the canvas; on a light
+  canvas the same mix is paler, and the one light rule below lowers it further
+  so dark text keeps its contrast on the card.
+*/
+@layer components {
+  /* ------------------------------------------------------------ the glass */
+
+  .nf-history {
+    --nf-history-glass-top: color-mix(in srgb, var(--nf-brand-primary) 44%, var(--nf-surface-canvas));
+    --nf-history-glass-mid: color-mix(in srgb, var(--nf-brand-primary) 20%, var(--nf-surface-canvas));
+    --nf-history-glass-foot: color-mix(in srgb, var(--nf-brand-primary) 27%, var(--nf-surface-canvas));
+  }
+  :root[data-theme="light"] .nf-history:not(:where([data-theme="dark"] *)) {
+    --nf-history-glass-top: color-mix(in srgb, var(--nf-brand-primary) 16%, var(--nf-surface-canvas));
+    --nf-history-glass-mid: color-mix(in srgb, var(--nf-brand-primary) 6%, var(--nf-surface-canvas));
+    --nf-history-glass-foot: color-mix(in srgb, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
+  }
+
+  /* ------------------------------------------------------------- the total */
+
+  .nf-history-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 1rem 1.125rem;
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-radius-md);
+    background: linear-gradient(
+      180deg,
+      var(--nf-history-glass-top) 0%,
+      var(--nf-history-glass-mid) 46%,
+      var(--nf-history-glass-foot) 100%
+    );
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+  }
+  /* The deep blue bloom, top right, where the old card drew its object. */
+  .nf-history-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(52% 60% at 82% 30%, var(--nf-glow-3) 0%, transparent 70%);
+  }
+  .nf-history-hero > * {
+    position: relative;
+    z-index: 1;
+  }
+  .nf-history-hero__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--nf-content-secondary);
+  }
+  /* The figure never wraps: the kobo stay on the naira's line, and a long
+     figure scales down rather than breaking (`--long`, set by the card). */
+  .nf-history-hero__figure {
+    margin-top: 0.375rem;
+    font-size: clamp(1.875rem, 8.46vw, 2.375rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: var(--nf-tracking-display);
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-history-hero__figure--long {
+    font-size: clamp(1.5rem, 6.8vw, 2rem);
+  }
+  /* THE KOBO ARE SMALLER, NOT GREYER. */
+  .nf-history-kobo {
+    font-size: 0.68em;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    opacity: 0.74;
+  }
+  .nf-history-kobo--hero {
+    font-size: 0.6em;
+    opacity: 0.9;
+  }
+  .nf-history-hero__note {
+    margin-top: 0.625rem;
+    max-width: 44ch;
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+  }
+  /* The figures beside the total: what was paid, what came back. */
+  .nf-history-hero__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs) var(--nf-space-lg);
+    margin-top: 0.875rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-history-hero__fact dt {
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+    color: var(--nf-content-muted);
+  }
+  .nf-history-hero__fact dd {
+    margin-top: 0.125rem;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------- the list */
+
+  /* ONE card for the whole record, the day as a heading inside it. */
+  .nf-history-list {
+    padding: 0;
+  }
+  .nf-history-day__head {
+    padding: 0.875rem 0.875rem 0;
+  }
+  .nf-history-day + .nf-history-day .nf-history-day__head {
+    margin-top: var(--nf-space-2xs);
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-history-rows {
+    padding-inline: 0.875rem;
+    padding-bottom: var(--nf-space-2xs);
+  }
+  .nf-history-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3.5rem;
+    padding-block: 0.5rem;
+    text-align: left;
+    color: var(--nf-content-primary);
+  }
+  .nf-history-rows > li + li > .nf-history-row {
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-history-row__tile.nf-plate {
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-history-row__title {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-history-row__party {
+    display: block;
+    margin-top: 0.0625rem;
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+    color: var(--nf-content-link);
+  }
+  .nf-history-row__when {
+    display: block;
+    margin-top: 0.0625rem;
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+    color: var(--nf-content-muted);
+  }
+  .nf-history-row__amount {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-history-row__amount--in {
+    color: var(--nf-state-success);
+  }
+  .nf-history-badge {
+    padding-block: 0.0625rem;
+    line-height: 1.25;
+  }
+
+  /* "Show earlier", and the line that says the list has ended. */
+  .nf-history-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    padding: 0.5rem 0.875rem 0.875rem;
+    border-top: 1px solid var(--nf-divider);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-history-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-sm);
+    font-weight: 500;
+    color: var(--nf-content-link);
+  }
+  @media (hover: hover) {
+    .nf-history-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+  .nf-history-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+}

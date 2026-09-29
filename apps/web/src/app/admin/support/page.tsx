@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getSupportTickets, getTicketThread, type TicketView } from "@/lib/admin/queries";
 import { TicketReply, TicketStatusControl } from "../_components/AdminActions";
+import { InternalNotes } from "../_components/InternalNotes";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
@@ -246,6 +247,7 @@ export default async function AdminSupportPage({
 
           <TicketReply ticketId={selected.id} copy={copy} />
           <TicketStatusControl ticketId={selected.id} status={selected.status} copy={copy} />
+          {selected.userId ? <InternalNotes subjectId={selected.userId} path="/admin/support" /> : null}
         </section>
       )}
 

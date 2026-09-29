@@ -363,6 +363,7 @@ export function ReportDecision({
           successTitle={copy.dismissSheet.successTitle}
           successBody={copy.dismissSheet.successBody}
           withNotes
+          notesRequired
           notesLabel={copy.dismissSheet.notesLabel}
           extra={reporterField}
           run={(notes) => resolveReport({ reportId, decision: "dismissed", notes, reporterNote: reporterNote.trim() })}
@@ -548,6 +549,7 @@ export function ListingDecision({
           successTitle={copy.rejectSheet.successTitle}
           successBody={copy.rejectSheet.successBody}
           withNotes
+          notesRequired
           notesLabel={copy.rejectSheet.notesLabel}
           destructive
           run={(notes) => reviewListing({ listingId, decision: "reject", notes })}
@@ -639,11 +641,23 @@ export function TicketStatusControl({
   const [result, setResult] = useState<ActionResult<null> | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const move = (next: (typeof TICKET_STATES)[number]) => {
+  const [closing, setClosing] = useState(false);
+  const [closingNote, setClosingNote] = useState("");
+
+  const move = (next: (typeof TICKET_STATES)[number], note?: string) => {
+    /* Closing always says what was done, so the ticket's end is on record. */
+    if (next === "closed" && note === undefined) {
+      setClosing(true);
+      return;
+    }
     startTransition(async () => {
-      const outcome = await setTicketStatus({ ticketId, status: next });
+      const outcome = await setTicketStatus({ ticketId, status: next, ...(note ? { note } : {}) });
       setResult(outcome);
-      if (outcome.ok) router.refresh();
+      if (outcome.ok) {
+        setClosing(false);
+        setClosingNote("");
+        router.refresh();
+      }
     });
   };
 
@@ -667,6 +681,34 @@ export function TicketStatusControl({
           </Chip>
         ))}
       </ChipRow>
+      {closing ? (
+        <div className="mt-xs grid gap-2xs">
+          <label className="nf-label" htmlFor={`close-${ticketId}`}>
+            Closing note: what was done (kept in the audit trail)
+          </label>
+          <textarea
+            id={`close-${ticketId}`}
+            className="nf-input"
+            rows={2}
+            maxLength={1000}
+            value={closingNote}
+            onChange={(e) => setClosingNote(e.target.value)}
+          />
+          <div className="flex gap-xs">
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={pending || closingNote.trim().length < 8}
+              onClick={() => move("closed", closingNote.trim())}
+            >
+              Close the ticket
+            </Button>
+            <Button variant="secondary" size="sm" disabled={pending} onClick={() => setClosing(false)}>
+              Keep it open
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {result && !result.ok && (
         <p role="alert" className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-warning)]">
           {result.error}

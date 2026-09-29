@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { isSameOriginRequest } from "@/lib/security/request-origin";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isAllowedWebPushEndpoint } from "@/lib/push/endpoint";
 
 /**
  * POST /api/push/register. A device says it can be reached.
@@ -65,6 +67,11 @@ const Body = z
         path: ["p256dh"],
       });
     }
+    /* A web token is a URL the server will POST to, so it must name a real
+       push service (lib/push/endpoint.ts). */
+    if (value.platform === "web" && !isAllowedWebPushEndpoint(value.token)) {
+      context.addIssue({ code: "custom", message: "not a push service endpoint", path: ["token"] });
+    }
     if (value.platform !== "web" && (value.p256dh || value.auth)) {
       context.addIssue({
         code: "custom",
@@ -75,6 +82,9 @@ const Body = z
   });
 
 export async function POST(request: Request): Promise<NextResponse> {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ ok: false, reason: "forbidden" }, { status: 403 });
+  }
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ ok: false, reason: "unconfigured" }, { status: 503 });
   }
@@ -97,6 +107,31 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const admin = createAdminClient();
   const nowIso = new Date().toISOString();
+
+  /* A LIVE TOKEN DOES NOT CHANGE HANDS ON A CLAIM (29 September). Upserting
+     on the token alone let anybody who learned another person's token move
+     that device's notifications onto their own account. A live row owned by
+     somebody else moves only with proof of holding the device: for Web Push,
+     the subscription's own keys (a leaked endpoint URL does not carry them);
+     for a native token, only once its previous owner revoked it or has not
+     been seen on it for 30 days. */
+  const { data: existing } = await admin
+    .from("push_tokens")
+    .select("user_id, revoked_at, p256dh, auth, last_seen_at")
+    .eq("token", parsed.token)
+    .maybeSingle();
+  if (existing && existing.user_id !== user.id && !existing.revoked_at) {
+    const staleMs = 30 * 86_400_000;
+    const stale = existing.last_seen_at ? Date.now() - Date.parse(existing.last_seen_at) > staleMs : true;
+    const provesWeb =
+      parsed.platform === "web" &&
+      Boolean(existing.p256dh) &&
+      existing.p256dh === parsed.p256dh &&
+      existing.auth === parsed.auth;
+    if (!provesWeb && !(parsed.platform !== "web" && stale)) {
+      return NextResponse.json({ ok: false, reason: "registered_elsewhere" }, { status: 409 });
+    }
+  }
 
   /* ONE ROW PER TOKEN, EVER. `upsert` on the unique token does all three
      cases at once: a new device inserts, the same person relaunching updates
