@@ -206,7 +206,7 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
             <button
               type="button"
               disabled={pending}
-              className="nf-btn nf-btn--secondary min-h-[44px]"
+              className="nf-btn nf-btn--glass min-h-[44px]"
               onClick={() =>
                 run(() =>
                   decideStr({ caseId: c.id, decision: "no_file", reasons })
@@ -251,7 +251,7 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
             <button
               type="button"
               disabled={pending}
-              className="nf-btn nf-btn--secondary min-h-[44px]"
+              className="nf-btn nf-btn--glass min-h-[44px]"
               onClick={() =>
                 run(() =>
                   approveStr({
@@ -340,7 +340,7 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
           <button
             type="button"
             disabled={pending}
-            className="nf-btn nf-btn--secondary min-h-[44px]"
+            className="nf-btn nf-btn--glass min-h-[44px]"
             onClick={() =>
               run(() => linkStr({ caseId: c.id, kind: linkKind, ref: linkRef }))
             }
@@ -382,7 +382,7 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
           <button
             type="button"
             disabled={pending}
-            className="nf-btn nf-btn--secondary min-h-[44px]"
+            className="nf-btn nf-btn--glass min-h-[44px]"
             onClick={() =>
               run(() => releaseStrHold({ caseId: c.id, note: releaseNote }))
             }
@@ -411,7 +411,7 @@ export function StrApproveRelease({ copy, releaseId }: { copy: Copy; releaseId: 
       <button
         type="button"
         disabled={pending}
-        className="nf-btn nf-btn--secondary min-h-[44px] w-full"
+        className="nf-btn nf-btn--glass min-h-[44px] w-full"
         onClick={() =>
           start(async () => {
             const result = await approveStrRelease({ releaseId });

@@ -132,7 +132,7 @@ export function CancelAgreement({ agreementId }: { agreementId: string }) {
         <div className="flex flex-wrap gap-inline">
           <button
             type="button"
-            className="nf-btn nf-btn--secondary nf-btn--md"
+            className="nf-btn nf-btn--glass nf-btn--md"
             disabled={pending}
             onClick={() => run(() => cancelAgreement({ agreementId }))}
           >

@@ -62,7 +62,7 @@ export function CredentialForm({ subjectId }: { subjectId: string }) {
           className="nf-field min-h-[44px] w-full"
         />
       </label>
-      <button type="button" onClick={submit} disabled={pending || !ready} className="nf-btn nf-btn--secondary nf-btn--sm">
+      <button type="button" onClick={submit} disabled={pending || !ready} className="nf-btn nf-btn--glass nf-btn--sm">
         {pending ? desk.credentialRecording : desk.credentialSubmit}
       </button>
       {note && (

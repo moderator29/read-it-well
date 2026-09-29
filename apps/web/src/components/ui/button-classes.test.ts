@@ -12,25 +12,13 @@ import { describe, expect, it } from "vitest";
  * switch and the "I feel unsafe" sheet's two actions looked broken in both
  * themes (Track M QA, 25 September 2026).
  *
- * The files still listed are staff desks and the agreement's cancel, left for
- * their owners: each is one class name, `nf-btn--secondary` to
- * `nf-btn--glass`. The list may only shrink.
+ * The last hand-written `nf-btn--secondary` (the agreement's cancel and ten
+ * staff desks) moved to `nf-btn--glass` on 29 September 2026, so the list of
+ * files still to change is empty and must stay empty.
  */
 const SRC = join(process.cwd(), "src");
 
-const NOT_YET: Record<string, string> = {
-  "components/app/agreements/AgreementControls.tsx": "the agreement's cancel control",
-  "app/admin/_lanes/SafetyHoldButtons.tsx": "staff desk",
-  "app/admin/money/GuaranteeDesk.tsx": "staff desk",
-  "app/admin/agreements/AgreementQueue.tsx": "staff desk",
-  "app/admin/compliance/_lanes/StrControls.tsx": "staff desk",
-  "app/admin/_components/ConsiderStr.tsx": "staff desk",
-  "app/admin/_components/StaffFrame.tsx": "staff desk",
-  "app/admin/kyc/CredentialForm.tsx": "staff desk",
-  "app/admin/account-recovery/RecoveryDesk.tsx": "staff desk",
-  "app/admin/listings/[id]/PhotoBackfillButton.tsx": "staff desk",
-  "app/admin/stops/RecallPanel.tsx": "staff desk",
-};
+const NOT_YET: Record<string, string> = {};
 
 function walk(dir: string, pattern: RegExp, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

@@ -29,24 +29,24 @@ export function StaffFrame({ staff, name, children }: { staff: StaffAccess; name
         <nav aria-label="Your desks" className="mt-inline">
           <ul className="flex flex-wrap gap-xs">
             <li>
-              <Link className="nf-btn nf-btn--secondary nf-btn--sm" href="/admin">
+              <Link className="nf-btn nf-btn--glass nf-btn--sm" href="/admin">
                 Console
               </Link>
             </li>
             <li>
-              <Link className="nf-btn nf-btn--secondary nf-btn--sm" href="/admin/handbook">
+              <Link className="nf-btn nf-btn--glass nf-btn--sm" href="/admin/handbook">
                 Handbook
               </Link>
             </li>
             <li>
-              <Link className="nf-btn nf-btn--secondary nf-btn--sm" href="/settings/help">
+              <Link className="nf-btn nf-btn--glass nf-btn--sm" href="/settings/help">
                 Help and support
               </Link>
             </li>
             {staff.handbookAcknowledged
               ? staff.scopes.map((scope) => (
                   <li key={scope}>
-                    <Link className="nf-btn nf-btn--secondary nf-btn--sm" href={STAFF_DESK[scope]}>
+                    <Link className="nf-btn nf-btn--glass nf-btn--sm" href={STAFF_DESK[scope]}>
                       {STAFF_SCOPE_LABEL[scope]}
                     </Link>
                   </li>

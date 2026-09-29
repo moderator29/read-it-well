@@ -99,7 +99,7 @@ function Row({ row, locale, now }: { row: QueueRow; locale: Locale; now: number 
             <button type="button" className="nf-btn nf-btn--primary" disabled={pending} onClick={() => act("approve")}>
               Approve
             </button>
-            <button type="button" className="nf-btn nf-btn--secondary" disabled={pending} onClick={() => setRejecting(true)}>
+            <button type="button" className="nf-btn nf-btn--glass" disabled={pending} onClick={() => setRejecting(true)}>
               Reject
             </button>
           </>

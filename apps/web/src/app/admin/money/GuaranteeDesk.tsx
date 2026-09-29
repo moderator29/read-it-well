@@ -94,7 +94,7 @@ function ClaimItem({ claim, locale }: { claim: ClaimRow; locale: Locale }) {
               </button>
               <button
                 type="button"
-                className="nf-btn nf-btn--secondary"
+                className="nf-btn nf-btn--glass"
                 disabled={pending || reason.trim().length < 10}
                 onClick={() =>
                   run(() => decideClaim({ claimId: claim.id, decision: "reject", reason }), "Rejected. The claimant was told why.")
