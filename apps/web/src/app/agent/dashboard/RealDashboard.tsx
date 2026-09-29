@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import type { AgentNumbers, ListingStatus } from "@/lib/agent/listings-queries";
+import type { AgentNumbers } from "@/lib/agent/listings-queries";
 import { fill } from "../_copy";
 import { ButtonLink } from "@/components/ui/Button";
-import { Amount, Figure } from "@/components/ui/Amount";
+import { Amount } from "@/components/ui/Amount";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
-import { ICON, Row, RowList, Section, Stack, TYPE } from "@/components/app/Screen";
+import { Stack, TYPE } from "@/components/app/Screen";
 import { InspectionRows } from "@/components/app/inspections/InspectionRows";
 import type { InspectionList } from "@/lib/inspections/queries";
 import { isOpen } from "@/lib/inspections/types";
+import { HeroBand } from "@/components/ui/HeroBand";
+import { KpiTile } from "@/components/ui/KpiTile";
+import { ListGroup, ListRow } from "@/components/ui/ListGroup";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 
 /**
  * The signed-in agent's real dashboard.
@@ -51,41 +56,6 @@ import { isOpen } from "@/lib/inspections/types";
  * the one place that costs them money.
  */
 
-const STATUS_ORDER: ListingStatus[] = [
-  "PUBLISHED",
-  "APPROVED",
-  "SUBMITTED",
-  "UNDER_REVIEW",
-  "MORE_INFO_REQUIRED",
-  "DRAFT",
-  "REJECTED",
-  "SUSPENDED",
-];
-
-/** One figure, as a row rather than as a card. */
-function FigureRow({
-  icon,
-  label,
-  value,
-  href,
-}: {
-  icon: UiIconName;
-  label: string;
-  value: React.ReactNode;
-  href: string;
-}) {
-  return (
-    <Row className="p-0">
-      <Link href={href} className="nf-row nf-row--tap w-full px-3xs">
-        <UiIcon name={icon} size={ICON.row} className="shrink-0 text-[var(--nf-content-secondary)]" />
-        <span className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{label}</span>
-        <span className="nf-numeric nf-h4 shrink-0 tabular-nums">{value}</span>
-        <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
-      </Link>
-    </Row>
-  );
-}
-
 export function RealDashboard({
   t,
   locale,
@@ -109,197 +79,165 @@ export function RealDashboard({
     { icon: "wallet", label: a.earningsReport, href: "/agent/earnings" },
   ];
 
-  const withCounts = STATUS_ORDER.filter((status) => numbers.byStatus[status] > 0);
   const openInspections = inspections.inspections.filter((one) => isOpen(one.state));
 
+  const k = t.desk.agent;
+  const tag = locale === "en" ? "en-NG" : locale;
+  const dateLine = new Intl.DateTimeFormat(tag, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "Africa/Lagos",
+  }).format(new Date());
+  const by = numbers.byStatus;
+  /* The listings' real statuses folded into the four stages of spec 13.1.
+     Every listing lands in exactly one, so the total is `totalListings`. */
+  const stages: GaugeStage[] = [
+    { key: "draft", label: k.stage.draft, count: by.DRAFT, tone: "neutral" },
+    {
+      key: "review",
+      label: k.stage.review,
+      count: by.SUBMITTED + by.UNDER_REVIEW + by.MORE_INFO_REQUIRED,
+      tone: "warning",
+    },
+    { key: "live", label: k.stage.live, count: by.PUBLISHED + by.APPROVED, tone: "brand" },
+    { key: "other", label: k.stage.other, count: by.REJECTED + by.SUSPENDED, tone: "error" },
+  ];
+
   return (
-    <>
-      <div className="nf-agent-head">
-        <div>
-          <h1 className="nf-agent-head__title">{a.title}</h1>
-          <p className={`mt-row ${TYPE.bodyLg}`}>{fill(d.standing, { name: displayName })}</p>
+    <div className="nf-desk-home">
+      {/* THE WORKSPACE HOME (plan item 14): the navy band with the date,
+          "Today", the one action and the KPI row on it. Every figure is a
+          count this page already read; unread is left out when it could not
+          be read, and no tile carries a delta because none of these counts
+          has a measured previous period. */}
+      <HeroBand
+        label={dateLine}
+        title={t.desk.today.title}
+        sub={fill(d.standing, { name: displayName })}
+        action={
+          <ButtonLink href="/agent/list" variant="primary">
+            <UiIcon name="plus" size={20} />
+            {a.addListing}
+          </ButtonLink>
+        }
+      >
+        <div className="nf-desk-kpis">
+          <KpiTile label={k.kpi.live} icon="house" value={numbers.liveListings} href="/agent/listings" tag={tag} />
+          <KpiTile
+            label={k.kpi.inspections}
+            icon="calendar-clock"
+            value={openInspections.length}
+            href="/agent/inspections"
+            tag={tag}
+          />
+          <KpiTile label={k.kpi.review} icon="file-search" value={numbers.inReview} href="/agent/listings" tag={tag} />
+          {numbers.unreadMessages !== null ? (
+            <KpiTile
+              label={k.kpi.unread}
+              icon="chat-bubble"
+              value={numbers.unreadMessages}
+              href="/agent/messages"
+              tag={tag}
+            />
+          ) : null}
         </div>
-        <ButtonLink href="/agent/list" variant="primary">
-          <UiIcon name="plus" size={20} />
-          {a.addListing}
-        </ButtonLink>
-      </div>
+      </HeroBand>
 
       <Stack>
-        {/* ------------------------------------------------- inspections */}
-        {openInspections.length > 0 && (
-          <Section
-            title="Inspections waiting on you"
-            description="Somebody wanting to see a property is the closest thing to a deal this platform has. They see the same state you do."
-            action={
-              <Link
-                href="/agent/inspections"
-                className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
-              >
-                {t.common.viewAll}
-              </Link>
-            }
-          >
-            <InspectionRows
-              inspections={openInspections.slice(0, 4)}
-              side="lister"
-              locale={locale}
-            />
-          </Section>
+        {openInspections.length > 0 || numbers.totalListings > 0 ? (
+          <div className="nf-desk-grid">
+            {openInspections.length > 0 ? (
+              <section className="nf-list-section">
+                <div className="nf-list-section__head">
+                  <h2 className="nf-section-label">{t.desk.today.needsAttention}</h2>
+                  <Link href="/agent/inspections" className="nf-list-section__action nf-link-quiet">
+                    {t.common.viewAll}
+                  </Link>
+                </div>
+                <InspectionRows inspections={openInspections.slice(0, 4)} side="lister" locale={locale} />
+              </section>
+            ) : null}
+            {numbers.totalListings > 0 ? (
+              <section className="nf-list-section">
+                <div className="nf-list-section__head">
+                  <h2 className="nf-section-label">{k.pipeline}</h2>
+                  <Link href="/agent/listings" className="nf-list-section__action nf-link-quiet">
+                    {t.common.viewAll}
+                  </Link>
+                </div>
+                <div className="nf-desk-card">
+                  <Gauge stages={stages} totalLabel={k.pipelineTotal} label={k.pipeline} tag={tag} />
+                </div>
+              </section>
+            ) : (
+              <p className={TYPE.body}>{d.noListings}</p>
+            )}
+          </div>
+        ) : (
+          <p className={TYPE.body}>{d.noListings}</p>
         )}
 
-        {/* ------------------------------------------------------ figures */}
-        <Section title="Your numbers">
-          <RowList boxed inset={false}>
-            <FigureRow
-              icon="house"
-              label={d.liveListings}
-              value={<Figure value={numbers.liveListings} locale={locale} />}
-              href="/agent/listings"
-            />
-            <FigureRow
-              icon="verified"
-              label={d.withReview}
-              value={<Figure value={numbers.inReview} locale={locale} />}
-              href="/agent/listings"
-            />
-            <FigureRow
-              icon="document"
-              label={d.drafts}
-              value={<Figure value={numbers.drafts} locale={locale} />}
-              href="/agent/listings"
-            />
-            <FigureRow
-              icon="calendar-booking"
-              label={d.upcomingStays}
-              value={<Figure value={numbers.upcomingBookingCount} locale={locale} />}
-              href="/agent/bookings"
-            />
-            <FigureRow
-              icon="chat-bubble"
-              label={d.unreadMessages}
-              value={
-                numbers.unreadMessages === null ? (
-                  d.unreadUnknown
-                ) : (
-                  <Figure value={numbers.unreadMessages} locale={locale} />
-                )
-              }
-              href="/agent/messages"
-            />
-          </RowList>
-        </Section>
-
-        {/* --------------------------------------------------- properties */}
-        <Section
-          title={t.agent.nav.myListings}
-          action={
-            <Link
-              href="/agent/listings"
-              className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
-            >
-              {t.common.viewAll}
-            </Link>
-          }
-        >
-          {numbers.totalListings === 0 ? (
-            <p className={TYPE.body}>{d.noListings}</p>
-          ) : (
-            <RowList boxed inset={false}>
-              {withCounts.map((status) => (
-                <Row key={status}>
-                  <span className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>
-                    {t.agentListings.workspace.status[status]}
-                  </span>
-                  <Figure
-                    value={numbers.byStatus[status] ?? 0}
-                    locale={locale}
-                    className="nf-body font-bold"
-                  />
-                </Row>
-              ))}
-            </RowList>
-          )}
-        </Section>
-
         {/* -------------------------------------------------------- stays */}
-        <Section
-          title={d.upcomingStays}
+        <ListGroup
+          label={d.upcomingStays}
           action={
-            <Link
-              href="/agent/bookings"
-              className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
-            >
+            <Link href="/agent/bookings" className="nf-link-quiet">
               {t.common.viewAll}
             </Link>
           }
         >
           {numbers.upcomingBookings.length === 0 ? (
-            <p className={TYPE.body}>{d.noStays}</p>
+            <ListRow title={d.noStays} />
           ) : (
-            <RowList boxed>
-              {numbers.upcomingBookings.map((booking) => (
-                <Row key={booking.id}>
-                  <span className="nf-role-mark shrink-0" aria-hidden="true">
-                    <UiIcon name="calendar-booking" size={ICON.row} />
-                  </span>
-                  <span className="min-w-0 flex-1 leading-tight">
-                    <span
-                      className={`line-clamp-2 [overflow-wrap:anywhere] ${TYPE.rowTitle}`}
-                      title={booking.listingTitle}
-                    >
-                      {booking.listingTitle}
-                    </span>
-                    <span className={`block ${TYPE.rowMeta}`}>
-                      {fill(d.stayDates, {
-                        from: formatDate(new Date(`${booking.checkIn}T00:00:00Z`), locale, {
-                          day: "numeric",
-                          month: "short",
-                        }),
-                        to: formatDate(new Date(`${booking.checkOut}T00:00:00Z`), locale, {
-                          day: "numeric",
-                          month: "short",
-                        }),
-                      })}
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-right leading-tight">
-                    <Amount
-                      minorUnits={booking.totalMinor}
-                      locale={locale}
-                      className="nf-body-sm block font-bold"
-                    />
-                    <StatusPill tone={toneForStatus(booking.status)} className="mt-inline-tight">
-                      {booking.status === "CONFIRMED" ? a.confirmed : a.pending}
-                    </StatusPill>
-                  </span>
-                </Row>
-              ))}
-            </RowList>
+            numbers.upcomingBookings.map((booking) => (
+              <ListRow
+                key={booking.id}
+                href="/agent/bookings"
+                leading={
+                  <IconPlate size="sm">
+                    <UiIcon name="calendar-booking" size={18} />
+                  </IconPlate>
+                }
+                title={<span className="line-clamp-2 [overflow-wrap:anywhere]">{booking.listingTitle}</span>}
+                sub={fill(d.stayDates, {
+                  from: formatDate(new Date(`${booking.checkIn}T00:00:00Z`), locale, {
+                    day: "numeric",
+                    month: "short",
+                  }),
+                  to: formatDate(new Date(`${booking.checkOut}T00:00:00Z`), locale, {
+                    day: "numeric",
+                    month: "short",
+                  }),
+                })}
+                value={<Amount minorUnits={booking.totalMinor} locale={locale} />}
+                status={
+                  <StatusPill tone={toneForStatus(booking.status)}>
+                    {booking.status === "CONFIRMED" ? a.confirmed : a.pending}
+                  </StatusPill>
+                }
+              />
+            ))
           )}
-        </Section>
+        </ListGroup>
 
         {/* ------------------------------------------------------ actions */}
-        <Section title={a.quickActions}>
-          <RowList boxed>
-            {quickActions.map((action) => (
-              <Row key={action.href} className="p-0">
-                <Link href={action.href} className="nf-row nf-row--tap w-full px-3xs">
-                  <span className="nf-role-mark shrink-0" aria-hidden="true">
-                    <UiIcon name={action.icon} size={ICON.row} />
-                  </span>
-                  <span className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{action.label}</span>
-                  <UiIcon
-                    name="chevron-right"
-                    size={16}
-                    className="shrink-0 text-[var(--nf-content-muted)]"
-                  />
-                </Link>
-              </Row>
-            ))}
-          </RowList>
-        </Section>
+        <ListGroup label={a.quickActions}>
+          {quickActions.map((action) => (
+            <ListRow
+              key={action.href}
+              href={action.href}
+              leading={
+                <IconPlate size="sm">
+                  <UiIcon name={action.icon} size={18} />
+                </IconPlate>
+              }
+              title={action.label}
+              chevron
+            />
+          ))}
+        </ListGroup>
       </Stack>
-    </>
+    </div>
   );
 }

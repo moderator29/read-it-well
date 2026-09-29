@@ -48,11 +48,11 @@ export const deskEn = {
     },
     newListing: "Add a business",
     attention: {
-      request: "Booking request waiting",
-      requestSub: "{guest} · {when}",
+      request: "Booking request from {guest}",
+      table: "Table request from {guest}",
       draft: "Application not sent yet",
       draftSub: "{count} things still to add",
-      stopped: "Business stopped",
+      stopped: "Open it to read the reviewer's note",
     },
   },
   agent: {

@@ -385,4 +385,55 @@
       transition: none;
     }
   }
+
+  /* ---------------------------------------- THE WORKSPACE HOME (item 14)
+   *
+   * Host, agent and console dashboards share this layout: the hero band with
+   * the KPI row on it (two by two on a phone, four across from 1024px), then
+   * "Needs attention" and the pipeline gauge side by side on a desk, stacked
+   * on a phone. A card with no source is not drawn and the grid reflows.
+   */
+  .nf-desk-home {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .nf-desk-kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  @media (min-width: 64rem) {
+    .nf-desk-kpis {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  /* Two tiles to a row on a phone leave a label about 90px: it wraps to a
+     second line rather than being cut to "ARRIVI...". */
+  .nf-desk-kpis .nf-kpi__label {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .nf-desk-grid {
+    display: grid;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (min-width: 64rem) {
+    .nf-desk-grid {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    }
+  }
+  .nf-desk-card {
+    padding: 1rem;
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  @media (min-width: 64rem) {
+    .nf-desk-card {
+      padding: 1.25rem;
+    }
+  }
 }

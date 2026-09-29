@@ -6,13 +6,19 @@ import { resolveSession } from "@/lib/actions/session";
 import { getMyBusinesses, getMyHostDraft, type MyBusiness } from "@/lib/host/queries";
 import { missingFrom, type HostDraft } from "@/lib/host/onboarding";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
-import { EmptyState, Row, RowList, Section, Stack, TYPE } from "@/components/app/Screen";
+import { EmptyState, Row, RowList, Stack, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { HostShell } from "@/components/host/HostShell";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { businessArrival } from "@/lib/ui/arrival-moments";
+import { readHostRoomBookings } from "@/lib/host/room-bookings";
+import { loadUnreadCounts } from "@/lib/messages/unread";
+import { ListGroup, ListRow } from "@/components/ui/ListGroup";
+import { readHostTableBoard } from "./reservations/board";
+import { HostTodayView } from "./HostTodayView";
+import { HOST_STATUS_WORD, hostToday, type HostToday } from "./today";
 import { IconPlate } from "@/components/ui/IconPlate";
 
 export const metadata: Metadata = {
@@ -22,16 +28,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const STATUS_WORD: Record<string, string> = {
-  DRAFT: "Draft",
-  SUBMITTED: "With our team",
-  UNDER_REVIEW: "Being read",
-  MORE_INFO_REQUIRED: "Needs more from you",
-  APPROVED: "Approved",
-  PUBLISHED: "Live",
-  REJECTED: "Not approved",
-  SUSPENDED: "Suspended",
-};
+const STATUS_WORD = HOST_STATUS_WORD;
 
 /**
  * What a stopped business can and cannot do, said on its own row.
@@ -82,13 +79,32 @@ export default async function HostPage() {
     );
   }
 
-  const [businesses, draft] = await Promise.all([getMyBusinesses(), getMyHostDraft()]);
+  /* The workspace home's figures (plan item 14): the host's own rows, read
+     together. A read that fails comes back as null and its tile is left out. */
+  const [businesses, draft, rooms, tables, unread] = await Promise.all([
+    getMyBusinesses(),
+    getMyHostDraft(),
+    readHostRoomBookings(),
+    readHostTableBoard(),
+    loadUnreadCounts(session.supabase).then((counts) => counts?.total ?? null, () => null),
+  ]);
+  const openDraft = draft.businessId ? draft : null;
+  const today = hostToday({
+    now: new Date(requestNow()),
+    rooms: rooms.state === "ok" ? rooms : null,
+    tables: tables.state === "ok" ? tables.board : null,
+    unread,
+    businesses: businesses.map((b) => ({ id: b.id, name: b.name, status: b.status })),
+    /* The application in progress draws its own row under the dashboard,
+       with its state and what is missing, so it is not listed twice. */
+    draft: null,
+  });
   /* A business approved or published in the staff console, whose notice
      lands here: once per device, while it is news (docs/SUCCESS_MOMENTS.md). */
   const approval = businessArrival(businesses, requestNow());
 
   return (
-    <HostShell logoLabel={t.a11y.logoHome}>
+    <HostShell logoLabel={t.a11y.logoHome} wide>
       <SuccessFromFlag
         copy={t.success}
         show={approval !== null}
@@ -97,7 +113,7 @@ export default async function HostPage() {
         seenKey={approval?.seenKey ?? "host-approved:none"}
         haptic={false}
       />
-      <HostStandingBody businesses={businesses} draft={draft.businessId ? draft : null} locale={locale} />
+      <HostStandingBody businesses={businesses} draft={openDraft} locale={locale} today={today} t={t} />
     </HostShell>
   );
 }
@@ -113,64 +129,75 @@ export function HostStandingBody({
   businesses,
   draft: open,
   locale = DEFAULT_LOCALE,
+  today,
+  t = getDictionary(locale),
 }: {
   businesses: MyBusiness[];
   locale?: Locale;
   /** The application still in progress, or null when there is none. */
   draft: HostDraft | null;
+  /** The workspace home's figures (`hostToday`), computed from the host's rows. */
+  today: HostToday;
+  t?: ReturnType<typeof getDictionary>;
 }) {
   const missing = open ? missingFrom(open) : [];
 
   return (
     <>
-      <div className="nf-agent-head">
-        <div>
-          <h1 className="nf-agent-head__title">Host</h1>
-          <p className={`mt-row ${TYPE.bodyLg}`}>
-            {businesses.length === 0
-              ? "Nothing listed yet. One application, saved as you go."
-              : `${countOf(businesses.length, "businesses", locale)} on this account.`}
-          </p>
-        </div>
-        {/* A HOST WHO HAS NOT STARTED IS ASKED WHAT THEY ARE, NOT ASKED TO
-            FILL IN A FORM. `/host/start` draws the three stays doors of
-            GOVERNING-09; a host with an application already open goes straight
-            back to it, because the question has been answered. */}
-        <ButtonLink href={open ? "/host/apply" : "/profile/setup?side=stays"} variant="primary">
-          <UiIcon name="building-hotel" size={20} />
-          {open ? "Continue the application" : "Start an application"}
-        </ButtonLink>
-      </div>
+      <HostTodayView
+        today={today}
+        t={t}
+        locale={locale}
+        sub={
+          businesses.length === 0
+            ? "Nothing listed yet. One application, saved as you go."
+            : `${countOf(businesses.length, "businesses", locale)} on this account.`
+        }
+        action={
+          /* A HOST WHO HAS NOT STARTED IS ASKED WHAT THEY ARE, NOT ASKED TO
+             FILL IN A FORM. `/host/start` draws the three stays doors of
+             GOVERNING-09; a host with an application already open goes
+             straight back to it, because the question has been answered. */
+          <ButtonLink href={open ? "/host/apply" : "/profile/setup?side=stays"} variant="primary">
+            {open ? "Continue the application" : "Start an application"}
+          </ButtonLink>
+        }
+      />
 
       <Stack>
         {open && (
-          <Section
-            title={open.status === "SUBMITTED" ? "With our team" : "In progress"}
-            description={
-              open.status === "SUBMITTED"
-                ? "A person reads it next. We write to you when it has been read."
-                : missing.length === 0
-                  ? "Everything is in. Open it and send it for review."
-                  : `${countOf(missing.length, "things", locale)} still to add before it can be sent.`
-            }
+          <ListGroup
+            label={open.status === "SUBMITTED" ? "With our team" : "In progress"}
           >
-            <Link href="/host/apply" className="nf-panel nf-panel--card nf-host-choice">
-              <span className="nf-host-choice__mark" aria-hidden="true">
-                <IconPlate size="md">
-                  <UiIcon name="file-text" size={20} />
+            <ListRow
+              href="/host/apply"
+              leading={
+                <IconPlate size="sm" tone="brand">
+                  <UiIcon name="file-text" size={18} />
                 </IconPlate>
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className={`block ${TYPE.rowTitle}`}>{open.name || "Your business"}</span>
-                <span className={`block ${TYPE.rowMeta}`}>{STATUS_WORD[open.status ?? "DRAFT"] ?? open.status}</span>
-              </span>
-              <UiIcon name="chevron-right" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
-            </Link>
-          </Section>
+              }
+              title={open.name || "Your business"}
+              sub={
+                open.status === "SUBMITTED"
+                  ? "A person reads it next. We write to you when it has been read."
+                  : missing.length === 0
+                    ? "Everything is in. Open it and send it for review."
+                    : `${countOf(missing.length, "things", locale)} still to add before it can be sent.`
+              }
+              status={
+                <StatusPill tone={toneForStatus(open.status ?? "DRAFT")}>
+                  {STATUS_WORD[open.status ?? "DRAFT"] ?? open.status}
+                </StatusPill>
+              }
+            />
+          </ListGroup>
         )}
 
         {businesses.length > 0 && (
-          <Section title="Your businesses">
+          <section className="nf-list-section">
+            <div className="nf-list-section__head">
+              <h2 className="nf-section-label">Your businesses</h2>
+            </div>
             <RowList boxed>
               {businesses.map((business) => (
                 <Row key={business.id} className="flex-col items-stretch gap-xs py-md">
@@ -213,7 +240,7 @@ export function HostStandingBody({
                       </p>
                       <Link
                         href="/contact?topic=verification"
-                        className="mt-2xs inline-block text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+                        className="mt-2xs inline-block whitespace-nowrap text-[var(--nf-content-link)] underline-offset-4 hover:underline"
                       >
                         Contact us
                       </Link>
@@ -266,7 +293,7 @@ export function HostStandingBody({
                 </Row>
               ))}
             </RowList>
-          </Section>
+          </section>
         )}
 
         {!open && businesses.length === 0 && (

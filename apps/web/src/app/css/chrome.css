@@ -1081,7 +1081,9 @@
      the paper: round (the lead's Q1 ruling for the header pair), white in
      light and the raised night surface in dark, with the float shadow. */
   .nf-ph-large__actions .nf-icon-btn {
-    border-radius: 9999px;
+    /* A circle, not a capsule: the button is a 44px square, so half its side
+       rounds it exactly (Q1, decided by the lead). */
+    border-radius: 50%;
     background: var(--nf-surface-elevated);
     border: 1px solid var(--nf-card-border, var(--nf-container-edge));
     box-shadow: var(--nf-float-shadow, none);
