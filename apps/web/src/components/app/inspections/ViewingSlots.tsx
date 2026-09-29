@@ -7,8 +7,7 @@ import { Chip, ChipRow } from "@/components/ui/Chip";
 import { bookViewingSlot } from "@/lib/viewings/actions";
 import { slotsByDay, type Slot } from "@/lib/viewings/route";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 
 /**
  * V-94: PICK A VIEWING TIME. The lister's free slots, by day; one tap chooses
@@ -33,7 +32,20 @@ function dayLabel(day: string, locale: Locale): string {
   return formatDate(new Date(`${day}T12:00:00+01:00`), locale, { weekday: "short", day: "numeric", month: "short", timeZone: "Africa/Lagos" });
 }
 
-export function ViewingSlots({ listingId, slots, copy, locale }: { listingId: string; slots: Slot[]; copy: Copy; locale: Locale }) {
+export function ViewingSlots({
+  listingId,
+  slots,
+  copy,
+  locale,
+  success,
+}: {
+  listingId: string;
+  slots: Slot[];
+  copy: Copy;
+  locale: Locale;
+  /** The page's `t.success`, for "Inspection booked". Absent, no sheet. */
+  success?: SuccessWords;
+}) {
   const days = slotsByDay(slots);
   const [day, setDay] = useState(days[0]?.day ?? "");
   const [chosen, setChosen] = useState<string | null>(null);
@@ -43,14 +55,14 @@ export function ViewingSlots({ listingId, slots, copy, locale }: { listingId: st
   const [pending, start] = useTransition();
   /* Booked is CONFIRMED on the server (V-94), so it is a success, not a request. */
   const [celebrate, setCelebrate] = useState(false);
-  const success = useClientCopy().success;
   const current = days.find((d) => d.day === day) ?? days[0];
 
   if (booked) {
-    const words = successCopy(success, "inspectionBooked", { when: when(booked.at, locale, true) });
+    const words = success ? successCopy(success, "inspectionBooked", { when: when(booked.at, locale, true) }) : null;
     const plans = `/bookings?kind=inspection&from=property&changed=${booked.id}#ix-${booked.id}`;
     return (
       <section className="nf-panel nf-panel--card p-card-sm" data-testid="viewing-booked" aria-live="polite">
+        {success && words ? (
         <SuccessSheet
           open={celebrate}
           onOpenChange={setCelebrate}
@@ -61,6 +73,7 @@ export function ViewingSlots({ listingId, slots, copy, locale }: { listingId: st
           primary={{ label: success.continue }}
           secondary={{ label: copy.openPlans, href: plans }}
         />
+        ) : null}
         <p className="nf-body-sm text-[var(--nf-content-primary)]">{copy.booked.replace("{when}", when(booked.at, locale, true))}</p>
         {/* Straight to the booked viewing's own card, not the top of Plans. */}
         <ButtonLink

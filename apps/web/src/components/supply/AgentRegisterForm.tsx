@@ -182,7 +182,7 @@ export function AgentRegisterForm({
     return (
       <>
         <AgentDoneScreen t={t} filed={filed} />
-        <RegistrationFiledSheet reference={filed.reference} />
+        <RegistrationFiledSheet reference={filed.reference} copy={t.success} />
       </>
     );
   }

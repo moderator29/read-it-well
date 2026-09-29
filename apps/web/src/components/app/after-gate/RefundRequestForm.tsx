@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { requestRefund } from "@/lib/after-gate/refund-request-actions";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 
 /**
  * V-24. The dated ask for a paid stay to be cancelled.
@@ -22,8 +21,11 @@ export function RefundRequestForm({
   bookingId,
   copy,
   reasons,
+  success,
 }: {
   bookingId: string;
+  /** The page's `t.success`, for "Refund requested". Absent, no sheet. */
+  success?: SuccessWords;
   copy: Dictionary["afterTheGate"]["refund"];
   reasons: { code: string; label: string }[];
 }) {
@@ -39,8 +41,7 @@ export function RefundRequestForm({
    * shows its own result. "Requested", never "refunded": nothing has moved.
    */
   const [filed, setFiled] = useState(false);
-  const success = useClientCopy().success;
-  const words = successCopy(success, "refundRequested");
+  const words = success ? successCopy(success, "refundRequested") : null;
 
   function submit() {
     setError(null);
@@ -50,7 +51,9 @@ export function RefundRequestForm({
         setError(result.error || copy.askFailed);
         return;
       }
-      setFiled(true);
+      /* With no sheet to hold it open, the page refreshes straight away. */
+      if (words) setFiled(true);
+      else router.refresh();
     });
   }
 
@@ -92,6 +95,7 @@ export function RefundRequestForm({
       <Button type="submit" variant="secondary" full className="mt-md" loading={pending} disabled={pending || filed}>
         {copy.askSubmit}
       </Button>
+      {success && words ? (
       <SuccessSheet
         open={filed}
         onOpenChange={(open) => {
@@ -104,6 +108,7 @@ export function RefundRequestForm({
         body={words.body}
         primary={{ label: success.continue }}
       />
+      ) : null}
     </form>
   );
 }

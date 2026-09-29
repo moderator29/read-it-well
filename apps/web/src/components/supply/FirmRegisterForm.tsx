@@ -174,7 +174,7 @@ export function FirmRegisterForm({
     return (
       <>
         <FirmDoneScreen t={t} filed={filed} />
-        <RegistrationFiledSheet reference={filed.reference} />
+        <RegistrationFiledSheet reference={filed.reference} copy={t.success} />
       </>
     );
   }

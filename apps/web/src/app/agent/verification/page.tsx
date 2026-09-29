@@ -237,6 +237,7 @@ export default async function Page() {
               /verification, so a level is celebrated once on this device
               whichever door it is seen through (docs/SUCCESS_MOMENTS.md). */}
           <SuccessFromFlag
+            copy={t.success}
             show={read.ladder.tier > 0 && approvedRecently(Object.values(read.ladder.rungs), requestNow())}
             moment="verificationApproved"
             seenKey={`verification-approved:tier-${read.ladder.tier}`}

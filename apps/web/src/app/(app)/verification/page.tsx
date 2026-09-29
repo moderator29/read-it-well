@@ -98,7 +98,11 @@ export default async function VerificationPage({
   const merchantCode = process.env.VALLO_NIMC_MERCHANT_CODE?.trim() ?? "";
   const vnin =
     merchantCode !== "" && (await vninIdentityOn()) ? (
-      <VninPanel copy={getDictionary(locale).trustVisible.vnin} merchantCode={merchantCode} />
+      <VninPanel
+        copy={getDictionary(locale).trustVisible.vnin}
+        success={getDictionary(locale).success}
+        merchantCode={merchantCode}
+      />
     ) : null;
   const [ladder, documents] = await Promise.all([getOwnLadder(context), ownDocumentState()]);
   /* SCUML item 20: the PEP question, for listers only (the panel draws
@@ -259,7 +263,7 @@ export default async function VerificationPage({
         )}
         {pep}
         {vnin}
-        <KycFlow submit={submitVerification} />
+        <KycFlow submit={submitVerification} success={getDictionary(locale).success} />
       </div>
     );
   }
@@ -282,6 +286,7 @@ export default async function VerificationPage({
           ladder.state === "ok" &&
           approvedRecently(Object.values(ladder.ladder.rungs), requestNow()) ? (
             <SuccessFromFlag
+              copy={getDictionary(locale).success}
               show
               moment="verificationApproved"
               seenKey={`verification-approved:tier-${ladder.ladder.tier}`}
@@ -302,7 +307,7 @@ export default async function VerificationPage({
           <PageHeader title="Verification" fallback="/profile" />
           {pep}
           {vnin}
-          <KycFlow submit={submitVerification} />
+          <KycFlow submit={submitVerification} success={getDictionary(locale).success} />
         </>
       )}
     </div>

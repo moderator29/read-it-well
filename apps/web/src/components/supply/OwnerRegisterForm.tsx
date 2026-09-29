@@ -223,7 +223,7 @@ export function OwnerRegisterForm({
     return (
       <>
         <OwnerDoneScreen t={t} filed={filed} />
-        <RegistrationFiledSheet reference={filed.reference} />
+        <RegistrationFiledSheet reference={filed.reference} copy={t.success} />
       </>
     );
   }

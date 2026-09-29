@@ -120,6 +120,7 @@ export default async function AgreementPage({
       {/* Always rendered, here, with `show` deciding: it latches what it
           says, so stripping the flag cannot take the sheet away. */}
       <SuccessFromFlag
+        copy={getDictionary(locale).success}
         show={(moment ?? approvedMoment) !== null}
         moment={moment ?? approvedMoment ?? "agreementDrawn"}
         seenKey={moment ? undefined : `agreement-approved:${a.id}`}

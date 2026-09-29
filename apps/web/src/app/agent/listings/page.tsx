@@ -103,6 +103,7 @@ export default async function Page({
       profile={agentProfileFrom(context.agent)}
     >
       <SuccessFromFlag
+        copy={t.success}
         show={arrival !== null}
         moment={arrival ?? "listingSubmitted"}
         strip={["listing"]}

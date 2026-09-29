@@ -13,8 +13,7 @@ import {
 } from "@/lib/tenancy/share-actions";
 import { settleShareReturn, startShareCheckout } from "@/lib/tenancy/share-checkout";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy, withoutDone } from "@/lib/ui/success-moments";
+import { successCopy, withoutDone, type SuccessWords } from "@/lib/ui/success-moments";
 
 type Copy = Dictionary["afterTheGate"]["flatmates"];
 
@@ -193,9 +192,17 @@ export function PayShare({
  * refusal (still processing, failed, refunded) keeps its own sentence. The
  * flag goes when the sheet is closed, so a refresh does not replay it.
  */
-export function SettleShareOnReturn({ tenancyId, reference }: { tenancyId: string; reference: string }) {
+export function SettleShareOnReturn({
+  tenancyId,
+  reference,
+  success: s,
+}: {
+  tenancyId: string;
+  reference: string;
+  /** The page's `t.success`, for the receipt. Absent, no sheet. */
+  success?: SuccessWords;
+}) {
   const router = useRouter();
-  const s = useClientCopy().success;
   const [message, setMessage] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<{ moment: "sharePaid" | "moveInPaid"; amountMinor: number | null } | null>(null);
   const started = useRef(false);
@@ -220,7 +227,7 @@ export function SettleShareOnReturn({ tenancyId, reference }: { tenancyId: strin
     const clean = withoutDone(here, ["paid", "reference"]);
     if (clean !== here) router.replace(clean, { scroll: false });
   };
-  const words = receipt ? successCopy(s, receipt.moment) : null;
+  const words = receipt && s ? successCopy(s, receipt.moment) : null;
 
   return (
     <>
@@ -229,7 +236,7 @@ export function SettleShareOnReturn({ tenancyId, reference }: { tenancyId: strin
           {message}
         </p>
       ) : null}
-      {receipt && words ? (
+      {receipt && words && s ? (
         <SuccessSheet
           open
           onOpenChange={(open) => {

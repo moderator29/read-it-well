@@ -9,8 +9,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
 import { DocumentUploader } from "./DocumentUploader";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import {
   BUSINESS_SECTIONS,
   CONSENTS,
@@ -55,7 +54,10 @@ import {
 
 export function KycFlow({
   submit,
+  success,
 }: {
+  /** The page's `t.success`, for the "Documents sent" sheet. Absent, no sheet. */
+  success?: SuccessWords;
   /**
    * Sends the submission. Resolves with `{ ok: true }` only when it is
    * genuinely stored and queued for review.
@@ -90,7 +92,7 @@ export function KycFlow({
     return (
       <>
         <Submitted />
-        <KycSentSheet />
+        {success ? <KycSentSheet copy={success} /> : null}
       </>
     );
 
@@ -486,8 +488,7 @@ const SENT_MEANWHILE =
 const SENT_ACTION = "Back to your profile";
 
 /** "Documents sent", once, over the in-review screen. */
-function KycSentSheet() {
-  const copy = useClientCopy().success;
+function KycSentSheet({ copy }: { copy: SuccessWords }) {
   const [open, setOpen] = useState(true);
   const words = successCopy(copy, "kycSubmitted");
   return (

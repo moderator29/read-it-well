@@ -5,8 +5,7 @@ import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useLockRecovery, useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useRouter } from "next/navigation";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {
   addPayoutAccount,
@@ -38,7 +37,10 @@ export function PayoutAccounts({
   accounts,
   banks,
   resolveAvailable,
+  success,
 }: {
+  /** The page's `t.success`, for "Payout account added". Absent, no sheet. */
+  success?: SuccessWords;
   accounts: PayoutAccount[];
   banks: Bank[];
   resolveAvailable: boolean;
@@ -87,12 +89,12 @@ export function PayoutAccounts({
 
   /* Once per saved account: the action answer the sheet was shown for is
      remembered, so a re-render does not reopen it. */
-  const success = useClientCopy().success;
   const [acknowledged, setAcknowledged] = useState<typeof addState>(null);
-  const addedWords = successCopy(success, "payoutAccountAdded");
+  const addedWords = success ? successCopy(success, "payoutAccountAdded") : null;
 
   return (
     <section aria-labelledby="payout-accounts-heading" className="mt-xl">
+      {success && addedWords ? (
       <SuccessSheet
         open={addState?.ok === true && acknowledged !== addState}
         onOpenChange={(open) => {
@@ -103,6 +105,7 @@ export function PayoutAccounts({
         body={addedWords.body}
         primary={{ label: success.continue }}
       />
+      ) : null}
       <h2 id="payout-accounts-heading" className="nf-h3">
         Where your earnings are paid
       </h2>

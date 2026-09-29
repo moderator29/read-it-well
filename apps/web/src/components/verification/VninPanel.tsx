@@ -7,8 +7,7 @@ import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { verifyIdentityWithVnin } from "@/lib/identity/actions";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 
 /**
  * THE vNIN ROUTE TO THE IDENTITY RUNG (V-49). Drawn by the verification page
@@ -19,16 +18,18 @@ import { successCopy } from "@/lib/ui/success-moments";
 export function VninPanel({
   copy,
   merchantCode,
+  success,
 }: {
   copy: Dictionary["trustVisible"]["vnin"];
+  /** The page's `t.success`, for "Identity matched". Absent, no sheet. */
+  success?: SuccessWords;
   merchantCode: string;
 }) {
   const [vnin, setVnin] = useState("");
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [matched, setMatched] = useState(false);
-  const success = useClientCopy().success;
-  const matchedWords = successCopy(success, "identityMatched");
+  const matchedWords = success ? successCopy(success, "identityMatched") : null;
 
   function submit() {
     setMessage(null);
@@ -63,14 +64,16 @@ export function VninPanel({
           {message.text}
         </p>
       )}
-      <SuccessSheet
-        open={matched}
-        onOpenChange={setMatched}
-        variant={matchedWords.variant}
-        title={matchedWords.title}
-        body={matchedWords.body}
-        primary={{ label: success.continue }}
-      />
+      {success && matchedWords ? (
+        <SuccessSheet
+          open={matched}
+          onOpenChange={setMatched}
+          variant={matchedWords.variant}
+          title={matchedWords.title}
+          body={matchedWords.body}
+          primary={{ label: success.continue }}
+        />
+      ) : null}
     </section>
   );
 }

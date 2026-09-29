@@ -2,10 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClientCopy } from "@/lib/i18n/client-copy";
 import { SuccessSheet, type SuccessAction, type SuccessDetail } from "@/components/ui/SuccessSheet";
 import { markSeen, seenOnce } from "@/lib/ui/seen-once";
-import { successCopy, withoutDone, type SuccessMomentId } from "@/lib/ui/success-moments";
+import { successCopy, withoutDone, type SuccessMomentId, type SuccessWords } from "@/lib/ui/success-moments";
 import type { FeedbackKind } from "@/lib/ui/feedback";
 
 /**
@@ -40,6 +39,7 @@ type Latched = {
 };
 
 export function SuccessFromFlag({
+  copy,
   show,
   moment,
   values,
@@ -50,6 +50,8 @@ export function SuccessFromFlag({
   strip = [],
   haptic,
 }: {
+  /** The page's `t.success`. */
+  copy: SuccessWords;
   show: boolean;
   moment: SuccessMomentId;
   values?: Record<string, string>;
@@ -63,7 +65,6 @@ export function SuccessFromFlag({
   strip?: readonly string[];
   haptic?: FeedbackKind | false;
 }) {
-  const copy = useClientCopy().success;
   const router = useRouter();
   const [latched, setLatched] = useState<Latched | null>(null);
   const decided = useRef(false);
