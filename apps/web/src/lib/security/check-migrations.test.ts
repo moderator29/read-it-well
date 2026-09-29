@@ -68,6 +68,12 @@ describe("M3, M4, M5", () => {
     expect(rules("create table public.things (id uuid);")).toContain("M3");
     expect(rules("create table public.things (id uuid);\nalter table public.things enable row level security;")).toEqual([]);
   });
+  it("accepts RLS enabled by a format() loop over an array naming the table, and nothing looser", () => {
+    const loop = "execute format('alter table public.%I enable row level security', t);";
+    expect(rules(`create table public.things (id uuid);\nforeach t in array array['things'] loop ${loop} end loop;`)).toEqual([]);
+    expect(rules(`create table public.things (id uuid);\nforeach t in array array['others'] loop ${loop} end loop;`)).toContain("M3");
+    expect(rules("create table public.things (id uuid);\n-- 'things'")).toContain("M3");
+  });
   it("fails a definer function with no pinned search_path", () => {
     expect(
       rules("create or replace function public.f() returns int language sql security definer as $$ select 1 $$;"),

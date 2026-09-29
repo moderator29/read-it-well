@@ -143,7 +143,12 @@ export function checkText(name, raw, columns) {
   let table = tablePattern.exec(sql);
   while (table !== null) {
     const name = table[1];
-    if (!new RegExp(`alter\\s+table\\s+(?:if\\s+exists\\s+)?public\\.${name}\\s+enable\\s+row\\s+level\\s+security`).test(sql)) {
+    const direct = new RegExp(`alter\\s+table\\s+(?:if\\s+exists\\s+)?public\\.${name}\\s+enable\\s+row\\s+level\\s+security`).test(sql);
+    /* As M2: a loop `execute format('alter table public.%I enable row level
+       security', t)` over an array that names the table, in the same file. */
+    const formatted =
+      /execute\s+format\s*\(\s*'alter\s+table\s+public\.%i\s+enable\s+row\s+level\s+security'/.test(sql) && sql.includes(`'${name}'`);
+    if (!direct && !formatted) {
       problems.push(["M3", `creates public.${name} without enabling row level security in the same file`]);
     }
     table = tablePattern.exec(sql);
