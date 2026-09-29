@@ -28,6 +28,8 @@ import { complianceRiskEn } from "./compliance-risk.en";
 import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 /* The passcode lock (docs/PASSCODE.md), in its own module like the rest. */
 import { passcodeEn } from "./passcode.en";
+/* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
+import { deskEn } from "./desk.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -784,8 +786,9 @@ export const en = {
         ai: "AI",
         more: "More",
         search: "Search",
-        signIn: "Sign In",
-        getStarted: "Get Started",
+        /* Sentence case on every button (UIUX item 12). */
+        signIn: "Sign in",
+        getStarted: "Get started",
         about: "About Vallo",
         help: "Help centre",
         docs: "Docs",
@@ -826,7 +829,26 @@ export const en = {
         title2: "Without the runaround.",
         subtitle:
           "Homes, land and stays across Nigeria, with the real cost up front.",
-        explore: "Explore Properties",
+        explore: "Explore properties",
+        /* THE DOOR WHILE THE CATALOGUE IS CLOSED TO STRANGERS (UIUX item
+           12). `/search` answers a signed-out visitor with a sign-in wall
+           unless the founder's switch is on, so the hero's one action says
+           what it does and the line under it says what the account is for
+           (the words the About page's closing card already uses). */
+        getStarted: "Get started",
+        joinLine: "Create a free account to see every listing, save the ones that fit, and talk to the person who listed them.",
+        /* The eyebrow capsule over the headline (the founder's reference 39):
+           one true line, the inspection constant and the move-in total, no
+           claim a person has to take on trust. */
+        eyebrow: "No inspection fee. The whole move-in cost, up front.",
+        /* The fact row under the search: each is a money constant's meaning
+           in a few words (`lib/money/copy.ts`), pinned by
+           `components/site/landing/hero-facts.test.ts`. No figures. */
+        facts: {
+          inspect: "No inspection fee",
+          moveIn: "Move-in total up front",
+          agree: "Pay only once you both agree",
+        },
       },
       search: {
         label: "Search Vallo",
@@ -835,10 +857,14 @@ export const en = {
         rent: "Rent",
         stay: "Stay",
         filters: "Open filters",
+        filtersShort: "Filters",
         go: "Search",
       },
       card: {
         verified: "Verified",
+        /* The mark on an example listing's card (`isDemo`). The agreed word
+           is "Example", never "demo" or "sample". */
+        example: "Example",
         save: "Save this place",
         prev: "Previous listing",
         next: "Next listing",
@@ -948,7 +974,7 @@ export const en = {
         newsletterNote: "Filed with our support desk as a keep-me-posted request. Your address is never sold.",
         subscribed: "Thank you. You are on the list.",
         home: "Home",
-        ai: "AI Assistant",
+        ai: "AI assistant",
         safety: "Safety",
         standards: "Standards",
         cancellations: "Cancellations",
@@ -958,10 +984,10 @@ export const en = {
            product, so the slot carries Restaurants, which is shipped at
            /restaurants. Land is still a door on the category grid. */
         restaurants: "Restaurants",
-        aboutUs: "About Us",
-        helpSupport: "Help & Support",
-        termsOfService: "Terms of Service",
-        privacyPolicy: "Privacy Policy",
+        aboutUs: "About us",
+        helpSupport: "Help and support",
+        termsOfService: "Terms of service",
+        privacyPolicy: "Privacy policy",
         cookies: "Cookies",
       },
     },
@@ -5832,6 +5858,8 @@ export const en = {
   complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
 
   passcode: passcodeEn,
+
+  desk: deskEn,
 
   /*
    * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).

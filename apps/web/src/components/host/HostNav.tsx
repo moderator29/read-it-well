@@ -18,7 +18,7 @@ export function HostNav({ labels }: { labels: HostNavLabels }) {
   const label = labels.workspace;
   const active = hostNavActive(usePathname());
   return (
-    <nav aria-label={label} className="px-gutter pb-xs">
+    <nav aria-label={label} className="px-gutter pb-xs lg:hidden">
       <ChipRow label={label}>
         {hostNavItems(labels).map((item) => (
           <Chip

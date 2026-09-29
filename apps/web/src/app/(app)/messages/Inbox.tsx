@@ -373,7 +373,9 @@ export function Inbox({
         something to mark, but it no longer moves the list when it goes.
       */}
       <PageHeader
+        variant="large"
         title="Inbox"
+        {...(unreadTotal > 0 ? { subtitle: `${unreadTotal} unread` } : {})}
         actions={
           <div className="flex shrink-0 items-center gap-inline">
             {canMarkRead && unreadTotal > 0 && (
@@ -382,9 +384,9 @@ export function Inbox({
                 onClick={markAllRead}
                 disabled={marking}
                 data-testid="inbox-mark-read"
-                className="nf-btn nf-btn--ghost nf-btn--sm disabled:opacity-60"
+                className="nf-link-quiet nf-body-sm inline-flex min-h-11 items-center px-xs font-medium text-[var(--nf-content-link)] disabled:opacity-60"
               >
-                {marking ? "Marking..." : `Mark all read (${unreadTotal})`}
+                {marking ? "Marking..." : "Mark all read"}
               </button>
             )}
             <Link

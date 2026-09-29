@@ -71,7 +71,7 @@ export default async function SavedPreview() {
     <div className="nf-cat-surface mx-auto max-w-3xl">
       <div className="relative">
         <PageScene art="globe-pin" />
-        <PageHeader title={t.nav.saved} fallback="/preview/f3" />
+        <PageHeader variant="large" title={t.nav.saved} fallback="/preview/f3" />
       </div>
       <SavedBoard items={items} />
     </div>

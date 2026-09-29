@@ -14,7 +14,7 @@ export default async function BookingsPreview() {
      spine; the tabbed `MyBookings` record is gone. */
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={t.shape.plans.title} fallback="/preview/f3" />
+      <PageHeader variant="large" title={t.shape.plans.title} fallback="/preview/f3" />
       <div className="flex flex-col gap-md">
         {TENANCIES.map((tenancy) => (
           <TenancyCard key={tenancy.id} tenancy={tenancy} locale={locale} />

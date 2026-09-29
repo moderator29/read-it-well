@@ -43,7 +43,7 @@ export default async function NotificationsPage() {
         <div className="mx-auto max-w-2xl">
           <div className="relative">
             <PageScene art="bell-badge" />
-            <PageHeader title="Notifications" />
+            <PageHeader variant="large" title="Notifications" />
           </div>
           <Reveal>
             <Unreachable
@@ -72,7 +72,7 @@ export default async function NotificationsPage() {
       <div className="mx-auto max-w-2xl">
         <div className="relative">
           <PageScene art="bell-badge" />
-          <PageHeader title="Notifications" />
+          <PageHeader variant="large" title="Notifications" />
         </div>
         <Reveal>
           <Unreachable
@@ -89,7 +89,7 @@ export default async function NotificationsPage() {
     <div className="mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="bell-badge" />
-        <PageHeader title="Notifications" />
+        <PageHeader variant="large" title="Notifications" />
       </div>
       <Reveal>
         {/* One empty state, one action treatment. This was a `MomentScreen`

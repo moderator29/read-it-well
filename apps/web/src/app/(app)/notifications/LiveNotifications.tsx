@@ -159,6 +159,7 @@ export function LiveNotifications({
 
   const header = (
     <PageHeader
+      variant="large"
       title="Notifications"
       subtitle={unreadCount > 0 ? `${unreadCount} unread` : undefined}
       actions={

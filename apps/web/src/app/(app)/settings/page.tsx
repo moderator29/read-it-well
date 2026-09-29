@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { BackButton } from "@/components/site/BackButton";
+import { PageHeader } from "@/components/app/PageHeader";
 import { loadProfileState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { getAgentContext } from "@/lib/agent/listings-queries";
@@ -62,19 +62,11 @@ export default async function SettingsPage() {
       {/*
         THE WAY BACK. `/settings` declares `/home` above it in
         `lib/nav/route-parents.ts`, every screen UNDER it draws a `PageHeader`
-        with a back control, and the hub itself drew none: the one level of the
-        settings tree with no way up was its top. `BackButton` rather than
-        swapping the head for a `PageHeader`, because `nf-hub-head` is the
-        render's own title and lede and a `PageHeader` would replace a designed
-        head to add one control. It wears the shared glass square
-        (`nf-icon-btn--glass`, as `PageHeader` does) because `7F96BE6C` draws
-        the back arrow in one, where the component alone draws a bare arrow.
+        with a back control, and so does the hub: the clean spec's large title
+        (section 8.1) carries the same back control, so the settings tree has
+        a way up at its top and the head matches Saved, Inbox and Bookings.
       */}
-      <BackButton fallback="/home" className="nf-icon-btn nf-icon-btn--glass h-11 w-11" />
-      <header className="nf-hub-head">
-        <h1 className="nf-hub-head__title">{t.nav.settings}</h1>
-        <p className="nf-hub-head__lede">{hub.ledeShort}</p>
-      </header>
+      <PageHeader variant="large" title={t.nav.settings} subtitle={hub.ledeShort} fallback="/home" />
 
       <div className="space-y-block">
         <SettingsHub

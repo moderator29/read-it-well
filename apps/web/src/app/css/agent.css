@@ -209,9 +209,16 @@
 
   .nf-host {
     display: flex;
-    flex-direction: column;
     min-height: 100dvh;
     background: var(--nf-surface-canvas);
+  }
+  /* The column beside the workspace sidebar (plan item 20): the bar and the
+     page. Below 1024px the sidebar is not drawn and this is the whole page. */
+  .nf-host__col {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
   }
   /* The workspace assistant: the page is the viewport, the thread scrolls
      inside it and the composer stays on the bottom edge. */
@@ -230,6 +237,14 @@
     max-width: 40rem;
     margin-inline: auto;
     padding: var(--nf-space-md) var(--nf-pad-shell) calc(var(--nf-space-2xl) + env(safe-area-inset-bottom));
+  }
+  /* The workspace home (plan item 14) is a dashboard, not a form: it takes
+     the width a desk has from a tablet up. */
+  .nf-host__body--wide {
+    max-width: 76rem;
+  }
+  .nf-host--immersive .nf-host__col {
+    min-height: 0;
   }
   /* The step header: where you are, drawn as a segmented bar, the question
      in display type, the one sentence under it. */
