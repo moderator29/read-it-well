@@ -173,12 +173,13 @@
   .nf-heart-pop[aria-pressed="true"] svg {
     animation: nf-heart-pop var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
+  /* 1, 1.22, 1 over 380ms on the spring (plan item 28). */
   @keyframes nf-heart-pop {
     0% {
-      transform: scale(0.6);
+      transform: scale(1);
     }
-    55% {
-      transform: scale(1.25);
+    45% {
+      transform: scale(1.22);
     }
     100% {
       transform: scale(1);
@@ -336,6 +337,101 @@
     }
     .nf-maplist-pill,
     .nf-heart-pop[aria-pressed="true"] svg {
+      animation: none;
+    }
+  }
+
+  /* ------------------------------------------------ SAVED (items 17, 28) */
+  /* The slot folds its height away when a card is removed: the card fades
+     first (160ms), then the row collapses (240ms on the exit curve). */
+  .nf-saved-slot {
+    display: grid;
+    grid-template-rows: 1fr;
+    height: 100%;
+    transition: grid-template-rows 240ms var(--nf-ease-exit, var(--nf-ease-standard)) 160ms;
+  }
+  .nf-saved-slot__inner {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow: hidden;
+    transition: opacity 160ms var(--nf-ease-standard);
+  }
+  .nf-saved-slot--leaving {
+    grid-template-rows: 0fr;
+  }
+  .nf-saved-slot--leaving .nf-saved-slot__inner {
+    opacity: 0;
+  }
+  .nf-saved-remove {
+    display: inline-flex;
+    align-self: flex-end;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 2.75rem;
+    padding-inline: 0.5rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+  .nf-saved-remove:disabled {
+    opacity: 0.6;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-saved-remove:hover {
+      color: var(--nf-state-error);
+    }
+  }
+  .nf-saved-undo {
+    animation: nf-saved-undo-in 200ms var(--nf-ease-standard) both;
+  }
+  @keyframes nf-saved-undo-in {
+    from {
+      opacity: 0;
+    }
+  }
+  /* Swipe left to reveal Remove, touch only. */
+  .nf-swipe {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--nf-radius-card);
+    touch-action: pan-y;
+  }
+  .nf-swipe__action {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    display: flex;
+    width: 6rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    background: var(--nf-state-error);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  /* Hidden at rest, so no sliver of it shows round the card's corners. */
+  .nf-swipe:not([data-active]) .nf-swipe__action {
+    visibility: hidden;
+  }
+  .nf-swipe__card {
+    position: relative;
+    transition: transform 240ms var(--nf-ease-standard);
+  }
+  .nf-swipe__card[data-dragging] {
+    transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-saved-slot,
+    .nf-saved-slot__inner,
+    .nf-swipe__card {
+      transition: none;
+    }
+    .nf-saved-undo {
       animation: none;
     }
   }

@@ -6,6 +6,7 @@ import { amendAgreement, cancelAgreement, confirmAgreement, createClaimEvidenceU
 import { createClient } from "@/lib/supabase/client";
 import { withDone, type RecordDoneFlag } from "@/lib/ui/success-moments";
 import { Sheet } from "@/components/ui/Sheet";
+import { Button } from "@/components/ui/Button";
 import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
 
 /**
@@ -81,19 +82,18 @@ export function ConfirmTerms({ agreementId, version, disabled }: { agreementId: 
           ]}
           error={error}
           cancel={
-            <button type="button" className="nf-btn nf-btn--secondary nf-btn--md" disabled={pending} onClick={() => setAsking(false)}>
+            <Button variant="secondary" disabled={pending} onClick={() => setAsking(false)}>
               Not yet
-            </button>
+            </Button>
           }
           primary={
-            <button
-              type="button"
-              className="nf-btn nf-btn--primary nf-btn--md"
+            <Button
+              variant="primary"
               disabled={!read || pending || disabled}
               onClick={() => run(() => confirmAgreement({ agreementId, version }), () => setAsking(false), "agreement-confirmed")}
             >
               Confirm these terms
-            </button>
+            </Button>
           }
         />
       </Sheet>
@@ -186,19 +186,19 @@ export function CancelAgreement({ agreementId }: { agreementId: string }) {
           context="Nobody can confirm or pay under it once it is cancelled."
           error={error}
           cancel={
-            <button type="button" className="nf-btn nf-btn--secondary nf-btn--md" disabled={pending} onClick={() => setSure(false)}>
+            <Button variant="secondary" disabled={pending} onClick={() => setSure(false)}>
               Keep it
-            </button>
+            </Button>
           }
           primary={
-            <button
-              type="button"
-              className="nf-btn nf-btn--secondary nf-btn--md text-[var(--nf-state-error)]"
+            <Button
+              variant="secondary"
+              className="text-[var(--nf-state-error)]"
               disabled={pending}
               onClick={() => run(() => cancelAgreement({ agreementId }), () => setSure(false))}
             >
               Yes, cancel it
-            </button>
+            </Button>
           }
         />
       </Sheet>
