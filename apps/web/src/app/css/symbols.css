@@ -258,3 +258,83 @@
     background-color: var(--nf-rating);
   }
 }
+
+/*
+ * THE ICON PLATE, VERSION 2 (29 September 2026). The material of
+ * `components/ui/IconPlate.tsx`; the spec is
+ * `docs/design/CLEAN_UNIFIED_DIRECTION.md` section 4 and the look is
+ * references 30, 31 and 38 under `docs/design/references/2026-09-29/`.
+ *
+ * A soft tinted square behind a lean line glyph: flat, no rim, no inner
+ * light, no glow and no glyph glow, in either theme. Every value below is a
+ * token that already answers in both themes, so there is no theme rule: the
+ * neutral fill is the primary ink at 7 per cent, which is a slightly lighter
+ * surface than the card at night and the raised paper well in daylight; the
+ * brand fill is `--nf-brand-tint-2` with the glyph in `--nf-brand-quiet`
+ * (the bright blue at night, the deep blue by day); a state plate is the
+ * state's own `-surface` tint with the glyph in its ink.
+ *
+ * The older lit-glass `.nf-plate` rules still stand in controls.css, which
+ * loads after this file, so every rule here is written on two classes to
+ * outrank them without `!important`. Deleting that older block changes
+ * nothing on screen.
+ */
+@layer components {
+  .nf-plate.nf-plate {
+    /* Neutral unless a tone below says otherwise (the tones come later at
+       the same weight, so they win). */
+    --nf-plate-v2-fill: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+    --nf-plate-v2-ink: var(--nf-content-primary);
+    border-color: transparent;
+    box-shadow: none;
+    background: var(--nf-plate-v2-fill);
+    color: var(--nf-plate-v2-ink);
+  }
+  .nf-plate.nf-plate > svg {
+    filter: none;
+  }
+  .nf-plate.nf-plate--neutral {
+    --nf-plate-v2-fill: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+    --nf-plate-v2-ink: var(--nf-content-primary);
+  }
+  .nf-plate.nf-plate--brand {
+    --nf-plate-v2-fill: var(--nf-brand-tint-2);
+    --nf-plate-v2-ink: var(--nf-brand-quiet);
+  }
+  .nf-plate.nf-plate--success {
+    --nf-plate-v2-fill: var(--nf-state-success-surface);
+    --nf-plate-v2-ink: var(--nf-state-success);
+  }
+  .nf-plate.nf-plate--warning {
+    --nf-plate-v2-fill: var(--nf-state-warning-surface);
+    --nf-plate-v2-ink: var(--nf-state-warning);
+  }
+  .nf-plate.nf-plate--danger {
+    --nf-plate-v2-fill: var(--nf-state-error-surface);
+    --nf-plate-v2-ink: var(--nf-state-error);
+  }
+  .nf-plate.nf-plate--info {
+    --nf-plate-v2-fill: var(--nf-state-info-surface);
+    --nf-plate-v2-ink: var(--nf-state-info);
+  }
+  .nf-plate.nf-plate--solid {
+    --nf-plate-v2-fill: var(--nf-content-primary);
+    --nf-plate-v2-ink: var(--nf-surface-primary);
+  }
+  /* 36 / 44 / 56 on corners 10 / 12 / 14, each under 0.30 of its side. */
+  .nf-plate.nf-plate--sm {
+    width: var(--nf-plate-size-sm);
+    height: var(--nf-plate-size-sm);
+    border-radius: var(--nf-radius-sm);
+  }
+  .nf-plate.nf-plate--md {
+    width: var(--nf-plate-size-md);
+    height: var(--nf-plate-size-md);
+    border-radius: calc(var(--nf-radius-sm) + 2px);
+  }
+  .nf-plate.nf-plate--lg {
+    width: var(--nf-plate-size-lg);
+    height: var(--nf-plate-size-lg);
+    border-radius: var(--nf-radius-md);
+  }
+}

@@ -149,6 +149,63 @@
     nf-route-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
 }
 
+/* ------------------------------------------------ the in-app back traversal */
+
+/*
+ * `animateBack` (lib/motion/nav-direction.ts) wraps a history traversal in a
+ * view transition typed `nf-back`. No page group is named in that one, so
+ * the page travels as the root snapshot, backwards; the chrome is named and
+ * stays where it is.
+ */
+html:active-view-transition-type(nf-back)::view-transition-old(root) {
+  display: block;
+  animation:
+    nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both,
+    nf-route-out var(--nf-duration-base) var(--nf-ease-exit) both;
+}
+html:active-view-transition-type(nf-back)::view-transition-new(root) {
+  animation:
+    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-entrance) both,
+    nf-route-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+}
+
+/*
+ * A TAB ARRIVES IN A BREATH, NOT A BLOCK. On a tab switch the new page's
+ * first four sections rise into place a beat apart, inside the crossfade.
+ * Only while `data-nav-dir` says a tab switch is under way, so it never runs
+ * on a first load (no cost to the first paint) and never on a push, where
+ * the page is already travelling. Four sections and 40ms steps: the last one
+ * lands inside 400ms.
+ */
+@layer components {
+  :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(-n + 4) {
+    animation: nf-route-stagger var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(2) {
+    animation-delay: 40ms;
+  }
+  :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(3) {
+    animation-delay: 80ms;
+  }
+  :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(4) {
+    animation-delay: 120ms;
+  }
+  :root[data-motion="calm"][data-nav-dir="tab"] .nf-page-stage > * > :nth-child(-n + 4) {
+    animation: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-nav-dir="tab"] .nf-page-stage > * > :nth-child(-n + 4) {
+      animation: none;
+    }
+  }
+  @keyframes nf-route-stagger {
+    from {
+      opacity: 0;
+      transform: translateY(calc(var(--nf-route-rise) * 2));
+    }
+  }
+}
+
 /* -------------------------------------------------- the listing photo morph */
 
 /*
@@ -172,6 +229,12 @@
   animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-standard) both;
 }
 :root[data-motion="calm"]::view-transition-new(.nf-page) {
+  animation: nf-route-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+}
+html[data-motion="calm"]:active-view-transition-type(nf-back)::view-transition-old(root) {
+  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-standard) both;
+}
+html[data-motion="calm"]:active-view-transition-type(nf-back)::view-transition-new(root) {
   animation: nf-route-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
 }
 

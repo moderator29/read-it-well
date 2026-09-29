@@ -1,11 +1,12 @@
 import { getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import type { SavedMethods } from "@/lib/admin/payments-queries";
 import type { TermsStanding } from "@/lib/admin/legal-queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { AdminRead, SubjectLookup } from "@/lib/admin/queries";
 import type { AdminUi } from "../_components/ui";
 import { fill } from "../_components/copy";
 import { RemoveSavedMethod } from "./MethodLookup";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The payment-method lookup panel.
@@ -145,9 +146,10 @@ export function LookupResult({
                 const describe = fill(c.ending, { what: brand, last4: card.last4 ?? "????" });
                 return (
                   <li key={card.id} className="nf-row flex-wrap">
-                    {/* The saved card's glass object, small, as the render
-                        carries one per row. Never a card number beside it. */}
-                    <BrandIcon name="card-tile" size={24} className="shrink-0" />
+                    {/* The saved card's plated glyph. Never a card number beside it. */}
+                    <IconPlate size="sm" className="shrink-0">
+                      <UiIcon name="credit-card" size={20} />
+                    </IconPlate>
                     <span className="min-w-0 flex-1">
                       <span className="nf-body-sm block font-semibold text-content">
                         {describe}
@@ -183,8 +185,10 @@ export function LookupResult({
                 const describe = fill(c.ending, { what: account.bankName, last4: account.accountNumberMasked.slice(-4) });
                 return (
                   <li key={account.id} className="nf-row flex-wrap">
-                    {/* The bank account's object: the column, not a card. */}
-                    <BrandIcon name="bank-column" size={24} className="shrink-0" />
+                    {/* The bank account's glyph: the column, not a card. */}
+                    <IconPlate size="sm" className="shrink-0">
+                      <UiIcon name="bank" size={20} />
+                    </IconPlate>
                     <span className="min-w-0 flex-1">
                       <span className="nf-body-sm block font-semibold text-content">
                         {account.bankName}
