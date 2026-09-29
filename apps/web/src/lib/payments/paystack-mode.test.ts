@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { describePaystackMode, reserveSubaccountFor, selectPaystack } from "./paystack-mode";
 
 /* Placeholder keys only. No real key appears in this repository. */
-const LIVE = "sk_live_placeholder";
-const TEST = "sk_test_placeholder";
+const LIVE = "sk_live_fake";
+const TEST = "sk_test_fake";
 
 describe("Paystack mode selection", () => {
   it("Production with no PAYSTACK_MODE is live on the live key, even with a test key present", () => {

@@ -318,7 +318,13 @@ describe("one palette, and the auth generator has not drifted from it", () => {
 
     /** A token's value inside the `:root[data-theme="light"]` block. */
     function lightToken(name: string): string {
-      const start = tokens.indexOf(':root[data-theme="light"] {');
+      /* The light block may also name a light island inside the dark header
+         (`:root[data-theme="light"] [data-theme="light"]`), so it opens with
+         either its own selector or that pair. */
+      const start = [':root[data-theme="light"] {', ':root[data-theme="light"],\n:root[data-theme="light"] [data-theme="light"] {']
+        .map((marker) => tokens.indexOf(marker))
+        .filter((at) => at >= 0)
+        .reduce((a, b) => Math.min(a, b), Number.POSITIVE_INFINITY);
       expect(start).toBeGreaterThan(0);
       const block = tokens.slice(start, tokens.indexOf("\n}", start));
       const hex = block.match(new RegExp(`^\\s*${name}:\\s*(#[0-9A-Fa-f]{6})\\s*;`, "m"))?.[1];

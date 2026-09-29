@@ -196,7 +196,7 @@ describe("the lifecycle templates (29 September)", () => {
     expect(build("agreement.cancelled")?.subject).toContain("cancelled");
     expect(build("guarantee.claim_opened")?.text).toContain("30,000");
     expect(build("reservation.confirmed")?.subject).toContain("Terra Kulture");
-    expect(build("reservation.cancelled")?.text).toContain("4 people");
+    expect(build("reservation.cancelled")?.text).toContain("4 guests");
     expect(build("refund.requested")?.html).toContain("/bookings/5f5f5f5f-5f5f-4f5f-8f5f-5f5f5f5f5f5f");
     expect(build("verification.rung_failed")?.subject).toBe("Your identity check did not pass");
     expect(build("verification.rung_failed")?.html).toContain("too blurred");

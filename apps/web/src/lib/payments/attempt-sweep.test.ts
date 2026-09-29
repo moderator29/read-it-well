@@ -88,7 +88,7 @@ const paystackSays = (body: unknown, status = 200) => {
 };
 
 beforeEach(() => {
-  vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_live_placeholder");
+  vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_live_fake");
   vi.stubEnv("PAYSTACK_TEST_SECRET_KEY", "");
   vi.stubEnv("PAYSTACK_MODE", "");
   vi.stubEnv("VERCEL_ENV", "production");

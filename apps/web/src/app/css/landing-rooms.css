@@ -937,8 +937,9 @@
     position: relative;
   }
   .nf-steps__list {
+    --nf-step-gap: var(--nf-gap-row);
     display: grid;
-    gap: var(--nf-gap-row);
+    gap: var(--nf-step-gap);
   }
   .nf-step {
     display: grid;
@@ -1044,7 +1045,6 @@
   @media (min-width: 40rem) and (max-width: 63.999rem) {
     .nf-steps__list {
       --nf-step-gap: var(--nf-gap-group);
-      gap: var(--nf-gap-group);
     }
   }
   /*
@@ -1054,9 +1054,6 @@
    * (the fill), and each fills on its own step's passage through the view.
    */
   @media (max-width: 63.999rem) {
-    .nf-steps__list {
-      --nf-step-gap: var(--nf-gap-row);
-    }
     .nf-steps__line {
       display: none;
     }

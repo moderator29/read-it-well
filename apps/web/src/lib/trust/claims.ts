@@ -37,7 +37,7 @@
     an identifier or a class name (`safe-area`, `nf-badge--verified`,
     `listing.verified`), not a word a person reads. */
 export const CLAIM_WORD =
-  /(?<![\p{L}\p{N}_.-])(verified|guaranteed?|guarantees|secure|securely|safe|safely|encrypted|checked|protected|insured)(?![\p{L}\p{N}_-])/giu;
+  /(?<![\p{L}\p{N}_.-])(verified|guaranteed?|guarantees|secure|securely|safe|safely|encrypted|checked|protected|insured|instant|instantly)(?![\p{L}\p{N}_-])/giu;
 
 export type BackedClaim = {
   /** Matches the claim in context; everything it matches is accepted. */
@@ -132,7 +132,7 @@ function humanIdCheck(sentence: string): boolean {
 
 /** A negation in the same sentence makes the word a disclaimer, not a claim. */
 const NEGATED =
-  /\b(?:not|never|no|nobody|cannot|can't|isn't|aren't|wasn't|haven't|hasn't|without|nothing)\b[^.!?]{0,60}\b(?:verified|guaranteed?|guarantees|secure|safe|encrypted|checked|protected|insured)\b|\b(?:verified|guaranteed?|checked|protected|insured|safe)\b[^.!?]{0,12}\b(?:yet|not)\b/gi;
+  /\b(?:not|never|no|nobody|cannot|can't|isn't|aren't|wasn't|haven't|hasn't|without|nothing)\b[^.!?]{0,60}\b(?:verified|guaranteed?|guarantees|secure|safe|encrypted|checked|protected|insured|instant|instantly)\b|\b(?:verified|guaranteed?|checked|protected|insured|safe)\b[^.!?]{0,12}\b(?:yet|not)\b/gi;
 
 /**
  * The first claim word in `text` that nothing backs, or null.

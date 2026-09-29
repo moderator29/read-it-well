@@ -125,7 +125,7 @@ function dueRow(over: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
-  vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_live_placeholder");
+  vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_live_fake");
   vi.stubEnv("PAYSTACK_TEST_SECRET_KEY", "");
   vi.stubEnv("PAYSTACK_MODE", "");
   vi.stubEnv("VERCEL_ENV", "production");
@@ -238,7 +238,7 @@ describe("the stale attempt sweep (mocked Paystack)", () => {
 
   it("asks only for attempts on its own mode", async () => {
     vi.stubEnv("VERCEL_ENV", "preview");
-    vi.stubEnv("PAYSTACK_TEST_SECRET_KEY", "sk_test_placeholder");
+    vi.stubEnv("PAYSTACK_TEST_SECRET_KEY", "sk_test_fake");
     paystackSays(verified("abandoned"));
     const db = fakeAdmin({ due: [] });
     await sweepStaleAttempts(db.admin, () => NOW);
