@@ -12,7 +12,17 @@ const ROOT = join(__dirname, "..", "..", "..", "..", "..");
 
 type MigrationsCheck = {
   checkNames: (files: string[]) => string[];
-  checkImmutable: (nameStatus: string) => string[];
+  checkImmutable: (nameStatus: string, renamed?: Map<string, string>) => string[];
+  parseManifest: (text: string) => {
+    entries: Map<string, { version: string; name: string; sha: string }>;
+    problems: string[];
+  };
+  checkManifest: (
+    files: Map<string, string>,
+    entries: Map<string, { version: string; name: string; sha: string }>,
+  ) => string[];
+  parseRenamed: (text: string) => { renamed: Map<string, string>; problems: string[] };
+  checkLive: (manifestPairs: string[], livePairs: string[]) => string[];
 };
 
 async function migrationsCheck(): Promise<MigrationsCheck> {
@@ -51,6 +61,52 @@ describe("OPS-08: the migration process check", () => {
     expect(problems.join()).toMatch(/renamed/);
     expect(problems.join()).toMatch(/deleted/);
     expect(checkImmutable("A\tsupabase/migrations/20260924000000_new.sql")).toEqual([]);
+  });
+});
+
+describe("DB2: the applied manifest and the reviewed renames", () => {
+  const SHA = "a".repeat(64);
+  const OTHER = "b".repeat(64);
+
+  it("wants APPLIED.txt to list exactly the top-level files, unedited", async () => {
+    const { parseManifest, checkManifest } = await migrationsCheck();
+    const { entries, problems } = parseManifest(`# comment\n20260101000000 one ${SHA}\n`);
+    expect(problems).toEqual([]);
+    expect(checkManifest(new Map([["20260101000000_one.sql", SHA]]), entries)).toEqual([]);
+    expect(checkManifest(new Map([["20260101000000_one.sql", OTHER]]), entries).join()).toMatch(/edited after it was applied/);
+    expect(
+      checkManifest(new Map([["20260101000000_one.sql", SHA], ["20260102000000_two.sql", SHA]]), entries).join(),
+    ).toMatch(/not in APPLIED\.txt/);
+    expect(checkManifest(new Map(), entries).join()).toMatch(/no such file/);
+    expect(parseManifest("20260101000000 one\n").problems.join()).toMatch(/not "<version> <name> <sha256>"/);
+  });
+
+  it("allows a move only when RENAMED.txt lists exactly it", async () => {
+    const { parseRenamed, checkImmutable } = await migrationsCheck();
+    const { renamed, problems } = parseRenamed(
+      "20260924110000_a.sql 20260924104229_a.sql\n20260924140000_b.sql superseded/20260924140000_b.sql\n",
+    );
+    expect(problems).toEqual([]);
+    const ok = [
+      "R100\tsupabase/migrations/20260924110000_a.sql\tsupabase/migrations/20260924104229_a.sql",
+      "D\tsupabase/migrations/20260924140000_b.sql",
+      "A\tsupabase/migrations/superseded/20260924140000_b.sql",
+    ].join("\n");
+    expect(checkImmutable(ok, renamed)).toEqual([]);
+    const bad = [
+      "R100\tsupabase/migrations/20260924110000_a.sql\tsupabase/migrations/20260924999999_a.sql",
+      "D\tsupabase/migrations/20260924140000_b.sql",
+      "M\tsupabase/migrations/20260924104229_a.sql",
+    ].join("\n");
+    expect(checkImmutable(bad, renamed)).toHaveLength(3);
+  });
+
+  it("compares the manifest with the live history both ways", async () => {
+    const { checkLive } = await migrationsCheck();
+    expect(checkLive(["1 a", "2 b"], ["1 a", "2 b"])).toEqual([]);
+    const problems = checkLive(["1 a", "2 b"], ["1 a", "3 c"]).join("\n");
+    expect(problems).toMatch(/missing from APPLIED\.txt: 3 c/);
+    expect(problems).toMatch(/never applied on the database: 2 b/);
   });
 });
 
