@@ -34,10 +34,14 @@ describe("UiIcon weight", () => {
   });
 
   it("steps the line with the size, never thinner than 1.5 or backwards", () => {
-    const lines = UI_ICON_SIZES.map(renderedPx);
-    expect(lines[0]).toBeCloseTo(1.5);
-    for (let i = 1; i < lines.length; i += 1) {
-      expect(lines[i]).toBeGreaterThanOrEqual(lines[i - 1]);
+    const lines = UI_ICON_SIZES.map((edge) => renderedPx(edge));
+    expect(renderedPx(UI_ICON_SIZES[0])).toBeCloseTo(1.5);
+    /* Pairwise without indexed access, so the check type-checks under
+       `noUncheckedIndexedAccess` (an index read is `number | undefined`). */
+    let previous = 0;
+    for (const px of lines) {
+      expect(px).toBeGreaterThanOrEqual(previous);
+      previous = px;
     }
     // Every step lands on a quarter pixel, so it sits on the device grid at 2x.
     for (const px of lines) expect((px * 4) % 1).toBeCloseTo(0);
