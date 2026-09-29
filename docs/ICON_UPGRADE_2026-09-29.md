@@ -100,6 +100,59 @@ plate like every other surface, and the glass objects retire from light mode.
     thread options sheet, the share picker, bookings "How booking works" and
     the signed-out settings panels.
 
+- **The glass-to-line table** (`design-system/icons/glass-to-line.ts`,
+  `lineGlyphFor`) gives every BrandIcon name, the aliases included, a lean
+  twin chosen for its meaning. The `State` kit draws the twin on its plate,
+  which converts every empty state in one place.
+- **Later swaps, icon-only:**
+  - Support, the report and safety sheets, the assistant and support chat.
+  - The social empty states and the story composer.
+  - The listing wizard and "sent for review".
+  - Host and stays setup, the supply doors and register shell.
+  - The trip spine and map empty state, the reserve confirmation, and the
+    stays category tiles.
+  - The docs, help, contact, careers, about and safety pages, the site head
+    chip, the landing AI showcase and the profile standing chips.
+- **Glyphs fixed because they read wrong:**
+  - Agent rail: Analytics was a folded map (now a chart), Earnings a price tag
+    (now a wallet).
+  - Host rail: Earnings was history (now a wallet), Room bookings a second bed
+    (now a calendar), "Charges at the door" a price tag (now a receipt).
+  - Help and support was a ticket in every nav (now a headset, matching the
+    settings row).
+  - The agreements empty state was a payment card (now a document).
+- **The icon scale:** plate glyphs drawn at an off-scale 18 moved to 20.
+
+## Verified
+
+- Screenshots in the icon lane's scratchpad (`icons/shots2/`): settings,
+  profile, listing detail, bookings, saved, agent dashboard and earnings,
+  admin queue and alerts, and the share picker at 390, light and dark; admin
+  overview, agent dashboard and the landing at 1440; and signed in as the QA
+  member, /profile, /bookings, /saved and /agreements at 390, light and dark.
+- Gates: `tsc --noEmit` clean apart from errors in other lanes' in-progress
+  files, `npm run lint` clean (0 errors), and vitest for the icons,
+  components/app, agent, host, ui and admin components (412 tests) passing.
+  In `tests/icons-and-targets.spec.mjs` the scale, vectors and names checks
+  pass; its remaining failure is the landing stack dots at 24x44, which
+  belong to another lane.
+
 ## Open items
 
-See the report at the end of this pass; the list is kept current there.
+- **Payments boundary, not touched:** glass objects still stand in checkout
+  (`checkout/[bookingId]` page, PayPanel, HoldCountdown), rent pay, the
+  move-in ledger, `PaymentMethodsPanel`, `CryptoPayOption` and
+  `PayoutAccounts`. Each is a one-line swap to `lineGlyphFor` whenever the
+  owner of payments allows it.
+- **Scenes and heroes kept for now:** the flip (`SideCover`, `SideSwitch`,
+  kept by spec section 12), `PageScene`, `SceneBanner`, `WelcomeIntro`, the
+  firm and register hero objects (128 to 176px) and the home category row.
+  Q3 retires glass from light mode. If that should cover these too, the next
+  step is a light-mode rule in light.css (builder 1's file) or a swap per
+  surface.
+- **`components/app/price/ResultPanel.tsx`:** the icon swap is in the
+  working tree, beside another builder's uncommitted share-card work, and
+  goes in with their commit.
+- **Dead CSS for builder 1:** the light.css rules that tile a glass object
+  inside `.nf-plate` (`.nf-plate:has(> .nf-brand-icon-ground)`) and the
+  `.nf-door__mark--glass` sizes in controls.css have no remaining callers.
