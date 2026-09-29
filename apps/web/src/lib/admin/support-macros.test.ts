@@ -25,12 +25,14 @@ describe("saved replies", () => {
   });
 
   it("never ask for a password, a code, a PIN or a card number", () => {
+    /* Sentence by sentence: a refusal in one sentence must not excuse an ask in another. */
+    const asks = /\b(send|share|give|tell|provide|reply with|type|enter|confirm)\b[^.?]*\b(password|code|otp|pin|card number|card details|cvv)\b/i;
+    /* "Please do not send a password" is the opposite of asking, and is allowed. */
+    const refusal = /\b(do not|never|don't)\b[^.?]*\b(password|code|card number)\b/i;
     for (const m of SUPPORT_MACROS) {
-      const asks = /\b(send|share|give|tell|provide|reply with)\b[^.]*\b(password|one-time code|otp|pin|card number|cvv)\b/i;
-      /* "Please do not send a password" is the opposite of asking, and is allowed. */
-      const refusal = /\b(do not|never|don't)\b[^.]*\b(password|code|card number)\b/i;
-      const text = m.body;
-      if (asks.test(text)) expect(refusal.test(text)).toBe(true);
+      for (const sentence of m.body.split(/(?<=[.?])\s+/)) {
+        if (asks.test(sentence)) expect(refusal.test(sentence), `${m.id}: ${sentence}`).toBe(true);
+      }
     }
   });
 

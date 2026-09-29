@@ -261,10 +261,13 @@ function MemberContext({ detail, now }: { detail: SupportTicketDetail; now: numb
             {c.badgeTier ? <Fact label="Badge" value={c.badgeTier.charAt(0).toUpperCase() + c.badgeTier.slice(1)} /> : null}
             <Fact label="Bookings" value={count(c.bookings)} />
             <Fact label="Agreements" value={count(c.agreements)} />
-            <Fact
-              label="Tickets"
-              value={c.ticketsTotal === null ? "This is their first" : `${c.ticketsTotal} in all${c.ticketsOpen !== null ? `, ${c.ticketsOpen} open` : ""}`}
-            />
+            {/* A desk this ticket was handed to sees this ticket only, not how many others there are. */}
+            {detail.mode === "support" ? (
+              <Fact
+                label="Tickets"
+                value={c.ticketsTotal === null ? "This is their first" : `${c.ticketsTotal} in all${c.ticketsOpen !== null ? `, ${c.ticketsOpen} open` : ""}`}
+              />
+            ) : null}
           </>
         ) : null}
         {detail.related ? (

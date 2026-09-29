@@ -285,9 +285,10 @@ if (!state) {
     ["/host", "/host/settings"],
     ["/admin", "/admin/queue"],
   ]) {
-    const probe = await cold(ctx, landing);
-    const opened = pathOf(probe) === landing;
-    await probe.close();
+    /* A member without the role gets a redirect or a 404 at the same
+       address, so both the status and the landed path are read. */
+    const probe = await ctx.request.get(`${BASE}${landing}`, { maxRedirects: 0 }).catch(() => null);
+    const opened = probe !== null && probe.status() === 200;
     if (!opened) {
       skip(`${landing}: the QA member cannot open this workspace`);
       skipped += 1;

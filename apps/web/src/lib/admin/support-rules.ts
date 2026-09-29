@@ -13,9 +13,17 @@
 
 export type ThreadStep = { role: string; at: string };
 
+/* By instant, not by string: PostgREST trims trailing zeros from the
+   fraction ("…:00+00:00" beside "…:00.5+00:00"), and a collating compare
+   puts "." before "+", so two messages in the same second could swap. */
+const instant = (iso: string) => {
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? 0 : t;
+};
+
 export function waitingSince(filedAt: string, thread: readonly ThreadStep[]): string | null {
   let since: string | null = filedAt;
-  const ordered = [...thread].sort((a, b) => a.at.localeCompare(b.at));
+  const ordered = [...thread].sort((a, b) => instant(a.at) - instant(b.at));
   for (const step of ordered) {
     if (step.role === "admin") since = null;
     else if (since === null) since = step.at;

@@ -14,6 +14,7 @@ import {
   type SlaState,
   type SupportLane,
 } from "./support-workspace";
+import { waitingSince } from "./support-rules";
 
 const NOW = Date.parse("2026-09-29T14:00:00+01:00");
 const ago = (h: number) => new Date(NOW - h * 3_600_000).toISOString();
@@ -96,6 +97,54 @@ describe("the clock", () => {
   });
 });
 
+describe("the clock's edges", () => {
+  it("starts from the member's oldest unanswered message, not the filing, once we have replied", () => {
+    const since = waitingSince(ago(30), [
+      { role: "admin", at: ago(20) },
+      { role: "user", at: ago(3) },
+      { role: "user", at: ago(1) },
+    ]);
+    expect(since).toBe(ago(3));
+    expect(slaState({ lane: "waiting_on_us", waitingSince: since, grade: "urgent", now: NOW })).toMatchObject({
+      label: "Due in 1h",
+      tone: "warning",
+    });
+  });
+
+  it("runs from the filing while nobody has answered, and stops once we write last", () => {
+    expect(waitingSince(ago(5), [{ role: "user", at: ago(2) }])).toBe(ago(5));
+    expect(waitingSince(ago(5), [{ role: "user", at: ago(2) }, { role: "admin", at: ago(1) }])).toBeNull();
+  });
+
+  it("orders messages by instant, whatever precision the database printed", () => {
+    /* Same second: our reply a half second after the member's message. */
+    const since = waitingSince("2026-09-29T10:00:00+00:00", [
+      { role: "admin", at: "2026-09-29T11:00:00.5+00:00" },
+      { role: "user", at: "2026-09-29T11:00:00+00:00" },
+    ]);
+    expect(since).toBeNull();
+  });
+
+  it("gives verification three days and warns only in its last quarter", () => {
+    expect(slaState({ lane: "new", waitingSince: ago(50), grade: "routine", now: NOW })).toMatchObject({
+      label: "Due in 22h",
+      tone: "info",
+      promise: "3 days",
+    });
+    expect(slaState({ lane: "new", waitingSince: ago(55), grade: "routine", now: NOW }).tone).toBe("warning");
+  });
+
+  it("is not late at the exact moment it falls due, and is late by 1h a minute after", () => {
+    expect(slaState({ lane: "new", waitingSince: ago(4), grade: "urgent", now: NOW })).toMatchObject({ breached: false, label: "Due within the hour" });
+    expect(slaState({ lane: "new", waitingSince: ago(4 + 1 / 60), grade: "urgent", now: NOW })).toMatchObject({ breached: true, label: "Late by 1h" });
+  });
+
+  it("keeps a safety ticket on four hours whichever desk it is handed to", () => {
+    expect(ticketGrade("safety", [{ toScope: "kyc_review", returnedAt: null }])).toBe("urgent");
+    expect(ticketGrade("verification", [{ toScope: "finance", returnedAt: null }])).toBe("urgent");
+  });
+});
+
 describe("the order of the queue", () => {
   const row = (lane: SupportLane, sla: Partial<SlaState>, created = ago(1), last = ago(1)) => ({
     lane,
@@ -159,6 +208,9 @@ describe("the keys", () => {
     expect(shortcutFor({ key: "r", targetTag: "TEXTAREA" })).toBeNull();
     expect(shortcutFor({ key: "c", targetTag: "input" })).toBeNull();
     expect(shortcutFor({ key: "j", targetEditable: true })).toBeNull();
+    expect(shortcutFor({ key: "e", targetTag: "SELECT" })).toBeNull();
+    expect(shortcutFor({ key: "?", targetTag: "INPUT" })).toBeNull();
+    expect(shortcutFor({ key: "n", altKey: true })).toBeNull();
     expect(shortcutFor({ key: "r", metaKey: true })).toBeNull();
     expect(shortcutFor({ key: "c", ctrlKey: true })).toBeNull();
     expect(shortcutFor({ key: "Escape", targetTag: "TEXTAREA" })).toBe("close");

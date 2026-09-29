@@ -1,8 +1,8 @@
 -- THE SUPPORT DESK: ESCALATIONS AND A MEMBER CONTEXT CUT TO WHAT SUPPORT NEEDS
 -- (29 September 2026). DRAFT. NOT APPLIED.
 --
--- THIS FILE WAITS FOR THE FOUNDER'S WORD, because it adds a table and four
--- functions. It rewrites no row that exists, drops nothing, and changes no
+-- THIS FILE WAITS FOR THE FOUNDER'S WORD, because it adds a table, four
+-- public functions and one private check. It rewrites no row that exists, drops nothing, and changes no
 -- policy on any table that exists. It is safe to run twice.
 --
 -- WHAT IT ADDS, IN PLAIN WORDS.
@@ -20,15 +20,16 @@
 --     the target scope may read the escalations on a ticket escalated to them
 --     and hand it back with a note (`public.support_return_escalation`),
 --     which tells the agent who escalated it. They see nothing else on the
---     support desk.
+--     support desk: not the member's other tickets, and not the reason on a
+--     hand-off to a desk they do not hold.
 --
 --  3. A MEMBER CONTEXT FOR SUPPORT, AND NOTHING MORE.
 --     `public.support_member_context(ticket)` answers, for the account that
 --     filed a ticket, only what a support agent needs to help: their first
 --     name, when they joined, whether they list property and whether that
 --     is verified, their published badge tier, how many bookings and
---     agreements they have (counts only), and their last five tickets
---     (reference, topic, status, date). It never returns an email beyond the
+--     agreements they have (counts only), and, for support only, their last
+--     five tickets (reference, topic, status, date). It never returns an email beyond the
 --     one on the ticket, a phone number, an address, a TIN, a CAC number, an
 --     identity document, a date of birth, an amount of money, or anything
 --     from the compliance desk. It answers only a caller who holds the support
@@ -247,13 +248,17 @@ set search_path to ''
 as $function$
 declare
   me uuid := (select auth.uid());
+  is_support boolean;
 begin
   if me is null or p_ticket is null then
     return;
   end if;
-  if not (private.staff_can(me, 'support') or private.support_ticket_escalated_to(me, p_ticket)) then
+  is_support := private.staff_can(me, 'support');
+  if not (is_support or private.support_ticket_escalated_to(me, p_ticket)) then
     return;
   end if;
+  -- Support sees every hand-off on the ticket; a receiving desk sees only
+  -- the ones sent to a desk it holds, not another desk's reason.
   return query
   select e.id, e.to_scope::text, e.reason,
          coalesce(nullif(btrim(pb.first_name), ''), nullif(split_part(btrim(pb.display_name), ' ', 1), ''), 'A colleague'),
@@ -266,6 +271,7 @@ begin
     left join public.profiles pb on pb.id = e.escalated_by
     left join public.profiles pr on pr.id = e.returned_by
    where e.ticket_id = p_ticket
+     and (is_support or private.staff_can(me, e.to_scope::text))
    order by e.escalated_at desc
    limit 50;
 end;
@@ -286,12 +292,14 @@ declare
   tier   text;
   lister boolean;
   lister_verified boolean;
-  recent jsonb;
+  recent jsonb := '[]'::jsonb;
+  is_support boolean;
 begin
   if me is null or p_ticket is null then
     return jsonb_build_object('status', 'forbidden');
   end if;
-  if not (private.staff_can(me, 'support') or private.support_ticket_escalated_to(me, p_ticket)) then
+  is_support := private.staff_can(me, 'support');
+  if not (is_support or private.support_ticket_escalated_to(me, p_ticket)) then
     return jsonb_build_object('status', 'forbidden');
   end if;
   select t.user_id into owner from public.support_tickets t where t.id = p_ticket;
@@ -309,15 +317,19 @@ begin
     into lister, lister_verified
     from public.agents a where a.user_id = owner;
 
-  select coalesce(jsonb_agg(jsonb_build_object(
-           'id', x.id, 'reference', x.reference, 'topic', x.topic, 'status', x.status, 'created_at', x.created_at)
-           order by x.created_at desc), '[]'::jsonb)
-    into recent
-    from (select s.id, s.reference, s.topic, s.status, s.created_at
-            from public.support_tickets s
-           where s.user_id = owner and s.id <> p_ticket
-           order by s.created_at desc
-           limit 5) x;
+  -- The member's other tickets are support's to see. A desk this ticket was
+  -- handed to sees this ticket only: no list, no counts.
+  if is_support then
+    select coalesce(jsonb_agg(jsonb_build_object(
+             'id', x.id, 'reference', x.reference, 'topic', x.topic, 'status', x.status, 'created_at', x.created_at)
+             order by x.created_at desc), '[]'::jsonb)
+      into recent
+      from (select s.id, s.reference, s.topic, s.status, s.created_at
+              from public.support_tickets s
+             where s.user_id = owner and s.id <> p_ticket
+             order by s.created_at desc
+             limit 5) x;
+  end if;
 
   return jsonb_build_object(
     'status', 'ok',
@@ -329,8 +341,8 @@ begin
     'badge_tier', tier,
     'bookings', (select count(*) from public.bookings b where b.guest_id = owner),
     'agreements', (select count(*) from public.deal_agreements d where owner in (d.renter_id, d.owner_id)),
-    'tickets_total', (select count(*) from public.support_tickets s where s.user_id = owner),
-    'tickets_open', (select count(*) from public.support_tickets s where s.user_id = owner and s.status in ('open', 'pending')),
+    'tickets_total', case when is_support then (select count(*) from public.support_tickets s where s.user_id = owner) end,
+    'tickets_open', case when is_support then (select count(*) from public.support_tickets s where s.user_id = owner and s.status in ('open', 'pending')) end,
     'recent_tickets', recent);
 end;
 $function$;

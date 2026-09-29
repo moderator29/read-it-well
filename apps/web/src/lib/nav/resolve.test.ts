@@ -327,6 +327,26 @@ describe("back returns to the screen you came from", () => {
   });
 });
 
+describe("every screen has a name for the back control to say", () => {
+  /* Screens nobody is ever sent BACK to: doors and flows are refused as
+     history targets, redirects serve no document, and the harnesses are not
+     product. Everything else must be nameable, or "Back to <it>" says "Back". */
+  const UNNAMED_BY_DESIGN = new Set([
+    "/start", "/sign-up/verify", "/forgot-password/code", "/reset-password", "/auth/callback",
+    "/s/[token]", "/offline", "/gallery",
+  ]);
+  it("names every screen a person can come from", () => {
+    const missing = PATTERNS.filter(
+      (p) =>
+        !p.startsWith("/preview") &&
+        !UNNAMED_BY_DESIGN.has(p) &&
+        refuseHistory("/home", sampleFor(p), true) !== "flow" &&
+        backToLabel(sampleFor(p)) === null,
+    );
+    expect(missing).toEqual([]);
+  });
+});
+
 describe("but never to a screen that is not safe to return to", () => {
   it("never returns to a submitted form or a payment", () => {
     const FORMS: [string, string, string][] = [

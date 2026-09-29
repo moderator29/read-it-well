@@ -31,8 +31,14 @@ the server and written to the audit log with their name.
 To take somebody off support, press **Take off support** on their row and give
 a reason. If support was all they had, their access ends and they read the
 reason; their claims are released at once. If they hold other desks, only
-support is removed, and the reason is kept in the audit log
-(`staff.support_removed`).
+support is removed (every other desk and their position are kept; a Support
+Agent position is cleared), the reason is kept in the audit log
+(`staff.support_removed`), and they are told in the app "Support is no
+longer one of your desks" with what they keep. Once
+`20260929180000_taking_someone_off_support_says_so.sql` is applied this is one
+database step that also releases the tickets they held. Until then the app
+uses the grant function, which also sends its "You have Vallo staff access"
+notice and email; the app follows it with the plain notice above.
 
 The Support team panel also shows who else answers members through their role
 (admins and the super admin), each person's actions on the desk in the last 30
@@ -117,7 +123,8 @@ on the member (quietest first); then done.
 - **Hand to another desk** (or press `e`): choose Money, Safety or
   Verification and say why. The holders of that desk are told in the app with
   a link to this one ticket, which they can read, note on and hand back with
-  what they found. Support keeps talking to the member meanwhile ("Handed to
+  what they found. They do not see the member's other tickets, or the reason
+  on a hand-off to a desk they do not hold. Support keeps talking to the member meanwhile ("Handed to
   another team" is the saved reply for that).
 - **Internal notes** are for colleagues and never reach the member.
 
@@ -155,7 +162,13 @@ function. It changes no existing table or policy. Until it is applied:
 - the member panel shows only what the ticket carries (name, email, account,
   other tickets), and says so.
 
-Nothing else waits on it: queue, lanes, clock, claims, replies, saved replies,
+`supabase/migrations/pending/20260929180000_taking_someone_off_support_says_so.sql`
+adds `admin_remove_support` (super admin only): take somebody off support in
+one step, with a plain notice. It changes no table, policy or existing
+function. Until it is applied, the removal works as described under
+"Adding a support person" above.
+
+Nothing else waits on them: queue, lanes, clock, claims, replies, saved replies,
 status, notes, audit trail, keys and the Support team panel all work on the
 database as it is.
 

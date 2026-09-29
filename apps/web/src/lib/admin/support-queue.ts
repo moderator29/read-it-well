@@ -384,7 +384,9 @@ export async function getSupportTicketDetail(
         .order("created_at", { ascending: true })
         .limit(200),
       readEscalations(access.userClient, ticketId),
-      ticket.user_id
+      /* The desk a ticket was handed to sees that ticket, not the member's
+         other tickets. */
+      ticket.user_id && door.mode === "support"
         ? db
             .from("support_tickets")
             .select("id, reference, topic, status, created_at")
@@ -422,7 +424,9 @@ export async function getSupportTicketDetail(
     );
 
     const [context, trail, notesRead] = await Promise.all([
-      readContext(access.userClient, ticket, otherTickets),
+      readContext(access.userClient, ticket, otherTickets).then((c) =>
+        door.mode === "support" ? c : { ...c, ticketsTotal: null, ticketsOpen: null, recent: [] },
+      ),
       readTrail(db, ticketId),
       ticket.user_id ? readMemberNotes(ticket.user_id) : Promise.resolve(null),
     ]);

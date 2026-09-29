@@ -67,6 +67,22 @@ export async function sendSupportReply(input: {
   const parsed = validate(replySchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
+  /* The status is read here, never taken from the browser: a stale or
+     forged "open" must not move a resolved or closed ticket back to
+     In progress behind a reply. */
+  const current = await (access.supabase as unknown as {
+    from: (t: string) => {
+      select: (c: string) => { eq: (c: string, v: string) => { maybeSingle: () => PromiseLike<{ data: unknown; error: unknown }> } };
+    };
+  })
+    .from("support_tickets")
+    .select("status")
+    .eq("id", parsed.data.ticketId)
+    .maybeSingle();
+  if (current.error) return fail("That did not go through. Nothing was changed. Try again.");
+  if (!current.data) return fail(WORDS.not_found!);
+  const before = String((current.data as { status?: unknown }).status ?? "");
+
   const take = await (access.userClient as unknown as Rpc).rpc("queue_take", {
     p_kind: "ticket",
     p_item: parsed.data.ticketId,
@@ -77,7 +93,7 @@ export async function sendSupportReply(input: {
   const sent = await replySupportTicket({ ticketId: parsed.data.ticketId, body: parsed.data.body });
   if (!sent.ok) return fail(sent.error, sent.fieldErrors);
 
-  let status = input.status ?? "open";
+  let status = before;
   if (parsed.data.then === "resolve") {
     const r = await setTicketStatus({ ticketId: parsed.data.ticketId, status: "resolved" });
     if (!r.ok) return fail(`The reply was sent, but the ticket was not resolved: ${r.error}`);

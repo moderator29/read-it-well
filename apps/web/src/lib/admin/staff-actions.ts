@@ -7,7 +7,8 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
 import { findUserByEmail } from "../supabase/service";
 import { createAdminClient } from "../supabase/admin";
 import { writeAudit } from "./audit";
-import { STAFF_SCOPES } from "./guard";
+import { STAFF_SCOPE_LABEL, STAFF_SCOPES, type StaffScope } from "./guard";
+import { isNotInstalled } from "./support-queue";
 import { STAFF_HANDBOOK_VERSION } from "./staff-handbook";
 import { STAFF_POSITIONS } from "./staff-positions";
 
@@ -189,6 +190,29 @@ export async function removeFromSupport(input: { userId: string; reason: string 
     return ended.ok ? ok({ ended: true }) : fail(ended.error);
   }
 
+  /* The one-step door (pending migration 20260929180000): removes support
+     and nothing else, releases their tickets, writes one audit row with the
+     reason, and tells them plainly that support was taken off. The super
+     admin check and the key proof are the database's, on auth.uid(). */
+  const removed = await (c.session.supabase as unknown as {
+    rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>;
+  }).rpc("admin_remove_support", { p_user: parsed.data.userId, p_reason: parsed.data.reason });
+  if (!removed.error) {
+    const s = statusOf(removed.data);
+    if (s === "last_scope") {
+      const ended = await revokeStaff({ userId: parsed.data.userId, reason: parsed.data.reason });
+      return ended.ok ? ok({ ended: true }) : fail(ended.error);
+    }
+    if (s !== "ok") return fail(s === "not_on_support" ? "They are not on support." : (WORDS[s] ?? "That did not go through."));
+    revalidatePath("/admin/staff");
+    return ok({ ended: false });
+  }
+  if (!isNotInstalled(removed.error)) return fail("That did not go through. Nothing changed. Try again.");
+
+  /* Until that function is installed: the grant function with what is left.
+     It is written for giving access, so it tells them "You have Vallo staff
+     access" and to read the handbook; the notice below says what actually
+     happened, so nobody reads a removal as a grant. */
   const { data, error } = await c.session.supabase.rpc("admin_grant_staff" as never, {
     p_user: parsed.data.userId,
     p_scopes: rest,
@@ -201,15 +225,24 @@ export async function removeFromSupport(input: { userId: string; reason: string 
   /* The grant function records the change of scopes; the reason is kept
      beside it, because a change of access without a why is not a record. */
   try {
-    await writeAudit(createAdminClient(), {
+    const service = createAdminClient();
+    await writeAudit(service, {
       actorId: c.session.user.id,
       action: "staff.support_removed",
       entityType: "staff_grant",
       entityId: parsed.data.userId,
       detail: { reason: parsed.data.reason, kept: rest.join(",") },
     });
+    const kept = rest.map((s) => STAFF_SCOPE_LABEL[s as StaffScope] ?? s).join(", ");
+    await service.from("notifications").insert({
+      user_id: parsed.data.userId,
+      kind: "system",
+      title: "Support is no longer one of your desks",
+      body: `You keep: ${kept}. Nothing else about your access changed. Ignore the staff access notice sent with this one: you do not need to read the handbook again.`,
+      href: "/admin",
+    });
   } catch {
-    /* writeAudit raises its own alert when it cannot write. */
+    /* writeAudit raises its own alert when it cannot write; the notice is best effort. */
   }
   revalidatePath("/admin/staff");
   return ok({ ended: false });
