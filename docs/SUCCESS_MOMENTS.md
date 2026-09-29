@@ -12,7 +12,10 @@ Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference
 - Title and body are announced through a polite live region, filled one frame after opening. Focus goes to the primary action. Haptics go through `lib/ui/feedback.ts`, which uses Capacitor Haptics in the native shell: `success` for success and approved, `confirm` for submitted.
 - The CSS is `app/css/success.css`. Light mode is a white card with a brand-blue mark. Dark mode is a navy glass card with the brighter brand blue and one restrained bloom behind the card.
 - `lib/ui/success-moments.ts` is the registry. It holds every moment id, its variant, `successCopy()`, the one-shot flag helpers (`withDone`, `withoutDone`, `readDone`) and `showSuccess()`.
-- Copy lives in `packages/i18n/src/locales/en.ts` under `success`, and reaches the client through the `ClientCopy` slice.
+- Copy lives in `packages/i18n/src/locales/en.ts` under `success`, and reaches the client in two ways.
+  - `ClientCopy` carries on every screen only the chrome plus the account moments, inspection requested, report, ticket and contact. This keeps the slice under its 12 KB budget.
+  - Every other wired component takes `success={t.success}` from its server page, which is the house pattern.
+  - `success-wiring-census.test.ts` fails if a production caller stops passing it.
 - `components/ui/SuccessFromFlag.tsx` shows a moment on arrival.
   - The page checks the record first. A `?done=` flag only asks, and the record answers.
   - The flag is stripped with `router.replace`.
