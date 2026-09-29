@@ -1,28 +1,25 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
-import { LoopGate } from "@/components/motion/LoopGate";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BentoFx } from "./BentoFx";
 import { SectionHead } from "./SectionHead";
 
 /**
  * "Everything in one place": the bento (Track M, second pass).
  *
- * Seven doors into the product, in mixed sizes, each with one small live
- * scene built on the platform's own glass objects: the keys swing on their
- * tag by the house, the calendar turns, the assistant bobs while it types,
- * the Price Check report floats, the shield pops and a light
- * crosses it, two messages trade places behind the chat, the map pin floats.
- * No line glyph illustrates anything here (the founder's rule for content
- * surfaces). The scenes are slow,
- * run only while the grid is on screen (LoopGate), and stop entirely under
- * reduced motion and data saver.
+ * Seven doors into the product, in mixed sizes, each with one still scene
+ * built on the platform's own glass objects: the house and its key tag, the
+ * calendar, the assistant with its typing dots, the Price Check report, the
+ * shield, two messages behind the chat, the map pin. No line glyph
+ * illustrates anything here (the founder's rule for content surfaces).
  *
- * On a desktop pointer each card also carries a spotlight that follows the
- * cursor and a tilt of at most four degrees (BentoFx, a few lines of
- * pointer code). Touch, reduced motion and data saver get neither.
+ * STILL SINCE THE CLEAN PASS (29 September). The scenes used to loop (the
+ * tag swung, the calendar turned, the assistant bobbed) and a desktop pointer
+ * got a spotlight and a four degree tilt (BentoFx). Seven loops in one grid
+ * were the busiest thing on the page, so the scenes are drawn at rest and
+ * the card answers the pointer with the landing's one hover: a 2px lift and
+ * a brighter edge.
  *
  * Every card is a real link to the surface it describes, and every sentence
  * on it describes what that surface does today.
@@ -50,29 +47,26 @@ export function Bento({ t }: { t: Dictionary }) {
   return (
     <section className="nf-shell nf-room" data-chapter="bento" aria-labelledby="nf-landing-bento-title">
       <SectionHead id="nf-landing-bento-title" eyebrow={b.overline} title={b.title} lede={b.body} align="center" />
-      <LoopGate className="nf-bento-gate">
-        <BentoFx>
-          <MotionReveal as="ul" stagger className="nf-bento">
-            {cards.map((c) => (
-              <li key={c.key} className={`nf-bento__cell nf-bento__cell--${c.size}`}>
-                <Link href={c.href} prefetch={false} className="nf-bento__card">
-                  <span className="nf-bento__spot" aria-hidden="true" />
-                  <span className={`nf-scene nf-scene--${c.scene}`} aria-hidden="true">
-                    <SceneArt scene={c.scene} />
+      <div className="nf-bento-gate">
+        <MotionReveal as="ul" stagger className="nf-bento">
+          {cards.map((c) => (
+            <li key={c.key} className={`nf-bento__cell nf-bento__cell--${c.size}`}>
+              <Link href={c.href} prefetch={false} className="nf-bento__card">
+                <span className={`nf-scene nf-scene--${c.scene}`} aria-hidden="true">
+                  <SceneArt scene={c.scene} />
+                </span>
+                <span className="nf-bento__text">
+                  <span className="nf-bento__title">
+                    {b.cards[c.key].title}
+                    <UiIcon name="arrow-right" size={16} className="nf-bento__arrow" />
                   </span>
-                  <span className="nf-bento__text">
-                    <span className="nf-bento__title">
-                      {b.cards[c.key].title}
-                      <UiIcon name="arrow-right" size={16} className="nf-bento__arrow" />
-                    </span>
-                    <span className="nf-bento__body">{b.cards[c.key].body}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </MotionReveal>
-        </BentoFx>
-      </LoopGate>
+                  <span className="nf-bento__body">{b.cards[c.key].body}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </MotionReveal>
+      </div>
     </section>
   );
 }

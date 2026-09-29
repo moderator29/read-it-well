@@ -217,7 +217,13 @@ export async function startShareCheckout(input: {
   return run.result;
 }
 
-export type ShareSettlement = { state: "share-settled" | "settled" | "already"; paidMinor: number | null; totalMinor: number | null };
+export type ShareSettlement = {
+  state: "share-settled" | "settled" | "already";
+  paidMinor: number | null;
+  totalMinor: number | null;
+  /** What THIS charge settled, for the receipt. Null when nothing moved on this call. */
+  amountMinor: number | null;
+};
 
 /**
  * The payer's return from Paystack. Verifies the charge with the processor
@@ -295,7 +301,15 @@ export async function settleShareReturn(input: { reference: string; tenancyId: s
   if (settlement.outcome === "unknown-reference") return fail("That payment could not be matched. Our team reconciles it for you.");
   revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
   if (settlement.outcome === "share-settled") {
-    return ok({ state: "share-settled", paidMinor: settlement.paidMinor, totalMinor: settlement.totalMinor });
+    return ok({
+      state: "share-settled",
+      paidMinor: settlement.paidMinor,
+      totalMinor: settlement.totalMinor,
+      amountMinor: settlement.amountMinor,
+    });
   }
-  return ok({ state: settlement.outcome === "settled" ? "settled" : "already", paidMinor: null, totalMinor: null });
+  if (settlement.outcome === "settled") {
+    return ok({ state: "settled", paidMinor: null, totalMinor: settlement.totalMinor, amountMinor: settlement.amountMinor });
+  }
+  return ok({ state: "already", paidMinor: null, totalMinor: null, amountMinor: null });
 }

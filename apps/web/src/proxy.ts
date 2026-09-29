@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { isAuthRetryableFetchError, type User } from "@supabase/supabase-js";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   contentSecurityPolicy,
@@ -498,8 +498,34 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // Rotates the token when needed. Do not remove: this call is the refresh.
-  const reader = await readSessionUser(() => supabase.auth.getUser(), carriesSessionCookie(request));
+  /*
+   * Rotates the token when needed. Do not remove: this call is the refresh.
+   *
+   * SPEED-1: `getClaims()`, not `getUser()`. This function does NOT run beside
+   * the database: Vercel runs it at the edge PoP nearest the visitor, so
+   * `getUser()` was an HTTPS round trip from Cape Town or Ashburn to GoTrue in
+   * eu-west-1 on EVERY request, including each client navigation and each
+   * prefetch. Supabase's own edge logs for 28-29 Sep 2026 show 1,358
+   * `/auth/v1/user` calls from IAD and 474 from CPT against 703 from DUB, the
+   * guard's calls being the ones that crossed an ocean before render began.
+   *
+   * `getClaims()` reads the session from the cookie, refreshes it through
+   * GoTrue exactly as before when it is due (that is the refresh this line
+   * exists for), then verifies the access token's ES256 signature and expiry
+   * locally against the project's JWKS, cached per instance for ten minutes.
+   * A symmetric (HS) token or a runtime without WebCrypto makes it fall back to
+   * `getUser()` itself, so nothing is trusted unverified.
+   *
+   * WHAT THIS GATE STILL KNOWS AND WHAT IT NO LONGER ASKS. A session revoked
+   * on another device keeps a signed, unexpired token for at most the token's
+   * lifetime (one hour). That is already true of every data read, because
+   * PostgREST authorises on the same signature and RLS sits behind it, and
+   * every page or action that needs the full user still calls
+   * `resolveSession()`, whose `getUser()` runs in dub1 next to GoTrue. So a
+   * revoked reader passing this redirect sees the page's own signed-out state,
+   * never someone's data.
+   */
+  const reader = await readSessionUser(() => supabase.auth.getClaims(), carriesSessionCookie(request));
 
   /* OPS-05. A request that carries a session while auth cannot answer (a
      5xx, a network failure, no answer in time) is let through: the page's
@@ -636,25 +662,30 @@ function carriesSessionCookie(request: NextRequest): boolean {
   return request.cookies.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
 }
 
+/** What `auth.getClaims()` answers, narrowed to what the guard reads. */
+type ClaimsAnswer = { data: { claims?: { sub?: unknown } | null } | null; error: unknown };
+
 /**
- * The signed-in reader, null when there is none, or "unknown" when a request
- * that carries a session could not be answered: auth returned a 5xx or a
- * network failure (AuthRetryableFetchError), or did not answer in time. A
- * refusal from auth itself (an expired, revoked or malformed session) and a
- * request with no session cookie are both null, never "unknown".
+ * The signed-in reader's id, null when there is none, or "unknown" when a
+ * request that carries a session could not be answered: auth returned a 5xx or
+ * a network failure (AuthRetryableFetchError) while refreshing the token or
+ * fetching the signing keys, or did not answer in time. A refusal (an expired,
+ * revoked or malformed session, a bad signature) and a request with no
+ * session cookie are both null, never "unknown".
  */
 async function readSessionUser(
-  getUser: () => Promise<{ data: { user: User | null }; error: unknown }>,
+  getClaims: () => Promise<ClaimsAnswer>,
   hasSessionCookie: boolean,
-): Promise<User | null | "unknown"> {
+): Promise<string | null | "unknown"> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<"timeout">((resolve) => {
     timer = setTimeout(() => resolve("timeout"), AUTH_ANSWER_TIMEOUT_MS);
   });
   try {
-    const answer = await Promise.race([getUser(), timeout]);
+    const answer = await Promise.race([getClaims(), timeout]);
     if (answer === "timeout") return hasSessionCookie ? "unknown" : null;
-    if (answer.data.user) return answer.data.user;
+    const sub = answer.error ? undefined : answer.data?.claims?.sub;
+    if (typeof sub === "string" && sub.length > 0) return sub;
     if (hasSessionCookie && isAuthRetryableFetchError(answer.error)) return "unknown";
     return null;
   } catch {

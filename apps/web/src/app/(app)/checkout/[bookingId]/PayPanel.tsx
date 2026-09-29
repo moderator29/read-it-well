@@ -8,6 +8,8 @@ import { PaymentGate } from "@/components/app/agreements/PaymentGate";
 import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 import { PaystackCheckout } from "@/components/app/payments/PaystackCheckout";
 import { paymentState } from "@/lib/payments/payment-state";
 import { SavedCardPicker } from "@/components/app/payments/SavedCardPicker";
@@ -103,7 +105,11 @@ type Phase =
   | { kind: "saved-card-hosted"; authorizationUrl: string; accessCode: string; reference: string }
   | { kind: "card-starting" }
   | { kind: "checkout-open"; accessCode: string; reference: string; authorizationUrl: string }
-  | { kind: "paid" }
+  /* Settled against this booking, with the reference the receipt shows. */
+  | { kind: "paid"; reference: string }
+  /* Charged on the saved card and not yet applied to this booking: never
+     "paid", never "not charged" (docs/SUCCESS_MOMENTS.md). */
+  | { kind: "applying"; reference: string }
   | { kind: "stalled"; method: "card" }
   | { kind: "error"; message: string };
 
@@ -196,6 +202,8 @@ export function PayPanel({
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
   const c = getDictionary(view.locale).checkout;
+  const s = getDictionary(view.locale).success;
+  const paid = successCopy(s, "stayPaidRecorded");
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
@@ -278,9 +286,14 @@ export function PayPanel({
       });
       return;
     }
-    /* Charged. The booking is settled server side, so the truth is on the
-       server and this asks for it rather than drawing an optimistic success. */
-    setPhase({ kind: "paid" });
+    /* Charged. `settled` is the server's word that the charge was applied to
+       THIS booking; without it the charge is still being applied and the
+       success sheet waits. */
+    setPhase(
+      result.data.settled
+        ? { kind: "paid", reference: result.data.reference ?? "" }
+        : { kind: "applying", reference: result.data.reference ?? "" },
+    );
     router.refresh();
   };
 
@@ -518,7 +531,7 @@ export function PayPanel({
             return state.ok ? state.data : "pending";
           }}
           onPaid={() => {
-            setPhase({ kind: "paid" });
+            setPhase({ kind: "paid", reference: phase.reference });
             router.refresh();
           }}
           /* Cancelled is not a failure and it is not a stall. The reference
@@ -529,19 +542,32 @@ export function PayPanel({
       )}
 
       {/* ----------------------------------------------- what just happened */}
-      <ResultSheet
+      <SuccessSheet
         open={phase.kind === "paid"}
         onOpenChange={() => setPhase({ kind: "idle" })}
-        state="sent"
-        verdict={c.paymentSent}
-        fact={fact}
-        locale={view.locale}
-        consequence={c.paidStay}
-        actions={[
-          { label: plansAction.label, href: plansAction.href, tone: "primary" },
-          { label: c.backToStay, href: `/listing/${view.listingId}`, tone: "quiet" },
+        variant={paid.variant}
+        title={paid.title}
+        body={paid.body}
+        amount={{ minorUnits: view.totalMinor, currency: view.currency, locale: view.locale }}
+        details={[
+          { label: s.detail.for, value: view.title },
+          ...(phase.kind === "paid" && phase.reference
+            ? [{ label: s.detail.reference, value: phase.reference, mono: true }]
+            : []),
         ]}
-        footnote={c.paidFootnote}
+        primary={{ label: plansAction.label, href: plansAction.href }}
+        secondary={{ label: c.backToStay, href: `/listing/${view.listingId}` }}
+      />
+
+      <ResultSheet
+        open={phase.kind === "applying"}
+        onOpenChange={() => setPhase({ kind: "idle" })}
+        state="pending"
+        verdict={c.confirmingPayment}
+        fact={{ ...fact, ...(phase.kind === "applying" && phase.reference ? { reference: phase.reference } : {}) }}
+        locale={view.locale}
+        consequence={c.chargedConfirming}
+        actions={[{ label: plansAction.label, href: plansAction.href, tone: "primary" }]}
       />
 
       <ResultSheet

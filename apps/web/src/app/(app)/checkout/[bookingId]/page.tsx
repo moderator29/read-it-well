@@ -152,6 +152,7 @@ export default async function CheckoutPage({
            its own is not worth keeping. */
         <PaymentReturn
           reference={settling}
+          bookingId={bookingId}
           amountMinor={view.totalMinor}
           currency={view.currency}
           subject={view.title}

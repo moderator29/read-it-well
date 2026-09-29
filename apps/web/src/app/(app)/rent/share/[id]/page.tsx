@@ -117,7 +117,10 @@ export default async function RentSharePage({
         </p>
         {moveIn && <p className={TYPE.rowMeta}>{copy.shareDue.replace("{date}", moveIn)}</p>}
         <p className={TYPE.body}>{lead ? copy.shareLead.replace("{name}", lead) : copy.shareLeadUnknown}</p>
-        {returnedRef && tenancyId && !paidAt && <SettleShareOnReturn tenancyId={tenancyId} reference={returnedRef} />}
+        {/* Not gated on `!paidAt`: settling refreshes this page with the
+            share paid, and a gate on it unmounted the receipt it had just
+            opened. A revisit answers `already` and shows nothing. */}
+        {returnedRef && tenancyId && <SettleShareOnReturn tenancyId={tenancyId} reference={returnedRef} />}
         {state}
       </div>
     </Section>,

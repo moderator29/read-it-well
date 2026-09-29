@@ -14,7 +14,7 @@ import { describe, expect, it, vi } from "vitest";
  * bounces, and every page on the list is shown to check the session itself.
  */
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }),
+  createServerClient: () => ({ auth: { getClaims: async () => ({ data: null, error: null }) } }),
 }));
 
 vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://project.supabase.co");

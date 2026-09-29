@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { amendAgreement, cancelAgreement, confirmAgreement, createClaimEvidenceUpload, fileGuaranteeClaim } from "@/lib/agreements/actions";
 import { createClient } from "@/lib/supabase/client";
+import { withDone, type DoneFlag } from "@/lib/ui/success-moments";
 
 /**
  * The controls on an agreement page (Track A): confirm the exact version,
@@ -15,7 +16,13 @@ function useAction() {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const run = (work: () => Promise<{ ok: boolean; error?: string }>, after?: () => void) =>
+  /*
+   * `done` names the success moment this action ends in. The page re-renders
+   * with `?done=<flag>` (which also refreshes it), checks the agreement, and
+   * shows the sheet there: this control is usually gone from the refreshed
+   * page, so a sheet held here would vanish with it.
+   */
+  const run = (work: () => Promise<{ ok: boolean; error?: string }>, after?: () => void, done?: DoneFlag) =>
     start(async () => {
       setError(null);
       const result = await work();
@@ -24,7 +31,8 @@ function useAction() {
         return;
       }
       after?.();
-      router.refresh();
+      if (done) router.replace(withDone(window.location.pathname, done), { scroll: false });
+      else router.refresh();
     });
   return { pending, error, run };
 }
@@ -43,7 +51,7 @@ export function ConfirmTerms({ agreementId, version, disabled }: { agreementId: 
         type="button"
         className="nf-btn nf-btn--primary nf-btn--md nf-btn--full"
         disabled={!read || pending || disabled}
-        onClick={() => run(() => confirmAgreement({ agreementId, version }))}
+        onClick={() => run(() => confirmAgreement({ agreementId, version }), undefined, "agreement-confirmed")}
       >
         Confirm these terms
       </button>
@@ -199,7 +207,11 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
       data-testid="claim-form"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => fileGuaranteeClaim({ agreementId, items, description, evidencePaths: paths, amountNaira: amount }), () => setDone(true));
+        run(
+          () => fileGuaranteeClaim({ agreementId, items, description, evidencePaths: paths, amountNaira: amount }),
+          () => setDone(true),
+          "claim-filed",
+        );
       }}
     >
       <fieldset className="grid gap-2xs">

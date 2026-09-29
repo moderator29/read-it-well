@@ -13,6 +13,9 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
 import { Sheet } from "@/components/ui/Sheet";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy } from "@/lib/ui/success-moments";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { TYPE } from "@/components/app/Screen";
 import { formatPhone } from "@/lib/phone";
@@ -222,6 +225,10 @@ export function InspectionSheet({
   const [outcome, setOutcome] = useState<InspectionOutcome | null>(null);
   const [saved, setSaved] = useState<InspectionReport>(report ?? EMPTY_REPORT);
   const [notes, setNotes] = useState(report?.notes ?? "");
+  /* The report was submitted, or the inspection closed with its outcome.
+     Opened only from the action's own ok, never from a draft save. */
+  const [done, setDone] = useState<"inspectionReportSubmitted" | "inspectionRecorded" | null>(null);
+  const success = useClientCopy().success;
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -238,7 +245,7 @@ export function InspectionSheet({
   const submittable = canSubmit(reportLive, inspection.state, saved, outcome, photoNeed);
   const photosMissing = photosShort(saved, photoNeed);
 
-  function run(work: () => Promise<{ ok: boolean; error?: string }>) {
+  function run(work: () => Promise<{ ok: boolean; error?: string }>, after?: () => void) {
     setError(null);
     startTransition(async () => {
       const result = await work();
@@ -246,6 +253,7 @@ export function InspectionSheet({
         setError(result.error ?? "That did not go through.");
         return;
       }
+      after?.();
       router.refresh();
     });
   }
@@ -270,6 +278,7 @@ export function InspectionSheet({
         return;
       }
       setSaved((now) => fromSaved(result.data, now.photoCount));
+      if (body.submit === true) setDone("inspectionReportSubmitted");
       router.refresh();
     });
   }
@@ -315,10 +324,15 @@ export function InspectionSheet({
       return;
     }
     if (!outcome) return;
-    run(() => closeInspection({ id: inspection.id, state: "COMPLETED", outcome }));
+    run(
+      () => closeInspection({ id: inspection.id, state: "COMPLETED", outcome }),
+      () => setDone("inspectionRecorded"),
+    );
   }
+  const doneWords = done ? successCopy(success, done) : null;
 
   return (
+    <>
     <details
       className="nf-ix nf-ix-fold"
       open={open}
@@ -802,6 +816,20 @@ export function InspectionSheet({
         />
       )}
     </details>
+    {doneWords ? (
+      <SuccessSheet
+        open
+        onOpenChange={(next) => {
+          if (!next) setDone(null);
+        }}
+        variant={doneWords.variant}
+        title={doneWords.title}
+        body={doneWords.body}
+        details={inspection.listingTitle ? [{ label: success.detail.for, value: inspection.listingTitle }] : undefined}
+        primary={{ label: success.continue }}
+      />
+    ) : null}
+    </>
   );
 }
 

@@ -104,6 +104,10 @@ export const DONE_PARAM = "done";
 /** Flags a page may be sent with. Kebab case, because they are in a URL. */
 export const DONE_FLAGS = {
   "agreement-drawn": "agreementDrawn",
+  /* The page picks "confirmed" or "in review" from the agreement's status. */
+  "agreement-confirmed": "agreementConfirmed",
+  "claim-filed": "claimFiled",
+  "listing-submitted": "listingSubmitted",
   "listing-approved": "listingApproved",
   "listing-live": "listingLive",
   "account-created": "accountCreated",

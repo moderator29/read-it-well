@@ -382,7 +382,6 @@ export const yo: Dictionary = withFallback({
         careers: "Iṣẹ́",
       },
       hero: {
-        crumbs: ["Ohun ìní", "Ibùgbé", "Ilé oúnjẹ", "Ìṣàkóso"],
         /*
          * THE HEADLINE IS ABSENT HERE ON PURPOSE AND FALLS BACK TO ENGLISH.
          *
@@ -401,8 +400,6 @@ export const yo: Dictionary = withFallback({
          * in `search` below are the three words the headline must use.
          */
         explore: "Ṣàwárí àwọn ilé",
-        stays: "Ṣàwárí ibùgbé",
-        cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
       },
       search: {
         label: "Wá lórí Vallo",
@@ -437,28 +434,15 @@ export const yo: Dictionary = withFallback({
         overline: "Àwọn ènìyàn gidi. Àwọn ibi gidi.",
         title: "Àwùjọ tó ń dàgbà ti àwọn olùwá ilé, onílé àti ògbàlejò.",
         body: "A ń ka iye kọ̀ọ̀kan lórí ojú ìwé yìí láàyè láti orí pẹpẹ nígbà tí ojú ìwé bá ṣí. A kò fi kún ohunkóhun.",
-        join: "Darapọ̀ mọ́ Vallo lónìí",
         thirdParty: "Ẹnìkẹta",
         thirdPartyTitle: "Ohun ìní alábàáṣiṣẹ́, a máa ń fi àmì sí i nígbà gbogbo",
         thirdPartyBody:
           "Ibùgbé tí alábàáṣiṣẹ́ ń pèsè ní àmì yìí ó sì sọ ẹni tó ń jẹ́rìí sí i. A kò fi ṣe bí tiwa láé.",
       },
-      how: {
-        overline: "Bí Vallo ṣe ń ṣiṣẹ́",
-        title: "Àwọn ìgbésẹ̀ rọrùn. Àǹfààní ńlá.",
-        body: "Wá, ṣàyẹ̀wò, forúkọ sílẹ̀ kí o sì ṣàkóso ohun ìní nínú àwọn ìgbésẹ̀ díẹ̀ tó ṣe kedere.",
-        steps: {
-          discover: { title: "Ṣàwárí", body: "Wo àwọn ilé àti ibùgbé tí a fọwọ́ sí jákèjádò àwọn ìlú pàtàkì." },
-          verify: { title: "Ṣàyẹ̀wò", body: "Ènìyàn ń yẹ aṣojú kọ̀ọ̀kan wò kí wọ́n tó lè tẹ àkọsílẹ̀ jáde." },
-          experience: { title: "Ní ìrírí", body: "Forúkọ sílẹ̀, ṣàyẹ̀wò tàbí gbé, pẹ̀lú àkọsílẹ̀ tó wà nínú àkáǹtì rẹ." },
-          manage: { title: "Ṣàkóso", body: "Tọpa, san, pamọ́ kí o sì ṣàkóso gbogbo rẹ̀ níbì kan." },
-        },
-      },
       categories: {
         overline: "Ṣàwárí nípa ẹ̀ka",
         title: "Rí ohun tí o ń wá gan-an.",
         body: "Láti ilé ìlú dé villa tó ní ìran, Vallo ní gbogbo ọjà.",
-        join: "Darapọ̀ mọ́ Vallo",
         apartments: "Ilé gbígbé",
         houses: "Ilé",
         shortlets: "Ìyálé kúkúrú",
@@ -468,18 +452,6 @@ export const yo: Dictionary = withFallback({
         commercial: "Ìṣòwò",
         land: "Ilẹ̀",
         count: "{count} ni a kọ sílẹ̀",
-      },
-      stays: {
-        overline: "Vallo Stays",
-        title: "Gbé níbi tó yẹ láti rántí.",
-        body: "Hótẹ́lì, ìyálé kúkúrú, ilé, villa àti ilé oúnjẹ, tí a forúkọ sílẹ̀ láti àkáǹtì kan náà.",
-        cta: "Ṣàwárí ibùgbé",
-        hotels: "Hótẹ́lì",
-        apartments: "Ilé gbígbé",
-        resorts: "Ibi ìsinmi",
-        guestHouses: "Ilé àlejò",
-        serviced: "Ilé ìtọ́jú",
-        restaurants: "Ilé oúnjẹ",
       },
       app: {
         title: "Mú Vallo lọ pẹ̀lú rẹ.",
@@ -545,17 +517,6 @@ export const yo: Dictionary = withFallback({
       land: "Ilẹ̀",
       count: "{count} lórí àkọsílẹ̀",
       none: "Kò sí àtòjọ síbẹ̀",
-    },
-    oneAccount: {
-      overline: "Gbogbo rẹ̀, ní ibì kan",
-      title: "Wá, sọ̀rọ̀, san, kí o sì pa àkọsílẹ̀ mọ́, láìsí kí o kúrò nínú Vallo",
-      body: "Ọ̀pọ̀ ọ̀rọ̀ ilẹ̀ ní Nàìjíríà ni a ń ṣe nípa ìpè, WhatsApp àti ìfiránṣẹ́ owó báńkì, kò sì sí ọ̀kan nínú wọn tí ó ń rántí nǹkan kan. Níbí, ìjíròrò, owó àti ìwé wà nínú àkọọ́lẹ̀ kan náà.",
-      points: {
-        assistant: { title: "Olùrànlọ́wọ́ tí ó ka àkọsílẹ̀", body: "Béèrè ní èdè tí ó rọrùn, nínú èdè mẹ́rin, kí o sì rí ibi gidi pẹ̀lú iye rẹ̀." },
-        messages: { title: "Ìfọ̀rọ̀ranṣẹ́ pẹ̀lú aṣojú", body: "Gbogbo ìjíròrò pẹ̀lú aṣojú wà lórí Vallo, kí àkọsílẹ̀ lè wà." },
-        verified: { title: "Ènìyàn ni ó ṣàyẹ̀wò aṣojú", body: "Ènìyàn ni ó ń ṣàyẹ̀wò gbogbo aṣojú pẹ̀lú ọwọ́ kí wọ́n tó lè fi nǹkan sílẹ̀." },
-        record: { title: "Ìwé ìdánilójú àti àdéhùn", body: "Ìsanwó, ìfipamọ́ àti ìwé wà lórí àkọọ́lẹ̀ rẹ." },
-      },
     },
     faq: {
       title: "Àwọn ìbéèrè, pẹ̀lú ìdáhùn",

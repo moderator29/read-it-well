@@ -383,7 +383,6 @@ export const ha: Dictionary = withFallback({
         careers: "Ayyuka",
       },
       hero: {
-        crumbs: ["Gidaje", "Masauki", "Gidajen abinci", "Gudanarwa"],
         /*
          * THE HEADLINE IS ABSENT HERE ON PURPOSE AND FALLS BACK TO ENGLISH.
          *
@@ -402,8 +401,6 @@ export const ha: Dictionary = withFallback({
          * in `search` below are the three words the headline must use.
          */
         explore: "Bincika gidaje",
-        stays: "Bincika masauki",
-        cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
       },
       search: {
         label: "Bincika Vallo",
@@ -442,28 +439,15 @@ export const ha: Dictionary = withFallback({
         overline: "Mutane na gaske. Wurare na gaske.",
         title: "Al'umma mai girma ta masu neman gida, masu gida da masu masauki.",
         body: "Kowane adadi a wannan shafi ana karanta shi kai tsaye daga dandamali lokacin da shafin ya buɗe. Ba a ƙara komai ba.",
-        join: "Shiga Vallo yau",
         thirdParty: "Na ɓangare na uku",
         thirdPartyTitle: "Kayan abokan hulɗa, koyaushe da alama",
         thirdPartyBody:
           "Masaukin da abokin hulɗa ke cikawa yana ɗauke da wannan alama kuma yana faɗin wanda ke tabbatar da shi. Ba a taɓa nuna shi kamar namu ba.",
       },
-      how: {
-        overline: "Yadda Vallo ke aiki",
-        title: "Matakai masu sauƙi. Damar da yawa.",
-        body: "Nemo, tabbatar, ajiye da gudanar da gidaje cikin 'yan matakai bayyanannu.",
-        steps: {
-          discover: { title: "Gano", body: "Bincika gidaje da masauki da aka tabbatar a manyan birane." },
-          verify: { title: "Tabbatar", body: "Mutum yana duba kowane wakili kafin ya iya buga lissafi." },
-          experience: { title: "Dandana", body: "Ajiye, duba ko zauna, tare da rikodin a asusunka." },
-          manage: { title: "Gudanar", body: "Bibiya, biya, ajiye da gudanar da komai a wuri ɗaya." },
-        },
-      },
       categories: {
         overline: "Bincika ta rukuni",
         title: "Nemo daidai abin da kake nema.",
         body: "Daga gidajen birni zuwa villa masu kyan gani, Vallo yana ɗauke da dukkan kasuwa.",
-        join: "Shiga Vallo",
         apartments: "Gidajen haya",
         houses: "Gidaje",
         shortlets: "Gajeren haya",
@@ -473,18 +457,6 @@ export const ha: Dictionary = withFallback({
         commercial: "Kasuwanci",
         land: "Filaye",
         count: "{count} aka lissafa",
-      },
-      stays: {
-        overline: "Vallo Stays",
-        title: "Zauna a wurin da ba za ka manta ba.",
-        body: "Otal-otal, gajeren haya, gidaje, villa da gidajen abinci, an ajiye daga asusu ɗaya.",
-        cta: "Bincika masauki",
-        hotels: "Otal-otal",
-        apartments: "Gidajen haya",
-        resorts: "Wuraren hutu",
-        guestHouses: "Gidajen baƙi",
-        serviced: "Gidajen hidima",
-        restaurants: "Gidajen abinci",
       },
       app: {
         title: "Ɗauki Vallo tare da kai.",
@@ -550,17 +522,6 @@ export const ha: Dictionary = withFallback({
       land: "Filaye",
       count: "{count} a jeri",
       none: "Babu jeri tukuna",
-    },
-    oneAccount: {
-      overline: "Duka, a wuri guda",
-      title: "Nema, tattaunawa, biya da ajiye rikodi, ba tare da barin Vallo ba",
-      body: "Yawancin harkokin gidaje a Najeriya ana yin su ne tsakanin kira, WhatsApp da tura kuɗi, kuma babu ɗayansu da ke tunawa da komai. A nan tattaunawa, kuɗi da takardu duk asusu ɗaya ne.",
-      points: {
-        assistant: { title: "Mataimaki mai karanta jerin", body: "Ka tambaya cikin sauƙin harshe, cikin harsuna huɗu, ka sami jerin gaske tare da adadin." },
-        messages: { title: "Saƙonni da mai jeri", body: "Kowace tattaunawa da wakili tana kan dandalin, don a sami rikodi idan an sami saɓani." },
-        verified: { title: "Mutum ne ke duba wakilai", body: "Mutum na duba kowane wakili da hannu kafin ya iya wallafawa, jerin kuma yana nuna ranar dubawa." },
-        record: { title: "Rasidu da yarjejeniyoyi", body: "Biyan kuɗi, ajiye wuri da takardu suna nan a asusunka." },
-      },
     },
     next: {
       overline: "Hanyar gaba",

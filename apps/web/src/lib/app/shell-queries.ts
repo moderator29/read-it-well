@@ -212,8 +212,8 @@ async function identityFromSeparateReads(supabase: SupabaseClient<Database>, use
  *
  *   - the caller's id from `resolveSessionClaims()`: the access token's ES256
  *     signature and expiry verified locally, the same check PostgREST applies
- *     to every one of these reads (the proxy has already called `getUser()`
- *     for this request, which is what refreshes and checks revocation);
+ *     to every one of these reads (the proxy has already refreshed the token
+ *     for this request with `getClaims()`, SPEED-1);
  *   - one `shell_context()` call, SECURITY INVOKER, so every part of it runs
  *     under the caller's own RLS exactly as the separate reads did.
  *

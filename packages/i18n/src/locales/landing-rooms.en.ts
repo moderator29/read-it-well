@@ -1,6 +1,8 @@
 /**
- * THE LANDING PAGE'S NEW ROOMS, in English (Track M): how Vallo protects you,
- * the AI showcase, the FAQ and the closing call to action.
+ * THE LANDING PAGE'S ROOMS, in English (Track M): the AI showcase, the
+ * journey, the bento, the two worlds, the map, the FAQ and the closing call
+ * to action. (How Vallo protects you and the cities marquee were cut from
+ * the page, with their words.)
  *
  * Its own file for the reason `price-check.en.ts` gives: `en.ts` is five
  * thousand lines and several builders write to it at once.
@@ -21,18 +23,10 @@
  * translates it.
  */
 export const landingRoomsEn = {
-  protect: {
-    overline: "How Vallo protects you",
-    title: "Three rules the product will not bend",
-    body: "Each one is a step in how Vallo works, not a line in a brochure.",
-    gate: { title: "The agreement comes first" },
-    guarantee: { title: "The Vallo Guarantee", more: "How the Guarantee works" },
-    inspection: { title: "No inspection fee" },
-  },
   ai: {
     overline: "Vallo AI",
     title: "Ask in plain words. Get real places back.",
-    body: "The assistant searches the same listings you do, in English, Yorùbá, Hausa or Igbo. It only names places that are on Vallo, and it links every one.",
+    body: "Ask in English, Yorùbá, Hausa or Igbo. It searches the same listings you do and links every place it names.",
     caption: "An example conversation",
     replay: "Play again",
     cta: "Ask the assistant",
@@ -107,7 +101,7 @@ export const landingRoomsEn = {
   },
   close: {
     title: "Find the place. Keep the record.",
-    body: "Search homes, land and stays across Nigeria, and keep every message, agreement and payment in one account.",
+    body: "Start with a search. Every message, agreement and payment after it stays on the record.",
     join: "Create your account",
   },
   /*
@@ -120,9 +114,9 @@ export const landingRoomsEn = {
   journey: {
     overline: "From search to keys",
     title: "Four steps, one record",
-    body: "The whole of renting, told in the order it happens. Nothing moves on until the step before it is done.",
+    body: "Nothing moves on until the step before it is done.",
     steps: [
-      { key: "find", label: "Find", title: "Find the place", body: "Search homes, land and stays across Nigeria, with the person behind each listing named and the move-in total printed before you call anybody." },
+      { key: "find", label: "Find", title: "Find the place", body: "Search homes, land and stays across Nigeria, with the move-in total printed before you call anybody." },
       { key: "inspect", label: "Inspect", title: "See it for yourself" },
       { key: "agree", label: "Agree", title: "Agree before anything is paid" },
       { key: "move", label: "Move in", title: "Pay, and move in" },
@@ -139,21 +133,21 @@ export const landingRoomsEn = {
     },
   },
   bento: {
-    overline: "Everything in one place",
-    title: "One account for the whole of it",
-    body: "Search, stays, the assistant, the agreement and the record, in the same place, so nothing is arranged across five apps.",
+    overline: "What's inside",
+    title: "Everything the move needs.",
+    body: "Search, stays, the assistant, agreements and messages, side by side.",
     cards: {
       rent: { title: "Rent and buy", body: "Homes, land, shops and offices, with the move-in total printed on the card." },
       stays: { title: "Vallo Stays", body: "Hotels, shortlets and guest houses, with the free nights and the full total before you book." },
       ai: { title: "Vallo AI", body: "Ask in English, Yorùbá, Hausa or Igbo. It names only places that are on Vallo." },
-      price: { title: "Price Check", body: "What similar places near you are currently advertised for, and it says so when there is not enough to tell." },
+      price: { title: "Price Check", body: "What similar places nearby are advertised for, or a plain \"not enough to tell\"." },
       agree: { title: "Agreements and the Guarantee", body: "Both of you confirm the agreement before any payment opens." },
       messages: { title: "Messages", body: "Every conversation with the lister stays on the platform, so there is a record." },
       feed: { title: "Around", body: "Places, posts and people near you, from the same account." },
     },
   },
   worlds: {
-    overline: "Two sides, one account",
+    overline: "Pick your side",
     property: {
       label: "Property",
       title: "Somewhere to live, or to own",
@@ -168,14 +162,10 @@ export const landingRoomsEn = {
     },
     flip: "Flip to",
   },
-  cities: {
-    overline: "Across Nigeria",
-    title: "Start with a place you know",
-  },
   map: {
     overline: "Where Vallo lives",
     title: "Built for the whole of Nigeria",
-    body: "Search any of these cities, or any other place you know. The pins are places, not counts.",
+    body: "Search any of these cities, or anywhere else you know.",
   },
   badges: {
     appleSmall: "Download on the",

@@ -8,6 +8,8 @@ import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
 import { startRentPayment } from "@/lib/rent/actions";
 import type { RentPayView } from "@/lib/rent/queries";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 import { PaystackCheckout } from "@/components/app/payments/PaystackCheckout";
 import { paymentState } from "@/lib/payments/payment-state";
 import { SavedCardPicker } from "@/components/app/payments/SavedCardPicker";
@@ -68,7 +70,11 @@ type Phase =
   | { kind: "saved-card-hosted"; authorizationUrl: string; accessCode: string; reference: string }
   | { kind: "card-starting" }
   | { kind: "checkout-open"; accessCode: string; reference: string; authorizationUrl: string }
-  | { kind: "paid" }
+  /* Settled against this move-in, with the reference the receipt shows. */
+  | { kind: "paid"; reference: string }
+  /* Charged on the saved card and not yet applied: never "paid", never
+     "not charged" (docs/SUCCESS_MOMENTS.md). */
+  | { kind: "applying"; reference: string }
   | { kind: "stalled"; method: "card" }
   | { kind: "error"; message: string };
 
@@ -125,6 +131,8 @@ export function PayPanel({
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
   const c = getDictionary(view.locale).checkout;
+  const s = getDictionary(view.locale).success;
+  const paid = successCopy(s, "rentPaid");
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
@@ -202,7 +210,13 @@ export function PayPanel({
       });
       return;
     }
-    setPhase({ kind: "paid" });
+    /* `settled` is the server's word that the charge was applied to this
+       move-in; without it the success sheet waits. */
+    setPhase(
+      result.data.settled
+        ? { kind: "paid", reference: result.data.reference ?? "" }
+        : { kind: "applying", reference: result.data.reference ?? "" },
+    );
     router.refresh();
   };
 
@@ -375,7 +389,7 @@ export function PayPanel({
             return state.ok ? state.data : "pending";
           }}
           onPaid={() => {
-            setPhase({ kind: "paid" });
+            setPhase({ kind: "paid", reference: phase.reference });
             router.refresh();
           }}
           onCancelled={() => setPhase({ kind: "idle" })}
@@ -383,19 +397,32 @@ export function PayPanel({
         />
       )}
 
-      <ResultSheet
+      <SuccessSheet
         open={phase.kind === "paid"}
         onOpenChange={() => setPhase({ kind: "idle" })}
-        state="sent"
-        verdict={c.rentPaid}
-        fact={fact}
-        locale={view.locale}
-        consequence={c.paidRent}
-        actions={[
-          { label: c.openThread, href: "/messages", tone: "primary" },
-          { label: c.backToListing, href: `/listing/${view.listingId}`, tone: "quiet" },
+        variant={paid.variant}
+        title={paid.title}
+        body={paid.body}
+        amount={{ minorUnits: view.totalMinor, currency: view.currency, locale: view.locale }}
+        details={[
+          { label: s.detail.for, value: view.title },
+          ...(phase.kind === "paid" && phase.reference
+            ? [{ label: s.detail.reference, value: phase.reference, mono: true }]
+            : []),
         ]}
-        footnote={c.paidFootnote}
+        primary={{ label: c.openThread, href: "/messages" }}
+        secondary={{ label: c.backToListing, href: `/listing/${view.listingId}` }}
+      />
+
+      <ResultSheet
+        open={phase.kind === "applying"}
+        onOpenChange={() => setPhase({ kind: "idle" })}
+        state="pending"
+        verdict={c.confirmingPayment}
+        fact={{ ...fact, ...(phase.kind === "applying" && phase.reference ? { reference: phase.reference } : {}) }}
+        locale={view.locale}
+        consequence={c.chargedConfirming}
+        actions={[{ label: c.reload, onClick: () => window.location.reload(), tone: "primary" }]}
       />
 
       <ResultSheet

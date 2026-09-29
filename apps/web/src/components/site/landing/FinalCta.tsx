@@ -1,13 +1,14 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { DepthWords } from "@/components/motion/DepthWords";
-import { Sweep } from "./Sweep";
 
 /**
- * The last room (Track M): one line, one sentence, and the three doors the
- * page has been pointing at. The two explore links are the hero's own words,
- * so the page ends on the promise it opened with.
+ * The last room (Track M): one line, one sentence, and two doors. The
+ * primary is the hero's own words, so the page ends on the action it opened
+ * with; the second makes the account. Since the clean pass (29 September)
+ * the heading takes the landing's one section-title style and the panel
+ * carries no glow of its own, and Explore Stays is not repeated here (the
+ * search's Stay segment, the two worlds band and the header all lead there).
  */
 export function FinalCta({ t }: { t: Dictionary }) {
   const c = t.landingRooms.close;
@@ -15,20 +16,15 @@ export function FinalCta({ t }: { t: Dictionary }) {
   return (
     <section className="nf-shell nf-room" data-chapter="close" aria-labelledby="nf-landing-close-title">
       <MotionReveal className="nf-close nf-depth-gate">
-        <div className="nf-close-glow" aria-hidden="true" />
-        <h2 id="nf-landing-close-title" className="nf-close-title">
-          <DepthWords text={c.title} />
+        <h2 id="nf-landing-close-title" className="nf-sec-title">
+          {c.title}
         </h2>
-        <p className="nf-lede nf-close-body">{c.body}</p>
+        <p className="nf-sec-lede nf-close-body">{c.body}</p>
         <div className="nf-close-actions">
-          <ButtonLink href="/search" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
-            <Sweep />
+          <ButtonLink href="/search" variant="primary" size="md" trailingIcon="arrow-right">
             {hero.explore}
           </ButtonLink>
-          <ButtonLink href="/stays" variant="secondary" size="md">
-            {hero.stays}
-          </ButtonLink>
-          <ButtonLink href="/start" variant="ghost" size="md">
+          <ButtonLink href="/start" variant="secondary" size="md">
             {c.join}
           </ButtonLink>
         </div>

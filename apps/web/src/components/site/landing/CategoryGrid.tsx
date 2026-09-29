@@ -1,13 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
-import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import { photo, type PhotoName } from "@/lib/site/photos";
 import { SectionHead } from "./SectionHead";
-import { Sweep } from "./Sweep";
 
 /**
  * Explore by category: eight photo tiles linking to real searches.
@@ -86,12 +84,6 @@ export function CategoryGrid({
         <Reveal className="flex flex-col gap-heading">
           <div>
             <SectionHead id="nf-landing-cats-title" eyebrow={c.overline} title={c.title} lede={c.body} />
-          </div>
-          <div>
-            <ButtonLink href="/start" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
-              <Sweep />
-              {c.join}
-            </ButtonLink>
           </div>
         </Reveal>
         <ul className="nf-landing-cats">

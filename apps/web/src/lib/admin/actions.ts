@@ -41,6 +41,7 @@ import type { Database } from "../supabase/database.types";
    values in exactly one place and this is a caller of it, not a second copy. */
 import { personRoleFrom } from "../supply/roles";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
+import { withDone } from "../ui/success-moments";
 import { MANDATE_NEEDED_MESSAGE, isMandateRefusal } from "../compliance/beneficial-ownership";
 import {
   replySupportTicketSchema,
@@ -685,7 +686,19 @@ export async function reviewListing(input: {
        */
       await announce(admin, {
         recipient: { kind: "user", userId: ownerId },
-        notice: { kind: "listing", href: "/agent/listings", ...notice },
+        /* An approval or a publish carries its success moment on the link, with
+           the listing it names; the lister's page checks that listing's status
+           before the sheet opens (docs/SUCCESS_MOMENTS.md). */
+        notice: {
+          kind: "listing",
+          href:
+            decision === "publish"
+              ? withDone("/agent/listings", "listing-live", { listing: listing.id })
+              : decision === "approve"
+                ? withDone("/agent/listings", "listing-approved", { listing: listing.id })
+                : "/agent/listings",
+          ...notice,
+        },
         email: (contact) =>
           decision === "publish"
             ? listingApproved({

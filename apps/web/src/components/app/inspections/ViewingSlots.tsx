@@ -6,6 +6,9 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { bookViewingSlot } from "@/lib/viewings/actions";
 import { slotsByDay, type Slot } from "@/lib/viewings/route";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy } from "@/lib/ui/success-moments";
 
 /**
  * V-94: PICK A VIEWING TIME. The lister's free slots, by day; one tap chooses
@@ -38,11 +41,26 @@ export function ViewingSlots({ listingId, slots, copy, locale }: { listingId: st
   const [error, setError] = useState<string | null>(null);
   const [booked, setBooked] = useState<{ at: string; id: string } | null>(null);
   const [pending, start] = useTransition();
+  /* Booked is CONFIRMED on the server (V-94), so it is a success, not a request. */
+  const [celebrate, setCelebrate] = useState(false);
+  const success = useClientCopy().success;
   const current = days.find((d) => d.day === day) ?? days[0];
 
   if (booked) {
+    const words = successCopy(success, "inspectionBooked", { when: when(booked.at, locale, true) });
+    const plans = `/bookings?kind=inspection&from=property&changed=${booked.id}#ix-${booked.id}`;
     return (
       <section className="nf-panel nf-panel--card p-card-sm" data-testid="viewing-booked" aria-live="polite">
+        <SuccessSheet
+          open={celebrate}
+          onOpenChange={setCelebrate}
+          variant={words.variant}
+          title={words.title}
+          body={words.body}
+          details={[{ label: success.detail.when, value: when(booked.at, locale, true) }]}
+          primary={{ label: success.continue }}
+          secondary={{ label: copy.openPlans, href: plans }}
+        />
         <p className="nf-body-sm text-[var(--nf-content-primary)]">{copy.booked.replace("{when}", when(booked.at, locale, true))}</p>
         {/* Straight to the booked viewing's own card, not the top of Plans. */}
         <ButtonLink
@@ -107,6 +125,7 @@ export function ViewingSlots({ listingId, slots, copy, locale }: { listingId: st
                   return;
                 }
                 setBooked({ at: chosen, id: result.data.id });
+                setCelebrate(true);
               });
             }}
           >

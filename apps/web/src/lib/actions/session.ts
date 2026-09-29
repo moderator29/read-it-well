@@ -81,11 +81,12 @@ export const resolveSession = cache(async function resolveSession(): Promise<Ses
  * A symmetric (HS256) token or a runtime without WebCrypto makes getClaims fall
  * back to `getUser()` itself, so nothing is ever trusted unverified.
  *
- * WHAT IS NOT LOST. Revocation is still checked on every request: `proxy.ts`
- * calls `getUser()` for every in-app route before render, and that call is the
- * one that refreshes the token. Every page and action that needs the full user
- * (email, metadata, factors) keeps calling `resolveSession()`; this is for
- * readers that need the id and nothing else.
+ * WHAT IS NOT LOST. `proxy.ts` refreshes the token before render (with
+ * `getClaims()` since SPEED-1, so the edge no longer crosses to GoTrue on every
+ * navigation). Revocation is checked wherever the full user is needed: every
+ * page and action that needs it (email, metadata, factors) keeps calling
+ * `resolveSession()`, whose `getUser()` runs in dub1 beside GoTrue; this is
+ * for readers that need the id and nothing else.
  *
  * Memoised per request, like `resolveSession`, for the same reasons.
  */

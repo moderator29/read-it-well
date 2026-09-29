@@ -9,6 +9,7 @@ import { getSide } from "@/lib/side";
 import { shellDictionary } from "@/lib/i18n/shell-dictionary";
 import { AppShell } from "@/components/app/AppShell";
 import { PasscodeGate } from "@/components/passcode/PasscodeGate";
+import { resolvePasscodeGate } from "@/lib/passcode/state";
 
 import type { Metadata } from "next";
 
@@ -59,6 +60,14 @@ export const metadata: Metadata = {
 export default async function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  /*
+   * SPEED-3: the passcode gate's `passcode_status` read starts NOW, in
+   * parallel with the shell's reads, rather than after them when
+   * `PasscodeGate` renders. It is memoised per request, so the gate awaits
+   * this same promise and still decides (and still fails closed) on its own.
+   * A preload only: nothing here waits on it.
+   */
+  void resolvePasscodeGate().catch(() => undefined);
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   /*

@@ -384,7 +384,6 @@ export const ig: Dictionary = withFallback({
         careers: "Ọrụ",
       },
       hero: {
-        crumbs: ["Ụlọ", "Ebe obibi", "Ụlọ nri", "Njikwa"],
         /*
          * THE HEADLINE IS ABSENT HERE ON PURPOSE AND FALLS BACK TO ENGLISH.
          *
@@ -403,8 +402,6 @@ export const ig: Dictionary = withFallback({
          * in `search` below are the three words the headline must use.
          */
         explore: "Chọgharịa ụlọ",
-        stays: "Chọgharịa ebe obibi",
-        cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
       },
       search: {
         label: "Chọọ na Vallo",
@@ -439,28 +436,15 @@ export const ig: Dictionary = withFallback({
         overline: "Ndị mmadụ n'ezie. Ebe n'ezie.",
         title: "Obodo na-eto eto nke ndị na-achọ ụlọ, ndị nwe ụlọ na ndị nnabata.",
         body: "A na-agụ ọnụọgụ ọ bụla na peeji a ozugbo site na ikpo okwu mgbe peeji a na-ebu. Ọ dịghị ihe a gbakwunyere.",
-        join: "Sonye na Vallo taa",
         thirdParty: "Ndị ọzọ",
         thirdPartyTitle: "Ngwa ndị mmekọ, a na-akpọ ya aha mgbe niile",
         thirdPartyBody:
           "Ebe obibi onye mmekọ na-emezu na-ebu akara a ma kwuo onye na-akwado ya. A naghị eme ka ọ dị ka nke anyị.",
       },
-      how: {
-        overline: "Otu Vallo si arụ ọrụ",
-        title: "Usoro dị mfe. Ohere buru ibu.",
-        body: "Chọta, nyochaa, debanye ma jikwaa ụlọ n'ime usoro ole na ole doro anya.",
-        steps: {
-          discover: { title: "Chọta", body: "Chọgharịa ụlọ na ebe obibi enyochara n'ofe obodo ndị kacha elu." },
-          verify: { title: "Nyochaa", body: "Mmadụ na-enyocha onye nnọchiteanya ọ bụla tupu ha ebipụta ndepụta." },
-          experience: { title: "Nwee ahụmahụ", body: "Debanye, nyochaa ma ọ bụ biri, ebe a na-edebe ndekọ n'akaụntụ gị." },
-          manage: { title: "Jikwaa", body: "Soro, kwụọ, chekwaa ma jikwaa ha niile n'otu ebe." },
-        },
-      },
       categories: {
         overline: "Chọgharịa site n'ụdị",
         title: "Chọta kpọmkwem ihe ị na-achọ.",
         body: "Site na ụlọ obodo ruo na villa nwere echiche, Vallo na-ebu ahịa dum.",
-        join: "Sonye na Vallo",
         apartments: "Ụlọ obibi",
         houses: "Ụlọ",
         shortlets: "Mgbazinye mkpirikpi",
@@ -470,18 +454,6 @@ export const ig: Dictionary = withFallback({
         commercial: "Azụmahịa",
         land: "Ala",
         count: "{count} edepụtara",
-      },
-      stays: {
-        overline: "Vallo Stays",
-        title: "Biri n'ebe kwesịrị icheta.",
-        body: "Ụlọ oriri, mgbazinye mkpirikpi, ụlọ, villa na ụlọ nri, edebanyere site n'otu akaụntụ.",
-        cta: "Chọgharịa ebe obibi",
-        hotels: "Ụlọ oriri",
-        apartments: "Ụlọ obibi",
-        resorts: "Ebe izumike",
-        guestHouses: "Ụlọ ọbịa",
-        serviced: "Ụlọ obibi enyemaka",
-        restaurants: "Ụlọ nri",
       },
       app: {
         title: "Were Vallo soro gị.",
@@ -547,17 +519,6 @@ export const ig: Dictionary = withFallback({
       land: "Ala",
       count: "{count} edịnye",
       none: "Enweghị ndepụta ugbu a",
-    },
-    oneAccount: {
-      overline: "Ihe niile, n'otu ebe",
-      title: "Chọọ, kwuo okwu, kwụọ ụgwọ ma debe ndekọ, na-ahapụghị Vallo",
-      body: "Ọ tụtụ azụmahịa ụlọ na Naịjirịa na-agafe oku ekwentị, WhatsApp na mbufe ego, ọ dịghị nke na-echeta ihe ọ bụla. N'ebe a mkparịta ụka, ego na akwụkwọ bụ otu akaụntụ.",
-      points: {
-        assistant: { title: "Onye enyemaka na-agụ ndepụta", body: "Jụọ n'okwu mfe, n'asụsụ anọ, nweta ndepụta dị adị na ọnụọgụgụ ya." },
-        messages: { title: "Ozi na onye debere ya", body: "Mkparịta ụka ọ bụla na onye nnọchiteanya na-anọgide na Vallo, ka e nwee ndekọ." },
-        verified: { title: "Mmadụ na-enyocha ndị nnọchiteanya", body: "Mmadụ na-enyocha onye nnọchiteanya ọ bụla n'aka tupu o bipute, ndepụta na-egosikwa ụbọchị e nyochara ya." },
-        record: { title: "Akịtị na nkwekọrịta", body: "Ịkwụ ụgwọ, ndebe na akwụkwọ na-anọgide n'akaụntụ gị." },
-      },
     },
     faq: {
       title: "Ajụjụ, na azịza ha",

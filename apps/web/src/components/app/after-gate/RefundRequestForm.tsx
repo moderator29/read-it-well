@@ -6,6 +6,9 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { requestRefund } from "@/lib/after-gate/refund-request-actions";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy } from "@/lib/ui/success-moments";
 
 /**
  * V-24. The dated ask for a paid stay to be cancelled.
@@ -29,6 +32,15 @@ export function RefundRequestForm({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  /*
+   * The request is filed. The page refreshes when the sheet CLOSES rather
+   * than now: the refreshed page draws the dated ask in place of this form,
+   * and a sheet held by this form would be unmounted by the refresh that
+   * shows its own result. "Requested", never "refunded": nothing has moved.
+   */
+  const [filed, setFiled] = useState(false);
+  const success = useClientCopy().success;
+  const words = successCopy(success, "refundRequested");
 
   function submit() {
     setError(null);
@@ -38,7 +50,7 @@ export function RefundRequestForm({
         setError(result.error || copy.askFailed);
         return;
       }
-      router.refresh();
+      setFiled(true);
     });
   }
 
@@ -77,9 +89,21 @@ export function RefundRequestForm({
           )}
         </Field>
       </div>
-      <Button type="submit" variant="secondary" full className="mt-md" loading={pending} disabled={pending}>
+      <Button type="submit" variant="secondary" full className="mt-md" loading={pending} disabled={pending || filed}>
         {copy.askSubmit}
       </Button>
+      <SuccessSheet
+        open={filed}
+        onOpenChange={(open) => {
+          if (open) return;
+          setFiled(false);
+          router.refresh();
+        }}
+        variant={words.variant}
+        title={words.title}
+        body={words.body}
+        primary={{ label: success.continue }}
+      />
     </form>
   );
 }

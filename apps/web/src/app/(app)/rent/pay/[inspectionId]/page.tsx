@@ -160,9 +160,34 @@ export default async function RentPayPage({
 
   const view = read.view;
 
+  /*
+   * THE RETURN FROM PAYSTACK, first in BOTH branches below. Settling moves
+   * the charge to paid and refreshes, which re-renders this page down the
+   * `view.paid` branch; rendered in only one of them, the receipt sheet was
+   * unmounted the moment it had something to say. Same component at the same
+   * place in both trees, so React keeps it, open, across the refresh.
+   *
+   * `kind="rent"` so the receipt says rent, not "your stay is confirmed", and
+   * the booking id so a settlement against any other booking is not shown.
+   */
+  const returning = settling ? (
+    <PaymentReturn
+      reference={settling}
+      bookingId={view.bookingId ?? ""}
+      kind="rent"
+      amountMinor={view.totalMinor}
+      currency={view.currency}
+      subject={view.title}
+      locale={locale}
+      retryHref={`/rent/pay/${inspectionId}`}
+      plansAction={{ label: getDictionary(locale).shape.plans.seePlans, href: "/bookings?side=property&from=property" }}
+    />
+  ) : null;
+
   if (view.paid) {
     return (
       <Shell subtitle={view.title}>
+        {returning}
         <ResultScreen
           state="confirmed"
           mark="shield-check"
@@ -193,17 +218,7 @@ export default async function RentPayPage({
 
   return (
     <Shell subtitle={view.title}>
-      {settling && (
-        <PaymentReturn
-          reference={settling}
-          amountMinor={view.totalMinor}
-          currency={view.currency}
-          subject={view.title}
-          locale={locale}
-          retryHref={`/rent/pay/${inspectionId}`}
-          plansAction={{ label: getDictionary(locale).shape.plans.seePlans, href: "/bookings?side=property&from=property" }}
-        />
-      )}
+      {returning}
 
       <Reveal>
         <RentSummary view={view} />

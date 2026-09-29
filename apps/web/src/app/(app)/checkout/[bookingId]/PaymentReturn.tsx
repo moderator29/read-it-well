@@ -119,10 +119,6 @@ export function PaymentReturn({
       if (cancelled) return;
       window.clearTimeout(slow);
       window.clearTimeout(giveUp);
-      /* An answer is in, whatever it is: the return flag has done its job. */
-      const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      const clean = withoutDone(here, RETURN_KEYS);
-      if (clean !== here) router.replace(clean, { scroll: false });
       if (result.ok && result.data) {
         /*
          * `ok` IS NOT "PAID". A reference seen before, one settled against
@@ -159,6 +155,21 @@ export function PaymentReturn({
     };
   }, [reference, bookingId, router]);
 
+  /*
+   * THE RETURN FLAG GOES WHEN THE SHEET DOES. Not when the answer arrives:
+   * stripping it re-renders the page without it, and a page that no longer
+   * renders this component would take the sheet away from under somebody
+   * reading their receipt. Closing it is the moment the flag has done its
+   * job, and from then a refresh is an ordinary visit that replays nothing.
+   */
+  const onOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) return;
+    const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const clean = withoutDone(here, RETURN_KEYS);
+    if (clean !== here) router.replace(clean, { scroll: false });
+  };
+
   const fact = {
     ...(amountMinor === undefined ? {} : { amountMinor }),
     ...(currency ? { currency } : {}),
@@ -170,7 +181,7 @@ export function PaymentReturn({
     return (
       <ResultSheet
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={onOpenChange}
         state="pending"
         /* Blocking, because the outcome is genuinely unknown and a person who
            dismisses this and taps Pay again may pay twice. It stops blocking
@@ -202,7 +213,7 @@ export function PaymentReturn({
     return (
       <SuccessSheet
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={onOpenChange}
         variant={words.variant}
         title={words.title}
         body={words.body}
@@ -222,7 +233,7 @@ export function PaymentReturn({
     return (
       <ResultSheet
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={onOpenChange}
         state="pending"
         verdict={c.stillChecking}
         fact={fact}
@@ -239,7 +250,7 @@ export function PaymentReturn({
   return (
     <ResultSheet
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       state="failed"
       verdict={c.paymentNotConfirmed}
       fact={fact}

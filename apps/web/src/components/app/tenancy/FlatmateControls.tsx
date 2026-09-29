@@ -12,6 +12,9 @@ import {
   removeRentContributor,
 } from "@/lib/tenancy/share-actions";
 import { settleShareReturn, startShareCheckout } from "@/lib/tenancy/share-checkout";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy, withoutDone } from "@/lib/ui/success-moments";
 
 type Copy = Dictionary["afterTheGate"]["flatmates"];
 
@@ -180,24 +183,68 @@ export function PayShare({
   );
 }
 
-/** Back from Paystack with `?paid=1&reference=`: settle the share once, then refresh. */
+/**
+ * Back from Paystack with `?paid=1&reference=`: settle the share once, then refresh.
+ *
+ * THE RECEIPT IS THE SERVER'S ANSWER, NOT THE FLAG. The success sheet opens
+ * only when this call settled money: `share-settled` (this share is in) or
+ * `settled` (it was the last one and the move-in is paid in full). `already`
+ * is a revisit of a payment recorded before, so it shows nothing, and a
+ * refusal (still processing, failed, refunded) keeps its own sentence. The
+ * flag goes when the sheet is closed, so a refresh does not replay it.
+ */
 export function SettleShareOnReturn({ tenancyId, reference }: { tenancyId: string; reference: string }) {
   const router = useRouter();
+  const s = useClientCopy().success;
   const [message, setMessage] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<{ moment: "sharePaid" | "moveInPaid"; amountMinor: number | null } | null>(null);
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
     started.current = true;
     void settleShareReturn({ reference, tenancyId }).then((result) => {
       setMessage(result.ok ? null : (result.error ?? null));
+      if (result.ok && result.data && result.data.state !== "already") {
+        setReceipt({
+          moment: result.data.state === "settled" ? "moveInPaid" : "sharePaid",
+          amountMinor: result.data.amountMinor,
+        });
+      }
       router.refresh();
     });
   }, [reference, tenancyId, router]);
-  return message ? (
-    <p className="nf-body-sm text-[var(--nf-state-error)]" role="alert">
-      {message}
-    </p>
-  ) : null;
+
+  const close = () => {
+    setReceipt(null);
+    const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const clean = withoutDone(here, ["paid", "reference"]);
+    if (clean !== here) router.replace(clean, { scroll: false });
+  };
+  const words = receipt ? successCopy(s, receipt.moment) : null;
+
+  return (
+    <>
+      {message ? (
+        <p className="nf-body-sm text-[var(--nf-state-error)]" role="alert">
+          {message}
+        </p>
+      ) : null}
+      {receipt && words ? (
+        <SuccessSheet
+          open
+          onOpenChange={(open) => {
+            if (!open) close();
+          }}
+          variant={words.variant}
+          title={words.title}
+          body={words.body}
+          amount={receipt.amountMinor !== null ? { minorUnits: receipt.amountMinor } : undefined}
+          details={[{ label: s.detail.reference, value: reference, mono: true }]}
+          primary={{ label: s.continue }}
+        />
+      ) : null}
+    </>
+  );
 }
 
 /** The lead cancels the group's move-in before it is fully paid; paid shares go back to their cards. */

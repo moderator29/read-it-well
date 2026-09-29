@@ -71,7 +71,12 @@ try {
   check(
     "the intro cannot be skipped: no Skip, no close, no tour door",
     (await intro.getByTestId("welcome-skip-all").count()) === 0 &&
-      (await intro.locator('a:has-text("Skip"), button:has-text("Skip"), a[href*="tour=1"]').count()) === 0,
+      /* Inside the intro: the document's own "Skip to content" link is the
+         keyboard's way past the chrome, not a way past the intro. */
+      (await intro
+        .getByTestId("welcome-intro")
+        .locator('a:has-text("Skip"), button:has-text("Skip"), button[aria-label*="lose"], a[href*="tour=1"]')
+        .count()) === 0,
   );
   const introHrefs = {
     start: await intro.getByTestId("intro-get-started").getAttribute("href"),

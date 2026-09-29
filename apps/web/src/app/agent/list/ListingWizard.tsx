@@ -74,6 +74,9 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/VideoWalkthrough";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy } from "@/lib/ui/success-moments";
 import { TextField, TextArea } from "@/components/ui/Field";
 import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
 import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/listings/compound";
@@ -1022,6 +1025,10 @@ export function ListingWizard({
     };
   }, []);
   const [submitted, setSubmitted] = useState(false);
+  /* The success sheet over the "sent for review" screen, opened by the
+     action's own ok and closed by the person; the screen stays under it. */
+  const [celebrate, setCelebrate] = useState(false);
+  const success = useClientCopy().success;
   const [pending, startTransition] = useTransition();
   /** Whether the last `persist` reached the server and was accepted. */
   const lastSaveOk = useRef(true);
@@ -1950,6 +1957,7 @@ export function ListingWizard({
       setNotice(null);
       setFieldErrors({});
       setSubmitted(true);
+      setCelebrate(true);
       try {
         const draftKey = listingDraftKey(userId);
         if (draftKey) localStorage.removeItem(draftKey);
@@ -1963,7 +1971,20 @@ export function ListingWizard({
   /* ----------------------------------------------------------- the render */
 
   if (submitted) {
-    return <ListingSentForReview copy={copy} reference={reference} />;
+    const words = successCopy(success, "listingSubmitted");
+    return (
+      <>
+        <ListingSentForReview copy={copy} reference={reference} />
+        <SuccessSheet
+          open={celebrate}
+          onOpenChange={setCelebrate}
+          variant={words.variant}
+          title={words.title}
+          body={words.body}
+          primary={{ label: success.continue }}
+        />
+      </>
+    );
   }
 
   const price = priceMinor > 0 ? formatMoney(priceMinor, locale) : null;

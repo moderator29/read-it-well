@@ -13,6 +13,8 @@ import {
 import { ListingPitch } from "../list/ListingPitch";
 import { ListingsWorkspace } from "./ListingsWorkspace";
 import { ButtonLink } from "@/components/ui/Button";
+import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
 import { readClosedReasons, readOpenOwnerHeartbeats } from "@/lib/landlord/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,9 +32,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[] }>;
+  searchParams: Promise<{ q?: string | string[]; done?: string | string[]; listing?: string | string[] }>;
 }) {
-  const { q } = await searchParams;
+  const { q, done: doneParam, listing: listingParam } = await searchParams;
   const query = Array.isArray(q) ? (q[0] ?? "") : (q ?? "");
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -81,6 +83,25 @@ export default async function Page({
     readMyRoutingFirms(),
   ]);
 
+  /*
+   * THE LISTER'S SUCCESS MOMENT (docs/SUCCESS_MOMENTS.md). The flag comes from
+   * the workspace's own submit or from the approval notice, and names a
+   * listing; the sheet opens only when that listing is one of THESE and its
+   * status says the moment is true now.
+   */
+  const done = readDone(doneParam);
+  const named = listings.find((row) => row.id === (Array.isArray(listingParam) ? listingParam[0] : listingParam));
+  const arrival: SuccessMomentId | null =
+    !named || !done
+      ? null
+      : done === "listing-submitted" && (named.status === "SUBMITTED" || named.status === "UNDER_REVIEW")
+        ? "listingSubmitted"
+        : done === "listing-approved" && named.status === "APPROVED"
+          ? "listingApproved"
+          : done === "listing-live" && named.status === "PUBLISHED"
+            ? "listingLive"
+            : null;
+
   return (
     <AgentShell
       t={t}
@@ -88,6 +109,14 @@ export default async function Page({
       active="/agent/listings"
       profile={agentProfileFrom(context.agent)}
     >
+      <SuccessFromFlag
+        show={arrival !== null}
+        moment={arrival ?? "listingSubmitted"}
+        strip={["listing"]}
+        details={named ? [{ label: t.success.detail.for, value: named.title }] : undefined}
+        /* A notice read later is not the moment it happened in. */
+        haptic={done === "listing-submitted" ? undefined : false}
+      />
       <div className="mb-lg flex flex-wrap items-end justify-between gap-md">
         <div>
           <h1 className="nf-h1">{t.agentListings.workspace.title}</h1>

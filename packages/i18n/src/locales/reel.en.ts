@@ -10,9 +10,8 @@
 export const reelEn = {
   places: {
     overline: "Every kind of place",
-    title: "Homes, stays and tables. One account.",
-    body: "Rent a flat, buy a house, book a room for the weekend or a table for tonight. One search, one inbox, one set of rules.",
-    cta: "Start searching",
+    title: "A flat for the year. A table for tonight.",
+    body: "Rent, buy, book a room for the weekend or a table for dinner, from the same search.",
     /* The wall's pause toggle (WCAG 2.2.2: moving content that runs past
        five seconds can be paused). */
     pause: "Pause the moving photos",

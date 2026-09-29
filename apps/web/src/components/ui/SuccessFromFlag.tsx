@@ -23,10 +23,22 @@ import type { FeedbackKind } from "@/lib/ui/feedback";
  *                 from the record's status and a key, and the sheet opens once
  *                 per device (lib/ui/seen-once.ts).
  *
- * The open state is LATCHED at mount: `router.replace` re-renders the page
- * without the flag, `show` becomes false, and the sheet stays up until the
- * person closes it.
+ * RENDER IT UNCONDITIONALLY, AT A STABLE PLACE, WITH `show` DECIDING.
+ * Stripping the flag re-renders the page without it, so `show` turns false
+ * and `moment` may change. Everything the sheet says is LATCHED when it
+ * opens, and the component keeps saying it until the person closes it; a
+ * page that removed this element when the flag went would take the sheet
+ * away the instant it appeared.
  */
+type Latched = {
+  moment: SuccessMomentId;
+  values?: Record<string, string>;
+  details?: readonly SuccessDetail[];
+  primary?: SuccessAction;
+  secondary?: SuccessAction;
+  haptic?: FeedbackKind | false;
+};
+
 export function SuccessFromFlag({
   show,
   moment,
@@ -53,7 +65,7 @@ export function SuccessFromFlag({
 }) {
   const copy = useClientCopy().success;
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [latched, setLatched] = useState<Latched | null>(null);
   const decided = useRef(false);
 
   useEffect(() => {
@@ -67,23 +79,26 @@ export function SuccessFromFlag({
       const clean = withoutDone(here, strip);
       if (clean !== here) router.replace(clean, { scroll: false });
     }
-    /* A mount-time latch from a prop the server decided, set once. */
+    /* A latch from what the server decided, taken once. */
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setOpen(true);
-  }, [show, seenKey, strip, router]);
+    setLatched({ moment, values, details, primary, secondary, haptic });
+  }, [show, moment, values, details, primary, secondary, haptic, seenKey, strip, router]);
 
-  const words = successCopy(copy, moment, values);
+  if (!latched) return null;
+  const words = successCopy(copy, latched.moment, latched.values);
   return (
     <SuccessSheet
-      open={open}
-      onOpenChange={setOpen}
+      open
+      onOpenChange={(open) => {
+        if (!open) setLatched(null);
+      }}
       variant={words.variant}
       title={words.title}
       body={words.body}
-      details={details}
-      primary={primary ?? { label: copy.continue }}
-      secondary={secondary}
-      haptic={haptic}
+      details={latched.details}
+      primary={latched.primary ?? { label: copy.continue }}
+      secondary={latched.secondary}
+      haptic={latched.haptic}
     />
   );
 }

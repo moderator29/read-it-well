@@ -1,5 +1,4 @@
 import type { Dictionary } from "@vallo/i18n/core";
-import { ButtonLink } from "@/components/ui/Button";
 import { SectionHead } from "@/components/site/landing/SectionHead";
 import { VerticalColumns } from "./VerticalColumns";
 
@@ -13,8 +12,10 @@ import { VerticalColumns } from "./VerticalColumns";
  * words, the Truchet field and the sideways day, each of which repeated a
  * neighbouring room (LandingBody.tsx says which), and the HUD. This band
  * keeps its wall and now takes the landing's one section head, so its title
- * sits on the same type scale as every other room. Words come from the
- * `reel` dictionary.
+ * sits on the same type scale as every other room. It carries no button of
+ * its own since the clean pass: its "Start searching" went to /search, the
+ * same door as the hero's one action and the search itself. Words come from
+ * the `reel` dictionary.
  */
 
 const WALL = [
@@ -39,11 +40,7 @@ export function PlacesBand({ t }: { t: Dictionary }) {
   const p = t.reel.places;
   return (
     <section className="nf-shell nf-room nf-places" data-chapter="places" aria-labelledby="nf-cine-places-title">
-      <SectionHead id="nf-cine-places-title" eyebrow={p.overline} title={p.title} lede={p.body}>
-        <ButtonLink href="/search" variant="primary" size="md" trailingIcon="arrow-right" className="nf-places__cta nf-magnetic">
-          {p.cta}
-        </ButtonLink>
-      </SectionHead>
+      <SectionHead id="nf-cine-places-title" eyebrow={p.overline} title={p.title} lede={p.body} />
       <VerticalColumns photos={WALL} pauseLabel={p.pause} playLabel={p.play} />
     </section>
   );

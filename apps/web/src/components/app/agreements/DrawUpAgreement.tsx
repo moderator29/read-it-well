@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { openRentAgreement } from "@/lib/agreements/actions";
 import { PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
+import { withDone } from "@/lib/ui/success-moments";
 
 /**
  * The step after the inspection report (Track A).
@@ -35,7 +36,8 @@ export function DrawUpAgreement({ inspectionId, minDate }: { inspectionId: strin
             setError(result.error);
             return;
           }
-          router.push(`/agreements/${result.data.agreementId}`);
+          /* The agreement page checks the record before it shows the moment. */
+          router.push(withDone(`/agreements/${result.data.agreementId}`, "agreement-drawn"));
         });
       }}
     >

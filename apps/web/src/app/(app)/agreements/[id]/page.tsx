@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatMoney } from "@vallo/i18n/core";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readAgreement } from "@/lib/agreements/queries";
 import { PageHeader } from "@/components/app/PageHeader";
+import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
 import { Section, TYPE } from "@/components/app/Screen";
 import { AGREEMENT_STATUS_LABEL, CLAIM_STATUS_LABEL } from "@/components/app/agreements/status";
 import { AmendTerms, CancelAgreement, ClaimForm, ConfirmTerms } from "@/components/app/agreements/AgreementControls";
@@ -75,11 +78,18 @@ function num(terms: Record<string, unknown>, key: string): number | null {
  * the Vallo Guarantee is open for claims in the window after move-in or
  * check-in.
  */
-export default async function AgreementPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AgreementPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ done?: string | string[] }>;
+}) {
   const { id } = await params;
   const locale = await getLocale();
   const a = await readAgreement(id);
   if (!a) notFound();
+  const done = readDone((await searchParams).done);
 
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" });
   const now = requestTime();
@@ -93,8 +103,43 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
      the record and none of the parties' controls. */
   const party = a.role !== null;
 
+  /*
+   * THE SUCCESS MOMENT ON ARRIVAL (docs/SUCCESS_MOMENTS.md). A flag from the
+   * control that just acted, and each one checked against this agreement
+   * before a sheet opens: the flag asks, the record answers. Approval is
+   * written by the database into a notification, where no flag can ride, so
+   * it opens from the status itself, once per device.
+   */
+  const moment: SuccessMomentId | null = !party
+    ? null
+    : done === "agreement-drawn"
+      ? "agreementDrawn"
+      : done === "agreement-confirmed" && a.status === "in_review"
+        ? "agreementInReview"
+        : done === "agreement-confirmed" && a.status === "awaiting_parties" && a.youConfirmedCurrent
+          ? "agreementConfirmed"
+          : done === "claim-filed" && a.claims.some((c) => c.mine && c.status === "submitted")
+            ? "claimFiled"
+            : null;
+  const approvedMoment: SuccessMomentId | null =
+    party && a.status === "approved" ? (a.role === "renter" ? "agreementApprovedRenter" : "agreementApprovedOwner") : null;
+
   return (
     <main className="nf-page nf-md" data-testid="agreement-page" data-status={a.status}>
+      {/* Always rendered, here, with `show` deciding: it latches what it
+          says, so stripping the flag cannot take the sheet away. */}
+      <SuccessFromFlag
+        show={(moment ?? approvedMoment) !== null}
+        moment={moment ?? approvedMoment ?? "agreementDrawn"}
+        seenKey={moment ? undefined : `agreement-approved:${a.id}`}
+        details={[{ label: getDictionary(locale).success.detail.for, value: a.listingTitle }]}
+        primary={
+          !moment && approvedMoment && a.role === "renter" && payHref
+            ? { label: `Pay ${formatMoney(a.amountMinor, locale)}`, href: payHref }
+            : undefined
+        }
+        haptic={moment ? undefined : false}
+      />
       <PageHeader title="Agreement" />
       <p className={`${TYPE.body} mt-inline`}>
         <strong>{a.listingTitle}</strong> · {a.kind === "rent" ? "Rental" : "Stay"}

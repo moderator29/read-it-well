@@ -7,7 +7,6 @@ import type { MiniListing } from "@/lib/site/listing-card";
 import { AiShowcase, type ShowcaseScript } from "./AiShowcase";
 import type { GlassMotion } from "./glass-motion";
 import { SectionHead } from "./SectionHead";
-import { Sweep } from "./Sweep";
 
 const TRUTH_OBJECTS: readonly BrandIconName[] = ["listing-search", "coin-naira", "doc-review"];
 const TRUTH_MOTION: readonly GlassMotion[] = ["rise", "turn", "tilt"];
@@ -59,8 +58,7 @@ export function AiBand({ t, locale, cards }: { t: Dictionary; locale: Locale; ca
             ))}
           </MotionReveal>
           <div>
-            <ButtonLink href="/assistant" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
-              <Sweep />
+            <ButtonLink href="/assistant" variant="primary" size="md" trailingIcon="arrow-right">
               {a.cta}
             </ButtonLink>
           </div>

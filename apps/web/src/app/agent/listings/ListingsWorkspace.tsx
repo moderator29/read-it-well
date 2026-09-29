@@ -19,6 +19,7 @@ import {
 } from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { createUndoWindow, type UndoWindow } from "@/lib/ui/undo-window";
+import { withDone } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -173,7 +174,13 @@ function ConfirmSheet({
         return;
       }
       onClose();
-      router.refresh();
+      /* A listing sent for review lands back here with the moment named; the
+         page checks it is really in review before the sheet opens. */
+      if (state.kind === "submit") {
+        router.replace(withDone("/agent/listings", "listing-submitted", { listing: state.listing.id }), { scroll: false });
+      } else {
+        router.refresh();
+      }
     });
   }
 

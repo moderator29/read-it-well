@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { QrCode } from "./QrCode";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 
 /**
  * One crypto payment, from "send it here" to the receipt.
@@ -170,7 +172,23 @@ export function CryptoPaymentStatus({
   onPayAnotherWay?: () => void;
 }) {
   const t = getDictionary(locale).cryptoPay;
+  const s = getDictionary(locale).success;
   const view = useLivePayment(initial);
+
+  /*
+   * THE SUCCESS SHEET OPENS ON A TRANSITION SEEN HERE, never on arrival.
+   * The row only becomes `settled` when a signed provider report is applied
+   * in the database, so watching it change is watching the truth. A payment
+   * that was already settled when the page loaded is a receipt being reread
+   * and gets no celebration; overpaid, underpaid and refunded never do.
+   */
+  const [celebrate, setCelebrate] = useState(false);
+  const [seenState, setSeenState] = useState(initial.state);
+  if (seenState !== view.state) {
+    setSeenState(view.state);
+    if (view.state === "settled" && seenState !== "settled") setCelebrate(true);
+  }
+  const paidWords = successCopy(s, "cryptoPaid");
   const left = useCountdown(view.expiresAt);
   const p = { provider: providerName, asset: view.asset, network: view.networkName };
 
@@ -288,6 +306,20 @@ export function CryptoPaymentStatus({
       )}
 
       <p className="nf-caption leading-relaxed text-[var(--nf-content-muted)]">{fill(t.noCustody, p)}</p>
+
+      <SuccessSheet
+        open={celebrate}
+        onOpenChange={setCelebrate}
+        variant={paidWords.variant}
+        title={paidWords.title}
+        body={paidWords.body}
+        amount={{ minorUnits: view.amountMinor, locale }}
+        details={[
+          { label: s.detail.amount, value: `${view.cryptoReceived ?? view.cryptoAmount} ${view.asset}` },
+          { label: s.detail.reference, value: view.reference, mono: true },
+        ]}
+        primary={{ label: s.continue }}
+      />
     </div>
   );
 }

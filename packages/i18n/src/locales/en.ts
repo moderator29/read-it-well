@@ -759,11 +759,6 @@ export const en = {
         careers: "Careers",
       },
       hero: {
-        /* The render's breadcrumb reads PROPERTY / STAYS / INVEST / MANAGE.
-           Invest is gone because Vallo sells no investment product and the
-           landing may not name a capability with no shipped surface;
-           Restaurants takes the slot because /restaurants is shipped. */
-        crumbs: ["Property", "Stays", "Restaurants", "Manage"],
         /*
          * THE HEADLINE IS THE FOUNDER'S, WORD FOR WORD, AND IT IS COUPLED TO
          * THE SEARCH CONTROL. DO NOT EDIT EITHER ONE ALONE.
@@ -787,24 +782,17 @@ export const en = {
          *
          * NIGERIA, NOT AFRICA, and the word changes when the fact changes.
          *
-         * The last clause is conditional on purpose. "Where there is one" is
-         * load bearing, because there are no owner listings in the catalogue
-         * today: the sentence is true on a catalogue that has none, and it
-         * stays true on the day the first one lands.
+         * THE SUB-LINE IS ONE LINE (the clean pass, 29 September). It used to
+         * run four, naming the lister and dealing with the owner "where there
+         * is one"; the hero now says where you can look and the one thing
+         * Vallo shows you first, and the owner clause, which is conditional
+         * on owner listings existing, is left to the pages that can show one.
          */
         title1: "Rent, buy or stay.",
         title2: "Without the runaround.",
         subtitle:
-          "Homes, land, hotels and shortlets across Nigeria, with the person behind each listing named. See what you will actually pay before you call anybody, and deal with the owner directly where there is one.",
+          "Homes, land and stays across Nigeria, with the real cost shown before you call anybody.",
         explore: "Explore Properties",
-        stays: "Explore Stays",
-        /* "Popular Cities" was the label and popularity is a claim: nothing
-           in this database counts a view, a search or a booking, so there is
-           no row anywhere that could say which city is popular. Rule 15 is
-           not only about digits. The four are doors into real searches and
-           the label now says exactly that much and no more. */
-        citiesLabel: "Start with a city",
-        cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
       },
       search: {
         label: "Search Vallo",
@@ -830,52 +818,6 @@ export const en = {
         cities: "Cities",
         states: "States",
       },
-      /* The ten-tile "Everything you need in one platform" grid was
-         removed from the page on the founder's ruling of 19 September
-         (it is not in his render) and its strings went with it in the
-         content truth sweep. One of them was an Invest tile, and Vallo
-         sells no investment product. */
-      /*
-       * THE FEATURE BAND, AND THE RULE IT NOW OBEYS.
-       *
-       * Six cells, the render's composition exactly. What changed is what
-       * they claim. Every one of the six names a capability with a shipped
-       * surface behind it, and the route is written beside it here so the
-       * next person can check rather than trust: buy and rent (/search,
-       * /rent, /inspections), Vallo Stays (/stays, /stays/search,
-       * /restaurants), the wallet (/wallet), bookings and trips (/bookings,
-       * /trips), messages (/messages) and the assistant (/assistant).
-       *
-       * What came off: "One Platform / Every city. Everywhere.", which is a
-       * reach claim rather than a capability, and "Property Management",
-       * which was true but said nothing about the Stays half. The agent
-       * console and the host tools are named in the How Vallo works Manage
-       * step instead, where the routes can be stated in a sentence.
-       */
-      /*
-       * WHAT THE SIX NOW SAY, AFTER THE POSITIONING CHANGE OF 22 SEPTEMBER.
-       *
-       * The position is one sentence: Vallo does not remove the agent, it
-       * removes the runaround. Three of these cells carry a part of it, and
-       * each part is a surface that ships rather than one that is coming:
-       * what a place actually costs (the move-in figure and its breakdown on
-       * the listing page), who is behind the listing (the lister on the card
-       * and in the thread), and the record of what was said. The other three
-       * are unchanged because they were already true.
-       *
-       * NOT CLAIMED HERE: that a listing can be had direct from its owner.
-       * It can where there is an owner listing and there is not one yet, so
-       * the headline's conditional clause carries that and no chip repeats it
-       * unconditionally.
-       */
-      chips: {
-        verified: { title: "Buy and rent", sub: "What moving in costs, not the rent alone." },
-        ai: { title: "AI assistant", sub: "Ask in four languages. Real listings back." },
-        wallet: { title: "The Vallo Guarantee", sub: "Vallo never holds your money. A reserve stands behind rentals and stays." },
-        one: { title: "Bookings and trips", sub: "Stays, tables and inspections, by date." },
-        stays: { title: "Vallo Stays", sub: "Hotels, apartments, resorts, guest houses, tables." },
-        manage: { title: "Messages", sub: "Whoever is behind the listing, on the record." },
-      },
       community: {
         overline: "Real people. Real places.",
         /*
@@ -890,53 +832,26 @@ export const en = {
            answer for the word. One account for both sides is a fact about the
            product and says the same thing without asking the reader to take
            anything on trust. */
-        title: "One account for [[renters, buyers and guests,]] [[agents and hosts.]]",
+        /* The clean pass (29 September): "One account" headlined four rooms
+           of this page, so each room now has a line of its own. This one is
+           about who the platform is for; brackets are no longer used, so
+           the heading takes the one section-title style. */
+        title: "Built for both sides of the deal.",
         /* THE FIGURES BESIDE THIS LINE CAN BE NONE, AND THE LINE HAS TO READ
            CORRECTLY WHEN THEY ARE. `statTiles` drops any count of zero and
            returns nothing at all when the platform cannot answer, so the band
            prints no figures rather than a nought dressed as a fact. The line
            said "every count on this page" and pointed at an empty space. */
-        body: "Both sides of Vallo, one account. Where there is nothing true to show, nothing is shown.",
-        join: "Join Vallo today",
+        body: "Renters, buyers and guests on one side. Agents and hosts on the other.",
         thirdParty: "Third party",
         thirdPartyTitle: "Partner inventory, always labelled",
         thirdPartyBody:
           "A stay fulfilled by a partner carries this tag and says who confirms it. It is never dressed as first party.",
       },
-      /*
-       * THE FOUR STEPS ARE THE POSITION, WALKED THROUGH.
-       *
-       * The runaround is agent fees stacked on agent fees, chains of agents
-       * on one property, scattered listings and unclear costs. So the steps
-       * answer the three questions that runaround leaves open: what is this
-       * going to cost me, who am I actually dealing with, and is there a
-       * record afterwards. "Simple Steps. Big Possibilities." answered none
-       * of them and is the marketing register this voice does not use.
-       *
-       * The second step is "Check" rather than "Verify" because a person
-       * checks the LISTER, not the property, and a step labelled Verify above
-       * a sentence about people invites the reader to hear it about bricks.
-       */
-      how: {
-        overline: "How Vallo works",
-        title: "Four steps, and nobody in the way.",
-        body: "Find it, see who is behind it and what it will really cost, then inspect it, book it and keep the record.",
-        steps: {
-          discover: { title: "Discover", body: "Search homes, land, hotels and shortlets across Nigeria, from one account." },
-          verify: { title: "Check", body: "See who is behind a listing, how far their checks have gone, and what moving in costs." },
-          experience: { title: "Experience", body: "Message the lister, inspect, book a night or a table, and pay inside Vallo." },
-          /* The agent console and the host tools are the property
-             management claim, and both are shipped: /agent/listings and
-             /host. Named here rather than as a feature chip so the routes
-             can be stated. */
-          manage: { title: "Manage", body: "Run your listings from the agent console, or your stay from host tools." },
-        },
-      },
       categories: {
         overline: "Explore by category",
-        title: "Find exactly what you're looking for.",
-        body: "Apartments, houses and land on the Property side; hotels, resorts and guest houses on Vallo Stays. Every tile opens a real search across Nigeria.",
-        join: "Join Vallo",
+        title: "Browse by kind of place.",
+        body: "Every tile opens a real search across Nigeria, on the Property side or on Vallo Stays.",
         apartments: "Apartments",
         houses: "Houses",
         shortlets: "Shortlets",
@@ -952,26 +867,6 @@ export const en = {
         commercial: "Commercial",
         land: "Land",
         count: "{count} listed",
-      },
-      stays: {
-        overline: "Vallo Stays",
-        title: "Stay somewhere worth remembering.",
-        /* "Across Nigeria" is the reach this platform has and the only reach
-           it names anywhere. The word changes when the fact changes. */
-        body: "Hotels, apartments, resorts, guest houses, serviced apartments and restaurant tables across Nigeria, booked on the account you already have.",
-        cta: "Explore Stays",
-        /* The render's six rows, and the Stays side serves every one of them:
-           `hotel`, `apartment`, `resort`, `guest_house` and
-           `serviced_apartments` are stay types in lib/stays/types.ts, and
-           restaurants have their own surface. Shortlets, villas and
-           experiences stood in three of these slots and are still reachable
-           from the stays search. */
-        hotels: "Hotels",
-        apartments: "Apartments",
-        resorts: "Resorts",
-        guestHouses: "Guest Houses",
-        serviced: "Serviced Apartments",
-        restaurants: "Restaurants",
       },
       app: {
         title: "Take Vallo with you.",
@@ -1137,41 +1032,6 @@ export const en = {
          in words rather than printing a zero dressed as a figure. */
       count: "{count} listed",
       none: "Nothing listed yet",
-    },
-    /*
-     * What the account DOES, as against what it holds. Every line is built and
-     * reachable today; the plan lives in `next` and is labelled as a plan.
-     */
-    oneAccount: {
-      overline: "All of it, in one place",
-      title: "Search, talk, pay and keep the record, without leaving Vallo",
-      body: "Most property in Nigeria is arranged across a phone call, a WhatsApp thread and a bank transfer, and none of those remember anything. Here the conversation, the money and the paperwork are the same account, so a year later you can still show what happened.",
-      points: {
-        wallet: {
-          title: "Payments Vallo never holds",
-          body: "Pay by card or bank transfer once both of you confirm the agreement and Vallo approves it. The owner's or agent's share goes straight to their bank.",
-        },
-        savings: {
-          title: "The Vallo Guarantee",
-          body: "Between 1 and 2 percent of every payment goes to a separate reserve. If something covered goes wrong, claim in the 72 hours after you move in or check in.",
-        },
-        assistant: {
-          title: "An assistant that reads the catalogue",
-          body: "Ask in plain words, in any of four languages, and get real listings back with the figures attached.",
-        },
-        messages: {
-          title: "Messages with the lister",
-          body: "Every conversation with an agent stays on the platform, so there is a record if anything is ever disputed.",
-        },
-        verified: {
-          title: "Agents checked by a person",
-          body: "A person reviews every agent application by hand before they can publish, and the listing shows when it was checked.",
-        },
-        record: {
-          title: "Receipts and agreements",
-          body: "Payments, bookings and documents are kept against your account for as long as you have one.",
-        },
-      },
     },
     /*
      * The roadmap. The one section describing what does not exist yet, and the
