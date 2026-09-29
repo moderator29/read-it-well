@@ -29,6 +29,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { guardMoney } from "../security/money-limits";
 import { accountHoldRefusal } from "../security/account-hold-guard";
@@ -453,7 +454,15 @@ export async function removeBankAccount(id: string, stepUp?: string): Promise<Ac
 /* -------------------------------------------------------------------- list */
 
 /** The caller's live accounts, default first, then oldest. */
-export async function listBankAccounts(): Promise<ActionResult<BankAccount[]>> {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function listBankAccounts(
+  ...args: Parameters<typeof listBankAccountsInner>
+): Promise<Awaited<ReturnType<typeof listBankAccountsInner>>> {
+  return setupExempt(() => listBankAccountsInner(...args));
+}
+
+async function listBankAccountsInner(): Promise<ActionResult<BankAccount[]>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);

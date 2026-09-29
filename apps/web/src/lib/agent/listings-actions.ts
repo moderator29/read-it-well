@@ -32,6 +32,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { isFeatureEnabled } from "../flags";
 import { compoundColumns, type CompoundPayload } from "../listings/compound";
 import { serviceColumns, type ServicePayload } from "../listings/service";
@@ -1489,7 +1490,15 @@ export async function deleteListing(input: {
 /* ----------------------------------------------------------------- read */
 
 /** Every listing the caller owns, in every status, with its cover photo. */
-export async function getMyListings(): Promise<ActionResult<ListingSummary[]>> {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function getMyListings(
+  ...args: Parameters<typeof getMyListingsInner>
+): Promise<Awaited<ReturnType<typeof getMyListingsInner>>> {
+  return setupExempt(() => getMyListingsInner(...args));
+}
+
+async function getMyListingsInner(): Promise<ActionResult<ListingSummary[]>> {
   const gate = await requireAgent();
   if (!gate.ok) return fail(gate.error);
   const listings = await readMyListings(gate.supabase, gate.agentId);

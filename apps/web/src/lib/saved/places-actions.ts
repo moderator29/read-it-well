@@ -31,6 +31,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { SAVED_PLACE_KINDS, asSavedPlaceKind, type SavedPlaceKind } from "./db";
 import type { SavedPlace } from "./places";
 
@@ -131,7 +132,15 @@ export async function unsavePlace(input: {
  * signed out or unconfigured rather than an error: a shortlist is a section
  * of a screen with other things on it.
  */
-export async function listSavedPlaces(input?: {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function listSavedPlaces(
+  ...args: Parameters<typeof listSavedPlacesInner>
+): Promise<Awaited<ReturnType<typeof listSavedPlacesInner>>> {
+  return setupExempt(() => listSavedPlacesInner(...args));
+}
+
+async function listSavedPlacesInner(input?: {
   entityKind?: SavedPlaceKind;
 }): Promise<ActionResult<SavedPlace[]>> {
   const parsed = validate(listSchema, input ?? {});

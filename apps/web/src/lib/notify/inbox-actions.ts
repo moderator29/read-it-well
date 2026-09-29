@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { loadNotificationPage, type NotificationRow } from "./inbox";
 
 /**
@@ -20,7 +21,15 @@ const cursorSchema = z.object({
   id: z.uuid(),
 });
 
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
 export async function loadOlderNotifications(
+  ...args: Parameters<typeof loadOlderNotificationsInner>
+): Promise<Awaited<ReturnType<typeof loadOlderNotificationsInner>>> {
+  return setupExempt(() => loadOlderNotificationsInner(...args));
+}
+
+async function loadOlderNotificationsInner(
   input: unknown,
 ): Promise<ActionResult<{ rows: NotificationRow[]; more: boolean }>> {
   const session = await resolveSession();

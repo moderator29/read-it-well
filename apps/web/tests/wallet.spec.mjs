@@ -10,6 +10,7 @@
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, SKIP_EXIT } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE_PATH = "/opt/pw-browsers/chromium";
@@ -27,35 +28,47 @@ function check(name, condition) {
 
 async function main() {
   const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
-  const context = await browser.newContext({
+  console.log(`wallet golden path against ${BASE_URL}`);
+
+  /*
+   * THE WALLET WAS RETIRED WITH CUSTODY. `/wallet` is a redirect to
+   * `/agreements` (next.config.ts), and since 23 September that answers a
+   * signed-out visitor with the sign-in wall. Both are asserted. The balance
+   * checks below need a member whose account still draws the balance section:
+   * they run signed in as the QA member, and are reported as SKIP (exit 77)
+   * without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD, or when the balance section
+   * is not on the page.
+   */
+  const res = await fetch(`${BASE_URL}/wallet`, { redirect: "manual" });
+  const to = new URL(res.headers.get("location") ?? "/", BASE_URL).pathname;
+  check(`/wallet forwards to /agreements (${res.status} ${to})`, [307, 308].includes(res.status) && to === "/agreements");
+  await expectSignInWall(check, "/agreements", BASE_URL);
+
+  const state = await signInAsQa(browser, { base: BASE_URL });
+  if (!state) {
+    await browser.close();
+    if (failures.length > 0) {
+      console.error(`\n${failures.length} check(s) failed.`);
+      process.exit(1);
+    }
+    process.exit(SKIP_EXIT);
+  }
+  const context = await qaContext(browser, state, {
     colorScheme: "dark",
     viewport: { width: 390, height: 844 },
   });
   const page = await context.newPage();
-
-  console.log(`wallet golden path against ${BASE_URL}`);
   await page.goto(`${BASE_URL}/wallet`, { waitUntil: "load", timeout: 60_000 });
   await page.waitForTimeout(1_500);
 
-  /*
-   * A wallet belongs to a session. Signed out, `/wallet` renders the way in
-   * rather than somebody else's balance, and every check below asserts against
-   * a balance - so with no session they cannot run, which is not the same as
-   * failing. This sandbox cannot reach Supabase, so which branch ran is
-   * printed rather than assumed.
-   */
   if ((await page.locator("section[aria-labelledby='nf-wallet-balance-label']").count()) === 0) {
-    console.log("  skip    no session, so there is no wallet to show a balance for");
-    check(
-      "signed out, it offers the way in rather than an empty wallet",
-      (await page.locator('a[href^="/sign-in"]').count()) >= 1,
-    );
+    console.log("  SKIP    no balance section on the page this member lands on, so there is no balance to check");
     await browser.close();
-    /* `failures` is an ARRAY here, not a counter. Comparing it to 0 is always
-       false, which would have reported a clean skip as a failure. */
-    if (failures.length > 0) console.error(`\n${failures.length} check(s) failed.`);
-    else console.log("\nall wallet checks passed.");
-    process.exit(failures.length > 0 ? 1 : 0);
+    if (failures.length > 0) {
+      console.error(`\n${failures.length} check(s) failed.`);
+      process.exit(1);
+    }
+    process.exit(SKIP_EXIT);
   }
 
   /* ------------------------------------------------------- balance hero */

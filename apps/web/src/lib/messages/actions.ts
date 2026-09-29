@@ -27,6 +27,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { isFeatureEnabled } from "../flags";
 import { getListingRepository } from "../listings/repository";
 import { reservationHostUserId, reservationSpine } from "../reservations/host";
@@ -153,7 +154,8 @@ export async function startConversation(input: {
 export async function findConversationForListing(input: {
   listingId: string;
 }): Promise<ActionResult<{ conversationId: string | null }>> {
-  return findOrStartConversation(input, false);
+  /* B-2: a lookup that starts nothing, so the finish-setup hold is lifted. */
+  return setupExempt(() => findOrStartConversation(input, false));
 }
 
 /**

@@ -25,6 +25,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { consume, retryIn, subjectForUser } from "../security/rate-limit";
 import {
   POST_FAILURE,
@@ -762,7 +763,15 @@ const ENDED: FeedPage = { posts: [], cursor: null, ended: true };
  * so nobody can page through another person's places: signed out it is an
  * ended page, which is exactly what `getJoinedFeed` answers for a stranger.
  */
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
 export async function loadMoreFeed(
+  ...args: Parameters<typeof loadMoreFeedInner>
+): Promise<Awaited<ReturnType<typeof loadMoreFeedInner>>> {
+  return setupExempt(() => loadMoreFeedInner(...args));
+}
+
+async function loadMoreFeedInner(
   cursor: string | null,
   mode: FeedMode = { kind: "everywhere" },
 ): Promise<ActionResult<FeedPage>> {

@@ -2,7 +2,7 @@ import "server-only";
 
 import { formatMoney } from "@vallo/i18n/core";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { resolveSession, type SessionState } from "../actions/session";
+import { resolveWriteSession, type SessionState } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
 import { loadConversationSummaries, type LiveConversationSummary } from "../messages/live";
 import { parseSettings } from "../profile/schema";
@@ -1045,7 +1045,10 @@ export async function runSupportTool(
 /** One auth round trip per request, shared by the throttle and every tool. */
 export async function resolveSupportCaller(): Promise<SessionState> {
   try {
-    return await resolveSession();
+    /* The write resolver: an account that owes the finish-setup step (B-2)
+       is helped as a visitor, and no personal tool (a ticket, a booking
+       change) runs for it. */
+    return await resolveWriteSession();
   } catch {
     // An auth read that cannot run means the caller is treated as signed out:
     // they still get help, and no personal tool will answer.

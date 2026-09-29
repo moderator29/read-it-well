@@ -36,6 +36,7 @@ import {
 } from "@/lib/security/rate-limit";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { accountSetupOwed } from "@/lib/actions/session";
 import type {
   AssistantListingItem,
   AssistantStreamEvent,
@@ -810,6 +811,9 @@ async function resolveCaller(): Promise<Caller> {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { signedIn: false };
+    /* B-2: an account that owes the finish-setup step (terms + 18+) is
+       answered as a visitor, so nothing is written to its threads. */
+    if (await accountSetupOwed(supabase, user)) return { signedIn: false };
     return { signedIn: true, supabase, userId: user.id };
   } catch {
     // An auth read that cannot run means we treat the caller as anonymous: they

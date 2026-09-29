@@ -28,6 +28,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { isFeatureEnabled } from "../flags";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { guardMoney } from "../security/money-limits";
@@ -83,7 +84,15 @@ async function siteOrigin(): Promise<string> {
 }
 
 /** The caller's live saved cards, default first, then newest. */
-export async function listPaymentMethods(): Promise<ActionResult<PaymentMethod[]>> {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function listPaymentMethods(
+  ...args: Parameters<typeof listPaymentMethodsInner>
+): Promise<Awaited<ReturnType<typeof listPaymentMethodsInner>>> {
+  return setupExempt(() => listPaymentMethodsInner(...args));
+}
+
+async function listPaymentMethodsInner(): Promise<ActionResult<PaymentMethod[]>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);

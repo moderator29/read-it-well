@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { SHOT_SLOTS } from "./shot-list";
 
 /**
@@ -42,7 +43,15 @@ export async function setPhotoSlot(input: { photoId: string; slot: string | null
 }
 
 /** The labels on a listing's photos, by photo id. Empty on any failure. */
-export async function readPhotoSlots(listingId: string): Promise<Record<string, string>> {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function readPhotoSlots(
+  ...args: Parameters<typeof readPhotoSlotsInner>
+): Promise<Awaited<ReturnType<typeof readPhotoSlotsInner>>> {
+  return setupExempt(() => readPhotoSlotsInner(...args));
+}
+
+async function readPhotoSlotsInner(listingId: string): Promise<Record<string, string>> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return {};
   try {

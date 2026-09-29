@@ -181,7 +181,9 @@ try {
     (await backToForm.count()) === 1 &&
       (await backToForm.innerText()).trim() === "Back to sign up" &&
       (await page.getByTestId("welcome-skip-all").count()) === 0 &&
-      (await page.locator('button:has-text("Skip"), a:has-text("Skip")').count()) === 0,
+      /* "Skip to content" is the page's accessibility skip link (.nf-skip-link),
+         which every screen now carries; it is not a way out of the tour. */
+      (await page.locator('button:has-text("Skip"), a:has-text("Skip"):not(.nf-skip-link)').count()) === 0,
   );
   await backToForm.click();
   await page.waitForURL((url) => url.pathname === "/sign-up/email", { waitUntil: "domcontentloaded" });

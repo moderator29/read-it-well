@@ -171,3 +171,181 @@ describe("resolveSession", () => {
     expect(getUser).toHaveBeenCalledTimes(2);
   });
 });
+
+/**
+ * B-2 FOLLOW-UP: THE FINISH-SETUP HOLD ON WRITES.
+ *
+ * The edge gate holds only GET page loads, so a Google or Apple account that
+ * has not accepted the terms and the 18+ statement could still post, message,
+ * book or pay by calling an action directly. Inside a server action,
+ * `resolveSession()` answers such an account as signed out, so every write
+ * refuses in the envelope it already speaks. Three properties matter:
+ *
+ *   1. owed (social-only, no flag, no receipt) inside an action -> refused;
+ *   2. done (the flag, or the receipt on file) -> allowed;
+ *   3. an email account costs NOTHING: no header read and no query.
+ */
+describe("resolveSession: the finish-setup hold", () => {
+  const request = vi.hoisted(() => ({ headers: new Headers(), headerReads: 0 }));
+  const rows = vi.hoisted(() => ({ data: [] as { document: string }[], error: null as unknown, reads: 0 }));
+
+  vi.mock("next/headers", () => ({
+    headers: async () => {
+      request.headerReads += 1;
+      return request.headers;
+    },
+    cookies: async () => ({ getAll: () => [], set: () => undefined }),
+  }));
+
+  const from = vi.fn((table: string) => {
+    if (table !== "terms_acceptances") throw new Error(`unexpected read of ${table}`);
+    return {
+      select: () => ({
+        eq: () => ({
+          in: async () => {
+            rows.reads += 1;
+            return { data: rows.data, error: rows.error };
+          },
+        }),
+      }),
+    };
+  });
+
+  const GOOGLE = { id: "user-g", app_metadata: { provider: "google", providers: ["google"] } };
+  const APPLE_DONE = {
+    id: "user-a",
+    app_metadata: { provider: "apple", providers: ["apple"], vallo_setup_done: true },
+  };
+  const EMAIL = { id: "user-e", app_metadata: { provider: "email", providers: ["email"] } };
+  const LINKED = { id: "user-l", app_metadata: { provider: "google", providers: ["google", "email"] } };
+
+  function asAction() {
+    request.headers = new Headers({ "next-action": "abc123" });
+  }
+
+  beforeEach(() => {
+    getUser.mockReset();
+    from.mockClear();
+    server.createClient.mockReset();
+    env.isSupabaseConfigured.mockReset();
+    env.isSupabaseConfigured.mockReturnValue(true);
+    server.createClient.mockImplementation(async () => ({ auth: { getUser }, from }));
+    request.headers = new Headers();
+    request.headerReads = 0;
+    rows.data = [];
+    rows.error = null;
+    rows.reads = 0;
+  });
+
+  it("refuses a write from a social-only account that owes the step", async () => {
+    getUser.mockResolvedValue({ data: { user: GOOGLE } });
+    asAction();
+    const { resolveSession } = await loadSession();
+
+    expect(await resolveSession()).toEqual({ state: "signed-out", setupOwed: true });
+    expect(rows.reads).toBe(1);
+  });
+
+  it("allows the write once the receipt is on file, read under the member's own client", async () => {
+    getUser.mockResolvedValue({ data: { user: GOOGLE } });
+    rows.data = [{ document: "terms" }, { document: "age_18_or_over" }];
+    asAction();
+    const { resolveSession } = await loadSession();
+
+    const session = await resolveSession();
+    expect(session.state).toBe("signed-in");
+    expect(from).toHaveBeenCalledWith("terms_acceptances");
+  });
+
+  it("still refuses with only half the record (terms, no age statement)", async () => {
+    getUser.mockResolvedValue({ data: { user: GOOGLE } });
+    rows.data = [{ document: "terms" }];
+    asAction();
+    const { resolveSession } = await loadSession();
+
+    expect((await resolveSession()).state).toBe("signed-out");
+  });
+
+  it("allows a finished account from the flag alone, with no read", async () => {
+    getUser.mockResolvedValue({ data: { user: APPLE_DONE } });
+    asAction();
+    const { resolveSession } = await loadSession();
+
+    expect((await resolveSession()).state).toBe("signed-in");
+    expect(from).not.toHaveBeenCalled();
+    expect(request.headerReads).toBe(0);
+  });
+
+  it("costs an email account nothing: no header read, no query", async () => {
+    getUser.mockResolvedValue({ data: { user: EMAIL } });
+    asAction();
+    const { resolveSession, resolveWriteSession, accountSetupOwed } = await loadSession();
+
+    expect((await resolveSession()).state).toBe("signed-in");
+    expect((await resolveWriteSession()).state).toBe("signed-in");
+    expect(await accountSetupOwed({ from } as never, EMAIL as never)).toBe(false);
+    expect(from).not.toHaveBeenCalled();
+    expect(request.headerReads).toBe(0);
+  });
+
+  it("never holds an account that also has an email identity", async () => {
+    getUser.mockResolvedValue({ data: { user: LINKED } });
+    asAction();
+    const { resolveSession } = await loadSession();
+
+    expect((await resolveSession()).state).toBe("signed-in");
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("leaves page renders to the proxy: no hold without the action header", async () => {
+    getUser.mockResolvedValue({ data: { user: GOOGLE } });
+    const { resolveSession } = await loadSession();
+
+    expect((await resolveSession()).state).toBe("signed-in");
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("holds a writing route handler whatever the request kind", async () => {
+    getUser.mockResolvedValue({ data: { user: GOOGLE } });
+    const { resolveWriteSession } = await loadSession();
+
+    expect(await resolveWriteSession()).toEqual({ state: "signed-out", setupOwed: true });
+  });
+
+  it("lifts the hold inside setupExempt (sign-out, deletion, read-only actions)", async () => {
+    getUser.mockResolvedValue({ data: { user: GOOGLE } });
+    asAction();
+    const { resolveSession } = await loadSession();
+    const { setupExempt } = await import("./setup-exempt");
+
+    const inside = await setupExempt(() => resolveSession());
+    expect(inside.state).toBe("signed-in");
+    expect(from).not.toHaveBeenCalled();
+    /* ...and only inside it. */
+    expect((await resolveSession()).state).toBe("signed-out");
+  });
+
+  it("lets the write through when the record cannot be read, like the edge gate", async () => {
+    getUser.mockResolvedValue({ data: { user: GOOGLE } });
+    rows.error = { message: "timeout" };
+    asAction();
+    const { resolveSession } = await loadSession();
+
+    expect((await resolveSession()).state).toBe("signed-in");
+  });
+
+  it("reads the record once per request however many resolutions an action makes", async () => {
+    getUser.mockResolvedValue({ data: { user: GOOGLE } });
+    asAction();
+    const { resolveSession } = await loadSession();
+    const leave = enterRequestScope();
+    try {
+      await Promise.all([resolveSession(), resolveSession()]);
+      await resolveSession();
+      expect(rows.reads).toBe(1);
+      expect(getUser).toHaveBeenCalledTimes(1);
+    } finally {
+      leave();
+    }
+  });
+});

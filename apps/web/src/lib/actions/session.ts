@@ -1,7 +1,11 @@
 import "server-only";
 
 import { cache } from "react";
+import { headers } from "next/headers";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { mayOweSetup } from "../auth/finish-setup";
+import { setupStillOwed } from "../auth/finish-setup-server";
+import { insideSetupExempt } from "./setup-exempt";
 import type { Database } from "../supabase/database.types";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -16,7 +20,11 @@ import { createClient } from "../supabase/server";
  */
 export type SessionState =
   | { state: "unconfigured" }
-  | { state: "signed-out" }
+  /* `setupOwed` marks a Google or Apple account that is signed in but has not
+     finished setting up (terms + 18+), refused on a write. See
+     "THE FINISH-SETUP HOLD" below. It narrows exactly like a signed-out
+     session, so every action already refuses it in its own envelope. */
+  | { state: "signed-out"; setupOwed?: true }
   | { state: "signed-in"; supabase: SupabaseClient<Database>; user: User };
 
 /**
@@ -58,7 +66,7 @@ export type SessionState =
  * request-scoped client over the same cookie store, so a second one is a second
  * object reading identical cookies.
  */
-export const resolveSession = cache(async function resolveSession(): Promise<SessionState> {
+const readSession = cache(async function readSession(): Promise<SessionState> {
   if (!isSupabaseConfigured()) return { state: "unconfigured" };
   const supabase = await createClient();
   const {
@@ -67,6 +75,92 @@ export const resolveSession = cache(async function resolveSession(): Promise<Ses
   if (!user) return { state: "signed-out" };
   return { state: "signed-in", supabase, user };
 });
+
+/**
+ * THE FINISH-SETUP HOLD, ON THE SERVER (B-2 follow-up).
+ *
+ * `proxy.ts` holds a Google or Apple account that has not yet accepted the
+ * terms and the 18+ statement at `/sign-up/finish`, but only on GET page
+ * loads (`finishSetupGateApplies`): a server action or an `/api` POST is never
+ * redirected there, because a 307 would break the fetch and could trap
+ * somebody who only wanted to sign out. So the hold on WRITES lives here, in
+ * the one resolver every action already calls.
+ *
+ * THE RULE IS THE PROXY'S. `mayOweSetup` decides from the verified user's
+ * `app_metadata` (providers, and the service-role-only `vallo_setup_done`
+ * flag) with no read, so an email or phone account, or a social one that has
+ * finished, costs nothing here: not a header read, not a query. Only a
+ * social-only account without the flag reads its own `terms_acceptances`
+ * rows, under RLS, once per request (`setupStillOwed`). A read that fails lets
+ * the request through, the same posture as the edge gate.
+ *
+ * WHEN IT HOLDS. Inside a server action (`next-action` header), every
+ * `resolveSession()` answers `{ state: "signed-out", setupOwed: true }` for
+ * an account that owes the step, so the action refuses in the envelope it
+ * already speaks ("Sign in to continue.", which the UI already shows, and
+ * whose sign-in link lands a signed-in person on the step via the edge gate).
+ * Page renders are NOT held here; the proxy owns those. A route handler that
+ * writes calls `resolveWriteSession()`, which holds regardless of the request
+ * kind, or `accountSetupOwed()` when it resolves its own user.
+ *
+ * WHAT IS NEVER HELD: signing out, account deletion and restore, and
+ * read-only actions, each of which runs its body inside `setupExempt(...)`
+ * (lib/actions/setup-exempt.ts).
+ * `finishSocialSetup` resolves its own user and never comes through here.
+ */
+
+/** Whether this request is a server action call. False outside a request. */
+async function isServerActionCall(): Promise<boolean> {
+  try {
+    return (await headers()).has("next-action");
+  } catch {
+    return false;
+  }
+}
+
+/** One read per request at most, and only for a social-only account. */
+const setupOwedThisRequest = cache(async function setupOwedThisRequest(): Promise<boolean> {
+  const session = await readSession();
+  if (session.state !== "signed-in") return false;
+  return setupStillOwed(session.supabase, session.user);
+});
+
+const SETUP_OWED: SessionState = { state: "signed-out", setupOwed: true };
+
+/**
+ * Whether an account a route resolved itself still owes the step. No read
+ * for an email account or a finished one; the rule is `setupStillOwed`.
+ */
+export async function accountSetupOwed(
+  supabase: Parameters<typeof setupStillOwed>[0],
+  user: Pick<User, "id" | "app_metadata">,
+): Promise<boolean> {
+  if (!mayOweSetup({ app_metadata: user.app_metadata ?? null })) return false;
+  if (insideSetupExempt()) return false;
+  return setupStillOwed(supabase, user);
+}
+
+async function holdIfSetupOwed(session: SessionState, always: boolean): Promise<SessionState> {
+  if (session.state !== "signed-in") return session;
+  /* Pure, from the verified user: an email account stops here. */
+  if (!mayOweSetup({ app_metadata: session.user.app_metadata ?? null })) return session;
+  if (insideSetupExempt()) return session;
+  if (!always && !(await isServerActionCall())) return session;
+  return (await setupOwedThisRequest()) ? SETUP_OWED : session;
+}
+
+/** The session for a server action or a page. See the two notes above. */
+export async function resolveSession(): Promise<SessionState> {
+  return holdIfSetupOwed(await readSession(), false);
+}
+
+/**
+ * The session for a route handler that writes: held for an account that owes
+ * the finish-setup step whatever the request kind.
+ */
+export async function resolveWriteSession(): Promise<SessionState> {
+  return holdIfSetupOwed(await readSession(), true);
+}
 
 /**
  * WHO IS ASKING, WHEN THE ANSWER NEEDED IS ONLY AN ID.
@@ -111,3 +205,5 @@ export const resolveSessionClaims = cache(async function resolveSessionClaims():
 export const NOT_CONFIGURED_MESSAGE =
   "We cannot reach this part of the platform right now. Nothing you entered was lost.";
 export const SIGNED_OUT_MESSAGE = "Sign in to continue.";
+/** For a surface that can say more than the envelope does. */
+export const SETUP_OWED_MESSAGE = "Finish setting up your account to continue.";

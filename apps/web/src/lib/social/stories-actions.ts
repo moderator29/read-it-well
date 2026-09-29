@@ -320,7 +320,7 @@ export async function deleteStoryComment(input: {
 }
 
 const STORY_COMMENT_DELETE = {
-  gone: "That comment could not be deleted from here. It may be gone already, or it is being checked; a comment being checked can be deleted once the check finishes. Refresh to see the comments as they are.",
+  gone: "That comment could not be deleted from here. It may be gone already, or it is waiting for review; a comment waiting for review can be deleted once the review finishes. Refresh to see the comments as they are.",
   down: "We could not delete that comment just now. It is still there. Please try again in a moment.",
   notYet: "Deleting a comment is not switched on yet. Your comment is still there.",
 } as const;

@@ -1,6 +1,7 @@
 "use server";
 
 import { resolveSession } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import type { AccountCheckOutcome, AccountCheckView } from "./account-check";
 
 /**
@@ -24,7 +25,15 @@ type UntypedFrom = {
   };
 };
 
-export async function readAccountCheck(messageId: string): Promise<AccountCheckView | null> {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function readAccountCheck(
+  ...args: Parameters<typeof readAccountCheckInner>
+): Promise<Awaited<ReturnType<typeof readAccountCheckInner>>> {
+  return setupExempt(() => readAccountCheckInner(...args));
+}
+
+async function readAccountCheckInner(messageId: string): Promise<AccountCheckView | null> {
   if (typeof messageId !== "string" || !UUID_RE.test(messageId)) return null;
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;

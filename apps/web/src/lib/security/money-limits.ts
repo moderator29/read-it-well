@@ -192,7 +192,7 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     bucket: "card_setup_confirm",
     limit: 30,
     windowSeconds: TEN_MINUTES,
-    refusal: "We have checked that card many times in the last few minutes and have stopped for now. This does not mean it failed: if the check went through, the card shows on this page once it is saved.",
+    refusal: "We have asked about that card many times in the last few minutes and have stopped for now. This does not mean it failed: if it went through, the card shows on this page once it is saved.",
   },
   /* Crypto (lib/crypto/actions.ts). A quote costs a provider call, so it is
      counted like opening a payment page. The status poll is sized like
