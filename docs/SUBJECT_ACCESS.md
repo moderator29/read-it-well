@@ -27,6 +27,14 @@ from `GET /api/account/export`.
   host: their listings and listing photos, their venues' accommodations,
   photos and business documents. The lists are `OWNED_TABLES` and
   `CHILD_TABLES` in `apps/web/src/lib/account/export.ts`.
+- **The retired money tables (dated note, 29 September 2026).** Those lists
+  still name `wallets`, `wallet_pots`, `wallet_entries`, `escrows` and
+  `escrow_evidence`. On 25 September 2026 those tables moved to the
+  `retired_custody` schema, which no app role can read, so in the export
+  each of them comes back marked `unavailable` instead of holding rows. A
+  person who wants their retired wallet or escrow records gets them through
+  the by-request route below. The newer money records (`deal_agreements`,
+  `guarantee_claims`, payout accounts) are not in the lists yet.
 - **How it is kept to that person:** every read uses the member's own session
   (RLS applies) and is filtered on the table's owner column to the member's
   id. Child rows are reached only through the member's own parent rows.

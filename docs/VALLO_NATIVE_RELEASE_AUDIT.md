@@ -218,8 +218,10 @@ UNVERIFIED. Manifest defects fixed (F-02, F-12), Gradle parses, but no Gradle
 build has ever run.
 
 ## 5. IOS BUILD
-BLOCKED: no Xcode in this environment, and signing needs the Apple Developer
-organisation account (D-U-N-S pending).
+BLOCKED: no Xcode in this environment, and signing needs an Apple Developer
+account. Since 29 September 2026 that is the founder's personal account first
+(no D-U-N-S needed), with a transfer to the VALLO SPACES LTD account later
+(`docs/MOBILE.md` section 7).
 
 ## 6. ANDROID BUILD
 UNVERIFIED: environment lacks toolchain. A debug build needs only a machine
@@ -264,8 +266,10 @@ PARTIAL. Icons, splash and listing copy exist; store-size screenshots and the
 Play feature graphic do not.
 
 ## 16. APPLE DEVELOPER ACTIONS
-REQUIRES-DEVELOPER-ACCOUNT-ACTION, all blocked on the D-U-N-S number: see
-section 7 below and `VALLO_IOS_RELEASE_CHECKLIST.md`.
+REQUIRES-DEVELOPER-ACCOUNT-ACTION, blocked on the founder's personal Apple
+enrolment (the company account and its D-U-N-S number are only needed for
+the later transfer): see section 7 below, `VALLO_IOS_RELEASE_CHECKLIST.md`
+and `docs/MOBILE.md` section 7.
 
 ## 17. GOOGLE PLAY ACTIONS
 Status of the Play Console account is unconfirmed; treated as not started. See
@@ -277,7 +281,7 @@ Nothing has been tested on a device, by anyone, ever. The full list is
 
 ## 19. RELEASE BLOCKERS
 1. No native build has compiled (both platforms).
-2. Apple Developer organisation enrolment (D-U-N-S pending): blocks signing, APNs, Associated Domains, TestFlight.
+2. Apple Developer enrolment, on the founder's personal account first (no D-U-N-S needed): blocks signing, APNs, Associated Domains, TestFlight. The transfer to the VALLO SPACES LTD account comes later and changes the Team ID (`docs/MOBILE.md` section 7).
 3. Play Console account, upload keystore and Play App Signing: blocks the AAB and App Links.
 4. Association file values (Team ID, two fingerprints): `cap:sync` refuses without them.
 5. Firebase Android API key in `google-services.json` (the FCM service account is already in Vercel): the release build refuses without it.
@@ -322,15 +326,20 @@ Nothing has been tested on a device, by anyone, ever. The full list is
 
 ## 7. Human-action checklist (outside the codebase, genuinely outstanding)
 
-Apple (all blocked until the D-U-N-S number arrives):
+Apple, stage 1 (the founder's personal account; no D-U-N-S needed):
 
-- [ ] Complete Apple Developer Program enrolment as VALLO SPACES LTD
+- [ ] Complete Apple Developer Program enrolment as an Individual on the founder's personal account
 - [ ] Register App ID `com.vallospaces.app`; enable Push Notifications, Associated Domains (and Sign In with Apple only when the plugin exists)
 - [ ] Create the APNs key (.p8); set `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_PRODUCTION=true` in Vercel Production
 - [ ] Put the Team ID into `apps/web/public/.well-known/apple-app-site-association`
 - [ ] In Xcode, select the team and add the three capabilities (Xcode adopts `App/App.entitlements`)
 - [ ] Create the App Store Connect app record
 - [ ] Archive, upload, TestFlight
+
+Apple, stage 2 (after the D-U-N-S number arrives):
+
+- [ ] Complete Apple Developer Program enrolment as an Organization, VALLO SPACES LTD
+- [ ] Transfer the app to the company account in App Store Connect, then redo everything tied to the Team ID: the association file, the capabilities and profiles, the APNs key, the Sign in with Apple setup and the CI secrets (`docs/MOBILE.md` section 7)
 
 Google (Play Console status unconfirmed):
 

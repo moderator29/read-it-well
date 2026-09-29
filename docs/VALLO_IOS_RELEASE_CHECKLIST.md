@@ -2,7 +2,7 @@
 
 28 September 2026. Status words: READY (verified by a static check or test),
 NEEDS CONFIGURATION (a repository or Xcode step, no account needed),
-BLOCKED BY APPLE DEVELOPER ACCOUNT (D-U-N-S pending), UNVERIFIED (needs Xcode
+BLOCKED BY APPLE DEVELOPER ACCOUNT (the founder's personal enrolment, see step 1), UNVERIFIED (needs Xcode
 or a device). Release status and findings: `VALLO_NATIVE_RELEASE_AUDIT.md`.
 Console click paths: `store/FOUNDER_STEPS.md`.
 
@@ -42,7 +42,7 @@ Console click paths: `store/FOUNDER_STEPS.md`.
 
 ## Steps, in order
 
-1. [ ] Apple Developer Program enrolment as VALLO SPACES LTD (waiting on D-U-N-S).
+1. [ ] Apple Developer Program enrolment under the founder's PERSONAL account (Individual, no D-U-N-S needed). The app moves to the VALLO SPACES LTD account by an App Store transfer once the company's Organization enrolment completes; the Team ID then changes, and the capabilities on the App ID, the APNs key (step 3), the link file (step 4) and the CI secrets are redone for the new team (`docs/MOBILE.md` section 7).
 2. [ ] App ID `com.vallospaces.app` with Push Notifications, Associated Domains and Sign In with Apple (all three are in the entitlements file).
 3. [ ] APNs key: set `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_PRODUCTION=true` in Vercel Production. Never commit the `.p8`.
 4. [ ] Team ID into `apps/web/public/.well-known/apple-app-site-association`; deploy; confirm at `https://app-site-association.cdn-apple.com/a/v1/www.vallospaces.com`.

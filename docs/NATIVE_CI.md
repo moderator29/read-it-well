@@ -30,6 +30,12 @@ stored anywhere.
 | `APP_STORE_CONNECT_ISSUER_ID` | the same page, "Issuer ID" above the list |
 | `APP_STORE_CONNECT_KEY_P8_BASE64` | the `AuthKey_XXXXXXXXXX.p8` file that downloads once, base64 encoded: `base64 -i AuthKey_XXXXXXXXXX.p8 \| pbcopy` on a Mac, then paste |
 
+**All four come from the founder's personal Apple account first (the founder's
+decision, 29 September 2026).** When the app is transferred to the VALLO SPACES
+LTD account, the Team ID changes and the API key belongs to the old account, so
+all four secrets are replaced with values from the company account. The full
+list of what changes with the transfer is in `docs/MOBILE.md` section 7.
+
 The App ID `com.vallospaces.app` must have **Push Notifications**,
 **Associated Domains** and **Sign In with Apple** ticked, because
 `ios/App/App/App.entitlements` carries all three and signing refuses an

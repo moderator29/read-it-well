@@ -32,7 +32,7 @@ Order of operations, because some steps depend on earlier ones:
 
 ## 0. Who owns the accounts (OPS-P2-02, FOUNDER)
 
-**Today the company does not own its own production.** The live database is Supabase project `uccixoonmbhrnyczyigt`. It sits in a project named after a personal Gmail address, inside an organisation called `Naijafinds`. Hosting is Vercel team `boosthubservice-2204's projects`, next to unrelated projects. A lost personal login or a lapsed personal card would take VALLO SPACES LTD's customer data, wallet ledger and KYC store with it.
+**Today the company does not own its own production.** The live database is Supabase project `uccixoonmbhrnyczyigt`. It sits in a project named after a personal Gmail address, inside an organisation called `Naijafinds`. Hosting is Vercel team `boosthubservice-2204's projects`, next to unrelated projects. A lost personal login or a lapsed personal card would take VALLO SPACES LTD's customer data, payment ledgers and KYC store with it.
 
 Only the founder can move them. Both moves keep the same URLs, keys and data.
 
@@ -42,7 +42,7 @@ Only the founder can move them. Both moves keep the same URLs, keys and data.
 2. **Supabase.**
    - Signed in as `ops@`, create the organisation **VALLO SPACES LTD**.
    - Invite a second person as **Owner**.
-   - Put the company card on it and choose **Pro**, which gives daily backups (OPS-07). Point-in-time recovery is a separate add-on on top of Pro; turn it on too, because the wallet ledger is in this database.
+   - Put the company card on it and choose **Pro**, which gives daily backups (OPS-07). Point-in-time recovery is a separate add-on on top of Pro; turn it on too, because the payment and Guarantee ledgers are in this database.
    - From an account that owns both organisations, open project `uccixoonmbhrnyczyigt`, then **Project Settings → General → Transfer project**, and choose VALLO SPACES LTD.
    - The project URL and API keys do not change, so no Vercel variable changes.
 3. **Vercel.**
@@ -112,14 +112,14 @@ nobody re-adds a key on the strength of having seen it here once.
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | The whole Supabase layer switches off. Every client is env-guarded, so nothing crashes: discovery returns **nothing** and every screen draws its designed empty state, sign-in and sign-up render as honest disabled states. The seed catalogue this row used to promise as a fallback was deleted, deliberately, and an honest absence replaced it (ADR-005). Nothing writes to a database. | Supabase dashboard, Project Settings, API. Already known for this project: `https://uccixoonmbhrnyczyigt.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as above. The URL alone is not enough; `isSupabaseConfigured()` requires both, and the auth proxy (`src/proxy.ts`) becomes a pass-through. | Supabase dashboard, Project Settings, API, "anon public" key |
-| `SUPABASE_SERVICE_ROLE_KEY` (SERVER ONLY) | **Set this first, and verify it.** Every path that must bypass RLS legitimately stops working, and the worst one does so silently: the Paystack webhook answers HTTP 200 with `{received:false}` and no log (`app/api/paystack/webhook/route.ts:242-243`), so Paystack never retries and a funding that was paid for is lost permanently. The redirect verify path takes the same branch. This is the most probable cause of the reported wallet failure: `RECOMMENDATIONS.md` W-1. Also affected: booking `confirm`, and anonymous support escalation (there is deliberately no anon insert policy on `support_tickets`). Signed-in user paths under their own RLS keep working. | Supabase dashboard, Project Settings, API, "service_role" key. Treat as a root password |
-| `NEXT_PUBLIC_SITE_URL` | Absolute URLs fall back to `http://localhost:3000`. Consequences: Open Graph and canonical URLs in page metadata point at localhost, Paystack callback URLs built by the wallet actions point at localhost, and rendered email links point at localhost. This is the single most commonly forgotten variable and the damage is invisible until someone shares a link. | Your own production URL, for example `https://vallospaces.com`. No trailing slash |
+| `SUPABASE_SERVICE_ROLE_KEY` (SERVER ONLY) | **Set this first, and verify it.** Every path that must bypass RLS legitimately stops working, and the worst one does so silently: the Paystack webhook cannot settle a payment. It now answers 503 so Paystack keeps retrying (`app/api/paystack/webhook/route.ts`; it used to answer 200 with `{received:false}`, which lost the event: `RECOMMENDATIONS.md` W-1), but nothing settles until the key is set. Also affected: booking `confirm`, and anonymous support escalation (there is deliberately no anon insert policy on `support_tickets`). Signed-in user paths under their own RLS keep working. | Supabase dashboard, Project Settings, API, "service_role" key. Treat as a root password |
+| `NEXT_PUBLIC_SITE_URL` | Absolute URLs fall back to `http://localhost:3000`. Consequences: Open Graph and canonical URLs in page metadata point at localhost, Paystack callback URLs built by the payment actions point at localhost, and rendered email links point at localhost. This is the single most commonly forgotten variable and the damage is invisible until someone shares a link. | Your own production URL, for example `https://vallospaces.com`. No trailing slash |
 
 ### 2.2 Required per feature
 
 | Variable | If it is missing | Where to obtain it |
 |---|---|---|
-| `PAYSTACK_SECRET_KEY` (SERVER ONLY) | Wallet funding, withdrawal and transfer answer honestly that the capability switches on the moment the key lands, rather than pretending. The webhook route cannot verify a signature, so no ledger entry is ever settled. Money never moves. This is the **only** Paystack variable: funding redirects to Paystack's hosted checkout so no public key is read in the browser, and Paystack issues no separate webhook secret, signing each callback with an HMAC SHA-512 of the raw body keyed by this same key. | Paystack dashboard, Settings, API Keys and Webhooks. Use the **live** secret key in Production and a test key in Preview. Set the webhook URL on that same screen to `https://<your-domain>/api/paystack/webhook` |
+| `PAYSTACK_SECRET_KEY` (SERVER ONLY) | Payment answers honestly that the capability switches on the moment the key lands, rather than pretending. The webhook route cannot verify a signature and answers 503, so no ledger entry is ever settled. Money never moves. This is the **only** Paystack variable: payment redirects to Paystack's hosted checkout so no public key is read in the browser, and Paystack issues no separate webhook secret, signing each callback with an HMAC SHA-512 of the raw body keyed by this same key. | Paystack dashboard, Settings, API Keys and Webhooks. Use the **live** secret key in Production and a test key in Preview. Set the webhook URL on that same screen to `https://<your-domain>/api/paystack/webhook` |
 | `ANTHROPIC_API_KEY` (SERVER ONLY) | `/api/assistant` answers 200 with an honest message instead of streaming. The assistant UI still renders and the thread store still works; the model simply never speaks. | https://console.anthropic.com/settings/keys |
 | `ASSISTANT_MODEL` | Optional. Falls back to the default model pinned in `app/api/assistant/route.ts`. Only set this to move the assistant to a different model deliberately. | Not a secret. A model identifier |
 | `SUPPORT_MODEL` | Optional. The same, for the support escalation summariser in `app/api/support/route.ts`. Falls back to its own pinned default. | Not a secret. A model identifier |
@@ -128,7 +128,7 @@ nobody re-adds a key on the strength of having seen it here once.
 | `NF_DATA_SOURCE` | Optional. Selects the repository implementation for listings, agents and messages. Leave unset for the default. Setting it to `api` throws on the agent repository, which is not implemented. | Not a secret |
 | `NEXT_PUBLIC_AUTH_PROVIDERS` | **Leave unset, permanently.** Email and password only, by owner decision. Section 4.2 says why, and `RECOMMENDATIONS.md` N-4 removes the code. | Do not set |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | All six "contact support" surfaces point at `/contact` instead of a `mailto:`. That is a working channel, not a fallback: the form writes a real `support_tickets` row under RLS and the reply notifies the sender. Set this only once the mailbox genuinely receives mail, because an address that bounces fails silently while the person who wrote believes they have asked. | Your own mailbox, once it exists |
-| `NEXT_PUBLIC_NGN_USD_RATE` | The wallet's currency toggle does not render and balances show in naira only. There is deliberately no fallback rate in code: an invented or stale figure sitting where somebody reads their balance is worse than no conversion. | Naira per one US dollar |
+| `NEXT_PUBLIC_NGN_USD_RATE` | Nothing. It fed the wallet's currency toggle, and the wallet was retired on 25 September 2026; no code in `apps/web/src` reads it now. Leave it unset. | Do not set |
 
 ### 2.3 Optional, safe to leave empty at launch
 
@@ -365,7 +365,7 @@ opposite of the truth.
 
 - **Turn on leaked password protection.** Authentication, Policies. It is off,
   and it is the only genuine item on the security advisor list. Credential
-  stuffing against a marketplace with a naira wallet behind it is exactly what
+  stuffing against a marketplace that takes naira payments is exactly what
   it prevents. `docs/archive/DATABASE_AUDIT.md` section 1.1.
 - **Drop `private.probe_as` before real people's data arrives.** It sets
   `request.jwt.claims` so a probe can run as a signed-in person under RLS, which
@@ -398,9 +398,10 @@ month, which is the first point at which the performance list means anything.
 
 **Authentication, Users, Delete user** (and a hard delete through the Admin
 API) fails with `Database error deleting user` for almost anybody who has used
-the product, and that is deliberate. A person's wallet, bookings, escrows, rent
-records, escrow evidence, conversations, messages, reports and agent profile
-all refuse the delete (`ON DELETE RESTRICT`), because deleting one person must
+the product, and that is deliberate. A person's bookings,
+rent records, conversations, messages, reports and agent profile (and, in the
+`retired_custody` schema, any wallet and escrow rows from before 25 September
+2026) all refuse the delete (`ON DELETE RESTRICT`), because deleting one person must
 never take the other party's thread, money trail or moderation evidence with
 them.
 
@@ -461,11 +462,13 @@ concerned:
    `x-paystack-signature` header before parsing anything. Never introduce a
    body parser ahead of it.
 
-3. **Events consumed.** `charge.success` settles a funding reference
-   (`rm-fund-<uuid>`). `transfer.success`, `transfer.failed` and
-   `transfer.reversed` settle a withdrawal hold (`rm-wd-<uuid>`). Internal
-   transfers use paired `rm-p2p-<uuid>-out` and `-in` legs and never touch
-   Paystack. The route routes purely on these reference prefixes, so never
+3. **Events consumed.** `charge.success` and `charge.failed` on a booking
+   reference (`rm-book-<uuid>`) settle or fail that booking's split payment
+   through `lib/bookings/settlement.ts`; a charge that cannot be applied is
+   refunded to the card in full. A `charge.success` on an old wallet top-up
+   reference (`rm-fund-<uuid>`) is refunded to the card and never credited.
+   `transfer.*` events are acknowledged and ignored, because Vallo sends no
+   transfers. The route routes purely on these reference prefixes, so never
    invent a new reference shape without updating it.
 
 4. **Enable the payment channels the audience actually uses**: card, bank
@@ -491,7 +494,8 @@ worker is the one artefact that can outlive a bad deploy on a user's phone.
   `/manifest.webmanifest`. `start_url` is `/home`, `scope` is `/`, display
   `standalone`, orientation portrait, both colours the brand navy `#010118`.
   Shortcuts (long-press the home-screen icon) go to `/search`, `/bookings` and
-  `/wallet`.
+  `/agreements` (the Agreements shortcut still uses the old
+  `shortcut-wallet.png` art).
 - **Icons**: `apps/web/public/pwa/`, generated from the canonical brand cutout
   `/brand/vallo-mark.png`, cropped to the house-and-R mark and centred on the
   brand navy. 192, 512, a maskable 512 held inside the 80 per cent safe zone,
@@ -506,7 +510,8 @@ worker is the one artefact that can outlive a bad deploy on a user's phone.
   `/icons/` and `/pwa/` only.
 - **What it will never cache**: any HTML document other than the static
   `/offline` page, and anything whose first path segment is `api`, `admin`,
-  `agent`, `wallet`, `messages`, `notifications` or `auth`. Any response
+  `agent`, `wallet` (kept in the list although `/wallet` now only redirects to
+`/agreements`), `messages`, `notifications` or `auth`. Any response
   carrying `Authorization`, `Set-Cookie`, `Vary: Cookie` or a `no-store` or
   `private` cache directive is passed straight through. A money or messaging
   surface can never serve a stale answer.
@@ -548,18 +553,22 @@ With that server up, in a second shell:
 
 ```bash
 # 4. Playwright golden paths. Each is a plain node script, no runner.
-for spec in pwa admin agent-listings assistant bookings messages profile saved wallet; do
+for spec in pwa admin agent-listings assistant bookings messages profile saved; do
   BASE_URL=http://localhost:3210 node apps/web/tests/$spec.spec.mjs || echo "FAILED: $spec"
 done
 
 # 5. The 390px screenshot pass. Writes PNGs to scripts/.shots/.
-node scripts/verify-shots.mjs / /home /search /offline /wallet /bookings /messages
+node scripts/verify-shots.mjs / /home /search /offline /agreements /bookings /messages
 ```
+
+`apps/web/tests/wallet.spec.mjs` still exists but drives the retired `/wallet`
+surface, which now redirects to `/agreements`. Do not run it.
 
 Then, by eye:
 
 - **390px** is the reference width. Every touched surface is checked there,
-  in dark (the only theme).
+  in dark and in light (Settings, Appearance: Light, Dark or System; the
+  default is Dark). `apps/web/scripts/design/light/sweep.mjs` shoots both.
 - Listing photos and map tiles render as grey placeholders in this sandbox
   because it has no outbound access to Unsplash or the tile servers. They load
   on a real deploy. This is not a bug to fix.
@@ -584,23 +593,25 @@ Against the real production URL, on a real Android phone if possible.
    the page and not a blank tile.
 3. Open the installed app. It launches without browser chrome, opens on
    `/home`, and the status bar is navy rather than a pale strip.
-4. Long-press the home-screen icon. Search, Bookings and Wallet appear as
+4. Long-press the home-screen icon. Search, Bookings and Agreements appear as
    shortcuts, and each opens the right surface.
 5. In DevTools, Application, Service Workers: `sw.js` is activated and running.
    Application, Cache Storage shows `vallo-shell-v1` and `vallo-assets-v1`.
 6. Turn on airplane mode and navigate anywhere. The designed `/offline` screen
    appears with its heading, its three-point list and a working Try again
    button. Turn airplane mode off, tap Try again, and the app carries on.
-7. In Cache Storage, confirm no entry exists for `/wallet`, `/messages`,
+7. In Cache Storage, confirm no entry exists for `/agreements`, `/messages`,
    `/api/...` or any admin or agent path. This is the check that matters most.
 8. Sign in with Google. Sign in with Apple. Request a password reset and
    confirm the email that arrives is the branded Vallo template, with the logo
    loading.
-9. Fund the wallet with the smallest amount Paystack will accept, on a real
-   card. Confirm the balance moves, the transaction appears, and the
-   notification fires. Then check the Paystack dashboard shows the webhook
-   delivered a 200.
-10. Withdraw that amount back out and confirm the hold settles.
+9. Pay for the smallest real booking or agreement Paystack will accept, on a
+   real card. Confirm the transaction appears with its split (lister,
+   Guarantee reserve, Vallo), and the notification fires. Then check the
+   Paystack dashboard shows the webhook delivered a 200 and the split landed
+   in each subaccount.
+10. Refund that payment from the admin console and confirm it goes back to the
+    paying card (`docs/MONEY_ARCHITECTURE.md`).
 
 ### 8.1 Paging a human (OPS-03, V-01)
 
@@ -613,8 +624,7 @@ Three layers, each switched on by the founder once. None of them needs code.
    The catalogue canary (`/api/cron/canary`, every 5 minutes) raises one when
    the published catalogue cannot be read as the public role, reads fewer
    listings than exist, or is empty.
-   Alerts the DATABASE writes itself (the escrow float check, the money
-   reconciliation and push drain watchers, the content scanners) page through
+   Alerts the DATABASE writes itself (the money reconciliation and push drain watchers, the content scanners) page through
    the database instead, so they still leave when Vercel is down: in the
    Supabase SQL editor run, once, with the same URL,
    `select vault.create_secret('https://ntfy.sh/<that topic>', 'vallo_ops_alert_webhook_url');`
@@ -648,12 +658,13 @@ deploy.
   listings from real listers are a launch dependency (THE_AUDIT STORE-11).
 - **No real money has moved.** The Paystack paths, the webhook and the hourly
   reconciliation are built and tested, but no live charge or payout has run.
-  Third-party bank payouts are refused on a starter Paystack business, so a
-  withdrawal does not complete end to end today.
-- **Held payments (escrow) exist in code; who holds the money has not been
-  decided** (`docs/adr/0001-held-payments-custody-purpose-and-the-float.md`).
-  The purpose gate refuses every purpose except the agency fee. Do not describe
-  escrow in launch copy beyond what the product itself says.
+  No payment opens until the Guarantee reserve's subaccount
+  (`PAYSTACK_GUARANTEE_SUBACCOUNT`) is set and the lister has a Paystack
+  subaccount of their own.
+- **Vallo never holds customer money** (decided 25 September 2026,
+  [ADR 0002](adr/0002-vallo-never-holds-customer-money.md)). There is no
+  wallet, escrow, pot, withdrawal or held payment, and no launch copy may say
+  there is. Protection is the Vallo Guarantee (`docs/MONEY_ARCHITECTURE.md`).
 - **Crash reporting is wired and switched off.** `SENTRY_DSN` is not set in
   Vercel, so every crash report is a silent no-op. Set it before the first
   store submission (THE_AUDIT OPS-03).

@@ -13,8 +13,10 @@ The desk is `/admin/compliance`, one tab per obligation.
 
 A person whose name matched a list, who is under review, or about whom a report
 is filed sees nothing different, and is told nothing that names sanctions, a
-list, a review or a report. If money is held, they see only the neutral line
-"Nothing can leave this wallet for now" (hold reason `plain`, which names nothing, and no date). Staff
+list, a review or a report. If a hold is placed on the account, they see only
+the neutral line "No payment can be made from this account for now, and payout
+details cannot be changed" (hold reason `plain`, which names nothing, and no
+date; `hold.bodyPlain` in `packages/i18n/src/locales/platform.en.ts`). Staff
 say nothing more on the phone, in support or by email.
 
 ## SCUML items 8 and 9: sanctions screening
@@ -26,9 +28,10 @@ say nothing more on the phone, in support or by email.
   - submit or change an agent application (lister verification);
   - have an identity check recorded;
   - add a bank account or payout account, or when the bank returns its name;
-  - make any transaction: a card payment and its settlement line, every wallet
-    ledger entry, a rent payment, a held payment (escrow) and a business
-    transfer.
+  - make any transaction: a card payment and its settlement line, a rent
+    payment and a business transfer. (The wallet entry and escrow triggers
+    went with those tables into `retired_custody` on 25 September 2026, and
+    nothing writes there now.)
 - Triggers queue the screening, and the `sanctions-screen` job runs it every 15
   minutes. Nothing about a payment waits on it.
 - Every screening is recorded, clean ones included, in `sanctions_screenings`,

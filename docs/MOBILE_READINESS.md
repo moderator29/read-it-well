@@ -170,7 +170,7 @@ below invents a value: every identifier, key and fingerprint comes from the
 founder's own accounts.
 
 **Accounts and money**
-- [ ] Apple Developer Program enrolment (annual fee)
+- [ ] Apple Developer Program enrolment (annual fee), on the founder's personal account first; the app is transferred to the VALLO SPACES LTD account once its Organization enrolment (D-U-N-S) completes, and the Team ID, APNs key, Sign in with Apple setup and CI secrets are redone then (`docs/MOBILE.md` section 7)
 - [ ] Google Play Console registration (one-off fee)
 - [ ] A CI account (Codemagic or equivalent) connected to the repository, or a Mac with Xcode and a machine with Android Studio
 
@@ -183,7 +183,7 @@ founder's own accounts.
 - [ ] Android: create the upload keystore and write `apps/web/android/keystore.properties` per `docs/MOBILE.md` section 4 (both are gitignored)
 - [ ] iOS: distribution certificate and provisioning profiles in the Apple Developer portal; nothing in the repository holds them
 - [ ] `apps/web/public/.well-known/assetlinks.json`: replace both placeholders with the Play app-signing SHA-256 (Play Console, Release, Setup, App signing) and the upload-key SHA-256 (`keytool -list -v`)
-- [ ] `apps/web/public/.well-known/apple-app-site-association`: replace the Team ID placeholder with the ten-character Apple Team ID
+- [ ] `apps/web/public/.well-known/apple-app-site-association`: replace the Team ID placeholder with the ten-character Apple Team ID (the personal account's now, the company's after the transfer)
 - [ ] iOS Associated Domains: follow the three activation steps written inside `apps/web/ios/App/App/App.entitlements`
 
 **The build**

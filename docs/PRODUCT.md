@@ -372,8 +372,9 @@ is negotiated, plurals go through `Intl.PluralRules`.
 was removed on 23 September (`docs/design/LIGHT_MODE_REMOVED.md`, now history)
 and reintroduced properly after the five root causes in
 `docs/research/LIGHT_MODE_SURVEY.md` were answered: a complete light palette in
-`tokens.css`, a dark tile behind artwork drawn for the night, and anything over a
-photograph kept dark on purpose. The choice (Light, Dark, System) sits at the
+`tokens.css` with `apps/web/src/app/css/light.css`, a dark ground behind the logo
+and the role-switch coin, glass objects standing alone on white with a soft blue
+shadow, and anything over a photograph kept dark on purpose. The choice (Light, Dark, System) sits at the
 foot of the side navigation, is painted by the server from the `nf_theme`
 cookie, and defaults to Dark. Both themes are swept at 390px
 (`apps/web/scripts/design/light/sweep.mjs`).
@@ -397,7 +398,9 @@ RECOMMENDATIONS N-4.
 
 ## 9. Where the platform actually stands
 
-Counted live on 2026-08-09, project `uccixoonmbhrnyczyigt`:
+Counted live on 2026-08-09, project `uccixoonmbhrnyczyigt`. (Dated note, 28
+September 2026: `wallets` and `wallet_entries` moved to the `retired_custody`
+schema on 25 September 2026 and no role can reach them.)
 
 ```
 profiles 1   user_roles 2   agents 0   agent_applications 0

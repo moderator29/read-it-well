@@ -93,8 +93,11 @@ their call sites move to it route by route, and the wrappers are then deleted.
 On 24 September 2026, ten literal titles and bodies on the wrappers still being
 migrated broke the length limits. The seven on agent inspections, host photos,
 host reservations, host rooms and the feed were rewritten the same day. The
-three left are on the wallet and wallet transactions screens, which belong to
-the audit session.
+three left were on the wallet and wallet transactions screens, which belonged
+to the audit session. Those screens were deleted when the wallet was retired on
+25 September 2026, so the owed list should now be shorter than the budget;
+`scripts/design/state-sweep.mjs` says so when it is, and `LEGACY_BUDGET`
+should then be lowered to match.
 
 The sweep lists them as owed rather than failing on them. `LEGACY_BUDGET` is
 now 3 and may only go down: a new long line on a wrapper fails the sweep. So

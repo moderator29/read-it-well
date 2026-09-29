@@ -18,7 +18,7 @@ is defined nowhere in the codebase.
 
 **THE SWAP LANDED, 16 September 2026.** `BrandIcon` draws from
 `apps/web/public/brand/glass/`: 103 glass objects in the logo's own language,
-23 of them with a light twin that swaps in automatically on paper, and 12 hero
+23 of them with a light twin (drawn at the time, no longer rendered), and 12 hero
 scenes under `glass/hero/` that are scenes, never icons, and are painted with
 `next/image` at their own call sites rather than through this component.
 
@@ -31,8 +31,12 @@ scenes under `glass/hero/` that are scenes, never icons, and are painted with
 - The near-white ground plate on dark is gone, and **its absence is the
   standing acceptance test**: if an object ever needs a plate behind it to be
   visible on the night canvas, the cutout is wrong.
-- In daylight the single objects sit on one navy chip through one token,
-  `--nf-icon-ground`, and the transaction marks use their light twin instead.
+- In daylight (the light theme, restored 25 September 2026) every object
+  stands on its own with no ground behind it: a soft blue drop shadow and a
+  fade over the outer tenth of the image keep it defined on white
+  (`apps/web/src/app/css/light.css`, "THE ICON TILES"). The navy chip
+  `--nf-icon-ground` and the light twins are no longer drawn; the twin files
+  stay on disk under `public/brand/glass/light/` and nothing references them.
 - Seven clay names live on as `LEGACY_ALIASES` in `BrandIcon.tsx`, resolving
   to their glass substitutes so 36 call sites keep working. The renames belong
   to the files' owners. Two objects still need commissioning: `homes-sparkle`
@@ -131,13 +135,14 @@ an empty state.
 
 **Light theme.** None of the 41 has a light twin, because no render draws them
 on white and, as section 3 of `docs/BRAND_MARKS.md` established, no filter
-makes one. They take the same recipe as the other 80 untwinned objects: on
-paper `BrandIcon` paints the navy chip `--nf-icon-ground` behind them, and the
-tile-form objects (which arrive on their own glass tile, like the transaction
-marks) read as a tile on the chip. The preview at `/preview/g2` shows every
+makes one. In the light theme they take the same recipe as every other object:
+no chip behind them, a soft blue drop shadow, and the outer tenth of the image
+faded so a tile-form object (one that arrives on its own glass tile, like the
+transaction marks) ends in falloff rather than a hard edge
+(`apps/web/src/app/css/light.css`). The preview at `/preview/g2` shows every
 one at 32, 48 and 96 on canvas, card, elevated and the glass card, in both
 themes; the proof shots `docs/design/proofs/g2/objects-390-dark.png` and
-`objects-390-light.png` were removed from the tree with the other build proofs
+`objects-390-light.png` (taken before the light recipe changed) were removed from the tree with the other build proofs
 and remain in git history (last present at `85c5471`; the rest of the proofs
 tree was removed at `77cf90ad`).
 
@@ -204,8 +209,17 @@ listing cards, not in any object.
 ## Tier 2: UiIcon, stroked glyphs (navigation and controls)
 
 `apps/web/src/design-system/icons/UiIcon.tsx`. A 24 grid, SF-quality stroked
-set. Used for ALL navigation (rails, tab bar, headers, chips) and small
-controls. Never replaced by the 3D pack: navigation must stay flat and fast.
+set. Used for the dock capsule, headers, chips and small controls, and as the
+fallback for any navigation row with no glass object mapped.
+
+**Navigation does use glass objects (Track M, 25 September 2026).** The side
+navigation drawer rows (`components/app/NavTree.tsx`) and the dock's sub-nav
+tray (`components/app/DockMore.tsx`) draw the glass object that
+`GLASS_FOR` in `apps/web/src/lib/nav/glass-glyph.ts` maps to each line glyph.
+A destination missing from that map falls back to its `UiIcon`, and Settings
+is left out of the map on purpose. The five-icon dock capsule keeps its line
+glyphs. The older rule that navigation never uses the 3D pack is superseded
+for those two surfaces.
 
 **One weight.** `UI_ICON_STROKE_PX` is 1.5 RENDERED CSS pixels, and the
 `stroke-width` attribute is computed from the size rather than passed in.
@@ -297,6 +311,6 @@ notification to bell-alert, language to globe-pin, settings to doc-shield.
 
 ## Added 25 September 2026 (Tracks E and J)
 
-Line icons, all `currentColor`, added to `UiIcon`: `contrast` (the theme control), and for the property-type and space tiles `storefront`, `briefcase`, `land-plot`, `house-duplex`, `house-terrace`, `house-bungalow`, `tower-penthouse`, `door` and a plain `check` (the selected tick; the verified mark is never used as a tick). In light mode every glass PNG, the logo and the role-switch coin sit on one dark tile (`--nf-night-tile-*`, `app/css/light.css`), the ground the artwork was drawn for.
+Line icons, all `currentColor`, added to `UiIcon`: `contrast` (the theme control), and for the property-type and space tiles `storefront`, `briefcase`, `land-plot`, `house-duplex`, `house-terrace`, `house-bungalow`, `tower-penthouse`, `door` and a plain `check` (the selected tick; the verified mark is never used as a tick). In light mode the logo and the role-switch coin sit on one dark ground (`--nf-night-tile-*`, `app/css/light.css`), the ground they were drawn for. The glass objects first sat on that ground too; the founder later chose the object alone, so in light mode they now carry no tile, only a soft blue drop shadow and an edge fade (section 1 above).
 
 Also added by Tracks G and L: `archive` (the inbox archive control) and `price-tag` (Price Check in the side navigation).

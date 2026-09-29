@@ -2,7 +2,7 @@
 
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
-**Light mode was removed on 23 September 2026** (`LIGHT_MODE_REMOVED.md`). Rows below that describe light-theme captures or light twins are kept as history; they are not work to do.
+**Light mode was removed on 23 September 2026 and restored on 25 September 2026** (`LIGHT_MODE_REMOVED.md`). It ships today with a Light / Dark / System choice (default Dark). Rows below that describe light-theme captures from before the removal, or the light twins, are kept as history: the restored light theme does not draw the twins or the navy icon plate (`apps/web/src/app/css/light.css`).
 
 Source: `docs/design/references/` and its two SUBFOLDERS. Every UUID file was opened and inspected. Exact duplicates were confirmed by MD5 checksum, so "exact duplicate" below means byte-identical, not merely similar.
 

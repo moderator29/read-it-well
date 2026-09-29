@@ -78,6 +78,14 @@ list.**
 
 ### 2. Withdrawing or receiving money requires a bank account whose name matches, via Paystack
 
+> **Dated note, 29 September 2026.** Since Track A (25 September 2026) there is
+> no withdrawal and no wallet to wallet move, and `lib/wallet/actions.ts` was
+> deleted. A lister receives money only as their share of a split payment, into
+> their own Paystack subaccount (`payout_accounts`, set up through
+> `lib/agent/payout-actions.ts`). The bullets below describe the wallet paths
+> as they stood before that. This gate needs re-checking against the payout
+> account path and `lib/identity/name-match.ts` before it is quoted.
+
 **PARTIALLY ENFORCED. The account must be real. Nothing checks it is yours.**
 
 - Enforced: the bank code is checked against the live Paystack registry, and

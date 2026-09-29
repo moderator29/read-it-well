@@ -188,7 +188,7 @@ everywhere.
    header).
 3. **The side drawer is a designed surface, per the drawer render** (see
    catalogue): user block at top (avatar, name, view profile), then the
-   rows that are NOT in the dock: Messages, Notifications, Saved, Wallet,
+   rows that are NOT in the dock: Messages, Notifications, Saved,
    Bookings (Trips on Stays side), Inspections, AI Assistant, **Crypto**,
    workspace rows (Agent Mode where earned, Console where admin), Become
    an agent, Settings; at the foot the FLIP COIN as the star (two-faced
@@ -197,8 +197,10 @@ everywhere.
    toggle beneath it.
 4. **Crypto is a new side-nav feature.** A market surface driven by the
    CoinGecko API with GeckoTerminal for pair/DEX data: prices, movers,
-   simple detail pages, in the glass register (this is also where wallet
-   crypto funding via Yellow Card is surfaced). Server-side proxy route,
+   simple detail pages, in the glass register. (It was also to surface
+   wallet funding in crypto through Yellow Card; the wallet was retired on
+   25 September 2026, and crypto is now accepted only through Yellow Card,
+   settling in naira straight to each party; see `docs/MONEY_ARCHITECTURE.md`.) Server-side proxy route,
    key from the founder (`COINGECKO_API_KEY`), cached responses, graceful
    dark state until the key lands, display-only (no trading, no advice
    copy). No new colour: price-up is emerald, price-down is rose.
@@ -208,9 +210,11 @@ everywhere.
    it from the reference PNG, alpha-key it with the existing
    `scripts/cut-icon-ground.mjs` pipeline, file it through
    `scripts/icon-manifest.mjs` with a lowercase-hyphen name, and use it,
-   provided it carries no baked text. Navigation stays on the stroked
-   UiIcon tier restyled to the renders' line weight. No black-and-white
-   content icons anywhere the renders show glass ones.
+   provided it carries no baked text. The dock capsule and headers stay on
+   the stroked UiIcon tier restyled to the renders' line weight; since Track
+   M (25 September 2026) the side drawer rows and the dock's sub-nav tray use
+   the glass objects mapped in `apps/web/src/lib/nav/glass-glyph.ts`. No
+   black-and-white content icons anywhere the renders show glass ones.
 6. **Photography ships now.** The background plates and property photos in
    the reference folder (catalogue's ASSETS list) are the product's
    imagery: the landing hero plate behind the hero, the skyline plates
@@ -220,8 +224,9 @@ everywhere.
    restaurant). Wire them through the existing scene manifest and
    `listing_photos` seeding paths, sized and compressed properly
    (next/image, correct sizes, no multi-megabyte originals shipped raw).
-7. **The wallet, profile, settings, stays and admin renders in the folder
-   govern their surfaces** exactly as the five governing images do theirs;
+7. **The profile, settings, stays and admin renders in the folder
+   govern their surfaces** (the wallet render governs nothing since the
+   wallet was retired) exactly as the five governing images do theirs;
    the catalogue names which file rules which page. Profile follows the
    new profile render (cover, avatar, counts, tabs); its children (edit
    profile, followers) inherit. Feed inner pages (post thread, place
@@ -232,8 +237,12 @@ everywhere.
 A surface closes only when ALL of these hold:
 1. Screenshot at 390px dark matches the governing image's composition,
    depth and mood side by side, with the comparison kept with the change.
-2. Dark only: there is no light theme to verify
-   (`docs/design/LIGHT_MODE_REMOVED.md`).
+2. Both themes: the surface is checked at 390px in dark and in light.
+   Light mode was removed on 23 September 2026 and restored on 25 September
+   (`docs/design/LIGHT_MODE_REMOVED.md`); the palette is the
+   `:root[data-theme="light"]` block in `tokens.css` plus
+   `apps/web/src/app/css/light.css`, and
+   `apps/web/scripts/design/light/sweep.mjs` screenshots both themes.
 3. Every control on the screen is FUNCTIONAL end to end (the ONE LAW):
    real action, real data, real state change, notification where deserved.
    Nothing ships as a picture of a feature.
