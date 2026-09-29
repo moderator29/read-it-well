@@ -2576,7 +2576,7 @@ export const en = {
       uploadFailed: "That photo did not finish uploading. Please try it again.",
       /* The photo gate's refusals, one per cause, each naming what to do. */
       heicUndecodable:
-        "This photo is in the iPhone HEIC format, which this browser cannot open. On the iPhone, set Camera, Formats to Most Compatible, or share the photo as a JPEG, then add it again.",
+        "This photo is in the HEIC format, which this browser cannot open. On an iPhone, set Camera, Formats to Most Compatible. On Android, turn off High efficiency pictures in the camera's settings. Or share the photo as a JPEG, then add it again.",
       undecodable: "This file could not be opened as a photo. Try exporting it again as a JPEG.",
       uploadTooBig: "That photo is over {max}. Most phones can export a smaller copy.",
       uploadWrongType: "That file type cannot be stored. Use a JPEG, PNG or WebP photo.",
