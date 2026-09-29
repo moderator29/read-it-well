@@ -70,10 +70,10 @@ describe("B-7a: report kinds the notify trigger can link", () => {
     for (const kind of Object.values(SOCIAL_REPORT_KIND)) expect(kind).toBe(kind.toLowerCase());
   });
 
-  it("every social kind has a link in the pending notify_report, and a word in the reporter's own list", () => {
+  it("every social kind has a link in the applied notify_report, and a word in the reporter's own list", () => {
     const sql = readFileSync(
       new URL(
-        "../../../../../supabase/migrations/pending/20260929120000_b7_report_links_and_own_story_comment_removal.sql",
+        "../../../../../supabase/migrations/20260929122523_b7_report_links_and_own_story_comment_removal.sql",
         import.meta.url,
       ),
       "utf8",
@@ -92,7 +92,7 @@ describe("B-7a: report kinds the notify trigger can link", () => {
   it("the link names an id only: the post page is where RLS decides what a reporter sees", () => {
     const sql = readFileSync(
       new URL(
-        "../../../../../supabase/migrations/pending/20260929120000_b7_report_links_and_own_story_comment_removal.sql",
+        "../../../../../supabase/migrations/20260929122523_b7_report_links_and_own_story_comment_removal.sql",
         import.meta.url,
       ),
       "utf8",
@@ -146,10 +146,10 @@ describe("B-7b: deleting your own story comment", () => {
     expect(db.calls).toHaveLength(0);
   });
 
-  it("the pending migration keeps RLS as it was: invoker function, no member delete policy", () => {
+  it("the applied migration keeps RLS as it was: invoker function, no member delete policy", () => {
     const sql = readFileSync(
       new URL(
-        "../../../../../supabase/migrations/pending/20260929120000_b7_report_links_and_own_story_comment_removal.sql",
+        "../../../../../supabase/migrations/20260929122523_b7_report_links_and_own_story_comment_removal.sql",
         import.meta.url,
       ),
       "utf8",

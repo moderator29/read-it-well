@@ -2,11 +2,12 @@
 
 import { PersonTier } from "./PersonTier";
 import type { PersonTier as PersonTierValue } from "@/lib/admin/reads/shapes";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { useOverlay } from "@/lib/ui/use-overlay";
 import { NavIcon } from "./AdminGlyph";
 import {
   ADMIN_NAV,
@@ -295,23 +296,11 @@ export function AdminTabs({
     0,
   );
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-        button.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    panel.current?.querySelector<HTMLElement>("a, button, summary")?.focus();
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
+  /* The shared overlay contract (lib/ui/use-overlay.ts): Escape closes, the
+     page does not scroll behind, Tab stays inside, and focus goes back to
+     the menu button. It used to hand-roll the first two and skip the trap. */
+  const close = useCallback(() => setOpen(false), []);
+  useOverlay({ open, onClose: close, panelRef: panel });
 
   return (
     <>

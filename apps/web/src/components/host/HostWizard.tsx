@@ -610,7 +610,7 @@ function HostTypeStep({ draft, set }: StepProps) {
                 <span className={`block ${TYPE.rowMeta}`}>{definition.meaning}</span>
               </span>
               <span className="nf-host-choice__ring" aria-hidden="true">
-                {on && <UiIcon name="verified" size={14} />}
+                {on && <UiIcon name="verified" size={16} />}
               </span>
             </button>
           );
@@ -940,7 +940,7 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
               )}
             </span>
             <span className="nf-host-choice__ring" aria-hidden="true">
-              {on && <UiIcon name="verified" size={14} />}
+              {on && <UiIcon name="verified" size={16} />}
             </span>
           </label>
         );

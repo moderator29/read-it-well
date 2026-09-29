@@ -443,10 +443,12 @@ export function ListingCard({
         </div>
 
         <div className="nf-pcard__body">
-          <h3 className="nf-pcard__title">{listing.title}</h3>
+          <h3 className="nf-pcard__title" title={listing.title}>
+            {listing.title}
+          </h3>
 
           <p className="nf-pcard__where">
-            <UiIcon name="location" size={11} className="mt-3xs" />
+            <UiIcon name="location" size={12} className="mt-3xs" />
             <span>{where}</span>
           </p>
 
@@ -556,7 +558,7 @@ export function ListingCard({
           {shapeLine && (
             <p className="nf-pcard__facts" data-testid="card-shape">
               <span className="nf-pcard__fact min-w-0 items-start whitespace-normal">
-                <UiIcon name="house" size={11} className="mt-3xs shrink-0" />
+                <UiIcon name="house" size={12} className="mt-3xs shrink-0" />
                 <span className="break-words">{shapeLine}</span>
               </span>
             </p>
@@ -568,7 +570,7 @@ export function ListingCard({
             >
               {shown.map((fact) => (
                 <li key={fact.key} className="nf-pcard__fact">
-                  <UiIcon name={fact.icon} size={11} />
+                  <UiIcon name={fact.icon} size={12} />
                   <span className={fact.numeric ? "nf-numeric" : undefined}>{fact.label}</span>
                 </li>
               ))}

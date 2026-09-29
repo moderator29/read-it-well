@@ -142,7 +142,12 @@ function Row({
               {glyph && row.contextKind && (
                 <UiIcon name={glyph} size={16} className="shrink-0" label={row.contextKind} />
               )}
-              <span className="min-w-0 truncate">{row.listingTitle}</span>
+              {/* Two lines, then the ellipsis, with the whole title on hover: a
+                  listing title cut at one line lost the words that tell two
+                  flats apart ("Luxury 2 bedroom apartm..."). */}
+              <span className="min-w-0 line-clamp-2 [overflow-wrap:anywhere]" title={row.listingTitle}>
+                {row.listingTitle}
+              </span>
             </span>
           )}
           <span

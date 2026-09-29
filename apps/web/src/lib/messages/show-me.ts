@@ -1,4 +1,4 @@
-import { plural, type Locale, type PluralForms } from "@vallo/i18n/core";
+import { DEFAULT_LOCALE, formatNumber, plural, type Locale, type PluralForms } from "@vallo/i18n/core";
 
 /**
  * "SHOW ME" (V-69): a renter asks the lister for one specific clip in the
@@ -60,11 +60,13 @@ export type ShowMeRequest = {
 };
 
 /** "2.4 MB", "640 KB": a clip's weight, for the data saver line. */
-export function sizeText(bytes: number): string {
+export function sizeText(bytes: number, locale: Locale = DEFAULT_LOCALE): string {
   const kb = Math.max(1, Math.round(bytes / 1000));
   /* 999,999 bytes rounds to 1000 KB; say it in MB instead (review). */
-  if (kb >= 1000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
-  return `${kb} KB`;
+  if (kb >= 1000) {
+    return `${formatNumber(bytes / 1_000_000, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB`;
+  }
+  return `${formatNumber(kb, locale)} KB`;
 }
 
 /**
@@ -72,8 +74,12 @@ export function sizeText(bytes: number): string {
  * it, and never the length, which is the uploader's claim and not proven
  * (review). "Play the clip, 2.4 MB", or just "Play the clip".
  */
-export function playLabel(bytes: number | null, copy: { play: string; playWithSize: string }): string {
-  return bytes && bytes > 0 ? copy.playWithSize.replace("{size}", sizeText(bytes)) : copy.play;
+export function playLabel(
+  bytes: number | null,
+  copy: { play: string; playWithSize: string },
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  return bytes && bytes > 0 ? copy.playWithSize.replace("{size}", sizeText(bytes, locale)) : copy.play;
 }
 
 /** What a request is now, at `now`: waiting, answered, or expired unanswered. */

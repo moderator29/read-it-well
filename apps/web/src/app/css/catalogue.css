@@ -113,10 +113,13 @@
       padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
     }
   }
+  /* Up to three lines, then the ellipsis, with the whole title on the
+     element's title attribute. Two lines cut "Luxury 2 bedroom apartment
+     with BQ" in the two-up grid at 320 before its last words. */
   .nf-pcard__title {
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     overflow: hidden;
     overflow-wrap: anywhere;
     font-size: var(--nf-text-caption);

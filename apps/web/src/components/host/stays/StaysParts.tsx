@@ -352,7 +352,7 @@ export function StaysTiles({
 export function StaysGlyph({ mark, icon }: { mark?: BrandIconName; icon?: UiIconName }) {
   return (
     <span className="nf-stays-glyph" aria-hidden="true">
-      {mark ? <BrandIcon name={mark} size={22} /> : icon ? <UiIcon name={icon} size={16} /> : null}
+      {mark ? <BrandIcon name={mark} size={24} /> : icon ? <UiIcon name={icon} size={16} /> : null}
     </span>
   );
 }

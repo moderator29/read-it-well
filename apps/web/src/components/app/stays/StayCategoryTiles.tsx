@@ -41,7 +41,7 @@ export function StayCategoryTiles({ t, active }: { t: Dictionary; active?: strin
                 <BrandIcon name={tile.icon} fill drawn={32} />
               </span>
               <span>{copy[tile.key]}</span>
-              <UiIcon name="arrow-right" size={14} className="nf-stays-tile__go" aria-hidden />
+              <UiIcon name="arrow-right" size={16} className="nf-stays-tile__go" aria-hidden />
             </Link>
           </li>
         );

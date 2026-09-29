@@ -63,9 +63,9 @@ export async function fileListingMandate(input: {
     if (error) return fail(FAILED);
     const state = (data as { state?: unknown } | null)?.state;
     if (typeof state !== "string") return fail(FAILED);
-    if (state === "not_yours") return fail("This listing is not yours to file a mandate for.");
-    if (state === "owner") return fail("You listed this as the owner, so there is no mandate to file.");
-    if (state === "example") return fail("This is an example listing, so it needs no mandate.");
+    if (state === "not_yours") return fail("This listing is not yours to file a mandate for. Open one of your own listings to file its mandate.");
+    if (state === "owner") return fail("You listed this as the owner, so there is no mandate to file. Nothing more is needed here.");
+    if (state === "example") return fail("This is an example listing, so it needs no mandate. Nothing more is needed here.");
     if (state === "closed") return fail("This listing is closed, so there is nothing to file.");
     if (state === "ends_in_the_past") return fail(FIELD_MESSAGE.endsInThePast, { endsInThePast: FIELD_MESSAGE.endsInThePast });
     if (state === "on_file") return fail("The owner's mandate is on file and has more than 30 days to run. You can renew it from 30 days before it ends.");
@@ -99,7 +99,7 @@ export async function decideListingMandate(input: {
   if (input.decision === "approve") {
     if (!isVerifiedHow(input.verifiedHow)) return fail("Say how you confirmed the owner.");
     if (input.relationship && !isRelationship(input.relationship)) return fail("Say how this person stands to the property.");
-    if ((kind === null) !== (ref === null)) return fail("Give both the document type and its reference, or neither.");
+    if ((kind === null) !== (ref === null)) return fail("Enter both the document type and its reference, or leave both empty.");
     if (kind !== null && !isIdDocumentKind(kind)) return fail("Pick the document type.");
     if (ref !== null && looksLikeNin(ref)) {
       return fail("That looks like a NIN. Never record a NIN here: use a passport, licence, voter's card or CAC number.");
@@ -124,7 +124,7 @@ export async function decideListingMandate(input: {
     if (state === "gone") return fail("That mandate is no longer there. Refresh the desk.");
     if (state === "already") return fail("Someone has already decided this mandate. Refresh the desk.");
     /* SCUML item 19: the database refuses a staff member who lets the listing. */
-    if (state === "own_listing") return fail("You let this listing, so another member of staff must decide its mandate.");
+    if (state === "own_listing") return fail("You let this listing, so another member of staff must decide its mandate. Leave it in the queue for a colleague.");
     if (state === "ended") return fail("This mandate's end date has passed, so it cannot be approved. Refuse it and ask the lister to file a current one.");
     if (state !== "approved" && state !== "rejected") return fail(FAILED);
     revalidatePath("/admin/listings");

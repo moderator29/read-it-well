@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { formatNumber } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { addAccommodationDraft } from "@/lib/host/actions";
 import { AccommodationPhotoManager } from "../AccommodationPhotoManager";
 import { FacilitiesPicker } from "../FacilitiesPicker";
 import { StaysNote, StaysPlate } from "./StaysParts";
 import type { StaysStepProps } from "./types";
+
+/* A coordinate written into the field, six places (about 11cm), through the
+   one number formatter. No grouping, so the field reads back as a number. */
+const coordinateText = (value: number) =>
+  formatNumber(value, "en", { minimumFractionDigits: 6, maximumFractionDigits: 6, useGrouping: false });
 
 /**
  * FACILITIES AND PHOTOS. `GOVERNING-10` screen four, and the shortlet's twin
@@ -39,8 +45,8 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
     }
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLat(position.coords.latitude.toFixed(6));
-        setLng(position.coords.longitude.toFixed(6));
+        setLat(coordinateText(position.coords.latitude));
+        setLng(coordinateText(position.coords.longitude));
       },
       () => setNotice({ tone: "error", text: "The location was refused. Type it instead." }),
     );

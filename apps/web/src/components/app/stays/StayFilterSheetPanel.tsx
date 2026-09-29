@@ -356,7 +356,7 @@ export function StayFilterSheetPanel({
                   return (
                     <button key={value} type="button" aria-pressed={on} data-testid={`stay-rating-${value}`}
                       onClick={() => setDraft((c) => ({ ...c, minRating: value || undefined }))} className="nf-filters__tile">
-                      {value === 0 ? copy.stays.anyRating : (<><UiIcon name="star" size={14} filled />{value}+</>)}
+                      {value === 0 ? copy.stays.anyRating : (<><UiIcon name="star" size={16} filled />{value}+</>)}
                     </button>
                   );
                 })}

@@ -11,10 +11,13 @@
  *      and the page the browser lands on leaks nothing the console holds: no
  *      queue names, no counts, no decision control;
  *   2. signed in as the QA member (an ordinary member, NOT staff), the layout
- *      answers with the designed access screen ("You do not have console
- *      access", `admin/_components/AccessScreen.tsx`) and the same no-leak
- *      contract. This half needs QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD and is
- *      reported as SKIP without them.
+ *      answers with the site's ordinary 404 ("We could not find that page",
+ *      `app/not-found.tsx`): since 0d598077 nothing confirms to a non-staff
+ *      account that a console exists (`admin/layout.tsx`, `notFound()` for
+ *      `not-admin`). The access screen (`admin/_components/AccessScreen.tsx`)
+ *      is still accepted for the states that keep it. Same no-leak contract.
+ *      This half needs QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD and is reported
+ *      as SKIP without them.
  *
  * Run with the dev server already up:
  *
@@ -37,8 +40,12 @@ function check(name, condition) {
   }
 }
 
-/** The three honest headings the access screen can carry. */
+/**
+ * The honest answers a non-staff account can get: the ordinary 404 (a plain
+ * member, since 0d598077) or one of the access screen's headings.
+ */
 const ACCESS_HEADINGS = [
+  "We could not find that page",
   "The console is not open yet",
   "Staff sign in",
   "You do not have console access",

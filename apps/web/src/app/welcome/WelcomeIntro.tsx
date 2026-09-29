@@ -89,13 +89,13 @@ export function WelcomeIntro({ t, next = null }: { t: Dictionary; next?: string 
               (the light theme's rule for them), so `data-theme="dark"` keeps
               the daylight tile off: the bubble is the tile. */}
           <div className="nf-intro__obj nf-intro__obj--house" data-theme="dark">
-            <BrandIcon name="modern-house" size={148} priority />
+            <BrandIcon name="modern-house" size={144} priority />
           </div>
           <div className="nf-intro__obj nf-intro__obj--keys" data-theme="dark">
-            <BrandIcon name="keys-home" size={118} priority />
+            <BrandIcon name="keys-home" size={120} priority />
           </div>
           <div className="nf-intro__receipt" data-theme="dark">
-            <BrandIcon name="receipt-check" size={46} />
+            <BrandIcon name="receipt-check" size={48} />
           </div>
           <p className="nf-intro__chip" aria-hidden="true">
             <span className="nf-intro__ticks">

@@ -22,7 +22,7 @@ import { canMemberReply } from "./tickets";
  * checks here are product, not security: they word the refusal.
  */
 
-const ticketId = z.string().uuid("That ticket could not be found.");
+const ticketId = z.string().uuid("That ticket could not be found. Open it again from your support page, or ask a new question.");
 
 const replySchema = z.object({
   ticketId,
@@ -80,7 +80,7 @@ export async function replyToMyTicket(input: {
       .eq("user_id", session.user.id)
       .maybeSingle();
     if (error) return fail(REPLY_FAILED);
-    if (!ticket) return fail("That ticket could not be found.");
+    if (!ticket) return fail("That ticket could not be found. Open it again from your support page, or ask a new question.");
     if (!canMemberReply(ticket.status)) {
       return fail("This ticket is resolved, so nobody would read a reply here. Reopen it, or ask a new question.");
     }
@@ -181,7 +181,7 @@ export async function attachToMyTicket(input: z.input<typeof attachSchema>): Pro
 type MoveStatus = "ok" | "not_found" | "not_open" | "not_resolved" | "too_late" | "bad_rating" | "comment_too_long";
 
 const MOVE_REFUSAL: Record<Exclude<MoveStatus, "ok">, string> = {
-  not_found: "That ticket could not be found.",
+  not_found: "That ticket could not be found. Open it again from your support page, or ask a new question.",
   not_open: "This ticket is already resolved.",
   not_resolved: "This ticket is not resolved yet.",
   too_late: "This ticket was resolved too long ago to reopen. Ask a new question and quote its reference.",
@@ -198,7 +198,7 @@ async function move(
   id: string,
   call: (client: SupabaseClient<Database>) => PromiseLike<{ data: unknown; error: unknown }>,
 ): Promise<ActionResult<null>> {
-  if (!ticketId.safeParse(id).success) return fail("That ticket could not be found.");
+  if (!ticketId.safeParse(id).success) return fail("That ticket could not be found. Open it again from your support page, or ask a new question.");
   const who = await signedIn();
   if ("error" in who) return fail(who.error);
   try {
@@ -245,7 +245,7 @@ export async function rateMyTicket(id: string, input: { rating: number; comment?
  * prefetch of the thread must not count as the member having read it.
  */
 export async function markMyTicketRead(id: string): Promise<ActionResult<null>> {
-  if (!ticketId.safeParse(id).success) return fail("That ticket could not be found.");
+  if (!ticketId.safeParse(id).success) return fail("That ticket could not be found. Open it again from your support page, or ask a new question.");
   const who = await signedIn();
   if ("error" in who) return fail(who.error);
   try {

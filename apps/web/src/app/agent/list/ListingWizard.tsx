@@ -680,7 +680,7 @@ function FactRow({
   return (
     <div className={`nf-lw-fact${stacked ? " nf-lw-fact--stacked" : ""}`}>
       <span className="nf-lw-fact__plate" aria-hidden="true">
-        <UiIcon name={glyph} size={22} />
+        <UiIcon name={glyph} size={24} />
       </span>
       <span className="nf-lw-fact__head">
         <span className="min-w-0">
@@ -2472,7 +2472,7 @@ export function ListingWizard({
                     disabled={pending || uploading}
                     onClick={() => dropPhoto(index)}
                   >
-                    <UiIcon name="close" size={14} />
+                    <UiIcon name="close" size={16} />
                   </button>
                   <span className="nf-lw-shot__moves">
                     <button
@@ -2482,7 +2482,7 @@ export function ListingWizard({
                       disabled={index === 0 || pending || uploading}
                       onClick={() => movePhoto(index, index - 1)}
                     >
-                      <UiIcon name="arrow-left" size={14} />
+                      <UiIcon name="arrow-left" size={16} />
                     </button>
                     <button
                       type="button"
@@ -2491,7 +2491,7 @@ export function ListingWizard({
                       disabled={index === photos.length - 1 || pending || uploading}
                       onClick={() => movePhoto(index, index + 1)}
                     >
-                      <UiIcon name="arrow-right" size={14} />
+                      <UiIcon name="arrow-right" size={16} />
                     </button>
                   </span>
                 </li>
@@ -2505,7 +2505,7 @@ export function ListingWizard({
                     disabled={uploading}
                   >
                     <span className="nf-lw-add__plus" aria-hidden="true">
-                      <UiIcon name="plus" size={18} />
+                      <UiIcon name="plus" size={20} />
                     </span>
                     <span>{uploading ? copy.photos.uploading : copy.drawn.photos.add}</span>
                   </button>
@@ -2525,7 +2525,7 @@ export function ListingWizard({
                     disabled={uploading}
                   >
                     <span className="nf-lw-add__plus" aria-hidden="true">
-                      <UiIcon name="picture" size={18} />
+                      <UiIcon name="picture" size={20} />
                     </span>
                     <span>{copy.photos.takePhoto}</span>
                   </button>

@@ -103,7 +103,7 @@ function RoundAction({ href, icon, label, testId }: { href: string; icon: UiIcon
         data-testid={testId}
       >
         <span className="nf-glass grid h-14 w-14 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-primary)]">
-          <UiIcon name={icon} size={22} />
+          <UiIcon name={icon} size={24} />
         </span>
         <span className="nf-caption font-medium leading-tight text-[var(--nf-content-secondary)]">{label}</span>
       </Link>

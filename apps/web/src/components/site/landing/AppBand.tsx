@@ -76,7 +76,7 @@ export function AppBand({
               {points.map((p) => (
                 <li key={p.key}>
                   <span className="nf-app-panel__tick" aria-hidden="true">
-                    <UiIcon name={p.icon} size={18} />
+                    <UiIcon name={p.icon} size={20} />
                   </span>
                   {p.label}
                 </li>

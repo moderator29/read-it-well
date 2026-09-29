@@ -33,7 +33,7 @@ export function ListingNeighbours({
     <div className="flex flex-col gap-sm" data-testid="listing-neighbours">
       {flooding !== undefined && (
         <p className="nf-body-sm inline-flex items-start gap-inline-tight text-[var(--nf-content-primary)]" data-testid="neighbours-lister-flood">
-          <UiIcon name="info" size={14} className="mt-3xs shrink-0 text-[var(--nf-content-muted)]" />
+          <UiIcon name="info" size={16} className="mt-3xs shrink-0 text-[var(--nf-content-muted)]" />
           <span className="break-words">{copy.listerFlood[flooding ?? "unanswered"]}</span>
         </p>
       )}

@@ -123,7 +123,7 @@ export function SafetyShareControl({
   return (
     <div className="nf-panel nf-panel--card p-panel" data-testid="safety-share">
       <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
-        <UiIcon name="share" size={18} className="shrink-0 text-[var(--nf-content-secondary)]" />
+        <UiIcon name="share" size={20} className="shrink-0 text-[var(--nf-content-secondary)]" />
         <span className="min-w-0 break-words">{title ? `${title} · ${when}` : when}</span>
       </p>
 

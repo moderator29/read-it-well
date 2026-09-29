@@ -302,6 +302,11 @@ export const yo: Dictionary = withFallback({
     myBookings: "Àwọn ìfipamọ́ mi",
     myBookingsSub: "Wo ìfipamọ́ ilé àti ibùgbé rẹ",
     savedSub: "Àwọn ilé, hótẹ́ẹ̀lì àti ibi tí o fipamọ́",
+    /* Draft built from this file's words for agreements and payments; a
+       native speaker should confirm, especially the word for claims:
+       "ẹ̀san" also reads as "revenge", and the English means deposit
+       claims (a request to be paid back from a deposit). */
+    agreementsSub: "Àwọn àdéhùn, ìsanwó àti ìbéèrè ẹ̀san",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ìfipamọ́ ilé àti ibùgbé",
     savedRow: "Ilé, hótẹ́ẹ̀lì àti ibi",
@@ -682,6 +687,9 @@ export const yo: Dictionary = withFallback({
     confirmPasswordPlaceholder: "Tún ọ̀rọ̀ ìpamọ́ rẹ tẹ",
     signInSub: "Wọlé sí àkọọ́lẹ̀ Vallo rẹ",
     signUpSub: "Ṣí àkọọ́lẹ̀ Vallo rẹ ní ìṣẹ́jú kan",
+    /* The line under the wordmark on the sign-up screens, reusing signUpSub
+       above; a native speaker should confirm. */
+    heroSignUp: "Ṣí àkọọ́lẹ̀ Vallo rẹ ní ìṣẹ́jú kan.",
   },
 
   signUp: {
@@ -722,6 +730,10 @@ export const yo: Dictionary = withFallback({
     },
     referralLabel: "Kóòdù ìtọ́kasí",
     referralPlaceholder: "Tẹ kóòdù rẹ",
+    /* The two step headings of the sign-up form. Reused from wording already
+       in this file; a native speaker should confirm. */
+    stepAccount: "Àkọọ́lẹ̀ rẹ",
+    stepAbout: "Díẹ̀ nípa rẹ",
   },
 
   pickers: {

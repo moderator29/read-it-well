@@ -91,7 +91,7 @@ export function HostDocumentUploader({
       <h3 className="nf-host-group__title">{spec.title}</h3>
       <p className="nf-host-group__note">{spec.qualifies}</p>
       <p className="mt-2xs flex items-start gap-2xs nf-caption">
-        <UiIcon name="verified" size={14} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
+        <UiIcon name="verified" size={16} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
         <span>{spec.caution}</span>
       </p>
 

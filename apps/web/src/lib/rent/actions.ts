@@ -120,14 +120,14 @@ export async function startRentPayment(input: {
         "The lister has not accepted this inspection yet, so there is nothing to pay. You will be told the moment they do.",
       );
     case "not_published":
-      return fail("This listing is no longer available, so it cannot be paid for.");
+      return fail("This listing is no longer available, so it cannot be paid for. Nothing was charged. Search for another place to rent.");
     case "not_a_rental":
     case "no_amount":
       return fail(
         "This listing does not carry a move-in figure to pay. Ask the lister to state the rent and fees on the listing first.",
       );
     case "own_listing":
-      return fail("This is your own listing, so there is no rent for you to pay on it.");
+      return fail("This is your own listing, so there is nothing to pay on it.");
     case "move_in_past":
       return fail("The move-in date has passed. Pick today or later.", { moveIn: "Pick today or later." });
     case "already_let":

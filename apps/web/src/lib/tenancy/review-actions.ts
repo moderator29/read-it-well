@@ -34,7 +34,7 @@ export async function submitTenancyReview(input: unknown): Promise<ActionResult<
   if (error) {
     if (error.code === "23505") return fail("You have already reviewed this tenancy.");
     if (error.code === "42501") {
-      return fail("The review opens a month after your move-in date, for the tenant on the rent charge.");
+      return fail("The review opens a month after your move-in date, for the tenant on the rent charge. Come back then to write it.");
     }
     return fail("Your review did not send. Nothing was recorded. Try again.");
   }

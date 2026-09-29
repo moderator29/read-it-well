@@ -52,7 +52,7 @@ export function ListingSentForReview({
           <span className="nf-lw-done__object" aria-hidden="true">
             <BrandIcon name="home-check" fill />
             <span className="nf-lw-done__tick">
-              <UiIcon name="verified-badge" size={18} />
+              <UiIcon name="verified-badge" size={20} />
             </span>
           </span>
           <h1 className="nf-lw-done__verdict">{copy.submitted.title}</h1>

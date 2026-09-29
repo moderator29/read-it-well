@@ -310,8 +310,12 @@
     object-fit: cover;
   }
 
+  /* `max-width` because the body is a column that aligns to the start, so a
+     long name took its own max-content width and ran 190px out of the rail
+     instead of reaching the ellipsis. The whole name is the row's title. */
   .nf-nav__whoname {
     min-width: 0;
+    max-width: 100%;
     flex: 1 1 auto;
     overflow: hidden;
     text-overflow: ellipsis;
