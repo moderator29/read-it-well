@@ -166,13 +166,13 @@ export function TicketThreadView({
           <p className="nf-body-sm mt-row text-[var(--nf-content-secondary)]">{state.meaning}</p>
           {replyable && summary.supportSpokeLast === false && (
             <p className="nf-caption mt-row flex items-center gap-inline text-[var(--nf-content-muted)]">
-              <UiIcon name="history" size={14} className="shrink-0" />
+              <UiIcon name="history" size={16} className="shrink-0" />
               {expectedResponse(ticket.topicCode)}
             </p>
           )}
           {ticket.related && (
             <p className="nf-caption mt-row flex items-start gap-inline text-[var(--nf-content-secondary)]" data-testid="support-status-related">
-              <UiIcon name="link" size={14} className="mt-3xs shrink-0" />
+              <UiIcon name="link" size={16} className="mt-3xs shrink-0" />
               <span className="min-w-0 break-words">
                 About: {ticket.related.label}
               </span>

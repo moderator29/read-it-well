@@ -241,7 +241,7 @@ function ScheduledPanel({
       data-testid="delete-scheduled"
     >
       <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold">
-        <UiIcon name="close" size={18} className="shrink-0 text-[var(--nf-state-error)]" />
+        <UiIcon name="close" size={20} className="shrink-0 text-[var(--nf-state-error)]" />
         {copy.scheduledTitle}
       </p>
       <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">

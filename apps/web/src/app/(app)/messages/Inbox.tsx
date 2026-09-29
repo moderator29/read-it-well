@@ -140,7 +140,7 @@ function Row({
           {row.listingTitle && (
             <span className={`mt-3xs flex items-center gap-inline-tight ${TYPE.caption} text-[var(--nf-brand-secondary)]`}>
               {glyph && row.contextKind && (
-                <UiIcon name={glyph} size={14} className="shrink-0" label={row.contextKind} />
+                <UiIcon name={glyph} size={16} className="shrink-0" label={row.contextKind} />
               )}
               <span className="min-w-0 truncate">{row.listingTitle}</span>
             </span>

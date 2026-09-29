@@ -72,7 +72,7 @@ export function AlertCard({
       {/* The row's glass object, small, as the render shows one per row. A
           risk alert is the warning mark; it is an ornament here, so no tile. */}
       <h3 className="mt-xs flex items-center gap-inline text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        <BrandIcon name="alert-triangle" size={26} />
+        <BrandIcon name="alert-triangle" size={28} />
         <span className="min-w-0">{alert.title}</span>
       </h3>
       {alert.description && (
@@ -138,7 +138,7 @@ export function DriftCard({
       {/* Drift is a disagreement about a calendar, so the calendar clock is
           its object rather than the general warning mark. */}
       <h3 className="mt-xs flex items-center gap-inline text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        <BrandIcon name="calendar-clock" size={26} />
+        <BrandIcon name="calendar-clock" size={28} />
         <span className="min-w-0">{alert.title}</span>
       </h3>
       {alert.description && (

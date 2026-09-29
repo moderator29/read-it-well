@@ -192,7 +192,7 @@ function RowGrid({ row, view: viewWord = DEFAULT_WORDS.view }: { row: QueueRowDa
       <span className="nf-admin-row__actions">
         {view}
         <span className="nf-admin-row__kebab" aria-hidden="true">
-          <UiIcon name="more" size={18} />
+          <UiIcon name="more" size={20} />
         </span>
       </span>
     </div>

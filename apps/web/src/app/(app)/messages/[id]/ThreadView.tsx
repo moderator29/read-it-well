@@ -734,7 +734,7 @@ export function ThreadView({
           {!propertyFace && <p className="nf-thread__context">{contextLine}</p>}
           {place && (
             <p className="nf-thread__place">
-              <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+              <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
               <span className={propertyFace ? "min-w-0" : "truncate"}>{place}</span>
               {/* The LISTING's own badge, beside the place, exactly where the
                   render puts it. It is a claim about the property and it is
@@ -945,7 +945,7 @@ export function ThreadView({
               {m.mine ? (
                 <span className="nf-msg__side" aria-hidden="true">
                   <span className="nf-msg__avatar">
-                    <UiIcon name="user" size={18} />
+                    <UiIcon name="user" size={20} />
                   </span>
                   {tags && <span>{tags.mine}</span>}
                 </span>
