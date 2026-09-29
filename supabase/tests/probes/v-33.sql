@@ -1,19 +1,40 @@
--- V-33: rent never rests at Vallo. A paid rent charge credits the lister's
--- wallet (payment_in) in the same transaction as the tenant's debit, for the
--- gross less the processor's cut, once per booking; a support refund takes
--- back at most that credit (payment_in_return). When the lister no longer holds
--- it the refund waits: the debt is recorded, held against the lister's
--- spendable balance, and paid on retry. Run after m1 (the enum values).
--- Everything runs on an example listing made real inside the transaction, and
--- the block always rolls back.
+-- V-33: rent never rests at Vallo. A paid rent charge settles the lister's
+-- share to the lister in the same charge, for the gross less the Guarantee
+-- contribution and the processor's cut, once per booking; a support refund
+-- records as owed back by the lister at most what the lister received, the
+-- fee being the platform's cost. Everything runs on an example listing made
+-- real inside the transaction, and the block always rolls back.
+--
+-- 29 September 2026: rewritten for Track A (docs/MONEY_ARCHITECTURE.md).
+-- There is no wallet, so the lister is no longer credited a payment_in entry:
+-- the charge is split by Paystack and settle_booking_charge records the
+-- lister's share in ledger_entries (net_settlement_minor). Replaced: "a
+-- wallet-paid charge credits the lister" and "a card charge credits gross
+-- less the fee" are now one card charge opened with its split and an approved
+-- agreement (the payment gate), whose ledger row gives the lister the split's
+-- share less the fee; "a second ledger row credits nobody" is now "a second
+-- charge on the booking settles nothing" (the rent-to-wallet trigger it
+-- guarded is retired and gone); "a refund takes the credit back out of the
+-- lister's wallet" is now "a refund goes to the card (booking_refunds pending)
+-- and what the lister received is recorded as owed back (rent_refunds_owed)",
+-- and the bound that the lister gives back at most what the lister received
+-- is kept. Dropped: the lister_short path (a refund waiting until the
+-- lister's wallet held it, the debt held against the spendable balance, paid
+-- on retry). With no balance a refund never waits on the lister, so that
+-- subject is retired custody with no equivalent. The execute check on the
+-- retired trigger function private.settle_rent_charge_to_lister (gone) is
+-- replaced by the same check on both settle doors.
 do $$
 declare
   member uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
   admin  uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
   lister uuid := 'e0000000-0000-4000-8000-000000000001';
   lst    uuid := 'ed000000-0000-4000-8000-000000000003';
-  insp uuid; r jsonb; bk uuid; mw uuid; lw uuid; lbal0 bigint; lbal bigint; mbal0 bigint; mbal bigint; total bigint; tx uuid;
-  credits int; n int;
+  gbps   int  := 150;
+  fee    bigint := 200000;
+  lagos  date := (now() at time zone 'Africa/Lagos')::date;
+  insp uuid; ag uuid; r jsonb; bk uuid; total bigint; g bigint; tx uuid;
+  n int; s bigint; st text;
 begin
   -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
   -- approved mandate. The fixture files one as the platform would.
@@ -28,101 +49,76 @@ begin
          agency_fee_minor = 20000000, legal_fee_minor = null, agreement_fee_minor = null,
          total_move_in_cost_minor = null, rent_period = 'year', rate_minor = 0, rate_period = null
    where id = lst;
-  insert into public.wallets (user_id) values (member) on conflict do nothing;
-  insert into public.wallets (user_id) values (lister) on conflict do nothing;
-  select id into mw from public.wallets where user_id = member;
-  select id into lw from public.wallets where user_id = lister;
 
-  -- 1. A wallet-paid rent charge credits the lister in the same transaction.
+  -- 1. A card-paid rent charge settles the lister's share in the same charge.
   insert into public.inspection_requests (listing_id, requester_id, lister_id, state, requested_at, slot_at)
   values (lst, member, lister, 'CONFIRMED', now(), now() + interval '1 day') returning id into insp;
-  r := private.open_rent_charge(member, insp, current_date + 7);
+  insert into public.deal_agreements (kind, listing_id, inspection_id, renter_id, owner_id, amount_minor, terms, status)
+  values ('rent', lst, insp, member, lister, 240000000, '{}'::jsonb, 'approved') returning id into ag;
+  r := private.open_rent_charge(member, insp, lagos + 7);
   if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL v-33: open %', r; end if;
   bk := (r->>'booking_id')::uuid; total := (r->>'total_minor')::bigint;
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-  values (mw, 'deposit', 'credit', total, 'probe-v33-dep-' || gen_random_uuid(), 'COMPLETED');
-  lbal0 := private.wallet_spendable_locked(lw);
-  mbal0 := private.wallet_spendable_locked(mw);
-  r := private.pay_booking_from_wallet(member, bk, 'probe-v33-pay-' || gen_random_uuid());
-  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL v-33: pay %', r; end if;
-  if private.wallet_spendable_locked(lw) - lbal0 <> total then
-    raise exception 'PROBE_FAIL v-33: lister credited % of %', private.wallet_spendable_locked(lw) - lbal0, total;
+  if total <> 240000000 then raise exception 'PROBE_FAIL v-33: move-in total %', total; end if;
+  g := total * gbps / 10000;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, currency, status, agreement_id,
+         payee_user_id, payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor)
+  values (bk, 'paystack', 'probe-v33-card-' || gen_random_uuid(), total, 'NGN', 'PENDING', ag,
+          lister, 'ACCT_probe_lister', 'ACCT_probe_reserve', total - g, g, 0)
+  returning id into tx;
+  r := private.settle_booking_charge((select provider_ref from public.transactions where id = tx), total, fee, null);
+  if r->>'outcome' <> 'settled' then raise exception 'PROBE_FAIL v-33: card settle %', r; end if;
+  select coalesce(sum(net_settlement_minor), 0), count(*) into s, n
+    from public.ledger_entries where booking_id = bk and gross_minor > 0;
+  if n <> 1 or s <> total - g - fee then
+    raise exception 'PROBE_FAIL v-33: lister settled % in % rows, expected % once', s, n, total - g - fee;
   end if;
-  if mbal0 - private.wallet_spendable_locked(mw) <> total then raise exception 'PROBE_FAIL v-33: tenant not debited'; end if;
-  select count(*) into credits from public.wallet_entries
-   where wallet_id = lw and kind = 'payment_in' and metadata->>'booking_id' = bk::text;
-  if credits <> 1 then raise exception 'PROBE_FAIL v-33: % lister credits', credits; end if;
+  -- Nothing rests at Vallo: the charge is the lister's share, the Guarantee
+  -- contribution and the commission, and nothing else.
+  select count(*) into n from public.transactions
+   where id = tx and payee_user_id = lister and lister_share_minor + guarantee_minor + commission_minor = amount_minor;
+  if n <> 1 then raise exception 'PROBE_FAIL v-33: the charge is not wholly split'; end if;
 
-  -- 2. A full refund takes it back out of the lister, not from nothing.
+  -- 2. A second charge on the same booking settles to nobody: the agreement
+  --    is paid, so the payment gate will not even open one (a second charge
+  --    opened before the first settled is refund-due; mon-05 checks that).
+  select status::text into st from public.deal_agreements where id = ag;
+  if st <> 'paid' then raise exception 'PROBE_FAIL v-33: agreement is % after payment', st; end if;
+  begin
+    insert into public.transactions (booking_id, provider, provider_ref, amount_minor, currency, status, agreement_id,
+           payee_user_id, payee_subaccount_code, reserve_subaccount_code, lister_share_minor, guarantee_minor, commission_minor)
+    values (bk, 'paystack', 'probe-v33-card2-' || gen_random_uuid(), total, 'NGN', 'PENDING', ag,
+           lister, 'ACCT_probe_lister', 'ACCT_probe_reserve', total - g, g, 0);
+    raise exception 'PROBE_FAIL v-33: a second charge opened on a paid agreement';
+  exception when insufficient_privilege then null;
+  end;
+  select count(*) into n from public.ledger_entries where booking_id = bk;
+  if n <> 1 then raise exception 'PROBE_FAIL v-33: a second payment settled to the lister again (% ledger rows)', n; end if;
+
+  -- 3. A full refund goes to the card, and the lister owes back at most what
+  --    the lister received: the fee and the Guarantee contribution never
+  --    reached the lister.
   r := private.refund_and_cancel_booking(admin, bk, total, 'probe-v33-ref-' || gen_random_uuid(), 'guest_choice', 'probe');
   if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL v-33: refund %', r; end if;
-  if private.wallet_spendable_locked(lw) <> lbal0 then raise exception 'PROBE_FAIL v-33: lister not debited on refund'; end if;
-  if private.wallet_spendable_locked(mw) <> mbal0 then raise exception 'PROBE_FAIL v-33: tenant not refunded'; end if;
-
-  -- 3. A refund the lister can no longer cover: recorded as owed, held against
-  --    the lister's wallet, and paid on retry once the lister holds it.
-  insert into public.inspection_requests (listing_id, requester_id, lister_id, state, requested_at, slot_at)
-  values (lst, member, lister, 'CONFIRMED', now(), now() + interval '1 day') returning id into insp;
-  r := private.open_rent_charge(member, insp, current_date + 8);
-  bk := (r->>'booking_id')::uuid;
-  r := private.pay_booking_from_wallet(member, bk, 'probe-v33-pay2-' || gen_random_uuid());
-  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL v-33: pay2 %', r; end if;
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-  values (lw, 'withdrawal', 'debit', total, 'probe-v33-wd-' || gen_random_uuid(), 'COMPLETED');
-  mbal := private.wallet_spendable_locked(mw);
-  r := private.refund_and_cancel_booking(admin, bk, total, 'probe-v33-ref2-' || gen_random_uuid(), 'guest_choice', 'probe');
-  if r->>'status' <> 'lister_short' then raise exception 'PROBE_FAIL v-33: short refund answered %', r; end if;
-  if private.wallet_spendable_locked(mw) <> mbal then raise exception 'PROBE_FAIL v-33: short refund moved money'; end if;
-  select count(*) into n from public.rent_refunds_owed where booking_id = bk and cleared_at is null and amount_minor = total;
-  if n <> 1 then raise exception 'PROBE_FAIL v-33: the debt was not recorded'; end if;
-  -- the lister's next income is held against the debt
-  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
-  values (lw, 'deposit', 'credit', total, 'probe-v33-dep2-' || gen_random_uuid(), 'COMPLETED');
-  if private.wallet_spendable_locked(lw) <> lbal0 then
-    raise exception 'PROBE_FAIL v-33: owed rent is spendable (% vs %)', private.wallet_spendable_locked(lw), lbal0;
-  end if;
-  r := private.refund_and_cancel_booking(admin, bk, total, 'probe-v33-ref3-' || gen_random_uuid(), 'guest_choice', 'probe');
-  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL v-33: retried refund %', r; end if;
-  select count(*) into n from public.rent_refunds_owed where booking_id = bk and cleared_at is null;
-  if n <> 0 then raise exception 'PROBE_FAIL v-33: the debt was not cleared'; end if;
-  if private.wallet_spendable_locked(mw) - mbal <> total then raise exception 'PROBE_FAIL v-33: retried refund did not land'; end if;
-
-  -- 4. Card: the lister is credited gross less the processor's fee, and a
-  --    full refund takes back only that, the fee being the platform's cost.
-  insert into public.inspection_requests (listing_id, requester_id, lister_id, state, requested_at, slot_at)
-  values (lst, member, lister, 'CONFIRMED', now(), now() + interval '1 day') returning id into insp;
-  r := private.open_rent_charge(member, insp, current_date + 9);
-  bk := (r->>'booking_id')::uuid;
-  lbal0 := private.wallet_spendable_locked(lw);
-  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, currency, status)
-  values (bk, 'paystack', 'probe-v33-card-' || gen_random_uuid(), total, 'NGN', 'PENDING') returning id into tx;
-  update public.transactions set status = 'SUCCESSFUL' where id = tx;
-  insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor, processor_fee_minor, net_settlement_minor)
-  values (bk, tx, total, 0, total - 200000, 200000, total - 200000);
-  if private.wallet_spendable_locked(lw) - lbal0 <> total - 200000 then
-    raise exception 'PROBE_FAIL v-33: card credit %', private.wallet_spendable_locked(lw) - lbal0;
-  end if;
-  -- 5. A second positive ledger row for the same booking credits nobody.
-  insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor, processor_fee_minor, net_settlement_minor)
-  values (bk, null, total, 0, total, 0, total);
-  select count(*) into credits from public.wallet_entries
-   where wallet_id = lw and kind = 'payment_in' and metadata->>'booking_id' = bk::text;
-  if credits <> 1 then raise exception 'PROBE_FAIL v-33: a second payment credited the lister again (% credits)', credits; end if;
-  delete from public.ledger_entries where booking_id = bk and transaction_id is null;
-  mbal := private.wallet_spendable_locked(mw);
-  r := private.refund_and_cancel_booking(admin, bk, total, 'probe-v33-ref4-' || gen_random_uuid(), 'guest_choice', 'probe');
-  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL v-33: card full refund %', r; end if;
-  if private.wallet_spendable_locked(lw) <> lbal0 then raise exception 'PROBE_FAIL v-33: card refund left the lister at %', private.wallet_spendable_locked(lw) - lbal0; end if;
-  if private.wallet_spendable_locked(mw) - mbal <> total then raise exception 'PROBE_FAIL v-33: card refund to tenant'; end if;
-
-  if has_function_privilege('authenticated', 'private.settle_rent_charge_to_lister()', 'execute') then
-    raise exception 'PROBE_FAIL v-33: authenticated can execute the trigger function';
+  select count(*) into n from public.booking_refunds
+   where booking_id = bk and refund_minor = total and processor_status = 'pending';
+  if n <> 1 then raise exception 'PROBE_FAIL v-33: the refund is not recorded for the card'; end if;
+  r := private.refund_booking_payment(admin, bk, 1, 'probe-v33-ref2-' || gen_random_uuid(), 'goodwill', 'probe');
+  if r->>'status' <> 'over_refund' then raise exception 'PROBE_FAIL v-33: refunded past what was paid %', r; end if;
+  select amount_minor into s from public.rent_refunds_owed where booking_id = bk and lister_id = lister and cleared_at is null;
+  if s is null then raise exception 'PROBE_FAIL v-33: the lister''s debt was not recorded'; end if;
+  if s > total - g - fee then
+    raise exception 'PROBE_FAIL v-33: the lister is recorded as owing % back, more than the % the lister received', s, total - g - fee;
   end if;
 
-  -- CONTROL (member, API role): reads own wallet rows. REFUSAL: writes a ledger row.
+  if has_function_privilege('authenticated', 'private.settle_booking_charge(text,bigint,bigint,uuid)', 'execute')
+     or has_function_privilege('authenticated', 'public.settle_booking_charge(text,bigint,bigint,uuid)', 'execute') then
+    raise exception 'PROBE_FAIL v-33: authenticated can execute the settle door';
+  end if;
+
+  -- CONTROL (member, API role): reads own charges. REFUSAL: writes a ledger row.
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
-  perform count(*) from public.wallet_entries;
+  perform count(*) from public.transactions;
   begin
     insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor, processor_fee_minor, net_settlement_minor)
     values (bk, null, 1, 0, 1, 0, 1);
