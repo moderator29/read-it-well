@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { withDone } from "@/lib/ui/success-moments";
-import { doneFlagForLinkType } from "@/lib/auth/link-moment";
 import Link from "next/link";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
@@ -109,14 +107,11 @@ export function Verifying({
 
     void complete({ code, tokenHash, type, accessToken, refreshToken, next }).then((result) => {
       if (result.ok) {
-        /* The moment on arrival (`SuccessFlagHost`), chosen by
-           `doneFlagForLinkType`: only a sign-up or address-change
-           confirmation earns one. `type=email` is also a magic-link sign-in,
-           so it says nothing. */
-        const done = doneFlagForLinkType(type);
-        const to = done ? withDone(result.next, done) : result.next;
+        /* The success moment is not in the address: the server action set a
+           one-shot cookie (`rememberSuccess`), and `SuccessFlagHost` asks for
+           it on the next screen, so a link cannot forge it. */
         const go = () => {
-          router.replace(to);
+          router.replace(result.next);
           /* The tree behind this screen was rendered signed out. */
           router.refresh();
         };

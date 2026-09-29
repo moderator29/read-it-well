@@ -22,7 +22,7 @@ describe("the success moments registry", () => {
   });
 
   it.each(IDS)("%s: has a title and one line, with no exclamation mark", (id) => {
-    const words = successCopy(copy, id, { when: "Tue 30 Sep, 10:00", reference: "SUP-123", promise: "We reply today." });
+    const words = successCopy(copy, id, { when: "Tue 30 Sep, 10:00", reference: "SUP-123", promise: "We reply today.", name: "The Harbour Kitchen" });
     expect(words.title.length).toBeGreaterThan(0);
     expect(words.body.length).toBeGreaterThan(0);
     expect(`${words.title} ${words.body}`).not.toMatch(/!|\{[a-z]+\}/);
@@ -54,6 +54,11 @@ describe("the one-shot flag", () => {
     expect(withDone("/bookings?side=stays#ix-1", "agreement-drawn")).toBe("/bookings?side=stays&done=agreement-drawn#ix-1");
   });
 
+  it("never writes an account flag into an address: those ride on the server's cookie", () => {
+    expect(withDone("/home", "password-changed")).toBe("/home");
+    expect(withDone("/listing/1?x=1", "account-created")).toBe("/listing/1?x=1");
+  });
+
   it("strips the flag and the companions it names, and nothing else", () => {
     expect(withoutDone("/agent/listings?q=yaba&done=listing-live&listing=abc", ["listing"])).toBe("/agent/listings?q=yaba");
     expect(withoutDone("/checkout/b1?paid=1&reference=rm-book-x", ["paid", "reference"])).toBe("/checkout/b1");
@@ -78,8 +83,9 @@ describe("showSuccess, the account moments' doorway", () => {
     target.addEventListener(SUCCESS_EVENT, (event) => seen.push((event as CustomEvent).detail));
     vi.stubGlobal("window", target);
     showSuccess("passcode-set");
-    showSuccess("agreement-drawn");
+    /* The type refuses it too; the runtime guard is what is under test. */
+    showSuccess("agreement-drawn" as never);
     expect(seen).toEqual([{ flag: "passcode-set" }]);
-    expect(GLOBAL_DONE_FLAGS).not.toContain("agreement-drawn");
+    expect(GLOBAL_DONE_FLAGS as readonly string[]).not.toContain("agreement-drawn");
   });
 });

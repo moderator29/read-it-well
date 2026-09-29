@@ -36,13 +36,14 @@ const WIRED: [file: string, gate: RegExp][] = [
   ["components/agent/PayoutAccounts.tsx", /open=\{addState\?\.ok === true && acknowledged !== addState\}/],
   ["app/(app)/checkout/[bookingId]/PayPanel.tsx", /result\.data\.settled\s*\?\s*\{ kind: "paid"/],
   ["app/(app)/rent/pay/[inspectionId]/PayPanel.tsx", /result\.data\.settled\s*\?\s*\{ kind: "paid"/],
-  ["lib/auth/actions.ts", /withDone\("\/home", "password-changed"\)/],
+  ["lib/auth/actions.ts", /rememberSuccess\("password-changed"\);\s*redirect\("\/home"\)/],
+  ["lib/auth/actions.ts", /rememberSuccess\("account-created"\);\s*redirect\(landingAfterAuth\(formData\)\)/],
 ];
 
 describe("the success sheet is wired, and gated on ok, in every flow the DOM suite does not drive", () => {
   it.each(WIRED)("%s", (file, gate) => {
     const code = withoutComments(readFileSync(join(SRC, file), "utf8"));
-    expect(code).toMatch(/SuccessSheet|RegistrationFiledSheet|KycSentSheet|TicketFiledSheet|withDone/);
+    expect(code).toMatch(/SuccessSheet|RegistrationFiledSheet|KycSentSheet|TicketFiledSheet|withDone|rememberSuccess/);
     expect(code).toMatch(gate);
   });
 

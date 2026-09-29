@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { amendAgreement, cancelAgreement, confirmAgreement, createClaimEvidenceUpload, fileGuaranteeClaim } from "@/lib/agreements/actions";
 import { createClient } from "@/lib/supabase/client";
-import { withDone, type DoneFlag } from "@/lib/ui/success-moments";
+import { withDone, type RecordDoneFlag } from "@/lib/ui/success-moments";
 
 /**
  * The controls on an agreement page (Track A): confirm the exact version,
@@ -22,7 +22,7 @@ function useAction() {
    * shows the sheet there: this control is usually gone from the refreshed
    * page, so a sheet held here would vanish with it.
    */
-  const run = (work: () => Promise<{ ok: boolean; error?: string }>, after?: () => void, done?: DoneFlag) =>
+  const run = (work: () => Promise<{ ok: boolean; error?: string }>, after?: () => void, done?: RecordDoneFlag) =>
     start(async () => {
       setError(null);
       const result = await work();

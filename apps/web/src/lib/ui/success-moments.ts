@@ -179,11 +179,17 @@ export function isDoneFlag(value: unknown): value is DoneFlag {
 }
 
 /**
- * `href` with `?done=<flag>` added, keeping its query and hash. Record flags
- * only: an account moment in an address is a forgeable link (see
- * `GLOBAL_DONE_FLAGS`), so the type refuses it and the host ignores it.
+ * `href` with `?done=<flag>` added, keeping its query and hash.
+ *
+ * AN ACCOUNT FLAG IS NEVER WRITTEN. It would be a forgeable link (see
+ * `GLOBAL_DONE_FLAGS`); those moments ride on the server's one-shot cookie
+ * instead, which the actions set themselves (`rememberSuccess`). So for an
+ * account flag this returns `href` untouched, and a caller that still passes
+ * one, such as the verify screens, navigates cleanly while the cookie carries
+ * the moment.
  */
-export function withDone(href: string, flag: RecordDoneFlag, extra: Record<string, string> = {}): string {
+export function withDone(href: string, flag: DoneFlag, extra: Record<string, string> = {}): string {
+  if (isGlobalDoneFlag(flag)) return href;
   const hashAt = href.indexOf("#");
   const hash = hashAt === -1 ? "" : href.slice(hashAt);
   const base = hashAt === -1 ? href : href.slice(0, hashAt);

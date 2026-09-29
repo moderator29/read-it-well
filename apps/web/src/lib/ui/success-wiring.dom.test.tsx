@@ -683,12 +683,42 @@ const HOST = `
 `;
 
 run("account created, password changed, email verified, passcode set (the root layout's host)", () => {
-  it("opens from ?done= and strips it", async () => {
-    const { page, close } = await mountInBrowser({ entry: HOST, url: "http://vallo.test/home?done=password-changed" });
+  it("opens from the one-shot cookie the server set, asking the server for it", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: HOST,
+      init: `document.cookie = "nf_done_hint=1; path=/"`,
+      actions: { consumeSuccess: `async () => "password-changed"` },
+    });
     try {
-      await page.waitForSelector('[data-testid="success-sheet-account"]');
-      expect(await page.getByRole("dialog").getAttribute("aria-labelledby")).toBeTruthy();
-      expect((await routerCalls(page)).find((c) => c[0] === "replace")?.[1]).toBe("/home");
+      await page.waitForSelector('[data-testid="success-sheet-account"]', { timeout: 15_000 });
+      expect(await page.getByRole("dialog", { name: "Password changed" }).count()).toBe(1);
+    } finally {
+      await close();
+    }
+  });
+
+  it("a forged hint gets nothing: the server answers from the HttpOnly cookie alone", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: HOST,
+      init: `document.cookie = "nf_done_hint=1; path=/"`,
+      actions: { consumeSuccess: `async () => null` },
+    });
+    try {
+      await actionCalled(page, "consumeSuccess");
+      await page.waitForTimeout(800);
+      expect(await page.locator('[data-testid="success-sheet-account"]').count()).toBe(0);
+    } finally {
+      await close();
+    }
+  });
+
+  it("does not open from ?done= (a forgeable link), strips it, and asks the server nothing", async () => {
+    const { page, close } = await mountInBrowser({ entry: HOST, url: "http://vallo.test/about?done=password-changed&x=1" });
+    try {
+      await page.waitForFunction(() => window.location.search === "?x=1", null, { timeout: 15_000 });
+      await page.waitForTimeout(800);
+      expect(await page.locator('[data-testid="success-sheet-account"]').count()).toBe(0);
+      expect(await page.evaluate(() => (window as unknown as { __calls?: unknown[] }).__calls ?? [])).toEqual([]);
     } finally {
       await close();
     }
@@ -698,18 +728,18 @@ run("account created, password changed, email verified, passcode set (the root l
     const { page, close } = await mountInBrowser({ entry: HOST });
     try {
       await page.evaluate(() => (window as unknown as { __show: (f: string) => void }).__show("passcode-set"));
-      await page.waitForSelector('[data-testid="success-sheet-account"]');
+      await page.waitForSelector('[data-testid="success-sheet-account"]', { timeout: 15_000 });
       expect(await page.getByRole("dialog", { name: "Passcode set" }).count()).toBe(1);
     } finally {
       await close();
     }
   });
 
-  it("refuses a record's flag: those are the record's page's to check", async () => {
-    const { page, close } = await mountInBrowser({ entry: HOST, url: "http://vallo.test/home?done=agreement-drawn" });
+  it("refuses a record's moment through showSuccess: those are the record's page's to check", async () => {
+    const { page, close } = await mountInBrowser({ entry: HOST });
     try {
       await page.evaluate(() => (window as unknown as { __show: (f: string) => void }).__show("listing-live"));
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(800);
       expect(await page.locator('[data-testid="success-sheet-account"]').count()).toBe(0);
     } finally {
       await close();

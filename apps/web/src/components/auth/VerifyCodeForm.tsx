@@ -7,7 +7,6 @@ import type { AuthFormState } from "@/lib/auth/form-state";
 import { Button } from "@/components/ui/Button";
 import { Field } from "./fields";
 import { useRouter } from "next/navigation";
-import { withDone } from "@/lib/ui/success-moments";
 import { playThreshold, thresholdAllowed } from "@/lib/motion/threshold";
 import { VerifyingPanel } from "./VerifyingPanel";
 import {
@@ -78,9 +77,9 @@ export function VerifyCodeForm({
    */
   useEffect(() => {
     if (!state.ok || !state.verified) return;
-    /* The account now exists: "Welcome to Vallo" on arrival (`SuccessFlagHost`
-       in the root layout reads the flag and strips it as the sheet opens). */
-    const to = withDone(state.verified, "account-created");
+    /* "Welcome to Vallo" follows from the server: the verify action set a
+       one-shot cookie that `SuccessFlagHost` reads on the next screen. */
+    const to = state.verified;
     const go = () => {
       router.replace(to);
       router.refresh();

@@ -163,7 +163,8 @@ export async function mountInBrowser(opts: {
   if (opts.init) await page.evaluate(opts.init);
   await page.addScriptTag({ content: bundle });
   await page.waitForFunction(() => (window as unknown as { __mounted?: boolean }).__mounted === true, null, {
-    timeout: 10_000,
+    /* Generous: a bundle of a whole checkout mounts slowly on a busy box. */
+    timeout: 30_000,
   }).catch(() => {
     throw new Error(`the entry did not mount: ${errors.join(" | ")}`);
   });

@@ -21,7 +21,12 @@ Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference
   - The flag is stripped with `router.replace`.
   - What the sheet says is latched when it opens, so stripping the flag cannot unmount it.
   - Approvals that the database writes into notifications open once per device (`lib/ui/seen-once.ts`), and only within 14 days of the decision (`lib/ui/recent-approval.ts`).
-- `components/ui/SuccessFlagHost.tsx` sits in the root layout and shows the account moments (account created, email verified, password changed, passcode set or changed) from `?done=` or from `showSuccess()`.
+- `components/ui/SuccessFlagHost.tsx` sits in the root layout and shows the account moments: account created, email verified, password changed, and passcode set or changed. These never ride in the address, because a `?done=` link was forgeable: `/about?done=password-changed` said "Password changed" to anybody.
+  - **From a server action:** the action calls `rememberSuccess(flag)` (`lib/ui/success-cookie.ts`) after it succeeded. That sets an HttpOnly, SameSite=Lax, 120s `nf_done` cookie and a readable `nf_done_hint=1`.
+  - **The host checks only the hint:** on a navigation where the hint is present, it calls `consumeSuccess()`. The server answers from the HttpOnly cookie alone, checks it against the allow-list, and deletes both cookies.
+  - **Forgery:** a forged hint gets nothing, and an account flag found in the address is removed on every route without opening anything.
+  - **From a client screen:** the screen calls `showSuccess(flag)` instead.
+  - **`withDone` refuses account flags:** it returns the address untouched for them.
 - `/preview/success?v=success|submitted|approved&still=1` is the screenshot harness.
 
 ## Money rules
@@ -73,9 +78,11 @@ Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference
 | 33 | Tenancy review sent | `/rent/review/[paymentId]` | `submitTenancyReview` ok | Inline line | `SuccessSheet` "Review sent" |
 | 34 | Bank account added | `/settings/payments` | `addBankAccount` ok (after step-up) | Silent close | `SuccessSheet` "Bank account added" |
 | 35 | Payout account added | `/agent/earnings` | `addPayoutAccount` ok | Silent field reset | `SuccessSheet` "Payout account added", once per answer |
-| 36 | Account created | Sign-up, then landing | Sign-up with a session; code or link confirmation | Redirect | `?done=account-created` via `SuccessFlagHost` (AUTH-UI wired) |
-| 37 | Email verified | Link confirmation | `completeEmailVerification` ok for email or email_change | Redirect | `?done=email-verified` (AUTH-UI wired) |
-| 38 | Password changed | `/home?done=password-changed` | `updatePassword` ok | `redirect("/home")` with nothing | "Password changed". It does not promise other devices were signed out, because that step can fail |
+| 36 | Account created | Sign-up, then landing | `signUpWithEmail` with a session; code confirmation; a `signup` link | Redirect | One-shot cookie set by the action, "Welcome to Vallo" on the next screen |
+| 37 | Email verified | Link confirmation | `completeEmailVerification` ok for `email_change` | Redirect | One-shot cookie. A magic-link sign-in and a recovery earn none |
+| 38 | Password changed | `/home` | `updatePassword` ok | `redirect("/home")` with nothing | One-shot cookie, "Password changed". It does not promise other devices were signed out, because that step can fail |
+| 40 | Agent application approved | `/profile/application` | Status APPROVED, decided in the last 14 days (the admin notice links here) | Status panel | `SuccessFromFlag` (approved) "Application approved", once per device per application |
+| 41 | Business approved or published (host) | `/host` | The most recent business APPROVED or PUBLISHED in the last 14 days (the admin notice links here) | Status pill | "Business approved" or "Your business is live" (approved), once per device per business per step |
 | 39 | Passcode set or changed | Passcode setup | `setPasscodeAction` ok | Inline message and haptic | `showSuccess("passcode-set" \| "passcode-changed")` (PASSCODE wired) |
 
 ## Deliberately not celebrated
@@ -86,9 +93,13 @@ Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference
 - **Safety share and "I feel unsafe"** (`SafetyShareControl`, `UnsafeSheet`). A celebration is the wrong tone for safety.
 - **Profile edits, saved searches, alert toggles, phone confirmed, newsletter, briefs and price-check watches.** These are routine saves where a modal on every save interrupts. They keep their inline confirmations, and the audit's A7 and T8 fall here on purpose.
 - **Social reports** (post, profile, story) keep their toasts, because they are one tap inside a feed. The full report sheet (#29) celebrates.
-- **Staff console actions** (admin approvals, refunds, claim decisions). Their readers are staff, and their inline notices stay.
+- **Staff console actions** (admin approvals, refunds, claim decisions). Their readers are staff, and their inline notices stay. The applicant's side of an approval is celebrated (#14, #19, #25, #40, #41).
+- **An agent accepting a booking or answering a table reservation** (`BookingsWorkspace`, `ReservationsBoard`). This is a working queue an agent clears many times a day, and a modal per row would stand between them and the next row. The guest's side is where the news is, and the guest is told by notification.
+- **Renewals offered or answered, tenancy reports countersigned, flatmates added, answered or removed** (`components/app/tenancy/*`). These are steps in a document both sides are still negotiating, and they keep their inline state. The moment the money for a move-in lands is celebrated (#6).
 
 ## Known limits
 
 - Approvals shown once per device rely on browser storage. If storage is blocked, the sheet does not show, which is the safe failure.
 - If the page is refreshed while a card receipt is open, the settlement is re-asked. It is idempotent, so the same receipt shows again.
+- An account moment's cookie lasts two minutes. A sign-up that takes longer than that to reach its next screen shows no sheet, which is the safe failure.
+- A flatmate's share return is settled only against the move-in on the screen it came back to (`settleShareReturn` matches the transaction's booking to the tenancy's).
