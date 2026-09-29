@@ -94,14 +94,22 @@ async function signIn(attempt = 1) {
   const page = await ctx.newPage();
   try {
     await page.goto(`${BASE}/sign-in`, { waitUntil: "load", timeout: 60_000 });
-    await fillHydrated(page, "#auth-email", EMAIL);
-    await page.click("button:has-text('Continue')");
+    /* One step (#email and #password together) since the sign-in rework;
+       the older two-step form (#auth-email, then Continue) is kept working. */
+    await page.waitForSelector("#email, #auth-email", { timeout: 60_000 });
+    if (await page.locator("#auth-email").count()) {
+      await fillHydrated(page, "#auth-email", EMAIL);
+      await page.click("button:has-text('Continue')");
+    } else {
+      await fillHydrated(page, "#email", EMAIL);
+    }
     await fillHydrated(page, "#password", PASSWORD);
+    await page.waitForTimeout(1500);
     await page.click("button[type=submit]:has-text('Sign in')");
     await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 90_000 });
     return await ctx.storageState();
   } catch (error) {
-    if (attempt >= 2) throw error;
+    if (attempt >= 3) throw error;
     return signIn(attempt + 1);
   } finally {
     await ctx.close();
