@@ -3,10 +3,13 @@
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/filters-drawer.spec.mjs
  *
- * What it is now, top to bottom: a search field scoped to wherever the reader
- * already is, the price range with both figures printed above a real
- * two-handle slider, bedrooms as 1 / 2 / 3 / 4+, the amenity chips, and Apply
- * full width with Reset quiet beneath it.
+ * What it is now: a location search field ("Area, city or landmark"), the
+ * price range with both figures printed above a real two-handle slider,
+ * bedrooms as Any / 1+ / 2+ / 3+ / 4+ tiles with the group's own Clear, the
+ * amenity chips, and a footer of Reset and Apply side by side, Apply the
+ * wider (`components/app/filters/FilterDrawerPanel.tsx`, the drawer redesign;
+ * this spec used to describe the earlier 1 / 2 / 3 / 4+ toggles and a
+ * stacked footer).
  *
  * Two things this guards specifically:
  *
@@ -102,9 +105,9 @@ async function run(theme, { state = null, path }) {
 
     /* ------------------------------------------------------ the search */
     const search = page.locator('[data-testid="filter-search"]');
-    check("a scoped search field is the first thing in it", (await search.count()) === 1);
+    check("a location search field is in it", (await search.count()) === 1);
     const placeholder = (await search.getAttribute("placeholder")) ?? "";
-    check(`the placeholder names the scope (${placeholder})`, /^Search in .+\.\.\.$/.test(placeholder));
+    check(`the placeholder says what to type (${placeholder})`, placeholder === "Area, city or landmark");
 
     /* ------------------------------------------------------- the price */
     const range = page.locator('[data-testid="filter-range"]');
@@ -132,20 +135,28 @@ async function run(theme, { state = null, path }) {
     );
 
     /* ---------------------------------------------------- the bedrooms */
-    const beds = page.locator('[data-testid^="filter-bedrooms-"]');
-    const bedLabels = await beds.allInnerTexts();
+    const beds = page.locator('[data-testid^="filter-bedrooms-"]:not([data-testid="filter-bedrooms-clear"])');
+    const bedLabels = (await beds.allInnerTexts()).map((l) => l.trim());
     check(
-      `bedrooms are 1, 2, 3 and 4+ (${JSON.stringify(bedLabels)})`,
-      bedLabels.length === 4 && bedLabels[3].trim() === "4+",
+      `bedrooms are Any, 1+, 2+, 3+ and 4+ (${JSON.stringify(bedLabels)})`,
+      JSON.stringify(bedLabels) === JSON.stringify(["Any", "1+", "2+", "3+", "4+"]),
     );
 
+    const any = page.locator('[data-testid="filter-bedrooms-0"]');
     const two = page.locator('[data-testid="filter-bedrooms-2"]');
+    const clearBeds = page.locator('[data-testid="filter-bedrooms-clear"]');
+    check("Any is the starting choice", (await any.getAttribute("aria-pressed")) === "true");
+    check("and there is nothing to clear yet", await clearBeds.isDisabled());
     await two.click();
     await page.waitForTimeout(200);
     check("choosing one marks it", (await two.getAttribute("aria-pressed")) === "true");
-    await two.click();
+    check("and only it", (await any.getAttribute("aria-pressed")) === "false");
+    await clearBeds.click();
     await page.waitForTimeout(200);
-    check("and choosing it again clears it", (await two.getAttribute("aria-pressed")) === "false");
+    check(
+      "the group's Clear clears it back to Any",
+      (await two.getAttribute("aria-pressed")) === "false" && (await any.getAttribute("aria-pressed")) === "true",
+    );
 
     /* ------------------------------------------------- the chips shipped */
     const furnished = page.locator('[data-testid="filter-amenity-furnished"]');
@@ -170,11 +181,12 @@ async function run(theme, { state = null, path }) {
     const applyBox = await apply.boundingBox();
     const resetBox = await reset.boundingBox();
     check(
-      "Apply is full width and Reset sits directly below it",
+      "Reset and Apply share one row, Reset first and Apply the wider",
       applyBox !== null &&
         resetBox !== null &&
-        Math.abs(applyBox.width - resetBox.width) < 2 &&
-        resetBox.y > applyBox.y,
+        Math.abs(applyBox.y - resetBox.y) < 2 &&
+        resetBox.x < applyBox.x &&
+        applyBox.width > resetBox.width,
     );
 
     check("no route returned a server error", serverErrors.length === 0);
