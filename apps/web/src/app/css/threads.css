@@ -932,20 +932,54 @@
 
   /* ------------------------------------------------------------- inbox */
 
+  /* THE INBOX ON THE ROW SPEC (plan item 19, spec 5): one card holds the
+     conversations, rows sit inside it with hairlines inset to the text
+     column (16 + 44 + 12), none above the first. */
+  .nf-inbox-list {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-inbox-list > li {
+    position: relative;
+    padding-inline-end: 0.25rem;
+  }
+  .nf-inbox-list > li + li::before {
+    content: "";
+    position: absolute;
+    inset-inline: 4.5rem 0;
+    top: 0;
+    height: 1px;
+    background: var(--nf-divider);
+  }
   .nf-inbox-row {
     display: flex;
     align-items: center;
-    gap: var(--nf-gap-inline);
+    gap: 0.75rem;
     width: 100%;
-    padding: var(--nf-space-sm) var(--nf-space-xs);
-    border-radius: var(--nf-radius-lg);
+    min-height: 4.5rem;
+    padding: 0.75rem 0.75rem 0.75rem 1rem;
     transition: background var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  @media (hover: hover) {
+  @media (hover: hover) and (pointer: fine) {
     .nf-inbox-row:hover {
-      background: var(--nf-panel-fill-card);
-      box-shadow: var(--nf-panel-rim);
+      background: var(--nf-surface-secondary);
     }
+  }
+  .nf-inbox-row__context {
+    color: var(--nf-content-muted);
+  }
+  .nf-inbox-row__when {
+    font-size: 0.75rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-inbox-row[data-unread] .nf-inbox-row__when {
+    color: var(--nf-brand-primary);
+    font-weight: 600;
   }
   /*
    * THE RING WAS AN OVAL ON EVERY ROW IT HAS EVER DRAWN.
@@ -966,11 +1000,11 @@
     align-self: center;
     aspect-ratio: 1;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-plate-edge);
-    border-color: var(--nf-plate-edges);
-    background: var(--nf-plate-fill);
-    box-shadow: var(--nf-plate-shadow);
-    padding: 2px;
+    /* People stay round avatars with no lit ring (spec 4). */
+    border: 0;
+    background: none;
+    box-shadow: none;
+    padding: 0;
   }
   .nf-inbox-row__ring > * {
     border-radius: inherit;
@@ -1008,12 +1042,13 @@
     min-width: 1.375rem;
     height: 1.375rem;
     padding-inline: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-xs);
-    background: var(--nf-btn-lit-fill);
-    box-shadow: var(--nf-btn-lit-shadow);
-    color: var(--nf-content-on-brand);
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
+    /* The spec's count (section 6): 12/600 tabular on the brand tint. */
+    border-radius: var(--nf-radius-badge, 6px);
+    background: var(--nf-brand-tint-2);
+    box-shadow: none;
+    color: var(--nf-brand-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
 

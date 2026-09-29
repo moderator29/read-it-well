@@ -116,14 +116,14 @@ async function run(theme, { state = null, path }) {
       );
       check(
         "Recent is the view selected on arrival",
-        (await page.locator('[data-testid="inbox-view-recent"]').getAttribute("aria-checked")) === "true",
+        (await page.locator('#inbox-view-recent').getAttribute("aria-checked")) === "true",
       );
 
     const rows = await page.locator('[data-testid="inbox-row"]').count();
     console.log(`    rows: ${rows}`);
 
     /* Requests must be a designed empty state, never a blank panel. */
-    await page.locator('[data-testid="inbox-view-requests"]').click();
+    await page.locator('#inbox-view-requests').click();
     await page.waitForTimeout(300);
     const requestRows = await page.locator('[data-testid="inbox-row"]').count();
     if (requestRows === 0) {
@@ -136,7 +136,7 @@ async function run(theme, { state = null, path }) {
     }
 
     /* A search with no matches is its own state, not the same empty. */
-    await page.locator('[data-testid="inbox-view-recent"]').click();
+    await page.locator('#inbox-view-recent').click();
     await page.waitForTimeout(200);
     await page.fill('[data-testid="inbox-search"]', "zzzzqqq");
     await page.waitForTimeout(300);
