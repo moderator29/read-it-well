@@ -292,7 +292,7 @@ export function AppShell({
               the dimmed app beside it, not a slab welded to the screen edge,
               and the safe areas are part of that geometry. Utilities here
               would outrank the component layer and pin it back to the edge. */}
-          <div className="nf-drawer nf-drawer--left absolute" data-theme="dark" {...drawerSwipe}>
+          <div className="nf-drawer nf-drawer--left absolute" {...drawerSwipe}>
             {/* The panel draws the moving edge light (edge-m.css) and holds
                 still; this inner layer is what scrolls, so the light stays on
                 the panel's edge instead of scrolling away with the rows. */}

@@ -94,12 +94,6 @@ export function AppRail({
     <aside
       className={drawer ? "nf-nav nf-nav--drawer" : "nf-nav nf-nav--rail"}
       aria-label={t.nav.primaryLabel}
-      /* A NIGHT ISLAND IN BOTH THEMES (29 September 2026). The founder: the
-         side navigation is the brand, a navy glass panel with a lit edge,
-         in light as in dark, like the dark top block of reference 05. Every
-         token under here resolves to the night palette; `app/css/shell-m.css`
-         ("THE NAVY GLASS NAVIGATION") paints the panel. */
-      data-theme="dark"
     >
       {/*
         The head. On the desktop rail it is the wordmark; the drawer render

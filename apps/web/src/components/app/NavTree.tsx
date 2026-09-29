@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { GLASS_FOR } from "@/lib/nav/glass-glyph";
 import { isCurrent, type NavLeaf, type NavSection } from "./nav-model";
 
 /**
@@ -81,28 +79,15 @@ export function NavTree({
           aria-current={current ? "page" : undefined}
           className={`nf-nav__row${current ? " nf-nav__row--on" : ""}`}
         >
-          {/* THE GLASS OBJECTS ARE BACK (the founder, 29 September 2026:
-              "bring back the glass icons ... on navy glass rows like the
-              profile rows"). The morning's pass drew line glyphs because a
-              30px glass object blurred; now each row carries a 36px glass
-              plate, as the profile rows do, with the object drawn oversized
-              inside it so its own transparent margin falls outside the plate
-              and the object reads at the size it needs. The rail and the
-              drawer are night islands in both themes, so this is always the
-              glass. A row whose glyph has no glass object keeps its line
-              glyph on the same plate. Eager, because the drawer mounts off
-              screen and Safari never fetches a lazy image there. */}
-          <span
-            className={`nf-nav__glyph${GLASS_FOR[item.icon] ? " nf-nav__glyph--glass" : ""}`}
-            aria-hidden="true"
-          >
-            {GLASS_FOR[item.icon] ? (
-              <span className="nf-nav__object">
-                <BrandIcon name={GLASS_FOR[item.icon]!} size={48} loading="eager" />
-              </span>
-            ) : (
-              <UiIcon name={item.icon} size="sm" filled={current} />
-            )}
+          <span className="nf-nav__glyph" aria-hidden="true">
+            {/* Line glyphs only, 29 September 2026. The rows drew the glass
+                object `GLASS_FOR` maps each glyph to, at 30px, which is below
+                the 32px where a glass object reads (docs/ICON_SYSTEM.md): at
+                that size the tiles blurred into coloured squares and the drawer
+                read as noise. The stroked set at `md` (24) is crisp beside 16px
+                type, and the current row takes its drawn filled twin. The
+                dock's tray keeps its glass objects at 40px. */}
+            <UiIcon name={item.icon} size="md" filled={current} />
           </span>
           <span className="nf-nav__label">{item.label}</span>
           {item.badge ? <span className="nf-count-badge nf-nav__badge nf-numeric">{item.badge}</span> : null}

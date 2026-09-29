@@ -550,32 +550,28 @@
 }
 
 /*
- * THE NAVY GLASS NAVIGATION (29 September 2026).
+ * THE NAVIGATION'S GLASS AND GLOW (29 September 2026).
  *
- * The founder: the side navigation had gone plain, white in light and flat
- * black in dark, with thin line icons, and it should feel like the brand. The
- * rail and the drawer are night islands in both themes now (`data-theme` on
- * the `<aside>` in `AppRail`, and on the drawer panel in `AppShell`), so every
- * token below resolves to the night palette whichever theme the page is in.
+ * The founder, final for this surface: the side navigation (the drawer and
+ * the desktop rail) keeps its blue LINE icons, bare on the row, exactly as
+ * they are; in the DARK theme the panel itself becomes the brand's navy glass
+ * with a lit edge, and in BOTH themes the current row is a lit glass pill.
+ * Light keeps its white panel.
  *
- *  - THE PANEL is navy glass: the night canvas lifted a step towards the
- *    container blue at the top, one soft bloom in the upper corner, and a
- *    hairline of blue along the edge that faces the content. The drawer keeps
- *    its moving edge light (edge-m.css), tinted blue here; the rail's edge is
- *    a static light, brightest at its middle, because a column that is on
+ *  - THE PANEL (dark): the night canvas lifted a step towards the container
+ *    blue at the top, one soft bloom in the upper corner, and a hairline of
+ *    blue on the edge that faces the content. The drawer keeps its moving
+ *    edge light (edge-m.css), tinted blue here; the rail's edge light is
+ *    static, brightest through the middle, because a column that is on
  *    screen for the whole session should not move.
- *  - EACH ROW has a 36px glass plate holding its glass object (NavTree), the
- *    profile rows' plate at a smaller size.
- *  - THE CURRENT ROW is a glass pill with one soft blue glow, and its plate
- *    lights. Less glow overall, at the founder's ask: every glow here is a
- *    single short shadow at low strength.
+ *  - THE CURRENT ROW: a glass pill with a hairline rim, a highlight along its
+ *    top and one short, low glow. Less glow overall, at the founder's ask.
  *
- * Contrast: row labels are `--nf-content-primary` on the night canvas, and
- * headings `--nf-content-muted`, both already measured above AA on it.
+ * Contrast: labels keep `--nf-content-primary` on both panels, and the line
+ * glyphs keep `--nf-brand-secondary`, as before.
  */
 @layer components {
-  .nf-drawer--left[data-theme="dark"],
-  .nf-nav--rail {
+  :root:not([data-theme="light"]) :is(.nf-drawer--left, .nf-nav--rail) {
     background:
       radial-gradient(
         110% 36% at 0% 0%,
@@ -592,9 +588,8 @@
         color-mix(in oklab, var(--nf-container-ink) 9%, var(--nf-surface-canvas)) 0%,
         var(--nf-surface-canvas) 60%
       );
-    color: var(--nf-content-primary);
   }
-  .nf-drawer--left[data-theme="dark"] {
+  :root:not([data-theme="light"]) .nf-drawer--left {
     border-inline-end: 1px solid color-mix(in oklab, var(--nf-container-ink) 42%, transparent);
     box-shadow:
       inset -1px 0 0 color-mix(in oklab, var(--nf-content-primary) 6%, transparent),
@@ -605,13 +600,11 @@
     --nf-edge-hot: var(--nf-brand-quiet);
     --nf-edge-glint: var(--nf-content-primary);
   }
-  .nf-nav--rail {
+  :root:not([data-theme="light"]) .nf-nav--rail {
     border-inline-end: 1px solid color-mix(in oklab, var(--nf-container-ink) 34%, transparent);
     box-shadow: 1px 0 18px -10px var(--nf-glow-3);
   }
-  /* The rail's edge light: static, a brighter stretch of the same hairline
-     through the middle of the column. */
-  .nf-nav--rail::after {
+  :root:not([data-theme="light"]) .nf-nav--rail::after {
     content: "";
     position: absolute;
     inset-block: 8%;
@@ -628,74 +621,24 @@
     );
     box-shadow: 0 0 8px var(--nf-glow-3);
   }
-
-  /* The drawer's person: the face lit by one ring of brand light. */
-  .nf-nav__who--hero .nf-nav__avatar {
+  :root:not([data-theme="light"]) .nf-nav__who--hero .nf-nav__avatar {
     box-shadow:
       0 0 0 2px var(--nf-surface-canvas),
       0 0 0 3px color-mix(in oklab, var(--nf-container-ink) 70%, transparent),
       0 0 18px -4px var(--nf-glow-3);
   }
-  .nf-nav--drawer .nf-nav__who--hero,
-  .nf-nav--drawer .nf-nav__foot,
-  .nf-nav__section + .nf-nav__section {
+  :root:not([data-theme="light"]) :is(.nf-nav--drawer .nf-nav__who--hero, .nf-nav--drawer .nf-nav__foot, .nf-nav__section + .nf-nav__section) {
     border-color: color-mix(in oklab, var(--nf-container-ink) 22%, transparent);
   }
+  :root:not([data-theme="light"]) .nf-nav a.nf-nav__row:hover {
+    background: color-mix(in oklab, var(--nf-container-ink) 12%, transparent);
+  }
 
-  /* ---------------------------------------------------------------- rows */
+  /* THE CURRENT ROW, both themes: a lit glass pill. The glyph keeps the
+     brand blue (its filled twin) and the label its own ink. */
   .nf-nav .nf-nav__row {
-    color: var(--nf-content-primary);
-    font-weight: 500;
     border: 1px solid transparent;
   }
-  .nf-nav a.nf-nav__row:hover {
-    background: color-mix(in oklab, var(--nf-container-ink) 12%, transparent);
-    color: var(--nf-content-primary);
-  }
-
-  /* THE PLATE: a small glass square, the profile row's plate at 36px. */
-  .nf-nav .nf-nav__glyph {
-    position: relative;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--nf-radius-sm);
-    border: 1px solid color-mix(in oklab, var(--nf-container-ink) 30%, transparent);
-    border-block-start-color: color-mix(in oklab, var(--nf-container-ink) 52%, transparent);
-    background:
-      radial-gradient(
-        48% 44% at 50% 50%,
-        color-mix(in oklab, var(--nf-container-ink) 30%, transparent),
-        transparent 80%
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-container-ink) 22%, var(--nf-surface-canvas)),
-        color-mix(in oklab, var(--nf-container-ink) 5%, var(--nf-surface-canvas))
-      );
-    color: var(--nf-brand-quiet);
-    transition:
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  /* The object is drawn larger than the plate so its own transparent margin
-     falls outside it, as `.nf-pf-plate__object` does. */
-  .nf-nav__object {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
-    display: grid;
-    width: 3rem;
-    height: 3rem;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-  .nf-theme-row .nf-nav__glyph,
-  .nf-nav__legal .nf-nav__glyph {
-    width: 2.25rem;
-    height: 2.25rem;
-  }
-
-  /* THE CURRENT ROW: a glass pill, one soft glow, the plate lit. */
   .nf-nav .nf-nav__row.nf-nav__row--on {
     font-weight: 650;
     color: var(--nf-content-primary);
@@ -713,9 +656,21 @@
   .nf-nav .nf-nav__row.nf-nav__row--on::before {
     display: none;
   }
-  .nf-nav .nf-nav__row--on .nf-nav__glyph {
-    border-color: color-mix(in oklab, var(--nf-container-ink) 70%, transparent);
-    box-shadow: 0 0 10px -3px var(--nf-glow-3);
-    color: var(--nf-content-primary);
+  .nf-nav .nf-nav__row.nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-brand-secondary);
+  }
+  /* In light the pill is the same object on paper: a brand-tinted glass
+     with a brand hairline and the same short glow, so the label stays ink. */
+  :root[data-theme="light"] .nf-nav .nf-nav__row.nf-nav__row--on {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    border-block-start-color: color-mix(in oklab, var(--nf-brand-primary) 42%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary)) 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 6%, var(--nf-surface-primary)) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 var(--nf-surface-primary),
+      0 4px 14px -8px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
   }
 }
