@@ -100,6 +100,23 @@ export async function closeBrowser(): Promise<void> {
   browser = null;
 }
 
+/**
+ * Launch the shared browser before the first mount. Call it from `beforeAll`,
+ * whose budget is the hook timeout, so the first test of a file does not pay
+ * the Chromium start inside its own test timeout.
+ */
+export async function warmBrowser(): Promise<void> {
+  if (!CHROMIUM) return;
+  browser ??= await chromium.launch({ executablePath: CHROMIUM, args: ["--no-sandbox"] });
+}
+
+/**
+ * The budget a browser test needs: a mount may wait 30 s for its bundle
+ * (below), and a test then waits up to 15 s for what it asserts, so the
+ * suite-wide 30 s test timeout is too small by construction.
+ */
+export const BROWSER_TEST_TIMEOUT = 75_000;
+
 export type Mounted = { page: Page; close: () => Promise<void> };
 
 export async function mountInBrowser(opts: {

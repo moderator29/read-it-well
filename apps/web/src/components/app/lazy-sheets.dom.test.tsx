@@ -9,10 +9,19 @@
  * on the trigger, and a second open finds the draft the reader left, because
  * the body stays mounted once it has been drawn.
  */
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Page } from "playwright-core";
-import { closeBrowser, hasBrowser, mountInBrowser } from "@/lib/testing/mount-in-browser";
+import {
+  BROWSER_TEST_TIMEOUT,
+  closeBrowser,
+  hasBrowser,
+  mountInBrowser,
+  warmBrowser,
+} from "@/lib/testing/mount-in-browser";
 
+/* The browser starts in the hook; each test gets the budget its mount needs. */
+vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
+beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
 const run = describe.skipIf(!hasBrowser && !process.env.CI);
