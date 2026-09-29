@@ -870,3 +870,48 @@
     }
   }
 }
+
+/*
+ * THE HEADER'S TWO CONTROLS, BARE (the founder, 29 September 2026,
+ * reference 23): the bell and the menu are bold line glyphs about 22px with
+ * NO container, no ring, no glow, the way pump.fun's header draws its bell,
+ * so the navy band reads as a logo and two marks. The 44px tap target stays,
+ * invisible: the button is still 44 square, it simply paints nothing. The
+ * unread mark is a small dot on the bell's shoulder, ringed in the header's
+ * own navy so it reads as cut out of the glyph. Focus keeps the product ring.
+ */
+@layer components {
+  .nf-app-header .nf-app-header__btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: transparent;
+    box-shadow: none;
+    color: var(--nf-content-primary);
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-app-header .nf-app-header__btn > svg {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+  @media (hover: hover) {
+    .nf-app-header .nf-app-header__btn:hover {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      color: var(--nf-brand-quiet);
+    }
+  }
+  .nf-app-header .nf-app-header__dot {
+    top: 0.625rem;
+    right: 0.6875rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 1.5px solid var(--nf-surface-canvas);
+  }
+}

@@ -36,7 +36,13 @@ import {
 } from "./paystack";
 
 export type ChargeSavedCardOutcome =
-  | { kind: "charged" }
+  /*
+   * `reference` is what the receipt shows. `settled` is written by the
+   * booking action AFTER settlement (lib/bookings/checkout.ts): true only when
+   * the charge was applied to the booking the person is paying for. This
+   * module leaves it unset, and an unset `settled` is never a success.
+   */
+  | { kind: "charged"; reference?: string; settled?: boolean }
   /* The bank asked to authenticate. Three things for the SAME transaction are
      carried: the hosted URL, the access code that resumes that identical
      transaction in a checkout on our own page, and THE REFERENCE, which the

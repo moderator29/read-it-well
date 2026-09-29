@@ -47,6 +47,7 @@ import {
 } from "../payments/paystack";
 import { chargeSavedCard, type ChargeSavedCardOutcome } from "../payments/charge-saved-card";
 import { isBookingReference } from "../payments/references";
+import { cardReturnVerdict } from "../payments/card-return";
 import { insertSplitAttempt, isRefusal, openSplitAttempt, quoteSplit } from "../payments/split-attempt";
 import { bookingHasPaymentInFlight, recordCheckoutHandle, reuseLiveAttempt } from "../payments/attempts";
 import { withBookingOpenLease } from "../payments/booking-lease";
@@ -130,6 +131,13 @@ export type CardSettlement = {
   amountMinor: number;
   /** True when this call moved the booking to CONFIRMED. */
   confirmed: boolean;
+  /**
+   * What the settlement answered, so a receipt is gated on it rather than on
+   * `ok` alone (docs/SUCCESS_MOMENTS.md, money rules). `already-settled`
+   * carries the transaction's own status: only SUCCESSFUL is a payment.
+   */
+  outcome?: "settled" | "already-settled" | "share-settled";
+  transactionStatus?: string | null;
 };
 
 /** The booking row a payment path is allowed to act on. */
@@ -537,7 +545,19 @@ async function payWithSavedCardWork(
        wait for a webhook to see their stay confirmed. This is the same
        settlement the webhook calls, keyed on the same reference, so whichever
        arrives first does the work and the second finds nothing left. */
-    await settleCardPayment(reference);
+    const settled = await settleCardPayment(reference);
+    /*
+     * AND ITS ANSWER DECIDES WHAT THE GUEST IS TOLD. It used to be ignored,
+     * so a charge the database refused (refund-due) still came back as
+     * "charged" and the panel drew "Payment sent, these dates are yours".
+     * `settled` is true only for a settlement against THIS booking; anything
+     * else keeps the honest "we are applying your payment" sheet.
+     */
+    return ok({
+      kind: "charged",
+      reference,
+      settled: settled.ok && settled.data !== null && cardReturnVerdict(settled.data, booking.id) !== "unsure",
+    });
   }
 
   return charged;
@@ -677,6 +697,21 @@ export async function settleCardPayment(
     );
   }
 
+  /*
+   * ALREADY SETTLED IS NOT ALWAYS PAID. The database answers `already-settled`
+   * for a reference it has seen before, and that includes one it found
+   * refund-due or has refunded. Returning `ok` for those told the return page
+   * "Payment received" about money that is on its way back to the card.
+   */
+  if (
+    settlement.outcome === "already-settled" &&
+    (settlement.transactionStatus === "REFUNDED" || settlement.transactionStatus === "REFUND_DUE")
+  ) {
+    return fail(
+      "This payment could not be applied to this booking, so the whole amount is being returned to the card or account you paid with. Vallo has kept nothing. Banks usually show it within 5 to 10 working days.",
+    );
+  }
+
   const confirmed = settlement.outcome === "settled" ? settlement.confirmed : false;
 
   // Only a transition that actually happened here sends the email. A guest
@@ -689,9 +724,11 @@ export async function settleCardPayment(
   revalidatePath(`/checkout/${owner.bookingId}`);
 
   return ok({
-    bookingId: owner.bookingId,
+    bookingId: settlement.bookingId ?? owner.bookingId,
     amountMinor: settlement.outcome === "settled" ? settlement.amountMinor : tx.amountMinor,
     confirmed,
+    outcome: settlement.outcome,
+    transactionStatus: settlement.outcome === "already-settled" ? (settlement.transactionStatus ?? null) : null,
   });
 }
 

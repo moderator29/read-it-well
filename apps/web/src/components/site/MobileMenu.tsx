@@ -7,13 +7,11 @@ import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { SUPPORT_HREF } from "@/lib/support-email";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Locale } from "@vallo/i18n/core";
 
 /**
  * Marketing side navigation, for phones.
  *
- * SHORT. One grouped surface of rows, the display controls, and one button.
+ * SHORT. One grouped surface of rows and one button.
  *
  * What it was: a bare list where every row carried its own bottom border
  * INCLUDING the last one, so the stack ended on a hairline hanging under
@@ -27,9 +25,9 @@ import type { Locale } from "@vallo/i18n/core";
  * between them and none at either end, which is the platform's grouped list and
  * the pattern the reference set uses for every panel it has. Support is a row
  * in that group rather than a separate species. The label sits OUTSIDE the
- * surface. The two display controls sit under their own label in the same
- * shape, and the only filled thing in the panel is the one action it is asking
- * for.
+ * surface. The only filled thing in the panel is the one action it is asking
+ * for. The display group that held the language control is gone: language
+ * lives only in Settings.
  *
  * The opener is the product's panel glyph rather than the three-line
  * hamburger it used to be. Two menus on one platform drawn differently is two
@@ -38,8 +36,6 @@ import type { Locale } from "@vallo/i18n/core";
  */
 export function MobileMenu({
   links,
-  locale,
-  languageLabel,
   signIn,
   signUp,
   openLabel,
@@ -47,8 +43,6 @@ export function MobileMenu({
   menuLabel,
 }: {
   links: { href: string; label: string }[];
-  locale: Locale;
-  languageLabel: string;
   signIn: string;
   signUp: string;
   openLabel: string;
@@ -145,18 +139,8 @@ export function MobileMenu({
             </nav>
 
             <div className="mt-block">
-              {/*
-                Language, which is the one thing a visitor may want to change
-                before reading a word. This group held the theme toggle beside
-                it until light mode was removed on 23 September 2026; with one
-                palette there is nothing to toggle, so the group is one control
-                and keeps its label outside, the same shape as the group above.
-              */}
-              <span className="nf-group-label">Display</span>
-              <div className="nf-panel nf-panel--card flex flex-row items-center gap-inline px-group py-row">
-                <LanguageSwitcher current={locale} label={languageLabel} compact />
-              </div>
-
+              {/* No language control here (founder, 29 September 2026): the
+                  language is changed in Settings and nowhere else. */}
               {/* The one filled control in the panel, and the reason the panel
                   exists. It used to wear `nf-breathe`, a permanent pulse loop:
                   the single most prominent thing on the surface, animated

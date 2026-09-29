@@ -35,8 +35,6 @@ export default function SheetsPreview() {
         />
         <MobileMenu
           links={[{ href: "/about", label: "About" }]}
-          locale="en"
-          languageLabel="Language"
           signIn="Sign in"
           signUp="Get started"
           openLabel="Open menu"

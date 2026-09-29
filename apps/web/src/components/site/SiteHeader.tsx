@@ -3,7 +3,6 @@ import { ButtonLink } from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { NavScrollState } from "./NavScrollState";
 import { SiteNavLinks } from "./SiteNavLinks";
@@ -14,9 +13,8 @@ import { SiteNavLinks } from "./SiteNavLinks";
  * Left: the lockup (mark and wordmark, as the render shows it). Centre, from
  * lg up: Home / Properties / Stays / AI / More. Right: the search glyph in a
  * glass square, Sign In as a glass button, Get Started as the one primary,
- * and on phones the panel opener. Theme and language live under More on
- * desktop and inside the phone panel, so the bar carries exactly what the
- * render carries and both controls stay one tap away.
+ * and on phones the panel opener. The bar carries exactly what the render
+ * carries; language is changed in Settings and nowhere else.
  *
  * `variant="landing"` makes the bar transparent over the hero photograph
  * until the page scrolls (see landing.css and NavScrollState). The content
@@ -24,10 +22,10 @@ import { SiteNavLinks } from "./SiteNavLinks";
  */
 export function SiteHeader({
   t,
-  locale,
   variant,
 }: {
   t: Dictionary;
+  /** Still passed by the layouts; the bar no longer draws a language control. */
   locale: Locale;
   variant?: "landing";
 }) {
@@ -77,10 +75,8 @@ export function SiteHeader({
               links={links}
               more={more}
               moreLabel={nav.more}
-              /* The theme toggle stood beside the language switcher here
-                 until light mode was removed on 23 September 2026. One
-                 palette, no control. */
-              extras={<LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />}
+              /* No language control here: language is changed in Settings
+                 and nowhere else (founder, 29 September 2026). */
             />
           </nav>
 
@@ -103,8 +99,6 @@ export function SiteHeader({
             </ButtonLink>
             <MobileMenu
               links={[...links, ...more]}
-              locale={locale}
-              languageLabel={t.a11y.languageSwitcher}
               signIn={nav.signIn}
               signUp={nav.getStarted}
               openLabel={t.a11y.openMenu}

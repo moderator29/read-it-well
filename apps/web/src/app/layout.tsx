@@ -18,6 +18,7 @@ import { THEME_BOOT_SCRIPT, THEME_KEY, parseThemeChoice, serverTheme } from "@/l
 import { ITERATION_QUIET_SCRIPT } from "@/lib/motion/iteration-quiet";
 import { ClientCopyProvider } from "@/lib/i18n/client-copy";
 import { clientCopyOf } from "@/lib/i18n/client-copy-of";
+import { SuccessFlagHost } from "@/components/ui/SuccessFlagHost";
 
 /*
  * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
@@ -437,7 +438,12 @@ export default async function RootLayout({
         {/* The few words client code on every screen needs, in the reader's
             language, so no route ships the whole dictionary for them
             (`lib/i18n/client-copy.tsx`). */}
-        <ClientCopyProvider copy={clientCopyOf(t)}>{children}</ClientCopyProvider>
+        <ClientCopyProvider copy={clientCopyOf(t)}>
+          {children}
+          {/* The account's success moments (sign-up, email, password,
+              passcode), wherever they land: docs/SUCCESS_MOMENTS.md. */}
+          <SuccessFlagHost />
+        </ClientCopyProvider>
         {/* The splash itself: hidden unless the script above said so, gone
             for good once its door has opened. Pure CSS; see threshold.css. */}
         <div className="nf-splash" aria-hidden="true">
