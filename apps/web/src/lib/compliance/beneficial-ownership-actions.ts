@@ -86,7 +86,7 @@ export async function decideListingMandate(input: {
   idDocumentRef?: string | null;
   reason?: string | null;
 }): Promise<ActionResult<{ state: string }>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
   if (!UUID.test(input.mandateId) || (input.decision !== "approve" && input.decision !== "reject")) return fail(FAILED);
 
@@ -105,7 +105,7 @@ export async function decideListingMandate(input: {
   }
 
   try {
-    const db = access.supabase as unknown as SupabaseClient;
+    const db = access.userClient as unknown as SupabaseClient;
     const { data, error } = await db.rpc("decide_listing_mandate", {
       p_mandate: input.mandateId,
       p_decision: input.decision,

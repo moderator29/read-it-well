@@ -57,7 +57,7 @@ export type FeeConsole = {
 };
 
 export async function getFeeConsole(): Promise<AdminRead<FeeConsole>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("finance");
   if (access.state !== "admin") return UNAVAILABLE;
 
   try {
@@ -173,7 +173,7 @@ export type RefundConsole = {
 
 /** Every refund decided on the console, newest first, with where its money is. */
 export async function getRefundConsole(filter?: AdminQueueFilter): Promise<AdminRead<RefundConsole>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("finance");
   if (access.state !== "admin") return UNAVAILABLE;
 
   let admin: SupabaseClient<Database>;

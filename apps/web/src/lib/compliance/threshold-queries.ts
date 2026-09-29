@@ -14,10 +14,10 @@ export type ThresholdLaneRead =
   | { state: "unavailable" };
 
 export async function readThresholdLane(): Promise<ThresholdLaneRead> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return { state: "unavailable" };
   try {
-    const { data, error } = await (access.supabase as unknown as {
+    const { data, error } = await (access.userClient as unknown as {
       rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: unknown }>;
     }).rpc("threshold_lane", { p_open: 300, p_closed: 100 });
     const answer = error ? null : readThresholdLaneAnswer(data);

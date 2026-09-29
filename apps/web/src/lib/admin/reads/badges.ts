@@ -35,7 +35,7 @@ export function tiersFromRows(rows: readonly unknown[]): Record<string, BadgeTie
 export async function getBadgeTiers(userIds: readonly (string | null | undefined)[]): Promise<Record<string, BadgeTier>> {
   const ids = [...new Set(userIds.filter((x): x is string => typeof x === "string" && x.length > 0))];
   if (ids.length === 0) return {};
-  const access = await requireAdmin();
+  const access = await requireAdmin("operations");
   if (access.state !== "admin") return {};
   const db = access.supabase as unknown as Untyped;
   try {

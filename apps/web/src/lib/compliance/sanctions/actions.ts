@@ -18,9 +18,9 @@ export type DeskAnswer = { ok: true; message: string } | { ok: false; error: str
 type Rpc = { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> };
 
 async function staffRpc(fn: string, args: Record<string, unknown>, done: string): Promise<DeskAnswer> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return { ok: false, error: "forbidden" };
-  const { data, error } = await (access.supabase as unknown as Rpc).rpc(fn, args);
+  const { data, error } = await (access.userClient as unknown as Rpc).rpc(fn, args);
   revalidatePath("/admin/compliance");
   const status = !error && data && typeof data === "object" ? (data as { status?: unknown }).status : null;
   if (status === "ok") return { ok: true, message: done };
@@ -40,10 +40,10 @@ export async function rejectSanctionsDecision(input: { decisionId: string }): Pr
 }
 
 export async function proposeSanctionsDecision(input: { hitId: string; decision: "clear" | "confirm" | "release"; note: string }): Promise<DeskAnswer> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return { ok: false, error: "forbidden" };
   if (input.decision !== "clear" && input.decision !== "confirm" && input.decision !== "release") return { ok: false, error: "failed" };
-  const { data, error } = await (access.supabase as unknown as Rpc).rpc("sanctions_hit_propose", {
+  const { data, error } = await (access.userClient as unknown as Rpc).rpc("sanctions_hit_propose", {
     p_hit: input.hitId,
     p_decision: input.decision,
     p_note: (input.note ?? "").slice(0, 2000),
@@ -54,9 +54,9 @@ export async function proposeSanctionsDecision(input: { hitId: string; decision:
 }
 
 export async function approveSanctionsDecision(input: { decisionId: string }): Promise<DeskAnswer> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return { ok: false, error: "forbidden" };
-  const { data, error } = await (access.supabase as unknown as Rpc).rpc("sanctions_hit_approve", { p_decision: input.decisionId });
+  const { data, error } = await (access.userClient as unknown as Rpc).rpc("sanctions_hit_approve", { p_decision: input.decisionId });
   revalidatePath("/admin/compliance");
   const status = !error && data && typeof data === "object" ? (data as { status?: unknown }).status : null;
   return status === "ok" ? { ok: true, message: "approved" } : { ok: false, error: typeof status === "string" ? status : "failed" };

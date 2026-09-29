@@ -22,9 +22,9 @@ type RpcCaller = { rpc(fn: string, args: Record<string, unknown>): Promise<{ dat
 type StrAnswer = ActionResult<{ text: string; data: unknown }>;
 
 async function call(fn: string, args: Record<string, unknown>): Promise<StrAnswer> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail<{ text: string; data: unknown }>(adminRefusal(access));
-  const { data, error } = await (access.supabase as unknown as RpcCaller).rpc(fn, args);
+  const { data, error } = await (access.userClient as unknown as RpcCaller).rpc(fn, args);
   if (error) return fail<{ text: string; data: unknown }>(copy.results.failed);
   const result = strResultText(data, copy);
   revalidatePath("/admin/compliance");

@@ -26,7 +26,7 @@ export async function overrideRiskClass(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const l = getDictionary("en").complianceRisk.lane;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const riskClass = text(formData, "riskClass");
@@ -36,7 +36,7 @@ export async function overrideRiskClass(
   const userId = await findPerson(access.supabase, text(formData, "person"));
   if (!userId) return fail(l.notFound, { person: l.notFound });
 
-  const { data, error } = await callRpc(access.supabase, "override_risk_class", {
+  const { data, error } = await callRpc(access.userClient, "override_risk_class", {
     p_user: userId,
     p_class: riskClass,
     p_reason: reason,
@@ -67,11 +67,11 @@ export async function approveRiskOverride(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const l = getDictionary("en").complianceRisk.lane;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const rowId = text(formData, "id");
   if (!UUID_RE.test(rowId)) return fail(l.failed);
-  const { error } = await callRpc(access.supabase, "approve_risk_override", { p_row: rowId });
+  const { error } = await callRpc(access.userClient, "approve_risk_override", { p_row: rowId });
   if (error) return fail(error.code === "RM175" ? l.ownProposal : l.failed);
   try {
     await writeAudit(createAdminClient(), {

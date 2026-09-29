@@ -17,10 +17,10 @@ import { SanctionsActivate, SanctionsDecision, SanctionsUpload } from "./Sanctio
  */
 
 async function load(): Promise<SanctionsDesk> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return { state: "forbidden" };
   try {
-    const { data, error } = await (access.supabase as unknown as {
+    const { data, error } = await (access.userClient as unknown as {
       rpc: (fn: string) => PromiseLike<{ data: unknown; error: unknown }>;
     }).rpc("sanctions_desk");
     return readSanctionsDesk(data, error);

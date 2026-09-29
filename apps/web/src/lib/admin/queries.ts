@@ -351,7 +351,7 @@ export type AlertView = {
 export async function getRiskAlerts(
   filter?: AdminQueueFilter,
 ): Promise<AdminRead<{ rows: AlertView[]; full: boolean }>> {
-  const admin = await adminClient();
+  const admin = await adminClient("operations");
   if (!admin) return UNAVAILABLE;
 
   const term = (filter?.q ?? "").trim();
@@ -1473,7 +1473,7 @@ const DRIFT_LIMIT = 40;
  * queue is narrowed to.
  */
 export async function getInventoryDriftAlerts(): Promise<AdminRead<DriftAlerts>> {
-  const admin = await adminClient();
+  const admin = await adminClient("operations");
   if (!admin) return UNAVAILABLE;
 
   try {

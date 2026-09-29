@@ -427,7 +427,7 @@ export async function previewCancellation(input: {
   bookingId: string;
   reason: CancellationReason;
 }): Promise<ActionResult<{ paidMinor: number; refundMinor: number; retainedMinor: number }>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("operations");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(
@@ -515,7 +515,7 @@ export async function decideReservationAsAdmin(input: {
   decision: ReservationDecision;
   reason?: string;
 }): Promise<ActionResult<{ status: ReservationStatus }>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("operations");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(decideReservationSchema, input);
