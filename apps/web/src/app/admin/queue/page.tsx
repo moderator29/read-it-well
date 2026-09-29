@@ -11,6 +11,7 @@ import {
   getSupportTickets,
 } from "@/lib/admin/queries";
 import { adminUi } from "../_components/ui";
+import { requireConsole, type StaffScope } from "@/lib/admin/guard";
 import { ReportsLane } from "../_lanes/ReportsLane";
 import { FlagsLane } from "../_lanes/FlagsLane";
 import { HeldLane } from "../_lanes/HeldLane";
@@ -107,6 +108,16 @@ const TABS: { key: TabKey; label: string; href: string }[] = [
   { key: "held", label: "Held", href: "/admin/queue?tab=held" },
 ];
 
+/** The scope that opens each tab to a staff member. */
+const TAB_SCOPE: Record<Exclude<TabKey, "all">, StaffScope> = {
+  listings: "listing_approval",
+  applications: "kyc_review",
+  reports: "moderation",
+  tickets: "support",
+  flags: "moderation",
+  held: "moderation",
+};
+
 /** The other queues the table does not fold in yet, still one tap away. */
 const MORE: { key: string; icon: UiIconName; href: string }[] = [
   { key: "alerts", icon: "bell", href: "/admin/alerts" },
@@ -123,8 +134,19 @@ export default async function AdminQueuePage({
   const ui = adminUi(t, locale);
   const params = await searchParams;
   const query = readQueueQuery(params);
+  /* A staff member sees the tabs their scopes open, and "All" folds in only
+     those queues; an admin sees every tab. */
+  const door = await requireConsole();
+  const scopes = door.state === "console" ? door.staff : null;
+  const mayTab = (key: TabKey) =>
+    !scopes ||
+    scopes.isAdmin ||
+    scopes.isSuperAdmin ||
+    key === "all" ||
+    scopes.scopes.includes(TAB_SCOPE[key as Exclude<TabKey, "all">]);
+  const tabs = TABS.filter((entry) => mayTab(entry.key));
   const tabRaw = Array.isArray(params.tab) ? params.tab[0] : params.tab;
-  const tab: TabKey = TABS.some((entry) => entry.key === tabRaw) ? (tabRaw as TabKey) : "all";
+  const tab: TabKey = tabs.some((entry) => entry.key === tabRaw) ? (tabRaw as TabKey) : "all";
   const laneRaw = Array.isArray(params.lane) ? params.lane[0] : params.lane;
   const laneWanted: Lane = LANES.includes(laneRaw as Lane) ? (laneRaw as Lane) : "all";
   const lane: Lane = laneWanted === "spam" && tab !== "all" && tab !== "tickets" ? "all" : laneWanted;
@@ -134,7 +156,7 @@ export default async function AdminQueuePage({
   };
   const desk = t.platform.queueDesk;
   const filter = query.q ? { q: query.q } : {};
-  const wants = (key: TabKey) => tab === "all" || tab === key;
+  const wants = (key: TabKey) => (tab === "all" || tab === key) && mayTab(key);
 
   if (DESK_TABS.has(tab) && (lane === "all" || tab === "held")) {
     const counts = await getQueueCounts();
@@ -154,7 +176,7 @@ export default async function AdminQueuePage({
         <div className="nf-console">
           <QueueTabs
             label="Queues"
-            tabs={TABS.map((entry) => ({
+            tabs={tabs.map((entry) => ({
               key: entry.key,
               label: entry.label,
               href: entry.href,
@@ -452,7 +474,7 @@ export default async function AdminQueuePage({
 
       <QueueTabs
         label="Queues"
-        tabs={TABS.map((entry) => ({
+        tabs={tabs.map((entry) => ({
           key: entry.key,
           label: entry.label,
           href: query.q ? `${entry.href}${entry.href.includes("?") ? "&" : "?"}q=${encodeURIComponent(query.q)}` : entry.href,

@@ -13,19 +13,16 @@
  * the notification then follows the row wherever it is changed from, including
  * from SQL at three in the morning, rather than following one code path.
  *
- * The audit line is the only thing the service role does, because the audit log
- * has no insert policy for anybody, deliberately: history that an admin can
- * rewrite proves nothing. It is best effort, and it is written after the
- * decision has already committed, so a failed log line cannot turn a completed
- * removal into an error the operator cannot act on.
+ * 29 September: every decision goes through public.moderation_decide, which
+ * checks the moderation scope, changes the row and writes its audit line in
+ * one transaction. Staff holding the moderation scope decide here as well as
+ * admins, and no decision can commit without its record.
  */
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
-import { writeAudit } from "./audit";
 import { adminRefusal, requireAdmin } from "./guard";
-import { createAdminClient } from "../supabase/admin";
 
 const SERVICE_DOWN =
   "The console could not reach the platform data just now. Nothing was changed. Please try again.";
@@ -62,7 +59,7 @@ export async function decideHeldItem(input: {
   decision: ModerationDecision;
   reason?: string;
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(decideSchema, input);
@@ -74,89 +71,24 @@ export async function decideHeldItem(input: {
     return fail(REASON_REQUIRED, { reason: REASON_REQUIRED });
   }
 
-  const status = decision === "RELEASE" ? "LIVE" : "REMOVED";
-
+  /* ONE PATH, IN THE DATABASE. public.moderation_decide checks the moderation
+     scope on auth.uid(), refuses anything not currently HELD, and writes the
+     row and its audit line in one transaction, so a decision can never land
+     without its record. It runs on the caller's own session for that reason. */
+  let status: string;
   try {
-    if (target === "bio") {
-      // A bio has no hold_reason column: the words themselves are the record,
-      // and a removed bio is emptied rather than kept out of sight, because a
-      // profile is not a thread and there is nothing to preserve context for.
-      const { data, error } = await access.supabase
-        .from("social_profiles")
-        .update(
-          decision === "RELEASE"
-            ? { bio_status: "LIVE" }
-            : { bio_status: "REMOVED", bio: null },
-        )
-        .eq("user_id", id)
-        .eq("bio_status", "HELD")
-        .select("user_id")
-        .maybeSingle();
-
-      if (error) return fail(SERVICE_DOWN);
-      if (!data) return fail(GONE);
-    } else if (target === "post") {
-      const { data, error } = await access.supabase
-        .from("posts")
-        .update({
-          status,
-          ...(decision === "REMOVE"
-            ? { hold_reason: reason, hidden_by: access.user.id, removed_at: new Date().toISOString() }
-            : { hold_reason: null, hidden_by: null }),
-        })
-        .eq("id", id)
-        .eq("status", "HELD")
-        .select("id")
-        .maybeSingle();
-
-      if (error) return fail(SERVICE_DOWN);
-      if (!data) return fail(GONE);
-    } else if (target === "story") {
-      const { data, error } = await access.supabase
-        .from("stories")
-        .update({
-          status,
-          ...(decision === "REMOVE"
-            ? { hold_reason: reason, hidden_by: access.user.id, removed_at: new Date().toISOString() }
-            : { hold_reason: null, hidden_by: null }),
-        })
-        .eq("id", id)
-        .eq("status", "HELD")
-        .select("id")
-        .maybeSingle();
-
-      if (error) return fail(SERVICE_DOWN);
-      if (!data) return fail(GONE);
-    } else {
-      const { data, error } = await access.supabase
-        .from("story_comments")
-        .update({
-          status,
-          ...(decision === "REMOVE" ? { hold_reason: reason } : { hold_reason: null }),
-        })
-        .eq("id", id)
-        .eq("status", "HELD")
-        .select("id")
-        .maybeSingle();
-
-      if (error) return fail(SERVICE_DOWN);
-      if (!data) return fail(GONE);
-    }
+    const { data, error } = await (access.userClient as unknown as {
+      rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>;
+    }).rpc("moderation_decide", { p_target: target, p_id: id, p_decision: decision, p_reason: reason || null });
+    if (error) return fail(SERVICE_DOWN);
+    status = String((data as { status?: unknown } | null)?.status ?? "");
   } catch {
     return fail(SERVICE_DOWN);
   }
-
-  try {
-    await writeAudit(createAdminClient(), {
-      actorId: access.user.id,
-      action: decision === "RELEASE" ? "moderation.release" : "moderation.remove",
-      entityType: target,
-      entityId: id,
-      detail: { decision, reason: reason.length > 0 ? reason : null },
-    });
-  } catch {
-    // Best effort. The decision has already committed; see the note above.
-  }
+  if (status === "gone") return fail(GONE);
+  if (status === "reason_needed") return fail(REASON_REQUIRED, { reason: REASON_REQUIRED });
+  if (status === "forbidden") return fail(adminRefusal({ state: "not-admin" }));
+  if (status !== "ok") return fail(SERVICE_DOWN);
 
   revalidatePath("/admin/queue");
   revalidatePath("/admin");

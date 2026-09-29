@@ -49,7 +49,7 @@ export async function HeldLane({
 }: {
   params: Record<string, string | string[] | undefined>;
 }) {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   const locale = await getLocale();
   const t = getDictionary(locale);
   const ui = adminUi(t, locale);

@@ -36,7 +36,7 @@ export const REPORT_RESPONSE_HOURS = 24;
 const STILL_WAITING = ["open", "reviewing"] as const;
 
 export async function countOverdueReports(): Promise<number | null> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   if (access.state !== "admin") return null;
 
   let admin;
