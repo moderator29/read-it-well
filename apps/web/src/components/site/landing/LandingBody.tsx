@@ -18,11 +18,9 @@ import { storeBadges } from "./store-badges";
 import { Journey } from "./Journey";
 import { Bento } from "./Bento";
 import { WorldsBand } from "./WorldsBand";
-import { CitiesMarquee } from "./CitiesMarquee";
 import { NigeriaMap } from "./NigeriaMap";
 import { LandingFx } from "./LandingFx";
-import { DayBand, KineticBand, PlacesBand, SystemBand } from "@/components/cinema/LandingCinema";
-import { ReelHud } from "@/components/cinema/ReelHud";
+import { PlacesBand } from "@/components/cinema/LandingCinema";
 
 /**
  * Everything the landing prints that comes from the platform, read once.
@@ -134,32 +132,44 @@ export function LandingBody({
       */}
       {/* THE SECOND PASS (the founder's "expand, impress me"): the journey
           takes the four-step slot the render gave How Vallo works, since it
-          tells the same four steps with the phone beside them, and the
-          bento, the two worlds, the cities and the map join the rooms. */}
-      {/* THE CINEMA KIT (Track M, the founder's showreel reference): the
-          kinetic words as a title sequence under the hero, the Truchet field
-          between the promise and the journey, the wall of places drifting
-          on the vertical axis, and a day told sideways between the two
-          worlds and the categories. The HUD frames the whole page as a film. */}
+          tells the same four steps, and the bento, the two worlds and the map
+          join the rooms. */}
+      {/* THE CINEMA KIT (Track M, the founder's showreel reference): of its
+          five pieces, the wall of places drifting on the vertical axis is
+          the one that stays (see the launch pass below). */}
+      {/* THE LAUNCH PASS (29 September, the founder's "alive, professional,
+          launch-ready", and "remove the phone mockups"). The page had grown
+          to nineteen rooms and 17,000px at desktop, and four of them said
+          again what a neighbour had just said:
+
+            - the Truchet "system" band printed the same three money
+              sentences as the protection room above it and the journey
+              below it, word for word, so a reader met them three times;
+            - the cities marquee listed the cities the hero's capsules and
+              the map's chips already list;
+            - the kinetic word band spelled out the category names the
+              category grid prints two screens later;
+            - "a day on Vallo" was a pinned sideways reel about 2,400px tall
+              whose frames retold the inspection fee and the assistant.
+
+          They are cut, with the film HUD that framed the page as a reel
+          (a timecode over the content is noise on a product's front door).
+          Every door they held is still on the page. The journey and the app
+          band tell their story without a device frame. */}
       <LandingFx />
-      <ReelHud />
       <Hero t={t} locale={locale} cards={data.cards} badges={badges} />
-      <KineticBand t={t} />
       <FeatureChips t={t} />
-      <CitiesMarquee t={t} />
       <ProtectBand t={t} />
-      <SystemBand t={t} />
       <Journey t={t} />
       <Bento t={t} />
       <PlacesBand t={t} />
       <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
       <WorldsBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
-      <DayBand t={t} />
       <CategoryGrid t={t} counts={data.counts} />
       <StaysBand t={t} />
       <NigeriaMap t={t} />
       <CommunityBand t={t} locale={locale} listing={first} stats={data.stats} />
-      {native ? null : <AppBand t={t} locale={locale} listing={first} native={native} />}
+      {native ? null : <AppBand t={t} native={native} />}
       <LandingFaq t={t} nonce={nonce} />
       <FinalCta t={t} />
     </main>

@@ -951,11 +951,20 @@ export const en = {
         android: "Google Play",
         androidSub: "GET IT ON",
         rightTitle: "Property and stays, now on mobile.",
+        /* The landing's app panel (29 September: the drawn phones are gone).
+           The eyebrow over the title, and the install line printed when no
+           store badge is live, which is what the FAQ's "Is there an app?"
+           answer already says. */
+        eyebrow: "On your phone",
+        installTitle: "Add it to your home screen",
+        installBody: "Open Vallo in your phone's browser and choose Add to Home Screen from the browser menu. No download needed.",
         /* STORE-06 / UI-07: "Full access to all features" and "Secure and
            fast" were claims nothing backs, and they are gone. */
         points: {
           notify: "Instant notifications",
           design: "Beautiful, intuitive design",
+          sides: "Property and stays on the same account",
+          record: "Messages, agreements and bookings kept on the record",
         },
       },
       footer: {
