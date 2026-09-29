@@ -55,7 +55,7 @@ export default async function AdminMoneyPage({
   };
   const narrowed = Boolean(query.q || query.from || query.to);
 
-  const access = await requireAdmin();
+  const access = await requireAdmin("finance");
   if (access.state !== "admin") {
     return (
       <div className="nf-console">
@@ -65,7 +65,7 @@ export default async function AdminMoneyPage({
   }
 
   const [guarantee, refunds, runs, rent, clock] = await Promise.all([
-    readGuaranteeDesk(access.supabase),
+    readGuaranteeDesk(access.supabase, access.userClient),
     getRefundConsole(query),
     getReconciliationHealth(),
     getRentCharges(),

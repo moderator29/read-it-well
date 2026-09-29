@@ -16,6 +16,7 @@ import {
   vapidSubject,
   webPushStatus,
 } from "../credentials";
+import { isAllowedWebPushEndpoint } from "../endpoint";
 import { replyFromStatus, type ProviderReply, type PushPayload, type PushTarget } from "../types";
 
 /**
@@ -358,6 +359,11 @@ export async function sendWebPush(target: PushTarget, payload: PushPayload): Pro
        inside the drain. */
     return { outcome: "failed", status: 0, error: "subscription_incomplete" };
   }
+  if (!isAllowedWebPushEndpoint(target.token)) {
+    /* Never POST to an address that is not a push service, including rows
+       registered before the register route checked (lib/push/endpoint.ts). */
+    return { outcome: "gone", status: 0, error: "endpoint_refused" };
+  }
 
   const publicKey = (process.env[VAPID_PUBLIC_KEY_VAR] ?? "").trim();
   const privateKey = (process.env[VAPID_PRIVATE_KEY_VAR] ?? "").trim();
@@ -415,6 +421,9 @@ export async function sendWebPush(target: PushTarget, payload: PushPayload): Pro
       body: new Uint8Array(body),
       signal: controller.signal,
       cache: "no-store",
+      /* A push service answers; it does not redirect. Following one would
+         let the endpoint's host send this request somewhere else. */
+      redirect: "manual",
     });
 
     /* READ THE REPLY. The body is drained and discarded rather than ignored:

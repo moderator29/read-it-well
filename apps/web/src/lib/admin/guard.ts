@@ -4,6 +4,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { createAdminClient } from "../supabase/admin";
+import { isStaffPosition, type StaffPosition } from "./staff-positions";
 
 /**
  * The single door into the admin console.
@@ -56,6 +57,11 @@ export const STAFF_SCOPES = [
   "support",
   "agreements",
   "guarantee",
+  /* Added 29 September: a CFO, compliance officer or operations lead no
+     longer has to be made a full admin to see their own area. */
+  "finance",
+  "compliance",
+  "operations",
 ] as const;
 export type StaffScope = (typeof STAFF_SCOPES)[number];
 
@@ -66,12 +72,17 @@ export const STAFF_SCOPE_LABEL: Record<StaffScope, string> = {
   support: "Support",
   agreements: "Agreement approval",
   guarantee: "Guarantee claims",
+  finance: "Finance",
+  compliance: "Compliance",
+  operations: "Operations",
 };
 
 export type StaffAccess = {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   scopes: StaffScope[];
+  /** The named position the super admin granted, when there is one. */
+  position: StaffPosition | null;
   handbookVersion: string;
   handbookAcknowledged: boolean;
 };
@@ -88,6 +99,7 @@ export async function readStaffAccess(supabase: SupabaseClient<Database>): Promi
     isAdmin: d.is_admin === true,
     isSuperAdmin: d.is_super_admin === true,
     scopes,
+    position: isStaffPosition(d.position) ? d.position : null,
     handbookVersion: typeof d.handbook_version === "string" ? d.handbook_version : "",
     handbookAcknowledged: d.handbook_acknowledged === true,
   };

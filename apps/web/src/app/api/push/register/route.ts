@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { isSameOriginRequest } from "@/lib/security/request-origin";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isAllowedWebPushEndpoint } from "@/lib/push/endpoint";
 
 /**
  * POST /api/push/register. A device says it can be reached.
@@ -65,6 +67,11 @@ const Body = z
         path: ["p256dh"],
       });
     }
+    /* A web token is a URL the server will POST to, so it must name a real
+       push service (lib/push/endpoint.ts). */
+    if (value.platform === "web" && !isAllowedWebPushEndpoint(value.token)) {
+      context.addIssue({ code: "custom", message: "not a push service endpoint", path: ["token"] });
+    }
     if (value.platform !== "web" && (value.p256dh || value.auth)) {
       context.addIssue({
         code: "custom",
@@ -75,6 +82,9 @@ const Body = z
   });
 
 export async function POST(request: Request): Promise<NextResponse> {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ ok: false, reason: "forbidden" }, { status: 403 });
+  }
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ ok: false, reason: "unconfigured" }, { status: 503 });
   }

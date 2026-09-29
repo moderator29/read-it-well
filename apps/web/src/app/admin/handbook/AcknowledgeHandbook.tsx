@@ -26,7 +26,12 @@ export function AcknowledgeHandbook({ version }: { version: string }) {
             start(async () => {
               const result = await acknowledgeHandbook({ version });
               if (!result.ok) setError(result.error);
-              else router.refresh();
+              else {
+                /* Straight into the console, where their desks and their
+                   position are now open, rather than staying on this page. */
+                router.replace("/admin");
+                router.refresh();
+              }
             })
           }
         >

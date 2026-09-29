@@ -33,10 +33,10 @@ describe("the point a signed-out reader asks for", () => {
     }
   });
 
-  it("keeps the exact point for a signed-in reader", async () => {
+  it("gives a signed-in reader the public point too", async () => {
     const asked = entries(await pointSelect(signedIn, LISTING_SELECTS.card));
-    expect(asked).toContain("latitude");
-    expect(asked).not.toContain("latitude:latitude_public");
+    for (const denied of ANON_DENIED_POINT_COLUMNS) expect(asked).not.toContain(denied);
+    expect(asked).toContain("latitude:latitude_public");
   });
 
   it("rewrites a one-line column list and leaves other columns alone", () => {

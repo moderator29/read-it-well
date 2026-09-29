@@ -66,7 +66,9 @@ export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const access = await requireAdmin();
+  /* KYC reviewers decide on these files, so the kyc_review scope opens them.
+     Without it a KYC staffer was refused every ID they were asked to judge. */
+  const access = await requireAdmin("kyc_review");
   if (access.state !== "admin") {
     /* Signed out and not staff are answered the same way on purpose: a
        stranger probing this route learns nothing about whether they merely

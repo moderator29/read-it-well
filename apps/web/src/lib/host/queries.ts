@@ -1,4 +1,5 @@
 import "server-only";
+import { withPublicPoint } from "../supabase/public-point";
 import { PrivateFieldsUnavailable, withBusinessPrivate } from "../supabase/private-fields";
 
 /**
@@ -150,6 +151,9 @@ function readConsents(value: BusinessRow["consents"]): Partial<Record<ConsentId,
 export type HostDraftRead = { state: "ready"; draft: HostDraft } | { state: "unavailable" };
 
 /** The draft, or "unavailable" when its private fields could not be read. */
+const HOST_ACCOMMODATION_READ =
+  "id, name, latitude, longitude, star_rating, check_in_from, check_out_by, house_rules, cancellation_policy_id, accommodation_photos(id, storage_path, position), accommodation_amenities(amenities(code))";
+
 export async function readMyHostDraft(): Promise<HostDraftRead> {
   try {
     return { state: "ready", draft: await loadMyHostDraft() };
@@ -189,9 +193,9 @@ async function loadMyHostDraft(): Promise<HostDraft> {
       session.supabase.from("business_documents").select("kind").eq("business_id", business.id),
       session.supabase
         .from("accommodations")
-        .select(
-          "id, name, latitude, longitude, star_rating, check_in_from, check_out_by, house_rules, cancellation_policy_id, accommodation_photos(id, storage_path, position), accommodation_amenities(amenities(code))",
-        )
+        /* Only whether a pin exists is read here, and the public point is null
+           exactly when the exact one is. */
+        .select(withPublicPoint(HOST_ACCOMMODATION_READ) as typeof HOST_ACCOMMODATION_READ)
         .eq("business_id", business.id)
         .order("created_at", { ascending: true })
         .limit(1),

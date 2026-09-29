@@ -28,12 +28,12 @@ type RpcCaller = { rpc(fn: string): Promise<{ data: unknown; error: unknown }> }
 
 async function StrLaneView({ t, params }: ComplianceLaneProps) {
   const copy = t.complianceStr;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   let cases: StrCase[] | null = null;
   let register: ReturnType<typeof strRegisterFrom> = null;
   let releases: ReturnType<typeof strReleasesFrom> = null;
   if (access.state === "admin") {
-    const db = access.supabase as unknown as RpcCaller;
+    const db = access.userClient as unknown as RpcCaller;
     const [c, r, rel] = await Promise.all([db.rpc("str_cases"), db.rpc("str_register"), db.rpc("str_pending_releases")]);
     releases = rel.error ? null : strReleasesFrom(rel.data);
     cases = c.error ? null : strCasesFrom(c.data);

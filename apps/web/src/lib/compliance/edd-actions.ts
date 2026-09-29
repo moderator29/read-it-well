@@ -42,7 +42,7 @@ export async function decideEddReview(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const l = getDictionary("en").compliancePep.lane;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const reviewId = text(formData, "reviewId");
@@ -56,7 +56,7 @@ export async function decideEddReview(
   if (outcome !== "cleared" && outcome !== "refer") return fail(l.failed, { outcome: l.outcome });
   if (note.length > 1000) return fail(l.failed, { note: l.note });
 
-  const { error } = await callRpc(access.supabase, "decide_edd_review", {
+  const { error } = await callRpc(access.userClient, "decide_edd_review", {
     p_review: reviewId,
     p_source_of_funds: sourceOfFunds,
     p_outcome: outcome,
@@ -73,12 +73,12 @@ export async function approveEddDecision(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const l = getDictionary("en").compliancePep.lane;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const decisionId = text(formData, "decisionId");
   if (!UUID_RE.test(decisionId)) return fail(l.failed);
-  const { error } = await callRpc(access.supabase, "approve_edd_decision", { p_decision: decisionId });
+  const { error } = await callRpc(access.userClient, "approve_edd_decision", { p_decision: decisionId });
   if (error) return fail(error.code === "RM175" ? l.ownDecision : l.failed);
   await audit(access.user.id, "compliance.edd.approve", decisionId, text(formData, "item"));
   revalidatePath("/admin/compliance");
@@ -91,11 +91,11 @@ export async function reopenEddReview(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const l = getDictionary("en").complianceRisk.lane;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const userId = text(formData, "userId");
   if (!UUID_RE.test(userId)) return fail(l.failed);
-  const { data, error } = await callRpc(access.supabase, "reopen_edd_review", { p_user: userId });
+  const { data, error } = await callRpc(access.userClient, "reopen_edd_review", { p_user: userId });
   if (error) return fail(l.failed);
   await audit(access.user.id, "compliance.edd.reopen", typeof data === "string" ? data : userId, "15");
   revalidatePath("/admin/compliance");

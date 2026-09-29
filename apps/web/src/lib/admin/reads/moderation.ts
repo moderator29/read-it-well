@@ -36,7 +36,7 @@ export const REPORT_CATEGORIES = [
 export type ReportCategory = (typeof REPORT_CATEGORIES)[number] | "uncategorised";
 
 async function adminDb(): Promise<Db | null> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("moderation");
   return access.state === "admin" ? access.supabase : null;
 }
 

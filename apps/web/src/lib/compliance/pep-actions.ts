@@ -67,7 +67,7 @@ export async function flagPepPerson(
   formData: FormData,
 ): Promise<ActionResult<"flagged" | "proposed">> {
   const l = getDictionary("en").compliancePep.lane;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const userId = await findPerson(access.supabase, text(formData, "person"));
@@ -81,7 +81,7 @@ export async function flagPepPerson(
     return fail(l.failed, { role: getDictionary("en").compliancePep.question.roleNeeded });
   }
 
-  const { data, error } = await callRpc(access.supabase, "flag_pep", {
+  const { data, error } = await callRpc(access.userClient, "flag_pep", {
     p_user: userId,
     p_flagged: flagged,
     p_relation: flagged ? relation : null,
@@ -116,11 +116,11 @@ export async function approvePepClear(
   formData: FormData,
 ): Promise<ActionResult<null>> {
   const l = getDictionary("en").compliancePep.lane;
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const flagId = text(formData, "id");
   if (!UUID_RE.test(flagId)) return fail(l.failed);
-  const { error } = await callRpc(access.supabase, "approve_pep_clear", { p_flag: flagId });
+  const { error } = await callRpc(access.userClient, "approve_pep_clear", { p_flag: flagId });
   if (error) return fail(error.code === "RM175" ? l.ownProposal : l.failed);
   try {
     await writeAudit(createAdminClient(), {

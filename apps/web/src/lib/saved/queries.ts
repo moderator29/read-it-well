@@ -1,5 +1,6 @@
 import "server-only";
 
+import { withPublicPoint } from "../supabase/public-point";
 import { resolveSession } from "../actions/session";
 import { getListingRepository } from "../listings/repository";
 import { loadListingsByIds } from "../listings/supabase-repository";
@@ -66,6 +67,9 @@ async function readSavedRows(): Promise<{ listingId: string; savedAt: number }[]
  * nothing (a listing withdrawn, a catalogue entry retired) are dropped rather
  * than rendered as a broken card.
  */
+const SAVED_CARD_COLUMNS =
+  "id, entity_kind, entity_id, title, area, city, state_code, kind, source, verified, is_demo, featured, headline_price_minor, headline_price_period, price_band, max_sleeps, cover_path, latitude, longitude, rating_avg, rating_count, has_breakfast, has_free_cancellation, room_categories, amenity_codes";
+
 export async function getSavedListings(local: LocalSave[] = []): Promise<SavedEntry[]> {
   const localSaves = normaliseSaves(local);
   const rows = await readSavedRows();
@@ -186,7 +190,9 @@ export async function getSavedPlaces(): Promise<SavedPlaceEntry[]> {
     const stays = await staysClient();
     const { data: entries } = await stays
       .from("catalogue_entries")
-      .select("*")
+      /* Named columns, never "*": the exact point is not granted to members,
+         and a card only needs the public one. */
+      .select(withPublicPoint(SAVED_CARD_COLUMNS) as typeof SAVED_CARD_COLUMNS)
       .in(
         "entity_id",
         wanted.map((save) => save.entity_id),
