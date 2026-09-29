@@ -29,6 +29,8 @@ export const GLASS_FOR: Partial<Record<UiIconName, BrandIconObject>> = {
   document: "contract-sign",
   sparkle: "bot",
   "price-tag": "report-stats",
+  /* Payments and earnings histories: a receipt, the record of money that moved. */
+  history: "receipt-check",
   "building-apartment": "apartment-block",
   "shield-stop": "shield-lock",
   plus: "person-card",
