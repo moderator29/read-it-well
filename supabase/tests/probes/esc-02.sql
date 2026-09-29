@@ -17,8 +17,24 @@ declare
   bk uuid; bk2 uuid; insp uuid; r jsonb; mw uuid; n int; t bigint; rate bigint;
 begin
   -- An example stay made real inside the transaction, and an example rental.
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = stay and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
   select rate_minor into rate from public.listings where id = stay;
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = rental and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
          rent_amount_minor = 150000000, rent_period = 'year', rate_minor = 0, rate_period = null,
          total_move_in_cost_minor = null
@@ -124,6 +140,14 @@ begin
   exception when check_violation then null;
   end;
   reset role;
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = stay and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set status = 'PUBLISHED' where id = stay;
 
   -- CONTROL: the rent charge still opens, priced from the move-in figures.

@@ -16,6 +16,14 @@ declare
   insp_a uuid; insp_b uuid; insp_b2 uuid; insp_a2 uuid; insp_b3 uuid; wa uuid; wb uuid;
   r jsonb; bk_a uuid; bk_b uuid; bk_a2 uuid; n bigint; st text;
 begin
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = home and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings
      set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
          rent_amount_minor = 1000, caution_deposit_minor = 0, service_charge_minor = 0,

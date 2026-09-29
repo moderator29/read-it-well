@@ -18,7 +18,16 @@ declare
 begin
   insert into public.agents (user_id, display_name) values (member, 'Probe DB-10 lister') returning id into agent;
   insert into public.listings (id, agent_id, title, property_type, status, listing_role, address, landmark, review_notes)
-  values (lid, agent, 'Probe DB-10', 'apartment', 'PUBLISHED', 'agent', '12 Probe Close', 'By the probe', 'probe note');
+  values (lid, agent, 'Probe DB-10', 'apartment', 'DRAFT', 'agent', '12 Probe Close', 'By the probe', 'probe note');
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate, and a mandate needs its listing to exist, so the
+  -- fixture is filed as a draft, given a mandate as the platform would, then
+  -- published.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  values (lid, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now());
+  update public.listings set status = 'PUBLISHED' where id = lid;
   insert into public.businesses (owner_id, kind, name, slug, status, tin, cac_number, representative_phone)
   values (member, 'hotel', 'Probe DB-10 hotel', 'probe-db10-' || gen_random_uuid(), 'PUBLISHED', '12345678-0001', 'RC123456', '+2348031234567')
   returning id into biz;

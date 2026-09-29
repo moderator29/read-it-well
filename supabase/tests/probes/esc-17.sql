@@ -12,6 +12,14 @@ begin
   -- A confirmed stay that checked out yesterday in Lagos does not hold the
   -- account open. Bookings cannot be made in the past, so it is moved back
   -- with triggers set aside for that one update (no table lock).
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = stay and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
   set local timezone = 'Etc/GMT+12';
   before_n := (private.deletion_money_blockers(member) ->> 'active_bookings')::int;

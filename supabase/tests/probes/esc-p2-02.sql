@@ -11,6 +11,14 @@ declare
   lagos date := (now() at time zone 'Africa/Lagos')::date;
   tenancy uuid; night uuid; insp uuid; r jsonb; st text; n int;
 begin
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id in (stay, home) and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id in (stay, home);
   -- Both booked in the past, set aside from the stay pricing trigger.
   alter table public.bookings disable trigger bookings_priced_by_the_listing;

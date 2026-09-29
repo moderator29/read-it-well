@@ -16,6 +16,14 @@ declare
   rate bigint; mw uuid; b1 uuid; b2 uuid; b3 uuid; b4 uuid; b5 uuid; rb uuid; b6 uuid; lw uuid; insp uuid; rtotal bigint; lbal0 bigint;
   lister uuid := 'e0000000-0000-4000-8000-000000000001'; rental uuid := 'ed000000-0000-4000-8000-000000000007'; r jsonb; n int; bal bigint; st text;
 begin
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = stay and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
   select rate_minor into rate from public.listings where id = stay;
   insert into public.wallets (user_id) values (member) on conflict do nothing;
@@ -131,6 +139,14 @@ begin
 
   -- V-33 with MON-05: a card-paid rent charge settled by the function credits
   -- the lister once, gross less the fee; a second charge goes back to the payer.
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = rental and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
          rent_amount_minor = 150000000, rent_period = 'year', rate_minor = 0, rate_period = null,
          total_move_in_cost_minor = null

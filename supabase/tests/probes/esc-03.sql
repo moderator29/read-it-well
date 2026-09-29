@@ -17,6 +17,14 @@ declare
   claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated')::text;
   b uuid; b_old uuid; b_paying uuid; b_capped uuid; d1 uuid; d2 uuid; host uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'; insp uuid; r jsonb; st text;
 begin
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id in (s1, s2, s3, s4) and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED' where id in (s1, s2, s3, s4);
   set local role authenticated;
   perform set_config('request.jwt.claims', claims, true);
@@ -106,6 +114,14 @@ begin
   reset role;
 
   -- ESC-03 amendment: a rent move-in date held by a stay answers date_taken.
+  -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
+  -- approved mandate. The fixture files one as the platform would.
+  insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+         principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+  select id, 'letting', 'Probe Principal', 'approved', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now(),
+         'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
+    from public.listings where id = rental and listing_role <> 'owner'
+     and not private.listing_has_live_mandate(id);
   update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
          rent_amount_minor = 150000000, rent_period = 'year', rate_minor = 0, rate_period = null
    where id = rental;
