@@ -6,6 +6,7 @@
     { "path": "/api/cron/email-outbox", "schedule": "*/15 * * * *" },
     { "path": "/api/cron/hold-sweep", "schedule": "5 * * * *" },
     { "path": "/api/paystack/reconcile", "schedule": "10 * * * *" },
+    { "path": "/api/cron/crypto-reconcile", "schedule": "3,18,33,48 * * * *" },
     { "path": "/api/cron/pg-cron-watch", "schedule": "20 * * * *" },
     { "path": "/api/cron/complete-stays", "schedule": "30 2 * * *" },
     { "path": "/api/cron/inventory-drift", "schedule": "45 2 * * *" },
@@ -16,6 +17,7 @@
     { "path": "/api/cron/landlord-line", "schedule": "*/15 * * * *" },
     { "path": "/api/cron/sanctions-lists", "schedule": "10 5 * * *" },
     { "path": "/api/cron/sanctions-screen", "schedule": "7,22,37,52 * * * *" },
-    { "path": "/api/cron/risk-classes", "schedule": "50 3 * * *" }
+    { "path": "/api/cron/risk-classes", "schedule": "50 3 * * *" },
+    { "path": "/api/cron/rent-share-refunds", "schedule": "35 * * * *" }
   ]
 }

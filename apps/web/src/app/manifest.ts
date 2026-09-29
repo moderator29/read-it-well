@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { CHROME_COLOUR } from "@/lib/theme/chrome";
+import { SHELL_START } from "@/lib/native/shell";
 
 /**
  * Web app manifest, served by Next at `/manifest.webmanifest`.
@@ -59,8 +60,15 @@ export default function manifest(): MetadataRoute.Manifest {
      * show the product. `/` is public, it is the landing built to the
      * founder's governing images, and a signed-in reader is one tap from
      * Home through the header, so nobody who has an account loses anything.
+     *
+     * THEN THE FOUNDER'S RULE OF 29 SEPTEMBER: the installed app opens like
+     * the store app. Signed out, the first screen is the welcome intro (not
+     * skippable, leading to the sign-up options and sign in); signed in, it
+     * is Home. So the PWA starts at the shell's own decider (`SHELL_START`,
+     * `lib/native/shell.ts`), which answers exactly that and never `/`.
+     * Still public, so a signed-out launch meets no wall.
      */
-    start_url: "/",
+    start_url: SHELL_START,
     scope: "/",
     display: "standalone",
     orientation: "portrait",

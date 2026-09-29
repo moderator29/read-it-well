@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { openRentAgreement } from "@/lib/agreements/actions";
 import { PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
+import { withDone } from "@/lib/ui/success-moments";
 
 /**
  * The step after the inspection report (Track A).
@@ -35,22 +36,23 @@ export function DrawUpAgreement({ inspectionId, minDate }: { inspectionId: strin
             setError(result.error);
             return;
           }
-          router.push(`/agreements/${result.data.agreementId}`);
+          /* The agreement page checks the record before it shows the moment. */
+          router.push(withDone(`/agreements/${result.data.agreementId}`, "agreement-drawn"));
         });
       }}
     >
       <p className="nf-ix-hint">{PAYMENT_GATE_SENTENCE}</p>
-      <label className="nf-field">
-        <span className="nf-field__label">Move-in date</span>
-        <input className="nf-input" type="date" min={minDate} value={moveIn} onChange={(e) => setMoveIn(e.target.value)} required />
+      <label className="block">
+        <span className="nf-label">Move-in date</span>
+        <input className="nf-field mt-2xs w-full" type="date" min={minDate} value={moveIn} onChange={(e) => setMoveIn(e.target.value)} required />
       </label>
-      <label className="nf-field">
-        <span className="nf-field__label">Keys handed over on</span>
-        <input className="nf-input" type="date" min={minDate} value={handover} onChange={(e) => setHandover(e.target.value)} />
+      <label className="block">
+        <span className="nf-label">Keys handed over on</span>
+        <input className="nf-field mt-2xs w-full" type="date" min={minDate} value={handover} onChange={(e) => setHandover(e.target.value)} />
       </label>
-      <label className="nf-field">
-        <span className="nf-field__label">Anything both of you should agree in writing (optional)</span>
-        <textarea className="nf-input min-h-[4.5rem]" maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} />
+      <label className="block">
+        <span className="nf-label">Anything both of you should agree in writing (optional)</span>
+        <textarea className="nf-field mt-2xs min-h-[4.5rem] w-full" maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </label>
       {error ? (
         <p role="alert" className="nf-ix-hint text-[var(--nf-status-error)]">

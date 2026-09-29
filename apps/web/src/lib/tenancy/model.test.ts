@@ -43,6 +43,29 @@ describe("cautionState", () => {
     const facts = { amountMinor: 30_000_000, deductions: [{ amountMinor: 5_000_000, answer: "disputed" as const }], returns: [{ amountMinor: 25_000_000 }] };
     expect(cautionState(facts)).toMatchObject({ state: "disputed", outstandingMinor: 5_000_000 });
   });
+  it("counts what staff allowed on a ruled dispute, and nothing more", () => {
+    const facts = { ...base, deductions: [{ amountMinor: 5_000_000, answer: "disputed" as const, allowedMinor: 2_000_000 }] };
+    expect(cautionState(facts)).toMatchObject({ state: "agreed", deductedMinor: 2_000_000, outstandingMinor: 28_000_000, claimableMinor: 28_000_000 });
+  });
+  it("holds a contested return in doubt: not returned, not claimable", () => {
+    const facts = { ...base, returns: [{ amountMinor: 10_000_000, standing: "in_doubt" as const }] };
+    expect(cautionState(facts)).toMatchObject({
+      state: "disputed",
+      returnedMinor: 0,
+      inDoubtMinor: 10_000_000,
+      outstandingMinor: 30_000_000,
+      claimableMinor: 20_000_000,
+    });
+  });
+  it("drops a return staff found not received", () => {
+    const facts = { ...base, returns: [{ amountMinor: 10_000_000, standing: "not_received" as const }] };
+    expect(cautionState(facts)).toMatchObject({ state: "open", returnedMinor: 0, outstandingMinor: 30_000_000 });
+  });
+  it("is with the Guarantee while a claim is open, and settled once the Guarantee paid the rest", () => {
+    expect(cautionState({ ...base, claimOpen: true })).toMatchObject({ state: "escalated", claimableMinor: 0 });
+    const paid = { ...base, returns: [{ amountMinor: 10_000_000 }], guaranteedMinor: 20_000_000 };
+    expect(cautionState(paid)).toMatchObject({ state: "returned", outstandingMinor: 0, guaranteedMinor: 20_000_000 });
+  });
 });
 
 describe("reportStatus", () => {

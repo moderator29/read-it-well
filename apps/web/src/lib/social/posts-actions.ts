@@ -25,6 +25,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { consume, retryIn, subjectForUser } from "../security/rate-limit";
 import {
   POST_FAILURE,
@@ -40,6 +41,7 @@ import {
   reportProfileSchema,
 } from "./posts-schema";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
+import { SOCIAL_REPORT_KIND } from "./report-kinds";
 import { getAreaFeed, getEverywhereFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
 import { parseFeedCursor } from "./posts-cursor";
 import { blockUserSafely, unblockUserSafely } from "../safety/blocks-actions";
@@ -549,16 +551,21 @@ export async function reportPost(input: {
   if (!verdict.allowed) return fail(paced(verdict.retryAfterSeconds));
 
   // public.reports.target_type is already text, so a social target needs no
-  // migration at all.
+  // migration at all. Lower case, like every other kind (report-kinds.ts):
+  // the notify trigger links a `post` report to the post.
   const { error } = await session.supabase.from("reports").insert({
     reporter_id: session.user.id,
-    target_type: "POST",
+    target_type: SOCIAL_REPORT_KIND.post,
     target_id: parsed.data.postId,
     reason: parsed.data.detail
       ? `${parsed.data.reason}: ${parsed.data.detail}`
       : parsed.data.reason,
   });
 
+  /* One open report per person per target is a unique index; a second tap
+     is the report already filed, which is the outcome they wanted, not a
+     failure to show them. */
+  if (error?.code === "23505") return ok(null);
   if (error) return fail(dbLimitRefusal(error) ?? POST_FAILURE.down);
   return ok(null);
 }
@@ -603,13 +610,17 @@ export async function reportProfile(input: {
 
   const { error } = await session.supabase.from("reports").insert({
     reporter_id: session.user.id,
-    target_type: "SOCIAL_PROFILE",
+    target_type: SOCIAL_REPORT_KIND.profile,
     target_id: parsed.data.userId,
     reason: parsed.data.detail
       ? `${parsed.data.reason}: ${parsed.data.detail}`
       : parsed.data.reason,
   });
 
+  /* One open report per person per target is a unique index; a second tap
+     is the report already filed, which is the outcome they wanted, not a
+     failure to show them. */
+  if (error?.code === "23505") return ok(null);
   if (error) return fail(dbLimitRefusal(error) ?? POST_FAILURE.down);
   return ok(null);
 }
@@ -752,7 +763,15 @@ const ENDED: FeedPage = { posts: [], cursor: null, ended: true };
  * so nobody can page through another person's places: signed out it is an
  * ended page, which is exactly what `getJoinedFeed` answers for a stranger.
  */
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
 export async function loadMoreFeed(
+  ...args: Parameters<typeof loadMoreFeedInner>
+): Promise<Awaited<ReturnType<typeof loadMoreFeedInner>>> {
+  return setupExempt(() => loadMoreFeedInner(...args));
+}
+
+async function loadMoreFeedInner(
   cursor: string | null,
   mode: FeedMode = { kind: "everywhere" },
 ): Promise<ActionResult<FeedPage>> {
@@ -792,12 +811,16 @@ export async function loadMoreFeed(
   const at = parsedCursor.data;
   const chosen = parsedMode.data;
   try {
-    if (chosen.kind === "area") return ok(await getAreaFeed(chosen.areaId, at));
-    if (chosen.kind === "joined") {
-      if (session.state !== "signed-in") return ok(ENDED);
-      return ok(await getJoinedFeed(session.user.id, at));
-    }
-    return ok(await getEverywhereFeed(at));
+    const page =
+      chosen.kind === "area"
+        ? await getAreaFeed(chosen.areaId, at)
+        : chosen.kind === "joined"
+          ? await getJoinedFeed(session.user.id, at)
+          : await getEverywhereFeed(at);
+    /* A dropped read is a failure the control can say and retry, never the
+       end of the timeline. */
+    if (page.failed) return fail("The next page did not load. Check your connection and try again.");
+    return ok(page);
   } catch {
     return fail("The next page did not load. Pull to refresh and try again.");
   }

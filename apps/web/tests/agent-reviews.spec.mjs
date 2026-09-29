@@ -18,11 +18,16 @@
  * can: the route is real, it is reachable, and it renders in both themes at
  * 390px.
  *
- * This sandbox has no route to the Supabase host, so nobody is an approved
- * agent here and the console renders its signed-out pitch.
+ * Since 23 September a signed-out visitor is sent to the sign-in door before
+ * the console runs (`src/proxy.ts`); that is asserted first. The console is
+ * then read in the preview harness (`/preview/f5/agent-reviews`, the real
+ * components with fixture reviews), and, signed in as the QA member, on the
+ * real route and its `?filter=all` address (SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD).
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -39,11 +44,9 @@ function check(name, condition) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
+async function run(theme, { state = null, paths }) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((t) => {
     try {
       window.localStorage.setItem("nf_theme", t);
@@ -61,10 +64,14 @@ async function run(theme) {
   });
 
   try {
-    for (const path of ["/agent/reviews", "/agent/reviews?filter=all"]) {
+    for (const path of paths) {
       console.log(`\n[${theme}] ${path}`);
-      await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
-      await page.waitForTimeout(WAIT);
+      if (path.startsWith("/preview/")) {
+        if (!(await openPreview(page, path, check))) return;
+      } else {
+        await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
+        await page.waitForTimeout(WAIT);
+      }
 
       const appliedTheme = await page.evaluate(
         () => document.documentElement.dataset.theme ?? "dark",
@@ -96,8 +103,19 @@ async function run(theme) {
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  await expectSignInWall(check, "/agent/reviews");
+  await expectSignInWall(check, "/agent/reviews?filter=all");
+
+  await run("dark", { paths: ["/preview/f5/agent-reviews"] });
+  await run("light", { paths: ["/preview/f5/agent-reviews"] });
+
+  console.log("\nsigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    await run("dark", { state, paths: ["/agent/reviews", "/agent/reviews?filter=all"] });
+    await run("light", { state, paths: ["/agent/reviews", "/agent/reviews?filter=all"] });
+  }
 } finally {
   await browser.close();
 }

@@ -6,36 +6,81 @@ import { withNext } from "@/lib/auth/next-link";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState, EmailStatus } from "@/lib/auth/form-state";
+import type { SignInSurface } from "@/lib/auth/providers";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
 import type { StateOption } from "@/lib/places/reference";
-import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Field, FormGroup, PasswordField, SelectField, StrengthMeter } from "./fields";
+import { Field, PasswordField, SelectField, StrengthMeter } from "./fields";
 import { EmailTakenNotice } from "./EmailTakenNotice";
+import { SocialDoors } from "./SocialDoors";
+import { AuthPillButton } from "./slate";
 import { signUpMethodForEmail, startGoogleOAuth } from "@/lib/auth/actions";
+import {
+  asksForStepTwo,
+  hrefForStep,
+  isStepTwoEntry,
+  stepAfterTraversal,
+  stepTwoState,
+} from "@/lib/auth/signup-step-history";
 
 const EMPTY: AuthFormState = { ok: false };
 
+/* Sign up's address for a step, in place (see `goNext`). */
+function replaceStepUrl(to: 1 | 2) {
+  try {
+    window.history.replaceState(to === 2 ? stepTwoState() : {}, "", hrefForStep(window.location, to));
+  } catch {
+    /* A sandbox that refuses history still changes step. */
+  }
+}
+
+/* The same shape the server checks (`lib/auth/actions.ts`); the server is
+   still the judge, this only stops Next moving on with an obvious gap. */
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/*
+ * WHICH STEP OWNS WHICH ANSWER. Step one is the account (name, email,
+ * password), step two is everything else. A refusal from the server on any
+ * step-one field brings the form back to step one, so the cursor can land on
+ * the thing to fix rather than on a field that is hidden.
+ */
+const STEP_ONE_FIELDS = new Set(["firstName", "surname", "email", "password", "confirmPassword"]);
+
+type StepOneErrors = Partial<
+  Record<"firstName" | "surname" | "email" | "password" | "confirmPassword", string>
+>;
+
 /**
- * The email form, on its own screen.
+ * The email form, on its own screen, in the Slate dress.
  *
- * It has the panel to itself. Nothing sits under it competing for the tap that
- * finishes the account, and the only other control is the way back to the three
- * choices - which the browser's back button also does now that this is a real
- * route rather than a piece of component state.
+ * SIGN IN is the reference screen itself, ON ONE SCREEN (B-1, the founder,
+ * 29 September; refs 12 and 14): the big title, the email and password cards
+ * together, "Forgot password?" on the right, the pill, the "Or" rule, the
+ * round Google and Apple doors and the line to sign up. It is what `/sign-in`
+ * draws; the old second step, `/sign-in/email`, now forwards here. Nothing
+ * about the door's safety moved with it: the same `signInWithEmail` action,
+ * its two rate limits, its one neutral refusal, its `next` check.
  *
- * Sign-up collects the full profile; sign-in stays lean with email and password
- * only. Every word either of them draws comes out of the dictionary under
- * `signUp` or `auth`; there is nothing English left inline, which is what the
- * note that used to sit here was waiting for.
+ * SIGN UP IS TWO STEPS ON ONE PAGE (the founder, 29 September). Step one is
+ * the account: first name and surname, email, password and its confirmation,
+ * then Next, with Google and Apple under it as the quicker way. Step two is
+ * the rest: nickname, where you stay and what you do, how you found us, the
+ * referral code, the 18+ tick and the terms, then Create account. A step
+ * indicator names where you are, and a back arrow returns to step one with
+ * every answer kept.
  *
- * The sign-up form is grouped rather than stacked. Nine fields in one unbroken
- * column is a wall, and a wall is where people abandon. Four headed groups with
- * air between them, each answering one question: who you are, how you sign in,
- * where you stay and what you do, and how you found us. The two long lists
- * (774 local governments, 749 occupations) are searchable pickers that fetch
- * themselves when opened, so the page weighs the same as it did before them.
+ * IT IS STILL ONE FORM POSTING ONE ACTION. Both steps are inside the same
+ * `<form>`; the step that is not showing is `hidden`, not unmounted, so its
+ * inputs keep their values and are posted with the rest. The server contract
+ * (`signUpWithEmail`, the field names, its validation) is exactly what it
+ * was. Next runs only the early checks a person would otherwise meet after
+ * the whole second step (a name left empty, a short password, two passwords
+ * that differ), and the server checks everything again.
+ *
+ * Every word either mode draws comes out of the dictionary under `signUp` or
+ * `auth`. The two long lists (774 local governments, 749 occupations) are
+ * searchable pickers that fetch themselves when opened.
  */
 export function EmailAuthForm({
   mode,
@@ -46,7 +91,11 @@ export function EmailAuthForm({
   initialEmail = "",
   accountMethod = "unknown",
   googleReady = false,
+  appleReady = false,
+  surface = "web",
   initialState = EMPTY,
+  notice,
+  emailReady = true,
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
@@ -58,9 +107,9 @@ export function EmailAuthForm({
   /**
    * The address typed on the chooser, carried here in a short-lived cookie
    * (`continueWithEmail`, or `?email=` on a link that carries it) so the
-   * email-first flow of the governing render holds: the first screen
-   * takes the address, this one takes the password, and nobody types their
-   * email twice. Anything not shaped like an address is ignored.
+   * email-first flow holds: the first screen takes the address, this one
+   * takes the password, and nobody types their email twice. Anything not
+   * shaped like an address is ignored.
    */
   initialEmail?: string;
   /**
@@ -73,58 +122,96 @@ export function EmailAuthForm({
    * unavailable) draws the ordinary password step.
    */
   accountMethod?: EmailStatus;
-  /** Whether the Google door is switched on, from `getProviderStates`. */
+  /** Whether the Google door is switched on, from `resolveProviderStates`. */
   googleReady?: boolean;
+  /** Whether the Apple door is switched on for this surface. */
+  appleReady?: boolean;
+  /** Which surface the server rendered for (the doors differ inside a shell). */
+  surface?: SignInSurface;
   /** The form's state before any submit. Only the preview harness passes it,
       to draw a refusal without a live account. */
   initialState?: AuthFormState;
+  /**
+   * Sign-in only: a sentence from the callback, the wall or the passcode lock
+   * (`?notice=` looked up in the dictionary by the page, own keys only), drawn
+   * under the title as a status.
+   */
+  notice?: string | undefined;
+  /** False when accounts cannot be reached at all: the pill gives way to
+      the sentence that says so, as the chooser used to. */
+  emailReady?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
+  const isSignUp = mode === "sign-up";
+  const [step, setStep] = useState<1 | 2>(1);
   /*
-   * F-12: A REFUSED SUBMIT PUTS THE CURSOR ON THE FIRST THING TO FIX. The
-   * sign-up form is several screens tall on a phone, and a refusal used to
-   * leave focus on the button at the bottom with the first error scrolled out
-   * of sight. Every field marks itself `aria-invalid` when it carries an
-   * error, so the first one in document order is the one to fix first;
-   * focusing it also scrolls it into view and has a screen reader read it.
+   * F-12: A REFUSED SUBMIT PUTS THE CURSOR ON THE FIRST THING TO FIX. Every
+   * field marks itself `aria-invalid` when it carries an error, so the first
+   * one showing is the one to fix first; focusing it also scrolls it into
+   * view and has a screen reader read it.
+   *
+   * THE FOCUS WAITS FOR THE STEP. A refusal can arrive for a field on the
+   * step that is not showing, so the request is held in a ref and served
+   * after the render that shows the right step. The same ref moves focus to
+   * a step's heading when Next or the back arrow changes step.
    */
   const formRef = useRef<HTMLFormElement>(null);
+  const focusWanted = useRef<"invalid" | "heading" | null>(null);
   const [refusedLocally, setRefusedLocally] = useState(0);
+  /* A new answer from the server picks the step before anything paints:
+     the step that holds the first refused field. Adjusting state from a
+     changed value during render, rather than in an effect, is what spares
+     the extra paint of the wrong step. */
+  const [answered, setAnswered] = useState(state);
+  if (answered !== state) {
+    setAnswered(state);
+    const refused = Object.keys(state.fieldErrors ?? {});
+    if (isSignUp && refused.length > 0) {
+      setStep(refused.some((key) => STEP_ONE_FIELDS.has(key)) ? 1 : 2);
+    }
+  }
   useEffect(() => {
     const refusedByServer =
       state !== initialState && Object.keys(state.fieldErrors ?? {}).length > 0;
     if (!refusedByServer && refusedLocally === 0) return;
-    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    focusWanted.current = "invalid";
   }, [state, initialState, refusedLocally]);
+  useEffect(() => {
+    const want = focusWanted.current;
+    if (!want) return;
+    focusWanted.current = null;
+    const scope = formRef.current?.closest(".nf-auth__screen") ?? formRef.current;
+    if (want === "heading") {
+      scope?.querySelector<HTMLElement>(`[data-step-heading="${step}"]`)?.focus();
+      return;
+    }
+    const invalid = Array.from(scope?.querySelectorAll<HTMLElement>('[aria-invalid="true"]') ?? []);
+    invalid.find((el) => !el.closest("[hidden]"))?.focus();
+  });
   /*
    * EVERY TEXT FIELD IS CONTROLLED, AND IT HAS TO BE.
    *
-   * THE BUG: filling the whole sign-up form, submitting, and getting one
-   * validation error back wiped fields that were already correct. It took
-   * several attempts to get through, because each attempt cleared more than it
-   * complained about.
+   * React RESETS AN UNCONTROLLED FORM WHEN THE ACTION PASSED TO `<form
+   * action>` COMPLETES, on failure exactly as on success, which wiped answers
+   * that were already correct. So the values live here, the inputs read from
+   * this state, and nothing a person typed is thrown away by a message
+   * telling them to fix one thing. It is also what keeps step one's answers
+   * when a person goes to step two and back.
    *
-   * THE CAUSE is not our validation. React RESETS AN UNCONTROLLED FORM WHEN THE
-   * ACTION PASSED TO `<form action>` COMPLETES - on failure exactly as on
-   * success, because from React's side an action that returned is an action
-   * that finished. Password and confirm were already controlled, which is why
-   * those two survived and the rest did not; that inconsistency is what made it
-   * look intermittent.
-   *
-   * So the values live here. The form re-renders after the action with the
-   * state intact, the inputs read from it, and nothing a person typed is thrown
-   * away by a message telling them to fix one thing.
-   *
-   * PASSWORDS ARE NOT IN THIS OBJECT. They have their own state above and are
+   * PASSWORDS ARE NOT IN THIS OBJECT. They have their own state below and are
    * kept out of the generic bag deliberately, so that anything added later
    * which logs, serialises or inspects `values` cannot reach them.
    */
   const [values, setValues] = useState<Record<string, string>>(
     initialEmail ? { email: initialEmail } : {},
   );
+  const [localErrors, setLocalErrors] = useState<StepOneErrors>({});
   const bind = (field: string) => ({
     value: values[field] ?? "",
-    onChange: (next: string) => setValues((v) => ({ ...v, [field]: next })),
+    onChange: (next: string) => {
+      setValues((v) => ({ ...v, [field]: next }));
+      if (field in localErrors) setLocalErrors((e) => ({ ...e, [field]: undefined }));
+    },
   });
 
   const [password, setPassword] = useState("");
@@ -134,14 +221,12 @@ export function EmailAuthForm({
     lgaCode: "",
     occupationCode: "",
   });
-  const isSignUp = mode === "sign-up";
   /*
    * THE ACCEPTANCE, AND WHY IT IS STATE RATHER THAN A `required` ATTRIBUTE.
    *
    * The form is `noValidate`, deliberately, because every other refusal on
    * this screen is a sentence this product wrote rather than a browser
-   * bubble. A `required` checkbox would be the one exception and it would look
-   * like one. So the tick is held here, the submit is refused here, and the
+   * bubble. So the tick is held here, the submit is refused here, and the
    * sentence comes from the dictionary like every other sentence.
    */
   const [accepted, setAccepted] = useState(false);
@@ -149,22 +234,15 @@ export function EmailAuthForm({
   const [adult, setAdult] = useState(false);
   const [adultError, setAdultError] = useState(false);
 
-  /*
-   * "1 of 4" is a sentence, not a format. Yoruba, Hausa and Igbo do not all
-   * put the two numbers either side of one word, so the whole thing is a
-   * dictionary string with two slots rather than a template assembled here.
-   */
-  const step = (current: number) =>
-    t.signUp.stepOf.replace("{current}", String(current)).replace("{total}", "4");
+  /* "Step 1 of 2" is a sentence, not a format: a dictionary string with two
+     slots, because not every language puts the numbers either side of a word. */
+  const stepLabel = (current: number) =>
+    t.signUp.stepIndicator.replace("{current}", String(current)).replace("{total}", "2");
 
   /*
-   * The word shown and the value posted, apart.
-   *
-   * `HEAR_ABOUT_OPTIONS` carries the English value the server validates and the
-   * database stores - frozen, because every row written before this form spoke
-   * four languages holds one of those six words - alongside the key its label
-   * lives under. Translating in place would have quietly stopped the validator
-   * matching answers already saved.
+   * The word shown and the value posted, apart. `HEAR_ABOUT_OPTIONS` carries
+   * the English value the server validates and the database stores, frozen,
+   * alongside the key its label lives under.
    */
   const hearAbout = HEAR_ABOUT_OPTIONS.map((option) => ({
     value: option.value,
@@ -175,59 +253,184 @@ export function EmailAuthForm({
   const mismatch = confirm.length > 0 && confirm !== password;
   const confirmError = mismatch
     ? t.signUp.passwordMismatch
-    : state.fieldErrors?.confirmPassword;
+    : (localErrors.confirmPassword ?? state.fieldErrors?.confirmPassword);
+
+  /* The early checks for step one. The address is read from the form
+     because its field is owned by `EmailTakenNotice`. */
+  function stepOneErrors(): StepOneErrors {
+    const data = formRef.current ? new FormData(formRef.current) : new FormData();
+    const email = String(data.get("email") ?? "").trim();
+    const errors: StepOneErrors = {};
+    if (!(values.firstName ?? "").trim()) errors.firstName = t.signUp.firstNameRequired;
+    if (!(values.surname ?? "").trim()) errors.surname = t.signUp.surnameRequired;
+    if (!email) errors.email = t.signUp.emailRequired;
+    else if (!EMAIL_SHAPE.test(email)) errors.email = t.signUp.emailInvalid;
+    if (password.length < 8) errors.password = t.signUp.passwordShort;
+    else if (!confirm) errors.confirmPassword = t.signUp.confirmRequired;
+    else if (confirm !== password) errors.confirmPassword = t.signUp.passwordMismatch;
+    return errors;
+  }
+
+  /*
+   * STEP TWO IS A HISTORY ENTRY (`lib/auth/signup-step-history.ts`). Next
+   * pushes `?step=2` on this same page, so the browser's Back returns to step
+   * one with every answer kept, Forward returns to step two, and Android's
+   * hardware back does the same (`lib/nav/in-page-step.ts`). Before this, Back
+   * left the page and every answer with it.
+   */
+  /* Next: the early checks for step one, then step two. */
+  function goNext() {
+    const errors = stepOneErrors();
+    setLocalErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setRefusedLocally((n) => n + 1);
+      return;
+    }
+    try {
+      if (!isStepTwoEntry(window.history.state)) {
+        window.history.pushState(stepTwoState(), "", hrefForStep(window.location, 2));
+      }
+    } catch {
+      /* A sandbox that refuses history still changes step. */
+    }
+    focusWanted.current = "heading";
+    setStep(2);
+  }
+
+  /* The drawn back arrow is the browser's Back when step two is the entry
+     this form pushed, so both leave history in the same shape; the
+     `popstate` listener below then shows step one. */
+  function goBack() {
+    if (isStepTwoEntry(window.history.state)) {
+      window.history.back();
+      return;
+    }
+    focusWanted.current = "heading";
+    setStep(1);
+  }
+
+  /* The traversal listener reads the answers as they are now, not as they
+     were when it was bound. */
+  const stepOneReady = useRef<() => boolean>(() => false);
+  useEffect(() => {
+    stepOneReady.current = () => Object.keys(stepOneErrors()).length === 0;
+  });
+
+  useEffect(() => {
+    if (!isSignUp) return;
+    /* A reload or a pasted address on `?step=2` has no step one in memory
+       (the password is never stored), so it opens on step one. */
+    if (asksForStepTwo(window.location.search)) replaceStepUrl(1);
+    const onPop = (e: PopStateEvent) => {
+      const to = stepAfterTraversal(e.state, stepOneReady.current());
+      /* Forward onto step two with an answer since removed: stay on step
+         one and take the stamp off the entry. */
+      if (to === 1 && isStepTwoEntry(e.state)) replaceStepUrl(1);
+      focusWanted.current = "heading";
+      setStep(to);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [isSignUp]);
+
+  /* A server refusal on a step-one field brings step one back while the
+     address still says step two; the entry is brought into line. */
+  useEffect(() => {
+    if (isSignUp && step === 1 && isStepTwoEntry(window.history.state)) replaceStepUrl(1);
+  }, [isSignUp, step]);
+
+  const stepOneError = (field: keyof StepOneErrors) =>
+    localErrors[field] ?? state.fieldErrors?.[field];
 
   return (
-    /* Sign in is the render's card and takes its measured width (ledger
-       R-C); the nine-field sign-up form keeps the wider card. */
-    <div className={isSignUp ? "w-full" : "nf-auth--narrow w-full"}>
-      {/* The way back sits above the heading, where a screen reader and a thumb
-          both find it first, and it names where it goes rather than saying
-          "back" to somebody who arrived here on a deep link. */}
-      <Link
-        href={withNext(isSignUp ? "/sign-up" : "/sign-in", next)}
-        className="nf-tap nf-auth__aside -ml-1 mb-sm inline-flex items-center gap-xs text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
-      >
-        <UiIcon name="arrow-left" size={16} />
-        {t.auth.otherWays}
-      </Link>
-
-      <h1 className="nf-auth__title">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
-      <p className="nf-auth__sub mb-lg">
-        {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
-      </p>
-
-      {!isSignUp && accountMethod === "google" && (
-        <div className="nf-auth__notice mb-md" role="status">
-          <p>{googleReady ? t.auth.accountUsesGoogle : t.auth.accountUsesGoogleOff}</p>
-          {googleReady && (
-            <form action={startGoogleOAuth} className="mt-sm">
-              {next ? <input type="hidden" name="next" value={next} /> : null}
-              <input type="hidden" name="intent" value="sign-in" />
-              <button type="submit" className="nf-btn nf-btn--primary nf-btn--full">
-                {t.auth.continueWithGoogle}
+    <div className={isSignUp ? "nf-auth__screen nf-auth__screen--form" : "nf-auth__screen"}>
+      <div className="nf-slate-stagger">
+        {isSignUp ? (
+          <div className="nf-slate-head">
+            {step === 2 ? (
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label={t.signUp.backToStep}
+                className="nf-slate-head__back"
+              >
+                <UiIcon name="arrow-left" size={20} />
               </button>
-            </form>
-          )}
-        </div>
-      )}
-      {/* No "no account uses this address" notice here any more (F-08): it
-          contradicted the "do not match" refusal and told anyone which
-          addresses have accounts. "none" draws the plain password step. */}
+            ) : null}
+            <h1 className="nf-auth__title">{t.common.signUp}</h1>
+          </div>
+        ) : (
+          <h1 className="nf-auth__title">{t.common.signIn}</h1>
+        )}
+
+        {!isSignUp && notice ? (
+          <p role="status" className="nf-auth__notice">
+            {notice}
+          </p>
+        ) : null}
+
+        {isSignUp && (
+          <div className="nf-slate-steps">
+            <p className="nf-slate-steps__label" aria-live="polite">
+              {stepLabel(step)}
+              <span className="nf-slate-steps__name">
+                {step === 1 ? t.signUp.stepAccount : t.signUp.stepAbout}
+              </span>
+            </p>
+            <div className="nf-slate-steps__track" aria-hidden="true">
+              <span className="nf-slate-steps__seg is-on" />
+              <span className={step === 2 ? "nf-slate-steps__seg is-on" : "nf-slate-steps__seg"} />
+            </div>
+          </div>
+        )}
+
+        {!isSignUp && accountMethod === "google" && (
+          <div className="nf-auth__notice" role="status">
+            <p>{googleReady ? t.auth.accountUsesGoogle : t.auth.accountUsesGoogleOff}</p>
+            {googleReady && (
+              <form action={startGoogleOAuth} className="mt-sm">
+                {next ? <input type="hidden" name="next" value={next} /> : null}
+                <input type="hidden" name="intent" value="sign-in" />
+                <AuthPillButton type="submit">{t.auth.continueWithGoogle}</AuthPillButton>
+              </form>
+            )}
+          </div>
+        )}
+        {/* No "no account uses this address" notice here any more (F-08): it
+            contradicted the "do not match" refusal and told anyone which
+            addresses have accounts. "none" draws the plain password step. */}
+      </div>
 
       <form
         action={formAction}
         ref={formRef}
+        onKeyDown={(e) => {
+          /* Enter in a step-one field is Next. Step one has no submit button
+             (Next is `type="button"`), so the browser's implicit submission
+             never fires there and Enter would otherwise do nothing. */
+          if (
+            isSignUp &&
+            step === 1 &&
+            e.key === "Enter" &&
+            !e.nativeEvent.isComposing &&
+            e.target instanceof HTMLInputElement
+          ) {
+            e.preventDefault();
+            goNext();
+          }
+        }}
         onSubmit={(e) => {
           /* UX-14: the action is dispatched here rather than by `<form
              action>`, because React resets a form after a `<form action>`
-             submission completes, refusal included. Controlled text fields
-             survive that; the terms tick and the "where did you hear" select
-             did not, so a person fixing one named error was refused again on
-             two answers they had given. A dispatch from here is not followed
-             by a reset, so every answer stays. `action` above still serves a
-             submit made before the page has hydrated. */
+             submission completes, refusal included. A dispatch from here is
+             not followed by a reset, so every answer stays. `action` above
+             still serves a submit made before the page has hydrated. */
           e.preventDefault();
+          /* Enter on step one is Next, not a submit with half the answers. */
+          if (isSignUp && step === 1) {
+            goNext();
+            return;
+          }
           /* Sign up only. Signing in is not the moment somebody agrees to
              anything: they agreed when they made the account. The refusal
              is drawn here without a round trip, and the cursor goes to the
@@ -241,7 +444,11 @@ export function EmailAuthForm({
           const data = new FormData(e.currentTarget);
           startTransition(() => formAction(data));
         }}
-        className={isSignUp ? "text-left" : "space-y-md text-left"}
+        className={
+          isSignUp
+            ? "nf-auth__form nf-auth__form--steps"
+            : "nf-auth__form nf-auth__form--fields nf-slate-stagger"
+        }
         noValidate
       >
         {/* Where the middleware was sending them before it asked them to sign
@@ -250,8 +457,17 @@ export function EmailAuthForm({
         {next ? <input type="hidden" name="next" value={next} /> : null}
         {isSignUp ? (
           <>
-            <FormGroup title={t.signUp.groups.identity} step={step(1)}>
-              <div className="grid grid-cols-2 gap-4">
+            {/* STEP ONE: the account. */}
+            <section
+              data-step="1"
+              hidden={step !== 1}
+              aria-labelledby="signup-step-1"
+              className="nf-slate-step nf-slate-stagger"
+            >
+              <h2 id="signup-step-1" data-step-heading="1" tabIndex={-1} className="sr-only">
+                {stepLabel(1)}: {t.signUp.stepAccount}
+              </h2>
+              <div className="nf-slate-pair">
                 <Field
                   t={t}
                   id="firstName"
@@ -261,7 +477,7 @@ export function EmailAuthForm({
                   label={t.signUp.firstNameLabel}
                   placeholder={t.signUp.firstNamePlaceholder}
                   autoComplete="given-name"
-                  error={state.fieldErrors?.firstName}
+                  error={stepOneError("firstName")}
                 />
                 <Field
                   t={t}
@@ -272,9 +488,63 @@ export function EmailAuthForm({
                   label={t.signUp.surnameLabel}
                   placeholder={t.signUp.surnamePlaceholder}
                   autoComplete="family-name"
-                  error={state.fieldErrors?.surname}
+                  error={stepOneError("surname")}
                 />
               </div>
+              {/* The address is checked as the field loses focus, so an
+                  account that already exists is named here rather than
+                  discovered after the second step and a submit. */}
+              <EmailTakenNotice
+                t={t}
+                error={stepOneError("email")}
+                check={signUpMethodForEmail}
+                initialEmail={initialEmail}
+              />
+              <div>
+                <PasswordField
+                  t={t}
+                  id="password"
+                  label={t.auth.passwordLabel}
+                  placeholder={t.auth.passwordPlaceholder}
+                  autoComplete="new-password"
+                  error={stepOneError("password")}
+                  value={password}
+                  onChange={(value) => {
+                    setPassword(value);
+                    if (localErrors.password) setLocalErrors((e) => ({ ...e, password: undefined }));
+                  }}
+                />
+                <div className="mt-sm">
+                  <StrengthMeter password={password} t={t} />
+                </div>
+              </div>
+              <PasswordField
+                t={t}
+                id="confirmPassword"
+                label={t.auth.confirmPasswordLabel}
+                placeholder={t.auth.confirmPasswordPlaceholder}
+                autoComplete="new-password"
+                error={confirmError}
+                value={confirm}
+                onChange={(value) => {
+                  setConfirm(value);
+                  if (localErrors.confirmPassword) {
+                    setLocalErrors((e) => ({ ...e, confirmPassword: undefined }));
+                  }
+                }}
+              />
+            </section>
+
+            {/* STEP TWO: everything else. */}
+            <section
+              data-step="2"
+              hidden={step !== 2}
+              aria-labelledby="signup-step-2"
+              className="nf-slate-step nf-slate-stagger"
+            >
+              <h2 id="signup-step-2" data-step-heading="2" tabIndex={-1} className="sr-only">
+                {stepLabel(2)}: {t.signUp.stepAbout}
+              </h2>
               <Field
                 t={t}
                 id="nickname"
@@ -287,56 +557,16 @@ export function EmailAuthForm({
                 autoComplete="nickname"
                 error={state.fieldErrors?.nickname}
               />
-            </FormGroup>
-
-            <FormGroup title={t.signUp.groups.credentials} step={step(2)}>
-              {/* The address is checked as the field loses focus, so an
-                  account that already exists is named here rather than
-                  discovered after four groups of questions and a submit. */}
-              <EmailTakenNotice
-                t={t}
-                error={state.fieldErrors?.email}
-                check={signUpMethodForEmail}
-                initialEmail={initialEmail}
-              />
-              <PasswordField
-                t={t}
-                id="password"
-                label={t.auth.passwordLabel}
-                placeholder={t.auth.passwordPlaceholder}
-                autoComplete="new-password"
-                error={state.fieldErrors?.password}
-                value={password}
-                onChange={setPassword}
-              />
-              <StrengthMeter password={password} t={t} />
-              <PasswordField
-                t={t}
-                id="confirmPassword"
-                label={t.auth.confirmPasswordLabel}
-                placeholder={t.auth.confirmPasswordPlaceholder}
-                autoComplete="new-password"
-                error={confirmError}
-                value={confirm}
-                onChange={setConfirm}
-              />
-            </FormGroup>
-
-            <FormGroup
-              title={t.signUp.groups.place}
-              step={step(3)}
-              note={t.signUp.placeNote}
-            >
-              <PlaceFields
-                t={t}
-                states={states}
-                value={place}
-                onChange={setPlace}
-                fieldErrors={state.fieldErrors as Record<string, string> | undefined}
-              />
-            </FormGroup>
-
-            <FormGroup title={t.signUp.groups.discovery} step={step(4)}>
+              <div className="nf-slate-note-group">
+                <p className="nf-slate-note">{t.signUp.placeNote}</p>
+                <PlaceFields
+                  t={t}
+                  states={states}
+                  value={place}
+                  onChange={setPlace}
+                  fieldErrors={state.fieldErrors as Record<string, string> | undefined}
+                />
+              </div>
               <SelectField
                 id="hearAbout"
                 name="hearAbout"
@@ -357,7 +587,25 @@ export function EmailAuthForm({
                 autoComplete="off"
                 error={state.fieldErrors?.referralCode}
               />
-            </FormGroup>
+              <AcceptTerms
+                t={t}
+                accepted={accepted}
+                onChange={(next) => {
+                  setAccepted(next);
+                  if (next) setAcceptError(false);
+                }}
+                /* The browser's refusal OR the server's. The server refuses a
+                   sign-up that carries no current terms version, and that
+                   refusal has to land on this control rather than vanish. */
+                showError={acceptError || Boolean(state.fieldErrors?.acceptTerms)}
+                adult={adult}
+                onAdultChange={(next) => {
+                  setAdult(next);
+                  if (next) setAdultError(false);
+                }}
+                showAdultError={adultError || Boolean(state.fieldErrors?.ageConfirmed)}
+              />
+            </section>
           </>
         ) : (
           <>
@@ -370,21 +618,30 @@ export function EmailAuthForm({
               label={t.auth.emailLabel}
               placeholder={t.auth.emailPlaceholder}
               autoComplete="email"
+              inputMode="email"
               error={state.fieldErrors?.email}
             />
-            {/* The address arrived from the chooser, so the cursor goes to
-                the one thing left to type. */}
-            <PasswordField
-              t={t}
-              id="password"
-              label={t.auth.passwordLabel}
-              placeholder={t.auth.passwordPlaceholder}
-              autoComplete="current-password"
-              error={state.fieldErrors?.password}
-              value={password}
-              onChange={setPassword}
-              autoFocus={Boolean(initialEmail)}
-            />
+            {/* Email and password on one screen (B-1). When the address
+                arrived already filled in (a link carrying it, or an old
+                chooser post), the cursor goes to the one thing left to type. */}
+            <div>
+              <PasswordField
+                t={t}
+                id="password"
+                label={t.auth.passwordLabel}
+                placeholder={t.auth.signInPasswordPlaceholder}
+                autoComplete="current-password"
+                error={state.fieldErrors?.password}
+                value={password}
+                onChange={setPassword}
+                autoFocus={Boolean(initialEmail)}
+              />
+              <p className="nf-slate-forgot">
+                <Link href="/forgot-password" className="nf-tap nf-auth__aside">
+                  {t.auth.forgotPassword}
+                </Link>
+              </p>
+            </div>
           </>
         )}
 
@@ -394,9 +651,7 @@ export function EmailAuthForm({
             {/*
               THE WAY OUT, when the refusal has one and it is somewhere else.
               Inside the alert rather than under it, so a screen reader that
-              has just been handed the sentence is handed the link with it
-              rather than reaching it only by moving on. Nothing renders when
-              no action is set, which is every refusal but one.
+              has just been handed the sentence is handed the link with it.
             */}
             {state.action && (
               <>
@@ -409,63 +664,71 @@ export function EmailAuthForm({
           </p>
         )}
 
-        {/*
-          The label no longer swaps to "Loading" while pending. It stays and
-          dims behind a spinner, so the button keeps its width and the user
-          keeps their place. Height, radius, press feedback and haptics all
-          come from the primitive.
-        */}
-        {isSignUp && (
-          <AcceptTerms
-            t={t}
-            accepted={accepted}
-            onChange={(next) => {
-              setAccepted(next);
-              if (next) setAcceptError(false);
-            }}
-            /* The browser's refusal OR the server's. The server refuses a
-               sign-up that carries no current terms version, and that refusal
-               has to land on this control rather than vanish, because a form
-               that comes back unchanged with no visible reason reads as
-               broken. */
-            showError={acceptError || Boolean(state.fieldErrors?.acceptTerms)}
-            adult={adult}
-            onAdultChange={(next) => {
-              setAdult(next);
-              if (next) setAdultError(false);
-            }}
-            showAdultError={adultError || Boolean(state.fieldErrors?.ageConfirmed)}
-          />
-        )}
-
-        <div className={isSignUp ? "mt-7" : ""}>
-          <Button type="submit" variant="primary" size="lg" full loading={pending}>
-            {isSignUp ? t.common.signUp : t.common.signIn}
-          </Button>
-        </div>
-
-        {!isSignUp && (
-          <p className="text-center">
-            <Link
-              href="/forgot-password"
-              className="nf-tap nf-auth__aside text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+        {/* On sign up the pill rides a bar pinned to the foot of the screen,
+            so the one primary action is in view from the first field to the
+            last without scrolling to find it. The label stays and dims
+            behind a spinner while pending, so the pill keeps its width. */}
+        <div className={isSignUp ? "nf-auth__actions nf-auth__actions--sticky" : "nf-auth__actions"}>
+          {isSignUp && step === 1 ? (
+            /* Keyed apart from the submit below: React commits the step
+               change before the click's default action runs, and the same
+               element turned `type="submit"` would then submit step one. */
+            <AuthPillButton
+              key="next"
+              type="button"
+              onClick={goNext}
+              className="nf-auth__cta"
+              trailingIcon="arrow-right"
             >
-              {t.auth.forgotPassword}
-            </Link>
-          </p>
-        )}
+              {t.common.next}
+            </AuthPillButton>
+          ) : !isSignUp && !emailReady ? (
+            <p className="nf-auth__notice">{t.auth.providerUnavailable}</p>
+          ) : (
+            <AuthPillButton key="submit" type="submit" loading={pending} className="nf-auth__cta">
+              {isSignUp ? t.signUp.createAccountCta : t.common.signIn}
+            </AuthPillButton>
+          )}
+        </div>
       </form>
 
+      {/* Google and Apple, round, under the rule: on sign in, and on step
+          one of sign up, where they are the quicker way to the same place. */}
+      {(!isSignUp || step === 1) && (
+        <div className="nf-slate-stagger">
+          <SocialDoors
+            t={t}
+            googleReady={googleReady}
+            appleReady={appleReady}
+            surface={surface}
+            next={next}
+            intent={mode}
+          />
+        </div>
+      )}
+
       <p className="nf-auth__swap">
-        {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
+        {isSignUp ? t.auth.haveAccount : t.auth.noAccount}{" "}
         <Link href={withNext(isSignUp ? "/sign-in" : "/sign-up", next)}>
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>
       </p>
 
-      {/* The passive notice for sign in now sits under the plinth in the
-          auth layout, for every auth screen alike. On sign up it is the tick
-          above, which is the whole point. */}
+      {/* What Vallo is, a quiet door under the swap on step one, with this
+          form as the way back (request W2). It opens the slides (`tour=1`):
+          a bare `/welcome` with a sign-up door is the intro, whose Get
+          started only leads back round to the options page. */}
+      {isSignUp && step === 1 && (
+        <p className="nf-auth__swap nf-auth__swap--quiet">
+          <Link
+            href={`/welcome?tour=1&next=${encodeURIComponent(withNext("/sign-up/email", next))}`}
+            prefetch={false}
+            className="nf-tap"
+          >
+            {t.welcomeCards.label}
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

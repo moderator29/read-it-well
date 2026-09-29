@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
 import { settleCardPayment } from "@/lib/bookings/checkout";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { cardReturnVerdict, type CardReturnVerdict } from "@/lib/payments/card-return";
+import { successCopy, withoutDone } from "@/lib/ui/success-moments";
 import { failureConsequence } from "./payment-copy";
 
 /**
@@ -53,12 +56,22 @@ const GIVE_UP_MS = 25_000;
 type Phase =
   | { kind: "checking" }
   | { kind: "slow" }
-  | { kind: "settled"; confirmed: boolean }
+  /* Paid, against THIS booking, with the amount the settlement recorded. */
+  | { kind: "settled"; verdict: Exclude<CardReturnVerdict, "unsure">; amountMinor: number }
   | { kind: "failed"; message: string }
   | { kind: "unknown" };
 
+/**
+ * The flag Paystack returned with, and its companion, as query keys. Both go
+ * once an answer is in, so a refresh does not replay the sheet and does not
+ * run the settlement again (it is idempotent, but it is not free).
+ */
+const RETURN_KEYS = ["paid", "reference"] as const;
+
 export function PaymentReturn({
   reference,
+  bookingId,
+  kind = "stay",
   amountMinor,
   currency,
   subject,
@@ -68,6 +81,10 @@ export function PaymentReturn({
   plansAction,
 }: {
   reference: string;
+  /** The booking this page is for. A settlement against any other is not celebrated here. */
+  bookingId: string;
+  /** Which words the receipt uses: a stay's, or a move-in's. */
+  kind?: "stay" | "rent";
   amountMinor?: number;
   currency?: string;
   subject?: string;
@@ -76,7 +93,9 @@ export function PaymentReturn({
   /** Where "done" sends somebody, in the dictionary's words (V-76 review). */
   plansAction: { label: string; href: string };
 }) {
-  const c = getDictionary(locale ?? DEFAULT_LOCALE).checkout;
+  const dictionary = getDictionary(locale ?? DEFAULT_LOCALE);
+  const c = dictionary.checkout;
+  const s = dictionary.success;
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
   const [open, setOpen] = useState(true);
   const router = useRouter();
@@ -101,7 +120,18 @@ export function PaymentReturn({
       window.clearTimeout(slow);
       window.clearTimeout(giveUp);
       if (result.ok && result.data) {
-        setPhase({ kind: "settled", confirmed: result.data.confirmed });
+        /*
+         * `ok` IS NOT "PAID". A reference seen before, one settled against
+         * another of this person's bookings, or one the database refunded all
+         * answer `ok`. Only a settlement against this booking is a receipt;
+         * the rest keep the honest pending sheet (docs/SUCCESS_MOMENTS.md).
+         */
+        const verdict = cardReturnVerdict(result.data, bookingId);
+        setPhase(
+          verdict === "unsure"
+            ? { kind: "unknown" }
+            : { kind: "settled", verdict, amountMinor: result.data.amountMinor },
+        );
         router.refresh();
         return;
       }
@@ -123,7 +153,22 @@ export function PaymentReturn({
       window.clearTimeout(slow);
       window.clearTimeout(giveUp);
     };
-  }, [reference, router]);
+  }, [reference, bookingId, router]);
+
+  /*
+   * THE RETURN FLAG GOES WHEN THE SHEET DOES. Not when the answer arrives:
+   * stripping it re-renders the page without it, and a page that no longer
+   * renders this component would take the sheet away from under somebody
+   * reading their receipt. Closing it is the moment the flag has done its
+   * job, and from then a refresh is an ordinary visit that replays nothing.
+   */
+  const onOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) return;
+    const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const clean = withoutDone(here, RETURN_KEYS);
+    if (clean !== here) router.replace(clean, { scroll: false });
+  };
 
   const fact = {
     ...(amountMinor === undefined ? {} : { amountMinor }),
@@ -136,7 +181,7 @@ export function PaymentReturn({
     return (
       <ResultSheet
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={onOpenChange}
         state="pending"
         /* Blocking, because the outcome is genuinely unknown and a person who
            dismisses this and taps Pay again may pay twice. It stops blocking
@@ -155,23 +200,31 @@ export function PaymentReturn({
   }
 
   if (phase.kind === "settled") {
+    const words = successCopy(
+      s,
+      phase.verdict === "share-paid"
+        ? "sharePaid"
+        : kind === "rent"
+          ? "rentPaid"
+          : phase.verdict === "paid-confirmed"
+            ? "stayPaid"
+            : "stayPaidRecorded",
+    );
     return (
-      <ResultSheet
+      <SuccessSheet
         open={open}
-        onOpenChange={setOpen}
-        state="received"
-        verdict={c.paymentReceived}
-        fact={fact}
-        locale={locale}
-        consequence={
-          phase.confirmed
-            ? c.stayConfirmed
-            : c.alreadyRecorded
-        }
-        actions={[
-          { label: plansAction.label, href: plansAction.href, tone: "primary" },
-          { label: "Close", onClick: () => setOpen(false), tone: "quiet" },
+        onOpenChange={onOpenChange}
+        variant={words.variant}
+        title={words.title}
+        body={words.body}
+        /* The amount the settlement recorded, not the page's figure. */
+        amount={{ minorUnits: phase.amountMinor, currency, locale }}
+        details={[
+          ...(subject ? [{ label: s.detail.for, value: subject }] : []),
+          { label: s.detail.reference, value: reference, mono: true },
         ]}
+        primary={{ label: plansAction.label, href: plansAction.href }}
+        secondary={{ label: s.close }}
       />
     );
   }
@@ -180,7 +233,7 @@ export function PaymentReturn({
     return (
       <ResultSheet
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={onOpenChange}
         state="pending"
         verdict={c.stillChecking}
         fact={fact}
@@ -197,7 +250,7 @@ export function PaymentReturn({
   return (
     <ResultSheet
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       state="failed"
       verdict={c.paymentNotConfirmed}
       fact={fact}

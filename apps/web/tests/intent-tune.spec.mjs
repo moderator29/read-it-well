@@ -25,14 +25,18 @@
  * Plus the thing a locale file cannot enforce on itself: every string in all
  * four languages, actually translated rather than copied.
  *
- * WHAT THIS SANDBOX CANNOT PROVE. Egress to the Supabase host is blocked, so
- * every server read returns signed-out and no write can be attempted from here.
- * The runtime half therefore proves the SIGNED-OUT path - which is rule 4, and
- * is the one runtime path this environment can reach - and the write itself is
- * held by source and schema checks. Nothing below has watched a row change.
+ * THE RUNTIME HALF. Since 23 September a signed-out visitor never reaches
+ * `/search` (the sign-in wall, asserted below), which is rule 4 enforced one
+ * layer up, and the source checks still prove the card would not render the
+ * control without a session. Signed in as the QA member, a results page must
+ * carry the control; that half is reported as SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD, and as SKIP when the catalogue has no results to tune.
+ * The write itself is held by source and schema checks: nothing below has
+ * watched a row change.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, skip } from "./_gate.mjs";
 import { register } from "node:module";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -99,9 +103,13 @@ check(
   "the vocabulary is the same enum, validated before it leaves the process",
   /adjustInterestSchema = z\.object\(\{[\s\S]*?z\.enum\(PROPERTY_TYPES/.test(schemaSrc),
 );
+/* SPEED-6 moved the vocabulary out of schema.ts into property-types.ts (so a
+   client component can have the words without shipping zod); schema.ts
+   re-exports it. The rule is the same: the list is the generated enum. */
 check(
   "and PROPERTY_TYPES is still the generated one, not a hand-written list",
-  /Constants\.public\.Enums\.property_type/.test(schemaSrc),
+  /import \{ PROPERTY_TYPES \} from "\.\/property-types"/.test(schemaSrc) &&
+    /Constants\.public\.Enums\.property_type/.test(read("src/lib/interests/property-types.ts")),
 );
 
 /* --------------------------------------------------------------- the client */
@@ -190,9 +198,14 @@ check(
   "the control sits outside the card's own Link, so no button nests in an anchor",
   card.indexOf("<IntentTune") < card.indexOf("<Link"),
 );
+/* The control became the platform's round `nf-icon-btn` (the same material as
+   the save heart beside it), whose ::before is the 44px target. */
 check(
   "the 44pt target is the platform's pseudo-element rule, not a child span",
-  /className="nf-tap /.test(tune),
+  /className="nf-icon-btn /.test(tune) &&
+    /\.nf-icon-btn::before \{[\s\S]{0,200}width: max\(100%, 44px\);[\s\S]{0,80}height: max\(100%, 44px\);/.test(
+      read("src/app/css/controls.css"),
+    ),
 );
 
 /* ------------------------------------------------------------ restaurants */
@@ -320,8 +333,11 @@ check(
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
+console.log("\n[runtime] signed out, there is no results page to carry a control");
+await expectSignInWall(check, "/search");
+
+async function run(theme, state) {
+  const context = await qaContext(browser, state, {
     viewport: { width: 390, height: 844 },
     colorScheme: theme,
   });
@@ -340,29 +356,17 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme} 390px] /search`);
+    console.log(`\n[${theme} 390px] /search (signed in)`);
     await page.goto(`${BASE_URL}/search`, { waitUntil: "load" });
+    await page.waitForTimeout(1200);
 
     const grid = page.getByTestId("results-grid");
     const hasResults = (await grid.count()) === 1;
-    console.log(`          (${hasResults ? "results rendered" : "no results on this run"})`);
-
     const controls = await page.locator("[data-testid^='intent-tune-']").count();
-    /*
-     * Named rather than assumed. This sandbox cannot reach Supabase, so the
-     * session read returns signed-out and the correct number of controls is
-     * zero. If a run ever DOES have a session, the assertion flips rather than
-     * silently passing on the wrong branch.
-     */
-    const signedIn = (await page.locator("[data-testid='nav-account'], a[href='/sign-in']").count()) === 0;
-    if (signedIn) {
+    if (hasResults) {
       check("a signed-in results page carries the control", controls > 0);
     } else {
-      check(
-        "signed out, no card offers a control that could only fail",
-        controls === 0,
-        `${controls} control(s) rendered with no session`,
-      );
+      skip("no results on this run, so there is no card to carry the control");
     }
 
     check(
@@ -377,8 +381,12 @@ async function run(theme) {
   }
 }
 
-await run("dark");
-await run("light");
+console.log("\n[runtime] signed in as the QA member");
+const state = await signInAsQa(browser);
+if (state) {
+  await run("dark", state);
+  await run("light", state);
+}
 await browser.close();
 
 console.log(failures === 0 ? "\nall checks passed" : `\n${failures} check(s) failed`);

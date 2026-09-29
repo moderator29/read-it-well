@@ -54,6 +54,7 @@ export function AppRail({
   unreadNotifications = 0,
   isAgent = false,
   isAdmin = false,
+  isHost = false,
   signedIn = false,
   variant = "rail",
   onNavigate,
@@ -77,14 +78,15 @@ export function AppRail({
   unreadNotifications?: number;
   isAgent?: boolean;
   isAdmin?: boolean;
+  isHost?: boolean;
   signedIn?: boolean;
   variant?: "rail" | "drawer";
   onNavigate?: () => void;
   onClose?: () => void;
 }) {
   const sections = useMemo(
-    () => buildNav({ t, side, unreadNotifications, isAgent, isAdmin, signedIn }),
-    [t, side, unreadNotifications, isAgent, isAdmin, signedIn],
+    () => buildNav({ t, side, unreadNotifications, isAgent, isAdmin, isHost, signedIn }),
+    [t, side, unreadNotifications, isAgent, isAdmin, isHost, signedIn],
   );
   const drawer = variant === "drawer";
 

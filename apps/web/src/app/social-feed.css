@@ -624,7 +624,12 @@
     inline-size: 100%;
     max-inline-size: 32rem;
     min-block-size: 100dvh;
-    padding: 1.5rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+    /* The root viewport is `viewport-fit: cover`, so on a notched phone the
+       top of a full-page sheet sits under the status bar. Without the top
+       inset the heading and the Close control of the composer, the report
+       form and the review picker were drawn behind the clock. */
+    padding: calc(1.5rem + env(safe-area-inset-top, 0px)) 1.25rem
+      calc(2rem + env(safe-area-inset-bottom));
     /* The shared panel: the composer and the review picker are a sheet of
        the same lit glass as every container. */
     background: var(--nf-panel-fill);
@@ -1921,79 +1926,24 @@
   /* ------------------------------------------------------------------
    * The comments sheet.
    * ------------------------------------------------------------------ */
-  .nf-comments {
-    position: fixed;
-    inset: 0;
-    /*
-     * 90, 92 and 95 USED TO BE A LADDER INSIDE A LADDER.
-     *
-     * The comments sheet, the actions sheet and the create ring are all
-     * `position: fixed; inset: 0` with their own scrim and all three carry
-     * `aria-modal="true"`. They are PEERS, not a nesting: each one owns the
-     * screen while it is open, and two aria-modal dialogs open at once is a
-     * bug on its own terms rather than a stacking order to preserve. The three
-     * numbers implied a hierarchy that nothing in the component tree builds,
-     * and they ranked above the toast, which is the one thing here that should
-     * never be covered.
-     *
-     * So all three sit on the modal rung and DOM order resolves any accidental
-     * overlap, which is what DOM order is for.
-     */
-    z-index: var(--nf-z-modal);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    background: var(--nf-overlay-media);
-  }
-  @media (min-width: 640px) {
-    .nf-comments {
-      align-items: center;
-      padding: 2rem 1.25rem;
-    }
-  }
-
-  .nf-comments__panel {
-    display: flex;
-    flex-direction: column;
-    inline-size: 100%;
-    max-inline-size: 34rem;
-    block-size: 88dvh;
-    border-start-start-radius: var(--nf-container-radius);
-    border-start-end-radius: var(--nf-container-radius);
-    background: var(--nf-panel-fill);
-    border: 1px solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    box-shadow: var(--nf-panel-glow), var(--nf-elev-4);
-    overflow: hidden;
-  }
-  @media (min-width: 640px) {
-    .nf-comments__panel {
-      block-size: min(80dvh, 44rem);
-      border-radius: var(--nf-feed-radius);
-    }
-  }
-
-  /* The grab handle. Only on a phone, where the sheet actually rises. */
-  .nf-comments__panel::before {
-    content: "";
-    display: block;
-    inline-size: 38px;
-    block-size: 4px;
-    margin: 8px auto 0;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-border-default);
-  }
-  @media (min-width: 640px) {
-    .nf-comments__panel::before {
-      display: none;
-    }
-  }
-
+  /*
+   * The surface is the platform's `Sheet` (overlays.css): grip, drag and
+   * flick to close, Back, the focus trap, the scroll lock and the safe area.
+   * It used to be its own fixed backdrop and 88dvh panel with a painted grab
+   * bar that did not drag. What is left here is the inside: a header that
+   * stays at the top of the sheet's scrolling body, the list, and the
+   * composer, which rides in the sheet's footer so it stays where the thumb
+   * is while the list scrolls.
+   */
   .nf-comments__head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 12px;
+    padding-block: 2px 10px;
+    background: var(--nf-panel-fill);
     border-block-end: 1px solid var(--nf-border-subtle);
   }
   .nf-comments__title {
@@ -2011,9 +1961,7 @@
     background: var(--nf-surface-inset);
   }
   .nf-comments__scroll {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    padding: 12px 16px;
+    padding-block: 12px;
   }
   .nf-comments__empty {
     padding: 2rem 1rem;
@@ -2091,6 +2039,13 @@
     inset-inline-end: 0;
     top: 34px;
   }
+  /* Opened from the lower half of the sheet, the menu rises above its button:
+     dropped downward it ran under the pinned composer and out of the sheet's
+     scrolling body, which clips it. */
+  .nf-comment__menu--up {
+    top: auto;
+    bottom: 34px;
+  }
   .nf-comment__body {
     margin-block-start: 3px;
     font-size: var(--nf-text-body);
@@ -2143,10 +2098,10 @@
   }
 
   /* ------------------------------------------------------ the composer */
+  /* The sheet already pads its foot for the home indicator. */
   .nf-comments__composer {
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    padding-block-start: 10px;
     border-block-start: 1px solid var(--nf-border-subtle);
-    background: var(--nf-surface-raised);
   }
   .nf-comments__replying {
     display: flex;
@@ -2196,69 +2151,17 @@
   }
 
   /* ------------------------------------------------------------------
-   * The action sheet behind a card's `…`.
+   * The rows of the action sheet behind a card's `…`.
    *
-   * A bottom sheet with a grab handle rather than a popover, because each row
-   * carries a title AND the sentence that says what it does, and five of those
-   * do not fit in a popover on a 390px screen without becoming a list of
-   * verbs nobody can tell apart.
+   * The surface itself is the platform's `Sheet` (overlays.css), which owns
+   * the grip, the drag, the safe area and the scrolling body. Each row carries
+   * a title AND the sentence that says what it does, because five of those do
+   * not fit in a popover on a 390px screen.
    * ------------------------------------------------------------------ */
-  .nf-actions {
-    position: fixed;
-    inset: 0;
-    z-index: var(--nf-z-modal);
+  .nf-actions__list {
     display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    background: var(--nf-overlay-media);
-  }
-  @media (min-width: 640px) {
-    .nf-actions {
-      align-items: center;
-      padding: 2rem 1.25rem;
-    }
-  }
-  /*
-   * **The panel has to be positioned, and without this nothing in this sheet
-   * could be tapped.**
-   *
-   * The close scrim behind it is an `absolute inset-0` button, and a positioned
-   * element paints above a static one whatever the source order says. So the
-   * scrim covered every row: the sheet opened, showed the right rows, and a tap
-   * anywhere in it closed the sheet instead of choosing anything. Save, Share,
-   * Contact agent, Change what it says, Delete, Mute, Report and Block were all
-   * unreachable on every card in the layer, which is also why nobody noticed the
-   * sheet had no Repost row to begin with.
-   *
-   * It looks completely correct in a screenshot, and it is invisible to a spec
-   * that reads the rows rather than pressing one. Caught by a Playwright click
-   * reporting that the Close button intercepted the pointer.
-   */
-  .nf-actions__panel {
-    position: relative;
-    inline-size: 100%;
-    max-inline-size: 30rem;
-    padding: 8px 8px calc(1rem + env(safe-area-inset-bottom));
-    border-start-start-radius: var(--nf-container-radius);
-    border-start-end-radius: var(--nf-container-radius);
-    background: var(--nf-panel-fill);
-    border: 1px solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    box-shadow: var(--nf-panel-glow), var(--nf-elev-4);
-  }
-  @media (min-width: 640px) {
-    .nf-actions__panel {
-      border-radius: var(--nf-feed-radius);
-      padding-block-end: 1rem;
-    }
-  }
-  .nf-actions__grab {
-    display: block;
-    inline-size: 38px;
-    block-size: 4px;
-    margin: 4px auto 10px;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-border-default);
+    flex-direction: column;
+    margin-inline: -8px;
   }
   .nf-actions__row {
     display: flex;
@@ -3537,11 +3440,13 @@
     filter: drop-shadow(0 0 3px var(--nf-feed-indigo)) drop-shadow(0 0 6px var(--nf-feed-indigo));
   }
   /* The blue haze the image lays along the arc behind the three plates
-     (#012dd4 between the trails): the fan's own light. */
+     (#012dd4 between the trails): the fan's own light. Its left is the
+     image's -170 moved by `BLOOM_FAN_SHIFT_X` (-26) in physics.ts, so it
+     stays behind the plates the shift moved. */
   .nf-bloom__fan::before {
     content: "";
     position: absolute;
-    left: -170px;
+    left: -196px;
     top: -190px;
     inline-size: 240px;
     block-size: 260px;

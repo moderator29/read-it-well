@@ -7,7 +7,7 @@ import { normalisePhone } from "../phone";
  * definer functions' answers into typed shapes, the refusal the publish gate
  * raises, and the form's own validation. No I/O, so it is tested directly.
  *
- * Migration: supabase/migrations/20260924171000_scuml_item_17_beneficial_ownership_a_mandate_before_publish.sql
+ * Migration: supabase/migrations/20260929001007_scuml_17_beneficial_ownership_on_live_tables.sql
  */
 
 export const MANDATE_KINDS = ["letting", "sale", "management"] as const;
@@ -40,7 +40,7 @@ export const ID_DOCUMENT_KINDS = [
 ] as const;
 export type IdDocumentKind = (typeof ID_DOCUMENT_KINDS)[number];
 
-export const ACTING_FOR_KINDS = ["listing", "booking", "transaction", "rent_payment", "escrow"] as const;
+export const ACTING_FOR_KINDS = ["listing", "booking", "transaction", "rent_payment"] as const;
 export type ActingForKind = (typeof ACTING_FOR_KINDS)[number];
 
 /** The day listings already live must have a mandate by (Lagos). */
@@ -85,7 +85,7 @@ export const LISTING_KEPT_MESSAGE =
   "This listing cannot be deleted: it has been live, or the owner's mandate for it was approved, so we keep its record for five years after it closes. Take it down instead.";
 
 export const MANDATE_NEEDED_MESSAGE =
-  "This agent listing cannot go live yet: it needs an approved mandate naming the owner it is let for. Approve the mandate on the listings desk first (SCUML item 17).";
+  "This agent listing cannot go live yet: it needs an approved mandate naming the owner it is let for. Approve the mandate on the listings desk first.";
 
 /* ------------------------------------------------------------ the form */
 

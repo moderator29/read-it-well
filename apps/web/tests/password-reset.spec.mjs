@@ -5,8 +5,8 @@
  *
  * Three routes, and one property that matters more than any of them.
  *
- * 1. `/sign-in/email` offers a way out. "Forgot password?" used to point back
- *    at `/sign-in`, which is where somebody already was.
+ * 1. `/sign-in` (one screen since B-1) offers a way out. "Forgot password?"
+ *    used to point back at `/sign-in`, which is where somebody already was.
  * 2. `/forgot-password` asks for one thing and asks for it once. No password
  *    field may appear on it: a reset form that takes a password is a phishing
  *    layout, and it teaches people the wrong shape.
@@ -61,7 +61,9 @@ check(
 );
 check(
   "setting the new password goes through updateUser, not a token in the URL",
-  /updatePassword[\s\S]{0,2000}auth\.updateUser\(\{ password \}\)/.test(actions),
+  /* 4000, not 2000: the function's own comments grew past the old window
+     (2279 characters on 29 September) while the call stayed exactly this. */
+  /updatePassword[\s\S]{0,4000}auth\.updateUser\(\{ password \}\)/.test(actions),
 );
 
 /* --------------------------------------------------------------- the screens */
@@ -88,8 +90,8 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme} 390px] /sign-in/email`);
-    await page.goto(`${BASE_URL}/sign-in/email`, { waitUntil: "load" });
+    console.log(`\n[${theme} 390px] /sign-in`);
+    await page.goto(`${BASE_URL}/sign-in`, { waitUntil: "load" });
     check(
       "there is a way out of a forgotten password",
       (await page.locator('a[href="/forgot-password"]').count()) === 1,

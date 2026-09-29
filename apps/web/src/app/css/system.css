@@ -368,7 +368,7 @@
      * the container onto `--nf-radius-control`.
      */
     border-radius: var(--nf-radius-control);
-    /* A CONTAINER: `app/loading.tsx` draws it as `.nf-panel` (platform
+    /* A CONTAINER: `app/(landing)/loading.tsx` draws it as `.nf-panel` (platform
        sweep, 23 September), where it carried a brand edge, a glass fill and
        `--nf-glow-edge` of its own. The corner stays the control radius
        because this stands in for the landing search bar, a control; the

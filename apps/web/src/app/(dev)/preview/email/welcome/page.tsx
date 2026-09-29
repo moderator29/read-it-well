@@ -41,7 +41,7 @@ export default async function WelcomeEmailPreview({
             key={r}
             href={`/preview/email/welcome?role=${r}`}
             aria-current={r === role ? "page" : undefined}
-            className={`nf-btn nf-btn--sm ${r === role ? "nf-btn--primary" : "nf-btn--secondary"}`}
+            className={`nf-btn nf-btn--sm ${r === role ? "nf-btn--primary" : "nf-btn--glass"}`}
             data-testid={`welcome-role-${r}`}
           >
             {r}

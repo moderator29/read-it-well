@@ -3,7 +3,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { Section, Stack, TYPE } from "@/components/app/Screen";
 import { InspectionSheet } from "@/components/app/inspections/InspectionSheet";
 import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
-import { readReportsFor } from "@/lib/inspections/report-queries";
+import { readRentGateFor, readReportsFor } from "@/lib/inspections/report-queries";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import type { InspectionList } from "@/lib/inspections/queries";
@@ -62,7 +62,7 @@ export async function InspectionsBoard({
   const all = [...groups.open, ...groups.closed];
   if (!readFailed && all.length === 0) return null;
 
-  const [facts, reports, quotes, truthAnswered, tenancyDue, shares] = await Promise.all([
+  const [facts, reports, quotes, truthAnswered, tenancyDue, shares, rentGate] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
       locale,
@@ -77,6 +77,8 @@ export async function InspectionsBoard({
     /* V-59: the tenancy review, when one is due. */
     readTenancyReviewsDue(all.filter((row) => row.side === "requester").map((row) => row.id)),
     readMyLiveSafetyShares(),
+    /* Track A: the photos a rental report needs, and the agreement it led to. */
+    readRentGateFor(all.map((row) => row.id)),
   ]);
   /* V-62: every inspection of the renter's with a share still live, whatever
      its state now, so "I'm done" and "Stop sharing" stay while the contact's
@@ -98,12 +100,15 @@ export async function InspectionsBoard({
   const sheet = (row: (typeof all)[number]) => (
     <div key={row.id} id={`ix-${row.id}`} className="scroll-mt-16">
       <InspectionSheet
+        success={t.success}
         gateCopy={t.platform.gate}
         inspection={row}
         side={row.side}
         facts={facts.get(row.listingId) ?? null}
         report={reports.get(row.id) ?? null}
         reportLive={reportLive}
+        needPhotos={rentGate.needPhotos}
+        agreement={rentGate.agreements.get(row.id) ?? null}
         quoteLine={quotes.get(row.id) ?? null}
         truth={truthFor(row)}
         tenancyReview={tenancyFor(row)}

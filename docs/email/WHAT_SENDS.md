@@ -41,27 +41,32 @@ will be unproved until a person reads the email that arrives.**
 
 ## The count
 
+**Recounted 29 September 2026** from the files `lib/email/reachability.test.ts`
+sweeps (`messages.ts`, `agreement-messages.ts`,
+`payment-instrument-messages.ts`, `welcome-message.ts`,
+`lifecycle-messages.ts`, `lib/account-deletion/emails.ts`). The tables below
+were written on 23 September and several rows describe the wallet and escrow
+emails Track A retired; the count here is the current one.
+
 | | |
 |---|---|
-| Message builders in `lib/email/` and `lib/account-deletion/` | 38 |
-| Reachable from a live event | 35 |
-| REFUSED, with a written reason | 3 |
+| Message builders in those files | 44 |
+| Reachable from a live event or the outbox registry | 44 |
+| REFUSED, with a written reason | 0 |
 | Built and unreachable with no decision recorded | **0** |
 
-Twenty seven return `EmailMessage`, eight return `EscrowEmail`, one returns
-`PaymentInstrumentEmail` and two return `DeletionEmail`. The count is named by
-type because the first version of the sweep below matched `EmailMessage` alone
-and was therefore blind to the eight escrow builders, a third of the
-catalogue, while passing. It now asserts that every exported function in those
-five files returns one of the four types or the single `string` helper, so a
-builder introduced with a fifth type fails rather than hides.
+Thirteen of the 44 are the lifecycle emails in section 1b, reachable through
+the outbox registry and **not yet sent by anything**, because their triggers
+are held in `supabase/migrations/pending/` until the code is deployed.
+`staff-messages.ts` and `safety-messages.ts` sit outside the sweep and are
+sent by the outbox (`staff.access_granted`, `safety.scam_recall`).
 
 Held at zero by `apps/web/src/lib/email/reachability.test.ts`, which walks
 every non-test module outside the email layer, keeps only those that can
 actually send (`sendMessage`, `sendEmail`, `announce`, or the outbox registry),
 and asserts the set of unreachable builders is EXACTLY the set with a written
-refusal. Both directions fail, so a builder that loses its last caller goes
-red and so does a refusal somebody quietly wires.
+refusal. It also asserts every outbox template key is written by a migration,
+applied or pending.
 
 ---
 
@@ -106,6 +111,54 @@ email.
 explains what the account somebody just opened actually is, and it carries the
 link to those switches. Muting it behind a switch the reader has not been shown
 yet would be silencing the letter that tells them the switches exist.
+
+### 1b. The lifecycle emails (29 September 2026): built, triggers PENDING
+
+Thirteen events the app already announced in the bell and never by email.
+Builders in `lib/email/lifecycle-messages.ts`, registry entries in
+`lib/notify/templates.ts`, triggers in
+`supabase/migrations/pending/email_lifecycle_triggers.sql`.
+
+**NOT APPLIED, ON PURPOSE.** The drain settles a row whose template the
+running code does not know as DROPPED, for good. The triggers go live only
+after the code that builds these templates is deployed: apply the pending
+file, rename it to its version, move it into `supabase/migrations/`, record
+it. Each trigger was probed on 29 September inside a transaction that was
+rolled back: every template below was enqueued with the payload keys its
+builder reads, and the controls (a note edited without a state change, a
+member's own support message, a passed check, a demo listing) enqueued
+nothing.
+
+| Template key | Builder | What writes the row | Dedupe key | `/settings` mute | State |
+|---|---|---|---|---|---|
+| `inspection.proposed` | `inspectionProposed` | `inspection_requests` state to PROPOSED, to the requester | `inspection:<id>:PROPOSED:<slot epoch>` | **Bookings** | PENDING |
+| `inspection.declined` | `inspectionDeclined` | state to DECLINED, to the requester | `inspection:<id>:DECLINED` | **Bookings** | PENDING |
+| `inspection.withdrawn` | `inspectionWithdrawn` | state to WITHDRAWN, to the lister | `inspection:<id>:WITHDRAWN` | **Bookings** | PENDING |
+| `inspection.completed` | `inspectionCompleted` | state to COMPLETED, to both | `inspection:<id>:COMPLETED:<party>` | **Bookings** | PENDING |
+| `support.replied` | `supportReplied` | a staff message on a ticket with an account | `support:reply:<message id>` | none | PENDING |
+| `agreement.waiting` | `agreementWaiting` | an agreement inserted, to both (the rent path; the stay path already sent it, with the same key) | `agreement.waiting:<id>:<terms version>:<party>` | none | PENDING for rent |
+| `agreement.submitted` | `agreementSubmitted` | status to `in_review` (both confirmed), to both | `agreement.submitted:<id>:<version>:<party>` | none | PENDING |
+| `agreement.cancelled` | `agreementCancelled` | status to `cancelled`, to both | `agreement.cancelled:<id>:<version>:<party>` | none | PENDING |
+| `guarantee.claim_opened` | `guaranteeClaimOpened` | a claim filed, to the claimant | `guarantee:claim:<id>:opened` | none | PENDING |
+| `verification.rung_failed` | `verificationRungFailed` | a check marked failed, to the agent | `verification:<agent>:<kind>:failed:<decided epoch>` | none | PENDING |
+| `listing.submitted` | `listingSubmitted` | a non-demo listing to SUBMITTED, to the lister | `listing:<id>:SUBMITTED:<epoch>` | none | PENDING |
+| `reservation.confirmed` | `reservationConfirmed` | a table to CONFIRMED, to the guest | `reservation:<id>:CONFIRMED` | **Bookings** | PENDING |
+| `reservation.cancelled` | `reservationCancelled` | a table to CANCELLED, to the guest | `reservation:<id>:CANCELLED` | **Bookings** | PENDING |
+| `refund.requested` | `refundRequested` | a refund request filed, to the guest | `refund:<id>:requested` | **Bookings** | PENDING |
+
+Viewings, tables and refunds answer to the Bookings switch because the
+Bookings card promises exactly that. An agreement, a claim, a support answer,
+a verification decision and a listing receipt are obligations to a party and
+answer to nothing, like the rest of section 1.
+
+**Asked for and not built, with the reason.** Payment received and payment
+receipts belong to the crypto payment work, which will register
+`payment.received` and `payment.receipt` in the same registry from its own
+trigger. A booking reminder is a schedule, not an event, and needs a cron job.
+"Email changed" does not exist: the address never changes (the hook refuses
+`email_change`), and the recovery flow has its own two emails. "Verification
+submitted" has no single event to hang on (documents arrive one by one); the
+decisions are sent.
 
 ---
 
@@ -179,6 +232,10 @@ of these messages reaches no one (THE_AUDIT OPS-06).
 ---
 
 ## 3. REFUSED: built, complete, and deliberately not wired
+
+**Corrected 29 September 2026.** `REFUSED` in `lib/email/reachability.test.ts`
+is empty today: the three builders below have since been wired or removed with
+the custody they described. The entries are kept as the record of why.
 
 Three. Each one is held unwired by `lib/email/reachability.test.ts`, which goes
 red if somebody wires it, and each carries the same reason in a comment beside
@@ -312,6 +369,6 @@ The public address on every message is `hello@vallospaces.com`. The private
 gmail appears on no surface and in no email, and
 `lib/notify/outbox-delivery.test.ts` asserts that for every template.
 
-## The explicit-paint rule (Track H, 25 September 2026)
+## The explicit-paint rule (Track H, 25 September; redesigned 29 September 2026)
 
-Every message is passed through `paintExplicit` after it is built: every body, table and cell carries its colour as both a `bgcolor` attribute and an inline `background-color`, and every text element carries an inline colour. Gmail, Outlook and Apple Mail each drop or rewrite something different (classes, `<style>`, inheritance), so nothing may depend on them. `lib/email/email-dark-paint.test.ts` holds every catalogue message and auth template to it, with AA contrast. The auth templates in `supabase/templates` are built by the same step and must be uploaded to Supabase Auth after any change.
+Every message is passed through `paintExplicit` after it is built: every body, table and cell carries its colour as both a `bgcolor` attribute and an inline `background-color`, every text element carries an inline colour, and a cell that inherits its colour inherits its container's ground class, so the dark scheme repaints the two together. The inline layer is the light design (a navy brand band over a white card, `docs/email/AUTH_EMAILS.md` section 3); `prefers-color-scheme: dark` repaints it in the dark palette where a client honours the query, and `[data-ogsb]` rules follow Outlook.com's own dark mode. `lib/email/email-dark-paint.test.ts` holds every catalogue message and auth template to AA as written, inverted (Gmail's apps) and in the dark scheme. The auth templates in `supabase/templates` are built by the same step and must be pasted into Supabase Auth after any change (they are the fallback; the Send Email Hook renders the live ones).

@@ -8,6 +8,8 @@ import { SegmentedProgress } from "@/components/ui/Progress";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
 import { DocumentUploader } from "./DocumentUploader";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import {
   BUSINESS_SECTIONS,
   CONSENTS,
@@ -52,7 +54,10 @@ import {
 
 export function KycFlow({
   submit,
+  success,
 }: {
+  /** The page's `t.success`, for the "Documents sent" sheet. Absent, no sheet. */
+  success?: SuccessWords;
   /**
    * Sends the submission. Resolves with `{ ok: true }` only when it is
    * genuinely stored and queued for review.
@@ -81,7 +86,15 @@ export function KycFlow({
   const step = steps[Math.min(at, steps.length - 1)]!;
   const submission: KycSubmission = { documents, business: business === true, businessDetails, consents };
 
-  if (sent) return <Submitted />;
+  /* `sent` is set only by the action's own ok, so the sheet opens once, at
+     filing, over the "in review" screen it leaves behind. */
+  if (sent)
+    return (
+      <>
+        <Submitted />
+        {success ? <KycSentSheet copy={success} /> : null}
+      </>
+    );
 
   const back = () => {
     setFailure(null);
@@ -473,3 +486,19 @@ const SENT_BODY =
 const SENT_MEANWHILE =
   "You can keep drafting listings while you wait. They publish the moment you are approved. If anything is wrong with a document we tell you exactly what and you replace just that one.";
 const SENT_ACTION = "Back to your profile";
+
+/** "Documents sent", once, over the in-review screen. */
+function KycSentSheet({ copy }: { copy: SuccessWords }) {
+  const [open, setOpen] = useState(true);
+  const words = successCopy(copy, "kycSubmitted");
+  return (
+    <SuccessSheet
+      open={open}
+      onOpenChange={setOpen}
+      variant={words.variant}
+      title={words.title}
+      body={words.body}
+      primary={{ label: copy.continue }}
+    />
+  );
+}

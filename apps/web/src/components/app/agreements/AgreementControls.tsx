@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { amendAgreement, cancelAgreement, confirmAgreement, createClaimEvidenceUpload, fileGuaranteeClaim } from "@/lib/agreements/actions";
 import { createClient } from "@/lib/supabase/client";
+import { withDone, type RecordDoneFlag } from "@/lib/ui/success-moments";
 
 /**
  * The controls on an agreement page (Track A): confirm the exact version,
@@ -15,7 +16,13 @@ function useAction() {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const run = (work: () => Promise<{ ok: boolean; error?: string }>, after?: () => void) =>
+  /*
+   * `done` names the success moment this action ends in. The page re-renders
+   * with `?done=<flag>` (which also refreshes it), checks the agreement, and
+   * shows the sheet there: this control is usually gone from the refreshed
+   * page, so a sheet held here would vanish with it.
+   */
+  const run = (work: () => Promise<{ ok: boolean; error?: string }>, after?: () => void, done?: RecordDoneFlag) =>
     start(async () => {
       setError(null);
       const result = await work();
@@ -24,7 +31,8 @@ function useAction() {
         return;
       }
       after?.();
-      router.refresh();
+      if (done) router.replace(withDone(window.location.pathname, done), { scroll: false });
+      else router.refresh();
     });
   return { pending, error, run };
 }
@@ -43,7 +51,7 @@ export function ConfirmTerms({ agreementId, version, disabled }: { agreementId: 
         type="button"
         className="nf-btn nf-btn--primary nf-btn--md nf-btn--full"
         disabled={!read || pending || disabled}
-        onClick={() => run(() => confirmAgreement({ agreementId, version }))}
+        onClick={() => run(() => confirmAgreement({ agreementId, version }), undefined, "agreement-confirmed")}
       >
         Confirm these terms
       </button>
@@ -85,17 +93,17 @@ export function AmendTerms({
       }}
     >
       <p className="nf-caption">Changing the terms means both of you confirm again, and Vallo reviews the new version.</p>
-      <label className="nf-field">
-        <span className="nf-field__label">Move-in date</span>
-        <input className="nf-input" type="date" min={minDate} value={a} onChange={(e) => setA(e.target.value)} required />
+      <label className="block">
+        <span className="nf-label">Move-in date</span>
+        <input className="nf-field mt-2xs w-full" type="date" min={minDate} value={a} onChange={(e) => setA(e.target.value)} required />
       </label>
-      <label className="nf-field">
-        <span className="nf-field__label">Keys handed over on</span>
-        <input className="nf-input" type="date" min={minDate} value={b} onChange={(e) => setB(e.target.value)} />
+      <label className="block">
+        <span className="nf-label">Keys handed over on</span>
+        <input className="nf-field mt-2xs w-full" type="date" min={minDate} value={b} onChange={(e) => setB(e.target.value)} />
       </label>
-      <label className="nf-field">
-        <span className="nf-field__label">Notes</span>
-        <textarea className="nf-input min-h-[4.5rem]" maxLength={2000} value={n} onChange={(e) => setN(e.target.value)} />
+      <label className="block">
+        <span className="nf-label">Notes</span>
+        <textarea className="nf-field mt-2xs min-h-[4.5rem] w-full" maxLength={2000} value={n} onChange={(e) => setN(e.target.value)} />
       </label>
       {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
       <div className="flex gap-inline">
@@ -121,14 +129,19 @@ export function CancelAgreement({ agreementId }: { agreementId: string }) {
           Cancel this agreement
         </button>
       ) : (
-        <button
-          type="button"
-          className="nf-btn nf-btn--secondary nf-btn--md"
-          disabled={pending}
-          onClick={() => run(() => cancelAgreement({ agreementId }))}
-        >
-          Yes, cancel it
-        </button>
+        <div className="flex flex-wrap gap-inline">
+          <button
+            type="button"
+            className="nf-btn nf-btn--glass nf-btn--md"
+            disabled={pending}
+            onClick={() => run(() => cancelAgreement({ agreementId }))}
+          >
+            Yes, cancel it
+          </button>
+          <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" disabled={pending} onClick={() => setSure(false)}>
+            Keep it
+          </button>
+        </div>
       )}
     </div>
   );
@@ -152,18 +165,29 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
   const [amount, setAmount] = useState("");
   const [paths, setPaths] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
+  /* A photo that did not upload is said so. Swallowing it left the count at
+     "0 added" with no reason, and the claim went without the evidence. */
   async function addFile(file: File) {
     setUploading(true);
+    setUploadError(null);
     try {
       const prepared = await createClaimEvidenceUpload({ agreementId, fileName: file.name });
-      if (!prepared.ok) return;
+      if (!prepared.ok) {
+        setUploadError(prepared.error);
+        return;
+      }
       const supabase = createClient();
       const { error: upErr } = await supabase.storage
         .from("guarantee-evidence")
-        .uploadToSignedUrl(prepared.data.path, prepared.data.token, file);
-      if (!upErr) setPaths((now) => [...now, prepared.data.path]);
+        .uploadToSignedUrl(prepared.data.path, prepared.data.token, file, { contentType: file.type });
+      if (upErr) {
+        setUploadError("That photo did not upload. Use a JPG, PNG, WEBP, HEIC or PDF under 10 MB, and try again.");
+        return;
+      }
+      setPaths((now) => [...now, prepared.data.path]);
     } finally {
       setUploading(false);
     }
@@ -183,11 +207,15 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
       data-testid="claim-form"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => fileGuaranteeClaim({ agreementId, items, description, evidencePaths: paths, amountNaira: amount }), () => setDone(true));
+        run(
+          () => fileGuaranteeClaim({ agreementId, items, description, evidencePaths: paths, amountNaira: amount }),
+          () => setDone(true),
+          "claim-filed",
+        );
       }}
     >
       <fieldset className="grid gap-2xs">
-        <legend className="nf-field__label">Which inspection items is this about?</legend>
+        <legend className="nf-label">Which inspection items is this about?</legend>
         <div className="flex flex-wrap gap-2xs">
           {ITEMS.map((item) => {
             const on = items.includes(item.key);
@@ -206,19 +234,20 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
           })}
         </div>
       </fieldset>
-      <label className="nf-field">
-        <span className="nf-field__label">What happened</span>
+      <label className="block">
+        <span className="nf-label">What happened</span>
         <textarea
-          className="nf-input min-h-[6rem]"
+          className="nf-field mt-2xs min-h-[6rem] w-full"
           value={description}
           maxLength={4000}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What is different from the inspection report, and when you found it"
         />
       </label>
-      <label className="nf-field">
-        <span className="nf-field__label">New photos (optional)</span>
+      <label className="block">
+        <span className="nf-label">New photos (optional)</span>
         <input
+          className="mt-2xs block w-full"
           type="file"
           accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
           onChange={(e) => {
@@ -228,10 +257,15 @@ export function ClaimForm({ agreementId, capNaira }: { agreementId: string; capN
           }}
         />
         <span className="nf-caption">{uploading ? "Adding photo" : `${paths.length} added`}</span>
+        {uploadError ? (
+          <span role="alert" className="nf-caption text-[var(--nf-status-error)]">
+            {uploadError}
+          </span>
+        ) : null}
       </label>
-      <label className="nf-field">
-        <span className="nf-field__label">Amount you are claiming (₦, at most {capNaira})</span>
-        <input className="nf-input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+      <label className="block">
+        <span className="nf-label">Amount you are claiming (₦, at most {capNaira})</span>
+        <input className="nf-field mt-2xs w-full" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
       </label>
       {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
       <button type="submit" className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" disabled={pending || uploading}>

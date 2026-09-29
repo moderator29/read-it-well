@@ -31,6 +31,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { SUPABASE_URL } from "../supabase/env";
 import {
   avatarPublicUrl,
@@ -217,12 +218,13 @@ export async function setAvatar(input: unknown): Promise<ActionResult<{ avatarUr
  * separate action for the case where that is what somebody wants.
  */
 export async function signOut(deviceRef?: string): Promise<ActionResult<null>> {
-  return endSessions("local", deviceRef);
+  /* B-2: signing out is never held by the finish-setup step. */
+  return setupExempt(() => endSessions("local", deviceRef));
 }
 
 /** Every device on the account, this one included. */
 export async function signOutEverywhere(): Promise<ActionResult<null>> {
-  return endSessions("global");
+  return setupExempt(() => endSessions("global"));
 }
 
 /*

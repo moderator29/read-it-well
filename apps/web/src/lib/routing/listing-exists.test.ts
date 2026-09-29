@@ -51,8 +51,14 @@ describe("OPS-17: is this listing page for a listing that is not there?", () => 
   it("the proxy asks it on documents, after the sign-in gate, keeping refreshed cookies", async () => {
     const { readFileSync } = await import("node:fs");
     const proxy = readFileSync("src/proxy.ts", "utf8");
-    const call = proxy.indexOf("await detailIsMissing(path");
+    const call = proxy.indexOf("await (earlyDetailCheck ?? detailIsMissing(path");
     expect(call).toBeGreaterThan(proxy.indexOf('target.searchParams.set("notice", "sign-in-required")'));
+    /* SPEED-4: the read may START early, beside the rate-limit read, but only
+       inside the stranger's open-catalogue document branch, where the gate
+       lets the page through anyway; its answer is still applied here. */
+    const early = proxy.indexOf("earlyDetailCheck = detailIsMissing(path");
+    expect(early).toBeGreaterThan(-1);
+    expect(proxy.slice(early - 300, early)).toContain("publicCatalogue && isPublicCataloguePath(path) && isDocumentRequest(request)");
     expect(proxy.slice(call - 400, call)).toContain('request.method === "GET" && isDocumentRequest(request)');
     expect(proxy.slice(call, call + 500)).toContain("rewritten.cookies.set(cookie)");
   });

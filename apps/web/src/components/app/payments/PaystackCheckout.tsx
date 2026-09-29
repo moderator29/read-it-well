@@ -4,6 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { clearInflight, noteInflight } from "@/lib/offline/inflight";
+import { releaseCardAttempt } from "@/lib/payments/attempt-actions";
+
+/**
+ * Tell our server the payer closed the window. The server asks Paystack
+ * before closing anything (lib/payments/attempt-actions.ts), so this is a
+ * hint, never a verdict. Fire and forget: nothing on this page waits on it,
+ * and if it fails the hourly sweep closes the attempt instead.
+ */
+function releaseAttempt(reference: string): void {
+  void releaseCardAttempt(reference).catch(() => undefined);
+}
 
 /**
  * THE CHECKOUT THAT DOES NOT LEAVE.
@@ -347,8 +358,11 @@ export function PaystackCheckout({
             if (cancelled || finished.current) return;
             clearTimers();
             finished.current = true;
-            /* Closed without paying: Paystack says so, and there is nothing to resolve. */
+            /* Closed without paying. The server confirms with Paystack and
+               closes the attempt, so a retry opens a fresh checkout and the
+               agreement is no longer held as "payment in flight". */
             clearInflight(reference);
+            releaseAttempt(reference);
             setPhase({ kind: "idle" });
             handlers.current.onCancelled();
           },
@@ -361,6 +375,10 @@ export function PaystackCheckout({
             if (!loaded.current) {
               finished.current = true;
               clearInflight(reference);
+              /* The window never started, so this checkout may be dead (an
+                 expired access code). Closing it on Paystack's word means
+                 the next tap opens a new one instead of reusing it. */
+              releaseAttempt(reference);
               const said = (payload?.message ?? "").trim();
               setPhase({ kind: "idle" });
               handlers.current.onFailed(

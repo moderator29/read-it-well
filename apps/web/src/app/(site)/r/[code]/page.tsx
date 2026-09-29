@@ -74,7 +74,7 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
   return frame(
     <section className="nf-panel nf-panel--card block p-md" data-testid="receipt-genuine">
       <p className="flex items-center gap-xs font-semibold text-[var(--nf-state-success)]">
-        <UiIcon name="verified" size={18} />
+        <UiIcon name="verified" size={20} />
         <span>{copy.genuine}</span>
       </p>
       <p className="nf-h3 nf-numeric mt-sm">

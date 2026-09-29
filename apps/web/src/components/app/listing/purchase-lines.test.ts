@@ -181,4 +181,9 @@ describe("purchaseLines", () => {
     expect(icons.filter((icon) => twinned.has(icon))).toEqual([]);
     expect(new Set(icons).size).toBe(icons.length);
   });
+
+  it("gives each row its own line glyph, the one the listing page draws", () => {
+    const glyphs = purchaseLines(listing({}), copy).map((row) => row.glyph);
+    expect(glyphs).toEqual(["price-tag", "briefcase", "scale", "certificate", "stamp", "survey"]);
+  });
 });

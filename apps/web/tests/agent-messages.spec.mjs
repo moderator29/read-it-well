@@ -10,13 +10,18 @@
  * real count, and zero renders nothing. This spec fails if a literal ever comes
  * back.
  *
- * This sandbox has no route to the Supabase host, so nobody is an approved
- * agent here and the inbox itself renders its signed-out pitch. What a browser
- * can prove is that the route is no longer a placeholder, that the navigation
- * carries no invented count, and that both themes render. Checked at 390px.
+ * Since 23 September a signed-out visitor never reaches /agent/messages: it
+ * answers the sign-in wall (`src/proxy.ts`), which is asserted first. The
+ * inbox itself is then read in the preview harness (`/preview/f5/agent-messages`),
+ * which renders the real AgentShell and AgentInbox with fixture threads and
+ * passes the shell NO unread count, so a badge carrying a number there can
+ * only be a literal. Signed in as the QA member, the real route and its
+ * `?filter=all` address are read too (SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD). Checked at 390px in both themes.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -33,11 +38,13 @@ function check(name, condition) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
+/**
+ * One theme over a list of addresses. `state` is the QA session or null; the
+ * first path is the inbox, the rest are its filter addresses.
+ */
+async function run(theme, { state = null, paths }) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((t) => {
     try {
       window.localStorage.setItem("nf_theme", t);
@@ -58,9 +65,14 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme}] /agent/messages`);
-    await page.goto(`${BASE_URL}/agent/messages`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    const [inbox, ...filters] = paths;
+    console.log(`\n[${theme}] ${inbox}`);
+    if (!state) {
+      if (!(await openPreview(page, inbox, check))) return;
+    } else {
+      await page.goto(`${BASE_URL}${inbox}`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+    }
 
     const appliedTheme = await page.evaluate(
       () => document.documentElement.dataset.theme ?? "dark",
@@ -82,12 +94,19 @@ async function run(theme) {
     );
 
     /* THE REGRESSION GUARD. Any badge on the messages destination must come
-       from a real count. In this signed-out sandbox the count is zero, so no
-       badge element may carry a number at all. */
+       from a real count. The harness passes the shell no count, and the QA
+       member is not an agent, so no badge element may carry a number. */
+    /* Scoped to the navigation (rail, bar and drawer), which is where the
+       literal lived. A thread row in the inbox carries its own fixture unread
+       count, which is data, not the navigation's claim. */
     const badgeTexts = await page
-      .locator(".nf-badge")
+      .locator("nav .nf-badge, header .nf-badge, aside .nf-badge")
       .allInnerTexts()
       .catch(() => []);
+    check(
+      "the navigation is in the page, so the badge check reads something",
+      (await page.locator('nav a[href="/agent/messages"], aside a[href="/agent/messages"]').count()) > 0,
+    );
     const numericBadges = badgeTexts.map((b) => b.trim()).filter((b) => /^\d+$/.test(b));
     check(
       `no invented unread count in the navigation (saw ${JSON.stringify(numericBadges)})`,
@@ -98,21 +117,34 @@ async function run(theme) {
     /* Whatever state it lands in there must be a way onward. */
     check("the surface offers a way onward", (await page.locator("a[href]").count()) > 0);
 
-    console.log(`[${theme}] /agent/messages?filter=all`);
-    await page.goto(`${BASE_URL}/agent/messages?filter=all`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
-    check(
-      "the filter is addressable and does not error",
-      serverErrors.length === 0 && (await page.locator("body").innerText()).trim().length > 0,
-    );
+    for (const path of filters) {
+      console.log(`[${theme}] ${path}`);
+      await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+      check(
+        "the filter is addressable and does not error",
+        serverErrors.length === 0 && (await page.locator("body").innerText()).trim().length > 0,
+      );
+    }
   } finally {
     await context.close();
   }
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  await expectSignInWall(check, "/agent/messages");
+  await expectSignInWall(check, "/agent/messages?filter=all");
+
+  await run("dark", { paths: ["/preview/f5/agent-messages"] });
+  await run("light", { paths: ["/preview/f5/agent-messages"] });
+
+  console.log("\nsigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    await run("dark", { state, paths: ["/agent/messages", "/agent/messages?filter=all"] });
+    await run("light", { state, paths: ["/agent/messages", "/agent/messages?filter=all"] });
+  }
 } finally {
   await browser.close();
 }

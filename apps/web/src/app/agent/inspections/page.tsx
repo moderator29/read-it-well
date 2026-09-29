@@ -9,7 +9,7 @@ import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
 import { resolveSession } from "@/lib/actions/session";
 import { readListingFacts } from "@/components/app/plans/inspection-facts";
-import { readReportsFor } from "@/lib/inspections/report-queries";
+import { readRentGateFor, readReportsFor } from "@/lib/inspections/report-queries";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { ButtonLink } from "@/components/ui/Button";
 import { isOpen } from "@/lib/inspections/types";
@@ -72,12 +72,13 @@ export default async function AgentInspectionsPage() {
   const userId = session.state === "signed-in" ? session.user.id : null;
   const open = list.inspections.filter((one) => isOpen(one.state));
   const settled = list.inspections.filter((one) => !isOpen(one.state));
-  const [facts, reports] = await Promise.all([
+  const [facts, reports, rentGate] = await Promise.all([
     readListingFacts(
       list.inspections.map((one) => one.listingId),
       locale,
     ),
     readReportsFor(list.inspections.map((one) => one.id)),
+    readRentGateFor(list.inspections.map((one) => one.id)),
   ]);
   const reportLive = reportStorageLive();
 
@@ -173,6 +174,7 @@ export default async function AgentInspectionsPage() {
                 <div className="nf-ix-list">
                   {open.map((one) => (
                     <InspectionSheet
+                      success={t.success}
                       gateCopy={t.platform.gate}
                       key={one.id}
                       inspection={one}
@@ -180,6 +182,8 @@ export default async function AgentInspectionsPage() {
                       facts={facts.get(one.listingId) ?? null}
                       report={reports.get(one.id) ?? null}
                       reportLive={reportLive}
+                      needPhotos={rentGate.needPhotos}
+                      agreement={rentGate.agreements.get(one.id) ?? null}
                       locale={locale}
                       open={one.id === expanded}
                     />
@@ -193,6 +197,7 @@ export default async function AgentInspectionsPage() {
                 <div className="nf-ix-list">
                   {settled.map((one) => (
                     <InspectionSheet
+                      success={t.success}
                       gateCopy={t.platform.gate}
                       key={one.id}
                       inspection={one}
@@ -200,6 +205,8 @@ export default async function AgentInspectionsPage() {
                       facts={facts.get(one.listingId) ?? null}
                       report={reports.get(one.id) ?? null}
                       reportLive={reportLive}
+                      needPhotos={rentGate.needPhotos}
+                      agreement={rentGate.agreements.get(one.id) ?? null}
                       locale={locale}
                       open={one.id === expanded}
                     />

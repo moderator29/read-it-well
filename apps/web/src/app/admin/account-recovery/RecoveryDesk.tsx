@@ -86,7 +86,7 @@ function RowActions({ row, isSuperAdmin }: { row: RecoveryRow; isSuperAdmin: boo
     <div className="mt-xs flex flex-wrap items-end gap-sm">
       <form action={resend}>
         <input type="hidden" name="requestId" value={row.id} />
-        <button type="submit" className="nf-btn nf-btn--secondary nf-btn--sm" disabled={resending}>
+        <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm" disabled={resending}>
           Send the notice again
         </button>
         <Result state={resent ? (resent.ok ? { ok: true } : { ok: false, error: resent.error }) : null} />
@@ -103,7 +103,7 @@ function RowActions({ row, isSuperAdmin }: { row: RecoveryRow; isSuperAdmin: boo
       <form action={cancel} className="flex items-end gap-xs">
         <input type="hidden" name="requestId" value={row.id} />
         <input name="reason" placeholder="Why cancel" required className="nf-input" />
-        <button type="submit" className="nf-btn nf-btn--secondary nf-btn--sm" disabled={cancelling}>
+        <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm" disabled={cancelling}>
           Cancel
         </button>
         <Result state={cancelled ? (cancelled.ok ? { ok: true } : { ok: false, error: cancelled.error }) : null} />

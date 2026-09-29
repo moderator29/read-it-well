@@ -1,5 +1,6 @@
 import * as messages from "./messages";
 import * as agreementMessages from "./agreement-messages";
+import * as lifecycle from "./lifecycle-messages";
 import type { EmailMessage } from "./messages";
 
 /**
@@ -333,6 +334,111 @@ export const EVERY_MESSAGE: NamedMessage[] = [
       refundMinor: 0,
       retainedMinor: 30_000_000,
       reasonLine: "You cancelled on the day of check in, so nothing comes back.",
+    }),
+  },
+  /* The lifecycle emails (29 September), so the shell and contrast checks
+     cover them like everything else. */
+  {
+    name: "inspectionProposed",
+    message: lifecycle.inspectionProposed({ name: "Ada", listingTitle: LISTING, date: "2026-10-03", time: "15:00" }),
+  },
+  {
+    name: "inspectionDeclined",
+    message: lifecycle.inspectionDeclined({ name: "Ada", listingTitle: LISTING, note: "The flat is let from Friday." }),
+  },
+  {
+    name: "inspectionWithdrawn",
+    message: lifecycle.inspectionWithdrawn({
+      name: "Chidi",
+      listingTitle: LISTING,
+      date: "2026-10-02",
+      time: "11:30",
+      otherPartyName: "Ada Balogun",
+    }),
+  },
+  {
+    name: "inspectionCompleted:viewer",
+    message: lifecycle.inspectionCompleted({ audience: "viewer", name: "Ada", listingTitle: LISTING }),
+  },
+  {
+    name: "inspectionCompleted:lister",
+    message: lifecycle.inspectionCompleted({ audience: "lister", name: "Chidi", listingTitle: LISTING, otherPartyName: "Ada" }),
+  },
+  {
+    name: "supportReplied",
+    message: lifecycle.supportReplied({
+      name: "Ada",
+      reference: "VAL-SUP-4K2P",
+      ticketId: "5c5c5c5c-5c5c-4c5c-8c5c-5c5c5c5c5c5c",
+      preview: null,
+    }),
+  },
+  {
+    name: "agreementSubmitted",
+    message: lifecycle.agreementSubmitted({
+      name: "Ada",
+      viewer: "renter",
+      listingTitle: LISTING,
+      amountMinor: 450_000_000,
+      agreementId: "33333333-3333-4333-8333-333333333333",
+    }),
+  },
+  {
+    name: "agreementCancelled",
+    message: lifecycle.agreementCancelled({
+      name: "Chidi",
+      viewer: "owner",
+      listingTitle: LISTING,
+      amountMinor: 450_000_000,
+      agreementId: "33333333-3333-4333-8333-333333333333",
+    }),
+  },
+  {
+    name: "guaranteeClaimOpened",
+    message: lifecycle.guaranteeClaimOpened({
+      name: "Ada",
+      agreementId: "33333333-3333-4333-8333-333333333333",
+      requestedMinor: 3_000_000,
+    }),
+  },
+  {
+    name: "verificationRungFailed",
+    message: lifecycle.verificationRungFailed({
+      name: "Chidi",
+      stepName: "Identity",
+      note: "The photo of the card is too blurred to read.",
+    }),
+  },
+  {
+    name: "listingSubmitted",
+    message: lifecycle.listingSubmitted({ name: "Chidi", listingTitle: LISTING }),
+  },
+  {
+    name: "reservationConfirmed",
+    message: lifecycle.reservationConfirmed({
+      name: "Ada",
+      placeName: "Terra Kulture",
+      date: "2026-10-04",
+      time: "19:30",
+      partySize: 4,
+    }),
+  },
+  {
+    name: "reservationCancelled",
+    message: lifecycle.reservationCancelled({
+      name: "Ada",
+      placeName: "Terra Kulture",
+      date: "2026-10-04",
+      time: "19:30",
+      partySize: 1,
+    }),
+  },
+  {
+    name: "refundRequested",
+    message: lifecycle.refundRequested({
+      name: "Ada",
+      bookingId: "5f5f5f5f-5f5f-4f5f-8f5f-5f5f5f5f5f5f",
+      dueBy: "2026-10-06",
     }),
   },
   {

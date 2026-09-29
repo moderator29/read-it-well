@@ -294,3 +294,68 @@ on `B04429B0` index 17, under the same name, so the swap keeps it.
 
 The generic version of the same shape is `seal-check`, and the reference's
 anatomy is worth taking while its execution is everything this brand is not.
+
+---
+
+## 8. The logo in daylight, and the icon plate
+
+Added 29 September 2026.
+
+> **Superseded the same day for the lockup.** The founder then asked for the
+> navy pill back, with a light "like snakes" running round its edge,
+> "all areas or place our logo is on light mode". So in light every `.nf-logo`
+> lockup is the navy pill showing the NIGHT artwork, and two arcs of light
+> lap its rim everywhere it appears (`app/css/light.css`, "THE LOGO"); the
+> lap stops to a steady rim under reduced motion, data saving and Calm/Off.
+> The daylight twin below now serves only a bare `LogoMark` outside a pill
+> and outside a night island.
+
+**The logo has a daylight twin.** `public/brand/vallo-mark-light.png` and
+`public/brand/vallo-wordmark-light.png` are the night files re-toned for
+paper, pixel for pixel the same drawing. They replace the navy pill and the
+two looping edge lights that the light theme used to wrap round the night
+artwork, which the founder read as wrapped oddly and not bright enough.
+
+The recipe, so the twins can be rebuilt from any new night render:
+
+- **Alpha.** The glow is keyed away by re-ramping alpha linearly from 0.35
+  (transparent) to 0.80 (opaque). The wordmark is almost binary already
+  (70,168 transparent pixels, 48,200 above 90 per cent). On the mark this
+  removes the bloom, which is correct on paper: on white the bloom reads as
+  a blue smudge, not as light.
+- **Colour.** Each pixel's whiteness (its lowest channel, the counterpart of
+  the brightest-channel key in section 1) sets a tone between a deep ink
+  `#0038B0` for the glass body and `#2E7CFF` for the catch-lights, with a 0.8
+  curve. The modelling survives: the white catch-lights that vanished on
+  paper (28 per cent of the wordmark's opaque pixels) become the brighter blue.
+- **On white** the ink is 9.6:1 and the catch-light is 3.9:1 (WCAG relative luminance), so
+  every opaque pixel clears the 3:1 a graphic needs.
+
+`Logo.tsx` renders both files and `app/css/light.css` shows one, keyed on
+`data-theme`, which the before-paint script sets. A night island
+(`data-theme="dark"`) keeps the night artwork. The hidden twin loads lazily,
+so the first switch of theme in a session can show the logo a moment late.
+
+Draw the logo through `Logo`, `LogoMark` or `LogoWordmark`, never a raw
+`<Image>` of `vallo-mark.png` or `vallo-wordmark.png`: a raw image has no twin
+and paints pale night glass on a light page. The dark-island surfaces
+(`WelcomeScene`, `FirstRun`, `SystemMoment`) are the exception, because they
+are night in both themes. Emails have their own lockup
+(`vallo-email-lockup.png`).
+
+**The header is a night island in both themes** (founder reference 05): the
+app header and the site bar carry `data-theme="dark"`, and in light they are
+a solid navy band, so the logo there is the night artwork on the ground it
+was drawn for. The daylight twin is for the logo on paper: the desktop rail,
+the drawer, the loading screen and the menus.
+
+**A proper render beats the extraction**, as it does for the night mark: ask
+for the lockup rendered as ink on white, and replace the two files under the
+same names.
+
+**The icon plate.** In daylight every glass object stands on one pale plate,
+`--nf-icon-plate-day` (`#F1F5FC`) with a brand-tinted hairline, and the
+artwork takes one quiet step deeper (`--nf-icon-art-day`, brightness 0.8 and
+saturate 1.15). It replaces the heavier saturate, contrast and drop
+shadow filters and the ten per cent edge fade, which made the objects glossy
+stickers beside the flat line glyphs and ate the edges of small ones.

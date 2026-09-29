@@ -3,7 +3,6 @@ import { ButtonLink } from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { NavScrollState } from "./NavScrollState";
 import { SiteNavLinks } from "./SiteNavLinks";
@@ -14,9 +13,8 @@ import { SiteNavLinks } from "./SiteNavLinks";
  * Left: the lockup (mark and wordmark, as the render shows it). Centre, from
  * lg up: Home / Properties / Stays / AI / More. Right: the search glyph in a
  * glass square, Sign In as a glass button, Get Started as the one primary,
- * and on phones the panel opener. Theme and language live under More on
- * desktop and inside the phone panel, so the bar carries exactly what the
- * render carries and both controls stay one tap away.
+ * and on phones the panel opener. The bar carries exactly what the render
+ * carries; language is changed in Settings and nowhere else.
  *
  * `variant="landing"` makes the bar transparent over the hero photograph
  * until the page scrolls (see landing.css and NavScrollState). The content
@@ -24,10 +22,10 @@ import { SiteNavLinks } from "./SiteNavLinks";
  */
 export function SiteHeader({
   t,
-  locale,
   variant,
 }: {
   t: Dictionary;
+  /** Still passed by the layouts; the bar no longer draws a language control. */
   locale: Locale;
   variant?: "landing";
 }) {
@@ -52,16 +50,19 @@ export function SiteHeader({
       id={id}
       className="nf-site-nav sticky top-0 z-50"
       data-variant={variant}
-      /* The landing's bar floats over the hero's night photograph, so it
-         starts as a night island; NavScrollState hands it back to the
-         reader's theme once the page scrolls under it. */
-      data-theme={variant === "landing" ? "dark" : undefined}
+      /* The bar is a night island. The landing's floats over the hero's night
+         photograph and NavScrollState hands it back to the reader's theme
+         once the page scrolls under it. Every other page keeps it: in light
+         it is the navy VALLO band over light content (founder reference 05,
+         29 September 2026), the bar's canvas glass resolving to the night
+         canvas, and the logo in it keeps the night artwork. */
+      data-theme="dark"
       data-over-night={variant === "landing" ? "" : undefined}
       suppressHydrationWarning
     >
       {variant === "landing" && <NavScrollState target={id} />}
       <div className="nf-site-bar nf-safe-top">
-        <div className="nf-shell flex h-header-sm items-center gap-group sm:h-header lg:gap-block">
+        <div className="nf-shell flex h-header-sm items-center gap-inline min-[22.5rem]:gap-group sm:h-header lg:gap-block">
           <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap shrink-0">
             <Logo size={44} wordSize={22} responsive priority />
           </Link>
@@ -74,10 +75,8 @@ export function SiteHeader({
               links={links}
               more={more}
               moreLabel={nav.more}
-              /* The theme toggle stood beside the language switcher here
-                 until light mode was removed on 23 September 2026. One
-                 palette, no control. */
-              extras={<LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />}
+              /* No language control here: language is changed in Settings
+                 and nowhere else (founder, 29 September 2026). */
             />
           </nav>
 
@@ -93,19 +92,19 @@ export function SiteHeader({
             <Link href="/sign-in" prefetch className="nf-site-nav-glass hidden sm:inline-flex">
               {nav.signIn}
             </Link>
-            {/* /start, not /sign-up: two intro screens explaining what Vallo
-                is, with Skip on both. See (auth)/start/StartCarousel.tsx. */}
+            {/* /start, not /sign-up: it sends a stranger to the Get started
+                intro (`/welcome?next=/sign-up`, `app/welcome/WelcomeIntro.tsx`),
+                which is not skippable, and on to the sign-up options. */}
             <ButtonLink href="/start" variant="primary" size="sm">
               {nav.getStarted}
             </ButtonLink>
             <MobileMenu
               links={[...links, ...more]}
-              locale={locale}
-              languageLabel={t.a11y.languageSwitcher}
               signIn={nav.signIn}
               signUp={nav.getStarted}
               openLabel={t.a11y.openMenu}
               closeLabel={t.a11y.closeMenu}
+              menuLabel={t.a11y.railNav}
             />
           </div>
         </div>

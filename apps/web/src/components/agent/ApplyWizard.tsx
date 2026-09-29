@@ -11,6 +11,8 @@ import { NIGERIAN_BANKS, NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 import { PhoneField } from "@/components/app/PhoneField";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { Switch } from "@/components/ui/Switch";
@@ -175,6 +177,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
   const [values, setValues] = useState<Values>({});
   const [docs, setDocs] = useState<Record<string, DocumentSlot>>({});
   const [state, formAction, pending] = useActionState(submitAgentApplication, EMPTY);
+  const [successClosed, setSuccessClosed] = useState(false);
   const restored = useRef(false);
 
   /* A lazy ref rather than `useMemo`, because a restored draft has to be able
@@ -378,9 +381,22 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
 
   const last = stepTitles.length - 1;
   const err = state.fieldErrors;
+  /* The success sheet follows the action's own `ok`; the green line below
+     stays under it as the record once it is closed. */
+  const appliedWords = successCopy(t.success, "agentApplied");
 
   return (
     <div className="mx-auto max-w-2xl">
+      <SuccessSheet
+        open={state.ok && !successClosed}
+        onOpenChange={(open) => {
+          if (!open) setSuccessClosed(true);
+        }}
+        variant={appliedWords.variant}
+        title={appliedWords.title}
+        body={appliedWords.body}
+        primary={{ label: t.success.continue }}
+      />
       {/*
         Progress, then the step markers.
 

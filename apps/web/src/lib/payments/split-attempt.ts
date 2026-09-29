@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { AdminClient } from "@/lib/supabase/service";
-import { guaranteeReserveSubaccount, type PaystackSplit } from "./paystack";
+import { currentPaystackMode, guaranteeReserveSubaccount, type PaystackMode, type PaystackSplit } from "./paystack";
 import { bookingReference } from "./references";
 
 /**
@@ -52,10 +52,25 @@ type SplitAnswer = {
   commission_minor?: number;
 };
 
-export async function openSplitAttempt(
+/** The charge the database computed for a booking, before any row is written. */
+export type SplitQuote = {
+  amountMinor: number;
+  agreementId: string;
+  payeeUserId: string | null;
+  split: PaystackSplit;
+  commissionMinor: number;
+  mode: PaystackMode;
+};
+
+/**
+ * Ask the database what this booking's charge is, and refuse in a sentence
+ * when it cannot be paid yet. Writes nothing, so a retry can compare the live
+ * attempt against it before deciding to open another.
+ */
+export async function quoteSplit(
   admin: AdminClient,
   booking: { id: string; total_minor: number; currency: string },
-): Promise<OpenedAttempt | AttemptRefusal> {
+): Promise<SplitQuote | AttemptRefusal> {
   const reserve = guaranteeReserveSubaccount();
   if (!reserve) return { refused: true, message: PAYMENT_NOT_AVAILABLE.reserve_not_set_up! };
 
@@ -86,30 +101,12 @@ export async function openSplitAttempt(
     return { refused: true, message: PAYMENT_NOT_AVAILABLE.amount_mismatch! };
   }
 
-  const reference = bookingReference();
-  const attempt = await admin.from("transactions").insert({
-    booking_id: booking.id,
-    provider: "paystack",
-    provider_ref: reference,
-    amount_minor: amountMinor,
-    currency: booking.currency,
-    status: "PENDING",
-    agreement_id: answer.agreement_id,
-    payee_user_id: answer.payee_user_id ?? null,
-    payee_subaccount_code: answer.payee_subaccount_code,
-    reserve_subaccount_code: reserve,
-    lister_share_minor: listerShare,
-    guarantee_minor: guarantee,
-    commission_minor: commission,
-  } as never);
-  if (attempt.error) {
-    return { refused: true, message: "Payment is temporarily unavailable. Nothing has been charged." };
-  }
-
   return {
-    reference,
     amountMinor,
     agreementId: answer.agreement_id,
+    payeeUserId: answer.payee_user_id ?? null,
+    commissionMinor: commission,
+    mode: currentPaystackMode(),
     split: {
       listerSubaccount: answer.payee_subaccount_code,
       listerShareMinor: listerShare,
@@ -119,6 +116,56 @@ export async function openSplitAttempt(
   };
 }
 
-export function isRefusal(value: OpenedAttempt | AttemptRefusal): value is AttemptRefusal {
+/**
+ * Write the PENDING attempt row for a quote, under a fresh reference, marked
+ * with the Paystack mode that will open it.
+ */
+export async function insertSplitAttempt(
+  admin: AdminClient,
+  booking: { id: string; currency: string },
+  quote: SplitQuote,
+): Promise<OpenedAttempt | AttemptRefusal> {
+  const reference = bookingReference();
+  const attempt = await admin.from("transactions").insert({
+    booking_id: booking.id,
+    provider: "paystack",
+    provider_ref: reference,
+    amount_minor: quote.amountMinor,
+    currency: booking.currency,
+    status: "PENDING",
+    agreement_id: quote.agreementId,
+    payee_user_id: quote.payeeUserId,
+    payee_subaccount_code: quote.split.listerSubaccount,
+    reserve_subaccount_code: quote.split.reserveSubaccount,
+    lister_share_minor: quote.split.listerShareMinor,
+    guarantee_minor: quote.split.guaranteeMinor,
+    commission_minor: quote.commissionMinor,
+    paystack_mode: quote.mode,
+    checkout_opened_at: new Date().toISOString(),
+  } as never);
+  if (attempt.error) {
+    return { refused: true, message: "Payment is temporarily unavailable. Nothing has been charged." };
+  }
+
+  return {
+    reference,
+    amountMinor: quote.amountMinor,
+    agreementId: quote.agreementId,
+    split: quote.split,
+  };
+}
+
+/** Quote and open in one step, for the paths that never reuse (a saved card). */
+export async function openSplitAttempt(
+  admin: AdminClient,
+  booking: { id: string; total_minor: number; currency: string },
+): Promise<OpenedAttempt | AttemptRefusal> {
+  const quote = await quoteSplit(admin, booking);
+  if (isRefusal(quote)) return quote;
+  return insertSplitAttempt(admin, booking, quote);
+}
+
+
+export function isRefusal<T extends object>(value: T | AttemptRefusal): value is AttemptRefusal {
   return "refused" in value;
 }

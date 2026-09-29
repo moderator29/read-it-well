@@ -6,6 +6,8 @@ import { panelClass } from "@/components/ui/Panel";
 import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { verifyIdentityWithVnin } from "@/lib/identity/actions";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 
 /**
  * THE vNIN ROUTE TO THE IDENTITY RUNG (V-49). Drawn by the verification page
@@ -16,19 +18,27 @@ import { verifyIdentityWithVnin } from "@/lib/identity/actions";
 export function VninPanel({
   copy,
   merchantCode,
+  success,
 }: {
   copy: Dictionary["trustVisible"]["vnin"];
+  /** The page's `t.success`, for "Identity matched". Absent, no sheet. */
+  success?: SuccessWords;
   merchantCode: string;
 }) {
   const [vnin, setVnin] = useState("");
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+  const [matched, setMatched] = useState(false);
+  const matchedWords = success ? successCopy(success, "identityMatched") : null;
 
   function submit() {
     setMessage(null);
     startTransition(async () => {
       const result = await verifyIdentityWithVnin({ vnin });
       setMessage(result.ok ? { tone: "ok", text: result.data.message } : { tone: "error", text: result.error });
+      /* Only a match the server calls "passed" is celebrated. "pending" keeps
+         its own sentence and no sheet: nothing has been decided yet. */
+      if (result.ok && result.data.status === "passed") setMatched(true);
     });
   }
 
@@ -54,6 +64,16 @@ export function VninPanel({
           {message.text}
         </p>
       )}
+      {success && matchedWords ? (
+        <SuccessSheet
+          open={matched}
+          onOpenChange={setMatched}
+          variant={matchedWords.variant}
+          title={matchedWords.title}
+          body={matchedWords.body}
+          primary={{ label: success.continue }}
+        />
+      ) : null}
     </section>
   );
 }

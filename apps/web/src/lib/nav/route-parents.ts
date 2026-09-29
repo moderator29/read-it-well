@@ -165,7 +165,15 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/sign-up": "/welcome",
   "/sign-up/email": "/sign-up",
   "/sign-up/verify": "/sign-up/email",
+  /* B-2: the terms and 18+ step for a new Google or Apple account. The
+     person is already signed in and every app route leads back here until
+     it is done, so there is nothing above it to go back to: a root, like
+     `/welcome`. No drawn back control, and Android's hardware back puts the
+     app down rather than bouncing between the gate and this screen. Its own
+     "Not you? Sign out" is the way out. */
+  "/sign-up/finish": ROOT,
   "/forgot-password": "/sign-in",
+  "/forgot-password/code": "/forgot-password",
   "/reset-password": "/sign-in",
   /* The landing place of every link out of Supabase Auth. A person pressing
      back here has abandoned a verification, and `/sign-in` is where its own
@@ -189,7 +197,17 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    */
   "/home": ROOT,
   "/stays": ROOT,
-  "/welcome": "/home",
+  /* The third root: the welcome intro is the first screen of the app for
+     anybody signed out (`shellStartPath`), and the founder's rule is that it
+     cannot be skipped. It used to name `/home` as its parent, so Android's
+     hardware back from the intro pushed `/home`, which a stranger meets as
+     the sign-in wall: the intro skipped in one press. As a root, back here
+     puts the app down, the way back does on any app's first screen. The
+     slides inside it are history entries of their own and still step back
+     one at a time (`lib/nav/in-page-step.ts`). A signed-in member only
+     reaches it by choosing it (Get started on the landing page, itself a
+     root), and its ending is their own Continue into the app. */
+  "/welcome": ROOT,
   "/offline": "/home",
 
   /* ----------------------------------------------------------- rent side */
@@ -239,6 +257,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/bookings/[bookingId]/review": "/bookings/[bookingId]",
   "/checkout": "/stays",
   "/checkout/[bookingId]": "/bookings/[bookingId]",
+  /* One crypto payment, opened from its notification or email. */
+  "/pay/crypto/[reference]": "/bookings",
 
   /* ------------------------------------------------------------- messages */
   "/messages": "/home",
@@ -294,13 +314,17 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* The in-app help and support home, and the member's ticket inbox under it. */
   "/support": "/home",
   "/support/messages": "/support",
+  "/support/new": "/support",
   "/support/messages/[id]": "/support/messages",
   "/settings/interests": "/settings",
   "/settings/notifications": "/settings",
   "/settings/payments": "/settings",
   "/settings/place": "/settings",
   "/settings/privacy": "/settings",
+  /* DB2: the people you blocked, one level inside Privacy & Security. */
+  "/settings/privacy/blocked": "/settings/privacy",
   "/settings/phone": "/settings",
+  "/settings/passcode": "/settings",
   "/legal/privacy": "/settings",
   "/legal/terms": "/settings",
   "/legal/disclaimer": "/settings",
@@ -338,6 +362,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* V-80: field speed, one panel read from real phones. */
   "/admin/field-speed": "/admin/operations",
   "/admin/payments": "/admin",
+  "/admin/people": "/admin",
   /*
    * `/admin/queue` is a DESK, not the console's landing screen, and that is the
    * whole of the founder's item 5: the queue used to BE `/admin` and the
@@ -350,7 +375,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/social": "/admin",
   "/admin/standing": "/admin",
   "/admin/stops": "/admin",
-  "/admin/people/[id]": "/admin/stops",
+  "/admin/people/[id]": "/admin/people",
   "/admin/supply": "/admin",
   "/admin/support": "/admin",
   "/admin/switches": "/admin",
@@ -379,6 +404,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/portfolio": "/agent/dashboard",
   "/agent/verification": "/agent/dashboard",
   "/agent/firm": "/agent/dashboard",
+  /* The assistant inside the workspace (29 September 2026). */
+  "/agent/assistant": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
   "/host": "/home",
@@ -388,6 +415,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/host/rooms": "/host",
   "/host/start": "/host",
   "/host/transfer": "/host",
+  /* The host workspace's own assistant, settings and bell (29 September 2026). */
+  "/host/assistant": "/host",
+  "/host/settings": "/host",
+  "/host/notifications": "/host",
 
   /* ------------------------------------------------- the design harnesses
    *
@@ -487,12 +518,15 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",
+  "/api/passcode/touch": "POST only, the passcode unlock's heartbeat (docs/PASSCODE.md).",
   "/api/vitals": "the browser's field speed beacon (V-80).",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
+  "/api/cron/crypto-reconcile": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
+  "/api/cron/rent-share-refunds": "scheduled job, bearer token.",
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
   "/api/cron/landlord-line": "scheduled job, bearer token.",
   "/api/cron/sanctions-lists": "scheduled job, bearer token.",

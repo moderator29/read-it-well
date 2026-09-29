@@ -33,7 +33,7 @@ export default function PlacePreview() {
   return (
     <div className="nf-shell mx-auto w-full max-w-3xl pb-4xl pt-md">
       <Link href="/around/eti-osa" className="nf-enter__back mb-md">
-        <UiIcon name="arrow-up" size={15} />
+        <UiIcon name="arrow-up" size={16} />
         Part of Eti-Osa
       </Link>
 

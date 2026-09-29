@@ -6,8 +6,7 @@ import { resolveSession } from "@/lib/actions/session";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
-import { ShareAnswer } from "@/components/app/tenancy/FlatmateControls";
-import { MONEY_BETWEEN_PEOPLE_RETIRED } from "@/lib/tenancy/money-copy";
+import { PayShare, SettleShareOnReturn, ShareAnswer } from "@/components/app/tenancy/FlatmateControls";
 
 /** A private record. Never indexed. */
 export const metadata: Metadata = { title: "Your share", robots: { index: false, follow: false } };
@@ -15,14 +14,23 @@ export const metadata: Metadata = { title: "Your share", robots: { index: false,
 export const dynamic = "force-dynamic";
 
 /**
- * V-86. A flatmate's share of a move-in, and the one control that pays it.
+ * V-86. A flatmate's share of a move-in, and the one control that pays it:
+ * a card checkout straight to the landlord or agent, split by Paystack.
  *
  * Read through `my_rent_share`, which answers only the flatmate the share
  * belongs to and names the area, never the address. A share that is not the
  * reader's answers exactly as one that does not exist.
  */
-export default async function RentSharePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RentSharePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  const query = await searchParams;
+  const returnedRef = query.paid === "1" && typeof query.reference === "string" ? query.reference : null;
   const locale = await getLocale();
   const copy = getDictionary(locale).afterTheGate.flatmates;
   const shell = (children: React.ReactNode) => (
@@ -56,16 +64,18 @@ export default async function RentSharePage({ params }: { params: Promise<{ id: 
   const day = (value: unknown) => (typeof value === "string" ? (formatMoneyDate(value, locale) ?? value) : null);
   const moveIn = day(row.move_in);
   const paidAt = day(row.paid_at);
-  const returnedAt = day(row.returned_at);
+  const refund = typeof row.refund === "object" && row.refund !== null ? (row.refund as Record<string, unknown>) : null;
+  const refundedAt = refund?.status === "processed" ? day(refund.processed_at) : null;
+  const tenancyId = typeof row.rent_payment_id === "string" ? row.rent_payment_id : null;
   const paidMinor = Number(row.paid_minor);
   const paidAmount = Number.isSafeInteger(paidMinor) && paidMinor > 0 ? formatMoney(paidMinor, locale) : null;
   const lead = typeof row.lead === "string" ? row.lead : null;
   const answer = row.answer === "accepted" || row.answer === "declined" ? row.answer : null;
 
   let state: React.ReactNode;
-  if (returnedAt && paidAmount && paidAt) {
-    state = <p className={TYPE.body}>{copy.shareReturned.replace("{amount}", paidAmount).replace("{date}", paidAt).replace("{returned}", returnedAt)}</p>;
-  } else if (row.void === true && paidAmount && paidAt) {
+  if (refundedAt && paidAmount && paidAt) {
+    state = <p className={TYPE.body}>{copy.shareReturned.replace("{amount}", paidAmount).replace("{date}", paidAt).replace("{returned}", refundedAt)}</p>;
+  } else if ((refund || row.void === true) && paidAmount && paidAt) {
     state = (
       <p className={TYPE.body} data-testid="share-paid-void">
         {(lead ? copy.sharePaidVoid.replaceAll("{name}", lead) : copy.sharePaidVoidUnknown)
@@ -83,17 +93,17 @@ export default async function RentSharePage({ params }: { params: Promise<{ id: 
     state = <p className={TYPE.body}>{copy.shareVoid}</p>;
   } else if (answer === "declined") {
     state = <p className={TYPE.body}>{copy.shareDeclined}</p>;
-  } else if (row.payable !== true) {
-    state = <p className={TYPE.body}>{copy.shareClosed}</p>;
-  } else if (answer === null) {
+  } else if (answer === null && row.complete !== true) {
     state = (
       <>
         <p className={TYPE.body}>{copy.shareInvited}</p>
         <ShareAnswer contributorId={id} copy={copy} />
       </>
     );
+  } else if (row.payable === true && tenancyId) {
+    state = <PayShare tenancyId={tenancyId} contributorId={id} label={copy.payMine} help={copy.sharePayHelp} />;
   } else {
-    state = <p className="nf-body" data-testid="money-between-people-retired">{MONEY_BETWEEN_PEOPLE_RETIRED}</p>;
+    state = <p className={TYPE.body}>{copy.shareClosed}</p>;
   }
 
   return shell(
@@ -107,6 +117,10 @@ export default async function RentSharePage({ params }: { params: Promise<{ id: 
         </p>
         {moveIn && <p className={TYPE.rowMeta}>{copy.shareDue.replace("{date}", moveIn)}</p>}
         <p className={TYPE.body}>{lead ? copy.shareLead.replace("{name}", lead) : copy.shareLeadUnknown}</p>
+        {/* Not gated on `!paidAt`: settling refreshes this page with the
+            share paid, and a gate on it unmounted the receipt it had just
+            opened. A revisit answers `already` and shows nothing. */}
+        {returnedRef && tenancyId && <SettleShareOnReturn tenancyId={tenancyId} reference={returnedRef} success={getDictionary(locale).success} />}
         {state}
       </div>
     </Section>,

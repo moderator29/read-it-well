@@ -540,3 +540,49 @@ describe("the migration that carries the tier says only what it is allowed to sa
     expect(sql).toContain("perform private.refresh_agent_badge_tier(new.user_id);");
   });
 });
+
+describe("DB2: the badge is derived behind one definer and the helpers stop answering strangers", () => {
+  const ORACLE_MIGRATION = fileURLToPath(
+    new URL(
+      "../../../../../supabase/migrations/20260929000714_db2_the_badge_is_derived_behind_one_definer_and_the_helpers_stop_answering_strangers.sql",
+      import.meta.url,
+    ),
+  );
+  function code(): string {
+    return readFileSync(ORACLE_MIGRATION, "utf8")
+      .split("\n")
+      .filter((line) => !line.trimStart().startsWith("--"))
+      .join("\n");
+  }
+
+  it("keeps the view readable by a signed-out reader through ONE definer function", () => {
+    /*
+     * The 22 September lesson: a non-invoker view checks FUNCTION execute as
+     * the querying role. So the view may call only a function anon can
+     * execute, and that function must be the definer that calls the helpers.
+     */
+    const sql = code();
+    const view = /create or replace view public\.person_badge as[\s\S]*?;/.exec(sql)?.[0] ?? "";
+    expect(view).toContain("private.badge_tier_for(c.user_id)");
+    expect(view).not.toMatch(/is_platform_staff|is_checked_person/);
+    expect(view).toContain("where t.tier <> 'none'::public.badge_tier");
+    expect(sql).toMatch(/create or replace function private\.badge_tier_for[\s\S]*?security definer\s*set search_path = ''/);
+    expect(sql).toContain("grant execute on function private.badge_tier_for(uuid) to anon, authenticated, service_role;");
+    expect(sql).toContain("grant select on public.person_badge to anon, authenticated;");
+  });
+
+  it("revokes the two oracles from every client role and keeps them for the server", () => {
+    const sql = code();
+    expect(sql).toContain("revoke all on function public.is_platform_staff(uuid) from public, anon, authenticated;");
+    expect(sql).toContain("revoke all on function public.is_checked_person(uuid) from public, anon, authenticated;");
+    expect(sql).toContain("grant execute on function public.is_platform_staff(uuid) to service_role;");
+    expect(sql).toContain("grant execute on function public.is_checked_person(uuid) to service_role;");
+  });
+
+  it("proves itself as anon before it commits: same rows, helpers refused", () => {
+    const sql = code();
+    expect(sql).toContain("set local role anon;");
+    expect(sql).toMatch(/perform public\.is_platform_staff[\s\S]*?exception when insufficient_privilege/);
+    expect(sql).toContain("except select user_id, tier from public.person_badge");
+  });
+});

@@ -5,9 +5,14 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { blockUser, muteTarget, reportPost } from "@/lib/social/posts-actions";
-import { POST_COPY, POST_MAX, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { Sheet } from "@/components/ui/Sheet";
+import { blockUser, muteTarget } from "@/lib/social/posts-actions";
+import {
+  POST_COPY,
+  POST_MAX,
+  POST_REPORT_REASONS,
+  type ReportReason,
+} from "@/lib/social/posts-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { PostBody } from "@/components/social/feed/PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -65,6 +70,7 @@ export function CommentsSheet({
   onSend,
   onLike,
   onDelete,
+  onReport,
 }: {
   comments: CommentRow[];
   signedIn: boolean;
@@ -78,6 +84,17 @@ export function CommentsSheet({
   onLike: (commentId: string) => Promise<ActionResult<unknown>>;
   /** Removes your own comment. Absent when the source has no such path yet. */
   onDelete?: (commentId: string) => Promise<ActionResult<unknown>>;
+  /**
+   * Files a report against one comment, in the source's own terms. Passed in
+   * rather than chosen here for the same reason as `onSend`: this sheet used
+   * to call `reportPost` itself, and every story comment reported from it
+   * reached the queue as a POST whose id no post carries.
+   */
+  onReport: (input: {
+    commentId: string;
+    reason: ReportReason;
+    detail: string;
+  }) => Promise<ActionResult<unknown>>;
 }) {
   const locale = useClientLocale();
   const router = useRouter();
@@ -86,10 +103,12 @@ export function CommentsSheet({
   const [body, setBody] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  /* Whether the open menu rises above its button. See `.nf-comment__menu--up`. */
+  const [menuUp, setMenuUp] = useState(false);
   const [reporting, setReporting] = useState<CommentRow | null>(null);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const headRef = useRef<HTMLButtonElement>(null);
 
   /* The server is the truth, derived during render rather than in an effect.
      Same conversion and same reasoning as `Feed`: an effect committed the old
@@ -110,9 +129,11 @@ export function CommentsSheet({
 
      It also never moved focus in. A modal that leaves focus on the page
      behind is one where the first Tab walks into content the reader cannot
-     see, so `autoFocus` lands on the header control - not the composer,
-     which would throw the keyboard up on every open. */
-  useOverlay({ open: true, onClose, panelRef });
+     see, so first focus lands on the header control - not the composer,
+     which would throw the keyboard up on every open.
+
+     All of that, plus drag and flick to close and Back, is the platform's
+     `Sheet` now; this component only says where first focus goes. */
 
   useEffect(() => {
     if (!notice) return;
@@ -222,17 +243,74 @@ export function CommentsSheet({
             : POST_COPY.mutedDone
           : result.error,
       );
+      /* Their comments leave this sheet now. The rows are held here, and the
+         refresh below re-reads the page behind the sheet, so without this the
+         person just blocked kept talking in the open sheet until it closed.
+         A reply to one of theirs keeps its place and loses its connector. */
+      if (result.ok) setRows((all) => all.filter((row) => row.authorId !== target));
       router.refresh();
     });
   };
 
   const left = POST_MAX - body.length;
 
+  const title = rows.length > 0 ? countOf(rows.length, "comments", locale) : "Comments";
+
   return (
-    <div className="nf-comments" role="dialog" aria-modal="true" aria-label="Comments">
-      <div ref={panelRef} className="nf-comments__panel">
+    <>
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={title}
+      hideTitle
+      initialFocus={headRef}
+      footer={
+        <form
+          className="nf-comments__composer"
+          onSubmit={(event) => {
+            event.preventDefault();
+            send();
+          }}
+        >
+          {draft ? (
+            <p className="nf-comments__replying">
+              Replying to <strong>{draft.label}</strong>
+              <button type="button" onClick={() => setDraft(null)}>
+                Cancel
+              </button>
+            </p>
+          ) : null}
+          <div className="nf-comments__row">
+            <textarea
+              ref={inputRef}
+              className="nf-field nf-comments__field"
+              rows={1}
+              value={body}
+              maxLength={POST_MAX}
+              placeholder={signedIn ? "Write a comment..." : "Sign in to comment"}
+              aria-label="Write a comment"
+              onChange={(event) => setBody(event.target.value)}
+            />
+            <button
+              type="submit"
+              className="nf-comments__send"
+              disabled={pending || body.trim().length === 0}
+              aria-label="Send"
+            >
+              <UiIcon name="share" size={19} />
+            </button>
+          </div>
+          {left < 240 ? (
+            <span className="nf-comments__count nf-numeric">{left}</span>
+          ) : null}
+        </form>
+      }
+    >
         <header className="nf-comments__head">
           <button
+            ref={headRef}
             type="button"
             className="nf-post__act"
             aria-label="Write a comment"
@@ -243,11 +321,9 @@ export function CommentsSheet({
           >
             <UiIcon name="plus" size={20} />
           </button>
-          <h2 className="nf-comments__title">
-            {rows.length > 0
-              ? countOf(rows.length, "comments", locale)
-              : "Comments"}
-          </h2>
+          <p className="nf-comments__title" aria-hidden="true">
+            {title}
+          </p>
           <button type="button" className="nf-post__act" aria-label="Close" onClick={onClose}>
             <UiIcon name="close" size={20} />
           </button>
@@ -302,6 +378,9 @@ export function CommentsSheet({
                   <div className="nf-comment__head">
                     <span className="nf-comment__who">{comment.authorLabel}</span>
                     <span className="nf-comment__when">{comment.createdLabel}</span>
+                    {/* Your own comment offers Delete when the source has a
+                        path for it, and nothing once it is already deleted. */}
+                    {comment.isMine && (!onDelete || comment.removed) ? null : (
                     <div className="relative ms-auto">
                       <button
                         type="button"
@@ -309,7 +388,12 @@ export function CommentsSheet({
                         aria-label={`More actions for this comment`}
                         aria-haspopup="menu"
                         aria-expanded={menuFor === comment.id}
-                        onClick={() => setMenuFor(menuFor === comment.id ? null : comment.id)}
+                        onClick={(event) => {
+                          const box = event.currentTarget.getBoundingClientRect();
+                          const viewport = window.visualViewport?.height ?? window.innerHeight;
+                          setMenuUp(box.top > viewport / 2);
+                          setMenuFor(menuFor === comment.id ? null : comment.id);
+                        }}
                       >
                         <UiIcon name="more" size={17} />
                       </button>
@@ -321,7 +405,10 @@ export function CommentsSheet({
                             className="fixed inset-0 z-20 cursor-default"
                             onClick={() => setMenuFor(null)}
                           />
-                          <div role="menu" className="nf-post__menu nf-comment__menu">
+                          <div
+                            role="menu"
+                            className={`nf-post__menu nf-comment__menu${menuUp ? " nf-comment__menu--up" : ""}`}
+                          >
                             {comment.isMine ? (
                               onDelete ? (
                                 <button
@@ -365,6 +452,7 @@ export function CommentsSheet({
                         </>
                       ) : null}
                     </div>
+                    )}
                   </div>
 
                   {/* A comment names people as often as a post does, so the
@@ -410,46 +498,7 @@ export function CommentsSheet({
           </ul>
         </div>
 
-        <form
-          className="nf-comments__composer"
-          onSubmit={(event) => {
-            event.preventDefault();
-            send();
-          }}
-        >
-          {draft ? (
-            <p className="nf-comments__replying">
-              Replying to <strong>{draft.label}</strong>
-              <button type="button" onClick={() => setDraft(null)}>
-                Cancel
-              </button>
-            </p>
-          ) : null}
-          <div className="nf-comments__row">
-            <textarea
-              ref={inputRef}
-              className="nf-field nf-comments__field"
-              rows={1}
-              value={body}
-              maxLength={POST_MAX}
-              placeholder={signedIn ? "Write a comment..." : "Sign in to comment"}
-              aria-label="Write a comment"
-              onChange={(event) => setBody(event.target.value)}
-            />
-            <button
-              type="submit"
-              className="nf-comments__send"
-              disabled={pending || body.trim().length === 0}
-              aria-label="Send"
-            >
-              <UiIcon name="share" size={19} />
-            </button>
-          </div>
-          {left < 240 ? (
-            <span className="nf-comments__count nf-numeric">{left}</span>
-          ) : null}
-        </form>
-      </div>
+    </Sheet>
 
       {reporting ? (
         <ReportSheet
@@ -457,11 +506,11 @@ export function CommentsSheet({
           subject={`Written by ${reporting.authorLabel}`}
           reasons={POST_REPORT_REASONS}
           submit={({ reason, detail }) =>
-            reportPost({ postId: reporting.id, reason, detail })
+            onReport({ commentId: reporting.id, reason, detail })
           }
           onClose={() => setReporting(null)}
         />
       ) : null}
-    </div>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { isAuthRetryableFetchError, type User } from "@supabase/supabase-js";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   contentSecurityPolicy,
@@ -24,6 +24,13 @@ import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/sup
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { isKnownRoute } from "@/lib/routing/known-routes";
 import { detailIsMissing, type ListingCounter } from "@/lib/routing/listing-exists";
+import {
+  finishSetupGateApplies,
+  finishSetupHref,
+  mayOweSetup,
+  REQUIRED_DOCUMENTS,
+  setupRecordComplete,
+} from "@/lib/auth/finish-setup";
 
 /**
  * Refresh the Supabase auth session on every request, and hold the door on the
@@ -261,7 +268,9 @@ const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-im
  * Closed by absence, and checked: `/api/assistant`, `/api/crypto/*`,
  * `/api/documents/[id]`, `/api/map/listings`, `/api/push/register`,
  * `/api/push/revoke` and `/api/push/self-test`. Those three write or send;
- * the key only tells a browser who to bind a subscription to.
+ * the key only tells a browser who to bind a subscription to. So is
+ * `/api/passcode/touch`, the passcode unlock's heartbeat (docs/PASSCODE.md),
+ * which has nothing to say to a caller with no session.
  */
 const PUBLIC_API_PATHS = new Set([
   "/api/auth/email-hook",
@@ -269,8 +278,11 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/account-purge",
   "/api/cron/canary",
   "/api/cron/complete-stays",
+  /* Crypto payments read back from the provider, behind the cron bearer. */
+  "/api/cron/crypto-reconcile",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
+  "/api/cron/rent-share-refunds",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
@@ -399,6 +411,15 @@ export function isHarnessPath(pathname: string): boolean {
   return /^\/(preview|gallery)(\/|$)/.test(pathname);
 }
 
+/** Where a refused auth link lands: the sign-in screen, with the sentence. */
+export const AUTH_CALLBACK_REFUSED = "/sign-in?notice=link-expired";
+
+/** `/auth/callback` carrying Supabase's own refusal in the query. */
+export function isAuthCallbackRefusal(url: URL): boolean {
+  if (url.pathname.replace(/\/+$/, "") !== "/auth/callback") return false;
+  return Boolean(url.searchParams.get("error") || url.searchParams.get("error_code"));
+}
+
 export async function proxy(request: NextRequest) {
   /*
    * One nonce per request, minted before anything else so that every exit below
@@ -439,6 +460,19 @@ export async function proxy(request: NextRequest) {
    */
   if (request.nextUrl.pathname === "/" && isShellUserAgent(request.headers.get("user-agent"))) {
     return withSecurityPolicy(NextResponse.redirect(new URL(SHELL_START, request.url), 307), nonce);
+  }
+
+  /*
+   * L-4: A REFUSED AUTH LINK IS A 307, NOT A ONE-SECOND FRAME. When Supabase
+   * comes back with `?error=` (a spent or refused link), `auth/callback/page`
+   * redirected, but only after the root `loading.tsx` had started the stream,
+   * so the browser got a streamed meta refresh and a blank "verifying" second.
+   * Answered here instead, before anything renders. Safe because the target is
+   * fixed: nothing from the query is carried, and only a page load is turned
+   * away (a server action posting to the callback still reaches the page).
+   */
+  if (request.method === "GET" && isAuthCallbackRefusal(request.nextUrl)) {
+    return withSecurityPolicy(NextResponse.redirect(new URL(AUTH_CALLBACK_REFUSED, request.url), 307), nonce);
   }
 
   let response = NextResponse.next({ request });
@@ -493,8 +527,41 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // Rotates the token when needed. Do not remove: this call is the refresh.
-  const reader = await readSessionUser(() => supabase.auth.getUser(), carriesSessionCookie(request));
+  /*
+   * Rotates the token when needed. Do not remove: this call is the refresh.
+   *
+   * SPEED-1: `getClaims()`, not `getUser()`. This function does NOT run beside
+   * the database: Vercel runs it at the edge PoP nearest the visitor, so
+   * `getUser()` was an HTTPS round trip from Cape Town or Ashburn to GoTrue in
+   * eu-west-1 on EVERY request, including each client navigation and each
+   * prefetch. Supabase's own edge logs for 28-29 Sep 2026 show 1,358
+   * `/auth/v1/user` calls from IAD and 474 from CPT against 703 from DUB, the
+   * guard's calls being the ones that crossed an ocean before render began.
+   *
+   * `getClaims()` reads the session from the cookie, refreshes it through
+   * GoTrue exactly as before when it is due (that is the refresh this line
+   * exists for), then verifies the access token's ES256 signature and expiry
+   * locally against the project's JWKS, cached per instance for ten minutes.
+   * A symmetric (HS) token or a runtime without WebCrypto makes it fall back to
+   * `getUser()` itself, so nothing is trusted unverified.
+   *
+   * WHAT THIS GATE STILL KNOWS AND WHAT IT NO LONGER ASKS. A session revoked
+   * on another device keeps a signed, unexpired token for at most the token's
+   * lifetime (one hour). That is already true of every data read, because
+   * PostgREST authorises on the same signature and RLS sits behind it, and
+   * every page or action that needs the full user still calls
+   * `resolveSession()`, whose `getUser()` runs in dub1 next to GoTrue. So a
+   * revoked reader passing this redirect sees the page's own signed-out state,
+   * never someone's data.
+   */
+  /* The verified claims are kept for the finish-setup gate below, which reads
+     the account's sign-in methods off them without another round trip. */
+  let verifiedClaims: Parameters<typeof mayOweSetup>[0] = null;
+  const reader = await readSessionUser(async () => {
+    const answer = await supabase.auth.getClaims();
+    if (!answer.error) verifiedClaims = (answer.data?.claims ?? null) as typeof verifiedClaims;
+    return answer;
+  }, carriesSessionCookie(request));
 
   /* OPS-05. A request that carries a session while auth cannot answer (a
      5xx, a network failure, no answer in time) is let through: the page's
@@ -502,6 +569,17 @@ export async function proxy(request: NextRequest) {
      to sign-in at once. */
   if (reader === "unknown") return withSecurityPolicy(response, nonce);
   const user = reader;
+
+  /* SPEED-4: the 404 check for a detail page, when it is already known to be
+     needed, starts beside the stranger's rate-limit read instead of after it.
+     Each is a round trip from the edge to eu-west-1, so doing them one after
+     the other cost a signed-out listing page an extra crossing before the
+     first byte. It starts only where the read below is also made (a stranger,
+     the open catalogue, a GET document). The one cost: a request the limiter
+     then turns away has made this read too, and its answer is dropped. It
+     never reaches the response (the refusal is the same redirect either way
+     and does not wait on it), so it is load, not an oracle. */
+  let earlyDetailCheck: Promise<boolean> | null = null;
 
   if (!user) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
@@ -511,6 +589,9 @@ export async function proxy(request: NextRequest) {
        switch cannot be used to walk every listing at machine speed. Only the
        pages are counted; a person reads a few a minute. */
     if (publicCatalogue && isPublicCataloguePath(path) && isDocumentRequest(request)) {
+      if (request.method === "GET") {
+        earlyDetailCheck = detailIsMissing(path, supabase as unknown as ListingCounter);
+      }
       const verdict = await consume({
         bucket: "anon_catalogue",
         subject: subjectForIp(ipFromHeaders(request.headers)),
@@ -594,7 +675,7 @@ export async function proxy(request: NextRequest) {
          THE DEEP LINK IS THE WHOLE POINT OF THIS PARAMETER. Every listing
          address anybody shares now lands here first, so a `next` that is
          dropped turns every shared link on the platform into a dead end. It
-         rides through `/sign-in`, `/sign-in/email` and `/auth/callback`
+         rides through `/sign-in` and `/auth/callback`
          already; `safeReturnPath` is what keeps it a path and not somebody
          else's host. */
       const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
@@ -604,13 +685,53 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  /*
+   * B-2: A GOOGLE OR APPLE ACCOUNT FINISHES SETTING UP BEFORE IT GOES IN.
+   *
+   * Such an account never passed the sign-up form, so it holds no terms
+   * receipt and no 18-or-over statement until `/sign-up/finish` records
+   * them. Here rather than in the `(app)` layout because a layout does not
+   * re-render on a client navigation, so a gate there could be walked past
+   * from any exempt page; this runs on every request, prefetch and RSC
+   * fetch included.
+   *
+   * Cheap for everybody else: an account with an email identity, or one
+   * whose token carries the done flag, is decided from the verified token
+   * with no read (`mayOweSetup`). Only a social-only account without the
+   * flag reads its own rows, under RLS. A read that fails lets the request
+   * through, the same posture as OPS-05 above: an outage must not lock
+   * members out, and the step is also asked for straight after the
+   * callback. The step, the legal pages, the API, every public address and
+   * every server action (signing out included) are never held
+   * (`finishSetupGateApplies`), so this cannot loop.
+   */
+  if (user) {
+    const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
+    if (
+      finishSetupGateApplies({
+        path,
+        method: request.method,
+        isPublic: isPublicPath(path, { publicCatalogue: false }),
+        isServerAction: isServerActionRequest(request),
+      }) &&
+      mayOweSetup(verifiedClaims) &&
+      (await owesSetup(supabase as unknown as SetupReader, user))
+    ) {
+      const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
+      const redirected = NextResponse.redirect(new URL(finishSetupHref(back), request.url));
+      for (const cookie of response.cookies.getAll()) redirected.cookies.set(cookie);
+      redirected.headers.set("cache-control", "no-store");
+      return withSecurityPolicy(redirected, nonce);
+    }
+  }
+
   /* OPS-17 / UI-16: a listing, stay or restaurant page for something that is
      not there answers 404 before the stream starts. Documents only: a prefetch or an RSC fetch goes on to
      the page, which renders the not-found state itself. The refreshed session
      cookies on `response` are carried over. */
   if (request.method === "GET" && isDocumentRequest(request)) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
-    if (await detailIsMissing(path, supabase as unknown as ListingCounter)) {
+    if (await (earlyDetailCheck ?? detailIsMissing(path, supabase as unknown as ListingCounter))) {
       const missing = request.nextUrl.clone();
       missing.pathname = HARNESS_CLOSED_PATH;
       missing.search = "";
@@ -623,6 +744,40 @@ export async function proxy(request: NextRequest) {
   return withSecurityPolicy(response, nonce);
 }
 
+/** The one read the finish-setup gate makes, narrowed to its shape. */
+type SetupReader = {
+  from: (table: "terms_acceptances") => {
+    select: (columns: "document") => {
+      eq: (column: "user_id", value: string) => {
+        in: (
+          column: "document",
+          values: readonly string[],
+        ) => PromiseLike<{ data: { document: string }[] | null; error: unknown }>;
+      };
+    };
+  };
+};
+
+/**
+ * Whether this account still owes the finish-setup step, read from its own
+ * rows in `terms_acceptances` (RLS: a member reads only their own). Any
+ * failure answers false, so an outage lets the request through rather than
+ * locking a member out.
+ */
+async function owesSetup(supabase: SetupReader, userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from("terms_acceptances")
+      .select("document")
+      .eq("user_id", userId)
+      .in("document", REQUIRED_DOCUMENTS);
+    if (error) return false;
+    return !setupRecordComplete(data);
+  } catch {
+    return false;
+  }
+}
+
 /** OPS-05. How long the guard waits for auth before it stops waiting. */
 const AUTH_ANSWER_TIMEOUT_MS = 3000;
 
@@ -631,29 +786,39 @@ function carriesSessionCookie(request: NextRequest): boolean {
   return request.cookies.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
 }
 
+/** What `auth.getClaims()` answers, narrowed to what the guard reads. */
+type ClaimsAnswer = { data: { claims?: { sub?: unknown } | null } | null; error: unknown };
+
 /**
- * The signed-in reader, null when there is none, or "unknown" when a request
- * that carries a session could not be answered: auth returned a 5xx or a
- * network failure (AuthRetryableFetchError), or did not answer in time. A
- * refusal from auth itself (an expired, revoked or malformed session) and a
- * request with no session cookie are both null, never "unknown".
+ * The signed-in reader's id, null when there is none, or "unknown" when a
+ * request that carries a session could not be answered: auth returned a 5xx or
+ * a network failure (AuthRetryableFetchError) while refreshing the token or
+ * fetching the signing keys, or did not answer in time. A refusal (an expired,
+ * revoked or malformed session, a bad signature) and a request with no
+ * session cookie are both null, never "unknown".
  */
 async function readSessionUser(
-  getUser: () => Promise<{ data: { user: User | null }; error: unknown }>,
+  getClaims: () => Promise<ClaimsAnswer>,
   hasSessionCookie: boolean,
-): Promise<User | null | "unknown"> {
+): Promise<string | null | "unknown"> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<"timeout">((resolve) => {
     timer = setTimeout(() => resolve("timeout"), AUTH_ANSWER_TIMEOUT_MS);
   });
   try {
-    const answer = await Promise.race([getUser(), timeout]);
+    const answer = await Promise.race([getClaims(), timeout]);
     if (answer === "timeout") return hasSessionCookie ? "unknown" : null;
-    if (answer.data.user) return answer.data.user;
+    const sub = answer.error ? undefined : answer.data?.claims?.sub;
+    if (typeof sub === "string" && sub.length > 0) return sub;
     if (hasSessionCookie && isAuthRetryableFetchError(answer.error)) return "unknown";
     return null;
-  } catch {
-    return hasSessionCookie ? "unknown" : null;
+  } catch (thrown) {
+    /* Only an outage is "unknown". `getClaims()` THROWS (rather than
+       answering an error) on a token it cannot parse or an algorithm it does
+       not know, e.g. a header that is not JSON, or `alg: "PS256"` beside a
+       real key id. Those are forgeries, and treating every throw as an
+       outage let a hand-made cookie walk through the gate. */
+    return hasSessionCookie && isAuthRetryableFetchError(thrown) ? "unknown" : null;
   } finally {
     clearTimeout(timer);
   }

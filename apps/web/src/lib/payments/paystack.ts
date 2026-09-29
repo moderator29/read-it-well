@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { currentPaystack, currentReserveSubaccount } from "./paystack-mode";
 
 /**
  * Paystack client. Server-only, typed, no SDK.
@@ -46,14 +47,22 @@ export class PaystackUnknownOutcome extends PaystackError {
   }
 }
 
+/**
+ * The secret key for the current mode (`./paystack-mode.ts`): live on
+ * Production, the sandbox key on Preview and Development when one is set, and
+ * whatever `PAYSTACK_MODE` says when it says something. Empty when that mode
+ * has no usable key, which every caller already treats as "not configured".
+ */
 function secretKey(): string {
-  return process.env.PAYSTACK_SECRET_KEY ?? "";
+  return currentPaystack().secretKey;
 }
 
-/** True when PAYSTACK_SECRET_KEY is present. Checked lazily, never at import. */
+/** True when the current mode has a usable secret key. Checked lazily, never at import. */
 export function isPaystackConfigured(): boolean {
   return secretKey().length > 0;
 }
+
+export { currentPaystackMode, type PaystackMode } from "./paystack-mode";
 
 /** The envelope every Paystack response uses. */
 type PaystackEnvelope = {
@@ -248,6 +257,13 @@ export type VerifiedTransaction = {
   gatewayResponse: string | null;
   customerEmail: string | null;
   metadata: Record<string, unknown>;
+  /**
+   * The card token the charge produced, exactly as Paystack returned it, for
+   * `readAuthorization` to read defensively. Optional so the many callers and
+   * fixtures that never look at it are untouched. Only the card-setup confirm
+   * (`lib/payments/card-setup.ts`) reads it.
+   */
+  authorization?: unknown;
 };
 
 /**
@@ -296,6 +312,7 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
     gateway_response: string | null;
     customer: { email?: string | null } | null;
     metadata: unknown;
+    authorization?: unknown;
   }>(`/transaction/verify/${encodeURIComponent(reference)}`);
 
   const metadata = metadataObject(data.metadata);
@@ -311,6 +328,7 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
     gatewayResponse: data.gateway_response ?? null,
     customerEmail: data.customer?.email ?? null,
     metadata,
+    authorization: data.authorization ?? null,
   };
 }
 
@@ -664,8 +682,11 @@ export async function refundTransaction(params: {
   return { refundId: String(data?.id ?? ""), status: typeof data?.status === "string" ? data.status : "pending" };
 }
 
-/** The reserve's settlement subaccount, from the environment. Null when not set up. */
+/**
+ * The reserve's settlement subaccount for the current mode. Null when not set
+ * up. Subaccounts belong to one Paystack mode, so test mode reads
+ * PAYSTACK_TEST_GUARANTEE_SUBACCOUNT and never the live code.
+ */
 export function guaranteeReserveSubaccount(): string | null {
-  const code = (process.env.PAYSTACK_GUARANTEE_SUBACCOUNT ?? "").trim();
-  return code.length > 0 ? code : null;
+  return currentReserveSubaccount();
 }

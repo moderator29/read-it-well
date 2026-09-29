@@ -73,6 +73,9 @@ export const platformEn = {
     heldVerdict: "Your money is on hold",
     heldConsequence:
       "No payment can be made and no payout detail can change until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
+    /* Placed beside a hold the member is not told about: no date (SCUML items 6 and 8). */
+    heldUndatedConsequence:
+      "No payment can be made and no payout detail can change for now. {ended} Change your password now: until you do, whoever has it can sign in again.",
     extendedConsequence:
       "The hold now lasts until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
     alreadyHeldConsequence:
@@ -395,7 +398,16 @@ export const platformEn = {
       dismissed: "Closed without action",
       withdrawn: "You took it back",
     },
-    target: { listing: "A listing", user: "A person", message: "A message", review: "A review", post: "A post" },
+    /* B-7a: the social kinds are lower case now, so they get words too. */
+    target: {
+      listing: "A listing",
+      user: "A person",
+      message: "A message",
+      review: "A review",
+      post: "A post",
+      story_comment: "A comment on a story",
+      social_profile: "A person's profile",
+    },
     targetOther: "Something on Vallo",
     reportedOn: "Reported {date}",
     note: "From the moderator: {note}",

@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
+import { FINISH_SETUP_PATH } from "./finish-setup";
 
 /**
  * Which sign-in methods the platform offers, and which it REFUSES.
@@ -85,17 +86,26 @@ function readOverride(env: Record<string, string | undefined>): Override {
   return { none, google: named.includes("google") && !none };
 }
 
+/** The terms and 18+ step every new social account passes (B-2). */
+export const FINISH_SETUP_STEP = FINISH_SETUP_PATH;
+
 /**
- * PRECONDITION FOR SWITCHING ANY PROVIDER ON (STORE-19, NEW-A4-04).
+ * THE PRECONDITION FOR SWITCHING ANY PROVIDER ON IS NOW MET (STORE-19,
+ * NEW-A4-04, B-2 of 29 September 2026).
  *
  * An account created through Apple or Google never passes the sign-up form,
- * so today it records no terms agreement and no 18-or-over statement: only
- * `signUpWithEmail` asks for both and refuses without them. Before a provider
- * is enabled in Supabase (Apple switches on by itself when Supabase reports
- * it) or named in `VALLO_SOCIAL_SIGN_IN`, the OAuth callback and
- * `signInWithAppleIdToken` must hold a NEW social account at a step that asks
- * for both and records them with `recordTermsAcceptance`. The founder's list
- * says the same (docs/store/FOUNDER_STEPS.md section 1).
+ * so it arrives with no terms agreement and no 18-or-over statement. The step
+ * that asks for both exists: `/sign-up/finish` (`lib/auth/finish-setup.ts`).
+ * The OAuth callback (`completeEmailVerification`) and
+ * `signInWithAppleIdToken` send a social-only account with no complete record
+ * there, and `proxy.ts` holds every app route until it is done. The step
+ * records both with `recordTermsAcceptance(user.id, "signup_oauth", …)`,
+ * the same table and writer the email sign-up uses. `FINISH_SETUP_STEP`
+ * below names it, so this file and the step cannot drift apart unseen.
+ *
+ * What remains is the founder's (docs/store/FOUNDER_STEPS.md section 1):
+ * enable Apple in Supabase, and for Google turn the provider on and set
+ * `VALLO_SOCIAL_SIGN_IN=google`.
  *
  * THE POLICY, pure, so every branch is tested without a network.
  * `supabaseApple` is what Supabase reports about its own Apple provider.

@@ -174,6 +174,15 @@ export function HomeScreen({
         <VerifyPrompt key={role.id} role={role} className="mb-heading" />
       ))}
 
+      {/*
+        THE NAVY TOP BLOCK (founder references 05 and 07, 29 September 2026).
+        The greeting, the place, the hero and the four doors are one night
+        island in both themes: at night nothing changes, and in light it is
+        the dark VALLO block over the light page, painted by
+        `app/css/light.css` ("THE HOME TOP BLOCK"), with the glass tiles on
+        the ground they were drawn for. The featured shelf below stays light.
+      */}
+      <div data-theme="dark" className="nf-home-top">
       {/* ---------------------------------------------------- the greeting */}
       <section className="nf-rise">
         <p className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">{greeting}</p>
@@ -224,6 +233,7 @@ export function HomeScreen({
 
       {/* ------------------------------------------------ 2. the categories */}
       <CategoryRow categories={categories} label={t.home.markets.label} />
+      </div>
 
       {/* ------------------------------------------- 3. featured properties */}
       <FeaturedBand

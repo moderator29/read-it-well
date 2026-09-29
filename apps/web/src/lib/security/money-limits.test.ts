@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+/* The passcode lock (docs/PASSCODE.md) reads the request's cookies, which a
+   unit test has none of; it is proven in lib/passcode/*.test.ts. Unlocked here
+   unless a test says otherwise. */
+const passcode = vi.hoisted(() => ({ refusal: null as string | null }));
+vi.mock("../passcode/money", () => ({ passcodeMoneyRefusal: async () => passcode.refusal }));
+
 /**
  * The money table, applied. The limiter itself is proven in
  * rate-limit.test.ts; this proves each money action reaches its own bucket
@@ -93,6 +99,31 @@ describe("guardMoney", () => {
     expect(seen.map((s) => s.bucket)).toEqual(
       Object.values(MONEY_LIMITS).map((rule) => rule.bucket),
     );
+  });
+
+  it("refuses every money-moving action on a locked session, before spending a slot", async () => {
+    passcode.refusal = "Unlock Vallo with your passcode first.";
+    try {
+      for (const action of ["startCardCheckout", "payWithSavedCard", "chargeSavedCard", "addBankAccount", "cryptoStart", "removeBankAccount"] as const) {
+        const verdict = await guardMoney(action, "u");
+        expect(verdict.allowed, action).toBe(false);
+        if (!verdict.allowed) expect(verdict.message).toBe("Unlock Vallo with your passcode first.");
+      }
+      expect(seen).toEqual([]);
+    } finally {
+      passcode.refusal = null;
+    }
+  });
+
+  it("still answers the status polls on a locked session, so a paid payment is never hidden", async () => {
+    passcode.refusal = "Unlock Vallo with your passcode first.";
+    try {
+      for (const action of ["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote"] as const) {
+        expect((await guardMoney(action, "u")).allowed, action).toBe(true);
+      }
+    } finally {
+      passcode.refusal = null;
+    }
   });
 });
 

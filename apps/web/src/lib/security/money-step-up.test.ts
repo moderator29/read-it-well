@@ -55,7 +55,7 @@ const ADA = "11111111-1111-4111-8111-111111111111";
 const THIEF = "22222222-2222-4222-8222-222222222222";
 const PROOF = "33333333-3333-4333-8333-333333333333";
 const later = () => new Date(Date.now() + 60_000).toISOString();
-const SEND = { kind: "send" as const, amountKobo: 500_000, target: "ada@example.com" };
+const SEND = { kind: "bank_add" as const, amountKobo: 500_000, target: "ada@example.com" };
 
 beforeEach(() => {
   db.credentials = [];

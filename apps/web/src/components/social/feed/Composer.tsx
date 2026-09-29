@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Segmented } from "@/components/ui/Segmented";
@@ -78,6 +78,9 @@ export function Composer({
   autoFocus = false,
   initialKind = "GIST",
   onDone,
+  fieldRef,
+  draft,
+  onDraftChange,
 }: {
   areaId?: string;
   parentId?: string;
@@ -87,11 +90,21 @@ export function Composer({
   /** Chosen before the composer opened, by the create ring. */
   initialKind?: ComposableKind;
   onDone?: () => void;
+  /** The text field, for a sheet that wants to put first focus on it. */
+  fieldRef?: RefObject<HTMLTextAreaElement | null>;
+  /** The words, held by the caller. Pass both or neither. */
+  draft?: string;
+  onDraftChange?: (next: string) => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [kind, setKind] = useState<ComposableKind>(initialKind);
-  const [body, setBody] = useState("");
+  /* The words live with the caller when it asks to hold them, so a sheet that
+     is closed by a stray drag or Back does not throw a half-written post
+     away. Otherwise they are this component's own. */
+  const [ownBody, setOwnBody] = useState("");
+  const body = draft ?? ownBody;
+  const setBody = (next: string) => (onDraftChange ? onDraftChange(next) : setOwnBody(next));
   const [error, setError] = useState<string | null>(null);
   /* V-40: the post was kept for when the signal returns. */
   const [keptNote, setKeptNote] = useState<string | null>(null);
@@ -171,21 +184,27 @@ export function Composer({
       return;
     }
 
+    /* One refused file refuses only itself. This used to `return` on the
+       first bad file, which threw away every picture already prepared in the
+       same choice (and leaked their object URLs), so choosing three photos and
+       one screenshot too large attached nothing at all. The reason shown is
+       the last refusal met. */
     const prepared: Picture[] = [];
+    let refusal: string | null = null;
     for (const file of chosen.slice(0, room)) {
       if (!(POST_IMAGE_TYPES as readonly string[]).includes(file.type)) {
-        setError(POST_FAILURE.pictureType);
-        return;
+        refusal = POST_FAILURE.pictureType;
+        continue;
       }
       if (file.size > POST_IMAGE_MAX_BYTES) {
-        setError(POST_FAILURE.pictureTooBig);
-        return;
+        refusal = POST_FAILURE.pictureTooBig;
+        continue;
       }
       const blob = await reencodeToJpeg(file, { maxEdge: POST_IMAGE_MAX_EDGE });
       if (!blob) {
         /* Deliberately not falling back to the original file. */
-        setError(POST_FAILURE.pictureReencode);
-        return;
+        refusal = POST_FAILURE.pictureReencode;
+        continue;
       }
       let width: number | null = null;
       let height: number | null = null;
@@ -201,7 +220,8 @@ export function Composer({
       prepared.push({ key: crypto.randomUUID(), blob, preview: URL.createObjectURL(blob), width, height });
     }
 
-    if (chosen.length > room) setError(POST_FAILURE.pictureTooMany);
+    if (chosen.length > room) refusal = POST_FAILURE.pictureTooMany;
+    if (refusal) setError(refusal);
     setPictures((all) => [...all, ...prepared]);
   }
 
@@ -394,6 +414,7 @@ export function Composer({
       ) : null}
 
       <textarea
+        ref={fieldRef}
         className="nf-field min-h-[92px] w-full resize-y text-[length:var(--nf-text-body)] leading-[1.5]"
         value={body}
         maxLength={POST_MAX}

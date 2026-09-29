@@ -41,7 +41,7 @@ import { createAdminClient } from "../supabase/admin";
 import { createClient } from "../supabase/server";
 import { adminRefusal, requireAdmin } from "./guard";
 
-const SUPER_ONLY = "Only a super admin can move an account to a new address.";
+const SUPER_ONLY = "Only a super admin can move an account to a new address. Ask a super admin to finish this request.";
 const SERVICE_DOWN = "That did not go through. Nothing was changed. Try again in a moment.";
 
 /** "n***@example.com": enough for the owner to recognise, not to read. */
@@ -216,7 +216,7 @@ export async function resendRecoveryNotice(
     .eq("id", requestId)
     .maybeSingle();
   if ((data as { status?: string } | null)?.status !== "cooling_off") {
-    return fail("Only a request still in its cooling-off can be told again.");
+    return fail("Only a request still in its cooling-off can be told again. Reload the page to see where this one stands.");
   }
   const noticeSent = await noticeOldAddress(requestId, "opened");
   revalidatePath("/admin/account-recovery");

@@ -3,10 +3,13 @@
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/filters-drawer.spec.mjs
  *
- * What it is now, top to bottom: a search field scoped to wherever the reader
- * already is, the price range with both figures printed above a real
- * two-handle slider, bedrooms as 1 / 2 / 3 / 4+, the amenity chips, and Apply
- * full width with Reset quiet beneath it.
+ * What it is now: a location search field ("Area, city or landmark"), the
+ * price range with both figures printed above a real two-handle slider,
+ * bedrooms as Any / 1+ / 2+ / 3+ / 4+ tiles with the group's own Clear, the
+ * amenity chips, and a footer of Reset and Apply side by side, Apply the
+ * wider (`components/app/filters/FilterDrawerPanel.tsx`, the drawer redesign;
+ * this spec used to describe the earlier 1 / 2 / 3 / 4+ toggles and a
+ * stacked footer).
  *
  * Two things this guards specifically:
  *
@@ -22,10 +25,18 @@
  * listings schema has no column or amenity behind any of the three, and a chip
  * that cannot filter is a control that lies. Furnished is, and it ships.
  *
+ * WHERE. Since 23 September `/search` answers a signed-out visitor with the
+ * sign-in wall (asserted first). The drawer is then read in the preview
+ * harness at `/preview/f4/sheets`, which mounts the real FilterDrawer behind
+ * its real opener with fixture props (no catalogue facts). Signed in as the
+ * QA member the same checks run on the real `/search` (SKIP without
+ * QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
+ *
  * Checked at 390px in both themes.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
@@ -42,11 +53,9 @@ function check(name, condition) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
+async function run(theme, { state = null, path }) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((t) => {
     try {
       window.localStorage.setItem("nf_theme", t);
@@ -65,9 +74,13 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme}] /search`);
-    await page.goto(`${BASE_URL}/search`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    console.log(`\n[${theme}] ${path}`);
+    if (path.startsWith("/preview/")) {
+      if (!(await openPreview(page, path, check, { wait: WAIT }))) return;
+    } else {
+      await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+    }
 
     const appliedTheme = await page.evaluate(
       () => document.documentElement.dataset.theme ?? "dark",
@@ -92,9 +105,9 @@ async function run(theme) {
 
     /* ------------------------------------------------------ the search */
     const search = page.locator('[data-testid="filter-search"]');
-    check("a scoped search field is the first thing in it", (await search.count()) === 1);
+    check("a location search field is in it", (await search.count()) === 1);
     const placeholder = (await search.getAttribute("placeholder")) ?? "";
-    check(`the placeholder names the scope (${placeholder})`, /^Search in .+\.\.\.$/.test(placeholder));
+    check(`the placeholder says what to type (${placeholder})`, placeholder === "Area, city or landmark");
 
     /* ------------------------------------------------------- the price */
     const range = page.locator('[data-testid="filter-range"]');
@@ -122,20 +135,28 @@ async function run(theme) {
     );
 
     /* ---------------------------------------------------- the bedrooms */
-    const beds = page.locator('[data-testid^="filter-bedrooms-"]');
-    const bedLabels = await beds.allInnerTexts();
+    const beds = page.locator('[data-testid^="filter-bedrooms-"]:not([data-testid="filter-bedrooms-clear"])');
+    const bedLabels = (await beds.allInnerTexts()).map((l) => l.trim());
     check(
-      `bedrooms are 1, 2, 3 and 4+ (${JSON.stringify(bedLabels)})`,
-      bedLabels.length === 4 && bedLabels[3].trim() === "4+",
+      `bedrooms are Any, 1+, 2+, 3+ and 4+ (${JSON.stringify(bedLabels)})`,
+      JSON.stringify(bedLabels) === JSON.stringify(["Any", "1+", "2+", "3+", "4+"]),
     );
 
+    const any = page.locator('[data-testid="filter-bedrooms-0"]');
     const two = page.locator('[data-testid="filter-bedrooms-2"]');
+    const clearBeds = page.locator('[data-testid="filter-bedrooms-clear"]');
+    check("Any is the starting choice", (await any.getAttribute("aria-pressed")) === "true");
+    check("and there is nothing to clear yet", await clearBeds.isDisabled());
     await two.click();
     await page.waitForTimeout(200);
     check("choosing one marks it", (await two.getAttribute("aria-pressed")) === "true");
-    await two.click();
+    check("and only it", (await any.getAttribute("aria-pressed")) === "false");
+    await clearBeds.click();
     await page.waitForTimeout(200);
-    check("and choosing it again clears it", (await two.getAttribute("aria-pressed")) === "false");
+    check(
+      "the group's Clear clears it back to Any",
+      (await two.getAttribute("aria-pressed")) === "false" && (await any.getAttribute("aria-pressed")) === "true",
+    );
 
     /* ------------------------------------------------- the chips shipped */
     const furnished = page.locator('[data-testid="filter-amenity-furnished"]');
@@ -160,11 +181,12 @@ async function run(theme) {
     const applyBox = await apply.boundingBox();
     const resetBox = await reset.boundingBox();
     check(
-      "Apply is full width and Reset sits directly below it",
+      "Reset and Apply share one row, Reset first and Apply the wider",
       applyBox !== null &&
         resetBox !== null &&
-        Math.abs(applyBox.width - resetBox.width) < 2 &&
-        resetBox.y > applyBox.y,
+        Math.abs(applyBox.y - resetBox.y) < 2 &&
+        resetBox.x < applyBox.x &&
+        applyBox.width > resetBox.width,
     );
 
     check("no route returned a server error", serverErrors.length === 0);
@@ -175,8 +197,16 @@ async function run(theme) {
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  await expectSignInWall(check, "/search");
+  await run("dark", { path: "/preview/f4/sheets" });
+  await run("light", { path: "/preview/f4/sheets" });
+  console.log("\nsigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    await run("dark", { state, path: "/search" });
+    await run("light", { state, path: "/search" });
+  }
 } finally {
   await browser.close();
 }

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { listingBoardIsOn } from "@/lib/listings/board-queries";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AgentShell } from "@/components/agent/AgentShell";
 import {
   agentProfileFrom,
@@ -12,6 +13,9 @@ import {
 import { ListingPitch } from "../list/ListingPitch";
 import { ListingsWorkspace } from "./ListingsWorkspace";
 import { ButtonLink } from "@/components/ui/Button";
+import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { readDone } from "@/lib/ui/success-moments";
+import { listingArrival } from "@/lib/ui/arrival-moments";
 import { readClosedReasons, readOpenOwnerHeartbeats } from "@/lib/landlord/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -29,9 +33,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[] }>;
+  searchParams: Promise<{ q?: string | string[]; done?: string | string[]; listing?: string | string[] }>;
 }) {
-  const { q } = await searchParams;
+  const { q, done: doneParam, listing: listingParam } = await searchParams;
   const query = Array.isArray(q) ? (q[0] ?? "") : (q ?? "");
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -80,6 +84,17 @@ export default async function Page({
     readMyRoutingFirms(),
   ]);
 
+  /*
+   * THE LISTER'S SUCCESS MOMENT (docs/SUCCESS_MOMENTS.md). The flag comes from
+   * the workspace's own submit or from the approval notice, and names a
+   * listing; the sheet opens only when that listing is one of THESE and its
+   * status says the moment is true now.
+   */
+  const done = readDone(doneParam);
+  const namedId = Array.isArray(listingParam) ? listingParam[0] : listingParam;
+  const named = listings.find((row) => row.id === namedId);
+  const arrival = listingArrival(listings, done, namedId);
+
   return (
     <AgentShell
       t={t}
@@ -87,6 +102,15 @@ export default async function Page({
       active="/agent/listings"
       profile={agentProfileFrom(context.agent)}
     >
+      <SuccessFromFlag
+        copy={t.success}
+        show={arrival !== null}
+        moment={arrival ?? "listingSubmitted"}
+        strip={["listing"]}
+        details={named ? [{ label: t.success.detail.for, value: named.title }] : undefined}
+        /* A notice read later is not the moment it happened in. */
+        haptic={done === "listing-submitted" ? undefined : false}
+      />
       <div className="mb-lg flex flex-wrap items-end justify-between gap-md">
         <div>
           <h1 className="nf-h1">{t.agentListings.workspace.title}</h1>
@@ -103,6 +127,19 @@ export default async function Page({
           </ButtonLink>
         )}
       </div>
+
+      {/* The search that used to sit in the workspace bar, on the one screen
+          it ever searched. A real GET form, so `?q=` narrows server side. */}
+      <form action="/agent/listings" method="get" role="search" className="nf-agent-find">
+        <UiIcon name="search" size={20} className="nf-agent-find__glyph" />
+        <input
+          type="search"
+          name="q"
+          defaultValue={query}
+          aria-label={t.common.search}
+          placeholder={`${t.common.search} ${t.agent.nav.myListings.toLowerCase()}`}
+        />
+      </form>
 
       <ListingsWorkspace
         t={t.agentListings}

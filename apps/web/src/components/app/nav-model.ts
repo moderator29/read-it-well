@@ -110,6 +110,7 @@ export function buildNav({
   unreadNotifications,
   isAgent,
   isAdmin,
+  isHost = false,
   signedIn,
 }: {
   t: ShellDictionary;
@@ -124,6 +125,8 @@ export function buildNav({
   unreadNotifications: number;
   isAgent: boolean;
   isAdmin: boolean;
+  /** Holds a Stays host business: one row into `/host`, on either side. */
+  isHost?: boolean;
   signedIn: boolean;
 }): NavSection[] {
   const stays = side === "stays";
@@ -269,6 +272,12 @@ export function buildNav({
       label: t.nav.agentMode,
       icon: "building-apartment",
     });
+  }
+
+  /* The host console is the Stays business's workspace. It shows on both
+     sides, because a host looks for their bookings wherever they are. */
+  if (isHost) {
+    workspaces.push({ href: "/host", label: t.nav.hostMode, icon: "bed" });
   }
 
   if (isAdmin && !stays) {

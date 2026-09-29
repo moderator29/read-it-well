@@ -37,7 +37,7 @@
     an identifier or a class name (`safe-area`, `nf-badge--verified`,
     `listing.verified`), not a word a person reads. */
 export const CLAIM_WORD =
-  /(?<![\p{L}\p{N}_.-])(verified|guaranteed?|guarantees|secure|securely|safe|safely|encrypted|checked|protected|insured)(?![\p{L}\p{N}_-])/giu;
+  /(?<![\p{L}\p{N}_.-])(verified|guaranteed?|guarantees|secure|securely|safe|safely|encrypted|checked|protected|insured|instant|instantly)(?![\p{L}\p{N}_-])/giu;
 
 export type BackedClaim = {
   /** Matches the claim in context; everything it matches is accepted. */
@@ -110,6 +110,18 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 
+  /* "Instant" (29 September): the word promises speed, so it is a claim word
+     now. Instant book is a listing setting, the boolean the lister turns on,
+     and the words below only ever name that setting; the assistant's "I
+     answer instantly" is its own reply, drawn from local notes with no
+     queue in front of it. Anything else "instant" (notifications, payouts,
+     approvals) has to name its mechanism here first. */
+  {
+    phrase: /^instant(?: book)?(?: available| only| against a request)?\.?$|\binstant book only\b/i,
+    mechanism: "listings.instant_book (supabase/migrations/20260728152229_listings_core.sql), set by the lister; with it on a guest pays without waiting for the lister to accept",
+  },
+  { phrase: /\bI answer instantly\b/i, mechanism: "the support assistant answers from its local notes (lib/support/faq.ts) in the same request; anything beyond them goes to the human team, who reply by email" },
+
   /* Sentences deleted on the release branch by another change. */
   { phrase: /^secure and fast$/i, mechanism: "none", pendingRemoval: "STORE-06, fix/a4 b36e00e2 (already integrated)" },
 ];
@@ -132,7 +144,7 @@ function humanIdCheck(sentence: string): boolean {
 
 /** A negation in the same sentence makes the word a disclaimer, not a claim. */
 const NEGATED =
-  /\b(?:not|never|no|nobody|cannot|can't|isn't|aren't|wasn't|haven't|hasn't|without|nothing)\b[^.!?]{0,60}\b(?:verified|guaranteed?|guarantees|secure|safe|encrypted|checked|protected|insured)\b|\b(?:verified|guaranteed?|checked|protected|insured|safe)\b[^.!?]{0,12}\b(?:yet|not)\b/gi;
+  /\b(?:not|never|no|nobody|cannot|can't|isn't|aren't|wasn't|haven't|hasn't|without|nothing)\b[^.!?]{0,60}\b(?:verified|guaranteed?|guarantees|secure|safe|encrypted|checked|protected|insured|instant|instantly)\b|\b(?:verified|guaranteed?|checked|protected|insured|safe)\b[^.!?]{0,12}\b(?:yet|not)\b/gi;
 
 /**
  * The first claim word in `text` that nothing backs, or null.

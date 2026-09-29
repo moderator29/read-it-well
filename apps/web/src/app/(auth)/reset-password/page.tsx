@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { AuthPillLink } from "@/components/auth/slate";
 import { passwordChangeProof, type PasswordChangeProof } from "@/lib/auth/password-change-proof";
 
 export const metadata: Metadata = {
@@ -45,17 +45,19 @@ export default async function ResetPasswordPage() {
 
   if (!proof) {
     return (
-      <div className="w-full text-center">
-        <h1 className="nf-h2">{t.auth.resetExpiredTitle}</h1>
-        <p className="mx-auto mt-2 max-w-[36ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {t.auth.resetExpiredLead}
-        </p>
-        <Link
-          href="/forgot-password"
-          className="nf-btn nf-btn--primary nf-btn--lg mt-6 w-full justify-center"
-        >
-          {t.auth.resetSend}
-        </Link>
+      <div className="nf-auth__screen nf-slate-stagger">
+        <h1 className="nf-auth__title">{t.auth.resetExpiredTitle}</h1>
+        <p className="nf-auth__sub">{t.auth.resetExpiredLead}</p>
+        <div className="nf-auth__form">
+          <AuthPillLink href="/forgot-password" className="nf-auth__cta">
+            {t.auth.resetSend}
+          </AuthPillLink>
+          {/* A link opened in another browser lands here, and the code in the
+              same email works anywhere. */}
+          <AuthPillLink href="/forgot-password/code" quiet>
+            {t.auth.resetEnterCode}
+          </AuthPillLink>
+        </div>
       </div>
     );
   }

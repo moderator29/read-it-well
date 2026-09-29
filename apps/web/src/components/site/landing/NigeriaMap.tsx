@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
-import { LoopGate } from "@/components/motion/LoopGate";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { SectionHead } from "./SectionHead";
 
@@ -16,8 +15,9 @@ import { SectionHead } from "./SectionHead";
  * The outline is a simplified trace of the national border projected from
  * longitude and latitude (x = (lng - 2.5) * 40, y = (14.2 - lat) * 40), close
  * enough to be recognised and far from a survey. The pins pop in one after
- * another the first time the map is on screen, and each carries a slow sonar
- * ring that runs only while visible; both are still under reduced motion.
+ * another the first time the map is on screen, once, and are simply there
+ * under reduced motion. (Each used to carry a looping sonar ring; the clean
+ * pass of 29 September removed it with the page's other loops.)
  */
 const K = 40;
 const project = (lng: number, lat: number) => ({
@@ -88,6 +88,19 @@ export const CITY_POINTS: Record<string, [number, number]> = {
   Asaba: [6.73, 6.2],
 };
 
+/*
+ * WHERE EACH NAME SITS. By default a name sits to the right of its pin; the
+ * south-east is dense enough that four names printed over a neighbour's pin
+ * or name at desktop (Benin City over Asaba, Uyo over Calabar, Port
+ * Harcourt under both), so those four are set above, below or to the left.
+ */
+const LABEL_AT: Record<string, { x: number; y: number; anchor: "start" | "middle" | "end" }> = {
+  "Benin City": { x: 0, y: -11, anchor: "middle" },
+  Asaba: { x: 0, y: 19, anchor: "middle" },
+  Uyo: { x: 0, y: 19, anchor: "middle" },
+  "Port Harcourt": { x: -9, y: 4, anchor: "end" },
+};
+
 const OUTLINE =
   BORDER.map(([lng, lat], i) => {
     const p = project(lng, lat);
@@ -119,7 +132,7 @@ export function NigeriaMap({ t }: { t: Dictionary }) {
                 <Link
                   href={`/search?q=${encodeURIComponent(p.city)}`}
                   prefetch={false}
-                  className="nf-marquee__chip nf-m-press"
+                  className="nf-map-room__chip nf-m-press"
                 >
                   {p.city}
                 </Link>
@@ -128,7 +141,6 @@ export function NigeriaMap({ t }: { t: Dictionary }) {
           </ul>
         </SectionHead>
         <MotionReveal className="nf-ngmap">
-          <LoopGate>
             <svg
               viewBox="0 0 490 410"
               className="nf-ngmap__svg"
@@ -161,15 +173,18 @@ export function NigeriaMap({ t }: { t: Dictionary }) {
                     className="nf-ngmap__halo"
                     fill="url(#nf-ngmap-glow)"
                   />
-                  <circle r="6" className="nf-ngmap__sonar" />
                   <circle r="4.5" className="nf-ngmap__dot" />
-                  <text x="9" y="4" className="nf-ngmap__label">
+                  <text
+                    x={LABEL_AT[p.city]?.x ?? 9}
+                    y={LABEL_AT[p.city]?.y ?? 4}
+                    textAnchor={LABEL_AT[p.city]?.anchor ?? "start"}
+                    className="nf-ngmap__label"
+                  >
                     {p.city}
                   </text>
                 </g>
               ))}
             </svg>
-          </LoopGate>
         </MotionReveal>
       </div>
     </section>

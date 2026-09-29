@@ -107,7 +107,9 @@ export async function setFeeRate(input: {
       );
     }
     if (status === "bad_rate") {
-      return fail("A rate cannot be more than 20 percent.", { basisPoints: "At most 2000 basis points." });
+      return fail("A rate cannot be more than 20 percent. Enter 2000 basis points or fewer.", {
+        basisPoints: "At most 2000 basis points.",
+      });
     }
     if (status === "forbidden") return fail(ADMIN_FORBIDDEN_MESSAGE);
     return fail(SERVICE_DOWN);

@@ -15,6 +15,8 @@ import Link from "next/link";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import type { Inspection } from "@/lib/inspections/types";
 import { NO_INSPECTION_FEE_HEADLINE, PRIVATE_FEE_NOTE } from "@/lib/money/copy";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 
 /**
  * ASKING TO SEE A PROPERTY, AS A THING RATHER THAN A SENTENCE.
@@ -55,6 +57,33 @@ export function RequestInspection({
   const [pending, startTransition] = useTransition();
   /* V-40: asked with no signal; kept, and sent when it returns. */
   const [kept, setKept] = useState(false);
+  /*
+   * The request was filed. Drawn beside EVERY branch below, because the
+   * refresh that follows a filed request turns this component into its
+   * "you asked to see this" line, and a sheet drawn only in the form branch
+   * was unmounted by the very success it announced. A kept (offline) request
+   * is not filed yet and never opens it.
+   */
+  const [filed, setFiled] = useState(false);
+  const success = useClientCopy().success;
+  const words = successCopy(success, "inspectionRequested");
+  const sheet = (
+    <SuccessSheet
+      open={filed}
+      onOpenChange={setFiled}
+      variant={words.variant}
+      title={words.title}
+      body={words.body}
+      primary={{ label: success.continue }}
+      secondary={{ label: TRACK_LABEL, href: "/inspections" }}
+    />
+  );
+  const withSheet = (node: React.ReactNode) => (
+    <>
+      {node}
+      {sheet}
+    </>
+  );
 
   if (kept && !existing) {
     return (
@@ -72,7 +101,7 @@ export function RequestInspection({
       ? ""
       : formatDate(date, locale, { weekday: "short", day: "numeric", month: "short" });
 
-    return (
+    return withSheet(
       <p className={`flex items-start gap-xs ${TYPE.rowMeta}`} data-testid="inspection-existing">
         <UiIcon name="calendar-booking" size={20} className="mt-3xs shrink-0" />
         <span>
@@ -119,11 +148,12 @@ export function RequestInspection({
       setOpen(false);
       setWhen("");
       setNote("");
+      setFiled(true);
       router.refresh();
     });
   }
 
-  return (
+  return withSheet(
     <>
       {/* Requesting an inspection is one of the gated actions, so a guest gets
           the door carrying the screen they were standing on. */}
@@ -213,3 +243,4 @@ const ASKED_FOR = "You asked to see this on";
 const CONFIRMED_FOR = "Your inspection is confirmed for";
 const OFFERED_ANOTHER = "They have offered";
 const TRACK_IT = "Follow it on Inspections.";
+const TRACK_LABEL = "See your inspections";

@@ -267,6 +267,16 @@ export function SettingsHub({
           }
           testId="hub-privacy"
         />
+        {/* The passcode lock (docs/PASSCODE.md): change it, or its length. */}
+        {signedIn && (
+          <RowLink
+            href="/settings/passcode"
+            glyph={<HubGlyph name="key" />}
+            label={t.passcode.settingsRow}
+            sub={t.passcode.settingsRowSub}
+            testId="hub-passcode"
+          />
+        )}
       </SettingsGroup>
 
       {signedIn && (

@@ -26,17 +26,23 @@
  * whole signed-in half of the page had never been rendered by anything.
  *
  * So this reads the source, which is the honest thing to do for a defect whose
- * trigger is a state we cannot reach: it is not a claim about what the browser
- * did, it is a claim about what the code says, and the code is where the bug
- * was. The browser half below is only what a signed-out visitor can prove.
+ * trigger is a state we cannot always reach: it is a claim about what the code
+ * says, and the code is where the bug was. The browser half then asserts the
+ * sign-in wall for a stranger (since 23 September), renders the same two
+ * client components across the same server/client boundary in the preview
+ * harness (`/preview/session-b/profile`), and, signed in as the QA member,
+ * opens the real /profile (SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD),
+ * which is the render that actually failed.
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/profile-renders.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, onSignInDoor, openPreview, qaContext, signedOutContext, signInAsQa } from "./_gate.mjs";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE_PATH = "/opt/pw-browsers/chromium";
@@ -90,26 +96,108 @@ console.log("\nNo function crosses into a client component");
 const serverFiles = files.filter((f) => !isClient(f) && /\.tsx$/.test(f));
 const offences = [];
 
+/*
+ * WHO RECEIVES IT. A function handed from one server component to another is
+ * legal (nothing is serialised), and the admin desks do it on purpose
+ * (`SeriesChart yLabel`, `ListingReview statusLabel`, ...). What throws is the
+ * hand-over to a "use client" component. So each file is parsed (with the
+ * TypeScript compiler rather than a regex, because a prop can follow nested
+ * JSX in an earlier prop, and a name can be a string prop in one function and
+ * a local function in another), every function-valued prop is resolved to the
+ * element it sits on, that element's import is followed to its file, and only
+ * a client file, or one that cannot be resolved, counts. Unit tests are not
+ * server components and are left out.
+ */
+const require = createRequire(import.meta.url);
+const ts = require("typescript");
+
+function resolveImport(fromFile, spec) {
+  const base = spec.startsWith("@/")
+    ? join(SRC, spec.slice(2))
+    : spec.startsWith(".")
+      ? join(dirname(fromFile), spec)
+      : null;
+  if (!base) return null;
+  for (const candidate of [base, `${base}.tsx`, `${base}.ts`, join(base, "index.tsx"), join(base, "index.ts")]) {
+    if (source.has(candidate)) return candidate;
+  }
+  return null;
+}
+
+/** The nearest enclosing function-like node's own function declarations. */
+function functionsInScope(node, sf) {
+  const names = new Set();
+  for (let at = node; at; at = at.parent) {
+    const body = at.body ?? (ts.isSourceFile(at) ? at : null);
+    const statements = body && body.statements ? body.statements : ts.isSourceFile(at) ? at.statements : null;
+    if (!statements) continue;
+    for (const st of statements) {
+      if (ts.isFunctionDeclaration(st) && st.name) names.add(st.name.text);
+      if (ts.isVariableStatement(st)) {
+        for (const d of st.declarationList.declarations) {
+          if (ts.isIdentifier(d.name) && d.initializer && (ts.isArrowFunction(d.initializer) || ts.isFunctionExpression(d.initializer))) {
+            names.add(d.name.text);
+          }
+        }
+      }
+    }
+  }
+  void sf;
+  return names;
+}
+
 for (const file of serverFiles) {
+  if (/\.test\.tsx$/.test(file)) continue;
   const text = source.get(file) ?? "";
+  const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 
-  // Local arrow or function declarations in this file, which are the only
-  // things that could be closed over and handed down.
-  const locals = new Set();
-  for (const m of text.matchAll(/\bconst\s+(\w+)\s*=\s*(?:async\s*)?\([^)]*\)\s*(?::[^=]+)?=>/g)) {
-    locals.add(m[1]);
+  const imports = new Map();
+  for (const st of sf.statements) {
+    if (ts.isImportDeclaration(st) && st.importClause && ts.isStringLiteral(st.moduleSpecifier)) {
+      const from = st.moduleSpecifier.text;
+      if (st.importClause.name) imports.set(st.importClause.name.text, from);
+      const bindings = st.importClause.namedBindings;
+      if (bindings && ts.isNamedImports(bindings)) for (const el of bindings.elements) imports.set(el.name.text, from);
+    }
   }
-  for (const m of text.matchAll(/\bfunction\s+(\w+)\s*\(/g)) locals.add(m[1]);
+  const topLevel = new Set(
+    sf.statements.flatMap((st) =>
+      ts.isFunctionDeclaration(st) && st.name
+        ? [st.name.text]
+        : ts.isVariableStatement(st)
+          ? st.declarationList.declarations.filter((d) => ts.isIdentifier(d.name)).map((d) => d.name.text)
+          : [],
+    ),
+  );
 
-  // A JSX prop whose value is a bare identifier, and that identifier is one of
-  // the local functions above.
-  for (const m of text.matchAll(/\s(\w+)=\{(\w+)\}/g)) {
-    if (locals.has(m[2])) offences.push(`${file.replace(SRC, "src")}: ${m[1]}={${m[2]}}`);
-  }
-  // Or an inline arrow, which cannot be anything but a closure.
-  for (const m of text.matchAll(/\s(\w+)=\{\s*(?:async\s*)?\([^)]*\)\s*=>/g)) {
-    offences.push(`${file.replace(SRC, "src")}: ${m[1]}={(...) => ...}`);
-  }
+  const receiverIsClient = (tagName) => {
+    const name = tagName.split(".")[0];
+    if (/^[a-z]/.test(name)) return false; // an intrinsic element: the prop never crosses into React state
+    if (topLevel.has(name) && !imports.has(name)) return false; // declared in this server file
+    const from = imports.get(name);
+    if (!from) return true;
+    const target = resolveImport(file, from);
+    if (target !== null) return isClient(target);
+    return true; // a package component (next/link and the like) is conservatively a client one
+  };
+
+  const visit = (node) => {
+    if (ts.isJsxAttribute(node) && node.initializer && ts.isJsxExpression(node.initializer) && node.initializer.expression) {
+      const expr = node.initializer.expression;
+      const isArrow = ts.isArrowFunction(expr) || ts.isFunctionExpression(expr);
+      const isLocalFn = ts.isIdentifier(expr) && !imports.has(expr.text) && functionsInScope(node, sf).has(expr.text);
+      if (isArrow || isLocalFn) {
+        const opening = node.parent.parent;
+        const tag = opening.tagName.getText(sf);
+        if (receiverIsClient(tag)) {
+          const line = sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
+          offences.push(`${file.replace(SRC, "src")}:${line}: <${tag} ${node.name.getText(sf)}=${isArrow ? "{(...) => ...}" : `{${expr.text}}`}>`);
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
 }
 
 check(
@@ -131,9 +219,14 @@ check(
   "it passes a locale, which is a string, rather than a formatter",
   /locale=\{locale\}/.test(page) && !/formatCount=/.test(page),
 );
+/* The body's counts moved into the belongings rows: AccountBody hands the
+   locale to `rowValue`, and `belongings.ts` formats each count itself. */
+const belongings = source.get(join(SRC, "app/(app)/profile/belongings.ts")) ?? "";
 check(
   "and both client halves format for themselves",
-  /formatNumber\(value, locale\)/.test(hero) && /formatNumber\(value, locale\)/.test(body),
+  /formatNumber\(value, locale\)/.test(hero) &&
+    /rowValue\([^)]*locale\)/.test(body) &&
+    /formatNumber\(value, locale\)/.test(belongings),
 );
 /*
  * Read the code, not the prose.
@@ -156,23 +249,53 @@ check(
 /* ------------------------------------------------- what a browser can prove */
 
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
-const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+
+/** A load that must not be the 500, nor the error screen. */
+async function rendersWithoutTheError(tab, path, label) {
+  const res = await tab.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
+  await tab.waitForTimeout(1200);
+  const status = res?.status() ?? 0;
+  check(`${label}: it does not answer 500`, status !== 500, [`${status} ${tab.url()}`]);
+  /* The visible text, not `content()`: the page's RSC payload carries the
+     error boundary's own copy as data on every route, rendered or not. */
+  check(`${label}: and nothing on it says the screen did not load`, !/did not load/i.test(await tab.locator("body").innerText()));
+  return status;
+}
 
 try {
   console.log("\nWhat a signed-out visitor gets");
-  const tab = await context.newPage();
-  const res = await tab.goto(`${BASE_URL}/profile`, { waitUntil: "load" });
-  const status = res?.status() ?? 0;
+  await expectSignInWall(check, "/profile", BASE_URL);
+  {
+    const context = await signedOutContext(browser, { viewport: { width: 390, height: 844 } }, BASE_URL);
+    const tab = await context.newPage();
+    await rendersWithoutTheError(tab, "/profile", "signed out");
+    check("signed out: the browser lands on the sign-in door", onSignInDoor(tab), [tab.url()]);
+    await context.close();
+  }
 
-  /* Signed out, the gate is the correct answer and so is the page. Either is a
-     pass; a 500 is not. */
-  check("it does not answer 500", status !== 500, [`${status} ${tab.url()}`]);
-  check(
-    "and nothing on it says the screen did not load",
-    !/did not load/i.test(await tab.content()),
-  );
+  console.log("\nThe two client halves across the boundary (preview harness)");
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const tab = await context.newPage();
+    if (await openPreview(tab, "/preview/session-b/profile", check, { base: BASE_URL })) {
+      check("the account hero rendered", (await tab.locator('[data-testid="account-hero"]').count()) === 1);
+      check("and the body under it", (await tab.locator('[data-testid="account-tab-account"]').count()) === 1);
+      check("nothing on it says the screen did not load", !/did not load/i.test(await tab.locator("body").innerText()));
+    }
+    await context.close();
+  }
+
+  console.log("\nThe real /profile, signed in as the QA member");
+  const state = await signInAsQa(browser, { base: BASE_URL });
+  if (state) {
+    const context = await qaContext(browser, state, { viewport: { width: 390, height: 844 } });
+    const tab = await context.newPage();
+    const status = await rendersWithoutTheError(tab, "/profile", "signed in");
+    check("signed in: it answers 200", status === 200, [`${status}`]);
+    check("signed in: the account hero rendered", (await tab.locator('[data-testid="account-hero"]').count()) === 1);
+    await context.close();
+  }
 } finally {
-  await context.close();
   await browser.close();
 }
 

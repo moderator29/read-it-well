@@ -7,6 +7,7 @@ import {
   readThresholdLaneAnswer,
   readThresholdRow,
   THRESHOLD_MINOR,
+  THRESHOLD_SOURCES,
   type ThresholdRow,
 } from "./threshold-model";
 
@@ -82,20 +83,53 @@ describe("the database twin", () => {
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");
     const sql = readFileSync(
-      resolve(__dirname, "../../../../../supabase/migrations/superseded/20260924174000_scuml_item_7_threshold_reports.sql"),
+      resolve(__dirname, "../../../../../supabase/migrations/20260929003449_scuml_7_threshold_reports_on_split_settlement.sql"),
       "utf8",
     );
     expect(sql).toContain(`then ${THRESHOLD_MINOR.corporate}::bigint else ${THRESHOLD_MINOR.individual}::bigint`);
     expect(sql).toContain("p_occurred_at + interval '7 days'");
     const fix = readFileSync(
-      resolve(__dirname, "../../../../../supabase/migrations/superseded/20260924174100_scuml_item_7_one_observation_per_flow.sql"),
+      resolve(__dirname, "../../../../../supabase/migrations/20260929003449_scuml_7_threshold_reports_on_split_settlement.sql"),
       "utf8",
     );
     expect(fix).toContain("pg_advisory_xact_lock");
     expect(fix).toContain("when query_canceled then");
     expect(sql).toContain("SCUML item 7");
+    /* The live monitor watches the live money records only. */
+    expect(sql).not.toContain("'escrow'");
+    expect(sql).not.toContain("'wallet'");
+  });
+  it("reads every source the live register allows, and nothing else", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const live = readFileSync(
+      resolve(__dirname, "../../../../../supabase/migrations/20260929011120_scuml_7_refunds_and_guarantee_payouts_are_watched.sql"),
+      "utf8",
+    );
+    const list = THRESHOLD_SOURCES.map((s) => `'${s}'`).join(", ");
+    expect(live).toContain(`threshold_events_source_check\n  check (source in (${list}))`);
+    for (const source of THRESHOLD_SOURCES) {
+      expect(readThresholdRow({ ...rowBase, source })?.source).toBe(source);
+    }
+    expect(readThresholdRow({ ...rowBase, source: "escrow" })?.source).toBeNull();
+    expect(readThresholdRow({ ...rowBase, source: "wallet" })?.source).toBeNull();
   });
 });
+
+const rowBase = {
+  id: "e1",
+  kind: "single",
+  source: "booking",
+  source_id: "t1",
+  amount_minor: 600_000_000,
+  threshold_minor: 500_000_000,
+  party_id: "p1",
+  party_class: "individual",
+  occurred_at: "2026-09-20T10:00:00Z",
+  due_at: "2026-09-27T10:00:00Z",
+  state: "open",
+  movements: 1,
+};
 
 describe("dueLabel", () => {
   const copy = {

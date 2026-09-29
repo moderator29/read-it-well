@@ -34,7 +34,11 @@
  */
 
 :root,
-[data-theme="dark"] {
+[data-theme="dark"],
+/* A light popover inside a night island re-runs this block, so every token
+   derived here resolves again against the light block below (see the
+   light block's second selector). */
+:root[data-theme="light"] [data-theme="light"] {
   /* ---------------------------------------------------------------------
    * LAYER 1: raw palette. Internal. Do not use directly in components.
    * ------------------------------------------------------------------ */
@@ -1721,12 +1725,30 @@
    * The blur and spread come down with it, in `--nf-glow-edge` below.
    *
    * BEFORE, for the ledger: wash 8, 1 at 16, 2 at 30, 3 at 50, 4 at 70.
+   *
+   * THE ONE DIAL, `--nf-glow-scale` (B-5, 29 September 2026). The founder
+   * asked for less glow on 28 September; the audit then counted about 180
+   * glow references. Rather than edit them one by one, every rung, and the
+   * composite glows built on the same light (the panel halo, the plate glow,
+   * the selected ring's bloom, the glass button's bloom, the status badge's),
+   * multiply their strength by this number. 1 is the ladder above; night
+   * runs at 0.4, daylight at 0.35 and a night island inside daylight at 0.3
+   * (the light block and the island rule at the end of this file). The objects the founder asked to KEEP lit set it
+   * back to 1 in their own scope: the side navigation panel in dark, the
+   * dock capsule (`app/css/shell-m.css`, "THE GLOW KEEPERS"). The logo's
+   * lap and the success sheet's one bloom draw on `--nf-glow-ink` and the
+   * brand primary directly, so the dial does not reach them.
+   *
+   * Every declaration that reads the dial sits in a block that is also
+   * declared on `[data-theme="dark"]` and on nested daylight, so an island
+   * recomputes its glow against its own scale.
    */
-  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) 5%, transparent);
-  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) 10%, transparent);
-  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) 19%, transparent);
-  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) 32%, transparent);
-  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) 46%, transparent);
+  --nf-glow-scale: 0.4;
+  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) calc(5% * var(--nf-glow-scale)), transparent);
+  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) calc(10% * var(--nf-glow-scale)), transparent);
+  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) calc(19% * var(--nf-glow-scale)), transparent);
+  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) calc(32% * var(--nf-glow-scale)), transparent);
+  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) calc(46% * var(--nf-glow-scale)), transparent);
 
   /*
    * THE EDGE IS NOT THE GLOW, and separating them is what makes the scale above
@@ -3114,7 +3136,7 @@
   --nf-panel-rim: inset 0 1px 0 var(--nf-panel-catch);
   /* The outer glow, measured as a hair: the canvas is flat within about 2 CSS
      px of the edge on all four admin renders. */
-  --nf-panel-halo: 0 0 3px color-mix(in oklab, var(--nf-state-info) 34%, transparent);
+  --nf-panel-halo: 0 0 3px color-mix(in oklab, var(--nf-state-info) calc(34% * var(--nf-glow-scale)), transparent);
   --nf-panel-glow:
     inset 0 1px 0 color-mix(in oklab, var(--nf-lit) 90%, transparent),
     inset 1px 0 0 color-mix(in oklab, var(--nf-lit) 70%, var(--nf-surface-canvas)),
@@ -3149,7 +3171,7 @@
     inset 1px 0 0 color-mix(in oklab, var(--nf-state-info) 70%, transparent),
     inset 0 1px 0 color-mix(in oklab, var(--nf-lit-cyan) 55%, transparent);
   --nf-plate-inner-light: inset 0 -2px 3px -1px color-mix(in oklab, var(--nf-lit) 60%, transparent);
-  --nf-plate-glow: 0 0 8px color-mix(in oklab, var(--nf-lit) 25%, transparent);
+  --nf-plate-glow: 0 0 8px color-mix(in oklab, var(--nf-lit) calc(25% * var(--nf-glow-scale)), transparent);
   --nf-plate-shadow: var(--nf-plate-rim), var(--nf-plate-inner-light), var(--nf-plate-glow);
   --nf-plate-glyph-glow: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-lit-cyan) 80%, transparent));
 
@@ -3232,6 +3254,21 @@
     inset 0 1px 0 var(--nf-rim-lit-ink),
     0 0 18px -6px var(--nf-glow-3);
   --nf-btn-glass-blur: var(--nf-glass-blur-soft);
+  /*
+   * THE GLASS BUTTON, CHIP AND CARD DO NOT BLUR (B-5, 29 September 2026).
+   * A glass button, a filter chip or a pill sits on a flat ground, or inside
+   * a bar that already blurs what is under it, so its own blur was a second
+   * pass over the same pixels: no visible glass, one more compositing layer
+   * each, and on the search shelf five of them stacked inside the shelf's
+   * own 40px blur. The same holds for a glass card, which rests on the flat
+   * canvas. They keep their fill, edge and rim. What still blurs: the chrome
+   * (header, shelf, dock, sheets, drawer) and the small controls that sit
+   * on a photograph (the heart, the media chips, the gallery's buttons),
+   * where the blur is what keeps them legible. `--nf-btn-glass-blur` stays
+   * for those.
+   */
+  --nf-btn-glass-backdrop: none;
+  --nf-card-backdrop: none;
 
   /*
    * THE TIER BADGE'S TWO METALS (TierBadge, moved here from
@@ -3289,21 +3326,22 @@
  * adds at most 7% white at the very corner, so no text contrast moves.
  */
 :root,
-[data-theme="dark"] {
-  --nf-panel-halo: 0 0 6px color-mix(in oklab, var(--nf-state-info) 52%, transparent);
+[data-theme="dark"],
+:root[data-theme="light"] [data-theme="light"] {
+  --nf-panel-halo: 0 0 6px color-mix(in oklab, var(--nf-state-info) calc(52% * var(--nf-glow-scale)), transparent);
   --nf-panel-catch: color-mix(in oklab, var(--nf-lit) 62%, var(--nf-state-info));
-  --nf-plate-glow: 0 0 12px color-mix(in oklab, var(--nf-lit) 40%, transparent);
+  --nf-plate-glow: 0 0 12px color-mix(in oklab, var(--nf-lit) calc(40% * var(--nf-glow-scale)), transparent);
   --nf-glass-sheen:
     radial-gradient(60% 70% at 0% 0%, color-mix(in oklab, var(--nf-lit-cyan) 12%, transparent), transparent 70%),
     linear-gradient(135deg, color-mix(in oklab, white 7%, transparent) 0%, color-mix(in oklab, white 2%, transparent) 22%, transparent 38%);
   --nf-plate-sheen: linear-gradient(135deg, color-mix(in oklab, white 26%, transparent) 0%, color-mix(in oklab, white 6%, transparent) 30%, transparent 50%);
   --nf-selected-shadow:
     var(--nf-selected-rim),
-    0 0 22px color-mix(in oklab, var(--nf-brand-primary) 64%, transparent),
+    0 0 22px color-mix(in oklab, var(--nf-brand-primary) calc(64% * var(--nf-glow-scale)), transparent),
     0 6px 16px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
   --nf-selected-shadow-inline:
     var(--nf-selected-rim),
-    0 0 22px color-mix(in oklab, var(--nf-brand-primary) 58%, transparent);
+    0 0 22px color-mix(in oklab, var(--nf-brand-primary) calc(58% * var(--nf-glow-scale)), transparent);
   --nf-btn-lit-rim: inset 0 1px 0 color-mix(in srgb, var(--nf-state-warning) 20%, var(--nf-content-on-brand));
   --nf-btn-lit-bloom:
     0 6px 16px -2px color-mix(in srgb, var(--nf-brand-primary) 74%, transparent),
@@ -3386,7 +3424,8 @@
      photograph region) redeclares the palette and with it the durations, so
      it is named here too or reduced motion would stop at its edge. */
   :root,
-  [data-theme="dark"] {
+  [data-theme="dark"],
+  :root[data-theme="light"] [data-theme="light"] {
     --nf-duration-instant: 1ms;
     --nf-duration-fast: 1ms;
     --nf-duration-base: 1ms;
@@ -3458,8 +3497,15 @@
  * WHAT DELIBERATELY STAYS DARK: anything drawn over a PHOTOGRAPH (scrims,
  * the on-media controls, the photo viewer's ground) and the ARTWORK ground,
  * because the photograph and the artwork do not change with the theme.
+ *
+ * THE SECOND SELECTOR is a way back out of a night island: the header is
+ * dark in both themes (reference 05), and a popover inside it that belongs
+ * to the page (the site bar's More menu) carries `data-theme="light"` to
+ * take this palette again. It only matches under a light root, so in the
+ * dark theme the same attribute changes nothing.
  */
-:root[data-theme="light"] {
+:root[data-theme="light"],
+:root[data-theme="light"] [data-theme="light"] {
   /* ----------------------------------------------------------- the ground */
   --nf-surface-canvas: #FFFFFF;
   --nf-canvas-base: #FFFFFF;
@@ -3574,11 +3620,13 @@
 
   /* ----------------------------------- glow, kept only where it is a shadow */
   --nf-glow-ink: var(--nf-brand-primary);
-  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) 4%, transparent);
-  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) 8%, transparent);
-  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) 14%, transparent);
-  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) 22%, transparent);
-  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) 32%, transparent);
+  /* The dial (see the night rungs): daylight at 0.35. */
+  --nf-glow-scale: 0.35;
+  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) calc(4% * var(--nf-glow-scale)), transparent);
+  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) calc(8% * var(--nf-glow-scale)), transparent);
+  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) calc(14% * var(--nf-glow-scale)), transparent);
+  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) calc(22% * var(--nf-glow-scale)), transparent);
+  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) calc(32% * var(--nf-glow-scale)), transparent);
   --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 20%, transparent),
                    0 8px 24px -10px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
   --nf-glow-accent: 0 6px 18px -10px color-mix(in oklab, var(--nf-brand-accent) 28%, transparent);
@@ -3669,14 +3717,29 @@
   --nf-media-land: rgb(11 13 23 / 0.07);
 
   /* ---------------------------------- the night tile (survey R1, light.css)
-     The organised ground every glass object, the logo lockup and the role
-     coin stand on in light: the artwork's own night, a brand glow at the top,
-     a brand rim. Only light.css reads these. */
+     The night ground the role-switch coin stands on in light: the artwork's
+     own night, a brand glow at the top, a brand rim. The glass objects and
+     the logo used to stand on it too; they have the icon plate and the
+     daylight logo below now. Only light.css reads these. */
   --nf-night-tile-ground: var(--nf-surface-artwork);
   --nf-night-tile-glow: color-mix(in oklab, var(--nf-electric-400) 32%, transparent);
   --nf-night-tile-rim: color-mix(in oklab, var(--nf-electric-400) 42%, transparent);
   --nf-night-tile-bloom: color-mix(in oklab, var(--nf-electric-500) 42%, transparent);
   --nf-night-tile-face: color-mix(in oklab, var(--nf-electric-400) 10%, transparent);
+
+  /* ------------------------------ the icon plate and the logo (light.css)
+     One pale plate behind every glass object in daylight, so the glossy
+     artwork and the flat line glyphs share one quiet container; the brand
+     ink on it is 5.0:1, so a line glyph on the same plate still clears AA.
+     The halo is white on white, so it only shows where the daylight logo
+     crosses a photograph (the profile cover). */
+  --nf-icon-plate-day: #F1F5FC;
+  --nf-icon-plate-day-edge: rgb(0 80 200 / 0.14);
+  /* The glass artwork on the plate, one step deeper: additive glass keyed
+     off black reads pale on paper, and this lifts the median opaque pixel
+     of the profile tiles by about half a ratio point without a shadow. */
+  --nf-icon-art-day: brightness(0.8) saturate(1.15);
+  --nf-logo-day-halo: drop-shadow(0 0 2px rgb(255 255 255 / 0.9)) drop-shadow(0 0 6px rgb(255 255 255 / 0.55));
 
   /* ------------------------------------------ misc surfaces with a meaning */
   --nf-surface-ai: linear-gradient(var(--nf-light-angle), #F2F6FF 0%, #F7F9FD 100%);
@@ -3692,4 +3755,15 @@
   --nf-badge-platinum-tick-top: #ffffff;
   --nf-badge-platinum-tick-foot: #eef1f6;
   --nf-shadow-on-paper: 0 1px 2px rgb(11 13 23 / 0.06), 0 8px 20px -8px rgb(11 13 23 / 0.14);
+}
+
+/*
+ * A NIGHT ISLAND IN DAYLIGHT (the app header, the home top block, the
+ * profile hero, the dock, a photograph's chips) glows quieter than the same
+ * object in a night theme: on a white page a bloom that leaves the island is
+ * a smudge. The island redeclares its rungs (the night block names
+ * `[data-theme="dark"]`), so the dial set here is the one they read.
+ */
+:root[data-theme="light"] [data-theme="dark"] {
+  --nf-glow-scale: 0.3;
 }

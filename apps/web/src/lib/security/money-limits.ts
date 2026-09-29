@@ -1,6 +1,7 @@
 import "server-only";
 
 import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "./rate-limit";
+import { passcodeMoneyRefusal } from "../passcode/money";
 
 /**
  * Every money path, and how often one person may walk it (A2-046, W-2).
@@ -29,6 +30,7 @@ import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "./rate-lim
  * | setDefaultBankAccount      | bank_default            |    20 |   10 m | It decides where the next payout lands, which is the whole account |
  * | removeBankAccount          | bank_remove             |    10 |    1 h | Same shape as removing a card, on the side money leaves by |
  * | paymentState               | money_state_poll        |    40 |   10 m | Polled on a backoff: one in-app checkout spends about 12   |
+ * | confirmCardSetup           | card_setup_confirm      |    30 |   10 m | Polled on the same backoff, and each hit is a Paystack verify, so tighter than paymentState |
  * | holdMoney                  | money_hold_open         |     5 |    1 h | Each one takes an amount out of a spendable balance and locks the wallet row |
  * | signature failures, per IP | webhook_bad_signature   |    30 |   10 m | Unauthenticated: a sprayed webhook URL is answered from cache |
  * | cron secret failures, per IP | cron_bad_secret       |    30 |   10 m | Unauthenticated: same shape for the reconcile route        |
@@ -62,7 +64,11 @@ export type MoneyAction =
   | "removePaymentMethod"
   | "setDefaultBankAccount"
   | "removeBankAccount"
-  | "paymentState";
+  | "paymentState"
+  | "confirmCardSetup"
+  | "cryptoQuote"
+  | "cryptoStart"
+  | "cryptoState";
 
 export type MoneyLimit = {
   bucket: string;
@@ -177,6 +183,38 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     windowSeconds: TEN_MINUTES,
     refusal: "We have checked that payment many times in the last few minutes and have stopped for now. This does not mean it failed: if it went through, this page updates on its own.",
   },
+  /* B-6. The card-setup checkout polls this on the same backoff as
+     `paymentState` (about twelve hits in ninety seconds), but each hit is a
+     Paystack verify, so it is sized for two setups in the window rather than
+     three. Like `paymentState` it only reads the outcome of a charge already
+     made, so the refusal must not say the check failed. */
+  confirmCardSetup: {
+    bucket: "card_setup_confirm",
+    limit: 30,
+    windowSeconds: TEN_MINUTES,
+    refusal: "We have asked about that card many times in the last few minutes and have stopped for now. This does not mean it failed: if it went through, the card shows on this page once it is saved.",
+  },
+  /* Crypto (lib/crypto/actions.ts). A quote costs a provider call, so it is
+     counted like opening a payment page. The status poll is sized like
+     `paymentState`: one honest payment polls for up to the quote's life. */
+  cryptoQuote: {
+    bucket: "money_crypto_quote",
+    limit: 12,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have asked for several crypto quotes in the last few minutes, so this one was not fetched. Nothing has been paid.",
+  },
+  cryptoStart: {
+    bucket: "money_crypto_start",
+    limit: 6,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have opened several crypto payments in the last few minutes, so this one was not opened. Nothing has been paid.",
+  },
+  cryptoState: {
+    bucket: "money_crypto_state",
+    limit: 60,
+    windowSeconds: TEN_MINUTES,
+    refusal: "We have looked up that crypto payment many times and have stopped for now. This does not mean it failed: the payment page updates when the provider reports.",
+  },
 };
 
 /** The unauthenticated routes count failures per address, never successes. */
@@ -184,6 +222,9 @@ export const ROUTE_FAILURE_LIMITS = {
   webhookBadSignature: { bucket: "webhook_bad_signature", limit: 30, windowSeconds: TEN_MINUTES },
   cronBadSecret: { bucket: "cron_bad_secret", limit: 30, windowSeconds: TEN_MINUTES },
 } as const;
+
+/** Reads of a payment already made; never refused by the passcode lock. */
+const PASSCODE_EXEMPT: ReadonlySet<MoneyAction> = new Set<MoneyAction>(["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote"]);
 
 export type MoneyGuardVerdict =
   | { allowed: true; degraded: boolean }
@@ -196,6 +237,13 @@ export type MoneyGuardVerdict =
  * when to come back. A surface renders it as it is.
  */
 export async function guardMoney(action: MoneyAction, userId: string): Promise<MoneyGuardVerdict> {
+  /* A locked session (docs/PASSCODE.md) moves nothing, and spends no slot
+     finding that out. The status polls are exempt: they read the outcome of
+     a payment already made, and a lock must not hide whether it went through. */
+  if (!PASSCODE_EXEMPT.has(action)) {
+    const locked = await passcodeMoneyRefusal(userId);
+    if (locked) return { allowed: false, message: locked, retryAfterSeconds: 0 };
+  }
   const rule = MONEY_LIMITS[action];
   const verdict = await consume({
     bucket: rule.bucket,

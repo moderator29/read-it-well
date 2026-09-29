@@ -13,12 +13,29 @@
  * variable name are each a failure, whichever theme they appear in: a payment
  * surface that only holds together at night is not a payment surface.
  *
+ * SINCE 23 SEPTEMBER a signed-out visitor never reaches the route: the proxy
+ * sends every `/checkout/...` address to the sign-in door, keeping the way
+ * back (`src/proxy.ts`). So the spec now reads:
+ *
+ *   signed out   the wall on all three addresses, and the door the browser
+ *                lands on carries nothing raw;
+ *   preview      `/preview/f3/checkout`, the route's own parts in the route's
+ *                own order with a fixture booking and saved card: titled
+ *                Checkout, the pay controls present, nothing raw, no claimed
+ *                platform charge, no sample/preview/demo wording, no overflow.
+ *                Nothing is ever pressed, so nothing is ever charged;
+ *   signed in    as the QA member, the real route with a booking id nobody
+ *                owns, the Paystack return trip and a malformed id: each an
+ *                honest, designed state with a way onward. SKIP without
+ *                QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD.
+ *
  * Run with the dev server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/checkout.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, onSignInDoor, openPreview, qaContext, signedOutContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE_PATH = "/opt/pw-browsers/chromium";
@@ -113,9 +130,14 @@ async function inspect(page, label) {
   return flat;
 }
 
-async function walk(colorScheme) {
-  console.log(`\n================ ${colorScheme} ================`);
-  const context = await browser.newContext({ colorScheme, viewport: VIEWPORT });
+const PATHS = {
+  booking: `/checkout/${BOOKING_ID}`,
+  returned: `/checkout/${BOOKING_ID}?paid=1&reference=${REFERENCE}`,
+  malformed: "/checkout/not-a-booking",
+};
+
+async function themed(colorScheme, make) {
+  const context = await make({ colorScheme, viewport: VIEWPORT });
   /*
    * Dark is the platform default and only an explicit choice moves it, so
    * emulating a light operating system no longer produces a light page. A light
@@ -129,76 +151,101 @@ async function walk(colorScheme) {
       /* storage unavailable, the page falls back to the dark default */
     }
   }, colorScheme === "light" ? "light" : "dark");
+  return context;
+}
 
+async function themeIs(page, colorScheme) {
+  const theme = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
+  check(
+    `page is rendering the ${colorScheme} theme`,
+    colorScheme === "light" ? theme === "light" : theme !== "light",
+  );
+}
+
+function honestWording(flat) {
+  // Nothing may claim a charge the platform does not make.
+  check(
+    "no wording that claims a platform charge",
+    !/\bservice fee\b/i.test(flat) && !/\bplatform fee\b/i.test(flat),
+  );
+  check(
+    "no sample, preview, demo or not-live wording",
+    !/\b(sample|preview|demo|not live|not-live)\b/i.test(flat),
+  );
+}
+
+async function signedOut(colorScheme) {
+  console.log(`\n================ signed out, ${colorScheme} ================`);
+  const context = await themed(colorScheme, (o) => signedOutContext(browser, o));
   const page = await context.newPage();
+  try {
+    for (const [label, path] of Object.entries(PATHS)) {
+      await expectSignInWall(check, path);
+      const response = await page.goto(`${BASE_URL}${path}`, { waitUntil: "load", timeout: 60_000 });
+      await page.waitForTimeout(WAIT);
+      check(`${label}: answers, and not with a server error`, (response?.status() ?? 500) < 400);
+      check(`${label}: the browser lands on the sign-in door`, onSignInDoor(page));
+      await inspect(page, `${label} (sign-in door)`);
+    }
+  } finally {
+    await context.close();
+  }
+}
 
+async function preview(colorScheme) {
+  console.log(`\n================ preview, ${colorScheme} ================`);
+  const context = await themed(colorScheme, (o) => browser.newContext(o));
+  const page = await context.newPage();
+  try {
+    console.log("/preview/f3/checkout");
+    if (!(await openPreview(page, "/preview/f3/checkout", check, { wait: WAIT }))) return;
+    await themeIs(page, colorScheme);
+    check("the page is titled as checkout", await page.getByText("Checkout").first().isVisible());
+    const flat = await inspect(page, "checkout (preview)");
+    honestWording(flat);
+    check(
+      "the pay controls are present (never pressed)",
+      (await page.getByRole("button", { name: /pay/i }).count()) > 0,
+    );
+  } finally {
+    await context.close();
+  }
+}
+
+async function signedIn(colorScheme, state) {
+  console.log(`\n================ signed in (QA member), ${colorScheme} ================`);
+  const context = await themed(colorScheme, (o) => qaContext(browser, state, o));
+  const page = await context.newPage();
   try {
     /* ------------------------------------------- a well-formed booking id */
-    console.log(`/checkout/${BOOKING_ID}`);
-    const response = await page.goto(`${BASE_URL}/checkout/${BOOKING_ID}`, {
-      waitUntil: "load",
-      timeout: 60_000,
-    });
+    console.log(PATHS.booking);
+    const response = await page.goto(`${BASE_URL}${PATHS.booking}`, { waitUntil: "load", timeout: 60_000 });
     await page.waitForTimeout(WAIT);
-
     check("route answers, and not with a server error", (response?.status() ?? 500) < 400);
-
-    const theme = await page.evaluate(
-      () => document.documentElement.dataset.theme ?? "dark",
-    );
-    check(
-      `page is rendering the ${colorScheme} theme`,
-      colorScheme === "light" ? theme === "light" : theme !== "light",
-    );
-
+    await themeIs(page, colorScheme);
     check("the page is titled as checkout", await page.getByText("Checkout").first().isVisible());
-
     const flat = await inspect(page, "booking id");
-
     const matched = HONEST_HEADLINES.filter((headline) => flat.includes(headline));
     check(
       `an honest state is on screen${matched.length > 0 ? ` ("${matched[0]}")` : ""}`,
       matched.length > 0,
     );
-
     // An honest state is only honest if it offers a way onward.
-    const onward = await page.locator("a.nf-btn").count();
-    check("the honest state offers somewhere to go next", onward > 0);
-
-    // Nothing may claim a charge the platform does not make, and the word this
-    // product never uses about its own take must not appear either.
-    check(
-      "no wording that claims a platform charge",
-      !/\bservice fee\b/i.test(flat) && !/\bplatform fee\b/i.test(flat),
-    );
-    check(
-      "no sample, preview, demo or not-live wording",
-      !/\b(sample|preview|demo|not live|not-live)\b/i.test(flat),
-    );
+    check("the honest state offers somewhere to go next", (await page.locator("a.nf-btn").count()) > 0);
+    honestWording(flat);
 
     /* ------------------------------------------- the Paystack return trip */
-    console.log(`/checkout/${BOOKING_ID}?paid=1&reference=...`);
-    const returned = await page.goto(
-      `${BASE_URL}/checkout/${BOOKING_ID}?paid=1&reference=${REFERENCE}`,
-      { waitUntil: "load", timeout: 60_000 },
-    );
+    console.log(PATHS.returned);
+    const returned = await page.goto(`${BASE_URL}${PATHS.returned}`, { waitUntil: "load", timeout: 60_000 });
     await page.waitForTimeout(WAIT + 800);
-
     check("return path answers, and not with a server error", (returned?.status() ?? 500) < 400);
     await inspect(page, "return path");
 
     /* ----------------------------------------------- a malformed booking id */
-    console.log("/checkout/not-a-booking");
-    const malformed = await page.goto(`${BASE_URL}/checkout/not-a-booking`, {
-      waitUntil: "load",
-      timeout: 60_000,
-    });
+    console.log(PATHS.malformed);
+    const malformed = await page.goto(`${BASE_URL}${PATHS.malformed}`, { waitUntil: "load", timeout: 60_000 });
     await page.waitForTimeout(WAIT);
-
-    check(
-      "a malformed booking id answers, and not with a server error",
-      (malformed?.status() ?? 500) < 400,
-    );
+    check("a malformed booking id answers, and not with a server error", (malformed?.status() ?? 500) < 400);
     await inspect(page, "malformed id");
   } finally {
     await context.close();
@@ -208,8 +255,16 @@ async function walk(colorScheme) {
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 
 console.log(`checkout graceful path against ${BASE_URL}`);
-await walk("dark");
-await walk("light");
+await signedOut("dark");
+await signedOut("light");
+await preview("dark");
+await preview("light");
+console.log("\nsigned in as the QA member");
+const state = await signInAsQa(browser);
+if (state) {
+  await signedIn("dark", state);
+  await signedIn("light", state);
+}
 await browser.close();
 
 if (failures > 0) {

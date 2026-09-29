@@ -7,7 +7,10 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
-import { AuthChoices } from "@/components/auth/AuthChoices";
+import { chooserEmail, signInWithEmail, signUpMethodForEmail } from "@/lib/auth/actions";
+import type { EmailStatus } from "@/lib/auth/form-state";
+import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
+import { emailFromQuery } from "@/components/auth/auth-intent";
 import { arrivalOf } from "@/app/welcome/plan";
 import { wallHeading } from "@/components/app/welcome/wall-heading";
 
@@ -59,15 +62,48 @@ export default async function SignInPage({
       ? t.authFlow.notices[notice]
       : undefined;
 
+  /*
+   * B-1: ONE SCREEN, EMAIL AND PASSWORD TOGETHER (refs 12 and 14). This used
+   * to draw an email-only chooser and send the address on to
+   * `/sign-in/email` for the password; that route now forwards here.
+   *
+   * What the split was protecting is kept. The one action is still
+   * `signInWithEmail` (per-connection and per-address limits, the neutral
+   * "do not match" refusal, `next` re-checked on the server). An address that
+   * arrives already filled in (`?email=` on a link, or the old chooser's
+   * cookie) is looked up exactly as the second step did, and "none" draws
+   * the ordinary password step, so the screen never says whether an account
+   * exists (F-08); only a clear "google" changes what is drawn.
+   */
   const surface = await requestSurface();
+  const providers = await resolveProviderStates(surface);
+  const configured = (id: "email" | "google" | "apple") =>
+    providers.some((p) => p.id === id && p.configured);
+  const address = emailFromQuery(params.email) || (await chooserEmail());
+
+  let accountMethod: EmailStatus = "unknown";
+  if (address) {
+    try {
+      const method = await signUpMethodForEmail(address);
+      accountMethod = method === "none" ? "unknown" : method;
+    } catch {
+      accountMethod = "unknown";
+    }
+  }
+
   return (
-    <AuthChoices
+    <EmailAuthForm
       mode="sign-in"
       t={t}
-      providers={await resolveProviderStates(surface)}
+      action={signInWithEmail}
+      next={next}
+      initialEmail={address}
+      accountMethod={accountMethod}
+      googleReady={configured("google") && surface === "web"}
+      appleReady={configured("apple") && surface !== "android-native"}
       surface={surface}
       notice={noticeText}
-      next={next}
+      emailReady={configured("email")}
     />
   );
 }

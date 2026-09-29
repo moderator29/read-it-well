@@ -132,6 +132,19 @@ The minimum for real data is `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_A
 
 **Never give a server-only value the `NEXT_PUBLIC_` prefix.** That prefix compiles the value into the browser bundle.
 
+**Paystack test and live mode** (`apps/web/src/lib/payments/paystack-mode.ts`). All server only; the browser holds no Paystack key in either mode.
+
+| Variable | Read when | Notes |
+|---|---|---|
+| `PAYSTACK_MODE` | Always, if set | `live` or `test`. Overrides everything below. `test` with no test key is "not configured", never live. |
+| `PAYSTACK_ALLOW_TEST_MODE_IN_PRODUCTION` | Production with `PAYSTACK_MODE=test` | Must be `yes` or test mode is refused on Production. Leave unset. |
+| `PAYSTACK_SECRET_KEY` | Production (default), or `PAYSTACK_MODE=live` | Must be an `sk_live_` key in live mode. Outside Production it is used without `PAYSTACK_MODE=live` only if it is an `sk_test_` key. Also signs live webhooks. |
+| `PAYSTACK_TEST_SECRET_KEY` | Preview and Development when present, or `PAYSTACK_MODE=test` | Must be an `sk_test_` key. Also signs sandbox webhooks. |
+| `PAYSTACK_GUARANTEE_SUBACCOUNT` | Live mode | The reserve subaccount (`ACCT_...`) on the live account. |
+| `PAYSTACK_TEST_GUARANTEE_SUBACCOUNT` | Test mode | The reserve subaccount on the sandbox account. No fallback to the live code. |
+
+A key whose `sk_live_`/`sk_test_` prefix contradicts the mode is refused. The admin payments page shows the mode in use. Details in [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md).
+
 ### Scripts
 
 | Command | What it does |

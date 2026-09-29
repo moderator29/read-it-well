@@ -5,7 +5,9 @@ import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { findFaqEntry } from "@/lib/support/faq";
+import { chatTranscript } from "@/lib/support/new-query";
 import { fileSupportTicket } from "@/lib/support/actions";
+import { TicketFiledSheet } from "./TicketFiledSheet";
 import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/support/types";
 import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
@@ -44,6 +46,8 @@ type Message = {
   actions?: SupportAction[];
   /** Set when a ticket row was really written, by the agent or by the form. */
   reference?: string;
+  /** The ticket's id, when it is on the member's account and has a thread to open. */
+  ticketId?: string;
   /** True when this bubble carries the name and email escalation card. */
   escalating?: boolean;
   /** The question an escalation from this bubble files as the ticket body. */
@@ -54,7 +58,7 @@ type Message = {
 const THREAD_KEY = "nf_support_thread";
 
 const GREETING =
-  "Hello, I am Vallo's AI support helper, not a person. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
+  "Hello, I am Vallo's AI support helper, not a person. Ask me anything about your bookings, payments, your agreements, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and agreements, and I bring in a person whenever that is the right answer.";
 
 const STARTERS = [
   "Where is my booking?",
@@ -65,6 +69,8 @@ const STARTERS = [
 
 const HUMAN_TEXT =
   "Of course. Tell me who to reply to and I will pass this to the support team. We keep only your name and email, and use them just to answer you.";
+const HUMAN_TEXT_SIGNED_IN =
+  "Of course. I will pass this conversation to the support team as it is, so you do not have to repeat yourself. A person replies in Messages and by email.";
 const ESCALATION_TEXT =
   "I do not have a confident answer for that, so let me put it in front of a person. Check your details below and send it over.";
 const NETWORK_ERROR_MESSAGE =
@@ -123,25 +129,36 @@ function toTurns(messages: Message[]): SupportTurn[] {
     .map((m) => ({ role: m.role, content: m.text }));
 }
 
-/** What a human picking up the ticket sees first when the person escalated. */
+/**
+ * What a human picking up the ticket sees first when the person escalated:
+ * the whole conversation, oldest first, cut from the oldest end only if it is
+ * longer than a ticket message can hold (`chatTranscript`).
+ */
 function transcriptSummary(messages: Message[]): string {
-  const recent = messages.filter((m) => m.text.trim().length > 0).slice(-6);
-  if (recent.length === 0) return "Escalated from the support chat with no earlier messages.";
-  const lines = recent.map(
-    (m) => `${m.role === "user" ? "Person" : "Support agent"}: ${m.text.trim()}`,
-  );
-  return `Conversation so far:\n${lines.join("\n")}`;
+  return chatTranscript(messages.map((m) => ({ role: m.role, text: m.text })));
 }
+
+const DRAFT_KEY = "nf_support_chat_draft";
 
 export function SupportChat({
   aiConsented = false,
   defaultOpen = false,
+  signedIn = false,
+  embedded = false,
 }: {
   aiConsented?: boolean;
   /** Starts with the conversation showing, for a caller that opened it on purpose (the support home's sheet). */
   defaultOpen?: boolean;
+  /**
+   * A signed-in member is handed to a person without being asked for a name
+   * and an email: the ticket files under their account, the reply lands in
+   * Messages, and the server reads the address they sign in with.
+   */
+  signedIn?: boolean;
+  /** Drawn inside a sheet that already has a title: no card, no open toggle. */
+  embedded?: boolean;
 } = {}) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(defaultOpen || embedded);
   /* STORE-07: the AI half of this chat runs only after this person agrees to
      the disclosure; declining keeps the chat, answered from the help pages
      and a person, with no AI. The route refuses without agreement anyway. */
@@ -149,6 +166,8 @@ export function SupportChat({
   const [consentSheet, setConsentSheet] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  /* The reference `fileSupportTicket` just answered with, for the success sheet. */
+  const [justFiled, setJustFiled] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [draft, setDraft] = useState("");
@@ -187,8 +206,26 @@ export function SupportChat({
      the write below so an empty first render cannot erase a stored thread. */
   useEffect(() => {
     setMessages(loadThread());
+    try {
+      const stored = window.localStorage.getItem(DRAFT_KEY);
+      if (stored) setDraft(stored.slice(0, 2000));
+    } catch {
+      // No stored draft.
+    }
     setHydrated(true);
   }, []);
+
+  /* The half-typed message survives the sheet closing, a reload and a lost
+     connection: closing the sheet unmounts this component. */
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      if (draft) window.localStorage.setItem(DRAFT_KEY, draft);
+      else window.localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      // Storage blocked: the draft lives in memory.
+    }
+  }, [draft, hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -362,24 +399,33 @@ export function SupportChat({
   );
 
 
-  /** Talk to a person: always available, never behind a failed answer. */
+  /**
+   * Talk to a person: always available, never behind a failed answer.
+   *
+   * Whatever is sitting unsent in the box goes with it, as the member's own
+   * message, so pressing this halfway through a sentence loses nothing.
+   */
   const askForHuman = () => {
-    const lastQuestion = [...messages].reverse().find((m) => m.role === "user")?.text ?? "";
+    const unsent = draft.trim();
+    const lastQuestion = unsent || ([...messages].reverse().find((m) => m.role === "user")?.text ?? "");
+    setDraft("");
     setMessages((prev) => [
       ...prev,
+      ...(unsent ? [{ id: makeId(), role: "user" as const, text: unsent }] : []),
       { id: makeId(), role: "user", text: "I would like to talk to a person." },
       {
         id: makeId(),
         role: "assistant",
-        text: HUMAN_TEXT,
+        text: signedIn ? HUMAN_TEXT_SIGNED_IN : HUMAN_TEXT,
         escalating: true,
         question: lastQuestion || "Asked to speak to a person from the support chat.",
       },
     ]);
   };
 
-  const markFiled = (messageId: string, reference: string) => {
-    patch(messageId, (m) => ({ ...m, reference }));
+  const markFiled = (messageId: string, reference: string, ticketId?: string) => {
+    patch(messageId, (m) => ({ ...m, reference, ...(ticketId ? { ticketId } : {}) }));
+    setJustFiled(reference);
   };
 
   const clearConversation = () => {
@@ -398,12 +444,19 @@ export function SupportChat({
     streaming && messages[messages.length - 1]?.text.trim().length === 0;
 
   return (
-    <section className="nf-panel nf-panel--card block p-card" aria-label="Help and support">
-      <div className="flex items-center gap-group">
+    <section className={embedded ? "block" : "nf-panel nf-panel--card block p-card"} aria-label="Help and support">
+      {/* Keyed by the reference, so a second escalation is a second moment. */}
+      {justFiled ? <TicketFiledSheet key={justFiled} reference={justFiled} signedIn={signedIn} /> : null}
+      {!embedded && (
+      /* Wraps, so under ~400px the chip drops to its own line under the text
+         instead of squeezing the title and sentence into a 38px column
+         (measured on /help at 320). The text column's 12rem basis is the
+         width below which it yields the row to the chip. */
+      <div className="flex flex-wrap items-center gap-group">
         <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="support-shield" fill />
         </span>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-[10rem]">
           <h2 className="nf-body font-semibold leading-tight">Help and support</h2>
           {/* A title and its own subtitle are two rows of one object, so they
               take the row interval. This was mt-0.5, which is 2px: a heading
@@ -427,16 +480,17 @@ export function SupportChat({
           {open ? "Close" : "Open chat"}
         </button>
       </div>
+      )}
 
       <div id={panelId} hidden={!open}>
         {open && (
           <div
             data-testid="support-panel"
-            className="nf-panel nf-panel--card nf-rise mt-heading block overflow-hidden p-0"
+            className={embedded ? "block" : "nf-panel nf-panel--card nf-rise mt-heading block overflow-hidden p-0"}
           >
             <div
               ref={scrollerRef}
-              className="max-h-96 min-h-52 space-y-group overflow-y-auto p-card-sm"
+              className={embedded ? "min-h-52 space-y-group pb-group" : "max-h-96 min-h-52 space-y-group overflow-y-auto p-card-sm"}
               aria-live="polite"
               aria-label="Support conversation"
             >
@@ -492,15 +546,16 @@ export function SupportChat({
                     )}
 
                     {m.reference ? (
-                      <TicketReceipt reference={m.reference} />
+                      <TicketReceipt reference={m.reference} ticketId={m.ticketId} />
                     ) : (
                       m.escalating && (
                         <EscalationCard
                           defaultName={identity.name}
                           defaultEmail={identity.email}
+                          signedIn={signedIn}
                           question={m.question ?? m.text}
                           summary={transcriptSummary(messages)}
-                          onFiled={(reference) => markFiled(m.id, reference)}
+                          onFiled={(reference, ticketId) => markFiled(m.id, reference, ticketId)}
                         />
                       )
                     )}
@@ -549,6 +604,9 @@ export function SupportChat({
                 />
               </div>
             ) : null}
+            {/* In the sheet the composer stays on screen while the thread
+                scrolls under it, the way a messaging app's does. */}
+            <div className={embedded ? "sticky bottom-0 bg-[var(--nf-surface-elevated)]" : ""}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -609,6 +667,16 @@ export function SupportChat({
                   Clear conversation
                 </button>
               )}
+              {signedIn && (
+                <Link
+                  href="/support/new"
+                  data-testid="support-write-instead"
+                  className="inline-flex min-h-11 items-center nf-caption font-medium text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
+                >
+                  Write to the team instead
+                </Link>
+              )}
+            </div>
             </div>
           </div>
         )}
@@ -657,7 +725,7 @@ function AgentBubble({
 }
 
 /** The receipt. Only ever rendered from a reference the database returned. */
-function TicketReceipt({ reference }: { reference: string }) {
+function TicketReceipt({ reference, ticketId }: { reference: string; ticketId?: string }) {
   return (
     <div
       data-testid="support-receipt"
@@ -668,35 +736,53 @@ function TicketReceipt({ reference }: { reference: string }) {
             nudged onto the baseline of the line beside it, not a gap. */}
         <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0" />
         <span className="min-w-0 break-words">
-          Ticket {reference} is filed. A person replies by email.
+          {ticketId
+            ? `Ticket ${reference} is filed with this conversation attached. A person replies in Messages and by email.`
+            : `Ticket ${reference} is filed. A person replies by email.`}
         </span>
       </p>
-      <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]">
-        We keep only the name and email you gave here, and use them just to
-        reply to this ticket.
-      </p>
+      {ticketId ? (
+        <Link
+          href={`/support/messages/${ticketId}`}
+          className="nf-caption mt-row inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)]"
+          data-testid="support-receipt-open"
+        >
+          Open the conversation
+        </Link>
+      ) : (
+        <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]">
+          We keep only the name and email you gave here, and use them just to
+          reply to this ticket.
+        </p>
+      )}
     </div>
   );
 }
 
 /**
- * Escalation card. Collects a name and an email and nothing else, validates
- * both, files the ticket through the server action, and shows the real VAL-SUP
- * reference the database returned. When the platform cannot file yet, the
- * action's honest message is shown instead of pretending a ticket exists.
+ * Escalation card. Files the ticket through the server action, with the whole
+ * conversation as its first message, and shows the real VAL-SUP reference the
+ * database returned. When the platform cannot file yet, the action's honest
+ * message is shown instead of pretending a ticket exists.
+ *
+ * Signed out, it collects a name and an email and nothing else. Signed in it
+ * asks for nothing: the ticket files under the member's account, the server
+ * reads their name and sign-in address, and the reply lands in Messages.
  */
 function EscalationCard({
   defaultName,
   defaultEmail,
+  signedIn,
   question,
   summary,
   onFiled,
 }: {
   defaultName: string;
   defaultEmail: string;
+  signedIn: boolean;
   question: string;
   summary: string;
-  onFiled: (reference: string) => void;
+  onFiled: (reference: string, ticketId?: string) => void;
 }) {
   const [name, setName] = useState(defaultName);
   const [email, setEmail] = useState(defaultEmail);
@@ -705,24 +791,26 @@ function EscalationCard({
   const [pending, startTransition] = useTransition();
 
   const submit = () => {
-    const errors: { name?: string; email?: string } = {};
-    if (!name.trim()) errors.name = "Add your name so we know who to reply to.";
-    if (!email.trim()) errors.email = "Add an email address so we can reply.";
-    else if (!EMAIL_RE.test(email.trim())) errors.email = "Enter a valid email address.";
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (!signedIn) {
+      const errors: { name?: string; email?: string } = {};
+      if (!name.trim()) errors.name = "Add your name so we know who to reply to.";
+      if (!email.trim()) errors.email = "Add an email address so we can reply.";
+      else if (!EMAIL_RE.test(email.trim())) errors.email = "Enter a valid email address.";
+      setFieldErrors(errors);
+      if (Object.keys(errors).length > 0) return;
+    }
 
     setNote(null);
     startTransition(async () => {
       const result = await fileSupportTicket({
-        name: name.trim(),
-        email: email.trim(),
-        topic: "Support chat escalation",
+        ...(signedIn ? {} : { name: name.trim(), email: email.trim() }),
+        topic: "other",
+        kind: "question",
         body: question,
         summary,
       });
       if (result.ok) {
-        onFiled(result.data.reference);
+        onFiled(result.data.reference, result.data.id);
       } else {
         setFieldErrors({
           ...(result.fieldErrors?.name ? { name: result.fieldErrors.name } : {}),
@@ -743,40 +831,46 @@ function EscalationCard({
         Bring in a person
       </p>
 
-      {/*
-        `Field` owns the message element now - including its `role="alert"` and
-        the `aria-describedby` that points at it - so the message no longer has
-        a node of its own to hang a hook on. The `-error` test ids therefore sit
-        on the field wrappers, whose text content IS the message when there is
-        one. Same locator, same assertion, and the state is finally visible.
-      */}
-      <div className="mt-heading space-y-row">
-        <div data-testid="support-name-error">
-          <TextField
-            label="Name"
-            id="support-escalation-name"
-            data-testid="support-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="name"
-            error={fieldErrors.name}
-          />
+      {signedIn ? (
+        <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-secondary)]">
+          The team gets this whole conversation, so you do not have to repeat yourself.
+        </p>
+      ) : (
+        /*
+          `Field` owns the message element now - including its `role="alert"` and
+          the `aria-describedby` that points at it - so the message no longer has
+          a node of its own to hang a hook on. The `-error` test ids therefore sit
+          on the field wrappers, whose text content IS the message when there is
+          one. Same locator, same assertion, and the state is finally visible.
+        */
+        <div className="mt-heading space-y-row">
+          <div data-testid="support-name-error">
+            <TextField
+              label="Name"
+              id="support-escalation-name"
+              data-testid="support-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+              error={fieldErrors.name}
+            />
+          </div>
+          <div data-testid="support-email-error">
+            <TextField
+              label="Email"
+              id="support-escalation-email"
+              data-testid="support-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              inputMode="email"
+              error={fieldErrors.email}
+            />
+          </div>
         </div>
-        <div data-testid="support-email-error">
-          <TextField
-            label="Email"
-            id="support-escalation-email"
-            data-testid="support-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            inputMode="email"
-            error={fieldErrors.email}
-          />
-        </div>
-      </div>
+      )}
 
       {note && (
         <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]">{note}</p>
@@ -791,13 +885,15 @@ function EscalationCard({
         onClick={submit}
         loading={pending}
       >
-        File the ticket
+        {signedIn ? "Send to a person" : "File the ticket"}
       </Button>
 
-      <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]">
-        We collect only the name and email above, and use them just to reply to
-        this question.
-      </p>
+      {!signedIn && (
+        <p className="mt-row nf-caption leading-relaxed text-[var(--nf-content-muted)]">
+          We collect only the name and email above, and use them just to reply to
+          this question.
+        </p>
+      )}
     </div>
   );
 }

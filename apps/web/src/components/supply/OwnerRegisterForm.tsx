@@ -18,6 +18,7 @@ import {
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
+import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
 
 /**
  * GOVERNING-03, THE OWNER FORM, AND IT IS THE ONE THAT MATTERS.
@@ -219,7 +220,12 @@ export function OwnerRegisterForm({
   }
 
   if (step === 3 && filed) {
-    return <OwnerDoneScreen t={t} filed={filed} />;
+    return (
+      <>
+        <OwnerDoneScreen t={t} filed={filed} />
+        <RegistrationFiledSheet reference={filed.reference} copy={t.success} />
+      </>
+    );
   }
 
   const screen = [

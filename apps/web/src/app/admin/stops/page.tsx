@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getStopsDesk, STOPS_STATUSES } from "@/lib/admin/suspension-queries";
@@ -113,6 +114,13 @@ export default async function AdminStopsPage({
         lede={LEDE}
         count={read.stopped.length}
       />
+      {/* The person file is this desk's child in the hierarchy; the member
+          search is its front door for someone who is not a lister. */}
+      <p className="mb-row nf-caption">
+        <Link href="/admin/people" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-2">
+          Find any member by name, handle, email or id
+        </Link>
+      </p>
 
       <QueueFilters
         base="/admin/stops"

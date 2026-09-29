@@ -16,9 +16,11 @@
  * rather than with numbers written into it.
  */
 import { chromium } from "playwright-core";
+import { passcodeReady } from "./_passcode.mjs";
 import { mkdirSync } from "node:fs";
 
-const BASE_URL = process.argv[2] ?? "http://127.0.0.1:3185";
+/* run.mjs passes the server as BASE_URL; an explicit argument still wins. */
+const BASE_URL = process.argv[2] ?? process.env.BASE_URL ?? "http://127.0.0.1:3185";
 const SHOTS = process.argv[3] ?? "docs/design/proofs/session-b/feed/live";
 const EXPECT = JSON.parse(process.env.EXPECT_JSON ?? "{}");
 mkdirSync(SHOTS, { recursive: true });
@@ -33,8 +35,10 @@ const stamp = () => new Date().toISOString();
 const email = process.env.QA_MEMBER_EMAIL;
 const password = process.env.QA_MEMBER_PASSWORD;
 if (!email || !password) {
-  console.log("WAITING ON QA CREDENTIALS: QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD not set");
-  process.exit(2);
+  /* Conditional on a missing secret, not disabled: with the variables set this
+     runs. Reported to run.mjs as SKIP (exit 77), never as a pass. */
+  console.log("  SKIP    session-b-feed-live: QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD are not set; this is a signed-in read of the real feed");
+  process.exit(77);
 }
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
@@ -56,12 +60,13 @@ console.log(`signed in run, ${stamp()}, ${BASE_URL}`);
 
 /* 1. A real sign-in that lands on the feed. */
 await page.goto(`${BASE_URL}/sign-in?next=${encodeURIComponent("/around")}`, { waitUntil: "domcontentloaded" });
-await fillAndWaitHydrated("#auth-email", email);
-await page.click("button:has-text('Continue')");
-await page.waitForURL(/\/sign-in\/email/, { timeout: 20000 });
+/* One screen (B-1): email and password together on /sign-in. */
+await fillAndWaitHydrated("#email", email);
 await fillAndWaitHydrated("#password", password);
 await page.click("button[type=submit]:has-text('Sign in')");
 await page.waitForURL((u) => u.pathname === "/around", { timeout: 40000 }).catch(() => {});
+/* The passcode layer (docs/PASSCODE.md): set or type the QA code before walking the feed. */
+await passcodeReady(ctx, page, { baseUrl: BASE_URL });
 check("sign-in lands on /around", path().startsWith("/around"), path());
 /* The streamed skeleton also wears `.nf-post`; a real card has its open link. */
 await page.waitForSelector("a.nf-post__open", { timeout: 40000 }).catch(() => {});

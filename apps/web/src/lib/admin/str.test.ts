@@ -108,9 +108,16 @@ describe("SCUML item 6: reading the STR desk", () => {
   });
 });
 
+/*
+ * The LIVE migration for SCUML item 6 (20260924173000 to 173200 were never
+ * applied; see supabase/migrations/superseded/README.md). readFileSync throws
+ * when it is missing, so a renamed or moved file fails the suite.
+ */
+const LIVE_6 = join(__dirname, "../../../../../supabase/migrations/20260929002643_scuml_6_str_desk_and_hold_claims_on_live_tables.sql");
+
 describe("SCUML item 6: what the database holds to", () => {
   const sql = readFileSync(
-    join(__dirname, "../../../../../supabase/migrations/superseded/20260924173000_scuml_item_6_suspicious_transaction_reports.sql"),
+    LIVE_6,
     "utf8",
   );
 
@@ -138,11 +145,13 @@ describe("SCUML item 6: what the database holds to", () => {
 
   it("writes the one neutral reason, which reads as a hold with no cause anywhere a member looks", () => {
     const fixes = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/superseded/20260924173100_scuml_item_6_str_review_fixes.sql"),
+      LIVE_6,
       "utf8",
     );
-    expect(fixes).toContain("values (c.subject_id, v_until, 'plain', now());");
-    expect(fixes).not.toContain("'staff_review', now()");
+    /* Live: the row is written from the desks' claims, always as 'plain'. */
+    expect(fixes).toContain("values (p_user, v_latest, 'plain', now());");
+    expect(fixes).toContain("set hold_until = v_latest, reason = 'plain' where user_id = p_user;");
+    expect(fixes).not.toContain("'staff_review'");
     /* Behaviour: the row the desk writes, read the way the wallet and the
        not-me panel read it. */
     const hold = holdFromRows([{ hold_until: "2099-01-01T00:00:00Z", reason: "plain" }], Date.parse("2026-09-24T10:00:00Z"));
@@ -157,7 +166,7 @@ describe("SCUML item 6: what the database holds to", () => {
 
   it("keeps a conflicted staff member out, dates no filing before its approval, and caps the hold (173100)", () => {
     const fixes = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/superseded/20260924173100_scuml_item_6_str_review_fixes.sql"),
+      LIVE_6,
       "utf8",
     );
     expect(fixes.match(/if private\.str_is_party\([^)]*actor\) then return/g)?.length).toBeGreaterThanOrEqual(6);
@@ -166,14 +175,15 @@ describe("SCUML item 6: what the database holds to", () => {
     expect(fixes).toContain("if p_filed_at < v_approved_at then return 'before_approval'; end if;");
     expect(fixes).toContain("before truncate on private.%I for each statement");
     expect(fixes).toContain("v_until timestamptz := now() + private.str_hold_length();");
-    expect(fixes).toContain("return jsonb_build_object('status', 'other_hold', 'until', v_existing.hold_until);");
+    /* Live: a release that finds another hold still in force is answered other_hold. */
+    expect(fixes).toContain("v_outcome := 'other_hold';");
     expect(fixes).toContain("private.str_overdue(c.id)");
     expect(fixes).toContain("where private.str_overdue(x.id)");
   });
 
   it("holds through one shared claims model, and a release clears only this desk's claim (173200)", () => {
     const own = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/superseded/20260924173200_scuml_item_6_str_holds_are_its_own.sql"),
+      LIVE_6,
       "utf8",
     );
     expect(own).toContain("create table if not exists private.hold_claims");

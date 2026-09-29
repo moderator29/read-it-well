@@ -444,11 +444,19 @@ export type FeedPage = {
    */
   cursor: string | null;
   ended: boolean;
+  /**
+   * The read itself failed. Set only then, and always with no posts and no
+   * cursor. Without it a dropped read was the same object as the true end of
+   * the timeline, so a load-more that failed mid-scroll told the reader they
+   * had seen everything and took the control away.
+   */
+  failed?: true;
 };
 
 const PAGE_SIZE = 20;
 
 const EMPTY_PAGE: FeedPage = { posts: [], cursor: null, ended: true };
+const FAILED_PAGE: FeedPage = { posts: [], cursor: null, ended: true, failed: true };
 
 /**
  * One page of a timeline over a set of places.
@@ -538,7 +546,7 @@ async function readFeedPage(
   }
 
   const [{ data, error }, muted] = await Promise.all([query, readMutes(supabase, viewerId)]);
-  if (error || !data) return EMPTY_PAGE;
+  if (error || !data) return FAILED_PAGE;
 
   const all = data as unknown as RawPost[];
   const ended = all.length <= PAGE_SIZE;
@@ -609,7 +617,7 @@ export async function getJoinedFeed(userId: string, cursor?: string): Promise<Fe
        reading a timeline, not a shelf, and the extra rows would only widen an
        `in` list that is already the whole of their Around. */
     .limit(60);
-  if (error || !data) return EMPTY_PAGE;
+  if (error || !data) return FAILED_PAGE;
 
   const areaIds = (data as { area_id: string }[])
     .map((row) => row.area_id)

@@ -1,39 +1,37 @@
-import { parseNairaToKobo } from "@/lib/money/amount";
-
 /**
  * WHAT A MONEY PROOF IS FOR. V-81.
  *
- * A step-up unlocks ONE action, named by its kind, its amount in kobo and its
- * recipient or account. The phone sends the intent when it asks for a proof;
- * the server hashes it (`money-step-up.ts`) into the challenge and the
- * step-up; the money action rebuilds the same intent from its own validated
- * input and the digests must match. Shared by the browser and the server so
- * the two read a form the same way.
+ * Vallo holds no money (ADR 0002): there is no wallet to send from and no
+ * withdrawal. What still decides where a person's money lands is their payout
+ * account (the Paystack subaccount a lister's share settles to) and their
+ * bank account (where a Vallo Guarantee payout goes), which of those is the
+ * default, and removing one. A card refund always goes back to the card that
+ * paid, so there is no refund destination to change. Those actions, and
+ * removing the lock itself, are what a step-up unlocks.
+ *
+ * A step-up unlocks ONE action, named by its kind and its account. The phone
+ * sends the intent when it asks for a proof; the server hashes it
+ * (`money-step-up.ts`) into the challenge and the step-up; the action
+ * rebuilds the same intent from its own validated input and the digests must
+ * match. Shared by the browser and the server so the two read a form the
+ * same way.
  */
 
 export const MONEY_KINDS = [
-  "send",
-  "withdraw",
   "bank_add",
   "payout_add",
   "payout_default",
   "bank_default",
   "payout_remove",
-  "escrow_confirm",
-  "escrow_fund",
-  "pay_wallet",
-  "caution_return",
-  /* V-86: a flatmate paying their share of a move-in, and the lead returning it. */
-  "rent_share",
-  "rent_share_return",
   "remove_lock",
 ] as const;
 export type MoneyKind = (typeof MONEY_KINDS)[number];
 
 /**
- * `amountKobo` is the figure the action will move; `target` is who or where:
- * the recipient's email for a send, `saved:<bank account id>` for a saved
- * payout account, `<bank code>:<account number>` for a typed one.
+ * `target` is the account the action is about: `<bank code>:<account number>`
+ * for a typed account, the account id for a default, `bank:<id>` or
+ * `payout:<id>` for a removal. `amountKobo` is kept for the digest's shape
+ * and is empty for every kind that remains.
  */
 export type MoneyIntent = { kind: MoneyKind; amountKobo?: number | null; target?: string | null };
 
@@ -53,38 +51,4 @@ export function intentLine(intent: MoneyIntent): string {
   const kobo = typeof intent.amountKobo === "number" ? intent.amountKobo : "";
   const target = (intent.target ?? "").trim().toLowerCase();
   return `${intent.kind}|${kobo}|${target}`;
-}
-
-const one = (form: FormData, key: string): string => {
-  const value = form.get(key);
-  return typeof value === "string" ? value : "";
-};
-
-/**
- * The phone's reading of a send or withdrawal form, for asking the proof. The
- * server does NOT use this: each action builds its intent from its own
- * validated input (`sendIntent`, `withdrawIntent`), and the two must agree.
- */
-export function intentFromForm(kind: "send" | "withdraw", form: FormData): MoneyIntent {
-  const amountKobo = parseNairaToKobo(one(form, "amount"));
-  if (kind === "send") return sendIntent(amountKobo, one(form, "recipientEmail"));
-  const saved = one(form, "bankAccountId").trim();
-  return saved
-    ? withdrawIntent(amountKobo, { bankAccountId: saved })
-    : withdrawIntent(amountKobo, { bankCode: one(form, "bankCode"), accountNumber: one(form, "accountNumber").replace(/\D/g, "") });
-}
-
-export function sendIntent(amountKobo: number | null, recipientEmail: string): MoneyIntent {
-  return { kind: "send", amountKobo, target: recipientEmail };
-}
-
-export function withdrawIntent(
-  amountKobo: number | null,
-  to: { bankAccountId: string } | { bankCode: string; accountNumber: string },
-): MoneyIntent {
-  return {
-    kind: "withdraw",
-    amountKobo,
-    target: "bankAccountId" in to ? `saved:${to.bankAccountId}` : `${to.bankCode}:${to.accountNumber}`,
-  };
 }

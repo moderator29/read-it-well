@@ -33,6 +33,16 @@ export function SiteNavLinks({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  /*
+   * THE MENU TAKES THE READER'S THEME BACK. The site bar is a night island in
+   * both themes (the navy top block, `SiteHeader.tsx`), and this popover is
+   * inside it, so in light it opened navy over a white page, the language
+   * select with it. Read from the root when it opens, because "system" is
+   * only resolved in the browser; `tokens.css` redeclares the light palette
+   * on a `[data-theme="light"]` nested in a light root, so the popover paints
+   * as the page does while staying in the DOM order after its button.
+   */
+  const [readerTheme, setReaderTheme] = useState<"light" | undefined>(undefined);
   const wrap = useRef<HTMLDivElement | null>(null);
   const menuId = useId();
   const close = useCallback(() => setOpen(false), []);
@@ -76,13 +86,16 @@ export function SiteNavLinks({
           aria-expanded={open}
           aria-controls={menuId}
           aria-haspopup="menu"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            setReaderTheme(document.documentElement.dataset.theme === "light" ? "light" : undefined);
+            setOpen((v) => !v);
+          }}
         >
           {moreLabel}
           <UiIcon name="chevron-down" size={16} aria-hidden />
         </button>
         {open && (
-          <div id={menuId} role="menu" className="nf-site-nav-menu">
+          <div id={menuId} role="menu" className="nf-site-nav-menu" data-theme={readerTheme}>
             {more.map((l) => (
               <Link key={l.href} href={l.href} role="menuitem" prefetch onClick={close}>
                 {l.label}

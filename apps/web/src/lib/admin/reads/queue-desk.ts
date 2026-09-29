@@ -6,10 +6,12 @@ import { readViewFilters, type QueueKind, type ReportSignals, type ViewFilters }
 /**
  * THE QUEUE DESK'S READS. V-89.
  *
- * All through the operator's own session, so the policies in
- * `20260924160400_v89_...sql` decide what comes back: claims and saved views
- * are readable by operators only, and the report signals function answers
- * nothing to anybody else. Each read fails into "nothing known", which the
+ * The report signals function checks the caller's own moderation scope
+ * (`staff_can`), so it runs as the operator's session; through the service
+ * client it would see no caller and answer nothing. Claims and saved views
+ * are read with the service client `requireAdmin` hands a staff member, so
+ * the saved views are narrowed here exactly as their policy narrows them:
+ * the operator's own, and the shared ones. Each read fails into "nothing known", which the
  * page draws as an unclaimed row, an unweighted report or no saved views,
  * never as an error that blocks the queue.
  */
@@ -50,22 +52,26 @@ export async function loadDesk(itemIds: string[], reportIds: string[]): Promise<
   }
   if (access.state !== "admin") return empty;
   const db = access.supabase as unknown as Loose;
+  const me = access.userClient as unknown as Loose;
+  const uuid = /^[0-9a-f-]{36}$/i.test(access.user.id) ? access.user.id : null;
 
   const [claims, signals, views, operators] = await Promise.all([
     itemIds.length > 0
       ? db.from("queue_claims").select("kind, item_id, claimed_by, touched_at").in("item_id", itemIds.slice(0, 200))
       : Promise.resolve({ data: [], error: null }),
-    reportIds.length > 0 ? db.rpc("admin_report_signals", { p_reports: reportIds.slice(0, 200) }) : Promise.resolve({ data: [], error: null }),
+    reportIds.length > 0 ? me.rpc("admin_report_signals", { p_reports: reportIds.slice(0, 200) }) : Promise.resolve({ data: [], error: null }),
     /* Your own views and the shared ones, never another operator's private
        views (this read runs on the service role for staff). The id is the
-       session's own uuid. */
-    db
-      .from("admin_saved_views")
-      .select("id, owner, name, filters, shared")
-      .or(`owner.eq.${access.user.id},shared.is.true`)
-      .order("created_at", { ascending: false })
-      .limit(30),
-    (access.userClient as unknown as Loose).rpc("queue_operators"),
+       session's own uuid, checked before it goes into the filter. */
+    uuid
+      ? db
+          .from("admin_saved_views")
+          .select("id, owner, name, filters, shared")
+          .or(`owner.eq.${uuid},shared.eq.true`)
+          .order("created_at", { ascending: false })
+          .limit(30)
+      : Promise.resolve({ data: [], error: null }),
+    me.rpc("queue_operators"),
   ]);
 
   const out: DeskReads = { ...empty, me: access.user.id };

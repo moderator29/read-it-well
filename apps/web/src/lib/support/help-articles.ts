@@ -152,7 +152,7 @@ export const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "What payment methods can I use?",
-    a: "You can pay in naira with Nigerian debit cards or by bank transfer. Where crypto is offered it is converted to naira by Yellow Card before it reaches anybody, and Vallo never holds crypto. The same methods work on both sides of the product, for a night or for a year. Prices are always shown in naira with no hidden conversion.",
+    a: "You can pay in naira with Nigerian debit cards or by bank transfer. Paying in crypto is not switched on yet. When it is, it will appear as ‘Pay with crypto’ on the payment screen for people who have completed an identity check on Vallo: a licensed provider converts it and pays the owner or agent in naira, and Vallo never holds your crypto. The same methods work on both sides of the product, for a night or for a year. Prices are always shown in naira with no hidden conversion.",
   },
   {
     category: "Payments and refunds",

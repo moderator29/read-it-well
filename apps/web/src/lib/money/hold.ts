@@ -1,18 +1,19 @@
 /**
- * SEC-15: the 7-day money hold after support moves an account to a new email
- * address. The database refuses money leaving the account (withdrawals,
- * sends, wallet payments, escrow holds, new or repointed bank accounts) with
- * SQLSTATE RM050 and a sentence that already carries the end date, in Lagos
- * time. Every door that can hit it shows that sentence instead of a generic
- * failure, so a held person learns why and until when.
+ * The refusal when a hold stops a new or changed payout or bank account
+ * (SQLSTATE RM050). The database sends one undated sentence for every hold
+ * (20260929015959): a compliance hold is never described to its owner, so
+ * this never names a cause or a date either (SCUML items 6 and 8). A dated
+ * sentence is passed through only in the database's own "until" form, which
+ * it sends for nothing but the member's own hold.
  *
  * Client-safe: pure.
  */
 
 export const MONEY_HOLD_CODE = "RM050";
 
-const FALLBACK =
-  "Money cannot leave this account for 7 days after its email address was changed by support. Your balance is untouched.";
+export const NEUTRAL_HOLD_REFUSAL = "A new payout account cannot be added to this account right now.";
+
+const OWN_HOLD_PREFIX = "A new payout account cannot be added to this account until ";
 
 type MaybeError = { code?: string | null; message?: string | null } | null | undefined;
 
@@ -20,5 +21,5 @@ type MaybeError = { code?: string | null; message?: string | null } | null | und
 export function moneyHoldRefusal(error: MaybeError): string | null {
   if (!error || error.code !== MONEY_HOLD_CODE) return null;
   const message = (error.message ?? "").trim();
-  return message.startsWith("Money cannot leave this account until ") ? `${message} Your balance is untouched.` : FALLBACK;
+  return message.startsWith(OWN_HOLD_PREFIX) ? message : NEUTRAL_HOLD_REFUSAL;
 }

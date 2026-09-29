@@ -24,6 +24,14 @@
  * is refused 23505, a valid one is accepted and lands with its author label,
  * the host's notification and the safety classification of its body.
  *
+ * WHAT CHANGED ON 23 SEPTEMBER. Every one of these routes now answers a
+ * signed-out visitor with the sign-in wall (asserted first), so the signed-out
+ * "designed states" this used to read are gone for a stranger. The trips deck
+ * is read in the preview harness (`/preview/f3/bookings`, the real TripSpine
+ * with fixture stays, titled "Plans" now), and the review route's designed
+ * states and the real deck are read signed in as the QA member (SKIP without
+ * QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
+ *
  * Also proven there, and not provable from a browser: a review is final. There
  * is no UPDATE policy on public.reviews at all, so an author's direct PATCH to
  * /rest/v1/reviews changes zero rows and the body is untouched. The scan trigger
@@ -32,6 +40,7 @@
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa, skip } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -53,117 +62,121 @@ const MALFORMED_BOOKING = "not-a-booking";
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
-  const page = await context.newPage();
-
-  /* A route that throws renders the root error boundary. Nothing in this walk
-     may ever reach it. /_next/image is excluded deliberately: this sandbox has
-     no outbound route to the photo CDN, so the image optimiser answers 500 for
-     every remote photo here and does not on a real deploy. That is environment,
-     not product (docs/DEPLOY.md section 7). */
-  const seenErrorScreen = [];
-  page.on("response", (r) => {
-    if (r.status() >= 500 && !r.url().includes("/_next/image")) {
-      seenErrorScreen.push(`${r.status()} ${r.url()}`);
-    }
-  });
-
-  try {
-    console.log(`\n[${theme}] /bookings/<absent>/review`);
-    await page.goto(`${BASE_URL}/bookings/${ABSENT_BOOKING}/review`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
-
-    const absentText = await page.locator("body").innerText();
+/** The deck's review controls: none that cannot work, and any that exists points at the review route. */
+async function deckReviewControls(page) {
+  const reviewControls = page.locator("a", { hasText: /^Leave a review$/ });
+  const count = await reviewControls.count();
+  for (let i = 0; i < count; i += 1) {
+    const href = await reviewControls.nth(i).getAttribute("href");
     check(
-      "the review route answers with a designed state, not a crash",
-      /We cannot reach reviews right now|Sign in to review your stay|We could not find that stay|Reviews are unavailable for a moment/.test(
-        absentText,
-      ),
+      `review control ${i + 1} points at the review route, never at a listing`,
+      typeof href === "string" && /^\/bookings\/[^/]+\/review$/.test(href),
     );
-    check(
-      "the page is titled for the job it does",
-      absentText.includes("Review your stay"),
-    );
-    check(
-      "the state offers a way onward",
-      (await page.locator("a[href='/bookings'], a[href='/sign-in'], a[href='/search']").count()) >
-        0,
-    );
-    check(
-      "there is a back control following real history",
-      (await page.locator("header button, header a").count()) > 0,
-    );
-    check("no written review is invented on an empty state", !/out of 5,/.test(absentText));
-
-    console.log(`[${theme}] /bookings/<malformed>/review`);
-    await page.goto(`${BASE_URL}/bookings/${MALFORMED_BOOKING}/review`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
-    const malformedText = await page.locator("body").innerText();
-    check(
-      "a malformed booking id is a designed screen too",
-      /We could not find that stay|We cannot reach reviews right now|Sign in to review your stay/.test(
-        malformedText,
-      ),
-    );
-
-    console.log(`[${theme}] /bookings`);
-    await page.goto(`${BASE_URL}/bookings`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
-    const bookingsText = await page.locator("body").innerText();
-
-    /* The dead end this item closes: the signed-out deck used to offer
-       "Leave a review" on a past stay, linking to the listing, where there was
-       nothing to review with. */
-    const reviewControls = page.locator("a", { hasText: /^Leave a review$/ });
-    const reviewControlCount = await reviewControls.count();
-    check(
-      "the signed-out trips deck offers no review control it cannot honour",
-      reviewControlCount === 0,
-    );
-    check("the trips deck still renders", bookingsText.includes("Bookings"));
-
-    /* Any review control that does exist must point at the review route, never
-       at a listing page. */
-    for (let i = 0; i < reviewControlCount; i += 1) {
-      const href = await reviewControls.nth(i).getAttribute("href");
-      check(
-        `review control ${i + 1} points at the review route`,
-        typeof href === "string" && /^\/bookings\/[^/]+\/review$/.test(href),
-      );
-    }
-
-    console.log(`[${theme}] /listing/seed-2 reviews section`);
-    await page.goto(`${BASE_URL}/listing/seed-2`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
-    const listingText = await page.locator("body").innerText();
-    /* Needs a listing to exist, and the catalogue of twenty-three invented
-       places was removed on purpose. See tests/_catalogue.mjs: a check that
-       cannot run is not a check that failed. */
-    if ((await page.locator('[data-testid="listing-gallery"]').count()) === 0) {
-      console.log("  skip    catalogue is empty, so there is no listing to carry reviews");
-      console.log("  note    run against a deployment with real inventory to exercise this");
-      return;
-    }
-    check("the listing still renders its reviews section", listingText.includes("Reviews"));
-    check(
-      "a listing with no written reviews says so rather than inventing them",
-      /No reviews yet|Written reviews from verified stays will appear here/.test(listingText),
-    );
-
-    check("no route in this walk returned a server error", seenErrorScreen.length === 0);
-    if (seenErrorScreen.length > 0) console.log("   ", seenErrorScreen.join("\n    "));
-  } finally {
-    await context.close();
   }
+  return count;
+}
+
+async function run(theme, state) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const seenErrorScreen = [];
+  const watch = (page) =>
+    /* /_next/image is excluded deliberately: this sandbox has no outbound route
+       to the photo CDN (docs/DEPLOY.md section 7). */
+    page.on("response", (r) => {
+      if (r.status() >= 500 && !r.url().includes("/_next/image")) seenErrorScreen.push(`${r.status()} ${r.url()}`);
+    });
+
+  /* ---------------------------------------------- the deck (preview) */
+  {
+    const context = await browser.newContext(options);
+    const page = await context.newPage();
+    watch(page);
+    try {
+      console.log(`\n[${theme}] /preview/f3/bookings (the trips deck)`);
+      if (await openPreview(page, "/preview/f3/bookings", check, { base: BASE_URL, wait: WAIT })) {
+        const text = await page.locator("body").innerText();
+        check("the trips deck renders, titled Plans", text.includes("Plans"));
+        await deckReviewControls(page);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  /* -------------------------------------- the real routes (QA member) */
+  if (state) {
+    const context = await qaContext(browser, state, options);
+    const page = await context.newPage();
+    watch(page);
+    try {
+      console.log(`[${theme}] /bookings/<absent>/review (signed in)`);
+      await page.goto(`${BASE_URL}/bookings/${ABSENT_BOOKING}/review`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+      const absentText = await page.locator("body").innerText();
+      check(
+        "the review route answers with a designed state, not a crash",
+        /We cannot reach reviews right now|We could not find that stay|Reviews are unavailable for a moment/.test(absentText),
+      );
+      check("the page is titled for the job it does", absentText.includes("Review your stay"));
+      check(
+        "the state offers a way onward",
+        (await page.locator("a[href='/bookings'], a[href='/search']").count()) > 0,
+      );
+      check("there is a back control following real history", (await page.locator("header button, header a").count()) > 0);
+      check("no written review is invented on an empty state", !/out of 5,/.test(absentText));
+
+      console.log(`[${theme}] /bookings/<malformed>/review (signed in)`);
+      await page.goto(`${BASE_URL}/bookings/${MALFORMED_BOOKING}/review`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+      check(
+        "a malformed booking id is a designed screen too",
+        /We could not find that stay|We cannot reach reviews right now/.test(await page.locator("body").innerText()),
+      );
+
+      console.log(`[${theme}] /bookings (signed in)`);
+      await page.goto(`${BASE_URL}/bookings`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+      check("the trips deck renders, titled Plans", (await page.locator("body").innerText()).includes("Plans"));
+      await deckReviewControls(page);
+
+      console.log(`[${theme}] /listing/seed-2 reviews section (signed in)`);
+      await page.goto(`${BASE_URL}/listing/seed-2`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+      /* Needs a listing to exist (tests/_catalogue.mjs): a check that cannot
+         run is not a check that failed, and it is said out loud. */
+      if ((await page.locator('[data-testid="listing-gallery"]').count()) === 0) {
+        skip("no listing behind /listing/seed-2, so there is no reviews section to read");
+      } else {
+        const listingText = await page.locator("body").innerText();
+        check("the listing still renders its reviews section", listingText.includes("Reviews"));
+        check(
+          "a listing with no written reviews says so rather than inventing them",
+          /No reviews yet|Written reviews from verified stays will appear here/.test(listingText),
+        );
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  check("no route in this walk returned a server error", seenErrorScreen.length === 0);
+  if (seenErrorScreen.length > 0) console.log("   ", seenErrorScreen.join("\n    "));
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  for (const path of [
+    `/bookings/${ABSENT_BOOKING}/review`,
+    `/bookings/${MALFORMED_BOOKING}/review`,
+    "/bookings",
+    "/listing/seed-2",
+  ]) {
+    await expectSignInWall(check, path, BASE_URL);
+  }
+  console.log("\nsigned in as the QA member, for the real routes");
+  const state = await signInAsQa(browser, { base: BASE_URL });
+  await run("dark", state);
+  await run("light", state);
 } finally {
   await browser.close();
 }

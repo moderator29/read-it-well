@@ -14,6 +14,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, sideOfPlansQuery, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
+import { CreateDock } from "./CreateDock";
 import { SideSync } from "./SideSync";
 import { useHydrated } from "@/components/motion/useInView";
 import { isDataSaver } from "@/lib/ui/data-saver";
@@ -73,6 +74,7 @@ export function AppShell({
   signedIn = false,
   isAgent = false,
   isAdmin = false,
+  isHost = false,
   workspaces = [],
   currentProfile = { kind: "personal" },
   preview,
@@ -89,6 +91,8 @@ export function AppShell({
   signedIn?: boolean;
   isAgent?: boolean;
   isAdmin?: boolean;
+  /** Holds a Stays host business; adds the host workspace row. */
+  isHost?: boolean;
   /**
    * Every workspace this account actually holds, resolved on the server from
    * the caller's own RLS bound reads and handed down.
@@ -153,15 +157,15 @@ export function AppShell({
   const openDrawer = useCallback(() => setDrawer(true), []);
 
   /*
-   * THE SWITCH, BUILT ONCE AND PLACED ONCE.
+   * THE WORKSPACE SHEET, MOUNTED ONCE, AND THE DOCK'S "+".
    *
-   * It was placed twice: the centre slot of the dock and a row near the foot
-   * of the side drawer. The founder has cut the drawer row - "it lives in the
-   * dock now and two entrances to the same sheet in the same product is
-   * clutter" - so the shell builds one control for one placement. It is still
-   * built HERE rather than inside `MobileTabBar` because the sheet needs the
-   * account's own workspace list, which the shell has already resolved once,
-   * and the dock is a server component that has no business fetching one.
+   * The workspace switch was the dock's centre control; since 29 September
+   * the centre is the "+" (`CreateDock`) and the switch is its Create sheet's
+   * last row, which opens this sheet by the named event, as the profile's
+   * Switch role row does. The sheet is still built HERE rather than inside
+   * `MobileTabBar` because it needs the account's own workspace list, which
+   * the shell has already resolved once, and the dock is a server component
+   * that has no business fetching one.
    *
    * The copy is assembled from the dictionary rather than written inline,
    * because this is new copy and new copy is going to be edited.
@@ -191,7 +195,23 @@ export function AppShell({
       /* The chooser is side dependent: three property doors or three stays
          doors, which is the founder's ruling for Track O on both sides. */
       addHref={effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
+      /* No trigger of its own any more: the dock's centre is the "+" (the
+         founder, 29 September 2026), and its sheet's Switch workspace row,
+         like the profile's Switch role row, opens this one by the named
+         event. The sheet stays mounted here, next to the list it needs. */
+      renderTrigger={() => null}
     />
+  );
+  const createControl = (
+    <>
+      <CreateDock
+        t={t}
+        isHost={isHost}
+        signedIn={signedIn}
+        listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
+      />
+      {switchControl}
+    </>
   );
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
   /* F-15: the drawer also closes on a swipe back towards the left edge. */
@@ -260,6 +280,7 @@ export function AppShell({
         unreadNotifications={unreadNotifications}
         isAgent={isAgent}
         isAdmin={isAdmin}
+        isHost={isHost}
         signedIn={signedIn}
       />
 
@@ -305,6 +326,7 @@ export function AppShell({
               unreadNotifications={unreadNotifications}
               isAgent={isAgent}
               isAdmin={isAdmin}
+              isHost={isHost}
               signedIn={signedIn}
               variant="drawer"
               onNavigate={closeDrawer}
@@ -325,6 +347,12 @@ export function AppShell({
         {showsHeader && (
         <header
           data-scrolled={scrolled || undefined}
+          /* THE NAVY TOP BLOCK (founder reference 05, 29 September 2026). The
+             header is a night island in both themes: in light it is the dark
+             VALLO band over light content, painted by `app/css/light.css`,
+             and the logo inside it keeps the night artwork. In dark the
+             attribute changes nothing. */
+          data-theme="dark"
           className={`nf-safe-top nf-app-header sticky top-0 z-40 ${
             signedIn ? "lg:hidden" : ""
           }`}
@@ -445,7 +473,7 @@ export function AppShell({
           active={active}
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
-          switchSlot={switchControl}
+          switchSlot={createControl}
           prefetchFull={hydrated && !isDataSaver()}
         />
       )}

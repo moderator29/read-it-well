@@ -1368,7 +1368,12 @@ export async function getSupportTickets(
     if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
     if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
 
+    /* DB2: queue_at is generated as coalesce(last_member_reply_at, created_at),
+       so a ticket rises when it is filed or its member replies (trigger
+       support_ticket_messages_member_replied) and never because the desk
+       edited it; created_at breaks ties. */
     const { data, error } = await select
+      .order("queue_at", { ascending: false })
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
     if (error) return UNAVAILABLE;

@@ -34,9 +34,19 @@
 // wording in tests/listing-detail.spec.mjs, tests/bookings.spec.mjs and
 // tests/hybrid.spec.mjs. It moved surfaces; it did not lose its guard.
 //
-// Exits non-zero on the first failed expectation.
+// SINCE 23 SEPTEMBER a signed-out visitor never reaches any of the three: the
+// proxy answers each with a 307 to `/sign-in?next=...` (src/proxy.ts). That is
+// the most honest answer there is, so sections 1 to 3 now assert the wall
+// (still deliberately not a 404: the conversation a link points at may exist)
+// and that the door the browser lands on serves none of the invented strings.
+// Signed in as the QA member, section 4 reads the real inbox and notifications
+// screens (SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD). The signed-in
+// inbox's shape is covered against fixtures in tests/inbox.spec.mjs.
+//
+// Exits non-zero on any failed expectation.
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, onSignInDoor, qaContext, signedOutContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 
@@ -60,101 +70,57 @@ async function expectVisible(page, locator, label) {
   }
 }
 
-const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const context = await browser.newContext({
-  viewport: { width: 390, height: 844 },
-  colorScheme: "dark",
-  deviceScaleFactor: 2,
-});
-const page = await context.newPage();
-
-// ------------------------------------------------------ 1. the inbox
-console.log("1. /messages is honest when signed out");
-await page.goto(`${BASE_URL}/messages`, { waitUntil: "load", timeout: 45000 });
-await page.waitForTimeout(1500);
-/* The surface is called Inbox now, everywhere a person can see it. The route
-   stays /messages, because a URL people have shared should not break to rename
-   a heading. The product changed; this expectation was right about the old
-   name and is now right about the new one. */
-await expectVisible(page, page.getByRole("heading", { name: "Inbox" }), "Inbox heading");
-await expectVisible(
-  page,
-  page.getByText("Sign in to see your messages"),
-  "signed out, the inbox says so",
-);
-await expectVisible(page, page.getByRole("link", { name: "Sign in" }), "and offers the way in");
-
-const inboxText = await page.locator("body").innerText();
-const inventedPeople = ["Adaeze Okafor", "Eko Pearl Waterfront Apartment"].filter((name) =>
-  inboxText.includes(name),
-);
-if (inventedPeople.length === 0) {
-  pass("no invented conversation is served to a stranger");
-} else {
-  flunk("no invented conversation is served to a stranger", inventedPeople.join(", "));
-}
-
-// ------------------------------------------------------ 2. thread view
-console.log("2. a thread nobody may read asks for a sign-in");
-await page.goto(`${BASE_URL}/messages/conv-1`, { waitUntil: "load", timeout: 45000 });
-await page.waitForTimeout(1500);
-await expectVisible(
-  page,
-  page.getByText("Sign in to read this conversation"),
-  "the thread asks for a sign-in",
-);
-
-/* Deliberately not a 404. The conversation a link points at may well exist and
-   simply not be readable without a session, and telling somebody a real thing
-   does not exist is the same lie pointing the other way. */
-const threadText = await page.locator("body").innerText();
-const inventedBubbles = [
+const record = (label, ok) => (ok ? pass(label) : flunk(label));
+const INVENTED = [
+  "Adaeze Okafor",
+  "Eko Pearl Waterfront Apartment",
   "The pool is for residents and their guests",
   "Is the apartment free from this Friday",
-].filter((line) => threadText.includes(line));
-const notFound = /page could not be found|404/i.test(threadText);
-if (inventedBubbles.length === 0 && !notFound) {
-  pass("no invented bubbles, and not a not-found either");
-} else {
-  flunk(
-    "no invented bubbles, and not a not-found either",
-    `bubbles=${inventedBubbles.length} notFound=${notFound}`,
-  );
+  "Booking confirmed",
+];
+
+const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const VIEW = { viewport: { width: 390, height: 844 }, colorScheme: "dark", deviceScaleFactor: 2 };
+const context = await signedOutContext(browser, VIEW);
+const page = await context.newPage();
+
+const SECTIONS = [
+  ["1. /messages, signed out", "/messages"],
+  ["2. a thread nobody may read, signed out", "/messages/conv-1"],
+  ["3. /notifications, signed out", "/notifications"],
+];
+for (const [title, path] of SECTIONS) {
+  console.log(title);
+  /* The 307 to the door, with the way back; never a 404, because the thing a
+     link points at may well exist and simply not be readable without a session. */
+  await expectSignInWall(record, path);
+  await page.goto(`${BASE_URL}${path}`, { waitUntil: "load", timeout: 45000 });
+  await page.waitForTimeout(1500);
+  record("the browser lands on the sign-in door", onSignInDoor(page));
+  await expectVisible(page, page.getByText(/Sign in to open that page/), "and the door says why");
+  const text = await page.locator("body").innerText();
+  const served = INVENTED.filter((line) => text.includes(line));
+  record(`nothing invented is served to a stranger${served.length ? ` (${served.join(", ")})` : ""}`, served.length === 0);
 }
+await context.close();
 
-// ------------------------------------------------------ 3. notifications
-//
-// This block used to assert that "Booking confirmed", a "Yesterday" day label
-// and a mark-all control were on screen for a signed-out visitor. All three
-// were properties of a hardcoded list of five invented notifications that told
-// a visitor who had never booked anything that their booking was confirmed and
-// their wallet was ready. The seeded list is deleted, so the spec no longer
-// asserts it: the product was wrong and now the expectation matches.
-//
-// The grouped inbox, its day labels and the mark-all control are all real for a
-// signed-in caller and are covered there. What a signed-out visitor must get is
-// an honest state, which is what this now checks. tests/notifications.spec.mjs
-// carries the full guard, including the exact invented strings by name.
-console.log("3. /notifications is honest when signed out");
-await page.goto(`${BASE_URL}/notifications`, { waitUntil: "load", timeout: 45000 });
-await page.waitForTimeout(1500);
-await expectVisible(
-  page,
-  page.getByRole("heading", { name: "Notifications" }),
-  "Notifications heading",
-);
-
-const notificationsText = await page.locator("body").innerText();
-const honest =
-  /We cannot reach your notifications right now|Sign in to see your notifications/.test(notificationsText);
-const invented = notificationsText.includes("Booking confirmed");
-if (honest && !invented) {
-  console.log("  ok  signed-out notifications state is honest");
-} else {
-  failures += 1;
-  console.log(
-    `  FAIL signed-out notifications state is honest (honest=${honest}, invented=${invented})`,
-  );
+// ------------------------------------------------------ 4. signed in
+console.log("4. the real screens, signed in as the QA member");
+const state = await signInAsQa(browser);
+if (state) {
+  const qa = await qaContext(browser, state, VIEW);
+  const qp = await qa.newPage();
+  await qp.goto(`${BASE_URL}/messages`, { waitUntil: "load", timeout: 45000 });
+  await qp.waitForTimeout(1500);
+  /* The surface is called Inbox now; the route stays /messages. */
+  await expectVisible(qp, qp.getByRole("heading", { name: "Inbox" }), "Inbox heading");
+  const inboxText = await qp.locator("body").innerText();
+  const seeded = ["Adaeze Okafor", "Eko Pearl Waterfront Apartment"].filter((n) => inboxText.includes(n));
+  record(`no seeded conversation (${seeded.join(", ") || "none"})`, seeded.length === 0);
+  await qp.goto(`${BASE_URL}/notifications`, { waitUntil: "load", timeout: 45000 });
+  await qp.waitForTimeout(1500);
+  await expectVisible(qp, qp.getByRole("heading", { name: "Notifications" }), "Notifications heading");
+  await qa.close();
 }
 
 await browser.close();

@@ -49,6 +49,8 @@ export async function HeldLane({
 }: {
   params: Record<string, string | string[] | undefined>;
 }) {
+  /* The moderation scope opens this lane to staff as well as admins, the same
+     door the reports and flags lanes use (Track K). */
   const access = await requireAdmin("moderation");
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -94,7 +96,12 @@ export async function HeldLane({
 
   /* V-63: open safety holds, on the lane that answers the reports behind them. */
   let holds: ReturnType<typeof safetyHoldRowsFrom> | null = null;
-  if (access.state === "admin") {
+  /* Safety holds are decided by admins only: `open_safety_holds`,
+     `clear_safety_hold` and `extend_safety_hold` check the admin role on
+     auth.uid() in the database, so a staff member is not shown a panel whose
+     every button would be refused. */
+  const showHolds = access.state === "admin" && !access.isStaff;
+  if (showHolds) {
     const { data: holdRows, error: holdError } = await (access.supabase as unknown as {
       rpc(fn: string): Promise<{ data: unknown; error: unknown }>;
     }).rpc("open_safety_holds");
@@ -104,7 +111,7 @@ export async function HeldLane({
   return (
     <>
       <LiveRefresh />
-      <SafetyHolds rows={holds} />
+      {showHolds && <SafetyHolds rows={holds} />}
       <ModerationDesk
         tabs={[
           { key: "held", label: "Held by the scan", href: base, on: true },

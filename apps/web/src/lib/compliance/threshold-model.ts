@@ -3,7 +3,8 @@
  * individual or N10,000,000 for a corporate to the NFIU within seven days.
  *
  * The monitor and the register are in the database
- * (`20260924174000_scuml_item_7_threshold_reports.sql`); this file is the
+ * (`20260929003449_scuml_7_threshold_reports_on_split_settlement.sql` and
+ * `20260929011120_scuml_7_refunds_and_guarantee_payouts_are_watched.sql`); this file is the
  * console's reading of what it returns, and the twin of its thresholds and its
  * due clock, held equal by `threshold-model.test.ts`.
  */
@@ -19,6 +20,10 @@ export function isAboveThreshold(amountMinor: number, klass: PartyClass): boolea
   return Number.isSafeInteger(amountMinor) && amountMinor > THRESHOLD_MINOR[klass];
 }
 
+/** Where the money was observed. Twin of the `threshold_events.source` check. */
+export const THRESHOLD_SOURCES = ["booking", "rent_payment", "refund", "rent_refund", "guarantee_payout"] as const;
+export type ThresholdSource = (typeof THRESHOLD_SOURCES)[number];
+
 export type EventState = "open" | "awaiting_approval" | "closed";
 
 export type ThresholdRow = {
@@ -26,7 +31,7 @@ export type ThresholdRow = {
   kind: "single" | "structuring";
   /** Money in to the party or out of it; structuring sums each apart. */
   direction: "in" | "out" | null;
-  source: "booking" | "escrow" | "wallet" | null;
+  source: ThresholdSource | null;
   sourceId: string | null;
   amountMinor: number;
   thresholdMinor: number;
@@ -74,7 +79,7 @@ export function readThresholdRow(raw: unknown): ThresholdRow | null {
   if (!id || !kind || amountMinor === null || thresholdMinor === null || !partyId || !partyClass || !occurredAt || !dueAt || !state) {
     return null;
   }
-  const source = row.source === "booking" || row.source === "escrow" || row.source === "wallet" ? row.source : null;
+  const source = (THRESHOLD_SOURCES as readonly string[]).includes(row.source as string) ? (row.source as ThresholdSource) : null;
   const decisionId = str(row.decision_id);
   const decisionKind = row.decision === "reported" || row.decision === "not_reportable" ? row.decision : null;
   const decidedBy = str(row.decided_by);

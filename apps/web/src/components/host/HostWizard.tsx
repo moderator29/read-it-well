@@ -9,6 +9,8 @@ import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 import { SelectField, TextArea, TextField } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
 import type { ActionResult } from "@/lib/actions/envelope";
@@ -243,6 +245,19 @@ export function HostWizard({
   const steps = useMemo(() => stepsFor(draft.hostType, draft.kind), [draft.hostType, draft.kind]);
   const step = steps[Math.min(at, steps.length - 1)]!;
   const submitted = draft.status === "SUBMITTED";
+  /*
+   * The success sheet opens on the TRANSITION to submitted, which only
+   * `submitHostApplication`'s ok makes (ReviewStep sets the status in its
+   * `then`). A host who opens the wizard already submitted gets no sheet.
+   */
+  const [celebrate, setCelebrate] = useState(false);
+  const [wasSubmitted, setWasSubmitted] = useState(submitted);
+  if (wasSubmitted !== submitted) {
+    setWasSubmitted(submitted);
+    if (submitted) setCelebrate(true);
+  }
+  /* This wizard already carries the dictionary for its locale. */
+  const successWords = getDictionary(useClientLocale()).success;
 
   const set = useCallback(<K extends keyof HostDraft>(key: K, value: HostDraft[K]) => {
     setDraft((current) => {
@@ -396,9 +411,18 @@ export function HostWizard({
    * segments would promise a shorter flow than the person is going to get.
    */
   const drawn = DRAWN_STAYS_STEPS.has(step.id);
+  const applied = successCopy(successWords, "hostApplied");
 
   return (
     <div>
+      <SuccessSheet
+        open={celebrate}
+        onOpenChange={setCelebrate}
+        variant={applied.variant}
+        title={applied.title}
+        body={applied.body}
+        primary={{ label: successWords.continue }}
+      />
       <StaysHead
         /*
          * `GOVERNING-11` screen three is the one drawn screen whose heading is

@@ -5,8 +5,8 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { updatePassword } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/Button";
 import { PasswordField, StrengthMeter } from "./fields";
+import { AuthPillButton } from "./slate";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -46,13 +46,11 @@ export function ResetPasswordForm({
   const confirmError = mismatch ? t.authFlow.passwordsDiffer : state.fieldErrors?.confirmPassword;
 
   return (
-    <div className="w-full">
-      <h1 className="nf-h2 text-center">{t.auth.newPasswordTitle}</h1>
-      <p className="mb-6 mt-xs text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-        {t.auth.newPasswordLead}
-      </p>
+    <div className="nf-auth__screen nf-slate-stagger">
+      <h1 className="nf-auth__title">{t.auth.newPasswordTitle}</h1>
+      <p className="nf-auth__sub">{t.auth.newPasswordLead}</p>
 
-      <form action={formAction} className="space-y-md text-left" noValidate>
+      <form action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
         {(askCurrent || state.fieldErrors?.currentPassword) && (
           <PasswordField
             t={t}
@@ -90,7 +88,7 @@ export function ResetPasswordForm({
         {state.message && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
           >
             {state.message}{" "}
             <Link href="/forgot-password" className="nf-tap font-semibold underline underline-offset-4">
@@ -99,9 +97,11 @@ export function ResetPasswordForm({
           </p>
         )}
 
-        <Button type="submit" variant="primary" size="lg" full loading={pending}>
-          {t.auth.newPasswordSave}
-        </Button>
+        <div className="nf-auth__actions">
+          <AuthPillButton type="submit" loading={pending} className="nf-auth__cta">
+            {t.auth.newPasswordSave}
+          </AuthPillButton>
+        </div>
       </form>
     </div>
   );

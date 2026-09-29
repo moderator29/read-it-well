@@ -14,8 +14,8 @@
  *
  * The scroll-driven parts use the individual `translate` and `scale`
  * properties, so they add to any transform a card already has on press.
- * Without view timelines everything is simply shown; reduced motion stops
- * all of it; Calm and Off are handled in motion-pref.css.
+ * Without view timelines everything is simply shown; reduced motion and
+ * print stop all of it; Calm and Off are handled in motion-pref.css.
  *
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
@@ -49,18 +49,29 @@
     animation: nf-in-depth var(--nf-duration-deliberate) var(--nf-ease-entrance) 200ms both;
   }
 
+  /*
+   * VISIBLE BY DEFAULT, THE MOTION ONLY ENHANCES (trace C-33, 29 September
+   * 2026). These ran with `both`, so a tile below the viewport sat at the
+   * keyframe's opacity 0 until the view timeline reached it. Anything that
+   * renders the page without scrolling it - a full-page capture, a print, a
+   * reader or preview that lays the page out tall - drew the Amenities
+   * section as an empty box. `forwards` applies nothing before the range, so
+   * an unreached tile is simply there, and the range starts at `entry 0%`,
+   * the frame the tile's edge touches the viewport, so the step down to the
+   * first keyframe happens where nobody can see it.
+   */
   @supports (animation-timeline: view()) {
     .nf-cat-surface .nf-panel:not(.nf-detail-lead),
     .nf-detail-panel {
-      animation: nf-detail-rise linear both;
+      animation: nf-detail-rise linear forwards;
       animation-timeline: view();
       animation-range: entry 0% entry 45%;
     }
     .nf-amenity-tile,
     .nf-spec-tile {
-      animation: nf-detail-pop linear both;
+      animation: nf-detail-pop linear forwards;
       animation-timeline: view();
-      animation-range: entry 5% entry 70%;
+      animation-range: entry 0% entry 70%;
     }
   }
   @keyframes nf-detail-rise {
@@ -100,7 +111,7 @@
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: reduce), print {
     .nf-gallery-mark,
     .nf-detail-price,
     .nf-cat-surface .nf-panel:not(.nf-detail-lead),

@@ -6,6 +6,12 @@
  * and every write is scoped to the caller's own rows.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+/* The passcode lock (docs/PASSCODE.md) reads the request's cookies, which a
+   unit test has none of; it is proven in lib/passcode/*.test.ts. Unlocked here
+   unless a test says otherwise. */
+const passcode = vi.hoisted(() => ({ refusal: null as string | null }));
+vi.mock("../passcode/money", () => ({ passcodeMoneyRefusal: async () => passcode.refusal }));
 import { fakeSupabase } from "../testing/fake-supabase";
 
 const state = vi.hoisted(() => ({

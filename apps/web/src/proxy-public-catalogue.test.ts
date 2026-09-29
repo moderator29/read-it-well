@@ -14,7 +14,7 @@ const seam = vi.hoisted(() => ({
 }));
 
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }),
+  createServerClient: () => ({ auth: { getClaims: async () => ({ data: null, error: null }) } }),
 }));
 vi.mock("@/lib/security/rate-limit", async () => {
   const actual = await vi.importActual<typeof import("./lib/security/rate-limit")>("./lib/security/rate-limit");

@@ -14,6 +14,9 @@ import { RefundsPanel } from "./MoneyRows";
 import { ReconciliationPanel } from "./_desk/Reconciliation";
 import { RefundClock } from "./RefundClock";
 import { GuaranteeClaims } from "./GuaranteeDesk";
+import { CautionRulings } from "./CautionDesk";
+import { readCautionDesk } from "@/lib/admin/reads/caution-desk";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import "./_desk/desk.css";
 import "../agreements/agreements.css";
 
@@ -33,6 +36,7 @@ export const dynamic = "force-dynamic";
  *
  *  - THE VALLO GUARANTEE: what the reserve holds (contributions settled with
  *    each charge, less approved claims), and the claims waiting on a decision.
+ *  - CAUTIONS: disputed deductions and contested returns to rule on (V-36).
  *  - REFUNDS: every refund decided, and whether Paystack has taken it back to
  *    the card.
  *  - RECONCILIATION: whether the scheduled job that compares Paystack's
@@ -65,12 +69,14 @@ export default async function AdminMoneyPage({
     );
   }
 
-  const [guarantee, refunds, runs, rent, clock] = await Promise.all([
+  const [guarantee, refunds, runs, rent, clock, caution] = await Promise.all([
+    // The reserve's figures decide on auth.uid(), so they are asked as the operator.
     readGuaranteeDesk(access.supabase, access.userClient),
     getRefundConsole(query),
     getReconciliationHealth(),
     getRentCharges(),
     readRefundClockBoard(locale),
+    readCautionDesk(access.userClient as unknown as SupabaseClient, access.supabase as unknown as SupabaseClient),
   ]);
 
   return (
@@ -94,6 +100,16 @@ export default async function AdminMoneyPage({
             <GuaranteeClaims claims={guarantee.claims} locale={locale} />
           </>
         )}
+      </Panel>
+
+      <Panel title="Cautions" id="caution">
+        <p className="nf-body">
+          Vallo never holds a caution: it was paid to the lister with the move-in and is paid back between the parties. Rule on
+          the record here. What is still owed after the due date, not in question, can be claimed from the Guarantee.
+        </p>
+        <div className="mt-block">
+          <CautionRulings desk={caution} locale={locale} />
+        </div>
       </Panel>
 
       <RefundsPanel refunds={refunds} narrowed={narrowed} locale={locale} ui={ui} />

@@ -31,12 +31,24 @@ import { register } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
+/* The module under test now imports through the app's `@/` alias (tsconfig
+   paths), which Node knows nothing about, so the hook maps `@/x` onto `src/x`
+   as well as trying `.ts`, `.tsx` and `/index.ts` for a bare specifier. */
+const SRC_URL = pathToFileURL(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "src") + path.sep,
+).href;
 const TS_EXTENSION_HOOK = `
+const SRC = ${JSON.stringify(SRC_URL)};
 export async function resolve(specifier, context, next) {
-  if (specifier.startsWith(".") && !/\\.[a-z]+$/.test(specifier)) {
-    try { return await next(specifier + ".ts", context); } catch {}
+  let spec = specifier;
+  if (spec.startsWith("@/")) spec = new URL(spec.slice(2), SRC).href;
+  const relative = spec.startsWith(".") || spec.startsWith("file:");
+  if (relative && !/\\.[a-z]+$/.test(spec)) {
+    for (const suffix of [".ts", ".tsx", "/index.ts", "/index.tsx"]) {
+      try { return await next(spec + suffix, context); } catch {}
+    }
   }
-  return next(specifier, context);
+  return next(spec, context);
 }`;
 register("data:text/javascript," + encodeURIComponent(TS_EXTENSION_HOOK), import.meta.url);
 

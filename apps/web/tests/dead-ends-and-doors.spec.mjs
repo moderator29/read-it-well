@@ -57,7 +57,13 @@ const decider = read("app/home-or-landing/route.ts");
 const panel = read("components/auth/VerifyingPanel.tsx");
 const callback = read("app/auth/callback/page.tsx");
 const choices = read("components/auth/AuthChoices.tsx");
+const doors = read("components/auth/SocialDoors.tsx");
+const options = read("components/auth/SignUpOptions.tsx");
+const emailForm = read("components/auth/EmailAuthForm.tsx");
 const actions = read("lib/auth/actions.ts");
+/* The panel's words live in the dictionary since the 25 September split of
+   the client copy (`useClientCopy().authFlow`), not in the component. */
+const en = readFileSync(join(SRC, "../../../packages/i18n/src/locales/en.ts"), "utf8");
 
 /* --------------------------------------------------------------- home */
 
@@ -91,18 +97,29 @@ check(
 
 console.log("\nThe callback says which event is happening");
 
-check("the panel carries both forms of words", /"sign-in": \{/.test(panel) && /"sign-up": \{/.test(panel));
+check(
+  "the panel carries both forms of words",
+  /a\.verifyingTitle/.test(panel) && /a\.signingInTitle/.test(panel) &&
+    /verifyingTitle: "Verifying your email"/.test(en) && /signingInTitle: "Signing you in"/.test(en),
+);
 check(
   "signing in is not described as verifying an email",
-  /title: "Signing you in"/.test(panel) && !/"sign-in":\s*\{\s*title: "Verifying/.test(panel),
+  /moment === "sign-up"\s*\?\s*\{ title: a\.verifyingTitle[^}]*\}\s*:\s*\{ title: a\.signingInTitle/.test(panel),
 );
 check(
   "the tab title is neutral, because one page serves both doors",
   /title: "One moment"/.test(callback),
 );
+/* The provider doors are one component (`SocialDoors`) since the Slate pass:
+   it posts the intent it is given, and every screen that draws it names the
+   intent of its own door (the chooser and the email form their mode, the
+   sign-up options page "sign-up"). */
 check(
   "the intent travels from the button that started the handshake",
-  /name="intent" value=\{isSignUp \? "sign-up" : "sign-in"\}/.test(choices),
+  /name="intent" value=\{intent\}/.test(doors) &&
+    /intent=\{mode\}/.test(choices) &&
+    /intent=\{mode\}/.test(emailForm) &&
+    /intent="sign-up"/.test(options),
 );
 check(
   "and rides the provider round trip in the callback URL",
@@ -123,26 +140,48 @@ const context = await browser.newContext({ viewport: { width: 390, height: 844 }
 try {
   console.log("\nServed, not assumed");
 
-  const signUp = await (await context.request.get(`${BASE_URL}/auth/callback?code=x`)).text();
+  /* Read from the rendered panel, not the raw response: the page also ships
+     the whole `authFlow` dictionary slice for the client copy, so both
+     sentences are always somewhere in the HTML. What matters is what the
+     panel draws. */
+  const panelText = async (query) => {
+    const tab = await context.newPage();
+    try {
+      await tab.goto(`${BASE_URL}/auth/callback?${query}`, { waitUntil: "domcontentloaded" });
+      const panelEl = tab.locator('[data-testid="verifying"]');
+      await panelEl.waitFor({ timeout: 60000 });
+      return {
+        heading: (await panelEl.locator("h1").textContent()) ?? "",
+        body: (await panelEl.locator("h1 + p").textContent()) ?? "",
+        html: await panelEl.innerHTML(),
+      };
+    } finally {
+      await tab.close();
+    }
+  };
+
+  const signUp = await panelText("code=x");
   check(
     "a link with no intent says the sign-up words",
-    /Verifying your email/.test(signUp) && !/Signing you in/.test(signUp),
+    /Verifying your email/.test(signUp.heading) && !/Signing you in/.test(signUp.heading),
+    [signUp.heading],
   );
 
-  const signIn = await (
-    await context.request.get(`${BASE_URL}/auth/callback?code=x&intent=sign-in`)
-  ).text();
+  const signIn = await panelText("code=x&intent=sign-in");
   check(
     "a sign-in says it is signing somebody in",
-    /Signing you in/.test(signIn) && !/Verifying your email/.test(signIn),
+    /Signing you in/.test(signIn.heading) && !/Verifying your email/.test(signIn.heading),
+    [signIn.heading],
   );
   check(
     "and the body agrees with the heading rather than contradicting it",
-    /checking it is you/.test(signIn) && !/confirming your address/.test(signIn),
+    /checking it is you/.test(signIn.body) && !/confirming your address/.test(signIn.body),
+    [signIn.body],
   );
   check(
     "the way out without JavaScript matches the door, so a sign-in is not sent to a code screen",
-    /\/sign-in\/email/.test(signIn) && !/\/sign-up\/verify/.test(signIn),
+    /* `/sign-in` since B-1: sign-in is one screen, email and password. */
+    /href="\/sign-in"/.test(signIn.html) && !/\/sign-up\/verify/.test(signIn.html),
   );
 
   /* The decider, live. Unconfigured here, which is the branch this sandbox

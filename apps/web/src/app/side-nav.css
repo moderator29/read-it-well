@@ -104,6 +104,68 @@
     }
   }
 
+  /*
+   * THE RAIL ON A LAPTOP-HEIGHT SCREEN. At 1440x900 the agent workspace's
+   * thirteen rows at 52 with two 24px section boundaries came to 779px in a
+   * 670px list, so "AI Assistant", Settings and Help sat under the identity
+   * card behind a hidden scrollbar. On a pointer screen no taller than 960 the
+   * rail's rows take 44 (still the touch floor) and the boundaries 8 + 8;
+   * nothing else moves: the glyphs, the label size, the pill and the grouping
+   * are the same. The phone drawer is not a rail and keeps its 52/48 rhythm,
+   * and a taller desktop keeps 52. `NavTree` also scrolls the current row into
+   * view, for a screen shorter still.
+   */
+  @media (min-width: 64rem) and (max-height: 60rem) {
+    .nf-nav--rail .nf-nav__row {
+      min-height: 2.75rem;
+    }
+    /*
+     * THE MEMBER RAIL, 29 September 2026 (trace C-17). The member rail
+     * carries more than the agent's: the identity row, a section of docked
+     * destinations, the workspaces and the coin card in its foot. At
+     * 1440x900 its list was 114px taller than the 623 it was given and
+     * Settings sat under the fold. The boundaries go to 4 + 4, the headings
+     * lose their spare air, and the foot's coin card and theme row step down
+     * one size. The head keeps its padding: the light-mode logo pill needs it. The glyphs, the label size, the panel's glass
+     * and glow and the grouping are untouched.
+     */
+    .nf-nav--rail .nf-nav__section + .nf-nav__section {
+      margin-top: var(--nf-space-2xs);
+      padding-top: var(--nf-space-2xs);
+    }
+    .nf-nav--rail .nf-nav__heading {
+      padding-bottom: var(--nf-space-3xs);
+    }
+    .nf-nav--rail .nf-nav__foot {
+      padding-top: var(--nf-space-2xs);
+    }
+    .nf-nav.nf-nav--rail .nf-side-switch {
+      min-height: 0;
+      padding-block: var(--nf-space-2xs);
+    }
+    .nf-nav.nf-nav--rail .nf-side-switch__ring {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
+    .nf-nav.nf-nav--rail .nf-side-switch__coin {
+      width: 1.875rem;
+      height: 1.875rem;
+    }
+    .nf-nav--rail .nf-theme-row {
+      margin-top: 0;
+    }
+    .nf-nav--rail .nf-theme-row__head {
+      min-height: 2.5rem;
+    }
+  }
+  /* A mouse or trackpad on the same short screen: rows at 40. A touch
+     laptop or a tablet in landscape keeps the 44 floor above. */
+  @media (min-width: 64rem) and (max-height: 60rem) and (pointer: fine) {
+    .nf-nav--rail .nf-nav__row {
+      min-height: 2.5rem;
+    }
+  }
+
   .nf-nav--drawer {
     height: 100%;
     width: 100%;

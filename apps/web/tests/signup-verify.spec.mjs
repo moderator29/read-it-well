@@ -81,13 +81,22 @@ try {
     (await code.getAttribute("inputmode")) === "numeric",
   );
 
-  /* Only digits, only six. A pasted "12 34 56" from a mail client is the
-     ordinary case and must not reach the server as something to refuse. */
+  /* Only digits, and NEVER FEWER THAN THEY GAVE US. A pasted "12 34 56" from
+     a mail client is the ordinary case and must not reach the server as
+     something to refuse. The field used to stop at six (`.slice(0, 6)`), which
+     silently ate the last two digits when the project issued eight; it now
+     keeps every digit and SAYS when there is a surplus
+     (`components/auth/VerifyCodeForm.tsx`, `lib/auth/confirmation-code.ts`). */
   await code.fill("");
   await code.type("12 34 56 78");
-  check("it takes digits only, and stops at six", (await code.inputValue()) === "123456", [
+  await page.waitForTimeout(300);
+  check("it takes digits only, and drops none of them", (await code.inputValue()) === "12345678", [
     await code.inputValue(),
   ]);
+  check(
+    "and a surplus is said, naming both numbers",
+    (await page.getByText(/That is 8 digits\. The code is six/).count()) === 1,
+  );
 
   check(
     "there is a way to ask for another code",
@@ -163,9 +172,17 @@ check("and it is held on screen for a beat", /MIN_ON_SCREEN_MS = 2000/.test(link
 
 console.log("\nThe cards, once");
 check("dismissing the cards is remembered", /markWelcomeSeen\(\)/.test(firstRun));
+/* THE FOUNDER'S RULE, 23 SEPTEMBER (item 6, `app/welcome/plan.ts`): Get
+   started shows the welcome every time, even to somebody signed in, and
+   /welcome never redirects. So a returning sign-in IS shown the cards now;
+   what the seen-once record still decides is whether sign up and sign in
+   detour a first-time visitor through here. */
 check(
-  "and a returning sign-in is not shown them again",
-  /showCards=\{!intent\.welcomeSeen\}/.test(welcome),
+  "the cards show for everybody who asks, member or stranger (the founder's rule)",
+  (welcome.match(/<FirstRun[\s\S]{0,200}?showCards\s/g) ?? []).length === 2 &&
+    /renders from the first slide for everybody who asks for it/.test(
+      readFileSync(join(SRC, "app/welcome/plan.ts"), "utf8"),
+    ),
 );
 check(
   "remembered on dismissal rather than on render, so a closed tab does not cost the trust card",

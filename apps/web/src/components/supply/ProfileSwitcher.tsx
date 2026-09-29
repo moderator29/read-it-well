@@ -97,21 +97,6 @@ const KIND_ICON: Record<WorkspaceKind, UiIconName> = {
   console: "shield-stop",
 };
 
-/*
- * THE DOCK'S OWN GLYPHS (V-75 review). The dock centre drew the same user,
- * home and bed glyphs as the Profile, Home and Stays tabs beside it, so the
- * control read as a second copy of a destination. Personal is the account's
- * own photograph (a glyph no tab uses when there is none), and each workspace
- * takes a glyph that no tab in either bar draws.
- */
-const DOCK_ICON: Record<WorkspaceKind, UiIconName> = {
-  owner: "document",
-  agent: "key",
-  firm: "building-apartment",
-  host: "building-hotel",
-  console: "shield-stop",
-};
-
 export type ProfileSwitcherCopy = {
   title: string;
   personal: string;
@@ -168,18 +153,8 @@ export function ProfileSwitcher({
   addHref: string;
   onNavigate?: () => void;
   /**
-   * DRAW YOUR OWN TRIGGER INSTEAD OF THE DOCK SLOT.
-   *
-   * `/profile` has a
-   * "Switch role" row that must open this sheet, and the only way it could was
-   * to find the dock's button by its class name and click it:
-   *
-   *     document.querySelector(".nf-tab__link--switch")?.click()
-   *
-   * That is a component reaching into another component's CSS. Rename the class
-   * in `chrome.css` and the profile row silently stops working, with nothing
-   * failing anywhere, which is the same shape of fault as a constant with no
-   * consumer passing its own test.
+   * AN OPTIONAL TRIGGER OF THE CALLER'S OWN. There is no default: the sheet
+   * is normally opened by the named event (`profile-switcher-event.ts`).
    *
    * THE SWITCH STILL LIVES IN ONE PLACE AND THIS DOES NOT REOPEN THAT. The
    * founder ruled on 22 September that the sheet has one entrance, the dock,
@@ -205,13 +180,15 @@ export function ProfileSwitcher({
    * silently. A caller now fires a named event that both sides import.
    */
   useEffect(() => {
-    const onAsk = () => setOpen(true);
+    /* `preventDefault` is the answer: it tells `openProfileSwitcher` that a
+       sheet was here and opened, so its caller does not fall back. */
+    const onAsk = (event: Event) => {
+      event.preventDefault();
+      setOpen(true);
+    };
     window.addEventListener(PROFILE_SWITCHER_EVENT, onAsk);
     return () => window.removeEventListener(PROFILE_SWITCHER_EVENT, onAsk);
   }, []);
-
-  const currentName =
-    current.kind === "personal" ? copy.personal : current.workspace.name;
 
   function go(href: string) {
     startTransition(() => {
@@ -248,73 +225,11 @@ export function ProfileSwitcher({
 
   /* ------------------------------------------------------------- the trigger */
 
-  const triggerName = `${copy.triggerLabel}: ${currentName}`;
-
-  /*
-   * THE CALLER'S OWN TRIGGER WINS, AND THE DOCK SLOT IS THE DEFAULT.
-   *
-   * `renderTrigger` is handed `open` rather than a boolean, so the caller
-   * decides what the control looks like and this file keeps deciding what
-   * opening means. A caller cannot force the sheet shut, cannot open it into a
-   * state this component did not choose, and cannot skip the transition.
-   */
-  const trigger = renderTrigger ? (
-    renderTrigger(() => setOpen(true))
-  ) : (
-    <button
-      type="button"
-      /*
-       * ONE BEHAVIOUR, IN EVERY STATE: OPEN THE SHEET.
-       *
-       * There was a branch here that toggled straight between Personal and
-       * the single workspace an account held, on the argument that two
-       * states are a toggle rather than a list. The founder has overruled
-       * it: holding one workspace does not settle the question of who you
-       * are, and a control that answers it for you hides both the standing
-       * of what you hold and the door you have not walked through. See the
-       * note at the top of this file.
-       */
-      onClick={() => setOpen(true)}
-      aria-haspopup="dialog"
-      aria-expanded={open}
-      aria-label={triggerName}
-      className="nf-tab__link nf-tab__link--switch"
-      data-on={open || undefined}
-    >
-      <span className="nf-switch-dock" aria-hidden="true">
-        {/*
-         * THE GLYPH IS STROKED NOW, AT THE SAME STEP AS ITS FOUR NEIGHBOURS.
-         *
-         * It was `BrandIcon name="role-switch-tile"` at 34px: a tier-two
-         * glass object in a row of four 24px stroked glyphs. The founder saw
-         * the bar on a real phone and ruled that the icon is drawn "in the
-         * same style as the others", so it is `UiIcon` at `md`, which is the
-         * exact step `MobileTabBar` asks for on Home, Search, Feed and
-         * Profile. The CONTAINER stays, and the container is what still says
-         * this one is not a destination.
-         */}
-        {current.kind === "personal" ? (
-          avatarUrl ? (
-            <RemoteImage
-              src={avatarUrl}
-              alt=""
-              width={24}
-              height={24}
-              sizes="24px"
-              className="nf-switch-mark__photo nf-switch-dock__photo"
-            />
-          ) : (
-            <UiIcon name="switch-profile" size="md" />
-          )
-        ) : (
-          <span className="nf-switch-dock__face">
-            <UiIcon name={DOCK_ICON[current.workspace.kind]} size="md" />
-            <span className="nf-switch-dock__caption">{copy.short[current.workspace.kind]}</span>
-          </span>
-        )}
-      </span>
-    </button>
-  );
+  /* No default trigger: since 29 September the dock's centre is the "+"
+     (`CreateDock`), and every entrance (its Switch workspace row, the
+     profile's Switch role row) opens this sheet by the named event. A caller
+     may still draw one of its own. */
+  const trigger = renderTrigger ? renderTrigger(() => setOpen(true)) : null;
 
   /* --------------------------------------------------------------- the sheet */
 

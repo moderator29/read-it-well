@@ -121,6 +121,7 @@ const PRODUCT = [
   "/notifications",
   "/profile",
   "/settings",
+  "/settings/passcode",
   "/wallet",
   "/bookings",
   "/checkout/anything",
@@ -139,6 +140,11 @@ const PRODUCT = [
   "/agent/dashboard",
   "/agent/listings",
   "/agent/bookings",
+  /* The workspaces' own assistant, settings and bell (29 September 2026). */
+  "/agent/assistant",
+  "/host/assistant",
+  "/host/settings",
+  "/host/notifications",
   "/styleguide",
 ];
 
@@ -152,6 +158,7 @@ const API_CLOSED = [
   "/api/push/register",
   "/api/push/revoke",
   "/api/push/self-test",
+  "/api/passcode/touch",
 ];
 
 const PUBLIC = [

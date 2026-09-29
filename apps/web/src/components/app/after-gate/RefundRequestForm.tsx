@@ -6,6 +6,8 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { requestRefund } from "@/lib/after-gate/refund-request-actions";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 
 /**
  * V-24. The dated ask for a paid stay to be cancelled.
@@ -19,8 +21,11 @@ export function RefundRequestForm({
   bookingId,
   copy,
   reasons,
+  success,
 }: {
   bookingId: string;
+  /** The page's `t.success`, for "Refund requested". Absent, no sheet. */
+  success?: SuccessWords;
   copy: Dictionary["afterTheGate"]["refund"];
   reasons: { code: string; label: string }[];
 }) {
@@ -29,6 +34,14 @@ export function RefundRequestForm({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  /*
+   * The request is filed. The page refreshes when the sheet CLOSES rather
+   * than now: the refreshed page draws the dated ask in place of this form,
+   * and a sheet held by this form would be unmounted by the refresh that
+   * shows its own result. "Requested", never "refunded": nothing has moved.
+   */
+  const [filed, setFiled] = useState(false);
+  const words = success ? successCopy(success, "refundRequested") : null;
 
   function submit() {
     setError(null);
@@ -38,7 +51,9 @@ export function RefundRequestForm({
         setError(result.error || copy.askFailed);
         return;
       }
-      router.refresh();
+      /* With no sheet to hold it open, the page refreshes straight away. */
+      if (words) setFiled(true);
+      else router.refresh();
     });
   }
 
@@ -77,9 +92,23 @@ export function RefundRequestForm({
           )}
         </Field>
       </div>
-      <Button type="submit" variant="secondary" full className="mt-md" loading={pending} disabled={pending}>
+      <Button type="submit" variant="secondary" full className="mt-md" loading={pending} disabled={pending || filed}>
         {copy.askSubmit}
       </Button>
+      {success && words ? (
+      <SuccessSheet
+        open={filed}
+        onOpenChange={(open) => {
+          if (open) return;
+          setFiled(false);
+          router.refresh();
+        }}
+        variant={words.variant}
+        title={words.title}
+        body={words.body}
+        primary={{ label: success.continue }}
+      />
+      ) : null}
     </form>
   );
 }

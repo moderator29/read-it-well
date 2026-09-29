@@ -24,12 +24,21 @@
  * back control, the remembered view and recent searches need nothing on the
  * shelf and are asserted on every run.
  *
+ * SINCE 23 SEPTEMBER `/search`, `/listing/<id>` and `/saved` answer a
+ * signed-out visitor with the sign-in wall (asserted), so sections 21 to 26
+ * and 16 run signed in as the QA member and are reported as SKIP without
+ * QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD. The fallback back control on a deep
+ * link needs no session: `/wallet`, which it used to open, is a redirect now
+ * (the wallet was retired), so it is read on `/about`, where the same
+ * BackButton falls through to the page's declared parent, `/`.
+ *
  * Run with the server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/session-memory.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa } from "./_gate.mjs";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -184,11 +193,14 @@ check(
 
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 
-async function freshContext() {
-  const ctx = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    colorScheme: "dark",
-  });
+console.log("\nSigned out, the remembered screens are behind the wall");
+for (const path of ["/search", "/listing/seed-1", "/saved"]) await expectSignInWall(check, path, BASE_URL);
+console.log("\nThe QA session, for the remembered screens");
+const qaState = await signInAsQa(browser, { base: BASE_URL });
+
+async function freshContext({ signedIn = true } = {}) {
+  const options = { viewport: { width: 390, height: 844 }, colorScheme: "dark" };
+  const ctx = signedIn ? await qaContext(browser, qaState, options) : await browser.newContext(options);
   await ctx.addInitScript(() => {
     try {
       window.localStorage.setItem("nf_theme", "dark");
@@ -211,6 +223,7 @@ try {
    * perfectly capable of answering.
    */
   backFromListing: {
+    if (!qaState) break backFromListing;
     const ctx = await freshContext();
     const page = await ctx.newPage();
     await page.goto(BASE_URL + HUNT, { waitUntil: "load", timeout: 45000 });
@@ -302,9 +315,9 @@ try {
   /* ------------------------------ 21: a fresh tab still refuses to go back */
   console.log("\nA deep link with nothing behind it");
   {
-    const ctx = await freshContext();
+    const ctx = await freshContext({ signedIn: false });
     const page = await ctx.newPage();
-    await page.goto(BASE_URL + "/wallet", { waitUntil: "load", timeout: 45000 });
+    await page.goto(BASE_URL + "/about", { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(SETTLE);
     const canGoBack = await page.evaluate(() =>
       window.navigation ? window.navigation.canGoBack : null,
@@ -317,18 +330,18 @@ try {
       await back.click();
       await page.waitForTimeout(SETTLE);
       const path = new URL(page.url()).pathname;
-      check("back falls through to the fallback rather than leaving the app", path === "/home", [
+      check("back falls through to the fallback rather than leaving the app", path === "/", [
         `landed on ${path}`,
       ]);
     } else {
-      check("the wallet carries a back control", false);
+      check("the page carries a back control", false);
     }
     await ctx.close();
   }
 
   /* ------------------------------------------- 23: list or map is remembered */
   console.log("\nThe chosen view");
-  {
+  if (qaState) {
     const ctx = await freshContext();
     const page = await ctx.newPage();
     await page.goto(BASE_URL + "/search", { waitUntil: "load", timeout: 45000 });
@@ -367,7 +380,7 @@ try {
 
   /* -------------------------------------- 24 and 25: recents come back */
   console.log("\nRecent searches and recently viewed");
-  {
+  if (qaState) {
     const ctx = await freshContext();
     const page = await ctx.newPage();
 
@@ -451,7 +464,7 @@ try {
 
   /* ---------------------------------------------- 26: undo, not a question */
   console.log("\nUnsave offers undo instead of asking");
-  {
+  if (qaState) {
     const ctx = await freshContext();
     const page = await ctx.newPage();
     await page.goto(BASE_URL + "/listing/seed-1", { waitUntil: "load", timeout: 45000 });
@@ -494,6 +507,7 @@ try {
   /* ------------------------------------- 16: the dates open on the weekend */
   console.log("\nThe date fields on arrival");
   dateFields: {
+    if (!qaState) break dateFields;
     const ctx = await freshContext();
     const page = await ctx.newPage();
     await page.goto(BASE_URL + "/listing/seed-1", { waitUntil: "load", timeout: 45000 });

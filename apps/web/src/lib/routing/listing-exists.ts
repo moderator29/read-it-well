@@ -63,11 +63,12 @@ export async function detailIsMissing(path: string, reader: ListingCounter): Pro
     return true;
   }
   if (!UUID.test(id)) return true;
-  for (const check of checksFor(match[1] ?? "listing", id)) {
-    const n = await count(reader, check);
-    if (n === null || n > 0) return false;
-  }
-  return true;
+  /* SPEED-4: the checks run together, not one after the other: a stay or a
+     restaurant is two tables, and from the edge each read is a crossing to
+     eu-west-1. The answer is unchanged: missing only when every read
+     answered, and answered zero. */
+  const counts = await Promise.all(checksFor(match[1] ?? "listing", id).map((check) => count(reader, check)));
+  return counts.every((n) => n === 0);
 }
 
 /** The listing page alone, kept for its callers. */

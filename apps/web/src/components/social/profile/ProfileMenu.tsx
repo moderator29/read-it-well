@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { Sheet } from "@/components/ui/Sheet";
 import {
   blockUser,
   muteTarget,
@@ -72,12 +73,17 @@ export function ProfileMenu({
   const [pending, startTransition] = useTransition();
   const menuRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
-  const confirmRef = useRef<HTMLDivElement>(null);
   const blockedRef = useRef<HTMLDivElement>(null);
 
   const who = displayLabel || `@${handle}`;
 
-  const cancelBlock = useCallback(() => setConfirmBlock(false), []);
+  /* Focus goes back to the `…` that started this. The sheet's own return
+     would aim at the Block row, which left with the menu, and land on the
+     page body. */
+  const cancelBlock = useCallback(() => {
+    setConfirmBlock(false);
+    openerRef.current?.focus();
+  }, []);
   /* The blocked result has no dismiss. See the note on its hook below. */
   const noop = useCallback(() => {}, []);
 
@@ -91,12 +97,17 @@ export function ProfileMenu({
    * and its focus return, which it already had, and that is the whole
    * contract for a popover.
    *
-   * The BLOCK CONFIRM and the BLOCKED RESULT are both `aria-modal` and both
-   * cover the page, so both go on the shared hook and own focus while up.
-   * They cannot appear together: `blocked` returns early below, so the
-   * confirm is unmounted by the time the result renders.
+   * The BLOCK CONFIRM is the platform's `Sheet`: a dismissable question, so
+   * it takes the drag and flick to close, Back, Escape and the focus trap
+   * every other sheet has.
+   *
+   * The BLOCKED RESULT stays a full-page cover on the shared hook, and it is
+   * deliberately NOT a `Sheet`: it is a terminal state that replaces a page
+   * which has just stopped existing for this reader, and a sheet can be
+   * dragged, flicked, backed or tapped away, which would drop them onto that
+   * missing page. They cannot appear together: `blocked` returns early below,
+   * so the confirm is unmounted by the time the result renders.
    */
-  useOverlay({ open: confirmBlock, onClose: cancelBlock, panelRef: confirmRef });
   /* No `onClose`: this is a terminal state, not a dismissable overlay. The
      way out is "Back to Around" or "Undo the block", both inside it. Escape
      resolving to nothing is correct; what matters is that Tab cannot reach
@@ -167,6 +178,9 @@ export function ProfileMenu({
       const result = await blockUser({ userId });
       if (!result.ok) {
         setConfirmBlock(false);
+        /* The sheet's own return aims at the Block row, which left with the
+           menu; the `…` is where the keyboard belongs. */
+        openerRef.current?.focus();
         show(result.error, "error");
         return;
       }
@@ -324,52 +338,51 @@ export function ProfileMenu({
       {toast ? <Toast message={toast.message} tone={toast.tone} /> : null}
 
       {/* ------------------------------------------------ before the block */}
-      {confirmBlock ? (
-        <div
-          className="nf-social-sheet"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Block ${who}?`}
-        >
-          <div ref={confirmRef} className="nf-social-sheet__panel">
-            <h2 className="nf-h3 text-[length:var(--nf-text-body-lg)]">Block {who}?</h2>
-            <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-              You will not see each other anywhere on Vallo. Their page stops
-              existing for you and yours stops existing for them, including in
-              places you are both in.
-            </p>
-            <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-              They are not told. Undo is offered on the next screen if you
-              change your mind.
-            </p>
-            <div className="mt-lg flex flex-col gap-xs sm:flex-row-reverse">
-              {/* `nf-social-danger` was a social-layer-only destructive
-                  treatment standing exactly where `variant="danger"` goes, so
-                  the social layer's delete button did not look like the
-                  platform's delete button. One vocabulary for one act. */}
-              <Button
-                type="button"
-                variant="danger"
-                className="flex-1"
-                onClick={doBlock}
-                disabled={pending}
-                loading={pending}
-              >
-                {pending ? "Blocking" : `Block ${who}`}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex-1"
-                onClick={cancelBlock}
-                disabled={pending}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
+      <Sheet
+        open={confirmBlock}
+        onOpenChange={(next) => {
+          /* Not while the block is being written: a drag, Back or Escape then
+             would hide the sheet with the block still landing behind it. */
+          if (!next && !pending) cancelBlock();
+        }}
+        title={`Block ${who}?`}
+        fullPage
+      >
+        <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          You will not see each other anywhere on Vallo. Their page stops
+          existing for you and yours stops existing for them, including in
+          places you are both in.
+        </p>
+        <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+          They are not told. Undo is offered on the next screen if you
+          change your mind.
+        </p>
+        <div className="mt-lg flex flex-col gap-xs sm:flex-row-reverse">
+          {/* `nf-social-danger` was a social-layer-only destructive
+              treatment standing exactly where `variant="danger"` goes, so
+              the social layer's delete button did not look like the
+              platform's delete button. One vocabulary for one act. */}
+          <Button
+            type="button"
+            variant="danger"
+            className="flex-1"
+            onClick={doBlock}
+            disabled={pending}
+            loading={pending}
+          >
+            {pending ? "Blocking" : `Block ${who}`}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex-1"
+            onClick={cancelBlock}
+            disabled={pending}
+          >
+            Cancel
+          </Button>
         </div>
-      ) : null}
+      </Sheet>
 
       {reporting ? (
         <ReportSheet

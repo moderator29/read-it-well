@@ -1,50 +1,47 @@
-import Image from "next/image";
-import type { Dictionary, Locale } from "@vallo/i18n/core";
-import { Reveal } from "@/components/site/Reveal";
+import type { Dictionary } from "@vallo/i18n/core";
+import { MotionReveal } from "@/components/motion/Reveal";
 import { Logo } from "@/design-system/brand/Logo";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import type { MiniListing } from "@/lib/site/listing-card";
-import { photo } from "@/lib/site/photos";
-import { ListingMini } from "./ListingMini";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { storeBadges } from "./store-badges";
 import { StoreBadges } from "./StoreBadges";
 import { SectionHead } from "./SectionHead";
 
 /**
- * Take Vallo with you.
+ * Take Vallo with you: one branded panel, no device frame (the founder's
+ * ruling of 29 September removed the drawn phones).
  *
- * STORE-06 (also UI-07, UX-26). The store badges used to render with their
- * links falling back to `/start` until a store URL existed, and they rendered
- * inside the native shell too: a "GET IT ON Google Play" badge inside the iOS
- * app (App Store 2.3.10), and a badge that does not lead to the store (both
- * stores' badge terms). Now:
+ * The panel is a night island (`data-theme="dark"`) in both themes, the same
+ * navy block the header is in light mode, so it reads as the brand speaking
+ * rather than one more card. On it: the app promise, the store badges, and
+ * three short points on what the phone gives you.
  *
- *   - each badge renders ONLY when its store URL is set and is that store's
- *     own address (`storeBadges` in `store-badges.ts`);
+ * STORE-06 (also UI-07, UX-26). The store badges:
+ *
+ *   - each renders ONLY when its store URL is set and is that store's own
+ *     address (`storeBadges` in `store-badges.ts`);
  *   - neither renders inside a native shell, whatever is set (`LandingBody`
- *     passes the surface the server read from the shell's User-Agent);
+ *     passes the surface the server read from the shell's User-Agent, and
+ *     leaves this band out entirely there);
  *   - "Full access to all features" and "Secure and fast" are gone.
  *
- * The phone beside them is drawn, not cropped from the render, with the
- * portrait villa plate and a real listing card on its screen.
+ * With no badge live the panel prints how to install from the browser
+ * instead, which is what the FAQ's "Is there an app?" answer says, so the
+ * slot is never empty and never a badge that leads nowhere.
  */
 export function AppBand({
   t,
-  locale,
-  listing,
   native = false,
 }: {
   t: Dictionary;
-  locale: Locale;
-  listing: MiniListing | null;
   /** True when the server is rendering for a native shell. */
   native?: boolean;
 }) {
-  /* Two phones, as the render shows: one carrying a real listing card, one
-     carrying the brand face the app opens on. Both are drawn from the
-     product's own parts, never cropped from the render. */
   const a = t.landing.face.app;
-  const points = [a.points.notify, a.points.design];
+  const points: { key: string; icon: UiIconName; label: string }[] = [
+    { key: "notify", icon: "bell", label: a.points.notify },
+    { key: "sides", icon: "home", label: a.points.sides },
+    { key: "record", icon: "document", label: a.points.record },
+  ];
   /* `NEXT_PUBLIC_*` is inlined at build time. */
   const badges = storeBadges({
     appStoreUrl: process.env.NEXT_PUBLIC_APP_STORE_URL,
@@ -53,68 +50,41 @@ export function AppBand({
   });
   return (
     <section className="nf-shell nf-room" data-chapter="app" aria-labelledby="nf-landing-app-title">
-      <div className="nf-landing-app">
-        <Reveal className="flex flex-col gap-heading">
-          <SectionHead id="nf-landing-app-title" title={a.title} lede={a.body} />
-          {/* The official artwork, drawn inline (StoreBadges.tsx). */}
-          <StoreBadges badges={badges} labels={t.landingRooms.badges} />
-        </Reveal>
-
-        <Reveal delay={60}>
-          {/* DOC-21: `inert` as well as `aria-hidden`. The phones are a
-              picture of the app, but the listing card drawn inside them
-              holds a real link, and aria-hidden alone left that link in the
-              tab order, focusable and unannounced (axe `aria-hidden-focus`). */}
-          <div className="nf-landing-phones" data-theme="dark" aria-hidden="true" inert>
-            <div className="nf-landing-phone nf-landing-phone--back">
-              <div className="nf-landing-phone-screen">
-                <Image
-                  src={photo("villa-pool-portrait")}
-                  alt=""
-                  fill
-                  sizes="200px"
-                />
-                {listing && (
-                  <div className="nf-landing-phone-card">
-                    <div className="nf-landing-float">
-                      <ListingMini
-                        listing={listing}
-                        locale={locale}
-                        verifiedLabel={t.landing.face.card.verified}
-                        sizes="180px"
-                      />
-                    </div>
-                  </div>
-                )}
+      <MotionReveal>
+        <div className="nf-app-panel" data-theme="dark">
+          <div className="nf-app-panel__copy">
+            <SectionHead id="nf-landing-app-title" eyebrow={a.eyebrow} title={a.title} lede={a.body} />
+            {badges.length > 0 ? (
+              /* The official artwork, drawn inline (StoreBadges.tsx). */
+              <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-app-panel__badges" />
+            ) : (
+              <div className="nf-app-panel__install">
+                <UiIcon name="share" size={20} aria-hidden />
+                <div>
+                  <p className="nf-app-panel__install-title">{a.installTitle}</p>
+                  <p className="nf-app-panel__install-body">{a.installBody}</p>
+                </div>
               </div>
-            </div>
-            <div className="nf-landing-phone nf-landing-phone--front">
-              <div className="nf-landing-phone-screen nf-landing-phone-screen--brand">
-                <Logo size={46} wordSize={20} />
-                {/* `appMockLine`, not `slogan`: this is a picture of the app on the
-                    marketing front page, and it was the last surface still
-                    showing the retired positioning to a visitor. The auth
-                    lockup keeps `slogan` until the founder rules on it. */}
-                <span className="nf-landing-phone-slogan">{t.landing.appMockLine}</span>
-              </div>
-            </div>
+            )}
           </div>
-        </Reveal>
-
-        <Reveal delay={120}>
-          <div className="nf-landing-stack-card">
-            <h3 className="nf-h3">{a.rightTitle}</h3>
-            <ul className="nf-landing-checks mt-group">
+          <div className="nf-app-panel__aside">
+            <span className="nf-app-panel__mark" aria-hidden="true">
+              <Logo size={40} wordSize={18} />
+            </span>
+            <p className="nf-app-panel__aside-title">{a.rightTitle}</p>
+            <ul className="nf-app-panel__points">
               {points.map((p) => (
-                <li key={p}>
-                  <BrandIcon name="seal-check" size={24} />
-                  {p}
+                <li key={p.key}>
+                  <span className="nf-app-panel__tick" aria-hidden="true">
+                    <UiIcon name={p.icon} size={18} />
+                  </span>
+                  {p.label}
                 </li>
               ))}
             </ul>
           </div>
-        </Reveal>
-      </div>
+        </div>
+      </MotionReveal>
     </section>
   );
 }

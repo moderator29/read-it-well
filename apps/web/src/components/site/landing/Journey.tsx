@@ -1,107 +1,118 @@
 import type { Dictionary } from "@vallo/i18n/core";
-import { DepthWords } from "@/components/motion/DepthWords";
 import { MotionReveal } from "@/components/motion/Reveal";
 import {
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
-  NO_INSPECTION_FEE_HEADLINE,
   PAYMENT_GATE_SENTENCE,
 } from "@/lib/money/copy";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { JourneyScreen, type JourneyScreenKey } from "./JourneyScreens";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { GlassMotion } from "./glass-motion";
-import { JourneyScroll } from "./JourneyScroll";
 import { SectionHead } from "./SectionHead";
 
 /**
- * THE JOURNEY, the landing's centrepiece (Track M, second pass): Find,
- * Inspect, Agree, Move in, told down the page beside one phone.
+ * THE JOURNEY: Find, Inspect, Agree, Move in, as four numbered step cards
+ * joined by one progress line (the founder's ruling of 29 September: no phone
+ * or device frame anywhere on the landing).
  *
- * From 64rem the section is about three screens tall: the chapters scroll on
- * the left, each three quarters of a screen, and the phone stays pinned on
- * the right, cross-fading to the screen for whichever chapter is at the
- * middle of the viewport, while a rail beside the chapters fills. There is no
- * scroll hijacking: the page scrolls at the reader's speed and the phone
- * simply follows. Below 64rem it is a stack of cards, each with its own
- * small screen, and nothing is pinned. Reduced motion gets the stack's
- * stillness at every width: the screens swap with no fade.
+ * Each card carries a glass object, its number on the line, the step's name,
+ * a title, one sentence, and a small product fragment: the one or two labels
+ * the product itself shows at that step ("Booked", "Approved by Vallo",
+ * "Straight to their bank"). The fragment repeats what the sentence says, so
+ * it is `aria-hidden`; the sentence carries the meaning.
+ *
+ * UNDER 40REM IT IS A SIDEWAYS SWIPE ROW (the founder, 29 September: "the
+ * four steps must be horizontal and smaller on mobile"): compact cards about
+ * three quarters of the screen wide, snapping, the next one peeking in, the
+ * numbered line still across the top. Only the row scrolls, never the page.
+ *
+ * THE LINE FILLS AS THE READER SCROLLS, from CSS alone (landing-rooms.css):
+ * from 64rem one horizontal line across the four numbers, on the list's own
+ * view timeline; from 40rem to 64rem three vertical segments, number to
+ * number, each filling as its own step passes through the view; under 40rem
+ * the same three segments laid across, filling as the row is swiped.
+ * Where the browser has no scroll timelines, and under reduced motion, the
+ * line is simply drawn full. There is no script and nothing is pinned.
  *
  * THE MONEY SENTENCES ARE THE CONSTANTS. Inspect prints `NO_INSPECTION_FEE`,
  * Agree prints `PAYMENT_GATE_SENTENCE` and Move in prints
- * `NO_CUSTODY_SENTENCE`, verbatim from `lib/money/copy.ts`; the one phrase in
- * the drawings is `NO_INSPECTION_FEE_HEADLINE`, set in sentence case.
+ * `NO_CUSTODY_SENTENCE`, verbatim from `lib/money/copy.ts`. No fragment
+ * carries money copy of its own.
  */
-/* The platform's glass objects, one a chapter, each with its one motion. */
-const CHAPTER_OBJECT: readonly BrandIconName[] = ["listing-search", "inspect-ring", "contract-sign", "keys-handover"];
+/* Full-bleed glass objects only: `inspect-ring` drew a small, faint object
+   inside a ring beside the other three, so Inspect takes `calendar-home`
+   (booking the viewing) at the same visual weight. */
+const CHAPTER_OBJECT: readonly BrandIconName[] = ["listing-search", "calendar-home", "contract-sign", "keys-handover"];
 const CHAPTER_MOTION: readonly GlassMotion[] = ["rise", "pop", "tilt", "turn"];
+
+type Fragment = { icon: UiIconName; label: string; tone?: "ok" };
 
 export function Journey({ t }: { t: Dictionary }) {
   const j = t.landingRooms.journey;
+  const s = j.screen;
   const bodies: Record<string, string> = {
     inspect: NO_INSPECTION_FEE,
     agree: PAYMENT_GATE_SENTENCE,
     move: NO_CUSTODY_SENTENCE,
   };
-  const noFee = NO_INSPECTION_FEE_HEADLINE.charAt(0) + NO_INSPECTION_FEE_HEADLINE.slice(1).toLowerCase();
-  const labels = { ...j.screen, noFee: noFee.replace(/\bvallo\b/i, "Vallo") };
-  const steps = j.steps.map((s) => ({
-    key: s.key as JourneyScreenKey,
-    label: s.label,
-    title: s.title,
-    body: bodies[s.key] ?? ("body" in s ? (s.body ?? "") : ""),
+  const fragments: Record<string, Fragment[]> = {
+    find: [{ icon: "search", label: s.search }],
+    inspect: [
+      { icon: "calendar-booking", label: s.inspection },
+      { icon: "check", label: s.booked, tone: "ok" },
+    ],
+    agree: [
+      { icon: "document", label: `${s.you} · ${s.owner}` },
+      { icon: "verified", label: s.approved, tone: "ok" },
+    ],
+    move: [
+      { icon: "check", label: s.paid, tone: "ok" },
+      { icon: "wallet", label: s.theirBank },
+    ],
+  };
+  const steps = j.steps.map((step) => ({
+    key: step.key,
+    label: step.label,
+    title: step.title,
+    body: bodies[step.key] ?? ("body" in step ? (step.body ?? "") : ""),
   }));
 
   return (
     <section className="nf-shell nf-room" data-chapter="journey" aria-labelledby="nf-landing-journey-title">
       <SectionHead id="nf-landing-journey-title" eyebrow={j.overline} title={j.title} lede={j.body} align="center" />
-      <JourneyScroll className="nf-journey">
-        <ol className="nf-journey__chapters">
-          {steps.map((s, i) => (
-            <li key={s.key} className="nf-journey__chapter" data-journey-step={i}>
-              <MotionReveal className="nf-journey__text nf-depth-gate">
-                <span className="nf-journey__mark">
-                  <span className="nf-glass-fx nf-feature-glass" data-motion={CHAPTER_MOTION[i] ?? "rise"}>
-                    <BrandIcon name={CHAPTER_OBJECT[i] ?? "listing-search"} fill />
-                  </span>
-                  <span className="nf-journey__num nf-numeric" aria-hidden="true">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
+      {/* Under 40rem the steps are a sideways swipe row, and this is its
+          scroller: focusable and named, so a keyboard can move it (the cards
+          hold no links to tab through). From 40rem nothing scrolls here. */}
+      <div className="nf-steps" tabIndex={0} role="region" aria-label={j.title}>
+        <span className="nf-steps__line" aria-hidden="true">
+          <span className="nf-steps__fill" />
+        </span>
+        <MotionReveal as="ol" stagger className="nf-steps__list">
+          {steps.map((step, i) => (
+            <li key={step.key} className="nf-step">
+              <span className="nf-step__num nf-numeric" aria-hidden="true">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <article className="nf-step__card nf-fx-host">
+                <span className="nf-glass-fx nf-feature-glass nf-step__glass" data-motion={CHAPTER_MOTION[i] ?? "rise"}>
+                  <BrandIcon name={CHAPTER_OBJECT[i] ?? "listing-search"} fill drawn={56} />
                 </span>
-                <span className="nf-eyebrow">{s.label}</span>
-                <h3 className="nf-journey__title">
-                  <DepthWords text={s.title} />
-                </h3>
-                <p className="nf-journey__body">{s.body}</p>
-              </MotionReveal>
-              {/* The stacked layout's own screen, under 64rem. */}
-              <div className="nf-journey__inline">
-                <div className="nf-phone nf-phone--sm" data-theme="dark">
-                  <JourneyScreen step={s.key} labels={labels} />
-                </div>
-              </div>
+                <span className="nf-eyebrow nf-step__label">{step.label}</span>
+                <h3 className="nf-step__title">{step.title}</h3>
+                <p className="nf-step__body">{step.body}</p>
+                <ul className="nf-step__ui" aria-hidden="true">
+                  {(fragments[step.key] ?? []).map((f) => (
+                    <li key={f.label} className="nf-step__chip" data-tone={f.tone}>
+                      <UiIcon name={f.icon} size={16} />
+                      {f.label}
+                    </li>
+                  ))}
+                </ul>
+              </article>
             </li>
           ))}
-        </ol>
-
-        {/* The pinned phone and its rail, from 64rem. */}
-        <div className="nf-journey__stage" aria-hidden="true">
-          <div className="nf-journey__rail">
-            <span className="nf-journey__rail-fill" />
-            {steps.map((s, i) => (
-              <span key={s.key} className="nf-journey__dot" data-i={i}>
-                {s.label}
-              </span>
-            ))}
-          </div>
-          <div className="nf-phone" data-theme="dark">
-            {steps.map((s, i) => (
-              <div key={s.key} className="nf-journey__screen" data-i={i}>
-                <JourneyScreen step={s.key} labels={labels} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </JourneyScroll>
+        </MotionReveal>
+      </div>
     </section>
   );
 }

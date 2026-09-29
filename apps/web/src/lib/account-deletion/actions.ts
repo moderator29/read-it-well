@@ -39,6 +39,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { setupExempt } from "../actions/setup-exempt";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "../security/rate-limit";
 import { revokeTokens } from "../push/revoke";
@@ -96,7 +97,15 @@ async function callerIp(): Promise<string> {
  * the address already on the signed-in account, so the thing worth limiting is
  * one account asking for codes in a loop.
  */
-export async function sendDeletionCode(): Promise<ActionResult<null>> {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function sendDeletionCode(
+  ...args: Parameters<typeof sendDeletionCodeInner>
+): Promise<Awaited<ReturnType<typeof sendDeletionCodeInner>>> {
+  return setupExempt(() => sendDeletionCodeInner(...args));
+}
+
+async function sendDeletionCodeInner(): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -122,7 +131,15 @@ export async function sendDeletionCode(): Promise<ActionResult<null>> {
  * Returns the date the purge runs, so the screen can say it back rather than
  * computing a second version of the same clock.
  */
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
 export async function startDeletion(
+  ...args: Parameters<typeof startDeletionInner>
+): Promise<Awaited<ReturnType<typeof startDeletionInner>>> {
+  return setupExempt(() => startDeletionInner(...args));
+}
+
+async function startDeletionInner(
   input: unknown,
 ): Promise<ActionResult<{ purgeAfter: string; graceDays: number }>> {
   const parsed = validate(confirmDeletionSchema, input);
@@ -264,7 +281,15 @@ export async function startDeletionAction(
  * anybody whose deletion is open for another reason. The code path below is
  * the one that works once the ban has bitten.
  */
-export async function cancelDeletion(): Promise<ActionResult<null>> {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function cancelDeletion(
+  ...args: Parameters<typeof cancelDeletionInner>
+): Promise<Awaited<ReturnType<typeof cancelDeletionInner>>> {
+  return setupExempt(() => cancelDeletionInner(...args));
+}
+
+async function cancelDeletionInner(): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(GATED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -303,7 +328,15 @@ export async function cancelDeletion(): Promise<ActionResult<null>> {
  * only thing the code can do is cancel a deletion, so a guessed code fails in
  * the direction where an account survives.
  */
-export async function restoreWithCode(input: unknown): Promise<ActionResult<null>> {
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
+export async function restoreWithCode(
+  ...args: Parameters<typeof restoreWithCodeInner>
+): Promise<Awaited<ReturnType<typeof restoreWithCodeInner>>> {
+  return setupExempt(() => restoreWithCodeInner(...args));
+}
+
+async function restoreWithCodeInner(input: unknown): Promise<ActionResult<null>> {
   const parsed = validate(restoreWithCodeSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 

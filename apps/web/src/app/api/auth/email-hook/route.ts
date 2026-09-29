@@ -2,7 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { sendMessage } from "@/lib/email/client";
-import { verificationCode } from "@/lib/email/messages";
+import { passwordReset, verificationCode } from "@/lib/email/messages";
+import { siteUrl } from "@/lib/site";
 
 /**
  * Supabase's Send Email Hook. IT IS ENABLED, AND IT HAS RUN.
@@ -105,9 +106,47 @@ type HookPayload = {
   };
   email_data?: {
     token?: string;
+    /** The hashed token GoTrue builds its own confirmation link from. */
+    token_hash?: string;
+    /** The `redirectTo` the request asked for (our `/auth/callback`). */
+    redirect_to?: string;
     email_action_type?: EmailActionType;
   };
 };
+
+/**
+ * The recovery link, exactly as GoTrue's own template builds it
+ * (`{{ .ConfirmationURL }}`): the project's `/auth/v1/verify` with the token
+ * hash, which redirects to `redirect_to` carrying the code the callback
+ * exchanges. Read at call time rather than at import, so the environment is
+ * the one the request runs in. Null when either half is missing, and the
+ * email then carries the code alone.
+ */
+function recoveryLink(data: HookPayload["email_data"]): string | null {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim().replace(/\/+$/, "");
+  const hash = data?.token_hash?.trim() ?? "";
+  if (base.length === 0 || hash.length === 0) return null;
+  let url: URL;
+  try {
+    url = new URL(`${base}/auth/v1/verify`);
+  } catch {
+    return null;
+  }
+  url.searchParams.set("token", hash);
+  url.searchParams.set("type", "recovery");
+  const redirectTo = data?.redirect_to?.trim() ?? "";
+  if (redirectTo.length > 0) url.searchParams.set("redirect_to", redirectTo);
+  return url.toString();
+}
+
+/**
+ * Where the reset code is typed: the platform's canonical origin from
+ * `siteUrl()`. Never `redirect_to` or the request's own URL, which can be a
+ * development or preview host that a person reading the email cannot reach.
+ */
+function resetCodeUrl(): string {
+  return `${siteUrl()}/forgot-password/code`;
+}
 
 /**
  * The shared secret, as bytes.
@@ -183,7 +222,11 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const to = payload.user?.email?.trim() ?? "";
   const token = payload.email_data?.token?.trim() ?? "";
-  if (to.length === 0 || token.length === 0) {
+  /* A recovery can travel by its link alone, so a token hash stands in for
+     the token there; every other action is a code and needs the code. */
+  const recoveryHash =
+    payload.email_data?.email_action_type === "recovery" ? (payload.email_data.token_hash?.trim() ?? "") : "";
+  if (to.length === 0 || (token.length === 0 && recoveryHash.length === 0)) {
     return NextResponse.json({ ok: false, reason: "incomplete" }, { status: 400 });
   }
 
@@ -213,10 +256,39 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   /*
-   * ONE MESSAGE FOR EVERY ACTION TYPE, and that is a decision rather than a
-   * shortcut. Signing up, signing in, resetting a password and confirming a new
-   * address all end the same way: six digits typed into a screen the person
-   * already has open. Five near-identical templates would drift, and the
+   * THE PASSWORD RESET IS THE ONE EXCEPTION BELOW: A LINK AND A CODE.
+   *
+   * The link is GoTrue's own recovery link, rebuilt from the token hash, and
+   * it only works in the browser that asked (it is a PKCE link). The code is
+   * the fallback that works anywhere, typed at `/forgot-password/code`, and it
+   * is printed only when GoTrue handed us the token. Before this, a recovery
+   * fell through to the generic code email, which carried no link and pointed
+   * at no screen that took a recovery code.
+   */
+  if (action === "recovery") {
+    const resetUrl = recoveryLink(payload.email_data);
+    if (!resetUrl && token.length === 0) {
+      return NextResponse.json({ ok: false, reason: "incomplete" }, { status: 400 });
+    }
+    const reset = passwordReset({
+      name: nameFrom(payload.user?.user_metadata),
+      resetUrl,
+      code: token.length > 0 ? token : null,
+      codeUrl: token.length > 0 ? resetCodeUrl() : null,
+      expiresInMinutes: CODE_LIFETIME_MINUTES,
+    });
+    const sentReset = await sendMessage(to, reset);
+    if (!sentReset.sent) {
+      return NextResponse.json({ ok: false, reason: sentReset.reason }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  /*
+   * ONE MESSAGE FOR EVERY OTHER ACTION TYPE, and that is a decision rather
+   * than a shortcut. Signing up, signing in and the rest end the same way:
+   * digits typed into a screen the person already has open. Near-identical
+   * templates would drift, and the
    * differences between them would be decoration on the one line that matters.
    *
    * The subject carries the code, which `verificationCode` does deliberately:

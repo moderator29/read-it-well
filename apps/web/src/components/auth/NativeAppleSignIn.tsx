@@ -72,7 +72,17 @@ function randomNonce(): string {
     .join("");
 }
 
-export function NativeAppleSignIn({ label, next }: { label: string; next?: string | undefined }) {
+export function NativeAppleSignIn({
+  label,
+  next,
+  round = false,
+}: {
+  label: string;
+  next?: string | undefined;
+  /** The Slate round door (`SocialDoors`): the mark alone, the label as its
+      name. Otherwise a full-width Slate row with the mark and the words. */
+  round?: boolean;
+}) {
   const a = useClientCopy().authFlow;
   const router = useRouter();
   const available = useSyncExternalStore(noSubscribe, pluginAvailable, () => false);
@@ -119,16 +129,22 @@ export function NativeAppleSignIn({ label, next }: { label: string; next?: strin
   };
 
   return (
-    <div>
+    <div className={round ? "nf-slate-social-slot" : undefined}>
       <button
         type="button"
         onClick={() => void start()}
         disabled={busy}
         data-testid="apple-native-sign-in"
-        className="nf-btn nf-btn--glass nf-btn--full nf-auth__door"
+        aria-label={round ? label : undefined}
+        title={round ? label : undefined}
+        className={
+          round
+            ? "nf-slate-social"
+            : "nf-btn nf-btn--ghost nf-btn--lg nf-btn--full nf-slate-pill nf-slate-pill--quiet"
+        }
       >
         <AppleMark />
-        {label}
+        {round ? null : label}
       </button>
       {message ? (
         <p role="alert" className="nf-auth__notice mt-sm">

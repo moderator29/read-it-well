@@ -4,10 +4,20 @@ import { formatDate, type Locale } from "@vallo/i18n/core";
 import { createClient } from "../supabase/server";
 
 /**
- * SEC-15: the end of the 7-day money hold on the signed-in person's account,
- * formatted, or null when there is none. Read through their own client (the
- * owner policy on account_money_holds).
+ * SEC-15: the end of the 7-day money hold that support placed when it moved
+ * the signed-in person's email address, formatted, or null when there is
+ * none. Read through their own client (the owner policy on
+ * account_money_holds). ONLY that hold: any other hold on the account (a
+ * compliance desk's, reason `plain`) is never described to its owner, so the
+ * reason is read and anything but the address-move hold is null.
  */
+export const ADDRESS_MOVE_HOLD_PREFIX = "email address moved by support";
+
+export function addressMoveHoldUntil(row: { hold_until?: string | null; reason?: string | null } | null, now = Date.now()): string | null {
+  if (!row?.hold_until || typeof row.reason !== "string" || !row.reason.startsWith(ADDRESS_MOVE_HOLD_PREFIX)) return null;
+  return new Date(row.hold_until).getTime() > now ? row.hold_until : null;
+}
+
 export async function loadMoneyHoldUntil(locale: Locale): Promise<string | null> {
   try {
     const supabase = await createClient();
@@ -15,11 +25,11 @@ export async function loadMoneyHoldUntil(locale: Locale): Promise<string | null>
     if (!auth.user) return null;
     const { data } = await supabase
       .from("account_money_holds" as never)
-      .select("hold_until")
+      .select("hold_until, reason")
       .eq("user_id", auth.user.id)
       .maybeSingle();
-    const until = (data as { hold_until?: string } | null)?.hold_until;
-    if (!until || new Date(until).getTime() <= Date.now()) return null;
+    const until = addressMoveHoldUntil(data as { hold_until?: string | null; reason?: string | null } | null);
+    if (!until) return null;
     return formatDate(new Date(until), locale, {
       day: "numeric",
       month: "long",

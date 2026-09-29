@@ -40,9 +40,12 @@ describe("example stays and restaurants are labelled where they would be booked"
   });
 
   it("an unchecked host is not drawn with the verified mark's person-with-a-tick", () => {
-    expect(code("components/app/listing/DetailAnatomy.tsx")).toMatch(
-      /name=\{host\.verified \? "user-check" : "person-card"\}/,
-    );
+    const src = code("components/app/listing/DetailAnatomy.tsx");
+    /* The photo-less avatar is the plain person for everyone; the tick lives
+       only in the verified branch of the title. */
+    expect(src).toMatch(/nf-detail-avatar-glyph">\s*<UiIcon name="user" /);
+    expect(src).not.toMatch(/"user-check"/);
+    expect(src).toMatch(/host\.verified \? \(\s*<span className="nf-host-row__title">\s*<UiIcon name="verified"/);
   });
 });
 

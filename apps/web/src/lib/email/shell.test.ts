@@ -130,31 +130,39 @@ describe("every rendered email survives a real mail client", () => {
     expect(theme.MAX_WIDTH).toBeLessThanOrEqual(600);
   });
 
-  it.each(EVERY_HTML)("$name declares the dark scheme and re-asserts it", ({ html }) => {
-    // `color-scheme: dark` is what stops Apple Mail and iOS inverting a
-    // palette nobody designed, and the media query is what holds the designed
-    // values against Gmail's own dark-mode pass.
-    expect(html).toContain('name="color-scheme" content="dark"');
-    expect(html).toContain('name="supported-color-schemes" content="dark"');
+  it.each(EVERY_HTML)("$name declares both schemes and carries the designed dark one", ({ html }) => {
+    // `light dark` tells Apple Mail and iOS the message has a dark design of
+    // its own, so they apply it rather than inverting the light one; the media
+    // query is that design. Gmail strips both, which the inline layer answers.
+    expect(html).toContain('name="color-scheme" content="light dark"');
+    expect(html).toContain('name="supported-color-schemes" content="light dark"');
     expect(html).toContain("@media (prefers-color-scheme: dark)");
+    expect(html).toContain(`.rm-card   { background-color: ${theme.DARK.card} !important;`);
   });
 
-  it.each(EVERY_HTML)("$name is dark in the layer every client honours", ({ html }) => {
+  it.each(EVERY_HTML)("$name is a navy band over a light page in the layer every client honours", ({ html }) => {
     /*
      * The inline styles are the layer no client strips, and they carry the
-     * register: the navy ground and the glass card, as inline styles AND as
-     * bgcolor attributes, which is the form Outlook's Word engine has honoured
-     * since 2007. A dark email that half renders is light text on a white
-     * ground, and painting the ground three times is what stops that.
+     * design: the navy brand band and the light ground and card, as inline
+     * styles AND as bgcolor attributes, which is the form Outlook's Word
+     * engine has honoured since 2007.
      */
     const afterStyle = html.slice(html.indexOf("</style>"));
-    expect(afterStyle).toContain(`bgcolor="${theme.DARK.ground}"`);
-    expect(afterStyle).toContain(`background:${theme.DARK.ground}`);
-    expect(afterStyle).toContain(`bgcolor="${theme.DARK.card}"`);
-    expect(afterStyle).toContain(`background:${theme.DARK.card}`);
+    expect(afterStyle).toContain(`bgcolor="${theme.HEADER}"`);
+    expect(afterStyle).toContain(
+      `background-color:${theme.HEADER};background-image:linear-gradient(${theme.HEADER},${theme.HEADER})`,
+    );
+    expect(afterStyle).toContain(`bgcolor="${theme.LIGHT.ground}"`);
+    expect(afterStyle).toContain(`background-color:${theme.LIGHT.ground}`);
+    expect(afterStyle).toContain(`bgcolor="${theme.LIGHT.card}"`);
+    expect(afterStyle).toContain(`background-color:${theme.LIGHT.card}`);
     // Every heading and body colour is inline beside the ground it sits on.
-    expect(afterStyle).toContain(`color:${theme.DARK.text}`);
-    expect(afterStyle).toContain(`color:${theme.DARK.body}`);
+    expect(afterStyle).toContain(`color:${theme.LIGHT.text}`);
+    expect(afterStyle).toContain(`color:${theme.LIGHT.body}`);
+    // The support and legal links are in every footer.
+    expect(afterStyle).toMatch(/\/support"/);
+    expect(afterStyle).toMatch(/\/legal\/privacy"/);
+    expect(afterStyle).toMatch(/\/legal\/terms"/);
   });
 
   it.each(EVERY_HTML)("$name sets a deliberate inbox line", ({ html }) => {
@@ -171,10 +179,10 @@ describe("every rendered email survives a real mail client", () => {
 /* --------------------------------------------------------- images blocked */
 
 describe("every rendered email reads completely with images blocked", () => {
-  it.each(EVERY_HTML)("$name carries the lockup, two sized images, and nothing else in a picture", ({ html }) => {
+  it.each(EVERY_HTML)("$name carries the lockup, one sized image, and nothing else in a picture", ({ html }) => {
     const images = html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images).toHaveLength(2);
-    const [mark, wordmark] = images;
+    expect(images).toHaveLength(1);
+    const [lockup] = images;
 
     /*
      * Explicit width and height so a blocked image reserves exactly its own box
@@ -187,17 +195,16 @@ describe("every rendered email reads completely with images blocked", () => {
     }
 
     /*
-     * The mark carries no words, so its alt is EMPTY. The wordmark IS the
-     * word, so its alt is the brand name and nothing more: with images off a
-     * reader sees "Vallo" once, in its place. Any other alt text is the signal
-     * that somebody has put copy inside a picture, which is unreadable in the
-     * half of inboxes that block images and unreadable to a screen reader
-     * always.
+     * The lockup IS the brand name, so its alt is the brand name and nothing
+     * more: with images off a reader sees "Vallo" once, in its place. Any
+     * other alt text is the signal that somebody has put copy inside a
+     * picture, which is unreadable in the half of inboxes that block images
+     * and unreadable to a screen reader always.
      */
-    expect(mark).toContain(theme.MARK_PATH);
-    expect(mark).toContain('alt=""');
-    expect(wordmark).toContain(theme.WORDMARK_PATH);
-    expect(wordmark).toContain(`alt="${theme.WORDMARK_ALT}"`);
+    expect(lockup).toContain(theme.LOCKUP_PATH);
+    expect(lockup).toContain(`alt="${theme.WORDMARK_ALT}"`);
+    expect(lockup).toContain(`width="${theme.LOCKUP_WIDTH}"`);
+    expect(lockup).toContain(`height="${theme.LOCKUP_HEIGHT}"`);
   });
 
   it.each(EVERY_HTML)("$name still shows the brand and the action as text", ({ name, html }) => {
@@ -232,9 +239,12 @@ describe("one palette, and the auth generator has not drifted from it", () => {
 
   const THEME_COLOURS = [
     ...Object.values(theme.DARK),
+    ...Object.values(theme.LIGHT),
     theme.GLOW,
     theme.ELECTRIC,
     theme.SKY,
+    theme.BRAND,
+    theme.LINK,
   ];
 
   it.each(THEME_COLOURS)("the auth generator uses the theme value %s", (hex) => {
@@ -289,11 +299,7 @@ describe("one palette, and the auth generator has not drifted from it", () => {
     /**
      * The FIRST declaration of a token wins, which is the dark default.
      * `tokens.css` redefines several of these lower down inside the light
-     * theme block (`--nf-brand-quiet` becomes `#094DAF` on paper), and an
-     * email has no light twin: the product is dark by default, the operating
-     * system does not override it, and rule 22 keeps the auth surface dark in
-     * both themes. Matching the light value here would be matching the wrong
-     * one.
+     * theme block; `lightToken` below reads that block for the light layer.
      */
     function token(name: string): string {
       const found = tokens.match(new RegExp(`^\\s*${name}:\\s*(#[0-9A-Fa-f]{6})\\s*;`, "m"));
@@ -308,6 +314,35 @@ describe("one palette, and the auth generator has not drifted from it", () => {
       ["SKY", theme.SKY, "--nf-brand-quiet"],
     ])("%s is %s, which is the live value of %s", (_name, baked, tokenName) => {
       expect(baked.toUpperCase()).toBe(token(tokenName));
+    });
+
+    /** A token's value inside the `:root[data-theme="light"]` block. */
+    function lightToken(name: string): string {
+      /* The light block may also name a light island inside the dark header
+         (`:root[data-theme="light"] [data-theme="light"]`), so it opens with
+         either its own selector or that pair. */
+      const start = [':root[data-theme="light"] {', ':root[data-theme="light"],\n:root[data-theme="light"] [data-theme="light"] {']
+        .map((marker) => tokens.indexOf(marker))
+        .filter((at) => at >= 0)
+        .reduce((a, b) => Math.min(a, b), Number.POSITIVE_INFINITY);
+      expect(start).toBeGreaterThan(0);
+      const block = tokens.slice(start, tokens.indexOf("\n}", start));
+      const hex = block.match(new RegExp(`^\\s*${name}:\\s*(#[0-9A-Fa-f]{6})\\s*;`, "m"))?.[1];
+      expect(hex, `${name} is not declared as a literal hex in the light block`).toBeTruthy();
+      return String(hex).toUpperCase();
+    }
+
+    it.each([
+      ["LIGHT.ground", theme.LIGHT.ground, "--nf-surface-raised"],
+      ["LIGHT.card", theme.LIGHT.card, "--nf-surface-primary"],
+      ["LIGHT.panel", theme.LIGHT.panel, "--nf-surface-secondary"],
+      ["LIGHT.text", theme.LIGHT.text, "--nf-content-primary"],
+      ["LIGHT.body", theme.LIGHT.body, "--nf-content-secondary"],
+      ["LIGHT.muted", theme.LIGHT.muted, "--nf-content-muted"],
+      ["BRAND", theme.BRAND, "--nf-brand-primary"],
+      ["LINK", theme.LINK, "--nf-brand-quiet"],
+    ])("%s is %s, which is the light theme's %s", (_name, baked, tokenName) => {
+      expect(baked.toUpperCase()).toBe(lightToken(tokenName));
     });
 
     /**
@@ -365,6 +400,11 @@ describe("one palette, and the auth generator has not drifted from it", () => {
         ["SKY", theme.SKY],
         ["rim", theme.DARK.rim],
         ["edge", theme.DARK.edge],
+        ["BRAND", theme.BRAND],
+        ["LINK", theme.LINK],
+        ...(theme.GRADIENT_LIGHT.match(/#[0-9A-Fa-f]{6}/g) ?? []).map(
+          (hex, i) => [`GRADIENT_LIGHT stop ${i}`, hex] as const,
+        ),
         // The gradient middle stop, dug out of the composed string.
         ...(theme.GRADIENT.match(/#[0-9A-Fa-f]{6}/g) ?? []).map(
           (hex, i) => [`GRADIENT stop ${i}`, hex] as const,
@@ -539,12 +579,13 @@ describe("the verification code is the hero of its own email", () => {
     expect(indent).toBe(tracking);
   });
 
-  it("is white on the panel rung, which is the deepest tone in the card", () => {
-    // The painted glass: ground, card, panel, each a rung lighter than the
-    // last. The code sits on the innermost one so it reads as inset.
+  it("is the strongest ink on the inset panel, and the dark scheme repaints both", () => {
+    // Ground, card, panel: the code sits on the inset panel, in the heading
+    // colour, and carries the classes the dark scheme repaints it by.
     const cell = codeCell(String(codeEmail?.message.html));
-    expect(cell).toContain(`background:${theme.DARK.panel}`);
-    expect(cell).toContain(`color:${theme.DARK.text}`);
+    expect(cell).toContain(`background:${theme.LIGHT.panel}`);
+    expect(cell).toContain(`color:${theme.LIGHT.text}`);
+    expect(cell).toMatch(/class="[^"]*rm-panel[^"]*rm-title/);
   });
 
   it("stands alone on its own line in the plain text part", () => {
@@ -560,11 +601,11 @@ describe("the verification code is the hero of its own email", () => {
 /**
  * THE PASSWORD RESET, WHICH IS THE ONE MESSAGE WHOSE BUTTON IS THE MESSAGE.
  *
- * Password reset is link only on this platform: there is no six digit
- * recovery screen, `resetPasswordForEmail` sends to the callback, and
- * `updatePassword` acts on the session that exchange creates. So if the
- * anchor does not survive the trip, the reader is locked out rather than
- * inconvenienced, and anchors do not always survive: corporate gateways
+ * The link is the one-tap way through: `resetPasswordForEmail` sends to the
+ * callback, and `updatePassword` acts on the session that exchange creates.
+ * The code beside it (when the hook has one) is the fallback, but a reader
+ * who only sees the button still needs the address, and anchors do not
+ * always survive: corporate gateways
  * rewrite them, some clients refuse a link in a message they score as
  * suspicious, and a reader forwarding to a desktop loses the tap.
  *
@@ -882,14 +923,13 @@ describe("the five auth templates are what the generator produces", () => {
      * (Track H: the cell now also carries its `bgcolor` after the style, which
      * the pattern allows; the colour it checks is unchanged.)
      */
-    expect(html).toContain(`{{ .SiteURL }}${theme.MARK_PATH}`);
-    expect(html).toContain(`{{ .SiteURL }}${theme.WORDMARK_PATH}`);
+    expect(html).toContain(`{{ .SiteURL }}${theme.LOCKUP_PATH}`);
     expect(html).toContain(`alt="${theme.WORDMARK_ALT}"`);
     const button = html.match(
       /<td align="center" style="border-radius:14px;background-color:(#[0-9A-F]{6});[^"]*mso-padding-alt:16px 34px;"[^>]*>\s*<a href="\{\{ \.ConfirmationURL \}\}"[^>]*color:#FFFFFF;[^>]*>([^<]+)<\/a>/,
     );
     expect(button).not.toBeNull();
-    expect(button?.[1]).toBe(theme.GLOW);
+    expect(button?.[1]).toBe(theme.BRAND);
     expect((button?.[2] ?? "").trim().length).toBeGreaterThan(0);
   });
 

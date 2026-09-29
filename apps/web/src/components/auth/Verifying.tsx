@@ -107,6 +107,9 @@ export function Verifying({
 
     void complete({ code, tokenHash, type, accessToken, refreshToken, next }).then((result) => {
       if (result.ok) {
+        /* The success moment is not in the address: the server action set a
+           one-shot cookie (`rememberSuccess`), and `SuccessFlagHost` asks for
+           it on the next screen, so a link cannot forge it. */
         const go = () => {
           router.replace(result.next);
           /* The tree behind this screen was rendered signed out. */
@@ -140,7 +143,7 @@ export function Verifying({
           </span>
           <h1 className="nf-h2 mt-md">{a.signInWithYourEmail}</h1>
           <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
-          <ButtonLink href="/sign-in/email" variant="primary" size="lg" className="mt-lg">
+          <ButtonLink href="/sign-in" variant="primary" size="lg" className="mt-lg">
             {a.signInWithEmail}
           </ButtonLink>
         </div>

@@ -22,6 +22,7 @@ import type { Side } from "../side.constants";
 import { threadSide } from "./thread-side";
 import { lagosTimeLabel, lagosWhenLabel } from "./time";
 import { readPersonBadges, type BadgeTier } from "@/lib/trust/badge-tier";
+import { loadUnreadCounts } from "./unread";
 
 type Db = SupabaseClient<Database>;
 
@@ -184,7 +185,9 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
      * a thread, which is the founder's own account in his own messages.
      * `public.person_badge` answers for anybody, and it is the same derivation:
      * `public.badge_tier` over `public.is_platform_staff` and
-     * `public.is_checked_person`. Migration 20260923111950.
+     * `public.is_checked_person`. Migration 20260923111950; since
+     * 20260929000714 the view reaches both through the definer
+     * `private.badge_tier_for`, and neither helper is callable by a client.
      */
     const badges = await readPersonBadges(admin, ids);
 
@@ -214,9 +217,9 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
 
 /**
  * The signed-in user's conversations, newest activity first, with counterpart
- * name, listing title, last message preview and unread count. Two bounded
- * queries: the conversations themselves, then one recent-messages sweep that
- * yields both previews and unread counts without an N+1.
+ * name, listing title, last message preview and unread count. The
+ * conversations themselves, then one recent-messages sweep for the previews
+ * and `my_unread_counts()` for exact unread counts, without an N+1.
  */
 export async function loadConversationSummaries(
   supabase: Db,
@@ -245,7 +248,7 @@ export async function loadConversationSummaries(
      together rather than one after another (Track M performance: the inbox
      finished 1.4 seconds after the tap on production). What each one reads
      is unchanged. */
-  const [{ data: recent }, { data: mine }, identities] = await Promise.all([
+  const [{ data: recent }, { data: mine }, identities, exactUnread] = await Promise.all([
     supabase
       .from("messages")
       .select("conversation_id, sender_id, body, created_at, read_at")
@@ -259,6 +262,11 @@ export async function loadConversationSummaries(
        the caller's own id, answers it exactly. */
     supabase.from("messages").select("conversation_id").in("conversation_id", ids).eq("sender_id", user.id).limit(1000),
     identitiesOf(counterparts),
+    /* DB2: unread counts are exact, from my_unread_counts() and its partial
+       index. The recent sweep above still gives the previews; it counted
+       unread too, and missed anything below its 400th message. It stays
+       only as the fallback when the function cannot be read. */
+    loadUnreadCounts(supabase),
   ]);
 
   const lastByConversation = new Map<
@@ -274,7 +282,7 @@ export async function loadConversationSummaries(
         senderId: m.sender_id,
       });
     }
-    if (m.sender_id !== user.id && m.read_at === null) {
+    if (!exactUnread && m.sender_id !== user.id && m.read_at === null) {
       unreadByConversation.set(
         m.conversation_id,
         (unreadByConversation.get(m.conversation_id) ?? 0) + 1,
@@ -311,7 +319,7 @@ export async function loadConversationSummaries(
         null,
       lastMessage: last?.body ?? "No messages yet",
       whenLabel: lagosWhenLabel(last?.at ?? c.last_message_at),
-      unread: unreadByConversation.get(c.id) ?? 0,
+      unread: (exactUnread ? exactUnread.byConversation : unreadByConversation).get(c.id) ?? 0,
       /* No messages at all counts as not from us, so a brand new enquiry with
          nothing in it still reads as waiting rather than as answered. */
       lastFromMe: last ? last.senderId === user.id : false,

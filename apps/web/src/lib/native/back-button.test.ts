@@ -73,6 +73,8 @@ const { startBackButton } = await import("./back-button");
  */
 type Fake = {
   setPath: (path: string) => void;
+  setHistoryState: (state: unknown) => void;
+  historyBacks: number;
   openOverlay: () => void;
   closeOverlay: () => void;
   escapes: number;
@@ -103,7 +105,18 @@ function installGlobals(): Fake {
     }
   }
 
-  const windowLike = { location: { pathname: "/" } };
+  const history = { state: null as unknown, backs: 0 };
+  const windowLike = {
+    location: { pathname: "/" },
+    history: {
+      get state() {
+        return history.state;
+      },
+      back: () => {
+        history.backs += 1;
+      },
+    },
+  };
 
   Object.assign(globalThis, {
     document: documentLike,
@@ -114,6 +127,12 @@ function installGlobals(): Fake {
   return {
     setPath: (path: string) => {
       windowLike.location.pathname = path;
+    },
+    setHistoryState: (next: unknown) => {
+      history.state = next;
+    },
+    get historyBacks() {
+      return history.backs;
     },
     openOverlay: () => {
       body.style.overflow = "hidden";
@@ -167,13 +186,45 @@ describe("the real Android back listener", () => {
   });
 
   it("leaves the application at a declared root, and only there", () => {
-    for (const root of ["/", "/home", "/stays"]) {
+    for (const root of ["/", "/home", "/stays", "/welcome"]) {
       bridge.exits = 0;
       backs = [];
       fake.setPath(root);
       bridge.press();
       expect({ root, exits: bridge.exits, backs }).toEqual({ root, exits: 1, backs: [] });
     }
+  });
+
+  it("puts the app down from the welcome intro rather than skipping it to /home", () => {
+    /* `/home` is the sign-in wall to a stranger, so pushing it from the intro
+       skipped the intro the founder requires. */
+    fake.setPath("/welcome");
+    bridge.press();
+    expect(bridge.exits).toBe(1);
+    expect(backs).toEqual([]);
+  });
+
+  it("steps back a welcome slide through history instead of closing the app", () => {
+    fake.setPath("/welcome");
+    fake.setHistoryState({ nfGsSlide: 2 });
+    bridge.press();
+    expect(fake.historyBacks).toBe(1);
+    expect(bridge.exits).toBe(0);
+    expect(backs).toEqual([]);
+  });
+
+  it("returns sign up's step two to step one through history, keeping the answers", () => {
+    fake.setPath("/sign-up/email");
+    fake.setHistoryState({ nfStep: 2 });
+    bridge.press();
+    expect(fake.historyBacks).toBe(1);
+    expect(backs).toEqual([]);
+
+    /* Step one carries no stamp, so it goes to its declared parent as before. */
+    fake.setHistoryState(null);
+    bridge.press();
+    expect(fake.historyBacks).toBe(1);
+    expect(backs).toEqual(["/sign-up/email"]);
   });
 
   it("does NOT close the application on any of the twenty-two routes this pass wired", () => {

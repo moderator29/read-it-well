@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { build } from "esbuild";
 import { chromium, type Browser, type Page } from "playwright-core";
-import { readSheetMarker } from "./use-sheet-history";
+import { readSheetIds, readSheetMarker } from "./use-sheet-history";
 
 /**
  * UX-19: with a sheet open, the browser's Back closes the sheet and stays on
@@ -26,9 +26,13 @@ import { createRoot } from "react-dom/client";
 import { useSheetHistory } from "@/lib/ui/use-sheet-history";
 function Demo() {
   const [open, setOpen] = useState(false);
+  const [over, setOver] = useState(false);
   useSheetHistory(open, "demo", () => setOpen(false));
+  useSheetHistory(over, "over", () => setOver(false));
   return (
     <div style={{ minHeight: "4000px" }}>
+      <button id="open-over" onClick={() => setOver(true)}>open over</button>
+      <output id="over">{over ? "open" : "closed"}</output>
       <button id="open" onClick={() => setOpen(true)}>open</button>
       <button id="close" onClick={() => setOpen(false)}>close</button>
       <button id="close-and-go" onClick={() => { setOpen(false); history.pushState({ page: "next" }, "", "/next"); }}>go</button>
@@ -117,6 +121,21 @@ describe.skipIf(!CHROMIUM && !process.env.CI)("Back and an open sheet (real Chro
     await p.close();
   });
 
+  it("Back closes only the top sheet of two", async () => {
+    const p = await page();
+    await p.click("#open");
+    await p.click("#open-over");
+    expect(await p.textContent("#over")).toBe("open");
+    await p.evaluate(() => history.back());
+    await p.waitForFunction(() => document.querySelector("#over")?.textContent === "closed");
+    await p.waitForTimeout(150);
+    expect(await state(p)).toBe("open");
+    await p.evaluate(() => history.back());
+    await p.waitForFunction(() => document.querySelector("#state")?.textContent === "closed");
+    expect(new URL(p.url()).pathname).toBe("/wallet");
+    await p.close();
+  });
+
   it("does not undo a navigation made as the sheet closes", async () => {
     const p = await page();
     await p.click("#open");
@@ -132,5 +151,13 @@ describe("the history marker", () => {
     expect(readSheetMarker({ nfSheet: "a" })).toBe("a");
     expect(readSheetMarker({ __NA: true })).toBeNull();
     expect(readSheetMarker(null)).toBeNull();
+  });
+
+  it("carries a stack of ids, top last, for sheets opened over sheets", () => {
+    expect(readSheetIds({ nfSheet: ["comments", "report"] })).toEqual(["comments", "report"]);
+    expect(readSheetMarker({ nfSheet: ["comments", "report"] })).toBe("report");
+    expect(readSheetIds({ nfSheet: "legacy" })).toEqual(["legacy"]);
+    expect(readSheetIds({ nfSheet: [1, "a"] })).toEqual(["a"]);
+    expect(readSheetIds(undefined)).toEqual([]);
   });
 });

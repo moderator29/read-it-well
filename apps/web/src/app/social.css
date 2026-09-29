@@ -30,6 +30,11 @@
   /* How far the cover runs up behind the app's own translucent top bar. */
   --nf-social-bar: 64px;
 }
+/* In light the app header is a solid navy block (reference 05), so a cover
+   running up behind it would be hidden, not seen through glass. */
+:root[data-theme="light"] {
+  --nf-social-bar: 0px;
+}
 
 @layer components {
   /* ------------------------------------------------------------- the card */
@@ -742,3 +747,51 @@
     background: transparent;
     border: 0;
   }}
+
+/*
+ * THE PUBLIC PROFILE'S TOP BLOCK IN DAYLIGHT (reference 05, 29 September
+ * 2026). `ProfileHeader` is a night island in both themes (`.nf-profile-top`):
+ * the cover, the face, the name, the counts, the actions and the chips sit on
+ * a navy block with rounded lower corners in light, bleeding to the screen
+ * edge exactly as far as the cover does, and the posts under it stay light.
+ * At night none of this applies.
+ */
+@layer components {
+  :root[data-theme="light"] .nf-profile-top[data-theme="dark"] {
+    margin-inline: -1.25rem;
+    padding: 0 1.25rem var(--nf-space-lg);
+    border-radius: 0 0 var(--nf-radius-2xl) var(--nf-radius-2xl);
+    background:
+      radial-gradient(80% 40% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 16%, transparent), transparent 72%),
+      var(--nf-surface-canvas);
+    box-shadow:
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
+      0 18px 36px -26px var(--nf-glow-3);
+  }
+  @media (min-width: 768px) {
+    :root[data-theme="light"] .nf-profile-top[data-theme="dark"] {
+      margin-inline: -2rem;
+      padding-inline: 2rem;
+    }
+  }
+}
+
+
+/*
+ * FOCUS RINGS the audit found missing (29 September 2026): the follower and
+ * following counts and the website link on a public profile, and the home
+ * hero's search field, showed focus by a colour change alone, which a
+ * keyboard reader cannot find. Each gets the product's one ring.
+ */
+@layer components {
+  .nf-social-count:focus-visible,
+  .nf-social-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 3px;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-hero-plate__search:has(.nf-hero-plate__input:focus-visible) {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+}

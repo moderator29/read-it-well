@@ -1,10 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { GLASS_FOR } from "@/lib/nav/glass-glyph";
+import { motionQuiet } from "@/lib/motion/gate";
 import { isCurrent, type NavLeaf, type NavSection } from "./nav-model";
 
 /**
@@ -71,6 +71,30 @@ export function NavTree({
   whole?: boolean;
 }) {
   const Row = whole ? WholePrefetchLink : Link;
+
+  /*
+   * THE CURRENT ROW IS ON SCREEN. The list scrolls with its scrollbar hidden,
+   * so a current row below the fold (Settings on a 900px-tall laptop) was a
+   * page you were on that the navigation did not show. On mount, and when the
+   * current page changes, the list scrolls just far enough to show it: the
+   * `block: "nearest"` rule, applied to this list alone rather than through
+   * `scrollIntoView`, which would also scroll the page and the drawer around
+   * it. Arriving is instant; a later change glides unless motion is quiet.
+   */
+  const navRef = useRef<HTMLElement | null>(null);
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    const list = navRef.current;
+    const first = !mountedRef.current;
+    mountedRef.current = true;
+    const row = list?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!list || !row || list.scrollHeight <= list.clientHeight) return;
+    const box = list.getBoundingClientRect();
+    const at = row.getBoundingClientRect();
+    const delta = at.top < box.top ? at.top - box.top : at.bottom > box.bottom ? at.bottom - box.bottom : 0;
+    if (delta === 0) return;
+    list.scrollBy({ top: delta, behavior: first || motionQuiet() ? "auto" : "smooth" });
+  }, [active, activeType]);
   const row = (item: NavLeaf) => {
     const current = isCurrent(item.href, active, activeType);
     return (
@@ -82,15 +106,14 @@ export function NavTree({
           className={`nf-nav__row${current ? " nf-nav__row--on" : ""}`}
         >
           <span className="nf-nav__glyph" aria-hidden="true">
-            {/* On the named scale, and a step up with it. This was a literal
-                16, which is now the FLOOR of the scale rather than a middle
-                step; `md` is 24 and is what a row this tall wants beside 16px
-                type. */}
-            {GLASS_FOR[item.icon] ? (
-              <BrandIcon name={GLASS_FOR[item.icon]!} size={30} loading="eager" />
-            ) : (
-              <UiIcon name={item.icon} size="md" filled={current} />
-            )}
+            {/* Line glyphs only, 29 September 2026, and final: the founder
+                ruled the side navigation keeps its blue line icons. The rows
+                once drew glass objects at 30px, below the 32px where the glass
+                set reads (docs/ICON_SYSTEM.md), and they blurred. The stroked
+                set at `md` (24) is crisp beside 16px type, and the current
+                row takes its drawn filled twin. The dock's More tray draws the
+                same line set. */}
+            <UiIcon name={item.icon} size="md" filled={current} />
           </span>
           <span className="nf-nav__label">{item.label}</span>
           {item.badge ? <span className="nf-count-badge nf-nav__badge nf-numeric">{item.badge}</span> : null}
@@ -119,6 +142,7 @@ export function NavTree({
 
   return (
     <nav
+      ref={navRef}
       aria-label={label}
       className={`nf-nav__scroll${accent === "agent" ? " nf-nav__scroll--agent" : ""}`}
     >

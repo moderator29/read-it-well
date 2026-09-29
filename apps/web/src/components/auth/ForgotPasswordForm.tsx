@@ -5,9 +5,9 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { requestPasswordReset } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field } from "./fields";
+import { AuthPillButton, AuthPillLink } from "./slate";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -31,34 +31,27 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
   const sent = state.ok;
 
   return (
-    <div className="w-full">
-      <Link
-        href="/sign-in"
-        className="nf-tap -ml-1 mb-3 inline-flex items-center gap-xs text-[0.8125rem] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
-      >
-        <UiIcon name="arrow-left" size={16} />
-        {t.common.signIn}
-      </Link>
-
-      <h1 className="nf-h2 text-center">{t.auth.resetTitle}</h1>
-      <p className="mb-6 mt-xs text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
-        {sent ? t.auth.resetSentLead : t.auth.resetLead}
-      </p>
+    <div className="nf-auth__screen nf-slate-stagger">
+      <h1 className="nf-auth__title">{t.auth.resetTitle}</h1>
+      <p className="nf-auth__sub">{sent ? t.auth.resetSentLead : t.auth.resetLead}</p>
 
       {sent ? (
         <>
-          <p
-            role="status"
-            className="nf-card px-4 py-md text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
-          >
+          <p role="status" className="nf-auth__notice">
             {state.message}
           </p>
-          <p className="mt-6 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-            {t.auth.resetNotArrived}
-          </p>
+          {/* The link works only in this browser; the code in the same
+              email works anywhere. */}
+          <p className="nf-auth__hint">{t.auth.resetHaveCode}</p>
+          <div className="nf-auth__form">
+            <AuthPillLink href="/forgot-password/code" quiet>
+              {t.auth.resetEnterCode}
+            </AuthPillLink>
+          </div>
+          <p className="nf-auth__hint">{t.auth.resetNotArrived}</p>
         </>
       ) : (
-        <form action={formAction} className="space-y-4 text-left" noValidate>
+        <form action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
           <Field
             t={t}
             id="email"
@@ -73,17 +66,26 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
           {state.message && (
             <p
               role="alert"
-              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {state.message}
             </p>
           )}
 
-          <Button type="submit" variant="primary" size="lg" full loading={pending}>
-            {t.auth.resetSend}
-          </Button>
+          <div className="nf-auth__actions">
+            <AuthPillButton type="submit" loading={pending} className="nf-auth__cta">
+              {t.auth.resetSend}
+            </AuthPillButton>
+          </div>
         </form>
       )}
+
+      <p className="nf-auth__links">
+        <Link href="/sign-in" className="nf-tap nf-auth__aside">
+          <UiIcon name="arrow-left" size={16} />
+          {t.common.signIn}
+        </Link>
+      </p>
     </div>
   );
 }

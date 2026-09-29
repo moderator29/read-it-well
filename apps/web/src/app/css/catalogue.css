@@ -365,8 +365,8 @@
     pointer-events: none;
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
     top: 50%;
     left: 50%;
@@ -483,8 +483,8 @@
     color: var(--nf-brand-secondary);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
     border-radius: var(--nf-radius-control);
   }
@@ -540,8 +540,8 @@
       transform var(--nf-duration-press) var(--nf-ease-press);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-shelf-chip > svg:first-child {
@@ -592,8 +592,8 @@
     list-style: none;
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
     border-radius: var(--nf-radius-control);
     min-height: 2.75rem;
@@ -645,62 +645,9 @@
      3EB3E2A9's right-hand panel: a glass sheet with a grip, groups headed by
      a title and a Clear link, rectangles for the choice sets, switches for
      the amenities, two rows for location and sort, Reset and Apply. */
-  .nf-filters {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    background: var(--nf-panel-fill);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
-    backdrop-filter: blur(var(--nf-panel-blur));
-    isolation: isolate;
-  }
-  @media (min-width: 48rem) {
-    .nf-filters {
-      inset: auto 0 0 auto;
-      width: min(28rem, 100%);
-      height: 100%;
-    border-radius: var(--nf-container-radius) 0 0 var(--nf-container-radius);
-  }
-  }
-  /* The grabber above the title, as the render draws it.
-
-     LEFT ROUND ON PURPOSE under the founder's shape law: this is a 4px bar
-     with no letters on it and it is not a control. Squaring its ends would
-     make a grabber look like a broken divider. */
-  .nf-filters__grip {
-    display: block;
-    width: 2.5rem;
-    height: 0.25rem;
-    flex-shrink: 0;
-    margin: var(--nf-space-xs) auto 0;
-    margin-top: calc(var(--nf-space-xs) + env(safe-area-inset-top, 0px));
-    border-radius: var(--nf-radius-pill);
-    background: var(--nf-panel-catch);
-  }
-  .nf-filters__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--nf-space-sm);
-    padding: var(--nf-space-sm) var(--nf-pad-shell);
-    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
-  }
-  .nf-filters__title {
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h3);
-    font-weight: 700;
-    color: var(--nf-content-primary);
-  }
-  .nf-filters__body {
-    min-height: 0;
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--nf-space-md) var(--nf-pad-shell) var(--nf-space-xl);
-  }
+  /* The surface, grip, head, body and foot are the platform's `Sheet` in its
+     page shape (`fullPage` + `sideOnWide`, overlays.css); what follows is
+     the inside of the sheet. */
   .nf-filters__group + .nf-filters__group {
     margin-top: var(--nf-space-lg);
     padding-top: var(--nf-space-lg);
@@ -908,15 +855,6 @@
     font-weight: 700;
     color: var(--nf-content-primary);
   }
-  .nf-filters__foot {
-    display: grid;
-    grid-template-columns: 1fr 1.4fr;
-    gap: var(--nf-space-xs);
-    padding: var(--nf-space-sm) var(--nf-pad-shell);
-    padding-bottom: calc(var(--nf-space-sm) + env(safe-area-inset-bottom, 0px));
-    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
-  }
-
   /* ======================================================== listing detail
      The founder's send-back: the hero carries the marks, a lit glass lead
      card overlaps it, and there is no thumbnail strip. The strip's rules
@@ -1181,10 +1119,7 @@
     box-shadow: var(--nf-btn-glass-shadow);
     border-radius: var(--nf-radius-control);
   }
-  .nf-detail-movein__rooms > span:first-child {
-    display: block;
-    width: 2.75rem;
-    height: 2.75rem;
+  .nf-detail-movein__rooms > .nf-plate {
     flex-shrink: 0;
   }
   /* The section tabs. Anchors, so they are shareable and need no script. */
@@ -1375,6 +1310,20 @@
     border-radius: var(--nf-container-radius);
     background: var(--nf-panel-fill-card);
     box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+    /* THE MESSAGE BUTTON STEPS DOWN A ROW RATHER THAN SITTING ON THE BADGE
+       (independent audit, 29 September 2026). At 390 the avatar, the
+       unwrappable "Verified agent" pill and the Message button did not fit on
+       one line, and the text column, shrunk to what was left, let the pill run
+       under the button. The column now asks for 10rem before it shares its
+       row; when it cannot have that, the button wraps and sits at the end. */
+    flex-wrap: wrap;
+  }
+  .nf-agent-card__body {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+  .nf-agent-card__cta {
+    margin-inline-start: auto;
   }
   .nf-agent-card__avatar {
     display: block;
@@ -2011,6 +1960,16 @@
   .nf-stays-tile--on .nf-stays-tile__go {
     color: var(--nf-content-on-brand);
   }
+  /* THE ARROW KEEPS ITS OWN ROW (E2E audit, 29 September). `stays.css` is
+     imported after this file and its `.nf-stays-tile` sets the `padding`
+     shorthand, which quietly reset the `padding-right` above to 12px; at 390
+     "Apartments" and "Serviced apartments" then ran under the arrow. The
+     category grid now reserves the arrow's line at the foot instead, so a
+     long name keeps the full width and never meets the glyph. */
+  .nf-stays-tiles > li > .nf-stays-tile {
+    padding-right: var(--nf-space-sm);
+    padding-bottom: calc(var(--nf-space-xs) + 14px + var(--nf-space-2xs));
+  }
   .nf-stays-tile:active {
     transform: scale(0.97);
   }
@@ -2153,9 +2112,6 @@
     box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-stay-type__object {
-    display: block;
-    width: 3rem;
-    height: 3rem;
     flex-shrink: 0;
   }
   .nf-room-tiles {
@@ -2285,18 +2241,52 @@
   .nf-movein__row[data-declared] {
     border-color: var(--nf-panel-edge);
   }
+  /* THE ROW GLYPH (29 September 2026): a bold line glyph on the shared
+     `IconPlate` (`DetailGlyph`), no longer a glass object, so the plate draws
+     its own size. An undeclared cost's plate steps back with its row. */
   .nf-movein__plate {
-    display: block;
-    width: 2.5rem;
-    height: 2.5rem;
     flex-shrink: 0;
   }
-  .nf-movein__plate--total {
-    width: 3rem;
-    height: 3rem;
+  /* The quiet plate keeps the family's full line and steps back by COLOUR,
+     not by opacity: at 0.55 the glyph fell to about 2.3:1 in light and 2.8:1
+     at night and read as pale rather than as quiet. It drops the lit blue
+     (fill, rim, glow) for the raised neutral surface and draws the glyph at
+     the muted ink, which clears 3:1 non-text contrast on it in both themes
+     (about 5.9:1 in light, 6.8:1 at night). */
+  .nf-movein__row:not([data-declared]) .nf-movein__plate.nf-plate {
+    background: var(--nf-surface-raised);
+    border-color: var(--nf-border-subtle);
+    box-shadow: none;
+    color: var(--nf-content-muted);
   }
-  .nf-movein__row:not([data-declared]) .nf-movein__plate {
-    opacity: 0.55;
+  .nf-movein__row:not([data-declared]) .nf-movein__plate.nf-plate > svg {
+    filter: none;
+  }
+  :root:not([data-theme="light"]) .nf-movein__row:not([data-declared]) .nf-movein__plate.nf-plate,
+  [data-theme="dark"] .nf-movein__row:not([data-declared]) .nf-movein__plate.nf-plate {
+    color: var(--nf-content-muted);
+  }
+  /* The detail pages' plated glyphs at night: the bright end of the brand
+     blue rather than white, as the profile rows draw it, lifted a third
+     towards white so the line clears 3:1 on the lit navy plate. In light the
+     shared rule already paints `.nf-plate--brand` glyphs brand blue. */
+  :root:not([data-theme="light"]) .nf-detail-glyph.nf-plate--brand,
+  [data-theme="dark"] .nf-detail-glyph.nf-plate--brand {
+    color: color-mix(in oklab, var(--nf-brand-quiet) 68%, var(--nf-content-primary));
+  }
+  /* A glyph standing in for a missing photo inside a round avatar: the
+     plate's material filling the circle, the glyph centred in brand blue. */
+  .nf-detail-avatar-glyph {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    background: var(--nf-plate-fill);
+    color: var(--nf-brand-primary);
+  }
+  :root:not([data-theme="light"]) .nf-detail-avatar-glyph,
+  [data-theme="dark"] .nf-detail-avatar-glyph {
+    color: color-mix(in oklab, var(--nf-brand-quiet) 68%, var(--nf-content-primary));
   }
   .nf-movein__name {
     display: grid;
@@ -2315,6 +2305,19 @@
   .nf-movein__keeper {
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
+  }
+  /* A clause under the name (the sale side's Governor's consent), set as a
+     caption line so it wraps within the name column on its own and never
+     beside the label. The copy is written mid-sentence, so its first letter
+     is raised here rather than in four dictionaries. */
+  .nf-movein__note {
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+    text-wrap: pretty;
+  }
+  .nf-movein__note::first-letter {
+    text-transform: uppercase;
   }
   .nf-movein__figure {
     flex-shrink: 0;

@@ -91,6 +91,8 @@ vi.mock("../payments/paystack", () => ({
   guaranteeReserveSubaccount: () => "ACCT_reserve",
 }));
 vi.mock("../payments/charge-saved-card", () => ({ chargeSavedCard: seam.chargeSavedCard }));
+/* The refund a refund-due settlement sends is its own module's business. */
+vi.mock("../payments/refund", () => ({ refundChargeToCard: vi.fn(async () => undefined) }));
 vi.mock("../email/recipients", () => ({ contactFromSession: () => null }));
 vi.mock("../bookings/arrival", () => ({ announceConfirmedStay: vi.fn() }));
 vi.mock("../bookings/settlement", () => ({
@@ -101,14 +103,27 @@ vi.mock("../bookings/settlement", () => ({
 /* Track A: every card attempt opens with the processor split, read from the
    database. The split itself is proved in split-attempt's own tests; here it
    answers a fixed attempt so the return path is what is under test. */
-vi.mock("../payments/split-attempt", () => ({
-  openSplitAttempt: async () => ({
-    reference: REFERENCE,
-    amountMinor: 150_000_000,
-    agreementId: "agreement-1",
-    split: { subaccount: "ACCT_lister", reserveSubaccount: "ACCT_reserve", listerShareMinor: 147_750_000, guaranteeMinor: 2_250_000 },
-  }),
-  isRefusal: (v: { refused?: boolean }) => v.refused === true,
+vi.mock("../payments/split-attempt", () => {
+  const split = { listerSubaccount: "ACCT_lister", reserveSubaccount: "ACCT_reserve", listerShareMinor: 147_750_000, guaranteeMinor: 2_250_000 };
+  const opened = { reference: REFERENCE, amountMinor: 150_000_000, agreementId: "agreement-1", split };
+  return {
+    openSplitAttempt: async () => opened,
+    /* The hosted path quotes first, then inserts (so a retry can reuse). */
+    quoteSplit: async () => ({ amountMinor: 150_000_000, agreementId: "agreement-1", payeeUserId: null, commissionMinor: 0, mode: "live", split }),
+    insertSplitAttempt: async () => opened,
+    isRefusal: (v: { refused?: boolean }) => v.refused === true,
+  };
+});
+/* The attempt lifecycle (reuse, the in-flight check, the open lease) has its
+   own tests in lib/payments; here nothing is live, so a new attempt opens and
+   the return path is what is under test. */
+vi.mock("../payments/attempts", () => ({
+  reuseLiveAttempt: async () => ({ kind: "none" }),
+  recordCheckoutHandle: async () => undefined,
+  bookingHasPaymentInFlight: async () => false,
+}));
+vi.mock("../payments/booking-lease", () => ({
+  withBookingOpenLease: async (_subject: string, work: () => Promise<unknown>) => ({ status: "done", result: await work() }),
 }));
 vi.mock("@/lib/supabase/service", () => ({
   getAdminClient: () => ({
@@ -209,5 +224,50 @@ describe("the card paths in checkout.ts return to the right page", () => {
     expect(call.callbackUrl).toBe(
       `https://vallo.example.invalid/rent/pay/${INSPECTION}?paid=1&reference=${call.reference}`,
     );
+  });
+});
+
+/*
+ * THE SUCCESS SHEET'S MONEY RULE, AT THE SOURCE (docs/SUCCESS_MOMENTS.md).
+ * A saved-card charge answers `settled: true` only when the settlement that
+ * follows it applied the money to THIS booking; the panel opens the success
+ * sheet on that flag alone and keeps "confirming your payment" otherwise.
+ */
+describe("saved card: `settled` says whether the charge was applied to this booking", () => {
+  async function charged(settlement: unknown, verified: unknown = { status: "success", currency: "NGN", amountMinor: 150_000_000, feesMinor: 0 }) {
+    const settlementModule = await import("../bookings/settlement");
+    const paystack = await import("../payments/paystack");
+    vi.mocked(settlementModule.bookingForReference).mockResolvedValue({ bookingId: BOOKING, guestId: "guest-1" } as never);
+    vi.mocked(paystack.verifyTransaction).mockResolvedValue(verified as never);
+    vi.mocked(settlementModule.settleBookingCharge).mockResolvedValue(settlement as never);
+    seam.chargeSavedCard.mockResolvedValue({ ok: true, data: { kind: "charged" } });
+    const { payWithSavedCard } = await import("../bookings/checkout");
+    return payWithSavedCard({ bookingId: BOOKING, methodId: BOOKING, idempotencyKey: `k-${Math.random()}` });
+  }
+
+  it("true, with the reference, when the settlement landed on this booking", async () => {
+    const result = await charged({ outcome: "settled", bookingId: BOOKING, confirmed: true, amountMinor: 150_000_000, totalMinor: 150_000_000, ledger: {} });
+    expect(result).toMatchObject({ ok: true, data: { kind: "charged", reference: REFERENCE, settled: true } });
+  });
+
+  it("false when the database found it refund-due", async () => {
+    const result = await charged({ outcome: "refund-due", bookingId: BOOKING, reason: "agreement_cancelled", amountMinor: 1, reference: REFERENCE });
+    expect(result).toMatchObject({ ok: true, data: { kind: "charged", settled: false } });
+  });
+
+  it("false when it was already settled and then refunded", async () => {
+    const result = await charged({ outcome: "already-settled", bookingId: BOOKING, transactionStatus: "REFUNDED" });
+    expect(result).toMatchObject({ ok: true, data: { kind: "charged", settled: false } });
+  });
+
+  it("false when the processor could not be asked (the charge is not yet known to be applied)", async () => {
+    const paystack = await import("../payments/paystack");
+    vi.mocked(paystack.verifyTransaction).mockRejectedValueOnce(new Error("timeout"));
+    const settlementModule = await import("../bookings/settlement");
+    vi.mocked(settlementModule.bookingForReference).mockResolvedValue({ bookingId: BOOKING, guestId: "guest-1" } as never);
+    seam.chargeSavedCard.mockResolvedValue({ ok: true, data: { kind: "charged" } });
+    const { payWithSavedCard } = await import("../bookings/checkout");
+    const result = await payWithSavedCard({ bookingId: BOOKING, methodId: BOOKING, idempotencyKey: "k-timeout" });
+    expect(result).toMatchObject({ ok: true, data: { kind: "charged", settled: false } });
   });
 });

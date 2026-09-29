@@ -10,6 +10,9 @@ import { holdSweep } from "@/lib/cron/jobs/hold-sweep";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+/* The run also asks Paystack about stale card attempts (a 40-second budget,
+   each call up to 15 s), so it is given room well past the default. */
+export const maxDuration = 300;
 
 /** Vercel Cron issues a GET. */
 export async function GET(request: Request): Promise<NextResponse> {

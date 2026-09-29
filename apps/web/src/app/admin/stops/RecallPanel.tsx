@@ -106,7 +106,7 @@ export function RecallPanel({ suspensionId }: { suspensionId: string }) {
               )}
             </>
           ) : (
-            <button type="button" onClick={count} disabled={pending} className="nf-btn nf-btn--secondary nf-btn--sm">
+            <button type="button" onClick={count} disabled={pending} className="nf-btn nf-btn--glass nf-btn--sm">
               {pending ? desk.recallCounting : desk.recallCount}
             </button>
           )}

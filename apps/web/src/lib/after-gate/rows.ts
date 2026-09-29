@@ -67,8 +67,19 @@ export type RefundRow = {
   refundMinor: number;
   retainedMinor: number;
   createdAt: string;
-  walletEntryId: string | null;
+  /**
+   * Where Paystack has the card refund (V-24): pending (not sent yet),
+   * submitted (Paystack initiated it), processed (it reached the card),
+   * failed, or not_needed (nothing was owed).
+   */
+  processorStatus: "not_needed" | "pending" | "submitted" | "processed" | "failed";
+  /** When Paystack accepted the refund: the promise is kept at this moment. */
+  submittedAt: string | null;
+  /** When Paystack reported it processed. */
+  settledAt: string | null;
 };
+
+const PROCESSOR_STATES = ["not_needed", "pending", "submitted", "processed", "failed"] as const;
 
 /** One `booking_refunds` row as the refund clock needs it, or null. */
 export function readRefundRow(raw: unknown): RefundRow | null {
@@ -88,7 +99,13 @@ export function readRefundRow(raw: unknown): RefundRow | null {
     refundMinor: refund,
     retainedMinor: retained,
     createdAt: created,
-    walletEntryId: text(row.wallet_entry_id),
+    processorStatus: (PROCESSOR_STATES as readonly string[]).includes(String(row.processor_status))
+      ? (row.processor_status as RefundRow["processorStatus"])
+      : refund > 0
+        ? "pending"
+        : "not_needed",
+    submittedAt: text(row.processor_submitted_at),
+    settledAt: text(row.processor_settled_at),
   };
 }
 

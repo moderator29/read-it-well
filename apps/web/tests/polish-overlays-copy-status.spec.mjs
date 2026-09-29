@@ -14,12 +14,23 @@
  *     thing each.
  * 10. Gradient text clears WCAG AA for large text in both themes.
  *
+ * WHICH PAGES. Since 23 September every product route answers a signed-out
+ * visitor with the sign-in wall (asserted for each below). Items 7 and 8 are
+ * swept on the public pages directly and on each product screen's preview-
+ * harness twin (the real components inside the real AppShell with fixture
+ * rows, which carry real text and real images to clip and to reserve), and
+ * signed in as the QA member on the real routes (SKIP without QA_MEMBER_EMAIL
+ * / QA_MEMBER_PASSWORD). Item 6's trap is driven on the real FilterDrawer
+ * behind its real opener at `/preview/f4/sheets`. `/wallet` and `/agents/*`
+ * are redirects now and are not swept as pages of their own.
+ *
  * Run with the server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/polish-overlays-copy-status.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, skip } from "./_gate.mjs";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -72,6 +83,8 @@ const notUsingHook = [];
 const handRolled = [];
 for (const f of files) {
   if (f.rel === "lib/ui/use-overlay.ts") continue;
+  /* A DOM test that queries role="dialog" is not an overlay. */
+  if (/\.test\.tsx?$/.test(f.rel)) continue;
   const src = readFileSync(f.path, "utf8");
   if (!/aria-modal|role="dialog"/.test(src)) continue;
   dialogs.push(f.rel);
@@ -116,7 +129,9 @@ const stylesheet = (() => {
 for (const state of ["pending", "approved", "rejected", "verified"]) {
   check(
     `.nf-badge--${state} reads --nf-status-${state}`,
-    new RegExp(`\\.nf-badge--${state}\\s*\\{[^}]*var\\(--nf-status-${state}\\)`, "s").test(stylesheet),
+    /* The rule may be one selector in a group (`.nf-badge--pending,
+       .nf-badge--warning, ... {`), as chips.css writes them now. */
+    new RegExp(`\\.nf-badge--${state}\\s*[,{][^}]*var\\(--nf-status-${state}\\)`, "s").test(stylesheet),
   );
 }
 /* A status must never be written as a hand-made colour pair again. Rejected
@@ -145,16 +160,40 @@ check("no surface hand-writes a status colour pair inline", inlineStatus.length 
  * for it proves a third of the platform. Every route a signed-out visitor or a
  * signed-in reader can reach is swept now, at 390 and at 1280.
  */
-const ROUTES = [
-  "/", "/home", "/search", "/search?view=map", "/listing/lekki-palm-grove", "/saved",
-  "/messages", "/notifications", "/profile", "/settings", "/settings/interests",
-  "/settings/place", "/wallet", "/bookings", "/search?market=rent", "/assistant", "/around", "/u",
-  "/stories", "/agents", "/agents/apply", "/agents/status", "/help", "/contact",
-  "/about", "/careers", "/safety", "/standards", "/cancellations", "/docs",
-  "/styleguide", "/privacy", "/terms", "/sign-in", "/sign-up", "/sign-up/email",
-  "/sign-up/verify", "/agent/dashboard", "/agent/bookings", "/agent/listings",
-  "/agent/earnings", "/agent/reviews", "/admin", "/admin/support",
+const PUBLIC_ROUTES = [
+  "/", "/help", "/contact", "/about", "/careers", "/safety", "/standards", "/cancellations",
+  "/docs", "/privacy", "/terms", "/sign-in", "/sign-up", "/sign-up/email", "/sign-up/verify",
 ];
+
+/** Each gated product route with its preview-harness twin (null: none). */
+const PRODUCT = [
+  ["/home", "/preview/session-b/sweep-home/home"],
+  ["/search", "/preview/session-b/sweep-home/search"],
+  ["/search?view=map", null],
+  ["/listing/lekki-palm-grove", "/preview/f3/listing"],
+  ["/saved", "/preview/f3/saved"],
+  ["/messages", "/preview/f5/inbox"],
+  ["/notifications", "/preview/f4/notifications"],
+  ["/profile", "/preview/session-b/profile"],
+  ["/settings", "/preview/session-b/sweep-settings?v=hub"],
+  ["/settings/interests", "/preview/session-b/sweep-settings?v=interests"],
+  ["/settings/place", "/preview/session-b/sweep-settings?v=place"],
+  ["/bookings", "/preview/f3/bookings"],
+  ["/search?market=rent", null],
+  ["/assistant", "/preview/f1/assistant"],
+  ["/around", "/preview/session-b/feed"],
+  ["/u", null],
+  ["/stories", null],
+  ["/styleguide", null],
+  ["/agent/dashboard", "/preview/f5/agent-dashboard"],
+  ["/agent/bookings", "/preview/f5/agent-bookings"],
+  ["/agent/listings", "/preview/f5/agent-listings"],
+  ["/agent/earnings", "/preview/f5/agent-earnings"],
+  ["/agent/reviews", "/preview/f5/agent-reviews"],
+  ["/admin", "/preview/f5/admin-overview"],
+  ["/admin/support", null],
+];
+const ROUTES = [...PUBLIC_ROUTES, ...PRODUCT.map(([, twin]) => twin).filter(Boolean)];
 
 /*
  * Text that is clipping RIGHT NOW, and images with no reserved box.
@@ -170,6 +209,9 @@ const SWEEP = () => {
     /* The last message in a conversation, in the inbox list. */
     "leading-relaxed",
   ];
+  /* The same excerpt as the inbox row draws it now (Inbox.tsx: the last
+     message is the row's `nf-body-sm ... truncate` line). */
+  const isInboxExcerpt = (el, cls) => Boolean(el.closest('[data-testid="inbox-row"]')) && cls.includes("nf-body-sm");
   const clipped = [];
   const images = [];
   for (const el of document.querySelectorAll("*")) {
@@ -177,7 +219,7 @@ const SWEEP = () => {
     const cls = typeof el.className === "string" ? el.className : "";
     if (cs.textOverflow === "ellipsis" && cs.overflow !== "visible") {
       if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth) {
-        if (!ALLOWED.some((a) => cls.includes(a))) {
+        if (!ALLOWED.some((a) => cls.includes(a)) && !isInboxExcerpt(el, cls)) {
           clipped.push(`${el.tagName.toLowerCase()} ${el.clientWidth}/${el.scrollWidth} "${(el.textContent || "").trim().slice(0, 44)}" .${cls.slice(0, 50)}`);
         }
       }
@@ -213,13 +255,20 @@ const SWEEP = () => {
 
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 
+console.log("\nSigned out, every product route is behind the wall");
+for (const [route] of PRODUCT) await expectSignInWall(check, route, BASE_URL);
+
+console.log("\nThe QA session, for the real routes");
+const qaState = await signInAsQa(browser, { base: BASE_URL });
+const passes = [["public pages and harness twins", ROUTES, null]];
+if (qaState) passes.push(["the real routes, signed in", PRODUCT.map(([route]) => route), qaState]);
+
 try {
+  for (const [which, routes, state] of passes)
   for (const [width, label] of [[390, "390px"], [1280, "desktop"]]) {
-    console.log(`\nCopy and images, ${label}`);
-    const context = await browser.newContext({
-      viewport: { width, height: 900 },
-      colorScheme: "dark",
-    });
+    console.log(`\nCopy and images, ${label}: ${which}`);
+    const options = { viewport: { width, height: 900 }, colorScheme: "dark" };
+    const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
     await context.addInitScript(() => {
       try {
         window.localStorage.setItem("nf_theme", "dark");
@@ -229,10 +278,14 @@ try {
     });
     const clipped = [];
     const images = [];
-    for (const route of ROUTES) {
+    for (const route of routes) {
       const page = await context.newPage();
       try {
-        await page.goto(BASE_URL + route, { waitUntil: "load", timeout: 45000 });
+        const response = await page.goto(BASE_URL + route, { waitUntil: "load", timeout: 45000 });
+        if (route.startsWith("/preview/") && response?.status() === 404) {
+          skip(`${route}: the preview harness is closed on this server (VALLO_PREVIEW_HARNESS=1)`);
+          continue;
+        }
         await page.waitForTimeout(WAIT);
         const res = await page.evaluate(SWEEP);
         for (const c of res.clipped) clipped.push(`${route} ${c}`);
@@ -251,7 +304,7 @@ try {
 
   /* ------------------------------------------- 6. the trap, in the browser */
 
-  console.log("\nThe filters drawer, for real");
+  console.log("\nThe filters drawer, for real (the real FilterDrawer at /preview/f4/sheets)");
   {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "dark" });
     await context.addInitScript(() => {
@@ -262,7 +315,7 @@ try {
       }
     });
     const page = await context.newPage();
-    await page.goto(BASE_URL + "/search", { waitUntil: "load", timeout: 45000 });
+    await page.goto(BASE_URL + "/preview/f4/sheets", { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(WAIT);
     await page.locator('[data-testid="filters-open"]').click();
     await page.waitForTimeout(400);

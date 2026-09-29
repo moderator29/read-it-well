@@ -1,0 +1,349 @@
+/*
+  passcode: the "Welcome back" lock, setup and confirm, and the settings
+  screen's controls. docs/PASSCODE.md is the design.
+
+  THE SHAPE. The shared Slate top block (`AuthCurveBlock`, compact, styled in
+  auth.css) across the top, then one centred column: the avatar, one
+  headline, one line, the dots, a status line, a 3 by 4 keypad of large round
+  keys, and the way out at the foot.
+
+  BOTH THEMES, by the founder's rule for the doors: in light mode the block is
+  the brand navy and the rest is white; in dark mode the block is inverted to
+  a light surface and the rest is dark. The block's colours are the
+  `--nf-slate-*` roles, which this element carries by also having the
+  `nf-slate` class; the ground and the keys are the local roles below.
+
+  MOTION. The keys press in (a scale and a fill), and a wrong code shakes the
+  dots sideways. Under reduced motion, from the system or from the app's own
+  setting, the keys only change fill and the dots do not move.
+*/
+@layer components {
+  .nf-passcode {
+    --nf-passcode-ground: var(--nf-slate-page);
+    --nf-passcode-ink: var(--nf-content-primary);
+    --nf-passcode-soft: var(--nf-content-secondary);
+    --nf-passcode-key: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+    --nf-passcode-key-press: color-mix(in oklab, var(--nf-content-primary) 18%, transparent);
+    --nf-passcode-key-edge: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    --nf-passcode-dot-edge: color-mix(in oklab, var(--nf-content-primary) 55%, transparent);
+    --nf-passcode-dot-on: var(--nf-content-primary);
+    --nf-passcode-avatar-ring: var(--nf-passcode-ground);
+    --nf-auth-gutter: var(--nf-space-md);
+
+    color: var(--nf-passcode-ink);
+    background: var(--nf-passcode-ground);
+  }
+  :root[data-theme="light"] .nf-passcode {
+    --nf-passcode-ground: var(--nf-surface-primary);
+    --nf-passcode-key: var(--nf-surface-secondary);
+    --nf-passcode-key-press: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-secondary));
+    --nf-passcode-dot-on: var(--nf-slate-ink);
+  }
+
+  /* The lock covers everything, the shell's rail and tab bar included. */
+  .nf-passcode--overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--nf-z-top);
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0 0 max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
+    border: 0;
+    overflow-x: clip;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overscroll-behavior: contain;
+  }
+  .nf-passcode--overlay::backdrop {
+    background: var(--nf-passcode-ground);
+  }
+  .nf-passcode--inline {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--nf-radius-xl);
+    overflow: clip;
+    padding-bottom: var(--nf-space-lg);
+  }
+
+  .nf-passcode__body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 24rem;
+    margin-inline: auto;
+    margin-top: calc(-1 * var(--nf-space-xs));
+    padding-inline: max(var(--nf-auth-gutter), env(safe-area-inset-left, 0px));
+    text-align: center;
+  }
+
+  .nf-passcode__avatar {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    border: 3px solid var(--nf-passcode-avatar-ring);
+    background: var(--nf-slate-top-c);
+    color: var(--nf-slate-top-ink);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    box-shadow: var(--nf-elev-1);
+  }
+  .nf-passcode__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .nf-passcode__title {
+    margin-top: var(--nf-space-sm);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  /* The title takes the dialog's first focus (so it is read first) and is
+     not a control: the global ring, which is unlayered, is emptied here
+     through its own token rather than fought. */
+  .nf-passcode__title {
+    --nf-focus-ring: transparent;
+  }
+  .nf-passcode__subtitle {
+    max-width: 20rem;
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+    color: var(--nf-passcode-soft);
+  }
+
+  /* ------------------------------------------------------------ the dots */
+  .nf-passcode__dots {
+    display: flex;
+    justify-content: center;
+    gap: var(--nf-space-md);
+    margin-top: var(--nf-space-lg);
+    min-height: 1rem;
+  }
+  .nf-passcode__dot {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: var(--nf-radius-circle);
+    border: 1.5px solid var(--nf-passcode-dot-edge);
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-spring);
+  }
+  .nf-passcode__dot--on {
+    border-color: var(--nf-passcode-dot-on);
+    background: var(--nf-passcode-dot-on);
+    transform: scale(1.08);
+  }
+  .nf-passcode__dots--shake {
+    animation: nf-passcode-shake var(--nf-duration-slow) var(--nf-ease-standard) both;
+  }
+  .nf-passcode__dots--shake .nf-passcode__dot--on,
+  .nf-passcode__dots--shake .nf-passcode__dot {
+    border-color: var(--nf-state-error);
+  }
+
+  .nf-passcode__message {
+    min-height: 2.6em;
+    max-width: 21rem;
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.35;
+    color: var(--nf-passcode-soft);
+  }
+  .nf-passcode__message--block {
+    min-height: 0;
+    margin-top: var(--nf-space-lg);
+    font-size: var(--nf-text-body);
+    color: var(--nf-passcode-ink);
+  }
+
+  /* ---------------------------------------------------------- the keypad */
+  .nf-passcode__keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 4.5rem);
+    justify-content: center;
+    column-gap: clamp(var(--nf-space-lg), 8vw, var(--nf-space-2xl));
+    row-gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-passcode__key,
+  .nf-passcode__key-slot {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+  .nf-passcode__key {
+    display: grid;
+    place-items: center;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-passcode-key-edge);
+    background: var(--nf-passcode-key);
+    color: var(--nf-passcode-ink);
+    font-family: var(--nf-font-display);
+    font-size: 1.75rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition:
+      background-color var(--nf-duration-press) var(--nf-ease-press),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-passcode__key--quiet {
+    border-color: transparent;
+    background: transparent;
+  }
+  .nf-passcode__key:active:not(:disabled) {
+    background: var(--nf-passcode-key-press);
+    transform: scale(0.92);
+  }
+  .nf-passcode__key:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-slate-edge);
+    outline-offset: 2px;
+  }
+  .nf-passcode__key:disabled {
+    cursor: default;
+    opacity: 0.45;
+  }
+  .nf-passcode__key-slot {
+    display: grid;
+    place-items: center;
+  }
+
+  /* ------------------------------------------------------------ the foot */
+  .nf-passcode__foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    width: 100%;
+    margin-top: auto;
+    padding-top: var(--nf-space-md);
+  }
+  .nf-passcode__link {
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-slate-link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  .nf-passcode__link--quiet {
+    font-weight: 500;
+    color: var(--nf-passcode-soft);
+    text-decoration: none;
+  }
+  .nf-passcode__link:disabled {
+    opacity: 0.5;
+  }
+  .nf-passcode__cta {
+    width: 100%;
+    max-width: 22rem;
+  }
+
+  @keyframes nf-passcode-shake {
+    0%,
+    100% {
+      transform: none;
+    }
+    15%,
+    55% {
+      transform: translateX(-10px);
+    }
+    35%,
+    75% {
+      transform: translateX(10px);
+    }
+    90% {
+      transform: translateX(-4px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-passcode__dots--shake {
+      animation: none;
+    }
+    .nf-passcode__key,
+    .nf-passcode__dot {
+      transition: none;
+    }
+    .nf-passcode__key:active:not(:disabled),
+    .nf-passcode__dot--on {
+      transform: none;
+    }
+  }
+  :root[data-motion="off"] .nf-passcode__dots--shake {
+    animation: none;
+  }
+  :root[data-motion="off"] .nf-passcode__key:active:not(:disabled),
+  :root[data-motion="off"] .nf-passcode__dot--on {
+    transform: none;
+  }
+
+  /* ------------------------------------------------ the settings screen */
+  .nf-passcode-settings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-lg);
+  }
+  .nf-passcode-settings__length {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .nf-passcode-settings__label {
+    margin-bottom: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-passcode-settings__segments {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-3xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-inset);
+  }
+  .nf-passcode-settings__segment {
+    min-height: 2.75rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-passcode-settings__segment--on {
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-elev-1);
+  }
+  .nf-passcode-settings__note {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+  .nf-passcode-settings__done {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+}

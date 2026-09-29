@@ -98,7 +98,7 @@ export async function reviewKycDocument(input: {
     if (status === "not_found") {
       return fail("That document is no longer here. Reload the page.");
     }
-    if (status === "own_document") return fail("This is your own document, so somebody else has to review it.");
+    if (status === "own_document") return fail("This is your own document, so somebody else has to review it. Leave it in the queue for another reviewer.");
     if (status === "forbidden") return fail(ADMIN_FORBIDDEN_MESSAGE);
     return fail(SERVICE_DOWN);
   } catch {

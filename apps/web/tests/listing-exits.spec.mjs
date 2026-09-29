@@ -24,6 +24,7 @@
  *   BASE_URL=http://localhost:3000 node apps/web/tests/listing-exits.spec.mjs
  */
 import { chromium } from "playwright-core";
+import { markEveryTab, passcodeReady } from "./_passcode.mjs";
 import { existsSync } from "node:fs";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
@@ -63,19 +64,23 @@ async function signIn(browser) {
   const email = process.env.QA_MEMBER_EMAIL;
   const password = process.env.QA_MEMBER_PASSWORD ?? process.env.QA_PASSWORD;
   if (!email || !password) {
-    console.error("listing-exits: set QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD (or QA_PASSWORD).");
-    process.exit(2);
+    /* Conditional on a missing secret, not disabled: with the variables set
+       this runs. Reported to run.mjs as SKIP (exit 77), never as a pass. */
+    console.log("  SKIP    listing-exits: QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD (or QA_PASSWORD) are not set; this walk needs a signed-in member");
+    process.exit(77);
   }
   const ctx = await browser.newContext(PHONE);
   const page = await ctx.newPage();
   await page.goto(`${BASE}/sign-in`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1500);
-  await page.fill("#auth-email", email);
-  await page.click("button:has-text('Continue')");
+  /* One screen (B-1): email and password together on /sign-in. */
   await page.waitForSelector("#password", { timeout: 30_000 });
+  await page.fill("#email", email);
   await page.fill("#password", password);
   await page.click("button[type=submit]:has-text('Sign in')");
   await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 60_000 });
+  /* The passcode layer (docs/PASSCODE.md): set or type the QA code, and take the unlock cookie into the state. */
+  await passcodeReady(ctx, page, { baseUrl: BASE });
   const state = await ctx.storageState();
   await ctx.close();
   return state;
@@ -87,6 +92,7 @@ const state = await signIn(browser);
 for (const reducedMotion of ["no-preference", "reduce"]) {
   console.log(`\n== the photo viewer (${reducedMotion})`);
   const ctx = await browser.newContext({ ...PHONE, storageState: state, reducedMotion });
+  await markEveryTab(ctx);
   const page = await ctx.newPage();
   await page.goto(`${BASE}/search`, { waitUntil: "load" });
   await page.goto(`${BASE}${LISTING}`, { waitUntil: "load" });
@@ -182,6 +188,7 @@ for (const [label, path, parent] of [
 ]) {
   console.log(`\n== a ${label}, opened with no history`);
   const ctx = await browser.newContext({ ...PHONE, storageState: state });
+  await markEveryTab(ctx);
   const page = await ctx.newPage();
   await page.goto(`${BASE}${path}`, { waitUntil: "load" });
   await page.waitForTimeout(2000);

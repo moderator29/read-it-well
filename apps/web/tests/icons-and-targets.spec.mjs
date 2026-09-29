@@ -14,6 +14,15 @@
  * element that expands it), and its keyboard focus ring must be drawn in the
  * focus token rather than in a brand blue nobody can see on the night canvas.
  *
+ * WHICH PAGES. Since 23 September every product route answers a signed-out
+ * visitor with the sign-in wall (asserted for each one below). The runtime
+ * half therefore measures the public pages directly and each product screen
+ * through its preview-harness twin (the real components inside the real
+ * AppShell, with fixture rows). Signed in as the QA member it also measures
+ * the real product routes (SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
+ * `/wallet` is now a redirect to `/agreements` and `/agents`, `/agents/apply`
+ * redirects to `/profile`, so they are measured as the screens they land on.
+ *
  * Run with the server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/icons-and-targets.spec.mjs
@@ -26,6 +35,7 @@
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, skip } from "./_gate.mjs";
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join, dirname, relative } from "node:path";
@@ -114,8 +124,8 @@ check("no call site overrides the stroke weight", strokeOverrides.length === 0, 
 
 const uiIconSource = readFileSync(join(SRC, "design-system/icons/UiIcon.tsx"), "utf8");
 check(
-  "the stroke attribute is derived from the size, so the rendered weight is constant",
-  /strokeWidth=\{\(UI_ICON_STROKE_PX \* 24\) \/ edge\}/.test(uiIconSource),
+  "the stroke attribute is derived from the size by the optical scale",
+  /strokeWidth=\{uiIconStrokeWidth\(edge\)\}/.test(uiIconSource),
 );
 check(
   "UiIcon takes no strokeWidth prop at all",
@@ -208,25 +218,26 @@ check("the checked-in vector sources still match UiIcon.tsx", vectorsInSync, vec
 
 /* -------------------------------------------------------------- the browser */
 
-const ROUTES = [
-  "/",
-  "/home",
-  "/search",
-  "/search?view=map",
-  "/saved",
-  "/messages",
-  "/notifications",
-  "/profile",
-  "/settings",
-  "/wallet",
-  "/bookings",
-  "/search?market=rent",
-  "/agents",
-  "/agents/apply",
-  "/help",
-  "/contact",
-  "/sign-in",
+/** Open to anybody, measured as they are. */
+const PUBLIC_ROUTES = ["/", "/help", "/contact", "/sign-in"];
+
+/** The product screens (gated), each with its preview-harness twin. */
+const PRODUCT_ROUTES = [
+  ["/home", "/preview/session-b/sweep-home/home"],
+  ["/search", "/preview/session-b/sweep-home/search"],
+  ["/search?view=map", null],
+  ["/saved", "/preview/f3/saved"],
+  ["/messages", "/preview/f5/inbox"],
+  ["/notifications", "/preview/f4/notifications"],
+  ["/profile", "/preview/session-b/profile"],
+  ["/settings", "/preview/session-b/sweep-settings?v=hub"],
+  ["/agreements", null],
+  ["/bookings", "/preview/f3/bookings"],
+  ["/search?market=rent", null],
 ];
+
+/** Screens whose first tab stop is measured for the ring. */
+const RING_ROUTES = new Set(["/home", "/search", "/preview/session-b/sweep-home/home", "/preview/session-b/sweep-home/search"]);
 
 /*
  * Runs in the page. Returns every visible interactive control that fails one of
@@ -314,78 +325,97 @@ const SWEEP = () => {
 
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 
-try {
-  for (const theme of ["dark", "light"]) {
-    console.log(`\nTargets and names, ${theme}, ${WIDTH}px`);
-    const context = await browser.newContext({
-      viewport: { width: WIDTH, height: 844 },
-      colorScheme: theme,
-    });
-    /* Only the stored key moves the theme; the operating system never does. */
-    await context.addInitScript((choice) => {
-      try {
-        window.localStorage.setItem("nf_theme", choice);
-      } catch {
-        /* storage can be unavailable; the assertion below catches the result */
-      }
-    }, theme);
+console.log("\nSigned out, every product route is behind the wall");
+for (const [route] of PRODUCT_ROUTES) await expectSignInWall(check, route);
 
-    const allUnnamed = [];
-    const allSmall = [];
-    const ringFailures = [];
-
-    for (const route of ROUTES) {
-      const page = await context.newPage();
-      try {
-        await page.goto(BASE_URL + route, { waitUntil: "load", timeout: 45000 });
-        await page.waitForTimeout(WAIT);
-
-        const rendered = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
-        if (rendered !== theme) {
-          failures += 1;
-          console.log(`  FAILED  ${route} rendered ${rendered}, not ${theme}`);
-          continue;
-        }
-
-        const res = await page.evaluate(SWEEP);
-        for (const u of res.unnamed) allUnnamed.push(`${route} ${u}`);
-        for (const s of res.small) allSmall.push(`${route} ${s}`);
-
-        /* The focus ring, measured rather than assumed. Tab to the first
-           control the page offers and read what the browser actually paints. */
-        if (route === "/home" || route === "/search") {
-          await page.keyboard.press("Tab");
-          const ring = await page.evaluate(() => {
-            const el = document.activeElement;
-            if (!el || el === document.body) return null;
-            const cs = getComputedStyle(el);
-            const token = getComputedStyle(document.documentElement)
-              .getPropertyValue("--nf-focus-ring")
-              .trim();
-            return {
-              width: parseFloat(cs.outlineWidth),
-              style: cs.outlineStyle,
-              colour: cs.outlineColor,
-              token,
-            };
-          });
-          if (!ring || ring.style === "none" || !(ring.width >= 2)) {
-            ringFailures.push(`${route}: ${JSON.stringify(ring)}`);
-          }
-        }
-      } catch (err) {
-        failures += 1;
-        console.log(`  FAILED  ${route} ${String(err).split("\n")[0]}`);
-      } finally {
-        await page.close();
-      }
+async function sweep(theme, routes, state) {
+  const options = { viewport: { width: WIDTH, height: 844 }, colorScheme: theme };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
+  /* Only the stored key moves the theme; the operating system never does. */
+  await context.addInitScript((choice) => {
+    try {
+      window.localStorage.setItem("nf_theme", choice);
+    } catch {
+      /* storage can be unavailable; the assertion below catches the result */
     }
+  }, theme);
 
-    check("every visible control has an accessible name", allUnnamed.length === 0, allUnnamed);
-    check("every visible target reaches 44 by 44", allSmall.length === 0, allSmall);
-    check("the first tab stop paints a focus ring at least 2px wide", ringFailures.length === 0, ringFailures);
+  const allUnnamed = [];
+  const allSmall = [];
+  const ringFailures = [];
 
-    await context.close();
+  for (const route of routes) {
+    const page = await context.newPage();
+    try {
+      const response = await page.goto(BASE_URL + route, { waitUntil: "load", timeout: 45000 });
+      if (route.startsWith("/preview/") && response?.status() === 404) {
+        skip(`${route}: the preview harness is closed on this server (VALLO_PREVIEW_HARNESS=1)`);
+        continue;
+      }
+      await page.waitForTimeout(WAIT);
+
+      const rendered = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
+      if (rendered !== theme) {
+        failures += 1;
+        console.log(`  FAILED  ${route} rendered ${rendered}, not ${theme}`);
+        continue;
+      }
+
+      const res = await page.evaluate(SWEEP);
+      for (const u of res.unnamed) allUnnamed.push(`${route} ${u}`);
+      for (const s of res.small) allSmall.push(`${route} ${s}`);
+
+      /* The focus ring, measured rather than assumed. Tab to the first
+         control the page offers and read what the browser actually paints. */
+      if (RING_ROUTES.has(route)) {
+        await page.keyboard.press("Tab");
+        const ring = await page.evaluate(() => {
+          const el = document.activeElement;
+          if (!el || el === document.body) return null;
+          const cs = getComputedStyle(el);
+          const token = getComputedStyle(document.documentElement)
+            .getPropertyValue("--nf-focus-ring")
+            .trim();
+          return {
+            width: parseFloat(cs.outlineWidth),
+            style: cs.outlineStyle,
+            colour: cs.outlineColor,
+            token,
+          };
+        });
+        if (!ring || ring.style === "none" || !(ring.width >= 2)) {
+          ringFailures.push(`${route}: ${JSON.stringify(ring)}`);
+        }
+      }
+    } catch (err) {
+      failures += 1;
+      console.log(`  FAILED  ${route} ${String(err).split("\n")[0]}`);
+    } finally {
+      await page.close();
+    }
+  }
+
+  check("every visible control has an accessible name", allUnnamed.length === 0, allUnnamed);
+  check("every visible target reaches 44 by 44", allSmall.length === 0, allSmall);
+  check("the first tab stop paints a focus ring at least 2px wide", ringFailures.length === 0, ringFailures);
+
+  await context.close();
+}
+
+try {
+  const harnessRoutes = PRODUCT_ROUTES.map(([, twin]) => twin).filter(Boolean);
+  for (const theme of ["dark", "light"]) {
+    console.log(`\nTargets and names, ${theme}, ${WIDTH}px: public pages and the preview-harness twins`);
+    await sweep(theme, [...PUBLIC_ROUTES, ...harnessRoutes], null);
+  }
+
+  console.log("\nThe real product routes, signed in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    for (const theme of ["dark", "light"]) {
+      console.log(`\nTargets and names, ${theme}, ${WIDTH}px: the real product routes`);
+      await sweep(theme, PRODUCT_ROUTES.map(([route]) => route), state);
+    }
   }
 
   /* The ring colour is a token, and it is deliberately not the brand primary:
@@ -401,7 +431,8 @@ try {
       }
     }, theme);
     const page = await context.newPage();
-    await page.goto(BASE_URL + "/home", { waitUntil: "load", timeout: 45000 });
+    /* The tokens live on :root and are the same on every page; "/" is public. */
+    await page.goto(BASE_URL + "/", { waitUntil: "load", timeout: 45000 });
     await page.waitForTimeout(600);
     const tokens = await page.evaluate(() => {
       const cs = getComputedStyle(document.documentElement);

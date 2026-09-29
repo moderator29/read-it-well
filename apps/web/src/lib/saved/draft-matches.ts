@@ -8,6 +8,8 @@ import { matchesFilter } from "../listings/filter";
 import { createAdminClient } from "../supabase/admin";
 import { filterFor } from "./search-alerts";
 import { readStoredSearch } from "./searches";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
 
 /**
  * V-10 (the wizard's count): HOW MANY PEOPLE'S SAVED SEARCHES A DRAFT WOULD
@@ -23,6 +25,16 @@ import { readStoredSearch } from "./searches";
  */
 
 const K = 3;
+
+/**
+ * The refusal, in the reader's language, and never a code (E2E audit L-2). It
+ * used to refuse with the bare code "unreadable"; `DraftMatches` draws its own line on any
+ * failure, but the envelope's rule is that nothing it carries is a raw code.
+ */
+async function unreachable(): Promise<ActionResult<{ people: number | null }>> {
+  const t = getDictionary(await getLocale().catch(() => "en" as const));
+  return fail(t.frontDoor.demand.matchUnreachable);
+}
 const MAX_SEARCHES = 5000;
 
 export async function draftSavedSearchMatches(input: unknown): Promise<ActionResult<{ people: number | null }>> {
@@ -32,7 +44,7 @@ export async function draftSavedSearchMatches(input: unknown): Promise<ActionRes
   if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
 
   const draft = await loadOwnListingAnyStatus(session.supabase, parsed.data.listingId);
-  if (!draft) return fail("unreadable");
+  if (!draft) return unreachable();
   try {
     const admin = createAdminClient();
     const { data, error } = await admin
@@ -41,7 +53,7 @@ export async function draftSavedSearchMatches(input: unknown): Promise<ActionRes
       .eq("alert_enabled", true)
       .neq("user_id", session.user.id)
       .limit(MAX_SEARCHES);
-    if (error || !data) return fail("unreadable");
+    if (error || !data) return unreachable();
     const people = new Set<string>();
     for (const row of data as { user_id: string; query: unknown }[]) {
       if (people.has(row.user_id)) continue;
@@ -49,6 +61,6 @@ export async function draftSavedSearchMatches(input: unknown): Promise<ActionRes
     }
     return ok({ people: people.size >= K ? people.size : null });
   } catch {
-    return fail("unreadable");
+    return unreachable();
   }
 }

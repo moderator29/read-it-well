@@ -151,7 +151,7 @@ export function RestaurantFace({
             </Section>
           ) : (
             <Section title={copy.reserveTitle} description={copy.reserveBody}>
-              <ReserveTable {...reserve} />
+              <ReserveTable {...reserve} success={t.success} />
             </Section>
           )}
 

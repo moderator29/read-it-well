@@ -18,6 +18,23 @@ import {
   type SignupRole,
   type VerificationRung,
 } from "../email/messages";
+import {
+  agreementCancelled,
+  agreementSubmitted,
+  guaranteeClaimOpened,
+  inspectionCompleted,
+  inspectionDeclined,
+  inspectionProposed,
+  inspectionWithdrawn,
+  listingSubmitted,
+  refundRequested,
+  reservationCancelled,
+  reservationConfirmed,
+  supportReplied,
+  verificationRungFailed,
+  type AgreementChangeData,
+  type ReservationData,
+} from "../email/lifecycle-messages";
 import type { EmailChannel } from "../email/recipients";
 import { scamRecall } from "../email/safety-messages";
 
@@ -274,6 +291,68 @@ function agreementTemplate(render: (data: AgreementEmailData) => EmailMessage | 
   };
 }
 
+/** The agreement lifecycle payloads carry the same keys as `agreementData`'s. */
+function agreementChange(render: (data: AgreementChangeData) => EmailMessage): OutboxTemplate {
+  return agreementTemplate((data) =>
+    render({
+      name: data.name,
+      viewer: data.viewer,
+      listingTitle: data.listingTitle,
+      amountMinor: data.amountMinor,
+      agreementId: data.agreementId,
+    }),
+  );
+}
+
+/* -------------------------------------------------------- lifecycle reads */
+
+/** The property title an inspection payload names, or null (and then no email). */
+function inspectionTitle(payload: Payload, context: TemplateContext): string | null {
+  const listingId = str(payload, "listing_id");
+  return listingId ? (context.lookups.listing(listingId)?.title ?? null) : null;
+}
+
+function inspectionTemplate(
+  render: (payload: Payload, context: TemplateContext, title: string) => EmailMessage | null,
+): OutboxTemplate {
+  return {
+    channel: "bookings",
+    needs: (payload) => ({
+      users: ids(str(payload, "counterparty_id")),
+      listings: ids(str(payload, "listing_id")),
+    }),
+    build: (payload, context) => {
+      const title = inspectionTitle(payload, context);
+      return title ? render(payload, context, title) : null;
+    },
+  };
+}
+
+function reservationData(payload: Payload, context: TemplateContext): ReservationData {
+  const listingId = str(payload, "listing_id");
+  const at = lagosParts(str(payload, "reserved_for"));
+  return {
+    name: context.recipient.name,
+    /* A restaurant's table carries the business's own name (a trading name,
+       public on its page); a table on a listing carries the listing title. */
+    placeName:
+      str(payload, "place_name") ??
+      (listingId ? context.lookups.listing(listingId)?.title : null) ??
+      "the restaurant",
+    date: at.date,
+    time: at.time,
+    partySize: num(payload, "party_size"),
+  };
+}
+
+/** The verification step, in the words the verification page uses. */
+const STEP_NAME: Record<string, string> = {
+  identity: "Identity",
+  address: "Address",
+  inspection: "In-person",
+  payout: "Payout account",
+};
+
 /* ------------------------------------------------------------- the registry */
 
 /**
@@ -325,6 +404,26 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
   "agreement.waiting": agreementTemplate((data) => agreementWaiting(data)),
   "agreement.approved": agreementTemplate((data) => agreementApproved(data)),
   "agreement.rejected": agreementTemplate((data) => (data.reason ? agreementRejected(data) : null)),
+
+  /* Written by private.enqueue_agreement_lifecycle_email (29 September) when
+     both parties have confirmed the same terms (status becomes in_review) and
+     when an agreement is cancelled. Both parties get their own row. */
+  "agreement.submitted": agreementChange((data) => agreementSubmitted(data)),
+  "agreement.cancelled": agreementChange((data) => agreementCancelled(data)),
+
+  /* Written by private.enqueue_guarantee_claim_email when a claim is filed. */
+  "guarantee.claim_opened": {
+    needs: () => ({}),
+    build: (payload, context) => {
+      const agreementId = str(payload, "agreement_id");
+      if (!agreementId) return null;
+      return guaranteeClaimOpened({
+        name: context.recipient.name,
+        agreementId,
+        requestedMinor: num(payload, "requested_minor"),
+      });
+    },
+  },
 
   /* Written by public.admin_decide_guarantee_claim. */
   "guarantee.claim_decided": {
@@ -444,7 +543,98 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
     },
   },
 
-  /* --------------------------------------------------------- verification */
+  /*
+   * THE REST OF A VIEWING'S LIFE (29 September), written by
+   * private.enqueue_inspection_change_email on each state change the in-app
+   * notification already announces. They answer to the Bookings switch, as
+   * the Bookings card promises for everything about a booking or a viewing;
+   * `inspection.scheduled` above predates the switch being honoured here and
+   * is left as it was.
+   */
+  "inspection.proposed": inspectionTemplate((payload, context, title) => {
+    const at = lagosParts(str(payload, "slot_at"));
+    return inspectionProposed({ name: context.recipient.name, listingTitle: title, date: at.date, time: at.time });
+  }),
+  "inspection.declined": inspectionTemplate((payload, context, title) =>
+    inspectionDeclined({ name: context.recipient.name, listingTitle: title, note: str(payload, "note") }),
+  ),
+  "inspection.withdrawn": inspectionTemplate((payload, context, title) => {
+    const at = lagosParts(str(payload, "slot_at"));
+    const counterpartyId = str(payload, "counterparty_id");
+    return inspectionWithdrawn({
+      name: context.recipient.name,
+      listingTitle: title,
+      date: at.date,
+      time: at.time,
+      otherPartyName: counterpartyId ? context.lookups.userName(counterpartyId) : null,
+    });
+  }),
+  "inspection.completed": inspectionTemplate((payload, context, title) => {
+    const audience = str(payload, "audience");
+    if (audience !== "viewer" && audience !== "lister") return null;
+    const counterpartyId = str(payload, "counterparty_id");
+    return inspectionCompleted({
+      audience,
+      name: context.recipient.name,
+      listingTitle: title,
+      otherPartyName: counterpartyId ? context.lookups.userName(counterpartyId) : null,
+    });
+  }),
+
+  /* ------------------------------------------------------ support, listings */
+
+  /* Written by private.enqueue_support_reply_email when staff reply. The
+     reply's words are not carried: the button opens them in the app. */
+  "support.replied": {
+    needs: () => ({}),
+    build: (payload, context) => {
+      const ticketId = str(payload, "ticket_id");
+      const reference = str(payload, "reference");
+      if (!ticketId || !reference) return null;
+      return supportReplied({ name: context.recipient.name, reference, ticketId, preview: null });
+    },
+  },
+
+  /* Written by private.enqueue_listing_submitted_email when a listing enters
+     review. A receipt: the decision emails are sent by the admin actions. */
+  "listing.submitted": {
+    needs: (payload) => ({ listings: ids(str(payload, "listing_id")) }),
+    build: (payload, context) => {
+      const listingId = str(payload, "listing_id");
+      const title = listingId ? context.lookups.listing(listingId)?.title : null;
+      return title ? listingSubmitted({ name: context.recipient.name, listingTitle: title }) : null;
+    },
+  },
+
+  /* ---------------------------------------------- reservations and refunds */
+
+  "reservation.confirmed": {
+    channel: "bookings",
+    needs: (payload) => ({ listings: ids(str(payload, "listing_id")) }),
+    build: (payload, context) => reservationConfirmed(reservationData(payload, context)),
+  },
+  "reservation.cancelled": {
+    channel: "bookings",
+    needs: (payload) => ({ listings: ids(str(payload, "listing_id")) }),
+    build: (payload, context) => reservationCancelled(reservationData(payload, context)),
+  },
+  "refund.requested": {
+    channel: "bookings",
+    needs: () => ({}),
+    build: (payload, context) => {
+      const bookingId = str(payload, "booking_id");
+      if (!bookingId) return null;
+      return refundRequested({ name: context.recipient.name, bookingId, dueBy: lagosParts(str(payload, "due_by")).date });
+    },
+  },
+
+  /*
+   * PAYMENT EMAILS ARE NOT HERE YET, AND THE KEYS ARE KEPT FOR THEM.
+   * `payment.received` and `payment.receipt` belong to the crypto payment
+   * work, which writes them from its own trigger and registers its builders
+   * in this object under exactly those keys. Until it does, nothing enqueues
+   * them, so there is no row the drain could drop.
+   */
 
   /* ------------------------------------------------------------ enquiries */
 
@@ -503,6 +693,18 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
   },
 
   /* --------------------------------------------------------- verification */
+
+  /* Written by private.enqueue_verification_rung_email's companion,
+     private.enqueue_verification_failed_email, when a step is marked failed. */
+  "verification.rung_failed": {
+    needs: () => ({}),
+    build: (payload, context) => {
+      const rung = str(payload, "rung");
+      const stepName = rung ? STEP_NAME[rung] : undefined;
+      if (!stepName) return null;
+      return verificationRungFailed({ name: context.recipient.name, stepName, note: str(payload, "note") });
+    },
+  },
 
   "verification.rung_passed": {
     needs: (payload) => ({ agents: ids(str(payload, "agent_id")) }),

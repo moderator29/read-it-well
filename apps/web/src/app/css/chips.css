@@ -429,7 +429,7 @@
     box-shadow:
       inset 0 0 0 var(--nf-border-width) color-mix(in oklab, var(--nf-badge-hue) 65%, var(--nf-surface-canvas)),
       inset 0 2px 0 color-mix(in oklab, var(--nf-badge-hue) 45%, white),
-      0 0 6px -1px color-mix(in oklab, var(--nf-badge-hue) 35%, transparent);
+      0 0 6px -1px color-mix(in oklab, var(--nf-badge-hue) calc(35% * var(--nf-glow-scale, 1)), transparent);
     color: var(--nf-badge-ink);
     font-size: max(0.6875rem, var(--nf-text-overline));
     white-space: nowrap;
@@ -765,8 +765,8 @@
     color: var(--nf-content-primary);
     border-color: var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-rim-lit);
   }
   @media (hover: hover) {
@@ -838,8 +838,8 @@
     border-radius: var(--nf-radius-control);
     background: var(--nf-btn-glass-fill);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-rim-lit);
   }
   .nf-segmented--pill .nf-segmented__capsule {

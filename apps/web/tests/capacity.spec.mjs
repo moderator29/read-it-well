@@ -14,20 +14,27 @@
  * Capacity is now one function, `sleeps` in lib/listings/filter.ts: the host's
  * declared number where there is one, two a bedroom where there is not.
  *
- * This sandbox has no route to the Supabase host, so the catalogue is the seed
- * half, which declares no capacity. That is the fallback branch, and it is
- * worth proving too: a two-bedroom seed listing must read as four, the panel
- * must say so, and the steppers must be bounded by it. Checked at 390px.
+ * Since 23 September a listing page answers a signed-out visitor with the
+ * sign-in wall (asserted first). The reserve panel's half is then read in the
+ * preview harness (`/preview/session-b/sweep-home/listing-parts`, the real
+ * ReservePanel for a place that takes four): the panel states the number and
+ * the steppers are bounded by it, shared between adults and children. The
+ * detail page's own sentence ("It sleeps up to N", `listing/[id]/page.tsx`)
+ * and its agreement with the panel need a real listing and a session: they
+ * run signed in as the QA member against `/listing/${LISTING}` and SKIP
+ * without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD, or when no listing is behind
+ * the id. Checked at 390px in both themes.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa, skip } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
 
 /* Eko Pearl Waterfront Apartment: two bedrooms, no declared capacity, so the
    convention applies and it sleeps four. */
-const LISTING = "seed-1";
+const LISTING = process.env.CAPACITY_LISTING ?? "seed-1";
 const EXPECTED_CAPACITY = 4;
 
 let failures = 0;
@@ -42,11 +49,9 @@ function check(name, condition) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
+async function themed(theme, state) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((t) => {
     try {
       window.localStorage.setItem("nf_theme", t);
@@ -54,8 +59,54 @@ async function run(theme) {
       void e;
     }
   }, theme);
-  const page = await context.newPage();
+  return context;
+}
 
+/** The steppers are bounded by the stated capacity, shared by both. */
+async function steppers(page, panel) {
+  const moreAdults = panel.getByRole("button", { name: /more adults/i });
+  const moreChildren = panel.getByRole("button", { name: /more children/i });
+
+  /* Adults starts at 2, so More adults may be pressed twice and must then
+     refuse: 2 + 1 + 1 is the ceiling. */
+  await moreAdults.click();
+  await page.waitForTimeout(120);
+  await moreAdults.click();
+  await page.waitForTimeout(200);
+
+  check("the adults stepper stops at the declared capacity", await moreAdults.isDisabled());
+  check("and a child cannot be added past it either", await moreChildren.isDisabled());
+
+  /* Coming back down releases the other stepper again, so the ceiling is
+     shared rather than each control having its own. */
+  await panel.getByRole("button", { name: /fewer adults/i }).click();
+  await page.waitForTimeout(200);
+  check("lowering adults frees a place for a child", !(await moreChildren.isDisabled()));
+}
+
+async function preview(theme) {
+  const context = await themed(theme, null);
+  const page = await context.newPage();
+  try {
+    console.log(`\n[${theme}] /preview/session-b/sweep-home/listing-parts (reserve panel)`);
+    if (!(await openPreview(page, "/preview/session-b/sweep-home/listing-parts", check, { wait: WAIT }))) return;
+    const appliedTheme = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
+    check(`the ${theme} theme actually applied`, appliedTheme === (theme === "light" ? "light" : "dark"));
+    const panel = page.locator('[data-testid="reserve-panel"]').first();
+    check("the reserve panel is present", (await panel.count()) === 1);
+    check(
+      `the reserve panel states the capacity (takes up to ${EXPECTED_CAPACITY} guests)`,
+      new RegExp(`takes up to ${EXPECTED_CAPACITY} guests`, "i").test(await panel.innerText()),
+    );
+    await steppers(page, panel);
+  } finally {
+    await context.close();
+  }
+}
+
+async function live(theme, state) {
+  const context = await themed(theme, state);
+  const page = await context.newPage();
   const serverErrors = [];
   page.on("response", (r) => {
     if (r.status() >= 500 && !r.url().includes("/_next/image")) {
@@ -64,43 +115,26 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme}] /listing/${LISTING}`);
+    console.log(`\n[${theme}] /listing/${LISTING} (signed in)`);
     await page.goto(`${BASE_URL}/listing/${LISTING}`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
-
-    const appliedTheme = await page.evaluate(
-      () => document.documentElement.dataset.theme ?? "dark",
-    );
-    check(
-      `the ${theme} theme actually applied`,
-      appliedTheme === (theme === "light" ? "light" : "dark"),
-    );
     check("no route returned a server error", serverErrors.length === 0);
 
+    /* Every check below needs a listing to exist, and the catalogue of
+       twenty-three invented places was removed on purpose (tests/_catalogue.mjs). */
+    if ((await page.locator('[data-testid="listing-gallery"]').count()) === 0) {
+      skip(`no listing behind /listing/${LISTING}, so there is no capacity to state (set CAPACITY_LISTING to a two-bedroom stay with no declared capacity)`);
+      return;
+    }
+
     /* The capacity sentence lives in the About disclosure, which is a real
-       one: the rest of the description is added to the document when it opens
-       rather than hidden with CSS. So it has to be opened to be read. */
+       one: the rest of the description is added to the document when it opens. */
     const aboutToggle = page.locator('[data-testid="about-toggle"]');
     if ((await aboutToggle.count()) > 0) {
       await aboutToggle.first().click();
       await page.waitForTimeout(200);
     }
-
     const text = await page.locator("body").innerText();
-
-    /* Every check below needs a listing to exist, and the catalogue of
-       twenty-three invented places was removed on purpose. See
-       tests/_catalogue.mjs: a check that cannot run is not a check that
-       failed, and the difference has to be said out loud. */
-    if ((await page.locator('[data-testid="listing-gallery"]').count()) === 0) {
-      console.log("  skip    catalogue is empty, so there is no listing to state a capacity");
-      console.log("  note    run against a deployment with real inventory to exercise this");
-      await context.close();
-      await browser.close();
-      console.log(failures === 0 ? "\nall checks passed" : `\n${failures} check(s) failed`);
-      process.exit(failures === 0 ? 0 : 1);
-    }
-
     check(
       `the description states the capacity (sleeps up to ${EXPECTED_CAPACITY} guests)`,
       new RegExp(`sleeps up to ${EXPECTED_CAPACITY} guests`, "i").test(text),
@@ -109,50 +143,31 @@ async function run(theme) {
       `the reserve panel states the same number`,
       new RegExp(`takes up to ${EXPECTED_CAPACITY} guests`, "i").test(text),
     );
-
-    /* The two must agree. A page that says four in one place and six in
-       another is the exact defect this closes. */
+    /* The two must agree. */
     const stated = [...text.matchAll(/up to (\d+) guests?/gi)].map((m) => Number(m[1]));
     check(
       `every capacity sentence on the page agrees (${JSON.stringify(stated)})`,
       stated.length > 0 && stated.every((n) => n === EXPECTED_CAPACITY),
     );
-
-    /* The steppers are bounded by it. Adults starts at 2, so More adults may
-       be pressed twice and must then refuse: 2 + 1 + 1 is the ceiling. */
     const panel = page.locator('[data-testid="reserve-panel"]').first();
     check("the reserve panel is present", (await panel.count()) === 1);
-
-    const moreAdults = panel.getByRole("button", { name: /more adults/i });
-    const moreChildren = panel.getByRole("button", { name: /more children/i });
-
-    await moreAdults.click();
-    await page.waitForTimeout(120);
-    await moreAdults.click();
-    await page.waitForTimeout(200);
-
-    check(
-      "the adults stepper stops at the declared capacity",
-      await moreAdults.isDisabled(),
-    );
-    check(
-      "and a child cannot be added past it either",
-      await moreChildren.isDisabled(),
-    );
-
-    /* Coming back down releases the other stepper again, so the ceiling is
-       shared rather than each control having its own. */
-    await panel.getByRole("button", { name: /fewer adults/i }).click();
-    await page.waitForTimeout(200);
-    check("lowering adults frees a place for a child", !(await moreChildren.isDisabled()));
+    await steppers(page, panel);
   } finally {
     await context.close();
   }
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  await expectSignInWall(check, `/listing/${LISTING}`);
+  await preview("dark");
+  await preview("light");
+  console.log("\nsigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    await live("dark", state);
+    await live("light", state);
+  }
 } finally {
   await browser.close();
 }

@@ -1,307 +1,21 @@
 /*
- * TRACK M: THE CINEMA KIT (25 September 2026).
+ * TRACK M: THE CINEMA KIT (25 September 2026; trimmed 29 September).
  *
- * The founder's showreel reference (a Truchet field under a camera-monitor
- * HUD) and the ask for horizontal and vertical motion "breaking new", made in
- * Vallo's own colours. Five pieces, all in components/cinema:
+ * The founder's showreel reference, made in Vallo's own colours. Of the five
+ * pieces it began with, one is left in components/cinema:
  *
- *   TruchetField     the generative arc field (canvas; styled here)
- *   HorizontalReel   vertical scroll drives frames sideways, pinned
  *   VerticalColumns  photographs drifting up and down in three columns
- *   KineticType      giant words sliding in opposite directions on scroll
- *   ReelHud          timecode, chapter index and scrub bar at the bottom
  *
- * plus the shared cinematic heading (overline with a drawn rule, title,
- * lede) the bands use. Every moving part has a still answer below: reduced
- * motion and the Calm and Off settings are handled in script (the reel
- * unpins, the type and the HUD stop) and here (loops paused, nothing drawn).
+ * The Truchet field, the sideways reel, the kinetic type and the film HUD
+ * were cut in the launch pass with their rules (LandingBody.tsx says why),
+ * and the band's own cinematic heading gave way to the landing's one section
+ * head. The moving part has a still answer below: reduced motion and the
+ * Calm and Off settings stop it in script and here.
  *
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
  */
 @layer components {
-  /* ------------------------------------------------ the shared heading */
-
-  .nf-cine-overline {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-space-xs);
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--nf-brand-secondary);
-  }
-  .nf-cine-overline::before {
-    content: "";
-    width: 2rem;
-    height: 1px;
-    background: currentColor;
-    transform-origin: left center;
-    animation: nf-cine-rule var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
-    animation-timeline: view();
-    animation-range: entry 10% entry 60%;
-  }
-  @keyframes nf-cine-rule {
-    from {
-      transform: scaleX(0);
-    }
-  }
-  .nf-cine-title {
-    margin-top: var(--nf-space-sm);
-    font-family: var(--nf-font-display);
-    font-size: clamp(2rem, 5.2vw, 4rem);
-    font-weight: 700;
-    line-height: 1.02;
-    letter-spacing: -0.035em;
-    color: var(--nf-content-primary);
-    text-wrap: balance;
-  }
-  .nf-cine-lede {
-    margin-top: var(--nf-space-md);
-    max-width: 52ch;
-    font-size: var(--nf-text-body-lg);
-    line-height: 1.55;
-    color: var(--nf-content-secondary);
-  }
-
-  /* ------------------------------------------------------ Truchet field */
-
-  .nf-truchet {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    -webkit-mask-image: radial-gradient(75% 70% at 50% 50%, black 35%, transparent 100%);
-    mask-image: radial-gradient(75% 70% at 50% 50%, black 35%, transparent 100%);
-  }
-  .nf-truchet__canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    color: var(--nf-brand-secondary);
-  }
-  /* The light at the centre of the field, the reference's glow. */
-  .nf-truchet::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      32% 36% at 50% 50%,
-      color-mix(in oklab, var(--nf-brand-secondary) 30%, transparent),
-      transparent 70%
-    );
-  }
-
-  /* The band the field lives in: the text sits in a quiet glass panel over
-     the centre of the pattern. */
-  .nf-system {
-    position: relative;
-    display: grid;
-    place-items: center;
-    min-height: min(92vh, 52rem);
-    padding: var(--nf-space-4xl) var(--nf-pad-shell);
-    overflow: hidden;
-    isolation: isolate;
-  }
-  .nf-system__panel {
-    position: relative;
-    z-index: 1;
-    max-width: 40rem;
-    padding: var(--nf-space-2xl) var(--nf-space-xl);
-    border-radius: var(--nf-radius-2xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: color-mix(in oklab, var(--nf-surface-canvas) 78%, transparent);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 30px 80px -30px var(--nf-glow-3);
-    text-align: center;
-  }
-  .nf-system__steps {
-    display: grid;
-    gap: var(--nf-space-sm);
-    margin-top: var(--nf-space-lg);
-    text-align: start;
-  }
-  .nf-system__step {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: var(--nf-space-sm);
-    align-items: start;
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.55;
-    color: var(--nf-content-secondary);
-  }
-  .nf-system__num {
-    display: grid;
-    place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    font-size: var(--nf-text-caption);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: var(--nf-brand-secondary);
-  }
-  .nf-system__note {
-    margin-top: var(--nf-space-lg);
-    font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
-  }
-  /* A touch screen has no pointer to move across the pattern. */
-  @media (hover: none) {
-    .nf-system__note {
-      display: none;
-    }
-  }
-
-  /* ------------------------------------------------------ horizontal reel */
-
-  .nf-hreel {
-    position: relative;
-  }
-  .nf-hreel__gate {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: var(--nf-space-xl);
-    padding-block: var(--nf-space-3xl);
-  }
-  .nf-hreel[data-mode="pinned"] .nf-hreel__gate {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    height: 100svh;
-    overflow: hidden;
-    padding-block: var(--nf-space-2xl);
-  }
-  .nf-hreel__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--nf-space-lg);
-  }
-  .nf-hreel__count {
-    display: grid;
-    gap: var(--nf-space-xs);
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    font-variant-numeric: tabular-nums;
-    text-transform: uppercase;
-    color: var(--nf-content-muted);
-  }
-  .nf-hreel__count > span:first-child {
-    color: var(--nf-content-primary);
-  }
-  .nf-hreel__rule {
-    display: block;
-    width: 8rem;
-    height: 2px;
-    overflow: hidden;
-    border-radius: 2px;
-    background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
-  }
-  .nf-hreel__rule > span {
-    display: block;
-    height: 100%;
-    background: var(--nf-brand-secondary);
-    transform: scaleX(0);
-    transform-origin: left center;
-  }
-  .nf-hreel__track {
-    display: flex;
-    gap: var(--nf-space-md);
-    margin: 0;
-    padding: 0 max(var(--nf-pad-shell), calc((100vw - 80rem) / 2));
-    list-style: none;
-  }
-  .nf-hreel[data-mode="swipe"] .nf-hreel__track {
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--nf-pad-shell);
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    padding-bottom: var(--nf-space-sm);
-  }
-  .nf-hreel[data-mode="swipe"] .nf-hreel__track::-webkit-scrollbar {
-    display: none;
-  }
-  .nf-hreel[data-mode="pinned"] .nf-hreel__track {
-    will-change: transform;
-  }
-  .nf-hreel__frame {
-    position: relative;
-    flex: none;
-    width: min(82vw, 22rem);
-    height: 27rem;
-    overflow: hidden;
-    border-radius: var(--nf-radius-2xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-surface-raised);
-    scroll-snap-align: start;
-    box-shadow: 0 30px 60px -30px var(--nf-shade-3);
-  }
-  .nf-hreel[data-mode="pinned"] .nf-hreel__frame {
-    width: clamp(20rem, 32vw, 30rem);
-    height: min(62vh, 36rem);
-  }
-  .nf-hreel__photo {
-    position: absolute;
-    inset: 0;
-    transform: translateX(calc((var(--nf-reel-p, 0) * (var(--nf-reel-n, 1) - 1) - var(--nf-i, 0)) * -5%)) scale(1.14);
-    transition: scale var(--nf-duration-deliberate) var(--nf-ease-standard);
-  }
-  .nf-hreel__photo img {
-    object-fit: cover;
-  }
-  .nf-hreel__frame:hover .nf-hreel__photo {
-    scale: 1.04;
-  }
-  .nf-hreel__frame::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to top,
-      color-mix(in oklab, var(--nf-surface-canvas) 94%, transparent) 0%,
-      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 38%,
-      transparent 70%
-    );
-  }
-  .nf-hreel__copy {
-    position: absolute;
-    inset-inline: 0;
-    bottom: 0;
-    z-index: 1;
-    display: grid;
-    gap: var(--nf-space-xs);
-    padding: var(--nf-space-lg);
-  }
-  .nf-hreel__time {
-    font-family: var(--nf-font-display);
-    font-size: clamp(2.25rem, 4vw, 3.25rem);
-    font-weight: 300;
-    line-height: 1;
-    letter-spacing: -0.03em;
-    font-variant-numeric: tabular-nums;
-    color: var(--nf-brand-secondary);
-  }
-  .nf-hreel__title {
-    font-size: var(--nf-text-h4);
-    font-weight: 700;
-    color: var(--nf-content-primary);
-  }
-  .nf-hreel__body {
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.55;
-    color: var(--nf-content-secondary);
-  }
-
   /* ---------------------------------------------------- vertical columns */
 
   .nf-vcols {
@@ -333,8 +47,41 @@
   .nf-vcols[data-playing="true"] .nf-vcols__strip {
     animation-play-state: running;
   }
-  .nf-vcols:hover .nf-vcols__strip {
+  .nf-vcols:hover .nf-vcols__strip,
+  .nf-vcols:focus-within .nf-vcols__strip,
+  .nf-vcols-host:focus-within .nf-vcols__strip {
     animation-play-state: paused;
+  }
+  /* The wall and its pause toggle, which sits in the wall's foot corner
+     above the fade. */
+  .nf-vcols-host {
+    position: relative;
+  }
+  .nf-vcols__toggle {
+    position: absolute;
+    right: var(--nf-space-sm);
+    bottom: var(--nf-space-sm);
+    z-index: 1;
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-glass-fill-strong);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    color: var(--nf-content-primary);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-vcols__toggle:hover {
+      border-color: var(--nf-brand-edge);
+    }
+  }
+  .nf-vcols__toggle:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
   }
   @keyframes nf-vcol-up {
     to {
@@ -356,9 +103,8 @@
      above it on a phone. */
   .nf-places {
     display: grid;
-    gap: var(--nf-space-2xl);
+    gap: var(--nf-gap-block);
     align-items: center;
-    padding-block: var(--nf-space-4xl);
   }
   @media (min-width: 64rem) {
     .nf-places {
@@ -366,156 +112,14 @@
     }
   }
   .nf-places__cta {
-    margin-top: var(--nf-space-lg);
-  }
-
-  /* -------------------------------------------------------- kinetic type */
-
-  .nf-kinetic {
-    display: grid;
-    gap: var(--nf-space-xs);
-    padding-block: var(--nf-space-3xl);
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-  }
-  .nf-kinetic__row {
-    display: flex;
-    align-items: center;
-    gap: clamp(1rem, 3vw, 2.5rem);
-    width: max-content;
-    font-family: var(--nf-font-display);
-    font-size: clamp(3rem, 11vw, 9.5rem);
-    font-weight: 800;
-    line-height: 0.95;
-    letter-spacing: -0.045em;
-    white-space: nowrap;
-    will-change: transform;
-  }
-  .nf-kinetic__row--b {
-    margin-inline-start: -28vw;
-  }
-  .nf-kinetic__word {
-    background: linear-gradient(
-      100deg,
-      var(--nf-content-primary) 30%,
-      color-mix(in oklab, var(--nf-brand-secondary) 80%, var(--nf-content-primary))
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .nf-kinetic__word--outline {
-    background: none;
-    color: transparent;
-    -webkit-text-stroke: 1.5px color-mix(in oklab, var(--nf-content-primary) 45%, transparent);
-  }
-  .nf-kinetic__mark img {
-    display: block;
-    width: 0.42em !important;
-    height: auto !important;
-    opacity: 0.9;
-  }
-
-  /* --------------------------------------------------------------- HUD */
-
-  .nf-hud {
-    position: fixed;
-    inset-inline: 0;
-    bottom: 0;
-    z-index: var(--nf-z-sticky);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity var(--nf-duration-slow) var(--nf-ease-standard);
-  }
-  .nf-hud[data-on="true"] {
-    opacity: 1;
-  }
-  .nf-hud__line {
-    display: none;
-    align-items: center;
-    gap: var(--nf-space-md);
-    padding: 0 var(--nf-space-lg) var(--nf-space-sm);
-    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.625rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    white-space: pre;
-    color: color-mix(in oklab, var(--nf-content-primary) 55%, transparent);
-  }
-  @media (min-width: 48rem) {
-    .nf-hud__line {
-      display: flex;
-    }
-  }
-  .nf-hud__chapter {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .nf-hud__rec {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-space-2xs);
-  }
-  .nf-hud__dot {
-    width: 0.4rem;
-    height: 0.4rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-mark-unread);
-    animation: nf-hud-rec 1.6s var(--nf-ease-standard) infinite;
-  }
-  @keyframes nf-hud-rec {
-    50% {
-      opacity: 0.25;
-    }
-  }
-  .nf-hud__code {
-    font-variant-numeric: tabular-nums;
-  }
-  .nf-hud__corner {
-    width: 0.875rem;
-    height: 0.875rem;
-    border-bottom: 1px solid currentColor;
-  }
-  .nf-hud__corner--l {
-    border-left: 1px solid currentColor;
-  }
-  .nf-hud__corner--r {
-    border-right: 1px solid currentColor;
-  }
-  .nf-hud__bar {
-    display: block;
-    height: 2px;
-    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
-  }
-  .nf-hud__bar > span {
-    display: block;
-    height: 100%;
-    background: linear-gradient(90deg, var(--nf-brand-primary), var(--nf-brand-secondary));
-    transform: scaleX(0);
-    transform-origin: left center;
+    margin-top: var(--nf-gap-heading);
   }
 
   /* ------------------------------------------------------ reduced motion */
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-cine-overline::before,
-    .nf-vcols__strip,
-    .nf-hud__dot {
+    .nf-vcols__strip {
       animation: none;
     }
-    .nf-hud {
-      display: none;
-    }
-    .nf-hreel__photo {
-      transition: none;
-    }
-  }
-  :root[data-motion="calm"] .nf-hud,
-  :root[data-motion="off"] .nf-hud {
-    display: none;
   }
 }

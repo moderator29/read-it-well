@@ -242,11 +242,12 @@ export function MobileTabBar({
   unreadNotifications?: number;
   signedIn?: boolean;
   /**
-   * The centre slot, rendered by the shell.
+   * The centre slot, rendered by the shell: the "+" and its Create sheet
+   * (`CreateDock`), with the workspace sheet mounted beside it.
    *
    * It arrives as an element rather than as props because it is a CLIENT
-   * control that needs the account's own workspace list, and this component is
-   * a server component that has no business fetching one. The shell resolves
+   * control whose workspace sheet needs the account's own workspace list, and
+   * this component is a server component that has no business fetching one. The shell resolves
    * the list once and hands the finished control down, which is the same
    * arrangement `AppShell` already uses for the drawer.
    */
@@ -325,10 +326,10 @@ export function MobileTabBar({
    */
   const root = tabRootFor(active);
   /*
-   * Slot order: two links, THE SWITCH, one link, Profile. The travelling pill
-   * counts the switch as a slot so the geometry stays one fifth per slot, and
-   * index 2 can never be active because the switch is not a destination: it
-   * opens a sheet over wherever you already are.
+   * Slot order: two links, THE "+", one link, Profile. The travelling pill
+   * counts the "+" as a slot so the geometry stays one fifth per slot, and
+   * index 2 can never be active because the "+" is not a destination: it
+   * opens the Create sheet over wherever you already are.
    */
   const slots = [tabs[0], tabs[1], null, tabs[2], profile];
   const activeIndex = slots.findIndex((tab) => tab != null && tab.href === root);
@@ -376,6 +377,12 @@ export function MobileTabBar({
          routes offset by what the dock actually occupies. */
       className="nf-dockrow fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
+      {/* A NIGHT ISLAND IN BOTH THEMES (29 September 2026): the capsule and
+          the More button are the navy glass dock of the founder's render
+          (reference 07) in light too, so the brand holds the bottom edge
+          the way the navy header holds the top. `contents` keeps the row's
+          flex layout exactly as it was; only the palette changes. */}
+      <div data-theme="dark" className="contents">
       <ul
         className="nf-tabbar"
         style={
@@ -390,12 +397,9 @@ export function MobileTabBar({
         <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
         {slots.map((tab, index) => {
           if (tab == null) {
-            /* The centre slot. It carries no label under it: the object is
-               drawn alone, and the accessible name says both what the control
-               does and which profile is current. Its 38px container is sized
-               to span the same 9 to 47 pixels of the 56px link that the other
-               four slots' glyph-over-label block spans, which is the founder's
-               "same height, same baseline" done as arithmetic. */
+            /* The centre slot: the round "+" (`CreateDock`), with no label
+               under it; its accessible name is "Create". It sits in line
+               with the other four, same height, same baseline. */
             return (
               <li key="switch" className="nf-tab nf-tab--switch">
                 {switchSlot}
@@ -429,6 +433,7 @@ export function MobileTabBar({
         })}
       </ul>
       <DockMore items={more} label={t.nav.more} active={active} />
+      </div>
     </AutoHideDock>
   );
 }

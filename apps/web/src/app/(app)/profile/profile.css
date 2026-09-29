@@ -542,113 +542,40 @@
     outline-offset: 2px;
   }
 
-  /*
-   * THE PLATE. 83 image px: 49 CSS. On night it is the render's own object,
-   * cropped from `50E032EA` (`calendar-grid`, `bookmark-ribbon`,
-   * `wallet-tile`, `shield-check-tile`, `role-switch-tile`), drawn at 68 so its
-   * glass square lands on 49.
-   */
-  /*
-   * The plate is lit from inside as the render draws it: rim 0 49 164 on
-   * top and 2 82 211 at the foot, body 0 38 132 falling to 0 22 108, a
-   * saturated inner light round the glyph (0 46 233), a little light on both
-   * sides. The pack object sits on top unfiltered; the saturation is on the
-   * plate, for the same reason as the row's.
-   */
-  .nf-pf-plate {
-    --nf-pf-ink: var(--nf-container-ink);
-    --nf-pf-ground: var(--nf-surface-canvas);
-    position: relative;
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    inline-size: 3.0625rem;
-    block-size: 3.0625rem;
-    border-radius: var(--nf-radius-sm);
-    border: 1px solid color-mix(in srgb, var(--nf-pf-ink) 30%, var(--nf-pf-ground));
-    border-block-start-color: color-mix(in srgb, var(--nf-pf-ink) 50%, var(--nf-pf-ground));
-    /* The foot rim 2 82 211 carries a little cyan, like the row's top line. */
-    border-block-end-color: color-mix(
-      in srgb,
-      color-mix(in srgb, var(--nf-pf-ink) 80%, var(--nf-state-warning)) 70%,
-      var(--nf-pf-ground)
-    );
-    background:
-      radial-gradient(
-        45% 42% at 50% 50%,
-        color-mix(in srgb, var(--nf-pf-ink) 38%, var(--nf-pf-ground)),
-        transparent 80%
-      ),
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--nf-pf-ink) 12%, transparent) 0,
-        transparent 40%,
-        transparent 55%,
-        color-mix(in srgb, var(--nf-pf-ink) 22%, transparent) 100%
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--nf-pf-ink) 24%, var(--nf-pf-ground)),
-        color-mix(in srgb, var(--nf-pf-ink) 3%, var(--nf-pf-ground))
-      );
-    filter: saturate(1.4);
-  }
-  /* The pack object carries a transparent margin round its glass square
-     (the square is 72 per cent of the artwork), so it is drawn larger than
-     the slot and centred on it, and the square inside it lands on 49. */
-  .nf-pf-plate__object {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
-    display: grid;
-    inline-size: 4.25rem;
-    block-size: 4.25rem;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-  /* Switch role: a smaller, quieter plate (74 image px, 44 CSS; fill sampled
-     0 24 82 against the rows' 1 52 167). */
-  .nf-pf-plate--switch {
-    inline-size: 2.75rem;
-    block-size: 2.75rem;
-  }
-  .nf-pf-plate--switch .nf-pf-plate__object {
-    inline-size: 3.875rem;
-    block-size: 3.875rem;
-    opacity: 0.82;
-  }
-
   .nf-pf-row__body {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: 0.3125rem;
+    gap: var(--nf-space-3xs);
     min-inline-size: 0;
     margin-inline-end: -0.625rem;
   }
-  /* Title: cap 13 image px: 7.7 CSS / 0.727 = 10.6, a row label, so the
-     R-A floor of 11 (audit S6); semibold (the M's stem measures 0.13 em). */
+  /* Title and line under it at the account rows' own sizes (`.nf-srow__label`
+     and `.nf-srow__sub`, settings-rows.css), so the four rows at the top and
+     the "More of your account" rows under them read as one list. */
   .nf-pf-row__title {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    line-height: 1.25;
-    letter-spacing: -0.005em;
+    font-size: var(--nf-text-body);
+    font-weight: 500;
+    line-height: 1.3;
   }
-  /* Subtitle: cap 11 image px: 6.5 CSS / 0.727 = 9.0, a subtitle under the
-     floor, so 11. The mist blue, one line. The ellipsis is a guard for a longer translation, not the design. */
+  /* Two lines at most: the English fits one at 390, and a longer
+     translation wraps once before it is clamped rather than being cut at a
+     word the reader needed. */
   .nf-pf-row__sub {
+    display: -webkit-box;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 0.6875rem;
-    line-height: 1.35;
-    color: var(--nf-pf-mist);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
   }
   /* A figure the database returned, quiet, before the chevron. Not in the
      render: the brief allows one where the data exists. */
   .nf-pf-row__value {
     flex-shrink: 0;
-    font-size: 0.6875rem;
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-brand-quiet);
   }
@@ -683,25 +610,6 @@
       var(--nf-pf-ground)
     );
   }
-  /* Its plate is the quiet one: rim 0 48 144, body 0 36 115 to 0 25 90. */
-  .nf-pf-plate--switch {
-    border-color: color-mix(in srgb, var(--nf-pf-ink) 22%, var(--nf-pf-ground));
-    border-block-start-color: color-mix(in srgb, var(--nf-pf-ink) 50%, var(--nf-pf-ground));
-    border-block-end-color: color-mix(in srgb, var(--nf-pf-ink) 45%, var(--nf-pf-ground));
-    background:
-      radial-gradient(
-        45% 42% at 50% 50%,
-        color-mix(in srgb, var(--nf-pf-ink) 38%, var(--nf-pf-ground)),
-        transparent 80%
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--nf-pf-ink) 40%, var(--nf-pf-ground)),
-        color-mix(in srgb, var(--nf-pf-ink) 14%, var(--nf-pf-ground))
-      );
-    filter: saturate(1.3);
-  }
-
   /* Below the fold: the rest of the account, in the register's grouped rows. */
   .nf-pf-more {
     display: flex;
@@ -728,3 +636,66 @@
     padding: 0.5rem 1.125rem 0.5rem 0.875rem;
   }
 }
+
+/*
+ * THE HERO IN DAYLIGHT (reference 05, 29 September 2026). `AccountHero` and
+ * `SignedOutHero` are night islands in both themes, so the cover's fade, the
+ * ring, the name and the counts all take the night palette; in light this
+ * paints the ground under them, so the cover fades into a navy block with
+ * rounded lower corners rather than into the white page. On a phone the block
+ * runs edge to edge, the cover's own bleed; from 640 up the cover is a framed
+ * band and the block is a card around it. At night none of this applies.
+ */
+@layer components {
+  /* `--nf-pf-mist` is derived on `.nf-pf` from the PAGE's palette, so in
+     light it arrived in the island as a dark ink on navy (1.59:1). The
+     island re-derives it from its own night tokens. */
+  .nf-pf-hero[data-theme="dark"] {
+    --nf-pf-mist: color-mix(in oklab, var(--nf-brand-quiet) 52%, var(--nf-content-primary));
+    color: var(--nf-content-primary);
+  }
+  :root[data-theme="light"] .nf-pf-hero[data-theme="dark"] {
+    margin-inline: calc(-1 * var(--nf-pf-gutter));
+    padding: 0 var(--nf-pf-gutter) var(--nf-space-lg);
+    border-radius: 0 0 var(--nf-radius-2xl) var(--nf-radius-2xl);
+    background:
+      radial-gradient(80% 40% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 16%, transparent), transparent 72%),
+      var(--nf-surface-canvas);
+    box-shadow:
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
+      0 18px 36px -26px var(--nf-glow-3);
+  }
+  @media (min-width: 640px) {
+    :root[data-theme="light"] .nf-pf-hero[data-theme="dark"] {
+      margin-inline: 0;
+      padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-lg);
+      border-radius: var(--nf-radius-2xl);
+      box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--nf-container-ink) 40%, transparent),
+        0 18px 36px -26px var(--nf-glow-3);
+    }
+  }
+}
+
+/*
+ * THE ROWS' GLYPHS (the founder, 29 September 2026, final for this surface).
+ * Plans, Saved, Agreements and Switch role carry the same line-glyph plate as
+ * the "More of your account" rows under them (`IconPlate`, small, the rows'
+ * one glyph size), so the whole page is one set: in light a soft brand-tinted
+ * tile with a hairline and the glyph in brand blue, at night the navy glass
+ * plate with the glyph in the bright brand blue rather than white. The glass
+ * objects are no longer drawn here.
+ */
+@layer components {
+  .nf-pf-glyph {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+  }
+  :root:not([data-theme="light"]) .nf-pf-body .nf-plate--brand {
+    /* The bright end of the brand blue: lifted a third towards white so the
+       line clears 3:1 on the lit plate. */
+    color: color-mix(in oklab, var(--nf-brand-quiet) 68%, var(--nf-content-primary));
+  }
+}
+

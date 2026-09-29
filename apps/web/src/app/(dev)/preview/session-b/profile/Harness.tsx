@@ -65,7 +65,7 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
         copy={{
           bookings: t.nav.bookings,
           saved: t.nav.saved,
-          wallet: t.nav.wallet,
+          agreements: t.nav.agreements,
           messages: t.nav.messages,
           settings: t.nav.settings,
           belongings: t.socialProfile.belongings,
@@ -73,7 +73,7 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
           myBookings: t.socialProfile.myBookings,
           myBookingsSub: t.socialProfile.myBookingsSub,
           savedSub: t.socialProfile.savedSub,
-          walletSub: t.socialProfile.walletSub,
+          agreementsSub: t.socialProfile.agreementsSub,
         }}
         email="seyi@example.com"
         placeLabel="Eti-Osa, Lagos"

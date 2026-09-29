@@ -2,7 +2,15 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { HARNESS_CLOSED_PATH, isApiPath, isHarnessPath, isPublicPath, proxy } from "./proxy";
+import {
+  AUTH_CALLBACK_REFUSED,
+  HARNESS_CLOSED_PATH,
+  isApiPath,
+  isAuthCallbackRefusal,
+  isHarnessPath,
+  isPublicPath,
+  proxy,
+} from "./proxy";
 import { NONCE_HEADER } from "@/lib/security/csp";
 
 /**
@@ -238,12 +246,16 @@ const EXPECTED_PUBLIC = new Set([
   /* The doors. */
   "/auth/callback",
   "/forgot-password",
+  "/forgot-password/code",
   "/reset-password",
   "/sign-in",
   "/sign-in/email",
   "/sign-up",
   "/sign-up/email",
   "/sign-up/verify",
+  /* B-2: "Finish setting up". Public like every door so it can never loop;
+     the page itself sends somebody signed out to sign in. */
+  "/sign-up/finish",
   "/start",
   "/welcome",
   /* The share door (V-07): one card, area only, one button into sign in. */
@@ -269,6 +281,7 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/complete-stays",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
+  "/api/cron/rent-share-refunds",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/sanctions-lists",
@@ -276,6 +289,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/pg-cron-watch",
   /* SCUML item 15: the daily risk classification, behind the cron bearer. */
   "/api/cron/risk-classes",
+  /* Crypto payments read back from the provider, behind the cron bearer. */
+  "/api/cron/crypto-reconcile",
   "/api/cron/saved-search-alerts",
   "/api/cron/store-readiness",
   "/api/cron/new-match-alerts",
@@ -383,6 +398,7 @@ describe("who may see the platform with no session", () => {
       "/api/push/register",
       "/api/push/revoke",
       "/api/push/self-test",
+      "/api/passcode/touch",
     ]) {
       expect(isPublicPath(path), `${path} hands product data to a stranger`).toBe(false);
       expect(isApiPath(path), `${path} must be refused as JSON, not redirected to HTML`).toBe(true);
@@ -472,6 +488,37 @@ describe("the store shell never opens on the landing page (V-11)", () => {
     expect(browser.status).not.toBe(307);
     const privacy = await proxy(new NextRequest("http://localhost/privacy", { headers: { "user-agent": SHELL } }));
     expect(privacy.status).not.toBe(307);
+  });
+});
+
+describe("L-4: a refused auth link redirects before anything renders", () => {
+  it("answers /auth/callback?error=... with a 307 to the sign-in sentence, policy stamped", async () => {
+    const response = await proxy(
+      new NextRequest("http://localhost/auth/callback?error=access_denied&error_code=otp_expired"),
+    );
+    expect(response.status).toBe(307);
+    const location = new URL(response.headers.get("location") ?? "");
+    expect(`${location.pathname}${location.search}`).toBe(AUTH_CALLBACK_REFUSED);
+    expect(response.headers.get("content-security-policy")).toBeTruthy();
+  });
+
+  it("carries nothing from the query to the target", async () => {
+    const response = await proxy(
+      new NextRequest("http://localhost/auth/callback?error_code=x&next=https://evil.example"),
+    );
+    expect(response.headers.get("location")).not.toContain("evil");
+  });
+
+  it("leaves a working link, and a server action, to the page", async () => {
+    expect(isAuthCallbackRefusal(new URL("http://localhost/auth/callback?code=abc"))).toBe(false);
+    expect(isAuthCallbackRefusal(new URL("http://localhost/auth/callback?error="))).toBe(false);
+    expect(isAuthCallbackRefusal(new URL("http://localhost/sign-in?error=x"))).toBe(false);
+    const working = await proxy(new NextRequest("http://localhost/auth/callback?code=abc"));
+    expect(working.status).not.toBe(307);
+    const action = await proxy(
+      new NextRequest("http://localhost/auth/callback?error=x", { method: "POST", headers: { "next-action": "a" } }),
+    );
+    expect(action.headers.get("location")).toBeNull();
   });
 });
 

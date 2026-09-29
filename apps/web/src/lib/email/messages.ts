@@ -231,50 +231,43 @@ export function verificationCode(data: VerificationCodeData): EmailMessage {
 
 export type PasswordResetData = {
   name?: string | null;
-  /** The one-time reset link. Absolute. */
-  resetUrl: string;
+  /** The one-time reset link. Absolute. Omitted when the hook was handed no
+      token hash to build it from; the code then carries the reset alone. */
+  resetUrl?: string | null;
+  /** The one-time recovery code, when GoTrue handed the hook one. */
+  code?: string | null;
+  /** Where the code is typed. Absolute. Printed with the code. */
+  codeUrl?: string | null;
   expiresInMinutes: number;
 };
 
 /**
- * The password reset link.
+ * The password reset: a link, and the code beside it.
  *
  * THIS ONE HAS A BUTTON AND THE CODE EMAIL DOES NOT, WHICH IS A DECISION
- * RATHER THAN AN INCONSISTENCY. A reset genuinely needs a link, because there
- * is no six digit recovery screen on this platform and the session the link
- * creates is what `updatePassword` acts on. A code email needs nothing
- * pressed, so it offers nothing pressable, and the two shapes stay different
- * on purpose: the reader learns that Vallo never sends a button to press for a
- * code, which is the habit that makes the phishing copy of a code email fail.
+ * RATHER THAN AN INCONSISTENCY. The link is the one-tap way through, and the
+ * session it creates is what `updatePassword` acts on.
  *
- * The destination is also printed underneath, selectable. This button IS the
- * message: if a mail gateway rewrites the anchor, or the reader wants to
- * finish on a desktop, a dead button with no address beneath it is a locked
+ * THE CODE IS HERE BECAUSE THE LINK ONLY WORKS WHERE IT WAS ASKED FOR. It is
+ * a PKCE link: `/auth/callback` exchanges it with a verifier held by the
+ * browser that asked, so opened in a mail app's own browser, on another phone
+ * or in another browser it reads as expired. The code works anywhere, typed
+ * at `/forgot-password/code` (`verifyPasswordResetCode`). It is printed only
+ * when the Send Email Hook was given the token; nothing is invented.
+ *
+ * The destination is also printed underneath, selectable. If a mail gateway
+ * rewrites the anchor, a dead button with no address beneath it is a locked
  * account rather than an inconvenience.
  *
- * ---------------------------------------------------------------------------
- * DELIBERATELY NOT WIRED, AND IT MUST NOT BE. GoTrue ALREADY SENDS THIS ONE.
- *
- * `lib/auth/actions.ts` asks for a reset with
- * `supabase.auth.resetPasswordForEmail`, and GoTrue composes and sends the
- * recovery mail itself from its own template, carrying the only link that
- * works: the recovery token is minted inside GoTrue and never reaches this
- * process. THERE IS NO `resetUrl` FOR A CALLER HERE TO PASS. Anything this
- * platform built would therefore be a SECOND email, arriving beside the real
- * one, with either no link or a link that does not sign anybody in, on the
- * one screen where a person is already locked out and frightened. Two reset
- * emails is how somebody presses the wrong one and concludes they have been
- * phished.
- *
- * It is kept rather than deleted: the fixtures render it, `shell.test.ts` holds it to the catalogue's structure,
- * and the day the Send Email Hook is switched on (`app/api/auth/email-hook`,
- * built and not enabled) the recovery payload arrives here and this becomes
- * the message for it. Until that day it has no caller ON PURPOSE, and
- * `reachability.test.ts` holds that refusal in place so nobody quietly wires
- * it.
+ * Sent by `app/api/auth/email-hook` for a `recovery` action. With the hook
+ * on, GoTrue sends nothing itself, so this is the only reset email.
  */
 export function passwordReset(data: PasswordResetData): EmailMessage {
+  const link = data.resetUrl || null;
+  const otp = data.code || null;
   return message(
+    /* No code in the subject: a reset code grants a password change, and a
+       lock-screen notification is readable by anybody holding the phone. */
     "Set a new Vallo password",
     "A way back into your Vallo account.",
     [
@@ -282,12 +275,25 @@ export function passwordReset(data: PasswordResetData): EmailMessage {
       paragraph(
         `${hello(data.name)} Somebody asked to reset the password on this account. If that was you, set a new one here.`,
       ),
-      button("Set a new password", data.resetUrl, true),
-      paragraph(
-        `The link expires in ${data.expiresInMinutes} minutes and works once. Open it on the same device you asked from.`,
-      ),
+      link ? button("Set a new password", link, true) : null,
+      link
+        ? paragraph(
+            `The link expires in ${data.expiresInMinutes} minutes and works once, in the browser you asked from.`,
+          )
+        : null,
+      otp
+        ? paragraph(
+            link
+              ? "Opening this somewhere else, or in your mail app? Type this code instead:"
+              : "Type this code on the reset screen:",
+          )
+        : null,
+      otp ? code(otp) : null,
+      otp && data.codeUrl
+        ? paragraph(`Enter it at ${data.codeUrl}. It works on any device, once, for ${data.expiresInMinutes} minutes.`)
+        : null,
       note(
-        "If this was not you, ignore this email. Your password has not changed and nobody can change it without this link.",
+        "If this was not you, ignore this email. Your password has not changed and nobody can change it without this email.",
       ),
     ],
     ["You are receiving this because a password reset was requested for this address."],

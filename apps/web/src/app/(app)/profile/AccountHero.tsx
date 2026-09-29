@@ -206,7 +206,7 @@ export function AccountHero({
   }
 
   return (
-    <header className="nf-pf-hero" data-testid="account-hero">
+    <header className="nf-pf-hero" data-testid="account-hero" data-theme="dark">
       {/* ------------------------------------------------------- the cover */}
       <div className="nf-pf-cover">
         {cover ? (

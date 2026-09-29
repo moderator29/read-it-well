@@ -43,7 +43,7 @@
      * (32px) and the growth rate with it; the desktop ceiling is untouched,
      * because nothing was ever wrong there.
      */
-    --nf-landing-title: clamp(2rem, 1.05rem + 3.9vw, 4.75rem);
+    --nf-landing-title: clamp(2rem, 1.05rem + 3.9vw, 4.25rem);
     --nf-landing-pill-max: 47.5rem;
     --nf-landing-card-w: 15.5rem;
     --nf-landing-hero-h: min(100svh, 56rem);
@@ -65,8 +65,7 @@
     /*
      * ON THE PHOTOGRAPH, THE THEME DOES NOT CHANGE. A dusk plate is dark in
      * daylight too, so everything that sits on one (the hero copy, the city
-     * capsules, the pill, the floating card, the category tiles, the drawn
-     * phone) is inked from these, which never flip. The ink is written out
+     * capsules, the pill, the floating card, the category tiles) is inked from these, which never flip. The ink is written out
      * here rather than read from `--nf-surface-pin`: that token was once the
      * same in both themes, but tokens.css now turns it white in light, which
      * put white hero copy on a white-washed photograph (/about at desktop in
@@ -103,6 +102,44 @@
   .nf-site {
     background: var(--nf-surface-canvas);
     color: var(--nf-content-primary);
+  }
+
+  /* Every heading on the landing wraps balanced, so none leaves one word
+     alone on its last line ("Somewhere to live, or to / own"). */
+  .nf-landing :is(h2, h3) {
+    text-wrap: balance;
+  }
+
+  /* The pool of light cast under the lit bar, at a third of its strength. */
+  .nf-landing .nf-btn--primary::after {
+    opacity: 0.35;
+  }
+  /*
+   * NO RUNNING EDGE LIGHT ON THE LANDING'S BUTTONS. The platform draws a
+   * short line of light that laps every button's rim (edge-m.css, the long
+   * edge runner on `::before`). On the landing's secondary buttons, over the
+   * white card and the night photograph alike, a still frame of it reads as
+   * a stray blue bar under "Explore Stays" (the audit found it in the hero
+   * at 390 and in the closing call to action at 1440), and on a page the
+   * founder asked to carry less glow it is one more moving light per
+   * button. Scoped to the landing; everywhere else keeps its runner. Small
+   * buttons are left alone: their `::before` is the 44pt touch target.
+   */
+  .nf-landing .nf-btn:not(.nf-btn--sm)::before {
+    content: none;
+    animation: none;
+  }
+
+  /*
+   * ONE ENTRANCE TEMPO. The shared scroll reveal runs 520ms; on the landing
+   * every card and head arrives in 240ms, staggered 60ms a child, so a room
+   * is settled by the time the eye reaches it. Reduced motion and Calm never
+   * hide anything in the first place (MotionReveal), and the duration tokens
+   * collapse to 1ms under reduced motion.
+   */
+  .nf-landing .nf-m-reveal[data-reveal="in"],
+  .nf-landing .nf-m-stagger[data-reveal="in"] > * {
+    animation-duration: var(--nf-duration-base);
   }
   @media (min-width: 64rem) {
     .nf-landing,
@@ -243,6 +280,26 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
+  /*
+   * THE BAR AT 320PX RAN 4PX PAST THE SCREEN (measured, every site page).
+   * Under 360px the gutters leave 272px, and the logo (122), Get Started
+   * (111), the menu (44) and two gaps (24) need 301. The root clips it, so
+   * nothing scrolled: the menu button's right edge was simply cut off.
+   * Below 22.5rem the row gap drops a rung (`gap-inline` on the row in
+   * `SiteHeader.tsx`, a utility, because a components-layer rule cannot
+   * outrank one), the button's side padding drops a rung, and the wordmark
+   * is capped at 14px tall (`max-height` beats the inline height `Logo`
+   * writes, and the width follows the aspect ratio). 267px, inside the 272.
+   * The 44px heights are untouched.
+   */
+  @media (max-width: 22.49rem) {
+    .nf-site-bar .nf-logo__word {
+      max-height: 0.875rem;
+    }
+    .nf-site-bar .nf-btn--sm {
+      padding-inline: var(--nf-space-sm);
+    }
+  }
 
   /* The More menu. A popover under the link, in the glass. */
   .nf-site-nav-menu {
@@ -313,14 +370,7 @@
     flex-direction: column;
     overflow: hidden;
   }
-  /*
-   * The aurora field is gone from the hero at every width. The plate and the
-   * hero's own deep-blue ground are the atmosphere now, and a second glow
-   * behind them only muddied the blend.
-   */
-  .nf-landing-hero-aurora {
-    display: none;
-  }
+
   /*
    * THE PHONE HERO IS THE DESKTOP COMPOSITION MADE COMPACT, not a stacked
    * page. The founder's second-stint ruling: the villa sits at the top right
@@ -487,14 +537,46 @@
     inset: calc(-1 * var(--nf-space-3xl)) calc(-1 * var(--nf-space-2xl));
     z-index: -1;
   }
-  @media (max-width: 63.999rem) {
-    .nf-landing-hero-body > .nf-landing-float-wrap {
-      margin-top: var(--nf-gap-block);
-      margin-inline-start: auto;
-      width: min(100%, var(--nf-landing-card-w));
-      position: relative;
-      z-index: 1;
+  /* The scrim's box had a visible edge on the photograph: its gradient was
+     still a quarter strong where the box ended, so a darker rectangle stood
+     behind the copy with a hard top and right side. Feathered to nothing at
+     every edge; the plate's own left-third scrim carries the rest. */
+  @media (min-width: 64rem) {
+    .nf-landing-hero-copy > .nf-photo-scrim {
+      -webkit-mask-image: radial-gradient(closest-side, black 45%, transparent 100%);
+      mask-image: radial-gradient(closest-side, black 45%, transparent 100%);
     }
+  }
+  /*
+   * THE HERO'S ONE SCROLL MOTION: a slow parallax on the photograph. As the
+   * first 100vh scrolls away the villa sinks 5 per cent behind the copy,
+   * scaled 8 per cent so no edge ever shows. A scroll timeline, so no script
+   * and nothing runs while the page is still; from 64rem only (on a phone
+   * the plate is a band), and never under reduced motion, Calm or Off
+   * (landing-rooms.css) or data saver.
+   */
+  @supports (animation-timeline: scroll()) {
+    @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+      .nf-landing-hero-plate img {
+        animation: nf-hero-drift linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 100vh;
+      }
+    }
+  }
+  @keyframes nf-hero-drift {
+    from {
+      transform: scale(1.08) translate3d(0, 0, 0);
+    }
+    to {
+      transform: scale(1.08) translate3d(0, 5%, 0);
+    }
+  }
+  :root[data-save-data="on"] .nf-landing-hero-plate img {
+    animation: none;
+  }
+  @media (max-width: 63.999rem) {
+
     /* Smaller controls to match the smaller headline. The tap targets keep
        their 44px height; only the type and the side padding come in. */
     .nf-landing-hero .nf-btn {
@@ -511,7 +593,7 @@
       /* Static, so the plate's `inset: 0` measures the whole hero (nav
          height included) and not the shell's box inside it. */
       position: static;
-      grid-template-columns: minmax(0, 33rem) 1fr;
+      grid-template-columns: minmax(0, 48rem) 1fr;
       align-items: center;
       /* THE HEADER'S SCROLLED STATE USED TO LAND ON THE OVERLINE (R1 finding
          A10). The hero already offsets the header's resting height; what it
@@ -519,49 +601,6 @@
          page moves, which printed across the top of the breadcrumb on
          desktop. One rung more at the top, and nothing below it moves. */
       padding-block: var(--nf-space-3xl) var(--nf-space-2xl);
-    }
-  }
-
-  .nf-landing-crumbs {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--nf-gap-inline);
-    font-size: var(--nf-text-overline);
-    letter-spacing: var(--nf-tracking-overline);
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--nf-landing-accent);
-  }
-  /*
-   * THE SEPARATOR BELONGS TO THE CRUMB BEFORE IT (R1 finding A7).
-   *
-   * It was a `::before` on the following item, so a wrap at 390 put a bare
-   * slash at the head of the second line. As a trailing `::after` the slash
-   * can only ever sit after a word, and `white-space: nowrap` stops a crumb
-   * breaking inside itself.
-   */
-  .nf-landing-crumbs li {
-    white-space: nowrap;
-  }
-  .nf-landing-crumbs li:not(.nf-landing-crumb--last)::after {
-    content: "/";
-    margin-inline-start: var(--nf-gap-inline);
-    color: var(--nf-landing-fg-3);
-  }
-  /* At the narrowest width the row holds three crumbs and drops the fourth
-     rather than abbreviating one, because the crumbs are content truth and a
-     shortened word would be a different claim. Manage is still reachable
-     from the footer and from the agent console. */
-  @media (max-width: 26.75rem) {
-    .nf-landing-crumbs {
-      letter-spacing: 0.14em;
-    }
-    .nf-landing-crumbs li:nth-child(n + 4) {
-      display: none;
-    }
-    .nf-landing-crumbs li:nth-child(3)::after {
-      content: none;
     }
   }
 
@@ -575,11 +614,12 @@
   }
   .nf-landing-title > span {
     display: block;
+    text-wrap: balance;
   }
   .nf-landing-title .nf-gradient-text {
     /* The word "reimagined." carries the brand ramp and a soft bloom under it,
        which is what makes it read as lit rather than printed. */
-    filter: drop-shadow(0 0 22px var(--nf-glow-2));
+    filter: drop-shadow(0 0 10px var(--nf-glow-1));
   }
   /*
    * The sub-line came down with the headline. At body-lg over 36ch it ran to
@@ -596,121 +636,15 @@
   }
   @media (min-width: 64rem) {
     .nf-landing-sub {
-      max-width: 36ch;
+      max-width: 64ch;
       font-size: var(--nf-text-body-lg);
       line-height: 1.55;
     }
   }
 
-  /*
-   * The cities row: the render puts a pinned "Popular Cities" label in front
-   * of the pills, above a hairline, with the first city filled.
-   */
-  .nf-landing-cities {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    /* Tighter on the phone, where this row and the hairline above it were
-       spending two full rows of the compact hero on spacing alone. */
-    gap: var(--nf-gap-inline);
-    padding-top: var(--nf-gap-inline);
-    border-top: 1px solid var(--nf-landing-hairline);
-  }
-  @media (min-width: 64rem) {
-    .nf-landing-cities {
-      gap: var(--nf-gap-row);
-      padding-top: var(--nf-gap-row);
-    }
-  }
-  .nf-landing-cities-label {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-inline-tight);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    color: var(--nf-landing-fg-2);
-  }
-  .nf-landing-cities-label > svg {
-    color: var(--nf-landing-accent);
-  }
+  /* ------------------------------------------------ the listing mini card
+     (ListingMini; the hero's floating card that framed it is gone) */
 
-  /*
-   * City chips on the photograph: ROUNDED RECTANGLES, and this comment used to
-   * say "capsules, per ledger section 8", which cites a withdrawn amendment as
-   * the authority for a value it does not describe. BUILD 06 section 8 added
-   * `--nf-radius-control-pill` as a second control role and DESIGN_DIRECTION
-   * section 1.4 withdrew it at the root.
-   *
-   * The shipped value was already right and only the citation was wrong. The
-   * founder's ruling of 19 September, taken with the governing hero open: not
-   * one capsule in that image. Measured off it, the chips are about 31 logical
-   * px tall with a radius near 10, a ratio of 0.33. Ours is 14px on a 44px
-   * minimum height, which is 0.32, and the ratio is the law.
-   */
-  .nf-landing-city {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-inline);
-    min-height: 2.75rem;
-    padding: 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    color: var(--nf-landing-fg);
-    background: var(--nf-landing-control);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
-    backdrop-filter: blur(var(--nf-glass-blur-thin));
-    transition:
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      background var(--nf-duration-fast) var(--nf-ease-standard);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    box-shadow: var(--nf-rim-lit);
-  }
-  .nf-landing-city--lead {
-    color: var(--nf-content-on-brand);
-    background: var(--nf-selected-fill);
-    border-color: var(--nf-selected-edges);
-    box-shadow: var(--nf-selected-shadow-inline);
-  }
-  @media (hover: hover) {
-    .nf-landing-city--lead:hover {
-      background: var(--nf-selected-fill);
-      border-color: var(--nf-selected-edges);
-    }
-  }
-  @media (hover: hover) {
-    .nf-landing-city:hover {
-      border-color: var(--nf-brand-edge);
-      background: var(--nf-landing-control-strong);
-    }
-  }
-  .nf-landing-city:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-
-  /* ------------------------------------------------ the floating card */
-
-  .nf-landing-float {
-    position: relative;
-    width: 100%;
-    max-width: var(--nf-landing-card-w);
-    padding: var(--nf-space-xs);
-    color: var(--nf-landing-on-ink);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
-    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
-    backdrop-filter: blur(var(--nf-panel-blur));
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-float-wrap {
-      justify-self: end;
-      align-self: end;
-    }
-  }
   .nf-landing-float-media {
     position: relative;
     aspect-ratio: 4 / 3;
@@ -779,8 +713,8 @@
    * TWO LINES, AND THE CARD KEEPS ITS SHAPE.
    *
    * The title had no ceiling, so a long one simply made the body taller. In
-   * the drawn phone, where the card is pinned to the foot of the screen, the
-   * body grew UPWARDS over the photograph behind it (the founder photographed
+   * the drawn phone the landing used to carry, where the card was pinned to
+   * the foot of the screen, the body grew UPWARDS over the photograph behind it (the founder photographed
    * exactly that), and at 320px it reached seven lines and pushed the place
    * and the price out of the slab. The render draws the title under the
    * photograph on two lines at most, so that is what it gets; the full title
@@ -818,51 +752,6 @@
     font-weight: 700;
     color: var(--nf-landing-on-ink);
   }
-  /*
-   * The card drawn on the phone screen is about 105px wide, which is one
-   * line's worth of title and no room for a place beside a price: the place
-   * collapsed to a pin and one letter with the price jammed against it. Inside
-   * the phone the card carries the title and the price, which is what the
-   * render's phone card shows at this size; the place is on the card
-   * everywhere the card is big enough to read it.
-   */
-  .nf-landing-phone-card .nf-landing-float-title {
-    -webkit-line-clamp: 1;
-  }
-  .nf-landing-phone-card .nf-landing-float-place {
-    display: none;
-  }
-  .nf-landing-pager {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--nf-gap-inline);
-    margin-top: var(--nf-space-sm);
-    font-size: var(--nf-text-overline);
-    font-weight: 600;
-    color: var(--nf-landing-on-ink-secondary);
-  }
-  .nf-landing-pager button {
-    display: inline-grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: var(--nf-radius-circle);
-    color: var(--nf-landing-on-ink);
-  }
-  .nf-landing-pager button > span {
-    display: inline-grid;
-    place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-landing-control-on-ink);
-    border: 1px solid var(--nf-landing-hairline-on-ink);
-  }
-  .nf-landing-pager button:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: -4px;
-  }
 
   /* ---------------------------------------------------- the search pill */
 
@@ -873,19 +762,23 @@
     max-width: var(--nf-landing-pill-max);
     margin-inline: auto;
   }
+  /* From 64rem the grid places the two in-flow children itself: the copy on
+     the first row, the search on the second. */
   @media (min-width: 1024px) {
-    .nf-landing-pill-wrap {
-      margin-top: calc(-1 * var(--nf-space-xl));
+    .nf-landing-hero-body > .nf-landing-hero-copy {
+      grid-row: 1;
+      grid-column: 1;
+    }
+
+    /* On the copy's own left edge, one grid line with the headline, rather
+       than centred under a photograph that no longer has a card beside it. */
+    .nf-landing-hero-body > .nf-landing-pill-wrap {
+      grid-row: 2;
+      grid-column: 1 / -1;
+      margin-inline: 0;
     }
   }
-  /* The stats band rides up over the foot of the photograph on desktop. */
-  @media (min-width: 1024px) {
-    .nf-landing-stats-wrap {
-      margin-top: calc(-1 * var(--nf-space-2xl));
-      position: relative;
-      z-index: 1;
-    }
-  }
+
   .nf-landing-pill {
     display: flex;
     flex-direction: column;
@@ -1080,115 +973,7 @@
     }
   }
 
-  /* --------------------------------------------------- the stats band */
-
-  .nf-landing-stats {
-    display: grid;
-    gap: var(--nf-gap-group);
-    padding: var(--nf-pad-card);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-stats {
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 2.4fr);
-      align-items: center;
-    }
-  }
-  .nf-landing-stats-lead {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--nf-gap-group);
-  }
-  .nf-landing-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--nf-gap-row);
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-stats-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
-  .nf-landing-stat {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    min-height: 4.5rem;
-    padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-  }
-  .nf-landing-stat-figure {
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h2);
-    font-weight: 700;
-    line-height: 1;
-    color: var(--nf-brand-secondary);
-  }
-  .nf-landing-stat-label {
-    font-size: var(--nf-text-overline);
-    color: var(--nf-content-secondary);
-  }
-
   /* The glass circle every content object sits in from here down. */
-  /*
-   * THE ORB IS LIT NOW, and roomier.
-   *
-   * It was a flat dark disc behind the object: a soft brand hairline and
-   * `--nf-glow-1` at sixteen per cent, which at 3rem is invisible. Beside the
-   * reference, where each feature object sits on a plate that is plainly
-   * ringed in blue with light coming off it, ours read as a hole. It takes
-   * the same lit edge as every card and control, and the padding goes up so
-   * the object stands off the ring rather than touching it.
-   */
-  /*
-   * NO DISC UNDER THE FEATURE OBJECTS (R1 finding A9, and the founder's
-   * black-onion complaint of 19 September).
-   *
-   * These carried a glass fill and a ring, and against a near-black canvas a
-   * glass fill reads as a hole cut in the page with an object sitting in it.
-   * His target draws the same objects with NO plate at all: they float and
-   * throw their own light. So the plate and the ring come off the base orb
-   * and the object casts a brand-coloured glow instead. The How Vallo works
-   * steps keep a plate, because his target rings those four, and it is a
-   * brand tint rather than a surface colour.
-   */
-  .nf-landing-orb {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    width: 3rem;
-    height: 3rem;
-    padding: 0.55rem;
-    border-radius: var(--nf-radius-circle);
-    background: none;
-    border: 0;
-    box-shadow: none;
-    filter: drop-shadow(0 0 18px var(--nf-glow-2));
-  }
-  .nf-landing-orb--lg {
-    width: 4rem;
-    height: 4rem;
-    padding: 0.5rem;
-  }
-  /* The four rings in How Vallo works: a wider lit rim around the object.
-     A brand tint, never a surface colour, so the ring reads as light rather
-     than as a hole (R1 finding A9). */
-  .nf-landing-orb--ring {
-    padding: 0.55rem;
-    filter: none;
-    background: var(--nf-plate-fill);
-    border: var(--nf-border-width) solid var(--nf-plate-edge);
-    border-color: var(--nf-plate-edges);
-    box-shadow: var(--nf-plate-shadow);
-  }
 
   /* ------------------------------------------------- the feature grid */
 
@@ -1203,98 +988,6 @@
     }
     .nf-landing-split--even {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-    }
-  }
-  .nf-landing-tiles {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--nf-gap-row);
-  }
-  @media (min-width: 640px) {
-    .nf-landing-tiles {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-tiles {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-  }
-  .nf-landing-tile {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--nf-gap-row);
-    min-height: 7rem;
-    padding: var(--nf-pad-card-sm);
-    transition:
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-base) var(--nf-ease-standard),
-      transform var(--nf-duration-press) var(--nf-ease-press);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-  }
-  .nf-landing-tile:active {
-    transform: scale(var(--nf-press-scale-lg));
-  }
-  @media (hover: hover) {
-    .nf-landing-tile:hover {
-      border-color: var(--nf-selected-edges);
-      box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-2);
-    }
-  }
-  .nf-landing-tile:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-  .nf-landing-tile-title {
-    font-size: var(--nf-text-body-sm);
-    font-weight: 650;
-    color: var(--nf-content-primary);
-  }
-  .nf-landing-tile-sub {
-    font-size: var(--nf-text-overline);
-    color: var(--nf-content-secondary);
-  }
-
-  /* ----------------------------------------------- the feature chips */
-
-  .nf-landing-chiprow {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--nf-gap-row);
-    padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-  }
-  @media (min-width: 640px) {
-    .nf-landing-chiprow {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-chiprow {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      padding: var(--nf-pad-card);
-    }
-  }
-  .nf-landing-chipcell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-md) var(--nf-space-xs);
-    text-align: center;
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-chipcell + .nf-landing-chipcell {
-      border-inline-start: 1px solid var(--nf-glass-border);
     }
   }
 
@@ -1325,7 +1018,27 @@
   .nf-landing-stack {
     position: relative;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-gap-row);
+  }
+  /*
+   * THE FLOATING CARDS FLOAT ON A PHONE TOO.
+   * Under 64rem the three pieces used to stack as three unrelated boxes: a
+   * villa photograph, then a listing card carrying a second photograph, then
+   * the partner note. The render's idea is a listing card lying ON the
+   * photograph. So the card rides up over the photograph's lower third, held
+   * in from the start edge so the photo still frames it, and the partner
+   * note follows underneath. A negative block margin inside a grid moves
+   * nothing sideways, so this cannot widen the page.
+   */
+  @media (max-width: 63.999rem) {
+    .nf-landing-stack-card--a {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 2 * var(--nf-space-md), var(--nf-landing-card-w));
+      margin-top: calc(-1 * var(--nf-space-4xl));
+      margin-inline-start: var(--nf-space-md);
+    }
   }
   .nf-landing-stack-photo {
     position: relative;
@@ -1403,18 +1116,6 @@
     color: var(--nf-brand-secondary);
   }
 
-  /* --------------------------------------------------- how it works */
-
-  .nf-landing-steps {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--nf-gap-block) var(--nf-gap-group);
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-steps {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
   .nf-landing-step {
     display: flex;
     flex-direction: column;
@@ -1430,26 +1131,6 @@
     font-weight: 700;
     color: var(--nf-content-on-brand);
     background: var(--nf-brand-primary);
-  }
-  /* The hairline that runs behind the four orbs on desktop. */
-  @media (min-width: 1024px) {
-    .nf-landing-steps {
-      position: relative;
-    }
-    .nf-landing-steps::before {
-      content: "";
-      position: absolute;
-      top: 2rem;
-      left: 12%;
-      right: 12%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--nf-brand-edge), transparent);
-    }
-    .nf-landing-step .nf-landing-orb {
-      position: relative;
-      z-index: 1;
-      background: var(--nf-surface-canvas);
-    }
   }
 
   /* ------------------------------------------------ category tiles */
@@ -1571,101 +1252,6 @@
     }
   }
 
-  /* ------------------------------------------------- the stays band */
-
-  .nf-landing-band {
-    display: grid;
-    gap: var(--nf-gap-group);
-    overflow: hidden;
-    padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-band {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    }
-  }
-  /*
-   * The photograph is a rounded tile inset in the band, as the render draws
-   * it, so on the phone it is a fitted band inside the card's own padding.
-   * NO `min-height` WITH THE ASPECT RATIO ON THE PHONE: 16rem tall at 16:10
-   * gave the box a 410px min-content width, which is wider than the band at
-   * 390, and the auto grid track grew to it and pushed the copy out past
-   * the band's clipped edge (found in the second-stint 390 shot).
-   */
-  .nf-landing-band-photo {
-    position: relative;
-    min-width: 0;
-    aspect-ratio: 16 / 10;
-    overflow: hidden;
-    border-radius: var(--nf-radius-xs);
-    border: var(--nf-border-width) solid var(--nf-panel-hair);
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-band-photo {
-      aspect-ratio: auto;
-      min-height: 100%;
-    }
-  }
-  .nf-landing-band-photo img {
-    object-fit: cover;
-  }
-  .nf-landing-band-body {
-    display: grid;
-    min-width: 0;
-    gap: var(--nf-gap-block);
-    padding: var(--nf-pad-card-sm) var(--nf-pad-card-sm) var(--nf-pad-card);
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-band-body {
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-      align-items: center;
-      padding: var(--nf-pad-card) var(--nf-pad-card-lg);
-    }
-  }
-  .nf-landing-list {
-    display: grid;
-    gap: var(--nf-gap-inline);
-  }
-  .nf-landing-list a {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    min-height: 2.75rem;
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    color: var(--nf-content-primary);
-    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  /* The render's list glyphs sit in small glass squares, not circles. */
-  .nf-landing-list a > span:first-child {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    width: 2rem;
-    height: 2rem;
-    color: var(--nf-brand-secondary);
-    border-radius: var(--nf-plate-radius-sm);
-    background: var(--nf-plate-fill);
-    border: var(--nf-border-width) solid var(--nf-plate-edge);
-    border-color: var(--nf-plate-edges);
-    box-shadow: var(--nf-plate-shadow);
-  }
-  @media (hover: hover) {
-    .nf-landing-list a:hover {
-      color: var(--nf-content-primary);
-    }
-  }
-  .nf-landing-list a:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-    border-radius: var(--nf-radius-sm);
-  }
-
   /* ------------------------------------------------------ the buttons */
 
   /*
@@ -1715,150 +1301,100 @@
 
   /* ---------------------------------------------------- the app band */
 
-  .nf-landing-app {
+  /*
+   * ONE BRANDED PANEL, NO DEVICE FRAME (29 September: the two drawn phones,
+   * their screens and the checklist card beside them are deleted). A night
+   * island in both themes (`data-theme="dark"` on the panel), the navy the
+   * light header is, with one soft wash of brand light in its far corner:
+   * the promise and the badges (or the install line) on the left, the three
+   * points on an inner card on the right.
+   */
+  .nf-app-panel {
     display: grid;
     gap: var(--nf-gap-block);
     align-items: center;
-  }
-  @media (min-width: 1024px) {
-    .nf-landing-app {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
-    }
-  }
-  /*
-   * The two install badges, shaped like the render's store badges: a deep
-   * capsule with a mark, a small line over a strong one. The WORDS are not
-   * the render's. There is no App Store or Play listing (native identifiers
-   * are on the stop list), so a badge reading "Download on the App Store"
-   * would be a claim about something that does not exist; these say what
-   * actually happens, which is that Vallo installs from the browser.
-   */
-  .nf-landing-store {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    min-height: 3.25rem;
-    padding: 0 var(--nf-space-lg) 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-landing-ink);
-    color: var(--nf-landing-on-ink);
-    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    box-shadow: var(--nf-btn-glass-shadow);
-  }
-  .nf-landing-store > span {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.15;
-  }
-  .nf-landing-store small {
-    font-size: var(--nf-text-overline);
-    color: var(--nf-landing-on-ink-secondary);
-  }
-  .nf-landing-store strong {
-    font-size: var(--nf-text-body-sm);
-    font-weight: 650;
-  }
-  @media (hover: hover) {
-    .nf-landing-store:hover {
-      border-color: var(--nf-brand-edge);
-    }
-  }
-  .nf-landing-store:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-
-  /*
-   * TWO phones, drawn. Not device frames cropped from the render: rounded
-   * glass slabs, one carrying the portrait villa with a real listing card on
-   * it, one carrying the brand face the app opens on, offset as the render
-   * offsets them.
-   */
-  .nf-landing-phones {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: var(--nf-space-sm);
-  }
-  .nf-landing-phone--back {
-    margin-bottom: var(--nf-space-xl);
-  }
-  .nf-landing-phone-screen--brand {
-    display: grid;
-    place-content: center;
-    justify-items: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-md);
-    text-align: center;
+    padding: var(--nf-space-xl) var(--nf-pad-card);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background:
-      radial-gradient(90% 60% at 50% 42%, var(--nf-glow-2) 0%, transparent 70%),
-      linear-gradient(180deg, var(--nf-landing-ink) 0%, var(--nf-landing-ink) 100%);
-  }
-  /* The lockup stacks inside the drawn screen, as the render draws the app's
-     opening face, rather than running side by side and losing half the
-     wordmark off the edge of a 184px slab. */
-  .nf-landing-phone-screen--brand .nf-logo {
-    flex-direction: column;
-    gap: var(--nf-gap-row);
-  }
-  .nf-landing-phone-slogan {
-    font-size: var(--nf-text-overline);
-    font-weight: 600;
-    color: var(--nf-landing-on-ink-secondary);
-  }
-  .nf-landing-phone {
-    position: relative;
-    flex: 1 1 0;
-    width: auto;
-    max-width: 11.5rem;
-    margin-inline: auto;
-    aspect-ratio: 9 / 18.5;
-    padding: var(--nf-space-xs);
-    border-radius: var(--nf-radius-2xl);
-    background: var(--nf-surface-primary);
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 0 1px var(--nf-brand-edge-soft),
-      0 0 60px var(--nf-glow-2),
-      var(--nf-elev-4);
-  }
-  .nf-landing-phone-screen {
-    position: relative;
-    height: 100%;
-    overflow: hidden;
-    border-radius: calc(var(--nf-radius-2xl) - var(--nf-space-xs));
-  }
-  .nf-landing-phone-screen img {
-    object-fit: cover;
-  }
-  .nf-landing-phone-screen::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--nf-scrim-media);
-  }
-  .nf-landing-phone-card {
-    position: absolute;
-    left: var(--nf-space-sm);
-    right: var(--nf-space-sm);
-    bottom: var(--nf-space-md);
-    z-index: 1;
-  }
-  .nf-landing-checks {
-    display: grid;
-    gap: var(--nf-gap-row);
-  }
-  .nf-landing-checks li {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    font-size: var(--nf-text-body-sm);
+      radial-gradient(70% 90% at 100% 0%, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent) 0%, transparent 70%),
+      var(--nf-surface-primary);
     color: var(--nf-content-primary);
   }
-  .nf-landing-checks li > svg {
+  @media (min-width: 64rem) {
+    .nf-app-panel {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: var(--nf-space-3xl);
+      padding: var(--nf-space-3xl);
+    }
+  }
+  .nf-app-panel__badges {
+    margin-top: var(--nf-gap-heading);
+  }
+  .nf-app-panel__install {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-gap-row);
+    max-width: var(--nf-measure-lede);
+    margin-top: var(--nf-gap-heading);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    background: var(--nf-glass-fill);
+  }
+  .nf-app-panel__install > svg {
     flex: none;
+    margin-top: var(--nf-space-3xs);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-app-panel__install-title {
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-app-panel__install-body {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-app-panel__aside {
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    background: var(--nf-glass-fill);
+  }
+  .nf-app-panel__mark {
+    display: inline-flex;
+  }
+  .nf-app-panel__aside-title {
+    margin-top: var(--nf-gap-group);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+  }
+  .nf-app-panel__points {
+    display: grid;
+    gap: var(--nf-gap-row);
+    margin-top: var(--nf-gap-group);
+  }
+  .nf-app-panel__points li {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-app-panel__tick {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-sm);
+    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
     color: var(--nf-brand-secondary);
   }
 
@@ -1866,9 +1402,42 @@
 
   @media (prefers-reduced-motion: reduce) {
     .nf-site-nav .nf-site-bar,
-    .nf-landing-tile,
     .nf-landing-cat,
     .nf-landing-pill-seg {
       transition: none;
     }
   }}
+
+/*
+ * LESS GLOW, ON THE NIGHT PALETTE (29 September, the founder: "less glow").
+ *
+ * Every panel on the landing is the shared panel, and on the night
+ * palette the shared panel is lit: a bright blue edge on all four sides,
+ * a second line of light inside the top, and a 6px halo outside. Twenty
+ * of them down one page read as neon. The landing keeps the panel and
+ * turns its light down: a quiet brand hairline for the edge, one faint
+ * catch inside the top, no halo. The lit primary button keeps its bar and
+ * rim and loses most of its bloom. Paper is untouched (its panels were
+ * never lit). A property that reads another resolves where it is
+ * declared, so the islands declare it again for their own palette.
+ *
+ * OUTSIDE THE COMPONENTS LAYER, ON PURPOSE. The night palette is declared
+ * on `[data-theme="dark"]` in tokens.css, which is unlayered, and unlayered
+ * rules beat every layered one whatever their specificity. On the page root
+ * that did not matter (this block sits on `.nf-landing`, below `html`), but
+ * a night island carries `data-theme="dark"` itself (a category tile, the
+ * app panel), so inside the layer the island's own lit edges won and those
+ * tiles kept their blue glow in light mode.
+ */
+:root:not([data-theme="light"]) .nf-landing,
+.nf-landing [data-theme="dark"] {
+  --nf-panel-edges: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  --nf-panel-rim: inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 7%, transparent);
+  --nf-panel-glow: 0 1px 2px color-mix(in oklab, var(--nf-surface-canvas) 60%, transparent);
+  --nf-btn-lit-shadow:
+    var(--nf-btn-lit-rim), var(--nf-btn-lit-inner),
+    0 4px 12px -6px color-mix(in srgb, var(--nf-brand-primary) 60%, transparent);
+  --nf-btn-lit-shadow-hover:
+    var(--nf-btn-lit-rim), var(--nf-btn-lit-inner-hover),
+    0 6px 16px -6px color-mix(in srgb, var(--nf-brand-primary) 70%, transparent);
+}

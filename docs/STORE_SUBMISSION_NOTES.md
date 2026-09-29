@@ -151,6 +151,14 @@ is a form field that cannot be left blank.
 
 `--dry-run` reports what it would do and writes nothing. Run that first.
 
+**The passcode.** Every signed-in member now sets an app passcode (see
+[PASSCODE.md](PASSCODE.md)), and a reviewer who signs in meets that setup
+screen first. Add `SEED_REVIEWER_PASSCODE=<6 digits>` to the run above. The
+script sets it as the reviewer, on the session it has just proved, and never
+prints it. A trivial code (a repeat, a run like 123456) is refused, and the
+script says so. Put the code in the review notes beside the login (item 1
+below).
+
 - It touches ONE account and creates no listing, booking or message. A seeding
   script that invents supply is a script that puts invented supply in front of
   a reviewer.
@@ -200,7 +208,9 @@ a catalogue of clearly labelled examples; neither accepts one that pretends.
 Facts only, and each one true on the day of writing:
 
 1. The account to sign in with, and that it is a standard consumer account with
-   no special role.
+   no special role. Also give its 6-digit app passcode (`SEED_REVIEWER_PASSCODE`),
+   which the app asks for when it is reopened or left idle for five minutes.
+   "Use your password instead" on that screen also works.
 2. That the whole product requires an account, so nothing can be assessed
    signed out beyond the landing page and the policy pages.
 3. That the catalogue is currently example stock, labelled as such on every

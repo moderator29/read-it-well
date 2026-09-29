@@ -22,13 +22,13 @@ import { assertPlatformKey, platformLockAvailable } from "@/lib/security/webauth
  *
  * Two ways to use it.
  *
- * A FORM (send, withdraw):
- *   const lock = useMoneyStepUp(locale, (form) => intentFromForm("send", form));
+ * A FORM (add or remove a payout account):
+ *   const lock = useMoneyStepUp(locale, (form) => ({ kind: "payout_add", target: String(form.get("accountNumber") ?? "") }));
  *   <form onSubmit={(e) => { if (!lock.pass(e)) return; ... }}>
  *     <input type="hidden" name="stepUp" value={lock.token} />
  *     {lock.sheet}
  *
- * A CALL (add a bank account, confirm a held payment):
+ * A CALL (add a bank account, make one the default):
  *   const stepUp = await lock.prove({ kind: "bank_add", target });
  *   if (stepUp === null) return;            // cancelled or refused
  *   await addBankAccount({ ...input, stepUp });

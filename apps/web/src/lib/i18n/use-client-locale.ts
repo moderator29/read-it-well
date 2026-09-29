@@ -19,7 +19,7 @@ import { LOCALE_COOKIE } from "@/lib/locale.constants";
 
 /**
  * Nothing to subscribe to: a cookie fires no events. Language changes come
- * through `LanguageSwitcher`, which writes the cookie and calls
+ * through Settings' `LanguageRow`, which writes the cookie and calls
  * `router.refresh()`, and that re-renders this component - at which point
  * `useSyncExternalStore` re-reads `getSnapshot` and the new locale lands. A
  * polling subscription would burn a timer forever to catch a change that

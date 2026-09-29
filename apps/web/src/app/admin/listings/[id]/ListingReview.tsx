@@ -260,7 +260,7 @@ export function ListingReview(props: ListingReviewProps) {
                 }
               />
               <Utility
-                icon="water"
+                icon="droplet"
                 label="Water"
                 value={
                   listing.utilities.waterSupply ? WATER_LABEL[listing.utilities.waterSupply] : null
@@ -390,25 +390,11 @@ function Fact({ icon, label, value }: { icon: UiIconName; label: string; value: 
   );
 }
 
-/**
- * A water drop in the stroked line tier, drawn here because UiIcon has none.
- * The identity pack's water objects are glass, and the plates beside it carry
- * line glyphs (bolt), so a glass object would break the set.
- */
-function WaterGlyph() {
-  return (
-    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 3.5c3.2 4 5.5 7.1 5.5 10a5.5 5.5 0 0 1-11 0c0-2.9 2.3-6 5.5-10Z" />
-      <path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5" />
-    </svg>
-  );
-}
-
-function Utility({ icon, label, value }: { icon: UiIconName | "water"; label: string; value: string | null }) {
+function Utility({ icon, label, value }: { icon: UiIconName; label: string; value: string | null }) {
   return (
     <li>
       <span className="nf-rv-plate" aria-hidden="true">
-        {icon === "water" ? <WaterGlyph /> : <UiIcon name={icon} size={16} />}
+        <UiIcon name={icon} size={16} />
       </span>
       <span>
         <span className="nf-rv-utils__label">{label}</span>

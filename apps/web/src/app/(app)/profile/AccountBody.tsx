@@ -9,8 +9,9 @@ import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
 import { EmptyState } from "@/components/app/Screen";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 import {
+  ROW_GLYPH,
   RowButton,
   RowLink,
   RowValue,
@@ -34,16 +35,15 @@ import { COVER_INPUT_ID } from "./AccountHero";
  *
  * The render, measured (ledger section 1): a two-segment glass control,
  * Belongings with a house glyph lit in blue and Posts with a chat glyph on the
- * glass, 20px under it four glass rows 66px tall on an 8px rhythm, each a
- * 49px glass plate carrying the render's own object, a title, a muted line and a
+ * glass, 20px under it three glass rows on an 8px rhythm, each a line glyph
+ * on the shared icon plate, a title, a muted line and a
  * chevron, then a larger gap and a quieter Switch role row, 60px tall.
  *
  * WHAT IS REAL ON EACH ROW. The rows are links to the real routes
- * (`/bookings`, `/saved`, `/wallet`, `/inspections`). The render draws no
+ * (`/bookings`, `/saved`, `/agreements`). The render draws no
  * figures on them; the brief for this surface allows one where the database
  * returns it, so each row may carry a quiet value on its right: upcoming
- * stays, saved places, the wallet balance through the shared money formatter,
- * open inspection requests. A figure the read could not produce is not drawn
+ * stays, saved places, open agreements where the read returns them. A figure the read could not produce is not drawn
  * at all, and a zero count is not drawn either (see `rowValue`).
  *
  * NOTHING THE PAGE USED TO REACH HAS GONE. The render ends at Switch role
@@ -61,7 +61,7 @@ export type AccountCounts = { trips: number; saved: number; reviews: number };
 export type AccountRowsCopy = {
   bookings: string;
   saved: string;
-  wallet: string;
+  agreements: string;
   messages: string;
   settings: string;
   belongings: string;
@@ -69,7 +69,7 @@ export type AccountRowsCopy = {
   myBookings: string;
   myBookingsSub: string;
   savedSub: string;
-  walletSub: string;
+  agreementsSub: string;
 };
 
 type Tab = "account" | "posts";
@@ -77,8 +77,12 @@ type Tab = "account" | "posts";
 type Belonging = {
   key: "bookings" | "saved" | "payments";
   href: string;
-  /** The render's own object, cropped from `50E032EA` into the glass pack. */
-  object: BrandIconName;
+  /**
+   * The row's line glyph. Line, not glass (the founder, 29 September 2026):
+   * the profile rows are one set with the "More of your account" rows under
+   * them, the same plate, the same glyph size, stroke and blue.
+   */
+  glyph: UiIconName;
   title: string;
   sub: string;
 };
@@ -91,10 +95,13 @@ type Belonging = {
 function BelongingRow({ row, value }: { row: Belonging; value: string | null }) {
   return (
     <Link href={row.href} className="nf-pf-row" data-testid={`row-${row.key}`}>
-      <span className="nf-pf-plate" aria-hidden="true">
-        <span className="nf-pf-plate__object">
-          <BrandIcon name={row.object} size={68} />
-        </span>
+      {/* The shared icon plate every account row uses (`IconPlate`): a
+          soft brand-tinted tile with a hairline in light, the navy glass
+          plate at night, and the glyph at the rows' one size. */}
+      <span className="nf-pf-glyph" aria-hidden="true">
+        <IconPlate size="sm" tone="brand">
+          <UiIcon name={row.glyph} size={ROW_GLYPH} />
+        </IconPlate>
       </span>
       <span className="nf-pf-row__body">
         <span className="nf-pf-row__title">{row.title}</span>
@@ -159,32 +166,31 @@ export function AccountBody({
   ];
 
   /*
-   * THE FOUR OBJECTS ARE THE RENDER'S FOUR, cropped from `50E032EA` itself
-   * into the glass pack (`scripts/icon-manifest.mjs`, the profile block):
-   * a calendar, a bookmark, a wallet, a ticked shield. Saved takes the
-   * bookmark and not the heart because the render draws a bookmark here.
+   * THE THREE ROWS' GLYPHS are line glyphs on the shared plate (the founder,
+   * 29 September 2026): a calendar for Plans, a bookmark for Saved (the render
+   * draws a bookmark, not the heart), a document for Agreements.
    */
   const rows: Belonging[] = [
     {
       key: "bookings",
       href: "/bookings",
-      object: "calendar-grid",
+      glyph: "calendar-booking",
       title: copy.myBookings,
       sub: copy.myBookingsSub,
     },
     {
       key: "saved",
       href: "/saved",
-      object: "bookmark-ribbon",
+      glyph: "bookmark",
       title: copy.saved,
       sub: copy.savedSub,
     },
     {
       key: "payments",
       href: "/agreements",
-      object: "wallet-tile",
-      title: copy.wallet,
-      sub: copy.walletSub,
+      glyph: "document",
+      title: copy.agreements,
+      sub: copy.agreementsSub,
     },
   ];
 

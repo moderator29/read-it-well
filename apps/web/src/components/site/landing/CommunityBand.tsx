@@ -2,7 +2,6 @@ import Image from "next/image";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { intlTag } from "@vallo/i18n/core";
 import { CountUp } from "@/components/motion/CountUp";
-import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { photo } from "@/lib/site/photos";
@@ -10,7 +9,6 @@ import type { PlatformStats } from "@/lib/platform-stats";
 import { ListingMini } from "./ListingMini";
 import { statTiles } from "./stat-tiles";
 import { SectionHead } from "./SectionHead";
-import { Sweep } from "./Sweep";
 
 /**
  * The community band: copy and three honest figures on the left, the
@@ -36,7 +34,12 @@ export function CommunityBand({
   stats: PlatformStats | null;
 }) {
   const c = t.landing.face.community;
-  const figures = statTiles(stats, t).slice(0, 3);
+  /* The figures print as a row or not at all (the clean pass): a single
+     figure on its own ("1 approved agent" while the catalogue is empty)
+     reads as a boast about a small number rather than as a fact beside
+     others, so the row needs at least two to stand. */
+  const all = statTiles(stats, t).slice(0, 3);
+  const figures = all.length >= 2 ? all : [];
 
   return (
     <section className="nf-shell nf-room" data-chapter="community" aria-labelledby="nf-landing-community-title">
@@ -59,12 +62,6 @@ export function CommunityBand({
               ))}
             </ul>
           )}
-          <div>
-            <ButtonLink href="/start" variant="primary" size="md" trailingIcon="arrow-right" className="nf-magnetic">
-              <Sweep />
-              {c.join}
-            </ButtonLink>
-          </div>
         </Reveal>
 
         <Reveal delay={80}>

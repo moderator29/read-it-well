@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 /**
  * Tier one icons: the functional set for dense controls.
  *
@@ -6,34 +8,40 @@
  * up. Below that the tile collapses into an unreadable coloured square, so
  * dense UI needs a different instrument.
  *
- * These are crisp stroked glyphs on a 24 grid. They inherit `currentColor`, so
- * they take the colour of whatever they sit beside, and they hold a real line
- * at 16px where a rendered 3D object cannot.
+ * These are stroked glyphs on a 24 grid. They inherit `currentColor`, so they
+ * take the colour of whatever they sit beside, and they hold a real line at
+ * 12px where a rendered 3D object cannot.
  *
- * THIS PARAGRAPH SAID 12px, THEN THE SCALE SAID 16, AND NOW BOTH SAY 12 AGAIN.
+ * THE SET WAS REDRAWN ON 29 SEPTEMBER 2026, ON LUCIDE GEOMETRY.
  *
- * Worth keeping the whole loop rather than tidying it, because the loop is the
- * lesson. The line was written when 12 was the floor. It survived the change
- * that removed that step, because a prose sentence is not something a compiler
- * checks, and was then CORRECTED to agree with the scale on the grounds that at
- * 12px a stroked glyph renders a 0.7 CSS pixel line. That correction made the
- * prose consistent with the code and both of them wrong, because the 0.7px line
- * had already been fixed by computing `strokeWidth` per size, two hundred lines
- * below. See the note beside `UI_ICON_SIZES` for the arithmetic and the counts.
+ * The founder's references for the visual pass (`docs/design/references/
+ * 2026-09-29/`) draw even line icons with round joins, the family SF Symbols,
+ * Lucide and Phosphor all belong to. The previous set was hand-drawn glyph by
+ * glyph over two months and it showed: live areas from 14 to 19 units, corner
+ * radii from 1.2 to 4.2, three different ways of drawing a dot. The outlines
+ * below are Lucide's (ISC, see `THIRD_PARTY_NOTICES.md` beside this file),
+ * copied in as path data with no runtime dependency, so every glyph now shares
+ * one live area (2 to 22), one corner radius (2, 1 on small parts), one dot
+ * (`h.01` on a round cap) and round caps and joins throughout. Where Vallo had
+ * a drawing Lucide does not (the four property-type houses, the two-card
+ * feed, the shorter third menu line, the naira-free fee glyphs: `survey`,
+ * and the estate `gate` keyhole shield), it is drawn here to the same rules.
  *
- * So: a stale sentence was reconciled to a stale decision and the agreement was
- * read as confirmation. Two things saying the same wrong thing is not evidence,
- * and it is harder to spot than one of them saying it alone.
+ * THE WEIGHT WENT BOLD THE SAME DAY (the founder, 29 September 2026: "premium,
+ * bolder, solid, clean and sharp", with pump.fun's app icons as the target,
+ * `22-pumpfun-drawer-bold-icons.png`). Those draw about 2 to 2.25 CSS px at
+ * 24 with round joins and a SOLID twin for the selected state. The set stays
+ * on Lucide rather than moving to Ionicons (the web face of `@expo/vector-
+ * icons`) or Phosphor Bold, because 2 is the weight Lucide's geometry was
+ * DRAWN for: its counters, gaps and dot spacing are tuned at 2, so raising
+ * the line to it makes every glyph cleaner rather than clogging it, and the
+ * set stays one family with one licence. Ionicons' outline set draws 1.5 at
+ * 24 (32 on its 512 grid), which is the weight being left behind; Phosphor
+ * Bold is a heavier 2.25 on rounder, wider geometry that would have meant a
+ * second redraw of all ninety glyphs in a week. `UI_ICON_STROKE_PX` below is
+ * 2.25 at the 20 and 24 steps, scaled optically per size by `uiIconStrokeWidth`.
  *
- * THE TWO DOCUMENTS ARE THE OTHER HALF OF THIS AND THEY ARE STILL WRONG.
- * `docs/ICON_SYSTEM.md` and `docs/archive/HANDOFF.md` rule 18 both state the scale as
- * "12, 16, 20, 24, 28, 32" and the weight as 1.4, until 16 September 2026 when
- * they were corrected to match this file. The scale is
- * [16, 20, 24, 28, 32, 40] and `UI_ICON_STROKE_PX` is 1.5. Checked rather than
- * assumed, in both directions: the code carries the argument for each of those
- * changes written out beside it, the documents carry only the old numbers, and
- * 40 exists because empty states and role rows use it. The code is right. The
- * documents are stale and are not this workstream's to edit.
+ * `docs/ICON_SYSTEM.md` carries the scale, the weight and the filled twins.
  */
 
 export type UiIconName =
@@ -51,7 +59,7 @@ export type UiIconName =
   | "verified"
   /* The identity tick: a filled circle with a white tick through it, which is
      what every governing render draws beside a name. `verified` stays the
-     shield and belongs in a chip about a LISTING. See the drawing below. */
+     shield and belongs in a chip about a LISTING. */
   | "verified-badge"
   | "location"
   | "chevron-down"
@@ -82,8 +90,6 @@ export type UiIconName =
   | "document"
   | "chevron-right"
   | "map"
-  /* ------------------------------------------- folded in from the two
-     private sets. See the note at the top of the file. */
   | "history"
   | "trash"
   | "repost"
@@ -110,110 +116,64 @@ export type UiIconName =
   | "check"
   | "archive"
   | "price-tag"
-  /* ---------------------------------- consolidated from inline SVG blocks.
-     Each of these was hand-drawn at a call site, several of them more than
-     once, at a stroke weight the platform does not use. */
   | "eye"
   | "eye-off"
   | "arrow-up"
   | "arrow-down"
   | "info"
   | "mail"
-  /*
-   * Electricity, which the set had no way to say.
-   *
-   * A listing's power supply is one of the facts that decides a Nigerian
-   * tenancy, and the property card was drawing it with `sparkle`, which means
-   * "recommended" to anybody who has met it anywhere else in this product. A
-   * glyph that means the wrong thing is worse than no glyph, because the reader
-   * does not know they have misread it.
-   */
+  /* Electricity. A listing's power supply is one of the facts that decides a
+     Nigerian tenancy; `sparkle` means "recommended" and must not stand in. */
   | "bolt"
-  /*
-   * The feed, which the bar was drawing as `grid`.
-   *
-   * Four squares is a photo grid or an app launcher to anybody who has met one
-   * before, and this destination is a scrolling feed of posts. The tab is
-   * labelled now, so the glyph is no longer carrying the meaning alone, but a
-   * glyph that says the wrong thing still costs a reader the half second it
-   * takes to overrule it.
-   */
+  /* The feed: two stacked cards. Not `grid`, which is a launcher. */
   | "feed"
-  /*
-   * THE FOUR BRAND MARKS, and why they are here rather than drawn in the
-   * house style.
-   *
-   * Everything else in this file is Vallo's own drawing. These four are
-   * somebody else's: the Apple mark, the Google Play triangle, the X mark and
-   * the Telegram plane. A recognisable mark is the whole job a store badge and
-   * a social link do, and a house-style approximation of one is worse than
-   * useless, because a reader who does not recognise it does not click and a
-   * reader who half recognises it distrusts it. So these are the real
-   * silhouettes, filled rather than stroked, and they are the only glyphs in
-   * the set that are not ours.
-   *
-   * They carry no colour of their own: they take `currentColor` like every
-   * other glyph, so a badge decides its own ink. Apple's and Google's badge
-   * guidelines both allow a monochrome mark on a dark plate, which is what the
-   * render draws.
-   */
+  /* THE FOUR BRAND MARKS. Somebody else's silhouettes, filled rather than
+     stroked, because a house-style approximation of a store or social mark is
+     one a reader does not recognise. They take `currentColor` like the rest. */
   | "apple"
   | "google-play"
   | "x-social"
   | "telegram"
-  /*
-   * The handset. The render draws a call control in a thread header beside
-   * the kebab, and the set had no glyph for it: `BrandIcon` carries `headset`
-   * and `phone-tile`, but those are tier-two glass objects and a header icon
-   * button is the stroked tier, so the control could not be drawn at all.
-   * One stroked handset, in the house style, at the same weight as its
-   * neighbours.
-   */
   | "phone"
-  /*
-   * The dock's centre switch, in the house style.
-   *
-   * The centre slot used to draw `BrandIcon name="role-switch-tile"`, a
-   * tier-two glass object, beside four stroked glyphs. The founder looked at
-   * the bar on a real phone and asked for the switch to be drawn "in the same
-   * style as the others", so the object moves down to the stroked tier where
-   * its four neighbours live and the CONTAINER carries the specialness
-   * instead.
-   *
-   * NOT `repost`, which is the nearest existing shape and means a post sent
-   * on. That glyph is a rectangular loop with two vertical segments; this is
-   * two straight opposed arrows. One mark, one meaning, is the discipline
-   * this set holds everywhere else, and a dock slot two taps from the feed is
-   * exactly where borrowing one would be felt.
-   */
-  | "switch-profile";
+  /* The dock's centre switch: two straight opposed arrows. NOT `repost`,
+     which turns two corners and means a post sent on. */
+  | "switch-profile"
+  /* THE LISTING PAGE'S COST AND UTILITY GLYPHS (29 September 2026). They
+     replaced the glass objects on the fee rows and the light, water and gate
+     rows, so each cost reads as one thing at 20px on a plate. */
+  | "coins"
+  | "scale"
+  | "certificate"
+  | "stamp"
+  | "survey"
+  | "droplet"
+  | "gate";
 
+/*
+ * THE OUTLINES. Lucide names in brackets where the drawing is Lucide's, so the
+ * next redraw can find its source; no bracket means Vallo's own on the same
+ * rules. Every stroke takes the svg's computed width, round caps, round joins.
+ */
 const PATHS: Record<UiIconName, React.ReactNode> = {
-  /* The handset: the earpiece, the sweep and the mouthpiece as one stroke,
-     which is the shape every phone control has used since the rotary set. */
+  // [phone]
   phone: (
-    <path d="M6.6 3.5h3l1.5 3.7-1.9 1.4a11.6 11.6 0 0 0 5.2 5.2l1.4-1.9 3.7 1.5v3a2 2 0 0 1-2.2 2A16.9 16.9 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z" />
+    <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
   ),
-  /* Two opposed arrows: this for that, drawn on the same 24 grid and at the
-     same stroke as `home`, `search`, `feed` and `user`, which are the four
-     glyphs it now sits between. Straight shafts, so it cannot be mistaken for
-     `repost`, which turns two right angles. */
+  // [arrow-right-left]
   "switch-profile": (
     <>
-      <path d="M4.6 9h12.4" />
-      <path d="M14.4 6.4 17 9l-2.6 2.6" />
-      <path d="M19.4 15H7" />
-      <path d="M9.6 12.4 7 15l2.6 2.6" />
+      <path d="m16 3 4 4-4 4" />
+      <path d="M20 7H4" />
+      <path d="m8 21-4-4 4-4" />
+      <path d="M4 17h16" />
     </>
   ),
-  // The Apple mark: the body with the bite, and the leaf above it.
   apple: (
     <g stroke="none" fill="currentColor">
       <path d="M17.05 12.53c-.02-2.2 1.8-3.27 1.88-3.32-1.02-1.5-2.61-1.7-3.18-1.73-1.35-.14-2.64.8-3.33.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.74 2.2 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.7.71 2.87.69 1.19-.02 1.94-1.08 2.66-2.14.84-1.23 1.19-2.42 1.21-2.48-.03-.01-2.32-.89-2.34-3.53z" />
       <path d="M14.87 6.1c.6-.73 1.01-1.75.9-2.76-.87.04-1.92.58-2.55 1.31-.56.65-1.05 1.68-.92 2.67.97.08 1.96-.49 2.57-1.22z" />
     </g>
   ),
-  // The Google Play triangle: four faces meeting at the play head.
   "google-play": (
     <g stroke="none" fill="currentColor">
       <path d="M3.9 2.4c-.25.26-.4.67-.4 1.2v16.8c0 .53.15.94.4 1.2l.06.05 9.4-9.4v-.5L3.96 2.35z" />
@@ -222,756 +182,875 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M16.57 8.94L5.48 2.9c-.65-.37-1.23-.32-1.58.05l9.46 9.2z" />
     </g>
   ),
-  // The X mark: the two crossing strokes drawn as one closed shape.
   "x-social": (
     <g stroke="none" fill="currentColor">
       <path d="M17.53 3h2.98l-6.51 7.44L21.66 21h-5.99l-4.7-6.14L5.6 21H2.62l6.96-7.96L2.34 3h6.14l4.24 5.61L17.53 3zm-1.05 16.22h1.65L7.6 4.69H5.83l10.65 14.53z" />
     </g>
   ),
-  // The Telegram plane: the sweep, the fold, and the tail beneath it.
   telegram: (
     <g stroke="none" fill="currentColor">
       <path d="M21.94 4.3 18.9 19.2c-.23 1.02-.84 1.27-1.7.79l-4.7-3.46-2.27 2.18c-.25.25-.46.46-.95.46l.34-4.8 8.73-7.89c.38-.34-.08-.53-.59-.19L6.98 13.1l-4.65-1.45c-1.01-.32-1.03-1.01.21-1.5l18.15-7c.84-.31 1.58.19 1.25 1.15z" />
     </g>
   ),
-  // Filter control. Two rails with offset handles, the convention every
-  // traveller already recognises from the apps they use daily.
+  /* Filters [sliders-horizontal]: rails lying flat. Settings stands the same
+     rails upright, and one mark means one thing. */
   sliders: (
     <>
-      <path d="M3 8h5m4 0h9" />
-      <path d="M3 16h11m4 0h3" />
-      <circle cx="10" cy="8" r="2.1" />
-      <circle cx="16" cy="16" r="2.1" />
+      <path d="M10 5H3" />
+      <path d="M12 19H3" />
+      <path d="M14 3v4" />
+      <path d="M16 17v4" />
+      <path d="M21 12h-9" />
+      <path d="M21 19h-5" />
+      <path d="M21 5h-7" />
+      <path d="M8 10v4" />
+      <path d="M8 12H3" />
     </>
   ),
-  // Share. The outbound tray: a box open at the top with an arrow leaving it.
+  // [share]: the outbound tray.
   share: (
     <>
-      <path d="M12 3.6v10" />
-      <path d="m8.4 7.2 3.6-3.6 3.6 3.6" />
-      <path d="M6.4 12.4H5.2A1.2 1.2 0 0 0 4 13.6v5.6a1.2 1.2 0 0 0 1.2 1.2h13.6a1.2 1.2 0 0 0 1.2-1.2v-5.6a1.2 1.2 0 0 0-1.2-1.2h-1.2" />
+      <path d="M12 2v13" />
+      <path d="m16 6-4-4-4 4" />
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
     </>
   ),
-  // Map view. A folded sheet, so it reads as a map rather than a pin.
+  // [map]: a folded sheet, so it reads as a map rather than a pin.
   map: (
     <>
-      <path d="M9.4 4.2 4 6.4v13.4l5.4-2.2 5.2 2.2 5.4-2.2V4.2l-5.4 2.2z" />
-      <path d="M9.4 4.2v13.4" />
-      <path d="M14.6 6.4v13.4" />
+      <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
+      <path d="M15 5.764v15" />
+      <path d="M9 3.236v15" />
     </>
   ),
+  // [search]
   search: (
     <>
-      <circle cx="11" cy="11" r="6.6" />
-      <path d="m16 16 4.4 4.4" />
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.34-4.34" />
     </>
   ),
-  // Zoom in and out. Drawn rather than typed: a "+" glyph inherits the font's
-  // own weight and optical centre and would not sit on the stroke language the
-  // rest of this set shares.
+  // [plus] [minus]: drawn, never typed, so they sit on the stroke language.
   plus: (
     <>
-      <path d="M12 5.2v13.6" />
-      <path d="M5.2 12h13.6" />
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
     </>
   ),
-  minus: <path d="M5.2 12h13.6" />,
+  minus: <path d="M5 12h14" />,
+  // [star]
   star: (
-    <path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83Z" />
+    <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
   ),
+  // [bed-double]: the Stays tab. A double bed reads as a room to sleep in.
   bed: (
     <>
-      <path d="M3 18v-6.2A1.8 1.8 0 0 1 4.8 10H21v8" />
-      <path d="M3 7v11M21 14H3" />
-      <path d="M7.5 10V8.2A1.2 1.2 0 0 1 8.7 7h8.1a1.2 1.2 0 0 1 1.2 1.2V10" />
+      <path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8" />
+      <path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4" />
+      <path d="M12 4v6" />
+      <path d="M2 18h20" />
     </>
   ),
+  // [bath]
   bath: (
     <>
-      <path d="M3 11.5h18v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5Z" />
-      <path d="M6 11.5V6.2A2.2 2.2 0 0 1 8.2 4c1.1 0 2 .8 2.16 1.85" />
-      <path d="M7 18.5 6 21M17 18.5l1 2.5" />
+      <path d="M10 4 8 6" />
+      <path d="M17 19v2" />
+      <path d="M2 12h20" />
+      <path d="M7 19v2" />
+      <path d="M9 5 7.621 3.621A2.121 2.121 0 0 0 4 5v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" />
     </>
   ),
+  // [waves-ladder]: a pool is water with a ladder into it.
   pool: (
     <>
-      <path d="M2.6 16.4c1.6 0 1.6 1.5 3.2 1.5s1.6-1.5 3.2-1.5 1.6 1.5 3.2 1.5 1.6-1.5 3.2-1.5 1.6 1.5 3.2 1.5 1.6-1.5 3.2-1.5" />
-      <path d="M2.6 20.2c1.6 0 1.6 1.5 3.2 1.5s1.6-1.5 3.2-1.5 1.6 1.5 3.2 1.5 1.6-1.5 3.2-1.5 1.6 1.5 3.2 1.5 1.6-1.5 3.2-1.5" />
-      <path d="M7.6 15.4V5.6a2.2 2.2 0 0 1 4.4 0v9.2M16.4 15.4V5.6a2.2 2.2 0 0 0-4.4 0" />
+      <path d="M19 5a2 2 0 0 0-2 2v11" />
+      <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
+      <path d="M7 13h10" />
+      <path d="M7 9h10" />
+      <path d="M9 5a2 2 0 0 0-2 2v11" />
     </>
   ),
+  // [wifi]
   wifi: (
     <>
-      <path d="M2.6 8.4a14 14 0 0 1 18.8 0" />
-      <path d="M5.9 12a9.4 9.4 0 0 1 12.2 0" />
-      <path d="M9.2 15.5a4.8 4.8 0 0 1 5.6 0" />
-      <circle cx="12" cy="19.2" r="1.1" fill="currentColor" stroke="none" />
+      <path d="M12 20h.01" />
+      <path d="M2 8.82a15 15 0 0 1 20 0" />
+      <path d="M5 12.859a10 10 0 0 1 14 0" />
+      <path d="M8.5 16.429a5 5 0 0 1 7 0" />
     </>
   ),
+  // [square-parking]
   parking: (
     <>
-      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.2" />
-      <path d="M9.4 16.6V7.4h3.4a2.9 2.9 0 0 1 0 5.8H9.4" />
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="M9 17V7h4a3 3 0 0 1 0 6H9" />
     </>
   ),
+  // [refrigerator]: the kitchen fact on a listing.
   kitchen: (
     <>
-      <rect x="4" y="3.2" width="16" height="17.6" rx="2.4" />
-      <path d="M4 9.4h16" />
-      <circle cx="7.4" cy="6.3" r="1" fill="currentColor" stroke="none" />
-      <circle cx="10.9" cy="6.3" r="1" fill="currentColor" stroke="none" />
+      <path d="M5 6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6Z" />
+      <path d="M5 10h14" />
+      <path d="M15 7v6" />
     </>
   ),
+  /* [shield-check]: "this LISTING was checked". A person's check is
+     `verified-badge`; the shield and the disc are different ideas. */
   verified: (
     <>
-      <path d="M12 2.9 19.2 6v5.3c0 4.3-2.9 8-7.2 9.6-4.3-1.6-7.2-5.3-7.2-9.6V6Z" />
-      <path d="m8.7 11.8 2.3 2.3 4.3-4.4" />
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      <path d="m9 12 2 2 4-4" />
     </>
   ),
-  /*
-   * THE IDENTITY TICK, AND IT IS A CIRCLE BECAUSE FOUR GOVERNING IMAGES DRAW
-   * A CIRCLE.
-   *
-   * `verified` above is a shield, and the shield was being used for two
-   * different ideas at once: "this listing was checked" (a chip, which is
-   * where `50E032EA` and `3EB3E2A9` do draw a shield, and where it stays) and
-   * "this person was checked" (beside a name, where `GOVERNING-feed-plus-bloom`,
-   * `GOVERNING-chat-booking-card`, `50E032EA` and `7F96BE6C` all draw a FILLED
-   * CIRCLE WITH A WHITE TICK). It also collided with Inspections, which is a
-   * third idea wearing the same shape. (R1 finding A12.)
-   *
-   * Drawn as a closed disc with the tick knocked through it, so it reads at
-   * 14px beside a name, which is the size it is used at almost everywhere.
-   * The disc takes `currentColor`, so identity is brand and a status word is
-   * emerald, decided by the call site rather than baked here.
-   */
+  /* The identity tick [circle-check], drawn as a closed disc with the tick
+     knocked through in the on-brand ink, so it reads at 12 to 14px beside a
+     name. The disc takes `currentColor`: the call site decides brand or
+     emerald. The tick carries its own width because it sits on a fill, where
+     the family's line would read thin. */
   "verified-badge": (
     <>
-      <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="10" fill="currentColor" stroke="none" />
       <path
-        d="m8.2 12.2 2.6 2.6 5-5.2"
+        d="m16.2 9-5.6 5.6L7.8 11.8"
         fill="none"
         stroke="var(--nf-content-on-brand)"
-        strokeWidth="2.2"
+        strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
     </>
   ),
-  // An agent stopped from trading. Deliberately the same shield as `verified`,
-  // to the pixel, with a bar where the tick goes: these two are the same
-  // judgement pointing opposite ways, and reading one as the negative of the
-  // other is the whole point. A shield rather than a cross because a stop is
-  // protective of the people on the other side of it, not punitive.
-  /*
-   * The side navigation toggle, and the reason the hamburger is gone.
-   *
-   * Three stacked lines say "a list is behind this" and nothing more; they are
-   * the same glyph whether the thing that opens is a menu, a filter sheet or a
-   * drawer. This says what actually happens: a panel slides in beside the
-   * content. The frame is the screen, the fill is the panel, and the divider
-   * sits where the panel's edge lands.
-   */
-  /* Terms, and any other page that is a document rather than a destination.
-     A sheet with a folded corner and three lines of text on it. */
+  // [file-text]: terms, and any page that is a document rather than a place.
   document: (
     <>
-      <path d="M13.6 3.4H7.2A2 2 0 0 0 5.2 5.4v13.2a2 2 0 0 0 2 2h9.6a2 2 0 0 0 2-2V8.6Z" />
-      <path d="M13.6 3.4v3.4a1.8 1.8 0 0 0 1.8 1.8h3.4" />
-      <path d="M8.8 13h6.4M8.8 16.4h4.2" />
+      <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      <path d="M10 9H8" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
     </>
   ),
-  /*
-   * THE MENU. Three lines, and that is the whole design.
-   *
-   * `panel-left` below is what the app header used before it, on the argument
-   * that three stacked lines "say a list is behind this and nothing more"
-   * while a frame with a divider says what actually happens. That argument is
-   * correct about what the two glyphs MEAN and wrong about what people know.
-   * The three lines are the most recognised control in software; a bordered
-   * rectangle with a line in it is a glyph somebody has to be taught, and it
-   * is also almost exactly the shape of a sidebar TOGGLE in a desktop
-   * application, which is a different control.
-   *
-   * The owner asked for a plain three line menu, so it is plain: three equal
-   * strokes, evenly spaced, no decorative shortening of the middle one, no
-   * animation into a cross.
-   */
-  /*
-   * THREE LINES, AND THE THIRD IS SHORTER.
-   *
-   * Three equal rules is the generic hamburger every product has drawn since
-   * 2010. Shortening the bottom one is a small thing that does two jobs: it
-   * gives the mark an asymmetry the eye reads as deliberate rather than as a
-   * default, and it points the weight of the glyph toward the leading edge the
-   * drawer arrives from. Round caps, because the rest of this set has them and
-   * a square-capped mark in a round-capped family reads as imported.
-   */
-  menu: <path d="M4 7h16M4 12h16M4 17h10" strokeLinecap="round" />,
+  /* THE MENU. Three lines, the third shorter, which points the glyph's weight
+     at the leading edge the drawer arrives from. Lucide's spacing, closed up
+     to 6 units so the three read as one control at 20px. */
+  menu: <path d="M4 6h16M4 12h16M4 18h10" />,
+  // [panel-left]
   "panel-left": (
     <>
-      <rect x="3.2" y="4.4" width="17.6" height="15.2" rx="3" />
-      <path d="M9.4 4.4v15.2" />
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="M9 3v18" />
     </>
   ),
-  /* A disclosure arrow for a parent that opens. Its own glyph rather than a
-     rotated `chevron-down`, because a rotation of a down chevron lands its
-     round caps on a different diagonal and reads slightly heavier. */
-  "chevron-right": <path d="m9.5 6 6 6-6 6" />,
+  // [chevron-right] [chevron-down]
+  "chevron-right": <path d="m9 18 6-6-6-6" />,
+  "chevron-down": <path d="m6 9 6 6 6-6" />,
+  /* [shield-minus]: an agent stopped from trading. The same shield as
+     `verified` to the unit, with a bar where the tick goes, so the two read
+     as one judgement pointing opposite ways. */
   "shield-stop": (
     <>
-      <path d="M12 2.9 19.2 6v5.3c0 4.3-2.9 8-7.2 9.6-4.3-1.6-7.2-5.3-7.2-9.6V6Z" />
-      <path d="M8.9 12.1h6.2" />
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      <path d="M9 12h6" />
     </>
   ),
+  // [map-pin]
   location: (
     <>
-      <path d="M12 21.4s7-5.9 7-11.4a7 7 0 1 0-14 0c0 5.5 7 11.4 7 11.4Z" />
-      <circle cx="12" cy="9.8" r="2.6" />
+      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+      <circle cx="12" cy="10" r="3" />
     </>
   ),
-  "chevron-down": <path d="m6 9.5 6 6 6-6" />,
+  // [arrow-right] [arrow-left] [arrow-up] [arrow-down]
   "arrow-right": (
     <>
-      <path d="M4.5 12h15" />
-      <path d="m13.5 6 6 6-6 6" />
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
     </>
   ),
   "arrow-left": (
     <>
-      <path d="M19.5 12h-15" />
-      <path d="m10.5 6-6 6 6 6" />
+      <path d="m12 19-7-7 7-7" />
+      <path d="M19 12H5" />
     </>
   ),
-  sparkle: (
-    <path d="M12 3.4 13.6 8l4.6 1.6-4.6 1.6L12 15.8l-1.6-4.6L5.8 9.6 10.4 8Z" />
-  ),
-  /* ------------------------------------------------ navigation glyphs.
-     Drawn for the rail and tab bar: quiet, organic geometry that reads at
-     22 to 24px beside a label, with round caps softening every terminal. */
-  home: (
-    <>
-      <path d="m4.2 10.9 7-6.1a1.2 1.2 0 0 1 1.6 0l7 6.1" />
-      <path d="M6.2 9.4V19a1.7 1.7 0 0 0 1.7 1.7h8.2a1.7 1.7 0 0 0 1.7-1.7V9.4" />
-      <path d="M10 20.7v-4.9a1.3 1.3 0 0 1 1.3-1.3h1.4a1.3 1.3 0 0 1 1.3 1.3v4.9" />
-    </>
-  ),
-  compass: (
-    <>
-      <circle cx="12" cy="12" r="8.6" />
-      <path d="m15.7 8.3-1.9 5.5-5.5 1.9 1.9-5.5Z" />
-    </>
-  ),
-  /*
-   * HOTEL, REDRAWN. The owner called this one out by name.
-   *
-   * What was wrong with it: a tower, a ground line, a door, and then TWELVE
-   * separate window ticks drawn as six pairs of 1.3-unit dashes. At the sizes
-   * this glyph is actually used - 20 to 24px - those twelve marks collapse into
-   * a grey texture, so the icon read as a hatched rectangle rather than as a
-   * building. It was also drawing three things a hotel does not need to be
-   * recognised: the ground it stands on, its front door, and every window.
-   *
-   * This is a bed and a canopy. A hotel is somewhere you SLEEP, which is what
-   * distinguishes it from an office block, and a bed says that in three strokes
-   * where a facade needs fifteen. Four marks total, all of them legible at
-   * 16px, and it reads as a distinct silhouette next to the apartment tower
-   * rather than as the same rectangle with different hatching.
-   */
-  "building-hotel": (
-    <>
-      <path d="M3.4 19.4v-6.2a2 2 0 0 1 2-2h13.2a2 2 0 0 1 2 2v6.2" />
-      <path d="M3.4 16.2h17.2" />
-      <path d="M6.6 11.2V8a2.4 2.4 0 0 1 2.4-2.4h6a2.4 2.4 0 0 1 2.4 2.4v3.2" />
-      <path d="M12 5.6V3.4" />
-    </>
-  ),
-  "building-apartment": (
-    <>
-      <path d="M9.5 20.6V5.2a1.7 1.7 0 0 1 1.7-1.7h6.3a1.7 1.7 0 0 1 1.7 1.7v15.4" />
-      <path d="M9.5 9.6H6.5a1.7 1.7 0 0 0-1.7 1.7v9.3" />
-      <path d="M3 20.6h18" />
-      <path d="M12.6 7.4h1.2M15.7 7.4h1.2M12.6 10.9h1.2M15.7 10.9h1.2M12.6 14.4h1.2M15.7 14.4h1.2M6.9 13.1h.01M6.9 16.6h.01" />
-    </>
-  ),
-  house: (
-    <>
-      <path d="m4 11.2 6.9-6a1.7 1.7 0 0 1 2.2 0l1.7 1.5V5.2h2.6v3.8l2.6 2.2" />
-      <path d="M6.1 9.6v9.3a1.8 1.8 0 0 0 1.8 1.8h8.2a1.8 1.8 0 0 0 1.8-1.8V9.6" />
-      <path d="M10.1 20.7v-4.2a1.9 1.9 0 0 1 3.8 0v4.2" />
-    </>
-  ),
-  utensils: (
-    <>
-      <path d="M6.8 3.4v4.9a2.4 2.4 0 0 0 4.8 0V3.4" />
-      <path d="M9.2 10.7v9.9" />
-      <path d="M17.2 12.7h-2.5c0-4.6.8-7.7 2.5-9.3v17.2" />
-    </>
-  ),
-  ticket: (
-    <>
-      <path d="M3.5 13.8v1.9a1.9 1.9 0 0 0 1.9 1.9h13.2a1.9 1.9 0 0 0 1.9-1.9v-1.9a1.8 1.8 0 0 1 0-3.6V8.3a1.9 1.9 0 0 0-1.9-1.9H5.4a1.9 1.9 0 0 0-1.9 1.9v1.9a1.8 1.8 0 0 1 0 3.6Z" />
-      <path d="M14.8 7.6v1.1M14.8 11.5v1.1M14.8 15.4v1.1" />
-    </>
-  ),
-  /*
-   * BOOKING, REDRAWN. The other one the owner called out.
-   *
-   * What was wrong with it: a rounded rectangle, a rule under the header, two
-   * hanging rings, and a tick inside. Five elements, and the two rings and the
-   * header rule together put three near-horizontal lines in the top third of a
-   * 24 grid, which at 20px merge into one thick band. The frame also used a
-   * 2.2 radius against the 3-and-up radii the rest of this set settled on, so
-   * it read as slightly boxier than everything beside it.
-   *
-   * Now: one softer frame, one header rule, one tick, and the rings are gone.
-   * A calendar is recognised by the grid-with-a-header shape, not by its
-   * hardware, and the tick is the only thing that says BOOKED rather than
-   * DATE - so it is drawn larger, centred in the body, with room around it.
-   */
-  "calendar-booking": (
-    <>
-      <rect x="3.4" y="4.6" width="17.2" height="16" rx="3.4" />
-      <path d="M3.4 9.4h17.2" />
-      <path d="m8.6 15 2.4 2.4 4.4-4.6" />
-    </>
-  ),
-  "chat-bubble": (
-    <path d="M4 7.1a2.9 2.9 0 0 1 2.9-2.9h10.2A2.9 2.9 0 0 1 20 7.1v6.6a2.9 2.9 0 0 1-2.9 2.9H9.8l-3.9 3.2c-.6.5-1.9.1-1.9-.7Z" />
-  ),
-  bell: (
-    <>
-      <path d="M12 3.9a5.5 5.5 0 0 0-5.5 5.5c0 2.9-.9 4.5-1.8 5.5-.4.5-.1 1.2.5 1.2h13.6c.6 0 .9-.7.5-1.2-.9-1-1.8-2.6-1.8-5.5A5.5 5.5 0 0 0 12 3.9Z" />
-      <path d="M9.9 19.4a2.2 2.2 0 0 0 4.2 0" />
-    </>
-  ),
-  wallet: (
-    <>
-      <path d="M4 6.1v11.6a2.6 2.6 0 0 0 2.6 2.6h11.2a2.2 2.2 0 0 0 2.2-2.2v-7.5a2.2 2.2 0 0 0-2.2-2.2H6.2A2.2 2.2 0 0 1 4 6.1a2.2 2.2 0 0 1 2.2-2.2H17" />
-      <circle cx="15.9" cy="14.2" r="1.1" fill="currentColor" stroke="none" />
-    </>
-  ),
-  user: (
-    <>
-      <circle cx="12" cy="8.1" r="3.7" />
-      <path d="M5.3 20.2a6.9 6.9 0 0 1 13.4 0" />
-    </>
-  ),
-  /*
-   * SETTINGS. Three upright rails, each with its handle at a different
-   * height: the settings mark, and it is NOT a gear any more (the founder, 25
-   * September 2026: one "more clean, clear" settings icon, the same wherever
-   * settings appears). The toothed gear was 24 small arcs on a 24 grid and
-   * read as a smudge at the 18 to 24px it is drawn at; the glass `manage-ring`
-   * the tray and the drawer used was a faint ring around it. The name stays
-   * `settings-gear` so every call site, the dock's tray, the drawer, the
-   * profile's control, the assistant's panel and the console, changes at once.
-   * The rails stand upright on purpose: `sliders` above lies them flat and
-   * means Filters, and one mark means one thing.
-   */
-  "settings-gear": (
-    <>
-      <path d="M6 4v8.9m0 4.2V20" />
-      <circle cx="6" cy="15" r="2.1" />
-      <path d="M12 4v1.9m0 4.2V20" />
-      <circle cx="12" cy="8" r="2.1" />
-      <path d="M18 4v6.9m0 4.2V20" />
-      <circle cx="18" cy="13" r="2.1" />
-    </>
-  ),
-  heart: (
-    <path d="M12 20.2S4 15.4 4 9.9a4.5 4.5 0 0 1 4.5-4.5c1.5 0 2.8.7 3.5 1.9a4.2 4.2 0 0 1 3.5-1.9A4.5 4.5 0 0 1 20 9.9c0 5.5-8 10.3-8 10.3Z" />
-  ),
-  grid: (
-    <>
-      <rect x="3.8" y="3.8" width="7" height="7" rx="1.9" />
-      <rect x="13.2" y="3.8" width="7" height="7" rx="1.9" />
-      <rect x="3.8" y="13.2" width="7" height="7" rx="1.9" />
-      <rect x="13.2" y="13.2" width="7" height="7" rx="1.9" />
-    </>
-  ),
-  /* One stroke, drawn on the same 24 grid and with the same corner softness as
-     the rest of the set, so it sits in a row beside `home` and `wallet` without
-     reading as imported. */
-  bolt: (
-    <path d="M13.4 2.9a.55.55 0 0 1 .97.46l-1.3 5.79h4.38c.72 0 1.12.83.67 1.39l-7.52 9.36a.55.55 0 0 1-.97-.46l1.3-5.79H6.55c-.72 0-1.12-.83-.67-1.39Z" />
-  ),
-  /* Two cards stacked, which is what a feed is. The first drawing was one wide
-     card with two lines under it and it read as a monitor, which is the trap
-     `grid` fell into from the other direction. Same rounded-rectangle language
-     and same corner softness as `grid`, so the two sit in a row together. */
-  feed: (
-    <>
-      <rect x="3.7" y="4" width="16.6" height="7" rx="2.2" />
-      <rect x="3.7" y="13" width="16.6" height="7" rx="2.2" />
-    </>
-  ),
-  key: (
-    <>
-      <circle cx="7.6" cy="15.6" r="3.6" />
-      <path d="m10.3 12.9 8.6-8.6" />
-      <path d="m15.6 4.9 3 3" />
-      <path d="m12.9 8.3 2.4 2.4" />
-    </>
-  ),
-  /*
-   * Close. Four sheets were painting `&times;` instead, which is a typographic
-   * multiplication sign: it renders at the font's own weight rather than the
-   * icon stroke, sits on the text baseline instead of the optical centre, and
-   * drifted across three different font sizes. Drawn on the same 24 grid as
-   * the rest of the set, it inherits strokeWidth and centres properly.
-   */
-  close: (
-    <>
-      <path d="M6.4 6.4 17.6 17.6" />
-      <path d="M17.6 6.4 6.4 17.6" />
-    </>
-  ),
-
-  /* ------------------------------------------------------- folded in.
-     Everything below arrived from `components/app/assistant/` or from the
-     social layer's own private glyph set, which was an adapter by the time it
-     was deleted and is gone now. Redrawn where the private set had
-     hand-tuned its own stroke weight, because the weight is the platform's and
-     is derived from the size here; otherwise the geometry is carried over
-     unchanged, which is why the social marks still read as the family they
-     were designed as. */
-
-  /* Clock face with a rewind arrow. Conversation history. */
-  history: (
-    <>
-      <path d="M3.2 12a8.8 8.8 0 1 0 2.6-6.2" />
-      <path d="M3.2 3.4v4.4h4.4" />
-      <path d="M12 7.6v4.6l3 2.4" />
-    </>
-  ),
-
-  /* A lid, a body, and nothing inside it. */
-  trash: (
-    <>
-      <path d="M4.2 7h15.6" />
-      <path d="M9.2 7V5.4A1.4 1.4 0 0 1 10.6 4h2.8a1.4 1.4 0 0 1 1.4 1.4V7" />
-      <path d="M6.6 7l.75 11.7a1.9 1.9 0 0 0 1.9 1.8h5.5a1.9 1.9 0 0 0 1.9-1.8L17.4 7" />
-      <path d="M10 10.8v5.7M14 10.8v5.7" />
-    </>
-  ),
-
-  /* Two rails and two chevrons: the same words travelling to another place and
-     back. Squared corners rather than the soft recycle loop every other
-     product uses, and open chevrons so the direction survives at 16px. */
-  repost: (
-    <>
-      <path d="M7.4 9.2V7.6A1.8 1.8 0 0 1 9.2 5.8h7.4" />
-      <path d="M14.2 3.4 16.8 5.8 14.2 8.2" />
-      <path d="M16.6 14.8v1.6a1.8 1.8 0 0 1-1.8 1.8H7.4" />
-      <path d="M9.8 15.8 7.2 18.2 9.8 20.6" />
-    </>
-  ),
-
-  /* Three strokes rising, the tallest capped with a node. Deliberately not an
-     eye, which is the glyph every other product reaches for and which quietly
-     says "we are watching you". */
-  views: (
-    <>
-      <path d="M5.5 17.8v-3.4" />
-      <path d="M12 17.8v-6.8" />
-      <path d="M18.5 17.8V9.2" />
-      <circle cx="18.5" cy="6.4" r="1.8" fill="currentColor" stroke="none" />
-    </>
-  ),
-
-  /* Three nodes. The one conventional mark in the social set, by request: an
-     invented affordance for "more actions" is an affordance nobody finds. */
-  more: (
-    <>
-      <circle cx="5.4" cy="12" r="1.7" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none" />
-      <circle cx="18.6" cy="12" r="1.7" fill="currentColor" stroke="none" />
-    </>
-  ),
-
-  /* A stroke folded back on itself. Keeping something is holding one end of
-     it, so the mark is one line that turns rather than a ribbon. */
-  bookmark: <path d="M7 5.4h10v13.2l-5-3.4-5 3.4z" />,
-
-  /* A frame, a node and a stroke that turns twice: light above a ridge. No
-     camera body and no shutter, because a picture in a post is a photograph of
-     a street and not a device. */
-  picture: (
-    <>
-      <rect x="4.2" y="5.8" width="15.6" height="12.4" rx="3.2" />
-      <circle cx="9" cy="10.3" r="1.5" fill="currentColor" stroke="none" />
-      <path d="M5.4 16.6 9.8 12.6l2.8 2.5 2.4-1.9 3.4 3" />
-    </>
-  ),
-
-  /* Two chamfered capsules holding each other. A link is a join, and the join
-     is what the mark draws. */
-  link: (
-    <>
-      <path d="M10.4 13.6a3.6 3.6 0 0 0 5.4.4l2.2-2.2a3.6 3.6 0 0 0-5.1-5.1l-1.3 1.3" />
-      <path d="M13.6 10.4a3.6 3.6 0 0 0-5.4-.4L6 12.2a3.6 3.6 0 0 0 5.1 5.1l1.3-1.3" />
-    </>
-  ),
-
-  /* A flag on a mast, the cloth cut square. Report. A gear stood here before,
-     and a gear read as settings, which has its own mark (`settings-gear`). */
-  flag: (
-    <>
-      <path d="M6.6 20.2V4.6" />
-      <path d="M6.6 5.4h9.8l-2.2 3.6 2.2 3.6H6.6" />
-    </>
-  ),
-
-  /* A bell with the clapper gone and a cut through it. Muting is not blocking:
-     the bell is still there, it just says nothing. */
-  mute: (
-    <>
-      <path d="M8 10.6a4 4 0 0 1 8 0c0 3.4 1.2 4.6 1.2 4.6H6.8S8 14 8 10.6Z" />
-      <path d="M5 5 19 19" />
-    </>
-  ),
-
-  /* The prohibition sign, and the one mark here that is deliberately
-     universal. An invented glyph for the most permanent action in a menu is an
-     invented glyph somebody presses by mistake. */
-  block: (
-    <>
-      <circle cx="12" cy="12" r="7.6" />
-      <path d="M6.6 6.6 17.4 17.4" />
-    </>
-  ),
-
-  /* Light and dark. Both were hand-drawn inline inside `ThemeToggle` with
-     their own strokeWidth of 1.8, which is the fifteenth weight the sweep
-     existed to remove. */
-  sun: (
-    <>
-      <circle cx="12" cy="12" r="4.4" />
-      <path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7" />
-    </>
-  ),
-  moon: <path d="M20.2 13.6A8.4 8.4 0 0 1 10.4 3.8a8.4 8.4 0 1 0 9.8 9.8Z" />,
-  /* PROPERTY TYPE AND SPACE, drawn for the filter tiles (track J) on the
-     same 24 grid, round caps and joins, and the stroke weight every glyph
-     here reads from the svg. No fill and no ink of their own: currentColor,
-     so they take the tile's ink in both themes and in the selected state. */
-  storefront: (
-    <>
-      <path d="M4 9.5 5.3 4.9A1.3 1.3 0 0 1 6.5 4h11a1.3 1.3 0 0 1 1.2.9L20 9.5" />
-      <path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0" />
-      <path d="M5.6 12.2v7a1.3 1.3 0 0 0 1.3 1.3h10.2a1.3 1.3 0 0 0 1.3-1.3v-7" />
-      <path d="M10 20.5v-4.2h4v4.2" />
-    </>
-  ),
-  briefcase: (
-    <>
-      <rect x="3.5" y="7.5" width="17" height="12.5" rx="2" />
-      <path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5" />
-      <path d="M3.5 12.6h17" />
-    </>
-  ),
-  "land-plot": (
-    <>
-      <path d="M3.5 17.4 8 14.2l4.4 2.4 8.1-4.2" />
-      <path d="M3.5 20.5h17" />
-      <path d="M12.4 12.2V4.5l4.3 1.7-4.3 1.8" />
-    </>
-  ),
-  "house-duplex": (
-    <>
-      <path d="m4.5 10 7.5-6 7.5 6" />
-      <path d="M6.2 8.8v11.7h11.6V8.8" />
-      <path d="M6.2 14.2h11.6" />
-      <path d="M9.2 11.4h1.4M13.4 11.4h1.4" />
-      <path d="M10.7 20.5v-3.3h2.6v3.3" />
-    </>
-  ),
-  "house-terrace": (
-    <>
-      <path d="M2.8 11.2 6.5 7.6l3.7 3.6" />
-      <path d="M9.4 10.4 12 7.9l2.6 2.5" />
-      <path d="m13.8 11.2 3.7-3.6 3.7 3.6" />
-      <path d="M3.8 10.3v10.2h16.4V10.3" />
-      <path d="M6.5 20.5v-3.1M12 20.5v-3.1M17.5 20.5v-3.1" />
-    </>
-  ),
-  "house-bungalow": (
-    <>
-      <path d="M2.8 12.2 12 6.2l9.2 6" />
-      <path d="M4.8 11v9.5h14.4V11" />
-      <path d="M10.5 20.5v-4h3v4" />
-      <path d="M6.9 14.6h1.8M15.3 14.6h1.8" />
-    </>
-  ),
-  "tower-penthouse": (
-    <>
-      <path d="M7.5 20.5V9h9v11.5" />
-      <path d="M6.3 9 12 4.3 17.7 9" />
-      <path d="M4 20.5h16" />
-      <path d="M10.2 12.5h.9M13 12.5h.9M10.2 16h.9M13 16h.9" />
-    </>
-  ),
-  /* A plain tick for a SELECTED state. Deliberately not `verified`, which
-     is the human-checked mark and means one thing (Master Rule 12). */
-  check: <path d="m5.2 12.6 4.3 4.3 9.3-9.8" />,
-  /* Price Check (track L): a tag with its hole and a small bar, the
-     shop-window price. Deliberately not a coin or a naira sign: the page
-     reports what places are ASKING, not a sum anybody owes. */
-  "price-tag": (
-    <>
-      <path d="M3.6 12.4V5.2a1.6 1.6 0 0 1 1.6-1.6h7.2a1.6 1.6 0 0 1 1.1.5l7 7a1.6 1.6 0 0 1 0 2.3l-7.2 7.2a1.6 1.6 0 0 1-2.3 0l-7-7a1.6 1.6 0 0 1-.4-1.2Z" />
-      <circle cx="8.2" cy="8.2" r="1.5" />
-      <path d="m11.6 15.2 3.6-3.6" />
-    </>
-  ),
-  /* Archive a conversation (track G): a box with its lid and a slot. */
-  archive: (
-    <>
-      <rect x="3.5" y="4.5" width="17" height="4.5" rx="1.3" />
-      <path d="M5 9v9.2a1.8 1.8 0 0 0 1.8 1.8h10.4a1.8 1.8 0 0 0 1.8-1.8V9" />
-      <path d="M10 12.8h4" />
-    </>
-  ),
-  door: (
-    <>
-      <path d="M6.5 20.5V4.8a1.3 1.3 0 0 1 1.3-1.3h8.4a1.3 1.3 0 0 1 1.3 1.3v15.7" />
-      <path d="M4.5 20.5h15" />
-      <path d="M14 12.4h.01" />
-    </>
-  ),
-  /* "System": a disc split down the middle, the half that follows the
-     device. Stroked like the other two so the three read as one set. */
-  contrast: (
-    <>
-      <circle cx="12" cy="12" r="8.4" />
-      <path d="M12 3.6v16.8" />
-      <path d="M12 6.2a5.8 5.8 0 0 1 0 11.6" />
-    </>
-  ),
-
-  /* Reveal a password. It was drawn inline in `components/auth/fields.tsx` at
-     strokeWidth 1.7 and again in `the wallet balance card (since rebuilt)` at strokeWidth 2, as
-     two slightly different eyes doing the same job on two screens. */
-  eye: (
-    <>
-      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
-      <circle cx="12" cy="12" r="2.9" />
-    </>
-  ),
-  /* The same eye with a cut through it. Its own name rather than a boolean on
-     `eye`, because the platform's icons are named by what they mean and a
-     password that is currently shown is a different meaning from one that is
-     hidden. */
-  "eye-off": (
-    <>
-      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
-      <circle cx="12" cy="12" r="2.9" />
-      <path d="m4.5 4.5 15 15" />
-    </>
-  ),
-
-  /* A trend, up and down, and now also "one level up" on a place page, where
-     the render needs a glyph that is not the back arrow sitting directly
-     beneath it. It used to be drawn inline inside an agent stat tile at
-     strokeWidth 3 on an 11px box, which rendered at 1.4 CSS pixels, heavier
-     than every other glyph beside it and for no reason anybody recorded. That
-     component turned out to have no caller once its own screenshot stopped
-     propping it up and has been deleted, so this is the only trend arrow left
-     and it is on the scale. */
   "arrow-up": (
     <>
-      <path d="M12 19.5v-15" />
-      <path d="m6 10.5 6-6 6 6" />
+      <path d="m5 12 7-7 7 7" />
+      <path d="M12 19V5" />
     </>
   ),
   "arrow-down": (
     <>
-      <path d="M12 4.5v15" />
-      <path d="m6 13.5 6 6 6-6" />
+      <path d="M12 5v14" />
+      <path d="m19 12-7 7-7-7" />
     </>
   ),
-
-  /* Listing and safety options. A circle, a stem and a node. */
+  // [sparkle]: the assistant, and "recommended". Never electricity.
+  sparkle: (
+    <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+  ),
+  // [house]: the Home tab.
+  home: (
+    <>
+      <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+      <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </>
+  ),
+  /* A house as a property rather than as the Home tab: the same body with a
+     chimney on the right-hand pitch, so the two never read as one glyph. */
+  house: (
+    <>
+      <path d="M15 21v-6a3 3 0 0 0-6 0v6" />
+      <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <path d="M16.5 5.14V3.5a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 .5.5v3.78" />
+    </>
+  ),
+  // [compass]: Explore.
+  compass: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z" />
+    </>
+  ),
+  /* [hotel]: a block with an arched entrance and six windows drawn as single
+     round dots. The old facade's twelve window ticks turned into a grey
+     texture at 20px; six dots on a 4-unit pitch stay six dots. */
+  "building-hotel": (
+    <>
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <path d="M10 22v-6.57" />
+      <path d="M14 15.43V22" />
+      <path d="M15 16a5 5 0 0 0-6 0" />
+      <path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01" />
+    </>
+  ),
+  // [building-2]: an apartment block with a lower wing.
+  "building-apartment": (
+    <>
+      <path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />
+      <path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2" />
+      <path d="M10 8h4" />
+      <path d="M10 12h4" />
+      <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
+    </>
+  ),
+  // [utensils]
+  utensils: (
+    <>
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+      <path d="M7 2v20" />
+      <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+    </>
+  ),
+  // [ticket]: Help and support.
+  ticket: (
+    <>
+      <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+      <path d="M13 5v2" />
+      <path d="M13 11v2" />
+      <path d="M13 17v2" />
+    </>
+  ),
+  /* [calendar-check]: a booking. The tick is what says BOOKED rather than
+     DATE, so it stays. */
+  "calendar-booking": (
+    <>
+      <path d="M8 2v3" />
+      <path d="M16 2v3" />
+      <rect x="3" y="3.5" width="18" height="18" rx="2" />
+      <path d="M3 9.5h18" />
+      <path d="m9 15.5 2 2 4-4" />
+    </>
+  ),
+  // [message-circle]: the round bubble every current platform draws.
+  "chat-bubble": (
+    <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719z" />
+  ),
+  // [bell]
+  bell: (
+    <>
+      <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+    </>
+  ),
+  // [wallet]
+  wallet: (
+    <>
+      <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+      <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+    </>
+  ),
+  // [user]
+  user: (
+    <>
+      <circle cx="12" cy="7" r="4" />
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    </>
+  ),
+  /* SETTINGS [sliders-vertical]: three upright rails, each handle at a
+     different height. NOT a gear (the founder, 25 September 2026: one clean,
+     clear settings mark wherever settings appears). The name stays
+     `settings-gear` so every call site changes at once. */
+  "settings-gear": (
+    <>
+      <path d="M5 21v-7" />
+      <path d="M5 10V3" />
+      <path d="M12 21v-9" />
+      <path d="M12 8V3" />
+      <path d="M19 21v-5" />
+      <path d="M19 12V3" />
+      <path d="M3 14h4" />
+      <path d="M10 8h4" />
+      <path d="M17 16h4" />
+    </>
+  ),
+  // [heart]
+  heart: (
+    <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
+  ),
+  // [layout-grid]
+  grid: (
+    <>
+      <rect width="7" height="7" x="3" y="3" rx="1.5" />
+      <rect width="7" height="7" x="14" y="3" rx="1.5" />
+      <rect width="7" height="7" x="14" y="14" rx="1.5" />
+      <rect width="7" height="7" x="3" y="14" rx="1.5" />
+    </>
+  ),
+  // [zap]
+  bolt: (
+    <path d="M15.914 4a1.5 1.5 0 0 0-2.474-1.561l-9 9A1.5 1.5 0 0 0 5.5 14h4.002a.5.5 0 0 1 .471.666L8.086 20a1.5 1.5 0 0 0 2.475 1.56l9-9A1.5 1.5 0 0 0 18.5 10h-3.997a.5.5 0 0 1-.472-.667z" />
+  ),
+  /* The feed: two stacked cards at the family's radius. One wide card with
+     lines under it read as a monitor; four squares read as a launcher. */
+  feed: (
+    <>
+      <rect x="3" y="3" width="18" height="7.5" rx="2" />
+      <rect x="3" y="13.5" width="18" height="7.5" rx="2" />
+    </>
+  ),
+  // [key]
+  key: (
+    <>
+      <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4" />
+      <path d="m21 2-9.6 9.6" />
+      <circle cx="7.5" cy="15.5" r="5.5" />
+    </>
+  ),
+  // [x]: never the typographic multiplication sign.
+  close: (
+    <>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </>
+  ),
+  // [history]: a clock face with a rewind arrow.
+  history: (
+    <>
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M12 7v5l4 2" />
+    </>
+  ),
+  // [trash-2]
+  trash: (
+    <>
+      <path d="M3 6h18" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+    </>
+  ),
+  /* [repeat-2]: two rails, each turning one corner, with the arrowheads at
+     opposite ends. A post sent on. Not `switch-profile`. */
+  repost: (
+    <>
+      <path d="m2 9 3-3 3 3" />
+      <path d="M13 18H7a2 2 0 0 1-2-2V6" />
+      <path d="m22 15-3 3-3-3" />
+      <path d="M11 6h6a2 2 0 0 1 2 2v10" />
+    </>
+  ),
+  /* [chart-no-axes-column-increasing]: views as three rising bars.
+     Deliberately not an eye, which says "we are watching you". */
+  views: (
+    <>
+      <path d="M5 21v-6" />
+      <path d="M12 21V9" />
+      <path d="M19 21V3" />
+    </>
+  ),
+  /* [ellipsis]: three nodes, filled so they hold their size whatever the
+     stroke weight at the step. */
+  more: (
+    <g fill="currentColor" stroke="none">
+      <circle cx="5" cy="12" r="1.75" />
+      <circle cx="12" cy="12" r="1.75" />
+      <circle cx="19" cy="12" r="1.75" />
+    </g>
+  ),
+  // [bookmark]
+  bookmark: (
+    <path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" />
+  ),
+  // [image]
+  picture: (
+    <>
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <circle cx="9" cy="9" r="2" />
+      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+    </>
+  ),
+  // [link]
+  link: (
+    <>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </>
+  ),
+  // [flag]: report.
+  flag: (
+    <path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" />
+  ),
+  /* [bell-off]: muting is not blocking. The bell is still there, cut. */
+  mute: (
+    <>
+      <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+      <path d="M17 17H4a1 1 0 0 1-.74-1.673C4.59 13.956 6 12.499 6 8a6 6 0 0 1 .258-1.742" />
+      <path d="m2 2 20 20" />
+      <path d="M8.668 3.01A6 6 0 0 1 18 8c0 2.687.77 4.653 1.707 6.05" />
+    </>
+  ),
+  // [ban]: the one deliberately universal mark, for the most permanent action.
+  block: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M4.929 4.929 19.07 19.071" />
+    </>
+  ),
+  // [sun] [moon] [contrast]: the three theme choices, as one set.
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </>
+  ),
+  moon: (
+    <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+  ),
+  contrast: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 18a6 6 0 0 0 0-12v12z" />
+    </>
+  ),
+  /* PROPERTY TYPE AND SPACE (track J). Lucide's where it has the object,
+     Vallo's own where it does not, on the same live area, radius and dot. */
+  // [store]
+  storefront: (
+    <>
+      <path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5" />
+      <path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244" />
+      <path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05" />
+    </>
+  ),
+  // [briefcase]
+  briefcase: (
+    <>
+      <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+      <rect width="20" height="14" x="2" y="6" rx="2" />
+    </>
+  ),
+  // [land-plot]
+  "land-plot": (
+    <>
+      <path d="m12 8 6-3-6-3v10" />
+      <path d="m8 11.99-5.5 3.14a1 1 0 0 0 0 1.74l8.5 4.86a2 2 0 0 0 2 0l8.5-4.86a1 1 0 0 0 0-1.74L16 12" />
+      <path d="m6.49 12.85 11.02 6.3" />
+      <path d="M17.51 12.85 6.5 19.15" />
+    </>
+  ),
+  // Two storeys under one roof: a floor line, two upper windows, a door.
+  "house-duplex": (
+    <>
+      <path d="m3 10 8.36-6.97a1 1 0 0 1 1.28 0L21 10" />
+      <path d="M5 8.5V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5" />
+      <path d="M5 14h14" />
+      <path d="M9.5 10.5h.01M14.5 10.5h.01" />
+      <path d="M10 21v-3a2 2 0 0 1 4 0v3" />
+    </>
+  ),
+  // A terrace: three gables on one body, with the party walls between.
+  "house-terrace": (
+    <>
+      <path d="m2 10.5 3.33-3.8L8.67 10.5 12 6.7l3.33 3.8 3.34-3.8L22 10.5" />
+      <path d="M3 9.5V19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9.5" />
+      <path d="M8.67 13v8M15.33 13v8" />
+    </>
+  ),
+  // A bungalow: one low, wide storey under a shallow roof.
+  "house-bungalow": (
+    <>
+      <path d="m2 12 9.2-5.5a1.5 1.5 0 0 1 1.6 0L22 12" />
+      <path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <path d="M10 21v-3a2 2 0 0 1 4 0v3" />
+      <path d="M7 14.5h1.5M15.5 14.5H17" />
+    </>
+  ),
+  // A tower with a pitched cap: the penthouse is the roof.
+  "tower-penthouse": (
+    <>
+      <path d="m5.5 9.5 5.86-5.02a1 1 0 0 1 1.28 0L18.5 9.5" />
+      <path d="M7 8.3V21M17 8.3V21" />
+      <path d="M3 21h18" />
+      <path d="M10 12h.01M14 12h.01M10 15.5h.01M14 15.5h.01" />
+    </>
+  ),
+  // [door-closed]
+  door: (
+    <>
+      <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16" />
+      <path d="M2 21h20" />
+      <path d="M15 12h.01" />
+    </>
+  ),
+  /* [check]: a plain tick for a SELECTED state. Deliberately not `verified`,
+     which is the human-checked mark and means one thing. */
+  check: <path d="M20 6 9 17l-5-5" />,
+  /* [tag]: Price Check. The shop-window price, not a coin or a naira sign:
+     the page reports what places are ASKING, not a sum anybody owes. */
+  "price-tag": (
+    <>
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+      <circle cx="7.5" cy="7.5" r="1.25" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // [archive]
+  archive: (
+    <>
+      <rect width="20" height="5" x="2" y="3" rx="1" />
+      <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+      <path d="M10 12h4" />
+    </>
+  ),
+  // [eye] [eye-off]: reveal a password, and its own name for "hidden".
+  eye: (
+    <>
+      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  "eye-off": (
+    <>
+      <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+      <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+      <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+      <path d="m2 2 20 20" />
+    </>
+  ),
+  // [info]
   info: (
     <>
-      <circle cx="12" cy="12" r="8.6" />
-      <path d="M12 11.2v5" />
-      <circle cx="12" cy="7.9" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
     </>
   ),
-
-  /* An envelope. The last surviving glyph in `components/auth/ProviderMarks`,
-     which is otherwise an empty file now that Google and Apple sign in are
-     gone. */
+  // [mail]
   mail: (
     <>
-      <rect x="2.6" y="4.6" width="18.8" height="14.8" rx="2.6" />
-      <path d="m3.3 6.6 8.02 5.9a1.3 1.3 0 0 0 1.56 0l8.02-5.9" />
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" />
+    </>
+  ),
+  // [coins]: the total a buyer or a tenant has to find.
+  coins: (
+    <>
+      <path d="M13.744 17.736a6 6 0 1 1-7.48-7.48" />
+      <path d="M15 6h1v4" />
+      <path d="m6.134 14.768.866-.5 2 3.464" />
+      <circle cx="16" cy="8" r="6" />
+    </>
+  ),
+  // [scale]: the legal fee. The law's own mark, not a document.
+  scale: (
+    <>
+      <path d="M12 3v18" />
+      <path d="m19 8 3 8a5 5 0 0 1-6 0zV7" />
+      <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" />
+      <path d="m5 8 3 8a5 5 0 0 1-6 0zV7" />
+      <path d="M7 21h10" />
+    </>
+  ),
+  /* [award]: Governor's consent. A seal on a ribbon, the certificate a
+     transfer is not valid without. */
+  certificate: (
+    <>
+      <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />
+      <circle cx="12" cy="8" r="6" />
+    </>
+  ),
+  // [stamp]: stamp duty.
+  stamp: (
+    <>
+      <path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13" />
+      <path d="M20 15.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1z" />
+      <path d="M5 22h14" />
+    </>
+  ),
+  /* Survey and registration: a pin set on a measuring rule. Vallo's own, on
+     the family's radius and dot. */
+  survey: (
+    <>
+      <path d="M17 7.5c0 3.2-3.6 6-4.6 6.8a.7.7 0 0 1-.8 0C10.6 13.5 7 10.7 7 7.5a5 5 0 0 1 10 0" />
+      <path d="M12 7.5h.01" />
+      <rect x="2" y="17" width="20" height="5" rx="1" />
+      <path d="M6 17v2M10 17v2M14 17v2M18 17v2" />
+    </>
+  ),
+  // [droplet]: water supply.
+  droplet: (
+    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
+  ),
+  /* The estate gate: a shield with a keyhole, controlled access. Vallo's own,
+     on `verified`'s Lucide shield so the two sit as a pair; the tick is a
+     judgement, the keyhole is a way in. It replaced a drawn gate (two piers,
+     an arched rail, two bars, a cross rail) on 29 September 2026: at 20px
+     on the bold line its five parallel strokes closed into a hash and read
+     as a grid, not a gate. The keyhole is a solid dot on a short stem so it
+     stays open inside the shield at 2.25px. */
+  gate: (
+    <>
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      <circle cx="12" cy="10.5" r="1.25" fill="currentColor" />
+      <path d="M12 12v3.5" />
     </>
   ),
 };
 
-/**
- * THE SIZE SCALE, AND IT JUST MOVED UP A STEP.
- *
- * The owner asked for bigger icons, directly, and this is where that happens:
- * once, on the scale, rather than by editing two hundred call sites. Every step
- * except the smallest is unchanged; what moved is the FLOOR and the names.
- *
- *   before   12  16  20  24  28  32
- *   after        16  20  24  28  32  40
- *
- * The 12px step is gone. It was the single most-used size on the platform - the
- * tick in a badge, the chevron in a row, the pin on a location line - and at
- * 12px a stroked glyph on a 24 grid renders at 0.7 CSS pixels of stroke, which
- * on a non-retina screen is a grey smudge rather than a line. `snapUiIconSize`
- * rounds anything below the floor UP to 16, so every one of those call sites
- * got a third bigger and a good deal crisper without being touched, and none of
- * them can drift back off the grid.
- *
- * 40 is added at the top for the places that genuinely want a display glyph:
- * an empty state, the mark in a role row, a submitted screen.
- *
- * THE NAMES MOVED WITH IT. `sm` was 16 and is now 20, `md` was 20 and is now
- * 24, and the DEFAULT is `sm` rather than the old 16. A component that asked
- * for a named step asked for "the small one", not for "sixteen pixels", so the
- * names are what carry the increase to everything that used them.
- */
 /*
- * 12 IS BACK, AND THE REASON IT LEFT HAD ALREADY BEEN FIXED BY THE TIME IT DID.
+ * THE FILLED TWINS.
  *
- * The argument for removing it, stated at the top of this file and in the note
- * above, is that "at 12px a stroked glyph on a 24 grid renders a 0.7 CSS pixel
- * line, which is a smudge". That was true of a FIXED `strokeWidth` on the 24
- * grid, which is what this component used to pass: a constant 1.8 renders 1.8
- * CSS px at 24 and 0.9 at 12, which is exactly why thirty-two call sites had
- * each hand-tuned their own weight.
+ * A filled/outline pair is two drawings of one object, not paint poured into
+ * an outline (which turns an open-stroke glyph into a blob). Each twin here is
+ * built from its outline's own geometry in three layers:
  *
- * That was fixed. `strokeWidth` is computed per size now, `(UI_ICON_STROKE_PX *
- * 24) / edge`, so the RENDERED line is 1.5 CSS px at every step. Work it
- * through at 12: 1.5 * 24 / 12 is 3 grid units, and 3 units on a glyph drawn at
- * half the grid's size renders at 1.5 CSS pixels. Not 0.7. The objection was
- * retired by the weight fix and the ban outlived it, because the two decisions
- * live two hundred lines apart in one file and nothing connects them.
+ *   body  closed shapes, painted solid AND stroked at the family weight, so
+ *         the silhouette's outer edge lands exactly where the outline's does.
+ *   cut   detail knocked OUT of the body at the same weight (a door, a tick, a
+ *         fold), through an SVG mask, so the detail stays the family's line
+ *         and not a hand-traced hole that thins at small steps.
+ *   keep  strokes drawn on top as ordinary lines (a bell's clapper, a mast).
  *
- * AND THE PRODUCT NEVER STOPPED ASKING FOR IT. Counted across `src`, 197 call
- * sites pass an explicit number to `UiIcon`:
+ * `cut` children default to strokes; give one `fill="black"` to cut a solid
+ * hole. A name with no twin ignores `filled` and draws its outline, so a call
+ * site can never ship a blob.
+ */
+type FilledTwin = { body: React.ReactNode; cut?: React.ReactNode; keep?: React.ReactNode };
+
+const SHIELD =
+  "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z";
+const HOUSE_BODY =
+  "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z";
+
+const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
+  home: {
+    body: <path d={HOUSE_BODY} />,
+    cut: <path d="M10.5 21.5v-6a1.5 1.5 0 0 1 3 0v6z" fill="black" />,
+  },
+  house: {
+    body: (
+      <>
+        <path d={HOUSE_BODY} />
+        <path d="M16.5 5.14V3.5a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 .5.5v3.78" />
+      </>
+    ),
+    cut: <path d="M10.5 21.5v-6a1.5 1.5 0 0 1 3 0v6z" fill="black" />,
+  },
+  /* No `search` twin, on purpose: a solid lens reads as a dot on a stick at
+     20px, and every platform in the references keeps the magnifier open when
+     its tab is selected. The pill and the colour carry the state. */
+  feed: {
+    body: PATHS.feed,
+  },
+  grid: {
+    body: PATHS.grid,
+  },
+  user: {
+    body: (
+      <>
+        <circle cx="12" cy="7" r="4" />
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2z" />
+      </>
+    ),
+  },
+  bed: {
+    body: (
+      <>
+        <path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4z" />
+        <path d="M2 18v-6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6z" />
+      </>
+    ),
+    cut: <path d="M12 4.5v5M4.5 10h15" />,
+    keep: <path d="M2 18v2M22 18v2" />,
+  },
+  "chat-bubble": { body: PATHS["chat-bubble"] },
+  heart: { body: <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5z" /> },
+  star: { body: PATHS.star },
+  sparkle: { body: PATHS.sparkle },
+  bookmark: { body: PATHS.bookmark },
+  bolt: { body: PATHS.bolt },
+  moon: { body: <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401z" /> },
+  phone: { body: <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384z" /> },
+  bell: {
+    body: <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326z" />,
+    keep: <path d="M10.268 21a2 2 0 0 0 3.464 0" />,
+  },
+  location: {
+    body: <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0z" />,
+    cut: <circle cx="12" cy="10" r="2.5" fill="black" stroke="none" />,
+  },
+  verified: { body: <path d={SHIELD} />, cut: <path d="m9 12 2 2 4-4" /> },
+  "shield-stop": { body: <path d={SHIELD} />, cut: <path d="M9 12h6" /> },
+  ticket: {
+    body: <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />,
+    cut: <path d="M13 5v2M13 11v2M13 17v2" />,
+  },
+  "calendar-booking": {
+    body: <rect x="3" y="3.5" width="18" height="18" rx="2" />,
+    cut: <path d="M3 9.5h18M9 15.5l2 2 4-4" />,
+    keep: <path d="M8 2v3M16 2v3" />,
+  },
+  document: {
+    body: <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />,
+    cut: <path d="M14 2v5a1 1 0 0 0 1 1h5M10 9H8M16 13H8M16 17H8" />,
+  },
+  "price-tag": {
+    body: <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />,
+    cut: <circle cx="7.5" cy="7.5" r="1.5" fill="black" stroke="none" />,
+  },
+  wallet: {
+    body: <path d="M3 5a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3h1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2z" />,
+    cut: (
+      <>
+        <path d="M3 5a2 2 0 0 0 2 2h14" />
+        <path d="M21.5 12H18a2 2 0 0 0 0 4h3.5" />
+      </>
+    ),
+  },
+  key: {
+    body: <circle cx="7.5" cy="15.5" r="5.5" />,
+    cut: <circle cx="7.5" cy="15.5" r="1.5" fill="black" stroke="none" />,
+    keep: (
+      <>
+        <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4" />
+        <path d="m21 2-9.6 9.6" />
+      </>
+    ),
+  },
+  compass: {
+    body: <circle cx="12" cy="12" r="10" />,
+    cut: (
+      <path
+        d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"
+        fill="black"
+      />
+    ),
+  },
+  map: {
+    body: <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />,
+    cut: <path d="M15 6.5v13M9 4.5v13" />,
+  },
+  info: {
+    body: <circle cx="12" cy="12" r="10" />,
+    cut: <path d="M12 16v-4M12 8h.01" />,
+  },
+  block: {
+    body: <circle cx="12" cy="12" r="10" />,
+    cut: <path d="M4.929 4.929 19.07 19.071" />,
+  },
+  picture: {
+    body: <rect width="18" height="18" x="3" y="3" rx="2" />,
+    cut: (
+      <>
+        <circle cx="9" cy="9" r="2" fill="black" />
+        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+      </>
+    ),
+  },
+  mail: {
+    body: <rect x="2" y="4" width="20" height="16" rx="2" />,
+    cut: <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" />,
+  },
+  flag: {
+    body: <path d="M4 15.5V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528z" />,
+    keep: <path d="M4 22v-7" />,
+  },
+  eye: {
+    body: <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />,
+    cut: <circle cx="12" cy="12" r="3" />,
+  },
+  /* THE BOLD PASS'S TWINS (29 September 2026). Solid bodies for the glyphs a
+     row or a chip can hold in a selected state, cut on the same rules. */
+  sun: {
+    body: <circle cx="12" cy="12" r="4" />,
+    keep: <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />,
+  },
+  briefcase: {
+    body: <rect width="20" height="14" x="2" y="6" rx="2" />,
+    cut: <path d="M8 6v14M16 6v14" />,
+    keep: <path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />,
+  },
+  parking: {
+    body: <rect width="18" height="18" x="3" y="3" rx="2" />,
+    cut: <path d="M9 17V7h4a3 3 0 0 1 0 6H9" />,
+  },
+  kitchen: {
+    body: <path d="M5 6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6Z" />,
+    cut: <path d="M5 10h14M15 6v1.5M15 12.5v3" />,
+  },
+  droplet: { body: PATHS.droplet },
+  certificate: {
+    body: <circle cx="12" cy="8" r="6" />,
+    keep: <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />,
+  },
+  stamp: {
+    body: (
+      <>
+        <path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13z" />
+        <path d="M20 15.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1z" />
+      </>
+    ),
+    keep: <path d="M5 22h14" />,
+  },
+  survey: {
+    body: (
+      <>
+        <path d="M17 7.5c0 3.2-3.6 6-4.6 6.8a.7.7 0 0 1-.8 0C10.6 13.5 7 10.7 7 7.5a5 5 0 0 1 10 0z" />
+        <rect x="2" y="17" width="20" height="5" rx="1" />
+      </>
+    ),
+    cut: (
+      <>
+        <circle cx="12" cy="7.5" r="1.5" fill="black" stroke="none" />
+        <path d="M6 17v2M10 17v2M14 17v2M18 17v2" />
+      </>
+    ),
+  },
+};
+
+/**
+ * THE SIZE SCALE: 12, 16, 20, 24, 28, 32 on a 4px grid, plus 40 for display.
  *
- *     16   92        20   35        14    5        13    2
- *     12   35        15   11        40    5        11, 17, 19, 24, 28   1 each
- *                    18    4        32    3
- *
- * 12 is the SECOND most requested size in the product and it was the one step
- * the scale refused to name, so thirty-five call sites were off-scale by decree.
- *
- * SEVEN STEPS RATHER THAN SIX, and six was the round number rather than the
- * right one: the scale runs 12 to 32 on a 4px grid and adds 40 for display.
- * On-scale coverage goes from 137 of 197 call sites to 172.
- *
- * `docs/ICON_SYSTEM.md` and `docs/archive/HANDOFF.md` rule 18 both listed 12 and both
- * lost it when this file did. They need it back and their lines are named in
- * the report that accompanied this change.
+ * 12 left the scale once, on the argument that a stroked glyph on a 24 grid
+ * renders a 0.7 CSS pixel line at 12px. That was true of a FIXED
+ * `strokeWidth`, and it had already been fixed: `strokeWidth` is computed per
+ * size (`uiIconStrokeWidth` below), so 12px renders a real 1.5 CSS px line
+ * rather than a hairline. 12 is also the second most requested size in the product
+ * (35 of 197 explicit call sites when counted), so it came back.
+ * `docs/ICON_SYSTEM.md` carries the longer account.
  */
 export const UI_ICON_SIZES = [12, 16, 20, 24, 28, 32, 40] as const;
 export type UiIconSize = (typeof UI_ICON_SIZES)[number];
@@ -991,178 +1070,78 @@ export function snapUiIconSize(size: number): UiIconSize {
 }
 
 /**
- * The same scale, named.
- *
- * Numbers are what the grid is defined in, but a call site reads better saying
- * what it means than restating the arithmetic, and a name cannot drift the way
- * a literal can. These are ALL SEVEN steps above under the names the rest of
- * the platform uses; nothing here is a size the scale does not have, and no
- * step of the scale is missing a name.
- *
- * This sentence has now said "six of the seven", then "all six", and now "all
- * seven": three edits chasing one number. When the scale changes, COUNT the
- * entries below rather than adjusting the sentence.
- *
- * `2xs` is 12, restored with the step itself. The existing names do NOT slide
- * down to absorb the new floor: a component that asked for `sm` asked for "the
- * small one", and moving the names a rung would have changed four named `lg`
- * sites, twelve `md`, sixteen `sm` and twelve `xs` without one of them editing
- * a character.
+ * The same scale, named: all seven steps, nothing off the scale. When the
+ * scale changes, COUNT the entries rather than adjusting this sentence.
  */
 export const ICON_SIZE = { "2xs": 12, xs: 16, sm: 20, md: 24, lg: 28, xl: 32, display: 40 } as const;
 export type IconSize = keyof typeof ICON_SIZE;
 
 /**
  * THE WEIGHT. One weight, expressed as rendered CSS pixels rather than as a
- * number on the 24 grid.
+ * number on the 24 grid. `strokeWidth` is in viewBox units, so a fixed number
+ * renders thinner the smaller the glyph; the grid number is derived from the
+ * size instead, and every stroked glyph on the platform renders this many CSS
+ * pixels at every step. 2.25 is the bold, even line of the founder's
+ * 29 September target (pump.fun's app icons, about 2 to 2.25 at 24), a
+ * quarter over the weight Lucide's geometry is drawn for. It was 1.5 until
+ * then, the thin line of SF Symbols regular, which read as hesitant beside
+ * the bold type. The
+ * sibling glyph components (`LineGlyph`, `SettingsGlyph`, `FeatureGlyph`)
+ * take their width from `uiIconStrokeWidth`, so they went bold with the set
+ * and stay matched.
  *
- * `strokeWidth` is measured in the viewBox's own units, so a fixed 1.8 renders
- * at 1.8 CSS px on a 24px glyph and at 0.9 CSS px on a 12px one. That is why
- * thirty-two call sites had each hand-tuned their own value between 1.5 and
- * 2.6: they were compensating for the scaling, one guess at a time, and the
- * platform ended up with a dozen weights.
+ * SCALED BY SIZE, OPTICALLY. One fixed pixel weight at every step clogs the
+ * small steps (2px on a 12px glyph is a third of a counter) and starves the
+ * display step; one fixed grid number does the opposite. The rendered line
+ * therefore steps with the size, on quarter pixels so it lands on the device
+ * grid at 2x: 1.5 at 12, 1.75 at 16, 2.25 at 20 and 24 (the reference),
+ * then a quarter more per step to 3 at 40.
  *
- * So the weight is stated once, in the unit a reader actually sees, and the
- * grid number is derived from the size. Every stroked glyph on the platform
- * renders at exactly this many CSS pixels, at every step of the scale. This is
- * the optical sizing the audit asked for, stated as a constant rather than as a
- * clamped division, and it is why no call site carries a stroke of its own.
+ * RAISED TO 2.25 AT 20 AND 24 (the ICONS3 audit, 29 September 2026). At 2
+ * the nav, dock and detail-row glyphs still read a shade lighter than
+ * pump.fun's beside 600-weight labels; the founder's "a bit more bold" is the
+ * top of the 2 to 2.25 range those icons draw. 12 and 16 stay where they
+ * were, because a heavier line there closes Lucide's counters.
  */
-export const UI_ICON_STROKE_PX = 1.5;
+export const UI_ICON_STROKE_PX = 2.25;
+
+export const UI_ICON_STROKE_BY_EDGE: Record<UiIconSize, number> = {
+  12: 1.5,
+  16: 1.75,
+  20: UI_ICON_STROKE_PX,
+  24: UI_ICON_STROKE_PX,
+  28: 2.5,
+  32: 2.75,
+  40: 3,
+};
 
 /**
- * Symbol effects.
- *
- * The reference set headlines animated icons: the bell rings on a new
- * notification, the heart pulses and fills on save, refresh rotates, send
- * flies. The platform had zero of this across 166 icon usages - the one
- * bell-wiggle keyframe that existed in globals.css had no call sites at all.
- *
- * The effect is a class, not a prop-driven animation, so it costs nothing when
- * unused and every one of them collapses under prefers-reduced-motion.
+ * The `strokeWidth` (in 24-grid units) that renders the set's weight at a
+ * rendered edge of `size` CSS px. Any size is accepted: the weight comes from
+ * the nearest step and the grid number from the true size, so an off-scale
+ * glyph still draws the family's line.
+ */
+export function uiIconStrokeWidth(size: number): number {
+  return (UI_ICON_STROKE_BY_EDGE[snapUiIconSize(size)] * 24) / size;
+}
+
+/**
+ * Symbol effects: a class, not a prop-driven animation, so it costs nothing
+ * when unused and every one of them collapses under prefers-reduced-motion
+ * (`app/css/symbols.css`).
  */
 export type SymbolEffect = "bounce" | "pulse" | "wiggle" | "rotate" | "fly";
 
-/**
- * Which glyphs can actually be filled.
- *
- * `fill="currentColor"` is only meaningful on a closed silhouette. Most of this
- * set is drawn as open strokes - `home` is three separate open paths, `user` is
- * a circle plus an open shoulder arc - and filling those produces a blob, not a
- * filled icon. Only the glyphs whose outline closes into a single readable
- * shape are listed here, and `filled` is ignored for everything else so a call
- * site cannot ship a broken one.
- *
- * Growing this list means redrawing the glyph as a closed silhouette first.
- * That is the real work behind proper filled/outline variants, and it is worth
- * doing for the tab bar set; until then the honest behaviour is to decline.
- */
-const FILLABLE = new Set<UiIconName>([
-  "heart",
-  "star",
-  "verified",
-  "bell",
-  "location",
-  // These are already authored as a single closed path, so the stroked drawing
-  // fills correctly with no separate silhouette needed.
-  "chat-bubble",
-  "sparkle",
-  "ticket",
-  /* Both close into a single readable silhouette, and both have a real active
-     state: a saved post and a reposted one. */
-  "bookmark",
-  "block",
-  "moon",
-]);
+/** Every name in the set, in drawing order. The icon gallery reads this. */
+export const UI_ICON_NAMES = Object.keys(PATHS) as UiIconName[];
 
-/**
- * Filled silhouettes.
- *
- * The proper way to do a filled/outline pair is to DRAW the filled member, not
- * to pour paint into an outline: an outline is a set of strokes describing
- * edges, and filling it produces a blob. That is why `filled` was originally
- * gated to the handful of glyphs that happen to close.
- *
- * These are the navigation set - the tab bar and the top of the side drawer -
- * where an active state genuinely needs to read as solid rather than as a
- * slightly heavier line. Each is a single closed path on the same 24 grid as
- * its outline sibling, with interior detail knocked out using evenodd so the
- * shape stays readable at 22px rather than turning into a lump.
- *
- * A glyph listed here uses this path when `filled`; anything not listed falls
- * back to its stroked drawing, so adding one is additive and never breaks a
- * call site.
- */
-const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
-  /*
-   * The last hole in the navigation set.
-   *
-   * `grid` is four separate rounded rectangles, so it was not in FILLABLE and
-   * the Around tab was the one destination in the bar whose active state was a
-   * colour change with no weight change behind it. Four solid squares on the
-   * same geometry as the outline, so the two drawings agree.
-   */
-  grid: (
-    <>
-      <rect x="3.8" y="3.8" width="7" height="7" rx="1.9" />
-      <rect x="13.2" y="3.8" width="7" height="7" rx="1.9" />
-      <rect x="3.8" y="13.2" width="7" height="7" rx="1.9" />
-      <rect x="13.2" y="13.2" width="7" height="7" rx="1.9" />
-    </>
-  ),
-  /* The feed's solid twin: both cards fill, on exactly the outline's geometry,
-     so the active and inactive drawings are the same object at two weights. */
-  feed: (
-    <>
-      <rect x="3.7" y="4" width="16.6" height="7" rx="2.2" />
-      <rect x="3.7" y="13" width="16.6" height="7" rx="2.2" />
-    </>
-  ),
-  /* The same bolt as a solid, for a row that is reporting a fact rather than
-     offering a control. */
-  bolt: (
-    <path d="M13.4 2.9a.55.55 0 0 1 .97.46l-1.3 5.79h4.38c.72 0 1.12.83.67 1.39l-7.52 9.36a.55.55 0 0 1-.97-.46l1.3-5.79H6.55c-.72 0-1.12-.83-.67-1.39Z" />
-  ),
-  home: (
-    <path d="M11.02 3.62a1.5 1.5 0 0 1 1.96 0l7.63 6.64c.4.35.15 1.01-.38 1.01H18.3v7.83a2 2 0 0 1-2 2h-2.9v-4.7a1.4 1.4 0 0 0-2.8 0v4.7H7.7a2 2 0 0 1-2-2v-7.83H3.77c-.53 0-.78-.66-.38-1.01Z" />
-  ),
-  house: (
-    <path d="M11.02 3.62a1.5 1.5 0 0 1 1.96 0l2.02 1.76V5.2a.8.8 0 0 1 .8-.8h1.4a.8.8 0 0 1 .8.8v3.09l2.63 2.29c.4.35.15 1.01-.38 1.01H18.3v7.68a2 2 0 0 1-2 2h-2.9v-4.55a1.4 1.4 0 0 0-2.8 0v4.55H7.7a2 2 0 0 1-2-2v-7.68H3.77c-.53 0-.78-.66-.38-1.01Z" />
-  ),
-  compass: (
-    <path
-      fillRule="evenodd"
-      d="M12 3.4a8.6 8.6 0 1 0 0 17.2 8.6 8.6 0 0 0 0-17.2Zm3.7 4.9-1.9 5.5-5.5 1.9 1.9-5.5Z"
-    />
-  ),
-  user: (
-    <path d="M12 4.4a3.7 3.7 0 1 1 0 7.4 3.7 3.7 0 0 1 0-7.4Zm0 8.7c4.06 0 7.35 2.55 7.35 5.7 0 .94-.76 1.4-1.6 1.4H6.25c-.84 0-1.6-.46-1.6-1.4 0-3.15 3.29-5.7 7.35-5.7Z" />
-  ),
-  /* The filled twin of the redrawn outline. The two rings are gone from this
-     one too: a silhouette that disagrees with its own outline is two icons. */
-  "calendar-booking": (
-    <path
-      fillRule="evenodd"
-      d="M6.8 4.6h10.4a3.4 3.4 0 0 1 3.4 3.4v9.6a3.4 3.4 0 0 1-3.4 3.4H6.8a3.4 3.4 0 0 1-3.4-3.4V8a3.4 3.4 0 0 1 3.4-3.4Zm-1.6 5.6v7.4c0 .88.72 1.6 1.6 1.6h10.4c.88 0 1.6-.72 1.6-1.6v-7.4Zm3.4 4.8 2.4 2.4 4.4-4.6 1.3 1.24-5.66 5.92-3.68-3.68Z"
-    />
-  ),
-  key: (
-    <path
-      fillRule="evenodd"
-      d="M18.9 3.06a1 1 0 0 1 1.42 0l.62.62a1 1 0 0 1 0 1.42l-7.9 7.9a4.6 4.6 0 1 1-2.04-2.04ZM7.6 12a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Zm0 1.9a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4Z"
-    />
-  ),
-  wallet: (
-    <path
-      fillRule="evenodd"
-      d="M6.2 2.9H17a.9.9 0 1 1 0 1.8H6.2a1.3 1.3 0 0 0 0 2.6h11.6A3.1 3.1 0 0 1 20.9 10.4v7.3a3.1 3.1 0 0 1-3.1 3.1H6.6A3.5 3.5 0 0 1 3.1 17.3V6.1A3.2 3.2 0 0 1 6.2 2.9Zm9.7 10.2a1.15 1.15 0 1 0 0 2.3 1.15 1.15 0 0 0 0-2.3Z"
-    />
-  ),
-};
+/** Whether `filled` changes this glyph, rather than being ignored. */
+export function uiIconHasFill(name: UiIconName): boolean {
+  return FILLED[name] !== undefined;
+}
 
 export function UiIcon({
   name,
-  /* `sm` is 20px now, up from 16. See the scale note above. */
   size = ICON_SIZE.sm,
   className,
   label,
@@ -1180,30 +1159,28 @@ export function UiIcon({
   effect?: SymbolEffect;
   effectLoop?: boolean;
   /**
-   * Paints the glyph solid instead of stroked. This is what a saved heart or a
-   * rated star should use; the previous "active" state was a stroke change of
-   * 0.18 CSS pixels, which is invisible.
-   *
-   * Only honoured for glyphs in FILLABLE above. Asking for it on an
-   * open-stroke glyph is silently ignored rather than rendering a blob.
+   * Draws the glyph's filled twin: a selected tab, a saved heart, a rated
+   * star. Ignored for a name with no twin (see FILLED above).
    */
   filled?: boolean;
 }) {
+  const reactId = useId();
   const edge = snapUiIconSize(typeof size === "number" ? size : ICON_SIZE[size]);
-  /*
-   * A drawn silhouette wins over pouring paint into an outline. If neither
-   * exists for this glyph, `filled` is ignored rather than rendering a blob.
-   */
-  const silhouette = filled ? FILLED_PATHS[name] : undefined;
-  const solid = Boolean(filled) && (Boolean(silhouette) || FILLABLE.has(name));
+  /* One id per rendered icon for the twin's mask. The name and edge are in it
+     so an id can never point at another glyph's or another size's mask, even
+     if two ids collided; `useId` is stable across server and client render,
+     so hydration never disagrees about it. Stripped to characters a
+     `url(#...)` reference takes unescaped. */
+  const maskId = `nf-ui-${name}-${edge}-${reactId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const twin = filled ? FILLED[name] : undefined;
   return (
     <svg
       width={edge}
       height={edge}
       viewBox="0 0 24 24"
-      fill={solid ? "currentColor" : "none"}
+      fill="none"
       stroke="currentColor"
-      strokeWidth={(UI_ICON_STROKE_PX * 24) / edge}
+      strokeWidth={uiIconStrokeWidth(edge)}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={[
@@ -1217,10 +1194,24 @@ export function UiIcon({
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
-      {/* A silhouette is a closed shape, so it is filled and NOT stroked: the
-          svg's stroke weight stays where every stroked glyph reads it from, and
-          the fill turns it off for this one path rather than for the family. */}
-      {silhouette ? <g stroke="none">{silhouette}</g> : PATHS[name]}
+      {twin ? (
+        <>
+          <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+            <g fill="white" stroke="white">
+              {twin.body}
+            </g>
+            {twin.cut ? (
+              <g fill="none" stroke="black">
+                {twin.cut}
+              </g>
+            ) : null}
+          </mask>
+          <rect width="24" height="24" fill="currentColor" stroke="none" mask={`url(#${maskId})`} />
+          {twin.keep}
+        </>
+      ) : (
+        PATHS[name]
+      )}
     </svg>
   );
 }

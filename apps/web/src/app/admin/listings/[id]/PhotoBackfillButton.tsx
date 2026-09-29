@@ -15,7 +15,7 @@ export function PhotoBackfillButton() {
       <button
         type="button"
         disabled={pending}
-        className="nf-btn nf-btn--secondary nf-btn--sm"
+        className="nf-btn nf-btn--glass nf-btn--sm"
         onClick={() =>
           startTransition(async () => {
             const result = await runPhotoBackfill();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ROOM_COPY, ROOM_ITEMS, allChecked, canEditReport, canSubmit, checkedCount, fromSaved, isRoomItem } from "./report";
+import { ROOM_COPY, ROOM_ITEMS, allChecked, canEditReport, canSubmit, checkedCount, fromSaved, isRoomItem, photosShort } from "./report";
 
 const ALL = Object.fromEntries(ROOM_ITEMS.map((item) => [item, true]));
 
@@ -35,6 +35,17 @@ describe("the inspection report", () => {
     expect(canSubmit(true, "CONFIRMED", report, null)).toBe(false);
     expect(canSubmit(true, "CONFIRMED", { ...report, items: ALL }, null)).toBe(true);
     expect(canSubmit(true, "CONFIRMED", { ...report, items: ALL, submittedAt: "2026-09-23T10:00:00Z" }, null)).toBe(false);
+  });
+
+  it("keeps a rental's Submit disabled until the photos its agreement needs are attached", () => {
+    const ticked = { notes: null, items: ALL, photoCount: 2, submittedAt: null };
+    expect(canSubmit(true, "CONFIRMED", ticked, null, 3)).toBe(false);
+    expect(canSubmit(true, "CONFIRMED", { ...ticked, photoCount: 3 }, null, 3)).toBe(true);
+    /* A listing that is not a rental keeps the eight-tick rule alone. */
+    expect(canSubmit(true, "CONFIRMED", { ...ticked, photoCount: 0 }, null, 0)).toBe(true);
+    expect(photosShort(ticked, 3)).toBe(1);
+    expect(photosShort({ ...ticked, photoCount: 5 }, 3)).toBe(0);
+    expect(photosShort(null, 3)).toBe(3);
   });
 
   it("falls back to recording the outcome alone while storage is off, and never outside CONFIRMED", () => {

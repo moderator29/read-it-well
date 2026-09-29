@@ -57,17 +57,17 @@ describe("Yellow Card: HMAC-SHA256 of the raw body, base64", () => {
   const sign = (body: string, key = "yc_secret") => createHmac("sha256", key).update(body, "utf8").digest("base64");
 
   it("accepts a correct signature and refuses a changed body", () => {
-    vi.stubEnv("YELLOWCARD_API_SECRET", "yc_secret");
+    vi.stubEnv("YELLOWCARD_WEBHOOK_SECRET", "yc_secret");
     expect(verifyYellowCard(BODY, sign(BODY))).toBe(true);
     expect(verifyYellowCard(`${BODY} `, sign(BODY))).toBe(false);
   });
 
   it("refuses another key, an empty signature, a missing secret and a truncated signature", () => {
-    vi.stubEnv("YELLOWCARD_API_SECRET", "yc_secret");
+    vi.stubEnv("YELLOWCARD_WEBHOOK_SECRET", "yc_secret");
     expect(verifyYellowCard(BODY, sign(BODY, "other"))).toBe(false);
     expect(verifyYellowCard(BODY, "")).toBe(false);
     expect(verifyYellowCard(BODY, sign(BODY).slice(0, 20))).toBe(false);
-    vi.stubEnv("YELLOWCARD_API_SECRET", "");
+    vi.stubEnv("YELLOWCARD_WEBHOOK_SECRET", "");
     expect(verifyYellowCard(BODY, sign(BODY, ""))).toBe(false);
   });
 });

@@ -2,11 +2,14 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import "./notifications.css";
 import { PageHeader } from "@/components/app/PageHeader";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
+import { loadOlderNotifications } from "@/lib/notify/inbox-actions";
+import { toNotificationItem, type NotificationItem } from "@/lib/notify/links";
 import { lagosTimeLabel } from "@/lib/messages/time";
 import {
   useNotificationsRealtime,
@@ -41,15 +44,7 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
  * never the source.
  */
 
-export type NotificationItem = {
-  id: string;
-  kind: string;
-  title: string;
-  body: string | null;
-  href: string | null;
-  read: boolean;
-  createdAt: string;
-};
+export type { NotificationItem };
 
 const KIND_ICON: Record<string, UiIconName> = {
   booking: "calendar-booking",
@@ -72,42 +67,85 @@ function iconFor(kind: string): UiIconName {
 
 export function LiveNotifications({
   initial,
+  initialMore = false,
   userId,
 }: {
   initial: NotificationItem[];
+  /** True when the server read stopped at a page and older rows exist. */
+  initialMore?: boolean;
   userId: string;
 }) {
+  const router = useRouter();
   const [items, setItems] = useState<NotificationItem[]>(initial);
+  const [more, setMore] = useState(initialMore);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
 
   useNotificationsRealtime(userId, (row: LiveNotificationRow) => {
     setItems((prev) => {
       if (prev.some((n) => n.id === row.id)) return prev;
-      return [
-        {
-          id: row.id,
-          kind: row.kind,
-          title: row.title,
-          body: row.body,
-          href: row.href,
-          read: row.read_at !== null,
-          createdAt: row.created_at,
-        },
-        ...prev,
-      ];
+      return [toNotificationItem(row), ...prev];
     });
   });
 
-  const markOne = useCallback((id: string) => {
-    setItems((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-    void markNotificationsRead({ ids: [id] });
-  }, []);
+  /*
+   * Reads are optimistic, and a read that did not persist is put back.
+   * Without the revert, a failed write left the row looking read on this
+   * screen while the bell (a server count) went on counting it, and the two
+   * disagreed until the next visit. On success the route is refreshed, which
+   * re-renders the shell's server-side unread count, so the bell and this
+   * list agree at once rather than on the next navigation.
+   */
+  const markOne = useCallback(
+    (id: string) => {
+      setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      void markNotificationsRead({ ids: [id] }).then((result) => {
+        if (result.ok) {
+          router.refresh();
+          return;
+        }
+        setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)));
+      });
+    },
+    [router],
+  );
 
   const markAll = useCallback(() => {
+    const before = items;
     setItems((prev) => prev.map((n) => ({ ...n, read: true })));
-    void markNotificationsRead({});
-  }, []);
+    setProblem(null);
+    void markNotificationsRead({}).then((result) => {
+      if (result.ok) {
+        router.refresh();
+        return;
+      }
+      /* Only the rows this press marked go back; anything that arrived
+         over realtime in the meantime keeps its own state. */
+      const unread = new Set(before.filter((n) => !n.read).map((n) => n.id));
+      setItems((prev) => prev.map((n) => (unread.has(n.id) ? { ...n, read: false } : n)));
+      setProblem(result.error);
+    });
+  }, [items, router]);
+
+  /* Older rows, a page at a time, after the last row on screen. */
+  const showOlder = useCallback(() => {
+    const last = items.at(-1);
+    if (!last || loadingOlder) return;
+    setLoadingOlder(true);
+    setProblem(null);
+    void loadOlderNotifications({ createdAt: last.createdAt, id: last.id }).then((result) => {
+      setLoadingOlder(false);
+      if (!result.ok) {
+        setProblem(result.error);
+        return;
+      }
+      setItems((prev) => {
+        const seen = new Set(prev.map((n) => n.id));
+        return [...prev, ...result.data.rows.map(toNotificationItem).filter((n) => !seen.has(n.id))];
+      });
+      setMore(result.data.more);
+    });
+  }, [items, loadingOlder]);
 
   const unreadCount = items.filter((n) => !n.read).length;
 
@@ -137,7 +175,7 @@ export function LiveNotifications({
         <EmptyState
           icon="bell-badge"
           title="You are all caught up"
-          body="Bookings, messages, wallet activity and everything happening in your district land here the moment they happen."
+          body="Bookings, messages, agreements and everything happening in your district land here the moment they happen."
           action={
             <ButtonLink href="/search" variant="primary">
               Find a place
@@ -234,6 +272,26 @@ export function LiveNotifications({
           </section>
         ))}
       </div>
+
+      {problem && (
+        <p role="alert" className="nf-notif__problem" data-testid="notifications-problem">
+          {problem}
+        </p>
+      )}
+
+      {more && (
+        <div className="nf-notif__more">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={showOlder}
+            disabled={loadingOlder}
+            data-testid="notifications-older"
+          >
+            {loadingOlder ? "Loading older" : "Show older"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

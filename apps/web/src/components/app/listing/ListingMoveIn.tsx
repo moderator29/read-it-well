@@ -1,7 +1,7 @@
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { Amount } from "@/components/ui/Amount";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { DetailGlyph } from "./DetailGlyph";
 import { TYPE } from "@/components/app/Screen";
 import { moveInLines } from "./move-in-lines";
 import { unexplainedRemainder } from "@/lib/rent/ledger";
@@ -26,10 +26,10 @@ import { formatMoney } from "@vallo/i18n/core";
  * behind is gone: the breakdown is the point, so the breakdown is open.
  *
  * THE ANATOMY IS `GOVERNING-08` SCREEN TWO, "What will a tenant actually pay?":
- * one row per cost, each carrying a glass object on a rounded plate, the cost's
+ * one row per cost, each carrying a bold line glyph on a plate, the cost's
  * name with its period or basis beneath, the figure on the right, and a quiet
  * note saying who keeps it. The total sits in its own lit panel under them with
- * the coin-stack object beside it. Every capsule in that render ships as a
+ * the coins glyph beside it. Every capsule in that render ships as a
  * rounded rectangle on `--nf-radius-control`, per the roles README.
  *
  * WHAT IT WILL NOT DO.
@@ -110,9 +110,7 @@ export function ListingMoveIn({
               data-declared={isDeclared || undefined}
               data-testid={`move-in-line-${line.key}`}
             >
-              <span className="nf-movein__plate" aria-hidden="true">
-                <BrandIcon name={line.icon} fill />
-              </span>
+              <DetailGlyph name={line.glyph} className="nf-movein__plate" />
               <span className="nf-movein__name">
                 <span className="nf-movein__label">
                   {line.label}
@@ -154,9 +152,7 @@ export function ListingMoveIn({
         })}
         {remainder > 0 && (
           <li className="nf-movein__row" data-declared data-testid="move-in-line-remainder">
-            <span className="nf-movein__plate" aria-hidden="true">
-              <BrandIcon name="alert-triangle" fill />
-            </span>
+            <DetailGlyph name="info" tone="pending" className="nf-movein__plate" />
             <span className="nf-movein__name">
               <span className="nf-movein__label text-[var(--nf-state-warning)]">{gateCopy.line}</span>
               <span className="nf-movein__keeper">{gateCopy.note}</span>
@@ -169,9 +165,7 @@ export function ListingMoveIn({
       </ul>
 
       <div className="nf-movein__total" data-testid="move-in-total">
-        <span className="nf-movein__plate nf-movein__plate--total" aria-hidden="true">
-          <BrandIcon name="naira-coins" fill />
-        </span>
+        <DetailGlyph name="coins" size="lg" className="nf-movein__plate" />
         <span className="min-w-0">
           <span className="nf-movein__total-label">
             {stated ? copy.totalStated : copy.totalFrom}

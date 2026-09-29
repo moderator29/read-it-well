@@ -58,7 +58,7 @@ export const dynamic = "force-dynamic";
 export default async function AroundPage({
   searchParams,
 }: {
-  searchParams: Promise<{ place?: string | string[]; tab?: string | string[] }>;
+  searchParams: Promise<{ place?: string | string[]; tab?: string | string[]; compose?: string | string[] }>;
 }) {
   if (!(await isSocialEnabled())) return <SocialPaused />;
 
@@ -232,7 +232,9 @@ export default async function AroundPage({
         />
       </section>
 
-      <AroundFab currentAreaId={activeArea} />
+      {/* `?compose=1` is the dock's "Post to the feed" (`CreateDock`): the
+          bloom opens on arrival. */}
+      <AroundFab currentAreaId={activeArea} initialOpen={params.compose === "1"} />
     </div>
   );
 }

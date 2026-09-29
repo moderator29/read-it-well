@@ -5,9 +5,10 @@ import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { Unreachable } from "@/components/app/Unreachable";
 import { resolveSession } from "@/lib/actions/session";
-import { loadNotifications } from "@/lib/messages/live";
+import { loadNotificationPage } from "@/lib/notify/inbox";
 import { Reveal } from "@/components/site/Reveal";
-import { LiveNotifications, type NotificationItem } from "./LiveNotifications";
+import { toNotificationItem, type NotificationItem } from "@/lib/notify/links";
+import { LiveNotifications } from "./LiveNotifications";
 
 export const metadata: Metadata = { title: "Notifications" };
 
@@ -32,22 +33,36 @@ export default async function NotificationsPage() {
   const session = await resolveSession();
 
   if (session.state === "signed-in") {
-    const rows = await loadNotifications(session.supabase);
-    const initial: NotificationItem[] = rows.map((r) => ({
-      id: r.id,
-      kind: r.kind,
-      title: r.title,
-      body: r.body,
-      href: r.href,
-      read: r.read_at !== null,
-      createdAt: r.created_at,
-    }));
+    const page = await loadNotificationPage(session.supabase);
+
+    /* A failed read is a fault and says so. It used to arrive here as an
+       empty list and render "You are all caught up", which is the one thing
+       this screen must never say when it does not know. */
+    if (page.state === "error") {
+      return (
+        <div className="mx-auto max-w-2xl">
+          <div className="relative">
+            <PageScene art="bell-badge" />
+            <PageHeader title="Notifications" />
+          </div>
+          <Reveal>
+            <Unreachable
+              noun="notifications"
+              icon="bell-badge"
+              action={{ label: "Try again", href: "/notifications" }}
+            />
+          </Reveal>
+        </div>
+      );
+    }
+
+    const initial: NotificationItem[] = page.rows.map(toNotificationItem);
 
     /* The header belongs to the client component here, because the mark-all
        control has to sit in it and only that component knows what is unread. */
     return (
       <div className="mx-auto max-w-2xl">
-        <LiveNotifications initial={initial} userId={session.user.id} />
+        <LiveNotifications initial={initial} initialMore={page.more} userId={session.user.id} />
       </div>
     );
   }
@@ -85,7 +100,7 @@ export default async function NotificationsPage() {
         <EmptyState
           icon="bell-badge"
           title="Sign in to see your notifications"
-          body="Your bookings, messages and wallet activity are tied to your account, so we only ever show you your own. Nothing here belongs to anyone else."
+          body="Your bookings, messages and agreements are tied to your account, so we only ever show you your own. Nothing here belongs to anyone else."
           action={
             <EmptyActions
               primary={{ label: "Sign in", href: "/sign-in" }}

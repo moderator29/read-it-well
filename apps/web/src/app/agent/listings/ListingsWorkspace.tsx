@@ -19,6 +19,7 @@ import {
 } from "@/lib/agent/listings-schema";
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { createUndoWindow, type UndoWindow } from "@/lib/ui/undo-window";
+import { withDone } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -118,8 +119,17 @@ function requirementText(
       return copy.gate.area;
     case "amenities":
       return copy.gate.amenities;
+    /* The gate reports the money by which figure is missing; "price" is
+       kept for an older server. Without these the sheet printed the gate's
+       English fallback in every language. */
     case "price":
       return yearly ? copy.gate.priceYear : copy.gate.priceNight;
+    /* The gate reports "rent" for a monthly or quarterly tenancy too, so it
+       is not the yearly sentence. */
+    case "rent":
+      return copy.gate.rent;
+    case "rate":
+      return copy.gate.priceNight;
     case "bedrooms":
       return copy.gate.bedrooms;
     case "bathrooms":
@@ -164,7 +174,13 @@ function ConfirmSheet({
         return;
       }
       onClose();
-      router.refresh();
+      /* A listing sent for review lands back here with the moment named; the
+         page checks it is really in review before the sheet opens. */
+      if (state.kind === "submit") {
+        router.replace(withDone("/agent/listings", "listing-submitted", { listing: state.listing.id }), { scroll: false });
+      } else {
+        router.refresh();
+      }
     });
   }
 
@@ -452,6 +468,15 @@ function ListingRow({
         <OwnerAskStrip listingId={listing.id} copy={ownerCopy} onLet={() => onCloseListing?.(listing)} />
       )}
 
+      {/* An in-review listing let by the year has no action at all now that
+          the calendar is nightly only, and an empty bordered bar read as a
+          broken row. The bar is drawn only when something is in it. */}
+      {(editable ||
+        live ||
+        listing.status === "DRAFT" ||
+        listing.pricePeriod === "night" ||
+        Boolean(duplicateCopy) ||
+        Boolean(listing.listingRole && listing.listingRole !== "owner")) && (
       <div className="flex flex-wrap items-center gap-x-md gap-y-xs border-t border-[var(--nf-border-subtle)] px-md py-sm">
         {editable && (
           <Link
@@ -462,15 +487,18 @@ function ListingRow({
             <UiIcon name="arrow-right" size={16} />
           </Link>
         )}
-        {/* Closing nights only means anything once a listing is live, so the
-            calendar appears exactly where a guest could otherwise book. */}
-        <Link
-          href={`/agent/listings/${listing.id}/calendar`}
-          className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
-        >
-          <UiIcon name="calendar-booking" size={16} />
-          Calendar
-        </Link>
+        {/* Closing nights only means anything on a listing let by the night.
+            It was drawn on every row, so a yearly rental, an office or a
+            house for sale offered a calendar of nights nobody can book. */}
+        {listing.pricePeriod === "night" && (
+          <Link
+            href={`/agent/listings/${listing.id}/calendar`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+          >
+            <UiIcon name="calendar-booking" size={16} />
+            Calendar
+          </Link>
+        )}
         {/* V-57: a nightly stay declares its charges at the door before it can be published. */}
         {listing.pricePeriod === "night" && (
           <Link
@@ -534,7 +562,10 @@ function ListingRow({
             {closeCopy?.action}
           </button>
         )}
-        {live && !closesWithReason && (
+        {/* Taking a listing down is also the only way to EDIT a live one
+            (it returns to drafts). A live rental offered only Close, which is
+            final, so its rent could never be corrected. Both are offered. */}
+        {live && (
           <button
             type="button"
             className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
@@ -559,6 +590,7 @@ function ListingRow({
           </Button>
         )}
       </div>
+      )}
       {error && (
         <p
           role="alert"
@@ -589,7 +621,7 @@ export function ListingsWorkspace({
   reference: Dictionary["listingReference"];
   listings: ListingSummary[];
   locale: Locale;
-  /** The top bar's search term. Narrows by title; empty shows everything. */
+  /** The page's search term (`?q=`). Narrows by title; empty shows everything. */
   query?: string;
   /**
    * V-08, "Print or paint your board". Present only while

@@ -4,11 +4,25 @@
  * Self-contained: no runner, no config. Proof behind docs/POLISH_PASS.md
  * items 27, 33, 35, 36 and 38:
  *
- *   27  verified listings rank above unverified at equal relevance
+ *   27  verified listings rank above unverified at equal relevance. Since
+ *       V-06 the Recommended order is the published points formula
+ *       (`lib/listings/ranking.ts`, unit-tested in `ranking.test.ts`) in
+ *       which the checked flag is ONE point among four, never above
+ *       everything; the explicit sorts still end in the verification
+ *       tiebreaker. The runtime "every verified card precedes every
+ *       unverified one" read of Recommended is therefore no longer the rule
+ *       and is not asserted.
  *   33  listing detail is prefetched on press-down
  *   35  Leaflet's engine is lazy and no eager copy of it survives
  *   36  a data-saver setting exists and other code reads it
  *   38  the map viewport is in the URL, so a map link is shareable
+ *
+ * The rules are read from the source (static half). The runtime half drives
+ * `/search`, `/search?view=map` and `/home`, which since 23 September answer
+ * a signed-out visitor with the sign-in wall (asserted), so it runs signed in
+ * as the QA member and is reported as SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD. The data-saver switch is read in the preview harness
+ * (`/preview/session-b/sweep-settings?v=appearance`, the real AppearanceCard).
  *
  * Run with the server already up:
  *
@@ -16,6 +30,7 @@
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,9 +60,13 @@ console.log("\nThe rules, where they are written");
 
 const searchPage = read("app/(app)/search/page.tsx");
 check(
-  "27  every sort ends in the verification tiebreaker",
-  (searchPage.match(/byVerification\(a, b\)/g) ?? []).length >= 3 &&
-    /out\.sort\(byVerification\)/.test(searchPage),
+  "27  every explicit sort ends in the verification tiebreaker",
+  (searchPage.match(/byVerification\(a, b\)/g) ?? []).length >= 3,
+);
+check(
+  "27  Recommended is the published formula, in which being checked is one point",
+  /return rankRecommended\(out\)/.test(searchPage) &&
+    /\{ key: "checked", points: 1, holds: \(l\) => l\.verified \}/.test(read("lib/listings/ranking.ts")),
 );
 check(
   "27  and it reads the listing's own verified flag, not its source",
@@ -80,8 +99,41 @@ check("38  a half-stated or out-of-range viewport is refused", /lat === null \|\
 
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 
-async function freshContext() {
+console.log("\nSigned out, the discovery routes are behind the wall");
+for (const path of ["/search", "/search?view=map", "/home", "/settings/appearance"]) {
+  await expectSignInWall(check, path);
+}
+
+console.log("\n36  the data saver switch (preview harness)");
+{
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "dark" });
+  const page = await ctx.newPage();
+  if (await openPreview(page, "/preview/session-b/sweep-settings?v=appearance", check, { wait: SETTLE })) {
+    const row = page.getByText("Use less data", { exact: true });
+    check("36  the setting is on the appearance settings screen", (await row.count()) > 0);
+    check(
+      "36  and it is a real switch",
+      (await page.getByRole("switch", { name: /Use less data/ }).count()) > 0,
+    );
+  }
+  await ctx.close();
+}
+
+console.log("\nThe runtime half, signed in as the QA member");
+const qaState = await signInAsQa(browser);
+if (!qaState) {
+  await browser.close();
+  console.log("");
+  if (failures > 0) {
+    console.log(`${failures} check(s) failed.`);
+    process.exit(1);
+  }
+  console.log("Discovery behaviour: static and preview checks passed; the runtime half was skipped.");
+  process.exit(0);
+}
+
+async function freshContext() {
+  const ctx = await qaContext(browser, qaState, { viewport: { width: 390, height: 844 }, colorScheme: "dark" });
   await ctx.addInitScript(() => {
     try {
       window.localStorage.setItem("nf_theme", "dark");
@@ -297,51 +349,15 @@ try {
       await page.mouse.up();
     }
 
-    /* The switch is reachable and reflects what is stored. */
+    /* The switch is reachable on the real route. */
     const settings = await ctx.newPage();
-    await settings.goto(BASE_URL + "/settings", { waitUntil: "domcontentloaded", timeout: 45000 });
+    await settings.goto(BASE_URL + "/settings/appearance", { waitUntil: "domcontentloaded", timeout: 45000 });
     await settings.waitForTimeout(SETTLE);
     const row = settings.getByText("Use less data", { exact: true });
-    check("36  the setting is on the settings screen", (await row.count()) > 0);
+    check("36  the setting is on the real appearance settings screen", (await row.count()) > 0);
     await ctx.close();
   }
 
-  /* ------------------------------------------- 27: verification breaks ties */
-  console.log("\nVerification settles a tie");
-  {
-    const ctx = await freshContext();
-    const page = await ctx.newPage();
-    await page.goto(BASE_URL + "/search", { waitUntil: "load", timeout: 45000 });
-    await page.waitForTimeout(SETTLE);
-
-    /* Read the cards in order and ask where the unverified ones sit. The
-       recommended order is entirely ties as far as the page can tell, so
-       every verified card must precede every unverified one. */
-    const order = await page.evaluate(() => {
-      const out = [];
-      for (const el of document.querySelectorAll('[data-testid="results-grid"] > li')) {
-        const text = el.textContent || "";
-        out.push(/verified/i.test(text));
-      }
-      return out;
-    });
-    /* Two cards are the minimum for "one sits above the other" to mean
-       anything. With the seed catalogue gone, an environment with no real
-       inventory has none, and a ranking rule cannot be tested with nothing to
-       rank. Skipped out loud rather than asserted into a red tick. */
-    if (order.length < 2) {
-      console.log("  skip    27  fewer than two cards in this catalogue, nothing to rank");
-    } else {
-      const firstUnverified = order.indexOf(false);
-      const lastVerified = order.lastIndexOf(true);
-      check(
-        "27  no unverified place sits above a verified one",
-        firstUnverified === -1 || lastVerified === -1 || firstUnverified > lastVerified,
-        [`verified pattern: ${order.map((v) => (v ? "V" : ".")).join("")}`],
-      );
-    }
-    await ctx.close();
-  }
 } finally {
   await browser.close();
 }

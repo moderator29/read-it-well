@@ -211,10 +211,10 @@ everywhere.
    `scripts/cut-icon-ground.mjs` pipeline, file it through
    `scripts/icon-manifest.mjs` with a lowercase-hyphen name, and use it,
    provided it carries no baked text. The dock capsule and headers stay on
-   the stroked UiIcon tier restyled to the renders' line weight; since Track
-   M (25 September 2026) the side drawer rows and the dock's sub-nav tray use
-   the glass objects mapped in `apps/web/src/lib/nav/glass-glyph.ts`. No
-   black-and-white content icons anywhere the renders show glass ones.
+   the stroked UiIcon tier restyled to the renders' line weight, and since
+   29 September 2026 so do the side drawer, the rail and the dock's More
+   tray (the Track M glass map is deleted). No black-and-white content icons
+   anywhere the renders show glass ones.
 6. **Photography ships now.** The background plates and property photos in
    the reference folder (catalogue's ASSETS list) are the product's
    imagery: the landing hero plate behind the hero, the skyline plates
@@ -243,6 +243,12 @@ A surface closes only when ALL of these hold:
    `:root[data-theme="light"]` block in `tokens.css` plus
    `apps/web/src/app/css/light.css`, and
    `apps/web/scripts/design/light/sweep.mjs` screenshots both themes.
+   The auth screens (sign in, sign up, the email steps, the code, the reset
+   and the recovery) are no longer pinned dark: the auth layout follows the
+   document's theme and `app/css/auth.css` sets its ground, fields and lines
+   for each theme. First run (`WelcomeStage`) still pins dark. Auth is
+   checked at 390x844 and 360x740 in both themes, with the primary button
+   in the first screen with the keyboard up.
 3. Every control on the screen is FUNCTIONAL end to end (the ONE LAW):
    real action, real data, real state change, notification where deserved.
    Nothing ships as a picture of a feature.

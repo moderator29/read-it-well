@@ -33,7 +33,6 @@ const WORDS: Record<string, string> = {
   inspection_incomplete: "Tick all eight items on the inspection report first.",
   inspection_needs_photos: "Add photos taken at the property to the inspection report first.",
   no_amount: "This listing has no move-in cost set, so there is nothing to agree yet.",
-  exists: "An agreement for this inspection already exists.",
   locked: "This agreement can no longer be changed.",
   stay_terms_follow_the_booking: "A stay's terms are its booking. Change the booking instead.",
   terms_changed: "The terms changed since you opened this page. Read them again and confirm the new version.",
@@ -49,7 +48,12 @@ const WORDS: Record<string, string> = {
   already_open: "You already have a claim waiting on this agreement.",
 };
 
-async function door(fn: string, args: (userId: string) => Record<string, unknown>, paths: string[]) {
+async function door(
+  fn: string,
+  args: (userId: string) => Record<string, unknown>,
+  paths: string[],
+  alsoOk: string[] = [],
+) {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail<Record<string, unknown>>(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail<Record<string, unknown>>(SIGNED_OUT_MESSAGE);
@@ -59,7 +63,9 @@ async function door(fn: string, args: (userId: string) => Record<string, unknown
   if (error) return fail<Record<string, unknown>>("That did not go through. Nothing changed. Try again in a moment.");
   const answer = (data ?? {}) as Record<string, unknown>;
   const status = String(answer.status ?? "");
-  if (status !== "ok") return fail<Record<string, unknown>>(WORDS[status] ?? "That did not go through.");
+  if (status !== "ok" && !alsoOk.includes(status)) {
+    return fail<Record<string, unknown>>(WORDS[status] ?? "That did not go through.");
+  }
   for (const path of paths) revalidatePath(path);
   return ok(answer);
 }
@@ -90,6 +96,12 @@ export async function openRentAgreement(input: {
       p_notes: parsed.data.notes ?? null,
     }),
     ["/agreements"],
+    /* `exists` is answered only to a party to that agreement (anybody else
+       gets `not_found`), so it is the way to the agreement already drawn
+       up, not a refusal: the other party (or another tab) got there first.
+       A cancelled agreement is not answered as `exists`: the door releases
+       its inspection and draws up a new one. */
+    ["exists"],
   );
   if (!result.ok) return result;
   return ok({ agreementId: String(result.data.agreement_id) });

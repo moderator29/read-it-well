@@ -12,6 +12,7 @@ import { shapeEn } from "./shape.en";
 import { frontDoorEn } from "./front-door.en";
 import { landingRoomsEn } from "./landing-rooms.en";
 import { afterTheGateEn } from "./after-the-gate.en";
+import { cryptoPayEn } from "./crypto-pay.en";
 import { trustVisibleEn } from "./trust-visible.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
@@ -25,6 +26,8 @@ import { complianceThresholdEn } from "./compliance-7.en";
 import { compliancePepEn } from "./compliance-pep.en";
 import { complianceRiskEn } from "./compliance-risk.en";
 import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
+/* The passcode lock (docs/PASSCODE.md), in its own module like the rest. */
+import { passcodeEn } from "./passcode.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -165,6 +168,10 @@ export const en = {
     alreadyRecorded: "This payment was already recorded, so your stay is confirmed.",
     stillChecking: "Still checking",
     returnStalled: "We have not heard back from the payment service. Do not pay again. Your stay appears under your stays the moment it settles, and the reference above is what support will trace it by.",
+    /* A charge the processor took that has not yet been applied to this
+       booking: never "paid", never "not charged". */
+    chargedConfirming:
+      "Your card was charged and we are applying it to this booking. Do not pay again. If it cannot be applied, the whole amount goes back to your card.",
     paymentNotConfirmed: "Payment not confirmed",
     returnFailed: "Your card has not been charged. If money did leave your account, it returns within 24 hours.",
     cannotReachPayment: "We cannot reach payment right now",
@@ -265,6 +272,9 @@ export const en = {
       "sign-in-required": "Sign in to open that. It takes a moment, and new accounts are free.",
       "catalogue-paced":
         "You have opened a lot of pages in a few minutes. Sign in to keep browsing, or come back in a few minutes.",
+      "passcode-reset": "Sign in with your password, then choose a new passcode.",
+      "passcode-locked":
+        "Your passcode was entered wrongly too many times, so you were signed out. Sign in, then choose a new passcode.",
     } as Record<string, string>,
     appleUnfinished: "Apple did not finish signing you in. Try again, or use your email address.",
     appleFailed: "Apple sign-in did not finish. You can try again or use your email address.",
@@ -293,8 +303,22 @@ export const en = {
    * a chance to break it.
    */
   welcomeCards: {
+    /* The intro a stranger meets first (the Slate pass, 29 September): the
+       name, one line, a small moving scene and the two doors. Not
+       skippable and with no tour door (the founder, 29 September). */
+    intro: {
+      tagline: "Homes to rent, buy and stay in, from agents a person has checked.",
+      chip: "Your move-in total, printed",
+      getStarted: "Get started",
+      signIn: "Sign in",
+      sceneLabel: "A house and its keys, with the move-in total printed on a receipt",
+    },
     label: "What Vallo is",
     skip: "Skip",
+    /* The same control when the slides were opened from the sign-up form's
+       "What Vallo is" link (E2E audit L-5): it returns to the form, and the
+       founder wants nothing on the first-run path labelled skip. */
+    backToSignUp: "Back to sign up",
     start: "Let me in",
     goTo: "Go to card {n}",
     /* The first-run opener, to its governing render (BUILD_06, F1): the two
@@ -522,8 +546,26 @@ export const en = {
     properties: "Properties",
     bookings: "Plans",
     messages: "Messages",
-    wallet: "Wallet",
     agreements: "Agreements",
+    /*
+     * The dock's centre "+" and the sheet it opens (29 September 2026). The
+     * workspace switch that button used to be moved into this sheet as its
+     * last row, so nothing it did was lost.
+     */
+    create: {
+      trigger: "Create",
+      title: "Create",
+      list: "List a property",
+      listSub: "Rent it out or sell it, with the move-in total on the card",
+      post: "Post to the feed",
+      postSub: "Say something about a place you know",
+      viewing: "Book a viewing",
+      viewingSub: "Find a place and choose a time to see it",
+      stay: "Create a stay listing",
+      staySub: "A room type or a whole place for guests",
+      switch: "Switch workspace",
+      switchSub: "Personal, or a workspace you hold",
+    },
     helpSupport: "Help and support",
     aiAssistant: "AI Assistant",
     profile: "Profile",
@@ -539,6 +581,7 @@ export const en = {
     places: "Places",
     people: "People",
     agentMode: "Agent workspace",
+    hostMode: "Host workspace",
     consoleLabel: "Console",
     workspacesLabel: "Workspaces",
     becomeAgent: "Become an agent",
@@ -547,6 +590,30 @@ export const en = {
     crypto: "Crypto",
     viewProfile: "View profile",
     menuLabel: "Menu",
+  },
+
+  /**
+   * The host workspace's navigation: the chip row under the bar, the drawer
+   * and the bar's title (`components/host/host-nav-model.ts`). Read on the
+   * server by `HostShell` and handed to the two client components as plain
+   * strings, so none of it rides in the client copy every screen carries.
+   * The rows shared with other workspaces (Account, Help and support,
+   * Notifications, Host workspace) come from `nav`.
+   */
+  hostNav: {
+    overview: "Overview",
+    reservations: "Reservations",
+    rooms: "Rooms and nights",
+    photos: "Photographs",
+    arrival: "Charges at the door",
+    transfer: "Hand over",
+    earnings: "Earnings",
+    assistant: "Assistant",
+    accountSettings: "Account settings",
+    application: "Application",
+    host: "Host",
+    openMenu: "Open the host menu",
+    closeMenu: "Close the host menu",
   },
 
   /**
@@ -614,10 +681,9 @@ export const en = {
     /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
     belongings: "Belongings",
     myBookings: "Plans",
-    myBookingsSub: "Inspections, move-ins, stays and tables",
-    savedSub: "Your saved properties, hotels and places",
-    walletSub: "Your agreements, payments and Guarantee claims",
-    agreementsSub: "Your agreements, payments and Guarantee claims",
+    myBookingsSub: "Viewings, move-ins and stays",
+    savedSub: "Homes, hotels and places",
+    agreementsSub: "Agreements, payments and claims",
     /*
      * The same four rows, said in one line each.
      *
@@ -628,7 +694,6 @@ export const en = {
      */
     myBookingsRow: "Property and stays bookings",
     savedRow: "Saved properties and places",
-    walletRow: "Agreements, payments and Guarantee claims",
     /*
      * The account page itself (`/profile`). Row values carry the
      * figure in `{count}`; the Switch role line names only the roles the
@@ -720,11 +785,6 @@ export const en = {
         careers: "Careers",
       },
       hero: {
-        /* The render's breadcrumb reads PROPERTY / STAYS / INVEST / MANAGE.
-           Invest is gone because Vallo sells no investment product and the
-           landing may not name a capability with no shipped surface;
-           Restaurants takes the slot because /restaurants is shipped. */
-        crumbs: ["Property", "Stays", "Restaurants", "Manage"],
         /*
          * THE HEADLINE IS THE FOUNDER'S, WORD FOR WORD, AND IT IS COUPLED TO
          * THE SEARCH CONTROL. DO NOT EDIT EITHER ONE ALONE.
@@ -748,24 +808,17 @@ export const en = {
          *
          * NIGERIA, NOT AFRICA, and the word changes when the fact changes.
          *
-         * The last clause is conditional on purpose. "Where there is one" is
-         * load bearing, because there are no owner listings in the catalogue
-         * today: the sentence is true on a catalogue that has none, and it
-         * stays true on the day the first one lands.
+         * THE SUB-LINE IS ONE LINE (the clean pass, 29 September). It used to
+         * run four, naming the lister and dealing with the owner "where there
+         * is one"; the hero now says where you can look and the one thing
+         * Vallo shows you first, and the owner clause, which is conditional
+         * on owner listings existing, is left to the pages that can show one.
          */
         title1: "Rent, buy or stay.",
         title2: "Without the runaround.",
         subtitle:
-          "Homes, land, hotels and shortlets across Nigeria, with the person behind each listing named. See what you will actually pay before you call anybody, and deal with the owner directly where there is one.",
+          "Homes, land and stays across Nigeria, with the real cost up front.",
         explore: "Explore Properties",
-        stays: "Explore Stays",
-        /* "Popular Cities" was the label and popularity is a claim: nothing
-           in this database counts a view, a search or a booking, so there is
-           no row anywhere that could say which city is popular. Rule 15 is
-           not only about digits. The four are doors into real searches and
-           the label now says exactly that much and no more. */
-        citiesLabel: "Start with a city",
-        cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
       },
       search: {
         label: "Search Vallo",
@@ -791,52 +844,6 @@ export const en = {
         cities: "Cities",
         states: "States",
       },
-      /* The ten-tile "Everything you need in one platform" grid was
-         removed from the page on the founder's ruling of 19 September
-         (it is not in his render) and its strings went with it in the
-         content truth sweep. One of them was an Invest tile, and Vallo
-         sells no investment product. */
-      /*
-       * THE FEATURE BAND, AND THE RULE IT NOW OBEYS.
-       *
-       * Six cells, the render's composition exactly. What changed is what
-       * they claim. Every one of the six names a capability with a shipped
-       * surface behind it, and the route is written beside it here so the
-       * next person can check rather than trust: buy and rent (/search,
-       * /rent, /inspections), Vallo Stays (/stays, /stays/search,
-       * /restaurants), the wallet (/wallet), bookings and trips (/bookings,
-       * /trips), messages (/messages) and the assistant (/assistant).
-       *
-       * What came off: "One Platform / Every city. Everywhere.", which is a
-       * reach claim rather than a capability, and "Property Management",
-       * which was true but said nothing about the Stays half. The agent
-       * console and the host tools are named in the How Vallo works Manage
-       * step instead, where the routes can be stated in a sentence.
-       */
-      /*
-       * WHAT THE SIX NOW SAY, AFTER THE POSITIONING CHANGE OF 22 SEPTEMBER.
-       *
-       * The position is one sentence: Vallo does not remove the agent, it
-       * removes the runaround. Three of these cells carry a part of it, and
-       * each part is a surface that ships rather than one that is coming:
-       * what a place actually costs (the move-in figure and its breakdown on
-       * the listing page), who is behind the listing (the lister on the card
-       * and in the thread), and the record of what was said. The other three
-       * are unchanged because they were already true.
-       *
-       * NOT CLAIMED HERE: that a listing can be had direct from its owner.
-       * It can where there is an owner listing and there is not one yet, so
-       * the headline's conditional clause carries that and no chip repeats it
-       * unconditionally.
-       */
-      chips: {
-        verified: { title: "Buy and rent", sub: "What moving in costs, not the rent alone." },
-        ai: { title: "AI assistant", sub: "Ask in four languages. Real listings back." },
-        wallet: { title: "The Vallo Guarantee", sub: "Vallo never holds your money. A reserve stands behind rentals and stays." },
-        one: { title: "Bookings and trips", sub: "Stays, tables and inspections, by date." },
-        stays: { title: "Vallo Stays", sub: "Hotels, apartments, resorts, guest houses, tables." },
-        manage: { title: "Messages", sub: "Whoever is behind the listing, on the record." },
-      },
       community: {
         overline: "Real people. Real places.",
         /*
@@ -851,53 +858,26 @@ export const en = {
            answer for the word. One account for both sides is a fact about the
            product and says the same thing without asking the reader to take
            anything on trust. */
-        title: "One account for [[renters, buyers and guests,]] [[agents and hosts.]]",
+        /* The clean pass (29 September): "One account" headlined four rooms
+           of this page, so each room now has a line of its own. This one is
+           about who the platform is for; brackets are no longer used, so
+           the heading takes the one section-title style. */
+        title: "Built for both sides of the deal.",
         /* THE FIGURES BESIDE THIS LINE CAN BE NONE, AND THE LINE HAS TO READ
            CORRECTLY WHEN THEY ARE. `statTiles` drops any count of zero and
            returns nothing at all when the platform cannot answer, so the band
            prints no figures rather than a nought dressed as a fact. The line
            said "every count on this page" and pointed at an empty space. */
-        body: "Both sides of Vallo, one account. Where there is nothing true to show, nothing is shown.",
-        join: "Join Vallo today",
+        body: "Renters, buyers and guests on one side. Agents and hosts on the other.",
         thirdParty: "Third party",
         thirdPartyTitle: "Partner inventory, always labelled",
         thirdPartyBody:
           "A stay fulfilled by a partner carries this tag and says who confirms it. It is never dressed as first party.",
       },
-      /*
-       * THE FOUR STEPS ARE THE POSITION, WALKED THROUGH.
-       *
-       * The runaround is agent fees stacked on agent fees, chains of agents
-       * on one property, scattered listings and unclear costs. So the steps
-       * answer the three questions that runaround leaves open: what is this
-       * going to cost me, who am I actually dealing with, and is there a
-       * record afterwards. "Simple Steps. Big Possibilities." answered none
-       * of them and is the marketing register this voice does not use.
-       *
-       * The second step is "Check" rather than "Verify" because a person
-       * checks the LISTER, not the property, and a step labelled Verify above
-       * a sentence about people invites the reader to hear it about bricks.
-       */
-      how: {
-        overline: "How Vallo works",
-        title: "Four steps, and nobody in the way.",
-        body: "Find it, see who is behind it and what it will really cost, then inspect it, book it and keep the record.",
-        steps: {
-          discover: { title: "Discover", body: "Search homes, land, hotels and shortlets across Nigeria, from one account." },
-          verify: { title: "Check", body: "See who is behind a listing, how far their checks have gone, and what moving in costs." },
-          experience: { title: "Experience", body: "Message the lister, inspect, book a night or a table, and pay inside Vallo." },
-          /* The agent console and the host tools are the property
-             management claim, and both are shipped: /agent/listings and
-             /host. Named here rather than as a feature chip so the routes
-             can be stated. */
-          manage: { title: "Manage", body: "Run your listings from the agent console, or your stay from host tools." },
-        },
-      },
       categories: {
         overline: "Explore by category",
-        title: "Find exactly what you're looking for.",
-        body: "Apartments, houses and land on the Property side; hotels, resorts and guest houses on Vallo Stays. Every tile opens a real search across Nigeria.",
-        join: "Join Vallo",
+        title: "Browse by kind of place.",
+        body: "Every tile opens a real search across Nigeria, on the Property side or on Vallo Stays.",
         apartments: "Apartments",
         houses: "Houses",
         shortlets: "Shortlets",
@@ -914,29 +894,9 @@ export const en = {
         land: "Land",
         count: "{count} listed",
       },
-      stays: {
-        overline: "Vallo Stays",
-        title: "Stay somewhere worth remembering.",
-        /* "Across Nigeria" is the reach this platform has and the only reach
-           it names anywhere. The word changes when the fact changes. */
-        body: "Hotels, apartments, resorts, guest houses, serviced apartments and restaurant tables across Nigeria, booked on the account you already have.",
-        cta: "Explore Stays",
-        /* The render's six rows, and the Stays side serves every one of them:
-           `hotel`, `apartment`, `resort`, `guest_house` and
-           `serviced_apartments` are stay types in lib/stays/types.ts, and
-           restaurants have their own surface. Shortlets, villas and
-           experiences stood in three of these slots and are still reachable
-           from the stays search. */
-        hotels: "Hotels",
-        apartments: "Apartments",
-        resorts: "Resorts",
-        guestHouses: "Guest Houses",
-        serviced: "Serviced Apartments",
-        restaurants: "Restaurants",
-      },
       app: {
         title: "Take Vallo with you.",
-        body: "Both sides in your pocket: property to rent or buy, and stays and tables to book. Vallo installs from your browser on iPhone and Android.",
+        body: "Both sides in your pocket: property to rent or buy, and stays and tables to book.",
         /*
          * The store badges' own wording, which is set by Apple's and Google's
          * guidelines rather than by us: "Download on the / App Store" and
@@ -949,11 +909,19 @@ export const en = {
         android: "Google Play",
         androidSub: "GET IT ON",
         rightTitle: "Property and stays, now on mobile.",
+        /* The landing's app panel (29 September: the drawn phones are gone).
+           The eyebrow over the title, and the install line printed when no
+           store badge is live, which is what the FAQ's "Is there an app?"
+           answer already says. */
+        eyebrow: "On your phone",
+        installTitle: "Add it to your home screen",
+        installBody: "Open Vallo in your phone's browser and choose Add to Home Screen (on iPhone, from the Share button). No download needed.",
         /* STORE-06 / UI-07: "Full access to all features" and "Secure and
            fast" were claims nothing backs, and they are gone. */
         points: {
-          notify: "Instant notifications",
-          design: "Beautiful, intuitive design",
+          notify: "Notifications for replies, bookings and payments",
+          sides: "Property and stays on the same account",
+          record: "Messages, agreements and bookings kept on the record",
         },
       },
       footer: {
@@ -995,10 +963,10 @@ export const en = {
      *
      * IT IS NOW READ BY EXACTLY ONE SURFACE: the lockup on the auth screens.
      * It used to be read by three. The metadata moved to the approved position
-     * on 22 September, and the landing's phone mock moved to `appMockLine`
-     * below, because that mock is a picture OF THE APP on the marketing front
-     * page and it was the last place the retired positioning still showed to a
-     * visitor.
+     * on 22 September, and the landing's phone mock moved to a key of its own,
+     * because that mock was a picture OF THE APP on the marketing front page
+     * and the last place the retired positioning still showed to a visitor.
+     * The mock and its key were deleted on 29 September with the phones.
      *
      * WHETHER THE AUTH LOCKUP KEEPS IT IS THE FOUNDER'S CALL AND IT IS IN THE
      * LEDGER. "Real Estate reimagined!" is the OLD positioning line, and this
@@ -1009,17 +977,6 @@ export const en = {
      * rules, without dragging the auth screen along by accident.
      */
     slogan: "Real Estate reimagined!",
-    /*
-     * The line inside the landing's phone mock, which is a picture of the
-     * product shown to somebody who has never opened it. It says what the
-     * product is FOR, which since 22 September is the approved position. It is
-     * its own key rather than a reference to `face.hero` so that the mock can
-     * be composed for its own narrow box without editing the headline, and its
-     * own key rather than `slogan` so the auth lockup can hold a different
-     * decision. Same three words as the headline and the search control, which
-     * `headline-coupling.test.ts` holds.
-     */
-    appMockLine: "Rent, buy or stay. Without the runaround.",
     /*
      * The property card's own words. Small on purpose: a card is read at a
      * glance and every one of these is one or two words on a 390px grid cell.
@@ -1087,7 +1044,7 @@ export const en = {
     markets: {
       overline: "Nine markets, one account",
       title: "Somewhere for a night. Somewhere for a decade. Ground to build on.",
-      body: "Vallo carries the whole property market: a hotel room tonight, a flat for the year, a house to buy, a shop to trade from, an office to grow into, and the land itself. Every market is searched the same way and paid for in the same wallet.",
+      body: "Vallo carries the whole property market: a hotel room tonight, a flat for the year, a house to buy, a shop to trade from, an office to grow into, and the land itself. Every market is searched the same way and run from the same account.",
       shortlet: "Shortlets",
       hotel: "Hotels",
       apartment: "Apartments",
@@ -1101,41 +1058,6 @@ export const en = {
          in words rather than printing a zero dressed as a figure. */
       count: "{count} listed",
       none: "Nothing listed yet",
-    },
-    /*
-     * What the account DOES, as against what it holds. Every line is built and
-     * reachable today; the plan lives in `next` and is labelled as a plan.
-     */
-    oneAccount: {
-      overline: "All of it, in one place",
-      title: "Search, talk, pay and keep the record, without leaving Vallo",
-      body: "Most property in Nigeria is arranged across a phone call, a WhatsApp thread and a bank transfer, and none of those remember anything. Here the conversation, the money and the paperwork are the same account, so a year later you can still show what happened.",
-      points: {
-        wallet: {
-          title: "Payments Vallo never holds",
-          body: "Pay by card or bank transfer once both of you confirm the agreement and Vallo approves it. The owner's or agent's share goes straight to their bank.",
-        },
-        savings: {
-          title: "The Vallo Guarantee",
-          body: "Between 1 and 2 percent of every payment goes to a separate reserve. If something covered goes wrong, claim in the 72 hours after you move in or check in.",
-        },
-        assistant: {
-          title: "An assistant that reads the catalogue",
-          body: "Ask in plain words, in any of four languages, and get real listings back with the figures attached.",
-        },
-        messages: {
-          title: "Messages with the lister",
-          body: "Every conversation with an agent stays on the platform, so there is a record if anything is ever disputed.",
-        },
-        verified: {
-          title: "Agents checked by a person",
-          body: "A person reviews every agent application by hand before they can publish, and the listing shows when it was checked.",
-        },
-        record: {
-          title: "Receipts and agreements",
-          body: "Payments, bookings and documents are kept against your account for as long as you have one.",
-        },
-      },
     },
     /*
      * The roadmap. The one section describing what does not exist yet, and the
@@ -1349,6 +1271,9 @@ export const en = {
     emailPlaceholder: "you@example.com",
     passwordLabel: "Password",
     passwordPlaceholder: "At least 8 characters",
+    /* Sign in only (E2E audit L-3): the length rule belongs to choosing a
+       password, not to typing one somebody already has. */
+    signInPasswordPlaceholder: "Your password",
     fullNameLabel: "Full name",
     fullNamePlaceholder: "Your name",
     forgotPassword: "Forgot password?",
@@ -1359,6 +1284,13 @@ export const en = {
     haveAccount: "Already have an account?",
     termsNotice: "By continuing you agree to our Terms and Privacy Policy.",
     providerUnavailable: "This sign in method is not configured yet.",
+    /* B-2: the one step a new Google or Apple account passes before it goes
+       in, because it never saw the sign-up form's two ticks. */
+    finishTitle: "Finish setting up",
+    finishLead: "One last step. Check your name, then agree to the terms and confirm you are 18 or older.",
+    finishCta: "Continue to Vallo",
+    finishNotYou: "Not you?",
+    finishSignOut: "Sign out",
     backToHome: "Back to home",
     otherWays: "Other ways to continue",
     resetTitle: "Reset your password",
@@ -1368,6 +1300,16 @@ export const en = {
     resetNotArrived: "Nothing after a few minutes? Look in spam, and check the address you typed. You can ask again from the sign-in screen.",
     resetExpiredTitle: "That link has expired",
     resetExpiredLead: "A reset link lasts an hour and works once. Ask for a new one and open it on the same device.",
+    /* The code fallback for a reset link opened somewhere else: another
+       phone, another browser, or a mail app's own browser. The code works
+       on any device, where the link only works where it was asked for. */
+    resetHaveCode: "Opened the email somewhere else? Type the code from it instead.",
+    resetEnterCode: "Enter the code",
+    resetCodeTitle: "Enter your reset code",
+    resetCodeLead: "Type your email address and the code from the reset email. The code works on any device, once.",
+    resetCodeLabel: "Code",
+    resetCodeSubmit: "Check the code",
+    resetCodeAskAgain: "Ask for a new code",
     newPasswordTitle: "Choose a new password",
     newPasswordLead: "Pick something you have not used here before. You will be signed in as soon as it is saved.",
     currentPasswordLabel: "Current password",
@@ -1391,6 +1333,24 @@ export const en = {
       "This address was set up with Google, which Vallo no longer uses to sign in. Type your password below. If you never set one, choose Forgot password and we will email you a link to set it.",
     accountNotFound: "No account uses this address yet.",
     accountCreate: "Create one with it",
+    /* The curved top block every auth screen shares (the Slate pass, 29
+       September): one line under the wordmark, chosen by the screen. */
+    heroSignIn: "Welcome back! Sign in to continue.",
+    heroSignUp: "New here? Your account takes a minute.",
+    heroVerify: "One code and you are in.",
+    heroReset: "Locked out? We will get you back in.",
+    /* The round provider buttons carry no words, so these are their names. */
+    googleShort: "Google",
+    appleShort: "Apple",
+    socialLabel: "Or continue with",
+    /* The wordmark in the curved block and on the intro: the brand's own
+       name, set in spaced capitals, the same in every language. */
+    wordmark: "VALLO",
+    /* The sign-up options page, after Get started on the intro. */
+    optionsTitle: "Create your account",
+    optionsLead: "Choose how you want to sign up.",
+    signUpWithEmail: "Sign up with email",
+    haveAccountCta: "I already have an account",
   },
 
   /**
@@ -1455,6 +1415,21 @@ export const en = {
     },
     referralLabel: "Referral code",
     referralPlaceholder: "Enter your code",
+    /* The form in two steps on one page (the Slate pass). Step one is the
+       account (name, email, password), step two is everything else. The
+       server still checks every field; these are only the early answers the
+       Next button gives before it moves on. */
+    stepIndicator: "Step {current} of {total}",
+    stepAccount: "Your account",
+    stepAbout: "A little about you",
+    backToStep: "Back to step 1",
+    createAccountCta: "Create account",
+    firstNameRequired: "Enter your first name.",
+    surnameRequired: "Enter your surname.",
+    emailRequired: "Enter your email address.",
+    emailInvalid: "That does not look like a valid email.",
+    passwordShort: "Use at least 8 characters.",
+    confirmRequired: "Re-enter your password.",
   },
 
   /**
@@ -1799,6 +1774,29 @@ export const en = {
       sub: "Your account, profile, bookings, agreements, messages you sent and more, as one JSON file.",
       note: "It is made when you ask and holds only your own records. Files you uploaded are listed, not included. For anything it leaves out, contact support.",
       signedOut: "Sign in to download the data held on your account.",
+    },
+
+    blocked: {
+      rowLabel: "Blocked accounts",
+      rowNote: "People you blocked cannot message you or see you, and you cannot see them.",
+      rowValueNone: "None",
+      rowValueOne: "1 blocked",
+      rowValueMany: "{count} blocked",
+      screenTitle: "Blocked accounts",
+      intro:
+        "Nobody on this list can message you, and neither of you sees the other anywhere on Vallo. They were not told when you blocked them, and they will not be told if you unblock them.",
+      emptyTitle: "You have not blocked anyone",
+      emptyBody:
+        "If someone makes you uncomfortable, open their profile or your conversation with them and choose Block. They will appear here.",
+      unreadable: "Your blocked list could not be loaded just now. Try again in a moment.",
+      signedOut: "Sign in to see the people you have blocked.",
+      blockedOn: "Blocked {when}",
+      unblock: "Unblock",
+      unblocking: "Unblocking",
+      unblockConfirm: "Unblock {name}? Your block on them will be lifted.",
+      unblockFailed: "That did not work. Please try again.",
+      someone: "A Vallo member",
+      showingSome: "Showing the {shown} most recent of {count}. Unblock some to see the rest.",
     },
 
     devices: {
@@ -2568,7 +2566,7 @@ export const en = {
     photos: {
       intro:
         "Add at least {min} photos, up to {max}. The first one is the cover, so lead with the wide shot that sells the place.",
-      tooNarrow: "Photos must be at least {width}px wide so they look sharp on every screen.",
+      tooNarrow: "Photos need at least {width}px on their longest side so they look sharp on every screen.",
       choose: "Choose photos",
       /* STORE-04: the app's own camera, shown only inside the native app. */
       takePhoto: "Take a photo",
@@ -2584,6 +2582,13 @@ export const en = {
       notPrepared:
         "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
       uploadFailed: "That photo did not finish uploading. Please try it again.",
+      /* The photo gate's refusals, one per cause, each naming what to do. */
+      heicUndecodable:
+        "This photo is in the HEIC format, which this browser cannot open. On an iPhone, set Camera, Formats to Most Compatible. On Android, turn off High efficiency pictures in the camera's settings. Or share the photo as a JPEG, then add it again.",
+      undecodable: "This file could not be opened as a photo. Try exporting it again as a JPEG.",
+      uploadTooBig: "That photo is over {max}. Most phones can export a smaller copy.",
+      uploadWrongType: "That file type cannot be stored. Use a JPEG, PNG or WebP photo.",
+      uploadSignedOut: "Your session has expired, so the photo was not stored. Sign in again, then add it.",
       needsKeys: "We cannot upload photos right now. Everything else you have typed is saved.",
       needsTitle: "Add a title on step one first, then your photos attach to this listing.",
     },
@@ -2712,6 +2717,7 @@ export const en = {
       amenities: "Choose at least one amenity guests will find.",
       priceNight: "Set the price per night in naira.",
       priceYear: "Set the yearly rent in naira.",
+      rent: "Set the rent in naira.",
       bedrooms: "Say how many bedrooms the property has.",
       bathrooms: "Say how many bathrooms the property has.",
       maxGuests: "Say how many guests the property sleeps.",
@@ -2822,6 +2828,8 @@ export const en = {
       drafts: "Drafts",
       upcomingStays: "Upcoming stays",
       unreadMessages: "Unread messages",
+      /* DB2: the count could not be read; never shown as 0. */
+      unreadUnknown: "Not known",
       noListings:
         "No properties yet. Your first listing takes about ten minutes, and drafts are saved as you go.",
       noStays: "No stays booked yet. Listings that are live in search are the ones guests can book.",
@@ -3277,8 +3285,9 @@ export const en = {
        * the two places it appears, because it does.
        *
        * `reportTarget`'s mixed case is the schema's, not a typo: `listing` is
-       * written by lib/reports/schema.ts and POST and SOCIAL_PROFILE by
-       * lib/social/posts-actions.ts.
+       * written by lib/reports/schema.ts; the social kinds were written as
+       * POST and SOCIAL_PROFILE until B-7a and are lower case since
+       * (lib/social/report-kinds.ts), so both spellings have words.
        *
        * The escrow kinds say where the money is and never who holds it,
        * because the terms say in bold that we hold none.
@@ -3322,6 +3331,12 @@ export const en = {
         },
         reportTarget: {
           listing: "A listing",
+          /* B-7a: the social kinds are written lower case now
+             (lib/social/report-kinds.ts). The upper-case keys stay for rows
+             filed before, which the pending B-7 migration lower-cases. */
+          post: "A post",
+          story_comment: "A comment on a story",
+          social_profile: "A profile",
           POST: "A post",
           SOCIAL_PROFILE: "A profile",
         },
@@ -4783,7 +4798,9 @@ export const en = {
     cardsEmptyTitle: "No card saved yet",
     cardsEmptyBody: "Save one and paying next time is one tap. Your card number never touches Vallo.",
     addCard: "Add a card",
-    addCardSub: "The bank makes a small check charge, returned to you, and the card is saved for next time.",
+    /* B-6: the amount and where it goes, said before the tap. The webhook
+       refunds every card-setup charge in full; Vallo keeps none of it. */
+    addCardSub: "We charge ₦100 to check the card and return it to the same card in full. The card is saved for next time.",
     adding: "Opening the secure card window. Nothing has been charged yet.",
     defaultLabel: "Default",
     expires: "Expires {when}",
@@ -5770,6 +5787,7 @@ export const en = {
   frontDoor: frontDoorEn,
   landingRooms: landingRoomsEn,
   afterTheGate: afterTheGateEn,
+  cryptoPay: cryptoPayEn,
   trustVisible: trustVisibleEn,
 
   landlord: landlordEn,
@@ -5785,6 +5803,195 @@ export const en = {
   compliancePep: compliancePepEn,
   complianceRisk: complianceRiskEn,
   complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
+
+  passcode: passcodeEn,
+
+  /*
+   * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).
+   *
+   * One title and one line per moment, and the line says what is now true,
+   * never more. A request is "requested" or "sent", never "booked"; a review
+   * is "in review", never "approved"; money is "paid" only after the server
+   * settled it against this exact booking. A pending or unknown payment never
+   * reaches these strings: it keeps the "Confirming your payment" sheet.
+   */
+  success: {
+    continue: "Continue",
+    close: "Close",
+    detail: {
+      amount: "Amount",
+      reference: "Reference",
+      when: "When",
+      for: "For",
+    },
+    moments: {
+      stayPaid: { title: "Stay paid", body: "Your payment is in and these dates are confirmed." },
+      stayPaidRecorded: {
+        title: "Stay paid",
+        body: "Your payment is recorded against this stay. Everything about it is under your stays.",
+      },
+      rentPaid: {
+        title: "Rent paid",
+        body: "The move-in total is paid and recorded. Arrange the keys with the agent in your thread.",
+      },
+      sharePaid: {
+        title: "Your share is paid",
+        body: "Your part of the move-in is recorded. The move-in completes when every share is in.",
+      },
+      moveInPaid: {
+        title: "Move-in paid in full",
+        body: "The last share is in, so the whole move-in total is paid.",
+      },
+      cryptoPaid: {
+        title: "Crypto payment received",
+        body: "The charge is settled. Your receipt is on this page.",
+      },
+      inspectionRequested: {
+        title: "Inspection requested",
+        body: "Whoever listed it can confirm your time or offer another. Their answer shows under Inspections.",
+      },
+      inspectionBooked: {
+        title: "Inspection booked",
+        body: "Your viewing is set for {when}. It is in your plans.",
+      },
+      inspectionReportSubmitted: {
+        title: "Inspection report submitted",
+        body: "It is now the record of what you saw at the property.",
+      },
+      inspectionRecorded: {
+        title: "Inspection recorded",
+        body: "The outcome is saved on this inspection.",
+      },
+      agreementDrawn: {
+        title: "Agreement drawn up",
+        body: "Read the terms and confirm them. Payment opens once both of you confirm and Vallo approves it.",
+      },
+      agreementConfirmed: {
+        title: "Terms confirmed",
+        body: "We will tell you when the other side confirms too.",
+      },
+      agreementInReview: {
+        title: "Your agreement is in review",
+        body: "Both of you have confirmed. Vallo reviews it next, and payment opens once it is approved.",
+      },
+      agreementApprovedRenter: {
+        title: "Agreement approved",
+        body: "Vallo has approved these terms, so you can pay the move-in total now.",
+      },
+      agreementApprovedOwner: {
+        title: "Agreement approved",
+        body: "Vallo has approved these terms. The renter can pay the move-in total now.",
+      },
+      claimFiled: {
+        title: "Claim filed",
+        body: "Your Guarantee claim is with the team. Its status shows on this agreement.",
+      },
+      refundRequested: {
+        title: "Refund requested",
+        body: "Your request is dated and with the team. Every step of it shows on this booking.",
+      },
+      listingSubmitted: {
+        title: "Your listing is in review",
+        body: "A person at Vallo reads it before it goes live. We will tell you the moment it is decided.",
+      },
+      listingApproved: {
+        title: "Your listing passed review",
+        body: "It goes live in search once it is published.",
+      },
+      listingLive: {
+        title: "Your listing is live",
+        body: "It is in search now, so people can find it.",
+      },
+      agentApplied: {
+        title: "Application sent",
+        body: "Your agent application is in review. We will tell you when it is decided.",
+      },
+      hostApplied: {
+        title: "Application sent",
+        body: "Your host application is in review. We will tell you when it is decided.",
+      },
+      registrationFiled: {
+        title: "Application sent",
+        body: "It is filed under {reference}. You can follow it from your profile.",
+      },
+      kycSubmitted: {
+        title: "Documents sent",
+        body: "A person at Vallo reviews them, usually within one working day.",
+      },
+      identityMatched: {
+        title: "Identity matched",
+        body: "Your identity was matched with NIMC. The next step is your address.",
+      },
+      verificationApproved: {
+        title: "Documents approved",
+        body: "A reviewer approved your documents, and your account moved up a level.",
+      },
+      agentApproved: {
+        title: "Application approved",
+        body: "A reviewer approved your agent application, so you can start listing now.",
+      },
+      hostApproved: {
+        title: "Business approved",
+        body: "A reviewer approved {name}. Guests see it once it is published.",
+      },
+      hostLive: {
+        title: "Your business is live",
+        body: "{name} is published, so guests can find it now.",
+      },
+      ticketFiled: {
+        title: "Message sent to support",
+        body: "Your reference is {reference}. Replies land in your support messages.",
+      },
+      contactSent: {
+        title: "Message sent",
+        body: "Your reference is {reference}. We reply to the email address you gave.",
+      },
+      reportFiled: { title: "Report received", body: "{promise}" },
+      stayRequested: {
+        title: "Booking requested",
+        body: "The agent confirms your dates personally. Pay now to hold them, or later from your bookings.",
+      },
+      stayHeld: {
+        title: "Dates held",
+        body: "Your dates are held. Paying now confirms the stay straight away.",
+      },
+      tableRequested: {
+        title: "Table request sent",
+        body: "The restaurant confirms or declines it, and the answer shows in your bookings.",
+      },
+      reviewPosted: {
+        title: "Review posted",
+        body: "Your review is on the listing now, and the agent has been told.",
+      },
+      tenancyReviewSent: {
+        title: "Review sent",
+        body: "Thank you. What you told us helps the next renter know what to expect.",
+      },
+      bankAccountAdded: {
+        title: "Bank account added",
+        body: "It is saved on your account and ready to use.",
+      },
+      /* B-6. Opens only when `confirmCardSetup` verified the ₦100 check with
+         Paystack for this person and filed the card. The ₦100 is refunded to
+         the card by the webhook, so the line says so and promises no date. */
+      cardSaved: {
+        title: "Card saved",
+        body: "It is ready for your next payment. The ₦100 check goes back to the same card, and your bank may take a few working days to show it.",
+      },
+      payoutAccountAdded: {
+        title: "Payout account added",
+        body: "It is saved, and your earnings can be paid into it.",
+      },
+      accountCreated: { title: "Welcome to Vallo", body: "Your account is ready." },
+      emailVerified: { title: "Email confirmed", body: "Your email address is confirmed on this account." },
+      passwordChanged: {
+        title: "Password changed",
+        body: "Your new password is set. Use it the next time you sign in.",
+      },
+      passcodeSet: { title: "Passcode set", body: "It unlocks Vallo on this device from now on." },
+      passcodeChanged: { title: "Passcode changed", body: "Use your new passcode to unlock Vallo on this device." },
+    },
+  },
 
 };
 

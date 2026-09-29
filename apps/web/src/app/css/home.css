@@ -125,6 +125,14 @@
   .nf-ai__ident {
     padding-bottom: var(--nf-space-sm);
   }
+  /* Inside a workspace the shell draws the bar, so the name pair carries the
+     history and settings controls on its own row. */
+  .nf-ai__ident--row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding-top: var(--nf-space-sm);
+  }
   .nf-ai__title {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h4);
@@ -363,8 +371,8 @@
     color: var(--nf-brand-secondary);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-ai__result-where {
@@ -465,8 +473,8 @@
     color: var(--nf-content-secondary);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-ai__ring {
@@ -576,8 +584,8 @@
       transform var(--nf-duration-press) var(--nf-ease-press);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
-    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
+    backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
     border-radius: var(--nf-radius-control);
   }

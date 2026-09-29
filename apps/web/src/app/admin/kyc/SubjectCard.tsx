@@ -9,6 +9,7 @@ import { DocumentDecision } from "../_components/MoneyDecisions";
 import { DocumentViewer } from "../_components/DocumentViewer";
 import { CredentialForm } from "./CredentialForm";
 import { getDictionary } from "@vallo/i18n";
+import { consentReceipt } from "@/lib/admin/member-file-rules";
 
 /* V-49 and V-87 copy on this card. The desk reads English. */
 const DESK = getDictionary("en").trustVisible.desk;
@@ -62,10 +63,14 @@ export function SubjectCard({
           {subject.displayName ?? "No display name"}
         </h3>
         <span className="nf-badge nf-badge--brand nf-numeric">Tier {subject.tier}</span>
-        {subject.applicationReference && (
+        {subject.applicationReference ? (
           <span className="font-mono text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {subject.applicationReference}
           </span>
+        ) : (
+          /* Filed from /verification with no application behind it: the
+             document row carries its uploader and nothing else. */
+          <span className="nf-badge">From Get verified</span>
         )}
       </div>
 
@@ -120,6 +125,8 @@ export function SubjectCard({
           {subject.payoutNameCheck.reason}.
         </p>
       )}
+
+      <ConsentReceipt subject={subject} ui={ui} />
 
       {/* V-87: dated credentials, recorded by the desk, never required. */}
       {decidable && subject.userId && <CredentialForm subjectId={subject.userId} />}
@@ -207,5 +214,43 @@ export function SubjectCard({
         ))}
       </ul>
     </article>
+  );
+}
+
+/**
+ * What this person agreed to when they sent the documents: the three
+ * agreements `/verification` records in `kyc_consents`, worded as the form
+ * worded them, with when. A missing one is named, because a reviewer should
+ * not approve a check somebody did not consent to.
+ */
+function ConsentReceipt({ subject, ui }: { subject: KycSubjectView; ui: AdminUi }) {
+  if (!subject.consentsRead) {
+    return (
+      <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-status-rejected)]">
+        The consent receipt could not be read just now.
+      </p>
+    );
+  }
+  const receipt = consentReceipt(subject.consents);
+  return (
+    <div className="mt-xs" data-testid="kyc-consent-receipt">
+      <p className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">Consent receipt</p>
+      {receipt.given.length === 0 ? (
+        <p className="mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          No consent recorded. Documents sent from Get verified record three agreements; these came by an older path.
+        </p>
+      ) : (
+        <ul className="mt-3xs space-y-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-secondary)]">
+          {receipt.given.map((c) => (
+            <li key={c.consent}>
+              {c.words} · {ui.when(c.at)}
+            </li>
+          ))}
+          {receipt.missing.length > 0 && (
+            <li className="text-[var(--nf-status-rejected)]">Not given: {receipt.missing.join(", ")}</li>
+          )}
+        </ul>
+      )}
+    </div>
   );
 }

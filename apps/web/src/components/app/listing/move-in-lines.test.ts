@@ -105,4 +105,10 @@ describe("moveInLines", () => {
     expect(line(rows, "agency").keeper).toBe("Kept by Musa");
     expect(line(rows, "service").keeper).toBe("Paid to Musa for the estate");
   });
+
+  it("gives each row its own line glyph, never repeated in the block", () => {
+    const glyphs = moveInLines(listing({}), copy).map((row) => row.glyph);
+    expect(new Set(glyphs).size).toBe(glyphs.length);
+    expect(glyphs).not.toContain("coins");
+  });
 });

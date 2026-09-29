@@ -179,7 +179,13 @@ export function RealDashboard({
             <FigureRow
               icon="chat-bubble"
               label={d.unreadMessages}
-              value={<Figure value={numbers.unreadMessages} locale={locale} />}
+              value={
+                numbers.unreadMessages === null ? (
+                  d.unreadUnknown
+                ) : (
+                  <Figure value={numbers.unreadMessages} locale={locale} />
+                )
+              }
               href="/agent/messages"
             />
           </RowList>

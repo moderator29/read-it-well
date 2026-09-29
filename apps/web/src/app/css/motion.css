@@ -545,15 +545,17 @@
      position where supported, so scrubbing back up replays them. */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
+      /* `forwards` from `entry 0%`: a section not yet reached is shown
+         rather than held at opacity 0 (detail-m.css has the reason). */
       .nf-enter {
-        animation: nf-enter-up linear both;
+        animation: nf-enter-up linear forwards;
         animation-timeline: view();
-        animation-range: entry 8% cover 34%;
+        animation-range: entry 0% cover 34%;
       }
       .nf-enter-scale {
-        animation: nf-enter-scale linear both;
+        animation: nf-enter-scale linear forwards;
         animation-timeline: view();
-        animation-range: entry 5% cover 40%;
+        animation-range: entry 0% cover 40%;
       }
       /* Rails drift a touch as the page scrolls past them, which reads as
          depth without any JavaScript scroll listener. */
@@ -562,6 +564,13 @@
         animation-timeline: view();
         animation-range: cover 0% cover 100%;
       }
+    }
+  }
+  @media print {
+    .nf-enter,
+    .nf-enter-scale,
+    .nf-parallax-soft {
+      animation: none;
     }
   }
   @keyframes nf-enter-up {

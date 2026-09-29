@@ -4,6 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useLockRecovery, useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useRouter } from "next/navigation";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {
   addPayoutAccount,
@@ -35,7 +37,10 @@ export function PayoutAccounts({
   accounts,
   banks,
   resolveAvailable,
+  success,
 }: {
+  /** The page's `t.success`, for "Payout account added". Absent, no sheet. */
+  success?: SuccessWords;
   accounts: PayoutAccount[];
   banks: Bank[];
   resolveAvailable: boolean;
@@ -82,8 +87,25 @@ export function PayoutAccounts({
     }
   }, [addState, router]);
 
+  /* Once per saved account: the action answer the sheet was shown for is
+     remembered, so a re-render does not reopen it. */
+  const [acknowledged, setAcknowledged] = useState<typeof addState>(null);
+  const addedWords = success ? successCopy(success, "payoutAccountAdded") : null;
+
   return (
     <section aria-labelledby="payout-accounts-heading" className="mt-xl">
+      {success && addedWords ? (
+      <SuccessSheet
+        open={addState?.ok === true && acknowledged !== addState}
+        onOpenChange={(open) => {
+          if (!open) setAcknowledged(addState);
+        }}
+        variant={addedWords.variant}
+        title={addedWords.title}
+        body={addedWords.body}
+        primary={{ label: success.continue }}
+      />
+      ) : null}
       <h2 id="payout-accounts-heading" className="nf-h3">
         Where your earnings are paid
       </h2>

@@ -12,6 +12,8 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { HostShell } from "@/components/host/HostShell";
+import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { businessArrival } from "@/lib/ui/arrival-moments";
 
 export const metadata: Metadata = {
   title: "Host",
@@ -81,9 +83,20 @@ export default async function HostPage() {
   }
 
   const [businesses, draft] = await Promise.all([getMyBusinesses(), getMyHostDraft()]);
+  /* A business approved or published in the staff console, whose notice
+     lands here: once per device, while it is news (docs/SUCCESS_MOMENTS.md). */
+  const approval = businessArrival(businesses, requestNow());
 
   return (
     <HostShell logoLabel={t.a11y.logoHome}>
+      <SuccessFromFlag
+        copy={t.success}
+        show={approval !== null}
+        moment={approval?.moment ?? "hostApproved"}
+        values={approval?.values}
+        seenKey={approval?.seenKey ?? "host-approved:none"}
+        haptic={false}
+      />
       <HostStandingBody businesses={businesses} draft={draft.businessId ? draft : null} locale={locale} />
     </HostShell>
   );
@@ -269,4 +282,9 @@ export function HostStandingBody({
       </Stack>
     </>
   );
+}
+
+/** The request's clock, read once, so the page agrees with itself. */
+function requestNow(): number {
+  return Date.now();
 }

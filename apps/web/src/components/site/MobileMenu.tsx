@@ -1,20 +1,17 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { useCallback, useState } from "react";
+import { Sheet } from "@/components/ui/Sheet";
 import Link from "next/link";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { SUPPORT_HREF } from "@/lib/support-email";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Locale } from "@vallo/i18n/core";
 
 /**
  * Marketing side navigation, for phones.
  *
- * SHORT. One grouped surface of rows, the display controls, and one button.
+ * SHORT. One grouped surface of rows and one button.
  *
  * What it was: a bare list where every row carried its own bottom border
  * INCLUDING the last one, so the stack ended on a hairline hanging under
@@ -28,9 +25,9 @@ import type { Locale } from "@vallo/i18n/core";
  * between them and none at either end, which is the platform's grouped list and
  * the pattern the reference set uses for every panel it has. Support is a row
  * in that group rather than a separate species. The label sits OUTSIDE the
- * surface. The two display controls sit under their own label in the same
- * shape, and the only filled thing in the panel is the one action it is asking
- * for.
+ * surface. The only filled thing in the panel is the one action it is asking
+ * for. The display group that held the language control is gone: language
+ * lives only in Settings.
  *
  * The opener is the product's panel glyph rather than the three-line
  * hamburger it used to be. Two menus on one platform drawn differently is two
@@ -39,27 +36,27 @@ import type { Locale } from "@vallo/i18n/core";
  */
 export function MobileMenu({
   links,
-  locale,
-  languageLabel,
   signIn,
   signUp,
   openLabel,
   closeLabel,
+  menuLabel,
 }: {
   links: { href: string; label: string }[];
-  locale: Locale;
-  languageLabel: string;
   signIn: string;
   signUp: string;
   openLabel: string;
   closeLabel: string;
+  /** The dialog's accessible name, in the reader's language. */
+  menuLabel: string;
 }) {
   const [open, setOpen] = useState(false);
-  const panel = useRef<HTMLDivElement | null>(null);
   const close = useCallback(() => setOpen(false), []);
-  /* This panel carried aria-modal and no Escape handler, so a keyboard could
-     open it and not get out. One hook, the same contract everywhere. */
-  useOverlay({ open, onClose: close, panelRef: panel });
+  /* The platform's `Sheet` in its page shape: Escape, Back, the focus trap
+     and return, the scroll lock and drag or flick down to close. The sheet
+     portals itself to <body>, which matters here: the sticky header's
+     backdrop-filter makes it the containing block for fixed descendants, and
+     a panel rendered inside it was clipped to the 64px header bar. */
 
   return (
     <div className="lg:hidden">
@@ -73,29 +70,16 @@ export function MobileMenu({
         <UiIcon name="panel-left" size={20} />
       </button>
 
-      {/*
-       * Portalled to <body>: the sticky header's backdrop-filter makes it the
-       * containing block for fixed descendants, which trapped and clipped the
-       * panel inside the 64px header bar. From the body it truly covers the
-       * viewport and slides in like it should.
-       */}
-      {open &&
-        createPortal(
-        <div
-          ref={panel}
-          tabIndex={-1}
-          className="fixed inset-0 z-[75] outline-none"
-          role="dialog"
-          aria-modal="true"
-        >
-          <button
-            type="button"
-            aria-label={closeLabel}
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
-          />
-
-          <div className="nf-rise absolute inset-0 flex flex-col overflow-y-auto bg-[var(--nf-surface-primary)] px-heading pb-[calc(var(--nf-gap-block)+env(safe-area-inset-bottom,0px))] pt-[calc(var(--nf-gap-heading)+env(safe-area-inset-top,0px))]">
+      <Sheet
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) close();
+        }}
+        title={menuLabel}
+        hideTitle
+        fullPage
+      >
+          <div className="flex min-h-full flex-col">
             <div className="mb-block flex items-center justify-between">
               <Logo size={50} wordSize={21} />
               <button
@@ -155,18 +139,8 @@ export function MobileMenu({
             </nav>
 
             <div className="mt-block">
-              {/*
-                Language, which is the one thing a visitor may want to change
-                before reading a word. This group held the theme toggle beside
-                it until light mode was removed on 23 September 2026; with one
-                palette there is nothing to toggle, so the group is one control
-                and keeps its label outside, the same shape as the group above.
-              */}
-              <span className="nf-group-label">Display</span>
-              <div className="nf-panel nf-panel--card flex flex-row items-center gap-inline px-group py-row">
-                <LanguageSwitcher current={locale} label={languageLabel} compact />
-              </div>
-
+              {/* No language control here (founder, 29 September 2026): the
+                  language is changed in Settings and nowhere else. */}
               {/* The one filled control in the panel, and the reason the panel
                   exists. It used to wear `nf-breathe`, a permanent pulse loop:
                   the single most prominent thing on the surface, animated
@@ -183,9 +157,7 @@ export function MobileMenu({
               </ButtonLink>
             </div>
           </div>
-        </div>,
-        document.body,
-      )}
+      </Sheet>
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
+import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
 /**
@@ -170,7 +171,12 @@ export function FirmRegisterForm({
   }
 
   if (step === 3 && filed) {
-    return <FirmDoneScreen t={t} filed={filed} />;
+    return (
+      <>
+        <FirmDoneScreen t={t} filed={filed} />
+        <RegistrationFiledSheet reference={filed.reference} copy={t.success} />
+      </>
+    );
   }
 
   const screen = [

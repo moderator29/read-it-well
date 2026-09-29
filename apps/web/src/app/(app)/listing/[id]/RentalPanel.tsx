@@ -1,5 +1,5 @@
 import { type Locale } from "@vallo/i18n/core";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import { TYPE } from "@/components/app/Screen";
@@ -154,12 +154,10 @@ export async function RentalPanel({
         <RequestInspection listingId={listingId} existing={existing} locale={locale} />
       </div>
 
-      {/* The trust block: an object large enough to read as content, so this is
-          the one place on the panel that takes a 3D brand icon. */}
+      {/* The trust block: the plated shield, the same line glyph on the same
+          plate as every other row on the detail page (29 September 2026). */}
       <div className="mt-md flex items-start gap-sm border-t border-[var(--nf-panel-hair)] pt-md">
-        <span className="block h-11 w-11 shrink-0">
-          <BrandIcon name="shield-check" fill />
-        </span>
+        <DetailGlyph name="verified" />
         <p className={TYPE.rowMeta}>
           For your safety, keep every chat and payment inside Vallo. Deals made outside the
           platform are not protected by us. Pay only after you have inspected the property.

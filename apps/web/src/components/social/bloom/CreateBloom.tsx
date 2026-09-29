@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Composer } from "../feed/Composer";
@@ -117,7 +118,7 @@ export function CreateBloom({
   currentAreaId?: string;
   /** Stays this person may review right now. Empty when there are none. */
   reviewable: ReviewableStay[];
-  /** The preview harness opens it on mount so the fan can be photographed. */
+  /** Open on mount: the preview harness, and `/around?compose=1` from the dock's Create sheet. */
   initialOpen?: boolean;
 }) {
   const router = useRouter();
@@ -129,6 +130,11 @@ export function CreateBloom({
   const [reviewing, setReviewing] = useState(false);
   const [picking, setPicking] = useState(false);
   const [areaId, setAreaId] = useState<string | undefined>(currentAreaId);
+  /* The composer's words, held here rather than in the composer, because the
+     composer unmounts with its sheet and a sheet closes on a drag, a flick or
+     Back. A post half-written and closed by accident comes back when the plus
+     is opened again; sending one clears it. */
+  const [draft, setDraft] = useState("");
 
   const fabRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -140,20 +146,30 @@ export function CreateBloom({
     ACTIONS.map(() => ({ value: initialOpen ? 1 : 0, velocity: 0 })),
   );
   const frame = useRef<number | null>(null);
-  const composerRef = useRef<HTMLDivElement>(null);
-  const reviewRef = useRef<HTMLDivElement>(null);
+  /* The composer's field, so the sheet's first focus is the words rather
+     than its Close control. */
+  const fieldRef = useRef<HTMLTextAreaElement>(null);
 
   const close = useCallback(() => setOpen(false), []);
-  const closeComposer = useCallback(() => setComposing(false), []);
-  const closeReview = useCallback(() => setReviewing(false), []);
+  /* Both hand focus back to the plus. The plate that opened them has left
+     with the fan, so the sheet's own return would land on the page body. */
+  const closeComposer = useCallback(() => {
+    setComposing(false);
+    fabRef.current?.focus();
+  }, []);
+  const closeReview = useCallback(() => {
+    setReviewing(false);
+    fabRef.current?.focus();
+  }, []);
 
   /* Escape, the Tab trap, the counted scroll lock and the focus return, from
      the one hook every overlay on the platform uses. `autoFocus` is off
      because the fan moves focus itself, to the nearest lozenge, once the
      first one exists. */
   useOverlay({ open, onClose: close, panelRef, autoFocus: false });
-  useOverlay({ open: composing, onClose: closeComposer, panelRef: composerRef });
-  useOverlay({ open: reviewing, onClose: closeReview, panelRef: reviewRef });
+  /* The composer and the review picker are the platform's `Sheet`, which
+     brings the same hook plus drag and flick to close, Back and the safe
+     areas. They were full-page panels of their own with none of the three. */
 
   /*
    * The spring loop.
@@ -339,29 +355,23 @@ export function CreateBloom({
         ) : null}
       </div>
 
-      {composing ? (
-        <div className="nf-social-sheet" role="dialog" aria-modal="true" aria-label="Post">
-          <div ref={composerRef} className="nf-social-sheet__panel">
-            <header className="mb-md flex items-start justify-between gap-sm">
-              <div className="min-w-0">
-                <h2 className="nf-h3 text-[length:var(--nf-text-body-lg)]">Post</h2>
-                <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-                  {picking
-                    ? "Choose where this belongs"
-                    : chosen
-                      ? `Around ${chosen.name}, ${chosen.city}`
-                      : "Everyone on Vallo"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={closeComposer}
-                aria-label="Close"
-                className="nf-post__act shrink-0"
-              >
-                <UiIcon name="close" size={20} />
-              </button>
-            </header>
+      <Sheet
+        open={composing}
+        onOpenChange={(next) => {
+          if (!next) closeComposer();
+        }}
+        title="Post"
+        closeLabel="Close"
+        initialFocus={fieldRef}
+        fullPage
+      >
+            <p className="mb-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+              {picking
+                ? "Choose where this belongs"
+                : chosen
+                  ? `Around ${chosen.name}, ${chosen.city}`
+                  : "Everyone on Vallo"}
+            </p>
 
             {picking ? (
               <ul className="flex flex-col gap-xs">
@@ -420,6 +430,9 @@ export function CreateBloom({
                   areaId={chosen?.id}
                   areaName={chosen?.name}
                   signedIn={signedIn}
+                  fieldRef={fieldRef}
+                  draft={draft}
+                  onDraftChange={setDraft}
                   autoFocus
                   onDone={() => {
                     setComposing(false);
@@ -428,29 +441,20 @@ export function CreateBloom({
                 />
               </>
             )}
-          </div>
-        </div>
-      ) : null}
+      </Sheet>
 
-      {reviewing ? (
-        <div className="nf-social-sheet" role="dialog" aria-modal="true" aria-label="Review a stay">
-          <div ref={reviewRef} className="nf-social-sheet__panel">
-            <header className="mb-md flex items-start justify-between gap-sm">
-              <div className="min-w-0">
-                <h2 className="nf-h3 text-[length:var(--nf-text-body-lg)]">Review a stay</h2>
-                <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-                  A review is written against a stay you finished, so it starts from one of them.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={closeReview}
-                aria-label="Close"
-                className="nf-post__act shrink-0"
-              >
-                <UiIcon name="close" size={20} />
-              </button>
-            </header>
+      <Sheet
+        open={reviewing}
+        onOpenChange={(next) => {
+          if (!next) closeReview();
+        }}
+        title="Review a stay"
+        closeLabel="Close"
+        fullPage
+      >
+            <p className="mb-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+              A review is written against a stay you finished, so it starts from one of them.
+            </p>
 
             {reviewable.length > 0 ? (
               <ul className="flex flex-col gap-xs" data-testid="review-picker">
@@ -482,9 +486,7 @@ export function CreateBloom({
                 </Link>
               </div>
             )}
-          </div>
-        </div>
-      ) : null}
+      </Sheet>
     </>
   );
 }

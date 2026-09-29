@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { ShotList } from "@/components/agent/ShotList";
-import { isHeicLike, undecodablePhotoNotice } from "@/lib/agent/photo-decode";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
 import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
@@ -31,6 +30,7 @@ import {
   MAX_GATE_DIRECTIONS,
   MAX_PHOTOS,
   MAX_PHOTO_BYTES,
+  MAX_PHOTO_LABEL,
   PHOTO_MIME_TYPES,
   rejectUpload,
   MAX_SECURITY_PHONE,
@@ -74,6 +74,8 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/VideoWalkthrough";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { TextField, TextArea } from "@/components/ui/Field";
 import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
 import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/listings/compound";
@@ -86,6 +88,14 @@ import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/l
 import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
 import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
 import { tenantPreference } from "@/lib/safety/tenant-preference";
+import {
+  fileLine,
+  isHeic,
+  judgePhoto,
+  looksLikeImage,
+  uploadErrorText,
+} from "@/lib/listings/photo-gate";
+import { reviewerAsked } from "@/lib/agent/listings-edit-state";
 import Link from "next/link";
 
 /**
@@ -99,8 +109,8 @@ import Link from "next/link";
  *
  * Photos upload straight from the browser to the listing-photos bucket under
  * `<auth uid>/<listing id>/<uuid>.<ext>`, which storage RLS restricts to the
- * agent's own folder. The first photo is the cover. Anything narrower than
- * 1600px is refused here, and the server enforces the count at submit, so the
+ * agent's own folder. The first photo is the cover. Anything under 1600px on
+ * its long edge is refused here, and the server enforces the count at submit, so the
  * quality gate holds from both sides.
  *
  * Every string comes from the dictionary slice the page hands down, so the
@@ -847,6 +857,7 @@ function untouchedUnread(unread: readonly OwnAnswers[], group: OwnAnswers, value
 }
 
 export function ListingWizard({
+  success,
   copy,
   reference,
   moveInCopy,
@@ -870,6 +881,8 @@ export function ListingWizard({
   shotsCopy,
   demandCopy,
 }: {
+  /** The page's `t.success`, for "Your listing is in review". Absent, no sheet. */
+  success?: SuccessWords;
   /** V-70: the shot list's words. Without them the shot list is not drawn. */
   shotsCopy?: Dictionary["afterTheGate"]["shots"];
   /** V-10: the saved-search count on the last step. Absent in harnesses. */
@@ -999,6 +1012,8 @@ export function ListingWizard({
   const [notice, setNotice] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
+  /** One line per file the last pick refused, naming the file. */
+  const [photoProblems, setPhotoProblems] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   /* STORE-04: the shell's own camera, when the running binary carries it. */
   const [nativeCamera, setNativeCamera] = useState(false);
@@ -1012,6 +1027,9 @@ export function ListingWizard({
     };
   }, []);
   const [submitted, setSubmitted] = useState(false);
+  /* The success sheet over the "sent for review" screen, opened by the
+     action's own ok and closed by the person; the screen stays under it. */
+  const [celebrate, setCelebrate] = useState(false);
   const [pending, startTransition] = useTransition();
   /** Whether the last `persist` reached the server and was accepted. */
   const lastSaveOk = useRef(true);
@@ -1249,7 +1267,7 @@ export function ListingWizard({
          for yet, so they read in English rather than printing the wrong one of
          the two it does have. */
       case "rent":
-        return g.priceYear;
+        return values.rentPeriod === "year" ? g.priceYear : g.rent;
       case "rate":
         return perHead ? "Set the price per head in naira." : g.priceNight;
       case "salePrice":
@@ -1415,7 +1433,13 @@ export function ListingWizard({
   /** Push the current state to the platform. Returns the listing id, or null. */
   const persist = useCallback(async (): Promise<string | null> => {
     if (!canPersist) return null;
-    if (values.title.trim().length < 2) return listingId;
+    /* Nothing is sent below two characters. That is only a successful save
+       when a stored draft already exists; with none, `go` and `send` must
+       not treat the step as saved. */
+    if (values.title.trim().length < 2) {
+      lastSaveOk.current = listingId !== null;
+      return listingId;
+    }
 
     /* A server action can throw rather than answer: a dropped connection, or a
        deploy between two taps ("Failed to find Server Action"). Uncaught, that
@@ -1512,23 +1536,40 @@ export function ListingWizard({
     setListingId(result.data.id);
     setSavedAt(formatDate(new Date(), locale, { hour: "2-digit", minute: "2-digit" }));
 
-    const amenityResult = await setAmenities({
-      listingId: result.data.id,
-      codes: chosenAmenities,
-    });
-    if (!amenityResult.ok) setNotice(amenityResult.error);
+    /* The two follow-up writes are guarded like the first: either one
+       throwing (a dropped connection between taps) used to reject the whole
+       transition and unmount the wizard, and either one refusing let `go`
+       and `send` carry on as if everything had saved. */
+    try {
+      const amenityResult = await setAmenities({
+        listingId: result.data.id,
+        codes: chosenAmenities,
+      });
+      if (!amenityResult.ok) {
+        lastSaveOk.current = false;
+        setNotice(amenityResult.error);
+      }
 
-    /* The gate details go to their own table, which the public page cannot
-       read. Written on every autosave like everything else, so a host who
-       types a gate code and closes the phone does not lose it. */
-    const accessResult = await setListingAccess({
-      listingId: result.data.id,
-      estateName: values.estateName,
-      gateDirections: values.gateDirections,
-      securityPhone: values.securityPhone,
-      accessCode: values.accessCode,
-    });
-    if (!accessResult.ok) setNotice(accessResult.error);
+      /* The gate details go to their own table, which the public page cannot
+         read. Written on every autosave like everything else, so a host who
+         types a gate code and closes the phone does not lose it. */
+      const accessResult = await setListingAccess({
+        listingId: result.data.id,
+        estateName: values.estateName,
+        gateDirections: values.gateDirections,
+        securityPhone: values.securityPhone,
+        accessCode: values.accessCode,
+      });
+      if (!accessResult.ok) {
+        lastSaveOk.current = false;
+        setNotice(accessResult.error);
+        const accessErrors = accessResult.fieldErrors;
+        if (accessErrors) setFieldErrors((prev) => ({ ...prev, ...accessErrors }));
+      }
+    } catch {
+      lastSaveOk.current = false;
+      setNotice(copy.wizard.saveUnreached);
+    }
 
     return result.data.id;
   }, [canPersist, chosenAmenities, listingId, values, unread, fromMessage, marksUnread, copy.wizard.saveUnreached]);
@@ -1574,30 +1615,26 @@ export function ListingWizard({
   /* --------------------------------------------------------------- photos */
 
   /**
-   * Reject anything that would look soft in search results.
-   *
-   * Null when the browser cannot decode the file at all, which is a different
-   * problem from a narrow photo and gets a different sentence
-   * (`undecodablePhotoNotice`): HEIC in Chrome or on Android used to come
-   * back as width zero and be called "too narrow".
+   * The photo's pixel size, or null when this browser cannot decode it (HEIC
+   * outside Safari). The gate reads the long edge; see `lib/listings/photo-gate`.
    */
-  async function widthOf(file: File): Promise<number | null> {
+  async function sizeOf(file: File): Promise<{ width: number; height: number } | null> {
     if (typeof createImageBitmap === "function") {
       try {
         const bitmap = await createImageBitmap(file);
-        const width = bitmap.width;
+        const size = { width: bitmap.width, height: bitmap.height };
         bitmap.close();
-        return width;
+        return size;
       } catch {
         /* fall through to the image element */
       }
     }
-    return await new Promise<number | null>((resolve) => {
+    return await new Promise<{ width: number; height: number } | null>((resolve) => {
       const url = URL.createObjectURL(file);
       const image = new Image();
       image.onload = () => {
         URL.revokeObjectURL(url);
-        resolve(image.naturalWidth > 0 ? image.naturalWidth : null);
+        resolve({ width: image.naturalWidth, height: image.naturalHeight });
       };
       image.onerror = () => {
         URL.revokeObjectURL(url);
@@ -1626,34 +1663,63 @@ export function ListingWizard({
    */
   async function stripMetadata(file: File): Promise<Blob | null> {
     const MAX_EDGE = 2560;
+    /*
+     * The decoded image, by either door. `createImageBitmap` is missing or
+     * refuses some files on older Android WebViews and in Safari for HEIC,
+     * where an <img> element still decodes them; without this second door a
+     * photo that measured fine was refused at the re-encode.
+     */
+    const decoded = await (async (): Promise<{ source: CanvasImageSource; width: number; height: number; done: () => void } | null> => {
+      if (typeof createImageBitmap === "function") {
+        try {
+          const bitmap = await createImageBitmap(file);
+          return { source: bitmap, width: bitmap.width, height: bitmap.height, done: () => bitmap.close() };
+        } catch {
+          /* try the image element */
+        }
+      }
+      return await new Promise((resolve) => {
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () =>
+          resolve({ source: image, width: image.naturalWidth, height: image.naturalHeight, done: () => URL.revokeObjectURL(url) });
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(null);
+        };
+        image.src = url;
+      });
+    })();
+    if (!decoded || decoded.width <= 0 || decoded.height <= 0) {
+      decoded?.done();
+      return null;
+    }
     try {
-      const bitmap = await createImageBitmap(file);
-      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-      const width = Math.round(bitmap.width * scale);
-      const height = Math.round(bitmap.height * scale);
+      const scale = Math.min(1, MAX_EDGE / Math.max(decoded.width, decoded.height));
+      const width = Math.round(decoded.width * scale);
+      const height = Math.round(decoded.height * scale);
 
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
       const context = canvas.getContext("2d");
-      if (!context) {
-        bitmap.close();
-        return null;
-      }
-      context.drawImage(bitmap, 0, 0, width, height);
-      bitmap.close();
+      if (!context) return null;
+      context.drawImage(decoded.source, 0, 0, width, height);
 
       return await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9);
       });
     } catch {
       return null;
+    } finally {
+      decoded.done();
     }
   }
 
   async function onFiles(files: FileList | readonly File[] | null) {
     if (!files || files.length === 0) return;
     setPhotoNotice(null);
+    setPhotoProblems([]);
 
     if (!canPersist || !userId) {
       setPhotoNotice(copy.photos.needsKeys);
@@ -1670,25 +1736,34 @@ export function ListingWizard({
 
       const supabase = createClient();
       let slot = photos.length;
+      /*
+       * ONE LINE PER REFUSED FILE. A single notice was overwritten by every
+       * later file, so choosing six photos with two bad ones showed at most
+       * the last refusal, without saying which photo it was about.
+       */
+      const problems: string[] = [];
+      const refuse = (file: File, reason: string) => problems.push(fileLine(file.name, reason));
 
       for (const file of Array.from(files)) {
         if (slot >= MAX_PHOTOS) {
-          setPhotoNotice(fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
+          problems.push(fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
           break;
         }
-        /* Chrome on a desktop often gives a `.heic` file no type at all, so
-           HEIC is recognised by its name before the image check refuses it. */
-        if (!file.type.startsWith("image/") && !isHeicLike(file)) {
-          setPhotoNotice(copy.photos.notAnImage);
+        const verdict = judgePhoto(file, looksLikeImage(file) ? await sizeOf(file) : null);
+        if (verdict === "not-image") {
+          refuse(file, copy.photos.notAnImage);
           continue;
         }
-        const width = await widthOf(file);
-        if (width === null) {
-          setPhotoNotice(undecodablePhotoNotice(file, copy.photos.notPrepared));
+        if (verdict === "heic-undecodable") {
+          refuse(file, copy.photos.heicUndecodable);
           continue;
         }
-        if (width < MIN_PHOTO_WIDTH) {
-          setPhotoNotice(fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH }));
+        if (verdict === "undecodable") {
+          refuse(file, copy.photos.undecodable);
+          continue;
+        }
+        if (verdict === "too-small") {
+          refuse(file, fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH }));
           continue;
         }
 
@@ -1696,7 +1771,7 @@ export function ListingWizard({
         // re-encode always produces a JPEG, so the stored extension follows.
         const clean = await stripMetadata(file);
         if (!clean) {
-          setPhotoNotice(undecodablePhotoNotice(file, copy.photos.notPrepared));
+          refuse(file, isHeic(file) ? copy.photos.heicUndecodable : copy.photos.notPrepared);
           continue;
         }
 
@@ -1717,23 +1792,43 @@ export function ListingWizard({
           MAX_PHOTO_BYTES,
         );
         if (tooBig) {
-          setPhotoNotice(tooBig);
+          refuse(file, tooBig);
           continue;
         }
 
         const path = `${userId}/${id}/${crypto.randomUUID()}.jpg`;
 
-        const upload = await supabase.storage
-          .from("listing-photos")
-          .upload(path, clean, { contentType: "image/jpeg", upsert: false });
-        if (upload.error) {
-          setPhotoNotice(copy.photos.uploadFailed);
+        let uploadError: { message?: string; statusCode?: string | number } | null = null;
+        try {
+          const upload = await supabase.storage
+            .from("listing-photos")
+            .upload(path, clean, { contentType: "image/jpeg", upsert: false });
+          uploadError = upload.error as typeof uploadError;
+        } catch {
+          uploadError = { message: "network" };
+        }
+        if (uploadError) {
+          refuse(
+            file,
+            uploadErrorText(uploadError, {
+              tooBig: fill(copy.photos.uploadTooBig, { max: MAX_PHOTO_LABEL }),
+              wrongType: copy.photos.uploadWrongType,
+              signedOut: copy.photos.uploadSignedOut,
+              failed: copy.photos.uploadFailed,
+            }),
+          );
           continue;
         }
 
-        const attached = await addPhoto({ listingId: id, storagePath: path, position: slot });
+        let attached: Awaited<ReturnType<typeof addPhoto>>;
+        try {
+          attached = await addPhoto({ listingId: id, storagePath: path, position: slot });
+        } catch {
+          refuse(file, copy.wizard.saveUnreached);
+          continue;
+        }
         if (!attached.ok) {
-          setPhotoNotice(attached.error);
+          refuse(file, attached.error);
           continue;
         }
 
@@ -1741,6 +1836,7 @@ export function ListingWizard({
         setPhotos((prev) => [...prev, { id: attached.data.photoId, path, url }]);
         slot += 1;
       }
+      setPhotoProblems(problems);
     } finally {
       setUploading(false);
       if (fileInput.current) fileInput.current.value = "";
@@ -1750,15 +1846,27 @@ export function ListingWizard({
   function orderPhotos(next: Photo[]) {
     setPhotos(next);
     if (!canPersist || !listingId) return;
+    const before = photos;
     startTransition(async () => {
-      const result = await reorderPhotos({
-        listingId,
-        orderedIds: next.map((p) => p.id),
-      });
+      let result: Awaited<ReturnType<typeof reorderPhotos>>;
+      try {
+        result = await reorderPhotos({
+          listingId,
+          orderedIds: next.map((p) => p.id),
+        });
+      } catch {
+        setPhotos(before);
+        setPhotoNotice(copy.wizard.saveUnreached);
+        return;
+      }
       if (!result.ok) {
+        /* The grid goes back to the order the listing actually holds, or
+           the cover on screen is not the cover a renter sees. */
+        setPhotos(before);
         setPhotoNotice(result.error);
         return;
       }
+      setPhotoNotice(null);
       // Adopt the ids the platform settled on: at the ten photo ceiling one row
       // is rewritten, and holding a stale id would break the next reorder.
       setPhotos((prev) =>
@@ -1792,12 +1900,25 @@ export function ListingWizard({
   function dropPhoto(index: number) {
     const chosen = photos[index];
     if (!chosen) return;
+    const before = photos;
     const next = photos.filter((_, i) => i !== index);
     setPhotos(next);
     if (!canPersist || !listingId) return;
     startTransition(async () => {
-      const result = await removePhoto({ listingId, photoId: chosen.id });
-      if (!result.ok) setPhotoNotice(result.error);
+      /* A refused removal put the photo back on screen nowhere: the grid
+         showed it gone while the listing still held it, and the count the
+         submit gate reads disagreed with the one the lister saw. */
+      let error: string | null = null;
+      try {
+        const result = await removePhoto({ listingId, photoId: chosen.id });
+        if (!result.ok) error = result.error;
+      } catch {
+        error = copy.wizard.saveUnreached;
+      }
+      if (error) {
+        setPhotos(before);
+        setPhotoNotice(error);
+      }
     });
   }
 
@@ -1808,19 +1929,36 @@ export function ListingWizard({
       /* Saved first, always: the draft and its unconfirmed set (V-09) must be
          what the server checks, not what it held before the last tap. */
       const id = (await persist()) ?? listingId;
+      /* A refused save leaves the stored row behind the screen, and the
+         review team would be sent the older version. Stop with the save's
+         own refusal on screen instead. */
+      if (!lastSaveOk.current) return;
       if (!id) {
         setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
       }
-      const result = await submitListing({ listingId: id });
+      let result: Awaited<ReturnType<typeof submitListing>>;
+      try {
+        result = await submitListing({ listingId: id });
+      } catch {
+        setNotice(copy.wizard.saveUnreached);
+        return;
+      }
       if (!result.ok) {
-        setNotice(result.error);
+        /* The server's gate reads the STORED listing, so it can refuse what
+           the checklist here passed (a cover left at a gap after a removed
+           photo, a save that did not land). Its summary says "each one is
+           listed below", so the reasons are listed, in the checklist's own
+           words, rather than leaving a green checklist under a refusal. */
+        const reasons = Object.entries(result.fieldErrors ?? {}).map(([field, message]) => gateText(field, message));
+        setNotice([result.error, ...new Set(reasons)].join(" "));
         setFieldErrors(result.fieldErrors ?? {});
         return;
       }
       setNotice(null);
       setFieldErrors({});
       setSubmitted(true);
+      setCelebrate(true);
       try {
         const draftKey = listingDraftKey(userId);
         if (draftKey) localStorage.removeItem(draftKey);
@@ -1834,7 +1972,22 @@ export function ListingWizard({
   /* ----------------------------------------------------------- the render */
 
   if (submitted) {
-    return <ListingSentForReview copy={copy} reference={reference} />;
+    const words = success ? successCopy(success, "listingSubmitted") : null;
+    return (
+      <>
+        <ListingSentForReview copy={copy} reference={reference} />
+        {success && words ? (
+        <SuccessSheet
+          open={celebrate}
+          onOpenChange={setCelebrate}
+          variant={words.variant}
+          title={words.title}
+          body={words.body}
+          primary={{ label: success.continue }}
+        />
+        ) : null}
+      </>
+    );
   }
 
   const price = priceMinor > 0 ? formatMoney(priceMinor, locale) : null;
@@ -1932,6 +2085,18 @@ export function ListingWizard({
         <div className="mt-group">
           <Note glyph="flag" role="status">
             {notice}
+          </Note>
+        </div>
+      )}
+
+      {/* A listing sent back by review reopens with the reviewer's sentence in
+          front of the lister. It used to appear only on the workspace row, so
+          the form they fixed it in never said what needed fixing. */}
+      {reviewerAsked(initial) && (
+        <div className="mt-group" data-testid="reviewer-note">
+          <Note glyph="flag">
+            <span className="block font-semibold">What the reviewer said</span>
+            <span className="block">{initial?.reviewNotes}</span>
           </Note>
         </div>
       )}
@@ -2258,6 +2423,16 @@ export function ListingWizard({
             />
 
             {photoNotice && <Note glyph="flag" role="status">{photoNotice}</Note>}
+            {photoProblems.length > 0 && (
+              <Note glyph="flag" role="status">
+                {/* Spans, not a list: the note's body is a paragraph. */}
+                <span className="block space-y-inline-tight" data-testid="photo-problems">
+                  {photoProblems.map((line, index) => (
+                    <span key={`${index}-${line}`} className="block">{line}</span>
+                  ))}
+                </span>
+              </Note>
+            )}
 
             {/*
               THE GRID OF GOVERNING-07 SCREEN FOUR.
@@ -2291,6 +2466,10 @@ export function ListingWizard({
                     type="button"
                     className="nf-lw-shot__drop"
                     aria-label={copy.photos.remove}
+                    /* One photo change at a time: a second reorder sent while
+                       the first is still moving rows races it on the unique
+                       position index, and at ten photos holds a stale id. */
+                    disabled={pending || uploading}
                     onClick={() => dropPhoto(index)}
                   >
                     <UiIcon name="close" size={14} />
@@ -2300,7 +2479,7 @@ export function ListingWizard({
                       type="button"
                       className="nf-lw-shot__move"
                       aria-label={copy.drawn.photos.earlier}
-                      disabled={index === 0}
+                      disabled={index === 0 || pending || uploading}
                       onClick={() => movePhoto(index, index - 1)}
                     >
                       <UiIcon name="arrow-left" size={14} />
@@ -2309,7 +2488,7 @@ export function ListingWizard({
                       type="button"
                       className="nf-lw-shot__move"
                       aria-label={copy.drawn.photos.later}
-                      disabled={index === photos.length - 1}
+                      disabled={index === photos.length - 1 || pending || uploading}
                       onClick={() => movePhoto(index, index + 1)}
                     >
                       <UiIcon name="arrow-right" size={14} />

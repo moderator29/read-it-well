@@ -11,12 +11,20 @@ export const dynamic = "force-dynamic";
 export default async function SessionBInspectionPreview({
   searchParams,
 }: {
-  searchParams: Promise<{ side?: string; state?: string; rooms?: string }>;
+  searchParams: Promise<{
+    side?: string;
+    state?: string;
+    rooms?: string;
+    photos?: string;
+    rental?: string;
+    submitted?: string;
+    agreement?: string;
+  }>;
 }) {
   const params = await searchParams;
   return (
     <div className="nf-shell py-section-tight">
-      <InspectionFixture side={params.side} state={params.state} rooms={params.rooms} />
+      <InspectionFixture {...params} />
     </div>
   );
 }

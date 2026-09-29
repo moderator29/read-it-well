@@ -21,7 +21,7 @@ export function SafetyHoldButtons({ holdId }: { holdId: string }) {
 
   return (
     <span className="flex flex-wrap items-center gap-xs">
-      <button type="button" disabled={pending} onClick={() => act("clear")} className="nf-btn nf-btn--secondary nf-btn--sm">
+      <button type="button" disabled={pending} onClick={() => act("clear")} className="nf-btn nf-btn--glass nf-btn--sm">
         {pending ? desk.holdsWorking : desk.holdsClear}
       </button>
       <button type="button" disabled={pending} onClick={() => act("extend")} className="nf-btn nf-btn--ghost nf-btn--sm">

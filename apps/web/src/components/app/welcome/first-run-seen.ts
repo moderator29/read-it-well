@@ -88,6 +88,14 @@ export function isAuthDoor(next: string | null): boolean {
 }
 
 /**
+ * True when `next` is the sign-up form itself: the slides were opened from its
+ * "What Vallo is" link, so their bottom control reads "Back to sign up" (L-5).
+ */
+export function isSignUpForm(next: string | null | undefined): boolean {
+  return Boolean(next && /^\/sign-up\/email(?:[/?#]|$)/.test(next));
+}
+
+/**
  * Where a page sends a first-time visitor so they meet first run, keeping
  * the address they asked for. For `sign-in` and `sign-up` to call: `redirect(firstRunHref("/sign-up"))`
  * when the cookie is absent and the `welcomed` flag is not set.

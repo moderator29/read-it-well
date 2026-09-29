@@ -4,9 +4,12 @@
  * Releasing and removing what the scanner is holding.
  *
  * Four kinds of held thing, two decisions each: let it through, or take it
- * down. Both are ordinary updates on the row's `status` column, and every one
- * of them goes through the admin's own RLS-bound client, so Postgres re-checks
- * the role on each mutation rather than trusting a page that already checked.
+ * down. Every decision goes through one database function,
+ * `public.moderation_decide`, called with the caller's own client, which
+ * checks the moderation scope on auth.uid(), changes the row only while it
+ * is HELD and writes the audit row in the same transaction. The tables'
+ * update guards accept the change only when it comes through that function
+ * (`private.may_moderate`, migration 20260929012228).
  *
  * Notifications are NOT written here. Every one of these four transitions
  * already fans out from a database trigger, which is the right place for it:
@@ -59,6 +62,7 @@ export async function decideHeldItem(input: {
   decision: ModerationDecision;
   reason?: string;
 }): Promise<ActionResult<null>> {
+  /* Moderation-scoped staff decide held items too (Track K). */
   const access = await requireAdmin("moderation");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
@@ -71,15 +75,25 @@ export async function decideHeldItem(input: {
     return fail(REASON_REQUIRED, { reason: REASON_REQUIRED });
   }
 
-  /* ONE PATH, IN THE DATABASE. public.moderation_decide checks the moderation
-     scope on auth.uid(), refuses anything not currently HELD, and writes the
-     row and its audit line in one transaction, so a decision can never land
-     without its record. It runs on the caller's own session for that reason. */
-  let status: string;
+  /*
+   * ONE DOOR, IN THE DATABASE. `public.moderation_decide` checks
+   * `private.staff_can(auth.uid(), 'moderation')`, changes the row only while
+   * it is still HELD, and writes the audit row in the same transaction. It is
+   * called with the caller's OWN client because it decides on auth.uid():
+   * a staff member's service client has none, and a direct table write from
+   * it used to be put back by the update guards while this action reported
+   * success. The author's notice is the tables' own status triggers.
+   */
+  let status = "";
   try {
     const { data, error } = await (access.userClient as unknown as {
       rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>;
-    }).rpc("moderation_decide", { p_target: target, p_id: id, p_decision: decision, p_reason: reason || null });
+    }).rpc("moderation_decide", {
+      p_target: target,
+      p_id: id,
+      p_decision: decision,
+      p_reason: reason.length > 0 ? reason : null,
+    });
     if (error) return fail(SERVICE_DOWN);
     status = String((data as { status?: unknown } | null)?.status ?? "");
   } catch {

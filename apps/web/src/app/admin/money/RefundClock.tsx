@@ -1,5 +1,5 @@
 import type { Dictionary } from "@vallo/i18n/core";
-import type { ClockBoard, ClockBoardRow } from "@/lib/after-gate/refunds";
+import type { ClockBoard, ClockBoardRow, ClockKind } from "@/lib/after-gate/refunds";
 import { DeclineRefundRequest } from "./DeclineRefundRequest";
 
 /**
@@ -24,7 +24,7 @@ function List({
   rows: ClockBoardRow[];
   empty: string;
   due: string;
-  kinds: { request: string; rent_owed: string };
+  kinds: Record<ClockKind, string>;
   decide: { decline: string; declineReason: string; declineSubmit: string };
 }) {
   if (rows.length === 0) return <p className="nf-body-sm text-[var(--nf-content-muted)]">{empty}</p>;
@@ -45,7 +45,14 @@ function List({
 }
 
 export function RefundClock({ board, copy }: { board: ClockBoard; copy: Dictionary["afterTheGate"]["admin"] }) {
-  const kinds = { request: copy.kindRequest, rent_owed: copy.kindRentOwed };
+  const kinds: Record<ClockKind, string> = {
+    request: copy.kindRequest,
+    unsent: copy.kindUnsent,
+    processor: copy.kindProcessor,
+    share_unsent: copy.kindShareUnsent,
+    share_processor: copy.kindShareProcessor,
+    rent_owed: copy.kindRentOwed,
+  };
   return (
     <section className="nf-panel nf-panel--card mt-lg block p-md" data-testid="admin-refund-clock" aria-label={copy.dueSoonTitle}>
       {board.state === "unavailable" ? (

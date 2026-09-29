@@ -19,6 +19,7 @@ import { loadMoreFeed, type FeedMode } from "@/lib/social/posts-actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { FeedPage } from "@/lib/social/posts-queries";
 import { stampAuthorTiers } from "@/lib/social/author-badges";
+import { setupExempt } from "@/lib/actions/setup-exempt";
 
 /*
  * A "use server" MODULE MAY EXPORT ASYNC FUNCTIONS AND NOTHING ELSE, and a
@@ -41,7 +42,15 @@ import { stampAuthorTiers } from "@/lib/social/author-badges";
  * `page.tsx` binds `mode` and `Feed` supplies each cursor, so the component
  * only ever sees `(cursor) => Promise<ActionResult<FeedPage>>`.
  */
+/* B-2: read-only (or an exit the finish-setup hold never blocks), so it runs
+   with the hold lifted. See lib/actions/setup-exempt.ts. */
 export async function loadMoreAround(
+  ...args: Parameters<typeof loadMoreAroundInner>
+): Promise<Awaited<ReturnType<typeof loadMoreAroundInner>>> {
+  return setupExempt(() => loadMoreAroundInner(...args));
+}
+
+async function loadMoreAroundInner(
   mode: FeedMode,
   cursor: string,
 ): Promise<ActionResult<FeedPage>> {

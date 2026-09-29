@@ -9,12 +9,13 @@
  * `add_tenancy_report_photo`, `countersign_tenancy_report`), made on the
  * caller's own session client so `auth.uid()` is the person.
  *
- * THE ONE EXCEPTION MOVES MONEY. `returnCaution` sends the lister's own money
- * to the tenant's wallet through `return_caution`, which wraps the ordinary
- * wallet transfer and, like it, is reachable by the service role only: money
- * never moves from a browser. It passes the same gates as the Send page (the
- * wallet flag and the money limits) before it names the signed-in lister to
- * the door.
+ * NOTHING HERE MOVES MONEY. The caution was paid to the lister in the
+ * move-in split and is theirs to hold under the tenancy (Vallo never holds
+ * it). A return is paid directly between the two people and RECORDED here
+ * (`record_caution_return`, by either party), the tenant can say a recorded
+ * return never arrived (`contest_caution_return`), and an unreturned caution
+ * past its due date goes to the Vallo Guarantee
+ * (`escalate_caution_to_guarantee`), which staff decide.
  *
  * Each door answers a status word; this file turns it into the sentence the
  * person reads. An unknown word is a service fault, said as one.
@@ -27,7 +28,6 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { ROOM_ITEMS } from "../inspections/report";
 import { parseNairaToKobo } from "../agent/listings-schema";
-import { callMoneyDoor } from "./money-door";
 
 const SERVICE_DOWN = "That did not go through. Nothing was changed. Try again in a moment.";
 
@@ -41,8 +41,16 @@ const STATUS_WORDS: Record<string, string> = {
   already_answered: "You have already answered that line.",
   void: "This tenancy was cancelled or refunded, so no caution is owed on it.",
   not_ended: "Deductions open once the tenancy has ended.",
-  already_returned: "That return has already gone through. It is on the record below.",
-  insufficient: "Vallo does not move money between people.",
+  already_recorded: "That return is already on the record below.",
+  bad_date: "Enter the day it was paid: not in the future, and not before the tenancy file opened.",
+  bad_method: "Choose how it was paid.",
+  own_record: "You recorded that return yourself.",
+  note_required: "Say what happened, in a few words.",
+  already_contested: "You have already told Vallo about that return.",
+  not_due: "The caution is not due back yet.",
+  already_open: "A Vallo Guarantee claim on this caution is already with Vallo staff.",
+  nothing_claimable: "Nothing is owed on the caution that is not already recorded, deducted or in question.",
+  no_paid_agreement: "This tenancy was not paid through an approved Vallo agreement, so the Guarantee does not cover it.",
   no_such_file: "That photo did not finish uploading. Upload it again.",
   bad_stage: "That report does not exist.",
   not_paid: "The tenancy file opens when the move-in payment has settled.",
@@ -135,17 +143,31 @@ export async function answerCautionDeduction(input: {
   );
 }
 
-export async function returnCaution(input: {
+/**
+ * Record a caution return. The lister records what they paid back; the
+ * tenant confirms what they received. The money went directly between the
+ * two of them. The key is minted when the form is drawn, so a double tap
+ * records once.
+ */
+export async function recordCautionReturn(input: {
   tenancyId: string;
   obligationId: string;
   amountNaira: string;
-  /** Minted when the form is drawn: the same form sent twice moves money once. */
+  returnedOn: string;
+  method: "bank_transfer" | "cash" | "other";
+  reference?: string;
   idempotencyKey: string;
-  /** V-81: the phone-lock proof for this return, when the lister has a lock. */
-  stepUp?: string;
 }): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = validate(
-    z.object({ tenancyId: uuid, obligationId: uuid, amountNaira: z.string(), idempotencyKey: uuid, stepUp: z.string().max(200).optional() }),
+    z.object({
+      tenancyId: uuid,
+      obligationId: uuid,
+      amountNaira: z.string(),
+      returnedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter the day it was paid."),
+      method: z.enum(["bank_transfer", "cash", "other"], { message: "Choose how it was paid." }),
+      reference: z.string().trim().max(100, "Keep the reference under 100 characters.").optional(),
+      idempotencyKey: uuid,
+    }),
     input,
   );
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
@@ -153,25 +175,54 @@ export async function returnCaution(input: {
   if (amount === null || amount <= 0) {
     return fail("Enter an amount above zero.", { amountNaira: "Enter an amount above zero." });
   }
-  const result = await callMoneyDoor({
-    fn: "return_caution",
-    args: (userId) => ({
+  return door(
+    "record_caution_return",
+    {
       p_obligation: parsed.data.obligationId,
       p_amount: amount,
-      p_lister: userId,
+      p_returned_on: parsed.data.returnedOn,
+      p_method: parsed.data.method,
+      p_reference: parsed.data.reference && parsed.data.reference.length > 0 ? parsed.data.reference : null,
       p_key: parsed.data.idempotencyKey,
+    },
+    `/tenancy/${parsed.data.tenancyId}`,
+  );
+}
+
+/** The tenant says a return the lister recorded never arrived. Vallo staff rule on it. */
+export async function contestCautionReturn(input: {
+  tenancyId: string;
+  returnId: string;
+  note: string;
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(
+    z.object({
+      tenancyId: uuid,
+      returnId: uuid,
+      note: z.string().trim().min(5, "Say what happened, in a few words.").max(1000, "Keep it under 1,000 characters."),
     }),
-    amountMinor: amount,
-    action: "tenancy.caution.returned",
-    words: STATUS_WORDS,
-    detail: { obligation_id: parsed.data.obligationId },
-    intent: async () => ({ kind: "caution_return", target: parsed.data.obligationId, amountKobo: amount }),
-    stepUp: parsed.data.stepUp,
-  });
-  if (result.ok) {
-    revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
-  }
-  return result;
+    input,
+  );
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  return door(
+    "contest_caution_return",
+    { p_return: parsed.data.returnId, p_note: parsed.data.note },
+    `/tenancy/${parsed.data.tenancyId}`,
+  );
+}
+
+/** Past its due date, the tenant takes an unreturned caution to the Vallo Guarantee. */
+export async function escalateCaution(input: {
+  tenancyId: string;
+  obligationId: string;
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(z.object({ tenancyId: uuid, obligationId: uuid }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  return door(
+    "escalate_caution_to_guarantee",
+    { p_obligation: parsed.data.obligationId },
+    `/tenancy/${parsed.data.tenancyId}`,
+  );
 }
 
 export async function saveTenancyReport(input: {

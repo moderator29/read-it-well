@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, type ReactNode } from "react";
+import { useId, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
-import { useOverlay } from "@/lib/ui/use-overlay";
+import { Sheet as UiSheet } from "@/components/ui/Sheet";
 import { Switch } from "@/components/ui/Switch";
 import { Segmented } from "@/components/ui/Segmented";
 import { IconPlate } from "@/components/ui/IconPlate";
@@ -475,23 +475,18 @@ export function RowSegment<T extends string>({
 /* ------------------------------------------------------------------ sheet */
 
 /**
- * A sheet.
+ * A sheet, as the settings rows open one.
  *
- * Escape closes it, focus is trapped inside it, the page behind it does not
- * scroll, and focus returns to whatever opened it. Those four are the whole
- * difference between a modal and a div that happens to be on top, and all four
- * now come from `lib/ui/use-overlay` rather than being written out here.
+ * The platform's `Sheet` (`components/ui/Sheet.tsx`) under this file's
+ * long-standing props, so every settings sheet has the grip, drag and flick to
+ * close, Back, Escape, the focus trap and return, the counted scroll lock and
+ * the home-indicator inset. This used to draw its own scrim and panel on the
+ * shared overlay hook, with no gesture and no Back.
  *
- * The hand-rolled version set `body.style.overflow` outright and restored
- * whatever it had captured on the way out. Open a sheet from inside a drawer
- * that is already holding the page still and the sheet closing hands scrolling
- * straight back to a page nobody can see, under a drawer that is still up. The
- * shared hook COUNTS its openers, so the page only moves again when the last
- * overlay has gone.
- *
- * `autoFocus` is off here deliberately. This sheet has always focused its own
- * panel rather than the first control inside it: landing on Close would read to
- * a screen reader as though the sheet were already finished.
+ * First focus is still the sheet's content rather than the first control in
+ * it: landing on Close reads to a screen reader as though the sheet were
+ * already finished. The content wrapper takes that focus (`tabIndex={-1}`) and
+ * the dialog's name is the title.
  */
 export function Sheet({
   open,
@@ -506,58 +501,23 @@ export function Sheet({
   children: ReactNode;
   footer?: ReactNode;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
-  const titleId = useId();
-
-  const close = useCallback(() => onClose(), [onClose]);
-
-  useOverlay({ open, onClose: close, panelRef, autoFocus: false });
-
-  /*
-   * The panel, not the first control, and deliberately AFTER the hook.
-   *
-   * Effect order is load-bearing here. `useOverlay` reads `document.activeElement`
-   * to learn who opened the sheet, so anything that moves focus has to run
-   * second or the hook records the panel as its own opener and, on close, hands
-   * focus back to an element that is being removed. A first attempt did this in
-   * a ref callback, which fires during commit and therefore BEFORE any effect;
-   * the sheet closed and focus landed on the body instead of the row.
-   */
-  useEffect(() => {
-    if (!open) return;
-    panelRef.current?.focus();
-  }, [open]);
-
-  if (!open) return null;
+  const contentRef = useRef<HTMLDivElement>(null);
 
   return (
-    <>
-      <div className="nf-rows-sheet__scrim" onClick={close} aria-hidden="true" />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        className="nf-rows-sheet"
-      >
-        <div className="nf-rows-sheet__head">
-          <h2 id={titleId} className="nf-rows-sheet__title">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Close"
-            className="nf-icon-btn nf-rows-sheet__close"
-          >
-            <UiIcon name="close" size={ICON.inline} />
-          </button>
-        </div>
-        <div className="nf-rows-sheet__body">{children}</div>
-        {footer && <div className="nf-rows-sheet__foot">{footer}</div>}
+    <UiSheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={title}
+      closeLabel="Close"
+      initialFocus={contentRef}
+      footer={footer}
+    >
+      <div ref={contentRef} tabIndex={-1} className="outline-none">
+        {children}
       </div>
-    </>
+    </UiSheet>
   );
 }
 

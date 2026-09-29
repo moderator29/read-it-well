@@ -97,6 +97,16 @@ html[data-theme="light"] {
 }
 [data-theme="dark"] {
   color-scheme: dark;
+  /* An island's text takes its own palette's ink: without this a night
+     region inside a light page inherits the page's dark ink (the navy
+     header, reference 05). */
+  color: var(--nf-content-primary);
+}
+/* The way back out of an island (tokens.css, the light block's second
+   selector): a light popover inside the navy header. */
+:root[data-theme="light"] [data-theme="light"] {
+  color-scheme: light;
+  color: var(--nf-content-primary);
 }
 
 @media (prefers-reduced-motion: reduce) {

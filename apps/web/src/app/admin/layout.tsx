@@ -16,6 +16,10 @@ import { EntryGate } from "./_components/EntryGate";
 import { BackButton } from "@/components/site/BackButton";
 import { getPersonTiers } from "@/lib/admin/reads/shared";
 import { ENTRY_COOKIE } from "./_components/entry";
+import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
+/* The console's stylesheet, loaded by the console alone (B-4): it left
+   `globals.css`, where every page paid for it. */
+import "@/app/css/admin.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -63,7 +67,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     const name = shell.userName && shell.userName !== "Guest" ? shell.userName : (door.user.email ?? "Staff");
     return (
       <StaffFrame staff={door.staff} name={name}>
-        {children}
+        <PasscodeLayer>{children}</PasscodeLayer>
       </StaffFrame>
     );
   }
@@ -102,7 +106,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       back={<BackButton fallback="/admin" label={t.common.back} className="nf-admin-back" />}
     >
       <EntryGate entered={entered} userId={access.user.id} opening={t.admin.shell.entry.opening}>
-        {children}
+        {/* The passcode lock (docs/PASSCODE.md), for staff as for everyone. */}
+        <PasscodeLayer>{children}</PasscodeLayer>
       </EntryGate>
     </AdminFrame>
   );

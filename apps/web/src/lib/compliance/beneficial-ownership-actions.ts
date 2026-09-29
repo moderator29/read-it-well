@@ -86,6 +86,10 @@ export async function decideListingMandate(input: {
   idDocumentRef?: string | null;
   reason?: string | null;
 }): Promise<ActionResult<{ state: string }>> {
+  /* Listing-approval staff decide mandates too. The call goes through the
+     caller's OWN client: `decide_listing_mandate` checks
+     `private.staff_can(auth.uid(), 'listing_approval')`, and the service
+     client a staff member is handed has no auth.uid(). */
   const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
   if (!UUID.test(input.mandateId) || (input.decision !== "approve" && input.decision !== "reject")) return fail(FAILED);
@@ -119,6 +123,8 @@ export async function decideListingMandate(input: {
     const state = (data as { state?: unknown } | null)?.state;
     if (state === "gone") return fail("That mandate is no longer there. Refresh the desk.");
     if (state === "already") return fail("Someone has already decided this mandate. Refresh the desk.");
+    /* SCUML item 19: the database refuses a staff member who lets the listing. */
+    if (state === "own_listing") return fail("You let this listing, so another member of staff must decide its mandate.");
     if (state === "ended") return fail("This mandate's end date has passed, so it cannot be approved. Refuse it and ask the lister to file a current one.");
     if (state !== "approved" && state !== "rejected") return fail(FAILED);
     revalidatePath("/admin/listings");

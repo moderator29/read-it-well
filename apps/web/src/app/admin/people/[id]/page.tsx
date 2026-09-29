@@ -3,6 +3,8 @@ import Link from "next/link";
 import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readPerson } from "@/lib/admin/person-queries";
+import { readMemberExtras } from "@/lib/admin/member-queries";
+import { MemberSections } from "./MemberSections";
 import { adminUi } from "../../_components/ui";
 import { UpholdControl } from "./UpholdControl";
 import { ConsiderStr } from "../../_components/ConsiderStr";
@@ -62,9 +64,18 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
   }
 
   const { person } = file;
+  /* Only once the person file answered "ready": it is the read that refuses
+     scoped staff in the database and writes the person.view audit row, so
+     nothing more about this person is read unless it has passed. */
+  const extras = await readMemberExtras(person.userId);
   return (
     <div className="nf-console">
       <ui.QueueHeader title={person.name ?? "A person"} lede={LEDE} />
+      <p className="mb-row nf-caption">
+        <Link href="/admin/people" className="inline-flex min-h-11 items-center underline underline-offset-2">
+          Find another person
+        </Link>
+      </p>
       {/* SCUML item 6: open an STR case about this person. */}
       <ConsiderStr from="person" id={id} />
 
@@ -156,6 +167,16 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
           </ul>
         )}
       </section>
+
+      {extras.state === "ok" ? (
+        <MemberSections userId={person.userId} extras={extras.data} ui={ui} locale={locale} />
+      ) : (
+        <section className="mt-section-tight nf-panel nf-panel--card nf-admin-card p-card" aria-label="Member file">
+          <p className="nf-body-sm text-[var(--nf-status-rejected)]">
+            Verification, listings, agreements, support, devices and notes could not be read just now. Reload to try again.
+          </p>
+        </section>
+      )}
 
       <section className="mt-section-tight nf-panel nf-panel--card nf-admin-card p-card" aria-label="Timeline" data-testid="person-timeline">
         <h2 className="nf-h4">Everything, newest first</h2>

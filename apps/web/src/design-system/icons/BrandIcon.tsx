@@ -4,10 +4,12 @@ import Image from "next/image";
  * Vallo brand icon.
  *
  * The content tier: one object per thing the product talks about. A shield, a
- * villa, a receipt. Navigation is mostly `UiIcon`, with one exception: since
- * Track M (25 September 2026) the side drawer rows and the dock's sub-nav tray
- * draw the glass object `GLASS_FOR` in `lib/nav/glass-glyph.ts` maps to each
- * destination. The two tiers still never share a row.
+ * villa, a receipt. Navigation is `UiIcon`: the side drawer, the rail, the
+ * dock and its More tray all draw line glyphs since 29 September 2026 (the
+ * Track M glass map they once read is deleted). The two
+ * tiers never share a row. In light, outside a night island, every object
+ * stands on a navy tile (`app/css/light.css`); a host that draws its own
+ * plate opts out with `data-host-plate`.
  *
  * THE ARTWORK CHANGED, AND IT IS THE REASON THIS FILE IS SHORTER THAN IT WAS.
  *
@@ -310,6 +312,7 @@ export function BrandIcon({
   name,
   size = 56,
   fill,
+  drawn,
   label,
   priority,
   loading,
@@ -322,6 +325,14 @@ export function BrandIcon({
   size?: number;
   /** Fill the parent box so a wrapper can size the icon responsively. */
   fill?: boolean;
+  /**
+   * SPEED-5: with `fill`, the wrapper's largest drawn edge in CSS px. It
+   * becomes the image's `sizes`, so the optimiser serves a file the size the
+   * icon is drawn at (1x and 2x of it) instead of the generic fill hint
+   * `(max-width: 640px) 26vw, 160px`, which sent a 384px file to a phone for
+   * a 16px chip. Leave it out where the wrapper really is fluid.
+   */
+  drawn?: number;
   /** Accessible name. Omit for decorative icons. */
   label?: string;
   priority?: boolean;
@@ -393,12 +404,12 @@ export function BrandIcon({
    * the tile happens to sit inside.
    */
   const tilePadding = Math.max(2, Math.round(size * 0.09));
-  const insideTile = tile;
+  const groundPadding = Math.max(1, Math.round(size * 0.07));
   const shared = {
     "aria-hidden": decorative || undefined,
-    width: fill ? 160 : size,
-    height: fill ? 160 : size,
-    sizes: fill ? "(max-width: 640px) 26vw, 160px" : undefined,
+    width: fill ? (drawn ?? 160) : size,
+    height: fill ? (drawn ?? 160) : size,
+    sizes: fill ? (drawn ? `${drawn}px` : "(max-width: 640px) 26vw, 160px") : undefined,
   } as const;
 
   /*
@@ -423,7 +434,7 @@ export function BrandIcon({
       src={`/brand/glass/${object}.png`}
       priority={priority}
       {...(loading && !priority ? { loading } : {})}
-      className={`nf-brand-icon ${fill || insideTile ? "h-full w-full" : ""}`}
+      className="nf-brand-icon h-full w-full"
     />
   );
 
@@ -461,6 +472,23 @@ export function BrandIcon({
     return (
       <span
         data-object={object}
+        /* The ground owns its box and its padding in pixels when it has a
+           size, for the reason the tiled branch below does: `padding: 7%`
+           in glass.css resolves against the CONTAINING block, so a 22px
+           object inside a wide button was handed a padding that crushed the
+           image to nothing, and in light, where the ground paints a navy
+           tile, that showed as an empty tile ("Add New Listing"). The box
+           is the object PLUS its padding, so the object itself still draws
+           at exactly `size` and nothing already laid out around it shrinks. */
+        style={
+          fill
+            ? undefined
+            : {
+                width: size + 2 * groundPadding,
+                height: size + 2 * groundPadding,
+                padding: groundPadding,
+              }
+        }
         className={`nf-brand-icon-ground ${
           fill ? "block h-full w-full" : "inline-flex"
         } ${className ?? ""}`}

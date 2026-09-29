@@ -1,27 +1,26 @@
-import { initial } from "@/lib/text/initial";
-import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { AgentProfile } from "@/lib/agent/types";
 import { AgentRail } from "./AgentRail";
 import { AgentMobileNav } from "./AgentMobileNav";
 import { getUnreadMessageCount } from "@/lib/agent/messages-queries";
-import { AgentModePill } from "./AgentNav";
-import { LogoMark } from "@/design-system/brand/Logo";
-import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
-import { BackButton } from "@/components/site/BackButton";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { agentTitleFor } from "./agent-nav-model";
+import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
+import { getShellIdentity } from "@/lib/app/shell-queries";
 import { PepBanner } from "@/components/compliance/PepBanner";
 
 /**
  * Agent Mode shell: the rail plus a top bar, wrapping every agent page so the
- * chrome is identical across the workspace (Master Rule 17). On phones the rail
- * becomes a slide-in drawer behind the hamburger, and the top bar carries the
- * mode marker and language control. Content padding respects the device safe
- * area so nothing sits under a home indicator.
+ * chrome is identical across the workspace (Master Rule 17). The bar is
+ * `WorkspaceHeader`, the same one the host console draws: back, the drawer
+ * toggle (below lg, where the rail becomes a slide-in drawer), the page's
+ * title and the bell. The lockup, the mode pill, the search well and the
+ * language select it used to carry are gone; the search lives on My listings,
+ * the one screen it ever searched, and language lives only in Settings.
+ * Content padding respects the device safe area so nothing sits under a home
+ * indicator.
  */
 export async function AgentShell({
   t,
-  locale,
   active,
   profile,
   children,
@@ -29,6 +28,7 @@ export async function AgentShell({
   chromeBack = true,
 }: {
   t: Dictionary;
+  /** Still passed by every page; the bar no longer draws a language control. */
   locale: Locale;
   active: string;
   /** The real agent behind this workspace, or null when nobody is. */
@@ -50,7 +50,15 @@ export async function AgentShell({
   /* Resolved here rather than per page, so the badge is correct on all ten
      destinations without every page having to remember to fetch it. Fails soft
      to zero: a badge is never worth taking a workspace page down for. */
-  const unreadMessages = await getUnreadMessageCount();
+  const [unreadMessages, unreadNotifications] = await Promise.all([
+    getUnreadMessageCount(),
+    /* The bell's dot: the same count the app header reads, failing soft to
+       zero like everything in `getShellIdentity`. */
+    getShellIdentity().then(
+      (identity) => identity.unreadNotifications,
+      () => 0,
+    ),
+  ]);
 
   return (
     <div className="nf-agent flex min-h-dvh">
@@ -60,71 +68,26 @@ export async function AgentShell({
         id="main"
         className={immersive ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden" : "min-w-0 flex-1"}
       >
-        <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
-          <div className="flex h-header-sm items-center gap-xs px-sm sm:h-header sm:gap-md sm:px-5 md:px-xl">
-            {/* The way back, always top left: previous screen when there is
-                one in this session, otherwise personal home. */}
-            {chromeBack && (
-              <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
-            )}
+        <WorkspaceHeader
+          back={chromeBack ? "/home" : false}
+          menu={
             <AgentMobileNav
               t={t}
               active={active}
               profile={profile}
               unreadMessages={unreadMessages}
             />
-
-            <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
-              <LogoMark size={36} />
-            </Link>
-            {/* Mode marker: on the tightest screens the drawer carries it instead.
-                Wrapped rather than classed because the pill sets its own display. */}
-            <span className="hidden min-[420px]:block lg:hidden">
-              <AgentModePill label={t.agent.mode.agent} />
-            </span>
-
-            {/* The search is a real one: it lands on the listings workspace
-                with the term, which is the one place in the console that
-                already searches by title. */}
-            <form action="/agent/listings" method="get" role="search" className="nf-agent-bar__search">
-              <UiIcon name="search" size={18} className="nf-agent-bar__glyph" />
-              <input
-                type="search"
-                name="q"
-                aria-label={t.common.search}
-                placeholder={`${t.common.search} ${t.agent.nav.myListings.toLowerCase()}`}
-              />
-            </form>
-            <span className="flex-1 sm:hidden" />
-
-            {/*
-              THE RIGHT OF THE BAR, AS THE CONSOLE RENDERS DRAW IT.
-
-              CDA4B82B and 278CC66A both end the bar with the bell and the
-              signed-in person, and this one ended it with a LANGUAGE SELECT
-              painted `nf-btn--primary`. At 390 that made a locale picker the
-              only lit blue object on the screen, louder than the page's own
-              primary action, and the workspace had no way to reach
-              notifications at all. So: the bell first (a real destination,
-              never a badge nobody can clear), then the agent's own initial,
-              then the language control, quietened to the console's glass
-              inside `.nf-agent` rather than restyled in its own file.
-            */}
-            {/* The workspace's own notifications route, so the bell does not
-                drop an agent into the consumer shell. */}
-            <Link href="/agent/notifications" aria-label={t.nav.notifications} className="nf-icon-btn h-10 w-10">
-              <UiIcon name="bell" size={20} />
-            </Link>
-            {profile && (
-              <span className="nf-agent-bar__avatar" aria-hidden="true">
-                {initial(profile.displayName, "V")}
-              </span>
-            )}
-            <span className="nf-agent-bar__lang">
-              <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
-            </span>
-          </div>
-        </header>
+          }
+          title={agentTitleFor(t, active)}
+          /* The workspace's own notifications route, so the bell does not
+             drop an agent into the consumer shell. */
+          bell={{
+            href: "/agent/notifications",
+            label: t.nav.notifications,
+            unreadLabel: t.a11y.notificationsUnread,
+            unread: unreadNotifications,
+          }}
+        />
 
         {immersive ? (
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>

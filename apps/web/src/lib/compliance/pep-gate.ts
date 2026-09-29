@@ -1,26 +1,18 @@
 import "server-only";
 
 import { getDictionary } from "@vallo/i18n";
-import { callRpc, isUndeployed } from "./rpc";
+import { callRpc } from "./rpc";
 
 /**
  * SCUML item 20: before a payout account is added, the lister has answered the
  * PEP question at least once. Null when they have; the refusal otherwise. A
  * failed read refuses too, because an unanswered question cannot be assumed
- * answered.
+ * answered. The function is live (20260929004739); a missing function is a
+ * failure like any other, never a pass.
  */
 export async function pepQuestionRefusal(client: object): Promise<string | null> {
   const copy = getDictionary("en").compliancePep.question;
   const { data, error } = await callRpc(client, "my_pep_answered_at");
-  /* The SCUML item 20 migration is not applied, so the question cannot be
-     asked anywhere and refusing here would stop every lister adding a payout
-     account for a check that does not exist. The gate starts refusing by
-     itself once the function is there. A failure of a function that IS there
-     still refuses, below. */
-  if (isUndeployed(error)) {
-    console.warn("[pep-gate] my_pep_answered_at is not deployed; the PEP gate is not enforced");
-    return null;
-  }
   if (error) return copy.checkFailed;
   return typeof data === "string" ? null : copy.payoutFirst;
 }

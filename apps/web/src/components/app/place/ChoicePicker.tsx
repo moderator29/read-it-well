@@ -2,13 +2,11 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { useOverlay } from "@/lib/ui/use-overlay";
-import { createPortal } from "react-dom";
+import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
 import type { Dictionary } from "@vallo/i18n/core";
-import { useClientMount } from "@/lib/ui/client-mount";
 
 /**
  * One choice out of a very long list, without a very long list.
@@ -105,11 +103,6 @@ export function ChoicePicker({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  /* One hook, four call sites. This was `useState(false)` plus
-     `useEffect(() => setMounted(true), [])` in this file and in three others,
-     which is a second render scheduled for a fact React already knew. See
-     `client-mount.ts`. */
-  const mounted = useClientMount();
   const base = useId();
   const hintId = `${base}-hint`;
   const errorId = `${base}-error`;
@@ -117,10 +110,10 @@ export function ChoicePicker({
   const closePicker = useCallback(() => setOpen(false), []);
 
 
-  /* Escape, the Tab trap, the counted scroll lock and the focus return. The
-     picker had Escape and a scroll lock that cleared the flag outright, which
-     unlocks the page behind a picker opened from inside another sheet. */
-  useOverlay({ open, onClose: closePicker, panelRef, autoFocus: false });
+  /* Escape, Back, the Tab trap, the counted scroll lock, the focus return
+     and drag or flick down to close all come with `Sheet`, in its full-page
+     shape. The picker used to be a hand-built `fixed inset-0` panel with its
+     own copy of the first four and no gesture. */
 
   /*
    * Focus the search once the drawer has settled, unchanged in behaviour: the
@@ -236,35 +229,17 @@ export function ChoicePicker({
         </p>
       )}
 
-      {open &&
-        mounted &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[90]"
-            role="dialog"
-            aria-modal="true"
-            aria-label={label}
-            data-testid={testId ? `${testId}-drawer` : undefined}
-          >
-            <div className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm" />
-
-            <div
-              ref={panelRef}
-              className="nf-rise absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
-            >
-              <div className="border-b border-[var(--nf-border-subtle)] px-lg pb-md pt-[calc(var(--nf-space-lg)+env(safe-area-inset-top,0px))]">
-                <div className="flex items-center gap-sm">
-                  <button
-                    type="button"
-                    aria-label={t.pickers.close}
-                    onClick={() => setOpen(false)}
-                    className="nf-icon-btn h-10 w-10 shrink-0"
-                  >
-                    <UiIcon name="arrow-left" size={20} />
-                  </button>
-                  <h2 className="nf-h3 min-w-0 flex-1 truncate">{label}</h2>
-                </div>
-
+      <Sheet
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) closePicker();
+        }}
+        title={label}
+        closeLabel={t.pickers.close}
+        fullPage
+        testId={testId ? `${testId}-drawer` : undefined}
+      >
+              <div ref={panelRef}>
                 {/*
                   Was a `.nf-field .nf-focus-well` flex wrapper around a bare
                   transparent input - the fifth arrangement of a leading search
@@ -276,24 +251,28 @@ export function ChoicePicker({
                   It also brings the clear affordance, which is the one this
                   control most needed: 749 occupations behind a search box that
                   could only be emptied by selecting the text and deleting it.
-                */}
-                <TextField
-                  className="mt-md"
-                  label={searchPlaceholder ?? t.pickers.search}
-                  hideLabel
-                  type="search"
-                  leadingIcon="search"
-                  clearable={t.pickers.clearSearch}
-                  onClear={() => setQuery("")}
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder={searchPlaceholder ?? t.pickers.search}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-              </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-lg pb-[max(2rem,env(safe-area-inset-bottom))] pt-xs">
+                  Sticky, so the search stays in reach over a long list, and a
+                  fixed height so the group headings can stick under it.
+                */}
+                <div className="sticky top-0 z-20 -mx-gutter flex h-[4rem] items-center border-b border-[var(--nf-border-subtle)] bg-[var(--nf-panel-fill)] px-gutter">
+                  <TextField
+                    className="w-full"
+                    label={searchPlaceholder ?? t.pickers.search}
+                    hideLabel
+                    type="search"
+                    leadingIcon="search"
+                    clearable={t.pickers.clearSearch}
+                    onClear={() => setQuery("")}
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder={searchPlaceholder ?? t.pickers.search}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
+
+                <div className="pt-xs">
                 {loading ? (
                   <p className="py-xl text-center text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
                     {t.pickers.loading}
@@ -309,7 +288,7 @@ export function ChoicePicker({
                   filtered.map((group) => (
                     <section key={group.category || "all"} className="pt-md first:pt-xs">
                       {group.category && (
-                        <h3 className="nf-overline sticky top-0 z-10 -mx-lg bg-[var(--nf-surface-primary)] px-lg py-xs">
+                        <h3 className="nf-overline sticky top-[4rem] z-10 -mx-gutter bg-[var(--nf-panel-fill)] px-gutter py-xs">
                           {group.category}
                         </h3>
                       )}
@@ -343,11 +322,9 @@ export function ChoicePicker({
                     </section>
                   ))
                 )}
+                </div>
               </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      </Sheet>
     </div>
   );
 }

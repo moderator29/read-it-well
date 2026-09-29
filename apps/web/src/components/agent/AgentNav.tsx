@@ -35,7 +35,10 @@ export function AgentModePill({ label, className }: { label: string; className?:
       ].join(" ")}
       style={{
         background: "color-mix(in oklab, var(--nf-mode-agent) 20%, transparent)",
-        color: "color-mix(in oklab, var(--nf-mode-agent) 55%, white)",
+        /* The primary ink, not the accent mixed with white: that read on the
+           night canvas and all but vanished on paper, and this pill now heads
+           the rail and the drawer where the lockup used to be. */
+        color: "var(--nf-content-primary)",
       }}
     >
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--nf-mode-agent)]" />

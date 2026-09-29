@@ -3,6 +3,8 @@ import { isSameOriginRequest } from "@/lib/security/request-origin";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+import { accountSetupOwed } from "@/lib/actions/session";
+import { FINISH_SETUP_PATH } from "@/lib/auth/finish-setup";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { isAllowedWebPushEndpoint } from "@/lib/push/endpoint";
@@ -94,6 +96,11 @@ export async function POST(request: Request): Promise<NextResponse> {
   const user = auth?.user;
   if (!user) {
     return NextResponse.json({ ok: false, reason: "signed_out" }, { status: 401 });
+  }
+  /* B-2: a Google or Apple account that has not finished setting up (terms +
+     18+) writes nothing here; the step is at /sign-up/finish. */
+  if (await accountSetupOwed(supabase, user)) {
+    return NextResponse.json({ ok: false, reason: "setup_owed", next: FINISH_SETUP_PATH }, { status: 403 });
   }
 
   let parsed: z.infer<typeof Body>;

@@ -444,7 +444,7 @@
    * positioned off the top corners, sized for a viewport. Every correct use of
    * it in the tree is at the root of a layout or a page - the site layout, the
    * auth layout, the error and not-found and offline screens. Two uses were not:
-   * `app/page.tsx` mounts one inside the landing page's final CTA card and
+   * `app/(landing)/page.tsx` mounts one inside the landing page's final CTA card and
    * the home assistant banner (since deleted, R-SH1) mounted one inside its card,
    * and both are `nf-card nf-card--live`, so each of those panels carried a card
    * gradient, a gradient border, the live ring AND a full-page aurora clipped

@@ -18,12 +18,16 @@
  *   caller across every conversation they are in, through the service role
  *   strictly after RLS has said which conversations those are.
  *
- * This sandbox has no route to the Supabase host, so the seed threads carry the
- * surface and the mark-all control is correctly absent (there is no server read
- * state to clear). Checked at 390px in both themes.
+ * WHERE. Since 23 September `/messages` answers a signed-out visitor with the
+ * sign-in wall (asserted first), so the "way in" branch this spec used to
+ * accept no longer exists. The signed-in inbox is read in the preview harness
+ * (`/preview/f5/inbox`, the real Inbox with fixture threads), and on the real
+ * route signed in as the QA member (SKIP without QA_MEMBER_EMAIL /
+ * QA_MEMBER_PASSWORD). Checked at 390px in both themes.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
@@ -40,11 +44,9 @@ function check(name, condition) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
+async function run(theme, { state = null, path }) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((t) => {
     try {
       window.localStorage.setItem("nf_theme", t);
@@ -63,9 +65,13 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme}] /messages`);
-    await page.goto(`${BASE_URL}/messages`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    console.log(`\n[${theme}] ${path}`);
+    if (path.startsWith("/preview/")) {
+      if (!(await openPreview(page, path, check, { wait: WAIT }))) return;
+    } else {
+      await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+    }
 
     const appliedTheme = await page.evaluate(
       () => document.documentElement.dataset.theme ?? "dark",
@@ -84,23 +90,11 @@ async function run(theme) {
       !/\bMessages\b/.test(text),
     );
 
-    /*
-     * The inbox belongs to a session. Signed out, `/messages` renders the way
-     * in rather than an empty inbox, and asserting a compose button against
-     * that screen is asserting the wrong screen - it went red on the ABSENCE
-     * OF A SESSION rather than on a fault, which is how a suite teaches people
-     * to ignore it. This sandbox cannot reach Supabase, so which branch ran is
-     * printed rather than assumed.
-     */
+    /* Both screens this spec reads carry a session (the harness's fixture
+       member, or the QA member), so the inbox proper must be what rendered. */
     const signedIn = (await page.locator('[data-testid="inbox-compose"]').count()) === 1;
-    console.log(`    (${signedIn ? "signed in" : "no session, so the way in"})`);
-
-    if (!signedIn) {
-      check(
-        "signed out, it offers the way in rather than an empty inbox",
-        (await page.locator('a[href^="/sign-in"]').count()) >= 1,
-      );
-    } else {
+    check("the signed-in inbox renders, with its compose button", signedIn);
+    if (signedIn) {
       check("there is a search field", (await page.locator('[data-testid="inbox-search"]').count()) === 1);
       check(
         "the search field says what it searches",
@@ -174,8 +168,16 @@ async function run(theme) {
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  await expectSignInWall(check, "/messages");
+  await run("dark", { path: "/preview/f5/inbox" });
+  await run("light", { path: "/preview/f5/inbox" });
+  console.log("\nsigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    await run("dark", { state, path: "/messages" });
+    await run("light", { state, path: "/messages" });
+  }
 } finally {
   await browser.close();
 }

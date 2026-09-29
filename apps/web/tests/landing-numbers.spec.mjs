@@ -9,11 +9,11 @@
  * public.platform_stats(), and a figure we cannot support is not published at
  * all rather than rounded up.
  *
- * This sandbox has no route to the Supabase host, so the read returns null and
- * the honest band is the two facts that are true without any inventory:
- * Languages 4 and Support 24/7. That is exactly the state this spec asserts,
- * plus the regression guard that no inventory claim carries a "+" ever again.
- * Checked at 390px in both themes.
+ * The figures now print once, in the community band, as a row of two or
+ * three or not at all (a single figure alone reads as a boast about a small
+ * number). This spec asserts that rule whatever the database answers, plus
+ * the regression guard that no figure carries a "+" ever again. Checked at
+ * 390px in both themes.
  */
 
 import { chromium } from "playwright-core";
@@ -69,43 +69,36 @@ async function run(theme) {
     check("a stylesheet loaded", (await page.locator("link[rel=stylesheet]").count()) > 0);
     check("no route returned a server error", serverErrors.length === 0);
 
-    const band = page.locator('[data-testid="numbers-band"]');
-    check("the numbers band renders", (await band.count()) === 1);
-
-    const items = await band.locator("li").allInnerTexts();
+    /* THE FIGURES NOW LIVE IN THE COMMUNITY BAND (the clean pass, 29
+       September), as a row of two or three or not at all: `statTiles`
+       drops a count of zero, returns nothing when platform_stats() cannot
+       answer, and CommunityBand prints the row only when at least two
+       figures stand. The Languages / Support band this spec was written
+       for is gone. */
+    const community = page.locator('[data-chapter="community"]');
+    check("the community band renders", (await community.count()) === 1);
+    const band = community.locator(".nf-landing-figures");
+    const rows = await band.count();
+    const items = rows ? await band.locator("li").allInnerTexts() : [];
     const flat = items.map((t) => t.replace(/\s+/g, " ").trim());
-    console.log(`    band: ${JSON.stringify(flat)}`);
+    console.log(`    figures: ${JSON.stringify(flat)}`);
 
+    check(
+      `the figures print as a row of two or three, or not at all (${flat.length})`,
+      flat.length === 0 || (flat.length >= 2 && flat.length <= 3),
+    );
     check("every figure carries a label", flat.every((t) => /[A-Za-z]/.test(t)));
 
-    /* THE REGRESSION GUARD. An inventory count is a claim. With nothing
-       published there must be no Listings or Cities figure at all, and no
-       figure anywhere may wear a "+" that implies more than we counted. */
-    const labels = flat.map((t) => t.replace(/[\d/+,\s]/g, ""));
-    check(
-      `no unsupported inventory claim (labels ${JSON.stringify(labels)})`,
-      !labels.includes("Listings") && !labels.includes("Cities"),
-    );
+    /* THE REGRESSION GUARD. No figure anywhere may wear a "+" that implies
+       more than we counted, and the old hardcoded 17 never comes back. */
     check("no rounded-up plus suffix on any figure", !flat.some((t) => t.includes("+")));
     check("specifically, the old hardcoded 17 is gone", !flat.some((t) => /\b17\b/.test(t)));
 
-    check("the two true facts are still stated", flat.length === 2);
-    check(
-      "languages, which is true because four locales ship",
-      flat.some((t) => /Languages/.test(t) && /4/.test(t)),
+    /* Nothing on the page scrolls sideways at 390px. */
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
-    check(
-      "support, stated as 24/7",
-      flat.some((t) => /Support/.test(t) && t.includes("24/7")),
-    );
-
-    /* The band is inside a card at 390px and must not overflow it. */
-    const overflow = await page.evaluate(() => {
-      const el = document.querySelector('[data-testid="numbers-band"]');
-      if (!el) return 0;
-      return el.scrollWidth - el.clientWidth;
-    });
-    check(`the band does not scroll sideways at 390px (${overflow}px)`, overflow <= 1);
+    check(`the page does not scroll sideways at 390px (${overflow}px)`, overflow <= 1);
   } finally {
     await context.close();
   }

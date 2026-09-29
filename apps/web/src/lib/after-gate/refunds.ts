@@ -13,15 +13,17 @@ import { readRefundRequest, readRefundRow, type RefundRequestRow, type RefundRow
 /**
  * The refund promise, read back. V-24 and V-20.
  *
- * WHAT IS MEASURED. A decided refund is credited COMPLETED in the same
- * transaction that records it, so it lands the moment it is decided and there
- * is nothing to time. The wait a guest actually has is from ASKING to the
- * decision, so the clock is the `refund_requests` row: its `due_by` (five
- * Nigerian business days after the ask) is the date support decides by, and
- * the first `booking_refunds` row after the ask, or a decline recorded in
- * `refund_request_decisions`, answers it. A rent refund a lister owes
- * (`rent_refunds_owed`) is timed from when it became owed. Both are listed for
- * the operator by `public.admin_refund_clock`, which filters in the database.
+ * WHAT IS MEASURED. Vallo holds no money: a refund is Paystack returning
+ * the charge to the card that paid it. The promise (five Nigerian business
+ * days from the ask) is kept when Paystack INITIATES the refund
+ * (`booking_refunds.processor_submitted_at`); `refund.processed` then stamps
+ * when it reached the card (`processor_settled_at`). The wait before a
+ * decision is the `refund_requests` row, answered by the first
+ * `booking_refunds` row after the ask or a decline in
+ * `refund_request_decisions`. The operator's board (`admin_refund_clock`)
+ * lists every leg: an ask not answered, a decided refund not yet sent, one
+ * sent but not processed, a flatmate's share refund in either state, and a
+ * rent refund a lister owes.
  *
  * Every read degrades to "nothing to show" or "unavailable", never a crash,
  * and a read that fails is never drawn as a refund that has not landed.
@@ -48,21 +50,6 @@ export async function readFrozenTerms(
   } catch {
     return null;
   }
-}
-
-/** Landed credit times by wallet entry id, or null when the read failed. */
-async function landedTimes(client: Loose, refunds: RefundRow[]): Promise<Map<string, string> | null> {
-  const ids = refunds.map((row) => row.walletEntryId).filter((id): id is string => id !== null);
-  const landed = new Map<string, string>();
-  if (ids.length === 0) return landed;
-  const { data, error } = await client.from("wallet_entries").select("id, status, created_at").in("id", ids);
-  if (error) return null;
-  for (const entry of (data ?? []) as Record<string, unknown>[]) {
-    if (entry.status === "COMPLETED" && typeof entry.id === "string" && typeof entry.created_at === "string") {
-      landed.set(entry.id, entry.created_at);
-    }
-  }
-  return landed;
 }
 
 export type RefundLine = {
@@ -110,27 +97,28 @@ export async function readMyRefundLines(
       .filter((row): row is RefundRow => row !== null);
     // A missing table (before the migration applies) reads as "no request".
     const request: RefundRequestRow | null = requestRead.error ? null : readRefundRequest(requestRead.data);
-    const landed = await landedTimes(loose, refunds);
-    if (landed === null) return { state: "unavailable" };
-
     const lines: RefundLine[] = refunds.map((row): RefundLine => {
       const base = {
         id: row.id,
         amount: copy.amount.replace("{amount}", formatMoney(row.refundMinor, locale)),
         retained: row.retainedMinor > 0 ? copy.retained.replace("{amount}", formatMoney(row.retainedMinor, locale)) : null,
       };
-      if (row.refundMinor <= 0) return { ...base, sentence: copy.nothingOwed, tone: "neutral" };
-      const landedAt = row.walletEntryId ? landed.get(row.walletEntryId) : undefined;
-      if (!landedAt) return { ...base, sentence: copy.unavailable, tone: "attention" };
+      if (row.refundMinor <= 0 || row.processorStatus === "not_needed") return { ...base, sentence: copy.nothingOwed, tone: "neutral" };
+      if (row.processorStatus === "processed" && row.settledAt) {
+        return { ...base, sentence: copy.landed.replace("{date}", date(row.settledAt, true)), tone: "success" };
+      }
+      if (!row.submittedAt || row.processorStatus === "pending" || row.processorStatus === "failed") {
+        return { ...base, sentence: copy.sending, tone: "attention" };
+      }
       const answers = request && Date.parse(row.createdAt) >= Date.parse(request.requestedAt) ? request : null;
-      const late = answers?.dueBy ? Date.parse(landedAt) > Date.parse(answers.dueBy) : false;
+      const late = answers?.dueBy ? Date.parse(row.submittedAt) > Date.parse(answers.dueBy) : false;
       return late && answers?.dueBy
         ? {
             ...base,
-            sentence: copy.landedLate.replace("{date}", date(landedAt, true)).replace("{due}", date(answers.dueBy)),
+            sentence: copy.initiatedLate.replace("{date}", date(row.submittedAt, true)).replace("{due}", date(answers.dueBy)),
             tone: "attention",
           }
-        : { ...base, sentence: copy.landed.replace("{date}", date(landedAt, true)), tone: "success" };
+        : { ...base, sentence: copy.initiated.replace("{date}", date(row.submittedAt, true)), tone: "success" };
     });
 
     // Support's answer to the ask, readable only by the guest who asked.
@@ -183,12 +171,15 @@ export async function readMyRefundLines(
   }
 }
 
+export const CLOCK_KINDS = ["request", "unsent", "processor", "share_unsent", "share_processor", "rent_owed"] as const;
+export type ClockKind = (typeof CLOCK_KINDS)[number];
+
 export type ClockBoardRow = {
   id: string;
-  /** The refund request's id, for a decision; null for a rent refund owed. */
+  /** The refund request's id, for a decision; null for every other leg. */
   requestId: string | null;
   bookingId: string;
-  kind: "request" | "rent_owed";
+  kind: ClockKind;
   amount: string;
   due: string;
 };
@@ -202,7 +193,8 @@ export async function readRefundClockBoard(locale: Locale, now: Date = new Date(
   const access = await requireAdmin("finance");
   if (access.state !== "admin") return { state: "unavailable" };
   try {
-    const loose = access.supabase as unknown as Loose;
+    // The function checks the caller's own role, so it runs as the session, not the service client.
+    const loose = access.userClient as unknown as Loose;
     const { data, error } = await loose.rpc("admin_refund_clock");
     if (error || !Array.isArray(data)) return { state: "unavailable" };
     const dueSoon: ClockBoardRow[] = [];
@@ -210,14 +202,15 @@ export async function readRefundClockBoard(locale: Locale, now: Date = new Date(
     for (const raw of data as Record<string, unknown>[]) {
       const dueBy = typeof raw.due_by === "string" ? raw.due_by : null;
       const amount = typeof raw.amount_minor === "number" ? raw.amount_minor : Number(raw.amount_minor);
-      if (!dueBy || typeof raw.subject_id !== "string" || typeof raw.booking_id !== "string" || !Number.isInteger(amount)) {
+      const kind = (CLOCK_KINDS as readonly string[]).includes(String(raw.kind)) ? (raw.kind as ClockKind) : null;
+      if (!kind || !dueBy || typeof raw.subject_id !== "string" || typeof raw.booking_id !== "string" || !Number.isInteger(amount)) {
         continue;
       }
       const row: ClockBoardRow = {
-        id: `${String(raw.kind)}-${raw.subject_id}`,
-        requestId: raw.kind === "rent_owed" ? null : raw.subject_id,
+        id: `${kind}-${raw.subject_id}`,
+        requestId: kind === "request" ? raw.subject_id : null,
         bookingId: raw.booking_id,
-        kind: raw.kind === "rent_owed" ? "rent_owed" : "request",
+        kind,
         amount: formatMoney(amount, locale),
         due: formatMoneyDate(dueBy, locale, { withTime: true, now }) ?? "",
       };

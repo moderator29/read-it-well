@@ -66,9 +66,14 @@ export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  /* KYC reviewers decide on these files, so the kyc_review scope opens them.
-     Without it a KYC staffer was refused every ID they were asked to judge. */
-  const access = await requireAdmin("kyc_review");
+  /* WHICH DESKS. The KYC desk (`kyc_review`) opens every identity and
+     business document. The listing desk (`listing_approval`) opens only an
+     ownership or mandate proof filed against a listing, never an identity,
+     address, selfie, business or association document that happens to name
+     one; that is checked below once the row is found. Admins pass either way. */
+  const kyc = await requireAdmin("kyc_review");
+  const access = kyc.state === "admin" ? kyc : await requireAdmin("listing_approval");
+  const listingOnly = kyc.state !== "admin";
   if (access.state !== "admin") {
     /* Signed out and not staff are answered the same way on purpose: a
        stranger probing this route learns nothing about whether they merely
@@ -82,6 +87,16 @@ export async function GET(
   const admin = createAdminClient();
   const located = await locateDocument(admin, id);
   if (!located) return refuse(404, "No such document.");
+  if (listingOnly) {
+    const row =
+      located.source === "agent"
+        ? await admin.from("agent_documents").select("kind, listing_id").eq("id", id).maybeSingle()
+        : null;
+    const kind = row?.data?.kind;
+    if (!row?.data?.listing_id || (kind !== "ownership" && kind !== "mandate")) {
+      return refuse(403, "This document is for the Vallo operations team.");
+    }
+  }
 
   const type = servableType(located.path);
 

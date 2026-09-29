@@ -3,6 +3,7 @@ import { PRIVATE_ADDRESS } from "../security/private-address";
 
 import { drainEmailOutbox, type OutboxRow } from "./outbox";
 import { OUTBOX_TEMPLATE_KEYS, type Payload } from "./templates";
+import { LIFECYCLE_PAYLOADS } from "./lifecycle-fixtures";
 
 /**
  * THE PROOF THAT SOMEBODY RECEIVES SOMETHING.
@@ -269,6 +270,8 @@ const EVERY_PAYLOAD: Record<string, Payload> = {
     listing_title: "Two bedroom flat in Ikeja GRA",
     category: "off_platform_payment",
   },
+  /* 29 September: the lifecycle templates, from the shared fixture. */
+  ...LIFECYCLE_PAYLOADS,
 };
 
 /**

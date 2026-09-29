@@ -4,8 +4,6 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { GLASS_FOR } from "@/lib/nav/glass-glyph";
 
 export type DockMoreItem = { href: string; label: string; icon: UiIconName };
 
@@ -87,11 +85,10 @@ export function DockMore({
               className="nf-dockmore__item"
             >
               <span className="nf-dockmore__glyph" aria-hidden="true">
-                {GLASS_FOR[item.icon] ? (
-                  <BrandIcon name={GLASS_FOR[item.icon]!} size={40} />
-                ) : (
-                  <UiIcon name={item.icon} size="md" />
-                )}
+                {/* Line glyphs, the side navigation's own set (the founder,
+                    29 September 2026): the tray is navigation, and the
+                    glass objects it drew read as a second icon family. */}
+                <UiIcon name={item.icon} size="md" />
               </span>
               <span className="nf-dockmore__label">{item.label}</span>
             </WholePrefetchLink>

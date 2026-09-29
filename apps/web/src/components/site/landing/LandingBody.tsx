@@ -5,24 +5,17 @@ import type { Listing, ListingKind } from "@/lib/listings/types";
 import { getPlatformStats, type PlatformStats } from "@/lib/platform-stats";
 import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
 import { Hero } from "./Hero";
-import { FeatureChips } from "./FeatureChips";
 import { CommunityBand } from "./CommunityBand";
 import { CategoryGrid } from "./CategoryGrid";
-import { StaysBand } from "./StaysBand";
 import { AppBand } from "./AppBand";
-import { ProtectBand } from "./ProtectBand";
 import { AiBand } from "./AiBand";
 import { LandingFaq } from "./LandingFaq";
 import { FinalCta } from "./FinalCta";
-import { storeBadges } from "./store-badges";
 import { Journey } from "./Journey";
 import { Bento } from "./Bento";
 import { WorldsBand } from "./WorldsBand";
-import { CitiesMarquee } from "./CitiesMarquee";
 import { NigeriaMap } from "./NigeriaMap";
-import { LandingFx } from "./LandingFx";
-import { DayBand, KineticBand, PlacesBand, SystemBand } from "@/components/cinema/LandingCinema";
-import { ReelHud } from "@/components/cinema/ReelHud";
+import { PlacesBand } from "@/components/cinema/LandingCinema";
 
 /**
  * Everything the landing prints that comes from the platform, read once.
@@ -81,7 +74,7 @@ function showcaseCandidates(catalogue: Listing[]): Listing[] {
 
 /**
  * The landing's sections in the fullpage render's order, on data the caller
- * supplies. `app/page.tsx` passes the live read; `app/(dev)/preview/f2`
+ * supplies. `app/(landing)/page.tsx` passes the live read; `app/(dev)/preview/f2`
  * passes fixtures so the look can be proven in a sandbox that cannot reach
  * the catalogue. Both render this same tree.
  */
@@ -103,63 +96,45 @@ export function LandingBody({
   native?: boolean;
 }) {
   const first = data.cards[0] ?? null;
-  const badges = storeBadges({
-    appStoreUrl: process.env.NEXT_PUBLIC_APP_STORE_URL,
-    playStoreUrl: process.env.NEXT_PUBLIC_PLAY_STORE_URL,
-    native,
-  });
   return (
     <main id="main">
       {/*
-        THE RENDER'S ORDER, on the founder's ruling of 19 September: hero,
-        feature band, community, how it works, category, stays, app.
+        HOW THE PAGE GOT HERE, oldest first. The founder's render of 19
+        September set the first order (hero, feature band, community, how it
+        works, category, stays, app). Track M (25 September) added rooms on
+        "make the landing page expand": protection, the AI showcase, the
+        FAQ, the closing call, then the journey, the bento, the two worlds,
+        the map and a cinema kit. The launch pass (29 September) cut the
+        cinema kit's Truchet band, cities marquee, kinetic words, sideways
+        day and film HUD, each of which repeated a neighbour, and removed the
+        phone mockups. The clean pass below is the current order.
+      */}
+      {/* THE CLEAN PASS (29 September, the founder: "so clean"). Every room
+          left has one job and says it once:
 
-        Two sections stood between the hero and the feature band and neither
-        is in his render. The stats band printed the three platform figures
-        that the community band prints again two screens later, so a reader
-        met the same three numbers twice; the community band is where the
-        render puts them and it already takes `stats`. The ten-tile
-        "Everything you need in one platform" grid was navigation the render
-        does not carry, and every destination in it is reachable from the
-        category grid below or the footer's Product column, so removing it
-        costs the reader no door.
-      */}
-      {/*
-        TRACK M, 25 September 2026: the page grew rooms, on the founder's
-        "make the landing page expand". The render's order above still holds
-        for the sections it drew; the new rooms sit between them where each
-        argument lands best: how Vallo protects you straight after the
-        feature band, the AI showcase after how it works, the figures after
-        stays, and the FAQ and a closing call to action at the foot.
-      */}
-      {/* THE SECOND PASS (the founder's "expand, impress me"): the journey
-          takes the four-step slot the render gave How Vallo works, since it
-          tells the same four steps with the phone beside them, and the
-          bento, the two worlds, the cities and the map join the rooms. */}
-      {/* THE CINEMA KIT (Track M, the founder's showreel reference): the
-          kinetic words as a title sequence under the hero, the Truchet field
-          between the promise and the journey, the wall of places drifting
-          on the vertical axis, and a day told sideways between the two
-          worlds and the categories. The HUD frames the whole page as a film. */}
-      <LandingFx />
-      <ReelHud />
-      <Hero t={t} locale={locale} cards={data.cards} badges={badges} />
-      <KineticBand t={t} />
-      <FeatureChips t={t} />
-      <CitiesMarquee t={t} />
-      <ProtectBand t={t} />
-      <SystemBand t={t} />
+            - the six-chip feature band listed the same six things the bento
+              lists as doors, one screen apart, so the bento keeps them;
+            - "how Vallo protects you" printed the agreement gate and the
+              inspection fee, which the journey prints as steps two and
+              three; the Guarantee keeps its bento card and its FAQ answer;
+            - the Stays band retold the category grid's stay kinds and the
+              two worlds band's Stays side, so both of those keep them;
+            - the page-wide pointer effects (magnetic buttons, the hero
+              card's tilt, the bento's spotlight and tilt) and the light
+              sweep across buttons are gone with LandingFx and BentoFx.
+
+          The hero now carries the headline, one line, one action and the
+          search (Hero.tsx says where the rest went). */}
+      <Hero t={t} />
       <Journey t={t} />
       <Bento t={t} />
       <PlacesBand t={t} />
       <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
       <WorldsBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
-      <DayBand t={t} />
       <CategoryGrid t={t} counts={data.counts} />
-      <StaysBand t={t} />
       <NigeriaMap t={t} />
       <CommunityBand t={t} locale={locale} listing={first} stats={data.stats} />
-      {native ? null : <AppBand t={t} locale={locale} listing={first} native={native} />}
+      {native ? null : <AppBand t={t} native={native} />}
       <LandingFaq t={t} nonce={nonce} />
       <FinalCta t={t} />
     </main>

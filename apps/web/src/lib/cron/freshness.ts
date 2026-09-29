@@ -110,6 +110,10 @@ export const WATCHED_JOBS: readonly WatchedJob[] = [
   /* V-01: the catalogue canary. If it stops firing, nobody is watching the shop. */
   { job: "canary", schedule: "every 5 minutes", maxGapHours: 2 },
   { job: "hold-sweep", schedule: "hourly at :05", maxGapHours: 3 },
+  /* The crypto webhook's safety net (lib/crypto/reconcile.ts). A no-op while
+     crypto is off, and still watched: once it is on, a stopped job means a
+     lost provider report is never recovered. */
+  { job: "crypto-reconcile", schedule: "every 15 minutes", maxGapHours: 2 },
   { job: "pg-cron-watch", schedule: "hourly at :20", maxGapHours: 3 },
   { job: "complete-stays", schedule: "daily at 02:30 UTC", maxGapHours: 26 },
   { job: "inventory-drift", schedule: "daily at 02:45 UTC", maxGapHours: 26 },

@@ -8,6 +8,8 @@ import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
 import { startRentPayment } from "@/lib/rent/actions";
 import type { RentPayView } from "@/lib/rent/queries";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 import { PaystackCheckout } from "@/components/app/payments/PaystackCheckout";
 import { paymentState } from "@/lib/payments/payment-state";
 import { SavedCardPicker } from "@/components/app/payments/SavedCardPicker";
@@ -23,6 +25,8 @@ import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getDictionary, type Dictionary } from "@vallo/i18n";
+import { CryptoPayOption } from "@/components/app/payments/crypto/CryptoPayOption";
+import type { CryptoOffer } from "@/components/app/payments/crypto/offer";
 
 /**
  * The three ways to pay the rent.
@@ -66,7 +70,11 @@ type Phase =
   | { kind: "saved-card-hosted"; authorizationUrl: string; accessCode: string; reference: string }
   | { kind: "card-starting" }
   | { kind: "checkout-open"; accessCode: string; reference: string; authorizationUrl: string }
-  | { kind: "paid" }
+  /* Settled against this move-in, with the reference the receipt shows. */
+  | { kind: "paid"; reference: string }
+  /* Charged on the saved card and not yet applied: never "paid", never
+     "not charged" (docs/SUCCESS_MOMENTS.md). */
+  | { kind: "applying"; reference: string }
   | { kind: "stalled"; method: "card" }
   | { kind: "error"; message: string };
 
@@ -107,8 +115,11 @@ export function PayPanel({
   savedCards = [],
   chargeSavedCard,
   payCopy,
+  crypto = null,
 }: {
   view: RentPayView;
+  /** Pay with crypto (lib/crypto), decided on the server. Null while crypto is off. */
+  crypto?: CryptoOffer | null;
   /** V-25: the large-payment sentences, from `t.afterTheGate.pay`. */
   payCopy?: Dictionary["afterTheGate"]["pay"];
   savedCards?: PaymentMethod[];
@@ -120,6 +131,8 @@ export function PayPanel({
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
   const c = getDictionary(view.locale).checkout;
+  const s = getDictionary(view.locale).success;
+  const paid = successCopy(s, "rentPaid");
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
@@ -197,8 +210,17 @@ export function PayPanel({
       });
       return;
     }
-    setPhase({ kind: "paid" });
-    router.refresh();
+    /* `settled` is the server's word that the charge was applied to this
+       move-in; without it the success sheet waits. */
+    setPhase(
+      result.data.settled
+        ? { kind: "paid", reference: result.data.reference ?? "" }
+        : { kind: "applying", reference: result.data.reference ?? "" },
+    );
+    /* A settled charge refreshes when its receipt closes: refreshing now
+       re-renders the page down its paid branch, which does not mount this
+       panel, and took the receipt away the moment it opened. */
+    if (!result.data.settled) router.refresh();
   };
 
   const payByCard = async () => {
@@ -290,14 +312,26 @@ export function PayPanel({
             note={c.cardUnavailableRentNote}
           />
         )}
+        {/* Pay with crypto, once the rent charge exists: the provider settles
+            naira to the same legs. Absent unless the server opened it. */}
+        {crypto && view.bookingId && view.chargeOpen && (
+          <CryptoPayOption offer={crypto} bookingId={view.bookingId} totalMinor={view.totalMinor} locale={view.locale} />
+        )}
       </ul>
       <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]" data-testid="rent-no-custody">
         {NO_CUSTODY_SENTENCE} {GUARANTEE_SENTENCE}
       </p>
+      <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
+        <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
+        <span>{c.onPlatformRent}</span>
+      </p>
+      {/* The spacer is the section's LAST in-flow child, so the fixed bar
+          below never covers a line of copy. Its height is the bar's own
+          (5.5rem) plus the home-indicator inset the bar pads itself by. */}
       <div
         aria-hidden="true"
-        className="h-[5.5rem]"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        data-testid="pay-bar-spacer"
+        style={{ height: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
       />
       <ActionBar>
         <p className="flex min-w-0 flex-1 flex-col">
@@ -326,10 +360,6 @@ export function PayPanel({
         ) : null}
       </ActionBar>
 
-      <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
-        <span>{c.onPlatformRent}</span>
-      </p>
     </section>
   );
 
@@ -365,27 +395,43 @@ export function PayPanel({
             return state.ok ? state.data : "pending";
           }}
           onPaid={() => {
-            setPhase({ kind: "paid" });
-            router.refresh();
+            /* No refresh here: see the receipt's onOpenChange below. */
+            setPhase({ kind: "paid", reference: phase.reference });
           }}
           onCancelled={() => setPhase({ kind: "idle" })}
           onFailed={(message) => setPhase({ kind: "error", message })}
         />
       )}
 
-      <ResultSheet
+      <SuccessSheet
         open={phase.kind === "paid"}
-        onOpenChange={() => setPhase({ kind: "idle" })}
-        state="sent"
-        verdict={c.rentPaid}
-        fact={fact}
-        locale={view.locale}
-        consequence={c.paidRent}
-        actions={[
-          { label: c.openThread, href: "/messages", tone: "primary" },
-          { label: c.backToListing, href: `/listing/${view.listingId}`, tone: "quiet" },
+        onOpenChange={() => {
+          setPhase({ kind: "idle" });
+          router.refresh();
+        }}
+        variant={paid.variant}
+        title={paid.title}
+        body={paid.body}
+        amount={{ minorUnits: view.totalMinor, currency: view.currency, locale: view.locale }}
+        details={[
+          { label: s.detail.for, value: view.title },
+          ...(phase.kind === "paid" && phase.reference
+            ? [{ label: s.detail.reference, value: phase.reference, mono: true }]
+            : []),
         ]}
-        footnote={c.paidFootnote}
+        primary={{ label: c.openThread, href: "/messages" }}
+        secondary={{ label: c.backToListing, href: `/listing/${view.listingId}` }}
+      />
+
+      <ResultSheet
+        open={phase.kind === "applying"}
+        onOpenChange={() => setPhase({ kind: "idle" })}
+        state="pending"
+        verdict={c.confirmingPayment}
+        fact={{ ...fact, ...(phase.kind === "applying" && phase.reference ? { reference: phase.reference } : {}) }}
+        locale={view.locale}
+        consequence={c.chargedConfirming}
+        actions={[{ label: c.reload, onClick: () => window.location.reload(), tone: "primary" }]}
       />
 
       <ResultSheet

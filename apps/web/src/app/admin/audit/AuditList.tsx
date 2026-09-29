@@ -142,7 +142,7 @@ export function AuditRow({ row, ui, base }: { row: AuditRowView; ui: AdminUi; ba
             <span className="nf-admin-row__actions">
               <span className="nf-admin-row__view">{AUDIT_COPY.view}</span>
               <span className="nf-admin-row__kebab" aria-hidden="true">
-                <UiIcon name="more" size={18} />
+                <UiIcon name="more" size={20} />
               </span>
             </span>
           </div>

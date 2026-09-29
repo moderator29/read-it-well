@@ -16,7 +16,7 @@ export const KNOWN_TOP_SEGMENTS: ReadonlySet<string> = new Set([
   "about", "admin", "agent", "agents", "agreements", "api", "areas", "around", "assistant", "auth", "bookings",
   "cancellations", "careers", "check", "checkout", "contact", "delete-account", "disclaimer", "docs", "escrow",
   "eula", "forgot-password", "gallery", "help", "home", "home-or-landing", "host", "inspections",
-  "landlord", "legal", "listing", "messages", "notifications", "offline", "open", "payments", "post",
+  "landlord", "legal", "listing", "messages", "notifications", "offline", "open", "pay", "payments", "post",
   "preview", "price", "privacy", "profile", "r", "record", "rent", "reset-password", "restaurant",
   "restaurants", "s", "safe", "safety", "saved", "search", "settings", "sign-in", "sign-up",
   "standards", "start", "stay", "stays", "stories", "styleguide", "support", "tenancy", "terms",

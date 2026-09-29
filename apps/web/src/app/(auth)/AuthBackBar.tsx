@@ -15,18 +15,14 @@ import { parentOf } from "@/lib/nav/resolve";
  * established: it asks the same resolver the control runs, and a route with
  * no declared parent, or a ROOT, draws nothing.
  *
- * Drawn as a small glass square top left, opposite the language control, in
- * the frame's corner rather than the composition, so nothing the ledger
- * measured moves.
+ * Drawn as the first cell of the auth screen's top bar (the end cell is empty:
+ * language is changed in Settings only); the bar keeps the cell when this
+ * draws nothing, so the wordmark under it never moves.
  */
 export function AuthBackBar() {
   const pathname = usePathname();
   const target = parentOf(pathname ?? "/");
   if (target.kind !== "parent") return null;
 
-  return (
-    <div className="nf-auth__backbar">
-      <BackButton fallback={target.href} className="nf-auth__back-btn" />
-    </div>
-  );
+  return <BackButton fallback={target.href} className="nf-auth__back-btn" />;
 }

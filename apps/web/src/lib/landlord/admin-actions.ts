@@ -36,12 +36,12 @@ export async function recordPrincipalConsent(input: {
   /** Required by the database when this number has asked us to stop before. */
   note?: string | null;
 }): Promise<ActionResult<{ consentedAt: string | null; withdrawnAt: string | null }>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const id = ID.safeParse(input.mandateId);
   if (!id.success || (input.answer !== "given" && input.answer !== "withdrawn")) return fail(FAILED_CONSENT);
 
-  const { data, error } = await callLandlordRpc(access.supabase, "record_principal_consent", {
+  const { data, error } = await callLandlordRpc(access.userClient, "record_principal_consent", {
     p_mandate: id.data,
     p_answer: input.answer,
     p_sentence: input.answer === "given" ? CONSENT_SENTENCE : null,
@@ -69,7 +69,7 @@ export async function decidePropertyMatch(input: {
   otherId: string;
   decision: "join" | "apart";
 }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const a = ID.safeParse(input.listingId);
   const b = ID.safeParse(input.otherId);
@@ -77,19 +77,19 @@ export async function decidePropertyMatch(input: {
 
   const { error } =
     input.decision === "join"
-      ? await callLandlordRpc(access.supabase, "property_join", { p_listing: a.data, p_other: b.data })
-      : await callLandlordRpc(access.supabase, "property_keep_apart", { p_listing: a.data, p_other: b.data });
+      ? await callLandlordRpc(access.userClient, "property_join", { p_listing: a.data, p_other: b.data })
+      : await callLandlordRpc(access.userClient, "property_keep_apart", { p_listing: a.data, p_other: b.data });
   if (error) return fail(FAILED_DECISION);
   revalidatePath(`/admin/listings/${a.data}`);
   return ok(null);
 }
 
 export async function splitFromProperty(input: { listingId: string }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const a = ID.safeParse(input.listingId);
   if (!a.success) return fail(FAILED_DECISION);
-  const { error } = await callLandlordRpc(access.supabase, "property_split", { p_listing: a.data });
+  const { error } = await callLandlordRpc(access.userClient, "property_split", { p_listing: a.data });
   if (error) return fail(FAILED_DECISION);
   revalidatePath(`/admin/listings/${a.data}`);
   return ok(null);
@@ -97,12 +97,12 @@ export async function splitFromProperty(input: { listingId: string }): Promise<A
 
 /** V-48: staff reopen a closed listing, with a reason the database audits. */
 export async function reopenClosedListing(input: { listingId: string; note: string }): Promise<ActionResult<null>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("listing_approval");
   if (access.state !== "admin") return fail(adminRefusal(access));
   const id = ID.safeParse(input.listingId);
   const note = input.note.trim();
   if (!id.success || note.length < 8) return fail("Say why the listing is being reopened, in a sentence.");
-  const { error } = await callLandlordRpc(access.supabase, "reopen_listing", { p_listing: id.data, p_note: note });
+  const { error } = await callLandlordRpc(access.userClient, "reopen_listing", { p_listing: id.data, p_note: note });
   /* SCUML item 17: reopening puts it live, and the publish gate asks for a mandate first. */
   if (isMandateRefusal(error)) return fail(MANDATE_NEEDED_MESSAGE);
   if (error) return fail(FAILED_DECISION);

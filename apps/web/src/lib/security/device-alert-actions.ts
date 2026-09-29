@@ -3,10 +3,12 @@
 /**
  * "THIS WAS NOT ME", AND ENDING A WHOLE LINE OF THE DEVICES SCREEN. V-19.
  *
- * Both actions answer with a CODE rather than a sentence. The screen maps the
- * code onto the dictionary (`platform.devices` in `platform.en.ts`), so every
- * word a person reads on these two surfaces is translatable and none of it is
- * written twice.
+ * Both actions refuse with a SENTENCE from the dictionary, in the reader's
+ * language (`platform.notMe` and `platform.devices` in `platform.en.ts`), and
+ * every one of them says what to do next. They used to refuse with a bare code
+ * ("signed-out", "unconfigured") for the screen to map, which put a raw code in
+ * the one envelope whose rule is that a reader never meets one (E2E audit L-2,
+ * 29 September 2026). The screen now shows the sentence it is given.
  *
  * `reportNotMe` calls `public.report_not_me()`, which authorises off
  * `auth.uid()` and nothing else: it ends every OTHER session, writes a 24-hour
@@ -29,12 +31,23 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { resolveSession } from "../actions/session";
+import { getDictionary, type Dictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
 
 type Loose = { rpc: (fn: string, args?: Record<string, unknown>) => Promise<unknown> };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const loose = (client: unknown) => client as any as Loose;
 
+/** Why an action refused. Never sent to the reader; `refusal` turns it into a sentence. */
 export type DeviceAlertError = "signed-out" | "unconfigured" | "failed" | "invalid";
+
+/** The sentence for a refusal: sign in when signed out, otherwise nothing changed, try again. */
+async function refusal<T>(code: DeviceAlertError, failed: (t: Dictionary) => string): Promise<ActionResult<T>> {
+  const t = getDictionary(await getLocale().catch(() => "en" as const));
+  return fail(code === "signed-out" ? t.platform.notMe.signedOut : failed(t));
+}
+const notMeFailed = (t: Dictionary) => t.platform.notMe.failedConsequence;
+const groupFailed = (t: Dictionary) => t.platform.devices.groupFailed;
 
 export type NotMeResult = {
   /** How many other sessions were ended. Zero is an honest answer. */
@@ -53,15 +66,15 @@ export type NotMeResult = {
 
 export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
   const session = await resolveSession();
-  if (session.state === "unconfigured") return fail("unconfigured" satisfies DeviceAlertError);
-  if (session.state === "signed-out") return fail("signed-out" satisfies DeviceAlertError);
+  if (session.state === "unconfigured") return refusal("unconfigured", notMeFailed);
+  if (session.state === "signed-out") return refusal("signed-out", notMeFailed);
 
   try {
     const { data, error } = (await loose(session.supabase).rpc("report_not_me")) as {
       data: unknown;
       error: unknown;
     };
-    if (error || !data || typeof data !== "object") return fail("failed" satisfies DeviceAlertError);
+    if (error || !data || typeof data !== "object") return refusal("failed", notMeFailed);
     const answer = data as {
       status?: unknown;
       ended?: unknown;
@@ -72,10 +85,13 @@ export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
       rate_limited?: unknown;
     };
     const rateLimited = answer.rate_limited === true;
-    if (answer.status !== "ok") return fail("failed" satisfies DeviceAlertError);
-    /* A hold always has an end, except when the limit was hit with no hold in force. */
-    if (typeof answer.hold_until !== "string" && !(rateLimited && answer.hold_until === null)) {
-      return fail("failed" satisfies DeviceAlertError);
+    if (answer.status !== "ok") return refusal("failed", notMeFailed);
+    /* A hold carries its end, except when the limit was hit with no hold in
+       force, or when the hold sits beside one the member is never told about
+       (SCUML items 6 and 8: the database sends no date and no reason then). */
+    const undated = answer.hold_until === null && (rateLimited || answer.hold_placed === true);
+    if (typeof answer.hold_until !== "string" && !undated) {
+      return refusal("failed", notMeFailed);
     }
     revalidatePath("/settings/devices");
     return ok({
@@ -87,7 +103,7 @@ export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
       rateLimited,
     });
   } catch {
-    return fail("failed" satisfies DeviceAlertError);
+    return refusal("failed", notMeFailed);
   }
 }
 
@@ -102,11 +118,11 @@ export type GroupEnded = { ended: number };
 
 export async function endSessionGroup(input: unknown): Promise<ActionResult<GroupEnded>> {
   const session = await resolveSession();
-  if (session.state === "unconfigured") return fail("unconfigured" satisfies DeviceAlertError);
-  if (session.state === "signed-out") return fail("signed-out" satisfies DeviceAlertError);
+  if (session.state === "unconfigured") return refusal("unconfigured", groupFailed);
+  if (session.state === "signed-out") return refusal("signed-out", groupFailed);
 
   const parsed = validate(groupSchema, input);
-  if (!parsed.ok) return fail("invalid" satisfies DeviceAlertError);
+  if (!parsed.ok) return refusal("invalid", groupFailed);
 
   let ended = 0;
   let failures = 0;
@@ -129,6 +145,6 @@ export async function endSessionGroup(input: unknown): Promise<ActionResult<Grou
   }
 
   revalidatePath("/settings/devices");
-  if (ended === 0 && failures > 0) return fail("failed" satisfies DeviceAlertError);
+  if (ended === 0 && failures > 0) return refusal("failed", groupFailed);
   return ok({ ended });
 }

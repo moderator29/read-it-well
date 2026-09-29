@@ -96,3 +96,20 @@ describe("the callback knows which provider made the session", () => {
     expect(socialProviderOfSession(token(["oauth"]), [])).toBe("unknown");
   });
 });
+
+describe("B-2: the precondition for switching a provider on", () => {
+  it("names the terms and 18+ step, and that step is a real screen", async () => {
+    const { FINISH_SETUP_STEP } = await import("./providers");
+    const { existsSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    expect(FINISH_SETUP_STEP).toBe("/sign-up/finish");
+    expect(existsSync(join(__dirname, "../../app/(auth)/sign-up/finish/page.tsx"))).toBe(true);
+  });
+
+  it("a new Google or Apple session owes the step; an email one never does", async () => {
+    const { mayOweSetup } = await import("./finish-setup");
+    expect(mayOweSetup({ app_metadata: { providers: ["google"] } })).toBe(true);
+    expect(mayOweSetup({ app_metadata: { providers: ["apple"] } })).toBe(true);
+    expect(mayOweSetup({ app_metadata: { providers: ["email"] } })).toBe(false);
+  });
+});

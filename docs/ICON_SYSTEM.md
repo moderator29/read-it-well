@@ -212,17 +212,118 @@ listing cards, not in any object.
 set. Used for the dock capsule, headers, chips and small controls, and as the
 fallback for any navigation row with no glass object mapped.
 
-**Navigation does use glass objects (Track M, 25 September 2026).** The side
-navigation drawer rows (`components/app/NavTree.tsx`) and the dock's sub-nav
-tray (`components/app/DockMore.tsx`) draw the glass object that
-`GLASS_FOR` in `apps/web/src/lib/nav/glass-glyph.ts` maps to each line glyph.
-A destination missing from that map falls back to its `UiIcon`, and Settings
-is left out of the map on purpose. The five-icon dock capsule keeps its line
-glyphs. The older rule that navigation never uses the 3D pack is superseded
-for those two surfaces.
+**Redrawn 29 September 2026 on Lucide geometry.** Against the founder's
+references of that date (`docs/design/references/2026-09-29/`), most
+outlines are now Lucide's path data (ISC; notice in
+`design-system/icons/THIRD_PARTY_NOTICES.md`), copied in with no runtime
+dependency. Not all of them: the four brand marks are the owners' own, and
+seven glyphs are Vallo's drawings on Lucide's rules (listed below; the menu
+and `house` start from Lucide geometry and are altered). The rules the set now
+holds, glyph for glyph:
 
-**One weight.** `UI_ICON_STROKE_PX` is 1.5 RENDERED CSS pixels, and the
-`stroke-width` attribute is computed from the size rather than passed in.
+- One live area, 2 to 22 on the 24 grid. The old set ranged from 14 to 19
+  units wide, so neighbours in the dock read as different sizes.
+- One corner radius, 2 (1 on small parts such as the archive lid), one dot
+  (`h.01` on a round cap, so it scales with the line), round caps and joins.
+- The bold weight (below): `UI_ICON_STROKE_PX`, 2.25 rendered CSS px at 20
+  and 24, scaled optically per size.
+- Where Lucide has no drawing, Vallo draws one on the same rules: the
+  shorter-third menu, the two-card feed, `house` (Lucide's house with a
+  chimney, so it never reads as the Home tab), and the four property-type
+  houses (`house-duplex`, `house-terrace`, `house-bungalow`,
+  `tower-penthouse`).
+- Every name kept its meaning, so no call site changed. The Lucide source of
+  each glyph is named in a bracket above it in the TSX.
+
+**Bold pass, 29 September 2026 (same day, second round).** The founder asked
+for the icons to read premium: bolder, solid, clean and sharp, with pump.fun's
+app icons as the weight target (`22-pumpfun-drawer-bold-icons.png`,
+`23-pumpfun-home-bell-dock.png`: about 2 to 2.25 CSS px at 24, round joins, a
+solid twin for the active state such as their filled gear). What changed:
+
+- **The weight.** `UI_ICON_STROKE_PX` went from 1.5 to 2, and the rendered
+  line now steps with the size through `UI_ICON_STROKE_BY_EDGE` and
+  `uiIconStrokeWidth(size)`: 1.5 at 12, 1.75 at 16, 2 at 20 and 24, 2.25 at
+  28, 2.5 at 32, 2.75 at 40. One fixed pixel weight clogged the 12 step (2px
+  is a third of a counter there) and starved the 40 step; the quarter-pixel
+  steps land on the device grid at 2x. `LineGlyph`, `SettingsGlyph`,
+  `FeatureGlyph` and the console's `AdminGlyph` call the same helper, so they
+  went bold with the set.
+- **Raised to 2.25 the same day (the ICONS3 audit).** Beside 600-weight
+  labels the 20 and 24 steps at 2 still read a shade under pump.fun's, and
+  the founder asked for "a bit more bold". The scale is now 1.5 at 12, 1.75
+  at 16, **2.25 at 20 and 24**, 2.5 at 28, 2.75 at 32, 3 at 40. 12 and 16
+  did not move: heavier there closes Lucide's counters.
+- **The library stayed Lucide.** The founder also named "expo icons"
+  (`@expo/vector-icons`), which is a React Native package; its web-usable
+  faces are Ionicons (MIT) and MaterialCommunityIcons (Apache 2.0). Ionicons'
+  outline set draws 32 on a 512 grid, 1.5 at 24, which is the thin line being
+  left behind, and its filled set is a different drawing rather than a twin.
+  Phosphor Bold (MIT) is 2.25 on rounder, wider geometry and would have meant
+  redrawing all ninety glyphs again in the same week. Lucide's geometry is
+  DRAWN at 2: its counters, gaps and dot spacing are tuned for exactly the
+  weight the founder asked for, so raising the line makes each glyph cleaner
+  rather than heavier, and the set stays one family under one licence.
+- **Seven glyphs added** for the listing page's cost and utility rows, which
+  dropped their glass objects for plated line glyphs: `coins` (the total,
+  Lucide), `scale` (legal fee, Lucide), `certificate` (Governor's consent,
+  Lucide `award`), `stamp` (stamp duty, Lucide), `droplet` (water, Lucide),
+  and two of Vallo's own on the same rules, `survey` (a pin on a measuring
+  rule, survey and registration) and `gate` (the estate gate: `verified`'s
+  Lucide shield with a solid keyhole on a stem; a first drawing of two posts,
+  an arched rail and bars closed into a hash at 20px on the bold line and was
+  replaced in the ICONS3 audit). Light keeps `bolt`, which already existed.
+- **More twins**, so a selected row can go solid: `sun`, `briefcase`,
+  `parking`, `kitchen`, `droplet`, `certificate`, `stamp`, `survey`. The
+  existing twins needed no redraw: their body is stroked at the family weight
+  and their cuts at the same weight, so they thickened with it and read as
+  cleaner, sharper solids.
+
+**Filled twins.** 40 names have a drawn filled twin (`FILLED` in the TSX):
+every tab in the dock except Search (a solid lens reads as a dot on a stick), the drawer's destinations that have a closed shape to
+fill, and the saved and rated states (heart, star, bookmark). Line-only
+glyphs (`search`, `settings-gear`, `sliders`, `history`, the arrows) have no honest
+solid form and keep their outline when selected; the selected pill and the
+colour carry the state. A twin is the outline's own
+geometry in three layers: a `body` painted solid and stroked at the family
+weight, so its outer edge sits exactly where the outline's does; a `cut`
+knocked out of the body through an SVG mask at the same weight (the door of
+the house, the tick on the calendar, the fold of the document); and `keep`
+strokes drawn on top (the clapper, the mast). The mask id is built from
+the name, the size and `useId`. A name with no twin ignores `filled` and draws its outline.
+
+**The gallery.** `/preview/icons` draws every name at 16, 20 and 24, regular
+and filled, with the real `Button` and `Chip` and a dock-shaped row above;
+`?grid=1` outlines each cell. Shoot it with `data-theme` set to each theme.
+
+**Navigation is line glyphs (29 September 2026, the founder's final ruling).**
+The side drawer and rail rows (`components/app/NavTree.tsx`), the dock
+capsule (`MobileTabBar.tsx`) and the dock's More tray (`DockMore.tsx`) all
+draw `UiIcon`, with the filled twin on the current row or tab. The Track M
+glass map (`lib/nav/glass-glyph.ts`, `GLASS_FOR`) is deleted: at nav sizes
+the glass objects blurred, and they read as a second icon family.
+
+**Glass objects in daylight sit on a navy tile (29 September 2026).** The
+glass artwork was drawn for a night ground and fringes on white. In the light
+theme, outside a night island (`data-theme="dark"`), every `BrandIcon` ground
+(`.nf-brand-icon-ground`) and chip (`.nf-icon-tile`) paints a small navy tile
+behind the object, and the object is shown unfiltered at about 72 per cent of
+it (`app/css/light.css`, "THE GLASS OBJECTS IN DAYLIGHT").
+
+**`data-host-plate` is the supported opt-out.** A host that draws its own
+plate or container around a `BrandIcon` (so a tile inside it would be a tile
+inside a tile) puts `data-host-plate` on ITSELF, the element that contains the
+icon. The object inside it then draws with no tile and no scale. A handful of
+existing hosts (`.nf-plate`, the flip coin, the landing's two-worlds faces,
+footer seal and list marks, `.nf-chip`, `.nf-btn`) are listed in light.css by
+class because their files belong to other owners; new hosts use the attribute,
+never a new class in that list.
+
+**One weight.** `UI_ICON_STROKE_PX` is 2.25 RENDERED CSS pixels at the 20 and
+24 steps (1.5 until the bold pass of 29 September 2026, 2 for its first
+round), stepped optically
+per size by `uiIconStrokeWidth`, and the `stroke-width` attribute is computed
+from the size rather than passed in.
 There is no `strokeWidth` prop. A fixed number on the 24 grid renders thinner
 the smaller the glyph gets, which is why thirty-two call sites had each
 hand-tuned a value between 1.5 and 2.6 and the platform ended up with a dozen
@@ -246,10 +347,11 @@ been retired two hundred lines below the decision.**
 The argument was that a stroked glyph drawn on a 24 grid renders a 0.7 CSS
 pixel line at 12px, which a display either drops or smears. That is true of a
 FIXED `strokeWidth`: a constant 1.8 renders 1.8 at 24 and 0.9 at 12. It is the
-very thing the weight fix addressed. `stroke-width` is computed per size now,
-`(UI_ICON_STROKE_PX * 24) / edge`, which at 12 is 3 grid units, and 3 units on a
-glyph drawn at half the grid renders at **1.5 CSS pixels, not 0.7**. The
-objection was dead before the ban was written down.
+very thing the weight fix addressed. `stroke-width` is computed per size now
+(then `(UI_ICON_STROKE_PX * 24) / edge`, today `uiIconStrokeWidth(edge)`), which
+at 12 is 3 grid units, and 3 units on a glyph drawn at half the grid renders at
+**1.5 CSS pixels, not 0.7**. The objection was dead before the ban was written
+down.
 
 And 12 is the SECOND MOST REQUESTED SIZE IN THE PRODUCT. Counted across `src`,
 197 call sites pass an explicit number, and 12 appears at 35 of them, behind
@@ -271,12 +373,62 @@ nearest one, so a size cannot drift off the grid whatever a caller passes.
 BrandIcon sits on an 8px grid from 24 up; below 24 the plinth in the artwork
 collapses into a coloured square.
 
-**Vector sources are checked in.** `assets/icons/ui/*.svg`, **40 files**, one per
+**Vector sources are checked in.** `assets/icons/ui/*.svg`, **88 files**, one per
 glyph, generated from this component by `node scripts/build-icon-vectors.mjs` and
 verified by `--check`, which exits non-zero if the two copies have drifted. Edit
 the TSX and re-run the script, never the other way round. Nobody has to trace a
 glyph from a screenshot. See `assets/icons/README.md` for where the artwork
-lives.
+lives. The files are drawn at the 24 step, so they carry `stroke-width="2.25"`.
+
+## Listing and stays detail: plated line glyphs, not glass (29 September 2026)
+
+The founder's `20-listing-fees-glass-now.png` and
+`21-listing-amenities-glass-now.png` showed the fee rows and the light, water
+and gate rows carrying glass objects at 40px, blurred and inconsistent beside
+the bold type. They now draw `DetailGlyph`
+(`components/app/listing/DetailGlyph.tsx`): the shared `IconPlate` (a soft
+brand-tinted tile with a hairline in light, the navy glass plate at night) with
+a brand-blue `UiIcon` at 20, the same treatment as the profile rows. At night
+the glyph takes the bright end of the brand blue, as the profile page does.
+Measured glyph-on-plate contrast at 390: about 4.9:1 in light and 5.3 to
+5.7:1 at night.
+
+An UNDECLARED cost's plate steps back by colour, never by opacity: the lit
+blue fill, rim and glow give way to the raised neutral surface and the glyph
+draws at `--nf-content-muted` at the full family weight (about 5.6:1 in light,
+7:1 at night). The first cut faded the whole plate to 0.55, which left the
+glyph at 2.3:1 and 2.8:1, under the 3:1 non-text floor, and read as pale
+rather than quiet.
+
+| Row | Glyph |
+| --- | --- |
+| Asking price | `price-tag` |
+| Rent | `key` |
+| Agency fee | `briefcase` |
+| Legal fee | `scale` |
+| Agreement fee | `document` |
+| Caution deposit | `verified` |
+| Service charge | `building-apartment` |
+| Governor's consent | `certificate` |
+| Stamp duty | `stamp` |
+| Survey and registration | `survey` |
+| Buy-from and move-in total | `coins` (large plate) |
+| Unexplained remainder | `info` (pending plate) |
+| Light | `bolt` |
+| Water | `droplet` |
+| The gate | `gate` |
+
+The same sweep put line glyphs on the rest of the detail pages: the host and
+agent avatar fallbacks (`user`), the rooms line of the move-in block (`bed`),
+the stay's property type (`building-hotel`, `building-apartment`,
+`house-bungalow`, `pool`, `key`) and the rental panel's safety note
+(`verified`). One glass object stays on purpose: the booking-requested
+confirmation draws `calendar-check` at 56px, above the 32px where the glass
+set reads, and its pop-in is keyed to the object's own tile. The stays
+category tiles on `/stays` are browse tiles, not detail rows, and keep glass
+too. The listing cards drew no glass. The cost models (`move-in-lines.ts`, `purchase-lines.ts`) keep
+their `icon` (a `BrandIconName`) for the listing wizard's preview and carry the
+line glyph as `glyph`.
 
 ## Deleted: TrustIcon
 

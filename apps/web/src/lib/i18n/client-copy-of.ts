@@ -46,6 +46,13 @@ const AUTH_FLOW_KEYS = [
  *   frontDoor.share            the listing page's share control
  *   offPlatform                the sheet before a link leaves Vallo
  *   socialProfile.accountPage  the profile's hero and rows
+ *   success (chrome, and the   the success sheet's own words, and only the
+ *   moments below)             moments whose components have no server
+ *                              parent to hand them copy: the account moments
+ *                              the root layout's host shows, a report, a
+ *                              support ticket and an inspection request. Every
+ *                              other moment's words come from its page, so the
+ *                              ~5 KB of them are not carried by every screen.
  *
  * A server-side function, not part of the client module, so the root layout
  * can call it.
@@ -63,7 +70,23 @@ export type ClientCopy = {
   frontDoor: Pick<Dictionary["frontDoor"], "share">;
   offPlatform: Dictionary["offPlatform"];
   socialProfile: Pick<Dictionary["socialProfile"], "accountPage">;
+  success: Pick<Dictionary["success"], "continue" | "close" | "detail"> & {
+    moments: Pick<Dictionary["success"]["moments"], (typeof SLICED_MOMENTS)[number]>;
+  };
 };
+
+/** The success moments carried on every screen. Keep this list short. */
+const SLICED_MOMENTS = [
+  "accountCreated",
+  "emailVerified",
+  "passwordChanged",
+  "passcodeSet",
+  "passcodeChanged",
+  "inspectionRequested",
+  "reportFiled",
+  "ticketFiled",
+  "contactSent",
+] as const;
 
 export function clientCopyOf(t: Dictionary): ClientCopy {
   return {
@@ -84,5 +107,13 @@ export function clientCopyOf(t: Dictionary): ClientCopy {
     frontDoor: { share: t.frontDoor.share },
     offPlatform: t.offPlatform,
     socialProfile: { accountPage: t.socialProfile.accountPage },
+    success: {
+      continue: t.success.continue,
+      close: t.success.close,
+      detail: t.success.detail,
+      moments: Object.fromEntries(
+        SLICED_MOMENTS.map((key) => [key, t.success.moments[key]])
+      ) as ClientCopy["success"]["moments"],
+    },
   };
 }

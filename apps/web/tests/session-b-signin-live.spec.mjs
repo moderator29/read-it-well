@@ -11,11 +11,12 @@
  * limiter's own counter.
  *
  * Signed in (`--signed-in`, runs the moment the QA account exists): the
- * email-first door end to end, landing on `next`. Credentials come from the
+ * one-screen door (B-1) end to end, landing on `next`. Credentials come from the
  * environment only, never from the repository. It signs in and out once.
  */
 
 import { chromium } from "playwright-core";
+import { passcodeReady } from "./_passcode.mjs";
 import { mkdirSync } from "node:fs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://127.0.0.1:3173";
@@ -56,6 +57,13 @@ if (!SIGNED_IN) {
   check("the sign-in-required notice is drawn", /Sign in to open that/.test(notice ?? ""), notice ?? "");
   await page.screenshot({ path: `${OUT}/live-gate-home.png` });
 
+  /* B-2: "Finish setting up" is never shown to nobody; signed out it is the
+     sign-in door, with the step as where to come back to. */
+  await page.goto(`${BASE_URL}/sign-up/finish`, { waitUntil: "domcontentloaded" });
+  await page.waitForURL((u) => u.pathname === "/sign-in", { timeout: 15000 }).catch(() => {});
+  check("signed-out /sign-up/finish goes to sign in with the step as next",
+    new URL(page.url()).pathname === "/sign-in" && path().includes("next=%2Fsign-up%2Ffinish"), path());
+
   /* First run is always reachable signed out. */
   const wel = await page.goto(`${BASE_URL}/welcome`, { waitUntil: "domcontentloaded" });
   check("/welcome shows signed out", wel?.status() === 200 && path().startsWith("/welcome"), `${wel?.status()} ${path()}`);
@@ -64,10 +72,11 @@ if (!SIGNED_IN) {
      at a reserved domain (RFC 2606), so it cannot belong to anybody. */
   const made = `nobody-${Date.now()}@example.invalid`;
   await page.goto(`${BASE_URL}/sign-in`, { waitUntil: "domcontentloaded" });
-  await fillAndWaitHydrated("#auth-email", made);
-  await page.click("button:has-text('Continue')");
-  await page.waitForURL(/\/sign-in\/email/, { timeout: 15000 });
-  check("Continue carries the address to the password step", (await page.inputValue("#email")) === made, path());
+  /* B-1: email and password on ONE screen, as refs 12 and 14 draw it. */
+  check("the email and the password are on the same screen",
+    (await page.locator("#email").count()) === 1 && (await page.locator("#password").count()) === 1, path());
+  check("Forgot password is on that screen", (await page.locator('a[href="/forgot-password"]').count()) === 1);
+  await fillAndWaitHydrated("#email", made);
   await fillAndWaitHydrated("#password", "not-the-password-1");
   const t0 = Date.now();
   await page.click("button[type=submit]:has-text('Sign in')");
@@ -80,7 +89,13 @@ if (!SIGNED_IN) {
   console.log(`  (refusal after ${Date.now() - t0} ms)`);
   check("the real auth server's refusal is drawn as the mapped sentence",
     /do not match|Too many attempts|could not complete/.test(text), text.trim());
-  check("still on the password step, not signed in", path().startsWith("/sign-in/email"), path());
+  check("still on the sign-in screen, not signed in", path().startsWith("/sign-in"), path());
+  check("the address typed is kept after the refusal", (await page.inputValue("#email")) === made);
+  /* The old second step forwards to the one screen, carrying next. */
+  await page.goto(`${BASE_URL}/sign-in/email?next=${encodeURIComponent("/wallet")}`, { waitUntil: "domcontentloaded" });
+  await page.waitForURL((u) => u.pathname === "/sign-in", { timeout: 15000 }).catch(() => {});
+  check("/sign-in/email forwards to /sign-in with next kept",
+    new URL(page.url()).pathname === "/sign-in" && path().includes("next=%2Fwallet"), path());
   await page.screenshot({ path: `${OUT}/live-refused.png`, fullPage: true });
 } else {
   const email = process.env.QA_MEMBER_EMAIL;
@@ -91,13 +106,13 @@ if (!SIGNED_IN) {
   }
   console.log(`signed in, ${stamp()}`);
   await page.goto(`${BASE_URL}/sign-in?next=${encodeURIComponent("/wallet")}`, { waitUntil: "domcontentloaded" });
-  await fillAndWaitHydrated("#auth-email", email);
-  await page.click("button:has-text('Continue')");
-  await page.waitForURL(/\/sign-in\/email/, { timeout: 15000 });
-  check("next rides to the password step", path().includes("next=%2Fwallet"), path());
+  check("next rides on the one sign-in screen", path().includes("next=%2Fwallet"), path());
+  await fillAndWaitHydrated("#email", email);
   await fillAndWaitHydrated("#password", password);
   await page.click("button[type=submit]:has-text('Sign in')");
   await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 30000 }).catch(() => {});
+  /* The passcode layer (docs/PASSCODE.md) stands in front of /wallet until the QA code is set or typed. */
+  await passcodeReady(ctx, page, { baseUrl: BASE_URL });
   check("a real sign-in lands on next", path().startsWith("/wallet"), path());
   /* Let the wallet finish its first read so the proof shows the page, not
      its skeleton. */

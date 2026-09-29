@@ -57,43 +57,77 @@ export function keptUntil(moveIn: string, period: RentPeriod): string {
 
 /* -------------------------------------------------------------- caution */
 
-export type CautionState = "open" | "deductions_proposed" | "agreed" | "disputed" | "returned";
+export type CautionState = "open" | "deductions_proposed" | "agreed" | "disputed" | "escalated" | "returned";
 
 export type CautionFacts = {
   amountMinor: number;
-  deductions: { amountMinor: number; answer: "accepted" | "disputed" | null }[];
-  returns: { amountMinor: number }[];
+  /**
+   * `allowedMinor` is what Vallo staff allowed on a disputed line
+   * (`caution_dispute_rulings`); null while the dispute waits for a ruling.
+   */
+  deductions: { amountMinor: number; answer: "accepted" | "disputed" | null; allowedMinor?: number | null }[];
+  /**
+   * A return a party recorded. `standing`: counted (uncontested, or ruled
+   * received), `in_doubt` (the tenant says it never arrived, not yet ruled),
+   * `not_received` (ruled so). Absent means counted.
+   */
+  returns: { amountMinor: number; standing?: "counted" | "in_doubt" | "not_received" }[];
+  /** What the Vallo Guarantee approved or paid on this caution. */
+  guaranteedMinor?: number;
+  /** A Guarantee claim on this caution is waiting for staff. */
+  claimOpen?: boolean;
 };
 
 export type CautionReading = {
   state: CautionState;
   returnedMinor: number;
   deductedMinor: number;
+  guaranteedMinor: number;
+  inDoubtMinor: number;
   /** What is still owed to the tenant: never below zero. */
   outstandingMinor: number;
+  /** What a Guarantee claim may ask for: outstanding less everything still in question. */
+  claimableMinor: number;
 };
 
 /**
- * Where a caution stands, from its rows.
+ * Where a caution stands, from its rows. Twin of `private.caution_position`.
  *
- * Settled ("returned") when what came back plus what the tenant accepted
- * covers the whole caution. Otherwise a disputed line outranks everything, an
- * unanswered line reads as "proposed", and a set of lines all accepted reads
- * as "agreed" while the rest is still to be returned.
+ * Settled ("returned") when counted returns, deductions (accepted, or what
+ * staff allowed on a disputed line) and the Vallo Guarantee cover the whole
+ * caution. Otherwise a Guarantee claim outranks everything, then anything
+ * with Vallo staff (a dispute not yet ruled, a return in doubt), then an
+ * unanswered line; lines all settled read as "agreed" while money is owed.
  */
 export function cautionState(facts: CautionFacts): CautionReading {
-  const returnedMinor = facts.returns.reduce((sum, row) => sum + row.amountMinor, 0);
-  const deductedMinor = facts.deductions
-    .filter((row) => row.answer === "accepted")
+  const returnedMinor = facts.returns
+    .filter((row) => (row.standing ?? "counted") === "counted")
     .reduce((sum, row) => sum + row.amountMinor, 0);
-  const outstandingMinor = Math.max(0, facts.amountMinor - returnedMinor - deductedMinor);
+  const inDoubtMinor = facts.returns
+    .filter((row) => row.standing === "in_doubt")
+    .reduce((sum, row) => sum + row.amountMinor, 0);
+  const deductedMinor = facts.deductions.reduce((sum, row) => {
+    if (row.answer === "accepted") return sum + row.amountMinor;
+    if (row.answer === "disputed" && typeof row.allowedMinor === "number") return sum + row.allowedMinor;
+    return sum;
+  }, 0);
+  const proposedMinor = facts.deductions.filter((row) => row.answer === null).reduce((sum, row) => sum + row.amountMinor, 0);
+  const disputedMinor = facts.deductions
+    .filter((row) => row.answer === "disputed" && typeof row.allowedMinor !== "number")
+    .reduce((sum, row) => sum + row.amountMinor, 0);
+  const guaranteedMinor = Math.max(0, facts.guaranteedMinor ?? 0);
+  const outstandingMinor = Math.max(0, facts.amountMinor - returnedMinor - deductedMinor - guaranteedMinor);
+  const claimableMinor = facts.claimOpen
+    ? 0
+    : Math.max(0, outstandingMinor - proposedMinor - disputedMinor - inDoubtMinor);
   let state: CautionState;
   if (outstandingMinor === 0) state = "returned";
-  else if (facts.deductions.some((row) => row.answer === "disputed")) state = "disputed";
-  else if (facts.deductions.some((row) => row.answer === null)) state = "deductions_proposed";
+  else if (facts.claimOpen || guaranteedMinor > 0) state = "escalated";
+  else if (disputedMinor > 0 || inDoubtMinor > 0) state = "disputed";
+  else if (proposedMinor > 0) state = "deductions_proposed";
   else if (facts.deductions.length > 0) state = "agreed";
   else state = "open";
-  return { state, returnedMinor, deductedMinor, outstandingMinor };
+  return { state, returnedMinor, deductedMinor, guaranteedMinor, inDoubtMinor, outstandingMinor, claimableMinor };
 }
 
 /* -------------------------------------------------------------- reports */

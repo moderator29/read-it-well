@@ -2,27 +2,28 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
-import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
-import { parseNairaToKobo } from "@/lib/agent/listings-schema";
+import type { Dictionary } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { ROOM_COPY, ROOM_ITEMS, type RoomItem } from "@/lib/inspections/report";
 import {
   answerCautionDeduction,
+  contestCautionReturn,
+  escalateCaution,
   proposeCautionDeduction,
-  returnCaution,
+  recordCautionReturn,
 } from "@/lib/tenancy/actions";
 
 type Copy = Dictionary["afterTheGate"]["tenancy"];
 
 /**
- * The caution register's three controls. V-36.
+ * The caution register's controls. V-36.
  *
  * The tenant answers each deduction line once: accept or dispute. The lister
  * proposes a line (a room, an amount, a move-out photograph: no lump sums),
- * and returns caution money from their own wallet to the tenant's in one
- * step, which lands on the record as it goes through. Every rule is enforced by the database door;
+ * and records a return they paid directly; the tenant confirms receipt,
+ * says a recorded return never arrived, or takes an unreturned caution to
+ * the Vallo Guarantee. Nothing here moves money. Every rule is enforced by the database door;
  * these forms only collect the facts and say what came back.
  */
 
@@ -215,13 +216,19 @@ export function ProposeDeduction({
   );
 }
 
-export function ReturnCaution({
+/**
+ * Record a caution return. The lister records what they paid back; the
+ * tenant confirms what they received. The money went directly between them:
+ * Vallo only records it. One key per drawn form, so a double tap records once.
+ */
+export function RecordReturn({
   tenancyId,
   obligationId,
   outstanding,
   outstandingNaira,
+  viewer,
+  today,
   copy,
-  locale,
 }: {
   tenancyId: string;
   obligationId: string;
@@ -229,96 +236,153 @@ export function ReturnCaution({
   outstanding: string;
   /** The same amount as plain naira, to prefill the field. */
   outstandingNaira: string;
+  viewer: "tenant" | "lister";
+  /** Today, Lagos, as YYYY-MM-DD: the default and the latest date. */
+  today: string;
   copy: Copy;
-  locale: Locale;
 }) {
   const router = useRouter();
-  // V-81: the phone lock for exactly this obligation and amount, read the way the server reads it.
-  const lock = useMoneyStepUp(locale);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState(outstandingNaira);
-  // One key per drawn form: a double tap or a retry of this form is the
-  // same transfer, and the database moves the money once.
+  const [returnedOn, setReturnedOn] = useState(today);
+  const [method, setMethod] = useState<"bank_transfer" | "cash" | "other">("bank_transfer");
+  const [reference, setReference] = useState("");
   const [key, setKey] = useState(() => crypto.randomUUID());
   const [sent, setSent] = useState<string | null>(null);
   return (
-    <>
-      {lock.sheet}
-      <form
-        className="grid gap-md"
-        data-testid="caution-return"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setError(null);
-          start(async () => {
-            const result = await lock.guard(
-              {
-                kind: "caution_return",
-                target: obligationId,
-                amountKobo: parseNairaToKobo(amount),
-              },
-              (stepUp) =>
-                returnCaution({
-                  tenancyId,
-                  obligationId,
-                  amountNaira: amount,
-                  idempotencyKey: key,
-                  stepUp,
-                })
-            );
-            if (result === null) {
-              setError(getDictionary(locale).platform.moneyLock.notConfirmed);
-              return;
-            }
-            if (!result.ok) {
-              setError(result.error ?? null);
-              return;
-            }
-            setSent(copy.returnSent);
-            setAmount("");
-            setKey(crypto.randomUUID());
-            router.refresh();
+    <form
+      className="grid gap-md"
+      data-testid="caution-return"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setError(null);
+        start(async () => {
+          const result = await recordCautionReturn({
+            tenancyId,
+            obligationId,
+            amountNaira: amount,
+            returnedOn,
+            method,
+            reference,
+            idempotencyKey: key,
           });
-        }}
-      >
-        <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-          {copy.returnHelp.replace("{outstanding}", outstanding)}
+          if (!result.ok) {
+            setError(result.error ?? null);
+            return;
+          }
+          setSent(copy.returnSent);
+          setAmount("");
+          setKey(crypto.randomUUID());
+          router.refresh();
+        });
+      }}
+    >
+      <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+        {(viewer === "lister" ? copy.returnHelp : copy.returnHelpTenant).replace("{outstanding}", outstanding)}
+      </p>
+      {sent && (
+        <p className="nf-body-sm text-[var(--nf-state-success)]" role="status" data-testid="caution-return-sent">
+          {sent}
         </p>
-        {sent && (
-          <p
-            className="nf-body-sm text-[var(--nf-state-success)]"
-            role="status"
-            data-testid="caution-return-sent"
-          >
-            {sent}
-          </p>
+      )}
+      <Field label={copy.returnAmount}>
+        {(control) => (
+          <input
+            {...control}
+            className="nf-field"
+            inputMode="decimal"
+            autoComplete="off"
+            value={amount}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              setSent(null);
+            }}
+          />
         )}
-        <Field label={copy.returnAmount} error={error ?? undefined}>
-          {(control) => (
-            <input
-              {...control}
-              className="nf-field"
-              inputMode="decimal"
-              autoComplete="off"
-              value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value);
-                setSent(null);
-              }}
-            />
-          )}
-        </Field>
-        <Button
-          type="submit"
-          variant="primary"
-          full
-          loading={pending}
-          disabled={pending || amount.trim().length === 0}
-        >
-          {copy.returnSubmit}
-        </Button>
-      </form>
-    </>
+      </Field>
+      <Field label={copy.returnDate}>
+        {(control) => (
+          <input {...control} type="date" className="nf-field" max={today} value={returnedOn} onChange={(e) => setReturnedOn(e.target.value)} />
+        )}
+      </Field>
+      <Field label={copy.returnMethod}>
+        {(control) => (
+          <select
+            {...control}
+            className="nf-field"
+            value={method}
+            onChange={(e) => setMethod(e.target.value as "bank_transfer" | "cash" | "other")}
+          >
+            {(["bank_transfer", "cash", "other"] as const).map((m) => (
+              <option key={m} value={m}>
+                {copy.returnMethods[m]}
+              </option>
+            ))}
+          </select>
+        )}
+      </Field>
+      <Field label={copy.returnReference} error={error ?? undefined}>
+        {(control) => (
+          <input {...control} className="nf-field" maxLength={100} value={reference} onChange={(e) => setReference(e.target.value)} />
+        )}
+      </Field>
+      <Button type="submit" variant="primary" full loading={pending} disabled={pending || amount.trim().length === 0}>
+        {viewer === "lister" ? copy.returnSubmit : copy.returnSubmitTenant}
+      </Button>
+    </form>
+  );
+}
+
+/** The tenant says a return the lister recorded never arrived. Vallo staff rule on it. */
+export function ContestReturn({ tenancyId, returnId, copy }: { tenancyId: string; returnId: string; copy: Copy }) {
+  const { pending, error, run } = useRun();
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState("");
+  if (!open) {
+    return (
+      <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
+        {copy.contest}
+      </Button>
+    );
+  }
+  return (
+    <form
+      className="mt-xs grid gap-sm"
+      onSubmit={(event) => {
+        event.preventDefault();
+        run(() => contestCautionReturn({ tenancyId, returnId, note }));
+      }}
+    >
+      <Field label={copy.contestNote} error={error ?? undefined}>
+        {(control) => <input {...control} className="nf-field" maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />}
+      </Field>
+      <Button type="submit" size="sm" variant="secondary" loading={pending} disabled={pending || note.trim().length < 5}>
+        {copy.contestSubmit}
+      </Button>
+    </form>
+  );
+}
+
+/** Past its due date, the tenant takes the unreturned part to the Vallo Guarantee. */
+export function EscalateCaution({ tenancyId, obligationId, copy }: { tenancyId: string; obligationId: string; copy: Copy }) {
+  const { pending, error, run } = useRun();
+  return (
+    <div className="grid gap-xs">
+      <Button
+        variant="secondary"
+        full
+        loading={pending}
+        disabled={pending}
+        onClick={() => run(() => escalateCaution({ tenancyId, obligationId }))}
+      >
+        {copy.escalateSubmit}
+      </Button>
+      {error && (
+        <p className="nf-caption text-[var(--nf-state-error)]" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

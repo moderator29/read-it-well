@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { MAX_DAYS_AHEAD, MAX_PARTY } from "./limits";
+
 /**
  * What a guest is allowed to ask a restaurant for.
  *
@@ -16,11 +18,10 @@ import { z } from "zod";
  * phone believes about its own timezone.
  */
 
-/** Above this a table is an event, and the answer is a conversation. */
-export const MAX_PARTY = 50;
-
-/** How far ahead a table may be held. Beyond this nobody knows their plans. */
-export const MAX_DAYS_AHEAD = 90;
+/* The two bounds a form draws (`MAX_PARTY`, `MAX_DAYS_AHEAD`) are plain
+   numbers in `./limits`, so the reserve form can print them without shipping
+   zod; re-exported so every existing import of this module keeps working. */
+export { MAX_DAYS_AHEAD, MAX_PARTY };
 
 /**
  * Nigeria does not observe daylight saving and never has, so West Africa Time

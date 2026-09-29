@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   isMandateRefusal,
@@ -10,6 +10,7 @@ import {
   readMandateForm,
   readMyMandate,
   readOwnershipDesk,
+  ACTING_FOR_KINDS,
   ID_DOCUMENT_KINDS,
   RELATIONSHIPS,
   VERIFIED_HOW,
@@ -26,6 +27,23 @@ const form = {
   signedOn: "2026-09-01",
   expiresOn: "2027-09-01",
 };
+
+
+/*
+ * The LIVE migration for SCUML item 17 (20260924171000 to 171200 were never
+ * applied; see supabase/migrations/superseded/README.md). readFileSync throws
+ * when the file is missing, so a renamed or moved file fails the suite.
+ */
+const LIVE_17 = join(__dirname, "../../../../../supabase/migrations/20260929001007_scuml_17_beneficial_ownership_on_live_tables.sql");
+const live17 = () => readFileSync(LIVE_17, "utf8");
+/** One function's text, from its create to its closing dollar quote. */
+function functionText(sql: string, name: string): string {
+  const start = sql.indexOf(`create or replace function ${name}(`);
+  if (start < 0) throw new Error(`${name} is not in the migration`);
+  const end = sql.indexOf("\n$function$;", start);
+  if (end < 0) throw new Error(`${name} has no end`);
+  return sql.slice(start, end);
+}
 
 describe("SCUML item 17: the mandate form", () => {
   it("reads a good form into the shape the database takes", () => {
@@ -212,9 +230,7 @@ describe("SCUML item 17: renewal", () => {
     expect(read.state === "ok" && read.mandates.map((m) => m.supersededAt)).toEqual([null, "2026-09-24T10:00:00Z"]);
   });
 
-  const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
-  const file = readdirSync(dir).find((f) => f.startsWith("20260924171100_scuml_item_17"));
-  const sql = file ? readFileSync(join(dir, file), "utf8") : "";
+  const sql = live17();
 
   it("splits the one-live index, supersedes on approval, and reminds at 30 and 7 days", () => {
     expect(sql.startsWith("-- SCUML item 17")).toBe(true);
@@ -226,10 +242,8 @@ describe("SCUML item 17: renewal", () => {
   });
 });
 
-describe("SCUML item 17: the review (20260924171200)", () => {
-  const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
-  const file = readdirSync(dir).find((f) => f.startsWith("20260924171200_scuml_item_17"));
-  const sql = file ? readFileSync(join(dir, file), "utf8") : "";
+describe("SCUML item 17: the review, as live (20260929001007)", () => {
+  const sql = live17();
 
   it("uses the same NIN rule as looksLikeNin, and drops the national ID card", () => {
     expect(sql).toContain("regexp_replace(principal_id_document_ref, '[^[:alnum:]]', '', 'g') !~ '[0-9]{11}'");
@@ -243,9 +257,11 @@ describe("SCUML item 17: the review (20260924171200)", () => {
     expect(sql).toContain("before insert or update of status, is_demo, listing_role on public.listings");
   });
 
-  it("reads acting_for as of the record, with escrows and not_found", () => {
-    expect(sql).toContain("'escrow'");
-    expect(sql).toContain("'not_found'");
+  it("reads acting_for as of the record, on the live money records only, with not_found", () => {
+    const actingFor = functionText(sql, "public.acting_for");
+    expect(actingFor).not.toContain("'escrow'");
+    for (const kind of ACTING_FOR_KINDS) expect(actingFor).toContain(`'${kind}'`);
+    expect(actingFor).toContain("'not_found'");
     expect(sql).toContain("'in_force'");
   });
 
@@ -270,9 +286,7 @@ describe("SCUML item 17: the review (20260924171200)", () => {
 });
 
 describe("SCUML item 17: the closed sets match the migration", () => {
-  const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
-  const file = readdirSync(dir).find((f) => f.startsWith("20260924171000_scuml_item_17"));
-  const sql = file ? readFileSync(join(dir, file), "utf8") : "";
+  const sql = live17();
 
   it("names SCUML item 17 in its header", () => {
     expect(sql.startsWith("-- SCUML item 17")).toBe(true);

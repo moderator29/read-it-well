@@ -78,6 +78,7 @@ export async function readListingFacts(
         photo: cover ? photoUrl(cover.storage_path) : null,
         hue: hueOf(row.id),
         isDemo: row.is_demo === true,
+        isRental: row.listing_intent === "rent",
       });
     }
   } catch {

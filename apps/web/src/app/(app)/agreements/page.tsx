@@ -42,8 +42,10 @@ export default async function AgreementsPage() {
                   <p className="font-semibold">{row.listingTitle}</p>
                   <p className={TYPE.rowMeta}>
                     {row.kind === "rent" ? "Rental" : "Stay"} · {formatMoney(row.amountMinor, locale)} ·{" "}
-                    {AGREEMENT_STATUS_LABEL[row.status] ?? row.status} · you are the{" "}
-                    {row.role === "renter" ? (row.kind === "rent" ? "renter" : "guest") : "owner or agent"}
+                    {AGREEMENT_STATUS_LABEL[row.status] ?? row.status}
+                    {row.role === null
+                      ? ""
+                      : ` · you are the ${row.role === "renter" ? (row.kind === "rent" ? "renter" : "guest") : "owner or agent"}`}
                   </p>
                 </Link>
               </li>

@@ -1,42 +1,78 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/Field";
+import { OfflineNote, useOnline } from "@/components/support/OfflineNote";
+import { PhotoField } from "@/components/support/PhotoField";
+import { uploadTicketPhoto, type PreparedPhoto } from "@/components/support/photo";
 import { replyToMyTicket } from "@/lib/support/ticket-reply";
 
+const draftKey = (ticketId: string) => `nf_support_reply_${ticketId}`;
+
 /**
- * The member's reply on their own ticket.
+ * The member's reply on their own ticket, with an optional photo.
  *
- * The draft stays in the box until the server says the message is written,
- * so a failed send never costs the person what they typed. The textarea is
- * the shared `TextArea`, which renders at 16px on a touch screen so iOS does
- * not zoom on focus.
+ * The draft stays in the box, and on this device, until the server says the
+ * message is written, so a failed send, a dropped connection or a reload never
+ * costs the person what they typed. The textarea is the shared `TextArea`,
+ * which renders at 16px on a touch screen so iOS does not zoom on focus.
  */
 export function ReplyBox({ ticketId }: { ticketId: string }) {
   const router = useRouter();
+  const online = useOnline();
   const [body, setBody] = useState("");
+  const [photo, setPhoto] = useState<PreparedPhoto | null>(null);
   const [error, setError] = useState<string | undefined>();
-  const [sent, setSent] = useState(false);
+  const [note, setNote] = useState("");
   const [pending, start] = useTransition();
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(draftKey(ticketId));
+      if (stored) setBody(stored.slice(0, 4000));
+    } catch {
+      // No stored draft.
+    }
+  }, [ticketId]);
+
+  const keep = (value: string) => {
+    setBody(value);
+    try {
+      if (value) window.localStorage.setItem(draftKey(ticketId), value);
+      else window.localStorage.removeItem(draftKey(ticketId));
+    } catch {
+      // Storage blocked: the draft stays in the box.
+    }
+  };
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!body.trim()) {
+    if (!body.trim() && !photo) {
       setError("Write your reply first.");
       return;
     }
+    if (!online) {
+      setError("You are offline. Your reply is kept here; send it when you are back online.");
+      return;
+    }
     setError(undefined);
-    setSent(false);
+    setNote("");
     start(async () => {
-      const result = await replyToMyTicket({ ticketId, body });
+      const result = await replyToMyTicket({ ticketId, body, withPhoto: Boolean(photo) });
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      setBody("");
-      setSent(true);
+      if (photo) {
+        const uploaded = await uploadTicketPhoto(ticketId, photo, result.data.messageId);
+        if (!uploaded.ok) setNote(uploaded.error);
+        URL.revokeObjectURL(photo.previewUrl);
+        setPhoto(null);
+      }
+      keep("");
+      if (!photo) setNote("Sent. The team will see it on your ticket.");
       router.refresh();
     });
   };
@@ -47,19 +83,24 @@ export function ReplyBox({ ticketId }: { ticketId: string }) {
         label="Reply to support"
         value={body}
         onChange={(e) => {
-          setBody(e.target.value);
-          if (sent) setSent(false);
+          keep(e.target.value);
+          if (note) setNote("");
         }}
         rows={3}
         maxLength={4000}
         error={error}
         placeholder="Add anything the team should know"
       />
+      {photo && <PhotoField value={photo} onChange={setPhoto} disabled={pending} />}
+      <OfflineNote what="Your reply" />
       <div className="flex flex-wrap items-center justify-between gap-row">
-        <p className="nf-caption text-[var(--nf-content-muted)]" role="status">
-          {sent ? "Sent. The team will see it on your ticket." : ""}
-        </p>
-        <Button type="submit" variant="primary" loading={pending} disabled={pending}>
+        <div className="flex min-w-0 flex-1 items-center gap-row">
+          {!photo && <PhotoField value={null} onChange={setPhoto} disabled={pending} compact />}
+          <p className="nf-caption min-w-0 text-[var(--nf-content-muted)]" role="status">
+            {note}
+          </p>
+        </div>
+        <Button type="submit" variant="primary" loading={pending} disabled={pending} data-testid="support-reply-send">
           Send reply
         </Button>
       </div>

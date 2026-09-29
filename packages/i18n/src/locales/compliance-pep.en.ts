@@ -57,8 +57,6 @@ export const compliancePepEn = {
     },
     source: {
       transactions: "a card payment",
-      escrows: "an escrow",
-      wallet_entries: "a wallet entry",
       rent_payments: "a rent payment",
       pep_declarations: "their own answer",
       pep_flags: "a staff flag",

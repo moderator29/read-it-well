@@ -22,6 +22,9 @@ const PAGES = [
   ["agent-settings", "The agent's own settings"],
   ["host-landing", "Where a host stands"],
   ["host-wizard", "The host wizard, step one"],
+  ["agent-assistant", "The assistant inside the listings workspace"],
+  ["host-assistant", "The assistant inside the host workspace"],
+  ["host-settings", "The host workspace's own settings"],
 ];
 
 export default function PreviewF5() {

@@ -28,6 +28,7 @@
 
 import { normalisePhone } from "../phone";
 import { createClient } from "../supabase/server";
+import { accountSetupOwed, SETUP_OWED_MESSAGE } from "../actions/session";
 import { isSupabaseConfigured } from "../supabase/env";
 
 export type ApplicationField =
@@ -182,6 +183,15 @@ export async function submitAgentApplication(
       message:
         "Your details are valid. Please sign in to submit your application. " +
         "Your progress is saved on this device.",
+    };
+  }
+
+  /* B-2: a Google or Apple account finishes setting up (terms + 18+) before
+     it files anything. */
+  if (await accountSetupOwed(supabase, user)) {
+    return {
+      ok: false,
+      message: `${SETUP_OWED_MESSAGE} Your progress is saved on this device.`,
     };
   }
 

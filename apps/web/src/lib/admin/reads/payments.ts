@@ -79,6 +79,9 @@ export function outcomeOf(status: string, createdAt: string, now: number): Payme
       return "failed";
     case "REFUNDED":
       return "refunded";
+    /* Closed on Paystack's word: the payer left, or the checkout never ran. */
+    case "ABANDONED":
+      return "abandoned";
     default:
       return now - Date.parse(createdAt) > ABANDON_AFTER_HOURS * 3_600_000 ? "abandoned" : "initialised";
   }
