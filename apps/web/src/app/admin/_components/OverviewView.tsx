@@ -28,6 +28,8 @@ import {
 import { RangeSelect } from "./RangeSelect";
 import { currentDestination, labelFor, type ShellCopy } from "./nav";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { QueueByDesk } from "./QueueByDesk";
+import type { OverviewCounts } from "./ConsoleOverview";
 
 /** "You were heading to Money": the desk the address asked for, one tap away. */
 function HeadingTo({ href, copy, shell }: { href: string; copy: { headingTo: string; continue: string }; shell: ShellCopy }) {
@@ -74,6 +76,8 @@ export type OverviewProps = {
   byRole: ListingsByRole | null;
   jobs: JobHealth | null;
   alerts: AlertView[] | "unavailable";
+  /** The seven desks' waiting counts (`getQueueCounts`), or null when unread. */
+  queue?: OverviewCounts | null;
 };
 
 export function alertRows(alerts: readonly AlertView[], now: number, locale: Locale): AlertRow[] {
@@ -215,6 +219,11 @@ export function OverviewView(props: OverviewProps) {
       {props.headingTo && <HeadingTo href={props.headingTo} copy={shell.entry} shell={shell} />}
       <KpiStrip items={strip} label={c.pulse} />
       <KpiGrid items={cards} label={c.week} />
+
+      {/* Needs attention and the queue by desk (plan item 14): drawn from
+          the same counts as the rail's badges, and left out when those
+          counts could not be read. */}
+      {props.queue ? <QueueByDesk t={getDictionary(locale)} locale={locale} counts={props.queue} /> : null}
 
       <div className="nf-admin-grid nf-admin-grid--wide-left">
         <Panel
