@@ -72,7 +72,7 @@ describe("the refund clock", () => {
 
 describe("the database twin", () => {
   it("seeds exactly the same holidays as this file", () => {
-    const dir = join(__dirname, "../../../../../supabase/migrations");
+    const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
     const file = readdirSync(dir).find((name) => name.startsWith("20260924140100_"));
     expect(file, "the V-24 migration").toBeDefined();
     const sql = readFileSync(join(dir, file!), "utf8");
