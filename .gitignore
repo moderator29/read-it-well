@@ -72,3 +72,7 @@ docs/design/proofs/
 
 # CI test report (DOC-P2-04)
 vitest-junit.xml
+
+# The compositor's scratch page and the on-request 6.5" App Store set (scripts/store-screenshots).
+docs/store/screenshots/.compose-tmp/
+docs/store/screenshots/app-store/iphone-6.5/
