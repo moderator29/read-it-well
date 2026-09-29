@@ -1408,5 +1408,200 @@
     font-size: 0.75rem;
     color: var(--nf-content-muted);
   }
+
+  /* ------------------------------------------- THE CONFIRM PANEL (item 22)
+   *
+   * `components/app/confirm/ConfirmPanel.tsx`, spec 15, references 35 and 37.
+   * Content only: it sits inside the existing sheet or dialog, which keeps
+   * its own surface, radius and motion. 480px wide at most on a desk.
+   */
+  .nf-confirm {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+    color: var(--nf-content-primary);
+  }
+  .nf-confirm__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .nf-confirm__title {
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .nf-confirm__context {
+    margin-top: 0.125rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-confirm__strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: var(--nf-radius-well, 14px);
+    background: var(--nf-surface-raised);
+  }
+  .nf-confirm__strip[data-cells="1"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .nf-confirm__strip[data-cells="2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nf-confirm__fact {
+    display: grid;
+    align-content: start;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.75rem;
+  }
+  .nf-confirm__fact + .nf-confirm__fact {
+    border-inline-start: 1px solid var(--nf-divider);
+  }
+  .nf-confirm__value {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .nf-confirm__lines {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .nf-confirm__line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-confirm__line .nf-numeric {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-confirm__total {
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--nf-divider);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-confirm__assure {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-state-success-surface);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-state-success);
+  }
+  .nf-confirm__section {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .nf-confirm__steps {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .nf-confirm__steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.125rem;
+    color: var(--nf-content-secondary);
+  }
+  .nf-confirm__step-glyph {
+    flex: none;
+    margin-top: 0.0625rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-confirm__people {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .nf-confirm__person {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card-sm, 14px);
+    background: var(--nf-surface-primary);
+  }
+  .nf-confirm__who {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .nf-confirm__avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    background: var(--nf-surface-raised);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .nf-confirm__name {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-confirm__role {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-confirm__message {
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-surface-raised);
+  }
+  .nf-confirm__subject {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-confirm__preheader {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-confirm__error {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-state-error);
+  }
+  .nf-confirm__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-confirm__told {
+    min-width: 0;
+    flex: 1 1 12rem;
+    font-size: 0.75rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-confirm__actions {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  @media (max-width: 39.99rem) {
+    .nf-confirm__actions > * {
+      flex: 1 1 0;
+    }
+  }
 }
 

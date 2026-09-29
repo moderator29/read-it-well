@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary, plural, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState, TYPE } from "@/components/app/Screen";
@@ -136,7 +136,24 @@ function Section({
                 </>
               ) : null}
             </p>
-            {answer ? <RoomRequestAnswer bookingId={b.id} /> : null}
+            {answer ? (
+              <RoomRequestAnswer
+                bookingId={b.id}
+                summary={{
+                  guestName: b.guestName,
+                  room: b.room,
+                  hotel: b.hotel,
+                  dates: `${stayDateLabel(b.checkIn) ?? b.checkIn} to ${stayDateLabel(b.checkOut) ?? b.checkOut}`,
+                  stay: `${plural(b.nights, counts.nights, locale)} · ${plural(b.guests, counts.guests, locale)}`,
+                  total: formatMoney(b.totalMinor, locale),
+                  listingTitle: b.hotel,
+                  checkIn: b.checkIn,
+                  checkOut: b.checkOut,
+                  nights: b.nights,
+                  totalMinor: b.totalMinor,
+                }}
+              />
+            ) : null}
           </li>
         ))}
       </ul>
