@@ -122,6 +122,19 @@ const staffAccessForRequest = cache(async (): Promise<StaffAccess | null> => {
   return readStaffAccess(session.supabase);
 });
 
+/**
+ * May the signed-in person act as an administrator OUTSIDE the console (an
+ * admin override on somebody else's booking, say)? Only an admin or super
+ * admin whose session has proved their security key: a password alone is a
+ * member everywhere, not only in the console. Read from the person's own
+ * `my_staff_access`, never from `user_roles` through the service role, which
+ * would skip the proof.
+ */
+export async function actsAsProvedAdmin(): Promise<boolean> {
+  const staff = await staffAccessForRequest();
+  return !!staff && (staff.isAdmin || staff.isSuperAdmin) && staff.consoleVerified;
+}
+
 /*
  * The same sentence `t.admin.access.unconfiguredBody` gives the screen, kept in
  * English here because a server action can return this to a caller with no page

@@ -31,6 +31,7 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
 import { callServiceFunction } from "../cron/rpc";
 import { isFeatureEnabled } from "../flags";
 import { createAdminClient } from "../supabase/admin";
+import { actsAsProvedAdmin } from "../admin/guard";
 import {
   NO_SHOW_MESSAGES,
   lagosToday,
@@ -78,20 +79,17 @@ export async function recordNoShow(input: NoShowInput): Promise<ActionResult<nul
     if (!booking) return fail(NO_SHOW_MESSAGES.missing);
 
     // ------------------------------------------------- authorisation
-    const [{ data: listing }, { data: roles }] = await Promise.all([
+    const [{ data: listing }, provedAdmin] = await Promise.all([
       admin
         .from("listings")
         .select("agent_id, agents!listings_agent_id_fkey!inner(user_id)")
         .eq("id", booking.listing_id)
         .maybeSingle(),
-      admin
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .in("role", ["admin", "super_admin"]),
+      /* An admin override needs the console's key proof, not the role alone. */
+      actsAsProvedAdmin(),
     ]);
     const isHost = listing?.agents?.user_id === session.user.id;
-    const isAdmin = (roles?.length ?? 0) > 0;
+    const isAdmin = provedAdmin;
     if (!isHost && !isAdmin) return fail(NOT_YOURS_MESSAGE);
 
     // ------------------------------------------------- the decision, in words
