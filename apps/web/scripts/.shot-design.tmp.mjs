@@ -8,6 +8,9 @@ const routes = [
   ["profile", "/preview/f4/public-profile"],
   ["home", "/preview/f1/home"],
   ["agent", "/preview/f5/agent-dashboard"],
+  ["rail", "/preview/f1/chrome"],
+  ["myprofile", "/preview/f4/profile"],
+  ["shelldrawer", "/preview/f1/drawer"],
 ];
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
 for (const theme of ["light", "dark"]) {
