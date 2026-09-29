@@ -94,13 +94,15 @@
     mask:
       linear-gradient(var(--nf-mask-opaque) 0 0) content-box exclude,
       linear-gradient(var(--nf-mask-opaque) 0 0);
-    /* Still everywhere but the chrome: a steady rim of light. */
+    /* The steady rim: what the lap settles to when motion is off. */
     background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
   }
-  /* The lights run only on the lockup in the chrome (the app header, the
-     site bar and the rail), where it is the brand's signature; anywhere
-     else a moving object would compete with the page it sits on. */
-  :root[data-theme="light"] :is(.nf-app-header, .nf-site-nav, .nf-nav--rail) .nf-logo::before {
+  /* The lights run on EVERY lockup in light (the founder, 29 September
+     2026: "all areas or place our logo is on light mode"): the app header,
+     the site bar, the rail and the drawer, the site menu, the footer, the
+     landing's app panel, the side cover and the staff access screen. The
+     earlier chrome-only rule stopped short of that ask. */
+  :root[data-theme="light"] .nf-logo::before {
     background: conic-gradient(
       from var(--nf-logo-lap),
       transparent 0deg 110deg,
@@ -123,7 +125,7 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    :root[data-theme="light"] :is(.nf-app-header, .nf-site-nav, .nf-nav--rail) .nf-logo::before {
+    :root[data-theme="light"] .nf-logo::before {
       animation: none;
       background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
     }
@@ -134,7 +136,6 @@
       [data-motion="calm"],
       [data-motion="off"]
     )
-    :is(.nf-app-header, .nf-site-nav, .nf-nav--rail)
     .nf-logo::before {
     animation: none;
     background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
