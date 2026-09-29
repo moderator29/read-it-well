@@ -450,7 +450,7 @@ export function SupportChat({
         <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="support-shield" fill />
         </span>
-        <div className="min-w-0 flex-1 basis-[12rem]">
+        <div className="min-w-0 flex-1 basis-[10rem]">
           <h2 className="nf-body font-semibold leading-tight">Help and support</h2>
           {/* A title and its own subtitle are two rows of one object, so they
               take the row interval. This was mt-0.5, which is 2px: a heading

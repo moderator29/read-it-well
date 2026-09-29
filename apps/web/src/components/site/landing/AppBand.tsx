@@ -52,37 +52,37 @@ export function AppBand({
     <section className="nf-shell nf-room" data-chapter="app" aria-labelledby="nf-landing-app-title">
       <MotionReveal>
         <div className="nf-app-panel" data-theme="dark">
-        <div className="nf-app-panel__copy">
-          <SectionHead id="nf-landing-app-title" eyebrow={a.eyebrow} title={a.title} lede={a.body} />
-          {badges.length > 0 ? (
-            /* The official artwork, drawn inline (StoreBadges.tsx). */
-            <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-app-panel__badges" />
-          ) : (
-            <div className="nf-app-panel__install">
-              <UiIcon name="share" size={20} aria-hidden />
-              <div>
-                <p className="nf-app-panel__install-title">{a.installTitle}</p>
-                <p className="nf-app-panel__install-body">{a.installBody}</p>
+          <div className="nf-app-panel__copy">
+            <SectionHead id="nf-landing-app-title" eyebrow={a.eyebrow} title={a.title} lede={a.body} />
+            {badges.length > 0 ? (
+              /* The official artwork, drawn inline (StoreBadges.tsx). */
+              <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-app-panel__badges" />
+            ) : (
+              <div className="nf-app-panel__install">
+                <UiIcon name="share" size={20} aria-hidden />
+                <div>
+                  <p className="nf-app-panel__install-title">{a.installTitle}</p>
+                  <p className="nf-app-panel__install-body">{a.installBody}</p>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-        <div className="nf-app-panel__aside">
-          <span className="nf-app-panel__mark" aria-hidden="true">
-            <Logo size={40} wordSize={18} />
-          </span>
-          <p className="nf-app-panel__aside-title">{a.rightTitle}</p>
-          <ul className="nf-app-panel__points">
-            {points.map((p) => (
-              <li key={p.key}>
-                <span className="nf-app-panel__tick" aria-hidden="true">
-                  <UiIcon name={p.icon} size={18} />
-                </span>
-                {p.label}
-              </li>
-            ))}
-          </ul>
-        </div>
+            )}
+          </div>
+          <div className="nf-app-panel__aside">
+            <span className="nf-app-panel__mark" aria-hidden="true">
+              <Logo size={40} wordSize={18} />
+            </span>
+            <p className="nf-app-panel__aside-title">{a.rightTitle}</p>
+            <ul className="nf-app-panel__points">
+              {points.map((p) => (
+                <li key={p.key}>
+                  <span className="nf-app-panel__tick" aria-hidden="true">
+                    <UiIcon name={p.icon} size={18} />
+                  </span>
+                  {p.label}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </MotionReveal>
     </section>

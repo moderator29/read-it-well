@@ -554,8 +554,8 @@
      every edge; the plate's own left-third scrim carries the rest. */
   @media (min-width: 64rem) {
     .nf-landing-hero-copy > .nf-photo-scrim {
-      -webkit-mask-image: radial-gradient(farthest-side at 40% 50%, black 55%, transparent 100%);
-      mask-image: radial-gradient(farthest-side at 40% 50%, black 55%, transparent 100%);
+      -webkit-mask-image: radial-gradient(closest-side, black 45%, transparent 100%);
+      mask-image: radial-gradient(closest-side, black 45%, transparent 100%);
     }
   }
   /*

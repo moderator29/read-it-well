@@ -499,8 +499,8 @@
   .nf-gs-dot {
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: 2.75rem;
+    height: 2.75rem;
     padding: 0;
     border: 0;
     /* The control radius (14) on a 44px square is 0.32, under the 0.35

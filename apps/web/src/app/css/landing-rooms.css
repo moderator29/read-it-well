@@ -1043,7 +1043,41 @@
 
   @media (min-width: 40rem) and (max-width: 63.999rem) {
     .nf-steps__list {
+      --nf-step-gap: var(--nf-gap-group);
       gap: var(--nf-gap-group);
+    }
+  }
+  /*
+   * DOWN THE PAGE THE LINE IS THREE SEGMENTS, one from each number to the
+   * next, so it stops at 04 rather than running on to the foot of the last
+   * card. Each segment is its step's own `::before` (the track) and `::after`
+   * (the fill), and each fills on its own step's passage through the view.
+   */
+  @media (max-width: 63.999rem) {
+    .nf-steps__list {
+      --nf-step-gap: var(--nf-gap-row);
+    }
+    .nf-steps__line {
+      display: none;
+    }
+    .nf-step {
+      position: relative;
+    }
+    .nf-step:not(:last-child)::before,
+    .nf-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: var(--nf-step-dot);
+      bottom: calc(-1 * var(--nf-step-gap));
+      left: calc(var(--nf-step-dot) / 2 - 1px);
+      width: 2px;
+    }
+    .nf-step:not(:last-child)::before {
+      background: var(--nf-panel-hair);
+    }
+    .nf-step:not(:last-child)::after {
+      background: linear-gradient(180deg, var(--nf-brand-primary), var(--nf-brand-secondary));
+      transform-origin: 50% 0;
     }
   }
   @media (min-width: 64rem) {
@@ -1080,14 +1114,17 @@
       .nf-steps {
         view-timeline: --nf-steps block;
       }
-      .nf-steps__fill {
-        animation: nf-steps-down linear both;
-        animation-timeline: --nf-steps;
-        animation-range: cover 15% cover 60%;
+      @media (max-width: 63.999rem) {
+        .nf-step:not(:last-child)::after {
+          animation: nf-steps-down linear both;
+          animation-timeline: view();
+          animation-range: cover 25% cover 65%;
+        }
       }
       @media (min-width: 64rem) {
         .nf-steps__fill {
-          animation-name: nf-steps-across;
+          animation: nf-steps-across linear both;
+          animation-timeline: --nf-steps;
           animation-range: entry 40% cover 55%;
         }
       }
@@ -1762,7 +1799,7 @@
 
   /* The motion setting's Calm and Off (lib/motion/gate.ts): no parallax, no
      magnets, no tilt, no loops, the journey's line drawn full. */
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-landing-hero .nf-hero-aurora, .nf-landing-hero .nf-landing-float, .nf-landing-hero-plate img, .nf-steps__fill) {
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-landing-hero .nf-hero-aurora, .nf-landing-hero .nf-landing-float, .nf-landing-hero-plate img, .nf-steps__fill, .nf-step::after) {
     animation: none;
     translate: none;
   }
@@ -1793,6 +1830,7 @@
     .nf-scene__gleam::after,
     .nf-ngmap__pin > *,
     .nf-steps__fill,
+    .nf-step::after,
     .nf-landing-hero-plate img,
     .nf-worlds__cards > li {
       animation: none !important;

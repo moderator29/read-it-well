@@ -3,7 +3,6 @@ import { MotionReveal } from "@/components/motion/Reveal";
 import {
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
-  NO_INSPECTION_FEE_HEADLINE,
   PAYMENT_GATE_SENTENCE,
 } from "@/lib/money/copy";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -22,16 +21,17 @@ import { SectionHead } from "./SectionHead";
  * "Straight to their bank"). The fragment repeats what the sentence says, so
  * it is `aria-hidden`; the sentence carries the meaning.
  *
- * THE LINE FILLS AS THE READER SCROLLS, from CSS alone: a scroll-driven
- * animation on the list's own view timeline (landing-rooms.css), horizontal
- * across the four cards from 64rem and vertical down the stack below it.
+ * THE LINE FILLS AS THE READER SCROLLS, from CSS alone (landing-rooms.css):
+ * from 64rem one horizontal line across the four numbers, on the list's own
+ * view timeline; below it three vertical segments, number to number, each
+ * filling as its own step passes through the view.
  * Where the browser has no scroll timelines, and under reduced motion, the
  * line is simply drawn full. There is no script and nothing is pinned.
  *
  * THE MONEY SENTENCES ARE THE CONSTANTS. Inspect prints `NO_INSPECTION_FEE`,
  * Agree prints `PAYMENT_GATE_SENTENCE` and Move in prints
- * `NO_CUSTODY_SENTENCE`, verbatim from `lib/money/copy.ts`; the one money
- * phrase in a fragment is `NO_INSPECTION_FEE_HEADLINE`, set in sentence case.
+ * `NO_CUSTODY_SENTENCE`, verbatim from `lib/money/copy.ts`. No fragment
+ * carries money copy of its own.
  */
 const CHAPTER_OBJECT: readonly BrandIconName[] = ["listing-search", "inspect-ring", "contract-sign", "keys-handover"];
 const CHAPTER_MOTION: readonly GlassMotion[] = ["rise", "pop", "tilt", "turn"];
@@ -46,12 +46,11 @@ export function Journey({ t }: { t: Dictionary }) {
     agree: PAYMENT_GATE_SENTENCE,
     move: NO_CUSTODY_SENTENCE,
   };
-  const noFee = NO_INSPECTION_FEE_HEADLINE.charAt(0) + NO_INSPECTION_FEE_HEADLINE.slice(1).toLowerCase();
   const fragments: Record<string, Fragment[]> = {
     find: [{ icon: "search", label: s.search }],
     inspect: [
-      { icon: "calendar-booking", label: s.booked, tone: "ok" },
-      { icon: "check", label: noFee.replace(/\bvallo\b/i, "Vallo") },
+      { icon: "calendar-booking", label: s.inspection },
+      { icon: "check", label: s.booked, tone: "ok" },
     ],
     agree: [
       { icon: "document", label: `${s.you} · ${s.owner}` },
