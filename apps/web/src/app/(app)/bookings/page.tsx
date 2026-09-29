@@ -12,7 +12,6 @@ import {
 } from "@/lib/inspections/queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState, Row, RowList, Section, TYPE } from "@/components/app/Screen";
@@ -30,6 +29,8 @@ import {
   type PlanItem,
   isLiveTenancy,
 } from "@/components/app/plans/plans";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).shape.plans.title };
@@ -164,7 +165,7 @@ export default async function PlansPage({
     <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
-        <PageHeader title={copy.title} subtitle={copy.lede} />
+        <PageHeader variant="large" title={copy.title} subtitle={copy.lede} />
       </div>
 
       <FilterLinks filter={inspectionsOnly ? "property" : filter} copy={copy} />
@@ -294,10 +295,10 @@ function FilterLinks({
 /** How a stay works, three rows: kept from Bookings for the Stays side. */
 function HowItWorks({ locale }: { locale: Locale }) {
   const copy = getDictionary(locale).catalogue.bookings;
-  const steps: { icon: BrandIconName; title: string; body: string }[] = [
+  const steps: { icon: UiIconName; title: string; body: string }[] = [
     { icon: "calendar-check", title: copy.step1Title, body: copy.step1Body },
-    { icon: "shield-lock", title: copy.step2Title, body: copy.step2Body },
-    { icon: "luggage-check", title: copy.step3Title, body: copy.step3Body },
+    { icon: "credit-card", title: copy.step2Title, body: copy.step2Body },
+    { icon: "key", title: copy.step3Title, body: copy.step3Body },
   ];
   return (
     <Reveal delay={100}>
@@ -305,9 +306,9 @@ function HowItWorks({ locale }: { locale: Locale }) {
       <RowList boxed>
         {steps.map((s) => (
           <Row key={s.title} className="items-start">
-            <span className="block h-11 w-11 shrink-0">
-              <BrandIcon name={s.icon} fill />
-            </span>
+            <IconPlate size="sm" className="shrink-0">
+              <UiIcon name={s.icon} size={20} />
+            </IconPlate>
             <span className="min-w-0 leading-tight">
               <span className={`block ${TYPE.rowTitle}`}>{s.title}</span>
               <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{s.body}</span>
