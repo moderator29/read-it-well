@@ -81,6 +81,7 @@ export default async function Page({
     return (
       <AgentShell t={t} locale={locale} active="/agent/list" profile={null}>
         <ListingWizard
+          success={t.success}
           copy={t.agentListings}
           shotsCopy={t.afterTheGate.shots}
           reference={t.listingReference}
@@ -154,6 +155,7 @@ export default async function Page({
       profile={agentProfileFrom(context.agent)}
     >
       <ListingWizard
+        success={t.success}
         copy={t.agentListings}
           shotsCopy={t.afterTheGate.shots}
         reference={t.listingReference}

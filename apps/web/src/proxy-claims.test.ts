@@ -27,6 +27,9 @@ let STUB = "";
 let userCalls = 0;
 /* The JWKS endpoint answers 503 while this is set: auth is down. */
 let jwksDown = false;
+/* What the stand-in's refresh endpoint hands back, and how often it was asked. */
+let refreshCalls = 0;
+let refreshedToken = "";
 let jwk: Record<string, unknown>;
 let privateKey: CryptoKey;
 let proxy: (request: Request) => Promise<Response>;
@@ -72,6 +75,21 @@ beforeAll(async () => {
       res.end(JSON.stringify({ keys: [jwk] }));
       return;
     }
+    if (url.pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "refresh_token") {
+      refreshCalls += 1;
+      const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+      res.end(
+        JSON.stringify({
+          access_token: refreshedToken,
+          token_type: "bearer",
+          expires_in: 3600,
+          expires_at: expiresAt,
+          refresh_token: "rotated-refresh",
+          user: { id: USER_ID, aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() },
+        }),
+      );
+      return;
+    }
     if (url.pathname === "/auth/v1/user") {
       /* GoTrue refuses every token this file sends it: a valid ES256 session
          must never get here, and anything forged must be refused if it does. */
@@ -106,7 +124,11 @@ afterAll(async () => {
 async function ask(path: string, cookie?: string, headers: Record<string, string> = {}) {
   const request = new NextRequest(`http://127.0.0.1${path}`, { headers: { ...headers, ...(cookie ? { cookie } : {}) } });
   const response = await proxy(request as unknown as Request);
-  return { status: response.status, location: response.headers.get("location") ?? "" };
+  return {
+    status: response.status,
+    location: response.headers.get("location") ?? "",
+    setCookie: response.headers.getSetCookie().join("\n"),
+  };
 }
 
 describe("the guard reads an ES256 session without a round trip to auth", { timeout: 30_000 }, () => {
@@ -216,6 +238,19 @@ describe("the guard reads an ES256 session without a round trip to auth", { time
     } finally {
       jwksDown = false;
     }
+  });
+
+  it("still refreshes an expired session through auth and writes the new cookie on the response", async () => {
+    const past = Math.floor(Date.now() / 1000) - 60;
+    const fresh = Math.floor(Date.now() / 1000) + 3600;
+    refreshedToken = await signedToken(USER_ID, fresh);
+    refreshCalls = 0;
+    userCalls = 0;
+    const answer = await ask("/home", sessionCookie(await signedToken(USER_ID, past), past));
+    expect(refreshCalls).toBe(1);
+    expect(answer.location).not.toContain("/sign-in");
+    expect(answer.setCookie).toMatch(/sb-[^=]+-auth-token/);
+    expect(userCalls).toBe(0);
   });
 
   it("still refuses with no session at all", async () => {

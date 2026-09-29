@@ -24,7 +24,7 @@ export default function LoadingHost() {
             height before the page arrives. */}
         <div aria-hidden="true" className="flex gap-xs overflow-hidden px-gutter pb-xs">
           {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} width="6rem" height="2.25rem" radius="pill" className="shrink-0" />
+            <Skeleton key={i} width="6rem" height="2.25rem" radius="md" className="shrink-0" />
           ))}
         </div>
       </header>

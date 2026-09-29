@@ -12,7 +12,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { Switch } from "@/components/ui/Switch";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
@@ -140,8 +140,11 @@ export function ReservePanel({
   currency,
   locale,
   instantBook,
+  success,
   messageHref,
 }: {
+  /** The page's `t.success`, for "Dates held" or "Booking requested". Absent, no sheet. */
+  success?: SuccessWords;
   listingId: string;
   currency: string;
   locale: Locale;
@@ -235,9 +238,10 @@ export function ReservePanel({
     const r = state.data;
     /* Held when the stay books instantly, requested when the agent confirms
        it personally: the words follow what is true, and neither is "paid". */
-    const words = successCopy(t.success, instantBook ? "stayHeld" : "stayRequested");
+    const words = success ? successCopy(success, instantBook ? "stayHeld" : "stayRequested") : null;
     return (
       <div className="nf-panel nf-panel--card isolate nf-confirm-sweep p-card" data-testid="reserve-success">
+        {success && words ? (
         <SuccessSheet
           open={!successClosed}
           onOpenChange={(open) => {
@@ -249,12 +253,13 @@ export function ReservePanel({
           amount={{ minorUnits: r.totalMinor, currency, locale }}
           details={[
             {
-              label: t.success.detail.when,
+              label: success.detail.when,
               value: `${labelDate(r.checkIn)} to ${labelDate(r.checkOut)}`,
             },
           ]}
-          primary={{ label: t.success.continue }}
+          primary={{ label: success.continue }}
         />
+        ) : null}
         <span aria-hidden="true" className="nf-confirm-dim" />
         <div className="flex flex-col items-center gap-xs text-center">
           <span className="h-14 w-14 shrink-0">

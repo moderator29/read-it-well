@@ -26,7 +26,6 @@ import { paymentState } from "@/lib/payments/payment-state";
 import { cardBrandLabel, cardExpired, cardExpiry, maskNumber } from "./format";
 import { AddBankAccountSheet } from "./AddBankAccountSheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
 import { successCopy } from "@/lib/ui/success-moments";
 import { PaystackCheckout, type ConfirmOutcome } from "./PaystackCheckout";
 import { panelClass } from "@/components/ui/Panel";
@@ -99,7 +98,8 @@ export function PaymentMethodsPanel({
   const [addingAccount, setAddingAccount] = useState(false);
   /* The account was saved: `addBankAccount`'s own ok, after the step-up. */
   const [accountAdded, setAccountAdded] = useState(false);
-  const success = useClientCopy().success;
+  /* This panel already carries the dictionary for its locale. */
+  const success = dict.success;
   const addedWords = successCopy(success, "bankAccountAdded");
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [pending, startTransition] = useTransition();

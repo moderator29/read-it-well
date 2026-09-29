@@ -11,7 +11,6 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy } from "@/lib/ui/success-moments";
-import { useClientCopy } from "@/lib/i18n/client-copy";
 import { SelectField, TextArea, TextField } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
 import type { ActionResult } from "@/lib/actions/envelope";
@@ -257,7 +256,8 @@ export function HostWizard({
     setWasSubmitted(submitted);
     if (submitted) setCelebrate(true);
   }
-  const successWords = useClientCopy().success;
+  /* This wizard already carries the dictionary for its locale. */
+  const successWords = getDictionary(useClientLocale()).success;
 
   const set = useCallback(<K extends keyof HostDraft>(key: K, value: HostDraft[K]) => {
     setDraft((current) => {

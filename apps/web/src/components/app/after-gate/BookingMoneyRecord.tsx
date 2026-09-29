@@ -88,6 +88,7 @@ export async function BookingMoneyRecord({
       )}
       {canAsk && (
         <RefundRequestForm
+          success={getDictionary(locale).success}
           bookingId={bookingId}
           copy={copy}
           reasons={CANCELLATION_REASONS.map((reason) => ({ code: reason.code, label: copy.reasons[reason.code] }))}

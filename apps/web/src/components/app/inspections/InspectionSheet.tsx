@@ -14,8 +14,7 @@ import { IconPlate } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
 import { Sheet } from "@/components/ui/Sheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { TYPE } from "@/components/app/Screen";
 import { formatPhone } from "@/lib/phone";
@@ -184,7 +183,10 @@ export function InspectionSheet({
   gateCopy,
   needPhotos = 0,
   agreement = null,
+  success,
 }: {
+  /** The page's `t.success`, for "report submitted" and "recorded". Absent, no sheet. */
+  success?: SuccessWords;
   inspection: Inspection;
   side: "lister" | "requester";
   facts: InspectionListingFacts | null;
@@ -228,7 +230,6 @@ export function InspectionSheet({
   /* The report was submitted, or the inspection closed with its outcome.
      Opened only from the action's own ok, never from a draft save. */
   const [done, setDone] = useState<"inspectionReportSubmitted" | "inspectionRecorded" | null>(null);
-  const success = useClientCopy().success;
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -329,7 +330,7 @@ export function InspectionSheet({
       () => setDone("inspectionRecorded"),
     );
   }
-  const doneWords = done ? successCopy(success, done) : null;
+  const doneWords = done && success ? successCopy(success, done) : null;
 
   return (
     <>
@@ -816,7 +817,7 @@ export function InspectionSheet({
         />
       )}
     </details>
-    {doneWords ? (
+    {doneWords && success ? (
       <SuccessSheet
         open
         onOpenChange={(next) => {

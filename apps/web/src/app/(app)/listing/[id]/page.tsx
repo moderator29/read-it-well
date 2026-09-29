@@ -626,7 +626,7 @@ export default async function ListingDetailPage({
     </div>
   ) : isRestaurant ? (
     <div className="flex flex-col gap-md">
-      <ReserveTable listingId={listing.id} messageHref={messageHref} />
+      <ReserveTable listingId={listing.id} messageHref={messageHref} success={t.success} />
       <RestaurantPanel listing={listing} locale={locale} messageHref={messageHref} />
     </div>
   ) : isRental || isSale ? (
@@ -656,7 +656,7 @@ export default async function ListingDetailPage({
       )}
       {/* V-94: the lister's free viewing slots, when they have set windows. */}
       {isRental && viewingSlots && viewingSlots.length > 0 && (
-        <ViewingSlots listingId={listing.id} slots={viewingSlots} copy={t.frontDoor.viewings} locale={locale} />
+        <ViewingSlots listingId={listing.id} slots={viewingSlots} copy={t.frontDoor.viewings} locale={locale} success={t.success} />
       )}
       <RentalPanel
         listingId={listing.id}
@@ -674,6 +674,7 @@ export default async function ListingDetailPage({
       locale={locale}
       instantBook={listing.instantBook}
       messageHref={messageHref}
+      success={t.success}
     />
   );
 

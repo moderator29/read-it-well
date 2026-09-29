@@ -73,7 +73,7 @@ describe("the map itself", () => {
 
   it("names its roots and nothing else", () => {
     const roots = PATTERNS.filter((p) => ROUTE_PARENTS[p] === ROOT);
-    expect(roots.sort()).toEqual(["/", "/home", "/stays"]);
+    expect(roots.sort()).toEqual(["/", "/home", "/stays", "/welcome"]);
   });
 
   it("puts a dynamic route under the shelf it came off, not under home", () => {
@@ -265,7 +265,7 @@ describe("however the person arrived", () => {
 
 describe("the Android hardware button", () => {
   it("closes the application only at a declared root", () => {
-    for (const root of ["/", "/home", "/stays"]) {
+    for (const root of ["/", "/home", "/stays", "/welcome"]) {
       expect(isAppRoot(root)).toBe(true);
       expect(
         chooseBack({
@@ -277,6 +277,22 @@ describe("the Android hardware button", () => {
         }),
       ).toEqual({ action: "exit", reason: "root" });
     }
+  });
+
+  it("never sends the welcome intro to /home, which a stranger meets as the sign-in wall", () => {
+    /* The founder: the intro is not skippable. `/welcome` named `/home` as
+       its parent, so the hardware back went past the intro in one press. */
+    expect(parentOf("/welcome")).toEqual({ kind: "root", pattern: "/welcome" });
+    expect(parentOf("/welcome?tour=1")).toEqual({ kind: "root", pattern: "/welcome" });
+    expect(
+      chooseBack({
+        path: "/welcome",
+        fallback: "/home",
+        surface: "android",
+        previousPath: null,
+        previousIsInApp: false,
+      }),
+    ).toEqual({ action: "exit", reason: "root" });
   });
 
   it("does not close the application on a cold deep link into a conversation", () => {

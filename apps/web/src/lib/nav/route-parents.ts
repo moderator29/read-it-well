@@ -190,7 +190,17 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    */
   "/home": ROOT,
   "/stays": ROOT,
-  "/welcome": "/home",
+  /* The third root: the welcome intro is the first screen of the app for
+     anybody signed out (`shellStartPath`), and the founder's rule is that it
+     cannot be skipped. It used to name `/home` as its parent, so Android's
+     hardware back from the intro pushed `/home`, which a stranger meets as
+     the sign-in wall: the intro skipped in one press. As a root, back here
+     puts the app down, the way back does on any app's first screen. The
+     slides inside it are history entries of their own and still step back
+     one at a time (`lib/nav/in-page-step.ts`). A signed-in member only
+     reaches it by choosing it (Get started on the landing page, itself a
+     root), and its ending is their own Continue into the app. */
+  "/welcome": ROOT,
   "/offline": "/home",
 
   /* ----------------------------------------------------------- rent side */

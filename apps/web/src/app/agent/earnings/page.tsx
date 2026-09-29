@@ -92,6 +92,7 @@ export default async function Page() {
       {payout.state === "ready" && <PepQuestionPanel askedAt="payout" />}
       {payout.state === "ready" && (
         <PayoutAccounts
+          success={t.success}
           accounts={payout.accounts}
           banks={payout.banks}
           resolveAvailable={payout.resolveAvailable}

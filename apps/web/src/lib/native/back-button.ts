@@ -2,6 +2,7 @@
 
 import { App } from "@capacitor/app";
 import { isAppRoot } from "@/lib/nav/resolve";
+import { isInPageStep } from "@/lib/nav/in-page-step";
 
 /**
  * Android's hardware back button, given the same meaning it has in every other
@@ -27,6 +28,13 @@ import { isAppRoot } from "@/lib/nav/resolve";
  *    down. A shell that instead bounces the person to a home screen they did
  *    not ask for is a screen with no way out, which is the one thing a back
  *    button must never become.
+ *
+ * 2a. Before 2: this history entry is a STEP INSIDE the screen (a welcome
+ *    slide, sign up's second step; see `lib/nav/in-page-step.ts`), so back
+ *    returns to the previous step through history, exactly as the browser's
+ *    back does. Without this, a slide or a step on a root such as `/welcome`
+ *    would close the app mid-intro, and a step anywhere else would jump to
+ *    the parent and throw the person's answers away.
  *
  * 3. Anything else has a parent, so back goes to the parent. `goBack` is
  *    handed in by `NativeRuntime`, which owns the router and the current path
@@ -86,6 +94,10 @@ export async function startBackButton(goBack: () => void): Promise<() => void> {
   const handle = await App.addListener("backButton", () => {
     if (overlayIsOpen()) {
       dismissTopOverlay();
+      return;
+    }
+    if (isInPageStep(window.history?.state)) {
+      window.history.back();
       return;
     }
     /* `location.pathname` is kept current by the History API on every client

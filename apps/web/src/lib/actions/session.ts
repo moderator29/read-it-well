@@ -98,8 +98,11 @@ export type ClaimsSessionState =
 export const resolveSessionClaims = cache(async function resolveSessionClaims(): Promise<ClaimsSessionState> {
   if (!isSupabaseConfigured()) return { state: "unconfigured" };
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-  const sub = error ? undefined : data?.claims?.sub;
+  /* getClaims THROWS, rather than answering an error, on a token it cannot
+     parse or an algorithm it does not know (a corrupt or hand-made cookie).
+     That is nobody, not a server error. */
+  const answer = await supabase.auth.getClaims().catch(() => null);
+  const sub = !answer || answer.error ? undefined : answer.data?.claims?.sub;
   if (typeof sub !== "string" || sub.length === 0) return { state: "signed-out" };
   return { state: "signed-in", supabase, userId: sub };
 });

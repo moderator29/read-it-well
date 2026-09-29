@@ -1,6 +1,9 @@
 import type { ListingIntent, ListingKind, ListingSearchFilter } from "@/lib/listings/types";
 import { rentMeansTenancy } from "@/lib/listings/filter";
-import { staysParamsSchema } from "@/lib/stays/filters";
+/* The parameter NAMES only, from the zod-free half of the stays contract:
+   importing `staysParamsSchema` for its `.shape` put zod into the filter
+   drawer's graph and so into the first load of /search. */
+import { STAYS_PARAM_KEYS } from "@/lib/stays/query";
 import type { ParsedWords } from "@/lib/listings/query-parse";
 import {
   activeFilterCount,
@@ -91,14 +94,14 @@ export function shelfPoolFilter(query: ShelfQuery): ListingSearchFilter {
 
 /* What the Stays search reads, minus the money and the order: a yearly
    budget or a property sort key does not mean the same thing per night. */
-const STAYS_CARRIED = Object.keys(staysParamsSchema.shape).filter(
+const STAYS_CARRIED = STAYS_PARAM_KEYS.filter(
   (key) => key !== "min" && key !== "max" && key !== "sort",
 );
 
 /**
  * Where a stay category typed on the Property side belongs (V-67), or null.
  * Hotels and shortlets are the Stays side's search, carrying every parameter
- * that search reads (`staysParamsSchema`) apart from the budget and the sort.
+ * that search reads (`STAYS_PARAM_KEYS`, the schema's own keys) apart from the budget and the sort.
  * Restaurants go to `/restaurants`, which reads no parameters at all, so
  * nothing is carried there.
  */

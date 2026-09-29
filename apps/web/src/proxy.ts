@@ -539,8 +539,10 @@ export async function proxy(request: NextRequest) {
      Each is a round trip from the edge to eu-west-1, so doing them one after
      the other cost a signed-out listing page an extra crossing before the
      first byte. It starts only where the read below is also made (a stranger,
-     the open catalogue, a document), so nothing is read for a request the
-     limiter or the gate is about to turn away that was not read before. */
+     the open catalogue, a GET document). The one cost: a request the limiter
+     then turns away has made this read too, and its answer is dropped. It
+     never reaches the response (the refusal is the same redirect either way
+     and does not wait on it), so it is load, not an oracle. */
   let earlyDetailCheck: Promise<boolean> | null = null;
 
   if (!user) {

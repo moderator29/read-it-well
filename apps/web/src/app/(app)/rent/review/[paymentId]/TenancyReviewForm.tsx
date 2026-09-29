@@ -7,8 +7,7 @@ import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { submitTenancyReview } from "@/lib/tenancy/review-actions";
 import { EXTRA_TO } from "@/lib/tenancy/review";
 
@@ -23,8 +22,11 @@ type Tri = "yes" | "no" | "not_sure";
 export function TenancyReviewForm({
   paymentId,
   copy,
+  success,
 }: {
   paymentId: string;
+  /** The page's `t.success`, for "Review sent". Absent, no sheet. */
+  success?: SuccessWords;
   copy: Dictionary["trustVisible"]["tenancy"];
 }) {
   const [paidExtra, setPaidExtra] = useState<"no" | "yes" | "">("");
@@ -38,8 +40,7 @@ export function TenancyReviewForm({
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [successClosed, setSuccessClosed] = useState(false);
-  const success = useClientCopy().success;
-  const sent = successCopy(success, "tenancyReviewSent");
+  const sent = success ? successCopy(success, "tenancyReviewSent") : null;
   const [pending, startTransition] = useTransition();
 
   const tri = [
@@ -55,6 +56,7 @@ export function TenancyReviewForm({
           {copy.done}
         </p>
         {/* `done` is set only by `submitTenancyReview`'s ok. */}
+        {success && sent ? (
         <SuccessSheet
           open={!successClosed}
           onOpenChange={(open) => {
@@ -65,6 +67,7 @@ export function TenancyReviewForm({
           body={sent.body}
           primary={{ label: success.continue }}
         />
+        ) : null}
       </>
     );
   }

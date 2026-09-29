@@ -120,7 +120,7 @@ export default async function RentSharePage({
         {/* Not gated on `!paidAt`: settling refreshes this page with the
             share paid, and a gate on it unmounted the receipt it had just
             opened. A revisit answers `already` and shows nothing. */}
-        {returnedRef && tenancyId && <SettleShareOnReturn tenancyId={tenancyId} reference={returnedRef} />}
+        {returnedRef && tenancyId && <SettleShareOnReturn tenancyId={tenancyId} reference={returnedRef} success={getDictionary(locale).success} />}
         {state}
       </div>
     </Section>,

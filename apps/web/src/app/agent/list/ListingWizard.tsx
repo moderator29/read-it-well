@@ -75,8 +75,7 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { useClientCopy } from "@/lib/i18n/client-copy";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { TextField, TextArea } from "@/components/ui/Field";
 import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
 import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/listings/compound";
@@ -858,6 +857,7 @@ function untouchedUnread(unread: readonly OwnAnswers[], group: OwnAnswers, value
 }
 
 export function ListingWizard({
+  success,
   copy,
   reference,
   moveInCopy,
@@ -881,6 +881,8 @@ export function ListingWizard({
   shotsCopy,
   demandCopy,
 }: {
+  /** The page's `t.success`, for "Your listing is in review". Absent, no sheet. */
+  success?: SuccessWords;
   /** V-70: the shot list's words. Without them the shot list is not drawn. */
   shotsCopy?: Dictionary["afterTheGate"]["shots"];
   /** V-10: the saved-search count on the last step. Absent in harnesses. */
@@ -1028,7 +1030,6 @@ export function ListingWizard({
   /* The success sheet over the "sent for review" screen, opened by the
      action's own ok and closed by the person; the screen stays under it. */
   const [celebrate, setCelebrate] = useState(false);
-  const success = useClientCopy().success;
   const [pending, startTransition] = useTransition();
   /** Whether the last `persist` reached the server and was accepted. */
   const lastSaveOk = useRef(true);
@@ -1971,10 +1972,11 @@ export function ListingWizard({
   /* ----------------------------------------------------------- the render */
 
   if (submitted) {
-    const words = successCopy(success, "listingSubmitted");
+    const words = success ? successCopy(success, "listingSubmitted") : null;
     return (
       <>
         <ListingSentForReview copy={copy} reference={reference} />
+        {success && words ? (
         <SuccessSheet
           open={celebrate}
           onOpenChange={setCelebrate}
@@ -1983,6 +1985,7 @@ export function ListingWizard({
           body={words.body}
           primary={{ label: success.continue }}
         />
+        ) : null}
       </>
     );
   }

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useClientCopy } from "@/lib/i18n/client-copy";
+import { getDictionary } from "@vallo/i18n";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { Button } from "@/components/ui/Button";
 import { successCopy, type SuccessVariant } from "@/lib/ui/success-moments";
 
 /** A page behind the sheet, so the backdrop has something to sit over. */
 export function Preview({ variant, still }: { variant: SuccessVariant; still: boolean }) {
-  const copy = useClientCopy().success;
+  const copy = getDictionary("en").success;
   const [open, setOpen] = useState(true);
   const moment = variant === "submitted" ? "listingSubmitted" : variant === "approved" ? "listingLive" : "stayPaid";
   const words = successCopy(copy, moment);

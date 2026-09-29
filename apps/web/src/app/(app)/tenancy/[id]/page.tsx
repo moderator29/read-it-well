@@ -91,7 +91,7 @@ export default async function TenancyPage({
   return shell(
     <Stack>
       <TenancyHead file={file} copy={copy} />
-      {file.viewer === "tenant" && returnedRef && <SettleShareOnReturn tenancyId={file.id} reference={returnedRef} />}
+      {file.viewer === "tenant" && returnedRef && <SettleShareOnReturn tenancyId={file.id} reference={returnedRef} success={t.success} />}
       <MoneySection file={file} copy={copy} />
       {/* Flatmates' shares are the lead tenant's business, not the lister's. */}
       {file.viewer === "tenant" && (!file.void || file.flatmates.locked) && (

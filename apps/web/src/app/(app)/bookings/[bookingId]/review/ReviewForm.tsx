@@ -10,7 +10,7 @@ import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/s
 import type { ReviewSubject } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { successCopy } from "@/lib/ui/success-moments";
+import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { Button } from "@/components/ui/Button";
 
@@ -63,8 +63,11 @@ async function sendReview(
 export function ReviewForm({
   subject,
   plansAction,
+  success,
 }: {
   subject: ReviewSubject;
+  /** The page's `t.success`, for "Review posted". Absent, no sheet. */
+  success?: SuccessWords;
   /** Where "done" sends somebody, in the dictionary's words (V-76 review). */
   plansAction: { label: string; href: string };
 }) {
@@ -79,8 +82,7 @@ export function ReviewForm({
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState("");
   const [successClosed, setSuccessClosed] = useState(false);
-  const success = useClientCopy().success;
-  const posted = successCopy(success, "reviewPosted");
+  const posted = success ? successCopy(success, "reviewPosted") : null;
 
   useEffect(() => {
     if (state?.ok) router.refresh();
@@ -90,6 +92,7 @@ export function ReviewForm({
     return (
       <>
       {/* The sheet over the confirmation screen, once, from the action's ok. */}
+      {success && posted ? (
       <SuccessSheet
         open={!successClosed}
         onOpenChange={(open) => {
@@ -101,6 +104,7 @@ export function ReviewForm({
         details={[{ label: success.detail.for, value: subject.title }]}
         primary={{ label: success.continue }}
       />
+      ) : null}
       <ResultScreen
         state="confirmed"
         mark="reviews"

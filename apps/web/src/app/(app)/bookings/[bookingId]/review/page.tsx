@@ -157,7 +157,11 @@ export default async function ReviewPage({
       <ReviewSubjectPanel subject={read.subject} />
 
       <Reveal delay={80} className="mt-block">
-        <ReviewForm subject={read.subject} plansAction={{ label: plans.seeStays, href: "/bookings?side=stays&from=stays" }} />
+        <ReviewForm
+          subject={read.subject}
+          plansAction={{ label: plans.seeStays, href: "/bookings?side=stays&from=stays" }}
+          success={getDictionary(locale).success}
+        />
       </Reveal>
     </Shell>
   );

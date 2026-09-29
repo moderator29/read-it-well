@@ -174,6 +174,7 @@ export default async function AgentInspectionsPage() {
                 <div className="nf-ix-list">
                   {open.map((one) => (
                     <InspectionSheet
+                      success={t.success}
                       gateCopy={t.platform.gate}
                       key={one.id}
                       inspection={one}
@@ -196,6 +197,7 @@ export default async function AgentInspectionsPage() {
                 <div className="nf-ix-list">
                   {settled.map((one) => (
                     <InspectionSheet
+                      success={t.success}
                       gateCopy={t.platform.gate}
                       key={one.id}
                       inspection={one}

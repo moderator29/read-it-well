@@ -100,6 +100,7 @@ export async function InspectionsBoard({
   const sheet = (row: (typeof all)[number]) => (
     <div key={row.id} id={`ix-${row.id}`} className="scroll-mt-16">
       <InspectionSheet
+        success={t.success}
         gateCopy={t.platform.gate}
         inspection={row}
         side={row.side}

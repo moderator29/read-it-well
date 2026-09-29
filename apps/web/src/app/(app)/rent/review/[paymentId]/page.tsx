@@ -85,7 +85,7 @@ export default async function TenancyReviewPage({ params }: { params: Promise<{ 
     <div className="mx-auto max-w-2xl">
       {header(target.title)}
       <p className={`${TYPE.body} mb-block`}>{copy.lede}</p>
-      <TenancyReviewForm paymentId={target.paymentId} copy={copy} />
+      <TenancyReviewForm paymentId={target.paymentId} copy={copy} success={getDictionary(locale).success} />
     </div>
   );
 }

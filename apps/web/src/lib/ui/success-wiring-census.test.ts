@@ -23,12 +23,12 @@ const WIRED: [file: string, gate: RegExp][] = [
   ["components/supply/OwnerRegisterForm.tsx", /if \(step === 3 && filed\)[\s\S]{0,200}RegistrationFiledSheet/],
   ["components/supply/AgentRegisterForm.tsx", /if \(step === 3 && filed\)[\s\S]{0,200}RegistrationFiledSheet/],
   ["components/supply/FirmRegisterForm.tsx", /if \(step === 3 && filed\)[\s\S]{0,200}RegistrationFiledSheet/],
-  ["components/verification/KycFlow.tsx", /if \(sent\)[\s\S]{0,120}<KycSentSheet \/>/],
+  ["components/verification/KycFlow.tsx", /if \(sent\)[\s\S]{0,160}<KycSentSheet copy=\{success\} \/>/],
   ["app/(app)/support/new/NewQueryForm.tsx", /if \(filed\)[\s\S]{0,160}<TicketFiledSheet/],
   ["components/app/account/SupportChat.tsx", /markFiled[\s\S]{0,200}setJustFiled\(reference\)/],
-  ["app/(app)/bookings/[bookingId]/review/ReviewForm.tsx", /if \(state\?\.ok\) \{[\s\S]{0,200}<SuccessSheet/],
-  ["app/(app)/rent/review/[paymentId]/TenancyReviewForm.tsx", /if \(done\) \{[\s\S]{0,400}<SuccessSheet/],
-  ["app/(app)/listing/[id]/ReservePanel.tsx", /if \(state\?\.ok\) \{[\s\S]{0,700}<SuccessSheet/],
+  ["app/(app)/bookings/[bookingId]/review/ReviewForm.tsx", /if \(state\?\.ok\) \{[\s\S]{0,400}<SuccessSheet/],
+  ["app/(app)/rent/review/[paymentId]/TenancyReviewForm.tsx", /if \(done\) \{[\s\S]{0,600}<SuccessSheet/],
+  ["app/(app)/listing/[id]/ReservePanel.tsx", /if \(state\?\.ok\) \{[\s\S]{0,900}<SuccessSheet/],
   ["components/app/inspections/InspectionSheet.tsx", /if \(body\.submit === true\) setDone\("inspectionReportSubmitted"\)/],
   ["components/app/agreements/AgreementControls.tsx", /"claim-filed"/],
   ["app/agent/listings/ListingsWorkspace.tsx", /withDone\("\/agent\/listings", "listing-submitted"/],
@@ -52,5 +52,38 @@ describe("the success sheet is wired, and gated on ok, in every flow the DOM sui
       const opens = [...code.matchAll(/<SuccessSheet\s+open=\{([^}]+)\}/g)].map((m) => m[1]);
       expect(opens, file).toEqual(['phase.kind === "paid"']);
     }
+  });
+});
+
+/*
+ * THE WORDS COME FROM THE PAGE. Most moments' copy is not carried on every
+ * screen (lib/i18n/client-copy-of.ts), so a wired component draws its sheet
+ * only when its server parent hands it `t.success`. Each production caller
+ * below must, or the moment silently stops appearing.
+ */
+const CALLERS: [file: string, element: string][] = [
+  ["app/(app)/listing/[id]/page.tsx", "ReservePanel"],
+  ["app/(app)/listing/[id]/page.tsx", "ReserveTable"],
+  ["app/(app)/listing/[id]/page.tsx", "ViewingSlots"],
+  ["app/(app)/restaurant/[id]/RestaurantFace.tsx", "ReserveTable"],
+  ["components/app/plans/InspectionsBoard.tsx", "InspectionSheet"],
+  ["app/agent/inspections/page.tsx", "InspectionSheet"],
+  ["app/agent/list/page.tsx", "ListingWizard"],
+  ["components/app/after-gate/BookingMoneyRecord.tsx", "RefundRequestForm"],
+  ["app/(app)/rent/share/[id]/page.tsx", "SettleShareOnReturn"],
+  ["app/(app)/tenancy/[id]/page.tsx", "SettleShareOnReturn"],
+  ["app/(app)/verification/page.tsx", "VninPanel"],
+  ["app/(app)/verification/page.tsx", "KycFlow"],
+  ["app/agent/earnings/page.tsx", "PayoutAccounts"],
+  ["app/(app)/bookings/[bookingId]/review/page.tsx", "ReviewForm"],
+  ["app/(app)/rent/review/[paymentId]/page.tsx", "TenancyReviewForm"],
+];
+
+describe("every production caller hands its component the success words", () => {
+  it.each(CALLERS)("%s passes success to <%s>", (file, element) => {
+    const code = withoutComments(readFileSync(join(SRC, file), "utf8"));
+    const uses = [...code.matchAll(new RegExp(`<${element}\\b[^>]*?(?:/>|>)`, "gs"))].map((m) => m[0]);
+    expect(uses.length, `${element} in ${file}`).toBeGreaterThan(0);
+    for (const use of uses) expect(use, use).toMatch(/\bsuccess=\{/);
   });
 });

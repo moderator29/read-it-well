@@ -142,8 +142,9 @@ run("rent and move-in paid (rent return)", () => {
 
 const SHARE = `
   import { mount } from "@/lib/testing/browser-root";
+  import { getDictionary } from "@vallo/i18n";
   import { SettleShareOnReturn } from "@/components/app/tenancy/FlatmateControls";
-  mount(<SettleShareOnReturn tenancyId="11111111-1111-4111-8111-111111111111" reference="rm-book-share1" />);
+  mount(<SettleShareOnReturn tenancyId="11111111-1111-4111-8111-111111111111" reference="rm-book-share1" success={getDictionary("en").success} />);
 `;
 
 run("a flatmate share paid", () => {
@@ -285,7 +286,7 @@ const SLOTS = `
   import { mount } from "@/lib/testing/browser-root";
   import { getDictionary } from "@vallo/i18n";
   import { ViewingSlots } from "@/components/app/inspections/ViewingSlots";
-  mount(<ViewingSlots listingId="l-1" locale="en" copy={getDictionary("en").frontDoor.viewings}
+  mount(<ViewingSlots listingId="l-1" locale="en" copy={getDictionary("en").frontDoor.viewings} success={getDictionary("en").success}
     slots={[{ slotAt: "2030-01-15T09:00:00.000Z", minutes: 30, windowId: "w1" }]} />);
 `;
 
@@ -380,8 +381,9 @@ run("agreement confirmed", () => {
 
 const ARRIVAL = (show: boolean, seenKey?: string) => `
   import { mount } from "@/lib/testing/browser-root";
+  import { getDictionary } from "@vallo/i18n";
   import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
-  mount(<SuccessFromFlag show={${show}} moment="agreementDrawn" ${seenKey ? `seenKey=${JSON.stringify(seenKey)}` : ""} />);
+  mount(<SuccessFromFlag copy={getDictionary("en").success} show={${show}} moment="agreementDrawn" ${seenKey ? `seenKey=${JSON.stringify(seenKey)}` : ""} />);
 `;
 
 run("on arrival (agreement, listing and approval pages)", () => {
@@ -430,7 +432,7 @@ const REFUND = `
   import { mount } from "@/lib/testing/browser-root";
   import { getDictionary } from "@vallo/i18n";
   import { RefundRequestForm } from "@/components/app/after-gate/RefundRequestForm";
-  mount(<RefundRequestForm bookingId="bk-1" copy={getDictionary("en").afterTheGate.refund} reasons={[{ code: "guest_choice", label: "My plans changed" }]} />);
+  mount(<RefundRequestForm success={getDictionary("en").success} bookingId="bk-1" copy={getDictionary("en").afterTheGate.refund} reasons={[{ code: "guest_choice", label: "My plans changed" }]} />);
 `;
 
 run("refund requested", () => {
@@ -463,8 +465,9 @@ run("refund requested", () => {
 
 const TABLE = `
   import { mount } from "@/lib/testing/browser-root";
+  import { getDictionary } from "@vallo/i18n";
   import { ReserveTable } from "@/app/(app)/listing/[id]/ReserveTable";
-  mount(<ReserveTable listingId="l-1" />);
+  mount(<ReserveTable listingId="l-1" success={getDictionary("en").success} />);
 `;
 
 run("table requested", () => {
@@ -494,7 +497,7 @@ const VNIN = `
   import { mount } from "@/lib/testing/browser-root";
   import { getDictionary } from "@vallo/i18n";
   import { VninPanel } from "@/components/verification/VninPanel";
-  mount(<VninPanel copy={getDictionary("en").trustVisible.vnin} merchantCode="M1" />);
+  mount(<VninPanel copy={getDictionary("en").trustVisible.vnin} success={getDictionary("en").success} merchantCode="M1" />);
 `;
 
 async function sendVnin(page: Page) {
