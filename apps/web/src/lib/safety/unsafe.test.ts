@@ -18,7 +18,8 @@ describe("the report clock a reporter reads (V-63)", () => {
   });
 
   it("is what the report sheet prints, with 112 as a number to tap and no blanket twenty four hours", () => {
-    const sheet = read("components/app/ReportSheet.tsx");
+    /* The body is its own chunk now (`ReportSheet` is only the trigger). */
+    const sheet = read("components/app/ReportSheetPanel.tsx");
     expect(sheet).toContain('responseTimeFor(category).phrase');
     expect(sheet).toContain('href="tel:112"');
     expect(sheet).not.toMatch(/twenty\s+four\s+hours/);

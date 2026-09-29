@@ -225,8 +225,8 @@ holds, glyph for glyph:
   units wide, so neighbours in the dock read as different sizes.
 - One corner radius, 2 (1 on small parts such as the archive lid), one dot
   (`h.01` on a round cap, so it scales with the line), round caps and joins.
-- Lucide's own weight since the bold pass (below): `UI_ICON_STROKE_PX`, 2
-  rendered CSS px at 20 and 24, scaled optically per size.
+- The bold weight (below): `UI_ICON_STROKE_PX`, 2.25 rendered CSS px at 20
+  and 24, scaled optically per size.
 - Where Lucide has no drawing, Vallo draws one on the same rules: the
   shorter-third menu, the two-card feed, `house` (Lucide's house with a
   chimney, so it never reads as the Home tab), and the four property-type
@@ -249,6 +249,11 @@ solid twin for the active state such as their filled gear). What changed:
   steps land on the device grid at 2x. `LineGlyph`, `SettingsGlyph`,
   `FeatureGlyph` and the console's `AdminGlyph` call the same helper, so they
   went bold with the set.
+- **Raised to 2.25 the same day (the ICONS3 audit).** Beside 600-weight
+  labels the 20 and 24 steps at 2 still read a shade under pump.fun's, and
+  the founder asked for "a bit more bold". The scale is now 1.5 at 12, 1.75
+  at 16, **2.25 at 20 and 24**, 2.5 at 28, 2.75 at 32, 3 at 40. 12 and 16
+  did not move: heavier there closes Lucide's counters.
 - **The library stayed Lucide.** The founder also named "expo icons"
   (`@expo/vector-icons`), which is a React Native package; its web-usable
   faces are Ionicons (MIT) and MaterialCommunityIcons (Apache 2.0). Ionicons'
@@ -264,8 +269,10 @@ solid twin for the active state such as their filled gear). What changed:
   Lucide), `scale` (legal fee, Lucide), `certificate` (Governor's consent,
   Lucide `award`), `stamp` (stamp duty, Lucide), `droplet` (water, Lucide),
   and two of Vallo's own on the same rules, `survey` (a pin on a measuring
-  rule, survey and registration) and `gate` (two posts, an arched rail and
-  three bars, the estate gate). Light keeps `bolt`, which already existed.
+  rule, survey and registration) and `gate` (the estate gate: `verified`'s
+  Lucide shield with a solid keyhole on a stem; a first drawing of two posts,
+  an arched rail and bars closed into a hash at 20px on the bold line and was
+  replaced in the ICONS3 audit). Light keeps `bolt`, which already existed.
 - **More twins**, so a selected row can go solid: `sun`, `briefcase`,
   `parking`, `kitchen`, `droplet`, `certificate`, `stamp`, `survey`. The
   existing twins needed no redraw: their body is stroked at the family weight
@@ -312,8 +319,9 @@ footer seal and list marks, `.nf-chip`, `.nf-btn`) are listed in light.css by
 class because their files belong to other owners; new hosts use the attribute,
 never a new class in that list.
 
-**One weight.** `UI_ICON_STROKE_PX` is 2 RENDERED CSS pixels at the 20 and
-24 steps (1.5 until the bold pass of 29 September 2026), stepped optically
+**One weight.** `UI_ICON_STROKE_PX` is 2.25 RENDERED CSS pixels at the 20 and
+24 steps (1.5 until the bold pass of 29 September 2026, 2 for its first
+round), stepped optically
 per size by `uiIconStrokeWidth`, and the `stroke-width` attribute is computed
 from the size rather than passed in.
 There is no `strokeWidth` prop. A fixed number on the 24 grid renders thinner
@@ -370,7 +378,7 @@ glyph, generated from this component by `node scripts/build-icon-vectors.mjs` an
 verified by `--check`, which exits non-zero if the two copies have drifted. Edit
 the TSX and re-run the script, never the other way round. Nobody has to trace a
 glyph from a screenshot. See `assets/icons/README.md` for where the artwork
-lives. The files are drawn at the 24 step, so they carry `stroke-width="2"`.
+lives. The files are drawn at the 24 step, so they carry `stroke-width="2.25"`.
 
 ## Listing and stays detail: plated line glyphs, not glass (29 September 2026)
 
@@ -382,6 +390,15 @@ the bold type. They now draw `DetailGlyph`
 brand-tinted tile with a hairline in light, the navy glass plate at night) with
 a brand-blue `UiIcon` at 20, the same treatment as the profile rows. At night
 the glyph takes the bright end of the brand blue, as the profile page does.
+Measured glyph-on-plate contrast at 390: about 4.9:1 in light and 5.3 to
+5.7:1 at night.
+
+An UNDECLARED cost's plate steps back by colour, never by opacity: the lit
+blue fill, rim and glow give way to the raised neutral surface and the glyph
+draws at `--nf-content-muted` at the full family weight (about 5.6:1 in light,
+7:1 at night). The first cut faded the whole plate to 0.55, which left the
+glyph at 2.3:1 and 2.8:1, under the 3:1 non-text floor, and read as pale
+rather than quiet.
 
 | Row | Glyph |
 | --- | --- |

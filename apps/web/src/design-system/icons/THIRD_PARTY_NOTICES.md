@@ -4,10 +4,13 @@ The stroked outlines in `UiIcon.tsx` are based on path data from **Lucide**
 (lucide-static 1.48.0, https://lucide.dev), copied into the repository. Nothing
 is installed or loaded at runtime. Several drawings were adjusted to Vallo's
 grid (the shorter third menu line, the two-card feed, the property-type tiles,
-`survey` and `gate`), and the filled twins are Vallo's own, cut from the Lucide
-outlines. Since 29 September 2026 the set renders at Lucide's own 2px weight,
-stepped per size; `coins`, `scale`, `certificate` (Lucide `award`), `stamp`
-and `droplet` were copied from the same Lucide release under the same licence.
+`survey`, and the keyhole inside `gate`, whose outline is Lucide's `shield`),
+and the filled twins are Vallo's own, cut from the Lucide outlines. Since
+29 September 2026 the set renders bolder than Lucide's default (2.25px at 20
+and 24, stepped per size); that is a rendering choice and changes no path
+data. `coins`, `scale`, `certificate` (Lucide `award`), `stamp` and `droplet`
+were copied from the same Lucide release under the same licence, and were
+checked against the upstream sources on the same day.
 
 No path data from Ionicons, MaterialCommunityIcons (`@expo/vector-icons`) or
 Phosphor is used. They were evaluated for the bold pass and not adopted, so

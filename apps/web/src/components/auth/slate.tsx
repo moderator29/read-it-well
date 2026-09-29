@@ -127,7 +127,9 @@ export function AuthCurveBlock({
           <div className="nf-slate-top__end">{end}</div>
         </div>
         {brandHref ? (
-          <Link href={brandHref} aria-label={brandLabel} className="nf-slate-top__brand">
+          /* `nf-tap`: the drawn link is 29px tall; the target is 44 (WCAG
+             2.5.8 / the platform's own floor), painted nowhere. */
+          <Link href={brandHref} aria-label={brandLabel} className="nf-slate-top__brand nf-tap">
             {word}
           </Link>
         ) : (

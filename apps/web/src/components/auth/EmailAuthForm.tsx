@@ -16,8 +16,24 @@ import { EmailTakenNotice } from "./EmailTakenNotice";
 import { SocialDoors } from "./SocialDoors";
 import { AuthPillButton } from "./slate";
 import { signUpMethodForEmail, startGoogleOAuth } from "@/lib/auth/actions";
+import {
+  asksForStepTwo,
+  hrefForStep,
+  isStepTwoEntry,
+  stepAfterTraversal,
+  stepTwoState,
+} from "@/lib/auth/signup-step-history";
 
 const EMPTY: AuthFormState = { ok: false };
+
+/* Sign up's address for a step, in place (see `goNext`). */
+function replaceStepUrl(to: 1 | 2) {
+  try {
+    window.history.replaceState(to === 2 ? stepTwoState() : {}, "", hrefForStep(window.location, to));
+  } catch {
+    /* A sandbox that refuses history still changes step. */
+  }
+}
 
 /* The same shape the server checks (`lib/auth/actions.ts`); the server is
    still the judge, this only stops Next moving on with an obvious gap. */
@@ -224,9 +240,9 @@ export function EmailAuthForm({
     ? t.signUp.passwordMismatch
     : (localErrors.confirmPassword ?? state.fieldErrors?.confirmPassword);
 
-  /* Next: the early checks for step one, then step two. The address is read
-     from the form because its field is owned by `EmailTakenNotice`. */
-  function goNext() {
+  /* The early checks for step one. The address is read from the form
+     because its field is owned by `EmailTakenNotice`. */
+  function stepOneErrors(): StepOneErrors {
     const data = formRef.current ? new FormData(formRef.current) : new FormData();
     const email = String(data.get("email") ?? "").trim();
     const errors: StepOneErrors = {};
@@ -237,19 +253,76 @@ export function EmailAuthForm({
     if (password.length < 8) errors.password = t.signUp.passwordShort;
     else if (!confirm) errors.confirmPassword = t.signUp.confirmRequired;
     else if (confirm !== password) errors.confirmPassword = t.signUp.passwordMismatch;
+    return errors;
+  }
+
+  /*
+   * STEP TWO IS A HISTORY ENTRY (`lib/auth/signup-step-history.ts`). Next
+   * pushes `?step=2` on this same page, so the browser's Back returns to step
+   * one with every answer kept, Forward returns to step two, and Android's
+   * hardware back does the same (`lib/nav/in-page-step.ts`). Before this, Back
+   * left the page and every answer with it.
+   */
+  /* Next: the early checks for step one, then step two. */
+  function goNext() {
+    const errors = stepOneErrors();
     setLocalErrors(errors);
     if (Object.keys(errors).length > 0) {
       setRefusedLocally((n) => n + 1);
       return;
     }
+    try {
+      if (!isStepTwoEntry(window.history.state)) {
+        window.history.pushState(stepTwoState(), "", hrefForStep(window.location, 2));
+      }
+    } catch {
+      /* A sandbox that refuses history still changes step. */
+    }
     focusWanted.current = "heading";
     setStep(2);
   }
 
+  /* The drawn back arrow is the browser's Back when step two is the entry
+     this form pushed, so both leave history in the same shape; the
+     `popstate` listener below then shows step one. */
   function goBack() {
+    if (isStepTwoEntry(window.history.state)) {
+      window.history.back();
+      return;
+    }
     focusWanted.current = "heading";
     setStep(1);
   }
+
+  /* The traversal listener reads the answers as they are now, not as they
+     were when it was bound. */
+  const stepOneReady = useRef(() => false);
+  useEffect(() => {
+    stepOneReady.current = () => Object.keys(stepOneErrors()).length === 0;
+  });
+
+  useEffect(() => {
+    if (!isSignUp) return;
+    /* A reload or a pasted address on `?step=2` has no step one in memory
+       (the password is never stored), so it opens on step one. */
+    if (asksForStepTwo(window.location.search)) replaceStepUrl(1);
+    const onPop = (e: PopStateEvent) => {
+      const to = stepAfterTraversal(e.state, stepOneReady.current());
+      /* Forward onto step two with an answer since removed: stay on step
+         one and take the stamp off the entry. */
+      if (to === 1 && isStepTwoEntry(e.state)) replaceStepUrl(1);
+      focusWanted.current = "heading";
+      setStep(to);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [isSignUp]);
+
+  /* A server refusal on a step-one field brings step one back while the
+     address still says step two; the entry is brought into line. */
+  useEffect(() => {
+    if (isSignUp && step === 1 && isStepTwoEntry(window.history.state)) replaceStepUrl(1);
+  }, [isSignUp, step]);
 
   const stepOneError = (field: keyof StepOneErrors) =>
     localErrors[field] ?? state.fieldErrors?.[field];
