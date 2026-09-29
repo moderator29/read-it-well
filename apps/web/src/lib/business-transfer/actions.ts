@@ -56,7 +56,7 @@ const GATED_MESSAGE =
   "We cannot move a business from here right now, and nothing has been changed. Try again shortly.";
 
 const NOT_YOURS_MESSAGE =
-  "That is not one of your businesses, so nothing has been changed.";
+  "That is not one of your businesses, so nothing has been changed. Pick one of your own businesses to move.";
 
 /**
  * Every refusal the database can answer with, in plain words, and every one of

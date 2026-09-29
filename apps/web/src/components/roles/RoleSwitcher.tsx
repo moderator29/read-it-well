@@ -167,7 +167,7 @@ export function RoleSwitcher({
           a bordered slot ships two concentric squares.
         */}
         <span className="nf-belong__tile" aria-hidden="true">
-          <BrandIcon name="role-switch-tile" size={44} />
+          <BrandIcon name="role-switch-tile" size={40} />
         </span>
         <span className="min-w-0 flex-1 text-left">
           <span className={`block ${TYPE.rowTitle}`}>{currentCopy.label}</span>

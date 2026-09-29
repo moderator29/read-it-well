@@ -63,7 +63,7 @@ export function ValloRecord({
             }`}
             data-testid={`record-line-${line.key}`}
           >
-            <UiIcon name={ICON[line.key]} size={18} className="mt-3xs shrink-0" />
+            <UiIcon name={ICON[line.key]} size={20} className="mt-3xs shrink-0" />
             <span className="min-w-0 break-words">{line.text}</span>
           </li>
         ))}

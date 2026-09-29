@@ -78,7 +78,7 @@ const NOT_ENDED_MESSAGE =
   "This stay has not ended yet, so there is nothing to record. Come back after the last night.";
 
 const NOT_ARRIVED_MESSAGE =
-  "Arrival day has not come yet, so a no show cannot be recorded.";
+  "Arrival day has not come yet, so a no show cannot be recorded. Come back after arrival day.";
 
 type HostGate =
   | { ok: false; error: string }

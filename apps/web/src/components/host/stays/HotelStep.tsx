@@ -159,7 +159,7 @@ export function HotelStep({
               onClick={() => setStars(stars === n ? null : n)}
               className="grid h-11 w-9 place-items-center"
             >
-              <UiIcon name="star" size={26} filled={stars !== null && n <= stars} />
+              <UiIcon name="star" size={28} filled={stars !== null && n <= stars} />
             </button>
           ))}
         </div>

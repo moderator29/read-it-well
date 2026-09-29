@@ -316,10 +316,16 @@
     gap: 0.125rem;
     border-radius: var(--nf-radius-xs);
   }
+  /* The `.nf-tap` hit area, centred and floored at 44 in each axis. It was a
+     fixed inset of 6px, which left the two-line count at 42px tall. */
   .nf-pf-count::before {
     content: "";
     position: absolute;
-    inset: -0.375rem -0.5rem;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(calc(100% + 1rem), 44px);
+    height: max(100%, 44px);
   }
   .nf-pf-count:focus-visible {
     outline: 2px solid var(--nf-brand-accent);

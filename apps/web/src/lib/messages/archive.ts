@@ -29,7 +29,7 @@ function isMissingTable(code: string | undefined): boolean {
 
 async function write(conversationId: string, archive: boolean): Promise<ActionResult<{ archived: boolean }>> {
   if (typeof conversationId !== "string" || !UUID_RE.test(conversationId)) {
-    return fail("We could not find that conversation.");
+    return fail("We could not find that conversation. Refresh your inbox and try again.");
   }
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -46,7 +46,7 @@ async function write(conversationId: string, archive: boolean): Promise<ActionRe
         .eq("conversation_id", conversationId);
   if (result.error) {
     if (isMissingTable(result.error.code)) return fail(NOT_OPEN);
-    if (result.error.code === "42501") return fail("You can only archive your own conversations.");
+    if (result.error.code === "42501") return fail("You can only archive your own conversations. Open one from your inbox to archive it.");
     return fail("That did not save. Please try again.");
   }
   revalidatePath("/messages");

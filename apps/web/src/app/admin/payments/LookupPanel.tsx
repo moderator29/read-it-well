@@ -147,7 +147,7 @@ export function LookupResult({
                   <li key={card.id} className="nf-row flex-wrap">
                     {/* The saved card's glass object, small, as the render
                         carries one per row. Never a card number beside it. */}
-                    <BrandIcon name="card-tile" size={26} className="shrink-0" />
+                    <BrandIcon name="card-tile" size={24} className="shrink-0" />
                     <span className="min-w-0 flex-1">
                       <span className="nf-body-sm block font-semibold text-content">
                         {describe}
@@ -184,7 +184,7 @@ export function LookupResult({
                 return (
                   <li key={account.id} className="nf-row flex-wrap">
                     {/* The bank account's object: the column, not a card. */}
-                    <BrandIcon name="bank-column" size={26} className="shrink-0" />
+                    <BrandIcon name="bank-column" size={24} className="shrink-0" />
                     <span className="min-w-0 flex-1">
                       <span className="nf-body-sm block font-semibold text-content">
                         {account.bankName}

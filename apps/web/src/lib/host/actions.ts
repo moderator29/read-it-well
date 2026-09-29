@@ -1008,7 +1008,7 @@ export async function setRoomNights(input: unknown): Promise<ActionResult<{ nigh
   }
 
   const dates = nightsBetween(from, to);
-  if (dates.length === 0) return fail("The last night cannot come before the first.");
+  if (dates.length === 0) return fail("The last night cannot come before the first. Pick a last night on or after the first.");
   if (dates.length > MAX_NIGHTS_IN_ONE_ACT) {
     return fail(
       `That is ${dates.length} nights. Set up to ${MAX_NIGHTS_IN_ONE_ACT} at a time so nothing is lost part way.`,

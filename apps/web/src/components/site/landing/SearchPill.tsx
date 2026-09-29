@@ -123,7 +123,7 @@ export function SearchPill({
       </div>
       <div className="nf-landing-pill-actions">
         <Link href="/search" aria-label={labels.filters} prefetch={false}>
-          <UiIcon name="sliders" size={18} aria-hidden />
+          <UiIcon name="sliders" size={20} aria-hidden />
         </Link>
         {/* Word first, arrow after it, as "Explore Properties" already does.
             The two used to be laid out by `place-items: center` on a grid,
@@ -133,7 +133,7 @@ export function SearchPill({
             readers only. */}
         <button type="submit" aria-label={labels.go}>
           <span className="sm:sr-only">{labels.go}</span>
-          <UiIcon name="arrow-right" size={18} aria-hidden />
+          <UiIcon name="arrow-right" size={20} aria-hidden />
         </button>
       </div>
     </form>

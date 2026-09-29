@@ -91,7 +91,7 @@ export function ListingSectionTabs({
         data-testid="tabs-back"
         className="nf-detail-tabs__back"
       >
-        <UiIcon name="arrow-left" size={18} />
+        <UiIcon name="arrow-left" size={20} />
       </button>
       <div className="nf-detail-tabs__row">
       {tabs.map((tab) => (

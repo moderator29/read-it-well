@@ -118,7 +118,7 @@ export function TenancyCard({
             {/* V-86: flatmates' shares live in the tenancy file. */}
             <Link
               href={`${tenancy.fileHref}#flatmates`}
-              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="nf-tap nf-tap--below text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
               data-testid="tenancy-split-link"
             >
               {t.afterTheGate.flatmates.split}
@@ -129,7 +129,7 @@ export function TenancyCard({
              longer be paid still points at the listing. */
           <Link
             href={tenancy.paid ? tenancy.fileHref : `/listing/${tenancy.listingId}`}
-            className="flex shrink-0 items-center gap-2xs whitespace-nowrap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="nf-tap flex shrink-0 items-center gap-2xs whitespace-nowrap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             data-testid={tenancy.paid ? "tenancy-file-link" : undefined}
           >
             {tenancy.paid ? t.afterTheGate.tenancy.openFile : copy.view}

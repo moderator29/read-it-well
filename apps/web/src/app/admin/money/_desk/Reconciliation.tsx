@@ -84,7 +84,7 @@ export function ReconciliationPanel({
     return (
       <Panel title={title}>
         <div className={`nf-md-check ${plate}`} aria-hidden="true">
-          <UiIcon name={verdict === "healthy" ? "verified" : "info"} size={26} />
+          <UiIcon name={verdict === "healthy" ? "verified" : "info"} size={28} />
         </div>
         <div className="text-center">
           <StatusPill tone={badge.tone} size="sm">

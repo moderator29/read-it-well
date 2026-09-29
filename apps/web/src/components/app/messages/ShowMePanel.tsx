@@ -198,7 +198,7 @@ export function ShowMePanel({
                         onClick={() => setPlayed((ids) => [...ids, request.id])}
                         data-testid="show-me-play"
                       >
-                        {playLabel(request.clipBytes, copy)}
+                        {playLabel(request.clipBytes, copy, locale)}
                       </button>
                     ) : (
                       <video

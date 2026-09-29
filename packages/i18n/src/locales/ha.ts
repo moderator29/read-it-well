@@ -303,6 +303,9 @@ export const ha: Dictionary = withFallback({
     myBookings: "Ajiyena",
     myBookingsSub: "Duba ajiyen gidaje da na masauki",
     savedSub: "Gidaje, otal da wuraren da ka ajiye",
+    /* Draft built from this file's words for agreements and payments; a
+       native speaker should confirm, especially the word for claims. */
+    agreementsSub: "Yarjejeniyoyi, biyan kuɗi da buƙatun diyya",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ajiyen gidaje da masauki",
     savedRow: "Gidaje, otal da wurare",
@@ -702,6 +705,10 @@ export const ha: Dictionary = withFallback({
     },
     referralLabel: "Lambar gayyata",
     referralPlaceholder: "Shigar da lambarka",
+    /* The two step headings of the sign-up form. Reused from wording already
+       in this file; a native speaker should confirm. */
+    stepAccount: "Asusunka",
+    stepAbout: "Game da kai",
   },
 
   pickers: {

@@ -60,7 +60,7 @@ export function TableCard({
           bell; it is an ornament on the row rather than the subject of the
           surface, so it takes no tile (see the note in BrandIcon). */}
       <h3 className="mt-xs flex items-center gap-inline text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
-        <BrandIcon name="concierge-bell" size={28} />
+        <BrandIcon name="concierge-bell" size={24} />
         <span className="min-w-0">{row.placeName}</span>
       </h3>
       <p className="mt-3xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">

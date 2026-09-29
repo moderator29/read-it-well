@@ -443,18 +443,25 @@
     letter-spacing: 0.02em;
   }
   .nf-badge--success,
-  .nf-badge--approved,
   .nf-reg-open--open {
     --nf-badge-hue: var(--nf-state-success);
+  }
+  /* The review outcomes speak the status vocabulary (tokens.css "STATUS"),
+     not the raw state or brand colours, so a change to what "approved",
+     "rejected" or "verified" looks like is one token, everywhere. */
+  .nf-badge--approved {
+    --nf-badge-hue: var(--nf-status-approved);
   }
   .nf-badge--pending,
   .nf-badge--warning,
   .nf-badge--example {
     --nf-badge-hue: var(--nf-status-pending);
   }
-  .nf-badge--error,
-  .nf-badge--rejected {
+  .nf-badge--error {
     --nf-badge-hue: var(--nf-state-error);
+  }
+  .nf-badge--rejected {
+    --nf-badge-hue: var(--nf-status-rejected);
   }
   .nf-badge--info,
   .nf-count-badge,
@@ -462,10 +469,13 @@
     --nf-badge-hue: var(--nf-brand-primary);
     --nf-badge-ink: var(--nf-state-info);
   }
-  .nf-badge--brand,
-  .nf-badge--verified {
+  .nf-badge--brand {
     --nf-badge-hue: var(--nf-brand-primary);
     --nf-badge-ink: color-mix(in oklab, var(--nf-brand-secondary) 55%, white);
+  }
+  .nf-badge--verified {
+    --nf-badge-hue: var(--nf-status-verified);
+    --nf-badge-ink: color-mix(in oklab, var(--nf-status-verified) 55%, white);
   }
   .nf-badge--neutral,
   .nf-reg-open--closed {

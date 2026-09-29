@@ -302,6 +302,9 @@ export const yo: Dictionary = withFallback({
     myBookings: "Àwọn ìfipamọ́ mi",
     myBookingsSub: "Wo ìfipamọ́ ilé àti ibùgbé rẹ",
     savedSub: "Àwọn ilé, hótẹ́ẹ̀lì àti ibi tí o fipamọ́",
+    /* Draft built from this file's words for agreements and payments; a
+       native speaker should confirm, especially the word for claims. */
+    agreementsSub: "Àwọn àdéhùn, ìsanwó àti ìbéèrè ẹ̀san",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ìfipamọ́ ilé àti ibùgbé",
     savedRow: "Ilé, hótẹ́ẹ̀lì àti ibi",
@@ -722,6 +725,10 @@ export const yo: Dictionary = withFallback({
     },
     referralLabel: "Kóòdù ìtọ́kasí",
     referralPlaceholder: "Tẹ kóòdù rẹ",
+    /* The two step headings of the sign-up form. Reused from wording already
+       in this file; a native speaker should confirm. */
+    stepAccount: "Àkọọ́lẹ̀ rẹ",
+    stepAbout: "Díẹ̀ nípa rẹ",
   },
 
   pickers: {

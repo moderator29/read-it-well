@@ -764,7 +764,7 @@ export function AssistantChat({
                         className={`nf-ai__avatar ${thisStreaming ? "nf-bot-thinking" : ""}`}
                         aria-hidden="true"
                       >
-                        <BrandIcon name="bot" size={28} />
+                        <BrandIcon name="bot" size={24} />
                       </span>
                       <div className="nf-ai__bubble nf-ai__bubble--theirs">
                         {m.text}
@@ -1014,9 +1014,11 @@ function ThreadListingCard({
             rather than as the two doors they are (ledger 10.2). Decorative,
             because the whole body is already the link. */}
         <span className="nf-ai__result-head">
-          <span className="nf-ai__result-title">{listing.title}</span>
+          <span className="nf-ai__result-title" title={listing.title}>
+            {listing.title}
+          </span>
           <span className="nf-ai__result-go" aria-hidden="true">
-            <UiIcon name="chevron-down" size={14} className="-rotate-90" />
+            <UiIcon name="chevron-down" size={16} className="-rotate-90" />
           </span>
         </span>
         <span className="nf-ai__result-where">

@@ -174,7 +174,7 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
           </div>
           <Stars rating={card.rating} />
           <p className="nf-chat-card__place">
-            <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+            <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
             <span>{[card.area, card.city].filter(Boolean).join(", ")}</span>
           </p>
           <div className="nf-chat-card__features mt-inline-tight">
@@ -220,7 +220,7 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
         </div>
         <Stars rating={card.rating} />
         <p className="nf-chat-card__place">
-          <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+          <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
           <span>{[card.area, card.city].filter(Boolean).join(", ")}</span>
         </p>
 

@@ -139,7 +139,7 @@ export function RoomTypesStep({
           disabled={pending}
         >
           <span className="nf-stays-glyph">
-            <UiIcon name="plus" size={18} />
+            <UiIcon name="plus" size={20} />
           </span>
           <span className="nf-stays-rule__label text-left">Add a room type</span>
           <UiIcon name="chevron-right" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />

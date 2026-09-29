@@ -145,7 +145,7 @@ async function requestInspectionWork(
       return fail("This is your own property, so there is nothing to arrange.");
     }
     if (message.includes("row-level security")) {
-      return fail("This property is not taking inspection requests just now.");
+      return fail("This property is not taking inspection requests just now. Message the lister to ask when viewings open.");
     }
     return fail("We could not send that request. Try again in a moment.");
   }
@@ -203,7 +203,7 @@ export async function answerInspection(input: unknown): Promise<ActionResult<nul
     .eq("id", parsed.data.id)
     .maybeSingle();
   if (existing.error || !existing.data) {
-    return fail("We could not find that request.");
+    return fail("We could not find that request. Refresh the page to see your current requests.");
   }
 
   const nextState = parsed.data.state as InspectionState;

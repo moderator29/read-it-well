@@ -54,7 +54,7 @@ export function NewsletterForm({
           disabled={pending}
         />
         <button type="submit" aria-label={submit} disabled={pending}>
-          <UiIcon name="arrow-right" size={18} aria-hidden />
+          <UiIcon name="arrow-right" size={20} aria-hidden />
         </button>
       </div>
       {error && (

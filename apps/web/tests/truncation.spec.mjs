@@ -166,7 +166,14 @@ const SWEEP = ({ long, allowed, skipTags }) => {
     /* 1. Clipping right now. */
     if (kind.startsWith("clamp")) {
       const line = parseFloat(getComputedStyle(el).lineHeight) || 20;
-      if (el.scrollHeight > el.clientHeight + line * 0.5 && !allowed.some((a) => cls.includes(a))) {
+      /* A clamp inside a region a collapsed disclosure owns is an excerpt with
+         its "Read more" beside it (ListingAbout): the rest is one tap away and
+         announced as such, which is the item's own "or an expand". */
+      const region = el.closest("[id]");
+      const expandable =
+        region !== null &&
+        document.querySelector(`[aria-controls="${CSS.escape(region.id)}"][aria-expanded="false"]`) !== null;
+      if (el.scrollHeight > el.clientHeight + line * 0.5 && !expandable && !allowed.some((a) => cls.includes(a))) {
         clipped.push(`${kind} "${text.slice(0, 46)}" .${cls.slice(0, 44)}`);
       }
     } else if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth) {

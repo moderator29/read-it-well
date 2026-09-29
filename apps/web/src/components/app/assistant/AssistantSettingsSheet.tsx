@@ -177,7 +177,7 @@ function OptionRow({
       {selected && (
         <UiIcon
           name="verified"
-          size={18}
+          size={20}
           className="shrink-0 text-[var(--nf-brand-secondary)]"
         />
       )}

@@ -226,7 +226,7 @@ export function FirmRegisterForm({
                 required
                 trailing={
                   <span aria-hidden="true">
-                    <UiIcon name="location" size={18} />
+                    <UiIcon name="location" size={20} />
                   </span>
                 }
                 {...(errors.officeAddress ? { error: errors.officeAddress } : {})}
