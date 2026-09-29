@@ -17,11 +17,15 @@ declare
   r record;
   attack text;
 begin
-  -- 29 September: the console's second factor. The QA admin holds their role
-  -- only on a session that proved a security key, so this probe's session
-  -- carries one (rolled back with everything else).
+  -- 29 September: the console's second factor. An admin or a staff member
+  -- holds their role only on a session that proved a security key, so this
+  -- probe's session carries one for every admin and for the QA member (who
+  -- some probes make staff), rolled back with everything else.
   insert into public.console_step_ups (user_id, session_id, expires_at)
-  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  select u, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
+    from (select user_id from public.user_roles where role in ('admin', 'super_admin')
+          union select '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'::uuid
+          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(u)
   on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into public.agents (user_id, display_name) values (member, 'Probe DB-02 lister')
   returning id into agent;
@@ -61,9 +65,13 @@ begin
     physically_inspected_at, address_verified_at, verified_by, reviewed_at, reviewer_id, listing_fee_charged_at)
   values (forged, agent, 'Probe DB-02 stamped draft', 'apartment', 'DRAFT', true,
     now(), now(), member, now(), member, now());
+  -- Read as the service role: a member no longer selects moderator columns
+  -- (DB-10 step 2); what matters is what was stored.
+  reset role;
   select featured, physically_inspected_at, address_verified_at, verified_by, reviewed_at, reviewer_id,
          listing_fee_charged_at, listing_role::text as role
     into r from public.listings where id = forged;
+  set local role authenticated;
   if r.featured or r.physically_inspected_at is not null or r.address_verified_at is not null
      or r.verified_by is not null or r.reviewed_at is not null or r.reviewer_id is not null
      or r.listing_fee_charged_at is not null or r.role is distinct from 'agent' then

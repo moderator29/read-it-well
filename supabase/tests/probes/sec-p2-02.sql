@@ -11,11 +11,15 @@ declare
   i int;
   refused text;
 begin
-  -- 29 September: the console's second factor. The QA admin holds their role
-  -- only on a session that proved a security key, so this probe's session
-  -- carries one (rolled back with everything else).
+  -- 29 September: the console's second factor. An admin or a staff member
+  -- holds their role only on a session that proved a security key, so this
+  -- probe's session carries one for every admin and for the QA member (who
+  -- some probes make staff), rolled back with everything else.
   insert into public.console_step_ups (user_id, session_id, expires_at)
-  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  select u, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
+    from (select user_id from public.user_roles where role in ('admin', 'super_admin')
+          union select '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'::uuid
+          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(u)
   on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- A published listing the member has no thread on, and a second published
   -- listing by a different lister (or no second lister: the mismatch then
