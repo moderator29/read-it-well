@@ -127,6 +127,18 @@
       display: none;
     }
   }
+  /*
+   * THE LAST ROW CLEARS THE PILL. The pill floats above the dock, and the
+   * page only reserved the dock, so at the end of a result list "Show 24
+   * more" scrolled to a stop underneath it (measured at 360, 390 and 430).
+   * While the pill is on the page the shell reserves its height and a gap
+   * as well. Phones only, where the pill is drawn.
+   */
+  @media (max-width: 639.98px) {
+    #main.nf-main--docked:has(.nf-maplist-pill[data-to="map"]) {
+      padding-bottom: calc(var(--nf-tabbar-clearance) + 3rem + var(--nf-space-md));
+    }
+  }
 
   /* ----------------------------------------------- results updating */
 
