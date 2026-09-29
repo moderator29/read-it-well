@@ -61,7 +61,9 @@ check(
 );
 check(
   "setting the new password goes through updateUser, not a token in the URL",
-  /updatePassword[\s\S]{0,2000}auth\.updateUser\(\{ password \}\)/.test(actions),
+  /* 4000, not 2000: the function's own comments grew past the old window
+     (2279 characters on 29 September) while the call stayed exactly this. */
+  /updatePassword[\s\S]{0,4000}auth\.updateUser\(\{ password \}\)/.test(actions),
 );
 
 /* --------------------------------------------------------------- the screens */
