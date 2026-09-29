@@ -226,6 +226,27 @@
       "result": "captured",
       "url": "/settings/notifications",
       "at": "2026-09-29T01:44:27.968Z"
+    },
+    {
+      "shot": 34,
+      "screen": 1,
+      "result": "captured",
+      "url": "/sign-in",
+      "at": "2026-09-29T02:28:04.566Z"
+    },
+    {
+      "shot": 35,
+      "screen": 1,
+      "result": "captured",
+      "url": "/sign-up",
+      "at": "2026-09-29T02:28:31.782Z"
+    },
+    {
+      "shot": 36,
+      "screen": 1,
+      "result": "captured",
+      "url": "/settings/payments",
+      "at": "2026-09-29T02:28:48.732Z"
     }
   ]
 }

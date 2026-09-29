@@ -2,7 +2,7 @@
 
 Produced on 29 September 2026. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with three commands (section 7).
 
-**The short version.** There is a pool of 33 images for each store, 30 in the dark theme and 3 in the light, every one showing the live product inside a whole phone. The App Store images use a phone with a camera island at 1320 x 2868. The Google Play images use an Android phone at 1080 x 1920, and there is a 1024 x 500 feature graphic. Section 2 names the ten to submit to Apple and the eight to submit to Google.
+**The short version.** There is a pool of 36 images for each store, 33 in the dark theme and 3 in the light, every one showing the live product inside a whole phone. The App Store images use a phone with a camera island at 1320 x 2868. The Google Play images use an Android phone at 1080 x 1920, and there is a 1024 x 500 feature graphic. Section 2 names the ten to submit to Apple and the eight to submit to Google.
 
 ---
 
@@ -10,12 +10,12 @@ Produced on 29 September 2026. This records what is in `docs/store/screenshots/`
 
 ```
 docs/store/screenshots/
-├── app-store/iphone-6.9/dark/     30 images, 1320 x 2868, PNG, no alpha
+├── app-store/iphone-6.9/dark/     33 images, 1320 x 2868, PNG, no alpha
 ├── app-store/iphone-6.9/light/     3 images, 1320 x 2868, PNG, no alpha
-├── google-play/phone/dark/        30 images, 1080 x 1920, PNG, no alpha
+├── google-play/phone/dark/        33 images, 1080 x 1920, PNG, no alpha
 ├── google-play/phone/light/        3 images, 1080 x 1920, PNG, no alpha
 ├── google-play/feature-graphic/    feature-graphic.png, 1024 x 500
-├── source/                        the 30 live screen captures (WebP) and capture-report.json
+├── source/                        the 33 live screen captures (WebP) and capture-report.json
 └── overview.jpg                   every App Store image on one sheet, for choosing
 ```
 
@@ -96,6 +96,9 @@ Every screen is the live product at <https://www.vallospaces.com>, captured on 2
 | 31 | Share listings right in the chat | dark | photocard (villa-pool-skyline-01) | `/messages/<id>` |
 | 32 | Book a table in a few taps | dark | tilt | `/restaurant/<id>` |
 | 33 | You choose what reaches you | dark | hero | `/settings/notifications` |
+| 34 | Welcome back, sign in in seconds | dark | hero | `/sign-in` |
+| 35 | Join Vallo with one account | dark | tilt | `/sign-up` |
+| 36 | Your cards and banks, in one place | dark | photocard (living-room-dusk) | `/settings/payments` |
 
 The layouts, all of which show whole phones: **hero** (one phone, straight, as large as the image allows), **tilt** (one phone turned a little in 3D, with a glass object beside it), **photo** (a property photograph behind, the phone in front), **photocard** (a photograph on a tilted card behind the phone), **card** (an inset rounded panel holding the words and the phone), **duo** (two phones leaning toward each other) and **brand**.
 
@@ -168,13 +171,14 @@ One to ten screenshots per display size and language, in .png, .jpg or .jpeg. Ap
 - **Price Check (`18`) shows the question, not an answer.** With only example listings it declines to give a figure, as it should. The screen is the form, filled in for Lekki.
 - **The agent and host screens (`14` to `17`) are what a member sees before approval**: the pitch, the empty workspace, the application status. There is no agent or host QA account, and none was created.
 - **No image shows a person's hand holding the phone.** The founder asked for some. No licensed photograph of one is available: the build environment cannot reach Unsplash, Pexels or Pixabay, and a drawn hand would look worse than none. A licensed photograph with the phone's four screen corners marked can be added as a new layout.
+- **There are no wallet or crypto screens.** `/wallet` redirects to `/agreements`: the wallet was retired when Vallo stopped holding money. Crypto (Yellow Card) appears only inside a live checkout and is switched off until configured. Shot `36` shows the payment methods screen instead.
 - **No money moved and there are no "balance transactions".** Vallo has no wallet or balance by design (`docs/MONEY_ARCHITECTURE.md`), and a payment is a real Paystack charge that needs an approved agreement.
 
 ### What the capture wrote to production
 
 Only to the two QA accounts, and only through the product's own screens:
 
-- **Sign-ins.** Ten sign-ins to the QA member account and one to the QA admin account. Each writes a "New sign-in to Vallo" notification and security email to that account (one of them is visible in shot `10`). They can be ended from `/settings/devices`.
+- **Sign-ins.** Eleven sign-ins to the QA member account and one to the QA admin account. Each writes a "New sign-in to Vallo" notification and security email to that account (one of them is visible in shot `10`). They can be ended from `/settings/devices`.
 - **First run.** The interests question was skipped once on the QA member's profile.
 - **Favourites.** Three example listings saved to the QA member's favourites (shots `12` and `19` show them).
 - **The enquiry thread.** At the founder's request, the QA member shared two saved listings into its existing rental enquiry with the example lister, using the share picker, and sent one message: "I like these two as well. Could we view all three on Saturday morning?" A conversation in Vallo is always between a guest and a listing's agent, and every live listing's agent is the example account, so the thread has one side.

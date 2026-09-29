@@ -231,6 +231,24 @@ export const SHOTS = [
     note: "The subline is NO_CUSTODY_SENTENCE in apps/web/src/lib/money/copy.ts, shortened. The screen is the listing's own move-in breakdown.",
     screens: [{ steps: [...FIRST_RENTAL, { reveal: "[data-testid=move-in-cost]", offset: 20 }] }],
   },
+  {
+    n: 34, slug: "sign-in", mode: "dark", layout: "hero", ground: "electric",
+    headline: ["Welcome back,", "sign in in seconds"],
+    screens: [{ auth: false, steps: [{ goto: "/sign-in" }] }],
+  },
+  {
+    n: 35, slug: "join-vallo", mode: "dark", layout: "tilt", ground: "aurora",
+    headline: ["Join Vallo", "with one account"],
+    glass: [{ file: "user-check.png", x: 0.1, y: 0.56, size: 0.18, rotate: -8 }],
+    screens: [{ auth: false, steps: [{ goto: "/sign-up" }] }],
+  },
+  {
+    n: 36, slug: "your-payment-methods", mode: "dark", layout: "photocard", ground: "navy", photo: "living-room-dusk.jpg",
+    headline: ["Your cards and banks,", "in one place"],
+    note: "Payment methods as the QA member sees them. There is no wallet or balance to show: the wallet was retired when Vallo stopped holding money (/wallet redirects to /agreements), and crypto appears only inside a live checkout, switched off until Yellow Card is configured.",
+    glass: [{ file: "card-lock.png", x: 0.11, y: 0.84, size: 0.17, rotate: -8 }],
+    screens: [{ steps: [{ goto: "/settings/payments" }] }],
+  },
 ];
 
 export const pad = (n) => String(n).padStart(2, "0");
