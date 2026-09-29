@@ -222,13 +222,12 @@ export function AccountBody({
           aria-labelledby="account-tab-account"
           className="nf-pf-panel"
         >
+          {/* Plans, Saved, Agreements and the workspaces: one group, one
+              card, inset hairlines (plan item 16). */}
           <div className="nf-pf-rows" data-testid="belongings">
             {rows.map((row) => (
               <BelongingRow key={row.key} row={row} value={rowValue(row.key, facts, COPY, locale)} />
             ))}
-          </div>
-
-          <div className="nf-pf-switch">
             <SwitchRoleRow line={switchLine ?? COPY.switchNone} title={COPY.switchTitle} />
           </div>
 

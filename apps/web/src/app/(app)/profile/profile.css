@@ -459,93 +459,68 @@
   .nf-pf-panel {
     padding-block-start: 1.25rem;
   }
-  /* 66 tall, 8 apart (112 and 13 image px). */
+  /*
+   * BELONGINGS AS ONE GROUP (plan item 16, spec section 5). Plans, Saved,
+   * Agreements and the workspaces row were four lit cards, each with its own
+   * rim and glow; they are one white card (the night's card at night) with
+   * rows inside it and hairlines inset to the text column. The row keeps its
+   * anatomy and its press; only the per-row container went.
+   */
   .nf-pf-rows {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    overflow: hidden;
+    border: 1px solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
   }
-  /*
-   * THE ROW, LIT AS THE RENDER LIGHTS IT. Radius 23 image px: 14 CSS, the
-   * control radius, ratio 0.21. Every value below was matched by sampling the
-   * render and the built page at the same points (ledger 1.4); all land within
-   * 10 on every channel except where the ledger says otherwise.
-   *
-   *   top rim      2 112 219  a 1px hot line, the ink with a little cyan
-   *   under it     0 52 148 -> 0 33 105 by 9px -> 0 24 79 by 20px
-   *   middle       0 19 63
-   *   foot         0 25 76 -> 0 30 87, then the rim 2 73 161
-   *   outside      a 1px dark seam under the foot, then a soft halo
-   *
-   * Mixed in sRGB, where a percentage of the ink is a percentage of the
-   * channel, so the stops can be read straight off the samples. The render's
-   * blue is purer than any ink the tokens hold (green to blue about 0.3
-   * against the ink's 0.4), so the fill is painted on a layer behind the
-   * content and saturated there; the words and the chevron are untouched.
-   */
   .nf-pf-row {
-    --nf-pf-ink: var(--nf-container-ink);
-    --nf-pf-ground: var(--nf-surface-canvas);
-    --nf-pf-row-fill: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--nf-pf-ink) 50%, var(--nf-pf-ground)) 0,
-      color-mix(in srgb, var(--nf-pf-ink) 33%, var(--nf-pf-ground)) 9px,
-      color-mix(in srgb, var(--nf-pf-ink) 23%, var(--nf-pf-ground)) 20px,
-      color-mix(in srgb, var(--nf-pf-ink) 19%, var(--nf-pf-ground)) 26px,
-      color-mix(in srgb, var(--nf-pf-ink) 16%, var(--nf-pf-ground)) 33px,
-      color-mix(in srgb, var(--nf-pf-ink) 15%, var(--nf-pf-ground)) calc(100% - 14px),
-      color-mix(in srgb, var(--nf-pf-ink) 21%, var(--nf-pf-ground)) calc(100% - 4px),
-      color-mix(in srgb, var(--nf-pf-ink) 26%, var(--nf-pf-ground)) calc(100% - 1.5px)
-    );
+    --nf-pf-row-fill: none;
     position: relative;
     isolation: isolate;
     display: flex;
     align-items: center;
-    gap: 0.875rem;
+    gap: 0.75rem;
     inline-size: 100%;
-    min-block-size: 4.125rem;
-    padding: 0.5rem 0.75rem 0.5rem 0.875rem;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid color-mix(in srgb, var(--nf-pf-ink) 76%, var(--nf-pf-ground));
-    border-block-start-color: color-mix(
-      in srgb,
-      color-mix(in srgb, var(--nf-pf-ink) 80%, var(--nf-state-warning)) 95%,
-      var(--nf-pf-ground)
-    );
-    border-block-end-color: color-mix(in srgb, var(--nf-pf-ink) 70%, var(--nf-pf-ground));
+    min-block-size: 3.75rem;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 0;
     background: transparent;
-    box-shadow:
-      0 1px 0 var(--nf-pf-ground),
-      0 0 8px -2px var(--nf-glow-2),
-      0 4px 12px -6px var(--nf-glow-3);
+    box-shadow: none;
     color: var(--nf-content-primary);
     text-align: start;
     cursor: pointer;
     transition:
       transform var(--nf-duration-press) var(--nf-ease-press),
-      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-pf-row::before {
+    content: none;
+  }
+  /* The inset hairline: from the text column (16 + 36 + 12), none above the
+     first row. */
+  .nf-pf-rows > * + * .nf-pf-row::after,
+  .nf-pf-rows > .nf-pf-row + .nf-pf-row::after {
     content: "";
     position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: var(--nf-pf-row-fill);
-    filter: saturate(1.35);
+    inset-inline: 4rem 0;
+    top: 0;
+    height: 1px;
+    background: var(--nf-divider);
   }
-  .nf-pf-row:hover {
-    box-shadow:
-      0 1px 0 var(--nf-pf-ground),
-      0 0 12px -2px var(--nf-glow-3),
-      0 4px 14px -6px var(--nf-glow-3);
+  @media (hover: hover) and (pointer: fine) {
+    .nf-pf-row:hover {
+      background: var(--nf-surface-secondary);
+    }
   }
   .nf-pf-row:active {
     transform: scale(var(--nf-press-scale-lg));
   }
   .nf-pf-row:focus-visible {
-    outline: 2px solid var(--nf-brand-accent);
-    outline-offset: 2px;
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: -2px;
   }
 
   .nf-pf-row__body {
@@ -560,7 +535,7 @@
      and `.nf-srow__sub`, settings-rows.css), so the four rows at the top and
      the "More of your account" rows under them read as one list. */
   .nf-pf-row__title {
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-row, 0.9375rem);
     font-weight: 500;
     line-height: 1.3;
   }
@@ -573,7 +548,7 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-    font-size: var(--nf-text-body-sm);
+    font-size: var(--nf-text-caption);
     line-height: 1.45;
     color: var(--nf-content-muted);
   }
@@ -587,34 +562,12 @@
   }
   .nf-pf-row__chev {
     flex-shrink: 0;
-    color: var(--nf-content-primary);
-    opacity: 0.85;
+    color: var(--nf-content-muted);
   }
 
-  /* 23 CSS above Switch role (39 image px), and it is 60 tall (101). */
-  .nf-pf-switch {
-    margin-block-start: 1.4375rem;
-  }
+  /* The workspaces row sits in the belongings group now (plan item 16). */
   .nf-pf-row--switch {
     min-block-size: 3.75rem;
-    gap: 0.625rem;
-    padding-inline-start: 0.8125rem;
-    /* The same lit recipe with its own falloff, sampled off its own row: a
-       touch dimmer top line (5 90 189), the light gone faster under it
-       (0 42 135, then 0 31 101 by 5px), the same deep middle and lit foot. */
-    --nf-pf-row-fill: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--nf-pf-ink) 45%, var(--nf-pf-ground)) 0,
-      color-mix(in srgb, var(--nf-pf-ink) 32%, var(--nf-pf-ground)) 5px,
-      color-mix(in srgb, var(--nf-pf-ink) 18%, var(--nf-pf-ground)) 30px,
-      color-mix(in srgb, var(--nf-pf-ink) 15%, var(--nf-pf-ground)) calc(100% - 12px),
-      color-mix(in srgb, var(--nf-pf-ink) 28%, var(--nf-pf-ground)) calc(100% - 3px)
-    );
-    border-block-start-color: color-mix(
-      in srgb,
-      color-mix(in srgb, var(--nf-pf-ink) 85%, var(--nf-state-warning)) 82%,
-      var(--nf-pf-ground)
-    );
   }
   /* Below the fold: the rest of the account, in the register's grouped rows. */
   .nf-pf-more {
