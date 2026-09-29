@@ -175,7 +175,10 @@ if (!state) {
   await flow(ctx, "10 cold ticket list", { start: "/support/messages", want: "/support" });
   await flow(ctx, "11 cold notifications", { start: "/notifications", want: "/home" });
   if (thread) await flow(ctx, "12 cold thread", { start: thread, want: "/messages" });
-  else (skip("12 cold thread: the QA member has no conversation"), (skipped += 1));
+  else {
+    skip("12 cold thread: the QA member has no conversation");
+    skipped += 1;
+  }
 
   console.log("\n== walked in: the screen you came from");
   await flow(ctx, "13 listing from Home", { start: "/home", steps: [LISTING], want: "/home" });
@@ -202,7 +205,10 @@ if (!state) {
   if (thread) await flow(ctx, "22 thread from a listing", { start: LISTING, steps: [thread], want: LISTING });
   if (booking) {
     await flow(ctx, "23 booking from Notifications", { start: "/notifications", steps: [booking], want: "/notifications" });
-  } else (skip("23 booking from Notifications: the QA member has no booking"), (skipped += 1));
+  } else {
+    skip("23 booking from Notifications: the QA member has no booking");
+    skipped += 1;
+  }
 
   console.log("\n== never into a door, a submitted form, or a loop");
   await flow(ctx, "24 not back into the welcome door", {

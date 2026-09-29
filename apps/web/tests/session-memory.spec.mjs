@@ -279,7 +279,7 @@ try {
     /* The IN-APP back control, not the browser's. This is the one that was
        broken: the browser's own back always worked, which is why nobody saw
        it. */
-    const back = page.locator('[aria-label="Back"]').first();
+    const back = page.locator("[data-nav-back]").first();
     check("the listing carries an in-app back control", (await back.count()) > 0);
     await back.click();
     await page.waitForTimeout(SETTLE + 600);
@@ -325,7 +325,7 @@ try {
     check("the browser agrees there is nothing of ours behind", canGoBack === false, [
       `navigation.canGoBack = ${canGoBack}`,
     ]);
-    const back = page.locator('[aria-label="Back"]').first();
+    const back = page.locator("[data-nav-back]").first();
     if (await back.count()) {
       await back.click();
       await page.waitForTimeout(SETTLE);
