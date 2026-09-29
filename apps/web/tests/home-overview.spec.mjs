@@ -93,7 +93,7 @@ async function run(theme) {
 
   try {
     console.log(`\n[${theme} 390px] /preview/session-b/sweep-home/home-empty (the /home page)`);
-    if (!(await openPreview(page, "/preview/session-b/sweep-home/home-empty", check, { wait: WAIT }))) return;
+    if (!(await openPreview(page, "/preview/session-b/sweep-home/home-empty", check, { base: BASE_URL, wait: WAIT }))) return;
 
     const applied = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
     check(`the ${theme} theme actually applied`, applied === theme);
@@ -178,7 +178,7 @@ async function run(theme) {
 
 try {
   console.log("signed out");
-  await expectSignInWall(check, "/home");
+  await expectSignInWall(check, "/home", BASE_URL);
   await run("dark");
   await run("light");
 } finally {

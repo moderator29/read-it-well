@@ -4790,7 +4790,9 @@ export const en = {
     cardsEmptyTitle: "No card saved yet",
     cardsEmptyBody: "Save one and paying next time is one tap. Your card number never touches Vallo.",
     addCard: "Add a card",
-    addCardSub: "The bank makes a small check charge, returned to you, and the card is saved for next time.",
+    /* B-6: the amount and where it goes, said before the tap. The webhook
+       refunds every card-setup charge in full; Vallo keeps none of it. */
+    addCardSub: "We charge ₦100 to check the card and return it to the same card in full. The card is saved for next time.",
     adding: "Opening the secure card window. Nothing has been charged yet.",
     defaultLabel: "Default",
     expires: "Expires {when}",
@@ -5960,6 +5962,13 @@ export const en = {
       bankAccountAdded: {
         title: "Bank account added",
         body: "It is saved on your account and ready to use.",
+      },
+      /* B-6. Opens only when `confirmCardSetup` verified the ₦100 check with
+         Paystack for this person and filed the card. The ₦100 is refunded to
+         the card by the webhook, so the line says so and promises no date. */
+      cardSaved: {
+        title: "Card saved",
+        body: "It is ready for your next payment. The ₦100 check goes back to the same card, and your bank may take a few working days to show it.",
       },
       payoutAccountAdded: {
         title: "Payout account added",

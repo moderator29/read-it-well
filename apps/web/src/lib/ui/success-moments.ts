@@ -68,6 +68,7 @@ export const SUCCESS_VARIANT: Readonly<Record<SuccessMomentId, SuccessVariant>> 
   reviewPosted: "success",
   tenancyReviewSent: "success",
   bankAccountAdded: "success",
+  cardSaved: "success",
   payoutAccountAdded: "success",
   accountCreated: "success",
   emailVerified: "success",
