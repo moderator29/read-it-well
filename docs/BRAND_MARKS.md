@@ -301,6 +301,15 @@ anatomy is worth taking while its execution is everything this brand is not.
 
 Added 29 September 2026.
 
+> **Superseded the same day for the lockup.** The founder then asked for the
+> navy pill back, with a light "like snakes" running round its edge,
+> "all areas or place our logo is on light mode". So in light every `.nf-logo`
+> lockup is the navy pill showing the NIGHT artwork, and two arcs of light
+> lap its rim everywhere it appears (`app/css/light.css`, "THE LOGO"); the
+> lap stops to a steady rim under reduced motion, data saving and Calm/Off.
+> The daylight twin below now serves only a bare `LogoMark` outside a pill
+> and outside a night island.
+
 **The logo has a daylight twin.** `public/brand/vallo-mark-light.png` and
 `public/brand/vallo-wordmark-light.png` are the night files re-toned for
 paper, pixel for pixel the same drawing. They replace the navy pill and the
