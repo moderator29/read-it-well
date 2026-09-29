@@ -10,7 +10,7 @@ import { previousEntry } from "./previous-entry";
  * The one back control behaviour, for every drawn back control on the platform
  * and for Android's hardware button (`NativeRuntime`).
  *
- * `components/nav/BackControl.tsx` is the one drawn control, and everything
+ * `components/ui/BackControl.tsx` is the one drawn control, and everything
  * that draws a back arrow goes through it or through this hook. None of them
  * calls `router.back()` on its own: `chooseBack` decides, from the route map
  * and the screen behind, and `docs/BACK_NAVIGATION.md` is the resulting table.
