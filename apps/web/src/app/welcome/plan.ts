@@ -6,27 +6,27 @@ import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
  * Who sees what at `/welcome`, as one pure function so it can be tested
  * without a server, a session or a browser.
  *
- * THE FOUNDER'S RULE, 23 SEPTEMBER (item 6): "Whenever anybody taps Get
- * Started on the landing page, it shows, every time, even if they are
- * already signed in. It is also the first screen anybody sees when they open
- * the app, and the first screen before any sign up." So `/welcome` never
- * redirects: it renders from the first slide for everybody who asks for it.
- * What changes with who is looking is only the ending:
+ * THE FOUNDER'S RULE, 29 SEPTEMBER (replaces the 23 September "every time"
+ * rule): "Get started should only show when signing up for the first time or
+ * the first time on the platform, the standard way." So `/welcome` shows its
+ * intro and slides ONCE:
  *
- *   a stranger (signed out, or a platform with no keys)  Create account and
- *                                                        Sign in, keeping
- *                                                        where they were going
- *   somebody signed in                                   one Continue into the
- *                                                        app, through the
- *                                                        interests question
- *                                                        only while it is
- *                                                        unanswered
+ *   a stranger on a device that has not seen it   the intro, then Create
+ *                                                 account and Sign in
+ *   a stranger on a device that has (the cookie)  straight on to where they
+ *                                                 were going; going nowhere,
+ *                                                 the closing choice alone
+ *   somebody signed in who has not been through   the slides and the
+ *   it (or not answered the interests question)   interests question
+ *   somebody signed in who has                    straight on: to their
+ *                                                 destination, else home
  *
- * The device's seen-once cookie no longer suppresses this screen. It is
- * still written, because sign up and sign in use it to decide whether a
- * first-time visitor detours through here.
+ * `?tour=1` (the "What Vallo is" link on the sign-up form) always shows the
+ * slides: a person who ASKS for the tour gets it.
  */
 export type FirstRunPlan =
+  /** Already seen: go on without painting anything. */
+  | { kind: "skip"; to: string }
   | {
       kind: "guest";
       next: string | null;
@@ -37,6 +37,12 @@ export type FirstRunPlan =
        * domain, Get started on the landing page.
        */
       arrival: Arrival | null;
+      /**
+       * A device that has seen first run, going nowhere in particular: open
+       * straight on the closing choice (Sign in, Create an account, Look
+       * around first), with no intro and no slides.
+       */
+      choice?: true;
     }
   | {
       kind: "member";
@@ -52,9 +58,15 @@ export function planFirstRun({
   session,
   next,
   carried = null,
+  seen = false,
+  tour = false,
 }: {
   session: InterestsState;
   next: string | null;
+  /** This device has been shown first run (`FIRST_RUN_COOKIE`). */
+  seen?: boolean;
+  /** The person asked for the slides (`?tour=1`): always show them. */
+  tour?: boolean;
   /**
    * The market a landing tile named before this person had an account,
    * carried on the device (`FIRST_INTEREST_COOKIE`). It pre-ticks the
@@ -63,7 +75,21 @@ export function planFirstRun({
    */
   carried?: PropertyType | null;
 }): FirstRunPlan {
-  if (session.state !== "signed-in") return { kind: "guest", next, arrival: arrivalOf(next) };
+  if (session.state !== "signed-in") {
+    if (seen && !tour) {
+      /* Going somewhere: go. Going nowhere (Get started again, or back from
+         a door): the closing choice alone, never the intro or the slides. */
+      if (next) return { kind: "skip", to: next };
+      return { kind: "guest", next, arrival: null, choice: true };
+    }
+    return { kind: "guest", next, arrival: arrivalOf(next) };
+  }
+  const memberNext = next && !isAuthDoor(next) ? next : null;
+  /* Only once the interests question is answered too: `/home` sends somebody
+     with it unanswered here, and skipping would bounce them straight back. */
+  if (session.welcomeSeen && session.asked && !tour) {
+    return { kind: "skip", to: memberNext ?? "/home" };
+  }
   return {
     kind: "member",
     next: next && !isAuthDoor(next) ? next : null,

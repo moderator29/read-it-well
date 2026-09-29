@@ -638,8 +638,18 @@ approve a payout, request a refund, publish a listing, assign a viewing.
   workspace twins) are 44px circles, white on the warm canvas in light, a
   raised surface in dark, soft shadow, as in reference 31. Nothing else
   becomes a circle.
-- **Q2: the default.** The navy band stays on Home only; every other light
-  screen starts on the warm canvas.
+- **Q2: the founder widened it (29 September): "use it in many other areas
+  that would make it lovely".** The navy band is the light theme's one
+  signature moment, used as a HERO BLOCK at the top of the screens that open
+  a world or carry a headline number, never as a full-page fill and never on
+  forms or dense lists: Home; the host and agent workspace home (the KPI row
+  sits on it); the profile and trust hero (the person and their tier); the
+  money and earnings summaries (the big figure); the booking, stay and
+  agreement live-status headers (the stepper's top); the landing hero and the
+  landing app band; success moments. Settings, search results, inbox,
+  threads, forms and admin tables stay on the warm canvas. One shared class,
+  the same navy, radius and inner spacing everywhere, glass-free, with white
+  type and the brand-blue accent at the one action it holds.
 - **Q3: flat, not glass.** Landing feature cards use the flat icon plate
   (section 4) like every other surface, so the whole platform reads as one
   family. The glass objects retire from light mode.

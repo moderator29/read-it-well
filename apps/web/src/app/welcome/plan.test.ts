@@ -61,10 +61,22 @@ describe("a stranger", () => {
     expect(planFirstRun({ session: signedOut, next: "/sign-up" })).toEqual({ kind: "guest", next: "/sign-up", arrival: null });
   });
 
-  it("is shown it again every time it is asked for: nothing redirects", () => {
-    /* The founder's rule of 23 September. The device cookie is still written
-       for the sign up and sign in detour, but it no longer enters this plan. */
+  it("is shown it once: a device that has seen it goes straight on (29 September)", () => {
     expect(planFirstRun({ session: signedOut, next: null })).toEqual({ kind: "guest", next: null, arrival: null });
+    expect(planFirstRun({ session: signedOut, next: null, seen: true })).toEqual({
+      kind: "guest",
+      next: null,
+      arrival: null,
+      choice: true,
+    });
+    expect(planFirstRun({ session: signedOut, next: "/sign-in?next=%2Fsaved", seen: true })).toEqual({
+      kind: "skip",
+      to: "/sign-in?next=%2Fsaved",
+    });
+  });
+
+  it("still gets the slides when they ask for the tour", () => {
+    expect(planFirstRun({ session: signedOut, next: null, seen: true, tour: true }).kind).toBe("guest");
   });
 
   it("is treated the same on a platform with no keys", () => {
@@ -80,18 +92,21 @@ describe("somebody signed in", () => {
     });
   });
 
-  it("is shown it even when everything is done, ending on one Continue into the app", () => {
-    expect(planFirstRun({ session: member({ asked: true, welcomeSeen: true }), next: null })).toMatchObject({
-      kind: "member",
-      next: null,
-      intent: { asked: true },
-    });
+  it("goes straight on once everything is done: home, or a real destination, never a sign-in door", () => {
+    const done = member({ asked: true, welcomeSeen: true });
+    expect(planFirstRun({ session: done, next: null })).toEqual({ kind: "skip", to: "/home" });
+    expect(planFirstRun({ session: done, next: "/saved" })).toEqual({ kind: "skip", to: "/saved" });
+    expect(planFirstRun({ session: done, next: "/sign-up" })).toEqual({ kind: "skip", to: "/home" });
   });
 
-  it("carries on to a real destination, never to a sign-in door", () => {
-    const done = member({ asked: true, welcomeSeen: true });
-    expect(planFirstRun({ session: done, next: "/saved" })).toMatchObject({ next: "/saved" });
-    expect(planFirstRun({ session: done, next: "/sign-up" })).toMatchObject({ next: null });
+  it("is not skipped while the interests question is unanswered (home sends them here)", () => {
+    expect(planFirstRun({ session: member({ welcomeSeen: true, asked: false }), next: null }).kind).toBe("member");
+  });
+
+  it("gets the slides again on the tour, ending on one Continue into the app", () => {
+    expect(
+      planFirstRun({ session: member({ asked: true, welcomeSeen: true }), next: "/saved", tour: true }),
+    ).toMatchObject({ kind: "member", next: "/saved", intent: { asked: true } });
   });
 });
 
