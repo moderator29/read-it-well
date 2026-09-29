@@ -43,7 +43,7 @@ export const deskEn = {
     stage: {
       requested: "Requested",
       confirmed: "Confirmed",
-      checkedIn: "Checked in",
+      checkedIn: "Staying now",
       completed: "Completed",
     },
     newListing: "Add a business",
