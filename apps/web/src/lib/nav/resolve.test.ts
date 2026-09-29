@@ -382,6 +382,31 @@ describe("but never to a screen that is not safe to return to", () => {
       href: "/home",
       refused: "success-flag",
     });
+    /* Not even when the receipt is the declared parent itself. */
+    expect(press("/agreements/a1", "/agreements?done=agreement-drawn")).toMatchObject({
+      action: "replace",
+      href: "/agreements",
+      refused: "success-flag",
+    });
+    expect(press("/bookings/b1", "/bookings?tab=past&done=paid")).toMatchObject({ action: "replace", href: "/bookings" });
+  });
+
+  it("never walks to a crafted or foreign entry", () => {
+    for (const behind of ["//evil.example/x", "/\\evil.example", "javascript:alert(1)", "https://evil.example/home", "/auth/callback?code=x", "/sign-in?next=/settings"]) {
+      const decision = press("/settings/account", behind);
+      expect({ behind, ...decision }).toMatchObject({ behind, action: "replace", href: "/settings" });
+    }
+    expect(press("/settings/account", "/settings", { previousIsInApp: false })).toMatchObject({
+      action: "replace",
+      href: "/settings",
+      refused: "not-in-app",
+    });
+    /* A filled parent always starts with a literal segment, so a crafted
+       param can never produce a protocol-relative `//host`. */
+    for (const pattern of PATTERNS) {
+      const target = parentOf(sampleFor(pattern));
+      if (target.kind === "parent") expect(target.href.startsWith("//")).toBe(false);
+    }
   });
 
   it("never loops back into the child the last Up left behind", () => {

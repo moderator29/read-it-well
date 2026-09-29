@@ -346,6 +346,7 @@ route is opened cold or the screen behind is refused. It is generated from
 | `/host/apply` | `/host` | yes, a flow (form or payment) |
 | `/host/photos` | `/host` |  |
 | `/host/reservations` | `/host` |  |
+| `/host/bookings` | `/host` |  |
 | `/host/rooms` | `/host` |  |
 | `/host/start` | `/host` | yes, a flow (form or payment) |
 | `/host/transfer` | `/host` | yes, a flow (form or payment) |

@@ -101,6 +101,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/agent/settings": "Settings",
   "/host": "the host workspace",
   "/host/reservations": "Reservations",
+  "/host/bookings": "Room bookings",
   "/host/rooms": "Rooms",
   "/host/settings": "Settings",
   "/host/notifications": "Notifications",

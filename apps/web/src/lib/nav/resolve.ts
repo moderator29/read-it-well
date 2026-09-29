@@ -290,6 +290,9 @@ const FLOWS: readonly string[] = [
   "/host/transfer",
 ];
 
+/** A redirect's receipt (`?done=<flag>`). Never returned to, not even as the parent. */
+const SUCCESS_FLAG = /[?&]done=/;
+
 /** A workspace, by address, and the screen it opens on. */
 const WORKSPACES: readonly { name: string; prefix: string; landing: string }[] = [
   { name: "admin", prefix: "/admin", landing: "/admin" },
@@ -343,7 +346,7 @@ export function refuseHistory(current: string, previous: string | null, previous
   if (isDoor(prev)) return "door";
   if (matchRoute(prev) === null) return "undeclared";
   if (isFlow(prev)) return "flow";
-  if (/[?&]done=/.test(previous)) return "success-flag";
+  if (SUCCESS_FLAG.test(previous)) return "success-flag";
   if (prev === here || isAncestor(here, prev)) return "descendant";
   const ws = workspaceOf(here);
   const from = workspaceOf(prev);
@@ -391,7 +394,8 @@ export function chooseBack(input: BackInput): BackDecision {
 
   /* The declared parent, sitting right behind: always the best answer, because
      it restores the scroll, the filters and the list exactly. */
-  if (input.previousIsInApp && previous !== null && previous === target.href) {
+  const receipt = input.previousPath !== null && SUCCESS_FLAG.test(input.previousPath);
+  if (input.previousIsInApp && previous !== null && previous === target.href && !receipt) {
     return { action: "back", href: target.href, delta, reason: "history-is-parent" };
   }
 

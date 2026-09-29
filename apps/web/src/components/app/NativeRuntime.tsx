@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { decideBack, performBack } from "@/lib/nav/use-back";
 import { startNativeRuntime } from "@/lib/native/boot";
 
@@ -39,9 +39,15 @@ import { startNativeRuntime } from "@/lib/native/boot";
  * their inbox. Both halves are gone: the hierarchy decides where back goes, and
  * only a declared ROOT may close the shell.
  */
+/** A second hardware press on the same screen within this window is dropped
+    (the same guard `useBack` gives the drawn control). */
+const SETTLE_MS = 800;
+
 export function NativeRuntime() {
   const router = useRouter();
-  const pathname = usePathname();
+  /* Read at press time, never captured: the runtime starts once, and a path
+     captured at render would be stale for a press that lands mid-navigation. */
+  const pressedAt = useRef<{ path: string; at: number } | null>(null);
 
   useEffect(
     () =>
@@ -53,10 +59,18 @@ export function NativeRuntime() {
          * and exits before it calls this, so `performBack` never sees `exit`.
          */
         goBack: () => {
-          performBack(decideBack(pathname ?? "/", "/home", "android"), router);
+          const path = window.location.pathname || "/";
+          const now = Date.now();
+          const last = pressedAt.current;
+          if (last && last.path === path && now - last.at < SETTLE_MS) return;
+          pressedAt.current = { path, at: now };
+          performBack(decideBack(path, "/home", "android"), router);
         },
       }),
-    [router, pathname],
+    /* NOT keyed on the pathname: re-running tore the whole runtime down and
+       re-registered the listener on every navigation, and a press inside that
+       async gap fell through to the web view's own back (or closed the app). */
+    [router],
   );
 
   return null;
