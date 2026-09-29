@@ -55,7 +55,7 @@ export const GLASS_TO_LINE: Record<BrandIconName, UiIconName> = {
   "coin-naira": "coins",
   "concierge-bell": "concierge-bell",
   "container-home": "house",
-  "contract-sign": "pencil",
+  "contract-sign": "file-text",
   "coworking-space": "briefcase",
   "doc-cross": "circle-x",
   "doc-home": "file-text",
