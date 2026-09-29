@@ -15,6 +15,8 @@ import { MoneyLockGroup } from "../MoneyLockGroup";
 import { loadMoneyCredentials } from "@/lib/security/money-step-up";
 import { countMyBlocks } from "@/lib/safety/blocks-queries";
 import { RowLink } from "@/components/app/account/rows";
+import { aiConsentForViewer } from "@/lib/ai/consent-server";
+import { AiConsentCard } from "../AiConsentCard";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -27,13 +29,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacySettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions, pendingMove, moneyHoldUntil, moneyLock, blockedCount] = await Promise.all([
+  const [account, sessions, pendingMove, moneyHoldUntil, moneyLock, blockedCount, aiConsented] = await Promise.all([
     loadSettingsState(),
     loadSessions(),
     loadPendingAddressMove(locale),
     loadMoneyHoldUntil(locale),
     loadMoneyCredentials().catch(() => ({ state: "unreadable" as const })),
     countMyBlocks().catch(() => null),
+    aiConsentForViewer().catch(() => false),
   ]);
   const signedIn = account.state === "signed-in";
   const deviceCount =
@@ -96,6 +99,10 @@ export default async function PrivacySettingsPage() {
         {/* V-81: face or fingerprint as the lock on money. */}
         <section id="settings-money-lock" className="scroll-mt-28">
           <MoneyLockGroup list={moneyLock} locale={locale} />
+        </section>
+        {/* STORE-07: the AI disclosure, and the way to withdraw it. */}
+        <section id="settings-ai-consent" className="scroll-mt-28">
+          <AiConsentCard t={t} consented={aiConsented} />
         </section>
         <section id="settings-data" className="scroll-mt-28">
           <DataCard t={t} />

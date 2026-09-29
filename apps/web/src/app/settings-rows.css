@@ -413,14 +413,17 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     font-size: var(--nf-text-body-lg);
     font-weight: 700;
     letter-spacing: -0.02em;
   }
+  /* The whole address, broken where it has to be. It was one line with an
+     ellipsis, which cut a long address to "someone.long@exam..." on a 390px
+     phone, and the address is the one thing on this card a person checks. */
   .nf-hub-profile__email {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
