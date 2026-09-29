@@ -50,7 +50,16 @@ export function WorkspaceHeader({
 }) {
   const marked = bell.unread > 0;
   return (
-    <header className="nf-ws-bar nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
+    /* A NAVY ISLAND IN BOTH THEMES (founder, 29 September 2026: light mode
+       mixes dark navy islands, the header first). `data-theme="dark"` gives
+       everything inside the night palette, so back, the title and the bell
+       are white on navy in light exactly as on the app header; light.css
+       paints the solid ground. The drawer is a portalled Sheet, so it keeps
+       the page's theme. */
+    <header
+      data-theme="dark"
+      className="nf-ws-bar nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40"
+    >
       <div className="nf-ws-bar__row">
         {back !== false ? <BackButton fallback={back} className="nf-ws-bar__btn" /> : null}
         {menu}

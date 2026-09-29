@@ -24,6 +24,13 @@ import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/sup
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { isKnownRoute } from "@/lib/routing/known-routes";
 import { detailIsMissing, type ListingCounter } from "@/lib/routing/listing-exists";
+import {
+  finishSetupGateApplies,
+  finishSetupHref,
+  mayOweSetup,
+  REQUIRED_DOCUMENTS,
+  setupRecordComplete,
+} from "@/lib/auth/finish-setup";
 
 /**
  * Refresh the Supabase auth session on every request, and hold the door on the
@@ -547,7 +554,14 @@ export async function proxy(request: NextRequest) {
    * revoked reader passing this redirect sees the page's own signed-out state,
    * never someone's data.
    */
-  const reader = await readSessionUser(() => supabase.auth.getClaims(), carriesSessionCookie(request));
+  /* The verified claims are kept for the finish-setup gate below, which reads
+     the account's sign-in methods off them without another round trip. */
+  let verifiedClaims: Parameters<typeof mayOweSetup>[0] = null;
+  const reader = await readSessionUser(async () => {
+    const answer = await supabase.auth.getClaims();
+    if (!answer.error) verifiedClaims = (answer.data?.claims ?? null) as typeof verifiedClaims;
+    return answer;
+  }, carriesSessionCookie(request));
 
   /* OPS-05. A request that carries a session while auth cannot answer (a
      5xx, a network failure, no answer in time) is let through: the page's
@@ -661,13 +675,53 @@ export async function proxy(request: NextRequest) {
          THE DEEP LINK IS THE WHOLE POINT OF THIS PARAMETER. Every listing
          address anybody shares now lands here first, so a `next` that is
          dropped turns every shared link on the platform into a dead end. It
-         rides through `/sign-in`, `/sign-in/email` and `/auth/callback`
+         rides through `/sign-in` and `/auth/callback`
          already; `safeReturnPath` is what keeps it a path and not somebody
          else's host. */
       const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
       if (back) target.searchParams.set("next", back);
       target.searchParams.set("notice", "sign-in-required");
       return withSecurityPolicy(NextResponse.redirect(target), nonce);
+    }
+  }
+
+  /*
+   * B-2: A GOOGLE OR APPLE ACCOUNT FINISHES SETTING UP BEFORE IT GOES IN.
+   *
+   * Such an account never passed the sign-up form, so it holds no terms
+   * receipt and no 18-or-over statement until `/sign-up/finish` records
+   * them. Here rather than in the `(app)` layout because a layout does not
+   * re-render on a client navigation, so a gate there could be walked past
+   * from any exempt page; this runs on every request, prefetch and RSC
+   * fetch included.
+   *
+   * Cheap for everybody else: an account with an email identity, or one
+   * whose token carries the done flag, is decided from the verified token
+   * with no read (`mayOweSetup`). Only a social-only account without the
+   * flag reads its own rows, under RLS. A read that fails lets the request
+   * through, the same posture as OPS-05 above: an outage must not lock
+   * members out, and the step is also asked for straight after the
+   * callback. The step, the legal pages, the API, every public address and
+   * every server action (signing out included) are never held
+   * (`finishSetupGateApplies`), so this cannot loop.
+   */
+  if (user) {
+    const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
+    if (
+      finishSetupGateApplies({
+        path,
+        method: request.method,
+        isPublic: isPublicPath(path, { publicCatalogue: false }),
+        isServerAction: isServerActionRequest(request),
+      }) &&
+      mayOweSetup(verifiedClaims) &&
+      (await owesSetup(supabase as unknown as SetupReader, user))
+    ) {
+      const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
+      const redirected = NextResponse.redirect(new URL(finishSetupHref(back), request.url));
+      for (const cookie of response.cookies.getAll()) redirected.cookies.set(cookie);
+      redirected.headers.set("cache-control", "no-store");
+      return withSecurityPolicy(redirected, nonce);
     }
   }
 
@@ -688,6 +742,40 @@ export async function proxy(request: NextRequest) {
   }
 
   return withSecurityPolicy(response, nonce);
+}
+
+/** The one read the finish-setup gate makes, narrowed to its shape. */
+type SetupReader = {
+  from: (table: "terms_acceptances") => {
+    select: (columns: "document") => {
+      eq: (column: "user_id", value: string) => {
+        in: (
+          column: "document",
+          values: readonly string[],
+        ) => PromiseLike<{ data: { document: string }[] | null; error: unknown }>;
+      };
+    };
+  };
+};
+
+/**
+ * Whether this account still owes the finish-setup step, read from its own
+ * rows in `terms_acceptances` (RLS: a member reads only their own). Any
+ * failure answers false, so an outage lets the request through rather than
+ * locking a member out.
+ */
+async function owesSetup(supabase: SetupReader, userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from("terms_acceptances")
+      .select("document")
+      .eq("user_id", userId)
+      .in("document", REQUIRED_DOCUMENTS);
+    if (error) return false;
+    return !setupRecordComplete(data);
+  } catch {
+    return false;
+  }
 }
 
 /** OPS-05. How long the guard waits for auth before it stops waiting. */

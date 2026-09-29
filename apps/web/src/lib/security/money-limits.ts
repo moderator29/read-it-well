@@ -30,6 +30,7 @@ import { passcodeMoneyRefusal } from "../passcode/money";
  * | setDefaultBankAccount      | bank_default            |    20 |   10 m | It decides where the next payout lands, which is the whole account |
  * | removeBankAccount          | bank_remove             |    10 |    1 h | Same shape as removing a card, on the side money leaves by |
  * | paymentState               | money_state_poll        |    40 |   10 m | Polled on a backoff: one in-app checkout spends about 12   |
+ * | confirmCardSetup           | card_setup_confirm      |    30 |   10 m | Polled on the same backoff, and each hit is a Paystack verify, so tighter than paymentState |
  * | holdMoney                  | money_hold_open         |     5 |    1 h | Each one takes an amount out of a spendable balance and locks the wallet row |
  * | signature failures, per IP | webhook_bad_signature   |    30 |   10 m | Unauthenticated: a sprayed webhook URL is answered from cache |
  * | cron secret failures, per IP | cron_bad_secret       |    30 |   10 m | Unauthenticated: same shape for the reconcile route        |
@@ -64,6 +65,7 @@ export type MoneyAction =
   | "setDefaultBankAccount"
   | "removeBankAccount"
   | "paymentState"
+  | "confirmCardSetup"
   | "cryptoQuote"
   | "cryptoStart"
   | "cryptoState";
@@ -181,6 +183,17 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     windowSeconds: TEN_MINUTES,
     refusal: "We have checked that payment many times in the last few minutes and have stopped for now. This does not mean it failed: if it went through, this page updates on its own.",
   },
+  /* B-6. The card-setup checkout polls this on the same backoff as
+     `paymentState` (about twelve hits in ninety seconds), but each hit is a
+     Paystack verify, so it is sized for two setups in the window rather than
+     three. Like `paymentState` it only reads the outcome of a charge already
+     made, so the refusal must not say the check failed. */
+  confirmCardSetup: {
+    bucket: "card_setup_confirm",
+    limit: 30,
+    windowSeconds: TEN_MINUTES,
+    refusal: "We have checked that card many times in the last few minutes and have stopped for now. This does not mean it failed: if the check went through, the card shows on this page once it is saved.",
+  },
   /* Crypto (lib/crypto/actions.ts). A quote costs a provider call, so it is
      counted like opening a payment page. The status poll is sized like
      `paymentState`: one honest payment polls for up to the quote's life. */
@@ -211,7 +224,7 @@ export const ROUTE_FAILURE_LIMITS = {
 } as const;
 
 /** Reads of a payment already made; never refused by the passcode lock. */
-const PASSCODE_EXEMPT: ReadonlySet<MoneyAction> = new Set<MoneyAction>(["paymentState", "cryptoState", "cryptoQuote"]);
+const PASSCODE_EXEMPT: ReadonlySet<MoneyAction> = new Set<MoneyAction>(["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote"]);
 
 export type MoneyGuardVerdict =
   | { allowed: true; degraded: boolean }

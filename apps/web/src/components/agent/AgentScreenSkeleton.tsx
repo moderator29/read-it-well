@@ -51,7 +51,10 @@ export function AgentScreenSkeleton({
             its place would be a bigger change than leaving it empty. */}
         {/* The same bar AgentShell draws now: `WorkspaceHeader`, one
             `nf-ws-bar__row` at the small header height at every width. */}
-        <header className="nf-ws-bar nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
+        <header
+          data-theme="dark"
+          className="nf-ws-bar nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40"
+        >
           <div className="nf-ws-bar__row">
             <Skeleton circle width="2.25rem" className="shrink-0 sm:hidden" />
             <Skeleton circle width="2.5rem" className="hidden shrink-0 sm:block" />

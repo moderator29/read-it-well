@@ -144,8 +144,9 @@
   /* ------------------------------------------------------------------
    * THE NAVY TOP BLOCK (founder reference 05, 29 September 2026): in light
    * the top of the screen is a dark VALLO band carrying the logo and the
-   * header's actions, and the content under it is light. The app header and
-   * the site bar carry `data-theme="dark"` in both themes, so everything in
+   * header's actions, and the content under it is light. The app header, the
+   * workspace bar (agent and host) and the site bar carry `data-theme="dark"`
+   * in both themes, so everything in
    * them already takes the night palette; this paints the ground, which is
    * transparent (app header) or canvas glass (site bar) and would otherwise
    * let the white page through. `--nf-surface-canvas` resolves inside the
@@ -155,12 +156,17 @@
    * because a navy fade over a white page is a smudge, not an exit.
    * ---------------------------------------------------------------- */
   :root[data-theme="light"] .nf-app-header[data-theme="dark"],
+  :root[data-theme="light"] .nf-ws-bar[data-theme="dark"],
   :root[data-theme="light"] .nf-site-nav[data-theme="dark"]:not([data-variant="landing"]) .nf-site-bar {
     background: var(--nf-surface-canvas);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: 0 1px 0 var(--nf-glass-border);
   }
+  /* The workspace bar is `nf-glass--chrome`: its glass sheen greys a solid
+     navy block and its scrim is the same smudge as the site bar's. */
+  :root[data-theme="light"] .nf-ws-bar[data-theme="dark"]::before,
+  :root[data-theme="light"] .nf-ws-bar[data-theme="dark"]::after,
   :root[data-theme="light"] .nf-site-nav[data-theme="dark"]:not([data-variant="landing"]) .nf-site-bar::after {
     display: none;
   }

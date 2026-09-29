@@ -39,6 +39,9 @@ import {
 import { isGlobalDoneFlag } from "@/lib/ui/success-moments";
 import { rememberSuccess } from "@/lib/ui/success-cookie";
 import { doneFlagForLinkType } from "./link-moment";
+import { finishSetupHref, SETUP_DONE_CLAIM } from "./finish-setup";
+import { setupOnRecord, setupStillOwed } from "./finish-setup-server";
+import { contentRefusal } from "@/lib/safety/content-refusal";
 import type {
   AuthField,
   AuthFormState,
@@ -560,7 +563,10 @@ const CHOOSER_EMAIL_COOKIE = "nf_chooser_email";
 const CHOOSER_EMAIL_MAX_AGE = 10 * 60;
 
 export async function continueWithEmail(formData: FormData): Promise<void> {
-  const route = formData.get("mode") === "sign-up" ? "/sign-up/email" : "/sign-in/email";
+  /* B-1: sign-in is one screen now (email and password together), so a
+     sign-in post from an old page lands back on `/sign-in` with the address
+     filled in from the same cookie. */
+  const route = formData.get("mode") === "sign-up" ? "/sign-up/email" : "/sign-in";
   const email = emailFromQuery(field(formData, "email"));
   const store = await cookies();
   if (email) {
@@ -817,6 +823,13 @@ export async function completeEmailVerification(input: {
      on one email and the trigger's own row are still one welcome. */
   const { data: confirmed } = await supabase.auth.getUser();
   if (confirmed.user) await welcomeOnce(confirmed.user.id);
+  /* B-2: a Google or Apple account that has not yet agreed to the terms or
+     said it is 18 or over goes to the step that asks, carrying `next`. The
+     "Welcome to Vallo" moment waits for that step, which sets it. */
+  if (confirmed.user && (await setupStillOwed(supabase, confirmed.user))) {
+    revalidatePath("/", "layout");
+    return { ok: true, next: finishSetupHref(next) };
+  }
   /* A sign-up or address-change link earns its moment (`doneFlagForLinkType`),
      by the one-shot cookie; a magic-link sign-in and a recovery earn none. */
   const moment = doneFlagForLinkType(input.type);
@@ -1001,7 +1014,95 @@ export async function signInWithAppleIdToken(input: {
   const { data } = await supabase.auth.getUser();
   if (data.user) await welcomeOnce(data.user.id);
   revalidatePath("/", "layout");
+  /* B-2: a new Apple account agrees to the terms and says it is 18 or over
+     before it goes in. */
+  if (data.user && (await setupStillOwed(supabase, data.user))) {
+    return { ok: true, next: finishSetupHref(landingFromPath(input.next)) };
+  }
   return { ok: true, next: landingFromPath(input.next) };
+}
+
+/* ------------------------------------------------------- finish setting up */
+
+/**
+ * Record the terms and the 18+ statement for a Google or Apple account, then
+ * go where the person was going with "Welcome to Vallo".
+ *
+ * THE SAME RULES AS THE EMAIL SIGN-UP, ON THE SERVER. The current terms
+ * version (`termsRefusal`) and `ageConfirmed=18+` (`ageRefusal`) are both
+ * required, whatever the browser did; the receipt is written by the same
+ * `recordTermsAcceptance` into the same table, with the source
+ * `signup_oauth`. The user id is the one the server resolved, never a field.
+ *
+ * THE RECEIPT IS READ BACK BEFORE MOVING ON. `recordTermsAcceptance` is best
+ * effort (it alerts rather than throws), and moving on without the rows
+ * would only bounce the person back here from the edge gate. So a missing
+ * receipt is said plainly, with the answers kept, and nothing moves.
+ */
+export async function finishSocialSetup(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const fieldErrors: Partial<Record<AuthField, string>> = {};
+  const firstName = field(formData, "firstName").trim();
+  const surname = field(formData, "surname").trim();
+  if (!firstName) fieldErrors.firstName = "Enter your first name.";
+  else if (firstName.length > 80) fieldErrors.firstName = "That first name is too long.";
+  if (!surname) fieldErrors.surname = "Enter your surname.";
+  else if (surname.length > 80) fieldErrors.surname = "That surname is too long.";
+  const refusal = termsRefusal(field(formData, "termsVersion"));
+  if (refusal) fieldErrors.acceptTerms = refusal;
+  const underAge = ageRefusal(field(formData, "ageConfirmed"));
+  if (underAge) fieldErrors.ageConfirmed = underAge;
+  if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
+
+  if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) redirect(withNext("/sign-in", finishSetupHref(landingAfterAuth(formData))));
+
+  /* The name, through the member's own client, so RLS and the profile guard
+     (the SEC-05 name scanner, "no name speaks for Vallo") decide exactly as
+     they do in Settings. `display_name` follows from a trigger. */
+  const { error: nameError } = await supabase
+    .from("profiles")
+    .update({ first_name: firstName, surname })
+    .eq("id", user.id);
+  if (nameError) {
+    const refused = contentRefusal(nameError);
+    if (refused) return { ok: false, message: refused, fieldErrors: { firstName: refused } };
+    return { ok: false, message: "We could not save that just now. Please try again in a moment." };
+  }
+
+  await recordTermsAcceptance(user.id, "signup_oauth", { ageConfirmed: true });
+  if ((await setupOnRecord(supabase, user.id)) !== true) {
+    return {
+      ok: false,
+      message: "We could not record that just now. Nothing you ticked was lost. Please try again in a moment.",
+    };
+  }
+
+  /* The edge gate's shortcut: once the receipt is on file, a flag in
+     `app_metadata` (service role only) lets `proxy.ts` decide from the token
+     without reading the table. Best effort: without it the gate reads the
+     table, finds the receipt, and lets the person through. */
+  try {
+    await createAdminClient().auth.admin.updateUserById(user.id, {
+      app_metadata: { [SETUP_DONE_CLAIM]: true },
+    });
+    await supabase.auth.refreshSession();
+  } catch {
+    /* The receipt is what matters, and it is on file. */
+  }
+
+  await welcomeOnce(user.id);
+  revalidatePath("/", "layout");
+  /* "Welcome to Vallo" on arrival, by the one-shot HttpOnly cookie, exactly
+     as the email sign-up does (lib/ui/success-cookie.ts). */
+  await rememberSuccess("account-created");
+  redirect(landingAfterAuth(formData));
 }
 
 /* ------------------------------------------------------------ password reset */

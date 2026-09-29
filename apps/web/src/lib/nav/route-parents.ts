@@ -165,6 +165,13 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/sign-up": "/welcome",
   "/sign-up/email": "/sign-up",
   "/sign-up/verify": "/sign-up/email",
+  /* B-2: the terms and 18+ step for a new Google or Apple account. The
+     person is already signed in and every app route leads back here until
+     it is done, so there is nothing above it to go back to: a root, like
+     `/welcome`. No drawn back control, and Android's hardware back puts the
+     app down rather than bouncing between the gate and this screen. Its own
+     "Not you? Sign out" is the way out. */
+  "/sign-up/finish": ROOT,
   "/forgot-password": "/sign-in",
   "/forgot-password/code": "/forgot-password",
   "/reset-password": "/sign-in",

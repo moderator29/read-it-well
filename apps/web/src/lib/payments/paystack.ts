@@ -257,6 +257,13 @@ export type VerifiedTransaction = {
   gatewayResponse: string | null;
   customerEmail: string | null;
   metadata: Record<string, unknown>;
+  /**
+   * The card token the charge produced, exactly as Paystack returned it, for
+   * `readAuthorization` to read defensively. Optional so the many callers and
+   * fixtures that never look at it are untouched. Only the card-setup confirm
+   * (`lib/payments/card-setup.ts`) reads it.
+   */
+  authorization?: unknown;
 };
 
 /**
@@ -305,6 +312,7 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
     gateway_response: string | null;
     customer: { email?: string | null } | null;
     metadata: unknown;
+    authorization?: unknown;
   }>(`/transaction/verify/${encodeURIComponent(reference)}`);
 
   const metadata = metadataObject(data.metadata);
@@ -320,6 +328,7 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
     gatewayResponse: data.gateway_response ?? null,
     customerEmail: data.customer?.email ?? null,
     metadata,
+    authorization: data.authorization ?? null,
   };
 }
 

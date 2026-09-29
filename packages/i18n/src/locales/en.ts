@@ -1283,6 +1283,13 @@ export const en = {
     haveAccount: "Already have an account?",
     termsNotice: "By continuing you agree to our Terms and Privacy Policy.",
     providerUnavailable: "This sign in method is not configured yet.",
+    /* B-2: the one step a new Google or Apple account passes before it goes
+       in, because it never saw the sign-up form's two ticks. */
+    finishTitle: "Finish setting up",
+    finishLead: "One last step. Check your name, then agree to the terms and confirm you are 18 or older.",
+    finishCta: "Continue to Vallo",
+    finishNotYou: "Not you?",
+    finishSignOut: "Sign out",
     backToHome: "Back to home",
     otherWays: "Other ways to continue",
     resetTitle: "Reset your password",

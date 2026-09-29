@@ -26,6 +26,7 @@
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, SKIP_EXIT } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
@@ -49,9 +50,25 @@ function viewport(page) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
+/*
+ * SINCE 23 SEPTEMBER `/search` answers a signed-out visitor with the sign-in
+ * wall, and the preview harness has no map screen, so the map is read signed
+ * in as the QA member. Without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD the wall is
+ * asserted and the rest is reported as SKIP (exit 77), never as a pass.
+ */
+console.log("signed out");
+await expectSignInWall(check, "/search?view=map");
+const qaState = await signInAsQa(browser);
+if (!qaState) {
+  await browser.close();
+  if (failures > 0) process.exit(1);
+  console.log("\nthe wall holds; the map walk needs a session and was skipped");
+  process.exit(SKIP_EXIT);
+}
+
 for (const width of [390, 1280]) {
   console.log(`\nmap keyboard  (${width}px)`);
-  const context = await browser.newContext({ viewport: { width, height: 860 } });
+  const context = await qaContext(browser, qaState, { viewport: { width, height: 860 } });
   const page = await context.newPage();
 
   try {

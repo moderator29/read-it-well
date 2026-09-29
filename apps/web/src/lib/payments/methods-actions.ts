@@ -10,13 +10,13 @@
  * token even if it tried. Removing a card is a soft delete: the row that was
  * charged last month is still the row support answers questions about.
  *
- * Saving a card is a wallet top-up of the smallest honest amount. Paystack
- * only hands out a reusable authorization after a successful charge, and a
- * charge that is then refunded would cost the person a card fee for nothing.
- * So the checkout charges NGN 100, the money lands in their wallet through the
- * existing funding path (the webhook credits the rm-fund reference exactly as
- * it does any top-up), and the webhook files the card because the metadata
- * asked it to. Nothing is lost and nothing needs refunding.
+ * Saving a card is a NGN 100 check charge. Paystack only hands out a
+ * reusable authorization after a successful charge, so the checkout charges
+ * the smallest honest amount under an `rm-fund-` reference. There is no wallet
+ * any more (Track A): the webhook refunds every `rm-fund-` charge to the card
+ * in full, and nothing is credited anywhere. The card itself is filed by
+ * `confirmCardSetup` below, once Paystack's verify says the check succeeded
+ * for this person at exactly NGN 100 (B-6; the rules are in `card-setup.ts`).
  */
 
 import { randomUUID } from "node:crypto";
@@ -37,11 +37,28 @@ import { getAdminClient } from "@/lib/supabase/service";
 import {
   cardDefaultChangedNotice,
   cardRemovedNotice,
+  cardSavedNotice,
 } from "./notices";
-import { paymentMethodIdSchema, toPaymentMethod, type PaymentMethod } from "./methods";
+import {
+  CARD_SETUP_AMOUNT_MINOR,
+  CARD_SETUP_PURPOSE,
+  cardSetupRefusalMessage,
+  judgeCardSetupCharge,
+} from "./card-setup";
+import {
+  paymentMethodIdSchema,
+  savePaymentMethodFromCharge,
+  toPaymentMethod,
+  type PaymentMethod,
+} from "./methods";
 import { logMoney } from "./observability";
-import { PaystackError, initializeTransaction, isPaystackConfigured } from "./paystack";
-import { FUND_PREFIX } from "./references";
+import {
+  PaystackError,
+  initializeTransaction,
+  isPaystackConfigured,
+  verifyTransaction,
+} from "./paystack";
+import { FUND_PREFIX, isFundReference } from "./references";
 
 const WALLET_OFF_MESSAGE =
   "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
@@ -51,13 +68,6 @@ const CARDS_DOWN_MESSAGE =
 
 const NOT_YOUR_CARD_MESSAGE =
   "We could not find that card on your account. Reload the page to see the cards you have.";
-
-/**
- * The smallest honest amount a card can be saved with: NGN 100, in kobo. It
- * lands in the wallet, so it is a top-up rather than a fee, and it is small
- * enough that nobody has to think about it.
- */
-const CARD_SETUP_AMOUNT_MINOR = 100_00;
 
 /* How many card setups one person may start in an hour is a row of the
    table in lib/security/money-limits.ts ("card_setup"). Fails open. */
@@ -246,9 +256,10 @@ export async function removePaymentMethod(id: string): Promise<ActionResult<null
 }
 
 /**
- * Start saving a card: a NGN 100 wallet top-up whose metadata asks the
- * webhook to keep the card. The person is sent to the hosted checkout, pays,
- * and comes back to the wallet with the money in it and the card on file.
+ * Start saving a card: a NGN 100 check charge whose metadata marks it as this
+ * person's card setup. The in-app checkout resumes it; `confirmCardSetup`
+ * files the card once Paystack says it succeeded, and the webhook returns the
+ * NGN 100 to the card.
  *
  * Mirrors fundWallet line for line where it matters: the service role client
  * is resolved and refused on BEFORE the charge is opened, so a checkout can
@@ -364,7 +375,7 @@ async function openCardSetupCharge(
          push returns none: the person would pay their hundred naira, watch it
          land in their wallet, and still have no saved card. */
       channels: ["card"],
-      metadata: { user_id: userId, purpose: "card-setup", save_card: true },
+      metadata: { user_id: userId, purpose: CARD_SETUP_PURPOSE, save_card: true },
     });
     logMoney({
       surface: "fund",
@@ -405,4 +416,167 @@ async function openCardSetupCharge(
         : "";
     return fail(`The secure payment page could not be opened. Nothing was charged.${said}`);
   }
+}
+
+/* ------------------------------------------------------ confirming a setup */
+
+/**
+ * Where a card setup stands, as the checkout needs to hear it.
+ *
+ *  - `saved`: Paystack verified the check for this person at NGN 100 and the
+ *    card is on file now. The only answer that opens "Card saved".
+ *  - `pending`: not settled yet, or we could not ask. Keep waiting.
+ *  - `failed`: Paystack says the charge failed, so nothing was taken.
+ *  - `refused`: it settled, but it will not save a card here; `message` says
+ *    why and what happens to the NGN 100.
+ */
+export type CardSetupConfirmation =
+  | { state: "saved"; cardType: string | null; last4: string | null }
+  | { state: "pending" }
+  | { state: "failed" }
+  | { state: "refused"; message: string };
+
+const SETUP_PENDING: ActionResult<CardSetupConfirmation> = { ok: true, data: { state: "pending" } };
+
+/**
+ * Confirm a card setup with Paystack and, when it checks out, file the card.
+ *
+ * B-6. This replaces `paymentState` for the card-setup checkout, which could
+ * never answer anything but pending for an `rm-fund-` reference (see the
+ * header of `card-setup.ts`).
+ *
+ * WHOSE SETUP. Two independent facts, both required: our own record of the
+ * intent (the `wallet.funding.started` audit row `startCardSetup` wrote, with
+ * this person as the actor and `purpose: card-setup`), and Paystack's copy of
+ * the metadata we set (`user_id` and `purpose`), judged in
+ * `judgeCardSetupCharge`. A reference that fails the first is answered
+ * `pending`, exactly as an unknown reference is, so this cannot be used to ask
+ * about anybody else's charge.
+ *
+ * WHAT IT NEVER TOUCHES. The NGN 100 itself: the refund stays with the
+ * webhook and the sweep, unchanged. No wallet row, no ledger row. The one
+ * write is the service-role `payment_methods` upsert that already files every
+ * saved card (`savePaymentMethodFromCharge`), fed from the verify response,
+ * never from the browser.
+ *
+ * Counted (`confirmCardSetup`, 30 in ten minutes) because each call is a
+ * Paystack verify. Safe to repeat: a second confirm of the same charge finds
+ * the card by its signature and refreshes it rather than adding a second.
+ */
+export async function confirmCardSetup(
+  reference: string,
+): Promise<ActionResult<CardSetupConfirmation>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const ref = (reference ?? "").trim();
+  if (!isFundReference(ref)) return SETUP_PENDING;
+  if (!isPaystackConfigured()) return SETUP_PENDING;
+  const admin = getAdminClient();
+  if (!admin) return SETUP_PENDING;
+
+  const limit = await guardMoney("confirmCardSetup", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+  const userId = session.user.id;
+
+  /* Our own record that THIS person opened THIS setup. Read with the service
+     role because audit_log is staff-only under RLS; filtered to the caller. */
+  const { data: intent, error: intentError } = await admin
+    .from("audit_log")
+    .select("id")
+    .eq("action", "wallet.funding.started")
+    .eq("entity_id", ref)
+    .eq("actor_id", userId)
+    .eq("metadata->>purpose", CARD_SETUP_PURPOSE)
+    .limit(1)
+    .maybeSingle();
+  if (intentError || !intent) return SETUP_PENDING;
+
+  let verdict: ReturnType<typeof judgeCardSetupCharge>;
+  let email: string | null;
+  try {
+    const tx = await verifyTransaction(ref);
+    verdict = judgeCardSetupCharge(tx, { reference: ref, userId });
+    email = tx.customerEmail ?? session.user.email ?? null;
+  } catch {
+    /* A verify that did not answer is "we do not know yet", never "failed". */
+    return SETUP_PENDING;
+  }
+
+  if (verdict.kind === "pending") return SETUP_PENDING;
+  if (verdict.kind === "failed") return ok({ state: "failed" });
+  if (verdict.kind === "refused") {
+    logMoney({
+      surface: "fund",
+      outcome: "rejected",
+      reason: `card_setup_refused:${verdict.reason}`,
+      reference: ref,
+      userId,
+    });
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId },
+      action: "payment_method.setup_refused",
+      reference: ref,
+      subjectUserId: userId,
+      outcome: verdict.reason,
+      detail: { source: "setup_confirm" },
+    });
+    return ok({ state: "refused", message: cardSetupRefusalMessage(verdict.reason, ref) });
+  }
+
+  /* The card, filed exactly as every saved card is: service role, keyed on
+     the card's signature, from the processor's own authorization object. */
+  const filed = await savePaymentMethodFromCharge(admin, {
+    userId,
+    email,
+    metadata: { save_card: true },
+    authorization: {
+      authorization_code: verdict.authorization.authorizationCode,
+      signature: verdict.authorization.signature,
+      card_type: verdict.authorization.cardType,
+      last4: verdict.authorization.last4,
+      exp_month: verdict.authorization.expMonth,
+      exp_year: verdict.authorization.expYear,
+      bin: verdict.authorization.bin,
+      bank: verdict.authorization.bank,
+      channel: verdict.authorization.channel,
+      reusable: verdict.authorization.reusable,
+    },
+  });
+  if (filed !== "saved" && filed !== "updated") {
+    logMoney({
+      surface: "fund",
+      outcome: "failed",
+      reason: `card_setup_not_filed:${filed}`,
+      reference: ref,
+      userId,
+    });
+    return ok({ state: "refused", message: cardSetupRefusalMessage("not_filed", ref) });
+  }
+
+  await recordMoneyAudit(admin, {
+    actor: { kind: "user", userId },
+    action: `payment_method.${filed}`,
+    reference: ref,
+    subjectUserId: userId,
+    outcome: filed,
+    detail: { source: "setup_confirm" },
+  });
+  /* Told once, for a card that is new on the account. A refresh of a card
+     already on file is not news. */
+  if (filed === "saved") {
+    await cardSavedNotice(admin, userId, {
+      cardType: verdict.authorization.cardType,
+      last4: verdict.authorization.last4,
+    });
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/settings/payments");
+  return ok({
+    state: "saved",
+    cardType: verdict.authorization.cardType,
+    last4: verdict.authorization.last4,
+  });
 }

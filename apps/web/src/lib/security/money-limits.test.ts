@@ -118,7 +118,7 @@ describe("guardMoney", () => {
   it("still answers the status polls on a locked session, so a paid payment is never hidden", async () => {
     passcode.refusal = "Unlock Vallo with your passcode first.";
     try {
-      for (const action of ["paymentState", "cryptoState", "cryptoQuote"] as const) {
+      for (const action of ["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote"] as const) {
         expect((await guardMoney(action, "u")).allowed, action).toBe(true);
       }
     } finally {

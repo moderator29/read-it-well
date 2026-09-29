@@ -15,13 +15,22 @@
  * and that the option list is read from the generated enum in exactly one
  * place.
  *
- * This sandbox cannot reach Supabase, so every session read returns signed-out
- * and the account explainer is what renders. That is asserted here rather than
- * worked around: a settings screen that shows unsaveable cards to somebody with
- * no account is the fault this shape exists to avoid.
+ * THE SCREENS. Since 23 September every settings route answers a signed-out
+ * visitor with the sign-in wall (asserted), so nobody without an account can
+ * be shown unsaveable cards at all: that fault is now closed one layer up. The
+ * signed-in screens are read in the preview harness (the real components with
+ * a fixture member): the interests ROW moved from the settings hub to
+ * Settings > Account (`app/(app)/settings/account/page.tsx`), and the cards
+ * screen is `?v=interests`. Signed in as the QA member the real routes are
+ * read too (SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
+ *
+ * The number of cards is the number of values in the generated
+ * `property_type` enum (ten since RESTAURANT joined it), read from
+ * `database.types.ts` rather than retyped.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -75,9 +84,10 @@ check(
   "the cards are built from the generated enum, not a hand-written list",
   /PROPERTY_TYPES\.map\(/.test(choices),
 );
+/* SPEED-6 moved the vocabulary into property-types.ts; schema.ts re-exports it. */
 check(
   "and PROPERTY_TYPES comes from the database constants",
-  /Constants\.public\.Enums\.property_type/.test(read("src/lib/interests/schema.ts")),
+  /Constants\.public\.Enums\.property_type/.test(read("src/lib/interests/property-types.ts")),
 );
 check(
   "skip is offered on the first run only",
@@ -98,13 +108,24 @@ check(
 
 /* ----------------------------------------------------------------- the screens */
 
+/* The enum, read from the generated types rather than retyped here. */
+const ENUM_VALUES = (() => {
+  const types = read("src/lib/supabase/database.types.ts");
+  const m = /property_type: \[([^\]]+)\]/.exec(types);
+  return m ? [...m[1].matchAll(/"([a-z_]+)"/g)].map((x) => x[1]) : [];
+})();
+check("the generated enum can be read", ENUM_VALUES.length > 0, String(ENUM_VALUES.length));
+
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    colorScheme: theme,
-  });
+console.log("\n[wall] signed out, none of the settings screens is reachable");
+for (const route of ["/settings", "/settings/account", "/settings/interests"]) {
+  await expectSignInWall(check, route);
+}
+
+async function themed(theme, state) {
+  const options = { viewport: { width: 390, height: 844 }, colorScheme: theme };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((choice) => {
     try {
       window.localStorage.setItem("nf_theme", choice);
@@ -112,6 +133,18 @@ async function run(theme) {
       void error;
     }
   }, theme);
+  return context;
+}
+
+async function open(page, path) {
+  if (path.startsWith("/preview/")) return openPreview(page, path, check, { wait: 1200 });
+  await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
+  await page.waitForTimeout(1200);
+  return true;
+}
+
+async function run(theme, { state = null, accountPath, interestsPath }) {
+  const context = await themed(theme, state);
   const page = await context.newPage();
 
   const serverErrors = [];
@@ -120,66 +153,66 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme} 390px] /settings`);
-    await page.goto(`${BASE_URL}/settings`, { waitUntil: "load" });
-
-    const row = page.getByTestId("settings-interests-row");
-    check("the settings list carries the row", (await row.count()) === 1);
-    check(
-      "the row reads back an answer rather than being a bare label",
-      /Not set|Nothing in particular|Not answered yet|Apartments|Hotels|Rentals/.test(
-        await row.innerText(),
-      ),
-      await row.innerText(),
-    );
-    check(
-      "the nine cards are NOT inlined into the settings list",
-      (await page.getByTestId("interest-rental").count()) === 0,
-    );
-
-    console.log(`\n[${theme} 390px] /settings/interests`);
-    await page.goto(`${BASE_URL}/settings/interests`, { waitUntil: "load" });
-    const text = await page.evaluate(() => document.body.innerText);
-
-    /*
-     * Signed out here, because Supabase is unreachable from this sandbox. Both
-     * branches are named so a green run can never be mistaken for a run with a
-     * real session behind it.
-     */
-    const signedIn = (await page.getByTestId("interests-settings").count()) === 1;
-    console.log(`          (${signedIn ? "signed in" : "no session, so the account explainer"})`);
-
-    if (signedIn) {
-      check("all nine cards are on the screen", (await page.locator("[data-testid^='interest-']").count()) === 9);
-      check("the save control is there", (await page.getByTestId("welcome-save").count()) === 1);
-      check("skip is not offered on a screen somebody chose to open", (await page.getByTestId("welcome-skip").count()) === 0);
-    } else {
-      check("it explains that the answer belongs to an account", /belongs to your account/i.test(text));
-      check("and offers the way in", (await page.locator('a[href="/sign-in"]').count()) >= 1);
+    console.log(`\n[${theme} 390px] ${accountPath}`);
+    if (await open(page, accountPath)) {
+      const row = page.getByTestId("settings-interests-row");
+      check("the account settings list carries the row", (await row.count()) === 1);
+      const rowText = (await row.count()) === 1 ? await row.innerText() : "";
       check(
-        "no unsaveable cards are shown",
-        (await page.locator("[data-testid^='interest-']").count()) === 0,
+        "the row reads back an answer rather than being a bare label",
+        /Not set|Nothing in particular|Not answered yet|Apartments|Hotels|Rentals/.test(rowText),
+        rowText,
+      );
+      check(
+        "the cards are NOT inlined into the settings list",
+        (await page.getByTestId("interest-rental").count()) === 0,
       );
     }
 
-    check(
-      "a way back to settings",
-      (await page.locator('a[href="/settings"]').count()) >= 1,
-    );
-    check(
-      "no horizontal scroll",
-      (await page.evaluate(
-        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      )) === 0,
-    );
+    console.log(`\n[${theme} 390px] ${interestsPath}`);
+    if (await open(page, interestsPath)) {
+      const cards = await page.evaluate(
+        (values) => values.filter((v) => document.querySelector(`[data-testid="interest-${v}"]`)).length,
+        ENUM_VALUES,
+      );
+      check(
+        `every market in the enum has its card (${cards} of ${ENUM_VALUES.length})`,
+        cards === ENUM_VALUES.length,
+      );
+      check("the save control is there", (await page.getByTestId("welcome-save").count()) === 1);
+      check("skip is not offered on a screen somebody chose to open", (await page.getByTestId("welcome-skip").count()) === 0);
+      /* The way back is the PageHeader's Back control (fallback /settings). */
+      check(
+        "a way back to settings",
+        (await page.locator('button[aria-label="Back"], a[href="/settings"]').count()) >= 1,
+      );
+      check(
+        "no horizontal scroll",
+        (await page.evaluate(
+          () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        )) === 0,
+      );
+    }
     check("no route returned a server error", serverErrors.length === 0, serverErrors.join("\n"));
   } finally {
     await context.close();
   }
 }
 
-await run("dark");
-await run("light");
+const PREVIEW = {
+  accountPath: "/preview/session-b/sweep-settings?v=account",
+  interestsPath: "/preview/session-b/sweep-settings?v=interests",
+};
+await run("dark", PREVIEW);
+await run("light", PREVIEW);
+
+console.log("\n[live] signed in as the QA member");
+const state = await signInAsQa(browser);
+if (state) {
+  const LIVE = { state, accountPath: "/settings/account", interestsPath: "/settings/interests" };
+  await run("dark", LIVE);
+  await run("light", LIVE);
+}
 await browser.close();
 
 console.log(failures === 0 ? "\nall checks passed" : `\n${failures} check(s) failed`);
