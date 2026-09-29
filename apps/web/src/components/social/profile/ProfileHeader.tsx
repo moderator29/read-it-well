@@ -119,7 +119,7 @@ export function ProfileHeader({
   const mod = moderatorOf[0];
 
   return (
-    <header data-testid="profile-header">
+    <header data-testid="profile-header" data-theme="dark" className="nf-profile-top">
       {/* ------------------------------------------------------ the banner */}
       <div className="nf-social-cover nf-social-cover--profile">
         {profile.coverUrl ? (

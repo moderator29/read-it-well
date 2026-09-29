@@ -161,79 +161,106 @@
   :root[data-theme="light"] .nf-pf:not(:where([data-theme="dark"] *)) {
     --nf-pf-lift: var(--nf-gap-section-tight);
   }
-  :root[data-theme="light"] .nf-pf-cover .nf-pf-gear:not(:where([data-theme="dark"] *)) {
+  /* Unguarded: the hero is a night island now (profile.css), and the gear's
+     place is about the header above it, not about its palette. */
+  :root[data-theme="light"] .nf-pf-cover .nf-pf-gear {
     inset-block-start: var(--nf-space-sm);
     inset-inline-end: var(--nf-space-sm);
   }
 
   /* ------------------------------------------------------------------
-   * THE GLASS OBJECTS IN DAYLIGHT: A BLUE TILE WITH A WHITE LINE GLYPH (the
-   * founder, 29 September 2026, on a live light profile: "pale blue blobs
-   * with fuzzy inner glyphs").
-   *
-   * The glass artwork was drawn for a night ground, and on paper no filter,
-   * plate or fade made it crisp. So in light, outside a night island, every
-   * `BrandIcon` covers its object with its daylight twin (`.nf-brand-flat`,
-   * drawn by the component itself from `brand-flat.ts`): a solid brand-blue
-   * rounded tile, a soft highlight along its top, and the matching `UiIcon`
-   * in white. White on `--nf-brand-primary` is well over the 3:1 a graphic
-   * needs. A box under 28px has no room for a tile, so there the glyph is
-   * drawn bare in brand blue (`data-bare`).
-   *
-   * The object stays in the layout, hidden, so every host keeps its size.
-   * Inside a night island (header, drawer, rail, the profile and home top
-   * blocks) none of this applies and the glass is shown as drawn.
+   * THE HOME TOP BLOCK (references 05 and 07, 29 September 2026). The
+   * greeting, the place, the hero and the four doors are a night island in
+   * both themes (`HomeScreen`); in light this paints it: the navy of the
+   * header continuing down into one block with rounded lower corners, a
+   * bloom of brand blue in its upper corner and a hairline rim, over the
+   * light page. It meets the header with no seam on a phone (the shell's top
+   * padding is taken back and returned inside the block) and is a framed
+   * card from a tablet up. At night the attribute changes nothing and none
+   * of this applies.
    * ---------------------------------------------------------------- */
-  .nf-brand-flat {
-    position: absolute;
-    inset: 12%;
-    display: none;
-    place-items: center;
-    border-radius: 28%;
+  :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
+    margin-inline: calc(-1 * var(--nf-pad-shell));
+    margin-block-start: calc(-1 * var(--nf-gap-section-tight));
+    padding: var(--nf-gap-section-tight) var(--nf-pad-shell) var(--nf-space-lg);
+    border-radius: 0 0 var(--nf-radius-2xl) var(--nf-radius-2xl);
     background:
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-content-on-brand) 22%, transparent) 0%,
-        transparent 46%
-      ),
-      linear-gradient(160deg, var(--nf-brand-primary) 0%, var(--nf-brand-primary-strong) 100%);
+      radial-gradient(90% 40% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 72%),
+      radial-gradient(70% 30% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 14%, transparent), transparent 70%),
+      linear-gradient(180deg, var(--nf-surface-canvas), color-mix(in oklab, var(--nf-container-ink) 10%, var(--nf-surface-canvas)));
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 45%, transparent),
-      inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary-strong) 60%, transparent),
-      0 3px 8px -4px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
-    color: var(--nf-content-on-brand);
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
+      0 18px 36px -26px var(--nf-glow-3);
   }
-  .nf-brand-flat > svg {
-    width: 52%;
-    height: 52%;
+  @media (min-width: 40rem) {
+    :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
+      margin-inline: 0;
+      margin-block-start: 0;
+      padding: var(--nf-space-lg);
+      border-radius: var(--nf-radius-2xl);
+      box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--nf-container-ink) 40%, transparent),
+        0 18px 36px -26px var(--nf-glow-3);
+    }
   }
-  .nf-brand-flat[data-bare] {
-    inset: 0;
-    background: none;
-    box-shadow: none;
-    color: var(--nf-brand-primary);
-  }
-  .nf-brand-flat[data-bare] > svg {
-    width: 80%;
-    height: 80%;
-  }
-  :root[data-theme="light"] .nf-brand-flat:not(:where([data-theme="dark"] *)) {
-    display: grid;
+
+  /* ------------------------------------------------------------------
+   * THE GLASS OBJECTS IN DAYLIGHT: EVERY ONE ON A NAVY TILE (the founder,
+   * 29 September 2026, on a live light profile and the landing bento).
+   *
+   * The glass artwork has a transparent ground and was drawn for the night:
+   * its dark antialiased edges and ink read as dirty fringes on white, and
+   * the morning's calm pale plate plus `--nf-icon-art-day` only washed it
+   * out. So in light, outside a night island, every `BrandIcon` stands on the
+   * ground it was drawn for: a small navy tile, the same family as the night
+   * plates (`--nf-day-tile-*` below), with a hairline rim, a soft highlight
+   * along the top and one restrained blue glow. The object is shown at full
+   * vividness, with no filter and no mask, scaled to about 72 per cent of
+   * the tile so the tile reads as a container and not a crop.
+   *
+   * ONE PLACE, EVERY USAGE. The ground (`.nf-brand-icon-ground`) and the
+   * chip (`.nf-icon-tile`) are the two elements `BrandIcon` draws, so keying
+   * the tile on them reaches all of its call sites. Where a host already
+   * draws a plate around the object (`.nf-plate`, the profile's
+   * `.nf-pf-plate`), the HOST becomes the navy tile and the ground inside it
+   * steps back, so there is never a tile inside a tile. Night islands (the
+   * header, drawer, rail, home and profile top blocks) keep the glass as it
+   * is at night.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] {
+    --nf-day-tile-fill:
+      radial-gradient(62% 56% at 50% 40%, color-mix(in oklab, var(--nf-glow-ink) 42%, transparent), transparent 78%),
+      linear-gradient(160deg, color-mix(in oklab, var(--nf-glow-ink) 34%, var(--nf-night-tile-ground)) 0%, var(--nf-night-tile-ground) 78%);
+    --nf-day-tile-shadow:
+      inset 0 0 0 1px var(--nf-night-tile-rim),
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 20%, transparent),
+      0 4px 12px -6px var(--nf-night-tile-bloom);
   }
   :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
-    background: none;
+    background: var(--nf-day-tile-fill);
     border-color: transparent;
-    box-shadow: none;
+    border-radius: var(--nf-radius-squircle);
+    box-shadow: var(--nf-day-tile-shadow);
   }
-  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) > .nf-brand-icon {
-    visibility: hidden;
+  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) > img {
+    filter: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+    transform: scale(0.84);
   }
-  /* A plate around a glass object steps back: the blue tile is the plate. A
-     plate holding a line glyph stays pale with the glyph in the brand ink. */
+  /* A host plate is the tile; the object inside it is not tiled again and
+     keeps the host's own sizing. */
   :root[data-theme="light"] .nf-plate:has(> .nf-brand-icon-ground, > .nf-icon-tile):not(:where([data-theme="dark"] *)) {
-    background: none;
+    background: var(--nf-day-tile-fill);
     border-color: transparent;
+    box-shadow: var(--nf-day-tile-shadow);
+  }
+  :root[data-theme="light"] :is(.nf-plate, .nf-pf-plate, .nf-side-switch__coin) :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
+    background: none;
     box-shadow: none;
+  }
+  :root[data-theme="light"] :is(.nf-plate, .nf-pf-plate, .nf-side-switch__coin) :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) > img {
+    transform: none;
   }
   :root[data-theme="light"] .nf-plate--brand:not(:where([data-theme="dark"] *)) {
     color: var(--nf-brand-primary);
@@ -254,19 +281,12 @@
    * card on a soft hairline.
    * ---------------------------------------------------------------- */
   :root[data-theme="light"] .nf-pf-plate:not(:where([data-theme="dark"] *)) {
-    /* The daylight twin's blue tile is the plate in light, so the plate
-       itself draws nothing. The row's gradients still read `--nf-pf-*`, so
-       both stay defined. */
-    --nf-pf-ground: var(--nf-surface-primary);
-    --nf-pf-ink: var(--nf-brand-accent);
-    background: none;
-    border-color: transparent;
-    filter: none;
-  }
-  /* The plate's object box is drawn oversized for the glass's own margin;
-     the daylight tile fills the plate exactly instead. */
-  :root[data-theme="light"] .nf-pf-plate:not(:where([data-theme="dark"] *)) .nf-brand-flat {
-    inset: 14%;
+    /* The navy tile, drawn by the plate's own gradients: its ground hook is
+       re-pointed at the night tile's navy and its ink at the glow blue, so
+       the plate is the same object it is at night, on white. */
+    --nf-pf-ground: var(--nf-night-tile-ground);
+    --nf-pf-ink: var(--nf-glow-ink);
+    box-shadow: 0 4px 12px -6px var(--nf-night-tile-bloom);
   }
   :root[data-theme="light"] .nf-pf-row:not(:where([data-theme="dark"] *)) {
     --nf-pf-row-fill: linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary));

@@ -11,6 +11,8 @@ const routes = [
   ["rail", "/preview/f1/chrome"],
   ["myprofile", "/preview/f4/profile"],
   ["shelldrawer", "/preview/f1/drawer"],
+  ["help", "/help"],
+  ["landing", "/"],
 ];
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
 for (const theme of ["light", "dark"]) {
@@ -24,6 +26,7 @@ for (const theme of ["light", "dark"]) {
       try {
         await page.goto("http://localhost:3210" + url, { waitUntil: "networkidle", timeout: 120000 });
         await page.waitForTimeout(900);
+        if (name === "landing") { await page.evaluate(() => { const el = [...document.querySelectorAll("h2")].find((h) => /One account/i.test(h.textContent || "")); if (el) el.scrollIntoView({ block: "start" }); }); await page.waitForTimeout(900); }
         await page.screenshot({ path: `${OUT}/${name}-${theme}-${w}.png` });
         console.log("ok", name, theme, w);
       } catch (e) { console.log("fail", name, theme, w, e.message.slice(0, 120)); }

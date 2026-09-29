@@ -728,3 +728,37 @@
     padding: 0.5rem 1.125rem 0.5rem 0.875rem;
   }
 }
+
+/*
+ * THE HERO IN DAYLIGHT (reference 05, 29 September 2026). `AccountHero` and
+ * `SignedOutHero` are night islands in both themes, so the cover's fade, the
+ * ring, the name and the counts all take the night palette; in light this
+ * paints the ground under them, so the cover fades into a navy block with
+ * rounded lower corners rather than into the white page. On a phone the block
+ * runs edge to edge, the cover's own bleed; from 640 up the cover is a framed
+ * band and the block is a card around it. At night none of this applies.
+ */
+@layer components {
+  :root[data-theme="light"] .nf-pf-hero[data-theme="dark"] {
+    margin-inline: calc(-1 * var(--nf-pf-gutter));
+    padding: 0 var(--nf-pf-gutter) var(--nf-space-lg);
+    border-radius: 0 0 var(--nf-radius-2xl) var(--nf-radius-2xl);
+    background:
+      radial-gradient(80% 40% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 16%, transparent), transparent 72%),
+      var(--nf-surface-canvas);
+    box-shadow:
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
+      0 18px 36px -26px var(--nf-glow-3);
+  }
+  @media (min-width: 640px) {
+    :root[data-theme="light"] .nf-pf-hero[data-theme="dark"] {
+      margin-inline: 0;
+      padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-lg);
+      border-radius: var(--nf-radius-2xl);
+      box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--nf-container-ink) 40%, transparent),
+        0 18px 36px -26px var(--nf-glow-3);
+    }
+  }
+}
+

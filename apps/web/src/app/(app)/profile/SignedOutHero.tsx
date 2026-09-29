@@ -64,7 +64,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
   const monogram = initial(name, "G");
 
   return (
-    <header className="nf-pf-hero" data-testid="signed-out-hero">
+    <header className="nf-pf-hero" data-testid="signed-out-hero" data-theme="dark">
       <div className="nf-pf-cover">
         <Image
           src="/brand/photos/villa-pool-skyline-02.jpg"

@@ -747,3 +747,32 @@
     background: transparent;
     border: 0;
   }}
+
+/*
+ * THE PUBLIC PROFILE'S TOP BLOCK IN DAYLIGHT (reference 05, 29 September
+ * 2026). `ProfileHeader` is a night island in both themes (`.nf-profile-top`):
+ * the cover, the face, the name, the counts, the actions and the chips sit on
+ * a navy block with rounded lower corners in light, bleeding to the screen
+ * edge exactly as far as the cover does, and the posts under it stay light.
+ * At night none of this applies.
+ */
+@layer components {
+  :root[data-theme="light"] .nf-profile-top[data-theme="dark"] {
+    margin-inline: -1.25rem;
+    padding: 0 1.25rem var(--nf-space-lg);
+    border-radius: 0 0 var(--nf-radius-2xl) var(--nf-radius-2xl);
+    background:
+      radial-gradient(80% 40% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 16%, transparent), transparent 72%),
+      var(--nf-surface-canvas);
+    box-shadow:
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
+      0 18px 36px -26px var(--nf-glow-3);
+  }
+  @media (min-width: 768px) {
+    :root[data-theme="light"] .nf-profile-top[data-theme="dark"] {
+      margin-inline: -2rem;
+      padding-inline: 2rem;
+    }
+  }
+}
+

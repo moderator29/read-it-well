@@ -376,6 +376,12 @@ export function MobileTabBar({
          routes offset by what the dock actually occupies. */
       className="nf-dockrow fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
+      {/* A NIGHT ISLAND IN BOTH THEMES (29 September 2026): the capsule and
+          the More button are the navy glass dock of the founder's render
+          (reference 07) in light too, so the brand holds the bottom edge
+          the way the navy header holds the top. `contents` keeps the row's
+          flex layout exactly as it was; only the palette changes. */}
+      <div data-theme="dark" className="contents">
       <ul
         className="nf-tabbar"
         style={
@@ -429,6 +435,7 @@ export function MobileTabBar({
         })}
       </ul>
       <DockMore items={more} label={t.nav.more} active={active} />
+      </div>
     </AutoHideDock>
   );
 }
