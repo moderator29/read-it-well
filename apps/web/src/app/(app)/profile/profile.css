@@ -778,7 +778,9 @@
     place-items: center;
   }
   :root:not([data-theme="light"]) .nf-pf-body .nf-plate--brand {
-    color: var(--nf-brand-quiet);
+    /* The bright end of the brand blue: lifted a third towards white so the
+       line clears 3:1 on the lit plate. */
+    color: color-mix(in oklab, var(--nf-brand-quiet) 68%, var(--nf-content-primary));
   }
 }
 
