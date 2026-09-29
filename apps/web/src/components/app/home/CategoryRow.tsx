@@ -65,7 +65,7 @@ export function CategoryRow({
                 data-testid={`home-category-${category.key}`}
               >
                 <span className="nf-cat-tile__plate" aria-hidden="true">
-                  <BrandIcon name={category.icon} fill />
+                  <BrandIcon name={category.icon} fill drawn={64} />
                 </span>
                 <span className="nf-cat-tile__label">{category.label}</span>
                 {category.meaning && (

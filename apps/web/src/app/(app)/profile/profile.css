@@ -558,11 +558,15 @@
     font-weight: 500;
     line-height: 1.3;
   }
-  /* The ellipsis is a guard for a longer translation, not the design. */
+  /* Two lines at most: the English fits one at 390, and a longer
+     translation wraps once before it is clamped rather than being cut at a
+     word the reader needed. */
   .nf-pf-row__sub {
+    display: -webkit-box;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     font-size: var(--nf-text-body-sm);
     line-height: 1.45;
     color: var(--nf-content-muted);

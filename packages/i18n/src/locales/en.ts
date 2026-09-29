@@ -543,7 +543,6 @@ export const en = {
     properties: "Properties",
     bookings: "Plans",
     messages: "Messages",
-    wallet: "Wallet",
     agreements: "Agreements",
     /*
      * The dock's centre "+" and the sheet it opens (29 September 2026). The
@@ -655,9 +654,9 @@ export const en = {
     /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
     belongings: "Belongings",
     myBookings: "Plans",
-    myBookingsSub: "Inspections, move-ins, stays and tables",
-    savedSub: "Your saved properties, hotels and places",
-    agreementsSub: "Your agreements, payments and Guarantee claims",
+    myBookingsSub: "Viewings, move-ins and stays",
+    savedSub: "Homes, hotels and places",
+    agreementsSub: "Agreements, payments and claims",
     /*
      * The same four rows, said in one line each.
      *
@@ -1018,7 +1017,7 @@ export const en = {
     markets: {
       overline: "Nine markets, one account",
       title: "Somewhere for a night. Somewhere for a decade. Ground to build on.",
-      body: "Vallo carries the whole property market: a hotel room tonight, a flat for the year, a house to buy, a shop to trade from, an office to grow into, and the land itself. Every market is searched the same way and paid for in the same wallet.",
+      body: "Vallo carries the whole property market: a hotel room tonight, a flat for the year, a house to buy, a shop to trade from, an office to grow into, and the land itself. Every market is searched the same way and run from the same account.",
       shortlet: "Shortlets",
       hotel: "Hotels",
       apartment: "Apartments",

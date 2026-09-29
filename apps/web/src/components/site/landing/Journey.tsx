@@ -95,7 +95,7 @@ export function Journey({ t }: { t: Dictionary }) {
               </span>
               <article className="nf-step__card nf-fx-host">
                 <span className="nf-glass-fx nf-feature-glass nf-step__glass" data-motion={CHAPTER_MOTION[i] ?? "rise"}>
-                  <BrandIcon name={CHAPTER_OBJECT[i] ?? "listing-search"} fill />
+                  <BrandIcon name={CHAPTER_OBJECT[i] ?? "listing-search"} fill drawn={56} />
                 </span>
                 <span className="nf-eyebrow nf-step__label">{step.label}</span>
                 <h3 className="nf-step__title">{step.title}</h3>

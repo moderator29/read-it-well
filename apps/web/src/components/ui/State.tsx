@@ -123,7 +123,7 @@ export function State({
         /* 80px: an empty state is a sentence with a picture beside it, not a
            poster (the size EmptyState settled on). */
         <span className="block h-20 w-20">
-          <BrandIcon name={icon} fill />
+          <BrandIcon name={icon} fill drawn={80} />
         </span>
       ) : (
         <IconPlate size="lg" tone={STATE_TONE[kind]}>

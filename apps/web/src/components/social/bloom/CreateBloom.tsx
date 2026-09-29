@@ -118,7 +118,7 @@ export function CreateBloom({
   currentAreaId?: string;
   /** Stays this person may review right now. Empty when there are none. */
   reviewable: ReviewableStay[];
-  /** The preview harness opens it on mount so the fan can be photographed. */
+  /** Open on mount: the preview harness, and `/around?compose=1` from the dock's Create sheet. */
   initialOpen?: boolean;
 }) {
   const router = useRouter();

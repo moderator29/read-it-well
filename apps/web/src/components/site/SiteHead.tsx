@@ -45,7 +45,7 @@ export function SiteHead({
         <div className="nf-site-head-body mx-auto max-w-3xl">
           <span className="nf-chip nf-rise">
             <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name={icon} fill />
+              <BrandIcon name={icon} fill drawn={16} />
             </span>
             {chip}
           </span>

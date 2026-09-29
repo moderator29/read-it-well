@@ -1,0 +1,85 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { getDictionary } from "@vallo/i18n";
+import {
+  DONE_FLAGS,
+  GLOBAL_DONE_FLAGS,
+  SUCCESS_EVENT,
+  SUCCESS_VARIANT,
+  readDone,
+  showSuccess,
+  successCopy,
+  withDone,
+  withoutDone,
+  type SuccessMomentId,
+} from "./success-moments";
+
+const copy = getDictionary("en").success;
+const IDS = Object.keys(copy.moments) as SuccessMomentId[];
+
+describe("the success moments registry", () => {
+  it("gives every moment in the dictionary a variant, and names none the dictionary lacks", () => {
+    expect(Object.keys(SUCCESS_VARIANT).sort()).toEqual([...IDS].sort());
+  });
+
+  it.each(IDS)("%s: has a title and one line, with no exclamation mark", (id) => {
+    const words = successCopy(copy, id, { when: "Tue 30 Sep, 10:00", reference: "SUP-123", promise: "We reply today." });
+    expect(words.title.length).toBeGreaterThan(0);
+    expect(words.body.length).toBeGreaterThan(0);
+    expect(`${words.title} ${words.body}`).not.toMatch(/!|\{[a-z]+\}/);
+  });
+
+  it("never claims a request is booked, or a review decided", () => {
+    for (const id of IDS.filter((i) => SUCCESS_VARIANT[i] === "submitted")) {
+      const { title, body } = successCopy(copy, id);
+      /* The headline never claims the decision; the line may name what
+         happens next ("payment opens once it is approved") but never that a
+         booking or a refund has happened. */
+      expect(title, id).not.toMatch(/\b(booked|approved|confirmed|refunded|paid)\b/i);
+      expect(body, id).not.toMatch(/\b(booked|refunded)\b/i);
+    }
+  });
+
+  it("has no moment for a pending or unknown payment: those keep the confirming sheet", () => {
+    for (const id of IDS) expect(id).not.toMatch(/pending|processing|confirming|unknown/i);
+  });
+
+  it("points every flag at a moment that exists", () => {
+    for (const moment of Object.values(DONE_FLAGS)) expect(IDS).toContain(moment);
+  });
+});
+
+describe("the one-shot flag", () => {
+  it("adds the flag and its companions, keeping the query and the hash", () => {
+    expect(withDone("/agent/listings", "listing-live", { listing: "abc" })).toBe("/agent/listings?done=listing-live&listing=abc");
+    expect(withDone("/bookings?side=stays#ix-1", "agreement-drawn")).toBe("/bookings?side=stays&done=agreement-drawn#ix-1");
+  });
+
+  it("strips the flag and the companions it names, and nothing else", () => {
+    expect(withoutDone("/agent/listings?q=yaba&done=listing-live&listing=abc", ["listing"])).toBe("/agent/listings?q=yaba");
+    expect(withoutDone("/checkout/b1?paid=1&reference=rm-book-x", ["paid", "reference"])).toBe("/checkout/b1");
+    expect(withoutDone("/home?done=password-changed#top")).toBe("/home#top");
+  });
+
+  it("reads only flags it knows", () => {
+    expect(readDone("agreement-drawn")).toBe("agreement-drawn");
+    expect(readDone(["listing-live", "x"])).toBe("listing-live");
+    expect(readDone("paid")).toBeNull();
+    expect(readDone("__proto__")).toBeNull();
+    expect(readDone(undefined)).toBeNull();
+  });
+});
+
+describe("showSuccess, the account moments' doorway", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("dispatches a global moment and refuses a record's moment", () => {
+    const seen: unknown[] = [];
+    const target = new EventTarget();
+    target.addEventListener(SUCCESS_EVENT, (event) => seen.push((event as CustomEvent).detail));
+    vi.stubGlobal("window", target);
+    showSuccess("passcode-set");
+    showSuccess("agreement-drawn");
+    expect(seen).toEqual([{ flag: "passcode-set" }]);
+    expect(GLOBAL_DONE_FLAGS).not.toContain("agreement-drawn");
+  });
+});

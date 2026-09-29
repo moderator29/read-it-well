@@ -58,7 +58,7 @@ type Message = {
 const THREAD_KEY = "nf_support_thread";
 
 const GREETING =
-  "Hello, I am Vallo's AI support helper, not a person. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
+  "Hello, I am Vallo's AI support helper, not a person. Ask me anything about your bookings, payments, your agreements, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and agreements, and I bring in a person whenever that is the right answer.";
 
 const STARTERS = [
   "Where is my booking?",

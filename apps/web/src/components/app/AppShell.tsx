@@ -207,6 +207,7 @@ export function AppShell({
       <CreateDock
         t={t}
         isHost={isHost}
+        signedIn={signedIn}
         listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
       />
       {switchControl}

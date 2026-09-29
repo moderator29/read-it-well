@@ -207,17 +207,8 @@
     }
   }
 
-  /* ------------------------------------------------ the header, smaller */
-
-  /* The founder: "the notification there, reduce the size". The bell and the
-     menu control sit at 40px with a 20px glyph (their 44pt target is kept by
-     `.nf-tap`), so the header reads lighter and the page starts sooner. */
-  .nf-app-header .nf-app-header__btn {
-    width: 2.5rem;
-    height: 2.5rem;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
-  }
+  /* The header's bell and menu: see "THE HEADER'S TWO CONTROLS, BARE" at the
+     foot of this file. */
 
   /* ------------------------------------------------ the appearance row */
 
@@ -868,6 +859,14 @@
     .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus {
       transform: none;
     }
+  }
+  /* The app's own Calm and Off motion settings stop it too. */
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-dock-plus,
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-tabbar .nf-tab__link {
+    transition: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-tab__link--create:active, .nf-tab__link--create[aria-expanded="true"]) .nf-dock-plus {
+    transform: none;
   }
 }
 

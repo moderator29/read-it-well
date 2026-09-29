@@ -10,7 +10,7 @@ import { ROW_GLYPH } from "@/components/app/account/rows";
  * SWITCH ROLE, the last row of `50E032EA`, opening the product's real switch.
  *
  * There is exactly one sheet in this product that switches who you are here
- * as: the workspace sheet behind the dock's centre slot
+ * as: the workspace sheet the dock's Create sheet opens
  * (`components/supply/ProfileSwitcher.tsx`). It lists Personal, every
  * workspace this account holds with its real standing (owner, agent, firm,
  * host, and the operations console for staff), and "Add a workspace". The row
@@ -18,21 +18,17 @@ import { ROW_GLYPH } from "@/components/app/account/rows";
  * same question would drift apart the first time either changed.
  *
  * HOW. The row fires the named event the sheet listens for
- * (`profile-switcher-event.ts`) when the dock is on screen, which it knows
- * from the dock's centre "+" (`data-dock-create`). The dock is hidden by CSS
- * on desktop, not removed, so this holds at every width. Where no dock is
- * rendered the row goes to `/profile/setup`, the workspace chooser, which is
- * the other half of the same sheet.
+ * (`profile-switcher-event.ts`), which reports whether a mounted sheet
+ * answered. The sheet is mounted by the app shell beside the dock, which is
+ * hidden by CSS on desktop, not removed, so this holds at every width. Where
+ * no sheet answered the row goes to `/profile/setup`, the workspace chooser,
+ * which is the other half of the same sheet.
  */
-/* The dock is on screen when its centre "+" is (`CreateDock`); the
-   workspace sheet is mounted beside it and opens on the named event. */
-export const DOCK_SWITCH_SELECTOR = "[data-dock-create]";
-
 export function SwitchRoleRow({ line, title }: { line: string; title: string }) {
   const router = useRouter();
 
   function open() {
-    if (document.querySelector(DOCK_SWITCH_SELECTOR) && openProfileSwitcher()) return;
+    if (openProfileSwitcher()) return;
     router.push("/profile/setup");
   }
 

@@ -23,29 +23,41 @@ import { openProfileSwitcher } from "@/components/supply/profile-switcher-event"
  * is lost. The switcher's own sheet is still mounted by `AppShell`, with no
  * trigger of its own.
  *
- * `data-dock-create` marks the button so a surface that wants to know the
- * dock is on screen (the profile's Switch role row) can ask without
- * depending on a class name.
+ * `data-dock-create` marks the button for tests and screenshots, so neither
+ * depends on a class name.
+ *
+ * Switch workspace is shown only when signed in, and the sheet's first
+ * detent grows for a host's fifth row so nothing starts below the fold.
  */
 export function CreateDock({
   t,
   listHref,
   isHost = false,
+  signedIn = false,
 }: {
   t: ShellDictionary;
   /** Where "List a property" goes: the agent wizard for an agent, the chooser otherwise. */
   listHref: string;
   isHost?: boolean;
+  /**
+   * Switch workspace is offered only to a signed-in account: a visitor holds
+   * no workspace, and the sheet it opens would be a list of nothing.
+   */
+  signedIn?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const copy = t.nav.create;
 
-  const items: { href: string; icon: UiIconName; title: string; sub: string }[] = [
-    { href: listHref, icon: "house", title: copy.list, sub: copy.listSub },
-    { href: "/around/new", icon: "chat-bubble", title: copy.post, sub: copy.postSub },
-    { href: "/search", icon: "calendar-booking", title: copy.viewing, sub: copy.viewingSub },
+  /* Keyed by a fixed id, not the href: "List a property" goes to the same
+     chooser a later row might, and a key must not depend on a route. */
+  const items: { id: string; href: string; icon: UiIconName; title: string; sub: string }[] = [
+    { id: "list", href: listHref, icon: "house", title: copy.list, sub: copy.listSub },
+    /* The feed's own composer, opened on arrival (`/around?compose=1`,
+       read by the Around page and passed to `CreateBloom`). */
+    { id: "post", href: "/around?compose=1", icon: "chat-bubble", title: copy.post, sub: copy.postSub },
+    { id: "viewing", href: "/search", icon: "calendar-booking", title: copy.viewing, sub: copy.viewingSub },
     ...(isHost
-      ? [{ href: "/host/rooms", icon: "bed" as const, title: copy.stay, sub: copy.staySub }]
+      ? [{ id: "stay", href: "/host/rooms", icon: "bed" as const, title: copy.stay, sub: copy.staySub }]
       : []),
   ];
 
@@ -75,13 +87,15 @@ export function CreateDock({
         open={open}
         onOpenChange={setOpen}
         title={copy.title}
-        detents={[0.6, 0.92]}
+        /* A host has a fifth row; the first detent grows to hold it. */
+        detents={isHost ? [0.72, 0.92] : [0.6, 0.92]}
         closeLabel={t.pickers.close}
       >
         <RowList inset className="nf-create-sheet [--nf-row-divider-lead:3.25rem]">
           {items.map((item) => (
-            <Row key={item.href} className="p-0">
+            <Row key={item.id} className="p-0">
               <Link
+                data-testid={`create-${item.id}`}
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className="nf-row nf-row--tap w-full px-2xs text-left"
@@ -95,24 +109,26 @@ export function CreateDock({
               </Link>
             </Row>
           ))}
-          <Row className="p-0">
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                openProfileSwitcher();
-              }}
-              className="nf-row nf-row--tap w-full px-2xs text-left"
-              data-testid="create-switch-workspace"
-            >
-              {plate("switch-profile")}
-              <span className="min-w-0 flex-1">
-                <span className={`block ${TYPE.rowTitle}`}>{copy.switch}</span>
-                <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{copy.switchSub}</span>
-              </span>
-              <UiIcon name="chevron-right" size="sm" className="shrink-0 text-[var(--nf-content-muted)]" />
-            </button>
-          </Row>
+          {signedIn ? (
+            <Row className="p-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  openProfileSwitcher();
+                }}
+                className="nf-row nf-row--tap w-full px-2xs text-left"
+                data-testid="create-switch-workspace"
+              >
+                {plate("switch-profile")}
+                <span className="min-w-0 flex-1">
+                  <span className={`block ${TYPE.rowTitle}`}>{copy.switch}</span>
+                  <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{copy.switchSub}</span>
+                </span>
+                <UiIcon name="chevron-right" size="sm" className="shrink-0 text-[var(--nf-content-muted)]" />
+              </button>
+            </Row>
+          ) : null}
         </RowList>
       </Sheet>
     </>

@@ -100,7 +100,7 @@ export function CategoryGrid({
                   />
                   <span className="nf-landing-cat-body">
                     <span className="nf-landing-cat-icon" data-motion={CAT_MOTION[i % CAT_MOTION.length]}>
-                      <BrandIcon name={tile.icon} fill />
+                      <BrandIcon name={tile.icon} fill drawn={36} />
                     </span>
                     <span className="min-w-0">
                       <span className="nf-landing-cat-title">{tile.label}</span>

@@ -211,10 +211,10 @@ everywhere.
    `scripts/cut-icon-ground.mjs` pipeline, file it through
    `scripts/icon-manifest.mjs` with a lowercase-hyphen name, and use it,
    provided it carries no baked text. The dock capsule and headers stay on
-   the stroked UiIcon tier restyled to the renders' line weight; since Track
-   M (25 September 2026) the side drawer rows and the dock's sub-nav tray use
-   the glass objects mapped in `apps/web/src/lib/nav/glass-glyph.ts`. No
-   black-and-white content icons anywhere the renders show glass ones.
+   the stroked UiIcon tier restyled to the renders' line weight, and since
+   29 September 2026 so do the side drawer, the rail and the dock's More
+   tray (the Track M glass map is deleted). No black-and-white content icons
+   anywhere the renders show glass ones.
 6. **Photography ships now.** The background plates and property photos in
    the reference folder (catalogue's ASSETS list) are the product's
    imagery: the landing hero plate behind the hero, the skyline plates

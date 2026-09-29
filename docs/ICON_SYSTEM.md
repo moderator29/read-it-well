@@ -289,20 +289,28 @@ the name, the size and `useId`. A name with no twin ignores `filled` and draws i
 and filled, with the real `Button` and `Chip` and a dock-shaped row above;
 `?grid=1` outlines each cell. Shoot it with `data-theme` set to each theme.
 
-**The drawer went back to line glyphs (29 September 2026).** `NavTree.tsx`
-drew each row's glass object at 30px, under the 32px where the glass set
-reads, and the rows blurred into coloured squares. Every drawer and rail row
-now draws its `UiIcon` at 24, with the filled twin on the current row. The
-paragraph below describes the dock tray only, which keeps glass at 40px.
+**Navigation is line glyphs (29 September 2026, the founder's final ruling).**
+The side drawer and rail rows (`components/app/NavTree.tsx`), the dock
+capsule (`MobileTabBar.tsx`) and the dock's More tray (`DockMore.tsx`) all
+draw `UiIcon`, with the filled twin on the current row or tab. The Track M
+glass map (`lib/nav/glass-glyph.ts`, `GLASS_FOR`) is deleted: at nav sizes
+the glass objects blurred, and they read as a second icon family.
 
-**Navigation does use glass objects (Track M, 25 September 2026).** The side
-navigation drawer rows (`components/app/NavTree.tsx`, until 29 September) and the dock's sub-nav
-tray (`components/app/DockMore.tsx`) draw the glass object that
-`GLASS_FOR` in `apps/web/src/lib/nav/glass-glyph.ts` maps to each line glyph.
-A destination missing from that map falls back to its `UiIcon`, and Settings
-is left out of the map on purpose. The five-icon dock capsule keeps its line
-glyphs. The older rule that navigation never uses the 3D pack is superseded
-for those two surfaces.
+**Glass objects in daylight sit on a navy tile (29 September 2026).** The
+glass artwork was drawn for a night ground and fringes on white. In the light
+theme, outside a night island (`data-theme="dark"`), every `BrandIcon` ground
+(`.nf-brand-icon-ground`) and chip (`.nf-icon-tile`) paints a small navy tile
+behind the object, and the object is shown unfiltered at about 72 per cent of
+it (`app/css/light.css`, "THE GLASS OBJECTS IN DAYLIGHT").
+
+**`data-host-plate` is the supported opt-out.** A host that draws its own
+plate or container around a `BrandIcon` (so a tile inside it would be a tile
+inside a tile) puts `data-host-plate` on ITSELF, the element that contains the
+icon. The object inside it then draws with no tile and no scale. A handful of
+existing hosts (`.nf-plate`, the flip coin, the landing's two-worlds faces,
+footer seal and list marks, `.nf-chip`, `.nf-btn`) are listed in light.css by
+class because their files belong to other owners; new hosts use the attribute,
+never a new class in that list.
 
 **One weight.** `UI_ICON_STROKE_PX` is 2 RENDERED CSS pixels at the 20 and
 24 steps (1.5 until the bold pass of 29 September 2026), stepped optically

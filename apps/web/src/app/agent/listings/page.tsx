@@ -14,7 +14,8 @@ import { ListingPitch } from "../list/ListingPitch";
 import { ListingsWorkspace } from "./ListingsWorkspace";
 import { ButtonLink } from "@/components/ui/Button";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
-import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
+import { readDone } from "@/lib/ui/success-moments";
+import { listingArrival } from "@/lib/ui/arrival-moments";
 import { readClosedReasons, readOpenOwnerHeartbeats } from "@/lib/landlord/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -90,17 +91,9 @@ export default async function Page({
    * status says the moment is true now.
    */
   const done = readDone(doneParam);
-  const named = listings.find((row) => row.id === (Array.isArray(listingParam) ? listingParam[0] : listingParam));
-  const arrival: SuccessMomentId | null =
-    !named || !done
-      ? null
-      : done === "listing-submitted" && (named.status === "SUBMITTED" || named.status === "UNDER_REVIEW")
-        ? "listingSubmitted"
-        : done === "listing-approved" && named.status === "APPROVED"
-          ? "listingApproved"
-          : done === "listing-live" && named.status === "PUBLISHED"
-            ? "listingLive"
-            : null;
+  const namedId = Array.isArray(listingParam) ? listingParam[0] : listingParam;
+  const named = listings.find((row) => row.id === namedId);
+  const arrival = listingArrival(listings, done, namedId);
 
   return (
     <AgentShell

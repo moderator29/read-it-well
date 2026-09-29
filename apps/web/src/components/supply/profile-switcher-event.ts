@@ -5,10 +5,10 @@
  * workspace sheet. Before this file the only way it could was to find the
  * dock's own button by its class name and click it:
  *
- *     document.querySelector(".nf-tab__link--switch")?.click()
+ *     document.querySelector(<the dock button's class>)?.click()
  *
  * That is one component reaching into another component's stylesheet. Rename
- * `.nf-tab__link--switch` in `chrome.css` and the profile row stops working
+ * the class and the profile row stops working
  * silently: nothing throws, no test fails, and the row just does nothing when
  * tapped. It is the same shape of fault as a constant with no consumer passing
  * its own unit test, which is the fault this whole stint was sent to fix.
@@ -40,11 +40,17 @@ export const PROFILE_SWITCHER_EVENT = "vallo:open-profile-switcher";
  *
  * Safe on the server and safe when no switcher is mounted: it returns false and
  * the caller falls back, which today means navigating to `/profile/setup`.
- * Returning a boolean rather than nothing is deliberate, so a caller can tell
- * "the sheet opened" from "there was no sheet" instead of guessing.
+ *
+ * The boolean is TRUE ONLY WHEN A SHEET ANSWERED. The event is cancelable and
+ * the mounted switcher calls `preventDefault()` on it as it opens, so
+ * `dispatchEvent` returns false exactly when somebody handled it. A caller can
+ * therefore tell "the sheet opened" from "there was no sheet" without also
+ * checking the DOM.
  */
 export function openProfileSwitcher(): boolean {
   if (typeof window === "undefined") return false;
-  window.dispatchEvent(new CustomEvent(PROFILE_SWITCHER_EVENT));
-  return true;
+  const unhandled = window.dispatchEvent(
+    new CustomEvent(PROFILE_SWITCHER_EVENT, { cancelable: true }),
+  );
+  return !unhandled;
 }

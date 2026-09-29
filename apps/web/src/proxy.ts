@@ -534,6 +534,15 @@ export async function proxy(request: NextRequest) {
   if (reader === "unknown") return withSecurityPolicy(response, nonce);
   const user = reader;
 
+  /* SPEED-4: the 404 check for a detail page, when it is already known to be
+     needed, starts beside the stranger's rate-limit read instead of after it.
+     Each is a round trip from the edge to eu-west-1, so doing them one after
+     the other cost a signed-out listing page an extra crossing before the
+     first byte. It starts only where the read below is also made (a stranger,
+     the open catalogue, a document), so nothing is read for a request the
+     limiter or the gate is about to turn away that was not read before. */
+  let earlyDetailCheck: Promise<boolean> | null = null;
+
   if (!user) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
     const publicCatalogue = publicCatalogueEnabled();
@@ -542,6 +551,9 @@ export async function proxy(request: NextRequest) {
        switch cannot be used to walk every listing at machine speed. Only the
        pages are counted; a person reads a few a minute. */
     if (publicCatalogue && isPublicCataloguePath(path) && isDocumentRequest(request)) {
+      if (request.method === "GET") {
+        earlyDetailCheck = detailIsMissing(path, supabase as unknown as ListingCounter);
+      }
       const verdict = await consume({
         bucket: "anon_catalogue",
         subject: subjectForIp(ipFromHeaders(request.headers)),
@@ -641,7 +653,7 @@ export async function proxy(request: NextRequest) {
      cookies on `response` are carried over. */
   if (request.method === "GET" && isDocumentRequest(request)) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
-    if (await detailIsMissing(path, supabase as unknown as ListingCounter)) {
+    if (await (earlyDetailCheck ?? detailIsMissing(path, supabase as unknown as ListingCounter))) {
       const missing = request.nextUrl.clone();
       missing.pathname = HARNESS_CLOSED_PATH;
       missing.search = "";

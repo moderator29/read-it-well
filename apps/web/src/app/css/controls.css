@@ -814,58 +814,6 @@
   }
 
   /*
-   * THE RAISED OBJECT IN THE DOCK'S CENTRE SLOT.
-   *
-   * The heaviest thing in the bar, by the founder's ruling, and drawn as the
-   * lit glass plate `GOVERNING-01` puts there: a rounded square standing proud
-   * of the capsule with the brand glow under it and a lit top rim.
-   *
-   * A ROUNDED SQUARE and not a circle. It carries no text, so the shape law's
-   * icon-only exception could allow a circle, but the exception is for a
-   * control a governing image draws round and this one is not: the render's
-   * object is a rounded plate. The register's control is the rectangle and
-   * this takes it.
-   *
-   * The lift is `--nf-dock-lift`, which `--nf-tabbar-clearance` already
-   * reserves, so the object never stands over content.
-   */
-  .nf-tab__link--switch {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    padding: 0;
-  }
-  .nf-switch-dock {
-    display: grid;
-    place-items: center;
-    width: 3.25rem;
-    height: 3.25rem;
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-strong);
-    background:
-      linear-gradient(180deg, var(--nf-wash-4) 0%, transparent 62%),
-      var(--nf-brand-tint-2);
-    box-shadow:
-      var(--nf-glow-edge-strong),
-      inset 0 1px 0 var(--nf-glass-rim-strong);
-    /* The raise, measured rather than assumed: see `.nf-tab--switch` in
-       chrome.css for why this is a translate and not a margin. */
-    translate: 0 calc(-1 * var(--nf-dock-lift));
-    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-tab__link--switch:active .nf-switch-dock {
-    transform: scale(0.96);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-switch-dock {
-      transition: none;
-    }
-    .nf-tab__link--switch:active .nf-switch-dock {
-      transform: none;
-    }
-  }
-
-  /*
    * A control shaped like a settings row: full width, hairline beneath, the
    * chevron on the right doing the work a border would otherwise do.
    */

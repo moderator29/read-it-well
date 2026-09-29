@@ -12,7 +12,12 @@ afterAll(closeBrowser);
 
 /* The product's own stylesheet for this component, unwrapped from its layer,
    so the reduced-motion rules are the ones that ship. */
-const CSS = readFileSync(join(__dirname, "..", "..", "app", "css", "success.css"), "utf8");
+const CSS = [
+  /* The tokens first: an animation shorthand naming an undefined easing token
+     is invalid, and would read as "no animation" for the wrong reason. */
+  readFileSync(join(__dirname, "..", "..", "..", "..", "..", "packages", "design-tokens", "src", "tokens.css"), "utf8"),
+  readFileSync(join(__dirname, "..", "..", "app", "css", "success.css"), "utf8"),
+].join("\n");
 
 function entry(variant: "success" | "submitted" | "approved" = "success"): string {
   return `

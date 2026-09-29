@@ -8,6 +8,7 @@ import { readAgreement } from "@/lib/agreements/queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
+import { agreementArrival } from "@/lib/ui/arrival-moments";
 import { Section, TYPE } from "@/components/app/Screen";
 import { AGREEMENT_STATUS_LABEL, CLAIM_STATUS_LABEL } from "@/components/app/agreements/status";
 import { AmendTerms, CancelAgreement, ClaimForm, ConfirmTerms } from "@/components/app/agreements/AgreementControls";
@@ -110,19 +111,9 @@ export default async function AgreementPage({
    * written by the database into a notification, where no flag can ride, so
    * it opens from the status itself, once per device.
    */
-  const moment: SuccessMomentId | null = !party
-    ? null
-    : done === "agreement-drawn"
-      ? "agreementDrawn"
-      : done === "agreement-confirmed" && a.status === "in_review"
-        ? "agreementInReview"
-        : done === "agreement-confirmed" && a.status === "awaiting_parties" && a.youConfirmedCurrent
-          ? "agreementConfirmed"
-          : done === "claim-filed" && a.claims.some((c) => c.mine && c.status === "submitted")
-            ? "claimFiled"
-            : null;
-  const approvedMoment: SuccessMomentId | null =
-    party && a.status === "approved" ? (a.role === "renter" ? "agreementApprovedRenter" : "agreementApprovedOwner") : null;
+  const arrival = agreementArrival(a, done);
+  const moment: SuccessMomentId | null = arrival && !arrival.seenOnce ? arrival.moment : null;
+  const approvedMoment: SuccessMomentId | null = arrival?.seenOnce ? arrival.moment : null;
 
   return (
     <main className="nf-page nf-md" data-testid="agreement-page" data-status={a.status}>

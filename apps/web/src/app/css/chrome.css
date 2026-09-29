@@ -129,10 +129,9 @@
    *   height  the capsule itself
    *   lift    how far the centre switch stands proud of the capsule's top
    *           edge. ZERO on the founder's ruling of 22 September: the switch
-   *           sits in the bar now. The term stays because `.nf-switch-dock`
-   *           in controls.css still reads it, and zeroing it there from here
-   *           is how the lift is cancelled without editing another agent's
-   *           stylesheet. See the token below.
+   *           sits in the bar now, and since 29 September the centre is the
+   *           "+" (`CreateDock`), in line with the others. The term stays
+   *           because the clearance below and social-feed.css still add it.
    *   gap     breathing room so a sticky footer does not touch the dock
    */
   :root {
@@ -157,15 +156,9 @@
      * above them. A reference image loses to the founder looking at the real
      * thing, and that is the right order of authority.
      *
-     * KEPT AS A TERM RATHER THAN DELETED, and that is not tidiness. The term
-     * is read in two places and only one of them is this file:
-     * `.nf-switch-dock` in controls.css translates by `calc(-1 * lift)`, and
-     * controls.css belongs to another agent this stint (BUILD 07 section 24).
-     * Setting the token to zero cancels that translate exactly, from the one
-     * file that owns the number, without reaching into a stylesheet that is
-     * not mine. It also drops the clearance below by 16px, which is correct:
-     * nothing stands above the capsule any more, so nothing above the capsule
-     * needs reserving.
+     * KEPT AS A TERM RATHER THAN DELETED: the clearance below and
+     * social-feed.css still add it, and at zero it reserves nothing, which is
+     * correct: nothing stands above the capsule any more.
      */
     --nf-dock-lift: 0rem;
     --nf-dock-gap: 0.75rem;
@@ -596,18 +589,10 @@
     min-width: 0;
   }
   /*
-   * THE CENTRE SLOT, and only the SLOT: the control inside it is
-   * `ProfileSwitcher`'s and its classes are its own.
-   *
-   * IT NO LONGER STANDS PROUD OF THE CAPSULE. `GOVERNING-01` draws it raised
-   * and it shipped raised, by 16px of `--nf-dock-lift`. The founder used the
-   * bar on a real phone and ruled the other way: in line with the other four,
-   * same height, same baseline, smaller. The token above is zero now, which
-   * cancels the translate `.nf-switch-dock` applies in controls.css without
-   * editing a file this stint does not own.
-   *
-   * The slot keeps its fifth of the row, so the travelling pill's arithmetic
-   * is untouched.
+   * THE CENTRE SLOT, and only the SLOT: since 29 September it holds the
+   * dock's "+" (`CreateDock`, styled in shell-m.css, "THE DOCK"), in line
+   * with the other four, same height, same baseline. The slot keeps its
+   * fifth of the row, so the travelling pill's arithmetic is untouched.
    */
   .nf-tab--switch {
     position: relative;
@@ -615,65 +600,10 @@
     align-items: center;
     justify-content: center;
   }
-  /*
-   * The slot's children fill it, so the button inside is the whole fifth and
-   * a thumb aiming anywhere in that fifth hits the switch.
-   *
-   * THE RAISE USED TO BE ARGUED HERE. It was a negative margin first, which
-   * did not raise the object at all - a centred child in a shortened box
-   * moves half as far as the box - and then a translate, which did. Both are
-   * moot now that the lift is zero, and the lesson the note carried is worth
-   * keeping in one line: measure what the browser drew, never what the file
-   * said. That is how the margin was caught and it is how this change is
-   * proven, at 390 in dark and light, on a production server.
-   */
+  /* The slot's children fill it, so the button inside is the whole fifth
+     and a thumb aiming anywhere in that fifth hits it. */
   .nf-tab--switch > * {
     display: flex;
-  }
-  /*
-   * ------------------------------------------------------ THE SWITCH OBJECT
-   *
-   * `.nf-tab__link--switch` and `.nf-switch-dock` are DECLARED in controls.css
-   * and controls.css belongs to IMG-A this stint (BUILD 07 section 24). These
-   * are the founder's three changes to the object, made from the one
-   * stylesheet CHROME owns. chrome.css imports after controls.css and both
-   * sit in `@layer components` at equal specificity, so the later file wins.
-   * The lines these replace should be folded back into the single block in
-   * controls.css by whoever owns it next; that is a note in the report, not a
-   * reach into somebody else's file.
-   *
-   * SMALLER. The object was 3.25rem, 52px, inside a 3.5rem tab. Its four
-   * neighbours draw a 24px glyph over an 11px label with a 2px gap, so their
-   * content block is 37px tall and centred in the 56px link: it runs 9.5px
-   * from the top to 46.5. A 2.375rem object, 38px, centred in the same link
-   * runs 9 to 47. That is the founder's "same height and the same baseline",
-   * arithmetic rather than eye, and it is the reason for the odd-looking
-   * number: 38 is what lines up with what is already there.
-   *
-   * THE RADIUS COMES DOWN WITH IT, and the shape law is why. The object read
-   * `--nf-radius-lg`, 18px, which on a 52px side was 0.35 and on a 38px side
-   * would be 0.47 - inside the law but walking towards it for no reason.
-   * `--nf-radius-control` is 14px, giving 0.37, and it is the rung the tab
-   * link beside it already draws.
-   *
-   * THE GLYPH IS THE BRAND INK because the container is brand-tinted and the
-   * glyph would otherwise inherit `--nf-content-muted` from `.nf-tab__link`
-   * and read as a disabled mark on a lit plate. The four neighbours are muted
-   * until they are the page you are on; this one is never a destination, so
-   * it has no such state and is simply always lit.
-   */
-  .nf-tab__link--switch {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 0;
-  }
-  .nf-switch-dock {
-    width: 2.375rem;
-    height: 2.375rem;
-    border-radius: var(--nf-radius-control);
-    color: var(--nf-brand-primary);
   }
   /*
     ONE RULE FOR THE TAB, AND THERE WERE TWO. This block set `height: 3.25rem`
@@ -1102,24 +1032,3 @@
   }
 }
 
-/* V-75: the dock centre draws the current workspace, glyph over two letters. */
-@layer components {
-  .nf-switch-dock__face {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1;
-  }
-  /* Personal, in the dock: the account photograph at the tab glyph step. */
-  .nf-switch-mark__photo.nf-switch-dock__photo {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-  .nf-switch-dock__caption {
-    margin-top: 1px;
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--nf-content-primary);
-  }
-}
