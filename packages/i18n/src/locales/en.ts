@@ -5879,6 +5879,18 @@ export const en = {
         title: "Documents approved",
         body: "A reviewer approved your documents, and your account moved up a level.",
       },
+      agentApproved: {
+        title: "Application approved",
+        body: "A reviewer approved your agent application, so you can start listing now.",
+      },
+      hostApproved: {
+        title: "Business approved",
+        body: "A reviewer approved {name}. Guests see it once it is published.",
+      },
+      hostLive: {
+        title: "Your business is live",
+        body: "{name} is published, so guests can find it now.",
+      },
       ticketFiled: {
         title: "Message sent to support",
         body: "Your reference is {reference}. Replies land in your support messages.",

@@ -57,10 +57,12 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
       await dialog.waitFor();
       expect(await dialog.getAttribute("aria-modal")).toBe("true");
       /* The live region is filled a frame after opening, so it is announced. */
+      /* The title is the dialog's name and is NOT repeated in the live region;
+         the line is what the live region announces. */
       const live = page.locator('[role="status"][aria-live="polite"]');
-      await page.waitForFunction(() => document.querySelector('[data-testid="success-title"]') !== null);
-      expect(await live.textContent()).toContain("Stay paid");
-      expect(await live.textContent()).toContain("these dates are confirmed");
+      await page.waitForFunction(() => document.querySelector('[role="status"] span[aria-hidden]') === null);
+      expect(await live.textContent()).toBe("Your payment is in and these dates are confirmed.");
+      expect(await page.getByTestId("success-title").getAttribute("aria-hidden")).toBe("true");
       expect(await page.getByTestId("success-amount").textContent()).toContain("485,000");
       expect(await page.locator(".nf-success__mono").textContent()).toBe("rm-book-7f3a9c21e4");
       expect(await page.locator(".nf-success__bit").count()).toBe(10);

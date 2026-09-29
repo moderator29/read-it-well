@@ -296,7 +296,7 @@ export function EmailAuthForm({
 
   /* The traversal listener reads the answers as they are now, not as they
      were when it was bound. */
-  const stepOneReady = useRef(() => false);
+  const stepOneReady = useRef<() => boolean>(() => false);
   useEffect(() => {
     stepOneReady.current = () => Object.keys(stepOneErrors()).length === 0;
   });

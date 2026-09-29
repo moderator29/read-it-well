@@ -153,25 +153,19 @@ export function SuccessSheet({
       <div className="nf-success" data-variant={variant} data-quiet={quiet ? "true" : "false"}>
         <SuccessMark variant={variant} />
 
-        <div id={liveId} role="status" aria-live="polite" aria-atomic="true" className="nf-success__words">
-          {announced ? (
-            <>
-              <p className="nf-success__title" data-testid="success-title">
-                {title}
-              </p>
-              <p className="nf-success__body">{body}</p>
-            </>
-          ) : (
-            /* Laid out at full size before it is filled, so nothing jumps. */
-            <>
-              <p className="nf-success__title" aria-hidden="true">
-                {title}
-              </p>
-              <p className="nf-success__body" aria-hidden="true">
-                {body}
-              </p>
-            </>
-          )}
+        <div className="nf-success__words">
+          {/* The title is the dialog's own name (Sheet's hidden heading), which
+              a reader announces as focus lands. Drawn for the eye only, so it
+              is not read a second time. */}
+          <p className="nf-success__title" data-testid="success-title" aria-hidden="true">
+            {title}
+          </p>
+          {/* The line is the news, announced politely once it is filled, a
+              frame after opening; until then it is laid out and silent, so
+              nothing jumps. */}
+          <p id={liveId} role="status" aria-live="polite" aria-atomic="true" className="nf-success__body">
+            {announced ? body : <span aria-hidden="true">{body}</span>}
+          </p>
         </div>
 
         {amount ? (

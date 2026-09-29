@@ -242,11 +242,27 @@ export async function settleShareReturn(input: { reference: string; tenancyId: s
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
   const { data: row } = await admin
     .from("transactions")
-    .select("share_payer_id")
+    .select("share_payer_id, booking_id")
     .eq("provider_ref", parsed.data.reference)
     .maybeSingle();
   const payer = (row as { share_payer_id?: string | null } | null)?.share_payer_id ?? null;
   if (!payer || payer !== session.user.id) return fail("We could not find that payment on your account.");
+  /*
+   * AND IT BELONGS TO THE MOVE-IN ON THIS SCREEN. A reference from another of
+   * this person's shares, pasted onto this page, would otherwise settle (it is
+   * theirs) and draw this move-in's receipt over somebody else's money. The
+   * share's booking and this tenancy's booking must be the same one.
+   */
+  const txBooking = (row as { booking_id?: string | null } | null)?.booking_id ?? null;
+  const { data: tenancy } = await admin
+    .from("rent_payments")
+    .select("booking_id")
+    .eq("id", parsed.data.tenancyId)
+    .maybeSingle();
+  const tenancyBooking = (tenancy as { booking_id?: string | null } | null)?.booking_id ?? null;
+  if (!txBooking || !tenancyBooking || txBooking !== tenancyBooking) {
+    return fail("That payment is for a different move-in. Open it from its own page.");
+  }
   let tx;
   try {
     tx = await verifyTransaction(parsed.data.reference);

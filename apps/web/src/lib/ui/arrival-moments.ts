@@ -1,4 +1,5 @@
 import type { DoneFlag, SuccessMomentId } from "./success-moments";
+import { APPROVAL_NEWS_DAYS } from "./recent-approval";
 
 /**
  * WHICH SUCCESS MOMENT A PAGE MAY SHOW ON ARRIVAL, from the flag it was sent
@@ -51,4 +52,51 @@ export function listingArrival(
   if (done === "listing-approved" && named.status === "APPROVED") return "listingApproved";
   if (done === "listing-live" && named.status === "PUBLISHED") return "listingLive";
   return null;
+}
+
+/* ------------------------------------------ approvals decided elsewhere */
+
+
+/** A decision time inside the news window (lib/ui/recent-approval.ts). */
+function decidedRecently(at: string | null | undefined, now: number): boolean {
+  if (!at) return false;
+  const t = Date.parse(at);
+  return Number.isFinite(t) && t <= now + 60_000 && t >= now - APPROVAL_NEWS_DAYS * 24 * 60 * 60 * 1000;
+}
+
+export type ApprovalArrival = { moment: SuccessMomentId; seenKey: string; values?: Record<string, string> } | null;
+
+/**
+ * The applicant's side of an agent application approved in the staff
+ * console: shown on `/profile/application`, where the decision notice lands,
+ * once per device, and only while the decision is news.
+ */
+export function applicationArrival(
+  app: { reference: string; status: string; reviewedAt: string | null },
+  now: number,
+): ApprovalArrival {
+  if (app.status !== "APPROVED" || !decidedRecently(app.reviewedAt, now)) return null;
+  return { moment: "agentApproved", seenKey: `agent-approved:${app.reference}` };
+}
+
+/**
+ * A host's business approved or published in the staff console: shown on
+ * `/host`, where the decision notice lands, for the most recent one only.
+ * Published and approved are separate moments with separate keys, so a
+ * business approved on Monday and published on Wednesday is news twice.
+ */
+export function businessArrival(
+  businesses: readonly { id: string; name: string; status: string; reviewedAt: string | null }[],
+  now: number,
+): ApprovalArrival {
+  const recent = businesses
+    .filter((b) => (b.status === "APPROVED" || b.status === "PUBLISHED") && decidedRecently(b.reviewedAt, now))
+    .sort((a, b) => Date.parse(b.reviewedAt ?? "") - Date.parse(a.reviewedAt ?? ""))[0];
+  if (!recent) return null;
+  const live = recent.status === "PUBLISHED";
+  return {
+    moment: live ? "hostLive" : "hostApproved",
+    seenKey: `${live ? "host-live" : "host-approved"}:${recent.id}`,
+    values: { name: recent.name },
+  };
 }

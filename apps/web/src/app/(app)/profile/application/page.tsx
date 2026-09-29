@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getDictionary, formatDate } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyApplication } from "@/lib/agent/application-status";
+import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { applicationArrival } from "@/lib/ui/arrival-moments";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Row, RowList, Section, Stack, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
@@ -131,8 +133,19 @@ export default async function ProfileApplicationPage() {
 
   const reviewerNote = (application.reviewNotes ?? "").trim();
 
+  /* Approved in the staff console, announced by a notice that lands here:
+     once per device, while the decision is news (docs/SUCCESS_MOMENTS.md). */
+  const approval = applicationArrival(application, requestNow());
+
   return (
     <div className="mx-auto max-w-2xl">
+      <SuccessFromFlag
+        copy={t.success}
+        show={approval !== null}
+        moment={approval?.moment ?? "agentApproved"}
+        seenKey={approval?.seenKey ?? "agent-approved:none"}
+        haptic={false}
+      />
       <PageHeader title={s.status} subtitle={s.submittedBody} fallback="/profile" />
 
       <Stack>
@@ -240,4 +253,9 @@ export default async function ProfileApplicationPage() {
       </Stack>
     </div>
   );
+}
+
+/** The request's clock, read once, so the page agrees with itself. */
+function requestNow(): number {
+  return Date.now();
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { approvedRecently } from "./recent-approval";
-import { agreementArrival, listingArrival } from "./arrival-moments";
+import { agreementArrival, applicationArrival, businessArrival, listingArrival } from "./arrival-moments";
 
 /**
  * The pages that show a success moment on arrival (docs/SUCCESS_MOMENTS.md):
@@ -71,5 +71,32 @@ describe("approvedRecently", () => {
     expect(approvedRecently([{ status: "passed", decidedAt: "2026-08-01T09:00:00Z" }], now)).toBe(false);
     expect(approvedRecently([{ status: "failed", decidedAt: "2026-09-28T09:00:00Z" }], now)).toBe(false);
     expect(approvedRecently([{ status: "passed", decidedAt: "not a date" }], now)).toBe(false);
+  });
+});
+
+describe("approvals decided in the staff console", () => {
+  const now = Date.parse("2026-09-29T12:00:00Z");
+  const recent = "2026-09-27T10:00:00Z";
+  const old = "2026-06-01T10:00:00Z";
+
+  it("an agent application: approved and recent, once per reference", () => {
+    expect(applicationArrival({ reference: "AG-1", status: "APPROVED", reviewedAt: recent }, now)).toEqual({
+      moment: "agentApproved",
+      seenKey: "agent-approved:AG-1",
+    });
+    expect(applicationArrival({ reference: "AG-1", status: "APPROVED", reviewedAt: old }, now)).toBeNull();
+    expect(applicationArrival({ reference: "AG-1", status: "UNDER_REVIEW", reviewedAt: recent }, now)).toBeNull();
+    expect(applicationArrival({ reference: "AG-1", status: "REJECTED", reviewedAt: recent }, now)).toBeNull();
+  });
+
+  it("a business: the most recent approval or publish, each its own moment", () => {
+    const b = (id: string, status: string, reviewedAt: string | null) => ({ id, name: `Biz ${id}`, status, reviewedAt });
+    expect(businessArrival([b("1", "APPROVED", recent)], now)).toEqual({
+      moment: "hostApproved",
+      seenKey: "host-approved:1",
+      values: { name: "Biz 1" },
+    });
+    expect(businessArrival([b("1", "APPROVED", "2026-09-20T10:00:00Z"), b("2", "PUBLISHED", recent)], now)?.seenKey).toBe("host-live:2");
+    expect(businessArrival([b("1", "PUBLISHED", old), b("2", "REJECTED", recent), b("3", "SUBMITTED", null)], now)).toBeNull();
   });
 });

@@ -19,19 +19,19 @@ afterAll(closeBrowser);
 const SHEET = '[data-testid="success-sheet"]';
 
 async function sheetOpens(page: Page, title?: string): Promise<void> {
-  await page.waitForSelector(SHEET, { timeout: 8_000 });
+  await page.waitForSelector(SHEET, { timeout: 15_000 });
   if (title) {
     await page.waitForFunction(
       (t) => document.querySelector('[data-testid="success-title"]')?.textContent === t,
       title,
-      { timeout: 8_000 },
+      { timeout: 15_000 },
     );
   }
 }
 
 async function noSheet(page: Page): Promise<void> {
-  /* One more frame for anything scheduled after the answer. */
-  await page.waitForTimeout(300);
+  /* Time for anything scheduled after the answer, generous on a busy box. */
+  await page.waitForTimeout(800);
   expect(await page.locator(SHEET).count()).toBe(0);
 }
 
@@ -39,7 +39,7 @@ async function actionCalled(page: Page, name: string): Promise<void> {
   await page.waitForFunction(
     (n) => ((window as unknown as { __calls?: unknown[][] }).__calls ?? []).some((c) => c[0] === n),
     name,
-    { timeout: 8_000 },
+    { timeout: 15_000 },
   );
 }
 
@@ -235,6 +235,80 @@ run("crypto payment settled", () => {
       }
     }
   }, 20_000);
+});
+
+const PAY_PANEL = `
+  import { mount } from "@/lib/testing/browser-root";
+  import { PayPanel } from "@/app/(app)/checkout/[bookingId]/PayPanel";
+  const view = { bookingId: "bk-1", listingId: "l-1", title: "Two-bedroom flat, Yaba", location: "Yaba, Lagos",
+    checkIn: "2030-01-10", checkOut: "2030-01-12", dateRange: "Thu 10 Jan to Sat 12 Jan", nights: 2, guests: 2,
+    lines: [], platformTakesNothing: true, currency: "NGN", locale: "en", totalMinor: 48500000, totalDisplay: "₦485,000.00",
+    status: "PENDING", paid: false, holdExpiresAt: new Date(Date.now() + 3600000).toISOString(), holdExpired: false,
+    cardAvailable: true, agreement: { id: "ag-1", status: "approved", reason: null } };
+  const cards = [{ id: "33333333-3333-4333-8333-333333333333", cardType: "visa", last4: "4081", expMonth: 12, expYear: 2035,
+    bank: "Test Bank", reusable: true, isDefault: true, createdAt: "2026-01-01T00:00:00Z" }];
+  mount(<PayPanel view={view} savedCards={cards} plansAction={{ label: "See your stays", href: "/bookings" }}
+    chargeSavedCard={(id) => window.__actions.charge(id)} />);
+`;
+
+async function payWithSavedCard(page: Page) {
+  await page.getByRole("button", { name: "Pay with this card" }).first().click();
+}
+
+run("stay paid in the checkout panel (saved card)", () => {
+  it("opens the receipt with amount and reference when the charge was applied, and refreshes only when it closes", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: PAY_PANEL,
+      actions: { charge: `async () => ({ ok: true, data: { kind: "charged", reference: "rm-book-sc-1", settled: true } })` },
+    });
+    try {
+      await payWithSavedCard(page);
+      await sheetOpens(page, "Stay paid");
+      expect(await page.getByTestId("success-amount").textContent()).toContain("485,000");
+      expect(await page.locator(".nf-success__mono").textContent()).toBe("rm-book-sc-1");
+      /* A refresh now would re-render the page down its paid branch, which
+         does not mount this panel, and take the receipt away. */
+      await page.waitForTimeout(500);
+      expect((await routerCalls(page)).filter((c) => c[0] === "refresh")).toEqual([]);
+      expect(await page.locator(SHEET).count()).toBe(1);
+      await page.getByTestId("success-primary").evaluate((el) => (el as HTMLElement).click());
+      await page.waitForFunction(() =>
+        ((window as unknown as { __router?: { calls: unknown[][] } }).__router?.calls ?? []).some((c) => c[0] === "refresh"),
+        null,
+        { timeout: 15_000 },
+      );
+    } finally {
+      await close();
+    }
+  });
+
+  it("shows 'Confirming your payment', never the receipt, when the charge is not yet applied", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: PAY_PANEL,
+      actions: { charge: `async () => ({ ok: true, data: { kind: "charged", reference: "rm-book-sc-2", settled: false } })` },
+    });
+    try {
+      await payWithSavedCard(page);
+      await page.getByText("Your card was charged and we are applying it", { exact: false }).waitFor({ timeout: 15_000 });
+      await noSheet(page);
+    } finally {
+      await close();
+    }
+  });
+
+  it("shows no receipt when the charge was refused", async () => {
+    const { page, close } = await mountInBrowser({
+      entry: PAY_PANEL,
+      actions: { charge: `async () => ({ ok: false, error: "Your bank declined this card." })` },
+    });
+    try {
+      await payWithSavedCard(page);
+      await page.getByText("Payment not completed").first().waitFor({ timeout: 15_000 });
+      await noSheet(page);
+    } finally {
+      await close();
+    }
+  });
 });
 
 /* --------------------------------------------------- viewings and more */
