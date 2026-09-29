@@ -230,6 +230,8 @@ export type ListerRole = "owner" | "agent" | "firm";
 export type RungKind = "identity" | "address" | "payout" | "in_person";
 
 export type ListerVerification = {
+  /** The lister's account, for internal notes about them. */
+  userId: string;
   name: string;
   role: ListerRole | null;
   avatarUrl: string | null;
@@ -393,6 +395,7 @@ export async function getListingReviewExtras(
         getBadgeTiers([agent.user_id]),
       ]);
       lister = {
+        userId: agent.user_id,
         name: agent.display_name,
         role: roleOf(agent.application_id ? roles.get(agent.application_id) : null, agent.type),
         avatarUrl: profile.data?.avatar_url ?? null,

@@ -1328,6 +1328,8 @@ export type TicketView = {
   body: string;
   status: Database["public"]["Enums"]["support_ticket_status"];
   hasAccount: boolean;
+  /** The member's account, when the ticket came from one (for internal notes). */
+  userId: string | null;
   createdAt: string;
   updatedAt: string;
   replyCount: number;
@@ -1386,6 +1388,7 @@ export async function getSupportTickets(
           body: row.body,
           status: row.status,
           hasAccount: row.user_id !== null,
+          userId: row.user_id ?? null,
           createdAt: row.created_at,
           updatedAt: row.updated_at,
           replyCount: row.support_ticket_messages.length,
