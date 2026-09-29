@@ -267,12 +267,12 @@
  *
  * A soft tinted square behind a lean line glyph: flat, no rim, no inner
  * light, no glow and no glyph glow, in either theme. Every value below is a
- * token that already answers in both themes, so there is no theme rule: the
- * neutral fill is the primary ink at 7 per cent, which is a slightly lighter
- * surface than the card at night and the raised paper well in daylight; the
- * brand fill is `--nf-brand-tint-2` with the glyph in `--nf-brand-quiet`
- * (the bright blue at night, the deep blue by day); a state plate is the
- * state's own `-surface` tint with the glyph in its ink.
+ * token that answers in both themes (the `--nf-plate-*` pairs in
+ * `packages/design-tokens/src/tokens.css`), so there is no theme rule here:
+ * the neutral plate is a slightly lighter surface than the card at night and
+ * the raised paper well in daylight; the brand plate is the soft blue tint
+ * with the glyph a deeper blue; a state plate is the state's own `-surface`
+ * tint with the glyph in its ink.
  *
  * Every rule here is written on two classes so it outranks any single-class
  * `.nf-plate` rule a later partial may still carry (the lit-glass block
@@ -282,8 +282,8 @@
   .nf-plate.nf-plate {
     /* Neutral unless a tone below says otherwise (the tones come later at
        the same weight, so they win). */
-    --nf-plate-v2-fill: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
-    --nf-plate-v2-ink: var(--nf-content-primary);
+    --nf-plate-v2-fill: var(--nf-plate-neutral-fill);
+    --nf-plate-v2-ink: var(--nf-plate-neutral-ink);
     display: inline-grid;
     place-items: center;
     flex-shrink: 0;
@@ -296,12 +296,12 @@
     filter: none;
   }
   .nf-plate.nf-plate--neutral {
-    --nf-plate-v2-fill: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
-    --nf-plate-v2-ink: var(--nf-content-primary);
+    --nf-plate-v2-fill: var(--nf-plate-neutral-fill);
+    --nf-plate-v2-ink: var(--nf-plate-neutral-ink);
   }
   .nf-plate.nf-plate--brand {
-    --nf-plate-v2-fill: var(--nf-brand-tint-2);
-    --nf-plate-v2-ink: var(--nf-brand-quiet);
+    --nf-plate-v2-fill: var(--nf-plate-brand-fill);
+    --nf-plate-v2-ink: var(--nf-plate-brand-ink);
   }
   .nf-plate.nf-plate--success {
     --nf-plate-v2-fill: var(--nf-state-success-surface);
@@ -320,8 +320,8 @@
     --nf-plate-v2-ink: var(--nf-state-info);
   }
   .nf-plate.nf-plate--solid {
-    --nf-plate-v2-fill: var(--nf-content-primary);
-    --nf-plate-v2-ink: var(--nf-surface-primary);
+    --nf-plate-v2-fill: var(--nf-plate-solid-fill);
+    --nf-plate-v2-ink: var(--nf-plate-solid-ink);
   }
   /* 36 / 44 / 56 on corners 10 / 12 / 14, each under 0.30 of its side. */
   .nf-plate.nf-plate--sm {
@@ -332,11 +332,11 @@
   .nf-plate.nf-plate--md {
     width: var(--nf-plate-size-md);
     height: var(--nf-plate-size-md);
-    border-radius: calc(var(--nf-radius-sm) + 2px);
+    border-radius: var(--nf-plate-radius-md);
   }
   .nf-plate.nf-plate--lg {
     width: var(--nf-plate-size-lg);
     height: var(--nf-plate-size-lg);
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-plate-radius-lg);
   }
 }
