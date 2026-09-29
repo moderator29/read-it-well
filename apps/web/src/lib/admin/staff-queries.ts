@@ -28,6 +28,8 @@ export type StaffRow = {
   revokeReason: string | null;
   handbookAcknowledgedAt: string | null;
   actionsLast30: number;
+  /** Of those, the support desk's own: replies, status changes, takes and hand-offs on tickets. */
+  supportActionsLast30: number;
 };
 
 export type StaffDesk =
@@ -79,9 +81,13 @@ export async function readStaffDesk(now = Date.now()): Promise<StaffDesk> {
     }
     const acts = (actions.data ?? []) as { actor_id: string; action: string; entity_type: string; created_at: string }[];
     const count = new Map<string, number>();
+    const supportCount = new Map<string, number>();
     const lastAct = new Map<string, string>();
     for (const a of acts) {
       count.set(a.actor_id, (count.get(a.actor_id) ?? 0) + 1);
+      if (a.action.startsWith("support_ticket.") || (a.entity_type === "ticket" && a.action.startsWith("queue."))) {
+        supportCount.set(a.actor_id, (supportCount.get(a.actor_id) ?? 0) + 1);
+      }
       const prev = lastAct.get(a.actor_id);
       if (!prev || prev < a.created_at) lastAct.set(a.actor_id, a.created_at);
     }
@@ -124,6 +130,7 @@ export async function readStaffDesk(now = Date.now()): Promise<StaffDesk> {
         revokeReason: (r.revoke_reason as string | null) ?? null,
         handbookAcknowledgedAt: ackAt.get(String(r.user_id)) ?? null,
         actionsLast30: count.get(String(r.user_id)) ?? 0,
+        supportActionsLast30: supportCount.get(String(r.user_id)) ?? 0,
       }));
     const adminRows: StaffRow[] = [...roleOf.entries()].map(([id, role]) => ({
       userId: id,
@@ -140,6 +147,7 @@ export async function readStaffDesk(now = Date.now()): Promise<StaffDesk> {
       revokeReason: null,
       handbookAcknowledgedAt: ackAt.get(id) ?? null,
       actionsLast30: count.get(id) ?? 0,
+      supportActionsLast30: supportCount.get(id) ?? 0,
     }));
     return {
       state: "ok",
