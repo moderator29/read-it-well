@@ -172,7 +172,7 @@ function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; t
       href={item.href}
       leading={
         <IconPlate size="sm" tone={item.tone === "neutral" ? "neutral" : item.tone}>
-          <UiIcon name={ATTENTION_ICON[item.kind]} size={18} />
+          <UiIcon name={ATTENTION_ICON[item.kind]} size={20} />
         </IconPlate>
       }
       title={title}

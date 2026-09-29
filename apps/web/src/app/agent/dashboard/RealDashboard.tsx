@@ -196,7 +196,7 @@ export function RealDashboard({
                 href="/agent/bookings"
                 leading={
                   <IconPlate size="sm">
-                    <UiIcon name="calendar-booking" size={18} />
+                    <UiIcon name="calendar-booking" size={20} />
                   </IconPlate>
                 }
                 title={<span className="line-clamp-2 [overflow-wrap:anywhere]">{booking.listingTitle}</span>}
@@ -229,7 +229,7 @@ export function RealDashboard({
               href={action.href}
               leading={
                 <IconPlate size="sm">
-                  <UiIcon name={action.icon} size={18} />
+                  <UiIcon name={action.icon} size={20} />
                 </IconPlate>
               }
               title={action.label}

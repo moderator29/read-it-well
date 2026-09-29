@@ -61,7 +61,7 @@ export function QueueByDesk({
               href={desk.href}
               leading={
                 <IconPlate size="sm" tone={TONE[desk.key] === "error" ? "error" : TONE[desk.key] === "warning" ? "warning" : "neutral"}>
-                  <UiIcon name={desk.icon} size={18} />
+                  <UiIcon name={desk.icon} size={20} />
                 </IconPlate>
               }
               title={o.tiles[desk.key].label}

@@ -173,7 +173,7 @@ export function HostStandingBody({
               href="/host/apply"
               leading={
                 <IconPlate size="sm" tone="brand">
-                  <UiIcon name="file-text" size={18} />
+                  <UiIcon name="file-text" size={20} />
                 </IconPlate>
               }
               title={open.name || "Your business"}
