@@ -82,7 +82,10 @@ export function HostTodayView({
 
   return (
     <div className="nf-desk-home">
-      <HeroBand label={dateLine} title={d.today.title} sub={sub} action={action}>
+      {/* The moving edge light on the one band that opens the desk (lead,
+          29 September); `.nf-edge-lap` settles to a steady rim under reduced
+          motion, data saver, Calm and Off. */}
+      <HeroBand className="nf-edge-lap" label={dateLine} title={d.today.title} sub={sub} action={action}>
         {today.kpis.length > 0 ? (
           <div className="nf-desk-kpis">
             {today.kpis.map((kpi) => (
