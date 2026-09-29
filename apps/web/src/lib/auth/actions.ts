@@ -36,7 +36,9 @@ import {
   deactivatedAccountNotice,
   isDeactivatedAccountError,
 } from "./deactivated-notice";
-import { withDone } from "@/lib/ui/success-moments";
+import { isGlobalDoneFlag } from "@/lib/ui/success-moments";
+import { rememberSuccess } from "@/lib/ui/success-cookie";
+import { doneFlagForLinkType } from "./link-moment";
 import type {
   AuthField,
   AuthFormState,
@@ -504,9 +506,11 @@ export async function signUpWithEmail(
   }
 
   revalidatePath("/", "layout");
-  /* The account exists and is signed in: "Welcome to Vallo" on arrival
-     (`SuccessFlagHost`, which strips the flag as the sheet opens). */
-  redirect(withDone(landingAfterAuth(formData), "account-created"));
+  /* The account exists and is signed in: "Welcome to Vallo" on arrival, by
+     a one-shot HttpOnly cookie rather than a forgeable `?done=`
+     (lib/ui/success-cookie.ts, `SuccessFlagHost`). */
+  await rememberSuccess("account-created");
+  redirect(landingAfterAuth(formData));
 }
 
 /**
@@ -665,6 +669,9 @@ export async function verifySignUpCode(
    * the same moment, and the only way to show anything after this succeeds is
    * to let the screen navigate rather than the server.
    */
+  /* The account now exists: "Welcome to Vallo" on the next screen, by the
+     one-shot cookie (lib/ui/success-cookie.ts). */
+  await rememberSuccess("account-created");
   return { ok: true, verified: landingAfterAuth(formData) };
 }
 
@@ -810,6 +817,10 @@ export async function completeEmailVerification(input: {
      on one email and the trigger's own row are still one welcome. */
   const { data: confirmed } = await supabase.auth.getUser();
   if (confirmed.user) await welcomeOnce(confirmed.user.id);
+  /* A sign-up or address-change link earns its moment (`doneFlagForLinkType`),
+     by the one-shot cookie; a magic-link sign-in and a recovery earn none. */
+  const moment = doneFlagForLinkType(input.type);
+  if (isGlobalDoneFlag(moment)) await rememberSuccess(moment);
   // The session cookies are set. Drop every cached render so the shell picks
   // the signed-in tree rather than the anonymous one behind this screen.
   revalidatePath("/", "layout");
@@ -1203,8 +1214,10 @@ export async function updatePassword(
   // The password changed under the session the link created, so every cached
   // render of the signed-out shell has to go.
   revalidatePath("/", "layout");
-  /* "Password changed" on arrival (`SuccessFlagHost`). */
-  redirect(withDone("/home", "password-changed"));
+  /* "Password changed" on arrival, by the one-shot cookie: set only here,
+     after `updateUser` succeeded (lib/ui/success-cookie.ts). */
+  await rememberSuccess("password-changed");
+  redirect("/home");
 }
 
 // Signing out lives in lib/profile/actions.ts, which the settings screen

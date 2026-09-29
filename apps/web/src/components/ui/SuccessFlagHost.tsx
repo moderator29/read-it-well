@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { consumeSuccess } from "@/lib/ui/success-actions";
 import {
   DONE_FLAGS,
   DONE_PARAM,
-  GLOBAL_DONE_FLAGS,
   SUCCESS_EVENT,
+  SUCCESS_HINT_COOKIE,
+  isGlobalDoneFlag,
   successCopy,
-  withoutDone,
-  type DoneFlag,
+  type GlobalDoneFlag,
   type SuccessEventDetail,
 } from "@/lib/ui/success-moments";
 
@@ -20,42 +21,52 @@ import {
  *
  * A sign-up, a confirmed email, a changed password and a passcode belong to
  * the account rather than to a record on a page, and each finishes wherever
- * the person was going. So they are shown here, from either of two signals:
+ * the person was going. They reach this host two ways, and NEITHER is the
+ * address:
  *
- *   - `?done=<flag>` on any address, for a flow that ends in a redirect
- *     (`lib/auth/actions.ts` sends a changed password to `/home?done=...`).
- *     Stripped with `router.replace` as the sheet opens.
- *   - `showSuccess(flag)` from `lib/ui/success-moments.ts`, for a screen that
- *     stays where it is (the passcode setup).
+ *   - a server action that succeeded calls `rememberSuccess(flag)`, which
+ *     sets an HttpOnly one-shot cookie and a readable hint
+ *     (lib/ui/success-cookie.ts). On a navigation where the hint is present,
+ *     this asks the server (`consumeSuccess`), which answers from the
+ *     HttpOnly cookie alone, against the allow-list, and deletes it.
+ *   - a client screen that succeeded calls `showSuccess(flag)`.
  *
- * ONLY `GLOBAL_DONE_FLAGS`. A record's moment ("agreement drawn up") is
- * shown by its own page, which can check the record; this host checks
- * nothing and so accepts nothing that needs checking.
+ * `?done=<account flag>` IS NOT HONOURED. It was forgeable: a link could say
+ * "Password changed" to anybody, and it survived a sign-in's `next=`. One
+ * found in the address is removed, on every route including the site pages,
+ * and nothing opens.
  */
 export function SuccessFlagHost() {
   const copy = useClientCopy().success;
   const pathname = usePathname();
-  const router = useRouter();
-  const [flag, setFlag] = useState<DoneFlag | null>(null);
+  const [flag, setFlag] = useState<GlobalDoneFlag | null>(null);
 
-  /* The address, read on every client navigation. `usePathname` rather than
-     `useSearchParams`, which would need a Suspense boundary round the whole
-     root layout; the query is read from `window.location` inside the effect. */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const asked = params.get(DONE_PARAM);
-    const found = GLOBAL_DONE_FLAGS.find((f) => f === asked);
-    if (!found) return;
-    const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    router.replace(withoutDone(here), { scroll: false });
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFlag(found);
-  }, [pathname, router]);
+    /* A stale or forged account flag in the address goes, silently. The
+       history API rather than the router: this changes nothing the page
+       renders, so it must not ask the server for anything. */
+    const url = new URL(window.location.href);
+    if (isGlobalDoneFlag(url.searchParams.get(DONE_PARAM))) {
+      url.searchParams.delete(DONE_PARAM);
+      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    if (!document.cookie.split("; ").some((part) => part === `${SUCCESS_HINT_COOKIE}=1`)) return;
+    /* Not cancelled on a further navigation: the server has already deleted
+       the cookie by the time it answers, so dropping the answer would lose
+       the moment for good. */
+    void consumeSuccess().then(
+      (taken) => {
+        if (taken) setFlag(taken);
+      },
+      () => undefined,
+    );
+  }, [pathname]);
 
   useEffect(() => {
     const onSuccess = (event: Event) => {
       const asked = (event as CustomEvent<SuccessEventDetail>).detail?.flag;
-      if (asked && GLOBAL_DONE_FLAGS.includes(asked)) setFlag(asked);
+      if (isGlobalDoneFlag(asked)) setFlag(asked);
     };
     window.addEventListener(SUCCESS_EVENT, onSuccess);
     return () => window.removeEventListener(SUCCESS_EVENT, onSuccess);

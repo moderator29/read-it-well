@@ -166,8 +166,10 @@ export function isGlobalDoneFlag(value: unknown): value is GlobalDoneFlag {
   return typeof value === "string" && (GLOBAL_DONE_FLAGS as readonly string[]).includes(value);
 }
 
-/** The one-shot cookie an account moment rides on (lib/ui/success-cookie.ts). */
+/** The one-shot HttpOnly cookie an account moment rides on (lib/ui/success-cookie.ts). */
 export const SUCCESS_COOKIE = "nf_done";
+/** Its readable companion: "there is something to ask for", and nothing else. */
+export const SUCCESS_HINT_COOKIE = "nf_done_hint";
 
 export function isDoneFlag(value: unknown): value is DoneFlag {
   return typeof value === "string" && Object.hasOwn(DONE_FLAGS, value);
