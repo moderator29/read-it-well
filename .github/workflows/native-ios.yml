@@ -89,9 +89,9 @@ jobs:
           xcode=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
           if [ -n "$xcode" ]; then sudo xcode-select -s "$xcode/Contents/Developer"; fi
           xcodebuild -version
-          major=$(xcodebuild -version | head -1 | awk '{print $2}' | cut -d. -f1)
+          major=$(xcodebuild -version | sed -n 1p | awk '{print $2}' | cut -d. -f1)
           if [ "$major" -lt 26 ]; then
-            echo "::warning title=Old Xcode::This image's newest Xcode is $(xcodebuild -version | head -1). Capacitor 8.5 is tested on Xcode 26 and App Store uploads need a current SDK. Set the IOS_RUNNER variable to an image with Xcode 26."
+            echo "::warning title=Old Xcode::This image's newest Xcode is $(xcodebuild -version | sed -n 1p). Capacitor 8.5 is tested on Xcode 26 and App Store uploads need a current SDK. Set the IOS_RUNNER variable to an image with Xcode 26."
           fi
 
       - name: Native versions match package.json
@@ -125,7 +125,7 @@ jobs:
           {
             echo "## iOS simulator build compiled"
             echo ""
-            echo "Commit \`${GITHUB_SHA}\`, $(xcodebuild -version | head -1), unsigned, Release, iphonesimulator."
+            echo "Commit \`${GITHUB_SHA}\`, $(xcodebuild -version | sed -n 1p), unsigned, Release, iphonesimulator."
             echo "This proves the project compiles. It is not signed and cannot be installed on a phone or uploaded."
           } >> "$GITHUB_STEP_SUMMARY"
 

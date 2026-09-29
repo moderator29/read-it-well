@@ -104,6 +104,9 @@ jobs:
           apk=apps/web/android/app/build/outputs/apk/debug/app-debug.apk
           size=$(du -h "$apk" | cut -f1)
           sum=$(sha256sum "$apk" | cut -d' ' -f1)
+          # In the log as well as the summary: the API exposes job logs but
+          # not step summaries, and this is the line people quote.
+          echo "APK $(stat -c %s "$apk") bytes (${size}), sha256 ${sum}, commit ${GITHUB_SHA}"
           {
             echo "## Android debug build compiled"
             echo ""
