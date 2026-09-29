@@ -39,6 +39,12 @@ declare
   a1 uuid; a2 uuid; a3 uuid; a6 uuid; ra uuid; g bigint;
   lister uuid := 'e0000000-0000-4000-8000-000000000001'; rental uuid := 'ed000000-0000-4000-8000-000000000007'; r jsonb; n int; st text; s bigint;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
   -- approved mandate. The fixture files one as the platform would.
   insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
@@ -152,7 +158,7 @@ begin
   -- MON-P2-02: a COMPLETED stay is refunded in parts, bounded cumulatively.
   update public.bookings set status = 'COMPLETED' where id = b1;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     perform public.refund_booking_payment(admin, b1, 1, 'probe-b2-ref-x', 'goodwill', null);
     raise exception 'PROBE_FAIL mon-p2-02: authenticated can call the refund door';

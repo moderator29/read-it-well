@@ -11,6 +11,12 @@ declare
   i int;
   refused text;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- A published listing the member has no thread on, and a second published
   -- listing by a different lister (or no second lister: the mismatch then
   -- uses the admin as a counterpart who lists nothing).
@@ -22,7 +28,7 @@ begin
   if l_id is null then raise exception 'PROBE_FAIL sec-p2-02: no published listing to test against'; end if;
 
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- CONTROL: what startConversation writes still succeeds.
   insert into public.conversations (guest_id, agent_id, listing_id) values (member, lister, l_id);
@@ -42,7 +48,7 @@ begin
   if refused is distinct from '23514' then raise exception 'PROBE_FAIL sec-p2-02: a thread on a listing was opened with someone who does not list it (%)', coalesce(refused, 'created'); end if;
 
   -- REFUSAL 3: the lister cannot open a listing thread on a guest's behalf.
-  perform set_config('request.jwt.claims', json_build_object('sub', lister, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', lister, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   refused := null;
   begin
     insert into public.conversations (guest_id, agent_id, listing_id) values (admin_id, lister, l_id);
@@ -63,7 +69,7 @@ begin
      and not exists (select 1 from public.conversations c where c.guest_id = member and c.listing_id = l.id)
    limit 1;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   if other_listing is null then
     raise exception 'PROBE_FAIL sec-p2-02: no second published listing by the same lister, so the daily limit cannot be tested';
   end if;

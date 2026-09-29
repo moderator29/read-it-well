@@ -16,6 +16,12 @@ declare
   n int;
   r record;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into public.agents (user_id, display_name) values (member, 'Probe DB-10 lister') returning id into agent;
   insert into public.listings (id, agent_id, title, property_type, status, listing_role, address, landmark, review_notes)
   values (lid, agent, 'Probe DB-10', 'apartment', 'DRAFT', 'agent', '12 Probe Close', 'By the probe', 'probe note');
@@ -35,7 +41,7 @@ begin
   set local role authenticated;
 
   -- The lister and the owner read their own private fields.
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select * into r from public.listing_private_fields(array[lid]);
   if r.address is distinct from '12 Probe Close' or r.review_notes is distinct from 'probe note' then
     raise exception 'PROBE_FAIL db-10: lister private read %', row_to_json(r);
@@ -46,14 +52,14 @@ begin
   end if;
 
   -- Staff read them too.
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.listing_private_fields(array[lid]);
   if n <> 1 then raise exception 'PROBE_FAIL db-10: staff listing private rows=%', n; end if;
   select count(*) into n from public.business_private_fields(array[biz]);
   if n <> 1 then raise exception 'PROBE_FAIL db-10: staff business private rows=%', n; end if;
 
   -- Any other member gets nothing through the door.
-  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.listing_private_fields(array[lid]);
   if n <> 0 then raise exception 'PROBE_FAIL db-10: stranger listing private rows=%', n; end if;
   select count(*) into n from public.business_private_fields(array[biz]);

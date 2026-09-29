@@ -15,8 +15,14 @@ declare
   n int;
   s text;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- CONTROL: the member files their own plain ticket.
   insert into public.support_tickets (reference, user_id, name, email, topic, body, status, kind)
@@ -107,7 +113,7 @@ begin
   end;
 
   -- Another member sees nothing and changes nothing.
-  perform set_config('request.jwt.claims', json_build_object('sub', other, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', other, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.support_tickets where id = tid;
   if n <> 0 then raise exception 'PROBE_FAIL sup-tickets-member: other member reads the ticket'; end if;
   select count(*) into n from public.support_ticket_attachments where ticket_id = tid;
@@ -127,7 +133,7 @@ begin
 
   -- Staff: a reply carries a staff name when the profile has one, and the
   -- attachment rows are readable.
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   insert into public.support_ticket_messages (ticket_id, sender_role, sender_id, body)
   values (tid, 'admin', admin, 'Probe staff reply');
   select count(*) into n from public.support_ticket_attachments where ticket_id = tid;

@@ -36,6 +36,12 @@ declare
   insp uuid; ag uuid; r jsonb; bk uuid; total bigint; g bigint; tx uuid;
   n int; s bigint; st text;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
   -- approved mandate. The fixture files one as the platform would.
   insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
@@ -117,7 +123,7 @@ begin
 
   -- CONTROL (member, API role): reads own charges. REFUSAL: writes a ledger row.
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   perform count(*) from public.transactions;
   begin
     insert into public.ledger_entries (booking_id, transaction_id, gross_minor, platform_fee_minor, agent_share_minor, processor_fee_minor, net_settlement_minor)

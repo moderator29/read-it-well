@@ -17,6 +17,12 @@ declare
   agent uuid;
   lid uuid := gen_random_uuid();
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into public.agents (user_id, display_name) values (member, 'Probe NEW-A4-01 lister') returning id into agent;
   insert into public.listings (id, agent_id, title, property_type, status, listing_role, listing_intent,
                                rent_amount_minor, rent_period, latitude, longitude, state_code, city, area)
@@ -78,7 +84,7 @@ begin
   -- the exact body, and gets no exact location.
   reset role;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select latitude into r from public.listings_in_bounds(3.0, 6.0, 4.0, 7.0) where id = lid;
   if r.latitude is distinct from 6.51 then
     raise exception 'PROBE_FAIL new-a4-01: signed-in map point is %', row_to_json(r);
@@ -89,7 +95,7 @@ begin
   exception when insufficient_privilege then null; end;
 
   -- The owner gets the exact place through listing_exact_location.
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select latitude, why into r from public.listing_exact_location(lid);
   if r.latitude is distinct from 6.51234 or r.why is distinct from 'lister' then
     raise exception 'PROBE_FAIL new-a4-01: owner exact location is %', row_to_json(r);

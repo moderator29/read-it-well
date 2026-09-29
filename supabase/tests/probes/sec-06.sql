@@ -15,6 +15,12 @@ declare
   note   text;
   n      int;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- A. The detector, positive and negative.
   for rec in select * from (values
     ('No Igbo tenants', true), ('Muslims only', true), ('Christians only please', true),
@@ -55,7 +61,7 @@ begin
 
   set local role authenticated;
   perform set_config('request.jwt.claims',
-    json_build_object('sub', member, 'role', 'authenticated')::text, true);
+    json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- CONTROL: ordinary copy, including honest fee wording, is saved as written.
   insert into public.listings (id, agent_id, title, description, property_type, status)
@@ -113,7 +119,7 @@ begin
     from public.listings where id = held and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
   set local role authenticated;
   perform set_config('request.jwt.claims',
-    json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+    json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.listings set status = 'PUBLISHED' where id = held;
   reset role;
   select status::text, review_notes into st, note from public.listings where id = held;

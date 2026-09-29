@@ -19,6 +19,12 @@ declare
   st     text;
   refused boolean;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   select r.user_id into superu from public.user_roles r
    where r.role = 'super_admin' and r.user_id <> admin limit 1;
   if superu is null then raise exception 'PROBE_FAIL sec-15: no super admin to run the control as'; end if;
@@ -37,7 +43,7 @@ begin
   set local role authenticated;
 
   -- A member cannot open one, write the table, or (yet) read anything.
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   refused := false;
   begin
     perform public.admin_open_email_recovery(member, 'new.probe@example.invalid', '12345678901', 'ticket PROBE-1');
@@ -53,7 +59,7 @@ begin
   if not refused then raise exception 'PROBE_FAIL sec-15: a member wrote a recovery row'; end if;
 
   -- The opening super admin: a wrong NIN and their own account are refused.
-  perform set_config('request.jwt.claims', json_build_object('sub', superu, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', superu, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   refused := false;
   begin
     perform public.admin_open_email_recovery(member, 'new.probe@example.invalid', '98765432109', 'ticket PROBE-1');
@@ -96,7 +102,7 @@ begin
   req := public.admin_open_email_recovery(member, 'New.Probe@Example.invalid', '12345678901', 'ticket PROBE-1');
 
   -- The owner can read their own request.
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.email_recovery_requests where id = req;
   if n <> 1 then raise exception 'PROBE_FAIL sec-15: the owner cannot see the request against them'; end if;
 
@@ -104,7 +110,7 @@ begin
   reset role;
   update public.email_recovery_requests set eligible_at = now() - interval '1 minute' where id = req;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   refused := false;
   begin
     perform public.admin_begin_email_recovery(req);
@@ -127,7 +133,7 @@ begin
   reset role;
   update public.email_recovery_requests set opened_notice_at = now() - interval '73 hours' where id = req;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', superu, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', superu, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   refused := false;
   begin
     perform public.admin_begin_email_recovery(req);
@@ -136,9 +142,9 @@ begin
   if not refused then raise exception 'PROBE_FAIL sec-15: the opener began the move'; end if;
 
   -- The second super admin begins it; the opener cannot finish it.
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   perform public.admin_begin_email_recovery(req);
-  perform set_config('request.jwt.claims', json_build_object('sub', superu, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', superu, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   refused := false;
   begin
     perform public.admin_finish_email_recovery(req, true, null);
@@ -150,7 +156,7 @@ begin
   reset role;
   insert into auth.sessions (id, user_id, created_at, updated_at) values (gen_random_uuid(), member, now(), now());
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   perform public.admin_finish_email_recovery(req, true, null);
   reset role;
 
@@ -193,9 +199,9 @@ begin
   reset role;
   delete from public.account_money_holds where user_id = member;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', superu, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', superu, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   req2 := public.admin_open_email_recovery(member, 'second.probe@example.invalid', '12345678901', 'ticket PROBE-2');
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   perform public.admin_cancel_email_recovery(req2, null);
   reset role;
   select status into st from public.email_recovery_requests where id = req2;

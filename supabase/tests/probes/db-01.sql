@@ -12,8 +12,14 @@ declare
   n int;
   r record;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- CONTROL: the host wizard's first save (lib/host/actions.ts) as the member.
   insert into public.businesses (owner_id, source, status, kind, name, slug)
@@ -109,7 +115,7 @@ begin
   exception when insufficient_privilege then null; end;
 
   -- CONTROL: the admin decides through their own authenticated client.
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.businesses
      set status = 'PUBLISHED', verification_tier = 3, reviewer_id = admin, reviewed_at = now(),
          review_notes = 'probe', published_at = now()
@@ -128,7 +134,7 @@ begin
   end if;
 
   -- REFUSALS: the owner rewrites what the reviewer published, or deletes it.
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin update public.businesses set name = 'Pay the deposit to 0123456789', phone = null where id = biz;
     raise exception 'PROBE_FAIL db-01: owner rewrote a live business';
   exception when insufficient_privilege then null; end;

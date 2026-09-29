@@ -8,6 +8,12 @@ declare
   n int;
   col text;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   set local role anon;
   perform set_config('request.jwt.claims', '{"role":"anon"}', true);
   select count(*) into n from (select user_id, badge_code, granted_at, revoked_at from public.user_badges) s;
@@ -26,7 +32,7 @@ begin
 
   reset role;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from (select user_id, badge_code, granted_at, granted_by, reason, revoked_at from public.user_badges) s;
   select count(*) into n from (select id, created_by from public.fee_rates) s;
 

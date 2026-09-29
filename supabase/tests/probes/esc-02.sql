@@ -20,9 +20,15 @@ declare
   stay   uuid := 'ed000000-0000-4000-8000-000000000003';
   rental uuid := 'ed000000-0000-4000-8000-000000000007';
   lagos  date := (now() at time zone 'Africa/Lagos')::date;
-  claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated')::text;
+  claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text;
   bk uuid; bk2 uuid; insp uuid; r jsonb; n int; t bigint; rate bigint; ag public.deal_agreements%rowtype; g bigint;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- An example stay made real inside the transaction, and an example rental.
   -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
   -- approved mandate. The fixture files one as the platform would.
@@ -132,7 +138,7 @@ begin
 
   -- REFUSAL: overlapping dates (checked as another guest, so the per-guest
   -- hold limit is not what refuses it).
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
       price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
@@ -206,7 +212,7 @@ begin
   exception when insufficient_privilege then n := 0;
   end;
   if n <> 0 then raise exception 'PROBE_FAIL esc-p2-01: guest updated % rows', n; end if;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.bookings where id = bk;
   if n <> 1 then raise exception 'PROBE_FAIL esc-p2-01: admin cannot read the booking'; end if;
   -- Refused by RLS (0 rows) today, and by the grant (42501) once MON-10's

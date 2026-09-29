@@ -13,6 +13,12 @@ declare
   tenancy uuid; night uuid; insp uuid; r jsonb; st text; n int;
   rent_ag uuid; stay_ag uuid; ag uuid;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
   -- approved mandate. The fixture files one as the platform would.
   insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
@@ -65,7 +71,7 @@ begin
     r := public.agreement_confirm_as(lister, ag, 1);
     if r ->> 'agreement_status' is distinct from 'in_review' then raise exception 'PROBE_FAIL esc-p2-02: fixture agreement not submitted: %', r; end if;
     set local role authenticated;
-    perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+    perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
     r := public.admin_decide_agreement(ag, 'approve', null);
     reset role;
     if r ->> 'agreement_status' is distinct from 'approved' then raise exception 'PROBE_FAIL esc-p2-02: fixture agreement not approved: %', r; end if;

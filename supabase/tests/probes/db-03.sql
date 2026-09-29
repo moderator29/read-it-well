@@ -18,6 +18,12 @@ declare
   st text;
   n int;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into public.agents (user_id, display_name) values (member, 'Probe DB-03 lister') returning id into agent;
   insert into public.agents (user_id, display_name) values (other, 'Probe DB-03 principal') returning id into other_agent;
   insert into public.businesses (owner_id, kind, name, slug, status)
@@ -28,7 +34,7 @@ begin
   values (firm_listing, other_agent, 'Probe DB-03 firm listing', 'apartment', 'DRAFT', firm, 'firm');
 
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- The app path: saveDraft's column set plus agent_id and status, RETURNING.
   -- supabase-js drops undefined keys, so only the columns a rent draft
@@ -93,7 +99,7 @@ begin
   end;
 
   -- CONTROL: a stranger sees and changes nothing.
-  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.listings where id in (lid, firm_listing);
   if n <> 0 then raise exception 'PROBE_FAIL db-03: stranger sees drafts rows=%', n; end if;
   update public.listings set title = 'stranger' where id = lid;
@@ -101,7 +107,7 @@ begin
   if n <> 0 then raise exception 'PROBE_FAIL db-03: stranger update rows=%', n; end if;
 
   -- CONTROL: the lister deletes their own draft (deleteListing).
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   delete from public.listings where id = lid and agent_id = agent;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-03: owner delete own draft rows=%', n; end if;

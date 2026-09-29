@@ -13,6 +13,12 @@ declare
   firm2 uuid;
   n int;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into public.agents (user_id, display_name) values (member, 'Probe SUP-P2-01 staff') returning id into agent;
   insert into public.agents (user_id, display_name) values (admin, 'Probe SUP-P2-01 principal') returning id into principal_agent;
   insert into public.businesses (owner_id, kind, name, slug, status)
@@ -29,7 +35,7 @@ begin
   set local role authenticated;
 
   -- CONTROL: the admin's roster read (lib/admin/reads/supply.ts getFirmRosters).
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     select count(*) into n from public.firm_members where firm_id = firm;
   exception when others then
@@ -38,7 +44,7 @@ begin
   if n <> 2 then raise exception 'PROBE_FAIL sup-p2-01: admin/principal sees rows=% (want 2)', n; end if;
 
   -- A staff member sees their own row only.
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     select count(*) into n from public.firm_members where firm_id = firm;
   exception when others then
@@ -50,7 +56,7 @@ begin
   if n <> 2 then raise exception 'PROBE_FAIL sup-p2-01: non-admin principal sees rows=% (want 2)', n; end if;
 
   -- A stranger sees none of it.
-  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   select count(*) into n from public.firm_members where firm_id in (firm, firm2);
   if n <> 0 then raise exception 'PROBE_FAIL sup-p2-01: stranger sees rows=%', n; end if;
 

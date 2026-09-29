@@ -16,6 +16,12 @@ declare
   lagos  date := (now() at time zone 'Africa/Lagos')::date;
   bk uuid; rate bigint; r jsonb; n int; fn text;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- No API role holds EXECUTE on any of the four.
   foreach fn in array array[
     'private.agreement_log(public.deal_agreements, uuid, text, public.agreement_status, text)',
@@ -44,7 +50,7 @@ begin
 
   -- A signed-in member calling the helpers directly is refused.
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     perform private.agreement_log(ag, member, 'approved', 'in_review'::public.agreement_status, 'forged');
     raise exception 'PROBE_FAIL sec-agreement-helpers: a member wrote an agreement event';
@@ -63,7 +69,7 @@ begin
 
   -- The legitimate path: an admin decides the agreement through the API.
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   r := public.admin_decide_agreement(ag.id, 'approve', null);
   reset role;
   if r ->> 'status' <> 'ok' then

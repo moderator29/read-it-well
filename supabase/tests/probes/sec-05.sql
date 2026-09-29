@@ -15,6 +15,12 @@ declare
   n      int;
   refused boolean;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   --------------------------------------------------------------------------
   -- A. The matcher. Expected verdict per string: hold / flag / clean.
   --------------------------------------------------------------------------
@@ -91,7 +97,7 @@ begin
   --------------------------------------------------------------------------
   set local role authenticated;
   perform set_config('request.jwt.claims',
-    json_build_object('sub', member, 'role', 'authenticated')::text, true);
+    json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- CONTROL: a clean post goes live.
   insert into public.posts (author_id, author_kind, body, status)

@@ -17,11 +17,17 @@ declare
   r record;
   attack text;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   insert into public.agents (user_id, display_name) values (member, 'Probe DB-02 lister')
   returning id into agent;
 
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- CONTROL: the wizard's first save shape (lib/agent/listings-actions.ts
   -- saveDraft), without RETURNING so this probe does not depend on DB-03.
@@ -103,7 +109,7 @@ begin
   exception when insufficient_privilege then null; end;
 
   -- CONTROL: somebody else cannot touch it.
-  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.listings set description = 'stranger' where id = lid;
   get diagnostics n = row_count;
   if n <> 0 then raise exception 'PROBE_FAIL db-02: stranger update rows=%', n; end if;
@@ -119,7 +125,7 @@ begin
     from public.listings where id = lid and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
   set local role authenticated;
   -- CONTROL: the admin review (lib/admin/actions.ts) as authenticated.
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.listings set status = 'APPROVED', reviewer_id = admin, reviewed_at = now(), review_notes = 'probe'
    where id = lid;
   get diagnostics n = row_count;
@@ -138,7 +144,7 @@ begin
   end if;
 
   -- REFUSALS: the owner rewrites or reprices the live listing, or deletes it.
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   begin
     update public.listings set title = 'Pay the caution to 0123456789 GTB', description = 'transfer first',
            rent_amount_minor = 1 where id = lid;

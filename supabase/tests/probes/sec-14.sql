@@ -12,6 +12,12 @@ declare
   h text;
   signup record;
 begin
+  -- 29 September: the console's second factor. The QA admin holds their role
+  -- only on a session that proved a security key, so this probe's session
+  -- carries one (rolled back with everything else).
+  insert into public.console_step_ups (user_id, session_id, expires_at)
+  values ('03f3dd52-ea28-4852-9abe-e5b0a67c2a43', '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour')
+  on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- Sign-ups assembled by hand, through the real handle_new_user.
   for signup in
     select * from (values
@@ -51,7 +57,7 @@ begin
   update public.profiles set surname = 'Admin' where id = member;
 
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
 
   -- CONTROLS: an ordinary edit beside the existing name; real names that only resemble it.
   update public.profiles set first_name = 'Ada', nickname = 'Ada B' where id = member;
@@ -84,7 +90,7 @@ begin
   end loop;
 
   -- CONTROL: an admin's own token may (staff accounts are named for what they are).
-  perform set_config('request.jwt.claims', json_build_object('sub', admin_id, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', admin_id, 'role', 'authenticated', 'session_id', '00000000-0000-4000-8000-00000000c0de')::text, true);
   update public.profiles set nickname = 'Vallo Support' where id = admin_id;
   if not found then raise exception 'PROBE_FAIL sec-14: an admin could not name their own account'; end if;
 
