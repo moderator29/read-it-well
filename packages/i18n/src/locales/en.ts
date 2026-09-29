@@ -1311,7 +1311,7 @@ export const en = {
     wordmark: "VALLO",
     /* The sign-up options page, after Get started on the intro. */
     optionsTitle: "Create your account",
-    optionsLead: "Choose how you want to sign up. It takes a minute.",
+    optionsLead: "Choose how you want to sign up.",
     signUpWithEmail: "Sign up with email",
     haveAccountCta: "I already have an account",
   },

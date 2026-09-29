@@ -1,17 +1,16 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SectionHead } from "./SectionHead";
 
 /**
  * "Everything in one place": the bento (Track M, second pass).
  *
- * Seven doors into the product, in mixed sizes, each with one still scene
- * built on the platform's own glass objects: the house and its key tag, the
- * calendar, the assistant with its typing dots, the Price Check report, the
- * shield, two messages behind the chat, the map pin. No line glyph
+ * Seven doors into the product, in mixed sizes, each with one of the
+ * platform's own glass objects: the house, the calendar, the assistant, the
+ * Price Check report, the shield, the chat, the map pin. No line glyph
  * illustrates anything here (the founder's rule for content surfaces).
  *
  * STILL SINCE THE CLEAN PASS (29 September). The scenes used to loop (the
@@ -71,70 +70,31 @@ export function Bento({ t }: { t: Dictionary }) {
   );
 }
 
+/*
+ * ONE OBJECT PER CARD, AT ONE SIZE (the clean pass). The cards used to set
+ * their objects at 80 to 112px with extras around them (a key tag, typing
+ * dots, two message bars); in light mode each object now sits on its own
+ * navy tile (the design pass), so seven different tile sizes read as
+ * accident. One glass object each, all at `SCENE_ICON`.
+ */
+const SCENE_ICON = 88;
+const SCENE_OBJECT: Record<Scene, BrandIconName> = {
+  tag: "modern-house",
+  calendar: "calendar-check",
+  typing: "bot",
+  bars: "report-stats",
+  shield: "shield-check",
+  messages: "chat-duo",
+  /* `map-spot`, not `people-ring`: the ring assets draw a small, faint
+     object inside a glowing ring and read as missing beside the full-size
+     objects on the other cards. Around is places near you. */
+  feed: "map-spot",
+};
+
 function SceneArt({ scene }: { scene: Scene }) {
-  switch (scene) {
-    case "tag":
-      return (
-        <>
-          <span className="nf-scene__obj">
-            <BrandIcon name="modern-house" size={96} />
-          </span>
-          <span className="nf-scene__tag">
-            <BrandIcon name="keys-tag" size={48} />
-          </span>
-        </>
-      );
-    case "calendar":
-      return (
-        <span className="nf-scene__obj">
-          <BrandIcon name="calendar-check" size={112} />
-        </span>
-      );
-    case "typing":
-      return (
-        <>
-          <span className="nf-scene__obj">
-            <BrandIcon name="bot" size={80} />
-          </span>
-          <span className="nf-scene__dots">
-            <i />
-            <i />
-            <i />
-          </span>
-        </>
-      );
-    case "bars":
-      return (
-        <span className="nf-scene__obj">
-          <BrandIcon name="report-stats" size={88} />
-        </span>
-      );
-    case "shield":
-      return (
-        <span className="nf-scene__obj">
-          <BrandIcon name="shield-check" size={96} />
-        </span>
-      );
-    case "messages":
-      return (
-        <>
-          <span className="nf-scene__msgs">
-            <span className="nf-scene__msg nf-scene__msg--a" />
-            <span className="nf-scene__msg nf-scene__msg--b" />
-          </span>
-          <span className="nf-scene__obj nf-scene__obj--front">
-            <BrandIcon name="chat-duo" size={80} />
-          </span>
-        </>
-      );
-    case "feed":
-      /* `map-spot`, not `people-ring`: the ring assets draw a small, faint
-         object inside a glowing ring and read as missing beside the
-         full-size objects on the other cards. Around is places near you. */
-      return (
-        <span className="nf-scene__obj">
-          <BrandIcon name="map-spot" size={88} />
-        </span>
-      );
-  }
+  return (
+    <span className="nf-scene__obj">
+      <BrandIcon name={SCENE_OBJECT[scene]} size={SCENE_ICON} />
+    </span>
+  );
 }

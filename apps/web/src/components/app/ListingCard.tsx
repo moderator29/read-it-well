@@ -10,7 +10,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
 import { IntentTune } from "@/components/app/IntentTune";
 import { MediaFrame } from "@/components/app/MediaFrame";
-import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
+import { isPropertyType, type PropertyType } from "@/lib/interests/property-types";
 import { isDataSaver } from "@/lib/ui/data-saver";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";

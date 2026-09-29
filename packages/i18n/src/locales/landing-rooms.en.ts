@@ -26,7 +26,7 @@ export const landingRoomsEn = {
   ai: {
     overline: "Vallo AI",
     title: "Ask in plain words. Get real places back.",
-    body: "Ask in English, Yorùbá, Hausa or Igbo. It searches the same listings you do and links every place it names.",
+    body: "Ask in English, Yorùbá, Hausa or Igbo, in your own words.",
     caption: "An example conversation",
     replay: "Play again",
     cta: "Ask the assistant",

@@ -620,7 +620,9 @@
     transform-origin: 100% 50%;
     transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance) 120ms;
   }
+  /* Balanced, so no heading leaves one word alone on its last line. */
   .nf-sec-title {
+    text-wrap: balance;
     margin-top: var(--nf-gap-row);
     max-width: var(--nf-measure-display);
     font-family: var(--nf-font-display);
@@ -1142,10 +1144,6 @@
     min-height: 11rem;
   }
 
-  .nf-scene__tag svg {
-    width: 2rem;
-    height: 2rem;
-  }
   .nf-ai-show[data-playing="false"] .nf-ai-typing > span {
     animation-play-state: paused;
   }
@@ -1154,8 +1152,8 @@
    * THE SCENES ARE STILL (the clean pass, 29 September). Each used to loop
    * every 4.8 seconds (the tag swung, the calendar turned, the assistant
    * bobbed, a light crossed the shield, two messages traded places), which
-   * made the grid the busiest thing on the page. They are drawn at rest now,
-   * in the pose each loop used to hold longest.
+   * made the grid the busiest thing on the page. Each card now holds one
+   * still glass object at one size (Bento.tsx).
    */
   .nf-scene__obj {
     position: relative;
@@ -1163,68 +1161,6 @@
     display: inline-grid;
     place-items: center;
     filter: drop-shadow(0 6px 14px var(--nf-glow-1));
-  }
-  .nf-scene__obj--front {
-    z-index: 2;
-  }
-  /* The key tag hangs beside the house. */
-  .nf-scene__tag {
-    position: absolute;
-    z-index: 2;
-    top: 0.2rem;
-    left: calc(50% + 1.8rem);
-    transform: rotate(-9deg);
-    transform-origin: 30% 0;
-  }
-  /* The assistant's typing dots, drawn mid-word. */
-  .nf-scene > .nf-scene__dots {
-    position: absolute;
-    z-index: 2;
-    top: 0.8rem;
-    left: calc(50% + 2rem);
-  }
-  .nf-scene__dots {
-    display: inline-flex;
-    gap: 0.3rem;
-    align-self: flex-start;
-    padding: 0.55rem 0.7rem;
-    border-radius: var(--nf-radius-md);
-    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
-  }
-  .nf-scene__dots > i {
-    width: 0.4rem;
-    height: 0.4rem;
-    border-radius: var(--nf-radius-circle);
-    background: currentColor;
-  }
-  .nf-scene__dots > i:nth-child(2) { opacity: 0.7; }
-  .nf-scene__dots > i:nth-child(3) { opacity: 0.4; }
-
-  /* Two messages behind the chat. */
-  .nf-scene__msgs {
-    position: absolute;
-    inset: 50% auto auto 50%;
-    width: 12rem;
-    height: 5.5rem;
-    translate: -50% -50%;
-    opacity: 0.7;
-  }
-  .nf-scene__msg {
-    position: absolute;
-    height: 1.5rem;
-    border-radius: var(--nf-radius-md);
-  }
-  .nf-scene__msg--a {
-    left: 0;
-    top: 0.4rem;
-    width: 65%;
-    background: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
-  }
-  .nf-scene__msg--b {
-    right: 0;
-    bottom: 0.4rem;
-    width: 55%;
-    background: var(--nf-brand-primary);
   }
 
   /* ------------------------------------------------ the two worlds */

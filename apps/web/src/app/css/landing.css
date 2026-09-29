@@ -104,6 +104,12 @@
     color: var(--nf-content-primary);
   }
 
+  /* Every heading on the landing wraps balanced, so none leaves one word
+     alone on its last line ("Somewhere to live, or to / own"). */
+  .nf-landing :is(h2, h3) {
+    text-wrap: balance;
+  }
+
   /* The pool of light cast under the lit bar, at a third of its strength. */
   .nf-landing .nf-btn--primary::after {
     opacity: 0.35;

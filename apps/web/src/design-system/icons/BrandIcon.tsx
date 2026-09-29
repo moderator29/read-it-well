@@ -6,7 +6,7 @@ import Image from "next/image";
  * The content tier: one object per thing the product talks about. A shield, a
  * villa, a receipt. Navigation is `UiIcon`: the side drawer, the rail, the
  * dock and its More tray all draw line glyphs since 29 September 2026 (the
- * glass map they once read, `lib/nav/glass-glyph.ts`, is deleted). The two
+ * Track M glass map they once read is deleted). The two
  * tiers never share a row. In light, outside a night island, every object
  * stands on a navy tile (`app/css/light.css`); a host that draws its own
  * plate opts out with `data-host-plate`.

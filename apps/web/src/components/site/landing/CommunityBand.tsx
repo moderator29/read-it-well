@@ -34,7 +34,12 @@ export function CommunityBand({
   stats: PlatformStats | null;
 }) {
   const c = t.landing.face.community;
-  const figures = statTiles(stats, t).slice(0, 3);
+  /* The figures print as a row or not at all (the clean pass): a single
+     figure on its own ("1 approved agent" while the catalogue is empty)
+     reads as a boast about a small number rather than as a fact beside
+     others, so the row needs at least two to stand. */
+  const all = statTiles(stats, t).slice(0, 3);
+  const figures = all.length >= 2 ? all : [];
 
   return (
     <section className="nf-shell nf-room" data-chapter="community" aria-labelledby="nf-landing-community-title">
