@@ -80,6 +80,9 @@ export function ReportSheet({
   }, []);
 
   function openSheet() {
+    /* A second tap while the body is still on its way is the same request:
+       the host is not told twice and nothing is fetched or opened again. */
+    if (open) return;
     onOpen?.();
     setOpen(true);
     setWanted(true);
@@ -97,6 +100,8 @@ export function ReportSheet({
           type="button"
           onClick={openSheet}
           {...sheet.warmProps}
+          aria-haspopup="dialog"
+          aria-expanded={open}
           aria-busy={pending || undefined}
           data-testid="report-opener"
           className="nf-share-row mt-md w-full text-left"
@@ -124,6 +129,8 @@ export function ReportSheet({
           type="button"
           onClick={openSheet}
           {...sheet.warmProps}
+          aria-haspopup="dialog"
+          aria-expanded={open}
           aria-busy={pending || undefined}
           data-testid="report-opener"
           className="inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"

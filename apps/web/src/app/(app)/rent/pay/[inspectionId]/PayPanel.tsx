@@ -217,7 +217,10 @@ export function PayPanel({
         ? { kind: "paid", reference: result.data.reference ?? "" }
         : { kind: "applying", reference: result.data.reference ?? "" },
     );
-    router.refresh();
+    /* A settled charge refreshes when its receipt closes: refreshing now
+       re-renders the page down its paid branch, which does not mount this
+       panel, and took the receipt away the moment it opened. */
+    if (!result.data.settled) router.refresh();
   };
 
   const payByCard = async () => {
@@ -389,8 +392,8 @@ export function PayPanel({
             return state.ok ? state.data : "pending";
           }}
           onPaid={() => {
+            /* No refresh here: see the receipt's onOpenChange below. */
             setPhase({ kind: "paid", reference: phase.reference });
-            router.refresh();
           }}
           onCancelled={() => setPhase({ kind: "idle" })}
           onFailed={(message) => setPhase({ kind: "error", message })}
@@ -399,7 +402,10 @@ export function PayPanel({
 
       <SuccessSheet
         open={phase.kind === "paid"}
-        onOpenChange={() => setPhase({ kind: "idle" })}
+        onOpenChange={() => {
+          setPhase({ kind: "idle" });
+          router.refresh();
+        }}
         variant={paid.variant}
         title={paid.title}
         body={paid.body}

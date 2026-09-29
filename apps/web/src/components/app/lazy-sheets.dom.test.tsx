@@ -130,3 +130,46 @@ run("the report sheet, loaded on demand", () => {
     }
   });
 });
+
+const STAYS_OPEN = `
+  import { getDictionary } from "@vallo/i18n";
+  import { mount } from "@/lib/testing/browser-root";
+  import { StayFilterSheet } from "@/components/app/stays/StayFilterSheet";
+  import { parseStaysQuery } from "@/lib/stays/filters";
+  mount(<StayFilterSheet openOnMount query={parseStaysQuery({}, "2026-01-01")} locale="en" t={getDictionary("en")} today="2026-01-01" />);
+`;
+
+run("a sheet the address opens (?filters=open)", () => {
+  it("fetches its body at mount and opens without a tap", async () => {
+    const { page, close } = await mountInBrowser({ entry: STAYS_OPEN });
+    try {
+      await page.waitForSelector('[data-testid="stay-filters"][data-open="true"]', { timeout: 8_000 });
+      const opener = page.getByTestId("stay-filters-open");
+      expect(await opener.getAttribute("aria-expanded")).toBe("true");
+      expect(await opener.getAttribute("aria-busy")).toBeNull();
+      await page.keyboard.press("Escape");
+      await page.waitForSelector('[data-testid="stay-filters"]', { state: "detached", timeout: 8_000 });
+      expect(await opener.getAttribute("aria-expanded")).toBe("false");
+    } finally {
+      await close();
+    }
+  });
+});
+
+run("a double tap on a trigger whose body is still loading", () => {
+  it("opens one sheet, once", async () => {
+    const { page, close } = await mountInBrowser({ entry: REPORT });
+    try {
+      const opener = page.getByTestId("report-opener");
+      expect(await opener.getAttribute("aria-haspopup")).toBe("dialog");
+      expect(await opener.getAttribute("aria-expanded")).toBe("false");
+      await opener.dblclick();
+      await page.waitForSelector('[role="dialog"][data-open="true"]', { timeout: 8_000 });
+      expect(await page.locator('[data-testid="report-sheet"]').count()).toBe(1);
+      expect(await page.locator('[role="dialog"]').count()).toBe(1);
+      expect(await opener.getAttribute("aria-expanded")).toBe("true");
+    } finally {
+      await close();
+    }
+  });
+});

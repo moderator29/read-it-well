@@ -93,3 +93,39 @@ describe("the stays parameter names without the validator", () => {
     expect([...STAYS_PARAM_KEYS]).toEqual(Object.keys(staysParamsSchema.shape));
   });
 });
+
+describe("the server still validates with the full schemas, at the same limits", () => {
+  it("the report vocabulary the sheet draws is the one the action's schema accepts", async () => {
+    const { REPORT_CATEGORIES, REPORT_CATEGORY_ORDER, REPORT_CATEGORY_COPY, REPORT_TARGETS, REPORT_TARGET_NOUN, DETAILS_MAX, reportInputSchema } =
+      await import("@/lib/reports/schema");
+    expect([...REPORT_CATEGORY_ORDER].sort()).toEqual([...REPORT_CATEGORIES].sort());
+    expect(Object.keys(REPORT_CATEGORY_COPY).sort()).toEqual([...REPORT_CATEGORIES].sort());
+    expect(Object.keys(REPORT_TARGET_NOUN).sort()).toEqual([...REPORT_TARGETS].sort());
+    expect(DETAILS_MAX).toBe(1200);
+    const base = { targetType: "listing", targetId: "l-1", category: "scam" };
+    expect(reportInputSchema.safeParse({ ...base, details: "x".repeat(DETAILS_MAX) }).success).toBe(true);
+    expect(reportInputSchema.safeParse({ ...base, details: "x".repeat(DETAILS_MAX + 1) }).success).toBe(false);
+    expect(reportInputSchema.safeParse({ ...base, category: "invented" }).success).toBe(false);
+    expect(reportInputSchema.safeParse({ ...base, targetType: "invented" }).success).toBe(false);
+  });
+
+  it("the party bound the form prints is the one the reservation schema enforces", async () => {
+    const limits = await import("@/lib/reservations/limits");
+    const { MAX_PARTY, MAX_DAYS_AHEAD, reserveSchema } = await import("@/lib/reservations/schema");
+    expect([MAX_PARTY, MAX_DAYS_AHEAD]).toEqual([limits.MAX_PARTY, limits.MAX_DAYS_AHEAD]);
+    expect([MAX_PARTY, MAX_DAYS_AHEAD]).toEqual([50, 90]);
+    const base = { listingId: "00000000-0000-4000-8000-000000000001", date: "2026-10-01", time: "19:00" };
+    expect(reserveSchema.safeParse({ ...base, partySize: MAX_PARTY }).success).toBe(true);
+    expect(reserveSchema.safeParse({ ...base, partySize: MAX_PARTY + 1 }).success).toBe(false);
+  });
+
+  it("the stays address is still parsed by the schema, clamping what the sheet can build", async () => {
+    const { parseStaysQuery, MAX_ROOMS } = await import("@/lib/stays/filters");
+    const query = await import("@/lib/stays/query");
+    expect(MAX_ROOMS).toBe(query.MAX_ROOMS);
+    expect(parseStaysQuery({ rooms: String(MAX_ROOMS + 1) }, "2026-01-01").rooms).toBe(1);
+    expect(parseStaysQuery({ rooms: String(MAX_ROOMS) }, "2026-01-01").rooms).toBe(MAX_ROOMS);
+    const q = parseStaysQuery({ min: "5000", sort: "price-asc", wifi: "1" }, "2026-01-01");
+    expect(parseStaysQuery(Object.fromEntries(new URL(query.toStaysHref(q), "https://x").searchParams), "2026-01-01")).toEqual(q);
+  });
+});

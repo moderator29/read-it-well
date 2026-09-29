@@ -53,6 +53,8 @@ export function StayFilterSheet({
   const pending = open && !sheet.ready;
 
   function openSheet() {
+    /* A second tap while the body is still on its way changes nothing. */
+    if (open) return;
     setOpen(true);
     setWanted(true);
     /* A chunk that cannot load leaves the sheet shut and the button live. */

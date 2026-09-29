@@ -104,6 +104,27 @@
     }
   }
 
+  /*
+   * THE RAIL ON A LAPTOP-HEIGHT SCREEN. At 1440x900 the agent workspace's
+   * thirteen rows at 52 with two 24px section boundaries came to 779px in a
+   * 670px list, so "AI Assistant", Settings and Help sat under the identity
+   * card behind a hidden scrollbar. On a pointer screen no taller than 960 the
+   * rail's rows take 44 (still the touch floor) and the boundaries 8 + 8;
+   * nothing else moves: the glyphs, the label size, the pill and the grouping
+   * are the same. The phone drawer is not a rail and keeps its 52/48 rhythm,
+   * and a taller desktop keeps 52. `NavTree` also scrolls the current row into
+   * view, for a screen shorter still.
+   */
+  @media (min-width: 64rem) and (max-height: 60rem) {
+    .nf-nav--rail .nf-nav__row {
+      min-height: 2.75rem;
+    }
+    .nf-nav--rail .nf-nav__section + .nf-nav__section {
+      margin-top: var(--nf-space-xs);
+      padding-top: var(--nf-space-xs);
+    }
+  }
+
   .nf-nav--drawer {
     height: 100%;
     width: 100%;

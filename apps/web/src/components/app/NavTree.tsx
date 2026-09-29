@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { motionQuiet } from "@/lib/motion/gate";
 import { isCurrent, type NavLeaf, type NavSection } from "./nav-model";
 
 /**
@@ -69,6 +71,30 @@ export function NavTree({
   whole?: boolean;
 }) {
   const Row = whole ? WholePrefetchLink : Link;
+
+  /*
+   * THE CURRENT ROW IS ON SCREEN. The list scrolls with its scrollbar hidden,
+   * so a current row below the fold (Settings on a 900px-tall laptop) was a
+   * page you were on that the navigation did not show. On mount, and when the
+   * current page changes, the list scrolls just far enough to show it: the
+   * `block: "nearest"` rule, applied to this list alone rather than through
+   * `scrollIntoView`, which would also scroll the page and the drawer around
+   * it. Arriving is instant; a later change glides unless motion is quiet.
+   */
+  const navRef = useRef<HTMLElement | null>(null);
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    const list = navRef.current;
+    const first = !mountedRef.current;
+    mountedRef.current = true;
+    const row = list?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!list || !row || list.scrollHeight <= list.clientHeight) return;
+    const box = list.getBoundingClientRect();
+    const at = row.getBoundingClientRect();
+    const delta = at.top < box.top ? at.top - box.top : at.bottom > box.bottom ? at.bottom - box.bottom : 0;
+    if (delta === 0) return;
+    list.scrollBy({ top: delta, behavior: first || motionQuiet() ? "auto" : "smooth" });
+  }, [active, activeType]);
   const row = (item: NavLeaf) => {
     const current = isCurrent(item.href, active, activeType);
     return (
@@ -116,6 +142,7 @@ export function NavTree({
 
   return (
     <nav
+      ref={navRef}
       aria-label={label}
       className={`nf-nav__scroll${accent === "agent" ? " nf-nav__scroll--agent" : ""}`}
     >

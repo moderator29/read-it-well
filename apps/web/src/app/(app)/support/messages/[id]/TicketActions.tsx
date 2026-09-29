@@ -134,7 +134,7 @@ export function RateResolution({
           >
             <UiIcon
               name="star"
-              size={26}
+              size={28}
               className={n <= stars ? "text-[var(--nf-brand-primary)] [&_*]:fill-current" : "text-[var(--nf-content-muted)]"}
             />
           </button>

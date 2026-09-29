@@ -1946,6 +1946,16 @@
   .nf-stays-tile--on .nf-stays-tile__go {
     color: var(--nf-content-on-brand);
   }
+  /* THE ARROW KEEPS ITS OWN ROW (E2E audit, 29 September). `stays.css` is
+     imported after this file and its `.nf-stays-tile` sets the `padding`
+     shorthand, which quietly reset the `padding-right` above to 12px; at 390
+     "Apartments" and "Serviced apartments" then ran under the arrow. The
+     category grid now reserves the arrow's line at the foot instead, so a
+     long name keeps the full width and never meets the glyph. */
+  .nf-stays-tiles > li > .nf-stays-tile {
+    padding-right: var(--nf-space-sm);
+    padding-bottom: calc(var(--nf-space-xs) + 14px + var(--nf-space-2xs));
+  }
   .nf-stays-tile:active {
     transform: scale(0.97);
   }
