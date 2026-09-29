@@ -1,4 +1,4 @@
--- B-7 (a) and (b). NOT APPLIED. Written 29 September 2026 for founder approval.
+-- B-7 (a) and (b). APPLIED 29 September 2026 (version 20260929122523) with founder approval.
 --
 -- Weakens no policy. Adds no DELETE policy. Grants one SECURITY INVOKER
 -- function to `authenticated`, which can do nothing the existing
