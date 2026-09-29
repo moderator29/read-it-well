@@ -436,4 +436,44 @@
       padding: 1.25rem;
     }
   }
+
+  /* The desks' period select (plan item 14): a quiet 40px field on the raised
+     well with a calendar glyph and a chevron, over a native select. */
+  .nf-desk-range {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    border-radius: var(--nf-radius-control-sm);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+  }
+  .nf-desk-range__glyph,
+  .nf-desk-range__chev {
+    position: absolute;
+    pointer-events: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-desk-range__glyph {
+    inset-inline-start: 0.75rem;
+  }
+  .nf-desk-range__chev {
+    inset-inline-end: 0.625rem;
+  }
+  .nf-desk-range__select {
+    min-height: 2.5rem;
+    padding-inline: 2.25rem 2rem;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    appearance: none;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: inherit;
+    cursor: pointer;
+  }
+  .nf-desk-range__select:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
 }
