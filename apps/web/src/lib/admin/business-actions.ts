@@ -271,7 +271,7 @@ export async function publishAccommodation(input: {
      nothing on another is how a live hotel came to project a null price. */
   const bookableRooms = property.room_types.filter((roomType) => roomType.rate_plans.length > 0);
   if (bookableRooms.length === 0) {
-    return fail("This property has no room with a rate, so nobody could book it.");
+    return fail("This property has no room with a rate, so nobody could book it. Ask the host to add a rate to at least one room, then publish again.");
   }
   /* V-57: nothing at the door that is not declared. A property is published
      only once its host has answered all five arrival charges. */
@@ -527,7 +527,7 @@ export async function publishRestaurant(input: {
   }
   if (!business.phone) {
     return fail(
-      "This venue has no phone number, so a guest who needs the restaurant itself has no way to reach it.",
+      "This venue has no phone number, so a guest who needs the restaurant itself has no way to reach it. Add one and try again.",
     );
   }
   const seats = business.service_windows.filter((window) => window.covers > 0).length;
@@ -615,7 +615,7 @@ export async function recordBusinessRung(input: {
   );
   if (!business) return fail(SERVICE_DOWN);
   if (business.source !== "first_party") {
-    return fail("Only a first-party business carries a verification ladder.");
+    return fail("Only a first-party business carries a verification ladder, so this one has no tier to set. Nothing was changed.");
   }
 
   const before = business.verification_tier ?? 0;

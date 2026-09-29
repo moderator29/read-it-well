@@ -404,6 +404,15 @@ export function isHarnessPath(pathname: string): boolean {
   return /^\/(preview|gallery)(\/|$)/.test(pathname);
 }
 
+/** Where a refused auth link lands: the sign-in screen, with the sentence. */
+export const AUTH_CALLBACK_REFUSED = "/sign-in?notice=link-expired";
+
+/** `/auth/callback` carrying Supabase's own refusal in the query. */
+export function isAuthCallbackRefusal(url: URL): boolean {
+  if (url.pathname.replace(/\/+$/, "") !== "/auth/callback") return false;
+  return Boolean(url.searchParams.get("error") || url.searchParams.get("error_code"));
+}
+
 export async function proxy(request: NextRequest) {
   /*
    * One nonce per request, minted before anything else so that every exit below
@@ -444,6 +453,19 @@ export async function proxy(request: NextRequest) {
    */
   if (request.nextUrl.pathname === "/" && isShellUserAgent(request.headers.get("user-agent"))) {
     return withSecurityPolicy(NextResponse.redirect(new URL(SHELL_START, request.url), 307), nonce);
+  }
+
+  /*
+   * L-4: A REFUSED AUTH LINK IS A 307, NOT A ONE-SECOND FRAME. When Supabase
+   * comes back with `?error=` (a spent or refused link), `auth/callback/page`
+   * redirected, but only after the root `loading.tsx` had started the stream,
+   * so the browser got a streamed meta refresh and a blank "verifying" second.
+   * Answered here instead, before anything renders. Safe because the target is
+   * fixed: nothing from the query is carried, and only a page load is turned
+   * away (a server action posting to the callback still reaches the page).
+   */
+  if (request.method === "GET" && isAuthCallbackRefusal(request.nextUrl)) {
+    return withSecurityPolicy(NextResponse.redirect(new URL(AUTH_CALLBACK_REFUSED, request.url), 307), nonce);
   }
 
   let response = NextResponse.next({ request });

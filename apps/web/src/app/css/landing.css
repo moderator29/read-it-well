@@ -642,22 +642,8 @@
     }
   }
 
-  /* ------------------------------------------------ the floating card */
-
-  .nf-landing-float {
-    position: relative;
-    width: 100%;
-    max-width: var(--nf-landing-card-w);
-    padding: var(--nf-space-xs);
-    color: var(--nf-landing-on-ink);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
-    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
-    backdrop-filter: blur(var(--nf-panel-blur));
-  }
+  /* ------------------------------------------------ the listing mini card
+     (ListingMini; the hero's floating card that framed it is gone) */
 
   .nf-landing-float-media {
     position: relative;

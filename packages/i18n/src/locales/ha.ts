@@ -437,8 +437,10 @@ export const ha: Dictionary = withFallback({
          six cells and they come back here. */
       community: {
         overline: "Mutane na gaske. Wurare na gaske.",
-        title: "Al'umma mai girma ta masu neman gida, masu gida da masu masauki.",
-        body: "Kowane adadi a wannan shafi ana karanta shi kai tsaye daga dandamali lokacin da shafin ya buɗe. Ba a ƙara komai ba.",
+        /* `title` and `body` are absent on purpose and fall back to English:
+           the clean pass (29 September) rewrote both, and the old Hausa
+           described a "growing community" and figures the band may not
+           print. A native speaker writes them and they come back here. */
         thirdParty: "Na ɓangare na uku",
         thirdPartyTitle: "Kayan abokan hulɗa, koyaushe da alama",
         thirdPartyBody:
@@ -446,8 +448,8 @@ export const ha: Dictionary = withFallback({
       },
       categories: {
         overline: "Bincika ta rukuni",
-        title: "Nemo daidai abin da kake nema.",
-        body: "Daga gidajen birni zuwa villa masu kyan gani, Vallo yana ɗauke da dukkan kasuwa.",
+        /* `title` and `body` fall back to English (the clean pass): the old
+           body claimed Vallo carries "the whole market". */
         apartments: "Gidajen haya",
         houses: "Gidaje",
         shortlets: "Gajeren haya",
@@ -634,6 +636,7 @@ export const ha: Dictionary = withFallback({
     emailPlaceholder: "kai@misali.com",
     passwordLabel: "Kalmar sirri",
     passwordPlaceholder: "Aƙalla haruffa takwas",
+    signInPasswordPlaceholder: "Kalmar sirrinka",
     fullNameLabel: "Cikakken suna",
     fullNamePlaceholder: "Sunanka",
     forgotPassword: "Ka manta kalmar sirri?",

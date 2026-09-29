@@ -13,14 +13,15 @@
  * two columns once there is room for two, and none of that costs anything on a
  * phone, where one column is still correct.
  *
- * Access is decided in the layout before any queue is read, so a run without an
- * admin session gets the access screen. That is asserted rather than worked
- * around, and the console geometry is measured against the real stylesheet
+ * Since 23 September a run without a session never reaches the layout: the
+ * proxy sends `/admin` to the sign-in door (`src/proxy.ts`). That is asserted
+ * rather than worked around, and the console geometry is measured against the real stylesheet
  * through a fixture that carries the same class names the pages carry - which
  * is the only way to measure a surface this sandbox cannot sign in to.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, onSignInDoor, signedOutContext } from "./_gate.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -203,17 +204,20 @@ check("and it is centred", wide.shell.left === (2560 - 1440) / 2, `left ${wide.s
 
 /* ------------------------------------------------------------------ the gate */
 
-console.log("\n[live] /admin without a staff session");
-const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+console.log("\n[live] /admin without a session");
+await expectSignInWall(check, "/admin");
+const context = await signedOutContext(browser, { viewport: { width: 1440, height: 900 } });
 const page = await context.newPage();
 const serverErrors = [];
 page.on("response", (r) => {
   if (r.status() >= 500) serverErrors.push(`${r.status()} ${r.url()}`);
 });
 await page.goto(`${BASE_URL}/admin`, { waitUntil: "load" });
+await page.waitForTimeout(1200);
 const text = await page.evaluate(() => document.body.innerText);
+check("the browser lands on the sign-in door", onSignInDoor(page), page.url());
 check(
-  "the access gate answers instead of a queue",
+  "the sign-in door answers instead of a queue",
   text.length > 0 && !/report|ticket|flag/i.test(text.slice(0, 200)),
   text.slice(0, 160).replace(/\s+/g, " "),
 );

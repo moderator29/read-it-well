@@ -33,7 +33,8 @@ export type NotMeCopy = Dictionary["platform"]["notMe"];
 
 type Outcome =
   | { kind: "held"; result: NotMeResult }
-  | { kind: "failed"; signedOut: boolean }
+  /* The server's own sentence, from the dictionary: sign in, or try again. */
+  | { kind: "failed"; message: string }
   | null;
 
 export function NotMePanel({
@@ -65,7 +66,7 @@ export function NotMePanel({
       else
         setOutcome({
           kind: "failed",
-          signedOut: result.error === "signed-out",
+          message: result.error || copy.failedConsequence,
         });
     });
   };
@@ -122,9 +123,7 @@ export function NotMePanel({
           }}
           state="failed"
           verdict={copy.failedVerdict}
-          consequence={
-            outcome.signedOut ? copy.signedOut : copy.failedConsequence
-          }
+          consequence={outcome.message}
           actions={[{ label: copy.close, onClick: () => setOutcome(null), tone: "quiet" }]}
         />
       )}

@@ -82,23 +82,31 @@ export function SavedCardPicker({
                 <span className="shrink-0 text-[var(--nf-content-secondary)]" aria-hidden="true">
                   <UiIcon name="wallet" size={ICON.row} />
                 </span>
+                {/* THE ROW HOLDS AT TWO LINES AT 390. The picker sits inside the
+                    option's text column, so a right-hand Default pill left the
+                    name about 100px and "Visa •••• 4081" broke into four
+                    lines. The pill now rides on the meta line, and the brand
+                    and the last four never break apart. */}
                 <span className="min-w-0 flex-1">
-                  <span className={`block ${TYPE.rowTitle}`}>
-                    {cardBrandLabel(card.cardType)} {maskNumber(card.last4)}
+                  <span className={`block ${TYPE.rowTitle}`} data-testid="saved-card-name">
+                    {cardBrandLabel(card.cardType)}{" "}
+                    <span className="whitespace-nowrap">{maskNumber(card.last4)}</span>
                   </span>
-                  <span className={`mt-3xs block ${TYPE.rowMeta}`}>
-                    {expired
-                      ? `The expiry we hold, ${expiry}, has passed`
-                      : expiry
-                        ? `Expires ${expiry}`
-                        : card.bank ?? ""}
+                  <span className={`mt-3xs flex flex-wrap items-center gap-x-xs gap-y-3xs ${TYPE.rowMeta}`}>
+                    <span>
+                      {expired
+                        ? `The expiry we hold, ${expiry}, has passed`
+                        : expiry
+                          ? `Expires ${expiry}`
+                          : card.bank ?? ""}
+                    </span>
+                    {card.isDefault && !expired && (
+                      <StatusPill tone="brand" className="shrink-0">
+                        Default
+                      </StatusPill>
+                    )}
                   </span>
                 </span>
-                {card.isDefault && !expired && (
-                  <StatusPill tone="brand" className="shrink-0">
-                    Default
-                  </StatusPill>
-                )}
               </label>
             </li>
           );

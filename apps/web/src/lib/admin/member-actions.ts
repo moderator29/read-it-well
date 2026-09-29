@@ -18,7 +18,7 @@ import { checkNote, isUserId } from "./member-file-rules";
 export async function addMemberNote(input: { userId: string; body: string }): Promise<ActionResult<null>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return fail(adminRefusal(access));
-  if (!isUserId(input?.userId)) return fail("That person could not be identified.");
+  if (!isUserId(input?.userId)) return fail("That person could not be identified. Reload their page and try again.");
   const checked = checkNote(input?.body);
   if (!checked.ok) return fail(checked.error, { body: checked.error });
 

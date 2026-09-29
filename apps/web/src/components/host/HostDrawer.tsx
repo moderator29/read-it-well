@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { NavTree } from "@/components/app/NavTree";
 import { WorkspaceDrawer } from "@/components/workspace/WorkspaceDrawer";
 import { AgentModePill } from "@/components/agent/AgentNav";
-import { buildHostNav, hostNavActive, hostTitleFor } from "./host-nav-model";
+import { buildHostNav, hostNavActive, hostTitleFor, type HostNavLabels } from "./host-nav-model";
 
 /**
  * The host console's drawer, below `lg`: the same `WorkspaceDrawer` the agent
@@ -15,20 +15,20 @@ import { buildHostNav, hostNavActive, hostTitleFor } from "./host-nav-model";
  * Client only for `usePathname`: `HostShell` is rendered by every host page
  * and none of them had to be told which one it is.
  */
-export function HostDrawer() {
+export function HostDrawer({ labels }: { labels: HostNavLabels }) {
   const active = hostNavActive(usePathname()) ?? "";
   return (
     <WorkspaceDrawer
-      title="Host workspace"
-      openLabel="Open the host menu"
-      closeLabel="Close the host menu"
-      head={<AgentModePill label="Host workspace" />}
+      title={labels.workspace}
+      openLabel={labels.openMenu}
+      closeLabel={labels.closeMenu}
+      head={<AgentModePill label={labels.workspace} />}
     >
       {(close) => (
         <NavTree
-          sections={buildHostNav()}
+          sections={buildHostNav(labels)}
           active={active}
-          label="Host workspace"
+          label={labels.workspace}
           accent="agent"
           onNavigate={close}
         />
@@ -38,6 +38,6 @@ export function HostDrawer() {
 }
 
 /** The bar's title, from the address. */
-export function HostTitle() {
-  return <>{hostTitleFor(usePathname())}</>;
+export function HostTitle({ labels }: { labels: HostNavLabels }) {
+  return <>{hostTitleFor(labels, usePathname())}</>;
 }

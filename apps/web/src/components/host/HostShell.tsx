@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { getShellIdentity } from "@/lib/app/shell-queries";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { HostNav } from "./HostNav";
 import { HostDrawer, HostTitle } from "./HostDrawer";
+import { hostNavLabels } from "./host-nav-model";
 
 /**
  * The Host surfaces' shell, for hotels, shortlets, guest houses, serviced
@@ -57,24 +60,30 @@ export async function HostShell({
   immersive?: boolean;
 }) {
   /* The bell's dot, failing soft to zero: a badge is never worth a page. */
-  const unread = await getShellIdentity().then(
-    (identity) => identity.unreadNotifications,
-    () => 0,
-  );
+  const [unread, t] = await Promise.all([
+    getShellIdentity().then(
+      (identity) => identity.unreadNotifications,
+      () => 0,
+    ),
+    /* The words on the server (M-2): the nav, the drawer, the title and the
+       bell, in the reader's language, handed down as plain strings. */
+    getLocale().then(getDictionary),
+  ]);
+  const labels = hostNavLabels(t);
   return (
     <div className={immersive ? "nf-host nf-host--immersive" : "nf-host"}>
       <WorkspaceHeader
         back={chromeBack ? fallback : false}
-        menu={nav ? <HostDrawer /> : undefined}
-        title={<HostTitle />}
+        menu={nav ? <HostDrawer labels={labels} /> : undefined}
+        title={<HostTitle labels={labels} />}
         bell={{
           href: "/host/notifications",
-          label: "Notifications",
-          unreadLabel: "Notifications, {count} unread",
+          label: t.nav.notifications,
+          unreadLabel: t.a11y.notificationsUnread,
           unread,
         }}
       >
-        {nav ? <HostNav label="Host workspace" /> : null}
+        {nav ? <HostNav labels={labels} /> : null}
       </WorkspaceHeader>
       <main id="main" className={immersive ? "nf-host__fill" : "nf-host__body"}>
         {children}

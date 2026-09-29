@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import {
   FIRST_INTEREST_COOKIE,
   firstRunNext,
+  isSignUpForm,
 } from "@/components/app/welcome/first-run-seen";
 import { isPropertyType } from "@/lib/interests/schema";
 import { loadInterestsState } from "@/lib/interests/queries";
@@ -86,6 +87,7 @@ export default async function WelcomePage({
           viewer="guest"
           next={plan.next}
           arrival={plan.arrival}
+          fromSignUpForm={tour && isSignUpForm(plan.next)}
         />
       </WelcomeStage>
     );

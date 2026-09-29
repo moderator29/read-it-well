@@ -169,6 +169,24 @@ try {
   const seen = (await ctx.cookies()).find((c) => c.name === "vallo_first_run");
   check("the device remembers, for the sign up and sign in detour", seen?.value === "seen", [JSON.stringify(seen)]);
 
+  /* L-5: opened from the sign-up form's "What Vallo is" link, the control
+     under the slides says where it goes, and nothing says Skip. */
+  await page.goto(`${BASE_URL}/welcome?tour=1&next=${encodeURIComponent("/sign-up/email")}`, {
+    waitUntil: "domcontentloaded",
+  });
+  await page.getByTestId("welcome-get-started").waitFor();
+  const backToForm = page.getByTestId("welcome-back-to-sign-up");
+  check(
+    "from the sign-up form, the tour's way out reads Back to sign up, and no Skip is drawn",
+    (await backToForm.count()) === 1 &&
+      (await backToForm.innerText()).trim() === "Back to sign up" &&
+      (await page.getByTestId("welcome-skip-all").count()) === 0 &&
+      (await page.locator('button:has-text("Skip"), a:has-text("Skip")').count()) === 0,
+  );
+  await backToForm.click();
+  await page.waitForURL((url) => url.pathname === "/sign-up/email", { waitUntil: "domcontentloaded" });
+  check("and it returns to the form", new URL(page.url()).pathname === "/sign-up/email");
+
   await page.goto(`${BASE_URL}/welcome?tour=1&next=%2Fsign-in`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("welcome-get-started").waitFor();
   check(

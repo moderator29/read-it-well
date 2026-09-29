@@ -46,3 +46,43 @@ describe("the chooser's address", () => {
     }
   });
 });
+
+describe("the E2E audit's auth findings (29 September 2026)", () => {
+  it("L-3: sign-in asks for 'Your password'; the length rule stays on sign-up", async () => {
+    const { getDictionary } = await import("@vallo/i18n");
+    const t = getDictionary("en");
+    expect(t.auth.signInPasswordPlaceholder).toBe("Your password");
+    expect(t.auth.passwordPlaceholder).toBe("At least 8 characters");
+    const form = src("components/auth/EmailAuthForm.tsx");
+    /* The sign-in field is the one with current-password; the new-password
+       field on step one of sign-up keeps the rule. */
+    expect(form).toMatch(/placeholder=\{t\.auth\.signInPasswordPlaceholder\}\s*autoComplete="current-password"/);
+    expect(form).toMatch(/placeholder=\{t\.auth\.passwordPlaceholder\}/);
+  });
+
+  it("L-5: the tour opened from the sign-up form says Back to sign up, not Skip", async () => {
+    const { isSignUpForm } = await import("@/components/app/welcome/first-run-seen");
+    expect(isSignUpForm("/sign-up/email")).toBe(true);
+    expect(isSignUpForm("/sign-up/email?next=%2Fsearch")).toBe(true);
+    expect(isSignUpForm("/sign-up")).toBe(false);
+    expect(isSignUpForm("/sign-up/emailx")).toBe(false);
+    expect(isSignUpForm(null)).toBe(false);
+    const { getDictionary } = await import("@vallo/i18n");
+    expect(getDictionary("en").welcomeCards.backToSignUp).toBe("Back to sign up");
+    expect(src("app/welcome/page.tsx")).toContain("fromSignUpForm={tour && isSignUpForm(plan.next)}");
+    expect(src("components/app/welcome/FirstRun.tsx")).toContain(
+      "{backToForm ? t.welcomeCards.backToSignUp : t.welcomeCards.skip}",
+    );
+    /* The form's link still opens the tour with the form as `next`. */
+    expect(src("components/auth/EmailAuthForm.tsx")).toContain(
+      'href={`/welcome?tour=1&next=${encodeURIComponent(withNext("/sign-up/email", next))}`}',
+    );
+  });
+
+  it("L-7: the verify screen submits with the same navy pill as every other auth screen", () => {
+    const verify = src("components/auth/VerifyCodeForm.tsx");
+    expect(verify).toContain('import { AuthPillButton } from "./slate";');
+    expect(verify).toMatch(/<AuthPillButton type="submit" loading=\{verifying\}/);
+    expect(verify).not.toMatch(/<Button type="submit" variant="primary"/);
+  });
+});

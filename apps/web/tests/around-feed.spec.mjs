@@ -8,22 +8,32 @@
  * is in, `/around/settings` is the directory that used to be there, and this spec
  * guards the split rather than the contents.
  *
- * 1. `/around` renders the feed surface and NOT the place tree.
- * 2. `/around/settings` renders the directory and the way into the country.
- * 3. The tab row above the feed is a real control: links carrying `?tab=`,
- *    with the live one marked, so a reload and the back button both work.
- * 4. Neither screen scrolls sideways at 390px, in dark or in light.
- * 5. No route answers with a 5xx.
+ * WHAT CHANGED SINCE THIS WAS WRITTEN, and is now the intended behaviour:
  *
- * This sandbox cannot reach Supabase, so every read comes back empty and the
- * pages render their unconfigured and empty states. That is the honest answer
- * here and it is what is asserted: the SHAPE of each screen and the failure
- * path, never live rows. The picker in particular cannot draw the 36 states
- * without keys, so the spec accepts either the picker or the sentence that
- * stands in for it, and prints which one it saw.
+ *   - 23 September: a signed-out visitor is sent to the sign-in door from
+ *     every one of these addresses (`src/proxy.ts`). Asserted first.
+ *   - FEED-4: the masthead (logo, filters, settings gear) came off the feed.
+ *     The location chip IS the screen's head, the screen's name is an sr-only
+ *     `h1`, and a Back control sits on the chip's row because `/around`
+ *     declares a parent (`app/(app)/around/page.tsx:171-203`). The way to the
+ *     directory from the feed is the empty state's "Find places to join".
+ *
+ * So:
+ *
+ * 1. The feed, in the preview harness (`/preview/session-b/feed`, the real
+ *    Feed, FeedTabs and LocationChip inside the real AppShell with fixture
+ *    posts): the feed surface and NOT the place tree; the head as above; the
+ *    tab row a real control (links carrying `?tab=`, the live one marked).
+ * 2. The empty feed (`?state=empty`) says so and carries the way to
+ *    `/around/settings`.
+ * 3. Signed in as the QA member, the real directory renders with the way
+ *    into the country, and a place slug is still a place's page (SKIP
+ *    without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
+ * 4. Nothing scrolls sideways at 390px, in dark or in light; no 5xx.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 900;
@@ -46,11 +56,9 @@ async function overflowOf(page) {
   );
 }
 
-async function run(theme) {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    colorScheme: theme,
-  });
+async function themedContext(theme, state) {
+  const options = { viewport: { width: 390, height: 844 }, colorScheme: theme };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((choice) => {
     try {
       window.localStorage.setItem("nf_theme", choice);
@@ -58,8 +66,12 @@ async function run(theme) {
       void error;
     }
   }, theme);
-  const page = await context.newPage();
+  return context;
+}
 
+async function feed(theme) {
+  const context = await themedContext(theme, null);
+  const page = await context.newPage();
   const serverErrors = [];
   page.on("response", (r) => {
     if (r.status() >= 500) serverErrors.push(`${r.status()} ${r.url()}`);
@@ -67,15 +79,14 @@ async function run(theme) {
 
   try {
     /* ------------------------------------------------------------ the feed */
-    console.log(`\n[${theme} 390px] /around`);
-    await page.goto(`${BASE_URL}/around`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    console.log(`\n[${theme} 390px] /preview/session-b/feed (the /around feed)`);
+    if (!(await openPreview(page, "/preview/session-b/feed", check, { wait: WAIT }))) return;
 
     const applied = await page.evaluate(() => document.documentElement.dataset.theme ?? "dark");
     check(`the ${theme} theme actually applied`, applied === theme);
 
-    const feed = page.getByTestId("around-feed");
-    check("the feed surface is what Around renders", (await feed.count()) === 1);
+    const feedSurface = page.getByTestId("around-feed");
+    check("the feed surface is what Around renders", (await feedSurface.count()) === 1);
 
     /* The whole point of the change: the front door is not a directory. */
     check(
@@ -101,47 +112,32 @@ async function run(theme) {
     for (const banned of ["demo", "coming soon", "lorem"]) {
       check(`no UI copy says "${banned}"`, !feedText.toLowerCase().includes(banned));
     }
-    check(
-      "an empty feed says so rather than showing nothing",
-      feedText.trim().length > 60,
-      feedText.slice(0, 160),
-    );
 
     /* ------------------------------------------------------------ the head */
-    const masthead = page.getByTestId("feed-masthead");
-    check("the masthead is there", (await masthead.count()) === 1);
-    /* The mark came OFF this masthead. The site header already carries one
-       about 100px above it, and two marks on one screen is the duplication
-       F1-096 is about. What replaced it is a real `h1` naming the screen,
-       which it never had: its name was `sr-only` text beside a picture.
-
-       The old check asserted `svg, img` count >= 1 and still passed after the
-       mark was removed, because the filter and settings icon buttons are svgs.
-       A check that cannot fail is not a check. */
     check(
       "it names the screen in a real heading, and carries no second logo",
-      (await masthead.getByRole("heading", { level: 1 }).count()) === 1 &&
-        (await masthead.locator('img[alt*="Vallo" i]').count()) === 0,
+      (await feedSurface.getByRole("heading", { level: 1 }).count()) === 1 &&
+        (await feedSurface.locator('img[alt*="Vallo" i]').count()) === 0,
     );
+    check("the masthead is gone (FEED-4)", (await page.getByTestId("feed-masthead").count()) === 0);
     check(
-      "filters on the left, settings on the right",
-      (await page.getByTestId("feed-filters").count()) === 1 &&
-        (await page.getByTestId("feed-settings").count()) === 1,
-    );
-    check(
-      "no back chevron on a primary tab",
-      (await masthead.locator('[aria-label="Back"]').count()) === 0,
+      "the way back sits on the chip's row, because /around declares a parent",
+      (await feedSurface.locator('[aria-label="Back"]').count()) === 1,
     );
 
     const tabs = page.getByTestId("feed-tabs");
     check("the tab row is above the feed", (await tabs.count()) === 1);
     check(
       "it is a named landmark",
-      (await tabs.evaluate((node) => node.tagName.toLowerCase())) === "nav",
+      (await tabs.evaluate((node) => node.tagName.toLowerCase())) === "nav" &&
+        ((await tabs.getAttribute("aria-label")) ?? "").trim().length > 0,
     );
-    for (const tab of ["for-you", "following", "new"]) {
+    /* Two segments, as the governing feed image draws them. New came off
+       the row on purpose (`FeedMasthead.tsx:26-28`); `?tab=new` still answers. */
+    for (const tab of ["for-you", "following"]) {
       check(`the ${tab} tab is there`, (await page.getByTestId(`feed-tab-${tab}`).count()) === 1);
     }
+    check("the retired New segment is not drawn", (await page.getByTestId("feed-tab-new").count()) === 0);
     check(
       "For you is the live tab on /around",
       (await page.getByTestId("feed-tab-for-you").getAttribute("aria-current")) === "page",
@@ -157,34 +153,48 @@ async function run(theme) {
       (await page.getByTestId("around-switcher").count()) === 0,
     );
 
-    /* The gear in the masthead, not any link on the page: the side navigation
-       also lists settings, and it is off-screen at 390px. */
-    const toManage = page.getByTestId("feed-settings");
-    check("the feed carries a way to settings", (await toManage.count()) === 1);
-
     const feedOverflow = await overflowOf(page);
     check(`the feed does not scroll sideways (overflow ${feedOverflow}px)`, feedOverflow <= 1);
 
-    /* -------------------------------------------------- the manage surface */
-    console.log(`\n[${theme} 390px] /around/settings`);
-    await toManage.first().click();
-    await page.waitForLoadState("load");
+    /* ------------------------------------------------------ the empty feed */
+    console.log(`\n[${theme} 390px] /preview/session-b/feed?state=empty`);
+    await page.goto(`${BASE_URL}/preview/session-b/feed?state=empty`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
-
+    const emptyText = await page.getByTestId("around-feed").innerText();
+    check("an empty feed says so rather than showing nothing", /Nothing here yet/.test(emptyText), emptyText.slice(0, 160));
     check(
-      "the control on the feed lands on the directory",
-      new URL(page.url()).pathname === "/around/settings",
-      page.url(),
+      "and carries the way to the directory",
+      (await page.getByTestId("around-feed").locator('a[href="/around/settings"]').count()) >= 1,
     );
+    const emptyOverflow = await overflowOf(page);
+    check(`the empty feed does not scroll sideways (overflow ${emptyOverflow}px)`, emptyOverflow <= 1);
 
+    check("no route returned a server error", serverErrors.length === 0, serverErrors.join("\n"));
+  } finally {
+    await context.close();
+  }
+}
+
+async function directory(theme, state) {
+  const context = await themedContext(theme, state);
+  const page = await context.newPage();
+  const serverErrors = [];
+  page.on("response", (r) => {
+    if (r.status() >= 500) serverErrors.push(`${r.status()} ${r.url()}`);
+  });
+  try {
+    /* -------------------------------------------------- the manage surface */
+    console.log(`\n[${theme} 390px] /around/settings (signed in)`);
+    await page.goto(`${BASE_URL}/around/settings`, { waitUntil: "load" });
+    await page.waitForTimeout(WAIT);
     check(
       "the directory renders as itself",
       (await page.getByTestId("around-settings").count()) === 1,
     );
 
     /* The way into the country: the picker, or the one sentence that honestly
-       replaces it when there are no platform keys. Either is a pass; which one
-       is printed so a green run cannot hide an empty screen. */
+       replaces it when there are no platform keys. Which one is printed so a
+       green run cannot hide an empty screen. */
     const picker = await page.getByTestId("place-picker-search").count();
     const unconfigured = await page.getByTestId("around-settings-unconfigured").count();
     check(
@@ -209,7 +219,6 @@ async function run(theme) {
       "the directory offers the way to suggest a place",
       (await page.locator('a[href="/around/new"]').count()) >= 1,
     );
-
     const manageOverflow = await overflowOf(page);
     check(
       `the directory does not scroll sideways (overflow ${manageOverflow}px)`,
@@ -217,18 +226,14 @@ async function run(theme) {
     );
 
     /* --------------------------------------- a place stays a place's page */
-    console.log(`\n[${theme} 390px] /around/lagos-lekki-phase-1`);
+    console.log(`\n[${theme} 390px] /around/lagos-lekki-phase-1 (signed in)`);
     await page.goto(`${BASE_URL}/around/lagos-lekki-phase-1`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
-    /* With no keys this resolves to the unconfigured branch rather than a 404,
-       which is the designed answer and the one thing worth asserting: the
-       static `manage` segment did not swallow the dynamic one. */
     check(
       "a place slug still resolves to a place, not to the directory",
       (await page.getByTestId("around-settings").count()) === 0 &&
         (await page.getByTestId("around-feed").count()) === 0,
     );
-
     check("no route returned a server error", serverErrors.length === 0, serverErrors.join("\n"));
   } finally {
     await context.close();
@@ -236,8 +241,19 @@ async function run(theme) {
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  for (const path of ["/around", "/around?tab=following", "/around/settings", "/around/lagos-lekki-phase-1"]) {
+    await expectSignInWall(check, path);
+  }
+  await feed("dark");
+  await feed("light");
+
+  console.log("\nsigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    await directory("dark", state);
+    await directory("light", state);
+  }
 } finally {
   await browser.close();
 }

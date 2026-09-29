@@ -9,7 +9,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * A failed read answers false: an unproven declaration is not a declaration.
  */
 export const ARRIVAL_DECLARATION_NEEDED =
-  "The host has not declared the charges at the door (all five, an amount or none), so this stay cannot be published yet.";
+  "The host has not declared the charges at the door (all five, an amount or none), so this stay cannot be published yet. Ask the host to answer all five on their Charges at the door screen, then publish again.";
 
 export async function arrivalChargesDeclared(
   client: unknown,

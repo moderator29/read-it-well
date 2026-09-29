@@ -2,7 +2,15 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { HARNESS_CLOSED_PATH, isApiPath, isHarnessPath, isPublicPath, proxy } from "./proxy";
+import {
+  AUTH_CALLBACK_REFUSED,
+  HARNESS_CLOSED_PATH,
+  isApiPath,
+  isAuthCallbackRefusal,
+  isHarnessPath,
+  isPublicPath,
+  proxy,
+} from "./proxy";
 import { NONCE_HEADER } from "@/lib/security/csp";
 
 /**
@@ -477,6 +485,37 @@ describe("the store shell never opens on the landing page (V-11)", () => {
     expect(browser.status).not.toBe(307);
     const privacy = await proxy(new NextRequest("http://localhost/privacy", { headers: { "user-agent": SHELL } }));
     expect(privacy.status).not.toBe(307);
+  });
+});
+
+describe("L-4: a refused auth link redirects before anything renders", () => {
+  it("answers /auth/callback?error=... with a 307 to the sign-in sentence, policy stamped", async () => {
+    const response = await proxy(
+      new NextRequest("http://localhost/auth/callback?error=access_denied&error_code=otp_expired"),
+    );
+    expect(response.status).toBe(307);
+    const location = new URL(response.headers.get("location") ?? "");
+    expect(`${location.pathname}${location.search}`).toBe(AUTH_CALLBACK_REFUSED);
+    expect(response.headers.get("content-security-policy")).toBeTruthy();
+  });
+
+  it("carries nothing from the query to the target", async () => {
+    const response = await proxy(
+      new NextRequest("http://localhost/auth/callback?error_code=x&next=https://evil.example"),
+    );
+    expect(response.headers.get("location")).not.toContain("evil");
+  });
+
+  it("leaves a working link, and a server action, to the page", async () => {
+    expect(isAuthCallbackRefusal(new URL("http://localhost/auth/callback?code=abc"))).toBe(false);
+    expect(isAuthCallbackRefusal(new URL("http://localhost/auth/callback?error="))).toBe(false);
+    expect(isAuthCallbackRefusal(new URL("http://localhost/sign-in?error=x"))).toBe(false);
+    const working = await proxy(new NextRequest("http://localhost/auth/callback?code=abc"));
+    expect(working.status).not.toBe(307);
+    const action = await proxy(
+      new NextRequest("http://localhost/auth/callback?error=x", { method: "POST", headers: { "next-action": "a" } }),
+    );
+    expect(action.headers.get("location")).toBeNull();
   });
 });
 

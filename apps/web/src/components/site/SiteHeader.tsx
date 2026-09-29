@@ -92,8 +92,9 @@ export function SiteHeader({
             <Link href="/sign-in" prefetch className="nf-site-nav-glass hidden sm:inline-flex">
               {nav.signIn}
             </Link>
-            {/* /start, not /sign-up: two intro screens explaining what Vallo
-                is, with Skip on both. See (auth)/start/StartCarousel.tsx. */}
+            {/* /start, not /sign-up: it sends a stranger to the Get started
+                intro (`/welcome?next=/sign-up`, `app/welcome/WelcomeIntro.tsx`),
+                which is not skippable, and on to the sign-up options. */}
             <ButtonLink href="/start" variant="primary" size="sm">
               {nav.getStarted}
             </ButtonLink>

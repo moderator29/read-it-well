@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Chip, ChipRow } from "@/components/ui/Chip";
-import { HOST_NAV, hostNavActive } from "./host-nav-model";
+import { hostNavActive, hostNavItems, type HostNavLabels } from "./host-nav-model";
 
 /**
  * The host workspace's navigation: one scrolling row of link chips under the
@@ -14,12 +14,13 @@ import { HOST_NAV, hostNavActive } from "./host-nav-model";
  * client component only for `usePathname`: `HostShell` is rendered by every
  * host page and none of them had to be told which one it is.
  */
-export function HostNav({ label }: { label: string }) {
+export function HostNav({ labels }: { labels: HostNavLabels }) {
+  const label = labels.workspace;
   const active = hostNavActive(usePathname());
   return (
     <nav aria-label={label} className="px-gutter pb-xs">
       <ChipRow label={label}>
-        {HOST_NAV.map((item) => (
+        {hostNavItems(labels).map((item) => (
           <Chip
             key={item.href}
             behaviour="link"

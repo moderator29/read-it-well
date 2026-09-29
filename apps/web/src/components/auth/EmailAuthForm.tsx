@@ -607,7 +607,7 @@ export function EmailAuthForm({
                 t={t}
                 id="password"
                 label={t.auth.passwordLabel}
-                placeholder={t.auth.passwordPlaceholder}
+                placeholder={t.auth.signInPasswordPlaceholder}
                 autoComplete="current-password"
                 error={state.fieldErrors?.password}
                 value={password}

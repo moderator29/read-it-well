@@ -321,10 +321,17 @@ export function PayPanel({
       <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]" data-testid="rent-no-custody">
         {NO_CUSTODY_SENTENCE} {GUARANTEE_SENTENCE}
       </p>
+      <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
+        <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
+        <span>{c.onPlatformRent}</span>
+      </p>
+      {/* The spacer is the section's LAST in-flow child, so the fixed bar
+          below never covers a line of copy. Its height is the bar's own
+          (5.5rem) plus the home-indicator inset the bar pads itself by. */}
       <div
         aria-hidden="true"
-        className="h-[5.5rem]"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        data-testid="pay-bar-spacer"
+        style={{ height: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
       />
       <ActionBar>
         <p className="flex min-w-0 flex-1 flex-col">
@@ -353,10 +360,6 @@ export function PayPanel({
         ) : null}
       </ActionBar>
 
-      <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
-        <span>{c.onPlatformRent}</span>
-      </p>
     </section>
   );
 

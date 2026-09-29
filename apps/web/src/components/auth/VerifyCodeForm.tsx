@@ -6,6 +6,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { Button } from "@/components/ui/Button";
 import { Field } from "./fields";
+import { AuthPillButton } from "./slate";
 import { useRouter } from "next/navigation";
 import { playThreshold, thresholdAllowed } from "@/lib/motion/threshold";
 import { VerifyingPanel } from "./VerifyingPanel";
@@ -190,9 +191,11 @@ export function VerifyCodeForm({
           </p>
         )}
 
-        <Button type="submit" variant="primary" size="lg" full loading={verifying}>
+        {/* The navy pill every other auth screen submits with (E2E audit
+            L-7), not the bright-blue primary this one alone was drawing. */}
+        <AuthPillButton type="submit" loading={verifying} data-testid="verify-submit">
           {a.confirmAndGo}
-        </Button>
+        </AuthPillButton>
       </form>
 
       {/* Its own form, so asking for another code cannot submit the one that

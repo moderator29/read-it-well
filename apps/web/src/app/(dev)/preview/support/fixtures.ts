@@ -14,6 +14,7 @@ const ago = (hours: number) => new Date(NOW - hours * 3_600_000).toISOString();
 const PHOTO =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
+    // eslint-disable-next-line nf/no-raw-colour -- fixture: the pixels of a stand-in screenshot image, not a themed surface
     '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><rect width="240" height="240" fill="#8a94a6"/><rect x="24" y="40" width="192" height="24" rx="6" fill="#dfe3ea"/><rect x="24" y="80" width="140" height="16" rx="5" fill="#dfe3ea"/><rect x="24" y="170" width="192" height="40" rx="10" fill="#005fe8"/></svg>',
   );
 

@@ -633,7 +633,13 @@
     color: var(--nf-content-primary);
   }
 
+  /* `pretty` keeps a lede from ending on one short word; a centred lede is
+     balanced, so its lines are even on both sides of the axis. */
+  .nf-sec-head--center .nf-sec-lede {
+    text-wrap: balance;
+  }
   .nf-sec-lede {
+    text-wrap: pretty;
     margin-top: var(--nf-gap-group);
     max-width: var(--nf-measure-lede);
     font-size: var(--nf-text-body-lg);

@@ -22,8 +22,8 @@ export async function upholdStopAsFraud(input: { suspensionId: string; userId: s
     rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { code?: string } | null }>;
   }).rpc("uphold_stop_as_fraud", { p_suspension: parsed.data.suspensionId, p_note: parsed.data.note });
   if (error) {
-    if (error.code === "42501") return fail("Only a senior reviewer can uphold a stop as fraud.");
-    if (error.code === "23514") return fail("That stop is no longer in force, or the reason is too short.");
+    if (error.code === "42501") return fail("Only a senior reviewer can uphold a stop as fraud. Ask a senior reviewer to open this stop.");
+    if (error.code === "23514") return fail("That stop is no longer in force, or the reason is too short. Reload the page, and if the stop still stands, write the reason in a full sentence.");
     return fail("That did not go through. Nothing has changed. Please try again.");
   }
   revalidatePath(`/admin/people/${parsed.data.userId}`);

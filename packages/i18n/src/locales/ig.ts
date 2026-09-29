@@ -434,8 +434,10 @@ export const ig: Dictionary = withFallback({
          come back. */
       community: {
         overline: "Ndị mmadụ n'ezie. Ebe n'ezie.",
-        title: "Obodo na-eto eto nke ndị na-achọ ụlọ, ndị nwe ụlọ na ndị nnabata.",
-        body: "A na-agụ ọnụọgụ ọ bụla na peeji a ozugbo site na ikpo okwu mgbe peeji a na-ebu. Ọ dịghị ihe a gbakwunyere.",
+        /* `title` and `body` are absent on purpose and fall back to English:
+           the clean pass (29 September) rewrote both, and the old Igbo
+           described a "growing community" and figures the band may not
+           print. A native speaker writes them and they come back here. */
         thirdParty: "Ndị ọzọ",
         thirdPartyTitle: "Ngwa ndị mmekọ, a na-akpọ ya aha mgbe niile",
         thirdPartyBody:
@@ -443,8 +445,8 @@ export const ig: Dictionary = withFallback({
       },
       categories: {
         overline: "Chọgharịa site n'ụdị",
-        title: "Chọta kpọmkwem ihe ị na-achọ.",
-        body: "Site na ụlọ obodo ruo na villa nwere echiche, Vallo na-ebu ahịa dum.",
+        /* `title` and `body` fall back to English (the clean pass): the old
+           body claimed Vallo carries "the whole market". */
         apartments: "Ụlọ obibi",
         houses: "Ụlọ",
         shortlets: "Mgbazinye mkpirikpi",
@@ -656,6 +658,7 @@ export const ig: Dictionary = withFallback({
     emailPlaceholder: "gi@ihe-atu.com",
     passwordLabel: "Okwuntughe",
     passwordPlaceholder: "Opekempe mkpụrụedemede asatọ",
+    signInPasswordPlaceholder: "Okwuntughe gị",
     fullNameLabel: "Aha zuru ezu",
     fullNamePlaceholder: "Aha gị",
     forgotPassword: "Ichefuru okwuntughe?",

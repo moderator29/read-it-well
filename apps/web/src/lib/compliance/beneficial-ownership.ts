@@ -85,7 +85,7 @@ export const LISTING_KEPT_MESSAGE =
   "This listing cannot be deleted: it has been live, or the owner's mandate for it was approved, so we keep its record for five years after it closes. Take it down instead.";
 
 export const MANDATE_NEEDED_MESSAGE =
-  "This agent listing cannot go live yet: it needs an approved mandate naming the owner it is let for. Approve the mandate on the listings desk first (SCUML item 17).";
+  "This agent listing cannot go live yet: it needs an approved mandate naming the owner it is let for. Approve the mandate on the listings desk first.";
 
 /* ------------------------------------------------------------ the form */
 

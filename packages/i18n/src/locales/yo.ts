@@ -432,8 +432,10 @@ export const yo: Dictionary = withFallback({
          come back. */
       community: {
         overline: "Àwọn ènìyàn gidi. Àwọn ibi gidi.",
-        title: "Àwùjọ tó ń dàgbà ti àwọn olùwá ilé, onílé àti ògbàlejò.",
-        body: "A ń ka iye kọ̀ọ̀kan lórí ojú ìwé yìí láàyè láti orí pẹpẹ nígbà tí ojú ìwé bá ṣí. A kò fi kún ohunkóhun.",
+        /* `title` and `body` are absent on purpose and fall back to English:
+           the clean pass (29 September) rewrote both, and the old Yoruba
+           described a "growing community" and figures the band may not
+           print. A native speaker writes them and they come back here. */
         thirdParty: "Ẹnìkẹta",
         thirdPartyTitle: "Ohun ìní alábàáṣiṣẹ́, a máa ń fi àmì sí i nígbà gbogbo",
         thirdPartyBody:
@@ -441,8 +443,8 @@ export const yo: Dictionary = withFallback({
       },
       categories: {
         overline: "Ṣàwárí nípa ẹ̀ka",
-        title: "Rí ohun tí o ń wá gan-an.",
-        body: "Láti ilé ìlú dé villa tó ní ìran, Vallo ní gbogbo ọjà.",
+        /* `title` and `body` fall back to English (the clean pass): the old
+           body claimed Vallo carries "the whole market". */
         apartments: "Ilé gbígbé",
         houses: "Ilé",
         shortlets: "Ìyálé kúkúrú",
@@ -654,6 +656,7 @@ export const yo: Dictionary = withFallback({
     emailPlaceholder: "iwo@apeere.com",
     passwordLabel: "Ọ̀rọ̀ ìpamọ́",
     passwordPlaceholder: "Ó kéré tán lẹ́tà mẹ́jọ",
+    signInPasswordPlaceholder: "Ọ̀rọ̀ ìpamọ́ rẹ",
     fullNameLabel: "Orúkọ kíkún",
     fullNamePlaceholder: "Orúkọ rẹ",
     forgotPassword: "Ṣé o gbàgbé ọ̀rọ̀ ìpamọ́?",

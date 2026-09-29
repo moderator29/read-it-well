@@ -17,6 +17,7 @@ import {
   rememberFirstInterest,
   rememberFirstRunSeen,
   withPassedFlag,
+  isSignUpForm,
 } from "./first-run-seen";
 import type { Arrival } from "@/app/welcome/plan";
 import { wallHeading } from "./wall-heading";
@@ -93,6 +94,7 @@ export function FirstRun({
   viewer = "member",
   next = null,
   arrival = null,
+  fromSignUpForm = false,
 }: {
   t: Dictionary;
   interests: ComponentProps<typeof InterestChoices>["initial"];
@@ -110,11 +112,20 @@ export function FirstRun({
    * away; absent, it is the cold start and opens on slide one.
    */
   arrival?: Arrival | null;
+  /**
+   * The slides were opened from the sign-up form's "What Vallo is" link, and
+   * `next` is that form. The control under the slides then reads "Back to
+   * sign up" rather than Skip (E2E audit L-5): it already returned to the
+   * form, and nothing on the first-run path is labelled skip.
+   */
+  fromSignUpForm?: boolean;
 }) {
   const router = useRouter();
   const w = t.welcomeCards.twoWorlds;
   const f = t.welcomeCards.firstRun;
   const guest = viewer === "guest";
+  /* Only a guest with the form to go back to: `skip` sends a guest to `next`. */
+  const backToForm = guest && fromSignUpForm && isSignUpForm(next);
   const askQuestion = !guest && !asked;
 
   const wall = guest && arrival ? wallHeading(arrival.reason, t.shape.wall) : null;
@@ -563,9 +574,9 @@ export function FirstRun({
             className="nf-gs-skip"
             onClick={skip}
             disabled={pending}
-            data-testid="welcome-skip-all"
+            data-testid={backToForm ? "welcome-back-to-sign-up" : "welcome-skip-all"}
           >
-            {t.welcomeCards.skip}
+            {backToForm ? t.welcomeCards.backToSignUp : t.welcomeCards.skip}
           </button>
         )}
 

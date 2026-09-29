@@ -315,6 +315,10 @@ export const en = {
     },
     label: "What Vallo is",
     skip: "Skip",
+    /* The same control when the slides were opened from the sign-up form's
+       "What Vallo is" link (E2E audit L-5): it returns to the form, and the
+       founder wants nothing on the first-run path labelled skip. */
+    backToSignUp: "Back to sign up",
     start: "Let me in",
     goTo: "Go to card {n}",
     /* The first-run opener, to its governing render (BUILD_06, F1): the two
@@ -586,6 +590,29 @@ export const en = {
     crypto: "Crypto",
     viewProfile: "View profile",
     menuLabel: "Menu",
+  },
+
+  /**
+   * The host workspace's navigation: the chip row under the bar, the drawer
+   * and the bar's title (`components/host/host-nav-model.ts`). Read on the
+   * server by `HostShell` and handed to the two client components as plain
+   * strings, so none of it rides in the client copy every screen carries.
+   * The rows shared with other workspaces (Account, Help and support,
+   * Notifications, Host workspace) come from `nav`.
+   */
+  hostNav: {
+    overview: "Overview",
+    reservations: "Reservations",
+    rooms: "Rooms and nights",
+    photos: "Photographs",
+    arrival: "Charges at the door",
+    transfer: "Hand over",
+    assistant: "Assistant",
+    accountSettings: "Account settings",
+    application: "Application",
+    host: "Host",
+    openMenu: "Open the host menu",
+    closeMenu: "Close the host menu",
   },
 
   /**
@@ -1243,6 +1270,9 @@ export const en = {
     emailPlaceholder: "you@example.com",
     passwordLabel: "Password",
     passwordPlaceholder: "At least 8 characters",
+    /* Sign in only (E2E audit L-3): the length rule belongs to choosing a
+       password, not to typing one somebody already has. */
+    signInPasswordPlaceholder: "Your password",
     fullNameLabel: "Full name",
     fullNamePlaceholder: "Your name",
     forgotPassword: "Forgot password?",
