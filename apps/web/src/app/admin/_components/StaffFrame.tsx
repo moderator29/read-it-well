@@ -30,6 +30,7 @@ export const STAFF_EXTRA_DESKS: Partial<Record<StaffScope, { href: string; label
   operations: [
     { href: "/admin/alerts", label: "Alerts" },
     { href: "/admin/bookings", label: "Bookings" },
+    { href: "/admin/oversight", label: "Team oversight" },
   ],
 };
 
