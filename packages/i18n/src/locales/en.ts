@@ -304,14 +304,13 @@ export const en = {
    */
   welcomeCards: {
     /* The intro a stranger meets first (the Slate pass, 29 September): the
-       name, one line, a small moving scene and the two doors. The four
-       slides stay one tap away as the tour. */
+       name, one line, a small moving scene and the two doors. Not
+       skippable and with no tour door (the founder, 29 September). */
     intro: {
       tagline: "Homes to rent, buy and stay in, from agents a person has checked.",
       chip: "Your move-in total, printed",
       getStarted: "Get started",
       signIn: "Sign in",
-      tour: "Take the tour",
       sceneLabel: "A house and its keys, with the move-in total printed on a receipt",
     },
     label: "What Vallo is",

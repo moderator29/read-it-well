@@ -602,11 +602,16 @@ export function EmailAuthForm({
         </Link>
       </p>
 
-      {/* The intro for a first visit, a quiet door under the swap on step
-          one, with this form as the way back (request W2). */}
+      {/* What Vallo is, a quiet door under the swap on step one, with this
+          form as the way back (request W2). It opens the slides (`tour=1`):
+          a bare `/welcome` with a sign-up door is the intro, whose Get
+          started only leads back round to the options page. */}
       {isSignUp && step === 1 && (
         <p className="nf-auth__swap nf-auth__swap--quiet">
-          <Link href={`/welcome?next=${encodeURIComponent(withNext("/sign-up", next))}`} prefetch={false}>
+          <Link
+            href={`/welcome?tour=1&next=${encodeURIComponent(withNext("/sign-up/email", next))}`}
+            prefetch={false}
+          >
             {t.welcomeCards.label}
           </Link>
         </p>

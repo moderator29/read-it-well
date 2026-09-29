@@ -287,21 +287,6 @@
     gap: var(--nf-space-sm);
     animation: nf-intro-rise var(--nf-duration-deliberate) var(--nf-ease-entrance) 240ms both;
   }
-  .nf-intro__tour {
-    justify-self: center;
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--nf-content-secondary);
-    text-underline-offset: 4px;
-  }
-  .nf-intro__tour:hover {
-    color: var(--nf-content-primary);
-    text-decoration: underline;
-  }
-
   /* -------------------------------------------------------------- motion */
   @keyframes nf-intro-fade {
     from {

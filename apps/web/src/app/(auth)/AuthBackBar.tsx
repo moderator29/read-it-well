@@ -15,9 +15,9 @@ import { parentOf } from "@/lib/nav/resolve";
  * established: it asks the same resolver the control runs, and a route with
  * no declared parent, or a ROOT, draws nothing.
  *
- * Drawn as the first cell of the auth screen's top bar, opposite the language
- * control; the bar keeps the cell when this draws nothing, so the tile in the
- * middle never moves.
+ * Drawn as the first cell of the auth screen's top bar (the end cell is empty:
+ * language is changed in Settings only); the bar keeps the cell when this
+ * draws nothing, so the wordmark under it never moves.
  */
 export function AuthBackBar() {
   const pathname = usePathname();

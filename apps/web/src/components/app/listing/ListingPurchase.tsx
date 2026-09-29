@@ -93,10 +93,12 @@ export function ListingPurchase({
             >
               <DetailGlyph name={line.glyph} className="nf-movein__plate" />
               <span className="nf-movein__name">
-                <span className="nf-movein__label">
-                  {line.label}
-                  {line.basis && <span className="nf-movein__basis"> ({line.basis})</span>}
-                </span>
+                <span className="nf-movein__label">{line.label}</span>
+                {/* The sale side's basis is a clause ("a transfer is not valid
+                    without it"), not a period like the rent's "yearly", so it
+                    takes its own line under the name rather than a bracket
+                    that wraps mid-phrase beside the figure at 390. */}
+                {line.basis && <span className="nf-movein__note">{line.basis}</span>}
                 {/* A declared ZERO does not also say who keeps it: "No agency
                     fee" over "Paid to the agent" is two halves of a sentence
                     that contradict each other, and the zero is the whole point

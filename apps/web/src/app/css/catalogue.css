@@ -2266,6 +2266,19 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
+  /* A clause under the name (the sale side's Governor's consent), set as a
+     caption line so it wraps within the name column on its own and never
+     beside the label. The copy is written mid-sentence, so its first letter
+     is raised here rather than in four dictionaries. */
+  .nf-movein__note {
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+    text-wrap: pretty;
+  }
+  .nf-movein__note::first-letter {
+    text-transform: uppercase;
+  }
   .nf-movein__figure {
     flex-shrink: 0;
     text-align: end;
