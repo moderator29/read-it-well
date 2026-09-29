@@ -31,6 +31,10 @@
 # Xcode 26. Set the repository VARIABLE `IOS_RUNNER` (e.g. `macos-14`,
 # `macos-26`) to override without editing this file. The newest Xcode on the
 # image is selected and printed in every run.
+#
+# FIRST COMPILE: run 36500914256 (29 September 2026), Xcode 26.3, BUILD
+# SUCCEEDED. That proves only the unsigned simulator build; signing waits on
+# the Apple Developer account.
 name: Native iOS
 
 on:
