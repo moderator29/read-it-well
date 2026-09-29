@@ -21,12 +21,22 @@
  *      between the reader and whatever comes next.
  *   7. It is present again on the next screen, however the last one was left.
  *
+ * WHERE. Since 23 September `/home` and `/search` answer a signed-out visitor
+ * with the sign-in wall (asserted first). Checks 1 to 6 are then read on the
+ * preview harness's search screen (`/preview/session-b/sweep-home/search`,
+ * the real AppShell and dock around fixture results, 1,466px tall at 390, so
+ * there is a real page to scroll). Check 7 needs a client-side navigation
+ * between two real product screens, which only a session can make: it runs
+ * signed in as the QA member on `/home` (with 1 to 6 again there) and is
+ * reported as SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD.
+ *
  * Run with the server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/dock-autohide.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa, skip } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE_PATH = "/opt/pw-browsers/chromium";
@@ -43,22 +53,22 @@ function check(name, condition, detail) {
 }
 
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
-const context = await browser.newContext({
-  viewport: { width: 390, height: 844 },
-  colorScheme: "dark",
-});
-await context.addInitScript(() => {
-  try {
-    window.localStorage.setItem("nf_theme", "dark");
-  } catch {
-    /* storage can be unavailable */
-  }
-});
 
-const page = await context.newPage();
+async function darkContext(state) {
+  const options = { viewport: { width: 390, height: 844 }, colorScheme: "dark" };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
+  await context.addInitScript(() => {
+    try {
+      window.localStorage.setItem("nf_theme", "dark");
+    } catch {
+      /* storage can be unavailable */
+    }
+  });
+  return context;
+}
 
 /** Where the dock sits relative to the bottom of the viewport, and whether it counts. */
-const readDock = () =>
+const readDock = (page) =>
   page.evaluate(() => {
     const dock = document.querySelector(".nf-dockrow");
     if (!dock) return null;
@@ -80,55 +90,38 @@ const readDock = () =>
 
 /* A real scroll, then a frame for the rAF-coalesced handler and the
    transition to finish. */
-const scrollBy = async (dy) => {
+const scrollBy = async (page, dy) => {
   await page.evaluate((d) => window.scrollBy(0, d), dy);
   await page.waitForTimeout(400);
 };
 
-try {
-  /*
-   * /home, because it is the tallest screen the dock appears on that is tall
-   * from its own designed content rather than from inventory. /search would be
-   * the honest choice for "somebody is reading a list" and it is 1,032px with
-   * an empty catalogue, which is 188px of scroll: not enough to scroll past.
-   * This spec would then skip on every run and prove nothing, so it reads the
-   * behaviour on a screen that is genuinely long today.
-   */
-  await page.goto(`${BASE_URL}/home`, { waitUntil: "load", timeout: 45000 });
-  await page.waitForTimeout(900);
-
-  console.log("\nThe dock on /home");
-
-  let dock = await readDock();
+/** Checks 1 to 6 on whatever screen `page` has open. False when it cannot scroll. */
+async function autohide(page, label) {
+  console.log(`\nThe dock on ${label}`);
+  let dock = await readDock(page);
   check("the dock is on the screen when it opens", dock !== null && !dock.offScreen, [
     dock === null ? "no .nf-dockrow found" : `top ${Math.round(dock.top)} of ${dock.viewport}`,
   ]);
-
-  if (dock === null || !dock.scrollable) {
-    console.log("\n  SKIPPED: /home is not tall enough to scroll at 390px,");
-    console.log("  so there is nothing to scroll past and nothing to measure.");
-    console.log("  This is the deliberate empty-catalogue skip, not a pass.");
-    await context.close();
-    await browser.close();
-    process.exit(failures === 0 ? 0 : 1);
+  if (dock === null) return false;
+  if (!dock.scrollable) {
+    skip(`${label} is not tall enough to scroll at 390px, so there is nothing to scroll past and nothing to measure`);
+    return false;
   }
 
   /* 4. Nothing happens in the first stretch of the page. */
-  await scrollBy(60);
-  dock = await readDock();
+  await scrollBy(page, 60);
+  dock = await readDock(page);
   check("a small scroll near the top does not hide it", !dock.offScreen, [
     `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)}`,
   ]);
 
   /* 2. Down, properly. */
-  await scrollBy(500);
-  dock = await readDock();
+  await scrollBy(page, 500);
+  dock = await readDock(page);
   check("scrolling down takes it off the screen", dock.offScreen, [
     `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)} of ${dock.viewport}`,
   ]);
-  check("and out of the tab order", dock.visibility === "hidden", [
-    `visibility: ${dock.visibility}`,
-  ]);
+  check("and out of the tab order", dock.visibility === "hidden", [`visibility: ${dock.visibility}`]);
 
   /* 6. Properly out of the tab order: nothing inside it can be focused. */
   const reachable = await page.evaluate(() => {
@@ -140,8 +133,8 @@ try {
   check("a hidden dock cannot take focus", reachable === false);
 
   /* 3. Up, and back. */
-  await scrollBy(-200);
-  dock = await readDock();
+  await scrollBy(page, -200);
+  dock = await readDock(page);
   check("scrolling up brings it straight back", !dock.offScreen, [
     `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)}`,
   ]);
@@ -150,52 +143,72 @@ try {
   ]);
 
   /*
-   * 5. The end of the page.
-   *
-   * `html` sets `scroll-behavior: smooth`, so this is an animation and not a
-   * jump, and the last few frames of it are one and two pixel steps. That is
-   * the point of testing it this way rather than setting scrollTop by hand: it
-   * is how a real thumb arrives at the foot of a page, and the first version
-   * of the dock failed it, leaving the dock hidden at the very end of a list
-   * with no way to bring it back but scrolling up again.
+   * 5. The end of the page. `html` sets `scroll-behavior: smooth`, so this is
+   * an animation and not a jump, which is how a real thumb arrives at the foot
+   * of a page; the first version of the dock failed exactly this.
    */
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.waitForTimeout(900);
-  dock = await readDock();
+  dock = await readDock(page);
   check("it does not hide at the end of the page", !dock.offScreen, [
     `scrollY ${dock.scrollY}, dock top ${Math.round(dock.top)} of ${dock.viewport}`,
   ]);
+  return true;
+}
 
-  /*
-   * 7. A new screen starts with it present, and the navigation is a real
-   * client-side one from a link inside the page, not a fresh load. That is the
-   * case that can actually go wrong: the component stays mounted across an app
-   * navigation, so a dock left hidden stays hidden unless something resets it,
-   * and a back navigation restores the scroll position without firing a scroll
-   * event for the handler to notice.
-   */
-  console.log("\nAcross a navigation");
-  await page.evaluate(() => window.scrollTo(0, 400));
-  await page.waitForTimeout(300);
-  await page.evaluate(() => window.scrollBy(0, 400));
-  await page.waitForTimeout(400);
-  const beforeLeaving = await readDock();
-  check("the dock is hidden at the moment the screen is left", beforeLeaving.offScreen, [
-    `dock top ${Math.round(beforeLeaving.top)} of ${beforeLeaving.viewport}`,
-  ]);
+try {
+  console.log("signed out");
+  await expectSignInWall(check, "/home");
+  await expectSignInWall(check, "/search");
 
-  await page.evaluate(() => {
-    document.querySelector('main a[href="/search"]')?.click();
-  });
-  await page.waitForURL("**/search", { timeout: 20000 });
-  await page.waitForTimeout(900);
-  dock = await readDock();
-  check("the next screen opens with the dock in place", dock !== null && !dock.offScreen, [
-    `left the last screen ${beforeLeaving.offScreen ? "hidden" : "showing"}`,
-    dock === null ? "no dock" : `dock top ${Math.round(dock.top)} of ${dock.viewport}`,
-  ]);
+  {
+    const context = await darkContext(null);
+    const page = await context.newPage();
+    if (await openPreview(page, "/preview/session-b/sweep-home/search", check, { wait: 900 })) {
+      await autohide(page, "/preview/session-b/sweep-home/search");
+    }
+    await context.close();
+  }
+
+  console.log("\nSigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    const context = await darkContext(state);
+    const page = await context.newPage();
+    /* /home, because it is the tallest screen the dock appears on that is
+       tall from its own designed content rather than from inventory. */
+    await page.goto(`${BASE_URL}/home`, { waitUntil: "load", timeout: 45000 });
+    await page.waitForTimeout(900);
+    if (await autohide(page, "/home")) {
+      /*
+       * 7. A new screen starts with it present, and the navigation is a real
+       * client-side one from a link inside the page, not a fresh load: the
+       * component stays mounted across an app navigation, so a dock left
+       * hidden stays hidden unless something resets it.
+       */
+      console.log("\nAcross a navigation");
+      await page.evaluate(() => window.scrollTo(0, 400));
+      await page.waitForTimeout(300);
+      await page.evaluate(() => window.scrollBy(0, 400));
+      await page.waitForTimeout(400);
+      const beforeLeaving = await readDock(page);
+      check("the dock is hidden at the moment the screen is left", beforeLeaving.offScreen, [
+        `dock top ${Math.round(beforeLeaving.top)} of ${beforeLeaving.viewport}`,
+      ]);
+      await page.evaluate(() => {
+        document.querySelector('main a[href="/search"]')?.click();
+      });
+      await page.waitForURL("**/search", { timeout: 20000 });
+      await page.waitForTimeout(900);
+      const dock = await readDock(page);
+      check("the next screen opens with the dock in place", dock !== null && !dock.offScreen, [
+        `left the last screen ${beforeLeaving.offScreen ? "hidden" : "showing"}`,
+        dock === null ? "no dock" : `dock top ${Math.round(dock.top)} of ${dock.viewport}`,
+      ]);
+    }
+    await context.close();
+  }
 } finally {
-  await context.close();
   await browser.close();
 }
 
