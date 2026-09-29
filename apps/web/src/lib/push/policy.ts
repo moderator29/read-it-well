@@ -1,3 +1,4 @@
+import { fitPush } from "./copy";
 import { isUrgentKind, wantsPush, type NotificationKind } from "./preferences";
 import { sameOriginPath } from "./same-origin";
 import { quietVerdict, readQuietHours } from "./quiet-hours";
@@ -146,8 +147,9 @@ export function decide(input: {
   return {
     action: "send",
     payload: {
-      title: notification.title,
-      body: notification.body ?? "",
+      /* Held to the lock-screen limits (lib/push/copy.ts): a title longer
+         than a phone shows arrives cut at a word, not mid-letter. */
+      ...fitPush({ title: notification.title, body: notification.body }),
       href: safeHref(notification.href),
       tag: collapseTag(notification.kind),
       urgent,

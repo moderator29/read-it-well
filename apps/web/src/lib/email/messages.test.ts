@@ -9,7 +9,18 @@ import {
   welcome,
 } from "./messages";
 import { agreementApproved } from "./agreement-messages";
-import { greetingName, hello, money } from "./render";
+import {
+  clip,
+  escapeHtml,
+  fitSubject,
+  greetingName,
+  hello,
+  money,
+  PREHEADER_MAX,
+  PREHEADER_PAD,
+  shortRange,
+  SUBJECT_MAX,
+} from "./render";
 import { LEGAL_LINE, LOCKUP_PATH, SIGN_OFF, WORDMARK_ALT } from "./theme";
 
 /**
@@ -78,6 +89,37 @@ describe("every message in the catalogue", () => {
     // A subject longer than this is truncated by every mobile client, so the
     // end of it is decoration rather than communication.
     expect(message.subject.length).toBeLessThanOrEqual(90);
+  });
+
+  /*
+   * WRITTEN FOR THE LOCK SCREEN (design spec section 11). The subject is what
+   * a phone shows in bold, and past 45 characters it is cut; the preheader is
+   * the one line under it. Both are checked on the awkward fixtures (a long
+   * Lagos listing title, a three-part name), which is where they overflow.
+   */
+  it.each(EVERY_MESSAGE)("$name has a lock-screen subject: 45 or fewer, fact first, no full stop", ({ message }) => {
+    expect(message.subject.length, message.subject).toBeLessThanOrEqual(SUBJECT_MAX);
+    expect(message.subject).not.toMatch(/\.$/);
+    expect(message.subject).toMatch(/^[A-Z0-9₦]/);
+  });
+
+  it.each(EVERY_MESSAGE)("$name has a preheader of 90 or fewer that ends a sentence and is not the subject", ({ message }) => {
+    const pre = message.preheader;
+    expect(pre.length, pre).toBeGreaterThan(10);
+    expect(pre.length, pre).toBeLessThanOrEqual(PREHEADER_MAX);
+    // Written to fit, not cut to fit: an ellipsis at the end means the
+    // fixture's facts overflowed and the builder needs a shorter sentence.
+    expect(pre, pre).toMatch(/[.!?"]$/);
+    expect(pre.toLowerCase()).not.toBe(message.subject.toLowerCase());
+    // No greeting on the lock screen.
+    expect(pre).not.toMatch(/^(hello|hi|dear)\b/i);
+  });
+
+  it.each(EVERY_MESSAGE)("$name ships the same preheader it reports, padded so body text cannot follow it", ({ message }) => {
+    const body = message.html.slice(message.html.indexOf("<body"));
+    const span = body.match(/<span style="display:none[^"]*">([^<]*)<\/span>/)?.[1] ?? "";
+    expect(span.startsWith(escapeHtml(message.preheader))).toBe(true);
+    expect(span).toContain(PREHEADER_PAD);
   });
 
   it.each(EVERY_MESSAGE)("$name contains no em dash", ({ message }) => {
@@ -227,5 +269,39 @@ describe("the messages that carry a promise", () => {
     const m = welcome({ role: "buyer" });
     expect(flat(m.text)).toMatch(/cannot verify it/i);
     expect(flat(m.text)).toMatch(/land registry/i);
+  });
+});
+
+describe("the lock-screen helpers", () => {
+  const LONG = "Two bedroom flat, Herbert Macaulay Way, Yaba";
+
+  it("fitSubject puts the fact first and the thing it is about after, inside 45", () => {
+    expect(fitSubject("Booking confirmed", LONG)).toBe("Booking confirmed: Two bedroom flat");
+    expect(fitSubject("Booking confirmed", "Flat")).toBe("Booking confirmed: Flat");
+    expect(fitSubject("Booking confirmed", null)).toBe("Booking confirmed");
+    const cramped = fitSubject("A very long fact that leaves no room at all", LONG);
+    expect(cramped.length).toBeLessThanOrEqual(SUBJECT_MAX);
+    expect(cramped).not.toContain(":");
+    for (const title of [LONG, "x".repeat(200), "Penthouse with a view of the lagoon and the bridge"]) {
+      expect(fitSubject("Listing not published", title).length).toBeLessThanOrEqual(SUBJECT_MAX);
+    }
+  });
+
+  it("clip cuts at a word with an ellipsis and never leaves a dangling comma", () => {
+    expect(clip("short", 90)).toBe("short");
+    const cut = clip("Two bedroom flat, Herbert Macaulay Way, Yaba", 20);
+    expect(cut.length).toBeLessThanOrEqual(20);
+    expect(cut.endsWith("…")).toBe(true);
+    expect(cut).not.toMatch(/,…$/);
+  });
+
+  it("shortRange drops the repeated month", () => {
+    expect(shortRange("2026-09-01", "2026-09-05")).toMatch(/^1 to 5 Sept?$/);
+    expect(shortRange("2026-09-28", "2026-10-02")).toMatch(/^28 Sept? to 2 Oct$/);
+  });
+
+  it("a password reset preheader carries no code or link", () => {
+    const m = EVERY_MESSAGE.find((e) => e.name === "passwordReset")!.message;
+    expect(m.preheader).not.toMatch(/https?:|\d{6}/);
   });
 });

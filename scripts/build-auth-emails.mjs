@@ -473,13 +473,23 @@ const SCHEME_STYLE = `
  * One shell for all five templates, and the same shell the product's
  * transactional email uses.
  *
- * @param preheader hidden inbox line
+ * @param subject   the subject to set beside it in the dashboard, 45 or fewer,
+ *                  carried as the document title so it travels with the file
+ * @param preheader hidden inbox line, one sentence, 90 or fewer
  * @param purpose   masthead purpose line, so each email announces its job
  * @param blocks    the middle: heading, lede, CTA, panels, fallback link
  * @param facts     optional {title, lines} band of plain, checkable statements
  * @param footnote  the closing sentence, tuned per template
  */
-function shellHtml({ preheader, purpose, blocks, facts, footnote }) {
+/**
+ * The padding after the preheader, mirrored from `PREHEADER_PAD` in
+ * apps/web/src/lib/email/render.ts: enough invisible characters to fill any
+ * client's preview line, so the lock screen shows the preheader and nothing
+ * pulled in from the body behind it.
+ */
+const PREHEADER_PAD = "&#847;&#8204;&#160;".repeat(60);
+
+function shellHtml({ subject, preheader, purpose, blocks, facts, footnote }) {
   const body = blocks.map(htmlBlock).join("\n                ");
   const links = FOOTER_LINKS.map(
     ([label, href]) =>
@@ -492,7 +502,7 @@ function shellHtml({ preheader, purpose, blocks, facts, footnote }) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
     <meta name="supported-color-schemes" content="dark" />
-    <title>Vallo</title>
+    <title>${subject}</title>
     <style>${SCHEME_STYLE}
     </style>
   </head>
@@ -500,7 +510,7 @@ function shellHtml({ preheader, purpose, blocks, facts, footnote }) {
     <!-- The hidden inbox line. The trailing spacer entities stop a client
          pulling the first sentence of body copy in after it, so what the
          reader sees beside the subject is a line somebody wrote. -->
-    <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${preheader}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
+    <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${preheader}${PREHEADER_PAD}</span>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="rm-base" bgcolor="${GROUND}" style="width:100%;background-color:${GROUND};">
       <tr>
         <td align="center" class="rm-outer" style="padding:28px 12px 44px;">
@@ -626,7 +636,8 @@ const templates = {
   // Confirm signup: the first email anybody gets from Vallo. Its job is to
   // confirm an address, and its second job is to be obviously real.
   confirmation: {
-    preheader: "Confirm this address and your Vallo account is ready.",
+    subject: "Confirm your Vallo email",
+    preheader: "Tap the button or enter the code, and your account is ready.",
     purpose: "Confirm your email",
     blocks: [
       heading("Confirm your email address"),
@@ -649,7 +660,8 @@ const templates = {
   // the way, and one security line rather than a band, because the reader is
   // mid sign-in and wants to be finished.
   "magic-link": {
-    preheader: "Your single-use Vallo sign-in link is ready.",
+    subject: "Your Vallo sign-in link",
+    preheader: "It works once and expires shortly. Nobody from Vallo will ask for it.",
     purpose: "Sign in to Vallo",
     blocks: [
       heading("Here is your sign-in link"),
@@ -678,7 +690,8 @@ const templates = {
   // doing nothing is safe. No facts band: the only job is getting somebody back
   // in without worrying them.
   recovery: {
-    preheader: "A way back into your Vallo account.",
+    subject: "Set a new Vallo password",
+    preheader: "The link works once. If you did not ask, ignore this.",
     purpose: "Password reset",
     blocks: [
       heading("Set a new password"),
@@ -704,7 +717,8 @@ const templates = {
   // approving it, so both addresses are shown, and the emphasis is on
   // authorising rather than on welcoming.
   "email-change": {
-    preheader: "Approve the email address change on your Vallo account.",
+    subject: "Confirm your new Vallo address",
+    preheader: "Nothing changes until you approve it from this email.",
     purpose: "Security confirmation",
     blocks: [
       heading("Confirm your new email address"),
@@ -734,7 +748,8 @@ const templates = {
   // Vallo put this reader's name forward, and the copy is warm about it
   // without promising them anything.
   invite: {
-    preheader: "Somebody has invited you to join Vallo.",
+    subject: "You have been invited to Vallo",
+    preheader: "Accept it and your account is set up in a moment.",
     purpose: "Your invitation",
     blocks: [
       heading("You have been invited to Vallo"),

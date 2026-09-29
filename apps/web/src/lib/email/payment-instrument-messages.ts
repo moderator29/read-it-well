@@ -1,6 +1,7 @@
 import {
   appUrl,
   button,
+  clip,
   compose,
   heading,
   hello,
@@ -68,6 +69,8 @@ import {
 /** What every message function in this estate returns. */
 export type PaymentInstrumentEmail = {
   subject: string;
+  /** The lock-screen line, as shipped. */
+  preheader: string;
   html: string;
   text: string;
 };
@@ -170,14 +173,35 @@ const CHANGE_LABEL: Record<PaymentInstrumentEvent, string> = {
 };
 
 const SUBJECT: Record<PaymentInstrumentEvent, string> = {
-  card_saved: "A card was saved to your Vallo account",
-  card_default_changed: "Your default card on Vallo changed",
-  card_removed: "A card was removed from your Vallo account",
-  bank_added: "A bank account was added to your Vallo account",
+  card_saved: "A card was saved to your account",
+  card_default_changed: "Your default card changed",
+  card_removed: "A card was removed from your account",
+  bank_added: "A bank account was added",
   /* The one to shout about: this is the change that redirects money. */
   bank_default_changed: "Your Vallo payout account changed",
-  bank_removed: "A bank account was removed from your Vallo account",
+  bank_removed: "A bank account was removed",
 };
+
+/**
+ * The lock-screen line: which instrument, and the one thing to do if the
+ * reader did not do this. Names the card or bank so two of these in a row
+ * are two different facts, and never a digit of an account number.
+ */
+function preheaderFor(data: PaymentInstrumentData): string {
+  const thing = instrument(data);
+  const Thing = thing.charAt(0).toUpperCase() + thing.slice(1);
+  const done: Record<PaymentInstrumentEvent, string> = {
+    card_saved: `${Thing} was saved.`,
+    card_default_changed: `${Thing} is now your default card.`,
+    card_removed: `${Thing} was removed.`,
+    bank_added: `${Thing} was added.`,
+    bank_default_changed: `${Thing} now receives your payouts.`,
+    bank_removed: `${Thing} was removed.`,
+  };
+  const line = `${done[data.event]} Not you? Change your password.`;
+  /* A long bank name can push the warning past the line; the fact stays. */
+  return line.length <= 90 ? line : clip(done[data.event], 90);
+}
 
 /**
  * What happened, said once, in the sentence the reader needs.
@@ -231,7 +255,7 @@ function build(subject: string, preheader: string, blocks: readonly Block[]): Pa
       "This is a security notice. It is always sent and it cannot be switched off.",
     ],
   });
-  return { subject, html: composed.html, text: composed.text };
+  return { subject, preheader: composed.preheader, html: composed.html, text: composed.text };
 }
 
 /**
@@ -256,7 +280,7 @@ export function paymentInstrumentChanged(data: PaymentInstrumentData): PaymentIn
       "Vallo will never ask you for your card number, your PIN, your bank password or a one-time code, by phone, by message or by email. If somebody does, it is not us.",
     ),
   ];
-  return build(SUBJECT[data.event], whatHappened(data), blocks);
+  return build(SUBJECT[data.event], preheaderFor(data), blocks);
 }
 
 /** Exported for the test that holds this vocabulary equal to the notice's. */

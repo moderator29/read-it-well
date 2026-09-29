@@ -1,4 +1,4 @@
-import { appUrl, button, compose, heading, hello, note, paragraph } from "./render";
+import { appUrl, button, compose, heading, hello, note, paragraph, shortTitle } from "./render";
 import type { EmailMessage } from "./messages";
 
 /**
@@ -28,8 +28,10 @@ const WHY: Record<ScamRecallData["category"], string> = {
 
 export function scamRecall(data: ScamRecallData): EmailMessage {
   const about = data.listingTitle ? ` about ${data.listingTitle}` : "";
-  const { html, text } = compose({
-    preheader: "If you paid them anything, tell us now.",
+  const composed = compose({
+    preheader: data.listingTitle
+      ? `It was about ${shortTitle(data.listingTitle, 40)}. If you paid them anything, tell us now.`
+      : "If you paid them anything, tell us now.",
     blocks: [
       heading("An account you talked to has been stopped"),
       paragraph(`${hello(data.name)} An account you talked to${about} was stopped by Vallo ${WHY[data.category]}.`),
@@ -45,5 +47,10 @@ export function scamRecall(data: ScamRecallData): EmailMessage {
       "This is a safety notice. It is always sent and it cannot be switched off.",
     ],
   });
-  return { subject: "An account you talked to on Vallo has been stopped", html, text };
+  return {
+    subject: "An account you talked to was stopped",
+    preheader: composed.preheader,
+    html: composed.html,
+    text: composed.text,
+  };
 }

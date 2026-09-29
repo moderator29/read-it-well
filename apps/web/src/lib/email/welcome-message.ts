@@ -37,6 +37,7 @@
 import type { EmailMessage } from "./messages";
 import {
   appUrl,
+  clip,
   documentHtml,
   escapeHtml,
   footerLinksText,
@@ -44,7 +45,9 @@ import {
   greetingName,
   hello,
   paintExplicit,
+  PREHEADER_MAX,
   siteUrl,
+  SUBJECT_MAX,
 } from "./render";
 import { BRAND, BUTTON_GRADIENT, DARK, FONT_SANS, LEGAL_LINE, SIGN_OFF, SKY } from "./theme";
 
@@ -546,8 +549,12 @@ export function welcome(data: WelcomeData): EmailMessage {
   const hi = greeting(data);
   const first =
     greetingName(data.name) ?? greetingName((data.handle ?? "").trim().replace(/^@+/, ""));
+  const subject = first ? CHROME.subjectWithName.replace("{name}", first) : CHROME.subjectPlain;
   return {
-    subject: first ? CHROME.subjectWithName.replace("{name}", first) : CHROME.subjectPlain,
+    /* A forty-character first name would push the subject past what a phone
+       shows; the plain welcome is the honest fallback, never a cut name. */
+    subject: subject.length <= SUBJECT_MAX ? subject : CHROME.subjectPlain,
+    preheader: clip(version.preheader, PREHEADER_MAX),
     html: paintExplicit(renderHtml(version, hi)),
     text: renderText(version, hi),
   };

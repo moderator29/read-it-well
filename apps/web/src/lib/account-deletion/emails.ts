@@ -33,7 +33,7 @@ import { GRACE_WINDOW_DAYS } from "./constants";
  * never stored, never logged and never written to the audit line.
  */
 
-export type DeletionEmail = { subject: string; html: string; text: string };
+export type DeletionEmail = { subject: string; preheader: string; html: string; text: string };
 
 export type DeletionStartedData = {
   name?: string | null;
@@ -54,7 +54,7 @@ export function deletionStarted(data: DeletionStartedData): DeletionEmail {
   // reads back a machine timestamp, which `emails.test.ts` caught.
   const when = prettyDate(data.purgeAfter.slice(0, 10));
   const composed = compose({
-    preheader: `Your Vallo account is scheduled for deletion on ${when}. You can still stop it.`,
+    preheader: "Nothing is destroyed yet. The restore code in this email stops it.",
     blocks: [
       heading("Your account is scheduled for deletion"),
       paragraph(
@@ -80,7 +80,8 @@ export function deletionStarted(data: DeletionStartedData): DeletionEmail {
   });
 
   return {
-    subject: `Your Vallo account will be deleted on ${when}`,
+    subject: `Your account will be deleted on ${when}`,
+    preheader: composed.preheader,
     html: composed.html,
     text: composed.text,
   };
@@ -97,7 +98,7 @@ export type DeletionCompletedData = {
  */
 export function deletionCompleted(data: DeletionCompletedData): DeletionEmail {
   const composed = compose({
-    preheader: "Your Vallo account has been deleted.",
+    preheader: "This is the last email Vallo sends to this address.",
     blocks: [
       heading("Your account has been deleted"),
       paragraph(
@@ -125,6 +126,7 @@ export function deletionCompleted(data: DeletionCompletedData): DeletionEmail {
 
   return {
     subject: "Your Vallo account has been deleted",
+    preheader: composed.preheader,
     html: composed.html,
     text: composed.text,
   };

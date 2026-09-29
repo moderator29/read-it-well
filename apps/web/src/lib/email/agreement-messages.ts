@@ -1,5 +1,5 @@
 import { NO_CUSTODY_SENTENCE, OFF_PLATFORM_SENTENCE } from "../money/copy";
-import { appUrl, button, compose, heading, hello, money, note, paragraph, rows, type Block, type ReceiptRow } from "./render";
+import { appUrl, button, compose, fitSubject, heading, hello, money, note, paragraph, quoteLine, rows, type Block, type ReceiptRow } from "./render";
 import type { EmailMessage } from "./messages";
 
 /**
@@ -12,8 +12,8 @@ import type { EmailMessage } from "./messages";
  */
 
 function message(subject: string, preheader: string, blocks: readonly (Block | null | false)[], footer: string): EmailMessage {
-  const { html, text } = compose({ preheader, blocks, footerLines: [footer] });
-  return { subject, html, text };
+  const composed = compose({ preheader, blocks, footerLines: [footer] });
+  return { subject, preheader: composed.preheader, html: composed.html, text: composed.text };
 }
 
 export type AgreementEmailData = {
@@ -40,10 +40,12 @@ function facts(data: AgreementEmailData): ReceiptRow[] {
 export function agreementApproved(data: AgreementEmailData): EmailMessage {
   const renter = data.viewer === "renter";
   return message(
-    `Approved: payment is open for ${place(data)}`,
-    renter ? "Vallo approved the agreement. You can pay now." : "Vallo approved the agreement. The renter can pay now.",
+    fitSubject("Approved, payment is open", data.listingTitle),
+    renter
+      ? `${money(data.amountMinor)} agreed. You can pay in the app now.`
+      : `${money(data.amountMinor)} agreed. The renter can pay now.`,
     [
-      heading("Your agreement is approved"),
+      heading("Agreement approved"),
       paragraph(
         `${hello(data.name)} Vallo reviewed the agreement for ${place(data)} that both of you confirmed, and approved it.`,
       ),
@@ -63,10 +65,10 @@ export function agreementApproved(data: AgreementEmailData): EmailMessage {
 
 export function agreementRejected(data: AgreementEmailData): EmailMessage {
   return message(
-    `Sent back: the agreement for ${place(data)}`,
-    "Vallo did not approve the agreement yet. Here is why.",
+    fitSubject("Agreement sent back", data.listingTitle),
+    data.reason ? quoteLine("Why", data.reason) : "Vallo did not approve it yet. Nothing has been charged.",
     [
-      heading("Vallo sent the agreement back"),
+      heading("Agreement sent back"),
       paragraph(`${hello(data.name)} Vallo reviewed the agreement for ${place(data)} and did not approve it yet.`),
       data.reason ? rows([{ label: "Why", value: data.reason, strong: true }]) : null,
       paragraph("Nothing has been charged. Change what the reason names, and both of you confirm the new version."),
@@ -79,10 +81,10 @@ export function agreementRejected(data: AgreementEmailData): EmailMessage {
 
 export function agreementWaiting(data: AgreementEmailData): EmailMessage {
   return message(
-    `An agreement is waiting for you: ${place(data)}`,
-    "Read the terms and confirm them in the app.",
+    fitSubject("Agreement to confirm", data.listingTitle),
+    `${money(data.amountMinor)} in total. Read the terms and confirm them in the app.`,
     [
-      heading("Terms waiting for your confirmation"),
+      heading("Agreement to confirm"),
       paragraph(
         `${hello(data.name)} An agreement for ${place(data)} has been drawn up. Read the terms and confirm them in the app. Once both of you confirm, Vallo reviews it and then payment opens.`,
       ),
@@ -105,8 +107,14 @@ export type ClaimDecidedData = {
 export function guaranteeClaimDecided(data: ClaimDecidedData): EmailMessage {
   const approved = data.decision === "approve";
   return message(
-    approved ? "Your Vallo Guarantee claim is approved" : "Your Vallo Guarantee claim was not approved",
-    approved ? "A person at Vallo approved your claim." : "A person at Vallo reviewed your claim.",
+    approved ? "Vallo Guarantee claim approved" : "Vallo Guarantee claim not approved",
+    approved
+      ? data.amountMinor !== null
+        ? `Vallo approved ${money(data.amountMinor)}. It will be paid to your bank account.`
+        : "Vallo approved your claim. It will be paid to your bank account."
+      : data.reason
+        ? quoteLine("Why", data.reason)
+        : "A person reviewed it against the inspection report.",
     [
       heading(approved ? "Claim approved" : "Claim not approved"),
       paragraph(

@@ -40,17 +40,23 @@ import {
   appUrl,
   bullets,
   button,
+  clip,
   code,
   compose,
   dateRange,
+  dayMonth,
+  fitSubject,
   greetingName,
   heading,
   hello,
   money,
   note,
   paragraph,
+  quoteLine,
   prettyDate,
   rows,
+  shortRange,
+  shortTitle,
   type Block,
   type ReceiptRow,
 } from "./render";
@@ -65,7 +71,14 @@ import { countOf } from "@vallo/i18n/core";
  * without one.
  */
 export type EmailMessage = {
+  /** 45 characters or fewer, the fact first. See `SUBJECT_MAX` in render.ts. */
   subject: string;
+  /**
+   * The inbox and lock-screen line under the subject, as shipped: one
+   * sentence, 90 characters or fewer. Carried on the message so the confirm
+   * panel's "What everyone gets" preview shows exactly what is sent.
+   */
+  preheader: string;
   html: string;
   text: string;
 };
@@ -174,13 +187,13 @@ function message(
   footerLines?: readonly string[],
   footerLink?: { label: string; href: string },
 ): EmailMessage {
-  const { html, text } = compose({
+  const composed = compose({
     preheader,
     blocks,
     ...(footerLines ? { footerLines } : {}),
     ...(footerLink ? { footerLink } : {}),
   });
-  return { subject, html, text };
+  return { subject, preheader: composed.preheader, html: composed.html, text: composed.text };
 }
 
 /* ------------------------------------------------------------------ account */
@@ -210,7 +223,7 @@ export type VerificationCodeData = {
 export function verificationCode(data: VerificationCodeData): EmailMessage {
   return message(
     `${data.code} is your Vallo code`,
-    `Your code expires in ${data.expiresInMinutes} minutes.`,
+    `It works once and expires in ${data.expiresInMinutes} minutes.`,
     [
       heading("Your Vallo code"),
       paragraph(`${hello(data.name)} Type this into the tab you have open.`),
@@ -269,7 +282,7 @@ export function passwordReset(data: PasswordResetData): EmailMessage {
     /* No code in the subject: a reset code grants a password change, and a
        lock-screen notification is readable by anybody holding the phone. */
     "Set a new Vallo password",
-    "A way back into your Vallo account.",
+    `The link works once and expires in ${data.expiresInMinutes} minutes.`,
     [
       heading("Set a new password"),
       paragraph(
@@ -367,9 +380,12 @@ export type PasswordChangedData = {
  */
 export function passwordChanged(data: PasswordChangedData): EmailMessage {
   const when = securityRows({ date: data.date, time: data.time });
+  const at = when[0]?.value ?? null;
   return message(
     "Your Vallo password was changed",
-    "If this was not you, there is a way back in.",
+    at
+      ? `Changed ${at}. If this was not you, set a new one now.`
+      : "If this was not you, set a new password now.",
     [
       heading("Your password was changed"),
       paragraph(`${hello(data.name)} The password on your Vallo account has been changed.`),
@@ -407,10 +423,10 @@ export type EmailRecoveryData = {
  */
 export function emailRecoveryOpened(data: EmailRecoveryData): EmailMessage {
   return message(
-    "A request to move your Vallo account to another email address",
-    "If this was not you, tell us before it completes.",
+    "Your email address is changing",
+    clip(`Moving to ${data.newAddressMasked} ${data.eligibleAt ? `on ${data.eligibleAt}` : "in 72 hours"}, unless you stop it.`, 90),
     [
-      heading("Somebody asked to move your account"),
+      heading("Your email address is changing"),
       paragraph(
         `${hello(data.name)} Our support team has opened a request to move your Vallo account from this address to ${data.newAddressMasked}, after checking the NIN on your identity record.`,
       ),
@@ -431,10 +447,10 @@ export function emailRecoveryOpened(data: EmailRecoveryData): EmailMessage {
 /** SEC-15. Sent to the OLD address once the move has happened. */
 export function emailRecoveryCompleted(data: EmailRecoveryData): EmailMessage {
   return message(
-    "Your Vallo account has moved to another email address",
-    "Sign-in and messages now go to the new address.",
+    "Your Vallo email address changed",
+    `Your account now signs in with ${data.newAddressMasked}.`,
     [
-      heading("Your account has moved"),
+      heading("Your email address changed"),
       paragraph(
         `${hello(data.name)} Your Vallo account now signs in with ${data.newAddressMasked}. This address no longer reaches it.`,
       ),
@@ -476,11 +492,17 @@ export type NewDeviceSignInData = {
  * remove it. The reset is named in the copy for the case that needs it.
  */
 export function newDeviceSignIn(data: NewDeviceSignInData): EmailMessage {
+  const device = data.device?.trim() || null;
+  const place = data.place?.trim() || null;
+  const at = securityRows({ date: data.date, time: data.time })[0]?.value ?? null;
+  const who = device ? `${device}${place ? ` near ${place}` : ""}` : place ? `A device near ${place}` : null;
   return message(
-    "A new sign-in to your Vallo account",
-    "A device that has not signed in before just did.",
+    "New sign-in to your Vallo account",
+    who
+      ? clip(`${who} signed in${at ? ` on ${at}` : ""}.`, 90)
+      : "A device your account has not seen before signed in.",
     [
-      heading("A new sign-in"),
+      heading("New sign-in"),
       paragraph(
         `${hello(data.name)} Somebody signed in to your Vallo account from a device it has not seen before.`,
       ),
@@ -545,14 +567,16 @@ export function inspectionScheduled(data: InspectionScheduledData): EmailMessage
   if (phone.length > 0) list.push({ label: "Their number", value: phone });
 
   return message(
-    `Inspection booked: ${data.listingTitle}, ${prettyDate(data.date)}`,
-    `${prettyDate(data.date)} at ${data.time}.`,
+    `Inspection booked for ${dayMonth(data.date)} at ${data.time}`,
+    viewing
+      ? clip(`At ${data.address}${other ? `, with ${other}` : ""}.`, 90)
+      : clip(`${other ?? "Somebody"} is coming to see ${shortTitle(data.listingTitle, 40)}.`, 90),
     [
-      heading("Your inspection is booked"),
+      heading("Inspection booked"),
       paragraph(
         viewing
-          ? `${hello(data.name)} Your inspection is confirmed. Here is where to be and when.`
-          : `${hello(data.name)} Somebody is coming to inspect your property. Here are the details.`,
+          ? `${hello(data.name)} Your inspection is confirmed for ${prettyDate(data.date)} at ${data.time}.`
+          : `${hello(data.name)} ${other ?? "Somebody"} is coming to inspect ${data.listingTitle} on ${prettyDate(data.date)} at ${data.time}.`,
       ),
       rows(list),
       paragraph(
@@ -597,12 +621,12 @@ export type ListingApprovedData = {
 /** To the lister when a listing passes review and goes live. */
 export function listingApproved(data: ListingApprovedData): EmailMessage {
   return message(
-    `Your listing is live: ${data.listingTitle}`,
-    "It is published and people can find it now.",
+    fitSubject("Your listing is live", data.listingTitle),
+    clip(`It is in search now${data.reference ? ` as ${data.reference}` : ""}, and people can message you about it.`, 90),
     [
       heading("Your listing is live"),
       paragraph(
-        `${hello(data.listerName)} It has passed review and is published, so it is in search now and people can message you about it.`,
+        `${hello(data.listerName)} ${data.listingTitle} passed review and is in search now, so people can message you about it.`,
       ),
       rows([
         { label: "Listing", value: data.listingTitle },
@@ -651,10 +675,10 @@ export type ListingRejectedData = {
 export function listingRejected(data: ListingRejectedData): EmailMessage {
   const again = data.canResubmit !== false;
   return message(
-    `Your listing was not published: ${data.listingTitle}`,
-    "Here is exactly what needs to change.",
+    fitSubject("Listing not published", data.listingTitle),
+    quoteLine("Reason", data.reason),
     [
-      heading("Your listing was not published"),
+      heading("Listing not published"),
       paragraph(
         `${hello(data.listerName)} A person reviewed this listing and it cannot go live as it stands. This is what they said.`,
       ),
@@ -699,10 +723,10 @@ export type ListingPassedReviewData = {
  */
 export function listingPassedReview(data: ListingPassedReviewData): EmailMessage {
   return message(
-    `Your listing passed review: ${data.listingTitle}`,
-    "It passed the checks. We put it live next, and there is nothing for you to do.",
+    fitSubject("Listing passed review", data.listingTitle),
+    "We put it live next, and there is nothing for you to do.",
     [
-      heading("Your listing passed review"),
+      heading("Listing passed review"),
       paragraph(
         `${hello(data.listerName)} A person has been through this listing against our admission checklist and it passed.`,
       ),
@@ -746,10 +770,10 @@ export type ListingChangesRequestedData = {
  */
 export function listingChangesRequested(data: ListingChangesRequestedData): EmailMessage {
   return message(
-    `One change needed: ${data.listingTitle}`,
-    "The reviewer asked for one thing. Here it is, in their words.",
+    fitSubject("Change needed", data.listingTitle),
+    quoteLine("The reviewer asks", data.reason),
     [
-      heading("One change before this can go live"),
+      heading("One change before it goes live"),
       paragraph(
         `${hello(data.listerName)} A person reviewed this listing and asked for a change before it is published. This is what they said.`,
       ),
@@ -786,10 +810,10 @@ export type AgentApplicationData = {
  */
 export function agentApplicationApproved(data: AgentApplicationData): EmailMessage {
   return message(
-    "Your Vallo agent application is approved",
-    "Your agent workspace is open. Verification is a separate step.",
+    "Your agent application is approved",
+    `Reference ${data.reference}. Your agent workspace is open and you can list now.`,
     [
-      heading("You can start listing"),
+      heading("Agent application approved"),
       paragraph(
         `${hello(data.name)} Your application has been accepted, so your agent workspace is open and you can put up your first property.`,
       ),
@@ -818,10 +842,10 @@ export type AgentApplicationRefusedData = AgentApplicationData & {
 /** To an applicant when their agent registration is refused. */
 export function agentApplicationRejected(data: AgentApplicationRefusedData): EmailMessage {
   return message(
-    "Your Vallo agent application was not approved",
-    "Here is what the reviewer said.",
+    "Your agent application was not approved",
+    quoteLine("Reason", data.reason),
     [
-      heading("Your application was not approved"),
+      heading("Application not approved"),
       paragraph(
         `${hello(data.name)} A person reviewed your application and it was not accepted. This is what they said.`,
       ),
@@ -841,10 +865,10 @@ export function agentApplicationRejected(data: AgentApplicationRefusedData): Ema
 /** To an applicant when the reviewer needs something more before deciding. */
 export function agentApplicationNeedsMore(data: AgentApplicationRefusedData): EmailMessage {
   return message(
-    "One more thing on your Vallo agent application",
-    "The reviewer needs something before they can decide.",
+    "Your agent application needs one more thing",
+    quoteLine("Needed", data.reason),
     [
-      heading("One more thing before we can decide"),
+      heading("One more thing before we decide"),
       paragraph(
         `${hello(data.name)} Your application is with a reviewer and they need something more from you before they can decide. This is what they asked for.`,
       ),
@@ -900,9 +924,9 @@ export function verificationRungPassed(data: VerificationRungPassedData): EmailM
   const next = data.nextRung ?? null;
   return message(
     `Verified: ${RUNG_NAME[data.rung].toLowerCase()}`,
-    `${RUNG_NAME[data.rung]} is confirmed on your Vallo account.`,
+    RUNG_MEANS[data.rung],
     [
-      heading("Another rung confirmed"),
+      heading(`${RUNG_NAME[data.rung]} confirmed`),
       paragraph(
         `${hello(data.name)} This check has passed and is now shown on your profile and on every listing you have.`,
       ),
@@ -951,10 +975,12 @@ export function newEnquiry(data: NewEnquiryData): EmailMessage {
   const shown = preview.length > 240 ? preview.slice(0, 237) + "..." : preview;
 
   return message(
-    `New enquiry about ${data.listingTitle}`,
-    who ? `${who} has asked about ${data.listingTitle}.` : `Somebody has asked about ${data.listingTitle}.`,
+    fitSubject(who ? `Enquiry from ${who}` : "New enquiry", data.listingTitle),
+    shown.length > 0
+      ? clip(`"${shown}"`, 90)
+      : `${who ?? "Somebody"} sent you a message about ${shortTitle(data.listingTitle, 40)}.`,
     [
-      heading("Somebody is asking about your property"),
+      heading(who ? `${who} asked about your property` : "New enquiry"),
       paragraph(
         `${hello(data.listerName)} ${
           who ? `${who} has` : "Somebody has"
@@ -997,8 +1023,8 @@ export type BookingRequestedData = {
 /** To the guest, the moment their request is saved. */
 export function bookingRequested(data: BookingRequestedData): EmailMessage {
   return message(
-    `Your request for ${data.listingTitle} is with the host`,
-    "Your dates are held while the host reviews your request.",
+    fitSubject("Request sent", data.listingTitle),
+    `${shortRange(data.checkIn, data.checkOut)}, ${nightsLine(data.nights)}, ${money(data.totalMinor)}. The host is reviewing it.`,
     [
       heading("Request sent"),
       paragraph(
@@ -1040,10 +1066,10 @@ export type BookingRequestedHostData = {
 export function bookingRequestedHost(data: BookingRequestedHostData): EmailMessage {
   const who = greetingName(data.guestName);
   return message(
-    `New booking request for ${data.listingTitle}`,
-    `A guest has requested ${dateRange(data.checkIn, data.checkOut)}.`,
+    fitSubject("Booking request", data.listingTitle),
+    `${who ?? "A guest"} wants ${shortRange(data.checkIn, data.checkOut)}, ${nightsLine(data.nights)}, ${money(data.totalMinor)}.`,
     [
-      heading("A guest wants these dates"),
+      heading("New booking request"),
       paragraph(
         `${hello(data.agentName)} ${
           who ?? "A guest"
@@ -1085,12 +1111,12 @@ export type BookingConfirmedData = {
 export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
   const gate = accessRows(data.access);
   return message(
-    `Confirmed: ${data.listingTitle}`,
-    `Your stay is confirmed for ${dateRange(data.checkIn, data.checkOut)}.`,
+    fitSubject("Booking confirmed", data.listingTitle),
+    `${shortRange(data.checkIn, data.checkOut)}, ${nightsLine(data.nights)}. The host confirmed your dates.`,
     [
-      heading("Your stay is confirmed"),
+      heading("Booking confirmed"),
       paragraph(
-        `${hello(data.guestName)} Good news. The host has confirmed your booking, so these dates are yours.`,
+        `${hello(data.guestName)} The host confirmed your booking, so ${shortRange(data.checkIn, data.checkOut)} is yours.`,
       ),
       rows(stayRows(data)),
       gate.length > 0 ? paragraph("Here is how to get in when you arrive.") : null,
@@ -1137,8 +1163,8 @@ export function stayArrivalDetails(data: StayArrivalDetailsData): EmailMessage {
   const gate = accessRows(data.access);
   const booker = greetingName(data.bookedByName);
   return message(
-    `Your stay at ${data.listingTitle} is confirmed`,
-    `You are expected from ${dateRange(data.checkIn, data.checkOut)}.`,
+    fitSubject("Your stay is booked", data.listingTitle),
+    `${booker ?? "Somebody"} booked it for you: ${shortRange(data.checkIn, data.checkOut)}, ${nightsLine(data.nights)}.`,
     [
       heading("You are expected"),
       paragraph(
@@ -1178,10 +1204,10 @@ export type BookingCancelledData = {
 /** To the guest when a booking is cancelled. Plain, no drama. */
 export function bookingCancelled(data: BookingCancelledData): EmailMessage {
   return message(
-    `Cancelled: ${data.listingTitle}`,
-    `Your booking for ${dateRange(data.checkIn, data.checkOut)} is cancelled.`,
+    fitSubject("Booking cancelled", data.listingTitle),
+    `Your stay for ${shortRange(data.checkIn, data.checkOut)} is cancelled and the dates are released.`,
     [
-      heading("Your booking is cancelled"),
+      heading("Booking cancelled"),
       paragraph(
         `${hello(data.guestName)} This booking is now cancelled, and the dates have been released.`,
       ),
@@ -1247,13 +1273,13 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
 
   return message(
     returned
-      ? `${money(data.refundMinor)} is on its way back to your card`
-      : `Cancelled: ${data.listingTitle}`,
+      ? `${money(data.refundMinor)} refund on its way to your card`
+      : fitSubject("Stay cancelled", data.listingTitle),
     returned
-      ? `Your stay is cancelled and ${money(data.refundMinor)} is being returned to the card you paid with.`
-      : "Your stay is cancelled. Here is exactly how the amount was worked out.",
+      ? clip(`${shortTitle(data.listingTitle, 32)} is cancelled; ${money(data.refundMinor)} of ${money(data.paidMinor)} comes back.`, 90)
+      : clip(data.reasonLine, 90),
     [
-      heading(returned ? "Your refund is on its way" : "Your stay is cancelled"),
+      heading(returned ? "Refund on its way" : "Stay cancelled"),
       paragraph(
         `${hello(data.guestName)} A person at Vallo has cancelled this stay and released the dates.`,
       ),
@@ -1304,10 +1330,10 @@ export function supportTicketFiled(data: SupportTicketFiledData): EmailMessage {
   }
 
   return message(
-    `We have your message (${data.reference})`,
-    `Your support reference is ${data.reference}.`,
+    `Support request received: ${data.reference}`,
+    "A person at Vallo will reply to this email address.",
     [
-      heading("We have your message"),
+      heading("Support request received"),
       paragraph(
         `${hello(data.name)} Thank you for writing in. Your question is with our support team and a person will reply to this email address. Please keep this reference to hand.`,
       ),
