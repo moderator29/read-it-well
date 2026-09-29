@@ -398,6 +398,29 @@ export function EmailAuthForm({
         action={formAction}
         ref={formRef}
         onKeyDown={(e) => {
+          /* THE RETURN KEY SAYS "NEXT", SO IT GOES TO THE NEXT FIELD. On a
+             phone the keyboard's return key is labelled by `enterKeyHint`;
+             where it reads "next" and a later field in view is still empty,
+             it moves the cursor there instead of submitting half a form.
+             On the last field it submits (sign in) or is Next (sign up). */
+          if (
+            e.key === "Enter" &&
+            !e.nativeEvent.isComposing &&
+            e.target instanceof HTMLInputElement &&
+            e.target.enterKeyHint === "next"
+          ) {
+            const fields = Array.from(
+              e.currentTarget.querySelectorAll<HTMLInputElement>(
+                'input:not([type=hidden]):not([type=checkbox]):not([type=radio])',
+              ),
+            ).filter((el) => !el.disabled && !el.closest("[hidden]"));
+            const after = fields.slice(fields.indexOf(e.target) + 1).find((el) => el.value === "");
+            if (after) {
+              e.preventDefault();
+              after.focus();
+              return;
+            }
+          }
           /* Enter in a step-one field is Next. Step one has no submit button
              (Next is `type="button"`), so the browser's implicit submission
              never fires there and Enter would otherwise do nothing. */
@@ -470,6 +493,7 @@ export function EmailAuthForm({
                   label={t.signUp.firstNameLabel}
                   placeholder={t.signUp.firstNamePlaceholder}
                   autoComplete="given-name"
+                  enterKeyHint="next"
                   error={stepOneError("firstName")}
                 />
                 <Field
@@ -481,6 +505,7 @@ export function EmailAuthForm({
                   label={t.signUp.surnameLabel}
                   placeholder={t.signUp.surnamePlaceholder}
                   autoComplete="family-name"
+                  enterKeyHint="next"
                   error={stepOneError("surname")}
                 />
               </div>
@@ -500,6 +525,7 @@ export function EmailAuthForm({
                   label={t.auth.passwordLabel}
                   placeholder={t.auth.passwordPlaceholder}
                   autoComplete="new-password"
+                  enterKeyHint="next"
                   error={stepOneError("password")}
                   value={password}
                   onChange={(value) => {
@@ -517,6 +543,7 @@ export function EmailAuthForm({
                 label={t.auth.confirmPasswordLabel}
                 placeholder={t.auth.confirmPasswordPlaceholder}
                 autoComplete="new-password"
+                enterKeyHint="next"
                 error={confirmError}
                 value={confirm}
                 onChange={(value) => {
@@ -612,6 +639,7 @@ export function EmailAuthForm({
               placeholder={t.auth.emailPlaceholder}
               autoComplete="email"
               inputMode="email"
+              enterKeyHint="next"
               error={state.fieldErrors?.email}
             />
             {/* Email and password on one screen (B-1). When the address
@@ -624,6 +652,7 @@ export function EmailAuthForm({
                 label={t.auth.passwordLabel}
                 placeholder={t.auth.signInPasswordPlaceholder}
                 autoComplete="current-password"
+                enterKeyHint="go"
                 error={state.fieldErrors?.password}
                 value={password}
                 onChange={setPassword}

@@ -64,6 +64,7 @@ export function EmailTakenNotice({
         label={t.auth.emailLabel}
         placeholder={t.auth.emailPlaceholder}
         autoComplete="email"
+        enterKeyHint="next"
         error={error}
         value={email}
         onChange={(value) => {

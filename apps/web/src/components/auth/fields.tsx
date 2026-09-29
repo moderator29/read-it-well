@@ -104,6 +104,7 @@ export function Field({
   onChange,
   onBlur,
   inputMode,
+  enterKeyHint,
   className,
 }: {
   id: string;
@@ -136,10 +137,26 @@ export function Field({
      not thirty times while they are. */
   onBlur?: (value: string) => void;
   inputMode?: "numeric" | "text" | "email" | "tel";
+  /* What the phone keyboard's return key says: "next" mid-form, "go" on the
+     last field of a one-step form. */
+  enterKeyHint?: "next" | "go" | "done" | "send";
   className?: string;
 }) {
   const errorId = `${id}-error`;
   const controlled = value !== undefined && onChange !== undefined;
+  /*
+   * THE PHONE KEYBOARD, SET FOR WHAT IS TYPED. An address or a code is never
+   * capitalised, corrected or spell-checked (iOS would turn "ada@" into
+   * "Ada@"); a name starts each word with a capital. Derived from the
+   * autocomplete token so no call site has to remember it.
+   */
+  const literal = type === "email" || autoComplete === "one-time-code" || autoComplete === "off";
+  const named = autoComplete === "given-name" || autoComplete === "family-name" || autoComplete === "nickname";
+  const keyboard = literal
+    ? ({ autoCapitalize: "none", autoCorrect: "off", spellCheck: false } as const)
+    : named
+      ? ({ autoCapitalize: "words", spellCheck: false } as const)
+      : {};
   return (
     <div>
       <LabelRow
@@ -153,7 +170,9 @@ export function Field({
         type={type}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        inputMode={inputMode}
+        inputMode={inputMode ?? (type === "email" ? "email" : undefined)}
+        {...keyboard}
+        enterKeyHint={enterKeyHint}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className={className ? `nf-field nf-field--glass ${className}` : "nf-field nf-field--glass"}
@@ -245,6 +264,7 @@ export function PasswordField({
   onChange,
   t,
   autoFocus,
+  enterKeyHint,
 }: {
   id: string;
   label: string;
@@ -257,6 +277,8 @@ export function PasswordField({
   /** True when this is the one field left to fill, as on the email-first
       sign-in where the address arrived from the screen before. */
   autoFocus?: boolean;
+  /* The return key's word, as on `Field`. */
+  enterKeyHint?: "next" | "go" | "done";
 }) {
   const [visible, setVisible] = useState(false);
   const errorId = `${id}-error`;
@@ -276,6 +298,12 @@ export function PasswordField({
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           autoFocus={autoFocus}
+          /* Shown as text, a phone keyboard would otherwise capitalise and
+             "correct" the password being typed. */
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          enterKeyHint={enterKeyHint}
           className="nf-field nf-field--glass pr-12"
         />
         <button

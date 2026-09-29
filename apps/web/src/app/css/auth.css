@@ -622,13 +622,20 @@
   .nf-auth .nf-auth__actions--sticky {
     position: sticky;
     z-index: 3;
-    bottom: 0;
+    /* `--nf-kb` is the phone keyboard's height while a field has focus
+       (`KeepPillInView`), so the bar rides just above the keys. */
+    bottom: var(--nf-kb, 0px);
     margin-top: var(--nf-space-lg);
     margin-inline: calc(-1 * var(--nf-auth-gutter));
     padding: var(--nf-space-sm) var(--nf-auth-gutter) max(var(--nf-space-sm), env(safe-area-inset-bottom, 0px));
     background: color-mix(in srgb, var(--nf-slate-page) 90%, transparent);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
+  }
+  /* With the keyboard up the home indicator is under the keys, so its inset
+     is not added on top of the bar. */
+  .nf-auth[data-keyboard="up"] .nf-auth__actions--sticky {
+    padding-bottom: var(--nf-space-sm);
   }
 
   /* ======================================================== SMALL LINKS */
@@ -755,6 +762,8 @@
   .nf-auth__legal a {
     color: var(--nf-content-secondary);
     text-underline-offset: 3px;
+    /* A link's name never breaks across the line ("Privacy / Policy"). */
+    white-space: nowrap;
   }
   .nf-auth__legal a:hover {
     text-decoration: underline;
@@ -873,6 +882,23 @@
   @media (min-width: 1024px) {
     .nf-slate {
       --nf-slate-top-h: 19rem;
+    }
+  }
+  /*
+   * A TALL TABLET IN PORTRAIT (768 x 1024, 820 x 1180, 1024 x 1366). The
+   * column is a phone's column, and top-aligned it left the lower third of
+   * the screen empty above the small print. Here the column sits in the
+   * middle of the room under the block, a little above centre, so the screen
+   * reads as composed rather than as a stretched phone. Desktop and landscape
+   * (not this tall) are untouched; a column taller than the room simply
+   * starts at the top as before.
+   */
+  @media (min-width: 640px) and (min-height: 960px) {
+    .nf-auth__body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-bottom: var(--nf-space-3xl);
     }
   }
 }
