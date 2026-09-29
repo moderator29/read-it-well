@@ -1,60 +1,57 @@
-import Image from "next/image";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
+import { AuthCurveBlock } from "@/components/auth/slate";
 import { AuthBackBar } from "./AuthBackBar";
+import { AuthHeroLine } from "./AuthHeroLine";
+import { KeepPillInView } from "./KeepPillInView";
 import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
 
 /**
- * Auth shell: one full-height screen, not a card on a stage.
+ * Auth shell: one full-height screen, to the Slate references of 29
+ * September (`docs/design/references/2026-09-29`, 12 and 14).
  *
- * Top to bottom: a single 44px bar (the way back, the app tile, the
- * language control), the screen's own content in one column, and the small
- * print pinned to the foot. Every auth screen renders inside the same column
- * so sign in, sign up, the code, the reset and the recovery read as the same
- * place; only the column's contents change. `app/css/auth.css` is the whole
- * surface.
+ * Top to bottom: the CURVED TOP BLOCK, full bleed at every width (the way
+ * back and the language control in its toolbar, the wordmark in spaced
+ * capitals, one line under it chosen by the screen), then the screen's own
+ * content in one centred column on the page colour, and the small print at
+ * the foot. Every auth screen renders inside the same shell, so sign in, sign
+ * up, the code, the reset and the recovery read as the same place.
  *
- * THE BRAND IS THE APP TILE, ONCE, AT 40PX. The earlier composition drew the
- * tile and the chrome wordmark as one lockup that took about 45 per cent of a
- * 390 x 844 screen, and the tile already carries the word, so the name was
- * printed twice above a card that then had to squeeze the form into what was
- * left. The tile is a self-contained night object, so it reads the same on
- * the dark ground and on the light one.
- *
- * BOTH THEMES. The subtree follows the document's theme (the palette is
- * `tokens.css`, light on `:root[data-theme="light"]`), so the shared field,
- * button and glass rules paint their own light versions here as everywhere
- * else. Light mode was reintroduced on 25 September (`lib/theme/theme.ts`).
+ * THE THEME RULE (the founder's): in light the block, the pill and the focus
+ * outline are the brand, navy to neon blue, on white; in dark they invert to
+ * a light block and a white pill on dark navy. The block and its pieces are
+ * `components/auth/slate.tsx`; the whole surface is `app/css/auth.css`.
  */
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
 
   return (
-    <main id="main" className="nf-auth">
+    <main id="main" className="nf-auth nf-slate">
       {/* V-35, V-77: a phone at the way in keeps nobody's gate code or shortlist. */}
       <ForgetOnSignOut />
-      <div className="nf-auth__top">
-        <div className="nf-auth__top-start">
-          <AuthBackBar />
-        </div>
-        <Link href="/" aria-label={t.a11y.logoHome} className="nf-auth__brand">
-          <Image
-            src="/brand/vallo-icon.png"
-            alt=""
-            width={40}
-            height={40}
-            sizes="40px"
-            priority
-            className="nf-auth__mark"
+      <KeepPillInView />
+      <AuthCurveBlock
+        brandLabel={t.a11y.logoHome}
+        start={<AuthBackBar />}
+        end={
+          <div className="nf-auth__lang">
+            <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
+          </div>
+        }
+        line={
+          <AuthHeroLine
+            lines={{
+              signIn: t.auth.heroSignIn,
+              signUp: t.auth.heroSignUp,
+              verify: t.auth.heroVerify,
+              reset: t.auth.heroReset,
+            }}
           />
-        </Link>
-        <div className="nf-auth__lang">
-          <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
-        </div>
-      </div>
+        }
+      />
 
       <div className="nf-auth__body">{children}</div>
 

@@ -26,6 +26,8 @@ import { complianceThresholdEn } from "./compliance-7.en";
 import { compliancePepEn } from "./compliance-pep.en";
 import { complianceRiskEn } from "./compliance-risk.en";
 import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
+/* The passcode lock (docs/PASSCODE.md), in its own module like the rest. */
+import { passcodeEn } from "./passcode.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -266,6 +268,9 @@ export const en = {
       "sign-in-required": "Sign in to open that. It takes a moment, and new accounts are free.",
       "catalogue-paced":
         "You have opened a lot of pages in a few minutes. Sign in to keep browsing, or come back in a few minutes.",
+      "passcode-reset": "Sign in with your password, then choose a new passcode.",
+      "passcode-locked":
+        "Your passcode was entered wrongly too many times, so you were signed out. Sign in, then choose a new passcode.",
     } as Record<string, string>,
     appleUnfinished: "Apple did not finish signing you in. Try again, or use your email address.",
     appleFailed: "Apple sign-in did not finish. You can try again or use your email address.",
@@ -294,6 +299,17 @@ export const en = {
    * a chance to break it.
    */
   welcomeCards: {
+    /* The intro a stranger meets first (the Slate pass, 29 September): the
+       name, one line, a small moving scene and the two doors. The four
+       slides stay one tap away as the tour. */
+    intro: {
+      tagline: "Homes to rent, buy and stay in, from agents a person has checked.",
+      chip: "Your move-in total, printed",
+      getStarted: "Get started",
+      signIn: "Sign in",
+      tour: "Take the tour",
+      sceneLabel: "A house and its keys, with the move-in total printed on a receipt",
+    },
     label: "What Vallo is",
     skip: "Skip",
     start: "Let me in",
@@ -1400,6 +1416,16 @@ export const en = {
       "This address was set up with Google, which Vallo no longer uses to sign in. Type your password below. If you never set one, choose Forgot password and we will email you a link to set it.",
     accountNotFound: "No account uses this address yet.",
     accountCreate: "Create one with it",
+    /* The curved top block every auth screen shares (the Slate pass, 29
+       September): one line under the wordmark, chosen by the screen. */
+    heroSignIn: "Welcome back! Sign in to continue.",
+    heroSignUp: "New here? Your account takes a minute.",
+    heroVerify: "One code and you are in.",
+    heroReset: "Locked out? We will get you back in.",
+    /* The round provider buttons carry no words, so these are their names. */
+    googleShort: "Google",
+    appleShort: "Apple",
+    socialLabel: "Or continue with",
   },
 
   /**
@@ -1464,6 +1490,21 @@ export const en = {
     },
     referralLabel: "Referral code",
     referralPlaceholder: "Enter your code",
+    /* The form in two steps on one page (the Slate pass). Step one is the
+       account (name, email, password), step two is everything else. The
+       server still checks every field; these are only the early answers the
+       Next button gives before it moves on. */
+    stepIndicator: "Step {current} of {total}",
+    stepAccount: "Your account",
+    stepAbout: "A little about you",
+    backToStep: "Back to step 1",
+    createAccountCta: "Create account",
+    firstNameRequired: "Enter your first name.",
+    surnameRequired: "Enter your surname.",
+    emailRequired: "Enter your email address.",
+    emailInvalid: "That does not look like a valid email.",
+    passwordShort: "Use at least 8 characters.",
+    confirmRequired: "Re-enter your password.",
   },
 
   /**
@@ -5828,6 +5869,8 @@ export const en = {
   compliancePep: compliancePepEn,
   complianceRisk: complianceRiskEn,
   complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
+
+  passcode: passcodeEn,
 
 };
 

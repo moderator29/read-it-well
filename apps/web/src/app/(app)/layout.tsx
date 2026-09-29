@@ -8,6 +8,7 @@ import { getShellIdentity, getShellWorkspaces } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
 import { shellDictionary } from "@/lib/i18n/shell-dictionary";
 import { AppShell } from "@/components/app/AppShell";
+import { PasscodeGate } from "@/components/passcode/PasscodeGate";
 
 import type { Metadata } from "next";
 
@@ -110,7 +111,11 @@ export default async function AppLayout({
       <OfflineTray />
       {/* V-98: the home-screen widget's token, in the native app only. */}
       <WidgetBridge />
-      {children}
+      {/* The passcode lock (docs/PASSCODE.md): the page only when this
+          session is unlocked, the lock or the setup screen otherwise. */}
+      <PasscodeGate t={t} locale={locale} name={signedIn && userName !== "Guest" ? userName : ""} avatarUrl={avatarUrl}>
+        {children}
+      </PasscodeGate>
     </AppShell>
   );
 }

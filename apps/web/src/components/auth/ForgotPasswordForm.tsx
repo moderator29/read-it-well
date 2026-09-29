@@ -5,9 +5,9 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { requestPasswordReset } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field } from "./fields";
+import { AuthPillButton, AuthPillLink } from "./slate";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -31,7 +31,7 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
   const sent = state.ok;
 
   return (
-    <div className="nf-auth__screen">
+    <div className="nf-auth__screen nf-slate-stagger">
       <h1 className="nf-auth__title">{t.auth.resetTitle}</h1>
       <p className="nf-auth__sub">{sent ? t.auth.resetSentLead : t.auth.resetLead}</p>
 
@@ -44,14 +44,14 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
               email works anywhere. */}
           <p className="nf-auth__hint">{t.auth.resetHaveCode}</p>
           <div className="nf-auth__form">
-            <Link href="/forgot-password/code" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
+            <AuthPillLink href="/forgot-password/code" quiet>
               {t.auth.resetEnterCode}
-            </Link>
+            </AuthPillLink>
           </div>
           <p className="nf-auth__hint">{t.auth.resetNotArrived}</p>
         </>
       ) : (
-        <form action={formAction} className="nf-auth__form nf-auth__form--fields" noValidate>
+        <form action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
           <Field
             t={t}
             id="email"
@@ -66,16 +66,16 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
           {state.message && (
             <p
               role="alert"
-              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {state.message}
             </p>
           )}
 
           <div className="nf-auth__actions">
-            <Button type="submit" variant="primary" size="lg" full loading={pending} className="nf-auth__cta">
+            <AuthPillButton type="submit" loading={pending} className="nf-auth__cta">
               {t.auth.resetSend}
-            </Button>
+            </AuthPillButton>
           </div>
         </form>
       )}

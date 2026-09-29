@@ -306,6 +306,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* DB2: the people you blocked, one level inside Privacy & Security. */
   "/settings/privacy/blocked": "/settings/privacy",
   "/settings/phone": "/settings",
+  "/settings/passcode": "/settings",
   "/legal/privacy": "/settings",
   "/legal/terms": "/settings",
   "/legal/disclaimer": "/settings",
@@ -487,6 +488,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",
+  "/api/passcode/touch": "POST only, the passcode unlock's heartbeat (docs/PASSCODE.md).",
   "/api/vitals": "the browser's field speed beacon (V-80).",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",

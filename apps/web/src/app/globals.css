@@ -73,6 +73,8 @@
 @import "./css/animation.css";
 @import "./css/utilities.css";
 @import "./css/auth.css";
+/* The passcode lock, setup and settings (docs/PASSCODE.md); after auth.css, whose Slate block it reuses. */
+@import "./css/passcode.css";
 @import "./css/home.css";
 @import "./css/landing.css";
 /* Track M: the landing rooms (hero depth, protection, AI showcase, FAQ). */

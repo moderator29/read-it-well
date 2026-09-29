@@ -1,42 +1,103 @@
 /*
   auth: sign in, sign up, the email steps, the code, the reset and the
-  recovery, as one full-height phone screen.
+  recovery, as one full-height phone screen, to the Slate references of 29
+  September (`docs/design/references/2026-09-29`, 12 and 14).
 
-  THE SHAPE. A 44px top bar (back, the app tile, the language control), one
-  column of content under it, the small print at the foot. No card, no stage
-  and no nested scroll: the document scrolls, and on sign up the primary
-  button rides a bar pinned to the foot of the screen.
+  THE SHAPE. A full-bleed top block whose bottom edge is one wide concave arc
+  (the toolbar, the wordmark in spaced capitals, one line under it), then one
+  centred column on the page colour: the big title, labelled fields drawn as
+  soft full-width cards, the full-width pill, the "Or" rule, the round
+  provider doors and the line to the other door. The small print sits at the
+  foot. No card, no stage and no nested scroll: the document scrolls, and on
+  sign up the pill rides a bar pinned to the foot of the screen.
+
+  THE THEME RULE (the founder's, 29 September), carried by the `--nf-slate-*`
+  roles below and nowhere else:
+    light  what is black in the reference is the BRAND. The block, the pill
+           and the focus outline run deep navy to neon brand blue; the page is
+           a pale ground and the field cards are white.
+    dark   inverted. The block is a light surface with a navy wordmark, the
+           pill is white with navy text, the focus outline is white, and the
+           page and the cards are dark navy.
 
   THE NUMBERS. Every control is 52px tall (the 44px tap floor plus air), every
   typed value is 16px (iOS zooms the page below that, rule R-A), the column is
   26rem at most, and the gutters are 16px or the safe-area inset, whichever is
-  larger. At 390 x 844 and 360 x 740 the primary button of the chooser and of
-  the password step sits inside the first screen with the keyboard up.
+  larger.
 
-  THE GLOW. One object on the screen glows: the primary button, through the
-  shared `.nf-btn--primary`. The fields, the provider rows, the back and
-  language controls and the ground are drawn with lines and fills only; the
-  focus ring is a flat ring, not a bloom.
+  THE KEYBOARD. On a touch screen the block shortens while a field has focus
+  (the curve morphs up), which gives the column back about a hundred pixels,
+  so the pill of the chooser and of the password step stays above the
+  keyboard at 390 x 844 and 360 x 740. On sign up the pill is pinned to the
+  foot of the screen.
 
-  BOTH THEMES. The subtree follows the document's theme. The ground, the
-  field fill, the lines and the sticky bar are the local roles below, set
-  once for night and once for day; everything else is the shared tokens,
-  which already carry their light values.
+  MOTION. The block drops in and its curve morphs from a shallow arc to its
+  resting sweep; the column's pieces rise in on a short stagger. Transform,
+  opacity and the path only. Under reduced motion (the OS setting, or the
+  app's own through the duration tokens) nothing moves.
 */
 @layer components {
-  .nf-auth {
-    /* Night: deep navy, the canvas with a little of the brand ink in it, and
-       a restrained wash of electric at the top edge. */
-    --nf-auth-ground: color-mix(in srgb, var(--nf-glow-ink) 7%, var(--nf-surface-canvas));
-    --nf-auth-wash: color-mix(in oklab, var(--nf-glow-ink) 20%, transparent);
-    --nf-auth-field: color-mix(in srgb, var(--nf-glow-ink) 10%, var(--nf-surface-canvas));
-    --nf-auth-line: color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
-    --nf-auth-line-focus: var(--nf-brand-primary);
-    --nf-auth-ring: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
-    --nf-auth-row: color-mix(in srgb, var(--nf-glow-ink) 12%, var(--nf-surface-canvas));
-    --nf-auth-bar: color-mix(in srgb, var(--nf-auth-ground) 88%, transparent);
+  /* =========================================================== THE ROLES */
+  .nf-slate {
+    /* Dark: a dark navy page, navy cards, a light block and a white pill. */
+    --nf-slate-page: color-mix(in srgb, var(--nf-glow-ink) 6%, var(--nf-surface-canvas));
+    --nf-slate-card: color-mix(in srgb, var(--nf-glow-ink) 13%, var(--nf-surface-canvas));
+    --nf-slate-card-edge: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+    --nf-slate-card-shadow: 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 6%, transparent) inset;
+    --nf-slate-ink: var(--nf-content-primary);
+    --nf-slate-link: var(--nf-content-primary);
+    --nf-slate-pill: var(--nf-content-primary);
+    --nf-slate-pill-ink: var(--nf-surface-artwork);
+    --nf-slate-pill-shadow: 0 10px 28px -12px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    --nf-slate-top-a: var(--nf-surface-on-paper);
+    --nf-slate-top-b: color-mix(in oklab, var(--nf-surface-on-paper) 88%, var(--nf-brand-quiet));
+    --nf-slate-top-c: color-mix(in oklab, var(--nf-surface-on-paper) 66%, var(--nf-brand-quiet));
+    --nf-slate-top-ink: var(--nf-surface-artwork);
+    --nf-slate-top-ink-soft: var(--nf-content-on-paper-secondary);
+    --nf-slate-top-chip: color-mix(in oklab, var(--nf-surface-artwork) 8%, transparent);
+    --nf-slate-top-chip-edge: color-mix(in oklab, var(--nf-surface-artwork) 18%, transparent);
+    --nf-slate-edge: var(--nf-brand-primary);
+    --nf-slate-hair: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
+    --nf-slate-top-h: 15.5rem;
     --nf-auth-gutter: var(--nf-space-md);
+    /* The page's own text colour, resolved here, for the language list's
+       options, which open on the page's surface and not on the block. */
+    --nf-slate-text: var(--nf-content-primary);
+    /* THE FOCUS RING. The platform's ring is one unlayered rule
+       (`base.css`) that reads `--nf-focus-ring`; it is steered here rather
+       than redrawn, so there is still one ring: the page's ink below the
+       curve, the block's ink on it. */
+    --nf-focus-ring: var(--nf-slate-ink);
+  }
+  /* Light: the block, the pill and the focus outline are the brand. */
+  :root[data-theme="light"] .nf-slate {
+    --nf-slate-page: var(--nf-surface-secondary);
+    --nf-slate-card: var(--nf-surface-elevated);
+    --nf-slate-card-edge: transparent;
+    --nf-slate-card-shadow: var(--nf-elev-1);
+    --nf-slate-ink: color-mix(in oklab, var(--nf-surface-artwork) 45%, var(--nf-brand-primary));
+    --nf-slate-link: var(--nf-slate-ink);
+    --nf-slate-pill: linear-gradient(
+      100deg,
+      var(--nf-surface-artwork) 0%,
+      color-mix(in oklab, var(--nf-surface-artwork) 40%, var(--nf-brand-primary)) 55%,
+      var(--nf-brand-primary) 100%
+    );
+    --nf-slate-pill-ink: var(--nf-content-on-brand);
+    --nf-slate-pill-shadow: 0 12px 26px -14px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent);
+    --nf-slate-top-a: var(--nf-surface-artwork);
+    --nf-slate-top-b: color-mix(in oklab, var(--nf-surface-artwork) 58%, var(--nf-brand-primary));
+    --nf-slate-top-c: var(--nf-brand-primary);
+    --nf-slate-top-ink: var(--nf-content-on-brand);
+    --nf-slate-top-ink-soft: color-mix(in oklab, var(--nf-content-on-brand) 80%, transparent);
+    --nf-slate-top-chip: color-mix(in oklab, var(--nf-content-on-brand) 12%, transparent);
+    --nf-slate-top-chip-edge: color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent);
+    --nf-slate-edge: var(--nf-brand-quiet);
+    --nf-slate-hair: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+  }
 
+  /* ========================================================== THE SCREEN */
+  .nf-auth {
     color: var(--nf-content-primary);
     position: relative;
     display: flex;
@@ -48,113 +109,209 @@
     /* `clip`, not `hidden`: hidden makes this a scroll container, and the
        sign-up bar's `position: sticky` would then stick to nothing. */
     overflow-x: clip;
-    padding-top: max(var(--nf-space-sm), env(safe-area-inset-top, 0px));
-    padding-right: max(var(--nf-auth-gutter), env(safe-area-inset-right, 0px));
     padding-bottom: max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
-    padding-left: max(var(--nf-auth-gutter), env(safe-area-inset-left, 0px));
-    background:
-      radial-gradient(120% 42% at 50% 0%, var(--nf-auth-wash), transparent 72%) no-repeat,
-      var(--nf-auth-ground);
-  }
-  /* Day: white paper, the raised grey for fills, ink hairlines, and the
-     brand wash kept faint so the page reads designed rather than inverted. */
-  :root[data-theme="light"] .nf-auth {
-    --nf-auth-ground: var(--nf-surface-canvas);
-    --nf-auth-wash: color-mix(in oklab, var(--nf-brand-primary) 9%, transparent);
-    --nf-auth-field: var(--nf-surface-raised);
-    --nf-auth-line: var(--nf-panel-edge);
-    --nf-auth-ring: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
-    --nf-auth-row: var(--nf-surface-elevated);
-    --nf-auth-bar: color-mix(in srgb, var(--nf-surface-canvas) 92%, transparent);
+    background: var(--nf-slate-page);
   }
 
-  /* ----------------------------------------------------------- top bar */
-  .nf-auth__top {
-    display: grid;
+  /* ======================================================= THE TOP BLOCK */
+  .nf-slate-top {
+    --nf-focus-ring: var(--nf-slate-top-ink);
+    position: relative;
+    z-index: 1;
+    flex: none;
     width: 100%;
-    max-width: 26rem;
+    height: calc(var(--nf-slate-top-h) + env(safe-area-inset-top, 0px));
+    color: var(--nf-slate-top-ink);
+    transition: height var(--nf-duration-slow) var(--nf-ease-standard);
+    animation: nf-slate-drop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  .nf-slate-top--compact {
+    --nf-slate-top-h: 9rem;
+  }
+  .nf-slate-top__ground {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .nf-slate-top__stop-a {
+    stop-color: var(--nf-slate-top-a);
+  }
+  .nf-slate-top__stop-b {
+    stop-color: var(--nf-slate-top-b);
+  }
+  .nf-slate-top__stop-c {
+    stop-color: var(--nf-slate-top-c);
+  }
+  .nf-slate-top__shape {
+    animation: nf-slate-morph var(--nf-duration-cinematic) var(--nf-ease-entrance) both;
+  }
+  /* A thread of light along the arc: the brand's one glow on the screen. */
+  .nf-slate-top__edge {
+    stroke: var(--nf-slate-edge);
+    stroke-width: 1.5px;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.7;
+    filter: drop-shadow(0 0 6px var(--nf-glow-4));
+    animation: nf-slate-morph-edge var(--nf-duration-cinematic) var(--nf-ease-entrance) both;
+  }
+
+  .nf-slate-top__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: calc(26rem + 2 * var(--nf-auth-gutter));
     margin-inline: auto;
-    min-height: 2.75rem;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
+    padding-top: max(var(--nf-space-xs), env(safe-area-inset-top, 0px));
+    padding-right: max(var(--nf-auth-gutter), env(safe-area-inset-right, 0px));
+    padding-left: max(var(--nf-auth-gutter), env(safe-area-inset-left, 0px));
   }
-  .nf-auth__top-start {
-    justify-self: start;
+  .nf-slate-top__bar {
+    /* The way back draws itself in the content colour with a brand hover
+       (`BackButton`, through utilities this layer cannot outrank), so the
+       toolbar hands it the block's ink under those names. */
+    --nf-content-primary: var(--nf-slate-top-ink);
+    --nf-brand-secondary: var(--nf-slate-top-ink);
     display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
   }
-  .nf-auth__brand {
-    display: grid;
-    place-items: center;
+  .nf-slate-top__start,
+  .nf-slate-top__end {
+    display: flex;
+    align-items: center;
+    min-width: 2.75rem;
+    color: var(--nf-slate-top-ink);
+  }
+  .nf-slate-top__end {
+    justify-content: flex-end;
+  }
+
+  .nf-slate-top__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    margin-top: clamp(var(--nf-space-sm), 3.2svh, var(--nf-space-xl));
+    color: var(--nf-slate-top-ink);
+    border-radius: var(--nf-radius-sm);
+    transition: margin-top var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-slate-top__mark {
+    display: block;
+    width: 1.875rem;
+    height: auto;
+  }
+  /* The artwork for the ground: the night mark on the navy block (light
+     mode), the day mark on the paper block (dark mode). */
+  .nf-slate-top__mark--on-navy {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-slate-top__mark--on-navy {
+    display: block;
+  }
+  :root[data-theme="light"] .nf-slate-top__mark--on-paper {
+    display: none;
+  }
+  .nf-slate-top__word {
+    font-family: var(--nf-font-display);
+    font-size: 1.625rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.34em;
+    /* The tracking trails the last letter; pull it back so the word's box
+       ends where the O does. */
+    margin-right: -0.34em;
+  }
+  .nf-slate-top__line {
+    max-width: 17rem;
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-slate-top-ink-soft);
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  /* The way back and the language control, as quiet chips on the block. */
+  .nf-slate-top .nf-auth__back-btn {
     width: 2.75rem;
     height: 2.75rem;
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-slate-top-chip-edge);
+    background: var(--nf-slate-top-chip);
+    color: var(--nf-slate-top-ink);
   }
-  .nf-auth__brand:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
+  .nf-slate-top .nf-auth__back-btn:hover {
+    color: var(--nf-slate-top-ink);
+    border-color: var(--nf-slate-top-ink);
   }
-  /* The app tile, once, at 40px. 10px corner on 40 is 0.25, under the
-     shape review line (R-D). */
-  .nf-auth__mark {
-    display: block;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 0.625rem;
-  }
-  .nf-auth__lang {
-    justify-self: end;
-  }
-  /*
-   * The way back and the language control: quiet squares on the control
-   * radius (14 / 44 = 0.32, R-D), a line and a fill, no bloom.
-   */
-  .nf-auth .nf-auth__back-btn,
-  .nf-auth .nf-auth__lang select.nf-btn {
+  .nf-auth .nf-slate-top .nf-auth__lang select.nf-btn {
     min-height: 2.75rem;
+    font-size: 1rem;
+    font-weight: 600;
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-auth-line);
-    background: var(--nf-auth-row);
-    color: var(--nf-content-primary);
+    border: var(--nf-border-width) solid var(--nf-slate-top-chip-edge);
+    background: var(--nf-slate-top-chip);
+    color: var(--nf-slate-top-ink);
     box-shadow: none;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .nf-auth .nf-auth__back-btn {
-    width: 2.75rem;
-    height: 2.75rem;
-  }
-  .nf-auth .nf-auth__lang select.nf-btn {
-    font-size: 1rem;
-    font-weight: 600;
+  .nf-slate-top .nf-auth__lang option {
+    color: var(--nf-slate-text);
   }
   @media (hover: hover) {
-    .nf-auth .nf-auth__back-btn:hover,
-    .nf-auth .nf-auth__lang select.nf-btn:hover:not(:disabled) {
-      border-color: var(--nf-auth-line-focus);
+    .nf-auth .nf-slate-top .nf-auth__lang select.nf-btn:hover:not(:disabled) {
+      border-color: var(--nf-slate-top-ink);
     }
   }
 
-  /* ------------------------------------------------------------ column */
+  /* The keyboard: a touch screen with a field in focus gets the short block. */
+  @media (pointer: coarse) {
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top {
+      --nf-slate-top-h: 8.5rem;
+    }
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__brand {
+      margin-top: var(--nf-space-2xs);
+    }
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__line {
+      opacity: 0;
+    }
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-auth__title {
+      font-size: 1.75rem;
+    }
+  }
+
+  /* ========================================================== THE COLUMN */
   .nf-auth__body {
+    position: relative;
+    z-index: 2;
     flex: 1 0 auto;
     width: 100%;
-    max-width: 26rem;
+    max-width: calc(26rem + 2 * var(--nf-auth-gutter));
     margin-inline: auto;
-    padding-top: clamp(var(--nf-space-sm), 3svh, var(--nf-space-2xl));
-    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    padding-top: var(--nf-space-xs);
+    padding-right: max(var(--nf-auth-gutter), env(safe-area-inset-right, 0px));
+    padding-left: max(var(--nf-auth-gutter), env(safe-area-inset-left, 0px));
   }
   .nf-auth__screen {
     width: 100%;
   }
 
+  /* "Sign in", big, the reference's "Login". */
   .nf-auth__title {
     font-family: var(--nf-font-display);
-    font-size: 1.75rem;
+    font-size: 2.125rem;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.1;
     letter-spacing: var(--nf-tracking-tight);
     color: var(--nf-content-primary);
     text-wrap: balance;
+    transition: font-size var(--nf-duration-slow) var(--nf-ease-standard);
   }
   .nf-auth__sub {
     margin-top: var(--nf-space-xs);
@@ -172,150 +329,322 @@
   .nf-auth__form--fields {
     gap: var(--nf-space-md);
   }
-  .nf-auth__form--groups {
+  .nf-auth__form--steps {
     display: block;
+    margin-top: var(--nf-space-md);
   }
 
-  /* ------------------------------------------------------------ fields */
-  .nf-auth .nf-field {
+  /* ========================================================== THE FIELDS */
+  /*
+   * A labelled field is a soft full-width card: the card colour, a 1.5px
+   * edge that is invisible at rest and the ink when focused (the reference's
+   * dark outline, in the theme's ink), a small label above in the content
+   * colour. The shared auth fields (`fields.tsx`) and the Slate card
+   * (`AuthFieldCard`) are painted by the same rule.
+   */
+  .nf-auth .nf-label,
+  .nf-slate-field__label {
+    display: block;
+    margin-bottom: var(--nf-space-xs);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-auth .nf-field,
+  .nf-slate-input {
+    width: 100%;
+    min-width: 0;
     min-height: 3.25rem;
     padding-block: 0;
     padding-inline: var(--nf-space-md);
     font-size: 1rem;
-    border: var(--nf-border-width) solid var(--nf-auth-line);
-    background: var(--nf-auth-field);
-    box-shadow: none;
+    color: var(--nf-content-primary);
+    border: 1.5px solid var(--nf-slate-card-edge);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-slate-card);
+    box-shadow: var(--nf-slate-card-shadow);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-auth input.nf-field {
+  .nf-auth input.nf-field,
+  .nf-slate-input {
     height: 3.25rem;
   }
-  .nf-auth .nf-field::placeholder {
+  .nf-auth .nf-field::placeholder,
+  .nf-slate-input::placeholder {
     color: var(--nf-content-muted);
   }
-  .nf-auth .nf-field:focus {
-    border-color: var(--nf-auth-line-focus);
-    background: var(--nf-auth-field);
-    box-shadow: 0 0 0 3px var(--nf-auth-ring);
+  /* The 1.5px ink edge IS the focus indicator (the reference's outline), so
+     the platform ring is set to nothing on a field rather than drawn twice. */
+  .nf-auth .nf-field,
+  .nf-slate-input {
+    --nf-focus-ring-width: 0px;
   }
-  .nf-auth .nf-field[aria-invalid="true"] {
+  .nf-auth .nf-field:focus,
+  .nf-slate-input:focus {
+    outline: none;
+    border-color: var(--nf-slate-ink);
+    background: var(--nf-slate-card);
+    box-shadow: var(--nf-slate-card-shadow);
+  }
+  .nf-auth .nf-field[aria-invalid="true"],
+  .nf-slate-input[aria-invalid="true"] {
     border-color: var(--nf-state-error);
   }
-  .nf-auth .nf-field:disabled {
+  .nf-auth .nf-field:disabled,
+  .nf-slate-input:disabled {
     opacity: 0.55;
   }
-  .nf-auth .nf-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--nf-content-secondary);
+  .nf-slate-input--trailing {
+    padding-right: 3rem;
   }
-
-  /* The chooser's email field: the envelope inside the field, text after. */
-  .nf-auth-field {
+  .nf-slate-field__box {
     position: relative;
   }
-  .nf-auth .nf-auth-field > .nf-field {
-    padding-left: 3rem;
-  }
-  .nf-auth-field__glyph {
+  .nf-slate-field__trailing {
     position: absolute;
-    z-index: 1;
-    left: var(--nf-space-md);
-    top: 50%;
-    translate: 0 -50%;
-    display: grid;
-    place-items: center;
-    color: var(--nf-content-muted);
-    pointer-events: none;
-    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+    inset-block: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
   }
-  .nf-auth-field:focus-within .nf-auth-field__glyph {
+  .nf-slate-field__error {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-state-error);
+  }
+
+  /* First name and surname side by side, stacked below 360px. */
+  .nf-slate-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+  }
+  @media (max-width: 22rem) {
+    .nf-slate-pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* "Forgot password?", right aligned under the password card. */
+  .nf-slate-forgot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--nf-space-2xs);
+    margin-bottom: calc(-1 * var(--nf-space-xs));
+  }
+  .nf-slate-forgot .nf-auth__aside {
+    font-size: 0.875rem;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
 
-  /* ----------------------------------------------------------- buttons */
-  /* The primary: the shared lit `.nf-btn--primary`, the one glow on the
-     screen, at the row height. */
-  .nf-auth .nf-auth__cta {
+  /* ============================================================ THE PILL */
+  /*
+   * The full-width pill: the brand gradient with white words in light, white
+   * with navy words in dark. It is the shared `Button` (spinner, haptics,
+   * press) wearing this; the shared lit bar's edges, pool and text glow are
+   * put down here, because the reference's pill is one flat object.
+   */
+  .nf-slate .nf-slate-pill.nf-btn {
     --nf-btn-h: 3.25rem;
     height: 3.25rem;
     min-height: 3.25rem;
     padding-block: 0;
     gap: var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
     font-size: 1rem;
     font-weight: 600;
   }
-
-  /* The provider rows: the same height, width and corner as the field and
-     the primary, drawn as a line and a fill. */
-  .nf-auth__doors {
-    display: grid;
-    gap: var(--nf-space-sm);
+  .nf-slate .nf-slate-pill.nf-btn--primary {
+    border: 0;
+    background: var(--nf-slate-pill);
+    color: var(--nf-slate-pill-ink);
+    text-shadow: none;
+    box-shadow: var(--nf-slate-pill-shadow);
   }
-  .nf-auth .nf-auth__door {
-    --nf-btn-h: 3.25rem;
-    min-height: 3.25rem;
-    gap: var(--nf-space-sm);
-    border: var(--nf-border-width) solid var(--nf-auth-line);
-    background: var(--nf-auth-row);
-    box-shadow: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--nf-content-primary);
+  /* The platform's edge runner (`edge-m.css`) laps every button; on a pill
+     its straight edges begin at half the height, not at the control corner. */
+  .nf-slate .nf-slate-pill.nf-btn::before {
+    --nf-edge-r: calc(var(--nf-btn-h) / 2 + 2px);
+  }
+  .nf-slate .nf-slate-pill.nf-btn--primary::after {
+    display: none;
   }
   @media (hover: hover) {
-    .nf-auth .nf-auth__door:hover:not(:disabled) {
-      border-color: var(--nf-auth-line-focus);
-      background: var(--nf-auth-row);
+    .nf-slate .nf-slate-pill.nf-btn--primary:hover:not(:disabled) {
+      box-shadow: var(--nf-slate-pill-shadow), 0 0 0 3px var(--nf-glow-2);
     }
   }
-  .nf-auth__door-mark {
-    width: 1.25rem;
-    height: 1.25rem;
-    flex: none;
+  /* The second way on: an outline pill in the page's ink. */
+  .nf-slate .nf-slate-pill--quiet.nf-btn {
+    border: 1.5px solid var(--nf-slate-hair);
+    background: var(--nf-slate-card);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-slate-card-shadow);
+  }
+  @media (hover: hover) {
+    .nf-slate .nf-slate-pill--quiet.nf-btn:hover {
+      border-color: var(--nf-slate-ink);
+    }
+  }
+  .nf-slate .nf-auth__actions {
+    margin-top: var(--nf-space-xs);
   }
 
-  /* The rule between email and the providers: two hairlines, one word. */
-  .nf-auth__rule {
+  /* ======================================================== OR, AND THE DOORS */
+  .nf-slate-or {
     display: flex;
     align-items: center;
     gap: var(--nf-space-md);
-    margin-block: var(--nf-space-md);
+    margin-top: var(--nf-space-lg);
     font-size: 0.8125rem;
-    font-weight: 500;
-    text-transform: uppercase;
     color: var(--nf-content-muted);
   }
-  .nf-auth__rule::before,
-  .nf-auth__rule::after {
+  .nf-slate-or > span::first-letter {
+    text-transform: uppercase;
+  }
+  .nf-slate-or::before,
+  .nf-slate-or::after {
     content: "";
     flex: 1;
     height: 1px;
-    background: var(--nf-panel-hair);
+    background: var(--nf-slate-hair);
+  }
+  .nf-slate-socials {
+    display: flex;
+    justify-content: center;
+    gap: var(--nf-space-md);
+    margin-top: var(--nf-space-md);
+  }
+  .nf-slate-social {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--nf-radius-circle);
+    border: 1.5px solid var(--nf-slate-card-edge);
+    background: var(--nf-slate-card);
+    box-shadow: var(--nf-slate-card-shadow);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-slate-social:active {
+    transform: scale(0.94);
+  }
+  @media (hover: hover) {
+    .nf-slate-social:hover {
+      border-color: var(--nf-slate-ink);
+    }
+  }
+  .nf-slate-social:disabled {
+    opacity: 0.55;
+    cursor: progress;
+  }
+  .nf-slate-social__mark,
+  .nf-slate-social svg {
+    width: 1.375rem;
+    height: 1.375rem;
+    flex: none;
+  }
+  .nf-slate-social-slot {
+    display: contents;
+  }
+
+  /* ============================================= THE TWO STEPS OF SIGN UP */
+  .nf-slate-head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-slate-head__back {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: calc(-1 * var(--nf-space-2xs));
+    border-radius: var(--nf-radius-circle);
+    border: 1.5px solid var(--nf-slate-hair);
+    background: var(--nf-slate-card);
+    color: var(--nf-content-primary);
+  }
+  @media (hover: hover) {
+    .nf-slate-head__back:hover {
+      border-color: var(--nf-slate-ink);
+    }
+  }
+  .nf-slate-steps {
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-slate-steps__label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-space-2xs) var(--nf-space-xs);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-slate-steps__name {
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+  .nf-slate-steps__track {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-slate-steps__seg {
+    height: 4px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-slate-hair);
+    transition: background-color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-slate-steps__seg.is-on {
+    background: var(--nf-slate-pill);
+  }
+  .nf-slate-step {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  .nf-slate-step[hidden] {
+    display: none;
+  }
+  .nf-slate-note-group {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  .nf-slate-note {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--nf-content-muted);
   }
 
   /*
-   * The sign-up form's actions bar, pinned to the foot of the screen while
-   * the form scrolls under it, full bleed to the screen's edges and clear of
-   * the home indicator.
+   * The sign-up pill, pinned to the foot of the screen while the form
+   * scrolls under it, full bleed to the screen's edges and clear of the
+   * home indicator.
    */
-  .nf-auth__actions--sticky {
+  .nf-auth .nf-auth__actions--sticky {
     position: sticky;
     z-index: 3;
     bottom: 0;
     margin-top: var(--nf-space-lg);
     margin-inline: calc(-1 * var(--nf-auth-gutter));
     padding: var(--nf-space-sm) var(--nf-auth-gutter) max(var(--nf-space-sm), env(safe-area-inset-bottom, 0px));
-    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
-    background: var(--nf-auth-bar);
+    background: color-mix(in srgb, var(--nf-slate-page) 90%, transparent);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
   }
 
-  /* ------------------------------------------------------ small links */
+  /* ======================================================== SMALL LINKS */
   .nf-auth__links {
     display: flex;
     justify-content: center;
@@ -339,17 +668,17 @@
     text-decoration: underline;
   }
 
-  /* "New to Vallo? Sign up" */
+  /* "Do not have an account? Sign up" */
   .nf-auth__swap {
-    margin-top: var(--nf-space-lg);
+    margin-top: var(--nf-space-xl);
     text-align: center;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     color: var(--nf-content-secondary);
   }
   .nf-auth__swap a {
     margin-left: 0.25rem;
-    font-weight: 600;
-    color: var(--nf-content-link);
+    font-weight: 700;
+    color: var(--nf-slate-link);
     text-underline-offset: 4px;
   }
   .nf-auth__swap a:hover {
@@ -371,20 +700,13 @@
     line-height: 1.5;
     color: var(--nf-content-muted);
   }
-  .nf-auth__terms {
-    margin-top: var(--nf-space-md);
-    text-align: center;
-    font-size: var(--nf-text-overline);
-    line-height: 1.5;
-    color: var(--nf-content-muted);
-  }
 
-  /* ------------------------------------------------- notices and refusals */
+  /* ================================================ NOTICES AND REFUSALS */
   .nf-auth__notice {
     margin-top: var(--nf-space-md);
     padding: var(--nf-space-sm) var(--nf-space-md);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-auth-line);
+    border: var(--nf-border-width) solid var(--nf-slate-card-edge);
     background: var(--nf-brand-tint-1);
     font-size: 0.875rem;
     line-height: 1.5;
@@ -412,7 +734,6 @@
   .nf-auth__form--fields > .nf-auth__alert {
     margin-top: 0;
   }
-
   /*
    * The one link a refusal is allowed to carry, inside the sentence that
    * earned it. Underlined rather than coloured alone, because colour is
@@ -433,11 +754,12 @@
     border-radius: var(--nf-radius-sm);
   }
 
-  /* ------------------------------------------------------- small print */
+  /* ========================================================= SMALL PRINT */
   .nf-auth__legal {
     width: 100%;
-    max-width: 26rem;
+    max-width: calc(26rem + 2 * var(--nf-auth-gutter));
     margin: var(--nf-space-xl) auto 0;
+    padding-inline: max(var(--nf-auth-gutter), env(safe-area-inset-left, 0px));
     text-align: center;
     font-size: var(--nf-text-overline);
     line-height: 1.5;
@@ -471,23 +793,102 @@
     height: max(100%, 44px);
   }
 
+  /* ============================================================== MOTION */
+  /* The block drops in from above the screen. */
+  @keyframes nf-slate-drop {
+    from {
+      transform: translateY(-38%);
+    }
+    to {
+      transform: none;
+    }
+  }
+  /* The curve morphs from a shallow arc to its sweep. `d` in CSS is honoured
+     by Chromium and Firefox; Safari draws the resting curve, still dropped in. */
+  @keyframes nf-slate-morph {
+    from {
+      d: path("M0 0H390V150C354 196 262 214 150 214C88 214 38 208 0 200Z");
+    }
+  }
+  @keyframes nf-slate-morph-edge {
+    from {
+      d: path("M390 150C354 196 262 214 150 214C88 214 38 208 0 200");
+    }
+  }
+  /* The column's pieces rise in, one after another, quickly. A nested
+     stagger starts a little later, so a form's fields follow its title. */
+  @keyframes nf-slate-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .nf-slate-stagger {
+    --nf-slate-base: 140ms;
+  }
+  .nf-slate-stagger .nf-slate-stagger {
+    --nf-slate-base: 260ms;
+  }
+  .nf-slate-stagger > :not(.nf-slate-stagger, input[type="hidden"], h2.sr-only) {
+    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-slate-base) + var(--nf-slate-i, 0) * 55ms);
+  }
+  .nf-slate-stagger > :nth-child(2) {
+    --nf-slate-i: 1;
+  }
+  .nf-slate-stagger > :nth-child(3) {
+    --nf-slate-i: 2;
+  }
+  .nf-slate-stagger > :nth-child(4) {
+    --nf-slate-i: 3;
+  }
+  .nf-slate-stagger > :nth-child(5) {
+    --nf-slate-i: 4;
+  }
+  .nf-slate-stagger > :nth-child(6) {
+    --nf-slate-i: 5;
+  }
+  .nf-slate-stagger > :nth-child(n + 7) {
+    --nf-slate-i: 6;
+  }
+  /* A step shown again (Next, or back) rises in once more; the stagger above
+     restarts because `hidden` took it out of the render tree. */
+
   @media (prefers-reduced-motion: reduce) {
-    .nf-auth__body {
+    .nf-slate-top,
+    .nf-slate-top__shape,
+    .nf-slate-top__edge,
+    .nf-slate-stagger > * {
       animation: none;
     }
-    .nf-auth-field__glyph {
+    .nf-slate-top,
+    .nf-slate-top__brand,
+    .nf-slate-top__line,
+    .nf-auth__title {
       transition: none;
     }
   }
 
-  /* Wider than a phone: the same column, lower on the screen. */
+  /* Wider than a phone: the same column, the block a little taller and
+     still full bleed, the curve stretched to the screen. */
   @media (min-width: 640px) {
+    .nf-slate {
+      --nf-slate-top-h: 17rem;
+    }
     .nf-auth__body {
-      padding-top: clamp(var(--nf-space-xl), 10svh, 6rem);
+      padding-top: var(--nf-space-md);
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-slate {
+      --nf-slate-top-h: 19rem;
     }
   }
 }
-
 
 /*
   welcome: the first run, to docs/design/references/2A49E2F7 (two worlds and

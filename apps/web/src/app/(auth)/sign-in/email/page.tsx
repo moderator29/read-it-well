@@ -43,8 +43,10 @@ export default async function SignInEmailPage({
   const locale = await getLocale();
   const t = getDictionary(locale);
   const address = emailFromQuery(email) || (await chooserEmail());
-  const providers = await resolveProviderStates(await requestSurface());
+  const surface = await requestSurface();
+  const providers = await resolveProviderStates(surface);
   const googleReady = providers.some((p) => p.id === "google" && p.configured);
+  const appleReady = providers.some((p) => p.id === "apple" && p.configured);
 
   let accountMethod: EmailStatus = "unknown";
   if (address) {
@@ -65,6 +67,8 @@ export default async function SignInEmailPage({
       initialEmail={address}
       accountMethod={accountMethod}
       googleReady={googleReady}
+      appleReady={appleReady}
+      surface={surface}
     />
   );
 }

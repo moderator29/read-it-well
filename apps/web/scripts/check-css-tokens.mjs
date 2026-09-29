@@ -961,6 +961,16 @@ const PILL_ALLOWED = new Set([
    * the way the island beside it does.
    */
   "src/app/css/shell-m.css  .nf-tabbar__pill",
+  /*
+   * PERMANENT, by the founder's Slate ruling of 29 September 2026: the doors
+   * (sign in, sign up, the reset, first run's intro, the passcode screen) are
+   * rebuilt to `docs/design/references/2026-09-29/12-slate-login-empty.png`
+   * and `14-slate-login-typing.png`, "98% close", and the governing image's
+   * primary action is a full-width capsule. One rule, the shared Slate pill
+   * in `auth.css`; every other control on those screens (the fields, the
+   * language control) stays on the control radius.
+   */
+  "src/app/css/auth.css  .nf-slate .nf-slate-pill.nf-btn",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things

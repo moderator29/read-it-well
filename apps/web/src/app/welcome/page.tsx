@@ -11,6 +11,7 @@ import {
 import { isPropertyType } from "@/lib/interests/schema";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { planFirstRun } from "./plan";
+import { WelcomeIntro } from "./WelcomeIntro";
 
 export const metadata: Metadata = {
   title: "Two worlds. One platform.",
@@ -31,6 +32,10 @@ export const metadata: Metadata = {
  *
  * REACHABLE SIGNED OUT, and it never redirects: `planFirstRun` in `./plan.ts`
  * (a pure function with its own test) only chooses the ending.
+ *
+ * A COLD START OPENS ON THE INTRO (`WelcomeIntro`, 29 September): the name,
+ * one line, a small scene of the glass objects and the two doors, Get
+ * started and Sign in. The four slides are the tour behind it (`?tour=1`).
  *
  * AN ARRIVAL WITH A DESTINATION SKIPS THE SLIDES (V-18). A stranger who was
  * stopped on the way to a search, a listing or a stay opens on the account
@@ -59,6 +64,16 @@ export default async function WelcomePage({
   const carried = isPropertyType(carriedRaw) ? carriedRaw : null;
 
   const plan = planFirstRun({ session, next, carried });
+
+  /* THE INTRO (the Slate pass, 29 September): a stranger on a cold start
+     meets one screen, the name, a moving scene and the two doors, with the
+     four slides one tap away as the tour (`?tour=1`). An arrival with a
+     destination still opens on the slides' account choice, headed with what
+     they asked for (V-18). */
+  const tour = (Array.isArray(params.tour) ? params.tour[0] : params.tour) === "1";
+  if (plan.kind === "guest" && !plan.arrival && !tour) {
+    return <WelcomeIntro t={t} next={plan.next} />;
+  }
 
   if (plan.kind === "guest") {
     return (

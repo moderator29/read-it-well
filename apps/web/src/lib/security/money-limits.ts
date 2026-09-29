@@ -1,6 +1,7 @@
 import "server-only";
 
 import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "./rate-limit";
+import { passcodeMoneyRefusal } from "../passcode/money";
 
 /**
  * Every money path, and how often one person may walk it (A2-046, W-2).
@@ -209,6 +210,9 @@ export const ROUTE_FAILURE_LIMITS = {
   cronBadSecret: { bucket: "cron_bad_secret", limit: 30, windowSeconds: TEN_MINUTES },
 } as const;
 
+/** Reads of a payment already made; never refused by the passcode lock. */
+const PASSCODE_EXEMPT: ReadonlySet<MoneyAction> = new Set<MoneyAction>(["paymentState", "cryptoState", "cryptoQuote"]);
+
 export type MoneyGuardVerdict =
   | { allowed: true; degraded: boolean }
   | { allowed: false; message: string; retryAfterSeconds: number };
@@ -220,6 +224,13 @@ export type MoneyGuardVerdict =
  * when to come back. A surface renders it as it is.
  */
 export async function guardMoney(action: MoneyAction, userId: string): Promise<MoneyGuardVerdict> {
+  /* A locked session (docs/PASSCODE.md) moves nothing, and spends no slot
+     finding that out. The status polls are exempt: they read the outcome of
+     a payment already made, and a lock must not hide whether it went through. */
+  if (!PASSCODE_EXEMPT.has(action)) {
+    const locked = await passcodeMoneyRefusal(userId);
+    if (locked) return { allowed: false, message: locked, retryAfterSeconds: 0 };
+  }
   const rule = MONEY_LIMITS[action];
   const verdict = await consume({
     bucket: rule.bucket,

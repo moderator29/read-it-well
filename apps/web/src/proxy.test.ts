@@ -387,6 +387,7 @@ describe("who may see the platform with no session", () => {
       "/api/push/register",
       "/api/push/revoke",
       "/api/push/self-test",
+      "/api/passcode/touch",
     ]) {
       expect(isPublicPath(path), `${path} hands product data to a stranger`).toBe(false);
       expect(isApiPath(path), `${path} must be refused as JSON, not redirected to HTML`).toBe(true);

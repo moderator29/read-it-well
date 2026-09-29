@@ -261,7 +261,9 @@ const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-im
  * Closed by absence, and checked: `/api/assistant`, `/api/crypto/*`,
  * `/api/documents/[id]`, `/api/map/listings`, `/api/push/register`,
  * `/api/push/revoke` and `/api/push/self-test`. Those three write or send;
- * the key only tells a browser who to bind a subscription to.
+ * the key only tells a browser who to bind a subscription to. So is
+ * `/api/passcode/touch`, the passcode unlock's heartbeat (docs/PASSCODE.md),
+ * which has nothing to say to a caller with no session.
  */
 const PUBLIC_API_PATHS = new Set([
   "/api/auth/email-hook",

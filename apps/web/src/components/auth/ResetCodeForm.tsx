@@ -4,9 +4,9 @@ import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
-import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field } from "./fields";
+import { AuthPillButton } from "./slate";
 import {
   CONFIRMATION_CODE_PLACEHOLDER,
   readCode,
@@ -57,11 +57,11 @@ export function ResetCodeForm({
   }
 
   return (
-    <div className="nf-auth__screen">
+    <div className="nf-auth__screen nf-slate-stagger">
       <h1 className="nf-auth__title">{t.auth.resetCodeTitle}</h1>
       <p className="nf-auth__sub">{t.auth.resetCodeLead}</p>
 
-      <form ref={form} action={formAction} className="nf-auth__form nf-auth__form--fields" noValidate>
+      <form ref={form} action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
         <Field
           t={t}
           id="reset-email"
@@ -98,9 +98,9 @@ export function ResetCodeForm({
         )}
 
         <div className="nf-auth__actions">
-          <Button type="submit" variant="primary" size="lg" full loading={pending} className="nf-auth__cta">
+          <AuthPillButton type="submit" loading={pending} className="nf-auth__cta">
             {t.auth.resetCodeSubmit}
-          </Button>
+          </AuthPillButton>
         </div>
       </form>
 

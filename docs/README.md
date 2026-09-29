@@ -43,6 +43,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [ADMIN_CONSOLE.md](ADMIN_CONSOLE.md) | The operations handbook for the admin console (a unit test reads this file) |
 | [ONBOARDING_A_RESTAURANT.md](ONBOARDING_A_RESTAURANT.md) | What to collect from a restaurant owner, and why |
 | [security/GRANT_STATE.md](security/GRANT_STATE.md) | The grant state of the live database |
+| [PASSCODE.md](PASSCODE.md) | The "Welcome back" passcode lock: setup, storage, the lock and its cookie, brute force, forgot and change, and the open decisions |
 | [safety/BLOCKED_TERMS_PROPOSAL.md](safety/BLOCKED_TERMS_PROPOSAL.md) | A proposed starter list for the abuse filter |
 | [COMPLIANCE_RUNBOOK.md](COMPLIANCE_RUNBOOK.md) | What staff do for each AML/CFT (SCUML) obligation, and in what order |
 | [schema/NAMES.md](schema/NAMES.md) | Schema names that mislead, and what they actually hold (a unit test checks it) |

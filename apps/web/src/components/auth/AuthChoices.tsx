@@ -1,18 +1,19 @@
-import Image from "next/image";
 import Link from "next/link";
 import { withNext } from "@/lib/auth/next-link";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/providers";
-import { continueWithEmail, startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
-import { AppleMark, NativeAppleSignIn } from "./NativeAppleSignIn";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { continueWithEmail } from "@/lib/auth/actions";
+import { SocialDoors } from "./SocialDoors";
+import { AuthPillButton } from "./slate";
 
 /**
- * The door, to its governing image (`docs/design/references/55A56F21`).
+ * The door, to the Slate references of 29 September
+ * (`docs/design/references/2026-09-29`, 12 and 14).
  *
- * "Welcome back", the line under it, the email field with the envelope in
- * it, Continue, the OR rule, Continue with Google, and the sign-up link. The
- * sign-up screen is the same card with the words turned round.
+ * Under the curved top block (drawn by the auth layout): the big title, the
+ * labelled email card, the Continue pill, the "Or" rule, the round Google and
+ * Apple doors, and the line to the other door. The pieces are the shared
+ * Slate system in `./slate.tsx`.
  *
  * EMAIL FIRST, AND THE FIELD IS REAL. The render puts the address on the
  * first screen and the password on the next, which is the flow this platform
@@ -25,11 +26,11 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * and not an in-place expansion.
  *
  * GOOGLE IS DRAWN ONLY WHEN IT WORKS. `getProviderStates` says whether the
- * dashboard has the provider on; a row that can only fail is the same defect
+ * dashboard has the provider on; a door that can only fail is the same defect
  * as a Reserve button on a listing nobody can book, so with Google off the
- * rule and the row are simply not there and email is the way in. The row
- * posts to the real `startGoogleOAuth` action with the destination and the
- * intent, exactly as the callback expects them.
+ * rule and the round button are simply not there and email is the way in. The
+ * door posts to the real `startGoogleOAuth` action with the destination and
+ * the intent, exactly as the callback expects them (`SocialDoors`).
  *
  * A server component: every control is a link or a form posting to a server
  * action, so none of it needs to be shipped as JavaScript.
@@ -65,9 +66,8 @@ export function AuthChoices({
   const appleReady = configured("apple");
 
   return (
-    <div className="nf-auth__screen">
-      <h1 className="nf-auth__title">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
-      <p className="nf-auth__sub">{isSignUp ? t.auth.signUpSub : t.auth.signInSub}</p>
+    <div className="nf-auth__screen nf-slate-stagger">
+      <h1 className="nf-auth__title">{isSignUp ? t.common.signUp : t.common.signIn}</h1>
 
       {notice ? (
         <p role="status" className="nf-auth__notice">
@@ -82,20 +82,18 @@ export function AuthChoices({
         does not break at this hop. A server action form still submits before
         hydration, so this works with no JavaScript.
 
-        Email comes first and carries the one primary button, so the button
-        sits in the first screen at every phone size with the keyboard up;
-        the provider doors follow as rows of the same height and width.
+        The field is the Slate card with its label above it, and the one
+        primary pill follows it, so the pill sits in the first screen at
+        every phone size with the keyboard up (the block above shortens while
+        a field has focus). The provider doors follow as round buttons.
       */}
-      <form action={continueWithEmail} className="nf-auth__form" noValidate={false}>
+      <form action={continueWithEmail} className="nf-auth__form nf-auth__form--fields" noValidate={false}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <input type="hidden" name="mode" value={mode} />
-        <label htmlFor="auth-email" className="sr-only">
-          {t.auth.emailLabel}
-        </label>
-        <div className="nf-auth-field">
-          <span className="nf-auth-field__glyph" aria-hidden="true">
-            <UiIcon name="mail" size={20} />
-          </span>
+        <div>
+          <label htmlFor="auth-email" className="nf-label">
+            {t.auth.emailLabel}
+          </label>
           <input
             id="auth-email"
             name="email"
@@ -103,65 +101,38 @@ export function AuthChoices({
             required
             autoComplete="email"
             inputMode="email"
-            placeholder={t.auth.emailLabel}
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder={t.auth.emailPlaceholder}
             disabled={!emailReady}
             className="nf-field nf-field--glass nf-auth-input"
           />
         </div>
 
         {emailReady ? (
-          <button type="submit" className="nf-btn nf-btn--primary nf-btn--full nf-auth__cta">
-            <span className="nf-btn__label">{t.common.continue}</span>
-            <UiIcon name="arrow-right" size={20} />
-          </button>
+          <div className="nf-auth__actions">
+            <AuthPillButton type="submit" className="nf-auth__cta">
+              {t.common.continue}
+            </AuthPillButton>
+          </div>
         ) : (
           <p className="nf-auth__notice">{t.auth.providerUnavailable}</p>
         )}
       </form>
 
-      {(googleReady || (appleReady && surface !== "android-native")) && (
-        <div className="nf-auth__rule" aria-hidden="true">
-          {t.auth.orDivider}
-        </div>
-      )}
-
-      <div className="nf-auth__doors">
-        {googleReady && (
-          <form action={startGoogleOAuth}>
-            {next ? <input type="hidden" name="next" value={next} /> : null}
-            <input type="hidden" name="intent" value={mode} />
-            <button type="submit" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
-              {/*
-                THE GOOGLE G, IN GOOGLE'S OWN FOUR COLOURS, and it is the one
-                place the house palette steps aside. Google's sign-in branding
-                rules require the standard mark on a "Continue with Google"
-                control. It is a third party's logo standing for that party,
-                the same exception the catalogue makes for the Verve card
-                mark. Nothing else on the screen takes these colours.
-              */}
-              <GoogleMark />
-              {t.auth.continueWithGoogle}
-            </button>
-          </form>
-        )}
-
-        {appleReady &&
-          (surface === "ios-native" ? (
-            <NativeAppleSignIn label={t.auth.continueWithApple} next={next} />
-          ) : surface === "web" ? (
-            <form action={startAppleOAuth}>
-              {next ? <input type="hidden" name="next" value={next} /> : null}
-              <input type="hidden" name="intent" value={mode} />
-              <button type="submit" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
-                <AppleMark />
-                {t.auth.continueWithApple}
-              </button>
-            </form>
-          ) : null)}
-      </div>
+      {/* Google and Apple, round, under the rule; drawn only when they work
+          on this surface (`SocialDoors`). */}
+      <SocialDoors
+        t={t}
+        googleReady={googleReady}
+        appleReady={appleReady && surface !== "android-native"}
+        surface={surface}
+        next={next}
+        intent={mode}
+      />
 
       <p className="nf-auth__swap">
-        {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
+        {isSignUp ? t.auth.haveAccount : t.auth.noAccount}{" "}
         {/* The other door keeps the destination too (audit UX-02, R16):
             a stranger who arrived to sign in and chose to make an account
             instead used to lose the thing that was shared with them here. */}
@@ -182,24 +153,5 @@ export function AuthChoices({
         </p>
       )}
     </div>
-  );
-}
-
-/**
- * Google's standard "G". It lives as a file under `public/brand/third-party/`
- * because its four colours are Google's and not ours: the house lint refuses a
- * raw hex in a component, rightly, and this mark is the one thing on the
- * screen that must not follow the theme.
- */
-function GoogleMark() {
-  return (
-    <Image
-      src="/brand/third-party/google-g.svg"
-      alt=""
-      width={20}
-      height={20}
-      className="nf-auth__door-mark"
-      unoptimized
-    />
   );
 }
