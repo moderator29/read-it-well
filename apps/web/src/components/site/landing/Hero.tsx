@@ -76,7 +76,19 @@ export function Hero({ t }: { t: Dictionary }) {
         </div>
 
         <div className="nf-landing-hero-plate" aria-hidden="true">
-          <Image src={photo("villa-pool-skyline-02")} alt="" fill priority sizes="(max-width: 64rem) 84vw, 100vw" />
+          {/* THE LCP IMAGE. `priority` is deprecated in Next 16; eager with a
+              high fetch priority is what the docs recommend for a hero. The
+              phone band is 27rem tall and the plate is 3:2, so under 48rem
+              `cover` draws it about 648px wide whatever the screen: 84vw
+              there asked for half the pixels the band shows. */}
+          <Image
+            src={photo("villa-pool-skyline-02")}
+            alt=""
+            fill
+            loading="eager"
+            fetchPriority="high"
+            sizes="(max-width: 48rem) 648px, (max-width: 64rem) 84vw, 100vw"
+          />
         </div>
       </div>
     </section>
