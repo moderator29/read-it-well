@@ -62,7 +62,7 @@ describe("where the passport is drawn", () => {
     const page = read("app/(app)/messages/[id]/page.tsx");
     expect(page).toContain('role === "host"');
     expect(page).toContain("readThreadPassport(id)");
-    expect(page).toContain('role === "guest" ? await readPassportShareState(id)');
+    expect(page).toContain('role === "guest" ? readPassportShareState(id)');
     expect(read("app/(app)/messages/[id]/ThreadView.tsx")).toContain('data-testid="thread-passport"');
     expect(read("app/(app)/messages/[id]/ThreadOptionsSheet.tsx")).toContain("<PassportShareRow");
   });

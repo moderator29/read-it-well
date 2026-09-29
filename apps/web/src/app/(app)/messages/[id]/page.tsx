@@ -143,67 +143,81 @@ export default async function ConversationPage({
       readIds(session.supabase, id),
     ]);
     if (!thread) notFound();
-    /* The shared listings and bookings, expanded into cards for this reader. */
-    const cards = await resolveCards(session.supabase, thread.messages, locale);
     /*
      * The context decides the banner. A read that came back null (a race with
      * the thread being removed, or a kind the query could not resolve) is a
      * plain listing thread with no banner rather than a broken one.
      */
     const context: ThreadContext = contextRead ?? { kind: "listing" };
-    /* Only a listing thread can carry a live inspection; the other faces never
-       ask, structurally. */
-    const inspection =
-      context.kind === "listing" ? await readOpenInspectionForConversation(id) : null;
-    /* V-14: the still-available question on this thread, if one was asked. */
-    const availability = context.kind === "listing" ? await readAvailabilityForConversation(id) : null;
+    const listingThread = context.kind === "listing";
     const lagosToday = lagosDayNow();
     /* V-72: the desk, for the lister of a listing thread only. The stage read
        answers only for the caller's own threads, and the listing is read
        under the lister's own client for the quick replies' figures. */
-    const desk = context.kind === "listing" && role === "host";
-    const [stage, deskListing] = desk
-      ? await Promise.all([
-          readDeskStage(id),
-          thread.listing
-            ? loadListingsByIds(session.supabase, [thread.listing.id])
-                .then((found) => found.get(thread.listing!.id) ?? null)
-                .catch(() => null)
-            : Promise.resolve(null),
-        ])
-      : [null, null];
-    /* V-23: the dated facts about the other person, for the line under the
-       header. One RPC that answers only to a party; a failure is no line. */
-    let counterpartFactsLine: { key: string; text: string }[] = [];
-    try {
-      const { data: factsRows } = await (session.supabase as unknown as {
-        rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown }>;
-      }).rpc("thread_counterpart_facts", { p_conversation: id });
-      const first = Array.isArray(factsRows) ? factsRows[0] : null;
-      counterpartFactsLine = personFacts(counterpartFactsFrom(first), t.trustVisible.person, locale);
-    } catch {
-      counterpartFactsLine = [];
-    }
-    /* V-34: when the other party is a lister, their Record, counted, under
-       the person line. "On Vallo since" is already on the person line, so the
-       Record's copy of it is not drawn twice. No row, no line. */
-    /* V-100: the renter passport. The lister sees it here only when the
-       renter chose to show it in THIS thread; the renter gets the switch. A
-       listing thread only, where the guest is the renter. */
-    const passportLine =
-      context.kind === "listing" && role === "host"
-        ? passportLines(await readThreadPassport(id), t.trustVisible.passport, locale).filter((l) => l.key !== "since")
-        : [];
-    const passportShare =
-      context.kind === "listing" && role === "guest" ? await readPassportShareState(id) : null;
-    const counterpartRecordLine = recordLines(await readThreadRecord(id), t.trustVisible.record, locale).filter(
-      (line) => line.key !== "since",
-    );
-    /* V-04: the receiver's account card. Skipped, at no cost, unless a
-       message from the other side carries an account number. */
-    const accountMoment =
-      context.kind === "listing"
-        ? await readAccountMoment(session.supabase, {
+    const desk = listingThread && role === "host";
+    /*
+     * PERF-SWEEP 1: every read below depends only on the thread, its context
+     * and the reader's role, all known by now, and on none of each other. They
+     * used to run one after another, ten round trips in series before the
+     * first bubble could draw; they now run together. Each keeps its own
+     * guard and its own failure rule: the facts line and the desk listing
+     * still fall back to nothing, and any other read that throws still takes
+     * the page to its error boundary, exactly as before.
+     */
+    const [
+      cards,
+      inspection,
+      availability,
+      [stage, deskListing],
+      counterpartFactsLine,
+      passportRead,
+      passportShare,
+      recordRead,
+      accountMoment,
+      showMe,
+    ] = await Promise.all([
+      /* The shared listings and bookings, expanded into cards for this reader. */
+      resolveCards(session.supabase, thread.messages, locale),
+      /* Only a listing thread can carry a live inspection; the other faces
+         never ask, structurally. */
+      listingThread ? readOpenInspectionForConversation(id) : null,
+      /* V-14: the still-available question on this thread, if one was asked. */
+      listingThread ? readAvailabilityForConversation(id) : null,
+      desk
+        ? Promise.all([
+            readDeskStage(id),
+            thread.listing
+              ? loadListingsByIds(session.supabase, [thread.listing.id])
+                  .then((found) => found.get(thread.listing!.id) ?? null)
+                  .catch(() => null)
+              : Promise.resolve(null),
+          ])
+        : ([null, null] as const),
+      /* V-23: the dated facts about the other person, for the line under the
+         header. One RPC that answers only to a party; a failure is no line. */
+      (async (): Promise<{ key: string; text: string }[]> => {
+        try {
+          const { data: factsRows } = await (session.supabase as unknown as {
+            rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown }>;
+          }).rpc("thread_counterpart_facts", { p_conversation: id });
+          const first = Array.isArray(factsRows) ? factsRows[0] : null;
+          return personFacts(counterpartFactsFrom(first), t.trustVisible.person, locale);
+        } catch {
+          return [];
+        }
+      })(),
+      /* V-100: the renter passport. The lister sees it here only when the
+         renter chose to show it in THIS thread; the renter gets the switch. A
+         listing thread only, where the guest is the renter. */
+      listingThread && role === "host" ? readThreadPassport(id) : null,
+      listingThread && role === "guest" ? readPassportShareState(id) : null,
+      /* V-34: when the other party is a lister, their Record, counted, under
+         the person line. */
+      readThreadRecord(id),
+      /* V-04: the receiver's account card. Skipped, at no cost, unless a
+         message from the other side carries an account number. */
+      listingThread
+        ? readAccountMoment(session.supabase, {
             conversationId: id,
             meId: session.user.id,
             role,
@@ -211,10 +225,19 @@ export default async function ConversationPage({
             messages: thread.messages,
             locale,
           })
-        : null;
-
-    /* V-69: a listing thread's clip asks, when the flag is open. */
-    const showMe = context.kind === "listing" ? await readShowMe(session.supabase, id) : null;
+        : null,
+      /* V-69: a listing thread's clip asks, when the flag is open. */
+      listingThread ? readShowMe(session.supabase, id) : null,
+    ]);
+    const passportLine =
+      listingThread && role === "host"
+        ? passportLines(passportRead, t.trustVisible.passport, locale).filter((l) => l.key !== "since")
+        : [];
+    /* "On Vallo since" is already on the person line, so the Record's copy of
+       it is not drawn twice. No row, no line. */
+    const counterpartRecordLine = recordLines(recordRead, t.trustVisible.record, locale).filter(
+      (line) => line.key !== "since",
+    );
 
     return (
       <ThreadView

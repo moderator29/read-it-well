@@ -209,12 +209,12 @@ export default async function RentPayPage({
     );
   }
 
-  const cardsRead = await listPaymentMethods();
+  /* PERF-SWEEP 2: two independent reads, together rather than in series.
+     Crypto is decided on the server: null while it is off for the platform. */
+  const [cardsRead, cryptoOffer] = await Promise.all([listPaymentMethods(), cryptoOfferForViewer()]);
   const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
   const savedCardKey = crypto.randomUUID();
   const chargeSavedCard = chargeRentSavedCardFor.bind(null, inspectionId, savedCardKey);
-  /* Crypto, decided on the server: null while it is off for the platform. */
-  const cryptoOffer = await cryptoOfferForViewer();
 
   return (
     <Shell subtitle={view.title}>

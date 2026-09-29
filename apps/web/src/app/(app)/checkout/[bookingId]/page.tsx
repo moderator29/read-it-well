@@ -135,12 +135,18 @@ export default async function CheckoutPage({
      charge is bound to this booking and to one key minted per render, the
      way the wallet and hosted-card paths mint theirs inside the panel. A
      failed read offers no saved card rather than an empty group. */
-  const cardsRead = await listPaymentMethods();
+  /* PERF-SWEEP 2: the saved cards, the crypto offer and the charge kind are
+     three independent reads; they run together rather than in series, and
+     the charge kind is read once rather than once per use below. */
+  const [cardsRead, cryptoOffer, chargeKind] = await Promise.all([
+    listPaymentMethods(),
+    /* Crypto, decided here on the server: null while it is off for the platform. */
+    cryptoOfferForViewer(),
+    bookingChargeKind(view.bookingId),
+  ]);
   const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
   const savedCardKey = crypto.randomUUID();
   const chargeSavedCard = chargeSavedCardFor.bind(null, bookingId, savedCardKey);
-  /* Crypto, decided here on the server: null while it is off for the platform. */
-  const cryptoOffer = await cryptoOfferForViewer();
 
   /* ----------------------------------------------------------- the screen */
 
@@ -193,7 +199,7 @@ export default async function CheckoutPage({
         {/* What is being bought, as one component the preview harness draws
             with fixture props and this route draws with the real read. */}
         {/* No stay terms on a rent charge, nor when that could not be read. */}
-        <CheckoutSummary view={view} locale={locale} tenancy={(await bookingChargeKind(view.bookingId)) !== "stay"} />
+        <CheckoutSummary view={view} locale={locale} tenancy={chargeKind !== "stay"} />
       </Reveal>
 
       {view.paid ? (
@@ -295,7 +301,7 @@ export default async function CheckoutPage({
         by then the schedule is support's business and there is a person on it.
       */}
       {/* V-57: what the host declared at the door, and the sentence for the gate. */}
-      {view.status !== "CANCELLED" && (await bookingChargeKind(view.bookingId)) === "stay" && (
+      {view.status !== "CANCELLED" && chargeKind === "stay" && (
         <div className="mt-lg">
           <ArrivalChargesLine listingId={view.listingId} accommodationId={view.accommodationId} bookingId={view.bookingId} locale={view.locale} />
         </div>
