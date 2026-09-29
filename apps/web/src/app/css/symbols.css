@@ -274,10 +274,9 @@
  * (the bright blue at night, the deep blue by day); a state plate is the
  * state's own `-surface` tint with the glyph in its ink.
  *
- * The older lit-glass `.nf-plate` rules still stand in controls.css, which
- * loads after this file, so every rule here is written on two classes to
- * outrank them without `!important`. Deleting that older block changes
- * nothing on screen.
+ * Every rule here is written on two classes so it outranks any single-class
+ * `.nf-plate` rule a later partial may still carry (the lit-glass block
+ * that used to live in controls.css), without `!important`.
  */
 @layer components {
   .nf-plate.nf-plate {
@@ -285,7 +284,10 @@
        the same weight, so they win). */
     --nf-plate-v2-fill: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
     --nf-plate-v2-ink: var(--nf-content-primary);
-    border-color: transparent;
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    border: var(--nf-border-width) solid transparent;
     box-shadow: none;
     background: var(--nf-plate-v2-fill);
     color: var(--nf-plate-v2-ink);
