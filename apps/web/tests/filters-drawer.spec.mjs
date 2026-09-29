@@ -22,10 +22,18 @@
  * listings schema has no column or amenity behind any of the three, and a chip
  * that cannot filter is a control that lies. Furnished is, and it ships.
  *
+ * WHERE. Since 23 September `/search` answers a signed-out visitor with the
+ * sign-in wall (asserted first). The drawer is then read in the preview
+ * harness at `/preview/f4/sheets`, which mounts the real FilterDrawer behind
+ * its real opener with fixture props (no catalogue facts). Signed in as the
+ * QA member the same checks run on the real `/search` (SKIP without
+ * QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD).
+ *
  * Checked at 390px in both themes.
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, openPreview, qaContext, signInAsQa } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1400;
@@ -42,11 +50,9 @@ function check(name, condition) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
-async function run(theme) {
-  const context = await browser.newContext({
-    colorScheme: theme,
-    viewport: { width: 390, height: 844 },
-  });
+async function run(theme, { state = null, path }) {
+  const options = { colorScheme: theme, viewport: { width: 390, height: 844 } };
+  const context = state ? await qaContext(browser, state, options) : await browser.newContext(options);
   await context.addInitScript((t) => {
     try {
       window.localStorage.setItem("nf_theme", t);
@@ -65,9 +71,13 @@ async function run(theme) {
   });
 
   try {
-    console.log(`\n[${theme}] /search`);
-    await page.goto(`${BASE_URL}/search`, { waitUntil: "load" });
-    await page.waitForTimeout(WAIT);
+    console.log(`\n[${theme}] ${path}`);
+    if (path.startsWith("/preview/")) {
+      if (!(await openPreview(page, path, check, { wait: WAIT }))) return;
+    } else {
+      await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
+      await page.waitForTimeout(WAIT);
+    }
 
     const appliedTheme = await page.evaluate(
       () => document.documentElement.dataset.theme ?? "dark",
@@ -175,8 +185,16 @@ async function run(theme) {
 }
 
 try {
-  await run("dark");
-  await run("light");
+  console.log("signed out");
+  await expectSignInWall(check, "/search");
+  await run("dark", { path: "/preview/f4/sheets" });
+  await run("light", { path: "/preview/f4/sheets" });
+  console.log("\nsigned in as the QA member");
+  const state = await signInAsQa(browser);
+  if (state) {
+    await run("dark", { state, path: "/search" });
+    await run("light", { state, path: "/search" });
+  }
 } finally {
   await browser.close();
 }
