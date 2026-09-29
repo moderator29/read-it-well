@@ -103,7 +103,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       searchLabel={t.admin.common.searchLabel}
       bellLabel={t.uiCommon.console.notifications}
       shell={t.admin.shell}
-      back={<BackButton fallback="/admin" label={t.common.back} className="nf-admin-back" />}
+      back={<BackButton fallback="/admin" />}
     >
       <EntryGate entered={entered} userId={access.user.id} opening={t.admin.shell.entry.opening}>
         {/* The passcode lock (docs/PASSCODE.md), for staff as for everyone. */}

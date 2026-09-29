@@ -1,6 +1,5 @@
 import { PersonTier } from "@/app/admin/_components/PersonTier";
 import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -41,7 +40,12 @@ export type ListingReviewProps = {
   locale: Locale;
   sqm: string;
   statusLabel: (status: string) => string;
-  backHref: string;
+  /**
+   * Unused since the desk's second back arrow went (29 September 2026): the
+   * console bar's back control is the one way back, and it returns to the
+   * filtered queue through history. Kept so callers need not change.
+   */
+  backHref?: string;
   /** Map tile template and credit, from the product's own provider (dark only). */
   tiles: { dark: string; credit: string };
   /** The action bar, or the closed notice for a decided listing. */
@@ -102,7 +106,6 @@ export function ListingReview(props: ListingReviewProps) {
     locale,
     sqm,
     statusLabel,
-    backHref,
     tiles,
     actions,
     keepers,
@@ -120,11 +123,6 @@ export function ListingReview(props: ListingReviewProps) {
     <div className="nf-rv">
       <DeskHead
         title="Listing under review"
-        lead={
-          <Link href={backHref} className="nf-rv-back" aria-label="Back to the listings queue">
-            <UiIcon name="arrow-left" size={20} />
-          </Link>
-        }
         trail={<Badge status={listing.status}>{statusLabel(listing.status)}</Badge>}
       />
 

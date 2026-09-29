@@ -23,7 +23,7 @@ import type {
 } from "@/lib/assistant/types";
 import { hrefForListing } from "@/lib/listings/href";
 import type { ListingKind } from "@/lib/listings/types";
-import { useBack } from "@/lib/nav/use-back";
+import { BackControl } from "@/components/ui/BackControl";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import {
   AssistantSidebar,
@@ -569,11 +569,6 @@ export function AssistantChat({
     inputRef.current?.focus();
   };
 
-  /* `/assistant` declares `/home` as its parent. It used to call
-     `router.back()` whenever anything of ours was behind it, which after the
-     assistant had been opened from a deep link or a redirect was whatever the
-     machinery had sent the person through. See `lib/nav/route-parents.ts`. */
-  const back = useBack("/home");
 
   const empty = hydrated && messages.length === 0;
   const lastMessage = messages[messages.length - 1];
@@ -643,21 +638,7 @@ export function AssistantChat({
       ) : (
         <>
           <div className="nf-ai__bar">
-            <button
-              type="button"
-              aria-label="Back"
-              onClick={back}
-              /* THE WALKER'S HANDLE. `scripts/design/proof-nav.mjs` finds every
-                 drawn back control by this attribute. Five of the platform's seven
-                 back controls did not carry it, so a browser walk reported them as
-                 drawing nothing at all and two route lists were built on that
-                 reading. The attribute says what the object IS, which is why it is
-                 not a class name and not the accessible name. */
-              data-nav-back=""
-              className="nf-icon-btn h-11 w-11 shrink-0"
-            >
-              <UiIcon name="arrow-left" size={20} />
-            </button>
+            <BackControl fallback="/home" surface="plate" />
             <Link href="/home" aria-label={t.a11y.logoHome} className="nf-ai__lockup nf-tap">
               <LogoMark size={32} />
               <LogoWordmark width={72} height={15} priority className="nf-ai__word" />

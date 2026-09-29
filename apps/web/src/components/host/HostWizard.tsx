@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useBack } from "@/lib/nav/use-back";
 import { countOf, getDictionary, type Locale } from "@vallo/i18n";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
@@ -351,10 +352,13 @@ export function HostWizard({
    * would have nothing to press. It leaves for the host's own landing, which
    * is the declared parent of this route, rather than calling history back.
    */
+  const leave = useBack("/host");
   const back = () => {
     setNotice(null);
     if (at === 0) {
-      router.push("/host");
+      /* Leave the way the person came in (the Create sheet, the host
+         landing), not by stacking a second `/host` on top. */
+      leave();
       return;
     }
     setAt((i) => Math.max(0, i - 1));

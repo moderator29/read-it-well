@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useBack } from "@/lib/nav/use-back";
 import { formatMoney, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { TYPE } from "@/components/app/Screen";
 import { SelectField, TextField } from "@/components/ui/Field";
@@ -74,6 +75,7 @@ export function AgentRegisterForm({
   startAt?: number;
 }) {
   const router = useRouter();
+  const leave = useBack("/profile/setup");
   const copy = t.supply.register;
   const mine = copy.agent;
   const steps = REGISTER_STEPS.agent.length;
@@ -125,7 +127,11 @@ export function AgentRegisterForm({
   function back() {
     setScreenError(null);
     if (step === 0) {
-      router.push("/profile/setup");
+      /* Leaving the form is a real back: the chooser when that is where the
+         person came from (history, so no second chooser entry), otherwise
+         the declared parent. It used to push the chooser, which stacked a
+         chooser on top of the chooser the person had come from. */
+      leave();
       return;
     }
     setStep((s) => s - 1);
@@ -542,7 +548,7 @@ export function AgentDoneScreen({
       current={steps - 1}
       stepOfLabel={copy.stepOf.replace("{step}", String(steps)).replace("{total}", String(steps))}
       backLabel={copy.back}
-      onBack={() => router.push("/home")}
+      onBack={() => router.replace("/home")}
       primary={{
         label: copy.trackIt,
         onClick: () => router.push("/profile/application"),

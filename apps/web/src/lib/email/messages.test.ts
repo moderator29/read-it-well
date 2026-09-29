@@ -99,8 +99,8 @@ describe("every message in the catalogue", () => {
     expect(emoji.test(message.text)).toBe(false);
   });
 
-  it.each(EVERY_MESSAGE)("$name declares light and dark and carries its dark scheme", ({ message }) => {
-    expect(message.html).toContain('name="color-scheme" content="light dark"');
+  it.each(EVERY_MESSAGE)("$name declares itself dark and carries its dark scheme", ({ message }) => {
+    expect(message.html).toContain('name="color-scheme" content="dark"');
     expect(message.html).toContain("@media (prefers-color-scheme: dark)");
   });
 

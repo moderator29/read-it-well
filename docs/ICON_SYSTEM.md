@@ -283,8 +283,9 @@ solid twin for the active state such as their filled gear). What changed:
 every tab in the dock except Search (a solid lens reads as a dot on a stick), the drawer's destinations that have a closed shape to
 fill, and the saved and rated states (heart, star, bookmark). Line-only
 glyphs (`search`, `settings-gear`, `sliders`, `history`, the arrows) have no honest
-solid form and keep their outline when selected; the selected pill and the
-colour carry the state. A twin is the outline's own
+solid form and keep their outline when selected; the colour, the heavier
+label and (in the dock) the small dot under it carry the state. The dock
+draws no pill behind the current tab since 29 September 2026. A twin is the outline's own
 geometry in three layers: a `body` painted solid and stroked at the family
 weight, so its outer edge sits exactly where the outline's does; a `cut`
 knocked out of the body through an SVG mask at the same weight (the door of

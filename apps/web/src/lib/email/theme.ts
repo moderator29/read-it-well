@@ -30,128 +30,83 @@
  */
 
 /**
- * DARK IN THE LAYER EVERY CLIENT HONOURS.
+ * DARK, IN THE LAYER EVERY CLIENT HONOURS (29 September 2026, founder ruling).
  *
- * The product is dark by default and the operating system does not override
- * it (BUILD_06 rule 7). The email follows the product: the inline styles, the
- * one layer no mail client strips, carry the navy ground, the glass card and
- * the white type of the sign-in render, so the first message anybody gets from
- * Vallo is the same object as the screen it sends them to.
+ * "Every email must be dark mode, beautiful like our system dark mode, not
+ * light mode." So the inline layer, the one layer no mail client strips, IS
+ * the dark palette: navy ground, a deep navy card with a hairline edge, white
+ * headings and the product's own mist inks. The light reading surface of the
+ * morning of 29 September is retired, and with it the `LIGHT` palette and the
+ * light link blue; nothing paints light any more.
  *
- * WHAT MAKES A DARK EMAIL SAFE, since the previous edition of this file argued
- * it was not. The failure it feared is a client that keeps the light text and
- * drops the dark background, which happens when the background lives only on
- * `<body>`. So the ground here is painted three times over, on the body, on
- * the outer table as a `bgcolor` attribute (the one form Outlook's Word engine
- * has honoured since 2007) and on the card cell, and every text colour is
- * inline beside the background it sits on. A client that strips the `<style>`
- * block loses nothing, because the block carries no layout and no legibility:
- * it only re-asserts this same palette under `prefers-color-scheme: dark`.
+ * WHAT MAKES A DARK EMAIL SAFE. The failure to fear is a client that keeps the
+ * light text and drops the dark ground, which happens when the ground lives
+ * only on `<body>`. So the ground is painted on the body, on every table and
+ * on every cell, as a `bgcolor` attribute (the form Outlook's Word engine has
+ * honoured since 2007) AND an inline `background-color` (`paintExplicit` in
+ * render.ts makes that true of every cell), and every text colour is inline
+ * beside the ground it sits on.
  *
- * AND THAT BLOCK IS NOT WHAT HOLDS GMAIL, WHICH THIS COMMENT USED TO CLAIM.
- * Gmail strips `@media (prefers-color-scheme: ...)` entirely and runs its own
- * dark-mode pass regardless of what the message declares, so the media query
- * reaches Apple Mail, iOS Mail and a handful of others and never reaches the
- * client most of this product's readers use. The inline layer above is the
- * only load bearing one. The query is kept because it is free and it helps the
- * clients that do honour it, and an `[data-ogsc]` twin is kept beside it for
- * Outlook.com, which strips standard media queries in webmail and rewrites
- * these same classes. Neither is leaned on.
+ * AND THE CLIENTS THAT RUN THEIR OWN DARK PASS. Gmail strips the media query.
+ * Its Android app and Outlook leave an already dark message alone; its iOS
+ * app may invert it all the way to light. The palette is chosen so that even
+ * that worst case reads: every ink here clears AA against its ground as
+ * written AND after `invert(1) hue-rotate(180deg)`, which is why the body and
+ * muted inks moved onto the product's own mist rungs (the old `#7C86C2` small
+ * print fell to 4.1:1 inverted). `email-dark-paint.test.ts` measures every
+ * pair in every message, both ways, on every commit.
  *
- * Every value is a token rung. No invented navy, no invented grey.
+ * Every value is a token rung of the product's dark theme, named beside it.
  */
 export const DARK = {
-  /** The ground behind the card. --nf-ink-950. */
+  /** The ground behind the card. --nf-ink-950 (and --nf-surface-artwork). */
   ground: "#010118",
-  /** The glass card, one rung lighter than the ground. --nf-ink-850. */
+  /** The card, one rung lighter than the ground. --nf-ink-850 (--nf-surface-secondary). */
   card: "#000030",
-  /** Inset panels: the code box, the receipt rows, the note. --nf-ink-800. */
+  /** Inset panels: the code box, the receipt rows, the note. --nf-ink-800 (--nf-surface-elevated). */
   panel: "#000040",
   /**
-   * Hairlines inside the card: row rules and panel borders.
-   *
-   * RE-DERIVED 22 SEPTEMBER, from `#101A55` at 231.3 degrees, by the same
-   * rotation as the rim. At this lightness eight bits cannot land exactly on
-   * the family angle: it draws at 214.8, which is half a degree out and
-   * invisible on a one pixel hairline.
+   * Hairlines inside the card: row rules, panel borders and the card's own
+   * edge. `#101A55` rotated onto the family's 215.2 degrees (22 September);
+   * eight bits land it at 214.8, invisible on a one pixel line.
    */
   edge: "#102D55",
   /**
-   * The card's rim: the lit edge that reads as glass on the sign-in render.
-   * One blue, between --nf-electric-600 and the hairline, bright enough to be
-   * a rim and dark enough not to compete with the button.
-   *
-   * RE-DERIVED 22 SEPTEMBER. It was `#2743C4`, which sat on 229.3 degrees of
-   * hue: the retired violet family. It has no token of its own, so it was
-   * rotated onto the family's measured 215.2 degrees with its saturation and
-   * lightness untouched, which is the same rotation that took the tokens
-   * themselves off violet. See the note above GLOW.
+   * The lit rim: the edge that reads as glass on the sign-in render, drawn
+   * along the top of the brand band. Rotated onto the family hue on 22
+   * September from the retired violet `#2743C4`.
    */
   rim: "#2768C4",
-  /** Headings and the strong values. */
+  /** Headings and the strong values. --nf-mist-100 (--nf-content-primary). */
   text: "#FFFFFF",
-  /** Body copy. 12.9:1 on the card, measured. */
-  body: "#C6CDF2",
-  /** Small print and row labels. 5.8:1 on the card, 5.6:1 on the panel. */
-  muted: "#7C86C2",
+  /** Body copy. --nf-mist-300 (--nf-content-secondary). 15.1:1 on the card, 15.1:1 inverted. */
+  body: "#D5DEFF",
+  /** Small print and row labels. --nf-mist-500 (--nf-content-muted). 7.4:1 on the card, 5.6:1 inverted. */
+  muted: "#8E9CC4",
 } as const;
 
 /**
- * THE READING SURFACE IS LIGHT, UNDER A NAVY BRAND BAND (29 September 2026).
- *
- * The founder references of 29 September (`docs/design/references/2026-09-29/`,
- * plate 05) set the pattern for a light surface: a deep navy block at the top
- * carrying the brand, light surfaces below it for reading. Every message now
- * follows it. The inline layer, the only one every client keeps, is this light
- * palette; the `DARK` palette above is re-asserted over it by
- * `prefers-color-scheme: dark` for the clients that honour the query (Apple
- * Mail, iOS Mail, and others), so a reader in dark mode gets the designed
- * night rather than a client's guess.
- *
- * WHY LIGHT IS THE INLINE LAYER AND NOT DARK. A client that cannot be told
- * what to do in dark mode (Gmail's apps, which strip the media query and run
- * their own inversion) inverts what it is given. Inverting a light message
- * gives a dark one that still reads, because every text colour here sits well
- * inside AA on its own ground and so does its inverse. Inverting the old dark
- * message gave a light one whose small print measured 4.1:1, under AA; the
- * rendering sweep of 28 September measured that on every template.
- *
- * Every value is the light theme's own token (`:root[data-theme="light"]` in
- * tokens.css), named beside it, except the hairline, which is
- * `--nf-border-default` (11 13 23 at 12%) flattened onto white, because a mail
- * client has no alpha compositing it can be trusted with.
- */
-export const LIGHT = {
-  /** The ground around the card. --nf-surface-raised (light). */
-  ground: "#F3F5F8",
-  /** The card. --nf-surface-primary (light). */
-  card: "#FFFFFF",
-  /** Inset panels: the rows table, the code box. --nf-surface-secondary (light). */
-  panel: "#F6F7F9",
-  /** Hairlines: panel borders and row rules. --nf-border-default on white. */
-  edge: "#E2E2E3",
-  /** Headings and strong values. --nf-content-primary (light). 19.4:1 on the card. */
-  text: "#0B0D17",
-  /** Body copy. --nf-content-secondary (light). 11.0:1 on the card. */
-  body: "#363C4A",
-  /** Small print and row labels. --nf-content-muted (light). 6.1:1 on the card, 5.6:1 on the ground. */
-  muted: "#5A6273",
-} as const;
-
-/**
- * The brand band's navy: `--nf-ink-950`, the same ground as the dark palette,
- * so the band and a dark-mode card are one family.
+ * The brand band's navy: the ground itself, `--nf-ink-950`, which is also the
+ * navy tile the lockup picture carries, so the lockup sits on the band with no
+ * seam.
  */
 export const HEADER = DARK.ground;
 
-/** `--nf-brand-primary` (light). The button fill on a light surface. White on it measures 5.5:1. */
+/**
+ * The button fill. `#005FE8`, the product's primary blue as a solid: white on
+ * it measures 5.5:1, which is more headroom than GLOW's 4.9:1 for the one
+ * label in the message that must never be missed.
+ */
 export const BRAND = "#005FE8";
 
-/** The light button's gradient: `--nf-gradient-cta` (light), over `BRAND` as its solid fallback. */
-export const GRADIENT_LIGHT = `linear-gradient(180deg,#0A6CF5 0%,${BRAND} 100%)`;
+/** The button's gradient: `--nf-gradient-cta` flattened to two stops, over `BRAND` as its solid fallback. */
+export const BUTTON_GRADIENT = `linear-gradient(180deg,#0A6CF5 0%,${BRAND} 100%)`;
 
-/** `--nf-brand-quiet` (light). Links and the brand as text on a light surface: 7.0:1 on the card, 6.4:1 on the ground. */
-export const LINK = "#0050C8";
+/**
+ * The button's glow on the navy card: `BRAND` at 70%, below the button. A
+ * client that drops `box-shadow` (most of Outlook) loses nothing it needed.
+ */
+export const BUTTON_GLOW = "0 10px 26px -10px rgba(0,95,232,0.7)";
 
 /**
  * THE LOCKUP ON ITS OWN NAVY, AS ONE PICTURE (29 September 2026).

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BackControl } from "@/components/ui/BackControl";
 
 /**
  * THE PARTS THE SIX DRAWN STAYS PANELS ARE ASSEMBLED FROM.
@@ -59,16 +60,9 @@ export function StaysHead({
     <header>
       <div className="nf-stays-head">
         {onBack ? (
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Back"
-            className="nf-tap grid h-10 w-10 shrink-0 place-items-center text-[var(--nf-brand-secondary)]"
-          >
-            <UiIcon name="arrow-left" size={24} />
-          </button>
+          <BackControl onBack={onBack} className="text-[var(--nf-brand-secondary)]" />
         ) : (
-          <span className="h-10 w-10 shrink-0" aria-hidden="true" />
+          <span className="h-11 w-11 shrink-0" aria-hidden="true" />
         )}
         <div
           className="nf-stays-head__track"

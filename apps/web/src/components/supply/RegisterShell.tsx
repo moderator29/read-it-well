@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
+import { BackControl } from "@/components/ui/BackControl";
 import { ICON, Surface, TYPE } from "@/components/app/Screen";
 
 /**
@@ -83,15 +84,7 @@ export function RegisterShell({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-heading flex items-center gap-md">
-        <button
-          type="button"
-          aria-label={backLabel}
-          onClick={onBack}
-          data-nav-back=""
-          className="nf-tap grid shrink-0 place-items-center rounded-[var(--nf-radius-control)] text-[var(--nf-content-primary)] transition-colors hover:text-[var(--nf-brand-secondary)]"
-        >
-          <UiIcon name="arrow-left" size={ICON.inline} />
-        </button>
+        <BackControl onBack={onBack} label={backLabel} />
         <h1 className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{formTitle}</h1>
         {mark ? (
           <span className="shrink-0" aria-hidden="true">

@@ -375,14 +375,16 @@ export function MobileTabBar({
          clearance is not a float, it is a bar that missed. The clearance
          token in chrome.css carries the same number, so sticky footers on tab
          routes offset by what the dock actually occupies. */
-      className="nf-dockrow fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
+      /* The row's side insets are in shell-m.css (`.nf-dockrow`): 10px or
+         the safe area, whichever is larger, so the capsule is 12px wider
+         than it was at 16px and still clears a landscape notch. */
+      className="nf-dockrow fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
-      {/* A NIGHT ISLAND IN BOTH THEMES (29 September 2026): the capsule and
-          the More button are the navy glass dock of the founder's render
-          (reference 07) in light too, so the brand holds the bottom edge
-          the way the navy header holds the top. `contents` keeps the row's
-          flex layout exactly as it was; only the palette changes. */}
-      <div data-theme="dark" className="contents">
+      {/* THE DOCK TAKES THE READER'S THEME (the founder, 29 September 2026,
+          later the same day, superseding the night island that stood here):
+          in light the capsule, the round More button and its tray are WHITE
+          with brand-blue line glyphs and labels (light.css, "THE DOCK IN
+          DAYLIGHT"); at night they keep the navy neon glass (shell-m.css). */}
       <ul
         className="nf-tabbar"
         style={
@@ -393,7 +395,11 @@ export function MobileTabBar({
         }
       >
         {/* The travelling pill: the drawing of a state `aria-current` already
-            announces, so it is hidden from the tree. */}
+            announces, so it is hidden from the tree. Since 29 September 2026
+            it paints nothing (the founder: no container behind the current
+            tab); the current tab is its filled glyph, a stronger label and a
+            small dot under it (shell-m.css). The element and its geometry
+            stay so the arithmetic is there if a highlight ever returns. */}
         <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
         {slots.map((tab, index) => {
           if (tab == null) {
@@ -433,7 +439,6 @@ export function MobileTabBar({
         })}
       </ul>
       <DockMore items={more} label={t.nav.more} active={active} />
-      </div>
     </AutoHideDock>
   );
 }

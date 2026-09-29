@@ -1,6 +1,6 @@
 /**
- * EVERY EMAIL READS IN LIGHT, IN DARK AND INVERTED (Track H, 25 September;
- * redesigned 29 September 2026 to a navy band over a light page).
+ * EVERY EMAIL IS DARK, AND READS AS WRITTEN AND INVERTED (Track H, 25
+ * September; dark by the founder's ruling of 29 September 2026).
  *
  * Gmail strips `@media (prefers-color-scheme)` and runs its own dark pass
  * (its apps invert), Outlook's Word engine reads `bgcolor` and ignores the
@@ -9,7 +9,8 @@
  * for every message the product sends (the whole catalogue, and the five
  * auth templates the generator writes), this holds:
  *
- *   1. the color-scheme and supported-color-schemes metas say "light dark";
+ *   1. the color-scheme and supported-color-schemes metas say "dark", so
+ *      Apple Mail renders the design as written rather than inverting it;
  *   2. every body, table and cell carries a `bgcolor` attribute AND an inline
  *      `background-color`, and the two agree (so nothing is left for a client
  *      to paint);
@@ -19,10 +20,10 @@
  *      measured against the button's solid fallback);
  *   4. AS WRITTEN AND INVERTED: the same pair still clears AA after
  *      `invert(1) hue-rotate(180deg)`, the transform Gmail's apps apply;
- *   5. IN THE DARK SCHEME: every text element on a ground the dark scheme
- *      repaints carries the class that repaints its ink too, and the
- *      repainted pair clears AA. A ground the dark scheme leaves alone (the
- *      navy band, the blue button) keeps its written pair, already measured.
+ *   5. RE-ASSERTED BY CLASS: every text element on a ground the style block
+ *      re-asserts carries the class that re-asserts its ink too, and that
+ *      pair clears AA. A ground with no class (the blue button) keeps its
+ *      written pair, already measured.
  *
  * The browser sweep in the report (every template screenshotted light, dark,
  * inverted and Outlook-partial) measured the same things on the rendered
@@ -35,7 +36,7 @@ import { describe, expect, it } from "vitest";
 
 import { EVERY_MESSAGE } from "./fixtures";
 import { paintExplicit } from "./render";
-import { DARK, LIGHT, SKY } from "./theme";
+import { DARK, SKY } from "./theme";
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 const TEMPLATES = join(HERE, "..", "..", "..", "..", "..", "supabase", "templates");
@@ -94,11 +95,22 @@ const classOf = (attrs: string, table: Record<string, string>) =>
   (/\bclass="([^"]*)"/.exec(attrs)?.[1] ?? "").split(/\s+/).find((c) => c in table) ?? null;
 
 type Ground = { light: string; dark: string; repainted: boolean };
+/* `light` is the ground as written (the name predates the dark redesign and
+   means "the inline layer"); `dark` is what the style block re-asserts. */
 
 describe.each(EVERY)("$name", ({ html }) => {
-  it("declares light and dark in both colour-scheme metas", () => {
-    expect(html).toContain('<meta name="color-scheme" content="light dark" />');
-    expect(html).toContain('<meta name="supported-color-schemes" content="light dark" />');
+  it("declares itself dark in both colour-scheme metas", () => {
+    expect(html).toContain('<meta name="color-scheme" content="dark" />');
+    expect(html).toContain('<meta name="supported-color-schemes" content="dark" />');
+  });
+
+  it("paints the dark palette inline on the body, not a light one", () => {
+    const b = body(html);
+    expect(b).toMatch(new RegExp(`^<body[^>]*bgcolor="${DARK.ground}"`));
+    const painted = [...b.matchAll(/bgcolor="(#[0-9a-fA-F]{6})"/g)].map((m) => m[1]!.toUpperCase());
+    /* Nothing but the navy rungs and the button blue ever paints a ground. */
+    const light = painted.filter((hex) => lum(hex) > 0.2);
+    expect(light).toEqual([]);
   });
 
   it("paints every body, table and cell with bgcolor and an inline background-color that agree", () => {
@@ -119,7 +131,7 @@ describe.each(EVERY)("$name", ({ html }) => {
     /* Walk the tags in order, keeping the painted ground of the nearest cell,
        and what the dark scheme makes of it. */
     const grounds: Ground[] = [];
-    const top = (): Ground => grounds.at(-1) ?? { light: LIGHT.ground, dark: DARK.ground, repainted: true };
+    const top = (): Ground => grounds.at(-1) ?? { light: DARK.ground, dark: DARK.ground, repainted: true };
     for (const m of body(html).matchAll(/<(\/?)(body|table|td|p|h1|li|a|span)\b([^>]*)>([^<]*)/gi)) {
       const [, close, tag, attrs = "", after = ""] = m;
       const t = tag!.toLowerCase();

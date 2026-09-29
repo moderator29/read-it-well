@@ -18,7 +18,7 @@ import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { TYPE } from "@/components/app/Screen";
 import { formatPhone } from "@/lib/phone";
-import { useBack } from "@/lib/nav/use-back";
+import { BackControl } from "@/components/ui/BackControl";
 import type { ListingKind } from "@/lib/listings/types";
 import {
   acceptProposedTime,
@@ -909,19 +909,10 @@ export function InspectionHero({
   /** Off where a console shell already draws its own way back. */
   back?: boolean;
 }) {
-  const goBack = useBack(fallback);
   return (
     <div className="nf-ix nf-ix-hero">
       {back && (
-        <button
-          type="button"
-          aria-label="Back"
-          data-nav-back=""
-          onClick={goBack}
-          className="nf-icon-btn nf-ix-back h-11 w-11 shrink-0"
-        >
-          <UiIcon name="arrow-left" size={20} />
-        </button>
+        <BackControl fallback={fallback} className="nf-ix-back" />
       )}
       <div className="nf-ix-hero__row">
         <div className="min-w-0 flex-1">

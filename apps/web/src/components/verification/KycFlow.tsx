@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BackControl } from "@/components/ui/BackControl";
 import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
 import { DocumentUploader } from "./DocumentUploader";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -167,16 +168,9 @@ export function KycFlow({
             real control rather than a reliance on the browser's back button,
             which on a single-route wizard would leave the flow entirely. */}
         {at > 0 ? (
-          <button
-            type="button"
-            onClick={back}
-            aria-label={BACK}
-            className="nf-icon-btn h-10 w-10 shrink-0"
-          >
-            <UiIcon name="arrow-left" size="md" />
-          </button>
+          <BackControl onBack={back} label={BACK} surface="plate" />
         ) : (
-          <Link href="/profile" aria-label={LEAVE} className="nf-icon-btn h-10 w-10 shrink-0">
+          <Link href="/profile" aria-label={LEAVE} className="nf-icon-btn h-11 w-11 shrink-0">
             <UiIcon name="close" size="md" />
           </Link>
         )}

@@ -130,35 +130,38 @@ describe("every rendered email survives a real mail client", () => {
     expect(theme.MAX_WIDTH).toBeLessThanOrEqual(600);
   });
 
-  it.each(EVERY_HTML)("$name declares both schemes and carries the designed dark one", ({ html }) => {
-    // `light dark` tells Apple Mail and iOS the message has a dark design of
-    // its own, so they apply it rather than inverting the light one; the media
-    // query is that design. Gmail strips both, which the inline layer answers.
-    expect(html).toContain('name="color-scheme" content="light dark"');
-    expect(html).toContain('name="supported-color-schemes" content="light dark"');
+  it.each(EVERY_HTML)("$name declares itself dark and re-asserts the dark palette", ({ html }) => {
+    // `dark` tells Apple Mail and iOS the message is already dark, so they
+    // render it as written rather than inverting it. The class rules hold the
+    // same palette for clients that restyle by scheme. Gmail strips both,
+    // which the inline layer answers.
+    expect(html).toContain('name="color-scheme" content="dark"');
+    expect(html).toContain('name="supported-color-schemes" content="dark"');
+    expect(html).toContain("color-scheme: dark;");
     expect(html).toContain("@media (prefers-color-scheme: dark)");
     expect(html).toContain(`.rm-card   { background-color: ${theme.DARK.card} !important;`);
+    expect(html).not.toMatch(/content="light/);
   });
 
-  it.each(EVERY_HTML)("$name is a navy band over a light page in the layer every client honours", ({ html }) => {
+  it.each(EVERY_HTML)("$name is dark, like the product, in the layer every client honours", ({ html }) => {
     /*
      * The inline styles are the layer no client strips, and they carry the
-     * design: the navy brand band and the light ground and card, as inline
-     * styles AND as bgcolor attributes, which is the form Outlook's Word
-     * engine has honoured since 2007.
+     * design: the navy brand band, the navy ground and the deep navy card, as
+     * inline styles AND as bgcolor attributes, which is the form Outlook's
+     * Word engine has honoured since 2007.
      */
     const afterStyle = html.slice(html.indexOf("</style>"));
     expect(afterStyle).toContain(`bgcolor="${theme.HEADER}"`);
     expect(afterStyle).toContain(
       `background-color:${theme.HEADER};background-image:linear-gradient(${theme.HEADER},${theme.HEADER})`,
     );
-    expect(afterStyle).toContain(`bgcolor="${theme.LIGHT.ground}"`);
-    expect(afterStyle).toContain(`background-color:${theme.LIGHT.ground}`);
-    expect(afterStyle).toContain(`bgcolor="${theme.LIGHT.card}"`);
-    expect(afterStyle).toContain(`background-color:${theme.LIGHT.card}`);
+    expect(afterStyle).toContain(`bgcolor="${theme.DARK.ground}"`);
+    expect(afterStyle).toContain(`background-color:${theme.DARK.ground}`);
+    expect(afterStyle).toContain(`bgcolor="${theme.DARK.card}"`);
+    expect(afterStyle).toContain(`background-color:${theme.DARK.card}`);
     // Every heading and body colour is inline beside the ground it sits on.
-    expect(afterStyle).toContain(`color:${theme.LIGHT.text}`);
-    expect(afterStyle).toContain(`color:${theme.LIGHT.body}`);
+    expect(afterStyle).toContain(`color:${theme.DARK.text}`);
+    expect(afterStyle).toContain(`color:${theme.DARK.body}`);
     // The support and legal links are in every footer.
     expect(afterStyle).toMatch(/\/support"/);
     expect(afterStyle).toMatch(/\/legal\/privacy"/);
@@ -239,12 +242,10 @@ describe("one palette, and the auth generator has not drifted from it", () => {
 
   const THEME_COLOURS = [
     ...Object.values(theme.DARK),
-    ...Object.values(theme.LIGHT),
     theme.GLOW,
     theme.ELECTRIC,
     theme.SKY,
     theme.BRAND,
-    theme.LINK,
   ];
 
   it.each(THEME_COLOURS)("the auth generator uses the theme value %s", (hex) => {
@@ -333,16 +334,18 @@ describe("one palette, and the auth generator has not drifted from it", () => {
     }
 
     it.each([
-      ["LIGHT.ground", theme.LIGHT.ground, "--nf-surface-raised"],
-      ["LIGHT.card", theme.LIGHT.card, "--nf-surface-primary"],
-      ["LIGHT.panel", theme.LIGHT.panel, "--nf-surface-secondary"],
-      ["LIGHT.text", theme.LIGHT.text, "--nf-content-primary"],
-      ["LIGHT.body", theme.LIGHT.body, "--nf-content-secondary"],
-      ["LIGHT.muted", theme.LIGHT.muted, "--nf-content-muted"],
-      ["BRAND", theme.BRAND, "--nf-brand-primary"],
-      ["LINK", theme.LINK, "--nf-brand-quiet"],
-    ])("%s is %s, which is the light theme's %s", (_name, baked, tokenName) => {
-      expect(baked.toUpperCase()).toBe(lightToken(tokenName));
+      ["DARK.ground", theme.DARK.ground, "--nf-ink-950"],
+      ["DARK.card", theme.DARK.card, "--nf-ink-850"],
+      ["DARK.panel", theme.DARK.panel, "--nf-ink-800"],
+      ["DARK.text", theme.DARK.text, "--nf-mist-100"],
+      ["DARK.body", theme.DARK.body, "--nf-mist-300"],
+      ["DARK.muted", theme.DARK.muted, "--nf-mist-500"],
+    ])("%s is %s, which is the dark theme's %s", (_name, baked, tokenName) => {
+      expect(baked.toUpperCase()).toBe(token(tokenName));
+    });
+
+    it("paints the button in the product's primary blue, as the light block declares it solid", () => {
+      expect(theme.BRAND.toUpperCase()).toBe(lightToken("--nf-brand-primary"));
     });
 
     /**
@@ -401,9 +404,8 @@ describe("one palette, and the auth generator has not drifted from it", () => {
         ["rim", theme.DARK.rim],
         ["edge", theme.DARK.edge],
         ["BRAND", theme.BRAND],
-        ["LINK", theme.LINK],
-        ...(theme.GRADIENT_LIGHT.match(/#[0-9A-Fa-f]{6}/g) ?? []).map(
-          (hex, i) => [`GRADIENT_LIGHT stop ${i}`, hex] as const,
+        ...(theme.BUTTON_GRADIENT.match(/#[0-9A-Fa-f]{6}/g) ?? []).map(
+          (hex, i) => [`BUTTON_GRADIENT stop ${i}`, hex] as const,
         ),
         // The gradient middle stop, dug out of the composed string.
         ...(theme.GRADIENT.match(/#[0-9A-Fa-f]{6}/g) ?? []).map(
@@ -583,8 +585,8 @@ describe("the verification code is the hero of its own email", () => {
     // Ground, card, panel: the code sits on the inset panel, in the heading
     // colour, and carries the classes the dark scheme repaints it by.
     const cell = codeCell(String(codeEmail?.message.html));
-    expect(cell).toContain(`background:${theme.LIGHT.panel}`);
-    expect(cell).toContain(`color:${theme.LIGHT.text}`);
+    expect(cell).toContain(`background:${theme.DARK.panel}`);
+    expect(cell).toContain(`color:${theme.DARK.text}`);
     expect(cell).toMatch(/class="[^"]*rm-panel[^"]*rm-title/);
   });
 

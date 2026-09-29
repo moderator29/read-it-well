@@ -2,9 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { canGoBackInApp } from "@/lib/ui/history";
-import { chooseBack } from "@/lib/nav/resolve";
-import { previousEntryPath } from "@/lib/nav/previous-entry";
+import { decideBack, performBack } from "@/lib/nav/use-back";
 import { startNativeRuntime } from "@/lib/native/boot";
 
 /**
@@ -51,24 +49,11 @@ export function NativeRuntime() {
         /*
          * The same decision every other back control on this platform takes,
          * from the same map, with `surface: "android"` so that a root is an
-         * exit rather than a fallback push.
-         *
-         * `startBackButton` asks `isAppRoot()` itself before it calls this and
-         * exits instead, so in practice the `exit` branch below is unreachable
-         * from there. It is written out anyway: this handler is the whole
-         * answer to "where does back go on Android", and a reader should not
-         * have to open another module to find out what happens at the root.
+         * exit rather than a fallback. `startBackButton` asks `isAppRoot()`
+         * and exits before it calls this, so `performBack` never sees `exit`.
          */
         goBack: () => {
-          const decision = chooseBack({
-            path: pathname ?? "/",
-            fallback: "/home",
-            previousPath: previousEntryPath(),
-            previousIsInApp: canGoBackInApp(),
-            surface: "android",
-          });
-          if (decision.action === "back") router.back();
-          else if (decision.action === "push") router.push(decision.href);
+          performBack(decideBack(pathname ?? "/", "/home", "android"), router);
         },
       }),
     [router, pathname],

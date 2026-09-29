@@ -227,11 +227,11 @@ describe("where a reply lands", () => {
    * no way to know.
    */
 
-  it("sends no reply address at all when nothing is configured", async () => {
+  it("replies land at the company address when nothing is configured", async () => {
     await sendMessage("ada@example.com", MESSAGE);
     const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
-    // Exactly as this module behaved before the default existed.
-    expect("reply_to" in body).toBe(false);
+    expect(body.reply_to).toBe("Vallo <hello@vallospaces.com>");
+    expect(body.from).toBe("Vallo <hello@vallospaces.com>");
   });
 
   it("puts EMAIL_REPLY_TO on every message once it is set", async () => {
@@ -253,12 +253,12 @@ describe("where a reply lands", () => {
     expect(body.reply_to).toBe("agent@vallospaces.com");
   });
 
-  it("refuses a configured value that is not an address, and says so", async () => {
+  it("refuses a configured value that is not an address, says so, and uses the company address", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.stubEnv(REPLY_TO, "not an address");
     await sendMessage("ada@example.com", MESSAGE);
     const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
-    expect("reply_to" in body).toBe(false);
+    expect(body.reply_to).toBe("Vallo <hello@vallospaces.com>");
     expect(warn).toHaveBeenCalled();
     // The value is never in the log, valid or not.
     expect(warn.mock.calls.flat().join(" ")).not.toContain("not an address");

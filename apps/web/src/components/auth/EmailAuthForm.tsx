@@ -10,7 +10,7 @@ import type { SignInSurface } from "@/lib/auth/providers";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
 import type { StateOption } from "@/lib/places/reference";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BackControl } from "@/components/ui/BackControl";
 import { Field, PasswordField, SelectField, StrengthMeter } from "./fields";
 import { EmailTakenNotice } from "./EmailTakenNotice";
 import { SocialDoors } from "./SocialDoors";
@@ -348,14 +348,7 @@ export function EmailAuthForm({
         {isSignUp ? (
           <div className="nf-slate-head">
             {step === 2 ? (
-              <button
-                type="button"
-                onClick={goBack}
-                aria-label={t.signUp.backToStep}
-                className="nf-slate-head__back"
-              >
-                <UiIcon name="arrow-left" size={20} />
-              </button>
+              <BackControl onBack={goBack} label={t.signUp.backToStep} className="nf-slate-head__back" />
             ) : null}
             <h1 className="nf-auth__title">{t.common.signUp}</h1>
           </div>

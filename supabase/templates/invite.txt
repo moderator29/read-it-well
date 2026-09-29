@@ -27,7 +27,7 @@ stays on the record. Places marked Example are there to show how Vallo
 works and cannot be rented or booked.
 - Vallo has two sides on one account. Property is renting, buying and
 selling; Vallo Stays is hotels, apartments, guest houses, resorts and
-restaurant tables. One naira wallet pays for both.
+restaurant tables.
 - On a tenancy the rent is rarely the whole number. Caution deposit,
 agency, legal, agreement and service charge are normal here, so the
 move-in total is printed in full before you commit.

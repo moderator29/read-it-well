@@ -3,25 +3,16 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
-import { useBack } from "@/lib/nav/use-back";
-import { useClientCopy } from "@/lib/i18n/client-copy";
+import { BackControl } from "@/components/ui/BackControl";
 
 /**
  * Page header with the platform back flow.
  *
  * The pattern every big app uses: the back control lives at the top left OF THE
- * PAGE, next to its title, not floating in the global chrome. Back goes to this
- * route's DECLARED PARENT, from `lib/nav/route-parents.ts`, however the person
- * arrived.
- *
- * It used to call `router.back()` whenever `canGoBackInApp()` said there was a
- * screen of ours behind this one. That proves the previous entry is in-app; it
- * cannot prove the previous entry is this screen's parent, and after a
- * redirect, a sign-in bounce or a deep link it is not. That is how back inside
- * the Console reached the login page. `lib/nav/resolve.ts` carries the full
- * account; `useBack` still goes back through history when, and only when, the
- * previous entry can be PROVED to be the parent, which is what keeps a filtered
- * search's scroll position.
+ * PAGE, next to its title, not floating in the global chrome. The control is
+ * the shared `BackControl` (glass surface): it returns to the screen the person
+ * came from when that is safe, and otherwise to this route's declared parent
+ * (`lib/nav/resolve.ts`, `docs/BACK_NAVIGATION.md`).
  */
 export function PageHeader({
   title,
@@ -49,9 +40,9 @@ export function PageHeader({
   subtitleHref?: string;
   fallback?: string;
   /**
-   * Accessible name for the back control. Optional: a caller holding a real
-   * `t` from a server component still wins, and when nobody passes one the
-   * client dictionary supplies `common.back` in the reader's language.
+   * Accessible name for the back control. Omit it: the control names its
+   * destination ("Back to Messages") for an English reader and says
+   * `common.back` in the reader's language otherwise.
    */
   backLabel?: string;
   actions?: React.ReactNode;
@@ -71,30 +62,9 @@ export function PageHeader({
    */
   layout?: "inline" | "stacked";
 }) {
-  /* The back control is the only thing on this header the component names
-     itself, and it appears on every app screen. It reads the locale cookie
-     directly because there is no server parent to hand it a dictionary and
-     there are ~50 call sites; see the hook for why that is a last resort. */
-  const t = useClientCopy();
-  const label = backLabel ?? t.common.back;
-
-  const back = useBack(fallback);
-
-  /* The glass square the renders draw: the base square's brand edge and
-     well, with the rim highlight and the thin blur the modifier adds. */
+  /* The glass square the renders draw, 44px, named for where it goes. */
   const backButton = (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={back}
-      /* See the note in `components/site/BackButton.tsx`: one attribute names
-         the object for `scripts/design/proof-nav.mjs`, on both drawn controls,
-         so the walk proves the control rather than a class name. */
-      data-nav-back=""
-      className="nf-icon-btn nf-icon-btn--glass h-11 w-11 shrink-0"
-    >
-      <UiIcon name="arrow-left" size={ICON.inline} />
-    </button>
+    <BackControl fallback={fallback} surface="glass" {...(backLabel ? { label: backLabel } : {})} />
   );
 
   if (layout === "stacked") {

@@ -39,7 +39,7 @@ import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { OUTBOX_SENT_EVENT, type OutboxSentDetail } from "@/lib/offline/outbox";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
-import { useBack } from "@/lib/nav/use-back";
+import { BackControl } from "@/components/ui/BackControl";
 import { ThreadOptionsSheet, type SheetListing, type ThreadSheetCopy } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
@@ -623,12 +623,6 @@ export function ThreadView({
     sheetTriggerRef.current?.focus();
   }, []);
 
-  /* A conversation's parent is the inbox, declared as `/messages/[id]` ->
-     `/messages` in `lib/nav/route-parents.ts`. A thread is the single most
-     deep-linked screen in the product - every push notification lands here -
-     so it was also the one where `router.back()` most often walked out of the
-     product entirely. */
-  const back = useBack("/messages");
 
   /* The header's context line: what this conversation is FOR, in two words,
      under the name, the way the render writes "Hotel Booking". */
@@ -690,18 +684,10 @@ export function ThreadView({
       <header
         className={`nf-thread__head${inspected || ceremony ? " nf-page-header--verified" : ""}`}
       >
-        {/* THE WALKER'S HANDLE; see `components/site/BackButton.tsx`. This
-            thread's control calls the same `useBack` as every other one and was
-            invisible to the browser walk without it. */}
-        <button
-          type="button"
-          aria-label="Back"
-          onClick={back}
-          data-nav-back=""
-          className="nf-icon-btn"
-        >
-          <UiIcon name="arrow-left" size={ICON.inline} />
-        </button>
+        {/* The shared back control. A thread is the most deep-linked screen in
+            the product (every push lands here): opened cold it goes to the
+            inbox, opened from a listing or a booking it goes back there. */}
+        <BackControl fallback="/messages" surface="plate" />
         {/*
           The mark in the lit ring. On a stay thread it is the counterpart and
           it carries their verified state, because the person you are talking
