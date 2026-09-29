@@ -27,7 +27,7 @@ import { useClientLocale } from "./use-client-locale";
  * It is safe because `getDictionary` is a pure function over static objects.
  * `@vallo/i18n` imports nothing server-only, and the locale itself lives
  * in a plain cookie whose name was split into `locale.constants.ts` precisely
- * so the client could read it (`LanguageSwitcher` already writes it there).
+ * so the client could read it (Settings' `LanguageRow` already writes it there).
  *
  * ## THIS IS A LAST RESORT, NOT THE NEW WAY TO READ COPY
  *

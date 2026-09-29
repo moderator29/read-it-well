@@ -404,15 +404,24 @@ run("on arrival (agreement, listing and approval pages)", () => {
     }
   });
 
-  it("an approval opens once per device", async () => {
-    const { page, close } = await mountInBrowser({ entry: ARRIVAL(true, "agreement-approved:ag-1") });
+  it("an approval opens once per device: it marks itself seen, and a seen one stays shut", async () => {
+    const first = await mountInBrowser({ entry: ARRIVAL(true, "agreement-approved:ag-1") });
     try {
-      await sheetOpens(page);
-      await page.reload();
-      await page.addScriptTag({ content: "" });
-      expect(await page.evaluate(() => window.localStorage.getItem("nf-seen:agreement-approved:ag-1"))).toBe("1");
+      await sheetOpens(first.page);
+      expect(await first.page.evaluate(() => window.localStorage.getItem("nf-seen:agreement-approved:ag-1"))).toBe("1");
+      /* No flag rode on this one, so there is nothing to strip. */
+      expect((await routerCalls(first.page)).filter((c) => c[0] === "replace")).toEqual([]);
     } finally {
-      await close();
+      await first.close();
+    }
+    const again = await mountInBrowser({
+      entry: ARRIVAL(true, "agreement-approved:ag-1"),
+      init: `window.localStorage.setItem("nf-seen:agreement-approved:ag-1", "1")`,
+    });
+    try {
+      await noSheet(again.page);
+    } finally {
+      await again.close();
     }
   });
 });

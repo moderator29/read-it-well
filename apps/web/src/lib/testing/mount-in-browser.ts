@@ -113,6 +113,8 @@ export async function mountInBrowser(opts: {
   /** Extra CSS, e.g. the product stylesheet a test needs. */
   css?: string;
   url?: string;
+  /** Script run in the page before the component mounts (seed storage, stub an API). */
+  init?: string;
 }): Promise<Mounted> {
   if (!CHROMIUM) throw new Error("no Chromium binary for the browser mount");
   const dir = mkdtempSync(join(tmpdir(), "nf-mount-"));
@@ -158,6 +160,7 @@ export async function mountInBrowser(opts: {
     }),
   );
   await page.goto(opts.url ?? "http://vallo.test/");
+  if (opts.init) await page.evaluate(opts.init);
   await page.addScriptTag({ content: bundle });
   await page.waitForFunction(() => (window as unknown as { __mounted?: boolean }).__mounted === true, null, {
     timeout: 10_000,

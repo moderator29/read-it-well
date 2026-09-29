@@ -83,7 +83,7 @@ try {
       colorScheme: "dark",
       viewport: { width: 390, height: 844 },
     });
-    // The same cookie `LanguageSwitcher` writes. No other switch is needed:
+    // The same cookie Settings' `LanguageRow` writes. No other switch is needed:
     // the server reads it for the page and the hook reads it for the label,
     // which is the whole point of keeping the name in `locale.constants.ts`.
     await context.addCookies([{ name: LOCALE_COOKIE, value: locale, url: BASE_URL }]);
