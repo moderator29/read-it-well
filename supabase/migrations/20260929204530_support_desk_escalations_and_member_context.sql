@@ -1,5 +1,5 @@
 -- THE SUPPORT DESK: ESCALATIONS AND A MEMBER CONTEXT CUT TO WHAT SUPPORT NEEDS
--- (29 September 2026). DRAFT. NOT APPLIED.
+-- (29 September 2026). Applied 29 September 2026 with the founder's approval.
 --
 -- THIS FILE WAITS FOR THE FOUNDER'S WORD, because it adds a table, four
 -- public functions and one private check. It rewrites no row that exists, drops nothing, and changes no

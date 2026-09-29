@@ -221,7 +221,7 @@ describe("what the support desk reads", () => {
   });
 
   it("the member context function returns only the fields support needs", () => {
-    const sql = src("../../supabase/migrations/pending/20260929173000_support_desk_escalations_and_member_context.sql");
+    const sql = src("../../supabase/migrations/20260929204530_support_desk_escalations_and_member_context.sql");
     const fn = sql.slice(sql.indexOf("create or replace function public.support_member_context"), sql.indexOf("revoke all on function public.support_escalate_ticket"));
     const keys = [...fn.matchAll(/'([a-z_]+)',\s/g)].map((m) => m[1]!).filter((k) => !["ok", "forbidden", "not_found", "open", "pending"].includes(k));
     const allowed = new Set([
