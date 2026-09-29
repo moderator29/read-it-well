@@ -14,13 +14,17 @@ declare
   stay   uuid := 'ed000000-0000-4000-8000-000000000003';
   lagos  date := (now() at time zone 'Africa/Lagos')::date;
   ref    text := 'rm-yc-' || gen_random_uuid()::text;
-  rate bigint; bk uuid; ag uuid; cp uuid; r jsonb; n int; st text; conf int; leg text;
+  tg name; rate bigint; bk uuid; ag uuid; cp uuid; r jsonb; n int; st text; conf int; leg text;
 begin
   -- The example stay made real inside the transaction only (new-a1-03 lifts a
   -- gate the same way); everything rolls back.
-  alter table public.listings disable trigger listing_supply_proof_gate;
+  for tg in select tgname from pg_trigger where tgrelid = 'public.listings'::regclass and tgfoid = 'private.listing_supply_proof_gate'::regproc loop
+    execute format('alter table public.listings disable trigger %I', tg);
+  end loop;
   update public.listings set is_demo = false where id = stay;
-  alter table public.listings enable trigger listing_supply_proof_gate;
+  for tg in select tgname from pg_trigger where tgrelid = 'public.listings'::regclass and tgfoid = 'private.listing_supply_proof_gate'::regproc loop
+    execute format('alter table public.listings enable trigger %I', tg);
+  end loop;
   select rate_minor into rate from public.listings where id = stay;
   insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
   values (stay, member, lagos + 20, lagos + 22, 2, rate, rate * 2, rate * 2, 'PENDING') returning id into bk;
@@ -100,6 +104,9 @@ begin
   -- 5. A settlement that is not exactly the charge is refused and alerted.
   r := public.crypto_payment_apply(ref, 'yellowcard', 'probe-bad-settle', 'webhook', 'settled', jsonb_build_object('settled_minor', rate * 2 - 1));
   if r->>'outcome' <> 'amount-mismatch' then raise exception 'PROBE_FAIL crypto-pay: short settlement %', r; end if;
+  -- A settled report that states no settled amount is refused the same way.
+  r := public.crypto_payment_apply(ref, 'yellowcard', 'probe-no-settle-amount', 'webhook', 'settled', '{}'::jsonb);
+  if r->>'outcome' <> 'amount-mismatch' then raise exception 'PROBE_FAIL crypto-pay: settlement with no amount %', r; end if;
   select state into st from public.crypto_payments where id = cp;
   if st <> 'converting' then raise exception 'PROBE_FAIL crypto-pay: short settlement moved to %', st; end if;
 
