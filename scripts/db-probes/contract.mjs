@@ -100,5 +100,41 @@ export function judgeRun(id, output, exitCode) {
     return { ok: false, reason: "finished without raising: no PROBE_OK error was seen (rolled back by the runner)" };
   }
   const err = /ERROR:[^\n]*/.exec(text);
-  return { ok: false, reason: err ? err[0].trim() : `client exited ${exitCode} with no PROBE_OK` };
+  if (err) return { ok: false, reason: err[0].trim() };
+  // A client that never reached the server prints `psql: error: ...`, not an
+  // ERROR line. Say that, so 60 probes do not fail with nothing to go on.
+  const client = connectionError(text);
+  return { ok: false, reason: client ?? `client exited ${exitCode} with no PROBE_OK` };
+}
+
+/**
+ * The connection string as it should be used. A secret pasted with a trailing
+ * newline (which a text box or `echo` easily adds) would otherwise become part
+ * of the database name, and every probe would fail to connect. Whitespace is
+ * never meaningful in a connection URI, so it is trimmed from both ends.
+ */
+export function normaliseDatabaseUrl(raw) {
+  return String(raw ?? "").trim();
+}
+
+/** The first client-side connection error psql printed, or null. */
+export function connectionError(output) {
+  const line = /^psql: error:[^\n]*(?:\n(?!psql:)[^\n]+)*/m.exec(String(output ?? ""));
+  return line ? line[0].replace(/\s+/g, " ").trim() : null;
+}
+
+/**
+ * Remove the password from anything about to be printed. psql does not echo
+ * it, but a runner that prints client errors must not depend on that.
+ */
+export function redactPassword(text, url) {
+  let out = String(text ?? "");
+  let password = "";
+  try {
+    password = decodeURIComponent(new URL(url).password);
+  } catch {
+    password = "";
+  }
+  if (password.length > 0) out = out.split(password).join("***");
+  return out;
 }
