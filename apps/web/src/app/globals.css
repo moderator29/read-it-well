@@ -98,6 +98,8 @@
  */
 @import "./css/stays.css";
 @import "./css/wallet.css";
+/* The payments and earnings histories: a record of money that already moved. */
+@import "./css/money-history.css";
 @import "./css/system.css";
 /*
  * THE LIGHT THEME'S SHAPE AND ARTWORK RULES, back in the slot `light.css`

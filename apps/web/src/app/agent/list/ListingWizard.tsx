@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { ShotList } from "@/components/agent/ShotList";
+import { isHeicLike, undecodablePhotoNotice } from "@/lib/agent/photo-decode";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
 import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
@@ -1572,8 +1573,15 @@ export function ListingWizard({
 
   /* --------------------------------------------------------------- photos */
 
-  /** Reject anything that would look soft in search results. */
-  async function widthOf(file: File): Promise<number> {
+  /**
+   * Reject anything that would look soft in search results.
+   *
+   * Null when the browser cannot decode the file at all, which is a different
+   * problem from a narrow photo and gets a different sentence
+   * (`undecodablePhotoNotice`): HEIC in Chrome or on Android used to come
+   * back as width zero and be called "too narrow".
+   */
+  async function widthOf(file: File): Promise<number | null> {
     if (typeof createImageBitmap === "function") {
       try {
         const bitmap = await createImageBitmap(file);
@@ -1584,16 +1592,16 @@ export function ListingWizard({
         /* fall through to the image element */
       }
     }
-    return await new Promise<number>((resolve) => {
+    return await new Promise<number | null>((resolve) => {
       const url = URL.createObjectURL(file);
       const image = new Image();
       image.onload = () => {
         URL.revokeObjectURL(url);
-        resolve(image.naturalWidth);
+        resolve(image.naturalWidth > 0 ? image.naturalWidth : null);
       };
       image.onerror = () => {
         URL.revokeObjectURL(url);
-        resolve(0);
+        resolve(null);
       };
       image.src = url;
     });
@@ -1668,11 +1676,17 @@ export function ListingWizard({
           setPhotoNotice(fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
           break;
         }
-        if (!file.type.startsWith("image/")) {
+        /* Chrome on a desktop often gives a `.heic` file no type at all, so
+           HEIC is recognised by its name before the image check refuses it. */
+        if (!file.type.startsWith("image/") && !isHeicLike(file)) {
           setPhotoNotice(copy.photos.notAnImage);
           continue;
         }
         const width = await widthOf(file);
+        if (width === null) {
+          setPhotoNotice(undecodablePhotoNotice(file, copy.photos.notPrepared));
+          continue;
+        }
         if (width < MIN_PHOTO_WIDTH) {
           setPhotoNotice(fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH }));
           continue;
@@ -1682,7 +1696,7 @@ export function ListingWizard({
         // re-encode always produces a JPEG, so the stored extension follows.
         const clean = await stripMetadata(file);
         if (!clean) {
-          setPhotoNotice(copy.photos.notPrepared);
+          setPhotoNotice(undecodablePhotoNotice(file, copy.photos.notPrepared));
           continue;
         }
 

@@ -191,6 +191,9 @@ export function buildNav({
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
+        /* What this person paid and what came back: a record, never an
+           account. English until the dictionary carries the word. */
+        { href: "/payments", label: "Payments", icon: "history" },
         /* No crypto row: V-83 took the deferred crypto market out of the
            shipped tree (parked on `claude/parked-crypto-deferred`). */
         /*

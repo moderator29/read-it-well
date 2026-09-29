@@ -69,3 +69,28 @@ export async function writeAudit(
   }
   return false;
 }
+
+/**
+ * THE AUDIT ROW THAT MUST EXIST BEFORE THE THING IT RECORDS.
+ *
+ * `writeAudit` is best effort because the decision it records has already
+ * committed. An EXPORT is the other way round: nothing has left the building
+ * until the file is sent, and a download of people's names and payments with
+ * no trail is exactly the gap an audit log exists to close. So this variant
+ * throws when the row was not written, including the `{ error }` PostgREST
+ * returns without throwing, and the caller refuses to send the file.
+ */
+export async function writeAuditOrThrow(
+  admin: SupabaseClient<Database>,
+  entry: AuditEntry,
+): Promise<void> {
+  const metadata: Json = { ...(entry.detail ?? {}) };
+  const { error } = await admin.from("audit_log").insert({
+    actor_id: entry.actorId,
+    action: entry.action,
+    entity_type: entry.entityType,
+    entity_id: entry.entityId,
+    metadata,
+  });
+  if (error) throw new Error(`audit write failed: ${error.message}`);
+}

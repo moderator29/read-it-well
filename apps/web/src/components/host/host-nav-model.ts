@@ -6,7 +6,7 @@ import type { UiIconName } from "@/design-system/icons/UiIcon";
  * Every screen under `/host` used to be an island: the shell drew a back
  * control and a logo that went to the consumer home, so a venue owner on
  * Rooms could reach Photographs only by going back to `/host` first. These are
- * the six working screens a host moves between. The application (`/host/apply`)
+ * the seven working screens a host moves between. The application (`/host/apply`)
  * and the kind chooser (`/host/start`) are flows, not destinations, and their
  * shell draws no bar (`HostShell`'s `nav`).
  *
@@ -29,6 +29,8 @@ export const HOST_NAV: readonly HostNavItem[] = [
   { href: "/host/photos", label: "Photographs", icon: "picture" },
   { href: "/host/arrival", label: "Charges at the door", icon: "price-tag" },
   { href: "/host/transfer", label: "Hand over", icon: "key" },
+  /* Read-only: what guests' payments paid this host, by Paystack split. */
+  { href: "/host/earnings", label: "Earnings", icon: "history" },
 ];
 
 /**
