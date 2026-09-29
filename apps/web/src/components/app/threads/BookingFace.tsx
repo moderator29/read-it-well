@@ -19,13 +19,12 @@ import { StatusTrack } from "@/components/app/status/StatusTrack";
  * the open state costs no script and survives reduced motion.
  *
  * Reserved, paid, arrival day, completed. Each step dated from the booking's
- * own events (see `booking-steps.ts`), the current one accented, the rule
- * between them drawn with the platform's existing `nf-rule-draw` keyframe as
- * the banner arrives (pitch 8). Reduced motion paints the rule finished.
+ * own events (see `booking-steps.ts`), drawn on the shared `StatusTrack`
+ * (spec section 14), the same stepper the booking page itself uses.
  *
- * Colour is never the only signal: done steps are filled discs, the current
- * step is a filled disc inside a ring and bold, and steps still ahead are
- * hollow. A greyscale screenshot reads the same as the colour one.
+ * Colour is never the only signal: done steps are filled discs with a tick,
+ * the current step a ring with a filled centre and a heavier label, steps
+ * still ahead hollow. A greyscale screenshot reads the same as the colour one.
  *
  * No inspection tooling, structurally: this file imports none.
  */

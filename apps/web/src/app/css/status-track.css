@@ -210,7 +210,7 @@
 
 /* -------------------------------------------------- horizontal, when it fits */
 
-@container (min-width: 20rem) {
+@container (min-width: 17rem) {
   .nf-track[data-steps="2"] .nf-track__list,
   .nf-track[data-steps="3"] .nf-track__list {
     grid-auto-flow: column;
@@ -232,7 +232,7 @@
   }
 }
 
-@container (min-width: 20rem) {
+@container (min-width: 17rem) {
   .nf-track[data-steps="2"] .nf-track__step,
   .nf-track[data-steps="3"] .nf-track__step {
     grid-template-columns: minmax(0, 1fr);

@@ -3203,6 +3203,8 @@ export const en = {
       getHelp: "Talk to our team",
 
       fixLabel: "What to do:",
+      /* The status track's last step before it is decided. */
+      trackDecision: "Decision",
     },
   },
 

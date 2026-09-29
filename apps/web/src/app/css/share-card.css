@@ -141,6 +141,11 @@
 }
 
 .nf-share-card__figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--nf-space-2xs);
+  min-width: 0;
   font-size: var(--nf-text-figure-xl, clamp(3.5rem, 2.4rem + 5vw, 5.5rem));
   line-height: 0.95;
   font-weight: 500;
@@ -156,7 +161,6 @@
 }
 
 .nf-share-card__figure-unit {
-  margin-left: var(--nf-space-2xs);
   font-size: var(--nf-text-body);
   letter-spacing: 0;
   font-weight: 400;
@@ -237,7 +241,7 @@
 .nf-share-card__check {
   display: grid;
   grid-template-columns: 1.5rem minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: var(--nf-space-sm);
   font-size: var(--nf-text-body-sm);
   line-height: 1.4;
@@ -245,6 +249,8 @@
 }
 
 .nf-share-card__mark {
+  /* Centred on the first line of a label that wraps. */
+  margin-top: -0.1rem;
   display: grid;
   place-items: center;
   box-sizing: border-box;
