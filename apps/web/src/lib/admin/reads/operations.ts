@@ -54,7 +54,7 @@ function toRun(row: AuditRunRow | null | undefined): RunRow | null {
 export async function getJobHealth(
   now: number,
 ): Promise<Read<{ health: JobHealth; database: DatabaseJobsSummary | null }>> {
-  const db = await adminReader();
+  const db = await adminReader("operations");
   if (!db) return UNAVAILABLE;
   try {
     const reads = await Promise.all(
@@ -101,7 +101,7 @@ export function assembleRunDays(
 
 /** Fourteen days of scheduled runs (every row, not a page), for the jobs card. */
 export async function getRunDays(now: number): Promise<Read<{ day: string; runs: number; failed: number }[]>> {
-  const db = await adminReader();
+  const db = await adminReader("operations");
   if (!db) return UNAVAILABLE;
   try {
     const days = lastDays(14, now);
@@ -128,7 +128,7 @@ export async function getRunDays(now: number): Promise<Read<{ day: string; runs:
  * was not yet resolved. Exact counts, both.
  */
 export async function getAlertTrend(now: number): Promise<Read<AlertTrend>> {
-  const db = await adminReader();
+  const db = await adminReader("operations");
   if (!db) return UNAVAILABLE;
   try {
     const weekAgo = new Date(now - 7 * DAY_MS).toISOString();
@@ -175,7 +175,7 @@ export const INSPECTION_STATES = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLET
  * lister's to move; the console watches it.
  */
 export async function getInspectionActivity(): Promise<Read<InspectionActivity>> {
-  const db = await adminReader();
+  const db = await adminReader("operations");
   if (!db) return UNAVAILABLE;
   try {
     const counts = await Promise.all(
@@ -241,7 +241,7 @@ export function pushDeliveryRow(raw: RawDelivery): PushDeliveryRow {
  * same session client, reading only the columns their migration declares.
  */
 export async function getPushActivity(now: number, days = 7): Promise<Read<PushActivity>> {
-  const db = await adminReader();
+  const db = await adminReader("operations");
   if (!db) return UNAVAILABLE;
   try {
     const loose = db as unknown as SupabaseClient;

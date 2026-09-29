@@ -274,6 +274,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      /agreements in next.config.ts). The agreement list is where money now
      lives. */
   "/agreements": "/home",
+  "/payments": "/home",
   "/agreements/[id]": "/agreements",
 
   /* -------------------------------------------------------------- social */
@@ -340,6 +341,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/alerts": "/admin",
   "/admin/analytics": "/admin",
   "/admin/audit": "/admin",
+  "/admin/oversight": "/admin",
   "/admin/bookings": "/admin",
   "/admin/bookings/[bookingId]": "/admin/bookings",
   "/admin/bookings/reservations": "/admin/bookings",
@@ -348,6 +350,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/examples": "/admin",
   "/admin/staff": "/admin",
   "/admin/handbook": "/admin",
+  "/admin/handbook/position": "/admin/handbook",
   "/admin/fees": "/admin",
   "/admin/account-recovery": "/admin",
   "/admin/kyc": "/admin",
@@ -382,6 +385,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/analytics": "/agent/dashboard",
   "/agent/bookings": "/agent/dashboard",
   "/agent/earnings": "/agent/dashboard",
+  "/host/earnings": "/host",
   "/agent/inspections": "/agent/dashboard",
   "/agent/listings": "/agent/dashboard",
   "/agent/listings/[listingId]/calendar": "/agent/listings",
@@ -508,6 +512,9 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/agent/listings/[listingId]/board/image": "V-08: the board as a PNG, not a page.",
   "/s/[token]/status": "V-71: the door's card as a Status PNG, not a page.",
   "/api/account/export": "the member's own data as a JSON download, not a page.",
+  "/admin/audit/export": "the audit log for a period as a CSV download, not a page.",
+  "/admin/money/export": "the platform payments history as a CSV download for the finance scope, not a page.",
+  "/admin/oversight/export": "the oversight tables as a CSV download, not a page.",
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",

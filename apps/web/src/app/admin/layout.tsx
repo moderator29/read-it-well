@@ -8,6 +8,8 @@ import { StaffFrame } from "./_components/StaffFrame";
 import { getQueueCounts } from "@/lib/admin/queries";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { AccessScreen } from "./_components/AccessScreen";
+import { ConsoleStepUp } from "./_components/ConsoleStepUp";
+import { notFound } from "next/navigation";
 import { AdminFrame } from "./_components/AdminFrame";
 import type { AdminIdentity } from "./_components/AdminNav";
 import { EntryGate } from "./_components/EntryGate";
@@ -31,8 +33,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * main column with the search, the clock, the bell and the operator; the desk
  * below. On a phone the rail becomes a drawer behind the bar's menu button.
  *
- * ACCESS IS DECIDED HERE, ONCE, before a single queue is read: a non-admin
- * gets the access screen and never receives markup carrying platform data.
+ * ACCESS IS DECIDED HERE, ONCE, before a single queue is read. Signed out
+ * or unconfigured gets the access screen; a signed-in account that is not
+ * staff gets the ordinary 404 (29 September: the console's existence is not
+ * confirmed to anybody who cannot use it); staff whose session has not proved
+ * its security key get the confirmation screen and nothing else.
  * The gate is `requireAdmin` exactly as before; nothing about it moved.
  *
  * WHERE THE CONSOLE LANDS (rule R-E). Every door in the product links
@@ -49,7 +54,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     /* Track K: a scoped staff member gets the restricted console, never the
        operator's rail. Anybody else gets the access screen as before. */
     const door = await requireConsole();
-    if (door.state !== "console") return <AccessScreen t={t} state={access.state} />;
+    if (door.state === "step-up") {
+      const shell = await getShellIdentity();
+      const who = shell.userName && shell.userName !== "Guest" ? shell.userName : "there";
+      return <ConsoleStepUp name={who} />;
+    }
+    /* A signed-in account that is not staff gets the site's ordinary 404:
+       nothing here confirms that a console exists. */
+    if (door.state === "not-admin") notFound();
+    if (door.state !== "console") return <AccessScreen t={t} state={door.state} />;
     const shell = await getShellIdentity();
     const name = shell.userName && shell.userName !== "Guest" ? shell.userName : (door.user.email ?? "Staff");
     return (

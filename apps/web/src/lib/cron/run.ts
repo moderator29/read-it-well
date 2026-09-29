@@ -222,21 +222,26 @@ export function refusalAlert(
  * The guard's verdict for a real request. A bad secret is counted per
  * address and told to the desk once, exactly as the reconcile route does.
  *
- * THE SPRAY LIMIT NEVER SILENCES OUR OWN SCHEDULER. A refused caller that is
- * spraying gets a 429 and nothing on the desk, which is correct for a
- * stranger and is the wrong way round for us: the limiter counts per address,
- * so thirty refused runs from the platform's own range would have taken the
- * only remaining signal away at exactly the point the outage was most
- * certain. The 429 still goes back; the alert goes up either way.
+ * THE SPRAY LIMIT APPLIES TO EVERYBODY. It used to be lifted for a caller
+ * whose User-Agent said vercel-cron, so a locked-out scheduler could never be
+ * silenced; but that header is a claim anybody can make, and with the
+ * repository public it became a way to flood the alert desk and the pager.
+ * A real scheduler with a rotated secret calls a few times an hour, inside the
+ * limit, so its critical alert still goes up.
  */
 async function refusal(name: string, request: Request): Promise<CronDeps["refused"]> {
   const verdict = cronAuthVerdict(request);
   if (verdict === "ok") return null;
+  /* "The scheduler" is only a claim: a User-Agent or a header anybody can
+     send. It labels the alert; it never lifts the limit. A real scheduler
+     locked out by a rotated secret calls a few times an hour, well inside the
+     limit, so its alert still goes up; a stranger claiming to be it and
+     spraying is cut off like any other stranger, so the claim cannot be used
+     to flood the alert desk or the pager (29 September, public repo). */
   const scheduler = fromPlatformScheduler(request);
   const spray = await countRouteFailure(ROUTE_FAILURE_LIMITS.cronBadSecret, request.headers);
-  if (!spray.allowed && !scheduler) return { retryAfterSeconds: spray.retryAfterSeconds };
-  await recordAlert(refusalAlert(name, scheduler, verdict));
   if (!spray.allowed) return { retryAfterSeconds: spray.retryAfterSeconds };
+  await recordAlert(refusalAlert(name, scheduler, verdict));
   return { retryAfterSeconds: 0 };
 }
 

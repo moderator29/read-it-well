@@ -8,6 +8,7 @@ import { MemberSections } from "./MemberSections";
 import { adminUi } from "../../_components/ui";
 import { UpholdControl } from "./UpholdControl";
 import { ConsiderStr } from "../../_components/ConsiderStr";
+import { InternalNotes } from "../../_components/InternalNotes";
 
 export const dynamic = "force-dynamic";
 
@@ -195,6 +196,8 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
           </ol>
         )}
       </section>
+
+      <InternalNotes subjectId={id} path={`/admin/people/${id}`} />
     </div>
   );
 }

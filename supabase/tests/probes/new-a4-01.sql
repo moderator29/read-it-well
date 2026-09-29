@@ -1,7 +1,11 @@
--- NEW-A4-01 STEP 1 (live now): the public point and the anon search twins
--- exist and behave, and nothing the deployed app reads was taken away.
--- anon still reads the exact columns until step 2 (after the release); the
--- step 2 probe is tests/pending/new-a4-01-step2.sql.
+-- NEW-A4-01, AS OF 29 SEPTEMBER: nobody reads an exact point from the tables
+-- or the map functions. anon cannot select the exact columns of listings,
+-- accommodations, businesses or catalogue_entries; nobody but the owner can
+-- call the exact search bodies; every caller of the map and comparison
+-- functions gets points rounded to two decimals and distances in 500 m steps
+-- (20260929110457). The exact address and pin come only from
+-- listing_exact_location, for the lister, staff, a confirmed viewing or a
+-- live agreement.
 do $$
 declare
   member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
@@ -31,13 +35,16 @@ begin
   set local role anon;
   perform set_config('request.jwt.claims', '{"role":"anon"}', true);
 
-  -- CONTROL: the deployed app's signed-out reads still work (exact columns),
-  -- and the release's read of the public point works too.
   foreach t in array array['listings', 'accommodations', 'businesses', 'catalogue_entries'] loop
     begin
-      execute format('select count(latitude) + count(latitude_public) + count(location_public) from public.%I', t) into n;
+      execute format('select count(latitude) from public.%I', t) into n;
+      raise exception 'PROBE_FAIL new-a4-01: anon read %.latitude', t;
+    exception when insufficient_privilege then null; end;
+    -- CONTROL: the public point reads.
+    begin
+      execute format('select count(latitude_public) + count(location_public) from public.%I', t) into n;
     exception when others then
-      raise exception 'PROBE_FAIL new-a4-01: anon read of % failed: % %', t, sqlstate, sqlerrm;
+      raise exception 'PROBE_FAIL new-a4-01: anon read of the public point on % failed: % %', t, sqlstate, sqlerrm;
     end;
   end loop;
 
@@ -46,41 +53,50 @@ begin
     raise exception 'PROBE_FAIL new-a4-01: public point is %', row_to_json(r);
   end if;
 
-  -- The exact bodies are never anon's.
   begin
     perform * from public.listings_in_bounds_exact(3.0, 6.0, 4.0, 7.0);
     raise exception 'PROBE_FAIL new-a4-01: anon called the exact map body';
   exception when insufficient_privilege then null; end;
 
-  -- The anon twins: coarse points, distances in 500 m steps.
-  select latitude, longitude into r from public.listings_in_bounds_public(3.0, 6.0, 4.0, 7.0) where id = lid;
+  select latitude, longitude into r from public.listings_in_bounds(3.0, 6.0, 4.0, 7.0) where id = lid;
   if r.latitude is distinct from 6.51 or r.longitude is distinct from 3.39 then
-    raise exception 'PROBE_FAIL new-a4-01: public map point is %', row_to_json(r);
+    raise exception 'PROBE_FAIL new-a4-01: anon map point is %', row_to_json(r);
   end if;
   select count(*) filter (where distance_m is not null and mod(distance_m::numeric, 500) <> 0) into bad
-    from public.comparable_listings_public(6.5125, 3.3877, 'apartment', 'rent', null, 5000, 3650, null, 200);
-  if bad > 0 then raise exception 'PROBE_FAIL new-a4-01: public comparable distance not rounded (% rows)', bad; end if;
+    from public.comparable_listings(6.5125, 3.3877, 'apartment', 'rent', null, 5000, 3650, null, 200);
+  if bad > 0 then raise exception 'PROBE_FAIL new-a4-01: comparable distance not rounded (% rows)', bad; end if;
   select count(*) filter (where distance_m is not null and mod(distance_m::numeric, 500) <> 0),
          count(*) filter (where distance_m is not null)
     into bad, n
-    from public.stays_search_public(p_lat => 6.5125, p_lng => 3.3877, p_sort => 'distance', p_limit => 200);
-  if bad > 0 then raise exception 'PROBE_FAIL new-a4-01: public stays distance not rounded (% rows)', bad; end if;
-  if n = 0 then raise exception 'PROBE_FAIL new-a4-01: public stays search returned no distance to check'; end if;
-  perform * from public.comparable_supply_near_public(6.5125, 3.3877, 'apartment', 'rent', null, 3000);
-  perform * from public.area_supply_census_public('LA', 'Lagos', 'Yaba', 'rent');
+    from public.stays_search(p_lat => 6.5125, p_lng => 3.3877, p_sort => 'distance', p_limit => 200);
+  if bad > 0 then raise exception 'PROBE_FAIL new-a4-01: stays distance not rounded (% rows)', bad; end if;
+  if n = 0 then raise exception 'PROBE_FAIL new-a4-01: stays search returned no distance to check'; end if;
+  perform * from public.comparable_supply_near(6.5125, 3.3877, 'apartment', 'rent', null, 3000);
+  perform * from public.area_supply_census('LA', 'Lagos', 'Yaba', 'rent');
 
-  -- CONTROL: a signed-in member's exact twin is exact.
+  -- A signed-in stranger gets the public point from the map too, cannot call
+  -- the exact body, and gets no exact location.
   reset role;
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
-  select latitude into r from public.listings_in_bounds_exact(3.0, 6.0, 4.0, 7.0) where id = lid;
-  if r.latitude is distinct from 6.51234 then
-    raise exception 'PROBE_FAIL new-a4-01: member exact point is %', row_to_json(r);
+  select latitude into r from public.listings_in_bounds(3.0, 6.0, 4.0, 7.0) where id = lid;
+  if r.latitude is distinct from 6.51 then
+    raise exception 'PROBE_FAIL new-a4-01: signed-in map point is %', row_to_json(r);
+  end if;
+  begin
+    perform * from public.listings_in_bounds_exact(3.0, 6.0, 4.0, 7.0);
+    raise exception 'PROBE_FAIL new-a4-01: a member called the exact map body';
+  exception when insufficient_privilege then null; end;
+
+  -- The owner gets the exact place through listing_exact_location.
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  select latitude, why into r from public.listing_exact_location(lid);
+  if r.latitude is distinct from 6.51234 or r.why is distinct from 'lister' then
+    raise exception 'PROBE_FAIL new-a4-01: owner exact location is %', row_to_json(r);
   end if;
 
   -- CONTROL: the owner takes a live listing with a point back to a draft
   -- (the generated columns do not trip the owner-write guard).
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
   update public.listings set status = 'DRAFT' where id = lid and agent_id = agent;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL new-a4-01: owner unpublish rows=%', n; end if;

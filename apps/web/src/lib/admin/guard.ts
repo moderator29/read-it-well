@@ -1,9 +1,11 @@
 import "server-only";
+import { cache } from "react";
 
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { createAdminClient } from "../supabase/admin";
+import { isStaffPosition, type StaffPosition } from "./staff-positions";
 
 /**
  * The single door into the admin console.
@@ -24,6 +26,8 @@ export type AdminAccess =
   | { state: "unconfigured" }
   | { state: "signed-out" }
   | { state: "not-admin" }
+  /** Staff, but this session has not proved its security key yet. */
+  | { state: "step-up" }
   | {
       state: "admin";
       /**
@@ -56,6 +60,11 @@ export const STAFF_SCOPES = [
   "support",
   "agreements",
   "guarantee",
+  /* Added 29 September: a CFO, compliance officer or operations lead no
+     longer has to be made a full admin to see their own area. */
+  "finance",
+  "compliance",
+  "operations",
 ] as const;
 export type StaffScope = (typeof STAFF_SCOPES)[number];
 
@@ -66,14 +75,25 @@ export const STAFF_SCOPE_LABEL: Record<StaffScope, string> = {
   support: "Support",
   agreements: "Agreement approval",
   guarantee: "Guarantee claims",
+  finance: "Finance",
+  compliance: "Compliance",
+  operations: "Operations",
 };
 
 export type StaffAccess = {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   scopes: StaffScope[];
+  /** The named position the super admin granted, when there is one. */
+  position: StaffPosition | null;
   handbookVersion: string;
   handbookAcknowledged: boolean;
+  /**
+   * This session proved a security key for the console (29 September). The
+   * database enforces it; this only chooses the screen. Absent from the
+   * answer (the enforcement not deployed yet) reads as proved.
+   */
+  consoleVerified: boolean;
 };
 
 /** What the signed-in person may do in the console, read from the database. */
@@ -88,10 +108,19 @@ export async function readStaffAccess(supabase: SupabaseClient<Database>): Promi
     isAdmin: d.is_admin === true,
     isSuperAdmin: d.is_super_admin === true,
     scopes,
+    position: isStaffPosition(d.position) ? d.position : null,
     handbookVersion: typeof d.handbook_version === "string" ? d.handbook_version : "",
     handbookAcknowledged: d.handbook_acknowledged === true,
+    consoleVerified: d.console_verified === undefined ? true : d.console_verified === true,
   };
 }
+
+/** The caller's console access, read once per request however many desks ask. */
+const staffAccessForRequest = cache(async (): Promise<StaffAccess | null> => {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  return readStaffAccess(session.supabase);
+});
 
 /*
  * The same sentence `t.admin.access.unconfiguredBody` gives the screen, kept in
@@ -109,6 +138,9 @@ export const ADMIN_UNCONFIGURED_MESSAGE =
   "We cannot reach the console right now. This is on our side, not yours. Nothing has been lost. Try again in a few minutes.";
 
 export const ADMIN_SIGNED_OUT_MESSAGE = "Sign in with your operations account to continue.";
+
+export const ADMIN_STEP_UP_MESSAGE =
+  "Confirm it is you with your security key to open the console. Nothing was changed.";
 
 export const ADMIN_FORBIDDEN_MESSAGE =
   "This area is for the Vallo operations team. Your account does not carry that role.";
@@ -139,6 +171,11 @@ export async function requireAdmin(scope?: StaffScope): Promise<AdminAccess> {
   const isSuperAdmin = roles.has("super_admin");
   const isAdmin = isSuperAdmin || roles.has("admin");
   if (isAdmin) {
+    /* The second factor: an admin's session opens the console only after it
+       proved a security key. An unreadable answer is not a proof. */
+    const own = await staffAccessForRequest();
+    if (!own) return { state: "not-admin" };
+    if (!own.consoleVerified) return { state: "step-up" };
     return {
       state: "admin",
       supabase: session.supabase,
@@ -151,8 +188,9 @@ export async function requireAdmin(scope?: StaffScope): Promise<AdminAccess> {
   }
 
   if (!scope) return { state: "not-admin" };
-  const staff = await readStaffAccess(session.supabase);
+  const staff = await staffAccessForRequest();
   if (!staff || !staff.handbookAcknowledged || !staff.scopes.includes(scope)) return { state: "not-admin" };
+  if (!staff.consoleVerified) return { state: "step-up" };
   let service: SupabaseClient<Database>;
   try {
     service = createAdminClient();
@@ -177,15 +215,17 @@ export async function requireAdmin(scope?: StaffScope): Promise<AdminAccess> {
  */
 export type ConsoleAccess =
   | { state: "unconfigured" | "signed-out" | "not-admin" }
+  | { state: "step-up"; user: User; staff: StaffAccess }
   | { state: "console"; user: User; supabase: SupabaseClient<Database>; staff: StaffAccess };
 
 export async function requireConsole(): Promise<ConsoleAccess> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return { state: "unconfigured" };
   if (session.state === "signed-out") return { state: "signed-out" };
-  const staff = await readStaffAccess(session.supabase);
+  const staff = await staffAccessForRequest();
   if (!staff) return { state: "not-admin" };
   if (!staff.isAdmin && !staff.isSuperAdmin && staff.scopes.length === 0) return { state: "not-admin" };
+  if (!staff.consoleVerified) return { state: "step-up", user: session.user, staff };
   return { state: "console", user: session.user, supabase: session.supabase, staff };
 }
 
@@ -196,5 +236,6 @@ export async function requireConsole(): Promise<ConsoleAccess> {
 export function adminRefusal(access: Exclude<AdminAccess, { state: "admin" }>): string {
   if (access.state === "unconfigured") return ADMIN_UNCONFIGURED_MESSAGE;
   if (access.state === "signed-out") return ADMIN_SIGNED_OUT_MESSAGE;
+  if (access.state === "step-up") return ADMIN_STEP_UP_MESSAGE;
   return ADMIN_FORBIDDEN_MESSAGE;
 }

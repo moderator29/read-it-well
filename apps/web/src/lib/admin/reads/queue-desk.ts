@@ -43,7 +43,13 @@ export type DeskReads = {
 
 export async function loadDesk(itemIds: string[], reportIds: string[]): Promise<DeskReads> {
   const empty: DeskReads = { me: null, claims: new Map(), signals: new Map(), views: [], operators: [] };
-  const access = await requireAdmin("moderation");
+  /* Any queue scope reads the desk furniture (claims, views, operators); the
+     rows themselves were already narrowed to the caller's scopes. */
+  let access = await requireAdmin("moderation");
+  for (const scope of ["listing_approval", "kyc_review", "support"] as const) {
+    if (access.state === "admin") break;
+    access = await requireAdmin(scope);
+  }
   if (access.state !== "admin") return empty;
   const db = access.supabase as unknown as Loose;
   const me = access.userClient as unknown as Loose;
@@ -54,6 +60,9 @@ export async function loadDesk(itemIds: string[], reportIds: string[]): Promise<
       ? db.from("queue_claims").select("kind, item_id, claimed_by, touched_at").in("item_id", itemIds.slice(0, 200))
       : Promise.resolve({ data: [], error: null }),
     reportIds.length > 0 ? me.rpc("admin_report_signals", { p_reports: reportIds.slice(0, 200) }) : Promise.resolve({ data: [], error: null }),
+    /* Your own views and the shared ones, never another operator's private
+       views (this read runs on the service role for staff). The id is the
+       session's own uuid, checked before it goes into the filter. */
     uuid
       ? db
           .from("admin_saved_views")

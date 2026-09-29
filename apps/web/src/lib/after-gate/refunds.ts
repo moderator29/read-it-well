@@ -190,7 +190,7 @@ export type ClockBoard =
 
 /** The operator's refund clock, filtered in the database by `admin_refund_clock`. */
 export async function readRefundClockBoard(locale: Locale, now: Date = new Date()): Promise<ClockBoard> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("finance");
   if (access.state !== "admin") return { state: "unavailable" };
   try {
     // The function checks the caller's own role, so it runs as the session, not the service client.

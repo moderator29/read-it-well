@@ -607,6 +607,7 @@ export const en = {
     photos: "Photographs",
     arrival: "Charges at the door",
     transfer: "Hand over",
+    earnings: "Earnings",
     assistant: "Assistant",
     accountSettings: "Account settings",
     application: "Application",

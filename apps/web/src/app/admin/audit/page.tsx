@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -72,6 +73,12 @@ export default async function AdminAuditPage({
   return (
     <div className="nf-console">
       <ui.QueueHeader title={COPY.title} lede={COPY.lede} />
+      <p className="nf-caption mt-inline">
+        <Link className="text-[var(--nf-content-link)] underline" href={`/admin/audit/export${query.from || query.to ? `?${new URLSearchParams({ ...(query.from ? { from: query.from } : {}), ...(query.to ? { to: query.to } : {}) }).toString()}` : ""}`}>
+          Download this period as CSV
+        </Link>{" "}
+        (the last 30 days unless a date range is set; the download is itself recorded here)
+      </p>
 
       {/*
         The chart words come from the DICTIONARY and not from `AUDIT_COPY`.

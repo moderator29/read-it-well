@@ -64,6 +64,7 @@ describe("the host workspace navigation", () => {
       "Photographs",
       "Charges at the door",
       "Hand over",
+      "Earnings",
       "Assistant",
       "Settings",
     ]);

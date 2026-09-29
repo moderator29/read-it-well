@@ -8,7 +8,7 @@ import type { Dictionary } from "@vallo/i18n/core";
  * Every screen under `/host` used to be an island: the shell drew a back
  * control and a logo that went to the consumer home, so a venue owner on
  * Rooms could reach Photographs only by going back to `/host` first. These are
- * the six working screens a host moves between. The application (`/host/apply`)
+ * the seven working screens a host moves between. The application (`/host/apply`)
  * and the kind chooser (`/host/start`) are flows, not destinations, and their
  * shell draws no bar (`HostShell`'s `nav`).
  *
@@ -37,6 +37,7 @@ export type HostNavLabels = {
   photos: string;
   arrival: string;
   transfer: string;
+  earnings: string;
   assistant: string;
   settings: string;
   account: string;
@@ -72,6 +73,8 @@ export const HOST_NAV: readonly HostNavEntry[] = [
   { href: "/host/photos", key: "photos", icon: "picture" },
   { href: "/host/arrival", key: "arrival", icon: "price-tag" },
   { href: "/host/transfer", key: "transfer", icon: "key" },
+  /* Read-only: what guests' payments paid this host, by Paystack split. */
+  { href: "/host/earnings", key: "earnings", icon: "history" },
   /* THE WORKSPACE KEEPS ITS OWN ASSISTANT AND ITS OWN SETTINGS (29 September
      2026), so a host never leaves the console to ask a question or change
      what reaches them. Account-wide settings are one link away from the

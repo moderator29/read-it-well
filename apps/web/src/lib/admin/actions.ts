@@ -58,6 +58,16 @@ const SERVICE_DOWN =
   "The console could not reach the platform data just now. Nothing was changed. Please try again.";
 
 const GONE = "That record is no longer there. Refresh the queue to see the current state.";
+/**
+ * The database refuses a decision on an item somebody else has claimed
+ * (`private.decision_respects_claim`); its sentence is the one to show.
+ */
+function claimRefusal(error: { code?: string; message?: string } | null): string | null {
+  return error?.code === "42501" && (error.message ?? "").includes("claimed") ? error.message! : null;
+}
+
+/** Two reviewers on one item: the other decision landed first. */
+const DECIDED_ELSEWHERE = "Somebody else decided this a moment ago. Refresh the queue to see the current state.";
 
 /** ------------------------------------------------------------ message flags */
 
@@ -88,7 +98,7 @@ export async function reviewMessageFlag(input: {
     .update({ status: "reviewed", reviewed_by: access.user.id })
     .eq("id", flag.id)
     .eq("status", "open");
-  if (updateError) return fail(SERVICE_DOWN);
+  if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
 
   try {
     const admin = createAdminClient();
@@ -165,7 +175,7 @@ export async function resolveRiskAlert(input: {
     })
     .eq("id", alert.id)
     .eq("status", "open");
-  if (updateError) return fail(SERVICE_DOWN);
+  if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
 
   try {
     await writeAudit(createAdminClient(), {
@@ -205,6 +215,13 @@ export async function resolveReport(input: {
   const parsed = validate(resolveReportSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { reportId, decision } = parsed.data;
+  /* Dismissing a report is a decision that nothing was wrong; it always
+     carries the reason, for the audit trail and the next reviewer. */
+  if (decision === "dismissed" && (parsed.data.notes ?? "").trim().length < 8) {
+    return fail("Say why this report is dismissed, in at least eight characters.", {
+      notes: "Write the reason for dismissing it.",
+    });
+  }
 
   const { data: report, error: readError } = await access.supabase
     .from("reports")
@@ -219,7 +236,7 @@ export async function resolveReport(input: {
   }
 
   const closing = decision === "resolved" || decision === "dismissed";
-  const { error: updateError } = await access.supabase
+  const { data: movedReport, error: updateError } = await access.supabase
     .from("reports")
     .update({
       status: decision,
@@ -228,8 +245,11 @@ export async function resolveReport(input: {
       // row either way, so an item sitting in review is visibly somebody's.
       resolved_by: access.user.id,
     })
-    .eq("id", report.id);
-  if (updateError) return fail(SERVICE_DOWN);
+    .eq("id", report.id)
+    .eq("status", report.status)
+    .select("id");
+  if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
+  if (!movedReport || movedReport.length === 0) return fail(DECIDED_ELSEWHERE);
 
   try {
     await writeAudit(createAdminClient(), {
@@ -290,6 +310,11 @@ export async function reviewAgentApplication(input: {
   if (readError) return fail(SERVICE_DOWN);
   if (!application) return fail(GONE);
 
+  /* Nobody decides their own application, whatever their access. */
+  if (application.user_id === access.user.id) {
+    return fail("You cannot decide your own application. Leave it for another reviewer.");
+  }
+
   const decidable = ["SUBMITTED", "UNDER_REVIEW", "MORE_INFO_REQUIRED"];
   if (!decidable.includes(application.status)) {
     return fail(
@@ -302,7 +327,9 @@ export async function reviewAgentApplication(input: {
   const nextStatus =
     decision === "approve" ? "APPROVED" : decision === "reject" ? "REJECTED" : "MORE_INFO_REQUIRED";
 
-  const { error: updateError } = await access.supabase
+  /* Compare and set: the write lands only on the status that was read, so two
+     reviewers deciding at once cannot both win and both notify. */
+  const { data: decidedRows, error: updateError } = await access.supabase
     .from("agent_applications")
     .update({
       status: nextStatus,
@@ -310,13 +337,16 @@ export async function reviewAgentApplication(input: {
       reviewed_at: new Date().toISOString(),
       review_notes: notes,
     })
-    .eq("id", application.id);
+    .eq("id", application.id)
+    .eq("status", application.status)
+    .select("id");
   /* V-90: an application matching an identity stopped for fraud is decided by
      a senior reviewer; the database says which identity and when. */
   if (updateError && updateError.code === "42501" && (updateError.message ?? "").includes("senior reviewer")) {
     return fail(updateError.message);
   }
-  if (updateError) return fail(SERVICE_DOWN);
+  if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
+  if (!decidedRows || decidedRows.length === 0) return fail(DECIDED_ELSEWHERE);
 
   /*
    * APPROVAL IS THREE WRITES AND THE APPLICANT IS TOLD ONLY WHEN ALL THREE
@@ -567,6 +597,13 @@ export async function reviewListing(input: {
       notes: "Write the change you need before sending it back.",
     });
   }
+  /* A rejection always says why: the lister reads it, and the next reviewer
+     needs it if the listing comes back. */
+  if (decision === "reject" && (notes === null || notes.trim().length < 8)) {
+    return fail("Say why this listing is rejected, in at least eight characters. The lister reads it.", {
+      notes: "Write the reason for the rejection.",
+    });
+  }
 
   const { data: listing, error: readError } = await access.supabase
     .from("listings")
@@ -576,6 +613,10 @@ export async function reviewListing(input: {
   if (readError) return fail(SERVICE_DOWN);
   if (!listing) return fail(GONE);
 
+  /* Nobody reviews their own listing, whatever their access. */
+  if (listing.agents?.user_id && listing.agents.user_id === access.user.id) {
+    return fail("You cannot review your own listing. Leave it for another reviewer.");
+  }
   if (listing.status === "DRAFT") {
     return fail("This listing is still a draft, so there is nothing to review yet.");
   }
@@ -601,7 +642,7 @@ export async function reviewListing(input: {
           : "MORE_INFO_REQUIRED";
 
   const now = new Date().toISOString();
-  const { error: updateError } = await access.supabase
+  const { data: decidedListing, error: updateError } = await access.supabase
     .from("listings")
     .update({
       status: nextStatus,
@@ -614,13 +655,18 @@ export async function reviewListing(input: {
          all read this column. */
       ...(decision === "publish" && !listing.published_at ? { published_at: now } : {}),
     })
-    .eq("id", listing.id);
+    .eq("id", listing.id)
+    /* Compare and set, as for applications: a second reviewer's click on a
+       row somebody already moved changes nothing. */
+    .eq("status", listing.status)
+    .select("id");
   if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);
   /* SCUML item 15: a high-risk lister's listing waits for a cleared EDD review. */
   if (isEddGateRefusal(updateError)) return fail(eddGateMessage("admin"));
   /* SCUML item 17: the publish gate refuses an agent or firm listing without an approved mandate. */
   if (isMandateRefusal(updateError)) return fail(MANDATE_NEEDED_MESSAGE);
-  if (updateError) return fail(SERVICE_DOWN);
+  if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
+  if (!decidedListing || decidedListing.length === 0) return fail(DECIDED_ELSEWHERE);
 
   try {
     const admin = createAdminClient();
@@ -777,7 +823,7 @@ export async function replySupportTicket(input: {
     sender_id: access.user.id,
     body: parsed.data.body,
   });
-  if (insertError) return fail(SERVICE_DOWN);
+  if (insertError) return fail(claimRefusal(insertError) ?? SERVICE_DOWN);
 
   try {
     await writeAudit(createAdminClient(), {
@@ -804,12 +850,20 @@ export async function replySupportTicket(input: {
 export async function setTicketStatus(input: {
   ticketId: string;
   status: "open" | "pending" | "resolved" | "closed";
+  /** Required to close: what was done. Kept in the audit trail. */
+  note?: string;
 }): Promise<ActionResult<null>> {
   const access = await requireAdmin("support");
   if (access.state !== "admin") return fail(adminRefusal(access));
 
   const parsed = validate(setTicketStatusSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const closingNote = (input.note ?? "").trim().slice(0, 1000);
+  if (parsed.data.status === "closed" && closingNote.length < 8) {
+    return fail("Say what was done before closing this ticket, in at least eight characters.", {
+      note: "Write a closing note.",
+    });
+  }
 
   const { data: ticket, error: readError } = await access.supabase
     .from("support_tickets")
@@ -824,7 +878,7 @@ export async function setTicketStatus(input: {
     .from("support_tickets")
     .update({ status: parsed.data.status })
     .eq("id", ticket.id);
-  if (updateError) return fail(SERVICE_DOWN);
+  if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
 
   try {
     await writeAudit(createAdminClient(), {
@@ -836,6 +890,7 @@ export async function setTicketStatus(input: {
         before_status: ticket.status,
         after_status: parsed.data.status,
         reference: ticket.reference,
+        closing_note: parsed.data.status === "closed" ? closingNote : null,
       },
     });
   } catch {
@@ -874,7 +929,7 @@ export async function toggleFeatureFlag(input: {
     .from("feature_flags")
     .update({ enabled: parsed.data.enabled })
     .eq("key", flag.key);
-  if (updateError) return fail(SERVICE_DOWN);
+  if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
 
   try {
     await writeAudit(createAdminClient(), {

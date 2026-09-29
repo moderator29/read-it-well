@@ -146,11 +146,18 @@ describe("every probe in supabase/tests/probes keeps the contract", () => {
  * pg_proc.proacl or ask has_*_privilege(role, ...), which answer for the named
  * role. The two applied migrations cannot be edited; their claims are re-made
  * by `supabase/tests/probes/info-schema-guards.sql`.
+ *
+ * 20260929110457's read-back also used column_privileges, beside has_*_privilege
+ * checks in the same block. Its lasting claims (anon never reads an exact
+ * point; the exact map bodies are not callable) are re-made by probing AS the
+ * role in `supabase/tests/probes/new-a4-01.sql`; its member-column claim was
+ * rolled back by 20260929111058.
  */
 describe("no SQL check reads grants through information_schema", () => {
   const APPLIED_AND_SUPERSEDED = new Set([
     "supabase/migrations/20260923092729_push_one_the_table_a_device_is_remembered_in.sql",
     "supabase/migrations/20260923093115_a_password_change_and_a_new_device_leave_the_building.sql",
+    "supabase/migrations/20260929110457_private_columns_and_exact_points_stay_private.sql",
   ]);
   const OBSERVER_VIEWS =
     /information_schema\s*\.\s*(role_)?(table|column|routine|udt|usage)_(grants|privileges)|information_schema\s*\.\s*role_(table|column|routine|usage|udt)_grants/i;
@@ -162,7 +169,7 @@ describe("no SQL check reads grants through information_schema", () => {
 
   const withoutComments = (sql: string) => sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, " ");
 
-  it("finds none outside the two applied migrations it supersedes", () => {
+  it("finds none outside the applied migrations it supersedes", () => {
     const files = [...sqlFiles("supabase/migrations"), ...sqlFiles("supabase/tests"), ...sqlFiles("scripts/probes")];
     expect(files.length).toBeGreaterThan(300);
     const offenders = files.filter(
@@ -171,7 +178,7 @@ describe("no SQL check reads grants through information_schema", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("the pattern bites: both superseded migrations still match it", () => {
+  it("the pattern bites: every superseded migration still matches it", () => {
     for (const f of APPLIED_AND_SUPERSEDED) {
       expect(OBSERVER_VIEWS.test(withoutComments(readFileSync(join(ROOT, f), "utf8"))), f).toBe(true);
     }

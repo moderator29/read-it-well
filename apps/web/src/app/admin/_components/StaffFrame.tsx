@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { STAFF_SCOPE_LABEL, type StaffAccess, type StaffScope } from "@/lib/admin/guard";
+import { JOB_DESCRIPTIONS } from "@/lib/admin/staff-positions";
 
 /**
  * TRACK K: THE RESTRICTED CONSOLE A STAFF MEMBER SEES.
@@ -18,13 +19,28 @@ export const STAFF_DESK: Record<StaffScope, string> = {
   support: "/admin/support",
   agreements: "/admin/agreements",
   guarantee: "/admin/agreements#claims",
+  finance: "/admin/money",
+  compliance: "/admin/compliance",
+  operations: "/admin/operations",
+};
+
+/** The other desks a scope opens, beyond its front door. */
+export const STAFF_EXTRA_DESKS: Partial<Record<StaffScope, { href: string; label: string }[]>> = {
+  finance: [{ href: "/admin/payments", label: "Payments" }],
+  operations: [
+    { href: "/admin/alerts", label: "Alerts" },
+    { href: "/admin/bookings", label: "Bookings" },
+    { href: "/admin/oversight", label: "Team oversight" },
+  ],
 };
 
 export function StaffFrame({ staff, name, children }: { staff: StaffAccess; name: string; children: ReactNode }) {
   return (
     <div className="nf-console nf-staff-frame" data-testid="staff-console">
       <header className="nf-panel nf-panel--card block p-card">
-        <p className="nf-caption text-[var(--nf-content-secondary)]">Vallo console · staff</p>
+        <p className="nf-caption text-[var(--nf-content-secondary)]">
+          Vallo console · {staff.position ? JOB_DESCRIPTIONS[staff.position].title : "staff"}
+        </p>
         <p className="font-semibold">{name}</p>
         <nav aria-label="Your desks" className="mt-inline">
           <ul className="flex flex-wrap gap-xs">
@@ -39,18 +55,30 @@ export function StaffFrame({ staff, name, children }: { staff: StaffAccess; name
               </Link>
             </li>
             <li>
+              <Link className="nf-btn nf-btn--glass nf-btn--sm" href="/admin/handbook/position">
+                Your role
+              </Link>
+            </li>
+            <li>
               <Link className="nf-btn nf-btn--glass nf-btn--sm" href="/settings/help">
                 Help and support
               </Link>
             </li>
             {staff.handbookAcknowledged
-              ? staff.scopes.map((scope) => (
+              ? staff.scopes.flatMap((scope) => [
                   <li key={scope}>
                     <Link className="nf-btn nf-btn--glass nf-btn--sm" href={STAFF_DESK[scope]}>
                       {STAFF_SCOPE_LABEL[scope]}
                     </Link>
-                  </li>
-                ))
+                  </li>,
+                  ...(STAFF_EXTRA_DESKS[scope] ?? []).map((desk) => (
+                    <li key={desk.href}>
+                      <Link className="nf-btn nf-btn--glass nf-btn--sm" href={desk.href}>
+                        {desk.label}
+                      </Link>
+                    </li>
+                  )),
+                ])
               : null}
           </ul>
         </nav>
@@ -69,7 +97,18 @@ export function StaffFrame({ staff, name, children }: { staff: StaffAccess; name
 export function StaffHome({ staff }: { staff: StaffAccess }) {
   return (
     <section className="nf-panel nf-panel--card block p-card" data-testid="staff-home">
-      <h1 className="nf-h2">Your console</h1>
+      <h1 className="nf-h2">
+        {staff.position ? `Your console: ${JOB_DESCRIPTIONS[staff.position].title}` : "Your console"}
+      </h1>
+      {staff.position ? (
+        <p className="nf-body mt-inline">
+          {JOB_DESCRIPTIONS[staff.position].summary}{" "}
+          <Link href="/admin/handbook/position" className="font-semibold text-[var(--nf-content-link)] hover:underline">
+            Read your full role description
+          </Link>
+          .
+        </p>
+      ) : null}
       <p className="nf-body mt-inline">
         Your access: {staff.scopes.map((s) => STAFF_SCOPE_LABEL[s]).join(", ")}. Every decision you make is written to
         the audit log with your name.

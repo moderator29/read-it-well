@@ -52,6 +52,7 @@ export async function getSupportTicket(ticketId: string): Promise<AdminRead<Tick
         body: data.body,
         status: data.status,
         hasAccount: data.user_id !== null,
+        userId: data.user_id ?? null,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         replyCount: data.support_ticket_messages.length,

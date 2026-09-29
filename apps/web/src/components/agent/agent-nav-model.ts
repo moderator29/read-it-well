@@ -74,7 +74,7 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
            argument for putting the chart ON the earnings page, not for hiding
            a second destination behind a disclosure arrow. They are two screens,
            so they are two rows. */
-        { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet" },
+        { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "price-tag" },
         { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "map" },
       ],
     },

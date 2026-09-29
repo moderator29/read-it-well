@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOriginRequest } from "@/lib/security/request-origin";
 
 import { createClient } from "@/lib/supabase/server";
 import { accountSetupOwed } from "@/lib/actions/session";
@@ -52,7 +53,10 @@ import type { ProviderReply, PushPayload, PushTarget } from "@/lib/push/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: Request): Promise<NextResponse> {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ ok: false, reason: "forbidden" }, { status: 403 });
+  }
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ ok: false, reason: "unconfigured" }, { status: 503 });
   }

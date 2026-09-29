@@ -288,6 +288,15 @@ export function SettingsHub({
             sub="Cards you pay with, and the bank accounts you are paid into"
             testId="hub-payments"
           />
+          {/* The record of what was paid and refunded. Read-only: there is
+              nothing held, so nothing here to top up or take out. */}
+          <RowLink
+            href="/payments"
+            glyph={<HubGlyph name="history" />}
+            label="Payment history"
+            sub="What you paid through Vallo, and every refund"
+            testId="hub-payment-history"
+          />
         </SettingsGroup>
       )}
 

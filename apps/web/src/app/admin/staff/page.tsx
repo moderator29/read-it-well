@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { STAFF_SCOPE_LABEL, STAFF_SCOPES } from "@/lib/admin/guard";
 import { readStaffDesk } from "@/lib/admin/staff-queries";
+import { JOB_DESCRIPTIONS, STAFF_POSITIONS, positionTitle } from "@/lib/admin/staff-positions";
 import { PageHead, Panel } from "../_components/panels";
 import { GrantStaffForm, RevokeStaffForm } from "./StaffForms";
 
@@ -30,9 +31,17 @@ export default async function StaffPage() {
         lede="Give a person access to named desks only. They are told by email and in the app exactly what they were given, nothing unlocks until they acknowledge the handbook, and every action they take is in the audit log."
       />
       <Panel title="Give access">
-        <GrantStaffForm scopes={STAFF_SCOPES.map((s) => ({ value: s, label: STAFF_SCOPE_LABEL[s] }))} />
+        <GrantStaffForm
+          scopes={STAFF_SCOPES.map((s) => ({ value: s, label: STAFF_SCOPE_LABEL[s] }))}
+          positions={STAFF_POSITIONS.map((p) => ({
+            value: p,
+            label: JOB_DESCRIPTIONS[p].title,
+            summary: JOB_DESCRIPTIONS[p].summary,
+            scopes: JOB_DESCRIPTIONS[p].scopes,
+          }))}
+        />
       </Panel>
-      <Panel title="Staff">
+      <Panel title="Everybody who can act in the console">
         {desk.state !== "ok" ? (
           <p className="nf-body">Staff could not be read just now. Refresh to try again.</p>
         ) : desk.rows.length === 0 ? (
@@ -41,14 +50,33 @@ export default async function StaffPage() {
           <ul className="nf-admin-queue">
             {desk.rows.map((row) => (
               <li key={row.userId} className="nf-admin-queue-row" data-revoked={row.revokedAt ? "true" : "false"}>
-                <p className="font-semibold">{row.name}</p>
+                <p className="font-semibold">
+                  {row.name}
+                  <span className="nf-caption text-[var(--nf-content-secondary)]">
+                    {" · "}
+                    {row.kind === "super_admin"
+                      ? "Super admin"
+                      : row.kind === "admin"
+                        ? "Admin"
+                        : (positionTitle(row.position) ?? "Staff")}
+                  </span>
+                </p>
                 <p className="nf-body text-[var(--nf-content-secondary)]">
-                  {row.scopes.map((s) => STAFF_SCOPE_LABEL[s]).join(", ")} · given {when(row.grantedAt)} · handbook{" "}
-                  {when(row.handbookAcknowledgedAt)} · {row.actionsLast30} actions in 30 days
-                  {row.revokedAt ? ` · ended ${when(row.revokedAt)}: ${row.revokeReason ?? ""}` : ""}
+                  {row.kind === "staff" ? row.scopes.map((s) => STAFF_SCOPE_LABEL[s]).join(", ") : "Every desk"}
+                  {row.grantedAt ? ` · given ${when(row.grantedAt)}` : ""}
+                  {row.grantedBy ? ` by ${row.grantedBy}` : ""} · handbook {when(row.handbookAcknowledgedAt)} · last
+                  active {when(row.lastActiveAt)} · {row.actionsLast30} actions in 30 days
+                  {row.revokedAt
+                    ? ` · ended ${when(row.revokedAt)}${row.revokedBy ? ` by ${row.revokedBy}` : ""}: ${row.revokeReason ?? ""}`
+                    : ""}
                 </p>
                 {row.note ? <p className="nf-caption">{row.note}</p> : null}
-                {!row.revokedAt ? <RevokeStaffForm userId={row.userId} /> : null}
+                {row.kind === "staff" && !row.revokedAt ? <RevokeStaffForm userId={row.userId} /> : null}
+                {row.kind !== "staff" ? (
+                  <p className="nf-caption text-[var(--nf-content-secondary)]">
+                    Admin roles change only through the founder&apos;s database runbook, never from this page.
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>

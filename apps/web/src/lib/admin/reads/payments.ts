@@ -152,7 +152,7 @@ export function buildPayments(attempts: readonly PaymentAttempt[], filter: Payme
 }
 
 export async function getPaymentsDesk(filter: PaymentsFilter, now = Date.now()): Promise<AdminRead<PaymentsDesk>> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("finance");
   if (access.state !== "admin") return UNAVAILABLE;
   const db: Client = access.supabase;
 

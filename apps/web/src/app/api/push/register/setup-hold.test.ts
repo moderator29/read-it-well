@@ -33,6 +33,8 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
     from: () => ({
+      /* The ownership check (a live token does not change hands): no row yet. */
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
       upsert: () => {
         seam.upserts += 1;
         return { select: () => ({ maybeSingle: async () => ({ data: { device_ref: "ref-1" }, error: null }) }) };

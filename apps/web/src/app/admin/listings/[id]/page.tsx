@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { InternalNotes } from "../../_components/InternalNotes";
 import { readPayeeContext } from "@/lib/after-gate/payee";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
@@ -115,6 +116,7 @@ export default async function ListingUnderReviewPage({
   return (
     <>
       <LiveRefresh />
+      {extra?.lister ? <InternalNotes subjectId={extra.lister.userId} path={`/admin/listings/${found.id}`} /> : null}
       <ListingReview
         listing={found}
         extras={extra}

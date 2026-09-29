@@ -11,6 +11,9 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { EarningsWorkspace } from "./EarningsWorkspace";
 import { ButtonLink } from "@/components/ui/Button";
+import { readMyEarnings } from "@/lib/money/history";
+import { parseBefore } from "@/lib/money/history-model";
+import { EarningsHistory } from "@/components/app/money-history/EarningsHistory";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -36,7 +39,11 @@ const UNREADABLE_EARNINGS: AgentEarnings = {
  * figures to a plain rendering component. Nothing here mutates, so the
  * workspace stays a server component with no client JavaScript to ship.
  */
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const context = await getAgentContext();
@@ -54,7 +61,7 @@ export default async function Page() {
       <AgentShell t={t} locale={locale} active="/agent/earnings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
           <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="wallet-secure" fill />
+            <BrandIcon name="bank-column" fill />
           </span>
           <h1 className="nf-h2 mt-5">{t.agentEarnings.title}</h1>
           <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
@@ -68,8 +75,12 @@ export default async function Page() {
     );
   }
 
-  const earnings = (await readAgentEarnings(context)) ?? UNREADABLE_EARNINGS;
-  const payout = await getPayoutAccounts();
+  const before = parseBefore((await searchParams).before);
+  const [earnings, payout, history] = await Promise.all([
+    readAgentEarnings(context).then((read) => read ?? UNREADABLE_EARNINGS),
+    getPayoutAccounts(),
+    readMyEarnings(before),
+  ]);
 
   return (
     <AgentShell
@@ -84,6 +95,31 @@ export default async function Page() {
       </div>
 
       <EarningsWorkspace t={t.agentEarnings} earnings={earnings} locale={locale} />
+
+      {/*
+        THE PAYMENT-BY-PAYMENT HISTORY, under the monthly ledger above.
+
+        The ledger groups settled stays by month; this is each payment Paystack
+        split to this lister and each refund that reversed part of one, read
+        from `my_earnings_history` under their own session. Both are records
+        of money that already moved, so neither offers anything to withdraw.
+        A signed-out read cannot happen here (the context above is signed in),
+        and if it somehow did the section is left out rather than drawn empty.
+      */}
+      {history.state !== "signed-out" && (
+        <section id="history" aria-labelledby="nf-earnings-history" className="mt-section-tight">
+          <h2 id="nf-earnings-history" className="nf-h3 mb-heading">
+            Payments and reversals
+          </h2>
+          <EarningsHistory
+            read={history}
+            before={before}
+            basePath="/agent/earnings"
+            locale={locale}
+            next={{ href: "/agent/bookings", label: "See your bookings" }}
+          />
+        </section>
+      )}
 
       {/* Seeing what you earned is only half of it. This is where it goes.
           Every state that is not "ready" is handled inside the read, and an

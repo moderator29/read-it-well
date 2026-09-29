@@ -102,9 +102,9 @@ function readPeople(v: unknown): PepPerson[] {
 }
 
 export async function readPepDesk(): Promise<PepDesk> {
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return { state: "unavailable" };
-  const { data, error } = await callRpc(access.supabase, "pep_desk");
+  const { data, error } = await callRpc(access.userClient, "pep_desk");
   if (error || !data || typeof data !== "object") return { state: "unavailable" };
   const d = data as Record<string, unknown>;
   if (!Array.isArray(d.open) || !Array.isArray(d.settled) || !Array.isArray(d.people)) return { state: "unavailable" };

@@ -6,6 +6,7 @@ import {
   type AgreementEmailData,
 } from "../email/agreement-messages";
 import { staffAccessGranted } from "../email/staff-messages";
+import { isStaffPosition } from "../admin/staff-positions";
 import {
   inspectionScheduled,
   newDeviceSignIn,
@@ -449,7 +450,12 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
     build: (payload, context) => {
       const scopeWords = str(payload, "scope_words");
       if (!scopeWords) return null;
-      return staffAccessGranted({ name: context.recipient.name, scopeWords });
+      const position = str(payload, "position");
+      return staffAccessGranted({
+        name: context.recipient.name,
+        scopeWords,
+        position: isStaffPosition(position) ? position : null,
+      });
     },
   },
 

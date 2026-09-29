@@ -216,17 +216,28 @@ function withoutStaff(t: TableExport): TableExport {
 /** Reads run this many at a time: quick enough for a download, gentle on the pool. */
 const PARALLEL = 8;
 
+/**
+ * Tables whose street address, contact and review columns no member role
+ * selects (they are read through definer functions in the app). The member is
+ * still owed their own rows whole, so these are read on the service role; the
+ * filter is always the member's own id or ids read from their own rows under
+ * their own session, so nothing else can be reached.
+ */
+export const OWNER_PRIVATE_TABLES: ReadonlySet<string> = new Set(["listings", "businesses", "accommodations"]);
+
 export async function buildDataExport(
   client: ExportClient,
   user: { id: string; email?: string | null; created_at?: string | null },
   now: Date = new Date(),
+  ownRecords: ExportClient = client,
 ): Promise<DataExport> {
+  const via = (table: string) => (OWNER_PRIVATE_TABLES.has(table) ? ownRecords : client);
   const byOwner = (table: string, column: string, value: string) =>
-    readAll((a, b) => client.from(table).select("*").eq(column, value).range(a, b)).then(withoutStaff);
+    readAll((a, b) => via(table).from(table).select("*").eq(column, value).range(a, b)).then(withoutStaff);
   const byParents = (table: string, column: string, parents: string[]) =>
     parents.length === 0
       ? Promise.resolve<TableExport>({ rows: [] })
-      : readAll((a, b) => client.from(table).select("*").in(column, parents).range(a, b)).then(withoutStaff);
+      : readAll((a, b) => via(table).from(table).select("*").in(column, parents).range(a, b)).then(withoutStaff);
 
   const tables: Record<string, TableExport> = {};
   for (let i = 0; i < OWNED_TABLES.length; i += PARALLEL) {

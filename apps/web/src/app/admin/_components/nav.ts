@@ -130,6 +130,7 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     children: [
       { key: "alerts", href: "/admin/alerts", icon: ui("bell"), label: "Alerts", countKeys: ["alerts"], countLabel: "alerts open, waiting on a person" },
       { key: "audit", href: "/admin/audit", icon: ui("history"), label: "Audit log" },
+      { key: "oversight", href: "/admin/oversight", icon: ui("user"), label: "Team oversight" },
     ],
   },
   { key: "analytics", href: "/admin/analytics", icon: glyph("bars"), label: "Analytics" },

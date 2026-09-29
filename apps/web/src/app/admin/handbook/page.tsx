@@ -3,6 +3,8 @@ import { requireConsole } from "@/lib/admin/guard";
 import { STAFF_HANDBOOK, STAFF_HANDBOOK_VERSION } from "@/lib/admin/staff-handbook";
 import { PageHead, Panel } from "../_components/panels";
 import { AcknowledgeHandbook } from "./AcknowledgeHandbook";
+import Link from "next/link";
+import { JOB_DESCRIPTIONS } from "@/lib/admin/staff-positions";
 
 export const metadata: Metadata = { title: "Staff handbook", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -38,6 +40,17 @@ export default async function HandbookPage() {
           </ul>
         </Panel>
       ))}
+      <Panel title="Your role">
+        <p className="nf-body">
+          {door.staff.position
+            ? `You hold the position of ${JOB_DESCRIPTIONS[door.staff.position].title}. ${JOB_DESCRIPTIONS[door.staff.position].summary}`
+            : "Your access was given by access area rather than a named position."}{" "}
+          <Link href="/admin/handbook/position" className="font-semibold text-[var(--nf-content-link)] hover:underline">
+            {door.staff.position ? "Read your full role description" : "Read the role descriptions"}
+          </Link>
+          .
+        </p>
+      </Panel>
       <Panel title="Acknowledge">
         {door.staff.handbookAcknowledged ? (
           <p className="nf-body" data-testid="handbook-acknowledged">

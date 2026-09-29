@@ -53,7 +53,7 @@ function sameOrigin(request: Request): boolean {
 
 export async function POST(request: Request): Promise<NextResponse<Answer>> {
   if (!sameOrigin(request)) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
-  const access = await requireAdmin();
+  const access = await requireAdmin("compliance");
   if (access.state !== "admin") return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
 
   const declared = Number(request.headers.get("content-length") ?? "");

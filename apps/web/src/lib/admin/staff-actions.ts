@@ -7,6 +7,7 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
 import { findUserByEmail } from "../supabase/service";
 import { STAFF_SCOPES } from "./guard";
 import { STAFF_HANDBOOK_VERSION } from "./staff-handbook";
+import { STAFF_POSITIONS } from "./staff-positions";
 
 /**
  * TRACK K: THE STAFF DOORS.
@@ -25,7 +26,8 @@ const WORDS: Record<string, string> = {
   no_such_user: "No account uses that email address.",
   already_admin: "That account is already an admin, which covers every desk.",
   invalid_scope: "One of the access areas is not recognised. Refresh and try again.",
-  no_scopes: "Choose at least one access area.",
+  no_scopes: "Choose a position or at least one access area.",
+  invalid_position: "That position is not recognised. Refresh and try again.",
   reason_needed: "Say why access is ending, in at least five characters. The person reads it.",
   not_staff: "That account holds no staff access.",
   stale_version: "The handbook changed while you were reading. Refresh and read it again.",
@@ -61,15 +63,23 @@ export async function acknowledgeHandbook(input: { version: string }): Promise<A
 
 export async function grantStaff(input: {
   email: string;
+  /** Empty means "the position's default bundle". */
   scopes: string[];
+  position?: string | null;
   note?: string;
 }): Promise<ActionResult<{ scopes: string[] }>> {
   const parsed = validate(
-    z.object({
-      email: z.string().trim().email("Enter the email address on their Vallo account."),
-      scopes: z.array(z.enum(STAFF_SCOPES)).min(1, "Choose at least one access area."),
-      note: z.string().trim().max(500).optional(),
-    }),
+    z
+      .object({
+        email: z.string().trim().email("Enter the email address on their Vallo account."),
+        scopes: z.array(z.enum(STAFF_SCOPES)),
+        position: z.enum(STAFF_POSITIONS).nullable().optional(),
+        note: z.string().trim().max(500).optional(),
+      })
+      .refine((v) => v.scopes.length > 0 || Boolean(v.position), {
+        message: WORDS.no_scopes!,
+        path: ["scopes"],
+      }),
     input,
   );
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
@@ -79,14 +89,16 @@ export async function grantStaff(input: {
   if (!target) return fail(WORDS.no_such_user!, { email: WORDS.no_such_user! });
   const { data, error } = await c.session.supabase.rpc("admin_grant_staff" as never, {
     p_user: target.id,
-    p_scopes: parsed.data.scopes,
+    p_scopes: parsed.data.scopes.length > 0 ? parsed.data.scopes : null,
     p_note: parsed.data.note ?? null,
+    p_position: parsed.data.position ?? null,
   } as never);
   if (error) return fail("That did not go through. Nothing changed. Try again.");
   const status = statusOf(data);
   if (status !== "ok") return fail(WORDS[status] ?? "That did not go through.");
   revalidatePath("/admin/staff");
-  return ok({ scopes: parsed.data.scopes });
+  const granted = (data as { scopes?: unknown }).scopes;
+  return ok({ scopes: Array.isArray(granted) ? granted.map(String) : parsed.data.scopes });
 }
 
 export async function revokeStaff(input: { userId: string; reason: string }): Promise<ActionResult<null>> {

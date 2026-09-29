@@ -6,7 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
 import { documentMedia, type DocumentMedia } from "./documents";
-import { requireAdmin } from "./guard";
+import { requireAdmin, requireConsole } from "./guard";
 import type { StaffScope } from "./guard";
 import {
   lagosDayEnd,
@@ -49,6 +49,27 @@ async function adminClient(scope?: StaffScope): Promise<SupabaseClient<Database>
   if (access.state !== "admin") return null;
   try {
     return createAdminClient();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Who may count which queue. An admin reads everything on the service role;
+ * a staff member who has acknowledged the handbook reads on the service role
+ * too, but only the queues their scopes open (`may`).
+ */
+async function queueReach(): Promise<{ db: SupabaseClient<Database>; may: (scope: StaffScope) => boolean } | null> {
+  const access = await requireAdmin();
+  const console = access.state === "admin" ? null : await requireConsole();
+  let may: (scope: StaffScope) => boolean;
+  if (access.state === "admin") may = () => true;
+  else if (console?.state === "console" && console.staff.handbookAcknowledged && console.staff.scopes.length > 0) {
+    const held = new Set(console.staff.scopes);
+    may = (scope) => held.has(scope);
+  } else return null;
+  try {
+    return { db: createAdminClient(), may };
   } catch {
     return null;
   }
@@ -109,8 +130,13 @@ export type QueueCounts = {
  * cannot be read as the tab's number.
  */
 export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> => {
-  const admin = await adminClient();
-  if (!admin) return UNAVAILABLE;
+  /* An admin counts every queue. A staff member counts the queues their
+     scopes open and reads zero for the rest, so their overview works instead
+     of saying "unavailable" because one count was not theirs. */
+  const reach = await queueReach();
+  if (!reach) return UNAVAILABLE;
+  const { db: admin, may } = reach;
+  const none = Promise.resolve({ count: 0 });
 
   try {
     const [
@@ -128,38 +154,38 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
       agreements,
       claims,
     ] = await Promise.all([
-      admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
-      admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
-      admin
+      !may("moderation") ? none : admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
+      !may("operations") ? none : admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
+      !may("kyc_review") ? none : admin
         .from("agent_applications")
         .select("id", { count: "exact", head: true })
         .in("status", ["SUBMITTED", "UNDER_REVIEW"]),
-      admin
+      !may("listing_approval") ? none : admin
         .from("listings")
         .select("id", { count: "exact", head: true })
         .in("status", ["SUBMITTED", "UNDER_REVIEW", "APPROVED"]),
-      admin
+      !may("moderation") ? none : admin
         .from("reports")
         .select("id", { count: "exact", head: true })
         .in("status", ["open", "reviewing"]),
-      admin
+      !may("support") ? none : admin
         .from("support_tickets")
         .select("id", { count: "exact", head: true })
         .in("status", ["open", "pending"]),
-      admin.from("posts").select("id", { count: "exact", head: true }).eq("status", "HELD"),
-      admin.from("stories").select("id", { count: "exact", head: true }).eq("status", "HELD"),
-      admin
+      !may("moderation") ? none : admin.from("posts").select("id", { count: "exact", head: true }).eq("status", "HELD"),
+      !may("moderation") ? none : admin.from("stories").select("id", { count: "exact", head: true }).eq("status", "HELD"),
+      !may("moderation") ? none : admin
         .from("story_comments")
         .select("id", { count: "exact", head: true })
         .eq("status", "HELD"),
-      admin
+      !may("moderation") ? none : admin
         .from("social_profiles")
         .select("user_id", { count: "exact", head: true })
         .eq("bio_status", "HELD"),
       /* V-88 review: the Held lane lists held events too, so it counts them. */
-      admin.from("events").select("id", { count: "exact", head: true }).eq("status", "HELD"),
-      admin.from("deal_agreements").select("id", { count: "exact", head: true }).eq("status", "in_review"),
-      admin.from("guarantee_claims").select("id", { count: "exact", head: true }).eq("status", "submitted"),
+      !may("moderation") ? none : admin.from("events").select("id", { count: "exact", head: true }).eq("status", "HELD"),
+      !may("agreements") ? none : admin.from("deal_agreements").select("id", { count: "exact", head: true }).eq("status", "in_review"),
+      !may("guarantee") ? none : admin.from("guarantee_claims").select("id", { count: "exact", head: true }).eq("status", "submitted"),
     ]);
 
     return {
@@ -351,7 +377,7 @@ export type AlertView = {
 export async function getRiskAlerts(
   filter?: AdminQueueFilter,
 ): Promise<AdminRead<{ rows: AlertView[]; full: boolean }>> {
-  const admin = await adminClient();
+  const admin = await adminClient("operations");
   if (!admin) return UNAVAILABLE;
 
   const term = (filter?.q ?? "").trim();
@@ -1302,6 +1328,8 @@ export type TicketView = {
   body: string;
   status: Database["public"]["Enums"]["support_ticket_status"];
   hasAccount: boolean;
+  /** The member's account, when the ticket came from one (for internal notes). */
+  userId: string | null;
   createdAt: string;
   updatedAt: string;
   replyCount: number;
@@ -1365,6 +1393,7 @@ export async function getSupportTickets(
           body: row.body,
           status: row.status,
           hasAccount: row.user_id !== null,
+          userId: row.user_id ?? null,
           createdAt: row.created_at,
           updatedAt: row.updated_at,
           replyCount: row.support_ticket_messages.length,
@@ -1478,7 +1507,7 @@ const DRIFT_LIMIT = 40;
  * queue is narrowed to.
  */
 export async function getInventoryDriftAlerts(): Promise<AdminRead<DriftAlerts>> {
-  const admin = await adminClient();
+  const admin = await adminClient("operations");
   if (!admin) return UNAVAILABLE;
 
   try {

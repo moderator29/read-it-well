@@ -49,6 +49,9 @@ export function isHeic(file: { type: string; name: string }): boolean {
  */
 export function looksLikeImage(file: { type: string; name: string }): boolean {
   if (file.type.startsWith("image/")) return true;
+  /* Chrome on a desktop can hand a `.heic` file a generic type, so HEIC is
+     recognised by its name before the image check refuses it. */
+  if (isHeic(file)) return true;
   return file.type === "" && IMAGE_EXTENSION.test(file.name);
 }
 

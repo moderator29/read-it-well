@@ -15,6 +15,11 @@
  * already fans out from a database trigger, which is the right place for it:
  * the notification then follows the row wherever it is changed from, including
  * from SQL at three in the morning, rather than following one code path.
+ *
+ * 29 September: every decision goes through public.moderation_decide, which
+ * checks the moderation scope, changes the row and writes its audit line in
+ * one transaction. Staff holding the moderation scope decide here as well as
+ * admins, and no decision can commit without its record.
  */
 
 import { revalidatePath } from "next/cache";
