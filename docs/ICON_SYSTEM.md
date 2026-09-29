@@ -212,6 +212,26 @@ listing cards, not in any object.
 set. Used for the dock capsule, headers, chips and small controls, and as the
 fallback for any navigation row with no glass object mapped.
 
+**Two weights, one family (29 September 2026, latest).** The founder asked
+for the inner icons (settings rows, profile, saved, agreements, cards, chips)
+to be "clean, lean and neat", and for only the side nav and bottom nav to
+stay bold. So:
+
+- **Bold** (`UI_ICON_STROKE_BY_EDGE`, 2.25 px at 20 and 24) is for the
+  navigation chrome only: `.nf-tabbar`, `.nf-dockrow`, `.nf-dockmore`,
+  `.nf-nav` (rail and drawer), every `NavTree` glyph (`.nf-nav__glyph`),
+  `.nf-drawer`, `.nf-admin-rail`, and anything wrapped in `.nf-icons-bold`.
+- **Lean** (`UI_ICON_LEAN_BY_EDGE`: 1.25 at 12, 1.4 at 16, 1.6 at 20, 1.7 at
+  24, up to 2.25 at 40) is everything else, and the default.
+- Every stroked glyph (`UiIcon`, `SettingsGlyph`, `LineGlyph`,
+  `FeatureGlyph`, `AdminGlyph`) spreads `uiIconStrokeProps(size)`: the lean
+  width as the attribute, both widths as `--nf-sw-lean` / `--nf-sw-bold`.
+  `app/css/symbols.css` switches the chrome to bold with zero-specificity
+  rules, so a rule that already sizes one glyph's line still wins.
+- `<UiIcon weight="bold" | "lean">` pins one glyph either way.
+
+The sections below describe the bold line; it is now the chrome's weight.
+
 **Redrawn 29 September 2026 on Lucide geometry.** Against the founder's
 references of that date (`docs/design/references/2026-09-29/`), most
 outlines are now Lucide's path data (ISC; notice in

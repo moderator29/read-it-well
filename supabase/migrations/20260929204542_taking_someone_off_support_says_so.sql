@@ -1,4 +1,4 @@
--- TAKING SOMEBODY OFF SUPPORT SAYS SO (29 September 2026). DRAFT. NOT APPLIED.
+-- TAKING SOMEBODY OFF SUPPORT SAYS SO (29 September 2026). Applied 29 September 2026 with the founder's approval.
 --
 -- THIS FILE WAITS FOR THE FOUNDER'S WORD, because it adds one function. It
 -- rewrites no row that exists, drops nothing, changes no table, policy or

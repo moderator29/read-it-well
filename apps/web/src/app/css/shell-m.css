@@ -318,6 +318,19 @@
     align-items: flex-end;
     gap: var(--nf-space-xs);
   }
+  /*
+   * A TABLET IS NOT A WIDE PHONE. From 640px until the rail takes over at
+   * 1024, edge to edge made the dock a 750px strip at 768 with five tabs
+   * spread thin across it. It keeps its phone proportions instead: at most
+   * 34rem, centred, the same islands and the same design. The offsets are
+   * set rather than a transform, because the auto-hide owns the transform.
+   */
+  @media (min-width: 640px) {
+    .nf-dockrow {
+      left: max(0.625rem, env(safe-area-inset-left, 0px), calc(50% - 17rem));
+      right: max(0.625rem, env(safe-area-inset-right, 0px), calc(50% - 17rem));
+    }
+  }
   .nf-tabbar {
     --nf-tab-pad: 0.3125rem;
     border-radius: var(--nf-radius-pill);

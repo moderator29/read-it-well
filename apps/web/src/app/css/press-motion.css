@@ -1,0 +1,140 @@
+/*
+ * THE LAST SURFACES THAT ANSWERED A TAP WITH NOTHING (motion sweep, 29
+ * September 2026).
+ *
+ * Buttons, chips, tiles, cards and the dock already press on the tokens in
+ * tokens.css (`--nf-duration-press`, `--nf-ease-press`, the three press
+ * scales). The rows did not: settings rows, inbox rows, notification rows and
+ * the side navigation's rows changed colour on hover, and on a phone, where
+ * hover never fires, a tap on them did nothing visible until the next page
+ * arrived. Three more things are here too:
+ *
+ *   rows       a settings row lights up and its glyph sinks. The row does not
+ *              scale, because it is one slice of a grouped card and a
+ *              shrinking slice tears the hairlines. Standalone rows (inbox,
+ *              notification, navigation) sink on the large-object scale.
+ *   toast      rises into place on a spring instead of popping
+ *   tab ink    the profile sub-tabs' underline slides from the old tab to the
+ *              new one instead of one bar vanishing while another grows
+ *
+ * Every duration and scale is a token, and each collapses under the
+ * operating system's reduced motion (tokens.css). Motion set to Off zeroes
+ * every transition and animation (motion-pref.css, imported after this), so
+ * none of these needs a branch of its own.
+ */
+@layer components {
+  /* ---------------------------------------------------------------- rows */
+
+  a.nf-srow:active,
+  button.nf-srow:not(:disabled):active,
+  label.nf-srow:active {
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-srow__icon {
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  a.nf-srow:active .nf-srow__icon,
+  button.nf-srow:not(:disabled):active .nf-srow__icon,
+  label.nf-srow:active .nf-srow__icon {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+
+  .nf-inbox-row,
+  .nf-notif__row,
+  .nf-nav__row {
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-inbox-row:active,
+  .nf-notif__row:active,
+  a.nf-nav__row:active,
+  .nf-nav__row--parent:active {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+
+  /* --------------------------------------------------------------- toast */
+
+  .nf-social-toast {
+    animation: nf-toast-in var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem) scale(var(--nf-press-scale));
+    }
+  }
+
+  /* ------------------------------------------------------------- tab ink */
+
+  /*
+   * ONE BAR THAT TRAVELS. Both strips are an equal-column grid, so the bar is
+   * one column wide and moves by whole columns: `translateX` by its own width
+   * plus the strip's gap, times the index of the selected tab, and a scale
+   * that trims it to the short bar each tab used to draw. The index comes
+   * from `:has()`, so no script measures anything. Where `:has()` is missing
+   * the per-tab bars below stay exactly as they were.
+   */
+  @supports selector(:has(*)) {
+    .nf-pf-tabs,
+    .nf-glass-seg {
+      position: relative;
+      --nf-ink-n: 2;
+      --nf-ink-gap: 0rem;
+      --nf-ink-i: 0;
+      --nf-ink-dir: 1;
+      --nf-ink-trim: 0.52;
+    }
+    .nf-glass-seg {
+      --nf-ink-n: var(--nf-seg-count, 2);
+      --nf-ink-gap: var(--nf-space-2xs);
+      --nf-ink-trim: 0.56;
+    }
+    :root[dir="rtl"] .nf-pf-tabs,
+    :root[dir="rtl"] .nf-glass-seg {
+      --nf-ink-dir: -1;
+    }
+    .nf-pf-tabs:has(> :nth-child(2)[aria-selected="true"]),
+    .nf-glass-seg:has(> :nth-child(2)[aria-selected="true"]) {
+      --nf-ink-i: 1;
+    }
+    .nf-pf-tabs:has(> :nth-child(3)[aria-selected="true"]),
+    .nf-glass-seg:has(> :nth-child(3)[aria-selected="true"]) {
+      --nf-ink-i: 2;
+    }
+    .nf-pf-tabs:has(> :nth-child(4)[aria-selected="true"]),
+    .nf-glass-seg:has(> :nth-child(4)[aria-selected="true"]) {
+      --nf-ink-i: 3;
+    }
+    .nf-glass-seg:has(> :nth-child(5)[aria-selected="true"]) {
+      --nf-ink-i: 4;
+    }
+    .nf-glass-seg:has(> :nth-child(6)[aria-selected="true"]) {
+      --nf-ink-i: 5;
+    }
+    .nf-pf-tabs::after,
+    .nf-glass-seg::after {
+      content: "";
+      position: absolute;
+      inset-inline-start: 0;
+      bottom: -1px;
+      width: calc((100% - (var(--nf-ink-n) - 1) * var(--nf-ink-gap)) / var(--nf-ink-n));
+      height: 2px;
+      border-radius: 2px;
+      background: var(--nf-content-primary);
+      pointer-events: none;
+      transform: translateX(calc(var(--nf-ink-i) * (100% + var(--nf-ink-gap)) * var(--nf-ink-dir)))
+        scaleX(var(--nf-ink-trim));
+      transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
+    }
+    .nf-pf-tabs:not(:has(> [aria-selected="true"]))::after,
+    .nf-glass-seg:not(:has(> [aria-selected="true"]))::after {
+      opacity: 0;
+    }
+    .nf-pf-tab::after,
+    .nf-glass-seg__tab::after {
+      display: none;
+    }
+  }
+}

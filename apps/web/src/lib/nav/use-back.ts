@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { canGoBackInApp } from "@/lib/ui/history";
 import { chooseBack, parentOf, type BackDecision } from "./resolve";
 import { previousEntry } from "./previous-entry";
+import { markNav } from "@/lib/motion/nav-direction";
 
 /**
  * The one back control behaviour, for every drawn back control on the platform
@@ -40,6 +41,9 @@ const SERVER_REDIRECTS = new Set(["/home-or-landing"]);
 
 /** Carry a decision out. `exit` is Android's alone and is handled there. */
 export function performBack(decision: BackDecision, router: RouterLike): void {
+  /* The page slides back the way it came (lib/motion/nav-direction.ts), for
+     the replace path too, which has no popstate to say so. */
+  if (decision.action !== "exit") markNav("back");
   if (decision.action === "back") {
     if (decision.delta > 1) window.history.go(-decision.delta);
     else router.back();

@@ -10,6 +10,7 @@ import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import type { SharedKind } from "@/components/app/messages/share";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
+import { isPhotoMorphFor } from "@/lib/motion/photo-morph";
 import { usePhotoViewer } from "./PhotoViewer";
 
 /**
@@ -157,6 +158,18 @@ export function ListingGallery({
    * keyboard and screen reader users meet exactly one back at a time.
    */
   const heroBack = useRef<HTMLDivElement | null>(null);
+  /*
+   * The lead pane answers to the card's photo name only while this page is
+   * arriving (motion sweep, 29 September 2026). Named for good, it was lifted
+   * out of the page on every LATER transition too, so leaving the listing
+   * slid the text away and left the photograph fading in place on its own.
+   * And only when a card really started the flight (lib/motion/photo-morph.ts).
+   */
+  const [arriving, setArriving] = useState(() => isPhotoMorphFor(listingId));
+  useEffect(() => {
+    const done = window.setTimeout(() => setArriving(false), 1000);
+    return () => window.clearTimeout(done);
+  }, []);
   const [heroBackGone, setHeroBackGone] = useState(false);
   useEffect(() => {
     const node = heroBack.current;
@@ -218,7 +231,7 @@ export function ListingGallery({
         {panes.map((photo, i) => (
           <div
             key={photo ?? `pane-${i}`}
-            className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
+            className={`relative h-full w-full shrink-0 snap-center snap-always overflow-hidden${i === 0 ? " nf-vt-morph" : ""}`}
             /*
              * The lead pane carries the same view-transition-name the listing
              * card tagged its photo box with, so a browser that supports the
@@ -226,7 +239,7 @@ export function ListingGallery({
              * instead of cutting to it. Every other browser just never reads
              * this property: no feature check needed on the receiving end.
              */
-            style={i === 0 ? { viewTransitionName: `listing-photo-${listingId}` } : undefined}
+            style={i === 0 && arriving ? { viewTransitionName: `listing-photo-${listingId}` } : undefined}
           >
             <PhotoFrame hue={hue} index={i} kind={kind} drawn={drawn} />
             {photo && !broken[i] && (

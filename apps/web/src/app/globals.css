@@ -153,6 +153,9 @@
  */
 @import "./css/data-saver.css";
 @import "./css/touch.css";
+/* Motion sweep: route transitions, press on rows, toast and tab ink. */
+@import "./css/route-motion.css";
+@import "./css/press-motion.css";
 /* Track M: the motion setting (cinematic, standard, calm, off). Last, so
    "off" wins over every partial above it. */
 @import "./css/motion-pref.css";

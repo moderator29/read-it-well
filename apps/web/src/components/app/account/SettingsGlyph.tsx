@@ -1,4 +1,4 @@
-import { snapUiIconSize, uiIconStrokeWidth } from "@/design-system/icons/UiIcon";
+import { snapUiIconSize, uiIconStrokeProps } from "@/design-system/icons/UiIcon";
 
 /**
  * The four line glyphs `7F96BE6C` draws on its settings rows that `UiIcon`
@@ -60,10 +60,10 @@ export function SettingsGlyph({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={uiIconStrokeWidth(edge)}
+      {...uiIconStrokeProps(edge)}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      className={className ? `nf-ui-icon ${className}` : "nf-ui-icon"}
       aria-hidden="true"
     >
       {PATHS[name]}

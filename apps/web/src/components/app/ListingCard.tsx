@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { formatDate, formatMoney, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
@@ -12,6 +11,8 @@ import { IntentTune } from "@/components/app/IntentTune";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/property-types";
 import { isDataSaver } from "@/lib/ui/data-saver";
+import { motionQuiet } from "@/lib/motion/gate";
+import { startPhotoMorph } from "@/lib/motion/photo-morph";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";
 import { ButtonLink } from "@/components/ui/Button";
@@ -123,7 +124,6 @@ export function ListingCard({
   /** V-43: the rush-hour line to the reader's chosen anchor, or null. */
   commute?: string | null;
 }) {
-  const router = useRouter();
   const photo = listing.photos[0];
   /* Track M: several photographs swipe (CardPhotos.tsx); the arrows drawn
      outside the link scroll the same track on a pointer. */
@@ -195,7 +195,22 @@ export function ListingCard({
     /* `warm` reads a ref and a setter only, so the observer is set up once. */
   }, []);
 
-  /* A view transition carries the photograph into the detail hero. */
+  /*
+   * THE PHOTOGRAPH TRAVELS INTO THE DETAIL HERO (motion sweep, 29 September
+   * 2026). The navigation is Link's own, and the App Router runs it as a
+   * React transition that the route transition turns into a view transition
+   * (components/motion/RouteTransition.tsx). All this does is name the one
+   * photo box that was tapped, at the moment it was tapped, so the browser
+   * pairs it with the gallery's lead pane and morphs one into the other.
+   *
+   * It used to call `document.startViewTransition(() => router.push(href))`.
+   * The callback returned before the route had committed, so the "new" state
+   * the browser captured was still the old page and nothing morphed. And the
+   * name sat on every card permanently, so a listing shown twice on one
+   * screen (a shelf and the grid) was a duplicate name, which aborts every
+   * view transition on that page. Named on tap, it is only ever one card.
+   */
+  const mediaRef = useRef<HTMLDivElement>(null);
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (
       event.defaultPrevented ||
@@ -207,12 +222,15 @@ export function ListingCard({
     ) {
       return;
     }
-    if (!("startViewTransition" in document)) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    event.preventDefault();
-    document.startViewTransition(() => {
-      router.push(href);
-    });
+    const media = mediaRef.current;
+    if (!media || motionQuiet()) return;
+    media.style.viewTransitionName = `listing-photo-${listing.id}`;
+    startPhotoMorph(listing.id);
+    /* If this card is still on screen after the navigation (it was
+       refused, or it opened in place), it gives the name back. */
+    window.setTimeout(() => {
+      media.style.viewTransitionName = "";
+    }, 1500);
   };
 
   // "Lagos, Lagos" reads as a bug, so a place stated twice collapses.
@@ -396,9 +414,9 @@ export function ListingCard({
         className="nf-pcard__link"
       >
         <div
-          className="nf-pcard__media"
+          ref={mediaRef}
+          className="nf-pcard__media nf-vt-morph"
           data-theme="dark"
-          style={{ viewTransitionName: `listing-photo-${listing.id}` }}
         >
           <div className="nf-pcard__photo">
             <MediaFrame

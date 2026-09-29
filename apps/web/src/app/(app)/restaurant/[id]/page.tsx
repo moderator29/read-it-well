@@ -160,7 +160,15 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
    * A venue that still has none keeps the honest plate, because the gallery
    * only draws a stand-in when the list is empty.
    */
-  const venuePhotos = detail ? await listBusinessPhotos(detail.business.id) : [];
+  /* PERF-SWEEP 4: the photos, the venue's shortlist state and the session
+     are independent of each other once the two reads above are in, so they
+     are asked for together. The shortlist is read only for a business venue,
+     which is exactly when there is no catalogue listing face. */
+  const [venuePhotos, savedPlaces, viewerSession] = await Promise.all([
+    detail ? listBusinessPhotos(detail.business.id) : Promise.resolve([]),
+    listingFace ? Promise.resolve(null) : listSavedPlaces(),
+    resolveSession(),
+  ]);
 
   /*
    * ONE FACE, TWO READS. The page below speaks about a venue, not about a
@@ -218,7 +226,6 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
      keyed on the business id exactly as `catalogue_entries` files it; a
      catalogue listing stays on `saved_items` and needs no target. Read here so
      the heart is lit before hydration. */
-  const savedPlaces = venue.isBusiness ? await listSavedPlaces() : null;
   const savedVenue =
     savedPlaces !== null &&
     isSaved(savedKeySet(savedPlaces.ok ? savedPlaces.data : []), "restaurant", venue.id);
@@ -269,7 +276,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         .concat("."),
   ];
 
-  const signedIn = (await resolveSession()).state === "signed-in";
+  const signedIn = viewerSession.state === "signed-in";
 
   /* The face itself is `RestaurantFace`, so the sweep's fixture harness draws
      exactly what this route draws (the second audit's S-B). */

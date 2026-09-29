@@ -368,6 +368,7 @@ export default async function ListingDetailPage({
     commute,
     neighboursFlag,
     access,
+    recentlyLet,
   ] = await Promise.all([
     // Written reviews for this listing. Public by policy for a PUBLISHED
     // listing, so this read works for a signed-out visitor too.
@@ -406,6 +407,9 @@ export default async function ListingDetailPage({
        here on purpose, so nobody can learn whether a code exists by watching
        the page change. */
     readListingAccess(listing.id),
+    /* V-14's "recently let" line, for a rental. PERF-SWEEP 3: read with the
+       rest rather than in series while the page renders. */
+    isRental ? readRecentlyLet(listing.id) : Promise.resolve(null),
   ]);
   /* V-59: "Moved in for the Vallo price", the one public number from the
      tenancy reviews. Null (and no line) on every example listing. */
@@ -651,7 +655,7 @@ export default async function ListingDetailPage({
         <StillAvailable
           listingId={listing.id}
           copy={t.frontDoor.available}
-          recentlyLet={await readRecentlyLet(listing.id)}
+          recentlyLet={recentlyLet}
           locale={locale}
         />
       )}

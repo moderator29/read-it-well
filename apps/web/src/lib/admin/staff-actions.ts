@@ -190,7 +190,7 @@ export async function removeFromSupport(input: { userId: string; reason: string 
     return ended.ok ? ok({ ended: true }) : fail(ended.error);
   }
 
-  /* The one-step door (pending migration 20260929180000): removes support
+  /* The one-step door (migration 20260929204542, applied): removes support
      and nothing else, releases their tickets, writes one audit row with the
      reason, and tells them plainly that support was taken off. The super
      admin check and the key proof are the database's, on auth.uid(). */

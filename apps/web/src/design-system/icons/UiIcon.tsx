@@ -1126,6 +1126,51 @@ export function uiIconStrokeWidth(size: number): number {
 }
 
 /**
+ * THE LEAN WEIGHT (29 September 2026, the founder: "inner icons like settings
+ * icons, profile icons, saved, agreements ... don't make them bold like side
+ * nav and bottom nav, make them clean, lean and neat").
+ *
+ * Two weights, one family. The bold line above belongs to the NAVIGATION
+ * CHROME only: the bottom dock and its menu, the side rail and drawer, every
+ * `NavTree`, the admin rail (`app/css/symbols.css` lists the scopes). Every
+ * other glyph, the rows, cards, chips and buttons inside a page, draws this
+ * lean line: SF Symbols regular territory, a third lighter than the chrome,
+ * so the navigation reads as the strong frame and the content stays calm.
+ */
+export const UI_ICON_LEAN_BY_EDGE: Record<UiIconSize, number> = {
+  12: 1.25,
+  16: 1.4,
+  20: 1.6,
+  24: 1.7,
+  28: 1.85,
+  32: 2,
+  40: 2.25,
+};
+
+export function uiIconLeanStrokeWidth(size: number): number {
+  return (UI_ICON_LEAN_BY_EDGE[snapUiIconSize(size)] * 24) / size;
+}
+
+export type UiIconWeight = "lean" | "bold";
+
+/**
+ * The stroke props every stroked glyph in the family spreads onto its <svg>.
+ * The attribute carries the lean line (what renders anywhere CSS has not
+ * loaded); the two custom properties let `app/css/symbols.css` switch a glyph
+ * to the bold line inside the navigation chrome without a prop at every call
+ * site. `weight` pins one glyph either way, whatever it sits in.
+ */
+export function uiIconStrokeProps(size: number, weight?: UiIconWeight) {
+  const lean = uiIconLeanStrokeWidth(size);
+  const bold = uiIconStrokeWidth(size);
+  return {
+    strokeWidth: weight === "bold" ? bold : lean,
+    "data-nf-weight": weight,
+    style: { "--nf-sw-lean": lean, "--nf-sw-bold": bold } as React.CSSProperties,
+  };
+}
+
+/**
  * Symbol effects: a class, not a prop-driven animation, so it costs nothing
  * when unused and every one of them collapses under prefers-reduced-motion
  * (`app/css/symbols.css`).
@@ -1149,8 +1194,11 @@ export function UiIcon({
   /** Plays the effect continuously rather than once on mount or on hover. */
   effectLoop,
   filled,
+  weight,
 }: {
   name: UiIconName;
+  /** Pins the line weight; by default the glyph follows where it sits. */
+  weight?: UiIconWeight;
   /** A step on the scale, or its name. Anything else snaps onto the nearest. */
   size?: number | IconSize;
   className?: string;
@@ -1180,10 +1228,11 @@ export function UiIcon({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={uiIconStrokeWidth(edge)}
+      {...uiIconStrokeProps(edge, weight)}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={[
+        "nf-ui-icon",
         effect ? `nf-sym nf-sym--${effect}` : "",
         effect && effectLoop ? "nf-sym--loop" : "",
         className ?? "",

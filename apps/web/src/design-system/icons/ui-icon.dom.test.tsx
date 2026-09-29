@@ -5,9 +5,12 @@ import {
   UI_ICON_NAMES,
   UI_ICON_SIZES,
   UI_ICON_STROKE_PX,
+  UiIcon,
   uiIconHasFill,
+  uiIconLeanStrokeWidth,
   uiIconStrokeWidth,
 } from "./UiIcon";
+import { renderToStaticMarkup } from "react-dom/server";
 
 /**
  * THE BOLD PASS (29 September 2026), held in place.
@@ -56,6 +59,34 @@ describe("UiIcon weight", () => {
   it("takes an off-scale size's weight from its nearest step", () => {
     expect(renderedPx(22)).toBeCloseTo(renderedPx(24));
     expect(renderedPx(14)).toBeCloseTo(renderedPx(16));
+  });
+});
+
+describe("UiIcon lean weight (inner icons)", () => {
+  const leanPx = (edge: number) => (uiIconLeanStrokeWidth(edge) * edge) / 24;
+
+  it("is lighter than the nav chrome's bold line at every step, and steps up with the size", () => {
+    let previous = 0;
+    for (const edge of UI_ICON_SIZES) {
+      expect(leanPx(edge)).toBeLessThan(renderedPx(edge));
+      expect(leanPx(edge)).toBeGreaterThanOrEqual(previous);
+      previous = leanPx(edge);
+    }
+    expect(leanPx(20)).toBeCloseTo(1.6);
+  });
+
+  it("renders lean by default and carries both widths for the chrome to switch", () => {
+    const html = renderToStaticMarkup(<UiIcon name="bell" size={20} />);
+    expect(html).toContain('class="nf-ui-icon"');
+    expect(html).toContain(`stroke-width="${uiIconLeanStrokeWidth(20)}"`);
+    expect(html).toContain(`--nf-sw-bold:${uiIconStrokeWidth(20)}`);
+    expect(html).not.toContain("data-nf-weight");
+  });
+
+  it("pins a glyph when asked", () => {
+    const html = renderToStaticMarkup(<UiIcon name="bell" size={20} weight="bold" />);
+    expect(html).toContain('data-nf-weight="bold"');
+    expect(html).toContain(`stroke-width="${uiIconStrokeWidth(20)}"`);
   });
 });
 

@@ -34,8 +34,8 @@ reason; their claims are released at once. If they hold other desks, only
 support is removed (every other desk and their position are kept; a Support
 Agent position is cleared), the reason is kept in the audit log
 (`staff.support_removed`), and they are told in the app "Support is no
-longer one of your desks" with what they keep. Once
-`20260929180000_taking_someone_off_support_says_so.sql` is applied this is one
+longer one of your desks" with what they keep. With
+`20260929204542_taking_someone_off_support_says_so.sql` applied this is one
 database step that also releases the tickets they held. Until then the app
 uses the grant function, which also sends its "You have Vallo staff access"
 notice and email; the app follows it with the plain notice above.
@@ -151,22 +151,18 @@ take, `r` reply, `m` saved replies, `e` hand to another desk, `?` the list,
   order, keys) and `support-macros.test.ts` (saved replies keep the voice and
   never ask for a password, code or card number).
 
-## Waiting on the founder
+## Database changes (applied 29 September 2026)
 
-`supabase/migrations/pending/20260929173000_support_desk_escalations_and_member_context.sql`
+`supabase/migrations/20260929204530_support_desk_escalations_and_member_context.sql`
 adds the escalation table and its three functions, and the member summary
-function. It changes no existing table or policy. Until it is applied:
+function. It changes no existing table or policy. It is applied. Before it
+was, the desk degraded gracefully: "Hand to another desk" pointed at an
+internal note, and the member panel showed only what the ticket carries.
 
-- "Hand to another desk" says escalation is not installed and points at an
-  internal note instead;
-- the member panel shows only what the ticket carries (name, email, account,
-  other tickets), and says so.
-
-`supabase/migrations/pending/20260929180000_taking_someone_off_support_says_so.sql`
+`supabase/migrations/20260929204542_taking_someone_off_support_says_so.sql`
 adds `admin_remove_support` (super admin only): take somebody off support in
 one step, with a plain notice. It changes no table, policy or existing
-function. Until it is applied, the removal works as described under
-"Adding a support person" above.
+function. It is applied.
 
 Nothing else waits on them: queue, lanes, clock, claims, replies, saved replies,
 status, notes, audit trail, keys and the Support team panel all work on the

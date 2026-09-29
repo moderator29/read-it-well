@@ -114,16 +114,18 @@ export default async function AreaPage({
       : Promise.resolve(null),
   ]);
   /* Each author's published badge (`public.person_badge`), as on `/around`. */
-  const posts = await stampAuthorTiers(feed.posts);
-  /* V-41: what this member may be asked here, or null (not a member, or the
-     counting is not running). */
-  const pulse =
-    viewer.member && area.status === "ACTIVE" ? await readMyPulseSession(area.id) : null;
-  /* V-43: the anchors in this place's city, for a member (empty with the flag off). */
-  const commuteAnchors =
-    viewer.member && area.status === "ACTIVE"
-      ? (await readAnchors()).filter((a) => a.city.toLowerCase() === area.city.toLowerCase())
-      : [];
+  /* PERF-SWEEP 5: these three wait only on the reads above, not on each
+     other, so they run together. */
+  const memberHere = viewer.member && area.status === "ACTIVE";
+  const [posts, pulse, anchors] = await Promise.all([
+    stampAuthorTiers(feed.posts),
+    /* V-41: what this member may be asked here, or null (not a member, or
+       the counting is not running). */
+    memberHere ? readMyPulseSession(area.id) : Promise.resolve(null),
+    /* V-43: the anchors in this place's city, for a member (empty with the flag off). */
+    memberHere ? readAnchors() : Promise.resolve([]),
+  ]);
+  const commuteAnchors = anchors.filter((a) => a.city.toLowerCase() === area.city.toLowerCase());
   const isModerator = viewer.role === "MODERATOR";
 
   return (

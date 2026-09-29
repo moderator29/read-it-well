@@ -184,7 +184,10 @@ export function SideFlip({
          the shell that comes back is already the other side's. */
       writeSideCookie(to);
       startTransition(() => {
-        router.push(SIDE_HOME[to]);
+        /* `nf-flip` tells the route transition (RouteTransition.tsx) to stand
+           down: the turn is the motion, and a page slide under it would be a
+           second one. */
+        router.push(SIDE_HOME[to], { transitionTypes: ["nf-flip"] });
         router.refresh();
       });
 

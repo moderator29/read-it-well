@@ -5,6 +5,7 @@ import { cookies, headers } from "next/headers";
 import { forwardedAgentHeaders } from "./agent";
 import { serverCookiesSecure, withAuthCookiePolicy } from "./cookie-policy";
 import type { Database } from "./database.types";
+import { deadlineFetch } from "./deadline-fetch";
 import { requireSupabasePublicEnv } from "./env";
 
 /** The incoming request's User-Agent, or null outside a request scope. */
@@ -47,7 +48,9 @@ export async function createClient() {
      * visitor's User-Agent is what lets `auth.sessions` record the device the
      * person actually signed in on (see `./agent.ts`).
      */
-    global: { headers: forwardedAgentHeaders(await visitorAgent()) },
+    /* PERF-SWEEP 6: a stalled database or auth call fails after a deadline
+       instead of holding the page on its skeleton (./deadline-fetch.ts). */
+    global: { headers: forwardedAgentHeaders(await visitorAgent()), fetch: deadlineFetch() },
     cookies: {
       getAll() {
         return cookieStore.getAll();
