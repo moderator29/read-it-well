@@ -84,7 +84,7 @@ export function AgentIdentityCard({
           </span>
           <Link
             href={door.href}
-            className="mt-3xs inline-block text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="nf-tap mt-3xs inline-block text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {door.cta}
           </Link>

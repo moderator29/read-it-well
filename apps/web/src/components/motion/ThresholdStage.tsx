@@ -80,9 +80,31 @@ export function ThresholdStage({ welcome }: { welcome: string }) {
     const onEnd = (event: Event) => {
       if ((event as AnimationEvent).animationName === "nf-splash-gone") done();
     };
-    splash?.addEventListener("animationend", onEnd);
+    /*
+     * A PAGE THAT HYDRATES LATE MISSES THE EVENT. On a slow phone (or a cold
+     * dev compile) the splash's last keyframe can end before this listener
+     * exists, and the flag then stayed "on" for the life of the page. That
+     * is not only a stuck flag: the page's own `both`-filled entrance leaves
+     * `#main` holding a transform and a filter, and every `position: fixed`
+     * child (the listing's pinned price bar, sheets) was laid out against
+     * `#main` instead of the screen, a whole page down. So the state is read
+     * as well as listened for: a finished (or absent) last keyframe releases
+     * now. Filled animations still count in `getAnimations`, which is why
+     * the old "no animations left" fallback never fired.
+     */
+    const settled = () => {
+      const gone = splash
+        ?.getAnimations()
+        .find((a) => (a as CSSAnimation).animationName === "nf-splash-gone");
+      return !gone || gone.playState === "finished";
+    };
+    if (!splash || settled()) {
+      done();
+      return;
+    }
+    splash.addEventListener("animationend", onEnd);
     const timer = window.setTimeout(() => {
-      if (!splash || splash.getAnimations({ subtree: true }).length === 0) done();
+      if (settled()) done();
     }, SPLASH_GIVE_UP_MS);
     return () => {
       splash?.removeEventListener("animationend", onEnd);
