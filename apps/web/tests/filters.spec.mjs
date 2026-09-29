@@ -12,12 +12,19 @@
  * spec is honest whether the catalogue behind it is the seed content alone or
  * seed content blended with real published inventory.
  *
+ * Since 23 September `/search` answers a signed-out visitor with the sign-in
+ * wall (asserted first). Everything this spec proves is the real page's
+ * server-side filtering against the real catalogue, which the preview harness
+ * cannot stand in for, so the walkthrough runs signed in as the QA member and
+ * is reported as SKIP without QA_MEMBER_EMAIL / QA_MEMBER_PASSWORD.
+ *
  * Run with the dev server already up:
  *
  *   BASE_URL=http://localhost:3210 node apps/web/tests/filters.spec.mjs
  */
 
 import { chromium } from "playwright-core";
+import { expectSignInWall, qaContext, signInAsQa, SKIP_EXIT } from "./_gate.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const WAIT = 1200;
@@ -63,9 +70,25 @@ async function openDrawer(page) {
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 
+console.log("signed out");
+await expectSignInWall(check, "/search");
+await expectSignInWall(check, "/search?type=apartment&beds=2&instant=1&sort=price-asc");
+
+console.log("\nsigned in as the QA member");
+const state = await signInAsQa(browser);
+if (!state) {
+  await browser.close();
+  if (failures > 0) {
+    console.log(`\n${failures} check(s) failed`);
+    process.exit(1);
+  }
+  console.log("\nfilters: the wall holds; the walkthrough needs a session and was skipped");
+  process.exit(SKIP_EXIT);
+}
+
 for (const colorScheme of ["dark", "light"]) {
   console.log(`\n/search  (${colorScheme})`);
-  const context = await browser.newContext({
+  const context = await qaContext(browser, state, {
     colorScheme,
     viewport: { width: WIDTH, height: 844 },
   });
