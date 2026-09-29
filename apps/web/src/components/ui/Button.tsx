@@ -46,9 +46,29 @@ import { feedback } from "@/lib/ui/feedback";
  * neutral plate next to it. Two screens reached for `variant="glass"` before
  * it existed, which is the clearest sign a vocabulary is missing a word.
  */
+/*
+ * FOUR LEVELS, ONE PER JOB (the clean unified sweep, 29 September 2026;
+ * `docs/design/CLEAN_UNIFIED_DIRECTION.md` section 3):
+ *
+ *   primary    ONE per view. Solid brand on paper; the lit bar with its glow
+ *              at night (the glow budget's one button).
+ *   secondary  white on a hairline in light, a raised night surface at night.
+ *   quiet      no fill, brand ink ("See all 8", "Manage", row actions).
+ *   icon       a 44px square on a hairline (back, prev and next, search,
+ *              bell); pass `aria-label`. `round` makes it the 44px circle the
+ *              header's search and bell take (spec section 16, Q1), and
+ *              nothing else should.
+ *
+ * `ghost` is the old name of `quiet` and renders it. `glass` renders the
+ * secondary: the brand-edged glass secondary was a second glowing button
+ * beside the primary, which the glow budget ends. `danger` and
+ * `dangerQuiet` stay for the destructive pair.
+ */
 export type ButtonVariant =
   | "primary"
   | "secondary"
+  | "quiet"
+  | "icon"
   | "glass"
   | "ghost"
   | "danger"
@@ -83,8 +103,10 @@ export type ButtonSize = "sm" | "md" | "lg";
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary: "nf-btn--primary",
   secondary: "nf-btn--glass",
-  glass: "nf-btn--glass-brand",
-  ghost: "nf-btn--ghost",
+  quiet: "nf-btn--quiet",
+  icon: "nf-btn--surface nf-btn--icon",
+  glass: "nf-btn--glass",
+  ghost: "nf-btn--quiet",
   danger: "nf-btn--danger",
   dangerQuiet: "nf-btn--danger-quiet",
 };
@@ -141,6 +163,11 @@ type CommonProps = {
    */
   iconOnly?: boolean;
   /**
+   * With `variant="icon"` only: the 44px circle of the header's search and
+   * bell (spec section 16, Q1). The shape law allows no other round control.
+   */
+  round?: boolean;
+  /**
    * Fires the `select` kind of `lib/ui/feedback.ts` on press: a light impact
    * in the native shell, a short pulse on Android web, nothing on iOS web.
    *
@@ -163,12 +190,16 @@ function buttonClass({
   iconOnly,
   glow,
   shape = "control",
+  round,
   className,
-}: Pick<CommonProps, "variant" | "size" | "full" | "iconOnly" | "glow" | "shape" | "className">) {
+}: Pick<CommonProps, "variant" | "size" | "full" | "iconOnly" | "glow" | "shape" | "round" | "className">) {
+  /* The icon button is always the 44px rung, whatever size was asked. */
+  const sized = variant === "icon" ? "sm" : size;
   return [
     "nf-btn",
     VARIANT_CLASS[variant],
-    SIZE_CLASS[size],
+    SIZE_CLASS[sized],
+    variant === "icon" && round ? "nf-btn--round" : "",
     full ? "nf-btn--full" : "",
     iconOnly ? "nf-btn--icon" : "",
     glow ? "nf-btn--lit" : "",
@@ -257,6 +288,7 @@ export const Button = forwardRef(function Button(
     arrow,
     glow,
     shape,
+    round,
     iconOnly,
     haptic,
     className,
@@ -279,7 +311,7 @@ export const Button = forwardRef(function Button(
       {...rest}
       ref={ref}
       type={rest.type ?? "button"}
-      className={buttonClass({ variant, size, full, iconOnly, glow, shape, className })}
+      className={buttonClass({ variant, size, full, iconOnly, glow, shape, round, className })}
       disabled={disabled || loading}
       data-loading={loading || undefined}
       aria-busy={loading || undefined}
@@ -293,7 +325,7 @@ export const Button = forwardRef(function Button(
         leadingIcon={leadingIcon}
         trailingIcon={trailingIcon}
         arrow={arrow}
-        size={size}
+        size={variant === "icon" ? "md" : size}
       >
         {children}
       </Content>
@@ -320,6 +352,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
     arrow,
     glow,
     shape,
+    round,
     iconOnly,
     haptic,
     className,
@@ -334,7 +367,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
     <Link
       {...rest}
       ref={ref}
-      className={buttonClass({ variant, size, full, iconOnly, glow, shape, className })}
+      className={buttonClass({ variant, size, full, iconOnly, glow, shape, round, className })}
       data-loading={loading || undefined}
       onPointerDown={(event) => {
         pulse(wantsHaptic);
@@ -346,7 +379,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
         leadingIcon={leadingIcon}
         trailingIcon={trailingIcon}
         arrow={arrow}
-        size={size}
+        size={variant === "icon" ? "md" : size}
       >
         {children}
       </Content>

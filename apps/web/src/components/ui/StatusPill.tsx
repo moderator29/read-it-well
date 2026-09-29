@@ -63,12 +63,12 @@ const ICON_PX = { xs: 11, sm: 13, md: 14 } as const;
  */
 const DOT_CLASS = { xs: "size-1.5", sm: "size-2", md: "size-2" } as const;
 
-/** The lit dot: a filled circle in the tone's ink with its own small bloom,
- *  which is what the render draws inside every pill. */
+/** The dot: a filled circle in the tone's ink. It lost its bloom with the
+ *  clean unified sweep (29 September 2026): a badge never glows, and the
+ *  pill now draws the shared badge's `dot` kind (`StatusBadge.tsx`). */
 const DOT_STYLE: CSSProperties = {
   background: "currentColor",
   borderRadius: "var(--nf-radius-circle)",
-  boxShadow: "0 0 6px currentColor",
 };
 
 /**

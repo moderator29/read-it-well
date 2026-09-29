@@ -417,30 +417,63 @@
   .nf-reg-open {
     --nf-badge-hue: var(--nf-content-muted);
     --nf-badge-ink: color-mix(in oklab, var(--nf-badge-hue) 70%, white);
+    /* `--nf-radius-badge` is this same 6px (tokens.css). */
     border-radius: var(--nf-radius-xs);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-badge-hue) 48%, var(--nf-surface-canvas)),
-      color-mix(in oklab, var(--nf-badge-hue) 34%, var(--nf-surface-canvas))
-    );
-    /* The ring is drawn inside, as an inset shadow, not as a border: the
-       badges it replaced had no border, and a 1px one would move every row
-       that carries a badge by two pixels. */
-    box-shadow:
-      inset 0 0 0 var(--nf-border-width) color-mix(in oklab, var(--nf-badge-hue) 65%, var(--nf-surface-canvas)),
-      inset 0 2px 0 color-mix(in oklab, var(--nf-badge-hue) 45%, white),
-      0 0 6px -1px color-mix(in oklab, var(--nf-badge-hue) calc(35% * var(--nf-glow-scale, 1)), transparent);
+    /* THE CLEAN UNIFIED BADGE (29 September 2026, spec section 6): a flat
+       tint of the state's own hue and the word in its ink. The ring, the
+       lit top edge and the halo are gone: a badge never glows. */
+    background: color-mix(in oklab, var(--nf-badge-hue) 18%, var(--nf-surface-primary));
+    box-shadow: none;
     color: var(--nf-badge-ink);
     font-size: max(0.6875rem, var(--nf-text-overline));
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
   .nf-badge {
     display: inline-flex;
     align-items: center;
-    gap: var(--nf-gap-inline-tight);
-    padding: var(--nf-space-2xs) var(--nf-gap-inline);
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    gap: var(--nf-space-xs);
+    min-height: 1.375rem;
+    padding: 0 var(--nf-space-xs);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+  /* The dot badge ("Unpublished changes"): a 6px dot of the ink before the
+     word. The dot is a shape, so it is round. */
+  .nf-badge--dot::before,
+  .nf-status-dot::before {
+    content: "";
+    width: 0.375rem;
+    height: 0.375rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    background: currentColor;
+  }
+  /* The status dot ("High", "Paid" in a row's trailing slot): the dot and a
+     13px word, no fill. The dot takes the hue; the word stays readable ink. */
+  .nf-status-dot {
+    --nf-badge-hue: var(--nf-content-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+  }
+  .nf-status-dot::before {
+    background: var(--nf-badge-hue);
+  }
+  /* The count (an unread "2"): tabular, at least 20 by 20, on the brand
+     tint. */
+  .nf-badge--count {
+    justify-content: center;
+    min-width: 1.25rem;
+    min-height: 1.25rem;
+    padding: 0 var(--nf-space-2xs);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-content-link);
   }
   .nf-badge--success,
   .nf-reg-open--open {
@@ -453,9 +486,15 @@
     --nf-badge-hue: var(--nf-status-approved);
   }
   .nf-badge--pending,
-  .nf-badge--warning,
-  .nf-badge--example {
+  .nf-badge--warning {
     --nf-badge-hue: var(--nf-status-pending);
+  }
+  /* "Example" (spec section 6): the neutral tone, never a state hue, so an
+     illustrative listing never reads as a warning or a promotion. */
+  .nf-badge--example {
+    --nf-badge-hue: var(--nf-content-muted);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
   }
   .nf-badge--error {
     --nf-badge-hue: var(--nf-state-error);
@@ -480,6 +519,10 @@
   .nf-badge--neutral,
   .nf-reg-open--closed {
     --nf-badge-hue: var(--nf-content-muted);
+    --nf-badge-ink: var(--nf-content-secondary);
+  }
+  .nf-badge--danger {
+    --nf-badge-hue: var(--nf-state-error);
   }
   /* `.nf-reg-open` (Open now / Closed on the register's stays and
      restaurants, catalogue.css keeps its layout) is named here rather than

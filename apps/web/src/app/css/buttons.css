@@ -769,4 +769,129 @@
       opacity: 0.38;
     }
   }
+
+  /*
+   * =====================================================================
+   * THE CLEAN UNIFIED BUTTONS (29 September 2026;
+   * docs/design/CLEAN_UNIFIED_DIRECTION.md section 3, plan items 5 and 27).
+   * Four levels, one per job, and ONE glow per view: the primary's, at night.
+   * The materials come from tokens (`--nf-btn-lit-*` for the primary,
+   * `--nf-btn-glass-*` for the secondary), which the paper and night blocks
+   * of tokens.css answer; this section adds the two new levels, the radii
+   * and the pointer hover. It is last so it wins at equal weight, and the
+   * loading line above still owns `::after` while a button is loading.
+   * ===================================================================== */
+  .nf-btn {
+    font-weight: 600;
+  }
+  /* 44 on a 12px corner; 48 and 56 keep the 14px control corner. */
+  .nf-btn--sm {
+    border-radius: var(--nf-plate-radius-md);
+  }
+
+  /* The glass-brand secondary retires into the plain secondary: it was a
+     second lit button beside the primary. Kept for hand-written markup. */
+  .nf-btn--glass-brand {
+    color: var(--nf-content-primary);
+    background: var(--nf-btn-glass-fill);
+    border-color: var(--nf-btn-glass-edge);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-btn-glass-shadow);
+  }
+
+  /* QUIET: no fill, brand ink. `ghost` renders it (Button.tsx). */
+  .nf-btn--quiet {
+    background: transparent;
+    border-color: transparent;
+    color: var(--nf-content-link);
+    box-shadow: none;
+  }
+  .nf-btn--quiet.nf-btn--sm {
+    border-radius: var(--nf-radius-control-sm);
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-btn--quiet::after {
+    content: none;
+  }
+
+  /* ICON: a 44px square (or, with `.nf-btn--round`, the header's circle) on
+     the card hairline, white on paper and a raised surface at night. */
+  .nf-btn--surface {
+    color: var(--nf-content-primary);
+    background: var(--nf-surface-elevated);
+    border-color: var(--nf-card-border);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-btn--surface::after {
+    content: none;
+  }
+  /* The header's search and bell (spec section 16, Q1): the one round
+     control the shape law allows. They float, so they take the float
+     shadow. */
+  .nf-btn--round,
+  .nf-icon-btn--round {
+    border-radius: var(--nf-radius-circle);
+    box-shadow: var(--nf-float-shadow);
+  }
+  /* The same circle on the hand-written header button (`.nf-icon-btn`,
+     controls.css): 44px, the elevated surface on the card hairline. */
+  .nf-icon-btn.nf-icon-btn--round {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+  }
+
+  /*
+   * POINTER HOVER, ONE SYSTEM (plan item 27). Only for a fine pointer, so a
+   * finger never leaves a button stuck in its hover. One step brighter,
+   * colour only, and never while pressed (the press is lane A's scale).
+   */
+  @media (hover: hover) and (pointer: fine) {
+    .nf-btn--primary:hover:not(:disabled, :active) {
+      filter: brightness(1.07);
+    }
+    .nf-btn--glass:hover:not(:disabled),
+    .nf-btn--glass-brand:hover:not(:disabled),
+    .nf-btn--surface:hover:not(:disabled) {
+      background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-btn-glass-fill);
+      border-color: var(--nf-border-default);
+      box-shadow: var(--nf-card-shadow);
+    }
+    .nf-btn--quiet:hover:not(:disabled) {
+      background: var(--nf-interactive-hover);
+      color: var(--nf-content-link);
+    }
+  }
+
+  /*
+   * THE QUIET SEGMENTED CONTROL (spec section 7; `Segmented.tsx`,
+   * `variant="quiet"`, the default). A raised track, 4px inset, 12px corner;
+   * the thumb is the elevated surface on the card shadow at a 10px corner.
+   * The solid variant is `.nf-segmented--pill` in chips.css.
+   */
+  /* A bare `.nf-segmented` (ViewToggle's links, hand-built tracks) is quiet
+     too: quiet is the default, solid is asked for. */
+  .nf-segmented:not(.nf-segmented--pill) {
+    border-radius: var(--nf-plate-radius-md);
+    background: var(--nf-surface-raised);
+    border: 0;
+    box-shadow: none;
+  }
+  .nf-segmented:not(.nf-segmented--pill) .nf-segmented__capsule {
+    height: calc(100% - 8px);
+    border-radius: var(--nf-radius-control-sm);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-card-shadow), 0 0 0 var(--nf-border-width) var(--nf-card-border);
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-standard),
+      width var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-segmented:not(.nf-segmented--pill) .nf-segmented__link[aria-current="true"] {
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-card-shadow), 0 0 0 var(--nf-border-width) var(--nf-card-border);
+  }
 }

@@ -1,0 +1,263 @@
+/*
+ * THE GROUPED LIST AND THE DISCLOSURE (the clean unified sweep, 29 September
+ * 2026; docs/design/CLEAN_UNIFIED_DIRECTION.md section 5, plan items 5, 27
+ * and 30). Drawn by `components/ui/ListGroup.tsx` (`ListGroup`, `ListRow`)
+ * and `components/app/Disclosure.tsx` (its inline form).
+ *
+ * ONE CARD HOLDS THE WHOLE GROUP. Rows sit inside it with inset hairlines
+ * that start at the text column, never full width and never after the last
+ * row. This replaces a card per row and a neon rim per group. The card is
+ * the same object in both themes: `--nf-surface-primary` on
+ * `--nf-card-border` with `--nf-card-shadow` (no shadow at night), so no
+ * rule here names a theme.
+ *
+ * A partial of globals.css, after chips.css. Tokens only.
+ */
+@layer components {
+  /* ------------------------------------------------------ the section head */
+  .nf-list-section {
+    display: grid;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+  }
+  .nf-list-section__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 1.5rem;
+    padding-inline: var(--nf-space-2xs);
+  }
+  /* The quiet action beside a section label ("See all 8", "Manage"). */
+  .nf-list-section__action {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-link);
+  }
+
+  /* ------------------------------------------------------------- the card */
+  .nf-list-group {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: clip;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  /* A group with no card (the landing's app band, a list inside a sheet):
+     dividers only. */
+  .nf-list-group--bare {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  /* -------------------------------------------------------------- the row */
+  .nf-list-item {
+    position: relative;
+    /* 16 + 36 + 12: the card's side padding, the plate, the gap. */
+    --nf-list-inset: var(--nf-space-md);
+  }
+  .nf-list-item:has(.nf-list-row__lead) {
+    --nf-list-inset: calc(var(--nf-space-md) + var(--nf-plate-size-sm) + var(--nf-space-sm));
+  }
+  .nf-list-item + .nf-list-item::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: var(--nf-list-inset) 0;
+    height: var(--nf-border-width);
+    background: var(--nf-divider);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .nf-list-group--bare .nf-list-item + .nf-list-item::before {
+    inset-inline-end: 0;
+  }
+
+  .nf-list-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3.25rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    text-align: start;
+    text-decoration: none;
+    font: inherit;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-list-row--two {
+    min-height: 3.75rem;
+  }
+  .nf-list-group--bare .nf-list-row {
+    padding-inline: 0;
+  }
+  .nf-list-row__lead {
+    display: inline-flex;
+    flex-shrink: 0;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-list-row__text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .nf-list-row__title {
+    font-size: var(--nf-text-row);
+    line-height: var(--nf-leading-row);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-list-row__sub {
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  /* Value above status, right-aligned: "N42,800" over "(dot) High". */
+  .nf-list-row__end {
+    display: grid;
+    justify-items: end;
+    gap: var(--nf-space-3xs);
+    flex-shrink: 0;
+    max-width: 50%;
+    text-align: end;
+  }
+  .nf-list-row__value {
+    font-size: var(--nf-text-row);
+    line-height: var(--nf-leading-row);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-list-row__trail {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .nf-list-row__chevron {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+  }
+
+  /* The press: the same answer lane A gives a settings row
+     (`app/css/press-motion.css`, `.nf-srow`): the slice lights and its plate
+     sinks; the row itself never scales, or it tears the hairlines. */
+  a.nf-list-row:active,
+  button.nf-list-row:not(:disabled):active,
+  label.nf-list-row:active {
+    background: var(--nf-glass-fill-thin);
+  }
+  a.nf-list-row:active .nf-list-row__lead,
+  button.nf-list-row:not(:disabled):active .nf-list-row__lead {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+  a.nf-list-row,
+  button.nf-list-row,
+  label.nf-list-row {
+    cursor: pointer;
+  }
+  .nf-list-row:focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* ------------------------------------------------------------ the hover
+     (plan item 27): pointer only, the row fills with the secondary surface
+     at 120ms. Colour only, so reduced motion needs no branch. */
+  @media (hover: hover) and (pointer: fine) {
+    a.nf-list-row:hover,
+    button.nf-list-row:not(:disabled):hover,
+    label.nf-list-row:hover {
+      background: var(--nf-surface-secondary);
+      transition-duration: 120ms;
+    }
+    .nf-list-group--bare :is(a, button, label).nf-list-row:hover {
+      background: none;
+    }
+  }
+
+  /*
+   * ---------------------------------------------------------- THE DISCLOSURE
+   * (plan item 30). One motion for every row that opens in place: the inline
+   * `Disclosure`, settings sub-sections, the host wizard's sections and the
+   * landing FAQ, which takes these same classes. Built on `<details>`: where
+   * the browser has `::details-content` and `interpolate-size`, the panel
+   * grows from 0 to its height and fades in over 240ms on the standard curve
+   * while the chevron turns 180 degrees; elsewhere it opens at once, which is
+   * the honest fallback for a native control. Reduced motion collapses the
+   * duration token, and Off zeroes it (motion-pref.css).
+   */
+  .nf-disclosure {
+    interpolate-size: allow-keywords;
+  }
+  .nf-disclosure > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3.25rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    list-style: none;
+    cursor: pointer;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+  }
+  .nf-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+  .nf-disclosure__label {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .nf-disclosure__hint {
+    display: block;
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-disclosure__chevron {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-disclosure[open] .nf-disclosure__chevron {
+    transform: rotate(180deg);
+  }
+  .nf-disclosure__panel {
+    padding: 0 var(--nf-space-md) var(--nf-space-md);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+  }
+  .nf-disclosure::details-content {
+    block-size: 0;
+    opacity: 0;
+    overflow: clip;
+    transition:
+      block-size var(--nf-duration-base) var(--nf-ease-standard),
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      content-visibility var(--nf-duration-base) allow-discrete;
+  }
+  .nf-disclosure[open]::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-disclosure > summary:hover {
+      background: var(--nf-surface-secondary);
+    }
+  }
+}

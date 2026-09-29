@@ -1560,3 +1560,464 @@
     min-width: 0;
   }
 }
+
+/*
+ * THE CLEAN UNIFIED DATA PRIMITIVES (29 September 2026;
+ * docs/design/CLEAN_UNIFIED_DIRECTION.md sections 4, 6, 9 and 13; plan
+ * items 5 and 26). The initials tile, the meta strip, the summary card, the
+ * KPI tile, the segmented status bar, the pipeline gauge and the line chart.
+ * Every value is a token, and every surface answers in both themes through
+ * the tokens, so no rule here names a theme.
+ *
+ * MOTION: the bar grows, the ticks light and the line draws ONCE, on the
+ * entrance curve. Under reduced motion, Calm and Off (`data-motion`) the
+ * animations do not run and the final state is simply there.
+ */
+@layer components {
+  /* ------------------------------------------------------ initials tile */
+  .nf-initials {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--nf-plate-size-sm);
+    height: var(--nf-plate-size-sm);
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-plate-neutral-fill);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  .nf-initials--md {
+    width: var(--nf-plate-size-md);
+    height: var(--nf-plate-size-md);
+    border-radius: var(--nf-plate-radius-md);
+  }
+  .nf-initials--lg {
+    width: var(--nf-plate-size-lg);
+    height: var(--nf-plate-size-lg);
+    border-radius: var(--nf-plate-radius-lg);
+    font-size: var(--nf-text-body);
+  }
+
+  /* --------------------------------------------------------- meta strip */
+  .nf-meta-strip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-height: 2.25rem;
+    padding-inline: var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-plate-radius-md);
+    background: var(--nf-surface-primary);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nf-meta-strip--bare {
+    min-height: 0;
+    padding-inline: 0;
+    border: 0;
+    background: none;
+  }
+  .nf-meta-strip__lead {
+    display: inline-flex;
+    margin-inline-end: var(--nf-space-xs);
+  }
+  .nf-meta-strip__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-meta-strip__item + .nf-meta-strip__item {
+    margin-inline-start: var(--nf-space-sm);
+    padding-inline-start: var(--nf-space-sm);
+    border-inline-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+
+  /* ------------------------------------------------------- summary card */
+  .nf-summary {
+    display: grid;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  @media (min-width: 64rem) {
+    .nf-summary {
+      padding: 1.25rem;
+    }
+  }
+  .nf-summary__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-summary__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-summary__figure {
+    margin-block-start: var(--nf-space-2xs);
+    overflow-wrap: anywhere;
+  }
+  .nf-summary__sentence {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  .nf-summary .nf-statusbar {
+    margin-block-start: var(--nf-space-xs);
+  }
+  .nf-summary__footer {
+    margin-block-start: var(--nf-space-2xs);
+  }
+
+  /* ----------------------------------------------------------- KPI tile */
+  .nf-kpi {
+    display: grid;
+    align-content: start;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+    color: var(--nf-content-primary);
+    text-decoration: none;
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-kpi__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+  }
+  .nf-kpi__glyph {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-kpi__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-kpi__door {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    margin: calc(-1 * var(--nf-space-2xs)) calc(-1 * var(--nf-space-2xs)) calc(-1 * var(--nf-space-2xs)) 0;
+    border-radius: var(--nf-radius-control-sm);
+    color: var(--nf-content-muted);
+    transform: rotate(-45deg);
+  }
+  .nf-kpi__figure {
+    display: flex;
+    align-items: baseline;
+    gap: var(--nf-space-xs);
+    font-size: 2rem;
+    line-height: 1.1;
+    font-weight: 500;
+    letter-spacing: var(--nf-tracking-figure);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-kpi__unit {
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-kpi__delta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-kpi__period {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  /* A tile is a door: on a fine pointer it lifts 2px onto the hover shadow
+     (plan item 27), never while pressed; colour only under reduced motion. */
+  @media (hover: hover) and (pointer: fine) {
+    .nf-kpi--door:hover:not(:active) {
+      transform: translateY(-2px);
+      box-shadow: var(--nf-card-shadow-hover);
+    }
+    .nf-kpi--door:hover .nf-kpi__door {
+      background: var(--nf-interactive-hover);
+      color: var(--nf-content-link);
+    }
+  }
+  .nf-kpi--door:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-kpi--door:hover:not(:active) {
+      transform: none;
+    }
+  }
+
+  /* --------------------------------------------------- the segmented bar */
+  .nf-statusbar {
+    margin: 0;
+    min-width: 0;
+  }
+  .nf-statusbar__track {
+    display: flex;
+    width: 100%;
+    height: 6px;
+    gap: var(--nf-space-2xs);
+  }
+  /* A segment is a shape, not a control: a 3px corner on a 6px bar. */
+  .nf-statusbar__seg {
+    display: block;
+    min-width: 6px;
+    height: 100%;
+    border-radius: 3px;
+    transform-origin: left center;
+  }
+  .nf-statusbar__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    margin-block-start: var(--nf-space-sm);
+  }
+  .nf-statusbar__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-statusbar__dot {
+    display: block;
+    width: 0.5rem;
+    height: 0.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-statusbar__figure {
+    color: var(--nf-content-secondary);
+  }
+  .nf-statusbar--grow .nf-statusbar__seg {
+    animation: nf-bar-grow 620ms var(--nf-ease-entrance) both;
+  }
+  .nf-statusbar--grow .nf-statusbar__legend {
+    animation: nf-fade-in var(--nf-duration-base) var(--nf-ease-standard) 300ms both;
+  }
+  @keyframes nf-bar-grow {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes nf-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* -------------------------------------------------- the pipeline gauge */
+  .nf-gauge {
+    display: grid;
+    gap: var(--nf-space-md);
+    margin: 0;
+    min-width: 0;
+  }
+  .nf-gauge__dial {
+    position: relative;
+    width: 100%;
+    max-width: 18rem;
+    margin-inline: auto;
+  }
+  .nf-gauge__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .nf-gauge__centre {
+    position: absolute;
+    inset: auto 0 0;
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-gauge__total {
+    font-size: var(--nf-text-figure);
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: var(--nf-tracking-figure);
+    color: var(--nf-content-primary);
+  }
+  .nf-gauge__total-label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-gauge--light .nf-gauge__tick {
+    animation: nf-fade-in 120ms var(--nf-ease-standard) both;
+  }
+  .nf-gauge__legend {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-gauge__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding-block: var(--nf-space-xs);
+  }
+  .nf-gauge__row + .nf-gauge__row {
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-gauge__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-gauge__text {
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .nf-gauge__name {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-gauge__sub {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-gauge__share {
+    flex-shrink: 0;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
+  /* ----------------------------------------------------- the line chart */
+  .nf-ts {
+    margin: 0;
+    min-width: 0;
+  }
+  .nf-ts__plot {
+    position: relative;
+  }
+  .nf-ts__line {
+    animation: nf-ts-draw 700ms var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-ts-draw {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  .nf-ts__cols {
+    position: absolute;
+    inset: 0;
+  }
+  .nf-ts__col {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+  .nf-ts__dot,
+  .nf-ts__tip {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-ts__dot {
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 0 2px var(--nf-surface-primary);
+  }
+  .nf-ts__tip {
+    top: 0;
+    left: 50%;
+    translate: -50% -110%;
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-control-sm);
+    background: var(--nf-surface-inverse);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-overline);
+    white-space: nowrap;
+    z-index: 2;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-ts__col:hover {
+      background: var(--nf-brand-tint-1);
+    }
+    .nf-ts__col:hover .nf-ts__dot,
+    .nf-ts__col:hover .nf-ts__tip {
+      opacity: 1;
+    }
+  }
+  .nf-ts__axis {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    margin-block-start: var(--nf-space-2xs);
+    font-size: var(--nf-text-label);
+    color: var(--nf-content-muted);
+  }
+  .nf-ts__target-key {
+    border-block-end: var(--nf-border-width) dashed var(--nf-content-muted);
+  }
+
+  /* A live figure change crossfades, never recounts (CountUp). */
+  .nf-count-swap {
+    animation: nf-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+
+  /* The quiet answers: the final state, at once. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-statusbar--grow .nf-statusbar__seg,
+    .nf-statusbar--grow .nf-statusbar__legend,
+    .nf-gauge--light .nf-gauge__tick,
+    .nf-ts__line,
+    .nf-count-swap {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(
+      .nf-statusbar--grow .nf-statusbar__seg,
+      .nf-statusbar--grow .nf-statusbar__legend,
+      .nf-gauge--light .nf-gauge__tick,
+      .nf-ts__line,
+      .nf-count-swap
+    ) {
+    animation: none;
+  }
+}

@@ -2435,7 +2435,15 @@
    * optical margin. A gutter changed at one of four call sites would have
    * silently broken the bleed.
    */
-  --nf-pad-shell: clamp(1.5rem, 0.9rem + 2vw, 2.5rem);  /* the page gutter, 24 -> 40 */
+  /*
+   * RETUNED, 29 September 2026 (the clean unified direction, section 1.4, and
+   * the founder's brief: "16px mobile, 24 tablet"). 16 at 360, 24 at a
+   * portrait tablet, 32 from 1280 up, continuous between. The L-29 reasoning
+   * above still holds; what changed is the thing standing in the gutter: the
+   * spec's cards are 18px (`--nf-radius-card`), not 22, and a 16 to 17px
+   * phone gutter is the industry's (and the references') density.
+   */
+  --nf-pad-shell: clamp(1rem, 0.61rem + 1.74vw, 2rem);  /* the page gutter, 16 -> 32 */
   --nf-pad-card: var(--nf-space-lg);       /* 24, the ordinary card */
   --nf-pad-card-lg: clamp(2rem, 1rem + 4vw, 4rem);      /* the one card a page is built around */
   --nf-pad-card-sm: var(--nf-space-md);    /* 16, a card inside another surface */
@@ -3478,6 +3486,12 @@
   --nf-panel-hair: var(--nf-divider);
   --nf-bar-edge-lit: var(--nf-divider);
   --nf-bar-glow: 0 1px 0 var(--nf-divider);
+
+  /* The secondary button: a raised night surface on the card hairline, with
+     no rim and no bloom (spec section 3). The primary keeps its lit bar. */
+  --nf-btn-glass-fill: linear-gradient(var(--nf-surface-elevated), var(--nf-surface-elevated));
+  --nf-btn-glass-edge: var(--nf-card-border);
+  --nf-btn-glass-shadow: 0 0 0 0 transparent;
 }
 
 /*
@@ -3615,7 +3629,11 @@
  * dark theme the same attribute changes nothing.
  */
 :root[data-theme="light"],
-:root[data-theme="light"] [data-theme="light"] {
+:root[data-theme="light"] [data-theme="light"],
+/* The app header and the workspace bar are night islands in markup; on paper
+   they take the paper palette (spec section 16: Q1 puts the header's search
+   and bell on the warm canvas, Q2 keeps navy for hero bands only). */
+:root[data-theme="light"] :is(.nf-app-header, .nf-ws-bar)[data-theme="dark"] {
   /* ----------------------------------------------------------- the ground */
   /* Warm paper (the clean unified sweep, 29 September 2026; spec section
      1.1): the canvas is NOT white and the cards are, so a card exists
@@ -3815,17 +3833,19 @@
   --nf-selected-shadow: var(--nf-selected-rim), 0 1px 2px rgb(0 50 150 / 0.18), 0 6px 14px -6px rgb(0 80 220 / 0.40);
   --nf-selected-shadow-inline: var(--nf-selected-rim), 0 1px 2px rgb(0 50 150 / 0.18);
   --nf-btn-lit-edges: var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary-strong) var(--nf-brand-primary);
-  --nf-btn-lit-fill: linear-gradient(180deg, #1A74FF 0%, #005FE8 100%);
-  --nf-btn-lit-rim: inset 0 1px 0 rgb(255 255 255 / 0.22);
+  /* The primary on paper is SOLID brand with a white top hairline and the
+     card shadow, no gradient and no blue bloom (spec section 3). */
+  --nf-btn-lit-fill: linear-gradient(var(--nf-brand-primary), var(--nf-brand-primary));
+  --nf-btn-lit-rim: inset 0 1px 0 rgb(255 255 255 / 0.18);
   --nf-btn-lit-inner: inset 0 0 0 rgb(255 255 255 / 0);
   --nf-btn-lit-inner-hover: inset 0 0 0 rgb(255 255 255 / 0);
-  --nf-btn-lit-bloom: 0 1px 2px rgb(0 50 150 / 0.18), 0 6px 14px -6px rgb(0 80 220 / 0.40);
-  --nf-btn-lit-bloom-hover: 0 2px 4px rgb(0 50 150 / 0.20), 0 10px 20px -8px rgb(0 80 220 / 0.45);
+  --nf-btn-lit-bloom: var(--nf-card-shadow);
+  --nf-btn-lit-bloom-hover: var(--nf-card-shadow-hover);
   --nf-btn-lit-text-glow: 0 0 0 rgb(255 255 255 / 0);
   --nf-btn-lit-pool: radial-gradient(50% 55% at 50% 16%, rgb(255 255 255 / 0) 0%, rgb(255 255 255 / 0) 100%);
   --nf-btn-glass-fill: linear-gradient(#FFFFFF, #FFFFFF);
-  --nf-btn-glass-edge: rgb(11 13 23 / 0.18);
-  --nf-btn-glass-shadow: 0 1px 2px rgb(11 13 23 / 0.05);
+  --nf-btn-glass-edge: var(--nf-border-default);
+  --nf-btn-glass-shadow: var(--nf-card-shadow);
   --nf-bar-edge-lit: var(--nf-divider);
   --nf-bar-glow: 0 1px 0 var(--nf-divider);
 

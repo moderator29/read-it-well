@@ -142,18 +142,14 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE NAVY TOP BLOCK (founder reference 05, 29 September 2026): in light
-   * the top of the screen is a dark VALLO band carrying the logo and the
-   * header's actions, and the content under it is light. The app header, the
-   * workspace bar (agent and host) and the site bar carry `data-theme="dark"`
-   * in both themes, so everything in
-   * them already takes the night palette; this paints the ground, which is
-   * transparent (app header) or canvas glass (site bar) and would otherwise
-   * let the white page through. `--nf-surface-canvas` resolves inside the
-   * island, so it is the night canvas, solid: a blurred 82 per cent navy
-   * over white content reads as a grey strip. The landing's bar is left to
-   * its own scroll state, and the soft scrim under the site bar goes,
-   * because a navy fade over a white page is a smudge, not an exit.
+   * THE TOP BAR ON PAPER (the clean unified sweep, 29 September 2026; spec
+   * section 16, Q1 and Q2). The navy top block of reference 05 is retired:
+   * the app header and the workspace bar take the paper palette (tokens.css
+   * names them in the light block, though they carry `data-theme="dark"` in
+   * markup), and their ground is the warm canvas, solid, with the divider
+   * under it. Navy in light is now the hero band's alone
+   * (`components/ui/HeroBand.tsx`). The site bar keeps its night: the landing
+   * rules are the landing's.
    * ---------------------------------------------------------------- */
   :root[data-theme="light"] .nf-app-header[data-theme="dark"],
   :root[data-theme="light"] .nf-ws-bar[data-theme="dark"],
@@ -161,7 +157,7 @@
     background: var(--nf-surface-canvas);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    box-shadow: 0 1px 0 var(--nf-glass-border);
+    box-shadow: 0 1px 0 var(--nf-divider);
   }
   /* The workspace bar is `nf-glass--chrome`: its glass sheen greys a solid
      navy block and its scrim is the same smudge as the site bar's. */
@@ -188,47 +184,25 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE HOME TOP BLOCK (references 05 and 07, 29 September 2026). The
-   * greeting, the place, the hero and the four doors are a night island in
-   * both themes (`HomeScreen`); in light this paints it: the navy of the
-   * header continuing down into one block with rounded lower corners, a
-   * bloom of brand blue in its upper corner and a hairline rim, over the
-   * light page. It meets the header with no seam on a phone (the shell's top
-   * padding is taken back and returned inside the block) and is a framed
-   * card from a tablet up. At night the attribute changes nothing and none
-   * of this applies.
+   * THE HOME TOP BLOCK (references 05 and 07; the clean unified sweep of
+   * 29 September 2026). The greeting, the place, the hero and the four doors
+   * are a night island in both themes (`HomeScreen`); in light this paints
+   * it as THE HERO BAND (below): the same navy, bloom, radius and inner
+   * spacing, a rounded block on the warm canvas under the paper header. At
+   * night the attribute changes nothing and none of this applies.
    * ---------------------------------------------------------------- */
   :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
-    margin-inline: calc(-1 * var(--nf-pad-shell));
-    padding: var(--nf-space-lg) var(--nf-pad-shell);
-    border-radius: var(--nf-radius-2xl);
+    margin-inline: 0;
+    padding: 1.25rem;
+    border-radius: var(--nf-radius-xl);
     background:
-      radial-gradient(90% 40% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 72%),
-      radial-gradient(70% 30% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 14%, transparent), transparent 70%),
-      linear-gradient(180deg, var(--nf-surface-canvas), color-mix(in oklab, var(--nf-container-ink) 10%, var(--nf-surface-canvas)));
-    box-shadow:
-      inset 0 -1px 0 color-mix(in oklab, var(--nf-container-ink) 45%, transparent),
-      0 18px 36px -26px var(--nf-glow-3);
-  }
-  /* Only when it opens the page does it take back the shell's top padding
-     and meet the header square-topped. Under a verification prompt it is a
-     rounded block below it, so it never rides up over the prompt. */
-  :root[data-theme="light"] .nf-home > .nf-home-top[data-theme="dark"]:first-child {
-    margin-block-start: calc(-1 * var(--nf-gap-section-tight));
-    padding-block-start: var(--nf-gap-section-tight);
-    border-start-start-radius: 0;
-    border-start-end-radius: 0;
+      radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%),
+      var(--nf-surface-primary);
+    box-shadow: 0 18px 36px -24px color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
   }
   @media (min-width: 40rem) {
-    :root[data-theme="light"] .nf-home-top[data-theme="dark"],
-    :root[data-theme="light"] .nf-home > .nf-home-top[data-theme="dark"]:first-child {
-      margin-inline: 0;
-      margin-block-start: 0;
-      padding: var(--nf-space-lg);
-      border-radius: var(--nf-radius-2xl);
-      box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--nf-container-ink) 40%, transparent),
-        0 18px 36px -26px var(--nf-glow-3);
+    :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
+      padding: var(--nf-space-xl);
     }
   }
 
@@ -416,7 +390,20 @@
   :root[data-theme="light"] :is(.nf-badge, .nf-count-badge, .nf-badge-overlap, .nf-reg-open):not(:where([data-theme="dark"] *)) {
     --nf-badge-ink: color-mix(in oklab, var(--nf-badge-hue) 86%, black);
     background: color-mix(in oklab, var(--nf-badge-hue) 10%, var(--nf-surface-primary));
-    box-shadow: inset 0 0 0 var(--nf-border-width) color-mix(in oklab, var(--nf-badge-hue) 32%, transparent);
+    box-shadow: none;
+  }
+  /* The neutral, Example and count badges keep their own paper fills. */
+  :root[data-theme="light"] .nf-badge--neutral:not(:where([data-theme="dark"] *)) {
+    --nf-badge-ink: var(--nf-content-secondary);
+    background: var(--nf-surface-raised);
+  }
+  :root[data-theme="light"] .nf-badge--example:not(:where([data-theme="dark"] *)) {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+  :root[data-theme="light"] .nf-badge--count:not(:where([data-theme="dark"] *)) {
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-quiet);
   }
 
   /* ------------------------------------------------------------------

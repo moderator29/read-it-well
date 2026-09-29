@@ -18,6 +18,18 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  * lengths and in four locales where the same word can be three times longer.
  * A ResizeObserver keeps it correct through font loading, orientation changes
  * and container resizes rather than measuring once and drifting.
+ *
+ * TWO VARIANTS (the clean unified sweep, 29 September 2026;
+ * `docs/design/CLEAN_UNIFIED_DIRECTION.md` section 7):
+ *
+ *   quiet  (default) a raised track with a white thumb on the card shadow
+ *          (a raised night surface at night), ink on and muted off at 500.
+ *          Filters and views: Property / Stays, Buy / Rent / Stay, list / map.
+ *   solid  the brand thumb with a white label, lit at night: the ONE
+ *          page-level mode switch (Setup / Configure / Test in an editor).
+ *
+ * The thumb slides 240ms on the standard curve and jumps under reduced
+ * motion. `shape="pill"` is the old name of `solid` and renders it.
  */
 
 export type SegmentedOption<T extends string> = {
@@ -41,6 +53,7 @@ export function Segmented<T extends string>({
   semantics = "tabs",
   size = "md",
   shape = "control",
+  variant,
   full,
   label,
   itemIdPrefix,
@@ -63,6 +76,8 @@ export function Segmented<T extends string>({
    * Stay / Invest.
    */
   shape?: "control" | "pill";
+  /** `quiet` (default) or `solid`; see the note at the top of this file. */
+  variant?: "quiet" | "solid";
   full?: boolean;
   /** Accessible name for the group. Required: an unlabelled group is a puzzle. */
   label: string;
@@ -135,8 +150,11 @@ export function Segmented<T extends string>({
   const seg =
     size === "sm"
       ? "h-9 px-sm text-[length:var(--nf-text-caption)]"
-      : `h-11 ${full ? "px-sm" : "px-md"} text-[length:var(--nf-text-body-sm)]`;
-  const pill = shape === "pill";
+      : `${variant === "solid" || (variant === undefined && shape === "pill") ? "h-11" : "h-9"} ${full ? "px-sm" : "px-md"} text-[length:var(--nf-text-body-sm)]`;
+  const solid = variant === "solid" || (variant === undefined && shape === "pill");
+  /* The solid variant keeps the renders' brand rail (`.nf-segmented--pill`,
+     chips.css); the quiet one is the neutral track (buttons.css). */
+  const pill = solid;
 
   return (
     <div
@@ -146,7 +164,7 @@ export function Segmented<T extends string>({
       onKeyDown={onKeyDown}
       className={[
         "nf-segmented relative inline-flex items-center",
-        pill ? "nf-segmented--pill" : "",
+        pill ? "nf-segmented--pill nf-segmented--solid" : "nf-segmented--quiet",
         pad,
         full ? "flex w-full" : "",
         className ?? "",
@@ -209,7 +227,10 @@ export function Segmented<T extends string>({
                * escaping label and this one, which the research filed as three
                * separate defects.
                */
-              "nf-segmented__item relative z-1 inline-flex min-w-0 items-center justify-center gap-inline rounded-[var(--nf-radius-control)] font-semibold transition-colors",
+              "nf-segmented__item relative z-1 inline-flex min-w-0 items-center justify-center gap-inline transition-colors",
+              /* A quiet segment paints 36px inside the 44px track; `nf-tap` keeps its
+                 target at 44 (base.css). */
+              pill ? "rounded-[var(--nf-radius-control)] font-semibold" : "nf-tap rounded-[var(--nf-radius-control-sm)] font-medium",
               seg,
               full ? "flex-1" : "",
               /* On the capsule the selected ink is on-brand and comes from the
@@ -217,7 +238,7 @@ export function Segmented<T extends string>({
               selected
                 ? pill
                   ? ""
-                  : "text-[var(--nf-content-on-brand)]"
+                  : "text-[var(--nf-content-primary)]"
                 : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
             ]
               .filter(Boolean)

@@ -27,6 +27,12 @@ import { CHART_INK, CHART_SERIES } from "./palette";
  * colour alone, and with one series the title names it. A legend box for one
  * series is furniture.
  *
+ * THE CLEAN UNIFIED STYLE (29 September 2026, spec section 13): a 1.5px
+ * brand line with no area fill, a dashed muted target line only where the
+ * product keeps a promise, 4px points and a brand-tint band only on hover,
+ * a dark tooltip in both themes, 11px muted axis labels, and no gridlines
+ * but the baseline. Material: `.nf-ts` in `app/css/controls.css`.
+ *
  * DETERMINISTIC GEOMETRY. Every number below is computed from the data, so
  * the server render and the client render are byte-identical and React has
  * nothing to reconcile. `AreaSparkline` established this and it is kept.
@@ -43,6 +49,8 @@ export function TimeSeries({
   label,
   /** Said under the chart when the read behind it is capped. Honest or absent. */
   caveat,
+  target,
+  targetLabel,
   height = 180,
   className,
 }: {
@@ -50,6 +58,13 @@ export function TimeSeries({
   /** Names the series. This is the legend. */
   label: string;
   caveat?: string;
+  /**
+   * A promise the product keeps (a response-time SLA, a review deadline),
+   * drawn as a dashed muted line. Only where such a promise exists.
+   */
+  target?: number;
+  /** Names the target line ("Reply within 24 h"). */
+  targetLabel?: string;
   height?: number;
   className?: string;
 }) {
@@ -65,89 +80,102 @@ export function TimeSeries({
   const h = height;
   const padX = 10;
   const padTop = 12;
-  /* Room under the plot for the two end labels, which are the only x labels:
-     a number under every point is the anti-pattern this avoids. */
-  const padBottom = 22;
+  const padBottom = 8;
 
-  const max = Math.max(...points.map((p) => p.count), 1);
+  const max = Math.max(...points.map((p) => p.count), typeof target === "number" ? target : 0, 1);
   const plotH = h - padTop - padBottom;
   const span = points.length > 1 ? points.length - 1 : 1;
+  const xOf = (i: number) => padX + (points.length > 1 ? (i / span) * (w - padX * 2) : (w - padX * 2) / 2);
+  const yOf = (v: number) => padTop + plotH - (v / max) * plotH;
 
-  const pts = points.map((p, i) => {
-    const x = padX + (points.length > 1 ? (i / span) * (w - padX * 2) : (w - padX * 2) / 2);
-    const y = padTop + plotH - (p.count / max) * plotH;
-    return [x, y] as const;
-  });
-
+  const pts = points.map((p, i) => [xOf(i), yOf(p.count)] as const);
   const line = pts
     .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`)
     .join(" ");
   const floor = padTop + plotH;
-  const area = `${line} L${pts[pts.length - 1]![0].toFixed(1)} ${floor} L${pts[0]![0].toFixed(1)} ${floor} Z`;
-  /* A gradient id has to be unique on the page or the second chart borrows the
-     first one's fill. `AreaSparkline` hardcodes `nf-spark-fill` and collides
-     for exactly this reason; here the id is derived from the label, which is
-     already required to be distinct because it is what names the series. */
-  const fillId = `nf-ts-${label.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase()}`;
 
   const first = points[0]!;
   const last = points[points.length - 1]!;
   const peak = points.reduce((a, b) => (b.count > a.count ? b : a), first);
+  const colW = 100 / points.length;
 
   return (
-    <figure className={["m-0", className ?? ""].filter(Boolean).join(" ")}>
-      <svg
-        viewBox={`0 0 ${w} ${h}`}
-        role="img"
-        aria-label={`${label}. ${describe(points)}`}
-        preserveAspectRatio="none"
-        style={{ width: "100%", height: "auto", maxHeight: h }}
-      >
-        <defs>
-          <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={CHART_SERIES} stopOpacity="0.30" />
-            <stop offset="100%" stopColor={CHART_SERIES} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-
-        {/* The baseline, recessive. No horizontal grid: with one series and a
-            peak label the reader never has to measure a middle value. */}
-        <line
-          x1={padX}
-          y1={floor}
-          x2={w - padX}
-          y2={floor}
-          stroke={CHART_INK.axis}
-          strokeWidth="1"
-          vectorEffect="non-scaling-stroke"
-        />
-
-        <path d={area} fill={`url(#${fillId})`} />
-        <path
-          d={line}
-          fill="none"
-          stroke={CHART_SERIES}
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          /* Keeps the 2px weight under the non-uniform aspect this svg is
-             stretched to. Without it the stroke is scaled with the box and the
-             line reads as a different weight on every card width. */
-          vectorEffect="non-scaling-stroke"
-        />
-        <circle cx={pts[pts.length - 1]![0]} cy={pts[pts.length - 1]![1]} r="3.5" fill={CHART_SERIES} />
-      </svg>
+    <figure className={["nf-ts", className ?? ""].filter(Boolean).join(" ")}>
+      <div className="nf-ts__plot" style={{ maxHeight: h }}>
+        <svg
+          viewBox={`0 0 ${w} ${h}`}
+          role="img"
+          aria-label={`${label}. ${describe(points)}${typeof target === "number" && targetLabel ? ` ${targetLabel}.` : ""}`}
+          preserveAspectRatio="none"
+          style={{ width: "100%", height: "auto", maxHeight: h, display: "block" }}
+        >
+          {/* The baseline, the only rule: no gridlines. */}
+          <line
+            x1={padX}
+            y1={floor}
+            x2={w - padX}
+            y2={floor}
+            stroke={CHART_INK.axis}
+            strokeWidth="1"
+            vectorEffect="non-scaling-stroke"
+          />
+          {typeof target === "number" ? (
+            <line
+              x1={padX}
+              y1={yOf(target)}
+              x2={w - padX}
+              y2={yOf(target)}
+              stroke="var(--nf-content-muted)"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : null}
+          {/* 1.5px, drawn once from the left (plan item 26, `.nf-ts__line`
+              in controls.css), there at once under reduced motion. */}
+          <path
+            d={line}
+            fill="none"
+            stroke={CHART_SERIES}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+            className="nf-ts__line"
+          />
+        </svg>
+        {/*
+          THE HOVER IS CSS, SO THE CHART STAYS A SERVER COMPONENT. One column
+          per point: on a fine pointer's hover it shows the brand-tint band,
+          the 4px point and the dark tooltip (`--nf-surface-inverse`, 12px
+          white, the same in both themes). Hidden from assistive tech: the
+          figure's label already says the chart in a sentence.
+        */}
+        <div className="nf-ts__cols" aria-hidden="true">
+          {points.map((p, i) => (
+            <span
+              key={p.day}
+              className="nf-ts__col"
+              style={{ left: `${i * colW}%`, width: `${colW}%` }}
+            >
+              <span
+                className="nf-ts__dot"
+                style={{ left: `${(xOf(i) / w) * 100 - i * colW}%`, top: `${(yOf(p.count) / h) * 100}%` }}
+              />
+              <span className="nf-ts__tip nf-numeric">
+                {p.count} · {p.day}
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
 
       {/*
-        THE LABELS ARE HTML AND NOT SVG TEXT, deliberately. `preserveAspectRatio
-        = "none"` stretches the drawing to the card's width, and it would
-        stretch any text inside it with the same factor: the same chart would
-        carry differently proportioned type on a phone and on a desktop. Type
-        stays on the type scale by staying out of the drawing.
-
+        THE LABELS ARE HTML AND NOT SVG TEXT, deliberately: the drawing is
+        stretched to the card's width and would stretch its type with it.
         Two labels and a peak, never a number under every point.
       */}
-      <figcaption className="mt-2xs flex items-baseline justify-between gap-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <figcaption className="nf-ts__axis">
         <span className="nf-numeric">{first.day}</span>
         <span>
           {label}
@@ -155,6 +183,12 @@ export function TimeSeries({
           <span className="nf-numeric text-[var(--nf-content-secondary)]">
             {peak.count} on {peak.day}
           </span>
+          {typeof target === "number" && targetLabel ? (
+            <>
+              {" · "}
+              <span className="nf-ts__target-key">{targetLabel}</span>
+            </>
+          ) : null}
         </span>
         <span className="nf-numeric">{last.day}</span>
       </figcaption>
