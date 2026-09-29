@@ -149,13 +149,13 @@ export function ThreadContextBanner({
               {words.viewBooking}
               <UiIcon name="chevron-right" size={16} />
             </Link>
-            <Link
-              href={`/listing/${booking.listingId}`}
-              className="nf-btn nf-btn--glass nf-btn--md"
-            >
-              <UiIcon name="house" size={16} />
-              {words.viewProperty}
-            </Link>
+            {/* A hotel room has no listing page (ROOM BOOKINGS 1). */}
+            {booking.listingId ? (
+              <Link href={`/listing/${booking.listingId}`} className="nf-btn nf-btn--glass nf-btn--md">
+                <UiIcon name="house" size={16} />
+                {words.viewProperty}
+              </Link>
+            ) : null}
           </div>
         </div>
         <BookingFace

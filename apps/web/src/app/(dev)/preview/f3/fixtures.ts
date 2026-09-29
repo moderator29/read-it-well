@@ -340,6 +340,8 @@ export const BOOKINGS: BookingView[] = [
   {
     id: "00000000-0000-4000-8000-00000000f331",
     listingId: STAYS[0]!.id,
+    stayHref: `/listing/${STAYS[0]!.id}`,
+    accommodationId: null,
     title: "Grand Vista Hotel",
     area: "Victoria Island",
     city: "Lagos",
@@ -360,6 +362,8 @@ export const BOOKINGS: BookingView[] = [
   {
     id: "00000000-0000-4000-8000-00000000f332",
     listingId: STAYS[1]!.id,
+    stayHref: `/listing/${STAYS[1]!.id}`,
+    accommodationId: null,
     title: "Pearl Waterside Apartments",
     area: "Eko Atlantic",
     city: "Lagos",
@@ -449,6 +453,8 @@ export const RESERVATIONS: ReservationView[] = [
 export const CHECKOUT: CheckoutView = {
   bookingId: BOOKINGS[0]!.id,
   listingId: STAYS[0]!.id,
+  accommodationId: null,
+  stayHref: `/listing/${STAYS[0]!.id}`,
   title: "Grand Vista Hotel",
   location: "Victoria Island, Lagos",
   checkIn: "2026-10-02",

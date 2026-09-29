@@ -154,7 +154,7 @@ export default async function BookingDetailPage({
           A failed read shows neither. The report opens on the check-in day. */}
       {booking.status !== "CANCELLED" && (await bookingChargeKind(booking.id)) === "stay" && (
         <div className="mt-lg grid gap-md">
-          <ArrivalChargesLine listingId={booking.listingId} bookingId={booking.id} locale={locale} />
+          <ArrivalChargesLine listingId={booking.listingId || null} accommodationId={booking.accommodationId} bookingId={booking.id} locale={locale} />
           {(booking.status === "CONFIRMED" || booking.status === "COMPLETED") && booking.checkIn.slice(0, 10) <= lagosToday() && (
             <DoorChargeReport bookingId={booking.id} copy={t.afterTheGate.arrival} />
           )}

@@ -26,7 +26,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
     >
       <div className="flex gap-md p-md">
         <Link
-          href={`/listing/${booking.listingId}`}
+          href={booking.stayHref}
           aria-label={booking.title}
           className="relative block h-[5.75rem] w-[5.75rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-secondary)] sm:h-24 sm:w-32"
         >
@@ -105,7 +105,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
           )}
           {booking.cancellable && <CancelBookingControl booking={booking} label={copy.cancel} />}
           <Link
-            href={`/listing/${booking.listingId}`}
+            href={booking.stayHref}
             className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {copy.viewDetails}

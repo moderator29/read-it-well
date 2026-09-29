@@ -80,11 +80,14 @@ export async function recordNoShow(input: NoShowInput): Promise<ActionResult<nul
 
     // ------------------------------------------------- authorisation
     const [{ data: listing }, provedAdmin] = await Promise.all([
-      admin
-        .from("listings")
-        .select("agent_id, agents!listings_agent_id_fkey!inner(user_id)")
-        .eq("id", booking.listing_id)
-        .maybeSingle(),
+      /* A hotel room has no listing agent (ROOM BOOKINGS 1): its host answers at /host/bookings. */
+      booking.listing_id
+        ? admin
+            .from("listings")
+            .select("agent_id, agents!listings_agent_id_fkey!inner(user_id)")
+            .eq("id", booking.listing_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
       /* An admin override needs the console's key proof, not the role alone. */
       actsAsProvedAdmin(),
     ]);

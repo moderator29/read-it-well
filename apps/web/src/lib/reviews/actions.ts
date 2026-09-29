@@ -98,6 +98,13 @@ async function submitReviewWork(
     );
   }
 
+  /* ROOM BOOKINGS 1: a review attaches to a listing, and a hotel room has
+     none. Reviews of hotel stays are not open yet; say so rather than fail. */
+  if (!booking.listing_id) {
+    return fail("Reviews of hotel stays are not open yet. Thank you for staying.");
+  }
+  const listingId: string = booking.listing_id;
+
   // A rent charge is carried on a bookings row; it is a tenancy, not a stay.
   const { data: rentCharge, error: rentError } = await session.supabase
     .from("rent_payments")
@@ -116,7 +123,7 @@ async function submitReviewWork(
   const body = parsed.data.body && parsed.data.body.length > 0 ? parsed.data.body : null;
 
   const { error: insertError } = await session.supabase.from("reviews").insert({
-    listing_id: booking.listing_id,
+    listing_id: listingId,
     booking_id: booking.id,
     author_id: session.user.id,
     rating: parsed.data.rating,
@@ -146,8 +153,8 @@ async function submitReviewWork(
 
   // The listing's rating aggregate and its written reviews both change, and so
   // does the trips hub's per stay control.
-  revalidatePath(`/listing/${booking.listing_id}`);
+  revalidatePath(`/listing/${listingId}`);
   revalidatePath("/bookings");
 
-  return ok({ listingId: booking.listing_id });
+  return ok({ listingId });
 }

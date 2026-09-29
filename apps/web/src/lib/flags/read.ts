@@ -26,3 +26,5 @@ export const NEIGHBOURS_FLAG = "neighbours_account";
 export const COMMUTE_FLAG = "commute_by_the_clock";
 /** V-69: a renter asks the lister for one clip. */
 export const SHOW_ME_FLAG = "show_me";
+/** ROOM BOOKINGS 1: hotel rooms can be requested and paid for (off until the founder switches it on). */
+export const ROOM_BOOKINGS_FLAG = "room_bookings";

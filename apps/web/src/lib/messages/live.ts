@@ -462,7 +462,8 @@ export async function getThreadContext(conversationId: string): Promise<ThreadCo
         title: booking.listings?.title ?? "Your stay",
         nights: booking.nights,
         totalMinor: booking.total_minor,
-        listingId: booking.listing_id,
+        /* Empty for a hotel room, which has no listing (ROOM BOOKINGS 1). */
+        listingId: booking.listing_id ?? "",
       },
       stateEvents: (events ?? []).map((event) => ({
         at: event.created_at,

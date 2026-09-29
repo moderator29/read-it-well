@@ -68,7 +68,7 @@ function Row({ row, locale, now }: { row: QueueRow; locale: Locale; now: number 
     <li className="nf-admin-queue-row" data-testid="agreement-row" data-agreement={row.id}>
       <div className="nf-admin-queue-row__main">
         <p className="font-semibold text-[var(--nf-content-primary)]">
-          <Link href={`/listing/${row.listingId}`} className="underline-offset-2 hover:underline">
+          <Link href={row.subjectHref} className="underline-offset-2 hover:underline">
             {row.listingTitle}
           </Link>
           <span className="ml-inline nf-admin-badge nf-admin-badge--info">{row.kind === "rent" ? "Rental" : "Stay"}</span>

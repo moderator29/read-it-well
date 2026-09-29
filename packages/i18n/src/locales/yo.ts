@@ -19,6 +19,8 @@ export const yo: Dictionary = withFallback({
   counts: {
     nights: { other: "alẹ́ {count}" },
     guests: { other: "àlejò {count}" },
+    /* English until translated, like the units below. */
+    rooms: { one: "1 room", other: "{count} rooms" },
     adults: { other: "àgbàlagbà {count}" },
     children: { other: "ọmọdé {count}" },
     party: "{adults}, {children}",

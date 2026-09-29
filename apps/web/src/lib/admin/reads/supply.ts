@@ -250,7 +250,7 @@ export async function getSupplyDesk(
           .order("id")
           .range(f, t),
       ),
-      readEvery<{ listing_id: string; total_minor: number }>((f, t) =>
+      readEvery<{ listing_id: string | null; total_minor: number }>((f, t) =>
         db
           .from("bookings")
           .select("listing_id, total_minor")
@@ -266,7 +266,10 @@ export async function getSupplyDesk(
       if (r.payee_user_id) releasedTo.set(r.payee_user_id, (releasedTo.get(r.payee_user_id) ?? 0) + (r.lister_share_minor ?? 0));
     }
     const bookedOn = new Map<string, number>();
-    for (const b of bookings.rows) bookedOn.set(b.listing_id, (bookedOn.get(b.listing_id) ?? 0) + b.total_minor);
+    /* Per listing; a hotel room's booking (no listing) is not a listing's supply. */
+    for (const b of bookings.rows) {
+      if (b.listing_id) bookedOn.set(b.listing_id, (bookedOn.get(b.listing_id) ?? 0) + b.total_minor);
+    }
 
     const data = buildSupply(
       {

@@ -24,6 +24,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { stayTitle } from "./stay-title";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import {
@@ -399,7 +400,7 @@ export async function cancel(
   // host could cancel through the guest's path (SEC-17).
   const { data: booking, error: readError } = await session.supabase
     .from("bookings")
-    .select("id, listing_id, status, check_in, check_out")
+    .select("id, listing_id, accommodation_id, status, check_in, check_out")
     .eq("id", parsed.data.bookingId)
     .eq("guest_id", session.user.id)
     .maybeSingle();
@@ -474,7 +475,9 @@ export async function cancel(
     if (!guest) return;
     const message = bookingCancelled({
       guestName: guest.name,
-      listingTitle: await listingTitleFor(booking.listing_id),
+      listingTitle: booking.listing_id
+        ? await listingTitleFor(booking.listing_id)
+        : await stayTitle(session.supabase, booking),
       checkIn: booking.check_in,
       checkOut: booking.check_out,
     });
@@ -542,11 +545,14 @@ export async function confirm(bookingId: string): Promise<ActionResult<null>> {
     // listings.agent_id points at public.agents, whose user_id is the auth
     // user, so the ownership check walks that join.
     const [{ data: listing }, provedAdmin] = await Promise.all([
-      admin
-        .from("listings")
-        .select("agent_id, agents!listings_agent_id_fkey!inner(user_id)")
-        .eq("id", booking.listing_id)
-        .maybeSingle(),
+      /* A hotel room has no listing agent (ROOM BOOKINGS 1): its host answers at /host/bookings. */
+      booking.listing_id
+        ? admin
+            .from("listings")
+            .select("agent_id, agents!listings_agent_id_fkey!inner(user_id)")
+            .eq("id", booking.listing_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
       /* An admin override needs the console's key proof, not the role alone. */
       actsAsProvedAdmin(),
     ]);

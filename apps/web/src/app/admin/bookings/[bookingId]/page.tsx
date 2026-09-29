@@ -153,7 +153,7 @@ export default async function AdminBookingPage({
           <ui.DetailRow
             label={f.listing}
             value={
-              <Link href={`/listing/${stay.listingId}`} className="underline">
+              <Link href={stay.stayHref} className="underline">
                 {stay.listingTitle}
               </Link>
             }

@@ -19,6 +19,7 @@
  */
 
 import { moneyHoldRefusal } from "@/lib/money/hold";
+import { ensureHostSubaccount } from "./payee-subaccount";
 import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
 import { listerPepRefusal } from "../compliance/pep-gate";
 import { revalidatePath } from "next/cache";
@@ -285,6 +286,8 @@ async function addBankAccountWork(
 
   const admin = getAdminClient();
   if (admin) {
+    /* ROOM BOOKINGS 1: a hotel owner is paid into this account's subaccount. */
+    await ensureHostSubaccount(admin, userId, account.id);
     await recordMoneyAudit(admin, {
       actor: { kind: "user", userId },
       action: "payments.bank_account.added",
@@ -367,6 +370,7 @@ export async function setDefaultBankAccount(id: string, stepUp?: string): Promis
 
   const admin = getAdminClient();
   if (admin) {
+    await ensureHostSubaccount(admin, session.user.id, account.id);
     await recordMoneyAudit(admin, {
       actor: { kind: "user", userId: session.user.id },
       action: "payments.bank_account.default_changed",

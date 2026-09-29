@@ -60,6 +60,7 @@ describe("the host workspace navigation", () => {
     expect(hostNavItems(labels).map((item) => item.label)).toEqual([
       "Overview",
       "Reservations",
+      "Room bookings",
       "Rooms and nights",
       "Photographs",
       "Charges at the door",

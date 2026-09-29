@@ -143,19 +143,23 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
     if (error) return { state: "unavailable" };
     if (!booking) return { state: "missing" };
 
+    /* ROOM BOOKINGS 1: reviews attach to listings; a hotel stay has none yet. */
+    if (!booking.listing_id) return { state: "missing" };
+    const listingId: string = booking.listing_id;
+
     // Display data: the platform listing row first, the seed catalogue as the
     // fallback, a plain placeholder after that. Same ladder the trips hub uses.
     const { data: listingRow } = await session.supabase
       .from("listings")
       .select("title, area, city")
-      .eq("id", booking.listing_id)
+      .eq("id", listingId)
       .maybeSingle();
 
-    const seed = listingRow ? null : await getListingRepository().byId(booking.listing_id);
+    const seed = listingRow ? null : await getListingRepository().byId(listingId);
 
     const subject: ReviewSubject = {
       bookingId: booking.id,
-      listingId: booking.listing_id,
+      listingId,
       title: listingRow?.title ?? seed?.title ?? "Your stay",
       location: [listingRow?.area ?? seed?.area, listingRow?.city ?? seed?.city]
         .filter(Boolean)

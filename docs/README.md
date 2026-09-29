@@ -32,6 +32,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | Document | What it is for |
 |---|---|
 | [MONEY_ARCHITECTURE.md](MONEY_ARCHITECTURE.md) | **How money moves now**: split at payment, the agreement gate, refunds, the Vallo Guarantee, crypto |
+| [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md) | **Hotel rooms**: how a guest requests and pays for a room, how the host is paid, test mode, switching `room_bookings` on |
 | [archive/retired-custody/](archive/retired-custody/README.md) | The retired wallet, escrow and held-payment documents, kept as history |
 
 ## Run and deploy it

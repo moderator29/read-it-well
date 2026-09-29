@@ -703,6 +703,16 @@ queue and are not counted in these cards.
 **Today's reality.** No stay and no reservation has ever been made; every
 card reads 0 and every panel says what will fill it.
 
+**Hotel rooms (ROOM BOOKINGS 1, 29 September 2026).** A booking can now be
+for a hotel room instead of a listing: `accommodation_id`, `room_type_id`,
+`rate_plan_id` and `rooms` are set and `listing_id` is null. The desk shows it
+under the hotel's name and area and links to the hotel's page (the guest's
+own trip and checkout also name the room and how many). The host (the business owner) answers it on Host > Room
+bookings; its agreement reaches Money > Agreements like any stay. Nothing is
+bookable until `room_bookings` is on in Settings > Switches. The whole flow,
+the host's payout and how to switch it on are in
+[ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
+
 ## 12. Payments
 
 **Route:** `/admin/payments`. **Who:** `admin` or `super_admin`.

@@ -565,7 +565,7 @@ export function PayPanel({
             : []),
         ]}
         primary={{ label: plansAction.label, href: plansAction.href }}
-        secondary={{ label: c.backToStay, href: `/listing/${view.listingId}` }}
+        secondary={{ label: c.backToStay, href: view.stayHref }}
       />
 
       <ResultSheet

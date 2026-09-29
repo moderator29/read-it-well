@@ -1,4 +1,5 @@
 import "server-only";
+import { subjectHref, subjectKey, subjectTitles, type AgreementSubject } from "@/lib/agreements/subject";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
@@ -23,6 +24,8 @@ export type QueueRow = {
   kind: "rent" | "stay";
   status: string;
   listingId: string;
+  /** The listing's page, or the hotel's for a room stay (ROOM BOOKINGS 1). */
+  subjectHref: string;
   listingTitle: string;
   renterName: string;
   ownerName: string;
@@ -52,17 +55,15 @@ function termString(terms: unknown, key: string): string | null {
 }
 
 async function toRows(db: SupabaseClient<Database>, rows: AgreementRow[]): Promise<QueueRow[]> {
-  const listingIds = [...new Set(rows.map((r) => r.listing_id))];
   const people = [...new Set(rows.flatMap((r) => [r.renter_id, r.owner_id]))];
   const inspections = rows.map((r) => r.inspection_id).filter((id): id is string => Boolean(id));
-  const [listings, profiles, photos] = await Promise.all([
-    listingIds.length ? db.from("listings").select("id, title").in("id", listingIds) : Promise.resolve({ data: [] }),
+  const [title, profiles, photos] = await Promise.all([
+    subjectTitles(db, rows as unknown as AgreementSubject[]),
     people.length ? db.from("profiles").select("id, display_name").in("id", people) : Promise.resolve({ data: [] }),
     inspections.length
       ? db.from("inspection_report_photos").select("inspection_id").in("inspection_id", inspections)
       : Promise.resolve({ data: [] }),
   ]);
-  const title = new Map((listings.data ?? []).map((l: { id: string; title: string | null }) => [l.id, l.title ?? ""]));
   const name = new Map(
     (profiles.data ?? []).map((p: { id: string; display_name: string | null }) => [p.id, p.display_name ?? ""]),
   );
@@ -74,8 +75,9 @@ async function toRows(db: SupabaseClient<Database>, rows: AgreementRow[]): Promi
     id: r.id,
     kind: r.kind === "stay" ? "stay" : "rent",
     status: r.status,
-    listingId: r.listing_id,
-    listingTitle: title.get(r.listing_id) || "Untitled listing",
+    listingId: r.listing_id ?? "",
+    subjectHref: subjectHref(r as unknown as AgreementSubject),
+    listingTitle: title.get(subjectKey(r as unknown as AgreementSubject)) || "Untitled listing",
     renterName: name.get(r.renter_id) || "A member",
     ownerName: name.get(r.owner_id) || "A lister",
     amountMinor: r.amount_minor,
@@ -163,18 +165,13 @@ export async function readGuaranteeDesk(
     const people = [...new Set(rows.map((c) => c.claimant_id))];
     const [agreements, profiles] = await Promise.all([
       agreementIds.length
-        ? db.from("deal_agreements").select("id, listing_id").in("id", agreementIds)
+        ? db.from("deal_agreements").select("id, listing_id, accommodation_id").in("id", agreementIds)
         : Promise.resolve({ data: [] }),
       people.length ? db.from("profiles").select("id, display_name").in("id", people) : Promise.resolve({ data: [] }),
     ]);
-    const listingOf = new Map(
-      (agreements.data ?? []).map((a: { id: string; listing_id: string }) => [a.id, a.listing_id]),
-    );
-    const listingIds = [...new Set([...listingOf.values()])];
-    const listings = listingIds.length
-      ? await db.from("listings").select("id, title").in("id", listingIds)
-      : { data: [] };
-    const title = new Map((listings.data ?? []).map((l: { id: string; title: string | null }) => [l.id, l.title ?? ""]));
+    const subjects = (agreements.data ?? []) as unknown as (AgreementSubject & { id: string })[];
+    const subjectOf = new Map(subjects.map((a) => [a.id, subjectKey(a)]));
+    const title = await subjectTitles(db, subjects);
     const name = new Map(
       (profiles.data ?? []).map((p: { id: string; display_name: string | null }) => [p.id, p.display_name ?? ""]),
     );
@@ -190,7 +187,7 @@ export async function readGuaranteeDesk(
         agreementId: c.agreement_id,
         status: c.status,
         claimantName: name.get(c.claimant_id) || "A member",
-        listingTitle: title.get(listingOf.get(c.agreement_id) ?? "") || "Untitled listing",
+        listingTitle: title.get(subjectOf.get(c.agreement_id) ?? "") || "Untitled listing",
         items: c.items ?? [],
         description: c.description,
         evidenceCount: (c.evidence_paths ?? []).length,

@@ -47,3 +47,65 @@ export async function ensurePayeeSubaccount(
     return null;
   }
 }
+
+/**
+ * ROOM BOOKINGS 1: WHERE A HOTEL HOST'S SHARE SETTLES.
+ *
+ * A host who is not an agent has no payout account; they are paid into the
+ * default bank account they added in payment settings, and
+ * `private.payee_subaccount` falls back to that account's Paystack
+ * subaccount. This creates it for a business owner's account, in the Paystack
+ * mode the server is running in. Idempotent and best effort, like the
+ * lister's: nothing a person does fails because this could not run, and the
+ * next add, default change or accepted room request tries again. Called with
+ * the service client. Returns the code, or null.
+ */
+export async function ensureHostSubaccount(
+  admin: SupabaseClient<Database>,
+  userId: string,
+  bankAccountId?: string,
+): Promise<string | null> {
+  if (!isPaystackConfigured()) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const loose = admin as any;
+  try {
+    const { data: owned } = await loose
+      .from("businesses")
+      .select("id")
+      .eq("owner_id", userId)
+      .neq("kind", "agency")
+      .limit(1);
+    if (!Array.isArray(owned) || owned.length === 0) return null;
+    let query = loose
+      .from("bank_accounts")
+      .select("id, bank_code, account_number, resolved_account_name, paystack_subaccount_code")
+      .eq("user_id", userId)
+      .is("deleted_at", null);
+    query = bankAccountId ? query.eq("id", bankAccountId) : query.eq("is_default", true);
+    const { data: account } = await query.maybeSingle();
+    const row = account as {
+      id: string;
+      bank_code: string | null;
+      account_number: string | null;
+      resolved_account_name: string | null;
+      paystack_subaccount_code: string | null;
+    } | null;
+    if (!row) return null;
+    if (row.paystack_subaccount_code) return row.paystack_subaccount_code;
+    if (!row.bank_code || !row.account_number) return null;
+    const { subaccountCode } = await createSubaccount({
+      businessName: row.resolved_account_name ?? "Vallo host",
+      bankCode: row.bank_code,
+      accountNumber: row.account_number,
+      description: `Vallo host bank account ${row.id}`,
+    });
+    const { error } = await loose
+      .from("bank_accounts")
+      .update({ paystack_subaccount_code: subaccountCode, subaccount_created_at: new Date().toISOString() })
+      .eq("id", row.id)
+      .is("paystack_subaccount_code", null);
+    return error ? null : subaccountCode;
+  } catch {
+    return null;
+  }
+}
