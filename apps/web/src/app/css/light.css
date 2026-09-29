@@ -233,6 +233,23 @@
   }
 
   /* ------------------------------------------------------------------
+   * THE HERO BAND IN DAYLIGHT (`components/ui/HeroBand.tsx`; spec section
+   * 16, Q2 as the founder widened it on 29 September 2026). The light
+   * theme's one signature moment: the navy block on the warm paper, with a
+   * soft brand bloom in its upper corner and no rim, no glass. The element
+   * is a night island, so `--nf-surface-primary` here is the night card
+   * navy, and its type is white. The radius and spacing are the night
+   * rule's (controls.css), so the band has the same box in both themes.
+   * ---------------------------------------------------------------- */
+  :root[data-theme="light"] .nf-hero-band[data-theme="dark"] {
+    border-color: transparent;
+    background:
+      radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%),
+      var(--nf-surface-primary);
+    box-shadow: 0 18px 36px -24px color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+  }
+
+  /* ------------------------------------------------------------------
    * THE GLASS OBJECTS IN DAYLIGHT: EVERY ONE ON A NAVY TILE (the founder,
    * 29 September 2026, on a live light profile and the landing bento).
    *

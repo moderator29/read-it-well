@@ -96,6 +96,7 @@ export function FirstRun({
   viewer = "member",
   next = null,
   arrival = null,
+  atChoice = false,
   fromSignUpForm = false,
 }: {
   t: Dictionary;
@@ -114,6 +115,8 @@ export function FirstRun({
    * away; absent, it is the cold start and opens on slide one.
    */
   arrival?: Arrival | null;
+  /** A returning device going nowhere: open on the closing choice. */
+  atChoice?: boolean;
   /**
    * The slides were opened from the sign-up form's "What Vallo is" link, and
    * `next` is that form. The control under the slides then reads "Back to
@@ -200,7 +203,7 @@ export function FirstRun({
   const total = slides.length;
   const lastIndex = total - 1;
   /* A stranger with a destination starts on the choice (V-18). */
-  const initialIndex = wall ? lastIndex : 0;
+  const initialIndex = wall || (guest && atChoice) ? lastIndex : 0;
 
   const [beat, setBeat] = useState<"slides" | "question">(
     !guest && !showCards ? "question" : "slides",

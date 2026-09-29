@@ -4,8 +4,11 @@ import { getLocale } from "@/lib/locale";
 import { FirstRun } from "@/components/app/welcome/FirstRun";
 import { WelcomeStage } from "@/components/app/welcome/WelcomeStage";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   FIRST_INTEREST_COOKIE,
+  FIRST_RUN_COOKIE,
+  isFirstRunSeen,
   firstRunNext,
   isSignUpForm,
 } from "@/components/app/welcome/first-run-seen";
@@ -22,17 +25,17 @@ export const metadata: Metadata = {
 /**
  * Get started: the first thing a person sees.
  *
- * What opens on a first launch from the stores, what shows every time
- * somebody taps Get started on the landing page (signed in or not, seen or
- * not: the founder's rule of 23 September), and what a stranger meets the
- * first time they press Sign up or Sign in. Four slides on one stage (the two
+ * What opens on a first launch from the stores, the first time somebody taps
+ * Get started on the landing page, and what a stranger meets the first time
+ * they press Sign up or Sign in. ONCE: a device or an account that has seen
+ * it goes straight on (the founder, 29 September; `planFirstRun`). Four slides on one stage (the two
  * sides and the coin, what verified means, talk first and pay on Vallo, and
  * the ending), skippable. A stranger ends on Create account and Sign in;
  * somebody signed in ends on one Continue into the app. Governing image:
  * `2A49E2F7` in docs/design/references/.
  *
- * REACHABLE SIGNED OUT, and it never redirects: `planFirstRun` in `./plan.ts`
- * (a pure function with its own test) only chooses the ending.
+ * REACHABLE SIGNED OUT. `planFirstRun` in `./plan.ts` (a pure function with
+ * its own test) chooses between skipping and which ending to show.
  *
  * A COLD START OPENS ON THE INTRO (`WelcomeIntro`, 29 September): the name,
  * one line, a small scene of the glass objects and the two doors, Get
@@ -61,18 +64,22 @@ export default async function WelcomePage({
   const session = await loadInterestsState();
 
   /* The market a landing tile named before they had an account (V-18). */
-  const carriedRaw = (await cookies()).get(FIRST_INTEREST_COOKIE)?.value ?? "";
+  const jar = await cookies();
+  const carriedRaw = jar.get(FIRST_INTEREST_COOKIE)?.value ?? "";
   const carried = isPropertyType(carriedRaw) ? carriedRaw : null;
+  const seen = isFirstRunSeen(jar.get(FIRST_RUN_COOKIE)?.value);
 
-  const plan = planFirstRun({ session, next, carried });
+  const tour = (Array.isArray(params.tour) ? params.tour[0] : params.tour) === "1";
+  const plan = planFirstRun({ session, next, carried, seen, tour });
+  /* Seen once, then out of the way (the founder, 29 September). */
+  if (plan.kind === "skip") redirect(plan.to);
 
   /* THE INTRO (the Slate pass, 29 September): a stranger on a cold start
      meets one screen, the name, a moving scene and the two doors, with the
      four slides one tap away as the tour (`?tour=1`). An arrival with a
      destination still opens on the slides' account choice, headed with what
      they asked for (V-18). */
-  const tour = (Array.isArray(params.tour) ? params.tour[0] : params.tour) === "1";
-  if (plan.kind === "guest" && !plan.arrival && !tour) {
+  if (plan.kind === "guest" && !plan.arrival && !plan.choice && !tour) {
     return <WelcomeIntro t={t} next={plan.next} />;
   }
 
@@ -87,6 +94,7 @@ export default async function WelcomePage({
           viewer="guest"
           next={plan.next}
           arrival={plan.arrival}
+          atChoice={plan.choice === true}
           fromSignUpForm={tour && isSignUpForm(plan.next)}
         />
       </WelcomeStage>
