@@ -2,21 +2,43 @@
 -- limit the server actions apply: the 61st message in ten minutes and the
 -- 31st report in an hour are refused (54000); up to the limit every insert
 -- lands; the service role is not counted.
+--
+-- 29 September 2026: the member's real activity counts toward the same
+-- windows (public.rate_limits, fixed windows, committed by other writers), so
+-- three real messages sent a minute before a run made the "sixty land"
+-- control fail. The probe now reads what the member has already used in the
+-- current windows (short and daily) and fills exactly the room left, then
+-- proves the next insert is refused. now() is fixed for the transaction, so
+-- the window cannot turn over mid-probe.
 do $$
 declare
   member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
   convo uuid;
   i int;
   refused text;
+  room int;
+
+  -- What the member may still insert into a table right now: the smaller of
+  -- the short window's and the day's remaining counts.
+  function_room constant text := $q$
+    select least(
+      %1$s - coalesce((select r.count from public.rate_limits r where r.bucket = 'db:' || %3$L and r.subject = %5$L
+                         and r.window_start = to_timestamp(floor(extract(epoch from now()) / %2$s) * %2$s)), 0),
+      %4$s - coalesce((select r.count from public.rate_limits r where r.bucket = 'db:' || %3$L || ':day' and r.subject = %5$L
+                         and r.window_start = to_timestamp(floor(extract(epoch from now()) / 86400) * 86400)), 0))
+  $q$;
 begin
   select id into convo from public.conversations where guest_id = member or agent_id = member limit 1;
   if convo is null then raise exception 'PROBE_FAIL sec-09: the member has no conversation to write into'; end if;
 
+  execute format(function_room, 60, 600, 'messages', 1000, member::text) into room;
+
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
 
-  -- CONTROL: sixty messages in a burst all land.
-  for i in 1..60 loop
+  -- CONTROL: every message up to the limit lands (sixty, less what the
+  -- member already sent in this window).
+  for i in 1..room loop
     insert into public.messages (conversation_id, sender_id, body) values (convo, member, 'probe ' || i);
   end loop;
 
@@ -29,8 +51,11 @@ begin
     raise exception 'PROBE_FAIL sec-09: the 61st message in ten minutes was not refused (%)', coalesce(refused, 'inserted');
   end if;
 
-  -- CONTROL then REFUSAL on reports: thirty land, the thirty-first is refused.
-  for i in 1..30 loop
+  -- CONTROL then REFUSAL on reports: up to thirty an hour land, the next is refused.
+  reset role;
+  execute format(function_room, 30, 3600, 'reports', 100, member::text) into room;
+  set local role authenticated;
+  for i in 1..room loop
     insert into public.reports (reporter_id, target_type, target_id, reason)
     values (member, 'listing', gen_random_uuid()::text, 'probe');
   end loop;
