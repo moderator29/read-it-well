@@ -31,6 +31,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/forgot-password": "password reset",
   "/welcome": "the welcome",
   "/home": "Home",
+  "/home-or-landing": "Home",
   "/stays": "Stays",
   "/search": "Search",
   "/listing/[id]": "the listing",

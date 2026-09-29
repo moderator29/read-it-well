@@ -340,8 +340,8 @@ export function refuseHistory(current: string, previous: string | null, previous
   if (!previousIsInApp) return "not-in-app";
   const prev = normalisePath(previous);
   const here = normalisePath(current);
-  if (matchRoute(prev) === null) return "undeclared";
   if (isDoor(prev)) return "door";
+  if (matchRoute(prev) === null) return "undeclared";
   if (isFlow(prev)) return "flow";
   if (/[?&]done=/.test(previous)) return "success-flag";
   if (prev === here || isAncestor(here, prev)) return "descendant";

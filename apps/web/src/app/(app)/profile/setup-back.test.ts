@@ -47,10 +47,15 @@ describe("profile setup: one back control to the declared parent", () => {
       expect(page).not.toContain("<BackButton");
       expect(page).toContain(`<${form} `);
       const shell = readFileSync(join(SRC, "components/supply/RegisterShell.tsx"), "utf8");
-      expect(shell.match(/data-nav-back=""/g)?.length).toBe(1);
-      expect(shell).toContain("onClick={onBack}");
+      expect(shell.match(/<BackControl /g)?.length).toBe(1);
+      expect(shell).toContain("<BackControl onBack={onBack} label={backLabel} />");
       const source = readFileSync(join(SRC, `components/supply/${form}.tsx`), "utf8");
-      expect(source).toMatch(/if \(step === 0\) \{\s*router\.push\("\/profile\/setup"\);/);
+      /* The first screen leaves through the shared back (history to the
+         chooser when that is where the person came from, else the declared
+         parent), never by pushing a second chooser. */
+      expect(source).toContain('const leave = useBack("/profile/setup");');
+      expect(source).toMatch(/if \(step === 0\) \{[\s\S]*?leave\(\);\s*return;/);
+      expect(source).not.toContain('router.push("/profile/setup")');
     });
   }
 

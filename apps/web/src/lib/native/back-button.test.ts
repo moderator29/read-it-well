@@ -358,25 +358,34 @@ describe("where the hardware button sends a person who is not at a root", () => 
       const decision = androidDecision(pattern, null);
       expect({ pattern, ...decision }).toEqual({
         pattern,
-        action: "push",
+        action: "replace",
         href: ROUTE_PARENTS[pattern],
         reason: "declared-parent",
       });
     }
   });
 
-  it("walks history only when the entry behind really is the parent", () => {
+  it("walks history to the screen behind when it is safe, and never into a door", () => {
     expect(androidDecision("/about", "/")).toEqual({
       action: "back",
       href: "/",
+      delta: 1,
       reason: "history-is-parent",
+    });
+    /* Came from Home: back to Home, not to the declared parent. */
+    expect(androidDecision("/listing/c7f2", "/home")).toEqual({
+      action: "back",
+      href: "/home",
+      delta: 1,
+      reason: "history-is-origin",
     });
     /* The founder's case: inside the product, previous entry is the login
        page, and the button must not go there. */
     expect(androidDecision("/settings", "/sign-in")).toEqual({
-      action: "push",
+      action: "replace",
       href: "/home",
       reason: "declared-parent",
+      refused: "door",
     });
   });
 
@@ -416,7 +425,7 @@ describe("where the hardware button sends a person who is not at a root", () => 
     for (const [path, href] of expected) {
       expect({ path, ...androidDecision(path, null) }).toEqual({
         path,
-        action: "push",
+        action: "replace",
         href,
         reason: "declared-parent",
       });
@@ -441,23 +450,23 @@ describe("where the hardware button sends a person who is not at a root", () => 
       const decision = androidDecision(door, null);
       expect({ door, ...decision }).not.toEqual({
         door,
-        action: "push",
+        action: "replace",
         href: "/start",
         reason: "declared-parent",
       });
     }
     expect(androidDecision("/sign-in", null)).toEqual({
-      action: "push",
+      action: "replace",
       href: "/welcome",
       reason: "declared-parent",
     });
     expect(androidDecision("/sign-up", null)).toEqual({
-      action: "push",
+      action: "replace",
       href: "/welcome",
       reason: "declared-parent",
     });
     expect(androidDecision("/auth/callback", null)).toEqual({
-      action: "push",
+      action: "replace",
       href: "/sign-in",
       reason: "declared-parent",
     });
@@ -466,11 +475,11 @@ describe("where the hardware button sends a person who is not at a root", () => 
   it("takes no proof from a browser with no Navigation API", () => {
     const blind: NavigationLike = {};
     expect(previousEntryPath(blind)).toBeNull();
-    /* `/search` declares the landing page as its parent since the founder's
-       C3.2 answer (23 September), so the declared parent here is "/". */
+    /* `/search` declares `/home-or-landing`: `/home` for a member, `/` for
+       anybody else (see `route-parents.ts`). */
     expect(androidDecision("/search", previousEntryPath(blind))).toEqual({
-      action: "push",
-      href: "/",
+      action: "replace",
+      href: "/home-or-landing",
       reason: "declared-parent",
     });
   });

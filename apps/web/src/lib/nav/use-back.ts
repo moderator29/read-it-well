@@ -35,13 +35,19 @@ export function decideBack(path: string, fallback: string, surface: "web" | "and
   });
 }
 
+/** Parents that are redirects decided on the server (`route-parents.ts`). */
+const SERVER_REDIRECTS = new Set(["/home-or-landing"]);
+
 /** Carry a decision out. `exit` is Android's alone and is handled there. */
 export function performBack(decision: BackDecision, router: RouterLike): void {
   if (decision.action === "back") {
     if (decision.delta > 1) window.history.go(-decision.delta);
     else router.back();
   } else if (decision.action === "replace") {
-    router.replace(decision.href);
+    /* A route handler answers with a redirect, not a page, so it gets a real
+       request rather than a router transition. */
+    if (SERVER_REDIRECTS.has(decision.href)) window.location.replace(decision.href);
+    else router.replace(decision.href);
   }
 }
 
