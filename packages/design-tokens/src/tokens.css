@@ -2636,6 +2636,18 @@
   --nf-press-scale-lg: 0.985;
 
   /* ---------------------------------------------------------------------
+   * BETWEEN PAGES (motion sweep, 29 September 2026). How far a page travels
+   * when the route changes (`app/css/route-motion.css`). Small on purpose: a
+   * native push moves the whole screen width, but on the web the old page is
+   * a snapshot, and a short drift says "deeper" or "back" without asking the
+   * eye to track a picture across the glass. The incoming page travels a
+   * little further than the outgoing one, so it reads as arriving.
+   * ------------------------------------------------------------------ */
+  --nf-route-shift-out: 1.5rem;
+  --nf-route-shift-in: 2rem;
+  --nf-route-rise: 0.375rem;
+
+  /* ---------------------------------------------------------------------
    * Typography scale. Roles, not raw sizes (Design prompt §4).
    * ------------------------------------------------------------------ */
   /*
@@ -3450,6 +3462,9 @@
     --nf-press-scale-sm: 1;
     --nf-press-scale: 1;
     --nf-press-scale-lg: 1;
+    --nf-route-shift-out: 0;
+    --nf-route-shift-in: 0;
+    --nf-route-rise: 0;
   }
 }
 

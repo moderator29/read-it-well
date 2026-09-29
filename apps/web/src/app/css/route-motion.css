@@ -1,0 +1,212 @@
+/*
+ * BETWEEN PAGES (motion sweep, 29 September 2026).
+ *
+ * The founder asked for navigation to feel like a top native app: you can
+ * tell from the motion alone whether you went deeper, came back, or switched
+ * tabs. Until now every route change was the same 240ms opacity fade on
+ * `.nf-page-stage > *`, whichever way you moved, and immersive routes got
+ * nothing.
+ *
+ * HOW IT WORKS. Each route group's `template.tsx` wraps the page in React's
+ * `<ViewTransition>` (`components/motion/RouteTransition.tsx`) with the class
+ * `nf-page` on enter and exit. The App Router runs every navigation as a
+ * transition, so React hands the swap to the browser's View Transitions API,
+ * which snapshots the outgoing page and animates it against the live incoming
+ * one. Which way it moves is read from `data-nav-dir` on the root
+ * (`lib/motion/nav-direction.ts`): forward, back or tab.
+ *
+ *   forward  old drifts toward the leading edge and fades; new arrives from
+ *            the trailing edge
+ *   back     the mirror image
+ *   tab      a crossfade with a small rise: nothing was pushed or popped
+ *
+ * THE CHROME DOES NOT MOVE. The header, the dock, the rail and the site bar
+ * carry their own `view-transition-name`, so they are lifted out of the page
+ * snapshots, painted above them, and simply swap to their new state. Without
+ * that, the sliding page would paint over the header for a quarter second.
+ * The names sit on the glass element itself and never on a wrapper, because
+ * a named element is a backdrop root, and naming a wrapper would switch off
+ * the blur of the glass inside it.
+ *
+ * NOTHING WAITS AND NOTHING IS SWALLOWED. `::view-transition` takes no pointer
+ * events, so a tap during the animation reaches the live page underneath.
+ * Only `translate` and `opacity` animate, on snapshots the compositor already
+ * holds, which is what keeps this at frame rate on a low-end Android.
+ *
+ * THE GATES.
+ *   - Operating-system reduced motion: `base.css` sets every view-transition
+ *     animation to none, so the swap is instant. The route tokens also
+ *     collapse to 0 in tokens.css.
+ *   - Motion set to Off: `RouteTransition` asks React for no transition at
+ *     all. The rule at the foot is the stylesheet's second guard.
+ *   - Motion set to Calm: a short crossfade, with no travel.
+ *   - Cinematic: the same moves, on its longer duration ladder.
+ *   - The side flip passes the `nf-flip` transition type and gets none, so
+ *     its own turn is the only motion on screen.
+ *
+ * A partial of globals.css, imported after the shell partials so the page
+ * stage override below lands on top of `shell-m.css`.
+ */
+
+/* The sign of the move: +1 forward, -1 back. Right-to-left reverses both. */
+:root {
+  --nf-route-sign: 1;
+}
+:root[data-nav-dir="back"] {
+  --nf-route-sign: -1;
+}
+:root[dir="rtl"] {
+  --nf-route-sign: -1;
+}
+:root[dir="rtl"][data-nav-dir="back"] {
+  --nf-route-sign: 1;
+}
+
+@supports (view-transition-class: none) {
+  /* ------------------------------------------------------- the anchors */
+  .nf-app-header {
+    view-transition-name: nf-chrome-header;
+  }
+  .nf-site-nav {
+    view-transition-name: nf-chrome-site;
+  }
+  .nf-tabbar {
+    view-transition-name: nf-chrome-tabbar;
+  }
+  .nf-dock-island {
+    view-transition-name: nf-chrome-island;
+  }
+  .nf-nav--rail {
+    view-transition-name: nf-chrome-rail;
+  }
+  .nf-app-header,
+  .nf-site-nav,
+  .nf-tabbar,
+  .nf-dock-island,
+  .nf-nav--rail {
+    view-transition-class: nf-chrome;
+  }
+
+  /*
+   * THE OLD STAGE FADE STANDS DOWN where the browser can do the real thing.
+   * Left on, it faded the incoming page a second time inside the transition,
+   * which read as sluggish, and on a first load it held the page's first
+   * paint at zero opacity for a quarter second for no reason. Cinematic's
+   * rise is stood down with it; the route transition runs on the cinematic
+   * ladder instead.
+   */
+  html .nf-page-stage > *,
+  html:root[data-motion="cinematic"] .nf-page-stage > * {
+    animation: none;
+  }
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+/* The chrome swaps in place and stays above the travelling pages. */
+::view-transition-group(.nf-chrome) {
+  z-index: 3;
+  animation: none;
+}
+::view-transition-old(.nf-chrome) {
+  display: none;
+}
+::view-transition-new(.nf-chrome) {
+  animation: none;
+}
+
+/* The canvas behind the pages does not crossfade with itself. */
+::view-transition-old(root) {
+  display: none;
+}
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* ----------------------------------------------------------- forward / back */
+
+::view-transition-old(.nf-page) {
+  animation:
+    nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both,
+    nf-route-out var(--nf-duration-base) var(--nf-ease-exit) both;
+}
+::view-transition-new(.nf-page) {
+  animation:
+    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-entrance) both,
+    nf-route-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+}
+
+/* ---------------------------------------------------------------------- tab */
+
+:root[data-nav-dir="tab"]::view-transition-old(.nf-page) {
+  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both;
+}
+:root[data-nav-dir="tab"]::view-transition-new(.nf-page) {
+  animation:
+    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-entrance) both,
+    nf-route-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
+}
+
+/* -------------------------------------------------- the listing photo morph */
+
+/*
+ * The card's photo box and the detail gallery's lead pane share a name for
+ * the length of one navigation (see `ListingCard.tsx` and `ListingGallery.tsx`).
+ * The group carries the photo from the grid cell to the hero on the entrance
+ * curve, above the pages and below the chrome.
+ */
+.nf-vt-morph {
+  view-transition-class: nf-morph;
+}
+::view-transition-group(.nf-morph) {
+  z-index: 2;
+  animation-duration: var(--nf-duration-slow);
+  animation-timing-function: var(--nf-ease-entrance);
+}
+
+/* --------------------------------------------------------------------- calm */
+
+:root[data-motion="calm"]::view-transition-old(.nf-page) {
+  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-standard) both;
+}
+:root[data-motion="calm"]::view-transition-new(.nf-page) {
+  animation: nf-route-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+}
+
+/* ---------------------------------------------------------------------- off */
+
+:root[data-motion="off"]::view-transition-group(*),
+:root[data-motion="off"]::view-transition-old(*),
+:root[data-motion="off"]::view-transition-new(*) {
+  animation: none !important;
+}
+
+/* ---------------------------------------------------------------- keyframes */
+
+@keyframes nf-route-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes nf-route-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes nf-route-out {
+  to {
+    translate: calc(var(--nf-route-shift-out) * var(--nf-route-sign) * -1) 0;
+  }
+}
+@keyframes nf-route-in {
+  from {
+    translate: calc(var(--nf-route-shift-in) * var(--nf-route-sign)) 0;
+  }
+}
+@keyframes nf-route-rise {
+  from {
+    translate: 0 var(--nf-route-rise);
+  }
+}
