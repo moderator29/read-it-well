@@ -12,7 +12,8 @@
 --  * asked about somebody else, or with no caller (jobs, triggers), has_role
 --    answers from user_roles as before;
 --  * a live staff grant with no proof gets no scope, and with one gets its own;
---  * members can neither read nor write console_step_ups.
+--  * members can neither read nor write console_step_ups;
+--  * internal notes are hidden from a session with no proof.
 do $$
 declare
   boss uuid;
@@ -24,6 +25,7 @@ declare
   seen_without int;
   seen_with int;
   n int;
+  subj uuid;
 begin
   select user_id into boss from public.user_roles where role = 'admin' order by granted_at limit 1;
   if boss is null then raise exception 'PROBE_FAIL sec-console-mfa: no admin to probe with'; end if;
@@ -80,6 +82,22 @@ begin
   if seen_with <= seen_without then
     raise exception 'PROBE_FAIL sec-console-mfa: audit_log read % rows without a proof and % with one', seen_without, seen_with;
   end if;
+
+  -- Internal notes follow the same rule (is_any_staff, 20260929 notes fix).
+  select u.id into subj from auth.users u where u.id <> boss limit 1;
+  insert into public.member_notes (subject_id, author_id, body) values (subj, boss, 'probe note');
+  delete from public.console_step_ups where user_id = boss and session_id = other_sess;
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', boss, 'role', 'authenticated', 'session_id', other_sess)::text, true);
+  if private.is_any_staff(boss) then
+    raise exception 'PROBE_FAIL sec-console-mfa: is_any_staff held with no proof for this session';
+  end if;
+  set local role authenticated;
+  select count(*) into n from public.staff_member_notes_for(array[subj]);
+  reset role;
+  if n <> 0 then raise exception 'PROBE_FAIL sec-console-mfa: notes read with no proof for this session'; end if;
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', boss, 'role', 'authenticated', 'session_id', sess)::text, true);
 
   -- Somebody else asking about the admin still gets the plain answer.
   perform set_config('request.jwt.claims',

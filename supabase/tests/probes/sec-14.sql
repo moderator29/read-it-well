@@ -17,10 +17,10 @@ begin
   -- probe's session carries one for every admin and for the QA member (who
   -- some probes make staff), rolled back with everything else.
   insert into public.console_step_ups (user_id, session_id, expires_at)
-  select u, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
+  select console_probe_uid, '00000000-0000-4000-8000-00000000c0de', now() + interval '1 hour'
     from (select user_id from public.user_roles where role in ('admin', 'super_admin')
           union select '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'::uuid
-          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(u)
+          union select '957b3bd2-cce3-425d-bba9-5cd876ca3d62'::uuid) s(console_probe_uid)
   on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
   -- Sign-ups assembled by hand, through the real handle_new_user.
   for signup in

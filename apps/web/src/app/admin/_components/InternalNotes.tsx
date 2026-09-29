@@ -1,5 +1,5 @@
 import { STAFF_SCOPES, STAFF_SCOPE_LABEL, requireConsole } from "@/lib/admin/guard";
-import { readMemberNotes } from "@/lib/admin/notes";
+import { readMemberNotes, type MemberNotesRead } from "@/lib/admin/notes";
 import { NoteForm } from "./NoteForm";
 
 const when = (iso: string) =>
@@ -11,8 +11,17 @@ const when = (iso: string) =>
  * member never sees them. A note restricted to a desk shows only to that
  * desk's holders and admins. Append-only, and every note is in the audit log.
  */
-export async function InternalNotes({ subjectId, path }: { subjectId: string; path: string }) {
-  const [read, door] = await Promise.all([readMemberNotes(subjectId), requireConsole()]);
+export async function InternalNotes({
+  subjectId,
+  path,
+  preloaded,
+}: {
+  subjectId: string;
+  path: string;
+  /** Notes already read in one call for the whole desk (`readMemberNotesFor`). */
+  preloaded?: MemberNotesRead;
+}) {
+  const [read, door] = await Promise.all([preloaded ?? readMemberNotes(subjectId), requireConsole()]);
   if (door.state !== "console") return null;
   const held =
     door.staff.isAdmin || door.staff.isSuperAdmin ? [...STAFF_SCOPES] : door.staff.scopes;
