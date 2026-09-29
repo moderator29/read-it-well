@@ -126,7 +126,7 @@ export function useOverlay({
       if (event.shiftKey && (active === first || !root.contains(active))) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && active === last) {
+      } else if (!event.shiftKey && (active === last || !root.contains(active))) {
         event.preventDefault();
         first.focus();
       }

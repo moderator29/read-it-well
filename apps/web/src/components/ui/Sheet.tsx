@@ -348,7 +348,10 @@ export function Sheet({
         ? wanted
         : (node.querySelector<HTMLElement>(FOCUSABLE) ?? node);
     target.focus({ preventScroll: true });
-  }, [open, initialFocus]);
+    /* `mounted` too: a sheet that is open during hydration renders nothing
+       on that first pass (the portal latch), so the node only exists once
+       `mounted` flips, and without it here first focus never happened. */
+  }, [open, mounted, initialFocus]);
 
   /*
    * THE KEYBOARD CHANGES THE VIEWPORT UNDER A SETTLED SHEET.
