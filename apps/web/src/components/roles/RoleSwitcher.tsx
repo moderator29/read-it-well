@@ -35,7 +35,7 @@ import {
  *
  * That framing was wrong about the product. Nobody becomes an agent. Somebody
  * renting a flat in Yaba puts the family plot in Enugu up for sale and is now
- * doing both, on one account, with one inbox and one wallet. The thing they
+ * doing both, on one account, with one inbox. The thing they
  * need is not a conversion funnel, it is a SWITCH - and the moment they use it
  * is exactly the moment to explain what the profile is and start setting it
  * up, because that is when they have said what they want.

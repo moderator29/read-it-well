@@ -362,7 +362,7 @@ export function buildNav({
   /* Track B: help is one tap from every screen, on both sides, signed in or
      not. Signed in, it opens the in-app help and support page (the support
      chat and "talk to a person"); signed out, the public help centre. */
-  tail.push({ href: signedIn ? "/settings/help" : "/help", label: t.nav.helpSupport, icon: "ticket" });
+  tail.push({ href: signedIn ? "/support" : "/help", label: t.nav.helpSupport, icon: "ticket" });
   if (signedIn) {
     tail.push({ href: "/settings", label: t.nav.settings, icon: "settings-gear" });
   }

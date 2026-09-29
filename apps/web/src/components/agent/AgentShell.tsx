@@ -25,6 +25,8 @@ export async function AgentShell({
   active,
   profile,
   children,
+  immersive = false,
+  chromeBack = true,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -32,6 +34,18 @@ export async function AgentShell({
   /** The real agent behind this workspace, or null when nobody is. */
   profile: AgentProfile | null;
   children: React.ReactNode;
+  /**
+   * The content owns the rest of the viewport: an open conversation, whose
+   * composer is pinned to the bottom edge and whose scroller takes the height
+   * between it and the bar. The same contract `AppShell` gives a thread
+   * (`isImmersiveRoute`), so `ThreadView` renders identically in both shells.
+   */
+  immersive?: boolean;
+  /**
+   * Whether the bar draws its own way back. Off where the content draws one
+   * (a thread's head, a `PageHeader`), so the screen never carries two arrows.
+   */
+  chromeBack?: boolean;
 }) {
   /* Resolved here rather than per page, so the badge is correct on all ten
      destinations without every page having to remember to fetch it. Fails soft
@@ -42,12 +56,17 @@ export async function AgentShell({
     <div className="nf-agent flex min-h-dvh">
       <AgentRail t={t} active={active} profile={profile} unreadMessages={unreadMessages} />
 
-      <main id="main" className="min-w-0 flex-1">
+      <main
+        id="main"
+        className={immersive ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden" : "min-w-0 flex-1"}
+      >
         <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
           <div className="flex h-header-sm items-center gap-xs px-sm sm:h-header sm:gap-md sm:px-5 md:px-xl">
             {/* The way back, always top left: previous screen when there is
                 one in this session, otherwise personal home. */}
-            <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
+            {chromeBack && (
+              <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
+            )}
             <AgentMobileNav
               t={t}
               active={active}
@@ -91,7 +110,9 @@ export async function AgentShell({
               then the language control, quietened to the console's glass
               inside `.nf-agent` rather than restyled in its own file.
             */}
-            <Link href="/notifications" aria-label={t.nav.notifications} className="nf-icon-btn h-10 w-10">
+            {/* The workspace's own notifications route, so the bell does not
+                drop an agent into the consumer shell. */}
+            <Link href="/agent/notifications" aria-label={t.nav.notifications} className="nf-icon-btn h-10 w-10">
               <UiIcon name="bell" size={20} />
             </Link>
             {profile && (
@@ -105,11 +126,15 @@ export async function AgentShell({
           </div>
         </header>
 
-        <div className="px-md pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10">
-          {/* SCUML item 20: until a lister has answered the PEP question. */}
-          {profile && <PepBanner />}
-          {children}
-        </div>
+        {immersive ? (
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        ) : (
+          <div className="px-md pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10">
+            {/* SCUML item 20: until a lister has answered the PEP question. */}
+            {profile && <PepBanner />}
+            {children}
+          </div>
+        )}
       </main>
     </div>
   );

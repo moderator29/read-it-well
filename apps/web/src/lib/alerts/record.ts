@@ -68,8 +68,14 @@ const SEVERITY: Record<AlertSeverity, DbSeverity> = {
  * every run for an hour, must not fill the desk with identical rows an
  * operator has to close one by one. Same title, same subject, still open,
  * younger than this: the new one is folded into the old one.
+ *
+ * It was ten minutes, which folded nothing for a job that runs every
+ * fifteen: sanctions-screen opened 411 identical "lists unreadable" rows in
+ * four days and buried every other alert on the desk. An alert that is
+ * still open is still the news, so a day is the window; once somebody
+ * closes it, the next failure opens a fresh one.
  */
-const DEDUP_WINDOW_MS = 10 * 60 * 1_000;
+const DEDUP_WINDOW_MS = 24 * 60 * 60 * 1_000;
 
 const MAX_STRING = 200;
 const MAX_DESCRIPTION = 2_000;

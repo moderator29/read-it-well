@@ -10,6 +10,8 @@ For setup, architecture and the repository layout, start with the [repository RE
 |---|---|
 | [PRODUCT.md](PRODUCT.md) | What Vallo is, who it serves, what a listing is, who can do what, and the vocabulary. Read it first |
 | [THE_AUDIT.md](THE_AUDIT.md) | The two-pass pre-store audit of 23 September 2026: every finding with evidence and fix, store readiness, the order of work, and (section 11) what only the founder can do |
+| [THE_AUDIT_FIXES.md](THE_AUDIT_FIXES.md) | How each finding in THE_AUDIT was closed: the change, the evidence and the review |
+| [THE_HUNDRED.md](THE_HUNDRED.md) | The hundred ranked recommendations of 23 September 2026 (V-01 to V-100). Code comments cite their IDs |
 | [RECOMMENDATIONS.md](RECOMMENDATIONS.md) | The register of findings and open work. Code comments cite its IDs |
 | [ONE_PERSON_MANY_ACCOUNTS.md](ONE_PERSON_MANY_ACCOUNTS.md) | How one person holding several accounts or workspaces is handled at each gate |
 | [BADGES.md](BADGES.md) | Earned badges for agents and members |
@@ -42,6 +44,8 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [ONBOARDING_A_RESTAURANT.md](ONBOARDING_A_RESTAURANT.md) | What to collect from a restaurant owner, and why |
 | [security/GRANT_STATE.md](security/GRANT_STATE.md) | The grant state of the live database |
 | [safety/BLOCKED_TERMS_PROPOSAL.md](safety/BLOCKED_TERMS_PROPOSAL.md) | A proposed starter list for the abuse filter |
+| [COMPLIANCE_RUNBOOK.md](COMPLIANCE_RUNBOOK.md) | What staff do for each AML/CFT (SCUML) obligation, and in what order |
+| [schema/NAMES.md](schema/NAMES.md) | Schema names that mislead, and what they actually hold (a unit test checks it) |
 | [SUBJECT_ACCESS.md](SUBJECT_ACCESS.md) | How a person gets a copy of their data: the self-serve export and the by-request route |
 | [RETENTION_SCHEDULE.md](RETENTION_SCHEDULE.md) | Data retention and destruction schedule (Nigeria Data Protection Act 2023) |
 
@@ -49,7 +53,9 @@ For setup, architecture and the repository layout, start with the [repository RE
 
 | Document | What it is for |
 |---|---|
-| [MOBILE.md](MOBILE.md) | Building, signing and shipping the iOS and Android apps |
+| [MOBILE.md](MOBILE.md) | Building, signing and shipping the iOS and Android apps. Section 7 is the Apple plan: the founder's personal account first, then an app transfer to the company account |
+| [store/FOUNDER_CHECKLIST.md](store/FOUNDER_CHECKLIST.md), [store/FOUNDER_STEPS.md](store/FOUNDER_STEPS.md) | The founder's store steps, in plain language, and the console click paths |
+| [store/LISTING_COPY.md](store/LISTING_COPY.md), [store/PRIVACY_LABELS.md](store/PRIVACY_LABELS.md) | Draft store listing copy and the store privacy answers |
 | [MOBILE_READINESS.md](MOBILE_READINESS.md) | Why the native apps load the live origin, and store posture |
 | [STORE_SUBMISSION_NOTES.md](STORE_SUBMISSION_NOTES.md) | Decisions taken for App Store and Play Store submission |
 | [NATIVE_CI.md](NATIVE_CI.md) | The Android and iOS build workflows and the secrets they need |
@@ -73,12 +79,14 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [DESIGN_DIRECTION.md](DESIGN_DIRECTION.md) | The design direction. The reference images govern the UI |
 | [design/CATALOGUE.md](design/CATALOGUE.md) | An index of every reference image in `design/references/`, including the four admin console renders in `design/references/admin/` |
 | [design/GLOW_IDENTITY.md](design/GLOW_IDENTITY.md) | The glow system, measured |
-| [design/LIGHT_MODE_REMOVED.md](design/LIGHT_MODE_REMOVED.md) | Why light mode was removed |
+| [design/LIGHT_MODE_REMOVED.md](design/LIGHT_MODE_REMOVED.md) | History: why light mode was removed on 23 September 2026. It was restored on 25 September and ships today (Light, Dark or System, default Dark) |
+| [design/VOICE.md](design/VOICE.md) | How the product speaks in empty, loading, offline, failed and done states |
 | [design/NAV_STATE.md](design/NAV_STATE.md) | Where back goes, per route (generated) |
 | [design/audits/](design/audits/) | Design audits cited by the code |
 | [BRAND_MARKS.md](BRAND_MARKS.md) | The glass brand marks |
 | [ICON_SYSTEM.md](ICON_SYSTEM.md) | The icon tiers and their rules |
 | [IMAGERY.md](IMAGERY.md) | Photography shortlist and licences |
+| [TRACK_M_MOTION_PLAN.md](TRACK_M_MOTION_PLAN.md) | The motion plan and reference check of 25 September 2026 |
 | [i18n/LOCALE_STATE.md](i18n/LOCALE_STATE.md) | The state of the Yoruba, Hausa and Igbo drafts |
 
 ## Company

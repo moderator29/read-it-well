@@ -212,7 +212,7 @@ describe("SCUML item 17: renewal", () => {
     expect(read.state === "ok" && read.mandates.map((m) => m.supersededAt)).toEqual([null, "2026-09-24T10:00:00Z"]);
   });
 
-  const dir = join(__dirname, "../../../../../supabase/migrations");
+  const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
   const file = readdirSync(dir).find((f) => f.startsWith("20260924171100_scuml_item_17"));
   const sql = file ? readFileSync(join(dir, file), "utf8") : "";
 
@@ -227,7 +227,7 @@ describe("SCUML item 17: renewal", () => {
 });
 
 describe("SCUML item 17: the review (20260924171200)", () => {
-  const dir = join(__dirname, "../../../../../supabase/migrations");
+  const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
   const file = readdirSync(dir).find((f) => f.startsWith("20260924171200_scuml_item_17"));
   const sql = file ? readFileSync(join(dir, file), "utf8") : "";
 
@@ -270,7 +270,7 @@ describe("SCUML item 17: the review (20260924171200)", () => {
 });
 
 describe("SCUML item 17: the closed sets match the migration", () => {
-  const dir = join(__dirname, "../../../../../supabase/migrations");
+  const dir = join(__dirname, "../../../../../supabase/migrations/superseded");
   const file = readdirSync(dir).find((f) => f.startsWith("20260924171000_scuml_item_17"));
   const sql = file ? readFileSync(join(dir, file), "utf8") : "";
 

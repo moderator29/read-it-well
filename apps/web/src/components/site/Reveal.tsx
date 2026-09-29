@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { motionQuiet } from "@/lib/motion/gate";
 
 /**
  * Scroll reveal.
@@ -8,10 +9,18 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  * Wraps a block and fades it up the first time it enters the viewport, so the
  * page assembles itself as you scroll rather than arriving all at once. Uses one
  * IntersectionObserver per block, disconnects after firing, and respects reduced
- * motion by rendering visible immediately. `delay` staggers siblings.
+ * motion (and the Calm and Off motion settings) by never hiding at all. `delay`
+ * staggers siblings.
  *
- * ALREADY ON SCREEN MEANS ALREADY REVEALED. A block sitting in the viewport at
- * first paint is shown outright rather than left mid flight.
+ * VISIBLE UNTIL JAVASCRIPT SAYS OTHERWISE. The server renders
+ * `data-shown="true"`, so the first paint, a page whose scripts never run, a
+ * print and a capture taken before hydration all show the content. Hiding only
+ * happens on mount, only for a block whose top edge is below the fold, and it
+ * is instant (no transition), so the hide itself is never on screen. When the
+ * server emitted the hidden state instead, every block, above the fold
+ * included, sat at `opacity: 0` until the chunks downloaded and hydrated: the
+ * header painted and the body arrived later. `components/motion/Reveal.tsx`
+ * follows the same rule.
  *
  * `data-instant` used to be set here too, feeding a second, scroll-driven
  * off for it entirely. Without that, the CSS view() timeline held the first
@@ -33,25 +42,22 @@ export function Reveal({
   as?: "div" | "section" | "li" | "ul";
 }) {
   const ref = useRef<HTMLElement | null>(null);
-  const [shown, setShown] = useState(false);
+  /*
+   * The hidden state is written straight onto the element rather than through
+   * React state, as `components/motion/Reveal.tsx` does: React renders
+   * `data-shown="true"` and never changes that prop, so a re-render cannot
+   * reset what the effect wrote, and a reveal costs no second render.
+   */
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setShown(true);
-      return;
-    }
+    if (motionQuiet()) return;
     const el = ref.current;
     if (!el) return;
 
     // Anything whose top edge is already inside the viewport on mount is
     // above the fold. There is no entry transit left for it to animate
-    // through, so it is shown outright rather than left mid flight.
-    const box = el.getBoundingClientRect();
-    if (box.top < window.innerHeight) {
-      setShown(true);
-      return;
-    }
+    // through, so it stays as the server drew it.
+    if (el.getBoundingClientRect().top < window.innerHeight) return;
 
     /*
      * NO OBSERVER, NO HIDING. F2-054.
@@ -67,16 +73,19 @@ export function Reveal({
      * caught by this component, so the old code did not merely fail to observe:
      * it took the render tree with it. Checked before constructed.
      */
-    if (typeof IntersectionObserver === "undefined") {
-      setShown(true);
-      return;
-    }
+    if (typeof IntersectionObserver === "undefined") return;
+
+    // Hidden with the transition off, so the fade out is never played.
+    el.style.transition = "none";
+    el.dataset.shown = "false";
 
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting) {
-            setShown(true);
+            el.style.transition = "";
+            el.style.transitionDelay = `${delay}ms`;
+            el.dataset.shown = "true";
             io.disconnect();
           }
         }
@@ -102,15 +111,20 @@ export function Reveal({
       { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
     io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    return () => {
+      io.disconnect();
+      // Never leave a block hidden with nothing watching it: a re-run of this
+      // effect decides afresh from where the block is now.
+      el.style.transition = "";
+      el.dataset.shown = "true";
+    };
+  }, [delay]);
 
   const Comp = Tag as "div";
   return (
     <Comp
       ref={ref as React.Ref<HTMLDivElement>}
-      data-shown={shown}
-      style={{ transitionDelay: shown ? `${delay}ms` : "0ms" }}
+      data-shown="true"
       className={`nf-reveal ${className ?? ""}`}
     >
       {children}

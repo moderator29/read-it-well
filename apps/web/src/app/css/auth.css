@@ -284,6 +284,28 @@
   .nf-auth__legal a:hover {
     text-decoration: underline;
   }
+  /*
+   * THE TAP FLOOR FOR THE TEXT LINKS (F-10). "Sign up", "Sign in", the
+   * welcome door and the Terms / Privacy / Rules line drew 14 to 17 px tall.
+   * The same invisible 44 px hit area `.nf-tap` gives, so the line itself
+   * does not move and nothing is repainted.
+   */
+  .nf-auth__swap a,
+  .nf-auth__legal a,
+  .nf-auth__notice-link {
+    position: relative;
+  }
+  .nf-auth__swap a::after,
+  .nf-auth__legal a::after,
+  .nf-auth__notice-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
 
   /*
    * The way back (R14), top left, opposite the language control and matched

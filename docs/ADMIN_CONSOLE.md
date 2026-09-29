@@ -585,7 +585,7 @@ reconcile job settles any that did).
 | By channel | Attempts in thirty days by channel (card, bank, USSD and so on; "unrecorded" where the row does not say), and the value that came in on each | same |
 | Where payments ended | One bar on the status four with a word on every segment wide enough and a key naming all five with their counts | same |
 | Every payment | Every attempt, newest first: when it started, the provider reference in full, the kind (a checkout links to its stay), the channel, the outcome and the amount. Narrow by outcome and by kind; numbered pages of 12 | same |
-| Health | Ledger shortfall, money frozen by stuck holds and money waiting on the provider; the overdrawn wallets, the stuck withdrawal holds with the release control, and payments the provider has not settled | `getPaymentHealth()` (Session A), calling `public.admin_payment_health` |
+| Health | Money frozen by stuck holds and money waiting on the provider; the stuck withdrawal holds with the release control, and payments the provider has not settled. The overdrawn-wallets table and its shortfall figure were removed with custody (`admin_payment_health` still returns an always-empty `overdrawn`) | `getPaymentHealth()` (Session A), calling `public.admin_payment_health` |
 | Look up a person | Saved cards and bank accounts (masked) and their terms standing, with removal | `findAdminSubject`, `getSavedMethods`, `getTermsStanding` (Session A) |
 
 **Actions, all Session A's, unchanged.** Release stuck holds
@@ -673,7 +673,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
 | vallo_remind_caution_due | pg_cron `15 7 * * *` | daily 08:15 | | reminds listers and tenants when a caution is due back (V-36) |
 | vallo_remind_renewals | pg_cron `20 7 * * *` | daily 08:20 | | tells tenants and listers a tenancy ends in 90, 60 or 30 days (V-93) |
-| vallo_notify_void_shares | pg_cron `25 7 * * *` | daily 08:25 | | tells a flatmate once when a move-in they paid a share of fell through (V-86) |
+| vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
 15 Vercel Cron jobs and 31 pg_cron jobs in all. The numbers are derived,

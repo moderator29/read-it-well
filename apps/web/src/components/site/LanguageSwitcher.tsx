@@ -13,6 +13,9 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * number and date re-renders in the new locale. Deliberately a real `<select>`
  * so it is keyboard operable and announces correctly, rather than a bespoke
  * dropdown that would need a pile of ARIA to match.
+ *
+ * 16px on anything but a wide screen with a fine pointer: a focused `<select>`
+ * under 16px makes iOS Safari zoom the page (F-09).
  */
 export function LanguageSwitcher({
   current,
@@ -41,7 +44,7 @@ export function LanguageSwitcher({
         value={value}
         onChange={(e) => change(e.target.value as Locale)}
         disabled={pending}
-        className="nf-btn nf-btn--glass min-h-11 appearance-none cursor-pointer px-row py-inline pr-block text-[0.8125rem] disabled:opacity-60"
+        className="nf-btn nf-btn--glass min-h-11 appearance-none cursor-pointer px-row py-inline pr-block text-[16px] md:pointer-fine:text-[0.8125rem] disabled:opacity-60"
         style={{ paddingBlock: compact ? "0.35rem" : undefined }}
       >
         {LOCALES.map((l) => (

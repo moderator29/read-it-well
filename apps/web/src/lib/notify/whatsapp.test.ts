@@ -20,7 +20,7 @@ describe("the doorbell policy (V-96)", () => {
     expect(doorbellParam("https://evil.com")).toBeNull();
   });
   it("mirrors the SQL mapping in the migration", () => {
-    const sql = readFileSync(join(process.cwd(), "../../supabase/migrations/20260924160500_v96_whatsapp_is_a_doorbell_never_a_room.sql"), "utf8");
+    const sql = readFileSync(join(process.cwd(), "../../supabase/migrations/20260928225601_v96_whatsapp_is_a_doorbell_never_a_room.sql"), "utf8");
     expect(sql).toMatch(/when p_kind = 'wallet' then 'money_update'/);
     expect(sql).toMatch(/p_kind = 'listing' and p_href like '\/inspections%'/);
   });

@@ -32,8 +32,14 @@ that in full and `MOBILE_READINESS.md` section 2 has the evidence.
 ## 2. The one variable that decides whether a build works
 
 ```bash
-export CAPACITOR_SERVER_URL="https://vallospaces.com"    # the production origin
+export CAPACITOR_SERVER_URL="https://www.vallospaces.com"    # the production origin
 ```
+
+Use the **www** host. The apex `https://vallospaces.com` answers every path
+with a 308 to www, and a shell whose `server.url` redirects to another host can
+hand its first launch to the system browser. `capacitor.config.ts` rewrites an
+apex value to www and lists both hosts in `server.allowNavigation`, and
+`capacitor-origin.test.ts` pins that.
 
 `capacitor.config.ts` reads it when `npx cap sync` runs. Set it in the shell
 that performs the sync, and set it in CI.
@@ -52,7 +58,7 @@ npm install
 npm run build                       # the web build, still the source of truth
 
 cd apps/web
-CAPACITOR_SERVER_URL="https://vallospaces.com" npx cap sync
+CAPACITOR_SERVER_URL="https://www.vallospaces.com" npx cap sync
 ```
 
 `cap sync` copies `native-shell/` into both projects, writes the resolved
@@ -179,11 +185,12 @@ than looking plausible.
   `PRODUCT_BUNDLE_IDENTIFIER`, `assetlinks.json` and the Apple App Site
   Association `appIDs`.
 
-  ENROLMENT, and this is the founder's note to himself rather than an
-  engineering step: enrol on both programmes as the ORGANISATION, VALLO SPACES
-  LTD, using the company registration, never as an individual. Moving an app
-  from a personal account to a company account afterwards is a migration
-  nobody wants, and on Apple it needs both parties and a support case.
+  ENROLMENT. Google Play: enrol as the organisation, VALLO SPACES LTD. Apple:
+  the founder's decision of 29 September 2026 is a two-stage plan, set out in
+  section 7 below. The app is registered, signed and submitted under the
+  founder's personal Apple Developer account first, and transferred to the
+  VALLO SPACES LTD organisation account once its enrolment (and the D-U-N-S
+  number it needs) completes.
 
   `MOBILE_READINESS.md` section 6 is the checklist to follow; this file is
   background.
@@ -248,3 +255,90 @@ uses FCM on Android: `app/google-services.json` is committed for Firebase
 project `vallo-44059` with a placeholder `current_key`, and `app/build.gradle`
 applies `com.google.gms.google-services` only when the file is valid, failing
 any release build until the owner pastes the real Android API key in.
+
+---
+
+## 7. Apple: personal account first, company account later
+
+**The founder's decision, 29 September 2026.** Apple is done in two stages.
+Google Play is not affected and is still enrolled as the organisation.
+
+1. **Now.** The app is registered, signed and submitted under the founder's
+   PERSONAL Apple Developer account (an Individual enrolment, which needs no
+   D-U-N-S number). That unblocks TestFlight and submission.
+2. **Later.** When the VALLO SPACES LTD Organization enrolment completes (it
+   needs the D-U-N-S number), the app is transferred from the personal account
+   to the company account with Apple's app transfer.
+
+No code or architecture changes. Only the account the app is first
+registered and signed under changes, and with it the Team ID.
+
+### What an App Store app transfer involves
+
+Everything in this section marked **[VERIFY]** is from general knowledge of
+Apple's process, not from Apple's documentation read on the day. Check each
+against Apple's current "Transfer an app" page in the App Store Connect help
+before relying on it.
+
+- **It is done in App Store Connect**, started by the Account Holder of the
+  personal account and accepted by the Account Holder of the company account.
+- **Prerequisites [VERIFY]:**
+  - both accounts are in good standing, and the company account has accepted
+    the latest agreements (the Paid Apps agreement too, if the app ever has
+    paid features);
+  - no version of the app is in review or waiting for review, and no TestFlight
+    build is in beta review;
+  - at least one version of the app has been released on the App Store (an app
+    that was never released cannot be transferred).
+- **What stays the same:** the bundle identifier `com.vallospaces.app`, the App
+  Store record, its reviews and ratings.
+- **What does not come across [VERIFY]:** TestFlight builds and testers,
+  certificates, provisioning profiles, and keys. Plan to re-invite testers.
+- **The Team ID changes.** The App ID prefix is the Team ID, so every place
+  that carries the old one must be updated to the new Team ID straight after
+  the transfer:
+  - `apps/web/public/.well-known/apple-app-site-association`: the `appIDs`
+    entry becomes `<new Team ID>.com.vallospaces.app`, then deploy and confirm
+    at `https://app-site-association.cdn-apple.com/a/v1/www.vallospaces.com`;
+  - the entitlements in `apps/web/ios/App/App/App.entitlements` (Associated
+    Domains, push) and the capabilities on the App ID, re-enabled in the new
+    team, with new provisioning profiles and a new distribution certificate;
+  - the GitHub Actions secret `APPLE_TEAM_ID` (read by
+    `.github/workflows/native-ios.yml`), and the App Store Connect API key
+    secrets `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID` and
+    `APP_STORE_CONNECT_KEY_P8_BASE64`, because an API key belongs to the
+    account that created it;
+  - Associated Domains (`applinks:www.vallospaces.com`) on the new App ID.
+- **The APNs key belongs to the account.** A key made in the personal account
+  stops being usable for the app once it moves [VERIFY the exact moment].
+  Create a new APNs key in the company account and replace `APNS_KEY_ID`,
+  `APNS_TEAM_ID` and `APNS_PRIVATE_KEY` in Vercel.
+- **Sign in with Apple is tied to the team.** The Services ID and the Sign in
+  with Apple key belong to the account, so the Apple provider settings in the
+  Supabase dashboard (client IDs and the secret generated from the key, Team
+  ID and Key ID) must be remade from the company account. They are not app
+  environment variables (`docs/DEPLOY.md` section 2.4). **[VERIFY, and this is the one that can lose people:]** the user
+  identifier Apple gives an app is scoped to the team, so after a transfer an
+  existing Apple sign-in may arrive with a new identifier. Apple provides a
+  user migration process (transfer identifiers) for this, with a time limit.
+  Read Apple's "Transferring your apps and users to another team" guidance
+  before starting the transfer, not after.
+
+### For the founder: the name on the App Store
+
+While the app sits in the personal account, the seller and developer name the
+App Store shows is the account holder's personal legal name, not VALLO SPACES
+LTD [VERIFY]. The privacy policy and the terms name VALLO SPACES LTD as the
+company people deal with. **Flagged for the founder:** decide, with legal
+advice, whether the privacy policy and terms need a note explaining that the
+app is published by you personally on the company's behalf until the transfer.
+Nothing has been written into them. If the app is offered in the EU, Apple's
+trader status declaration may also publish the account holder's contact
+details [VERIFY].
+
+The earlier advice in this repository to enrol on Apple only as the
+organisation is superseded by this plan. Its reason (`docs/THE_AUDIT.md`
+STORE-09) was the custodial wallet, which was retired on 25 September 2026.
+Whether Apple's guideline 5.1.1(ix) still expects this app to come from the
+legal entity is **[VERIFY]**; the transfer answers it either way once it is
+done.

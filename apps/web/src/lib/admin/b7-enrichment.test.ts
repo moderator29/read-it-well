@@ -340,7 +340,7 @@ describe("removing a saved method for someone", () => {
     expect(audit?.payload).toMatchObject({ action: "bank_account.removed_by_admin" });
     expect(Object.keys(metadata).sort()).toEqual(["owner_id", "reason"]);
     const notice = calls.find((c) => c.table === "notifications" && c.op === "insert");
-    expect(notice?.payload).toMatchObject({ kind: "wallet", href: "/settings/payments" });
+    expect(notice?.payload).toMatchObject({ kind: "system", href: "/settings/payments" });
   });
 
   it("refuses to remove an entry already removed", async () => {

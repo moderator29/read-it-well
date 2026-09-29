@@ -52,7 +52,7 @@ describe("the tenancy review (V-59)", () => {
 
   it("is published by the database only once five tenants said nothing more was asked", () => {
     const sql = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924130900_v59_the_rental_review_asks_about_the_door.sql"),
+      join(__dirname, "../../../../../supabase/migrations/20260928224338_v59_the_rental_review_asks_about_the_door.sql"),
       "utf8",
     );
     expect(sql).toContain("having count(*) filter (where t.paid_extra = 'no') >= 5;");

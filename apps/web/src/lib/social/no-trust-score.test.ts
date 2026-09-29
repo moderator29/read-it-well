@@ -17,7 +17,7 @@ const repo = join(root, "..", "..", "..");
 
 describe("no trust score", () => {
   it("the migration re-creates agent_trust without a score column", () => {
-    const sql = readFileSync(join(repo, "supabase/migrations/20260924130300_v21_delete_the_trust_score.sql"), "utf8");
+    const sql = readFileSync(join(repo, "supabase/migrations/20260924110708_v21_delete_the_trust_score.sql"), "utf8");
     const returns = sql.slice(sql.indexOf("create function public.agent_trust"), sql.indexOf("language sql"));
     expect(returns).toContain("completed_deals integer, response_minutes integer, review_count integer, average_rating numeric");
     expect(returns).not.toMatch(/score/);

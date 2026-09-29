@@ -133,8 +133,15 @@ function transcriptSummary(messages: Message[]): string {
   return `Conversation so far:\n${lines.join("\n")}`;
 }
 
-export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } = {}) {
-  const [open, setOpen] = useState(false);
+export function SupportChat({
+  aiConsented = false,
+  defaultOpen = false,
+}: {
+  aiConsented?: boolean;
+  /** Starts with the conversation showing, for a caller that opened it on purpose (the support home's sheet). */
+  defaultOpen?: boolean;
+} = {}) {
+  const [open, setOpen] = useState(defaultOpen);
   /* STORE-07: the AI half of this chat runs only after this person agrees to
      the disclosure; declining keeps the chat, answered from the help pages
      and a person, with no AI. The route refuses without agreement anyway. */

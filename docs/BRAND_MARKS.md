@@ -104,6 +104,15 @@ partial across the interior. That is correct on a dark surface and reads thin on
 a pale one, and it is exactly why the chip works: the chip gives the glass
 something to be glass against.
 
+> **What ships now (28 September 2026).** Light mode was removed on 23 September
+> and restored on 25 September (`docs/design/LIGHT_MODE_REMOVED.md`). The
+> restored light theme does not use the navy chip or the light twins. The
+> founder chose the object alone on white: no ground, a soft blue drop shadow,
+> and a fade over the outer tenth of the image (`apps/web/src/app/css/light.css`,
+> "THE ICON TILES"). The twin files are still on disk under
+> `public/brand/glass/light/` and nothing references them. The reasoning above
+> is kept as the record of what was tested.
+
 ---
 
 ## 4. The commission, delivered
@@ -137,12 +146,17 @@ hold your money in escrow, so an escrow mark on a screen would be the artwork
 contradicting the contract.
 
 It is cut, named, and in `WITHHELD` in the manifest so that nothing can reach for
-it by accident. **Keep it.** The day the product does hold money, it is already
-drawn.
+it by accident. Since 25 September 2026 Vallo never holds customer money
+([ADR 0002](adr/0002-vallo-never-holds-customer-money.md)), so there is no
+screen this mark could ever belong on. It stays withheld.
 
-### There is a live defect this mark points at
+### The defect this mark pointed at (resolved by Track A)
 
-`apps/web/src/components/app/wallet/BalanceBreakdownSheet.tsx` renders, to a
+> **Dated note, 28 September 2026.** The wallet screen described below no
+> longer exists. `components/app/wallet/` was deleted when the wallet and escrow
+> were retired on 25 September 2026. The paragraph is kept as the record.
+
+`apps/web/src/components/app/wallet/BalanceBreakdownSheet.tsx` rendered, to a
 user: "Escrow moves money out of it and holds it until both sides are done",
 "Money in escrow", "What you have in escrow", and "You have paid this into
 escrow. It comes back if the deal does not happen." **The wallet screen and the
@@ -215,6 +229,11 @@ Added 15 September 2026. HANDOFF 02 section 24 calls pending "the most neglected
 state in this product and the most anxious one for the user", and asks for every
 place money moves with what the user sees while they wait. This is that list,
 read from the code rather than from memory.
+
+> **Dated note, 28 September 2026.** The four wallet rows and "pay from wallet"
+> below no longer exist: the wallet was retired on 25 September 2026 and every
+> payment is now a Paystack payment split at the moment it is made
+> (`docs/MONEY_ARCHITECTURE.md`). The table is kept as the 15 September record.
 
 **The finding is not that pending states are missing. It is that they are
 inconsistent, and that the worst one is on the screen carrying the most money.**

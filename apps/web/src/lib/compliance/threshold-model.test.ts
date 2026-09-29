@@ -82,13 +82,13 @@ describe("the database twin", () => {
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");
     const sql = readFileSync(
-      resolve(__dirname, "../../../../../supabase/migrations/20260924174000_scuml_item_7_threshold_reports.sql"),
+      resolve(__dirname, "../../../../../supabase/migrations/superseded/20260924174000_scuml_item_7_threshold_reports.sql"),
       "utf8",
     );
     expect(sql).toContain(`then ${THRESHOLD_MINOR.corporate}::bigint else ${THRESHOLD_MINOR.individual}::bigint`);
     expect(sql).toContain("p_occurred_at + interval '7 days'");
     const fix = readFileSync(
-      resolve(__dirname, "../../../../../supabase/migrations/20260924174100_scuml_item_7_one_observation_per_flow.sql"),
+      resolve(__dirname, "../../../../../supabase/migrations/superseded/20260924174100_scuml_item_7_one_observation_per_flow.sql"),
       "utf8",
     );
     expect(fix).toContain("pg_advisory_xact_lock");

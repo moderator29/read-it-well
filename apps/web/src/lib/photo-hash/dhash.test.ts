@@ -70,7 +70,7 @@ describe("the reviewer's summary", () => {
 
   it("uses the same threshold as the database", () => {
     const sql = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924131200_v45_stolen_photographs_caught_at_review.sql"),
+      join(__dirname, "../../../../../supabase/migrations/20260928224531_v45_stolen_photographs_caught_at_review.sql"),
       "utf8",
     );
     expect(sql).toContain(`bit_count((ph.phash # oh.phash)::bit(64)) <= ${MATCH_MAX_BITS}`);

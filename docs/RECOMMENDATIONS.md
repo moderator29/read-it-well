@@ -7,6 +7,19 @@ discarded: all 171 of its entries are carried into section 8 with their
 original identifiers, because code comments, migrations and both handoffs cite
 them by name and `P-1`, `N-1`, `W-1` and `E-1` have to keep resolving.
 
+> **Dated note, 29 September 2026: what Track A did to this register.** The
+> wallet, escrow, pots, withdrawals and held payments no longer exist; their
+> tables are in the `retired_custody` schema, reachable by no app role
+> (`supabase/migrations/20260925163708_track_a1_vallo_never_holds_customer_money_custody_retired.sql`).
+> So `E-1` to `E-7`, `W-3`, `W-4`, `W-5` and `W-7`, and every row below that
+> asks for a wallet, escrow, pot or withdrawal change, describe something that
+> was retired rather than fixed. Read them as WITHDRAWN by Track A even where
+> the status column still says OPEN. The 0.2 verdict that "the wallet is the
+> financial heart of the marketplace" is reversed. `W-1` and `W-2` still
+> apply, now to the Paystack split payment path; `W-6` needs re-reading
+> against the split ledgers before it is quoted. `D-3` stands: light
+> mode was restored on 25 September 2026 and ships.
+
 Written 15 September 2026. It holds **713 entries**: 474 from the three-agent
 audit of 15 September, 171 carried forward from the 9 August pass, and 68
 marketplace entries (`MK-01` to `MK-68`) added by the consolidation of

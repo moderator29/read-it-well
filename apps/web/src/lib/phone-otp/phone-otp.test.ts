@@ -153,7 +153,7 @@ describe("which earlier reports use up the first-report moment", () => {
 
   it("matches the words the database writes on the automatic report", () => {
     const sql = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924130500_v50_the_phone_is_the_scarcity_anchor.sql"),
+      join(__dirname, "../../../../../supabase/migrations/20260928224105_v50_the_phone_is_the_scarcity_anchor.sql"),
       "utf8",
     );
     expect(sql).toContain(`'${AUTO_REPORT_PREFIX} '`);

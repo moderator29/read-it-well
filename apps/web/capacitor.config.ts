@@ -38,9 +38,9 @@ import { KeyboardResize } from "@capacitor/keyboard";
  *
  * Read from the environment rather than hardcoded, because this repository does
  * not know the production domain: the owner sets it in Vercel and it has never
- * been visible here. The variable is `CAPACITOR_SERVER_URL`, read eleven lines
- * below, and NOT `NEXT_PUBLIC_SITE_URL`, which this comment used to name by
- * mistake. They are different variables and only the first is read here.
+ * been visible here. The variable is `CAPACITOR_SERVER_URL`, read below, and
+ * NOT `NEXT_PUBLIC_SITE_URL`, which this comment used to name by mistake.
+ * They are different variables and only the first is read here.
  *
  * `cap sync` evaluates this file, so the variable has to be present in the
  * shell that runs the sync, which is exactly what `docs/MOBILE.md` says to do.
@@ -51,7 +51,47 @@ import { KeyboardResize } from "@capacitor/keyboard";
  * platform degrades when its key is absent. It is NOT a shippable state, and
  * the offline card says that too.
  */
-const liveOrigin = (process.env.CAPACITOR_SERVER_URL ?? "").trim();
+/*
+ * THE ORIGIN IS THE www HOST. Production serves `https://www.vallospaces.com`
+ * and the apex answers every path with a 308 to it. A shell pointed at the apex
+ * therefore starts on a cross-host redirect, and Capacitor treats a navigation
+ * to a host that is not `server.url` (or listed in `allowNavigation`) as
+ * external: the first launch can bounce into Safari or Chrome, or land the
+ * session cookies in the wrong jar. So an apex value is rewritten to www here,
+ * and both hosts are listed in `allowNavigation` below so a stray apex link or
+ * redirect stays inside the web view.
+ */
+const CANONICAL_HOST = "www.vallospaces.com";
+const APEX_HOST = "vallospaces.com";
+
+function canonicalOrigin(raw: string): string {
+  const trimmed = raw.trim().replace(/\/+$/, "");
+  if (trimmed.length === 0) return "";
+  try {
+    const url = new URL(trimmed);
+    if (url.hostname === APEX_HOST) url.hostname = CANONICAL_HOST;
+    return url.origin;
+  } catch {
+    /* Not a URL at all; hand it through and let the sync fail on it loudly. */
+    return trimmed;
+  }
+}
+
+const liveOrigin = canonicalOrigin(process.env.CAPACITOR_SERVER_URL ?? "");
+
+function hostOf(origin: string): string | null {
+  try {
+    return new URL(origin).hostname;
+  } catch {
+    return null;
+  }
+}
+
+/* Hosts the web view may navigate to without handing off to the system
+   browser: the configured origin, plus both production hosts. */
+const allowNavigation = Array.from(
+  new Set([hostOf(liveOrigin), CANONICAL_HOST, APEX_HOST].filter((h): h is string => Boolean(h))),
+);
 
 /*
  * STORE-04: WHERE THE APP OPENS. Never the marketing page. `/open` is a
@@ -197,6 +237,9 @@ const config: CapacitorConfig = {
     ? {
         server: {
           url: liveOrigin,
+          /* See `CANONICAL_HOST` above: keeps the apex-to-www redirect, and
+             any link to either production host, inside the web view. */
+          allowNavigation,
           /* https only. `cleartext` would permit http, and the platform sends
              HSTS with preload on the web precisely so that cannot happen. */
           androidScheme: "https",

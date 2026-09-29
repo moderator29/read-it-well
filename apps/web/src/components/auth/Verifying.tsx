@@ -166,7 +166,7 @@ export function Verifying({
         <p className="mt-5 text-[0.8125rem] text-[var(--nf-content-muted)]">
           <Link
             href="/sign-in"
-            className="underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+            className="nf-tap underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           >
             {a.alreadyConfirmed}
           </Link>

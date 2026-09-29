@@ -35,9 +35,9 @@ export default async function AccountRecoveryPage() {
         NIN the person gives, which must match an approved identity on file, and the old address is
         told at once. The 72 hours count from that notice; if it did not go, send it again. After
         them, a different super admin from the one who opened it completes the move, which signs the
-        account out everywhere. For 7 days after the move no money can leave the account: no
-        withdrawals, no wallet sends, no wallet payments or held payments, and no new or changed bank
-        accounts. Card payments and money coming in are not held. The owner sees the end date in their
+        account out everywhere. For 7 days after the move nobody can add or change a bank account or
+        payout account on it, so whoever now holds the mailbox cannot redirect where a lister&apos;s
+        share of a payment settles. Card payments are not held. The owner sees the end date in their
         settings. Any admin, or the owner, can cancel a request before it completes. Every step is in
         the audit log.
       </p>

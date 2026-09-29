@@ -16,7 +16,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const SOURCE_LABEL: Record<string, string> = {
-  escrow_commission: "Commission on released escrow",
+  /* The source key is historical: rows from before custody was retired
+     (docs/MONEY_ARCHITECTURE.md) still carry it. Vallo holds no escrow now. */
+  escrow_commission: "Commission (before custody was retired)",
   listing_fee: "Listing fee",
 };
 
@@ -74,7 +76,7 @@ export default async function AdminFeesPage() {
 
       <FeeSection
         title="Commission on a completed transaction"
-        blurb="Taken from money that actually changed hands: an escrow that released, a stay that was paid for. It is computed at the moment of settlement and frozen onto the transaction with the rate that produced it, so it is never recomputed from a rate that has moved since."
+        blurb="Taken from money that actually changed hands: a rent or a stay that was paid for, as Vallo's share of the split charge. Vallo never holds the rest. It is computed at the moment of settlement and frozen onto the transaction with the rate that produced it, so it is never recomputed from a rate that has moved since."
         kind="commission"
         rates={read.data.commission}
         ui={ui}

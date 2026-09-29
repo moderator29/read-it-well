@@ -144,7 +144,9 @@ async function removeSavedMethod(
     });
     await admin.from("notifications").insert({
       user_id: row.user_id,
-      kind: "wallet",
+      /* `system`: a saved method is an account setting. The wallet is
+         retired and its notification kind with it. */
+      kind: "system",
       title: isCard ? "A saved card was removed" : "A bank account was removed",
       body: isCard
         ? "A member of the Vallo team removed a saved card from your account at your request. If you did not ask for this, reply to support straight away."

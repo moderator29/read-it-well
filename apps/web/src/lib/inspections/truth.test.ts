@@ -56,7 +56,7 @@ describe("the answers", () => {
 
   it("names every column the migration creates", () => {
     const sql = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924130200_v05_four_truth_questions_close_every_inspection.sql"),
+      join(__dirname, "../../../../../supabase/migrations/20260924110649_v05_four_truth_questions_close_every_inspection.sql"),
       "utf8",
     );
     for (const q of TRUTH_QUESTIONS) {

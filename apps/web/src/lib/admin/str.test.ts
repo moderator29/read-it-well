@@ -110,7 +110,7 @@ describe("SCUML item 6: reading the STR desk", () => {
 
 describe("SCUML item 6: what the database holds to", () => {
   const sql = readFileSync(
-    join(__dirname, "../../../../../supabase/migrations/20260924173000_scuml_item_6_suspicious_transaction_reports.sql"),
+    join(__dirname, "../../../../../supabase/migrations/superseded/20260924173000_scuml_item_6_suspicious_transaction_reports.sql"),
     "utf8",
   );
 
@@ -138,7 +138,7 @@ describe("SCUML item 6: what the database holds to", () => {
 
   it("writes the one neutral reason, which reads as a hold with no cause anywhere a member looks", () => {
     const fixes = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924173100_scuml_item_6_str_review_fixes.sql"),
+      join(__dirname, "../../../../../supabase/migrations/superseded/20260924173100_scuml_item_6_str_review_fixes.sql"),
       "utf8",
     );
     expect(fixes).toContain("values (c.subject_id, v_until, 'plain', now());");
@@ -157,7 +157,7 @@ describe("SCUML item 6: what the database holds to", () => {
 
   it("keeps a conflicted staff member out, dates no filing before its approval, and caps the hold (173100)", () => {
     const fixes = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924173100_scuml_item_6_str_review_fixes.sql"),
+      join(__dirname, "../../../../../supabase/migrations/superseded/20260924173100_scuml_item_6_str_review_fixes.sql"),
       "utf8",
     );
     expect(fixes.match(/if private\.str_is_party\([^)]*actor\) then return/g)?.length).toBeGreaterThanOrEqual(6);
@@ -173,7 +173,7 @@ describe("SCUML item 6: what the database holds to", () => {
 
   it("holds through one shared claims model, and a release clears only this desk's claim (173200)", () => {
     const own = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924173200_scuml_item_6_str_holds_are_its_own.sql"),
+      join(__dirname, "../../../../../supabase/migrations/superseded/20260924173200_scuml_item_6_str_holds_are_its_own.sql"),
       "utf8",
     );
     expect(own).toContain("create table if not exists private.hold_claims");

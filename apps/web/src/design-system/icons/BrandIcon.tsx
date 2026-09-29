@@ -3,9 +3,11 @@ import Image from "next/image";
 /**
  * Vallo brand icon.
  *
- * The content tier: one object per thing the product talks about. A wallet, a
- * shield, a villa, a receipt. Navigation never uses these; navigation is
- * `UiIcon`, and the two tiers never share a row.
+ * The content tier: one object per thing the product talks about. A shield, a
+ * villa, a receipt. Navigation is mostly `UiIcon`, with one exception: since
+ * Track M (25 September 2026) the side drawer rows and the dock's sub-nav tray
+ * draw the glass object `GLASS_FOR` in `lib/nav/glass-glyph.ts` maps to each
+ * destination. The two tiers still never share a row.
  *
  * THE ARTWORK CHANGED, AND IT IS THE REASON THIS FILE IS SHORTER THAN IT WAS.
  *
@@ -33,11 +35,13 @@ import Image from "next/image";
  * which is why the light theme gave the untwinned objects a navy plate and
  * gave 23 marks a separately drawn daylight twin instead.
  *
- * THERE IS NO WHITE PAPER ANY MORE. The founder removed light mode on 23
- * September 2026. The plate tokens, the twin `<Image>`, the `LIGHT_TWINS` set
- * and the day and night classes are all deleted; `.nf-brand-icon-ground` is now
- * a square wrapper with a radius and a little padding and nothing else, which
- * is what it computed to in the dark theme all along.
+ * LIGHT MODE WAS REMOVED ON 23 SEPTEMBER 2026 AND RESTORED ON 25 SEPTEMBER.
+ * The removal deleted the plate tokens, the twin `<Image>`, the `LIGHT_TWINS`
+ * set and the day and night classes, and none of them came back:
+ * `.nf-brand-icon-ground` is a square wrapper with a radius and a little
+ * padding and nothing else. The restored light theme styles the objects in
+ * `app/css/light.css` ("THE ICON TILES"): no ground, a soft blue drop shadow
+ * and an edge fade, so the object stands alone on white.
  *
  * The one fact from that work worth carrying forward, because it is about the
  * ARTWORK and not about a theme: no filter gets from one of these objects to a
@@ -308,6 +312,7 @@ export function BrandIcon({
   fill,
   label,
   priority,
+  loading,
   tile = false,
   state,
   className,
@@ -320,6 +325,13 @@ export function BrandIcon({
   /** Accessible name. Omit for decorative icons. */
   label?: string;
   priority?: boolean;
+  /**
+   * "eager" for an icon that mounts off screen and slides in (the drawer).
+   * iOS Safari fetches a lazy image only once layout puts it in the
+   * viewport, and a transform-only slide-in never re-triggers that check, so
+   * the drawer's icons were never requested and its rows drew blank.
+   */
+  loading?: "eager" | "lazy";
   /**
    * Draw the full glass chip behind the object. OFF by default: see the note
    * at the top of this file. Turn it on only where the object is the subject
@@ -410,6 +422,7 @@ export function BrandIcon({
       alt={label ?? ""}
       src={`/brand/glass/${object}.png`}
       priority={priority}
+      {...(loading && !priority ? { loading } : {})}
       className={`nf-brand-icon ${fill || insideTile ? "h-full w-full" : ""}`}
     />
   );

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -74,8 +76,17 @@ describe("the reconciliation, watched by the shape it actually writes", () => {
     expect(entry?.maxGapHours).toBe(3);
     expect(entry?.audit).toEqual({
       entityType: "wallet_entry",
-      action: "wallet.reconciliation.run",
+      action: "payment.reconciliation.run",
     });
+  });
+
+  /* The watched action once drifted from the one the route writes (custody's
+     retirement renamed it), and a healthy hourly job read as 76 hours silent.
+     The watch is pinned to the route's own source. */
+  it("watches the action the reconcile route actually writes", () => {
+    const route = readFileSync(join(__dirname, "../../app/api/paystack/reconcile/route.ts"), "utf8");
+    const entry = WATCHED_JOBS.find((job) => job.job === "paystack-reconcile");
+    expect(route).toContain(`action: "${entry?.audit?.action}"`);
   });
 
   it("is read by its action and never by an entity id it does not write", async () => {

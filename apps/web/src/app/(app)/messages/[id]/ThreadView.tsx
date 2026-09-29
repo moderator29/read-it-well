@@ -35,6 +35,7 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
+import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { OUTBOX_SENT_EVENT, type OutboxSentDetail } from "@/lib/offline/outbox";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
@@ -212,14 +213,6 @@ function appendId(key: string, id: string) {
 
 function nowLabel(): string {
   return lagosTimeLabel(new Date().toISOString());
-}
-
-/** A safe lowercase extension for the storage path, defaulting to jpg. */
-function extOf(file: File): string {
-  const fromName = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ?? "";
-  if (fromName && fromName.length <= 8) return fromName;
-  const fromType = file.type.split("/").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ?? "";
-  return fromType && fromType.length <= 8 ? fromType : "jpg";
 }
 
 /** Natural dimensions of an image object URL, best effort. */
@@ -490,11 +483,23 @@ export function ThreadView({
   const runImageSend = useCallback(
     async (tempId: string, file: File, previewUrl: string) => {
       try {
-        const path = `${conversationId}/${crypto.randomUUID()}.${extOf(file)}`;
+        /* The original file is never sent. A phone photo carries EXIF, and
+           usually GPS, so uploading it handed the other person the exact place
+           it was taken, often the sender's home. Re-encoding through a canvas
+           keeps only the pixels, and caps the long edge so a 12MB camera file
+           fits the 10MB bucket and a metered connection. If the phone cannot
+           decode it (HEIC outside Safari), the send fails visibly rather
+           than falling back to the tagged original. */
+        const clean = await reencodeToJpeg(file, { maxEdge: 2560, quality: 0.85 });
+        if (!clean) {
+          markFailed(tempId);
+          return;
+        }
+        const path = `${conversationId}/${crypto.randomUUID()}.jpg`;
         const supabase = createClient();
         const { error: uploadError } = await supabase.storage
           .from("message-attachments")
-          .upload(path, file, { contentType: file.type || "image/jpeg" });
+          .upload(path, clean, { contentType: "image/jpeg" });
         if (uploadError) {
           markFailed(tempId);
           return;

@@ -8,12 +8,12 @@
  * showing, and what the progress line says therefore lives here, pure, and the
  * components render it.
  *
- * WHAT THIS FILE DELIBERATELY DOES NOT KNOW: where any of it is stored. There
- * are no table names, no bucket names and no column names anywhere in this
- * directory. The storage and the schema are being built alongside this, and a
- * screen that guessed at `kyc_documents.file_path` would be wrong in a way that
- * compiles. `KycSubmission` is the shape this UI produces; wiring it to a real
- * write is one function.
+ * WHERE IT IS STORED is not this file's business either: `DocumentUploader`
+ * puts each file in the private `agent-documents` bucket under the person's
+ * own folder, and `submitVerification` (app/(app)/verification/actions.ts)
+ * files the `agent_documents` rows and the `kyc_consents` receipts. The
+ * checks here run on both sides, so the phone and the server never disagree
+ * about what is missing.
  *
  * ---------------------------------------------------------------------------
  * WHY THE BUSINESS STEP IS GROUPED AND THE REFERENCE PLATFORM'S IS NOT.
@@ -41,7 +41,14 @@
  * inside the error it shows after a failed 8MB upload on Nigerian mobile data
  * has spent somebody's money to tell them something it knew beforehand.
  */
-export const ACCEPTED_MIME = ["image/jpeg", "image/png", "image/heic", "application/pdf"] as const;
+export const ACCEPTED_MIME = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+  "application/pdf",
+] as const;
 export const ACCEPTED_LABEL = "JPG, PNG, HEIC or PDF";
 export const MAX_FILE_BYTES = 8 * 1024 * 1024;
 export const MAX_FILE_LABEL = "8MB";
@@ -73,6 +80,53 @@ export const DOCUMENT_SPECS: Record<DocumentKind, DocumentSpec> = {
     caution: "It must be dated within the last three months. Anything older is refused.",
   },
 };
+
+/**
+ * WHICH document it is. The review desk records the subtype on the rung, and
+ * a reviewer holding a photograph cannot always tell a NIN slip from a voter's
+ * card at a glance. The values are the database's `document_subtype` labels.
+ */
+export const DOCUMENT_SUBTYPES: Record<DocumentKind, readonly { value: string; label: string }[]> = {
+  identity: [
+    { value: "passport", label: "International passport" },
+    { value: "drivers_licence", label: "Driver's licence" },
+    { value: "nin_card", label: "NIN slip or card" },
+    { value: "voters_card", label: "Permanent voter's card" },
+  ],
+  address: [
+    { value: "utility_bill", label: "Utility bill" },
+    { value: "bank_statement", label: "Bank statement" },
+    { value: "tenancy_agreement", label: "Tenancy agreement" },
+  ],
+};
+
+export function isSubtypeOf(kind: DocumentKind, subtype: string | null | undefined): boolean {
+  return DOCUMENT_SUBTYPES[kind].some((option) => option.value === subtype);
+}
+
+/** How old a proof of address may be, the same three months the caution states. */
+export const ADDRESS_MAX_AGE_DAYS = 92;
+
+/**
+ * Why an address document's date will be refused, or null. `today` is an
+ * ISO date so the check is the same on the phone and on the server.
+ */
+export function addressDateProblem(issuedOn: string | null | undefined, today: string): string | null {
+  if (!issuedOn || !/^\d{4}-\d{2}-\d{2}$/.test(issuedOn)) return "Enter the date printed on the document.";
+  const issued = Date.parse(`${issuedOn}T00:00:00Z`);
+  const now = Date.parse(`${today}T00:00:00Z`);
+  if (Number.isNaN(issued)) return "Enter the date printed on the document.";
+  if (issued > now) return "That date is in the future. Enter the date printed on the document.";
+  if (now - issued > ADDRESS_MAX_AGE_DAYS * 86_400_000) {
+    return "That document is more than three months old, so it would be refused. Use a more recent one.";
+  }
+  return null;
+}
+
+/** Today in Lagos, as the ISO date both sides compare against. */
+export function lagosToday(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(now);
+}
 
 /** Why a chosen file cannot be used, in words, before anything is uploaded. */
 export function rejectFile(file: { type: string; size: number }): string | null {
@@ -259,9 +313,24 @@ export const CONSENTS: readonly Consent[] = [
 
 /* -------------------------------------------------------------- submission */
 
-/** What the UI produces. Storage decides what it becomes. */
+/**
+ * One document as the flow holds it: already uploaded to the private
+ * document store under the person's own folder, so `path` is real, plus the
+ * two answers the reviewer needs about it.
+ */
+export type KycDocument = {
+  name: string;
+  size: number;
+  type: string;
+  path: string;
+  subtype: string | null;
+  /** The date printed on a proof of address. Null for an ID. */
+  issuedOn: string | null;
+};
+
+/** What the UI produces, and what `submitVerification` files. */
 export type KycSubmission = {
-  documents: Partial<Record<DocumentKind, { name: string; size: number; type: string }>>;
+  documents: Partial<Record<DocumentKind, KycDocument>>;
   business: boolean;
   businessDetails: Record<string, string>;
   consents: ConsentId[];
@@ -275,10 +344,17 @@ export type KycSubmitResult = { ok: true } | { ok: false; message: string };
  * Returns the list rather than a boolean so the review screen can PRINT it.
  * "Complete all required fields" is the least useful sentence in software.
  */
-export function missingFrom(submission: KycSubmission): string[] {
+export function missingFrom(submission: KycSubmission, today: string = lagosToday()): string[] {
   const missing: string[] = [];
-  if (!submission.documents.identity) missing.push(DOCUMENT_SPECS.identity.title);
-  if (!submission.documents.address) missing.push(DOCUMENT_SPECS.address.title);
+  const identity = submission.documents.identity;
+  const address = submission.documents.address;
+  if (!identity) missing.push(DOCUMENT_SPECS.identity.title);
+  else if (!isSubtypeOf("identity", identity.subtype)) missing.push(WHICH_ID);
+  if (!address) missing.push(DOCUMENT_SPECS.address.title);
+  else {
+    if (!isSubtypeOf("address", address.subtype)) missing.push(WHICH_ADDRESS);
+    if (addressDateProblem(address.issuedOn, today)) missing.push(ADDRESS_DATE);
+  }
 
   if (submission.business) {
     for (const section of BUSINESS_SECTIONS) {
@@ -295,3 +371,7 @@ export function missingFrom(submission: KycSubmission): string[] {
 
   return missing;
 }
+
+const WHICH_ID = "Which ID you uploaded";
+const WHICH_ADDRESS = "Which proof of address you uploaded";
+const ADDRESS_DATE = "The date on your proof of address, within the last three months";

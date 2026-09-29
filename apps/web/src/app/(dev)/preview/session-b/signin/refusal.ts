@@ -7,6 +7,6 @@ import type { AuthFormState } from "@/lib/auth/form-state";
 export async function fixtureRefusal(): Promise<AuthFormState> {
   return {
     ok: false,
-    message: "That email and password do not match. Check them and try again.",
+    message: "That email and password do not match. Check both, or reset your password.",
   };
 }

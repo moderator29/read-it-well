@@ -14,14 +14,19 @@ describe.skipIf(!hasBrowser && !process.env.CI)("DocumentUploader (axe)", () => 
   const page = (body: string) => `<h1>Verify your identity</h1>${body}`;
 
   it("names the file input by its document title, with no axe violations", async () => {
-    const html = renderToStaticMarkup(<DocumentUploader kind="identity" file={null} onChange={() => undefined} />);
+    const html = renderToStaticMarkup(<DocumentUploader kind="identity" batchId="b" file={null} onChange={() => undefined} />);
     expect(await axe(page(html))).toEqual([]);
     expect(html).toMatch(/type="file"[^>]*aria-labelledby="[^"]+-title"/);
   });
 
   it("stays clean with a file chosen", async () => {
     const html = renderToStaticMarkup(
-      <DocumentUploader kind="address" file={{ name: "bill.pdf", size: 120_000, type: "application/pdf" }} onChange={() => undefined} />,
+      <DocumentUploader
+        kind="address"
+        batchId="b"
+        file={{ name: "bill.pdf", size: 120_000, type: "application/pdf", path: "u/kyc-b/address-1.pdf", subtype: "utility_bill", issuedOn: "2026-09-01" }}
+        onChange={() => undefined}
+      />,
     );
     expect(await axe(page(html))).toEqual([]);
   });

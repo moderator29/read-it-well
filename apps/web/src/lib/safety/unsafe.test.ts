@@ -59,7 +59,7 @@ describe("I feel unsafe (V-63)", () => {
 
 describe("the hold, after review (V-63)", () => {
   it("refuses a held request in the generic words, and pauses only the person asking", () => {
-    const sql = read("../../../supabase/migrations/20260924131400_v63_i_feel_unsafe.sql");
+    const sql = read("../../../supabase/migrations/20260928224657_v63_i_feel_unsafe.sql");
     expect(sql).not.toContain("create or replace function public.safety_hold_open");
     expect(sql).toContain("if private.has_open_safety_hold(new.requester_id, new.lister_id) then");
     expect(sql).toContain(`raise exception 'new row violates row-level security policy for table "inspection_requests"'`);

@@ -78,7 +78,7 @@ describe("recalling a stop (V-60)", () => {
     expect(panel).toContain("sendRecall({ suspensionId, reportId })");
     expect(panel).toContain('data-testid="recall-report"');
     const sql = readFileSync(
-      join(__dirname, "../../../../../supabase/migrations/20260924131300_v60_scam_exposure_recall.sql"),
+      join(__dirname, "../../../../../supabase/migrations/20260928224613_v60_scam_exposure_recall.sql"),
       "utf8",
     );
     expect(sql).toContain("if p_report is null or rc_report is distinct from p_report then");

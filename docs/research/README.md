@@ -22,6 +22,16 @@ How to read them:
   path updates when a file they cite moved. A report that is edited after the
   fact stops being evidence of what was known when the decision was made. If a
   report's conclusion is now wrong, say so in the live document that replaced it.
+- **Two facts changed after every report here was written (25 September 2026).**
+  Vallo no longer holds customer money: the wallet, escrow, pots, withdrawals
+  and held payments are retired, payments are split by Paystack at the moment
+  of payment, and protection is the Vallo Guarantee
+  ([`../MONEY_ARCHITECTURE.md`](../MONEY_ARCHITECTURE.md),
+  [ADR 0002](../adr/0002-vallo-never-holds-customer-money.md)). Light mode,
+  removed on 23 September, was restored and ships as a Light / Dark / System
+  choice ([`../design/LIGHT_MODE_REMOVED.md`](../design/LIGHT_MODE_REMOVED.md)).
+  `ESCROW_END_TO_END_RESEARCH.md` in particular describes a design that was
+  retired.
 
 | Report | Question it answered |
 |---|---|

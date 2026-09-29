@@ -186,8 +186,15 @@
     min-height: 2.75rem;
     background: transparent;
     border: 0;
-    font-size: var(--nf-text-body-sm);
+    /* 16px, the size below which iOS Safari zooms the page on focus (F-09).
+       The desktop, with a fine pointer and room, keeps the smaller size. */
+    font-size: var(--nf-text-body);
     color: var(--nf-content-primary);
+  }
+  @media (pointer: fine) and (min-width: 48rem) {
+    .nf-site-newsletter-field input {
+      font-size: var(--nf-text-body-sm);
+    }
   }
   .nf-site-newsletter-field input::placeholder {
     color: var(--nf-content-muted);

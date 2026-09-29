@@ -290,6 +290,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* V-19: the new sign-in alert a push lands on; back is the devices screen. */
   "/settings/devices/alert": "/settings/devices",
   "/settings/help": "/settings",
+  /* The in-app help and support home, and the member's ticket inbox under it. */
+  "/support": "/home",
+  "/support/messages": "/support",
+  "/support/messages/[id]": "/support/messages",
   "/settings/interests": "/settings",
   "/settings/notifications": "/settings",
   "/settings/payments": "/settings",
@@ -362,6 +366,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/listings/[listingId]/status": "/agent/listings",
   "/agent/list": "/agent/listings",
   "/agent/messages": "/agent/dashboard",
+  /* The workspace's own frame round the consumer thread and bell pages, so
+     back from either stays inside the workspace. */
+  "/agent/messages/[id]": "/agent/messages",
+  "/agent/notifications": "/agent/dashboard",
   "/agent/reviews": "/agent/dashboard",
   "/agent/settings": "/agent/dashboard",
   "/agent/portfolio": "/agent/dashboard",

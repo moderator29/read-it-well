@@ -1370,6 +1370,8 @@ export const en = {
     resetExpiredLead: "A reset link lasts an hour and works once. Ask for a new one and open it on the same device.",
     newPasswordTitle: "Choose a new password",
     newPasswordLead: "Pick something you have not used here before. You will be signed in as soon as it is saved.",
+    currentPasswordLabel: "Current password",
+    currentPasswordPlaceholder: "The password you use now",
     newPasswordLabel: "New password",
     newPasswordSave: "Save and sign in",
     confirmPasswordLabel: "Confirm password",
@@ -1625,8 +1627,8 @@ export const en = {
     },
     /** SEC-15: the 7-day hold after support moved this account to a new address. */
     moneyHold: {
-      title: "Money cannot leave your account until {when}",
-      body: "Support moved this account to a new email address. For 7 days after that, payments and new or changed bank accounts are paused, so nobody who took the account over can empty it. Money coming in, and paying by card, work as normal.",
+      title: "Your payout details are locked until {when}",
+      body: "Support moved this account to a new email address. For 7 days after that, nobody can add or change a bank or payout account, so nobody who took the account over can redirect where you are paid. Paying by card and receiving payouts to the account already on file work as normal.",
     },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
@@ -2505,6 +2507,8 @@ export const en = {
       stepsLabel: "Listing steps",
       stepCounter: "Step {current} of {total}",
       stepAria: "Step {number}, {name}",
+      saveUnreached:
+        "We could not reach Vallo to save this step. Nothing you typed is lost. Check your connection and press Next again.",
       steps: {
         basics: "Basic info",
         photos: "Photos",

@@ -2,6 +2,8 @@
 
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
+> **Track E, 25 September 2026.** Light mode was removed on 23 September and restored on 25 September. It ships today as a Light / Dark / System choice, default Dark (`apps/web/src/lib/theme/theme.ts`). Where this document says the platform is dark only, or that light mode was removed, it describes 23 September; see [`docs/design/LIGHT_MODE_REMOVED.md`](/docs/design/LIGHT_MODE_REMOVED.md).
+
 **What would make Vallo excellent, and what would make it uncatchable.**
 
 Written 23 September 2026 for the founder of VALLO SPACES LTD, against `main` at `85c5471` and the live product at www.vallospaces.com. It sits beside the parallel audit session: that session finds what is broken, and this file proposes what should exist. Nothing here is a bug report. Where the walk tripped over something broken, it went to the audit session, and the list is in TO THE FOUNDER.

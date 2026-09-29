@@ -7,7 +7,7 @@ import { ButtonLink } from "@/components/ui/Button";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Vallo is one app with two sides: Property for renting, buying and selling, and Vallo Stays for hotels, apartments, guest houses, resorts and restaurant tables. Homes, land, hotels and shortlets across Nigeria, one account, one naira wallet, four languages.",
+    "Vallo is one app with two sides: Property for renting, buying and selling, and Vallo Stays for hotels, apartments, guest houses, resorts and restaurant tables. Homes, land, hotels and shortlets across Nigeria, one account, one inbox, four languages.",
 };
 
 /**
@@ -83,7 +83,7 @@ export default function AboutPage() {
         icon="house-sparkle"
         chip="About Vallo"
         title="Rent, buy or stay. Without the runaround."
-        lede="Vallo is one app with two sides. Property is renting, buying and selling: homes, shops, offices and land across Nigeria, with listers checked by a person and an inspection before any money moves. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced flats and restaurant tables. One account, one naira wallet, and the whole product working in the languages Nigerians actually speak."
+        lede="Vallo is one app with two sides. Property is renting, buying and selling: homes, shops, offices and land across Nigeria, with listers checked by a person and an inspection before any money moves. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced flats and restaurant tables. One account, one inbox, and the whole product working in the languages Nigerians actually speak."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">

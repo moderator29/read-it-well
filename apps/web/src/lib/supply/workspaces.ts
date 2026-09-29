@@ -162,13 +162,23 @@ export function makeWorkspace({
      * out why is the exact failure the suspension design exists to prevent. A
      * pending one opens on its own dashboard, which already carries the
      * standing banner.
+     *
+     * A HOST'S REASON IS ON ITS OWN BUSINESS ROW, NOT ON AN AGENT'S. A hotel
+     * or restaurant has no `agents` row, so `/agent/verification` answered a
+     * stopped host with the agent sign-up pitch. `/host` lists every business
+     * the account owns with its status and the reviewer's words, so a host
+     * opens there whatever its standing.
      */
     href:
-      standing === "refused" || standing === "suspended"
-        ? "/agent/verification"
-        : kind === "host"
-          ? "/host"
-          : "/agent/dashboard",
+      kind === "host"
+        ? "/host"
+        : standing === "refused" || standing === "suspended"
+          ? "/agent/verification"
+          : kind === "firm"
+            ? /* A firm opens on its own desk (assignments, roster, routing),
+                 not on the owner's personal agent dashboard. */
+              "/agent/firm"
+            : "/agent/dashboard",
   };
 }
 

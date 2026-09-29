@@ -66,13 +66,16 @@
      * ON THE PHOTOGRAPH, THE THEME DOES NOT CHANGE. A dusk plate is dark in
      * daylight too, so everything that sits on one (the hero copy, the city
      * capsules, the pill, the floating card, the category tiles, the drawn
-     * phone) is inked from these, which never flip. `--nf-surface-pin` is the
-     * one deep ink the token file keeps identical in both themes, and the
-     * white is `--nf-content-on-brand`, white in both. The `on-media` fills
-     * in tokens.css turn white on paper, which is right for a bright photo
-     * and wrong for this one; they are not used here.
+     * phone) is inked from these, which never flip. The ink is written out
+     * here rather than read from `--nf-surface-pin`: that token was once the
+     * same in both themes, but tokens.css now turns it white in light, which
+     * put white hero copy on a white-washed photograph (/about at desktop in
+     * light was unreadable). `--nf-ink-on-photo` is the dark pin, fixed. The white is
+     * `--nf-content-on-brand`, white in both. The `on-media` fills in
+     * tokens.css turn white on paper, which is right for a bright photo and
+     * wrong for this one; they are not used here.
      */
-    --nf-landing-ink: var(--nf-surface-pin);
+    --nf-landing-ink: var(--nf-ink-on-photo);
     --nf-landing-on-ink: var(--nf-content-on-brand);
     --nf-landing-on-ink-secondary: color-mix(in oklab, var(--nf-content-on-brand) 84%, transparent);
     --nf-landing-on-ink-muted: color-mix(in oklab, var(--nf-content-on-brand) 70%, transparent);
@@ -921,8 +924,15 @@
     min-width: 0;
     background: transparent;
     border: 0;
-    font-size: var(--nf-text-body-sm);
+    /* 16px, the size below which iOS Safari zooms the page on focus (F-09).
+       The desktop, with a fine pointer and room, keeps the smaller size. */
+    font-size: var(--nf-text-body);
     color: var(--nf-landing-fg);
+  }
+  @media (pointer: fine) and (min-width: 48rem) {
+    .nf-landing-pill-field input {
+      font-size: var(--nf-text-body-sm);
+    }
   }
   .nf-landing-pill-field input::placeholder {
     color: var(--nf-landing-fg-3);

@@ -32,26 +32,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * Payment and wallet health.
+ * Payment health.
  *
- * THE QUESTION THIS SCREEN ANSWERS. "Is anybody's money stuck." It had no
- * screen. `private.wallets_overdrawn()` and `private.stale_withdrawal_holds()`
- * were written when the wallet layer landed and their public pass-throughs
- * carry EXECUTE for `service_role` only, so the nightly reconcile job could
- * call them and a person could not. The honest description of the old state is
- * that an operator asked by a user where their withdrawal went had to ask an
- * engineer to run SQL against production.
+ * THE QUESTION THIS SCREEN ANSWERS. "Is anybody's money stuck." Vallo holds
+ * no customer money (docs/MONEY_ARCHITECTURE.md), so what can be stuck is a
+ * charge the processor has not settled, or a hold left from before custody
+ * was retired.
  *
- * THE ORDER IS THE PRIORITY, and it is not the order the data arrives in.
- * An overdrawn wallet comes first because it is the only finding here that
- * means the books are WRONG rather than slow: every other row on this page is
- * money in the wrong place, and that one is money that does not add up. It is
- * also the only one this console offers no button for, deliberately. A ledger
- * that has lost an argument with itself is not something to paper over with an
- * adjusting entry from a web form; it is an engineering incident, and the
- * screen says so instead of offering a fix that would destroy the evidence.
+ * The overdrawn-wallets table that used to lead this page is gone with the
+ * wallets: `admin_payment_health` still returns the key, always empty.
  *
- * Stale holds come second and carry the one action, because they are the
+ * Stale holds come first and carry the one action, because they are the
  * finding where somebody is actively short of their own money.
  *
  * Unsettled payments come last and are read-only: the reconcile route at
@@ -112,8 +103,12 @@ export default async function AdminPaymentsPage({
     );
   }
 
-  const { overdrawn, staleHolds, unsettled, totals, staleMinutes } = read.data;
-  const healthy = overdrawn.length === 0 && staleHolds.length === 0 && unsettled.length === 0;
+  /* `overdrawn` is not read. It listed wallets below zero, and there are no
+     wallets: custody is retired (docs/MONEY_ARCHITECTURE.md) and
+     `admin_payment_health` answers it with an empty list, so the table and its
+     "books add up" figure were a check on a ledger that no longer moves. */
+  const { staleHolds, unsettled, totals, staleMinutes } = read.data;
+  const healthy = staleHolds.length === 0 && unsettled.length === 0;
 
   return (
     <div className="nf-console nf-md">
@@ -126,12 +121,6 @@ export default async function AdminPaymentsPage({
 
       <Panel title={c.healthTitle} hint={c.healthHint}>
       <ui.StatRow>
-        <ui.Stat
-          label={c.shortfall}
-          value={formatMoney(totals.shortfallMinor, locale)}
-          hint={overdrawn.length === 0 ? c.addsUp : plural(overdrawn.length, c.belowZero, locale)}
-          tone={overdrawn.length === 0 ? "success" : "danger"}
-        />
         <ui.Stat
           label={c.frozen}
           value={formatMoney(totals.frozenMinor, locale)}
@@ -161,60 +150,6 @@ export default async function AdminPaymentsPage({
         </div>
       )}
       </Panel>
-
-      {overdrawn.length > 0 && (
-        <ui.Section
-          title={c.overdrawnTitle}
-          hint={c.overdrawnHint}
-        >
-          {/*
-            A TABLE, BECAUSE THIS IS A TABLE.
-
-            These three lists were flex rows inside a card, each hand-rolling
-            the one thing a money column needs: `nf-numeric shrink-0` on the
-            figure so the digits line up by place value. `components/ui/Table`
-            owns that (`align="end"` right-aligns AND makes the figures
-            tabular, because those always travel together), plus a sticky
-            header, a row hover and a scroll box that takes the sideways scroll
-            so the page never does. It was built for exactly this and F2-053
-            records that the console used it zero times.
-
-            NOT the queues, though, and that is the other half of the decision:
-            every queue row carries a decision control, and a table of rows with
-            buttons is worse on a phone than a card list. The console is used on
-            a phone at eleven at night by `nav.ts`'s own account. These three are
-            read-only columns of figures, which is the case a table wins.
-
-            The wallet id is still never truncated: a wallet id is what an
-            operator quotes to an engineer, and `user-select: all` means one tap
-            takes the whole string rather than transcribing it.
-          */}
-          <Table caption={c.overdrawnTitle} density="compact">
-            <THead>
-              <TR>
-                <TH>{c.owner}</TH>
-                <TH>{c.wallet}</TH>
-                <TH align="end">{c.balance}</TH>
-              </TR>
-            </THead>
-            <TBody>
-              {overdrawn.map((wallet) => (
-                <TR key={wallet.walletId}>
-                  <TD className="font-semibold text-[var(--nf-content-primary)]">
-                    {wallet.ownerName ?? c.nameNotOnFile}
-                  </TD>
-                  <TD className="[overflow-wrap:anywhere] [user-select:all]">
-                    {wallet.walletId}
-                  </TD>
-                  <TD align="end" className="font-bold text-[var(--nf-state-error)]">
-                    {formatMoney(wallet.balanceMinor, locale)}
-                  </TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
-        </ui.Section>
-      )}
 
       <ui.Section
         title={c.stuckTitle}

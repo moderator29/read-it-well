@@ -68,7 +68,10 @@ export function AcceptTerms({
 }) {
   return (
     <div className="mt-md text-left">
-      <label className="mb-sm flex cursor-pointer items-start gap-sm">
+      {/* `nf-tap` makes each row a 44px target without moving it (F-10): the
+          20px box alone was too small to hit reliably, and the label is the
+          control, so a tap anywhere on the expanded row toggles it. */}
+      <label className="nf-tap mb-sm flex cursor-pointer items-start gap-sm">
         <input
           type="checkbox"
           name="ageConfirmed"
@@ -77,6 +80,7 @@ export function AcceptTerms({
           checked={adult}
           onChange={(e) => onAdultChange(e.target.checked)}
           aria-describedby={showAdultError ? "age-confirmed-error" : undefined}
+          aria-invalid={showAdultError ? true : undefined}
           className="mt-3xs h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
         />
         <span className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -92,7 +96,7 @@ export function AcceptTerms({
           {t.safety.ageRequired}
         </p>
       )}
-      <label className="flex cursor-pointer items-start gap-sm">
+      <label className="nf-tap flex cursor-pointer items-start gap-sm">
         <input
           type="checkbox"
           name="acceptTerms"
@@ -100,6 +104,7 @@ export function AcceptTerms({
           checked={accepted}
           onChange={(e) => onChange(e.target.checked)}
           aria-describedby={showError ? "accept-terms-error" : undefined}
+          aria-invalid={showError ? true : undefined}
           className="mt-3xs h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
         />
         <span className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -112,15 +117,15 @@ export function AcceptTerms({
           sentence in all four locales. */}
       <p className="mt-2xs pl-lg text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {t.safety.acceptRead}{" "}
-        <Link href="/terms" className="underline underline-offset-4">
+        <Link href="/terms" className="nf-tap underline underline-offset-4">
           {t.safety.termsLink}
         </Link>
         {", "}
-        <Link href="/privacy" className="underline underline-offset-4">
+        <Link href="/privacy" className="nf-tap underline underline-offset-4">
           {t.safety.privacyLink}
         </Link>
         {", "}
-        <Link href="/eula" className="underline underline-offset-4">
+        <Link href="/eula" className="nf-tap underline underline-offset-4">
           {t.safety.rulesLink}
         </Link>
       </p>

@@ -255,15 +255,12 @@
    * printing a settings page today gives you the header and four feet of white.
    * Paper gets the content, exactly as a reader who asked for no motion does.
    *
-   * WHAT IS NOT FIXED HERE, because the file is not this workstream's: the
-   * third case, a browser that runs scripts but whose observer never fires -
-   * a stubbed WebView, an automated capture, a hydration that failed. The
-   * finding's own remedy is to render at `opacity: 1` and have JavaScript set
-   * `data-shown="false"` on mount, so the hidden state requires JavaScript
-   * rather than the visible one. That is a change to `Reveal.tsx`. This
-   * stylesheet cannot make it, because the server already emits
-   * `data-shown="false"` and CSS cannot tell that apart from the client saying
-   * it.
+   * The third case, a browser that runs scripts but whose observer never
+   * fires (a stubbed WebView, an automated capture, a failed hydration), is
+   * handled in `components/site/Reveal.tsx`: the server renders
+   * `data-shown="true"` and only JavaScript hides a block, and only one that
+   * starts below the fold, so the hidden state requires JavaScript rather than
+   * the visible one.
    */
   @media (scripting: none) {
     .nf-reveal {

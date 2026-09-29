@@ -2,6 +2,8 @@
 
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
+> **Track E, 25 September 2026.** Light mode was removed on 23 September and restored on 25 September. It ships today as a Light / Dark / System choice, default Dark (`apps/web/src/lib/theme/theme.ts`). Where this document says the platform is dark only, or that light mode was removed, it describes 23 September; see [`docs/design/LIGHT_MODE_REMOVED.md`](/docs/design/LIGHT_MODE_REMOVED.md).
+
 Vallo: VALLO SPACES LTD, RC 9870413. Audited 23 September 2026 against `origin/main` at `85c5471` and the live platform at www.vallospaces.com, including the live Supabase project `uccixoonmbhrnyczyigt`.
 
 Ten audit areas each ran twice. In pass one an agent audited its own area. In pass two a different agent re-audited those findings adversarially: it tried to kill each finding, reproduced it independently, and searched the same ground for what pass one had missed. Two more agents cleaned the repository. Every finding below carries its address, its evidence, its fix and its pass-two verdict. How it was run, and what it left behind, is in section 9.
@@ -5574,6 +5576,14 @@ When all of that is done, `docs/` should be about 155 MB, nearly all of it the g
 Everything I would have said out loud is here.
 
 **What I need from you, in order of lead time.**
+
+> **Dated note, 29 September 2026.** Items 1 and 2 changed for Apple. The
+> founder now enrols on Apple with a personal account first and transfers the
+> app to the VALLO SPACES LTD account once its Organization enrolment and
+> D-U-N-S number complete, so the D-U-N-S number no longer blocks TestFlight or
+> submission. Google Play is still enrolled as the organisation. See
+> `docs/MOBILE.md` section 7 for the plan and what the transfer changes.
+
 1. **D-U-N-S number for VALLO SPACES LTD.** It is free through Apple's lookup and takes 1 to 2 weeks. Nothing else in store enrolment can start without it.
 2. **The two developer accounts, both as an Organisation:** Apple Developer Program (99 USD a year) and Google Play Console (25 USD), plus developer verification. Then:
    - the APNs key;

@@ -7,15 +7,19 @@ import { TextField } from "@/components/ui/Field";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
-import { DocumentUploader, type ChosenFile } from "./DocumentUploader";
+import { DocumentUploader } from "./DocumentUploader";
 import {
   BUSINESS_SECTIONS,
   CONSENTS,
+  addressDateProblem,
+  isSubtypeOf,
+  lagosToday,
   missingFrom,
   progressLabel,
   stepsFor,
   type ConsentId,
   type DocumentKind,
+  type KycDocument,
   type KycSubmission,
   type KycSubmitResult,
 } from "./kyc";
@@ -35,11 +39,9 @@ import {
  * component reads the length off it, which is why the progress bar grows by one
  * segment the instant the answer changes rather than lying in either direction.
  *
- * WHAT THIS COMPONENT DOES NOT KNOW. Where anything is stored. `submit` is a
- * prop, the payload is `KycSubmission`, and there is not a table name, a bucket
- * name or a column name anywhere in this directory. That is deliberate: the
- * storage is landing alongside this and a screen that guessed at its shape
- * would be wrong in a way that still compiles.
+ * WHAT THIS COMPONENT DOES NOT KNOW. Where the rows go. `submit` is a prop and
+ * the payload is `KycSubmission`; the uploader holds each file's real storage
+ * path once it is up, and the server action files it.
  *
  * WHEN SUBMISSION FAILS IT SAYS SO. `submit` returning `{ ok: false }` prints
  * the reason on the review step and leaves every answer where it was. It does
@@ -59,7 +61,16 @@ export function KycFlow({
 }) {
   const [at, setAt] = useState(0);
   const [business, setBusiness] = useState<boolean | null>(null);
-  const [documents, setDocuments] = useState<Partial<Record<DocumentKind, ChosenFile>>>({});
+  const [documents, setDocuments] = useState<Partial<Record<DocumentKind, KycDocument>>>({});
+  /* One storage folder per visit, so a replaced photo lands beside the one
+     it replaces rather than in a new folder every time. */
+  const [batchId] = useState(() => {
+    try {
+      return crypto.randomUUID();
+    } catch {
+      return `b-${Date.now()}`;
+    }
+  });
   const [businessDetails, setBusinessDetails] = useState<Record<string, string>>({});
   const [consents, setConsents] = useState<ConsentId[]>([]);
   const [sending, setSending] = useState(false);
@@ -89,9 +100,13 @@ export function KycFlow({
   const canAdvance = (() => {
     switch (step.id) {
       case "identity-document":
-        return Boolean(documents.identity);
+        return Boolean(documents.identity) && isSubtypeOf("identity", documents.identity?.subtype);
       case "address-document":
-        return Boolean(documents.address);
+        return (
+          Boolean(documents.address) &&
+          isSubtypeOf("address", documents.address?.subtype) &&
+          addressDateProblem(documents.address?.issuedOn, lagosToday()) === null
+        );
       case "business-question":
         return business !== null;
       case "business-details":
@@ -108,11 +123,21 @@ export function KycFlow({
   })();
 
   async function send() {
+    if (sending) return;
     setSending(true);
     setFailure(null);
-    const result = await submit(submission);
+    let result: KycSubmitResult;
+    try {
+      result = await submit(submission);
+    } catch {
+      /* A dropped connection or a deploy between taps throws rather than
+         answering. Nothing is lost: every answer is still on this screen. */
+      result = { ok: false, message: SEND_UNREACHED };
+    }
     setSending(false);
     if (result.ok) {
+      /* The server revalidates /verification, so the next visit reads "in
+         review" rather than an empty form. */
       setSent(true);
       return;
     }
@@ -165,6 +190,7 @@ export function KycFlow({
         {step.id === "identity-document" && (
           <DocumentUploader
             kind="identity"
+            batchId={batchId}
             file={documents.identity ?? null}
             onChange={(file) =>
               setDocuments((d) => ({ ...d, ...(file ? { identity: file } : { identity: undefined }) }))
@@ -175,6 +201,7 @@ export function KycFlow({
         {step.id === "address-document" && (
           <DocumentUploader
             kind="address"
+            batchId={batchId}
             file={documents.address ?? null}
             onChange={(file) =>
               setDocuments((d) => ({ ...d, ...(file ? { address: file } : { address: undefined }) }))
@@ -425,6 +452,8 @@ const BACK = "Back a step";
 const LEAVE = "Leave verification";
 const CONTINUE = "Continue";
 const SEND = "Send for review";
+const SEND_UNREACHED =
+  "We could not reach Vallo to send this. Nothing was lost. Check your connection and press Send for review again.";
 const OPTIONAL = "Optional";
 const BUSINESS_YES = "Yes, I run a property business";
 const BUSINESS_YES_DETAIL = "An agency, a management company, or anything registered with the CAC.";

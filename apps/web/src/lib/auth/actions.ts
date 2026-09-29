@@ -1,10 +1,14 @@
 "use server";
 
 import { safeReturnPath } from "@/lib/security/return-path";
+import { withNext } from "./next-link";
+import { emailFromQuery } from "@/components/auth/auth-intent";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { passwordChangeProof } from "./password-change-proof";
+import { reauthenticate } from "@/lib/account-deletion/reauthenticate";
 import { createClientWithAgent } from "@/lib/security/agent-client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -191,7 +195,9 @@ const NOT_CONNECTED_MESSAGE =
 function authMessage(raw: string): string {
   const text = raw.toLowerCase();
   if (text.includes("invalid login credentials")) {
-    return "That email and password do not match. Check them and try again.";
+    /* One neutral sentence whether or not an account uses the address (F-08):
+       the password step never says which it was. */
+    return "That email and password do not match. Check both, or reset your password.";
   }
   if (text.includes("email not confirmed")) {
     return "Confirm your email first. Open the link we sent you, then sign in.";
@@ -365,6 +371,7 @@ export async function signInWithEmail(
 
   // The session cookies are set. Drop every cached render so the shell picks
   // up the real identity instead of the signed out view.
+  (await cookies()).delete(CHOOSER_EMAIL_COOKIE);
   revalidatePath("/", "layout");
   redirect(landing);
 }
@@ -530,6 +537,43 @@ export async function pendingSignUpEmail(): Promise<string> {
 async function forgetPendingEmail(): Promise<void> {
   const store = await cookies();
   store.delete(PENDING_EMAIL_COOKIE);
+}
+
+/**
+ * The address typed on the chooser, carried to the email step.
+ *
+ * It used to travel as `?email=` on a GET, which put somebody's address in
+ * the address bar, in history and in any referrer that left the page. It rides
+ * a cookie now, the same shape as the pending-signup one above but its own
+ * name, so a sign-in chooser can never pre-fill the sign-up code screen. The
+ * email pages still read `?email=` too, for links that carry it on purpose
+ * (the sign-up form's "sign in instead" and older bookmarks).
+ */
+const CHOOSER_EMAIL_COOKIE = "nf_chooser_email";
+const CHOOSER_EMAIL_MAX_AGE = 10 * 60;
+
+export async function continueWithEmail(formData: FormData): Promise<void> {
+  const route = formData.get("mode") === "sign-up" ? "/sign-up/email" : "/sign-in/email";
+  const email = emailFromQuery(field(formData, "email"));
+  const store = await cookies();
+  if (email) {
+    store.set(CHOOSER_EMAIL_COOKIE, email, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: CHOOSER_EMAIL_MAX_AGE,
+    });
+  } else {
+    store.delete(CHOOSER_EMAIL_COOKIE);
+  }
+  redirect(withNext(route, field(formData, "next") || null));
+}
+
+/** The address the chooser handed forward, if it is still fresh. */
+export async function chooserEmail(): Promise<string> {
+  const store = await cookies();
+  return emailFromQuery(store.get(CHOOSER_EMAIL_COOKIE)?.value);
 }
 
 /*
@@ -1014,11 +1058,14 @@ export async function requestPasswordReset(
 /**
  * Set the new password.
  *
- * Only reachable with the session the recovery link created, and that is the
- * authorisation: `updateUser` acts on whoever the cookies say is signed in, so
- * without a valid recovery exchange there is nobody to act on and Supabase
- * refuses. The screen checks for the session too, so somebody who opens the
- * URL directly gets an explanation rather than a form that cannot work.
+ * `updateUser` acts on whoever the cookies say is signed in, so the question
+ * is which sessions may do it. A session made by the recovery link (or an
+ * emailed code) in the last half hour may: that is exactly the proof the
+ * forgot-password email exists to give. ANY OTHER SESSION must type the
+ * current password first. Before, any signed-in session could set a new
+ * password, and because a new password ends every other session, somebody
+ * holding a stolen session could lock the owner out (the devices screen's
+ * "this was not me" even linked here). See `password-change-proof.ts`.
  */
 export async function updatePassword(
   _prev: AuthFormState,
@@ -1053,6 +1100,25 @@ export async function updatePassword(
       message:
         "That reset link has expired or was already used. Ask for a new one and open it from the same device.",
     };
+  }
+
+  const proof = await passwordChangeProof(supabase, userData.user);
+  if (proof === "link-only") {
+    return {
+      ok: false,
+      message:
+        "To set a password on this account, ask for a reset link and open it within half an hour. The link is the proof it is you.",
+    };
+  }
+  if (proof === "current-password") {
+    const currentPassword = field(formData, "currentPassword");
+    if (!currentPassword) {
+      return { ok: false, fieldErrors: { currentPassword: "Enter your current password." } };
+    }
+    const itIsThem = await reauthenticate(userData.user, { password: currentPassword });
+    if (!itIsThem) {
+      return { ok: false, fieldErrors: { currentPassword: "That is not your current password." } };
+    }
   }
 
   const { error } = await supabase.auth.updateUser({ password });

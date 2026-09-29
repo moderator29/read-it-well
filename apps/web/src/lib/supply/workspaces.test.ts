@@ -74,6 +74,12 @@ describe("where a workspace opens", () => {
     );
   });
 
+  it("sends a refused or suspended host to its own business standing, never the agent pitch", () => {
+    for (const standing of ["refused", "suspended"] as const) {
+      expect(makeWorkspace({ kind: "host", id: "b", name: "n", standing }).href).toBe("/host");
+    }
+  });
+
   it("sends a pending workspace to its own desk, which carries the standing banner", () => {
     expect(makeWorkspace({ kind: "owner", id: "a", name: "n", standing: "pending" }).href).toBe(
       "/agent/dashboard",
@@ -92,6 +98,12 @@ describe("where a workspace opens", () => {
     expect(makeWorkspace({ kind: "agent", id: "1", name: "n", standing: "active" }).key).toBe("supply:1");
     expect(makeWorkspace({ kind: "firm", id: "1", name: "n", standing: "active" }).key).toBe("firm:1");
     expect(makeWorkspace({ kind: "console", id: "x", name: "n", standing: "active" }).key).toBe("admin");
+  });
+
+  it("opens a firm on its own desk, and a stopped one on its reason", () => {
+    expect(makeWorkspace({ kind: "firm", id: "1", name: "n", standing: "active" }).href).toBe("/agent/firm");
+    expect(makeWorkspace({ kind: "firm", id: "1", name: "n", standing: "suspended" }).href).toBe("/agent/verification");
+    expect(makeWorkspace({ kind: "agent", id: "1", name: "n", standing: "active" }).href).toBe("/agent/dashboard");
   });
 });
 

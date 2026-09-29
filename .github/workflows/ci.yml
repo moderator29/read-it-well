@@ -129,6 +129,21 @@ jobs:
         if: ${{ !cancelled() }}
         run: node scripts/check-migrations.mjs --base "${{ github.event.pull_request.base.sha || github.event.before }}"
 
+      # The online half: supabase/migrations/APPLIED.txt against the live
+      # supabase_migrations.schema_migrations, both ways. Runs only when one of
+      # the two secrets is set (a read-only connection string, or a Management
+      # API token; `secrets` cannot be read in an `if:`, so the script decides);
+      # without either it says it skipped and passes, so
+      # the offline half above (also run by `npm run lint`) stays the gate.
+      - name: Migrations match the live history
+        if: ${{ !cancelled() }}
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -n "$SUPABASE_DB_URL" ]; then command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client); fi
+          node scripts/check-migrations.mjs --online
+
   # Its own job, and NOT one of the required checks: a new advisory with no
   # fix yet, or the npm audit service being down, must not turn the
   # deterministic gate above red. A red run here is a notice to act on.

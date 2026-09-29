@@ -8,7 +8,11 @@ changes when it is done. Written 23 September 2026.
 The code is finished and switched off. It switches ON by itself, on the
 website and in the iPhone app, the moment Supabase reports the Apple provider
 enabled (the sign-in screens ask Supabase every five minutes). You need an
-Apple Developer account (organisation, VALLO SPACES LTD) first.
+Apple Developer account first. Since 29 September 2026 that is your personal
+account to start with, and the app moves to the VALLO SPACES LTD account
+later; the Services ID and key made here belong to the personal account and
+must be remade in the company account after the transfer
+(`docs/MOBILE.md` section 7).
 
 > **A precondition, not a step: do not enable Apple (or Google) in Supabase
 > yet.** An account made through a provider never passes the sign-up form, so
