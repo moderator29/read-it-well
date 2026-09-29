@@ -86,6 +86,9 @@ function readOverride(env: Record<string, string | undefined>): Override {
   return { none, google: named.includes("google") && !none };
 }
 
+/** The terms and 18+ step every new social account passes (B-2). */
+export const FINISH_SETUP_STEP = FINISH_SETUP_PATH;
+
 /**
  * THE PRECONDITION FOR SWITCHING ANY PROVIDER ON IS NOW MET (STORE-19,
  * NEW-A4-04, B-2 of 29 September 2026).
@@ -107,9 +110,6 @@ function readOverride(env: Record<string, string | undefined>): Override {
  * THE POLICY, pure, so every branch is tested without a network.
  * `supabaseApple` is what Supabase reports about its own Apple provider.
  */
-/** The terms and 18+ step every new social account passes (B-2). */
-export const FINISH_SETUP_STEP = FINISH_SETUP_PATH;
-
 export function providerPolicy(input: {
   surface: SignInSurface;
   supabaseConfigured: boolean;
