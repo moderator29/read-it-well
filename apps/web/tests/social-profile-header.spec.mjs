@@ -114,13 +114,19 @@ check(
   "the profile asks for the labelled form",
   /<BackChevron[\s\S]{0,120}?labelled/.test(headerCode),
 );
+/* 29 September 2026: the chevron is the shared `BackControl` (one back
+   control on every screen), which draws the word on its `pill` surface and
+   takes the platform's one back decision (`useBack`, `lib/nav/resolve.ts`):
+   the screen the person came from when safe, else the declared parent. */
+const control = read("src/components/ui/BackControl.tsx");
 check(
   "which draws the word beside the chevron rather than only in aria-label",
-  /labelled \? <span>\{label\}<\/span> : null/.test(back),
+  /surface=\{labelled \? "pill" : "media"\}/.test(back) &&
+    /\{word \? <span aria-hidden="true">\{word\}<\/span> : null\}/.test(control),
 );
 check(
-  "and it still follows real history rather than always pushing a fallback",
-  /canGoBackInApp\(\)\) router\.back\(\)/.test(back),
+  "and it follows real history rather than always pushing a fallback",
+  /<BackControl/.test(back) && /const back = useBack\(fallback\);/.test(control),
 );
 
 /* ---------------------------------------------------------- what is gated */

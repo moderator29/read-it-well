@@ -21,8 +21,21 @@ import { BRAND_DOMAIN } from "@/lib/brand-domain";
 const API_URL = "https://api.resend.com/emails";
 const REQUEST_TIMEOUT_MS = 10_000;
 
+/**
+ * THE COMPANY ADDRESS, hello@vallospaces.com, is both ends of every platform
+ * email (founder, 29 September 2026): the From line and, unless a message
+ * names its own, the Reply-To. It is the company's public mailbox, never a
+ * person's. EMAIL_FROM and EMAIL_REPLY_TO still override it per environment.
+ * Resend refuses a From whose domain is not verified on the account, so
+ * `vallospaces.com` must be a verified sending domain there.
+ */
+export const COMPANY_ADDRESS = `hello@${BRAND_DOMAIN}`;
+
 /** The sender used when EMAIL_FROM is not set. */
-const DEFAULT_FROM = `Vallo <hello@${BRAND_DOMAIN}>`;
+const DEFAULT_FROM = `Vallo <${COMPANY_ADDRESS}>`;
+
+/** Where a reply lands when EMAIL_REPLY_TO is not set, or not an address. */
+const DEFAULT_REPLY_TO = `Vallo <${COMPANY_ADDRESS}>`;
 
 /** Deliberately forgiving: one @, a dot in the domain, no whitespace. */
 const ADDRESS_RE = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
@@ -121,15 +134,17 @@ export function emailFrom(): string {
  * writing into a mailbox with nobody behind it. The reply was not bounced and
  * was not refused. It simply went nowhere, and the person had no way to know.
  *
- * Unset is still a valid configuration and behaves exactly as before: no
- * `reply_to` reaches the wire at all. This is a default, not a requirement.
+ * Unset now means the company address, hello@vallospaces.com, because a
+ * reply should always reach the company mailbox (founder, 29 September). A
+ * configured value that is not an address is refused, logged without the
+ * value, and the company address is used instead.
  *
  * NEVER the private founder mailbox. Whatever address is set here is printed
  * in the headers of every message the platform sends and is as public as the
  * From line.
  */
 export function emailReplyTo(): string {
-  return usableReplyTo(process.env.EMAIL_REPLY_TO ?? "");
+  return usableReplyTo(process.env.EMAIL_REPLY_TO ?? "") || DEFAULT_REPLY_TO;
 }
 
 /**
@@ -194,8 +209,7 @@ async function attemptSend(
   idempotencyKey: string,
 ): Promise<SendEmailResult> {
   /* The message wins when it says, the environment answers when it does not,
-     and when neither speaks no `reply_to` is sent, which is exactly what this
-     module did before the default existed. */
+     and when neither speaks the company address does. */
   const replyTo = usableReplyTo(message.replyTo ?? "") || emailReplyTo();
 
   let res: Response;

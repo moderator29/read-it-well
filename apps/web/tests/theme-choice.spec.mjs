@@ -2,7 +2,8 @@
  * LIGHT / DARK / SYSTEM (light mode reintroduced, 25 September 2026).
  *
  * The control at the foot of the side navigation, driven the way a person
- * would on a phone (390x844, touch): the default, each choice, persistence in
+ * would on a phone (390x844, touch): the default (dark for every first visit,
+ * whatever the phone prefers), each choice, persistence in
  * storage AND the cookie, the server rendering the chosen theme with no flash,
  * System following the operating system live, the keyboard, and the browser
  * chrome colour. Credentials come from the environment only.
@@ -24,11 +25,39 @@ function check(name, condition) {
   if (!condition) failures += 1;
 }
 
+/*
+ * FIRST VISIT IS DARK (the founder, 29 September 2026: "anyone that enters
+ * our website should be on dark mode"). No cookie, no storage, a phone set to
+ * LIGHT: the landing, the auth screens and the help centre all arrive dark,
+ * in the server's HTML (so nothing flashes) and after the before-paint script.
+ * Needs no account, so it runs before the credential check below.
+ */
+{
+  const guest = await chromium.launch(EXECUTABLE ? { executablePath: EXECUTABLE } : {});
+  const ctx = await guest.newContext({ ...PHONE, colorScheme: "light" });
+  const page = await ctx.newPage();
+  for (const path of ["/", "/sign-in", "/sign-up", "/help"]) {
+    const html = await (await page.request.get(`${BASE}${path}`)).text();
+    check(`first visit ${path}: the server renders dark`, /<html[^>]*data-theme="dark"/.test(html));
+    await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" });
+    check(
+      `first visit ${path}: dark before paint on a light phone`,
+      (await page.evaluate(() => document.documentElement.dataset.theme)) === "dark",
+    );
+  }
+  await guest.close();
+}
+
 const email = process.env.QA_MEMBER_EMAIL;
 const password = process.env.QA_MEMBER_PASSWORD ?? process.env.QA_PASSWORD;
 if (!email || !password) {
   /* Conditional on a missing secret, not disabled: with the variables set
-     this runs. Reported to run.mjs as SKIP (exit 77), never as a pass. */
+     this runs. Reported to run.mjs as SKIP (exit 77), never as a pass. A
+     failed first-visit check above still fails the run. */
+  if (failures > 0) {
+    console.log(`\ntheme-choice: ${failures} failed`);
+    process.exit(1);
+  }
   console.log("  SKIP    theme-choice: QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD (or QA_PASSWORD) are not set; this walk needs a signed-in member");
   process.exit(77);
 }

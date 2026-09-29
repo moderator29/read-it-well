@@ -713,8 +713,10 @@ export function MapCanvas({
                 } as React.CSSProperties
               }
               /* THE SHAPE LAW. A price pin is a button carrying a price, so it
-                 takes the control radius. It read `--nf-radius-pill`. */
-              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
+                 takes the control radius. It read `--nf-radius-pill`.
+                 `nf-map-pin-hit` gives it the 44px hit area (map.css) on a
+                 pseudo element, so the painted pin and its tip stay put. */
+              className={`nf-numeric nf-map-pin-hit nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
                 chosen
                   ? "scale-110 border border-[var(--nf-selected-edge)] text-[var(--nf-content-on-brand)]"
                   : "nf-btn--glass text-[var(--nf-content-primary)] hover:border-[var(--nf-selected-edge)]"

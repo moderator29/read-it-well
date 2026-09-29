@@ -1784,6 +1784,25 @@ export const en = {
       signedOut: "Sign in to download the data held on your account.",
     },
 
+    /* STORE-07: the AI disclosure agreed to in the assistant, shown here with
+       a way to take it back. Agreeing again happens in the assistant itself. */
+    aiConsent: {
+      label: "AI assistant",
+      row: "AI assistant",
+      on: "Agreed",
+      off: "Not agreed",
+      subOn: "What you type to the assistant and support chat is sent to Anthropic, in the United States, to write the answer. Tap to withdraw.",
+      subOff: "Nothing you type is sent to an AI. The assistant asks again before your first question.",
+      note: "Withdrawing stops anything new being sent. Answers already written stay in your conversations on this device.",
+      confirmTitle: "Withdraw your agreement?",
+      confirmBody:
+        "The assistant and the support chat will stop sending what you type to Anthropic. To use them again, you will be asked to agree first. You can still write to support without AI.",
+      confirm: "Withdraw",
+      keep: "Keep it",
+      failed: "That did not save. Check your connection and try again.",
+      withdrawn: "Withdrawn. Nothing you type is sent to an AI now.",
+    },
+
     blocked: {
       rowLabel: "Blocked accounts",
       rowNote: "People you blocked cannot message you or see you, and you cannot see them.",

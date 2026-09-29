@@ -299,18 +299,78 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE DOCK IN DAYLIGHT: A NEON NAVY CAPSULE (the founder, 29 September
-   * 2026). The dock is a night island in both themes (`MobileTabBar`), and
-   * its whole material is in shell-m.css ("THE DOCK"). In light the fill is
-   * lifted one step bluer, so it reads as the brand's one lit object at the
-   * foot of a white page, and the shadow under it is blue rather than
-   * black, which on white would read as dirt. The More tray takes the same
-   * fill, so the capsule, the round button and the tray are one material.
+   * THE DOCK IN DAYLIGHT: WHITE, WITH BLUE GLYPHS (the founder, 29 September
+   * 2026, the later ruling, which SUPERSEDES the neon navy capsule of that
+   * morning: "make the capsule white with blue icons and labels", matching
+   * the round menu button and the tray it opens). The capsule, the round
+   * More button and the tray are one white material; their line glyphs and
+   * words are the brand blue (`--nf-brand-primary` #005FE8, 5.4:1 on white,
+   * so the 11px labels clear AA). The material itself is shell-m.css ("THE
+   * DOCK"); this block only answers its custom properties and inks for the
+   * daylight palette. The night keeps its navy neon glass.
+   *
+   * The current tab has no container here either: the filled glyph, the
+   * label a step deeper (`--nf-brand-primary-strong`) and heavier, and the
+   * dot. The centre "+" stays the brand-blue button with its running rim in
+   * both themes; only its glow is tuned for a white ground.
    * ---------------------------------------------------------------- */
-  :root[data-theme="light"] [data-theme="dark"] :is(.nf-tabbar, .nf-dock-island, .nf-dockmore__tray) {
-    --nf-dock-fill-top: color-mix(in oklab, var(--nf-container-ink) 34%, var(--nf-surface-canvas));
-    --nf-dock-fill-foot: color-mix(in oklab, var(--nf-container-ink) 18%, var(--nf-surface-canvas));
-    --nf-dock-drop: 0 14px 30px -14px color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
+  :root[data-theme="light"] :is(.nf-tabbar, .nf-dock-island, .nf-dockmore__tray):not(:where([data-theme="dark"] *)) {
+    --nf-dock-fill-top: var(--nf-surface-primary);
+    --nf-dock-fill-foot: color-mix(in oklab, var(--nf-brand-primary) 3%, var(--nf-surface-primary));
+    --nf-dock-drop: 0 12px 28px -12px color-mix(in oklab, var(--nf-brand-primary) 38%, transparent);
+    --nf-dock-ink-on: var(--nf-brand-primary-strong);
+    --nf-dock-glyph-glow: none;
+    --nf-dock-dot-glow: none;
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+    border-block-start-color: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
+    color: var(--nf-brand-primary);
+    box-shadow:
+      inset 0 1px 0 var(--nf-surface-primary),
+      0 0 0 0.5px color-mix(in oklab, var(--nf-brand-primary) 10%, transparent),
+      0 2px 6px -2px color-mix(in oklab, var(--nf-content-primary) 10%, transparent),
+      var(--nf-dock-drop);
+  }
+  /* The tabs, the round button's glyph and the tray's words: brand blue. */
+  :root[data-theme="light"] .nf-tabbar .nf-tab__link:not([aria-current="page"], :where([data-theme="dark"] *)),
+  :root[data-theme="light"] .nf-dock-island:not(:where([data-theme="dark"] *)),
+  :root[data-theme="light"] .nf-dockmore__label:not(:where([data-theme="dark"] *)) {
+    color: var(--nf-brand-primary);
+  }
+  /* The moving edge light on the capsule and the button (edge-m.css) is a
+     night sheen; on white it reads as a smudge, so it is not drawn here. */
+  :root[data-theme="light"] :is(.nf-tabbar, .nf-dock-island):not(:where([data-theme="dark"] *))::before {
+    display: none;
+  }
+  /* The round More button, open: it stays white, its close mark blue, with
+     a brand ring so the open state is still seen. */
+  :root[data-theme="light"] .nf-dockmore[data-open] .nf-dockmore__button:not(:where([data-theme="dark"] *)) {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    background: var(--nf-surface-primary);
+    color: var(--nf-brand-primary-strong);
+    box-shadow:
+      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 14%, transparent),
+      var(--nf-dock-drop);
+  }
+  /* The tray's glyph tiles: a whisper of brand on white, the glyph blue. */
+  :root[data-theme="light"] .nf-dockmore__glyph:not(:where([data-theme="dark"] *)) {
+    background: color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-surface-primary));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+    color: var(--nf-brand-primary);
+  }
+  :root[data-theme="light"] .nf-dockmore__item:not(:where([data-theme="dark"] *)):hover {
+    background: color-mix(in oklab, var(--nf-brand-primary) 6%, transparent);
+  }
+  :root[data-theme="light"] .nf-dockmore__item[aria-current="page"]:not(:where([data-theme="dark"] *)) .nf-dockmore__glyph {
+    box-shadow: inset 0 0 0 1.5px currentColor;
+  }
+  /* The "+" on white: the same button, its glow a blue drop rather than a
+     night bloom, which on white would read as a haze. */
+  :root[data-theme="light"] .nf-dock-plus:not(:where([data-theme="dark"] *)) {
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 42%, transparent),
+      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 12%, transparent),
+      0 0 16px -3px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent),
+      0 8px 16px -8px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
   }
 
   /* ------------------------------------------------------------------
@@ -406,4 +466,31 @@
   syntax: "<angle>";
   inherits: false;
   initial-value: 0deg;
+}
+
+/* ------------------------------------------------------------------
+ * THE SUPPORT HERO ("Hi ..., how can we help?", `SupportHero`). The
+ * founder, 29 September 2026: in light it is a WHITE card, dark text and
+ * the blue action, not the navy island it was. A white card on a soft
+ * brand hairline with a faint blue wash at the top and a blue drop, and
+ * the three round doors under it carry blue glyphs on a white disc.
+ *
+ * UNLAYERED ON PURPOSE: the hero paints its night fill, hairline and ink
+ * with Tailwind utilities, which sit in a later layer than `components`
+ * and would beat any layered rule here whatever its specificity.
+ * ---------------------------------------------------------------- */
+:root[data-theme="light"] .nf-support-hero:not(:where([data-theme="dark"] *)) {
+  border-color: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in oklab, var(--nf-brand-primary) 7%, transparent), transparent 60%),
+    var(--nf-surface-primary);
+  box-shadow:
+    var(--nf-elev-1),
+    0 12px 28px -16px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
+}
+:root[data-theme="light"] .nf-support-hero__round:not(:where([data-theme="dark"] *)) {
+  border-color: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+  background: var(--nf-surface-primary);
+  color: var(--nf-brand-primary);
+  box-shadow: 0 4px 12px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
 }

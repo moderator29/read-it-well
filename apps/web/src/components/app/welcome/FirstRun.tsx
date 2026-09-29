@@ -8,6 +8,8 @@ import type { ComponentProps } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BackControl } from "@/components/ui/BackControl";
+import { isInPageStep } from "@/lib/nav/in-page-step";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { InterestChoices } from "./InterestChoices";
@@ -451,16 +453,20 @@ export function FirstRun({
           first slide, where back leaves first run the way it came. It steps
           through the same history the hardware button does. */}
       {index !== initialIndex && (
-        <button
-          type="button"
+        <BackControl
+          onBack={() => {
+            /* A slide entry always has the previous slide behind it; anything
+               else (a restored tab) steps the slide without touching history. */
+            if (isInPageStep(window.history.state)) window.history.back();
+            else {
+              setIndex(index - 1);
+              announceSlide(index - 1);
+            }
+          }}
+          label={t.common.back}
           className="nf-gs-back"
-          aria-label={t.common.back}
-          data-nav-back=""
           data-testid="welcome-back"
-          onClick={() => window.history.back()}
-        >
-          <UiIcon name="arrow-left" size={20} />
-        </button>
+        />
       )}
       {lockup}
 

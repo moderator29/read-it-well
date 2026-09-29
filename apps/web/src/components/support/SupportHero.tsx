@@ -11,11 +11,11 @@ import { SupportChat } from "@/components/app/account/SupportChat";
 /**
  * The top of the support home.
  *
- * In light mode this is the founder's fifth reference: a deep navy block
- * carrying the headline and the actions, with light surfaces for reading
- * below. It is drawn as a night subtree (`data-theme="dark"`), so every token
- * inside it resolves to the night palette whatever the page is in, and in
- * dark mode it is a raised navy card on the night canvas.
+ * It follows the reader's theme (the founder, 29 September 2026: in light
+ * mode it is WHITE, dark text and the blue action, not the navy island it
+ * was). At night it is a raised navy card on the night canvas; in daylight a
+ * white card on a soft hairline with a blue drop (light.css, "THE SUPPORT
+ * HERO"), its round actions carrying blue glyphs.
  *
  * One primary action: Ask a question, which opens the AI helper in the shared
  * sheet. The helper answers from the help articles and hands over to a person
@@ -38,9 +38,8 @@ export function SupportHero({
 
   return (
     <section
-      data-theme="dark"
       aria-labelledby="support-hero-title"
-      className="relative overflow-hidden rounded-[var(--nf-radius-xl)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-card"
+      className="nf-support-hero relative overflow-hidden rounded-[var(--nf-radius-xl)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-card"
       data-testid="support-hero"
     >
       <div className="flex items-start gap-group">
@@ -102,7 +101,7 @@ function RoundAction({ href, icon, label, testId }: { href: string; icon: UiIcon
         className="flex min-h-11 flex-col items-center gap-row text-center"
         data-testid={testId}
       >
-        <span className="nf-glass grid h-14 w-14 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-primary)]">
+        <span className="nf-support-hero__round nf-glass grid h-14 w-14 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-primary)]">
           <UiIcon name={icon} size={24} />
         </span>
         <span className="nf-caption font-medium leading-tight text-[var(--nf-content-secondary)]">{label}</span>

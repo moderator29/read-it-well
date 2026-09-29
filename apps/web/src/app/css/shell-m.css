@@ -301,11 +301,20 @@
    *
    * NO HIGHLIGHT BEHIND THE CURRENT TAB. The founder: "there is one circle
    * thing when we click, transparent, closer to white; remove it; it should
-   * only make that one deep blue". The travelling pill stays in the markup
-   * for its geometry and paints nothing; the current tab is its deep blue
-   * glyph and label alone (chrome.css).
+   * only make that one deep blue", and again on 29 September 2026: no
+   * container behind the current or the tapped item, in either theme. The
+   * travelling pill stays in the markup for its geometry and is not drawn;
+   * the current tab is its filled glyph, a stronger label and a small dot
+   * ("THE DOCK" below).
+   *
+   * A LITTLE WIDER (the founder, 29 September 2026: "a little bit, not
+   * big"). The row sat 16px in from each edge; it sits 10px in now, or the
+   * safe area where that is larger, so the capsule gains 12px and stays
+   * centred. At 320 the five slots are still 45px each.
    */
   .nf-dockrow {
+    left: max(0.625rem, env(safe-area-inset-left, 0px));
+    right: max(0.625rem, env(safe-area-inset-right, 0px));
     align-items: flex-end;
     gap: var(--nf-space-xs);
   }
@@ -314,8 +323,7 @@
     border-radius: var(--nf-radius-pill);
   }
   .nf-tabbar__pill {
-    background: transparent;
-    box-shadow: none;
+    display: none;
   }
   .nf-tab__link[aria-current="page"],
   .nf-tab__link[aria-current="page"] .nf-tab__icon {
@@ -670,22 +678,24 @@
  * THE DOCK (the founder, 29 September 2026: "make the capsule REALLY
  * premium", references 04, 17 and 23).
  *
- * The capsule, the round More button and the tray are one material, in both
- * themes, because the dock is a night island in both (`MobileTabBar`):
+ * The capsule, the round More button and the tray are one material. At
+ * night that is the navy neon glass below; in daylight the three are WHITE
+ * with brand-blue line glyphs and labels (the founder, 29 September 2026,
+ * superseding the night island the dock was that morning), and light.css
+ * ("THE DOCK IN DAYLIGHT") answers the same custom properties:
  *
  *  - REFINED GLASS: a navy fill falling from a lit top to a deeper foot
- *    (`--nf-dock-fill-*`, lifted bluer in light by light.css), blurred and
- *    saturated behind; a crisp 1px hairline, brighter along the top edge; an
- *    inner highlight; one soft drop under it and a faint blue bloom.
- *  - A PRECISE ACTIVE PILL: the travelling pill is a small lit glass lozenge
- *    with its own hairline and highlight, and the current tab's glyph and
- *    label are WHITE on it. The label was brand blue on navy at 4.08:1; white
- *    on the pill clears AA with room.
+ *    (`--nf-dock-fill-*`), blurred and saturated behind; a crisp 1px
+ *    hairline, brighter along the top edge; an inner highlight; one soft
+ *    drop under it and a faint blue bloom.
+ *  - NO CONTAINER ON THE CURRENT TAB: its filled glyph, a heavier label at
+ *    the brand ink and a small dot under it. The travelling pill is not
+ *    drawn, and a tap draws no fill either.
  *  - BOLD, SOLID GLYPHS: the current tab draws its filled twin (MobileTabBar
  *    already asks for it), the others the line set at full ink, not muted.
- *  - THE CENTRE "+" (`CreateDock`): a round brand-blue button, a bold white
- *    plus, an inner highlight and a restrained glow, and a press that sinks
- *    it. Under reduced motion the press is still.
+ *  - THE CENTRE "+" (`CreateDock`): a 50px round brand-blue button, a bold
+ *    white plus, an inner highlight, a glow, and the logo pill's running rim
+ *    light; a press sinks it. Under reduced motion it is still.
  *  - THE TRAY: the same glass on a clean four-column grid of line glyphs.
  */
 @layer components {
@@ -724,27 +734,59 @@
     outline-offset: -2px;
   }
 
-  /* The pill: a lit glass lozenge under the current tab. */
-  .nf-tabbar .nf-tabbar__pill {
-    border: 1px solid color-mix(in oklab, var(--nf-container-ink) 62%, transparent);
-    border-block-start-color: color-mix(in oklab, var(--nf-container-ink) 55%, var(--nf-content-primary));
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-container-ink) 58%, var(--nf-surface-canvas)) 0%,
-      color-mix(in oklab, var(--nf-container-ink) 34%, var(--nf-surface-canvas)) 100%
-    );
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 22%, transparent),
-      0 0 12px -4px var(--nf-glow-3);
-  }
+  /*
+   * THE CURRENT TAB, WITH NO CONTAINER (the founder, 29 September 2026: no
+   * pill or box behind the current or tapped item, in either theme). Three
+   * marks instead, none of them a shape behind the tab: the glyph's FILLED
+   * twin (`MobileTabBar` asks for it), the label at the brand ink and a
+   * heavier weight, and a 4px dot under the label, so the state never rests
+   * on colour alone. At night the brand ink is `--nf-brand-quiet` (7.2:1 on
+   * the dock's navy) with a soft neon bloom on the glyph; light.css sets the
+   * daylight inks. `aria-current` is untouched; this is only its drawing.
+   */
   .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]),
   .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]) .nf-tab__icon {
-    color: var(--nf-content-primary);
+    color: var(--nf-dock-ink-on, var(--nf-brand-quiet));
     text-shadow: none;
-    filter: none;
+  }
+  .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]) .nf-tab__icon {
+    filter: var(--nf-dock-glyph-glow, drop-shadow(0 0 6px var(--nf-glow-3)));
+  }
+  .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on]) .nf-tab__label {
+    font-weight: 750;
+  }
+  .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after {
+    content: "";
+    position: absolute;
+    bottom: 0.1875rem;
+    left: 50%;
+    width: 0.25rem;
+    height: 0.25rem;
+    margin-left: -0.125rem;
+    border-radius: var(--nf-radius-circle);
+    background: currentColor;
+    box-shadow: var(--nf-dock-dot-glow, 0 0 6px var(--nf-glow-3));
+  }
+  /* A tap answers with the press scale on the link (chrome.css), never a
+     fill behind it. */
+  .nf-tabbar .nf-tab__link:active {
+    background: none;
   }
 
-  /* THE CENTRE "+". */
+  /*
+   * THE CENTRE "+": BIGGER, AND A LIGHT RUNS ROUND ITS RIM (the founder,
+   * 29 September 2026: "a bit bigger, clean and premium, glowing, with the
+   * same moving snake edge light" as the logo pill).
+   *
+   * 50px, and it was 44: still inside the 56px tab, so the capsule does not
+   * grow, and the whole fifth of the row stays the target. The rim light is
+   * the logo pill's own: a conic of two short arcs turned by the registered
+   * angle `--nf-logo-lap` on the `nf-logo-lap` keyframes, both declared once
+   * in light.css ("THE LOGO") and not repeated here. The keyframes are not
+   * theme-gated, so the lap runs in both themes. Under reduced motion, data
+   * saving, and the Calm or Off motion setting the lap stops and the rim is
+   * a steady glow instead (below).
+   */
   .nf-tab__link--create {
     display: flex;
     align-items: center;
@@ -753,35 +795,65 @@
     padding: 0;
   }
   .nf-dock-plus {
+    position: relative;
+    isolation: isolate;
     display: grid;
     place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 3.125rem;
+    height: 3.125rem;
     border-radius: var(--nf-radius-circle);
-    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 28%, transparent);
+    border: 1px solid color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent);
     background:
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-content-primary) 22%, transparent) 0%,
-        transparent 50%
-      ),
+      radial-gradient(90% 70% at 50% 0%, color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent), transparent 62%),
       linear-gradient(160deg, var(--nf-brand-primary) 0%, var(--nf-brand-primary-strong) 100%);
     color: var(--nf-content-on-brand);
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 40%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 42%, transparent),
       0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 16%, transparent),
-      0 6px 16px -6px var(--nf-glow-3);
+      0 0 18px -2px color-mix(in oklab, var(--nf-glow-ink) 60%, transparent),
+      0 8px 18px -8px color-mix(in oklab, var(--nf-glow-ink) 80%, transparent);
     transition:
       transform var(--nf-duration-press) var(--nf-ease-press),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  .nf-dock-plus::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(var(--nf-mask-opaque) 0 0) content-box,
+      linear-gradient(var(--nf-mask-opaque) 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(var(--nf-mask-opaque) 0 0) content-box exclude,
+      linear-gradient(var(--nf-mask-opaque) 0 0);
+    background: conic-gradient(
+      from var(--nf-logo-lap),
+      transparent 0deg 110deg,
+      color-mix(in oklab, var(--nf-content-on-brand) 45%, transparent) 150deg,
+      var(--nf-content-on-brand) 176deg,
+      transparent 180deg 290deg,
+      color-mix(in oklab, var(--nf-content-on-brand) 45%, transparent) 330deg,
+      var(--nf-content-on-brand) 356deg,
+      transparent 360deg
+    );
+    animation: nf-logo-lap 5s linear infinite;
+  }
   .nf-dock-plus > svg {
+    position: relative;
+    z-index: 2;
+    width: 1.625rem;
+    height: 1.625rem;
     stroke-width: 2.6;
   }
   .nf-tab__link--create:active .nf-dock-plus {
     transform: scale(0.9);
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 30%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent),
       0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent),
       0 2px 8px -4px var(--nf-glow-3);
   }
@@ -794,6 +866,23 @@
   .nf-tab__link--create:focus-visible .nf-dock-plus {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 3px;
+  }
+  /* Motion off: the lap stops and the rim is one steady soft light. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dock-plus::before {
+      animation: none;
+      background: color-mix(in oklab, var(--nf-content-on-brand) 45%, transparent);
+    }
+  }
+  :root:is(
+      [data-save-data="on"],
+      [data-motion-ambient="off"],
+      [data-motion="calm"],
+      [data-motion="off"]
+    )
+    .nf-dock-plus::before {
+    animation: none;
+    background: color-mix(in oklab, var(--nf-content-on-brand) 45%, transparent);
   }
 
   /* The round More button: the capsule's glass, the glyph at full ink. */
@@ -838,16 +927,22 @@
   .nf-dockmore__label {
     color: color-mix(in oklab, var(--nf-content-primary) 82%, transparent);
   }
+  /* The current tray item: no container either (the same ruling as the
+     tabs). Its glyph tile takes the brand ink and a lit rim, and its word
+     the brand ink at a heavier weight. */
   .nf-dockmore__item[aria-current="page"] {
-    border-color: color-mix(in oklab, var(--nf-container-ink) 55%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-container-ink) 40%, var(--nf-surface-canvas)) 0%,
-      color-mix(in oklab, var(--nf-container-ink) 22%, var(--nf-surface-canvas)) 100%
-    );
+    border-color: transparent;
+    background: none;
   }
-  .nf-dockmore__item[aria-current="page"] :is(.nf-dockmore__glyph, .nf-dockmore__label) {
-    color: var(--nf-content-primary);
+  .nf-dockmore__item[aria-current="page"] .nf-dockmore__glyph {
+    color: var(--nf-dock-ink-on, var(--nf-brand-quiet));
+    box-shadow:
+      inset 0 0 0 1.5px currentColor,
+      0 0 12px -4px var(--nf-glow-3);
+  }
+  .nf-dockmore__item[aria-current="page"] .nf-dockmore__label {
+    color: var(--nf-dock-ink-on, var(--nf-brand-quiet));
+    font-weight: 750;
   }
 
   @media (prefers-reduced-motion: reduce) {

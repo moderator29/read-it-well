@@ -41,20 +41,20 @@
  * `apps/web/src/lib/email/shell.test.ts`, which reads theme.ts, this script and
  * the generated files, and fails when a colour here is not a colour there.
  *
- * A NAVY BAND OVER A LIGHT PAGE (29 September 2026), the same document
- * `render.ts` builds (`documentHtml`): the lockup on deep navy, a white card
- * with the message, the footer with the support and legal links on the
- * ground. The inline layer is light and complete; the one <style> block
- * repaints the reading surfaces in the dark palette for clients that honour
- * `prefers-color-scheme`, and every surface is painted so a client that
- * forces its own dark mode has nothing unpainted to guess at. theme.ts says
- * why, with the measurements.
+ * DARK, LIKE THE PRODUCT (29 September 2026, founder ruling), the same
+ * document `render.ts` builds (`documentHtml`): a navy ground, one deep navy
+ * card with a hairline edge carrying the lockup band, a luminous brand-blue
+ * rule and the message, then the footer with the support and legal links on
+ * the ground. The inline layer is dark and complete, `color-scheme: dark`
+ * stops Apple Mail inverting it, and every ink keeps AA against its ground
+ * written and inverted, so a client that forces its own pass still reads.
+ * theme.ts says why, with the measurements.
  *
  * EMAIL CLIENT RULES OBSERVED HERE (do not undo these)
  * - Table layout only. No flex, no grid, no positioning.
  * - Every layout and colour declaration is inline on the element. The single
- *   <style> block carries the dark scheme for the clients that honour it and
- *   nothing in it is required for the message to read correctly.
+ *   <style> block re-asserts the dark palette for clients that restyle by
+ *   scheme and nothing in it is required for the message to read correctly.
  * - System font stack only, no web fonts.
  * - background-color is always declared BEFORE background-image, because the
  *   Word rendering engine in Outlook drops background-image and keeps the
@@ -108,27 +108,17 @@ const OUT_DIR =
  * that resolves to nothing paints text the colour of its background.
  * ------------------------------------------------------------------------- */
 
-/* The dark scheme (DARK in theme.ts), repainted over the light layer by
-   prefers-color-scheme. GROUND is also the brand band's navy (HEADER). */
+/* The palette (DARK in theme.ts): the inline layer every client paints.
+   GROUND is also the brand band's navy (HEADER). */
 const GROUND = "#010118"; // --nf-ink-950
 const CARD = "#000030"; // --nf-ink-850
 const PANEL = "#000040"; // --nf-ink-800
 const EDGE = "#102D55"; // hairlines
 const RIM = "#2768C4"; // the card's rim
 const TEXT = "#FFFFFF"; // headings
-const BODY = "#C6CDF2"; // body copy
-const MUTED = "#7C86C2"; // small print
-
-/* The light layer (LIGHT in theme.ts): what every client paints first. */
-const L_GROUND = "#F3F5F8"; // --nf-surface-raised (light)
-const L_CARD = "#FFFFFF"; // --nf-surface-primary (light)
-const L_PANEL = "#F6F7F9"; // --nf-surface-secondary (light)
-const L_EDGE = "#E2E2E3"; // --nf-border-default on white
-const L_TEXT = "#0B0D17"; // --nf-content-primary (light)
-const L_BODY = "#363C4A"; // --nf-content-secondary (light)
-const L_MUTED = "#5A6273"; // --nf-content-muted (light)
-const BRAND = "#005FE8"; // --nf-brand-primary (light), the button fill
-const LINK = "#0050C8"; // --nf-brand-quiet (light), links on white
+const BODY = "#D5DEFF"; // body copy, --nf-mist-300
+const MUTED = "#8E9CC4"; // small print, --nf-mist-500
+const BRAND = "#005FE8"; // the button fill
 const HEADER = GROUND; // the brand band
 
 /*
@@ -146,7 +136,10 @@ const ELECTRIC = "#0056D0"; // --nf-electric-600, was #0010D0
 const SKY = "#5C9FFF"; // --nf-brand-quiet, was #5C7CFF
 
 /* Signature gradients. Solid fallbacks are applied at every call site. */
-const GRADIENT_LIGHT = `linear-gradient(180deg,#0A6CF5 0%,${BRAND} 100%)`;
+const BUTTON_GRADIENT = `linear-gradient(180deg,#0A6CF5 0%,${BRAND} 100%)`;
+const BUTTON_GLOW = "0 10px 26px -10px rgba(0,95,232,0.7)";
+/* The luminous rule under the band, as GRADIENT_CAP in theme.ts. */
+const GRADIENT_CAP = `linear-gradient(90deg,${ELECTRIC} 0%,${GLOW} 28%,${SKY} 50%,${GLOW} 72%,${ELECTRIC} 100%)`;
 
 const FONT_SANS =
   "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
@@ -217,15 +210,15 @@ function htmlBlock(block) {
      * which is the most visible way an email looks broken.
      */
     case "heading":
-      return `<h1 class="rm-title" style="margin:0 0 16px;font-family:${FONT_SANS};font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:${L_TEXT};">${block.text}</h1>`;
+      return `<h1 class="rm-title" style="margin:0 0 16px;font-family:${FONT_SANS};font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:${TEXT};">${block.text}</h1>`;
 
     /** The opening paragraph. Matches render.ts paragraph(). */
     case "lede":
-      return `<p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${L_BODY};">${block.text}</p>`;
+      return `<p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${BODY};">${block.text}</p>`;
 
     /** A supporting paragraph, one step down in weight of attention. */
     case "para":
-      return `<p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:15px;line-height:1.6;color:${L_BODY};">${block.text}</p>`;
+      return `<p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:15px;line-height:1.6;color:${BODY};">${block.text}</p>`;
 
     /*
      * The one primary action. Matches render.ts button() exactly.
@@ -240,7 +233,7 @@ function htmlBlock(block) {
     case "cta":
       return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0;">
                       <tr>
-                        <td align="center" style="border-radius:14px;background-color:${BRAND};background-image:${GRADIENT_LIGHT};mso-padding-alt:16px 34px;">
+                        <td align="center" style="border-radius:14px;background-color:${BRAND};background-image:${BUTTON_GRADIENT};box-shadow:${BUTTON_GLOW};mso-padding-alt:16px 34px;">
                           <a href="${block.href}" target="_blank" style="display:inline-block;padding:16px 34px;font-family:${FONT_SANS};font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${block.label}</a>
                         </td>
                       </tr>
@@ -257,10 +250,10 @@ function htmlBlock(block) {
      * on the front and the string sits actually centred.
      */
     case "code":
-      return `<p class="rm-muted" style="margin:0 0 10px;font-family:${FONT_SANS};font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${L_MUTED};">${block.intro}</p>
+      return `<p class="rm-muted" style="margin:0 0 10px;font-family:${FONT_SANS};font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${MUTED};">${block.intro}</p>
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td align="center" class="rm-panel rm-title" bgcolor="${L_PANEL}" style="background:${L_PANEL};border:1px solid ${L_EDGE};border-radius:16px;padding:20px 16px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:${L_TEXT};">{{ .Token }}</td>
+                        <td align="center" class="rm-panel rm-title" bgcolor="${PANEL}" style="background:${PANEL};border:1px solid ${EDGE};border-radius:16px;padding:20px 16px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:${TEXT};">{{ .Token }}</td>
                       </tr>
                     </table>`;
 
@@ -274,9 +267,9 @@ function htmlBlock(block) {
     case "note":
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td class="rm-panel" bgcolor="${L_PANEL}" style="background:${L_PANEL};border:1px solid ${L_EDGE};border-left:3px solid ${BRAND};border-radius:16px;padding:18px 20px;">
-                          <p class="rm-title" style="margin:0 0 6px;font-family:${FONT_SANS};font-size:14px;line-height:20px;font-weight:700;letter-spacing:-0.01em;color:${L_TEXT};">${block.title}</p>
-                          <p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:14px;line-height:1.6;color:${L_BODY};">${block.text}</p>
+                        <td class="rm-panel" bgcolor="${PANEL}" style="background:${PANEL};border:1px solid ${EDGE};border-left:3px solid ${BRAND};border-radius:16px;padding:18px 20px;">
+                          <p class="rm-title" style="margin:0 0 6px;font-family:${FONT_SANS};font-size:14px;line-height:20px;font-weight:700;letter-spacing:-0.01em;color:${TEXT};">${block.title}</p>
+                          <p class="rm-body" style="margin:0;font-family:${FONT_SANS};font-size:14px;line-height:1.6;color:${BODY};">${block.text}</p>
                         </td>
                       </tr>
                     </table>`;
@@ -292,14 +285,14 @@ function htmlBlock(block) {
       const cells = block.rows
         .map(
           ([label, value], i) => `<tr>
-                            <td width="40%" class="rm-muted rm-rule" style="width:40%;padding:13px 14px 13px 0;${i === 0 ? "" : `border-top:1px solid ${L_EDGE};`}font-family:${FONT_SANS};font-size:13px;line-height:1.5;vertical-align:top;color:${L_MUTED};">${label}</td>
-                            <td align="right" class="rm-title rm-rule" style="padding:13px 0;${i === 0 ? "" : `border-top:1px solid ${L_EDGE};`}font-family:${FONT_SANS};font-size:15px;line-height:1.5;font-weight:700;vertical-align:top;word-break:break-all;color:${L_TEXT};">${value}</td>
+                            <td width="40%" class="rm-muted rm-rule" style="width:40%;padding:13px 14px 13px 0;${i === 0 ? "" : `border-top:1px solid ${EDGE};`}font-family:${FONT_SANS};font-size:13px;line-height:1.5;vertical-align:top;color:${MUTED};">${label}</td>
+                            <td align="right" class="rm-title rm-rule" style="padding:13px 0;${i === 0 ? "" : `border-top:1px solid ${EDGE};`}font-family:${FONT_SANS};font-size:15px;line-height:1.5;font-weight:700;vertical-align:top;word-break:break-all;color:${TEXT};">${value}</td>
                           </tr>`,
         )
         .join("\n                          ");
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td class="rm-panel" bgcolor="${L_PANEL}" style="background:${L_PANEL};border:1px solid ${L_EDGE};border-radius:16px;padding:6px 22px;">
+                        <td class="rm-panel" bgcolor="${PANEL}" style="background:${PANEL};border:1px solid ${EDGE};border-radius:16px;padding:6px 22px;">
                           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                           ${cells}
                           </table>
@@ -315,18 +308,18 @@ function htmlBlock(block) {
      */
     case "list": {
       const list = block.items
-        .map((item) => `<li class="rm-body" style="margin:0 0 10px;color:${L_BODY};">${item}</li>`)
+        .map((item) => `<li class="rm-body" style="margin:0 0 10px;color:${BODY};">${item}</li>`)
         .join("\n                        ");
-      return `<ul class="rm-body" style="margin:0;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:15px;line-height:1.6;color:${L_BODY};">
+      return `<ul class="rm-body" style="margin:0;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:15px;line-height:1.6;color:${BODY};">
                         ${list}
                       </ul>`;
     }
 
     /** Small print with the raw link, for clients that strip the button. */
     case "fallback":
-      return `<p class="rm-muted" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${L_MUTED};">
+      return `<p class="rm-muted" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${MUTED};">
                       If the button does not work, copy this link into your browser:<br />
-                      <a href="${block.href}" target="_blank" class="rm-link" style="color:${LINK};text-decoration:underline;word-break:break-all;">${block.href}</a>
+                      <a href="${block.href}" target="_blank" class="rm-link" style="color:${SKY};text-decoration:underline;word-break:break-all;">${block.href}</a>
                     </p>`;
   }
   throw new Error(`unknown block ${block.kind}`);
@@ -404,14 +397,14 @@ function textBlock(block) {
  */
 function factBand(title, lines) {
   const items = lines
-    .map((line) => `<li class="rm-body" style="margin:0 0 8px;color:${L_BODY};">${line}</li>`)
+    .map((line) => `<li class="rm-body" style="margin:0 0 8px;color:${BODY};">${line}</li>`)
     .join("\n                          ");
   // The band closes the card, so it carries the card's edge and its bottom
   // radius. The card above it drops both, which is why the two are written as
   // one decision in shell() rather than independently here.
-  return `<td class="rm-panel" bgcolor="${L_PANEL}" style="background:${L_PANEL};border:1px solid ${L_EDGE};border-top:1px solid ${L_EDGE};border-radius:0 0 20px 20px;padding:24px ${PAD_X}px 26px;">
-                      <p class="rm-muted" style="margin:0 0 12px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${L_MUTED};">${title}</p>
-                      <ul class="rm-body" style="margin:0;padding:0 0 0 20px;font-family:${FONT_SANS};font-size:14px;line-height:1.6;color:${L_BODY};">
+  return `<td class="rm-panel rm-pad" bgcolor="${PANEL}" style="background:${PANEL};border-top:1px solid ${EDGE};border-radius:0 0 19px 19px;padding:24px ${PAD_X}px 26px;">
+                      <p class="rm-muted" style="margin:0 0 12px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${MUTED};">${title}</p>
+                      <ul class="rm-body" style="margin:0;padding:0 0 0 20px;font-family:${FONT_SANS};font-size:14px;line-height:1.6;color:${BODY};">
                           ${items}
                       </ul>
                     </td>`;
@@ -426,54 +419,54 @@ function factBand(title, lines) {
  * The lockup itself is in the band (`brandBand`).
  */
 function masthead(purpose) {
-  return `<p class="rm-muted" style="margin:0 0 10px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${L_MUTED};">${purpose}</p>`;
+  return `<p class="rm-muted" style="margin:0 0 10px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${MUTED};">${purpose}</p>`;
 }
 
 /**
- * The brand band, as `brandBandRow` in render.ts: navy three ways, and the
- * lockup as one picture carrying its own navy tile, so it stays the brand on
- * navy even where a client inverts the band.
+ * The brand band, as `brandBandRow` in render.ts: navy three ways under the
+ * lit rim, the lockup as one picture carrying its own navy tile, then the
+ * luminous brand-blue rule.
  */
 function brandBand() {
   return `<tr>
-              <td class="rm-head rm-pad" bgcolor="${HEADER}" style="background-color:${HEADER};background-image:linear-gradient(${HEADER},${HEADER});border-radius:20px 20px 0 0;padding:22px ${PAD_X}px 20px;">
+              <td class="rm-base rm-pad" bgcolor="${HEADER}" style="background-color:${HEADER};background-image:linear-gradient(${HEADER},${HEADER});border-top:1px solid ${RIM};border-radius:19px 19px 0 0;padding:24px ${PAD_X}px 22px;">
                 <img src="${LOCKUP}" width="${LOCKUP_WIDTH}" height="${LOCKUP_HEIGHT}" alt="${WORDMARK_ALT}" style="display:block;width:${LOCKUP_WIDTH}px;height:${LOCKUP_HEIGHT}px;border:0;outline:none;text-decoration:none;font-family:${FONT_SANS};font-size:22px;line-height:${LOCKUP_HEIGHT}px;font-weight:700;letter-spacing:-0.025em;color:#FFFFFF;" />
               </td>
             </tr>
-            <tr><td style="height:3px;line-height:3px;font-size:0;background-color:${BRAND};background-image:${GRADIENT_LIGHT};mso-line-height-rule:exactly;">&nbsp;</td></tr>`;
+            <tr><td style="height:2px;line-height:2px;font-size:0;background-color:${BRAND};background-image:${GRADIENT_CAP};mso-line-height-rule:exactly;">&nbsp;</td></tr>`;
 }
 
 /**
  * The style block, identical to `schemeStyle` in render.ts down to the class
- * names. Nothing the message depends on lives here: it repaints the reading
- * surfaces in the dark palette for clients that honour `prefers-color-scheme`
- * (Apple Mail, iOS Mail and others), and tightens the padding on a phone.
- * Gmail strips it and inverts on its own, which is why the inline layer is
- * light and every colour in it keeps AA inverted too. The `[data-ogsb]`
- * rules follow Outlook.com's own dark mode by the ground it repainted, as
- * `schemeStyle` in render.ts explains.
+ * names. Nothing the message depends on lives here: it declares the message
+ * dark, re-asserts the dark palette by class for clients that restyle by
+ * scheme, puts the palette back where Outlook.com's own dark pass repainted
+ * it (`data-ogsb`, `data-ogsc`), and tightens the padding on a phone.
  */
-const SCHEME_STYLE = `
-      :root { color-scheme: light dark; supported-color-schemes: light dark; }
-      @media (prefers-color-scheme: dark) {
+const PALETTE_RULES = `
         .rm-base   { background-color: ${GROUND} !important; }
-        .rm-card   { background-color: ${CARD} !important; border-color: ${RIM} !important; }
-        .rm-panel  { background-color: ${PANEL} !important; border-color: ${EDGE} !important; }
+        .rm-card   { background-color: ${CARD} !important; }
+        .rm-panel  { background-color: ${PANEL} !important; }
         .rm-title  { color: ${TEXT} !important; }
         .rm-body   { color: ${BODY} !important; }
         .rm-muted  { color: ${MUTED} !important; }
-        .rm-link   { color: ${SKY} !important; }
-        .rm-rule   { border-top-color: ${EDGE} !important; }
+        .rm-link   { color: ${SKY} !important; }`;
+const SCHEME_STYLE = `
+      :root { color-scheme: dark; supported-color-schemes: dark; }
+      @media (prefers-color-scheme: dark) {${PALETTE_RULES}
+      }
+      @media (prefers-color-scheme: light) {${PALETTE_RULES}
       }
       .rm-base[data-ogsb]  { background-color: ${GROUND} !important; }
       .rm-card[data-ogsb]  { background-color: ${CARD} !important; }
       .rm-panel[data-ogsb] { background-color: ${PANEL} !important; }
-      [data-ogsb] .rm-title, .rm-title[data-ogsb] { color: ${TEXT} !important; }
-      [data-ogsb] .rm-body, .rm-body[data-ogsb]   { color: ${BODY} !important; }
-      [data-ogsb] .rm-muted, .rm-muted[data-ogsb] { color: ${MUTED} !important; }
-      [data-ogsb] .rm-link, .rm-link[data-ogsb]   { color: ${SKY} !important; }
+      [data-ogsc] .rm-title, .rm-title[data-ogsc] { color: ${TEXT} !important; }
+      [data-ogsc] .rm-body, .rm-body[data-ogsc]   { color: ${BODY} !important; }
+      [data-ogsc] .rm-muted, .rm-muted[data-ogsc] { color: ${MUTED} !important; }
+      [data-ogsc] .rm-link, .rm-link[data-ogsc]   { color: ${SKY} !important; }
       @media only screen and (max-width: 480px) {
         .rm-pad    { padding-left: 22px !important; padding-right: 22px !important; }
+        .rm-outer  { padding-left: 8px !important; padding-right: 8px !important; }
       }`;
 
 /**
@@ -490,57 +483,64 @@ function shellHtml({ preheader, purpose, blocks, facts, footnote }) {
   const body = blocks.map(htmlBlock).join("\n                ");
   const links = FOOTER_LINKS.map(
     ([label, href]) =>
-      `<a class="rm-link" href="${href}" target="_blank" style="color:${LINK};text-decoration:underline;">${label}</a>`,
+      `<a class="rm-link" href="${href}" target="_blank" style="color:${SKY};text-decoration:underline;">${label}</a>`,
   ).join("&nbsp;&nbsp;&middot;&nbsp;&nbsp;");
   return `<!doctype html>
-<html lang="en">
+<html lang="en" style="color-scheme:dark;background-color:${GROUND};">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="supported-color-schemes" content="light dark" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
     <title>Vallo</title>
     <style>${SCHEME_STYLE}
     </style>
   </head>
-  <body class="rm-base" bgcolor="${L_GROUND}" style="margin:0;padding:0;width:100%;background-color:${L_GROUND};color:${L_BODY};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;">
+  <body class="rm-base" bgcolor="${GROUND}" style="margin:0;padding:0;width:100%;background-color:${GROUND};color:${BODY};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;">
     <!-- The hidden inbox line. The trailing spacer entities stop a client
          pulling the first sentence of body copy in after it, so what the
          reader sees beside the subject is a line somebody wrote. -->
     <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${preheader}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="rm-base" bgcolor="${L_GROUND}" style="width:100%;background-color:${L_GROUND};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="rm-base" bgcolor="${GROUND}" style="width:100%;background-color:${GROUND};">
       <tr>
-        <td align="center" style="padding:28px 12px 40px;">
+        <td align="center" class="rm-outer" style="padding:28px 12px 44px;">
+          <!--[if mso]><table role="presentation" width="${MAX_WIDTH}" cellpadding="0" cellspacing="0" align="center"><tr><td><![endif]-->
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:${MAX_WIDTH}px;width:100%;">
-            ${brandBand()}
             <tr>
-              <td class="rm-card rm-pad" bgcolor="${L_CARD}" style="background-color:${L_CARD};border:1px solid ${L_EDGE};border-top:0;${facts ? "border-bottom:0;" : "border-radius:0 0 20px 20px;"}padding:34px ${PAD_X}px 34px;">
-                ${masthead(purpose)}
-                ${body}
-              </td>
-            </tr>
+              <td class="rm-card" bgcolor="${CARD}" style="background-color:${CARD};border:1px solid ${EDGE};border-radius:20px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                  ${brandBand()}
+                  <tr>
+                    <td class="rm-card rm-pad" bgcolor="${CARD}" style="background-color:${CARD};${facts ? "" : "border-radius:0 0 19px 19px;"}padding:34px ${PAD_X}px 36px;">
+                      ${masthead(purpose)}
+                      ${body}
+                    </td>
+                  </tr>
 ${
   facts
-    ? `            <tr>
-              ${factBand(facts.title, facts.lines)}
-            </tr>
+    ? `                  <tr>
+                    ${factBand(facts.title, facts.lines)}
+                  </tr>
 `
     : ""
-}
+}                </table>
+              </td>
+            </tr>
             <!-- The footer sits on the ground OUTSIDE the card, so it reads as
                  small print by position as well as by size. -->
             <tr>
-              <td class="rm-pad" style="padding:24px ${PAD_X}px 0;">
-                <p class="rm-muted" style="margin:0 0 8px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${L_MUTED};">${footnote}</p>
-                <p class="rm-muted" style="margin:14px 0 14px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${L_MUTED};">${links}</p>
-                <p class="rm-muted" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:20px;font-weight:700;color:${L_MUTED};">${SIGN_OFF}</p>
+              <td class="rm-pad" style="padding:26px ${PAD_X}px 0;">
+                <p class="rm-muted" style="margin:0 0 8px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${MUTED};">${footnote}</p>
+                <p class="rm-muted" style="margin:14px 0 14px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${MUTED};">${links}</p>
+                <p class="rm-title" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:20px;font-weight:700;letter-spacing:0.02em;color:${TEXT};">${SIGN_OFF}</p>
                 <!-- The legal line. The brand is Vallo everywhere a person
                      reads; the company appears only where the law asks who
                      sent this, which is here. -->
-                <p class="rm-muted" style="margin:4px 0 0;font-family:${FONT_SANS};font-size:12px;line-height:18px;color:${L_MUTED};">${LEGAL_LINE}</p>
+                <p class="rm-muted" style="margin:4px 0 0;font-family:${FONT_SANS};font-size:12px;line-height:18px;color:${MUTED};">${LEGAL_LINE}</p>
               </td>
             </tr>
           </table>
+          <!--[if mso]></td></tr></table><![endif]-->
         </td>
       </tr>
     </table>
@@ -616,7 +616,7 @@ const FACTS_MARKETPLACE = {
   lines: [
     /* UX-25: most listings today are examples; the email says what is true. */
     "Message whoever listed a place from inside Vallo, so the conversation stays on the record. Places marked Example are there to show how Vallo works and cannot be rented or booked.",
-    "Vallo has two sides on one account. Property is renting, buying and selling; Vallo Stays is hotels, apartments, guest houses, resorts and restaurant tables. One naira wallet pays for both.",
+    "Vallo has two sides on one account. Property is renting, buying and selling; Vallo Stays is hotels, apartments, guest houses, resorts and restaurant tables.",
     "On a tenancy the rent is rarely the whole number. Caution deposit, agency, legal, agreement and service charge are normal here, so the move-in total is printed in full before you commit.",
     "Keep chats and payments inside Vallo. Inspect a property before you pay for it, and pay for a stay at checkout rather than into anybody's account.",
   ],

@@ -62,3 +62,39 @@ export function previousEntryPath(nav: NavigationLike | null = browserNavigation
     return null;
   }
 }
+
+/** The screen Back would return to, and how far behind it is. */
+export type PreviousEntry = { path: string; distance: number };
+
+/**
+ * The nearest entry behind this one AT A DIFFERENT ADDRESS, with its query,
+ * and how many entries back it sits, or `null` when that cannot be known.
+ *
+ * A search re-filtered three times, a sign-up step and an opened sheet each
+ * leave entries at the SAME pathname as the screen. Pressing a screen's back
+ * control is a request to leave the screen, so those are stepped over and the
+ * distance says how far `history.go` has to travel. Only the Navigation API
+ * can answer this; without it the answer is `null`, which means "use the
+ * declared parent", never a guess.
+ */
+export function previousEntry(nav: NavigationLike | null = browserNavigation()): PreviousEntry | null {
+  if (!nav || typeof nav.entries !== "function") return null;
+  try {
+    const index = nav.currentEntry?.index;
+    if (typeof index !== "number" || index < 1) return null;
+    const list = nav.entries();
+    const base = typeof window === "undefined" ? "http://localhost" : window.location.href;
+    const here = list[index]?.url;
+    const herePath = here ? new URL(here, base).pathname : null;
+    for (let i = index - 1; i >= 0; i -= 1) {
+      const url = list[i]?.url;
+      if (!url) return null;
+      const parsed = new URL(url, base);
+      if (herePath !== null && parsed.pathname === herePath) continue;
+      return { path: `${parsed.pathname}${parsed.search}`, distance: index - i };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}

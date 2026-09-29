@@ -30,8 +30,9 @@
    *   `--nf-radius-circle` is 50 per cent, which on a wide short box draws an
    *   ELLIPSE and not a capsule. A price on a map is a wide short box.
    *
-   * `.nf-map-pin-drop` and `.nf-map-pin-breathe` below are different classes,
-   * are written by `MapCanvas.tsx` and `CityHero.tsx`, and are alive. A
+   * `.nf-map-pin-drop`, `.nf-map-pin-breathe` and `.nf-map-pin-hit` below
+   * are different classes, are written by `MapCanvas.tsx` and `CityHero.tsx`
+   * (the hit area by `MapCanvas.tsx` only), and are alive. A
    * substring search for "nf-map-pin" finds them.
    */
 
@@ -55,6 +56,28 @@
     0% { opacity: 0; transform: translate(-50%, -100%) translateY(-22px) scale(0.4); }
     60% { opacity: 1; transform: translate(-50%, -100%) translateY(3px) scale(1.08); }
     100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+  }
+  /*
+   * THE 44PX FLOOR FOR A PRICE PIN, WITHOUT MOVING WHERE IT POINTS.
+   *
+   * The painted pin is about 37px tall, and its bottom centre is the point
+   * on the map (`-translate-x-1/2 -translate-y-full` in MapCanvas). Growing
+   * the button would move that tip or the price inside it, so the hit area
+   * is an invisible pseudo element instead: it keeps the pin's bottom edge
+   * and horizontal centre, and grows up and outward to at least 44 by 44.
+   * The tip, the paint and the layout box are exactly what they were, and
+   * `icons-and-targets.spec` measures the pseudo element as the target.
+   * `::after` is the hero pin's bloom, so this is `::before`.
+   */
+  .nf-map-pin-hit::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: max(100%, 2.75rem);
+    height: max(100%, 2.75rem);
+    transform: translateX(-50%);
+    border-radius: inherit;
   }
   .nf-map-cluster-drop {
     animation: nf-map-cluster-drop var(--nf-duration-deliberate) var(--nf-ease-spring) backwards;

@@ -36,7 +36,7 @@ export function TicketClaim({
         {!holder ? "Nobody is working on this ticket." : holder.mine ? "You are working on this ticket." : `${holder.name ?? "A colleague"} is working on this ticket.`}
       </p>
       {!holder && (
-        <Button type="button" variant="primary" size="sm" loading={pending} onClick={() => run("take")}>
+        <Button type="button" variant="primary" size="sm" loading={pending} onClick={() => run("take")} data-support-take="">
           Take it
         </Button>
       )}

@@ -441,9 +441,9 @@ describe("a row a database trigger wrote becomes a real HTTP request", () => {
     expect(call?.body.text).toBeTruthy();
     expect(call?.body.text).toContain("Your password was changed");
 
-    /* EMAIL_REPLY_TO is not set on this deployment and nothing invents one, so
-       no `reply_to` reaches the wire. */
-    expect(call?.body.reply_to).toBeUndefined();
+    /* EMAIL_REPLY_TO is not set here, so a reply lands at the company
+       address, which is the default for every platform email. */
+    expect(call?.body.reply_to).toBe("Vallo <hello@vallospaces.com>");
 
     /* AND THE ROW IS CLOSED. */
     expect(result.counts).toMatchObject({ claimed: 1, sent: 1 });

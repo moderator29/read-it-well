@@ -118,10 +118,18 @@ try {
         ),
       );
 
+      /* English names the destination ("Back to Vallo", `BackControl`, 29
+         September 2026); every other locale says its own one word, because a
+         sentence in someone else's language is worse than a word in yours. */
+      const back = await page.evaluate(() =>
+        [...document.querySelectorAll("[data-nav-back]")].map((n) => n.getAttribute("aria-label")),
+      );
       check(
         `${route} carries a back control labelled "${expected}"`,
-        labels.includes(expected),
-        `aria-labels seen: ${JSON.stringify(labels)}`,
+        locale === "en"
+          ? back.some((l) => l === "Back" || l?.startsWith("Back to "))
+          : back.includes(expected),
+        `back labels seen: ${JSON.stringify(back)}`,
       );
 
       // The specific regression: the English default surviving in a non-English

@@ -208,13 +208,25 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      reaches it by choosing it (Get started on the landing page, itself a
      root), and its ending is their own Continue into the app. */
   "/welcome": ROOT,
+  /* Not a screen: a 307 to `/home` for a member and `/` for anybody else. It
+     is declared (it used to sit in NON_NAVIGABLE) because the browsing
+     screens name it as their parent, and a parent must be a route in this
+     map. A ROOT, because it only ever lands on one. No document is served
+     from it, so no control ever draws on it. */
+  "/home-or-landing": ROOT,
   "/offline": "/home",
 
   /* ----------------------------------------------------------- rent side */
-  /* The founder, 23 September (C3.2): browsing is signed in only, and the
-     back control on the two browsing screens goes to the landing page, not
-     to `/home`, which lands a signed-out reader on the sign-in wall. */
-  "/search": "/",
+  /* The two browsing screens, opened cold (a shared link, a pasted address),
+     go to WHICHEVER HOME FITS THE READER: `/home-or-landing` answers `/home`
+     for a member and `/` for a stranger, on the server, from their cookies.
+     C3.2 (23 September) sent them to `/` so a signed-out reader never met
+     the sign-in wall; that held, and it also threw every signed-in member
+     onto the marketing page, which the owner ruled out in so many words
+     ("that button should never take them to the landing page", see the
+     route handler). Both rules hold now. Walked in from Home, back returns
+     to Home through history before this is ever read. */
+  "/search": "/home-or-landing",
   "/listing/[id]": "/search",
   "/saved": "/home",
   "/saved/searches": "/saved",
@@ -278,8 +290,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agreements/[id]": "/agreements",
 
   /* -------------------------------------------------------------- social */
-  /* C3.2, as `/search` above: the landing page, not `/home`. */
-  "/around": "/",
+  /* As `/search` above: whichever home fits the reader. */
+  "/around": "/home-or-landing",
   "/around/[slug]": "/around",
   "/around/settings": "/around",
   "/around/new": "/around/settings",
@@ -556,7 +568,6 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/support": "POST only, the contact form.",
   "/api/yellowcard/webhook": "processor webhook.",
   "/admin/enter": "303 into the console with the entry cookie.",
-  "/home-or-landing": "307 to `/` or `/home`, decided by the caller's cookies.",
   "/landlord/[token]":
     "a landlord's single-use reply page, opened from an SMS by somebody with no account; there is nowhere inside the platform for it to go back to.",
   "/safe/[token]":

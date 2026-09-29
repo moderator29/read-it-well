@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { STAFF_SCOPE_LABEL, STAFF_SCOPES } from "@/lib/admin/guard";
-import { readStaffDesk } from "@/lib/admin/staff-queries";
+import { readStaffDesk, type StaffRow } from "@/lib/admin/staff-queries";
 import { JOB_DESCRIPTIONS, STAFF_POSITIONS, positionTitle } from "@/lib/admin/staff-positions";
 import { PageHead, Panel } from "../_components/panels";
 import { GrantStaffForm, RevokeStaffForm } from "./StaffForms";
+import { SupportTeam, type SupportMember } from "./SupportTeam";
 
 export const metadata: Metadata = { title: "Staff", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -15,6 +16,22 @@ const when = (iso: string | null) =>
  * TRACK K: THE STAFF DESK. Only the founder's super admin account opens it,
  * and the database refuses a grant from anybody else whatever this page does.
  */
+/** Everybody who can answer members: support grants, plus admins through their role. */
+function supportMembers(rows: StaffRow[]): SupportMember[] {
+  return rows
+    .filter((r) => !r.revokedAt && (r.kind !== "staff" || r.scopes.includes("support")))
+    .map((r) => ({
+      userId: r.userId,
+      name: r.name,
+      role: r.kind === "super_admin" ? "Super admin" : r.kind === "admin" ? "Admin" : (positionTitle(r.position) ?? "Staff"),
+      alsoHolds: r.kind === "staff" ? r.scopes.filter((s) => s !== "support").map((s) => STAFF_SCOPE_LABEL[s]) : [],
+      viaRole: r.kind !== "staff",
+      lastActive: when(r.lastActiveAt),
+      supportActions: r.supportActionsLast30,
+      handbookAcknowledged: r.kind !== "staff" || r.handbookAcknowledgedAt !== null,
+    }));
+}
+
 export default async function StaffPage() {
   const desk = await readStaffDesk();
   if (desk.state === "forbidden") {
@@ -41,6 +58,11 @@ export default async function StaffPage() {
           }))}
         />
       </Panel>
+      {desk.state === "ok" ? (
+        <Panel title="Support team" id="support-team">
+          <SupportTeam members={supportMembers(desk.rows)} />
+        </Panel>
+      ) : null}
       <Panel title="Everybody who can act in the console">
         {desk.state !== "ok" ? (
           <p className="nf-body">Staff could not be read just now. Refresh to try again.</p>

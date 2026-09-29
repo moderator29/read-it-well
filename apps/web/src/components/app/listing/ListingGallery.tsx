@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { useBack } from "@/lib/nav/use-back";
+import { BackControl } from "@/components/ui/BackControl";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { ListingActions } from "./ListingActions";
 import type { SavePlaceTarget } from "@/components/app/SaveControl";
@@ -141,18 +141,11 @@ export function ListingGallery({
   );
 
   /*
-     Shared with PageHeader and BackButton. This is the control a guest actually
-     reaches for on a listing, and it is the one the founder's "land on a screen
-     I have never opened" is about: a listing opened from a notification, a
-     share link or a redirect had none of the shelf behind it, and `router.back()`
-     went wherever the machinery had been.
-
-     `/listing/[id]` declares `/search` as its parent, so back lands on the
-     shelf, and `useBack` still returns through history to the exact filtered
-     search when the previous entry can be PROVED to be it. See
-     `lib/nav/route-parents.ts`.
+     The listing's back control is the shared `BackControl`, on the photograph
+     and again, fixed, once the photograph has scrolled away. A listing opened
+     from Home, Saved, a thread or a booking goes back there; one opened cold
+     (a notification, a share link) goes to its declared parent, `/search`.
   */
-  const back = useBack(backFallback);
 
   /*
    * THE BACK CONTROL MUST NOT SCROLL AWAY WITH THE PHOTOGRAPH.
@@ -279,21 +272,11 @@ export function ListingGallery({
       {/* `nf-safe-top` is padding rather than an offset, so the glass controls
           clear the notch while the photography still runs behind it. */}
       <div ref={heroBack} className="nf-safe-top pointer-events-none absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
-        <button
-          type="button"
-          onClick={back}
-          aria-label={t.common.back}
-          /* THE WALKER'S HANDLE. `scripts/design/proof-nav.mjs` finds every
-             drawn back control by this attribute. Five of the platform's seven
-             back controls did not carry it, so a browser walk reported them as
-             drawing nothing at all and two route lists were built on that
-             reading. The attribute says what the object IS, which is why it is
-             not a class name and not the accessible name. */
-          data-nav-back=""
-          className="pointer-events-auto grid h-11 w-11 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] transition-transform active:scale-90 motion-reduce:transition-none"
-        >
-          <UiIcon name="arrow-left" size={16} />
-        </button>
+        <BackControl
+          fallback={backFallback}
+          surface="media"
+          className="pointer-events-auto transition-transform active:scale-90 motion-reduce:transition-none"
+        />
       </div>
 
       <ListingActions
@@ -425,20 +408,16 @@ export function ListingGallery({
       )}
     </section>
     {floatingBack && (
-      <button
-        type="button"
-        onClick={back}
-        aria-label={t.common.back}
+      <BackControl
+        fallback={backFallback}
+        surface="bare"
         aria-hidden={heroBackGone ? undefined : true}
         tabIndex={heroBackGone ? undefined : -1}
         inert={!heroBackGone}
-        data-nav-back=""
         data-testid="floating-back"
         data-shown={heroBackGone ? "" : undefined}
-        className="nf-floating-back grid h-11 w-11 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon"
-      >
-        <UiIcon name="arrow-left" size={16} />
-      </button>
+        className="nf-floating-back"
+      />
     )}
     {/*
       NO THUMBNAIL STRIP. The render has none: the hero is the photography

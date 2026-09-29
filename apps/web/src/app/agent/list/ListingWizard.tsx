@@ -67,6 +67,7 @@ import {
   type WaterSupply,
 } from "@/lib/agent/listings-schema";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BackControl } from "@/components/ui/BackControl";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
 import { moveInLines } from "@/components/app/listing/move-in-lines";
@@ -2012,15 +2013,12 @@ export function ListingWizard({
         control that undoes a wrong turn.
       */}
       <div className="nf-lw-rail py-lg">
-        <button
-          type="button"
-          className="nf-lw-back"
-          onClick={() => go(step - 1)}
+        <BackControl
+          onBack={() => go(step - 1)}
           disabled={step === 0 || pending}
-          aria-label={copy.wizard.back}
-        >
-          <UiIcon name="arrow-left" size={20} />
-        </button>
+          label={copy.wizard.back}
+          className="nf-lw-back"
+        />
         <div className="relative flex-1">
           <div
             role="progressbar"

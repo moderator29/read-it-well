@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { InternalNotes } from "../../_components/InternalNotes";
 import { readPayeeContext } from "@/lib/after-gate/payee";
-import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getLocale } from "@/lib/locale";
@@ -76,11 +75,6 @@ export default async function ListingUnderReviewPage({
       <div className="nf-rv">
         <DeskHead
           title="Listing under review"
-          lead={
-            <Link href={queueHref} className="nf-rv-back" aria-label="Back to the listings queue">
-              <UiIcon name="arrow-left" size={20} />
-            </Link>
-          }
         />
         <Panel
           title={

@@ -95,6 +95,13 @@ export function settingsSections(t: Dictionary): SettingsSection[] {
       t.settings.security,
       t.settings.devices,
     ),
+    section(
+      "settings-ai-consent",
+      "/settings/privacy#settings-ai-consent",
+      t.settings.aiConsent.label,
+      t.settings.aiConsent,
+      "ai assistant anthropic consent withdraw",
+    ),
     section("settings-data", "/settings/privacy#settings-data", t.settings.data.label, t.settings.data),
     section(
       "settings-account",

@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { useBack } from "@/lib/nav/use-back";
-import { useClientCopy } from "@/lib/i18n/client-copy";
+import { BackControl } from "@/components/ui/BackControl";
 
 /**
  * Overview / Amenities / Location / Reviews, as anchors.
@@ -34,8 +32,6 @@ export function ListingSectionTabs({
   backFallback?: string;
 }) {
   const [active, setActive] = useState(tabs[0]?.id ?? "");
-  const t = useClientCopy();
-  const back = useBack(backFallback);
   const sentinel = useRef<HTMLSpanElement | null>(null);
   const [stuck, setStuck] = useState(false);
 
@@ -80,19 +76,14 @@ export function ListingSectionTabs({
       data-testid="section-tabs"
       data-stuck={stuck ? "" : undefined}
     >
-      <button
-        type="button"
-        onClick={back}
-        aria-label={t.common.back}
+      <BackControl
+        fallback={backFallback}
         aria-hidden={stuck ? undefined : true}
         tabIndex={stuck ? undefined : -1}
         inert={!stuck}
-        data-nav-back=""
         data-testid="tabs-back"
         className="nf-detail-tabs__back"
-      >
-        <UiIcon name="arrow-left" size={20} />
-      </button>
+      />
       <div className="nf-detail-tabs__row">
       {tabs.map((tab) => (
         <a

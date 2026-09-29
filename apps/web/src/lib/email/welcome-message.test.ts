@@ -267,7 +267,7 @@ describe("it is built to survive a mail client", () => {
     expect(html).not.toMatch(/display\s*:\s*(flex|grid|inline-flex|inline-grid)/);
     expect(html).toContain(`max-width:${MAX_WIDTH}px;width:100%;`);
     expect(html).toContain(`<table role="presentation" width="${MAX_WIDTH}"`);
-    expect(html).toContain('name="color-scheme" content="light dark"');
+    expect(html).toContain('name="color-scheme" content="dark"');
     expect(html).toContain("@media (prefers-color-scheme: dark)");
     expect(html).toContain("@media only screen and (max-width: 480px)");
     expect((html.match(/<style\b/g) ?? []).length).toBe(1);

@@ -1,27 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { getSupportTickets, getTicketThread, type TicketView } from "@/lib/admin/queries";
-import { TicketReply, TicketStatusControl } from "../_components/AdminActions";
-import { InternalNotes } from "../_components/InternalNotes";
-import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
-import { adminUi, type AdminUi } from "../_components/ui";
-import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
-import {
-  queueNoMatch,
-  QueueFilters,
-  QueuePager,
-  queueNarrowed,
-  readQueueQuery,
-  type QueueStatusOption,
-} from "../_components/QueueFilters";
-import { Constants } from "@/lib/supabase/database.types";
-import { dueChip } from "../_components/due";
-import { gradeForTopic, supportTopicLabel } from "@/lib/trust/support-topics";
-import { getSupportTicket, getTicketDesk } from "@/lib/admin/support-desk";
-import { TicketClaim } from "./TicketClaim";
+import { requireAdmin } from "@/lib/admin/guard";
+import { getSupportQueue, getSupportTicketDetail } from "@/lib/admin/support-queue";
+import { isSupportTab } from "@/lib/admin/support-workspace";
+import { CalmNote } from "../_components/panels";
+import { SupportDesk, type SupportDeskProps } from "./SupportDesk";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -31,89 +15,23 @@ export async function generateMetadata(): Promise<Metadata> {
 export const dynamic = "force-dynamic";
 
 /**
- * Support tickets: the honest end of the escalation path.
+ * Support: the honest end of the escalation path, and a support agent's
+ * whole working day (docs/SUPPORT_STAFF.md).
  *
- * When the assistant cannot answer, it files a ticket carrying only the name
- * and email the person offered. Replying here inserts an admin message, and the
- * database trigger on that insert notifies the ticket owner, so the reply lands
- * on the platform they already use rather than in a queue nobody watches.
+ * The door is `requireAdmin("support")`, read on the server before any
+ * ticket is: an admin, or a staff member holding the support scope who has
+ * acknowledged the handbook and proved their security key this session. The
+ * one exception is a single ticket escalated to another desk, which a holder
+ * of that desk may open by its link (the database decides, through
+ * `support_ticket_escalations_for`); they see that ticket and no queue.
  *
- * The contact form's first option is "Someone asked me to pay outside Vallo",
- * and that choice has to mean something on this side or the wording is
- * decoration. It does: the stored topic is read back through the same module
- * the form renders from, and an open ticket carrying it takes the four-hour
- * commitment /standards publishes rather than the ordinary day.
+ * A reply inserts a staff message and the database tells the member
+ * (private.notify_support_reply). A ticket about being asked to pay outside
+ * Vallo, or one escalated to money or safety, runs on the four-hour promise
+ * /standards publishes; the rest on a day.
  */
-function TicketRow({
-  ticket,
-  selected,
-  copy,
-  common,
-  ui,
-}: {
-  ticket: TicketView;
-  selected: boolean;
-  copy: AdminCopy["support"];
-  common: AdminCommon;
-  ui: AdminUi;
-}) {
-  // Matches the page's own partition: resolved and closed are done, the other
-  // two are still somebody's to answer.
-  const awaitingUs = ticket.status === "open" || ticket.status === "pending";
-  return (
-    <li>
-      <Link
-        href={`/admin/support?ticket=${ticket.id}`}
-        aria-current={selected ? "true" : undefined}
-        className={[
-          "nf-panel nf-panel--card nf-admin-card nf-card--interactive block p-md sm:p-md",
-          selected ? "ring-1 ring-[var(--nf-border-brand)]" : "",
-        ].join(" ")}
-      >
-        <div className="flex flex-wrap items-center gap-xs">
-          <ui.StatusChip status={ticket.status} />
-          {awaitingUs && (
-            <ui.StatusChip
-              {...dueChip(ticket.createdAt, gradeForTopic(ticket.topic), common)}
-            />
-          )}
-          <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-            {ticket.reference}
-          </span>
-        </div>
-        {/* Never truncated: the topic is the sentence the person chose, and it
-            is the whole of what this row is about. */}
-        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
-          {supportTopicLabel(ticket.topic) ?? copy.generalQuestion}
-        </p>
-        {/* THE NAME WRAPS TOO, AND THE COMMENT ABOVE DID NOT COVER IT.
-            "Never truncated" two lines up is true, and it is scoped to the
-            topic. This line carried `truncate` and holds the requester's NAME,
-            which is the other thing an operator recognises a ticket by and the
-            thing they read back down a phone line. A clipped name on a support
-            queue is the same fault as a clipped reference on the money screen,
-            one row apart. */}
-        <p className="mt-3xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere]">
-          {ticket.name} · {ui.when(ticket.createdAt)}
-        </p>
-        {ticket.replyCount > 0 && (
-          <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-            {ticket.replyCount === 1
-              ? copy.threadCountOne
-              : fill(copy.threadCount, { count: ticket.replyCount })}
-          </p>
-        )}
-      </Link>
-    </li>
-  );
-}
-
-/** `support_ticket_status` is `open, pending, resolved, closed`, from the enum. */
-function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
-  return Constants.public.Enums.support_ticket_status.map((value) => ({
-    value,
-    label: ui.statusLabel(value),
-  }));
+function requestTime(): number {
+  return Date.now();
 }
 
 export default async function AdminSupportPage({
@@ -121,254 +39,43 @@ export default async function AdminSupportPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const locale = await getLocale();
-  const t = getDictionary(locale);
-  const copy = t.admin.support;
-  const common = t.admin.common;
-  const ui = adminUi(t, locale);
-
+  const t = getDictionary(await getLocale());
   const params = await searchParams;
-  const raw = params.ticket;
-  const selectedId = typeof raw === "string" ? raw : null;
+  const tab = isSupportTab(params.tab) ? params.tab : "open";
+  const q = typeof params.q === "string" ? params.q.trim().slice(0, 80) : "";
+  const ticketId = typeof params.ticket === "string" ? params.ticket : null;
+  const now = requestTime();
 
-  /* The shared queue frame. The search takes a reference or an email address,
-     which are the two things somebody on the phone can read out. `?ticket=` is
-     the open thread and is deliberately NOT carried by the filter links: a
-     narrowed queue is a different question from an open ticket, and keeping the
-     thread pinned above a list it is no longer in reads as a mistake. */
-  const query = readQueueQuery(params);
-  const tickets = await getSupportTickets({
-    ...(query.q ? { q: query.q } : {}),
-    ...(query.status ? { status: query.status } : {}),
-    ...(query.from ? { from: query.from } : {}),
-    ...(query.to ? { to: query.to } : {}),
-    ...(query.offset ? { offset: query.offset } : {}),
-  });
-
-  if (tickets.state !== "ok") {
+  const door = await requireAdmin("support");
+  let queue: SupportDeskProps["queue"] = { state: "none" };
+  if (door.state === "admin") {
+    const read = await getSupportQueue({ q, now });
+    queue = read.state === "ok" ? { state: "ok", ...read.data } : { state: "unavailable" };
+  } else if (!ticketId) {
     return (
-      <div className="nf-console">
-        <ui.QueueHeader title={copy.title} lede={copy.lede} />
-        <ui.QueueUnavailable />
+      <div className="nf-console" data-testid="support-desk-refused">
+        <CalmNote
+          title="Support is not one of your desks"
+          fills="Your access covers other desks. If a ticket was handed to your desk, open it from the notification that told you."
+          action={{ href: "/admin", label: "Back to your console" }}
+        />
       </div>
     );
   }
 
-  const rows = tickets.data.rows;
-  /* A ticket opened by link (a notification, the person file, a colleague)
-     may not be on this page of the queue, or may be filtered out of it. It is
-     read by its id rather than silently not opening. */
-  const onPage = selectedId ? (rows.find((ticket) => ticket.id === selectedId) ?? null) : null;
-  const byId = selectedId && !onPage ? await getSupportTicket(selectedId) : null;
-  const selected = onPage ?? (byId?.state === "ok" ? byId.data : null);
-  const missing = Boolean(selectedId) && !selected;
-  const [thread, desk] = selected
-    ? await Promise.all([getTicketThread(selected.id), getTicketDesk(selected.id)])
-    : [null, null];
-  const deskData = desk?.state === "ok" ? desk.data : null;
-  const selectedOpen = selected ? selected.status === "open" || selected.status === "pending" : false;
-
-  const open = rows.filter(
-    (ticket) => ticket.status === "open" || ticket.status === "pending",
-  );
-  const closed = rows.filter(
-    (ticket) => ticket.status === "resolved" || ticket.status === "closed",
-  );
-  /* A page past the first counts as narrowed for the empty copy. Landing on
-     page three of a queue that has run out is a RESULT; "nothing has ever
-     arrived here" would be a flat lie told to somebody looking at rows they
-     have just paged past. `queueNarrowed` itself deliberately ignores the
-     offset, because the Clear control is about the filters. */
-  const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
-  const noMatch = queueNoMatch(common);
+  let selected: SupportDeskProps["selected"] = null;
+  let missing: SupportDeskProps["missing"] = null;
+  if (ticketId) {
+    const read = await getSupportTicketDetail(ticketId, now);
+    if (read.state === "ok") {
+      selected = read.data;
+      if (!read.data) missing = "unknown";
+    } else {
+      missing = read.state === "forbidden" ? "forbidden" : "unavailable";
+    }
+  }
 
   return (
-    <div className="nf-console">
-      <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
-
-      {missing && (
-        <p role="status" className="nf-panel nf-panel--card nf-admin-card mb-lg p-md nf-body-sm text-[var(--nf-content-secondary)]">
-          {byId?.state === "unavailable" ? "That ticket could not be read just now. Reload to try again." : "No ticket has that id."}
-        </p>
-      )}
-
-      {selected && (
-        <section className="nf-panel nf-panel--card nf-admin-card mb-lg p-md sm:p-lg">
-          <div className="flex flex-wrap items-center gap-xs">
-            <ui.StatusChip status={selected.status} />
-            {/* The clock runs from the member's oldest unanswered message, not
-                from when the ticket was filed: after our reply the wait is
-                over until they write again (lib/admin/support-rules.ts). */}
-            {selectedOpen && deskData?.waitingSince && (
-              <ui.StatusChip {...dueChip(deskData.waitingSince, gradeForTopic(selected.topic), common)} />
-            )}
-            {selectedOpen && deskData && !deskData.waitingSince && (
-              <ui.StatusChip label="We answered last" tone="success" />
-            )}
-            <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-              {selected.reference}
-            </span>
-            <Link
-              href="/admin/support"
-              className="ml-auto inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-            >
-              <UiIcon name="arrow-left" size={16} />
-              {copy.allTickets}
-            </Link>
-          </div>
-
-          <h2 className="nf-h3 mt-xs">
-            {supportTopicLabel(selected.topic) ?? copy.generalQuestion}
-          </h2>
-
-          <ui.DetailSection title={copy.whoFiled}>
-            <ui.DetailRow label={copy.fields.name} value={selected.name} />
-            <ui.DetailRow label={copy.fields.email} value={selected.email} />
-            <ui.DetailRow
-              label={copy.fields.account}
-              value={selected.hasAccount ? copy.signedInWhenFiled : copy.noAccountAttached}
-            />
-            <ui.DetailRow label={copy.fields.filed} value={ui.when(selected.createdAt)} />
-            {deskData?.waitingSince && (
-              <ui.DetailRow label="Waiting on us since" value={ui.when(deskData.waitingSince)} />
-            )}
-            {deskData && deskData.otherTickets > 0 && (
-              <ui.DetailRow
-                label="Other tickets"
-                value={`${deskData.otherTickets} more from this account`}
-              />
-            )}
-          </ui.DetailSection>
-
-          {deskData?.canOpenFile && deskData.userId && (
-            <p className="mt-xs nf-caption">
-              <Link
-                href={`/admin/people/${deskData.userId}`}
-                className="inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-              >
-                Open their member file
-              </Link>
-            </p>
-          )}
-
-          {selectedOpen && deskData && (
-            <TicketClaim
-              ticketId={selected.id}
-              holder={deskData.claim ? { name: deskData.claim.name, mine: deskData.claim.mine } : null}
-            />
-          )}
-
-          <div className="mt-md rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm">
-            <p className="nf-overline text-[var(--nf-content-muted)]">
-              {copy.whatTheyAsked}
-            </p>
-            <p className="mt-2xs whitespace-pre-wrap break-words text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
-              {selected.body}
-            </p>
-          </div>
-
-          {thread?.state === "ok" && thread.data.length > 0 && (
-            <ul className="mt-sm space-y-xs">
-              {thread.data.map((message) => (
-                <li
-                  key={message.id}
-                  className="rounded-[var(--nf-radius-md)] p-sm"
-                  style={
-                    message.senderRole === "admin"
-                      ? { background: "var(--nf-brand-primary-soft)" }
-                      : {
-                          background: "color-mix(in oklab, var(--nf-content-primary) 6%, transparent)",
-                        }
-                  }
-                >
-                  <span className="flex flex-wrap items-center gap-xs">
-                    <span className="nf-overline text-[var(--nf-content-muted)]">
-                      {message.senderRole === "admin"
-                        ? deskData?.replierOf[message.id]
-                          ? `${copy.supportSender} · ${deskData.replierOf[message.id]}`
-                          : copy.supportSender
-                        : selected.name}
-                    </span>
-                    <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                      {ui.when(message.createdAt)}
-                    </span>
-                  </span>
-                  <p className="mt-2xs whitespace-pre-wrap break-words text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
-                    {message.body}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <TicketReply ticketId={selected.id} copy={copy} />
-          <TicketStatusControl ticketId={selected.id} status={selected.status} copy={copy} />
-          {selected.userId ? <InternalNotes subjectId={selected.userId} path="/admin/support" /> : null}
-        </section>
-      )}
-
-      <QueueFilters
-        base="/admin/support"
-        query={query}
-        common={common}
-        statuses={statusFilters(ui)}
-      />
-
-      {open.length === 0 && closed.length === 0 ? (
-        <ui.QueueEmpty
-          title={narrowed ? noMatch.title : copy.emptyTitle}
-          body={narrowed ? noMatch.body : copy.emptyBody}
-          state={narrowed ? "no-match" : "never"}
-        />
-      ) : (
-        <>
-          <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">
-            {open.length > 0 ? copy.waitingOnUs : copy.noneWaitingHeading}
-          </h2>
-          {open.length === 0 ? (
-            <ui.QueueEmpty title={copy.nothingWaitingTitle} body={copy.nothingWaitingBody} />
-          ) : (
-            <ul className="space-y-xs">
-              {open.map((ticket) => (
-                <TicketRow
-                  key={ticket.id}
-                  ticket={ticket}
-                  selected={ticket.id === selectedId}
-                  copy={copy}
-                  common={common}
-                  ui={ui}
-                />
-              ))}
-            </ul>
-          )}
-
-          {closed.length > 0 && (
-            <section className="mt-xl">
-              <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{common.recentlyClosed}</h2>
-              <ul className="space-y-xs">
-                {closed.map((ticket) => (
-                  <TicketRow
-                    key={ticket.id}
-                    ticket={ticket}
-                    selected={ticket.id === selectedId}
-                    copy={copy}
-                    common={common}
-                    ui={ui}
-                  />
-                ))}
-              </ul>
-            </section>
-          )}
-        </>
-      )}
-
-      <QueuePager
-        base="/admin/support"
-        query={query}
-        pageSize={QUEUE_PAGE_SIZE}
-        full={tickets.data.full}
-        count={rows.length}
-      />
-    </div>
+    <SupportDesk now={now} tab={tab} q={q} queue={queue} selected={selected} missing={missing} copy={t.admin.support} />
   );
 }

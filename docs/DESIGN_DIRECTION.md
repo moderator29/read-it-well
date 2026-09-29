@@ -179,8 +179,47 @@ everywhere.
    four; the founder chose five: on the Property side **Home, Search, Feed,
    More, Profile**; on the Stays side the first slot becomes **Stays**.
    "More" opens the side navigation drawer. The dock keeps the floating
-   glass treatment, travelling active pill and per-side swap already
-   built, restyled to the renders' dock look.
+   glass treatment and per-side swap already built, restyled to the
+   renders' dock look.
+
+   **The dock's look, the founder's ruling of 29 September 2026 (the later
+   one that day; it SUPERSEDES the morning's "light-mode dock is a dark
+   neon capsule", and the latest ruling wins):**
+   - **In light mode the capsule, the round More button beside it and the
+     tray that button opens are WHITE, with brand-blue line glyphs and
+     brand-blue labels.** One white material for all three
+     (`app/css/light.css`, "THE DOCK IN DAYLIGHT"). **In dark mode they
+     keep the navy neon glass** (`app/css/shell-m.css`, "THE DOCK").
+   - **No container behind the current or tapped item, in either theme.**
+     The travelling pill is not drawn. The current tab is its filled glyph,
+     its label at the brand ink and a heavier weight, and a 4px dot under
+     the label; the current tray item is the same (a ringed glyph tile and a
+     heavier blue word, no box). `aria-current` is unchanged.
+   - **The capsule is a little wider:** the dock row sits 10px from each
+     edge (or the safe area, if larger), 12px wider in total than before,
+     still centred, no overflow at 320.
+   - **The centre "+" is 50px** (inside the 56px tab, so the capsule does
+     not grow), the brand-blue button with a white plus and a glow, and the
+     logo pill's running "snake" rim light, in both themes. It reuses the
+     logo's `--nf-logo-lap` angle and `nf-logo-lap` keyframes from
+     `light.css` rather than a copy; under reduced motion, data saving and
+     the Calm or Off motion setting the rim is a steady glow.
+
+   **The theme default is DARK for everybody who has not chosen (the
+   founder, 29 September 2026: "anyone that enters our website should be on
+   dark mode ... severely important").** The operating system's
+   `prefers-color-scheme` never decides the default: only an explicit Light
+   (or an explicit System) in the theme control paints light. The server
+   renders `data-theme="dark"` without a cookie and the before-paint script
+   (`lib/theme/theme.ts`) resolves the same before first paint, so there is
+   no light flash on the landing, the auth screens or the app; the native
+   shell starts dark too (`capacitor.config.ts`). Pinned by
+   `lib/theme/theme.test.ts` and the first-visit half of
+   `tests/theme-choice.spec.mjs`.
+
+   **The support hero ("Hi ..., how can we help?") follows the theme:** a
+   white card with dark text and the blue action in light, the raised navy
+   card at night (`components/support/SupportHero.tsx`).
 2. **The hamburger is incorporated even though the renders lack it.** The
    in-app header carries a hamburger (line glyph) that opens the side
    drawer, on every in-app page, both sides. Header anatomy: hamburger,

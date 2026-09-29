@@ -25,6 +25,7 @@ import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { savedBoardKey, uniqueBoardKeys } from "./saved-board-key";
 
 /**
  * The shortlist, made interactive.
@@ -81,8 +82,14 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   const [hydrating, setHydrating] = useState(false);
   const synced = useRef(false);
 
-  const ids = useMemo(() => items.map((i) => i.id), [items]);
-  const [slots, setSlots] = useState<string[]>(() => items.map((i) => i.id));
+  /* Slots, phases and messages are keyed by shelf and id (`savedBoardKey`),
+     never by id alone: a listing and a place are two tables, and a repeated
+     row must be one slot rather than two cards under one React key. */
+  const ids = useMemo(() => uniqueBoardKeys(items), [items]);
+  const [slots, setSlots] = useState<string[]>(() => uniqueBoardKeys(items));
+  /* The item behind an undo chip, kept after a refresh drops it from the
+     payload, so Undo still knows its shelf and its saved time. */
+  const removedItems = useRef(new Map<string, SavedBoardItem>());
 
   // Slots hold their place across server refreshes, so a card that has just
   // become an undo chip does not jump to the end of the grid.
@@ -138,6 +145,12 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
     });
   }, []);
 
+  const byKey = new Map<string, SavedBoardItem>();
+  for (const item of items) {
+    const key = savedBoardKey(item);
+    if (!byKey.has(key)) byKey.set(key, item);
+  }
+
   /** The write behind one card, whichever shelf it belongs to. */
   async function write(item: { id: string; place?: SavePlaceTarget }, on: boolean) {
     if (item.place) {
@@ -154,8 +167,10 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   }
 
   function unsave(item: SavedBoardItem) {
-    setMessage(item.id, null);
-    setPhase((prev) => ({ ...prev, [item.id]: "removed" }));
+    const key = savedBoardKey(item);
+    removedItems.current.set(key, item);
+    setMessage(key, null);
+    setPhase((prev) => ({ ...prev, [key]: "removed" }));
     if (item.mode === "local") removeLocalSave(item.id);
 
     startTransition(async () => {
@@ -165,34 +180,35 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
       if (item.mode === "local") addLocalSave(item.id, item.savedAt);
       setPhase((prev) => {
         const next = { ...prev };
-        delete next[item.id];
+        delete next[key];
         return next;
       });
-      setMessage(item.id, result.error);
+      setMessage(key, result.error);
     });
   }
 
-  function undo(id: string) {
-    const item = items.find((i) => i.id === id);
-    setMessage(id, null);
-    setPhase((prev) => ({ ...prev, [id]: "restoring" }));
-    if (item?.mode === "local") addLocalSave(id, item.savedAt);
+  function undo(key: string) {
+    const item = byKey.get(key) ?? removedItems.current.get(key);
+    if (!item) return;
+    const id = item.id;
+    setMessage(key, null);
+    setPhase((prev) => ({ ...prev, [key]: "restoring" }));
+    if (item.mode === "local") addLocalSave(id, item.savedAt);
 
     startTransition(async () => {
-      const result = await write({ id, place: item?.place }, true);
+      const result = await write({ id, place: item.place }, true);
       if (!result.ok) {
-        if (item?.mode === "local") removeLocalSave(id);
-        setPhase((prev) => ({ ...prev, [id]: "removed" }));
-        setMessage(id, result.error);
+        if (item.mode === "local") removeLocalSave(id);
+        setPhase((prev) => ({ ...prev, [key]: "removed" }));
+        setMessage(key, result.error);
         return;
       }
       router.refresh();
     });
   }
 
-  const byId = new Map(items.map((i) => [i.id, i]));
   const rendered = slots
-    .map((id) => ({ id, item: byId.get(id), state: phase[id] }))
+    .map((key) => ({ key, item: byKey.get(key), state: phase[key] }))
     .filter((slot) => slot.item !== undefined || slot.state !== undefined);
   const visible = rendered.filter((slot) => slot.state === undefined && slot.item).length;
 
@@ -250,8 +266,8 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
 
       <Reveal delay={60}>
         <ul data-testid="saved-grid" className="grid grid-cols-1 gap-lg sm:grid-cols-2">
-          {rendered.map(({ id, item, state }) => (
-            <li key={id}>
+          {rendered.map(({ key, item, state }) => (
+            <li key={key}>
               {state === undefined && item ? (
                 <div className="flex h-full flex-col gap-xs">
                   {item.card}
@@ -281,7 +297,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                   </p>
                   <button
                     type="button"
-                    onClick={() => undo(id)}
+                    onClick={() => undo(key)}
                     disabled={state === "restoring"}
                     className="nf-chip whitespace-nowrap transition-transform active:scale-[0.96] disabled:opacity-60"
                   >
@@ -290,9 +306,9 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                   </button>
                 </div>
               )}
-              {messages[id] && (
+              {messages[key] && (
                 <p role="alert" className="nf-caption mt-inline-tight text-[var(--nf-state-error)]">
-                  {messages[id]}
+                  {messages[key]}
                 </p>
               )}
             </li>

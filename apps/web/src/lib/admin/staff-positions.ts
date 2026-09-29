@@ -89,7 +89,8 @@ export const JOB_DESCRIPTIONS: Record<StaffPosition, JobDescription> = {
       "Answer support tickets in the order the desk shows, inside the reply time the ticket carries.",
       "Explain how Vallo works in the words the product uses: Vallo never holds a member's money, payments go straight to the lister through Paystack, and refunds go back to the card that paid.",
       "Set each ticket's status honestly, and close a ticket only with a closing note that says what was done.",
-      "Hand a ticket that needs another desk (a KYC question, a report, an agreement) to that desk with an internal note explaining why.",
+      "Hand a ticket that needs another desk (money, safety or verification) to that desk from the ticket itself, with the reason they will read first; keep the member told on the thread while the other desk looks.",
+      "Start from a saved reply where one fits, and always read and adjust it before it goes: it is your name on it.",
     ],
     expectations: [
       "Warmth and plain language. A member writing to us is usually worried; the first reply should make things clearer, not longer.",
