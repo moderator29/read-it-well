@@ -4,7 +4,7 @@ import { MONEY_KINDS, intentLine, isMoneyIntent } from "./money-intent";
 describe("money intents (V-81, payout destinations only)", () => {
   it("guards only the actions that decide where money lands", () => {
     expect([...MONEY_KINDS].sort()).toEqual(
-      ["bank_add", "bank_default", "payout_add", "payout_default", "payout_remove", "remove_lock"].sort(),
+      ["add_lock", "bank_add", "bank_default", "payout_add", "payout_default", "payout_remove", "remove_lock"].sort(),
     );
     for (const retired of ["send", "withdraw", "pay_wallet", "escrow_fund", "escrow_confirm", "caution_return", "rent_share"]) {
       expect(isMoneyIntent({ kind: retired })).toBe(false);
