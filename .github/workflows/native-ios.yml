@@ -46,6 +46,17 @@ on:
       - "package-lock.json"
       - "scripts/sync-native-versions.mjs"
       - ".github/workflows/native-ios.yml"
+  # A pull request that touches the iOS project is compiled before it merges.
+  # The signed archive job never runs on a pull request (it is manual only).
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/ios/**"
+      - "apps/web/capacitor.config.ts"
+      - "apps/web/native-shell/**"
+      - "apps/web/package.json"
+      - "package-lock.json"
+      - ".github/workflows/native-ios.yml"
   workflow_dispatch:
     inputs:
       archive:
