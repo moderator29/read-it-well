@@ -86,14 +86,14 @@ function SceneArt({ scene }: { scene: Scene }) {
       );
     case "calendar":
       return (
-        <span className="nf-scene__obj nf-scene__obj--flip">
+        <span className="nf-scene__obj">
           <BrandIcon name="calendar-check" size={112} />
         </span>
       );
     case "typing":
       return (
         <>
-          <span className="nf-scene__obj nf-scene__obj--bob">
+          <span className="nf-scene__obj">
             <BrandIcon name="bot" size={80} />
           </span>
           <span className="nf-scene__dots">
@@ -105,13 +105,13 @@ function SceneArt({ scene }: { scene: Scene }) {
       );
     case "bars":
       return (
-        <span className="nf-scene__obj nf-scene__obj--bob">
+        <span className="nf-scene__obj">
           <BrandIcon name="report-stats" size={88} />
         </span>
       );
     case "shield":
       return (
-        <span className="nf-scene__obj nf-scene__obj--pop nf-scene__gleam">
+        <span className="nf-scene__obj">
           <BrandIcon name="shield-check" size={96} />
         </span>
       );
@@ -132,7 +132,7 @@ function SceneArt({ scene }: { scene: Scene }) {
          object inside a glowing ring and read as missing beside the
          full-size objects on the other cards. Around is places near you. */
       return (
-        <span className="nf-scene__obj nf-scene__obj--bob">
+        <span className="nf-scene__obj">
           <BrandIcon name="map-spot" size={88} />
         </span>
       );

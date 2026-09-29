@@ -814,16 +814,18 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   droplet: (
     <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
   ),
-  /* The estate gate: two posts, an arched top rail and three bars. Vallo's
-     own; `key` is a lock and a door, `verified` a judgement, and neither is
-     the gate a tenant is let through. */
+  /* The estate gate: two piers standing proud of an arched top rail, with
+     two bars and one cross rail. Vallo's own; `key` is a lock and a door,
+     `verified` a judgement, and neither is the gate a tenant is let through.
+     Two bars and no ground line: at 20px three bars and a ground line closed
+     into a comb. */
   gate: (
     <>
-      <path d="M4 21V4" />
-      <path d="M20 21V4" />
-      <path d="M4 9c4-3 12-3 16 0" />
-      <path d="M8 7.5V21M12 6.8V21M16 7.5V21" />
-      <path d="M4 15h16" />
+      <path d="M4 21V3" />
+      <path d="M20 21V3" />
+      <path d="M4 11c3-3 13-3 16 0" />
+      <path d="M9.5 9V21M14.5 9V21" />
+      <path d="M4 16h16" />
     </>
   ),
 };

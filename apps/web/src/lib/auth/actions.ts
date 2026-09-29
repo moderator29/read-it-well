@@ -36,6 +36,7 @@ import {
   deactivatedAccountNotice,
   isDeactivatedAccountError,
 } from "./deactivated-notice";
+import { withDone } from "@/lib/ui/success-moments";
 import type {
   AuthField,
   AuthFormState,
@@ -503,7 +504,9 @@ export async function signUpWithEmail(
   }
 
   revalidatePath("/", "layout");
-  redirect(landingAfterAuth(formData));
+  /* The account exists and is signed in: "Welcome to Vallo" on arrival
+     (`SuccessFlagHost`, which strips the flag as the sheet opens). */
+  redirect(withDone(landingAfterAuth(formData), "account-created"));
 }
 
 /**
@@ -1200,7 +1203,8 @@ export async function updatePassword(
   // The password changed under the session the link created, so every cached
   // render of the signed-out shell has to go.
   revalidatePath("/", "layout");
-  redirect("/home");
+  /* "Password changed" on arrival (`SuccessFlagHost`). */
+  redirect(withDone("/home", "password-changed"));
 }
 
 // Signing out lives in lib/profile/actions.ts, which the settings screen

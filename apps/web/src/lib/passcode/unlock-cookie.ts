@@ -76,7 +76,7 @@ export function readUnlock(key: Buffer, value: string | undefined | null, userId
   if (!value || value.length > 256) return null;
   const parts = value.split(".");
   if (parts.length !== 5) return null;
-  const [version, id, issuedRaw, expiresRaw, signature] = parts;
+  const [version = "", id = "", issuedRaw = "", expiresRaw = "", signature = ""] = parts;
   if (version !== VERSION || !UUID.test(id) || id.toLowerCase() !== userId.toLowerCase()) return null;
   if (!/^\d{1,12}$/.test(issuedRaw) || !/^\d{1,12}$/.test(expiresRaw)) return null;
   const body = `${version}.${id}.${issuedRaw}.${expiresRaw}`;
@@ -100,7 +100,7 @@ export function readResetIntent(key: Buffer, value: string | undefined | null, u
   if (!value || value.length > 200) return false;
   const parts = value.split(".");
   if (parts.length !== 4) return false;
-  const [version, id, expiresRaw, signature] = parts;
+  const [version = "", id = "", expiresRaw = "", signature = ""] = parts;
   if (version !== VERSION || id.toLowerCase() !== userId.toLowerCase() || !/^\d{1,12}$/.test(expiresRaw)) return false;
   if (!sameMac(signature, mac(key, `${version}.${id}.${expiresRaw}`))) return false;
   return Number(expiresRaw) > nowSeconds;

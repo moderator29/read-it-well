@@ -18,6 +18,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { responseTimeFor } from "@/lib/trust/standards";
 import { useClientCopy } from "@/lib/i18n/client-copy";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 
 /**
  * Report this.
@@ -83,6 +85,19 @@ export function ReportSheet({
     openerRef.current?.focus();
   }, []);
 
+  /*
+   * THE SUCCESS SHEET, over the report sheet's own "we have it" panel, once
+   * per filed report. `acknowledged` remembers the answer it was shown for,
+   * so it opens on a NEW ok and not again on every render after it.
+   * Continue closes both: somebody who has just reported something should
+   * not have to dismiss two things to get back to what they were reading.
+   */
+  const success = useClientCopy().success;
+  const [acknowledged, setAcknowledged] = useState<ActionResult<ReportReceipt> | null>(null);
+  const filedWords = successCopy(success, "reportFiled", {
+    promise: reportCopy.filed.replace("{clock}", responseTimeFor(category).phrase),
+  });
+
 
   return (
     <>
@@ -125,6 +140,17 @@ export function ReportSheet({
           Report this {noun}
         </button>
       )}
+
+      <SuccessSheet
+        open={open && state?.ok === true && acknowledged !== state}
+        onOpenChange={(next) => {
+          if (!next) setAcknowledged(state);
+        }}
+        variant={filedWords.variant}
+        title={filedWords.title}
+        body={filedWords.body}
+        primary={{ label: success.continue, onClick: close }}
+      />
 
       <Sheet
         open={open}

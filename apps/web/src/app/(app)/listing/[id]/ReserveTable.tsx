@@ -6,6 +6,9 @@ import { reserveTable } from "@/lib/reservations/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { MAX_PARTY } from "@/lib/reservations/schema";
 import { Button } from "@/components/ui/Button";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -101,10 +104,28 @@ export function ReserveTable({
     ActionResult<{ reservationId: string; status: "PENDING" }> | null,
     FormData
   >(reserveTable, null);
+  /* The success sheet over the "Request sent" panel, once per request. */
+  const [successClosed, setSuccessClosed] = useState(false);
+  const success = useClientCopy().success;
 
   if (state?.ok) {
+    /* "Table request sent", never "booked": nothing is held until the
+       restaurant says so (see the note in the panel below). */
+    const words = successCopy(success, "tableRequested");
     return (
       <div className="nf-panel nf-panel--card isolate p-lg">
+        <SuccessSheet
+          open={!successClosed}
+          onOpenChange={(open) => {
+            if (!open) setSuccessClosed(true);
+          }}
+          variant={words.variant}
+          title={words.title}
+          body={words.body}
+          details={[{ label: success.detail.when, value: `${dayLabel(date, todayIso)}, ${time}` }]}
+          primary={{ label: success.continue }}
+          secondary={{ label: SEE_BOOKINGS, href: "/bookings?side=stays&from=stays" }}
+        />
         <p className="flex items-center gap-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           <UiIcon name="chat-bubble" size={20} className="shrink-0 opacity-80" aria-hidden />
           Request sent
@@ -284,3 +305,5 @@ export function ReserveTable({
     </form>
   );
 }
+
+const SEE_BOOKINGS = "See your bookings";

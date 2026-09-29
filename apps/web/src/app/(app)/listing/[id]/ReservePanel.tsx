@@ -11,6 +11,8 @@ import { ICON } from "@/components/app/Screen";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 import { Switch } from "@/components/ui/Switch";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
@@ -164,6 +166,8 @@ export function ReservePanel({
     ActionResult<ReserveReceipt> | null,
     FormData
   >(reserve, null);
+  /* The success sheet over the "Booking requested" panel, once per reserve. */
+  const [successClosed, setSuccessClosed] = useState(false);
 
   /* Booking for somebody else. The three fields are not rendered at all until
      this is on, so an untouched form submits nothing about a third party and
@@ -229,8 +233,28 @@ export function ReservePanel({
   // and it collapses to the end state immediately under reduced motion.
   if (state?.ok) {
     const r = state.data;
+    /* Held when the stay books instantly, requested when the agent confirms
+       it personally: the words follow what is true, and neither is "paid". */
+    const words = successCopy(t.success, instantBook ? "stayHeld" : "stayRequested");
     return (
       <div className="nf-panel nf-panel--card isolate nf-confirm-sweep p-card" data-testid="reserve-success">
+        <SuccessSheet
+          open={!successClosed}
+          onOpenChange={(open) => {
+            if (!open) setSuccessClosed(true);
+          }}
+          variant={words.variant}
+          title={words.title}
+          body={words.body}
+          amount={{ minorUnits: r.totalMinor, currency, locale }}
+          details={[
+            {
+              label: t.success.detail.when,
+              value: `${labelDate(r.checkIn)} to ${labelDate(r.checkOut)}`,
+            },
+          ]}
+          primary={{ label: t.success.continue }}
+        />
         <span aria-hidden="true" className="nf-confirm-dim" />
         <div className="flex flex-col items-center gap-xs text-center">
           <span className="h-14 w-14 shrink-0">

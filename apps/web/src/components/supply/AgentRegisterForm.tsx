@@ -19,6 +19,7 @@ import {
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
+import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
 /**
@@ -178,7 +179,12 @@ export function AgentRegisterForm({
   }
 
   if (step === 3 && filed) {
-    return <AgentDoneScreen t={t} filed={filed} />;
+    return (
+      <>
+        <AgentDoneScreen t={t} filed={filed} />
+        <RegistrationFiledSheet reference={filed.reference} />
+      </>
+    );
   }
 
   const screen = [

@@ -33,7 +33,7 @@ export function KeepPillInView() {
       const room = field.getBoundingClientRect().top - top - 8;
       const by = Math.min(over, room);
       if (by <= 0) return;
-      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const calm = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
       window.scrollBy({ top: by, behavior: calm ? "auto" : "smooth" });
     };
     const later = () => {
@@ -41,9 +41,9 @@ export function KeepPillInView() {
       /* The keyboard and the shortening block both animate first. */
       timer = window.setTimeout(settle, 360);
     };
-    const FIELD = ".nf-auth__body :is(input:not([type=checkbox]):not([type=hidden]), select, textarea)";
+    const FIELD = "input:not([type=checkbox]):not([type=hidden]),select,textarea";
     const take = (el: Element | null) => {
-      if (!(el instanceof HTMLElement) || !el.matches(FIELD)) return;
+      if (!(el instanceof HTMLElement) || !el.matches(FIELD) || !el.closest(".nf-auth__body")) return;
       active = el;
       later();
     };

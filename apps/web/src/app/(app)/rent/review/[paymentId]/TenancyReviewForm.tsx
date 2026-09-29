@@ -6,6 +6,9 @@ import { panelClass } from "@/components/ui/Panel";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy } from "@/lib/ui/success-moments";
 import { submitTenancyReview } from "@/lib/tenancy/review-actions";
 import { EXTRA_TO } from "@/lib/tenancy/review";
 
@@ -34,6 +37,9 @@ export function TenancyReviewForm({
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [successClosed, setSuccessClosed] = useState(false);
+  const success = useClientCopy().success;
+  const sent = successCopy(success, "tenancyReviewSent");
   const [pending, startTransition] = useTransition();
 
   const tri = [
@@ -44,9 +50,22 @@ export function TenancyReviewForm({
 
   if (done) {
     return (
-      <p role="status" className="nf-body text-[var(--nf-content-primary)]" data-testid="tenancy-review-done">
-        {copy.done}
-      </p>
+      <>
+        <p role="status" className="nf-body text-[var(--nf-content-primary)]" data-testid="tenancy-review-done">
+          {copy.done}
+        </p>
+        {/* `done` is set only by `submitTenancyReview`'s ok. */}
+        <SuccessSheet
+          open={!successClosed}
+          onOpenChange={(open) => {
+            if (!open) setSuccessClosed(true);
+          }}
+          variant={sent.variant}
+          title={sent.title}
+          body={sent.body}
+          primary={{ label: success.continue }}
+        />
+      </>
     );
   }
 

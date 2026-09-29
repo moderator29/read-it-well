@@ -7,6 +7,8 @@ import { getOwnLadder, type OwnLadder } from "@/lib/agent/verification-queries";
 import { ListingPitch } from "../list/ListingPitch";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { approvedRecently } from "@/lib/ui/recent-approval";
 import { StatusPill } from "@/components/ui/StatusPill";
 import {
   nextRung,
@@ -231,6 +233,15 @@ export default async function Page() {
           <div className="lg:order-2">
             <Standing tier={read.ladder.tier} />
           </div>
+          {/* Where the reviewer's decision notice lands. The same key as
+              /verification, so a level is celebrated once on this device
+              whichever door it is seen through (docs/SUCCESS_MOMENTS.md). */}
+          <SuccessFromFlag
+            show={read.ladder.tier > 0 && approvedRecently(Object.values(read.ladder.rungs), requestNow())}
+            moment="verificationApproved"
+            seenKey={`verification-approved:tier-${read.ladder.tier}`}
+            haptic={false}
+          />
           <div className="lg:order-1">
             <Ladder ladder={read.ladder} />
           </div>
@@ -238,4 +249,9 @@ export default async function Page() {
       )}
     </AgentShell>
   );
+}
+
+/** The request's clock, read once, so the page agrees with itself. */
+function requestNow(): number {
+  return Date.now();
 }

@@ -6,6 +6,9 @@ import { panelClass } from "@/components/ui/Panel";
 import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { verifyIdentityWithVnin } from "@/lib/identity/actions";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy } from "@/lib/ui/success-moments";
 
 /**
  * THE vNIN ROUTE TO THE IDENTITY RUNG (V-49). Drawn by the verification page
@@ -23,12 +26,18 @@ export function VninPanel({
   const [vnin, setVnin] = useState("");
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+  const [matched, setMatched] = useState(false);
+  const success = useClientCopy().success;
+  const matchedWords = successCopy(success, "identityMatched");
 
   function submit() {
     setMessage(null);
     startTransition(async () => {
       const result = await verifyIdentityWithVnin({ vnin });
       setMessage(result.ok ? { tone: "ok", text: result.data.message } : { tone: "error", text: result.error });
+      /* Only a match the server calls "passed" is celebrated. "pending" keeps
+         its own sentence and no sheet: nothing has been decided yet. */
+      if (result.ok && result.data.status === "passed") setMatched(true);
     });
   }
 
@@ -54,6 +63,14 @@ export function VninPanel({
           {message.text}
         </p>
       )}
+      <SuccessSheet
+        open={matched}
+        onOpenChange={setMatched}
+        variant={matchedWords.variant}
+        title={matchedWords.title}
+        body={matchedWords.body}
+        primary={{ label: success.continue }}
+      />
     </section>
   );
 }

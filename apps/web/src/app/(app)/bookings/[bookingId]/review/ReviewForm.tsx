@@ -9,6 +9,8 @@ import { useClientCopy } from "@/lib/i18n/client-copy";
 import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
 import type { ReviewSubject } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { successCopy } from "@/lib/ui/success-moments";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { Button } from "@/components/ui/Button";
 
@@ -76,6 +78,9 @@ export function ReviewForm({
 
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState("");
+  const [successClosed, setSuccessClosed] = useState(false);
+  const success = useClientCopy().success;
+  const posted = successCopy(success, "reviewPosted");
 
   useEffect(() => {
     if (state?.ok) router.refresh();
@@ -83,6 +88,19 @@ export function ReviewForm({
 
   if (state?.ok) {
     return (
+      <>
+      {/* The sheet over the confirmation screen, once, from the action's ok. */}
+      <SuccessSheet
+        open={!successClosed}
+        onOpenChange={(open) => {
+          if (!open) setSuccessClosed(true);
+        }}
+        variant={posted.variant}
+        title={posted.title}
+        body={posted.body}
+        details={[{ label: success.detail.for, value: subject.title }]}
+        primary={{ label: success.continue }}
+      />
       <ResultScreen
         state="confirmed"
         mark="reviews"
@@ -97,6 +115,7 @@ export function ReviewForm({
           { label: plansAction.label, href: plansAction.href, tone: "quiet" },
         ]}
       />
+      </>
     );
   }
 

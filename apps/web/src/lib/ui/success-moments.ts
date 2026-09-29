@@ -55,6 +55,8 @@ export const SUCCESS_VARIANT: Readonly<Record<SuccessMomentId, SuccessVariant>> 
   stayRequested: "submitted",
   stayHeld: "success",
   tableRequested: "submitted",
+  reviewPosted: "success",
+  tenancyReviewSent: "success",
   bankAccountAdded: "success",
   payoutAccountAdded: "success",
   accountCreated: "success",

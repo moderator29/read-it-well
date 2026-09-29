@@ -157,6 +157,7 @@ export function PasscodeLock({
   return (
     <PasscodeFrame
       overlay
+      wordmark={copy.wordmark}
       titleId={titleId}
       title={title}
       subtitle={passwordOnly ? copy.lockedTitle : copy.enterCode}

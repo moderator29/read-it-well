@@ -4,6 +4,8 @@
  * `{name}`, `{count}` and `{seconds}` are filled by the component.
  */
 export const passcodeEn = {
+  /** The spaced-capitals name in the top block, as on the sign-in screens. */
+  wordmark: "VALLO",
   welcomeBack: "Welcome back, {name}",
   welcomeBackNoName: "Welcome back",
   enterCode: "Enter your passcode",
@@ -41,8 +43,6 @@ export const passcodeEn = {
   mismatch: "Those did not match. Start again.",
   proofRequired: "For your safety, sign in again before changing your passcode.",
   saved: "Passcode saved.",
-  /** The success sheet's title after a code is set. */
-  setDone: "Passcode set",
   changed: "Passcode changed.",
 
   settingsRow: "Passcode",

@@ -6,6 +6,8 @@ import { getOwnLadder } from "@/lib/agent/verification-queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { KycFlow } from "@/components/verification/KycFlow";
+import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { approvedRecently } from "@/lib/ui/recent-approval";
 import { VninPanel } from "@/components/verification/VninPanel";
 import { PepQuestionPanel } from "@/components/compliance/PepQuestionPanel";
 import { vninIdentityOn } from "@/lib/identity/flag";
@@ -272,6 +274,20 @@ export default async function VerificationPage({
           </div>
           <KycStatus status={status} locale={locale} />
           {pep}
+          {/* The approval is decided in the staff console and announced by
+              the database, where no flag can ride on the link, so it opens
+              from the status itself, once per device and once per level: a
+              later rung is a new moment (docs/SUCCESS_MOMENTS.md). */}
+          {status.state === "approved" &&
+          ladder.state === "ok" &&
+          approvedRecently(Object.values(ladder.ladder.rungs), requestNow()) ? (
+            <SuccessFromFlag
+              show
+              moment="verificationApproved"
+              seenKey={`verification-approved:tier-${ladder.ladder.tier}`}
+              haptic={false}
+            />
+          ) : null}
         </>
       ) : (
         <>
@@ -291,4 +307,9 @@ export default async function VerificationPage({
       )}
     </div>
   );
+}
+
+/** The request's clock, read once, so the page agrees with itself. */
+function requestNow(): number {
+  return Date.now();
 }

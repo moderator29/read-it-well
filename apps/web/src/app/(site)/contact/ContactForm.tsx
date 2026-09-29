@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { submitContactForm } from "@/lib/support/actions";
+import { TicketFiledSheet } from "@/components/app/account/TicketFiledSheet";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
@@ -45,6 +46,8 @@ export function ContactForm({
   if (state?.ok) {
     return (
       <div className="nf-panel nf-panel--card block p-card text-center" data-testid="contact-filed">
+        {/* The success sheet, once, over the panel that keeps the reference. */}
+        <TicketFiledSheet reference={state.data.reference} signedIn={Boolean(state.data.id)} />
         <span className="mx-auto grid h-14 w-14 place-items-center">
           <BrandIcon name="support-chat" fill />
         </span>

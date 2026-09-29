@@ -58,23 +58,13 @@
     animation-name: nf-depth-in-lite;
   }
 
-  /* The rest of the hero follows the headline instead of racing it. */
-  .nf-landing-hero .nf-landing-crumbs.nf-rise {
-    animation-delay: var(--nf-splash-hold, 0s);
-  }
   .nf-landing-hero .nf-rise-3 {
     animation-delay: calc(var(--nf-splash-hold, 0s) + 520ms);
   }
   .nf-landing-hero .nf-rise-4 {
     animation-delay: calc(var(--nf-splash-hold, 0s) + 580ms);
   }
-  .nf-landing-hero .nf-rise-5 {
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 640ms);
-  }
-  .nf-landing-hero .nf-landing-float-wrap {
-    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 600ms);
-  }
+
   .nf-depth-last {
     animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
     animation-delay: calc(var(--nf-splash-hold, 0s) + 700ms);
@@ -84,111 +74,10 @@
      hero is simply there (the flag is set by the script in app/page.tsx). */
   :root[data-intro="seen"] .nf-landing-title .nf-depth-word,
   :root[data-intro="seen"] .nf-landing-hero .nf-rise,
-  :root[data-intro="seen"] .nf-landing-hero .nf-landing-float-wrap,
   :root[data-intro="seen"] .nf-depth-last {
     animation: none;
   }
 
-  /* ----------------------------------------------------- the aurora */
-
-  /*
-   * Three fields of brand light behind the hero, each drifting on the same
-   * 28 second linear loop from a different phase, so the light moves without
-   * ever visibly repeating. Transform only; the blur is static, so each field
-   * is rasterised once and then only moved. On the photograph (64rem up) it
-   * is screened over the plate at a low strength, a wash of light rather than
-   * a second picture; on the phone it is the hero's whole atmosphere.
-   */
-  .nf-hero-aurora {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    overflow: hidden;
-    pointer-events: none;
-    animation: nf-aurora-land var(--nf-duration-cinematic) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 360ms);
-  }
-  .nf-hero-aurora > span {
-    position: absolute;
-    border-radius: var(--nf-radius-circle);
-    filter: blur(72px);
-    animation-duration: 28s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-  }
-  .nf-hero-aurora[data-playing="false"] > span {
-    animation-play-state: paused;
-  }
-  .nf-hero-aurora-a {
-    width: 40rem;
-    height: 40rem;
-    top: -16rem;
-    left: -12rem;
-    opacity: 0.42;
-    background: radial-gradient(circle, var(--nf-brand-primary-strong) 0%, transparent 66%);
-    animation-name: nf-aurora-a;
-  }
-  .nf-hero-aurora-b {
-    width: 34rem;
-    height: 34rem;
-    top: 2rem;
-    right: -14rem;
-    opacity: 0.34;
-    background: radial-gradient(circle, var(--nf-brand-secondary) 0%, transparent 66%);
-    animation-name: nf-aurora-b;
-  }
-  .nf-hero-aurora-c {
-    width: 28rem;
-    height: 28rem;
-    bottom: -12rem;
-    left: 28%;
-    opacity: 0.26;
-    background: radial-gradient(circle, var(--nf-brand-accent) 0%, transparent 66%);
-    animation-name: nf-aurora-c;
-  }
-  @media (min-width: 64rem) {
-    .nf-hero-aurora {
-      mix-blend-mode: screen;
-    }
-    .nf-hero-aurora-a { opacity: 0.3; }
-    .nf-hero-aurora-b { opacity: 0.2; }
-    .nf-hero-aurora-c { opacity: 0.16; }
-  }
-  @keyframes nf-aurora-land {
-    from { opacity: 0.35; }
-    to { opacity: 1; }
-  }
-  @keyframes nf-aurora-a {
-    0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
-    33% { transform: translate3d(9rem, 4rem, 0) rotate(40deg); }
-    66% { transform: translate3d(3rem, 8rem, 0) rotate(-20deg); }
-  }
-  @keyframes nf-aurora-b {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-    40% { transform: translate3d(-10rem, 5rem, 0) scale(1.12); }
-    75% { transform: translate3d(-4rem, -3rem, 0) scale(0.94); }
-  }
-  @keyframes nf-aurora-c {
-    0%, 100% { transform: translate3d(0, 0, 0); }
-    50% { transform: translate3d(-8rem, -6rem, 0); }
-  }
-  :root[data-save-data="on"] .nf-hero-aurora {
-    display: none;
-  }
-
-  .nf-landing-hero-badges {
-    justify-content: center;
-    margin-block: var(--nf-gap-group) var(--nf-gap-block);
-  }
-
-  /* ================================================== shared rooms */
-
-  .nf-room-head {
-    max-width: var(--nf-measure-lede);
-    margin-inline: auto;
-    margin-bottom: var(--nf-gap-block);
-    text-align: center;
-  }
   .nf-room-link {
     display: inline-flex;
     align-items: center;
@@ -211,118 +100,6 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
     border-radius: var(--nf-radius-xs);
-  }
-
-  /* The feature-icon plate: 28px glyph on the Track M icon scale. */
-  .nf-feature-icon {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    width: 3.25rem;
-    height: 3.25rem;
-    border-radius: var(--nf-radius-lg);
-    color: var(--nf-brand-secondary);
-    background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 32%, transparent);
-  }
-  .nf-feature-icon--sm {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--nf-radius-md);
-  }
-
-  /* ================================================ protection room */
-
-  .nf-protect-grid {
-    display: grid;
-    gap: var(--nf-gap-row);
-  }
-  @media (min-width: 48rem) {
-    .nf-protect-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--nf-gap-group);
-    }
-  }
-  .nf-protect-card {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-pad-card);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-  }
-  /* The lift uses `translate`, not `transform`, so it never meets the
-     entrance (motion-kit.css); the stronger shadow fades in on an overlay's
-     opacity rather than transitioning a box-shadow. */
-  .nf-protect-card {
-    position: relative;
-    transition: translate var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-protect-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    box-shadow: var(--nf-elev-3);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  @media (hover: hover) {
-    .nf-protect-card:hover {
-      translate: 0 -2px;
-    }
-    .nf-protect-card:hover::after {
-      opacity: 1;
-    }
-  }
-  .nf-protect-title {
-    margin-top: var(--nf-space-xs);
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h3);
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--nf-content-primary);
-  }
-  .nf-protect-body {
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.55;
-    color: var(--nf-content-secondary);
-  }
-  /*
-   * THE THREE RULES READ AS A LIST ON A PHONE, NOT AS THREE POSTERS.
-   * Stacked, each card spent a whole row on a 56px object and then started
-   * its title under it, so three short rules took a screen and a half and
-   * read as three unrelated boxes. Under 48rem (where the grid is still one
-   * column) the object sits beside its title and the sentence runs full
-   * width beneath both: the same three cards, the same object and its
-   * motion, a third less height, and each one reads "rule: reason".
-   */
-  @media (max-width: 47.999rem) {
-    .nf-protect-card {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      align-items: center;
-      column-gap: var(--nf-gap-group);
-      row-gap: var(--nf-gap-row);
-    }
-    .nf-protect-title {
-      margin-top: 0;
-    }
-    .nf-protect-body,
-    .nf-protect-card .nf-room-link {
-      grid-column: 1 / -1;
-    }
-    .nf-protect-card .nf-room-link {
-      justify-self: start;
-    }
-  }
-  .nf-protect-card .nf-room-link {
-    margin-top: auto;
   }
 
   /* ===================================================== the AI room */
@@ -692,22 +469,7 @@
     box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
     text-align: center;
   }
-  .nf-close-glow {
-    position: absolute;
-    inset: auto -20% -60% -20%;
-    height: 120%;
-    z-index: -1;
-    background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--nf-brand-primary) 30%, transparent) 0%, transparent 70%);
-  }
-  .nf-close-title {
-    max-width: 18ch;
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h0);
-    font-weight: 700;
-    line-height: 1.02;
-    letter-spacing: var(--nf-tracking-display);
-    color: var(--nf-content-primary);
-  }
+
   .nf-close-body {
     max-width: var(--nf-measure-lede);
   }
@@ -765,9 +527,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     .nf-depth-last,
-    .nf-landing-hero .nf-landing-float-wrap,
-    .nf-hero-aurora,
-    .nf-hero-aurora > span,
     .nf-ai-bubble--user[data-live],
     .nf-ai-word[data-live],
     .nf-ai-typing > span,
@@ -775,8 +534,6 @@
     .nf-ai-note[data-live] {
       animation: none;
     }
-    .nf-protect-card,
-    .nf-protect-card::after,
     .nf-landing-cat-icon,
     .nf-faq-chevron,
     .nf-room-link svg,
@@ -784,9 +541,7 @@
     .nf-ai-show-pip::before {
       transition: none;
     }
-    .nf-protect-card:hover {
-      translate: none;
-    }
+
     .nf-landing-cat:hover .nf-landing-cat-icon,
     .nf-landing-cat:focus-visible .nf-landing-cat-icon,
     .nf-room-link:hover svg {
@@ -818,9 +573,6 @@
      below, which put 144px between rooms at desktop and made the page read
      as a stack of islands. */
   .nf-room {
-    padding-block: var(--nf-gap-section-tight);
-  }
-  .nf-room--tight {
     padding-block: var(--nf-gap-section-tight);
   }
 
@@ -878,10 +630,7 @@
     letter-spacing: var(--nf-tracking-display);
     color: var(--nf-content-primary);
   }
-  .nf-sec-title--display {
-    font-size: var(--nf-text-h0);
-    line-height: 1.02;
-  }
+
   .nf-sec-lede {
     margin-top: var(--nf-gap-group);
     max-width: var(--nf-measure-lede);
@@ -1344,19 +1093,7 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 3px;
   }
-  .nf-bento__spot {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: radial-gradient(22rem circle at var(--spot-x, 50%) var(--spot-y, 0%), color-mix(in oklab, var(--nf-brand-primary) 24%, transparent), transparent 62%);
-    opacity: 0;
-    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
-  }
-  @media (hover: hover) {
-    .nf-bento__card:hover .nf-bento__spot {
-      opacity: 1;
-    }
-  }
+
   .nf-bento__text {
     display: flex;
     flex-direction: column;
@@ -1404,23 +1141,22 @@
     height: auto;
     min-height: 11rem;
   }
-  .nf-scene__house svg {
-    width: 4.5rem;
-    height: 4.5rem;
-  }
+
   .nf-scene__tag svg {
     width: 2rem;
     height: 2rem;
   }
-  .nf-scene * {
-    animation-play-state: running;
-  }
-  .nf-bento-gate[data-playing="false"] .nf-scene *,
   .nf-ai-show[data-playing="false"] .nf-ai-typing > span {
     animation-play-state: paused;
   }
 
-  /* The glass objects at the heart of each scene. */
+  /*
+   * THE SCENES ARE STILL (the clean pass, 29 September). Each used to loop
+   * every 4.8 seconds (the tag swung, the calendar turned, the assistant
+   * bobbed, a light crossed the shield, two messages traded places), which
+   * made the grid the busiest thing on the page. They are drawn at rest now,
+   * in the pose each loop used to hold longest.
+   */
   .nf-scene__obj {
     position: relative;
     z-index: 1;
@@ -1431,75 +1167,16 @@
   .nf-scene__obj--front {
     z-index: 2;
   }
-  /* The keys swing from their tag beside the house. */
+  /* The key tag hangs beside the house. */
   .nf-scene__tag {
     position: absolute;
     z-index: 2;
     top: 0.2rem;
     left: calc(50% + 1.8rem);
+    transform: rotate(-9deg);
     transform-origin: 30% 0;
-    animation: nf-scene-swing 4.8s var(--nf-ease-standard) infinite;
   }
-  @keyframes nf-scene-swing {
-    0%, 100% { transform: rotate(-9deg); }
-    50% { transform: rotate(11deg); }
-  }
-  /* The calendar turns over, then rests a while. */
-  .nf-scene__obj--flip {
-    animation: nf-scene-flip 4.8s var(--nf-ease-standard) infinite;
-  }
-  @keyframes nf-scene-flip {
-    0%, 58% { transform: perspective(500px) rotateY(0); }
-    80%, 100% { transform: perspective(500px) rotateY(360deg); }
-  }
-  /* A slow float. */
-  .nf-scene__obj--bob {
-    animation: nf-scene-bob 4.8s var(--nf-ease-standard) infinite;
-  }
-  @keyframes nf-scene-bob {
-    0%, 100% { transform: translate3d(0, 0, 0); }
-    50% { transform: translate3d(0, -6px, 0); }
-  }
-  /* The shield pops, and a light crosses it. */
-  .nf-scene__obj--pop {
-    overflow: hidden;
-    border-radius: var(--nf-radius-xl);
-    animation: nf-scene-pop 4.8s var(--nf-ease-spring) infinite;
-  }
-  @keyframes nf-scene-pop {
-    0%, 70%, 100% { transform: scale(1); }
-    78% { transform: scale(1.08); }
-    86% { transform: scale(0.98); }
-  }
-  .nf-scene__gleam::after {
-    content: "";
-    position: absolute;
-    inset: -20% auto -20% 0;
-    width: 35%;
-    background: linear-gradient(100deg, transparent, color-mix(in oklab, var(--nf-content-on-brand) 38%, transparent), transparent);
-    transform: translateX(-160%) skewX(-14deg);
-    animation: nf-scene-gleam 4.8s var(--nf-ease-standard) infinite;
-    pointer-events: none;
-  }
-  @keyframes nf-scene-gleam {
-    0%, 72% { transform: translateX(-160%) skewX(-14deg); }
-    92%, 100% { transform: translateX(420%) skewX(-14deg); }
-  }
-
-  /* The assistant types. */
-  .nf-scene__chat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 9rem;
-  }
-  .nf-scene__q {
-    align-self: flex-end;
-    width: 70%;
-    height: 1.4rem;
-    border-radius: var(--nf-radius-md) var(--nf-radius-md) var(--nf-radius-xs) var(--nf-radius-md);
-    background: var(--nf-brand-primary);
-  }
+  /* The assistant's typing dots, drawn mid-word. */
   .nf-scene > .nf-scene__dots {
     position: absolute;
     z-index: 2;
@@ -1519,39 +1196,11 @@
     height: 0.4rem;
     border-radius: var(--nf-radius-circle);
     background: currentColor;
-    animation: nf-ai-dot 1.4s var(--nf-ease-standard) infinite;
   }
-  .nf-scene__dots > i:nth-child(2) { animation-delay: 160ms; }
-  .nf-scene__dots > i:nth-child(3) { animation-delay: 320ms; }
+  .nf-scene__dots > i:nth-child(2) { opacity: 0.7; }
+  .nf-scene__dots > i:nth-child(3) { opacity: 0.4; }
 
-  /* Price Check: the asking prices settle into bars. */
-  .nf-scene__bars {
-    position: absolute;
-    inset: auto auto 0.6rem 50%;
-    display: flex;
-    align-items: flex-end;
-    gap: 0.45rem;
-    height: 5rem;
-    translate: -50% 0;
-    opacity: 0.55;
-  }
-  .nf-scene__bars > i {
-    width: 0.9rem;
-    height: 100%;
-    border-radius: 3px 3px 0 0;
-    background: linear-gradient(180deg, var(--nf-brand-secondary), var(--nf-brand-primary));
-    transform-origin: 50% 100%;
-    transform: scaleY(var(--h));
-    animation: nf-scene-bar 4.8s var(--nf-ease-entrance) infinite;
-    animation-delay: calc(var(--bar-i) * 90ms);
-  }
-  @keyframes nf-scene-bar {
-    0% { transform: scaleY(0.15); }
-    25%, 85% { transform: scaleY(var(--h)); }
-    100% { transform: scaleY(0.15); }
-  }
-
-  /* Two messages trade places. */
+  /* Two messages behind the chat. */
   .nf-scene__msgs {
     position: absolute;
     inset: 50% auto auto 50%;
@@ -1570,19 +1219,12 @@
     top: 0.4rem;
     width: 65%;
     background: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
-    animation: nf-scene-msg 4.8s var(--nf-ease-standard) infinite;
   }
   .nf-scene__msg--b {
     right: 0;
     bottom: 0.4rem;
     width: 55%;
     background: var(--nf-brand-primary);
-    animation: nf-scene-msg 4.8s var(--nf-ease-standard) 2.4s infinite;
-  }
-  @keyframes nf-scene-msg {
-    0% { opacity: 0; transform: translate3d(0, 8px, 0); }
-    12%, 60% { opacity: 1; transform: none; }
-    80%, 100% { opacity: 0.25; transform: none; }
   }
 
   /* ------------------------------------------------ the two worlds */
@@ -1801,12 +1443,6 @@
   .nf-ngmap__dot {
     fill: var(--nf-brand-secondary);
   }
-  .nf-ngmap__sonar {
-    fill: none;
-    stroke: var(--nf-brand-secondary);
-    stroke-width: 1.2;
-    opacity: 0;
-  }
   .nf-ngmap__label {
     fill: var(--nf-content-secondary);
     font-size: 13px;
@@ -1825,105 +1461,20 @@
       display: none;
     }
   }
-  .nf-ngmap[data-seen] .nf-ngmap__pin > :not(.nf-ngmap__sonar) {
+  .nf-ngmap[data-seen] .nf-ngmap__pin > * {
     animation: nf-pin-pop var(--nf-duration-entrance) var(--nf-ease-spring) both;
     animation-delay: calc(200ms + min(var(--pin-i, 0), 6) * 90ms);
-  }
-  .nf-ngmap[data-seen] .nf-ngmap__sonar {
-    animation: nf-pin-sonar 3.2s var(--nf-ease-exit) infinite;
-    animation-delay: calc(900ms + var(--pin-i, 0) * 400ms);
   }
   @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
     .nf-ngmap:not([data-seen]) .nf-ngmap__pin > * {
       opacity: 0;
     }
   }
-  /* Off screen the sonar stops. After the rule above that starts it, and as
-     specific, because that rule's shorthand would otherwise set it running. */
-  .nf-ngmap[data-seen] [data-playing="false"] .nf-ngmap__sonar {
-    animation-play-state: paused;
-  }
   @keyframes nf-pin-pop {
     from { opacity: 0; transform: scale(0.2); }
     to { opacity: 1; transform: none; }
   }
-  @keyframes nf-pin-sonar {
-    0% { opacity: 0.7; transform: scale(1); }
-    100% { opacity: 0; transform: scale(4); }
-  }
 
-  /* ------------------------------------------- page-wide details */
-
-  /* Magnetic calls to action (LandingFx.tsx writes the pull). */
-  .nf-magnetic {
-    translate: var(--mag-x, 0px) var(--mag-y, 0px);
-    transition: translate var(--nf-duration-slow) var(--nf-ease-spring);
-  }
-  /* The light sweep across a primary button on hover. */
-  .nf-sweep {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    border-radius: inherit;
-    pointer-events: none;
-  }
-  .nf-sweep::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: -45%;
-    width: 40%;
-    background: linear-gradient(100deg, transparent, color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent), transparent);
-    transform: translateX(0) skewX(-12deg);
-  }
-  @media (hover: hover) {
-    .nf-btn:hover > .nf-sweep::before,
-    .nf-btn:hover .nf-sweep::before {
-      transform: translateX(380%) skewX(-12deg);
-      transition: transform var(--nf-duration-cinematic) var(--nf-ease-standard);
-    }
-  }
-  /* The hero drifts: the aurora slower than the page, the card a little
-     faster, while the hero scrolls away. Scroll timelines where they exist,
-     `--nf-hero-p` from LandingFx.tsx where they do not. */
-  @supports (animation-timeline: scroll()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .nf-landing-hero .nf-hero-aurora {
-        animation:
-          nf-aurora-land var(--nf-duration-cinematic) var(--nf-ease-entrance) calc(var(--nf-splash-hold, 0s) + 360ms) both,
-          nf-hero-drift-slow linear both;
-        animation-timeline: auto, scroll(root);
-        animation-range: normal, 0 100vh;
-      }
-      .nf-landing-hero .nf-landing-float {
-        animation: nf-hero-drift-fast linear both;
-        animation-timeline: scroll(root);
-        animation-range: 0 100vh;
-      }
-    }
-  }
-  @supports not (animation-timeline: scroll()) {
-    .nf-landing-hero .nf-hero-aurora {
-      translate: 0 calc(var(--nf-hero-p, 0) * 90px);
-    }
-    .nf-landing-hero .nf-landing-float {
-      translate: 0 calc(var(--nf-hero-p, 0) * -60px);
-    }
-  }
-  @keyframes nf-hero-drift-slow {
-    from { translate: 0 0; }
-    to { translate: 0 90px; }
-  }
-  @keyframes nf-hero-drift-fast {
-    from { translate: 0 0; }
-    to { translate: 0 -60px; }
-  }
-  /* The card turns a little towards the pointer over the hero. */
-  .nf-landing-hero .nf-landing-float {
-    transform: perspective(900px) rotateX(var(--card-rx, 0deg)) rotateY(var(--card-ry, 0deg));
-    transition: transform var(--nf-duration-slow) var(--nf-ease-standard);
-  }
   /* No hard edge under the hero where it paints its own ground. */
   @media (max-width: 63.999rem) {
     .nf-landing-hero::after {
@@ -1937,37 +1488,22 @@
     }
   }
 
-  /* The motion setting's Calm and Off (lib/motion/gate.ts): no parallax, no
-     magnets, no tilt, no loops, the journey's line drawn full. */
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-landing-hero .nf-hero-aurora, .nf-landing-hero .nf-landing-float, .nf-landing-hero-plate img, .nf-steps__fill, .nf-step::after) {
+  /* The motion setting's Calm and Off (lib/motion/gate.ts): no parallax,
+     no lift, and the journey's line drawn full. A pseudo-element cannot sit
+     inside `:is()`, so the line's segment has a rule of its own. */
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-landing-hero-plate img, .nf-steps__fill, .nf-ngmap__pin > *) {
     animation: none;
-    translate: none;
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-magnetic, .nf-bento__card) {
-    translate: none;
-  }
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-bento__card {
-    transform: none;
-  }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-scene *, .nf-ngmap__sonar, .nf-scene__gleam::after) {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-step::after {
     animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-bento__card, .nf-step__card) {
+    translate: none;
   }
 
   /* --------------------------------- data saver and reduced motion */
 
-  :root[data-save-data="on"] .nf-scene *,
-  :root[data-save-data="on"] .nf-scene__gleam::after,
-  :root[data-save-data="on"] .nf-ngmap__sonar,
-  :root[data-save-data="on"] .nf-landing-hero .nf-landing-float,
-  :root[data-save-data="on"] .nf-landing-hero .nf-hero-aurora {
-    animation: none;
-  }
-  :root[data-save-data="on"] .nf-magnetic {
-    translate: none;
-  }
   @media (prefers-reduced-motion: reduce) {
-    .nf-scene *,
-    .nf-scene__gleam::after,
     .nf-ngmap__pin > *,
     .nf-steps__fill,
     .nf-step::after,
@@ -1981,11 +1517,8 @@
     .nf-map-room__chip,
     .nf-bento__card,
     .nf-bento__card::after,
-    .nf-bento__spot,
     .nf-worlds__coin-inner,
-    .nf-worlds__panel,
-    .nf-magnetic,
-    .nf-landing-hero .nf-landing-float {
+    .nf-worlds__panel {
       transition: none;
     }
     .nf-bento__card,
@@ -1994,9 +1527,7 @@
       transform: none;
       translate: none;
     }
-    .nf-sweep {
-      display: none;
-    }
+
   }
 
   /* ONE PADDING STEP FOR THE NARROWEST PHONES. Under 360px the page gutter
@@ -2006,7 +1537,6 @@
      take; 360px and up are unchanged. Last in the file so it follows each
      card's own padding rule. */
   @media (max-width: 22.49rem) {
-    .nf-protect-card,
     .nf-bento__card,
     .nf-step__card,
     .nf-worlds__stage {

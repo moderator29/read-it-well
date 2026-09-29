@@ -14,7 +14,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   const locale = await getLocale();
   const copy = getDictionary(locale).passcode;
   if (s === "setup" || s === "reset") {
-    return <PasscodeSetup copy={copy} locale={locale} mode={s} name="Ada" overlay />;
+    return <PasscodeSetup copy={copy} locale={locale} mode={s === "setup" ? "first" : "reset"} name="Ada" overlay />;
   }
   return (
     <PasscodeLock

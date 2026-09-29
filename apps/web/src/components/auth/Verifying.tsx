@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { withDone } from "@/lib/ui/success-moments";
 import Link from "next/link";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
@@ -107,8 +108,17 @@ export function Verifying({
 
     void complete({ code, tokenHash, type, accessToken, refreshToken, next }).then((result) => {
       if (result.ok) {
+        /* The moment on arrival (`SuccessFlagHost`): a sign-up confirmation
+           link made the account just now ("Welcome to Vallo", one sheet, not
+           two); a confirmed address change is "Email confirmed". A provider
+           round trip or a recovery link says nothing here: the first cannot
+           tell a new account from a returning one, and the second goes on
+           to choose a password, which has its own moment. */
+        const done =
+          type === "signup" ? "account-created" : type === "email_change" || type === "email" ? "email-verified" : null;
+        const to = done ? withDone(result.next, done) : result.next;
         const go = () => {
-          router.replace(result.next);
+          router.replace(to);
           /* The tree behind this screen was rendered signed out. */
           router.refresh();
         };

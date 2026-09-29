@@ -12,6 +12,7 @@ import { OfflineNote, useOnline } from "@/components/support/OfflineNote";
 import { PhotoField } from "@/components/support/PhotoField";
 import { uploadTicketPhoto, type PreparedPhoto } from "@/components/support/photo";
 import { fileSupportTicket } from "@/lib/support/actions";
+import { TicketFiledSheet } from "@/components/app/account/TicketFiledSheet";
 import {
   DESCRIPTION_MAX,
   EMPTY_DRAFT,
@@ -153,7 +154,15 @@ export function NewQueryForm({
     });
   };
 
-  if (filed) return <FiledView filed={filed} topic={draft.topic} />;
+  /* `filed` is set only from `fileSupportTicket`'s ok, so the sheet opens
+     once, at filing, over the view that keeps the reference. */
+  if (filed)
+    return (
+      <>
+        <FiledView filed={filed} topic={draft.topic} />
+        <TicketFiledSheet reference={filed.reference} />
+      </>
+    );
 
   const kindCopy = QUERY_KINDS[draft.kind];
 

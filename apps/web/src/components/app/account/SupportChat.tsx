@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { findFaqEntry } from "@/lib/support/faq";
 import { chatTranscript } from "@/lib/support/new-query";
 import { fileSupportTicket } from "@/lib/support/actions";
+import { TicketFiledSheet } from "./TicketFiledSheet";
 import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/support/types";
 import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
@@ -165,6 +166,8 @@ export function SupportChat({
   const [consentSheet, setConsentSheet] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  /* The reference `fileSupportTicket` just answered with, for the success sheet. */
+  const [justFiled, setJustFiled] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [draft, setDraft] = useState("");
@@ -422,6 +425,7 @@ export function SupportChat({
 
   const markFiled = (messageId: string, reference: string, ticketId?: string) => {
     patch(messageId, (m) => ({ ...m, reference, ...(ticketId ? { ticketId } : {}) }));
+    setJustFiled(reference);
   };
 
   const clearConversation = () => {
@@ -441,6 +445,8 @@ export function SupportChat({
 
   return (
     <section className={embedded ? "block" : "nf-panel nf-panel--card block p-card"} aria-label="Help and support">
+      {/* Keyed by the reference, so a second escalation is a second moment. */}
+      {justFiled ? <TicketFiledSheet key={justFiled} reference={justFiled} signedIn={signedIn} /> : null}
       {!embedded && (
       /* Wraps, so under ~400px the chip drops to its own line under the text
          instead of squeezing the title and sentence into a 38px column

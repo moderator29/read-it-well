@@ -13,6 +13,7 @@ import {
 } from "@/lib/passcode/rules";
 import { fill, herePath, markTabUnlocked } from "@/lib/passcode/tab";
 import { feedback } from "@/lib/ui/feedback";
+import { showSuccess } from "@/lib/ui/success-moments";
 import { Keypad, PasscodeDots } from "./Keypad";
 import { PasscodeFrame } from "./PasscodeFrame";
 import type { PasscodeCopy } from "./PasscodeLock";
@@ -96,7 +97,10 @@ export function PasscodeSetup({
       try {
         const result = await setPasscodeAction({ code: first, confirm, length, current: current || null });
         if (result.ok) {
-          feedback("success");
+          /* The success card lives in the root layout, so it outlasts the
+             refresh that swaps this screen for the page. It brings its own
+             success haptic. */
+          showSuccess(result.event === "set" ? "passcode-set" : "passcode-changed");
           markTabUnlocked();
           setMessage(result.event === "change" ? copy.changed : copy.saved);
           put("");
@@ -227,6 +231,7 @@ export function PasscodeSetup({
   return (
     <PasscodeFrame
       overlay={overlay}
+      wordmark={copy.wordmark}
       titleId={titleId}
       title={title}
       subtitle={subtitle}

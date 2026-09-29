@@ -5902,6 +5902,14 @@ export const en = {
         title: "Table request sent",
         body: "The restaurant confirms or declines it, and the answer shows in your bookings.",
       },
+      reviewPosted: {
+        title: "Review posted",
+        body: "Your review is on the listing now, and the agent has been told.",
+      },
+      tenancyReviewSent: {
+        title: "Review sent",
+        body: "Thank you. What you told us helps the next renter know what to expect.",
+      },
       bankAccountAdded: {
         title: "Bank account added",
         body: "It is saved on your account and ready to use.",

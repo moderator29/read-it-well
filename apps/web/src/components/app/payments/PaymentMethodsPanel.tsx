@@ -25,6 +25,9 @@ import type { PaymentMethod } from "@/lib/payments/methods";
 import { paymentState } from "@/lib/payments/payment-state";
 import { cardBrandLabel, cardExpired, cardExpiry, maskNumber } from "./format";
 import { AddBankAccountSheet } from "./AddBankAccountSheet";
+import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { successCopy } from "@/lib/ui/success-moments";
 import { PaystackCheckout, type ConfirmOutcome } from "./PaystackCheckout";
 import { panelClass } from "@/components/ui/Panel";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
@@ -94,6 +97,10 @@ export function PaymentMethodsPanel({
   const [openAccount, setOpenAccount] = useState<BankAccount | null>(null);
   const [chooser, setChooser] = useState(false);
   const [addingAccount, setAddingAccount] = useState(false);
+  /* The account was saved: `addBankAccount`'s own ok, after the step-up. */
+  const [accountAdded, setAccountAdded] = useState(false);
+  const success = useClientCopy().success;
+  const addedWords = successCopy(success, "bankAccountAdded");
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -501,10 +508,20 @@ export function PaymentMethodsPanel({
           onClose={() => setAddingAccount(false)}
           onSaved={() => {
             setAddingAccount(false);
+            setAccountAdded(true);
             router.refresh();
           }}
         />
       )}
+
+      <SuccessSheet
+        open={accountAdded}
+        onOpenChange={setAccountAdded}
+        variant={addedWords.variant}
+        title={addedWords.title}
+        body={addedWords.body}
+        primary={{ label: success.continue }}
+      />
     </>
   );
 }

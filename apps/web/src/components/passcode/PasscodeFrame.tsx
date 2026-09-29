@@ -29,6 +29,7 @@ export function PasscodeFrame({
   subtitle,
   name,
   avatarUrl,
+  wordmark,
   children,
   testId,
 }: {
@@ -38,6 +39,8 @@ export function PasscodeFrame({
   subtitle?: string | null;
   name: string;
   avatarUrl?: string | null;
+  /** The name in the top block (`passcode.wordmark`). */
+  wordmark: string;
   children: ReactNode;
   testId?: string;
 }) {
@@ -61,7 +64,7 @@ export function PasscodeFrame({
 
   const body = (
     <>
-      <AuthCurveBlock compact brandHref={null} brandLabel="Vallo" />
+      <AuthCurveBlock compact brandHref={null} brandLabel="Vallo" wordmark={wordmark} />
       <div className="nf-passcode__body">
         <span className="nf-passcode__avatar" aria-hidden="true">
           {avatarUrl ? (
