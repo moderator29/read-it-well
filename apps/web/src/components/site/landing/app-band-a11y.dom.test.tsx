@@ -27,7 +27,8 @@ describe("AppBand", () => {
 
   it("draws no device frame", () => {
     expect(html).not.toMatch(DEVICE);
-    expect(html).toContain("nf-app-panel");
+    /* The shared navy hero band (spec section 16, Q2), one panel. */
+    expect(html).toContain("nf-hero-band");
   });
 
   it("prints the install line when no store badge is live, and every point", () => {

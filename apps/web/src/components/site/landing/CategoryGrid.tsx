@@ -1,10 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
-import { Reveal } from "@/components/site/Reveal";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { MotionReveal } from "@/components/motion/Reveal";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import { photo, type PhotoName } from "@/lib/site/photos";
+import type { Door } from "./doors";
+import { CITIES, NigeriaMapArt } from "./NigeriaMap";
 import { SectionHead } from "./SectionHead";
 
 /**
@@ -31,30 +34,30 @@ import { SectionHead } from "./SectionHead";
  * `landingData` in LandingBody.tsx for the check); a null prints no number
  * at all, which the design law allows and an invented one does not.
  *
- * EIGHT TILES, EIGHT OBJECTS (R1 finding A11). Four of the eight carried
- * near-identical glass buildings, so a reader scanning the grid saw the same
- * mark four times: shortlets take the calendar, resorts the palm, commercial
- * the tower and land the map pin, which is what each tile is actually about.
+ * EIGHT TILES, EIGHT GLYPHS (R1 finding A11), each on the flat plate (spec
+ * section 4; the glass objects retired from the landing, section 16 Q3):
+ * what each tile is actually about, never the same mark twice.
+ *
+ * THE CITIES LIVE HERE NOW (UIUX item 9): the chips under the tiles, with
+ * the drawn map beside them from 64rem. Every tile and chip is an honest
+ * door (`doors.ts`).
  *
  * The plates are mapped by hand. Land takes
  * the bridge skyline as the closest honest plate: a category tile is a door
  * into a market, not a picture of one listing, so the objection `MediaFrame`
  * raises to a building on a plot does not apply here.
  */
-/**
- * One micro-motion per tile (Track M), cycled so neighbours differ: the icon
- * lifts, tilts, turns or drops, once on hover or focus. Transform only;
- * static under reduced motion (landing-rooms.css).
- */
-const CAT_MOTION = ["lift", "tilt", "turn", "drop"] as const;
 
 export function CategoryGrid({
   t,
   counts,
+  door,
 }: {
   t: Dictionary;
   counts: ReadonlyMap<ListingKind, number> | null;
+  door: Door;
 }) {
+  const m = t.landingRooms.map;
   const c = t.landing.face.categories;
   /* The glyph on each tile is a glass object (the render draws a blue glass
      building in a glass square on every tile), so the whole row is on the
@@ -66,32 +69,28 @@ export function CategoryGrid({
     kind?: ListingKind;
     label: string;
     photo: PhotoName;
-    icon: BrandIconName;
+    icon: UiIconName;
   }[] = [
-    { key: "apartment", href: "/search?type=apartment", kind: "apartment", label: c.apartments, photo: "tower-entrance-dusk", icon: "serviced-block" },
-    { key: "home", href: "/search?type=home", kind: "home", label: c.houses, photo: "villa-exterior-gate", icon: "modern-house" },
-    { key: "shortlet", href: "/stays/search?type=shortlet", kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "calendar-home" },
-    { key: "hotel", href: "/stays/search?type=hotel", kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "hotel" },
-    { key: "resort", href: "/stays/search?type=resort", label: c.resorts, photo: "resort-pool-deck", icon: "palm-tree" },
-    { key: "guest_house", href: "/stays/search?type=guest_house", label: c.guestHouses, photo: "villa-pool-skyline-01", icon: "hotel-star" },
-    { key: "office", href: "/search?type=office", kind: "office", label: c.commercial, photo: "skyline-waterfront-dusk", icon: "building-chip" },
-    { key: "land", href: "/search?type=land", kind: "land", label: c.land, photo: "skyline-bridge-dusk", icon: "pin-map" },
+    { key: "apartment", href: "/search?type=apartment", kind: "apartment", label: c.apartments, photo: "tower-entrance-dusk", icon: "building-apartment" },
+    { key: "home", href: "/search?type=home", kind: "home", label: c.houses, photo: "villa-exterior-gate", icon: "house" },
+    { key: "shortlet", href: "/stays/search?type=shortlet", kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "calendar-booking" },
+    { key: "hotel", href: "/stays/search?type=hotel", kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "building-hotel" },
+    { key: "resort", href: "/stays/search?type=resort", label: c.resorts, photo: "resort-pool-deck", icon: "pool" },
+    { key: "guest_house", href: "/stays/search?type=guest_house", label: c.guestHouses, photo: "villa-pool-skyline-01", icon: "concierge-bell" },
+    { key: "office", href: "/search?type=office", kind: "office", label: c.commercial, photo: "skyline-waterfront-dusk", icon: "briefcase" },
+    { key: "land", href: "/search?type=land", kind: "land", label: c.land, photo: "skyline-bridge-dusk", icon: "land-plot" },
   ];
 
   return (
     <section className="nf-shell nf-room" data-chapter="categories" aria-labelledby="nf-landing-cats-title">
       <div className="nf-landing-split nf-landing-split--even">
-        <Reveal className="flex flex-col gap-heading">
-          <div>
-            <SectionHead id="nf-landing-cats-title" eyebrow={c.overline} title={c.title} lede={c.body} />
-          </div>
-        </Reveal>
-        <ul className="nf-landing-cats">
-          {tiles.map((tile, i) => {
+        <SectionHead id="nf-landing-cats-title" eyebrow={c.overline} title={c.title} lede={c.body} />
+        <MotionReveal as="ul" stagger className="nf-landing-cats">
+          {tiles.map((tile) => {
             const count = tile.kind ? (counts?.get(tile.kind) ?? 0) : 0;
             return (
-              <Reveal as="li" key={tile.key} delay={i * 40}>
-                <Link href={tile.href} prefetch={false} className="nf-landing-cat" data-theme="dark">
+              <li key={tile.key}>
+                <Link href={door(tile.href)} prefetch={false} className="nf-landing-cat" data-theme="dark">
                   <Image
                     src={photo(tile.photo)}
                     alt=""
@@ -99,9 +98,9 @@ export function CategoryGrid({
                     sizes="(max-width: 640px) 45vw, (max-width: 1024px) 50vw, 200px"
                   />
                   <span className="nf-landing-cat-body">
-                    <span className="nf-landing-cat-icon" data-motion={CAT_MOTION[i % CAT_MOTION.length]}>
-                      <BrandIcon name={tile.icon} fill drawn={36} />
-                    </span>
+                    <IconPlate size="sm" tone="neutral" className="nf-landing-cat-icon">
+                      <UiIcon name={tile.icon} size={ICON_PLATE_GLYPH.sm} />
+                    </IconPlate>
                     <span className="min-w-0">
                       <span className="nf-landing-cat-title">{tile.label}</span>
                       {count > 0 && (
@@ -112,10 +111,32 @@ export function CategoryGrid({
                     </span>
                   </span>
                 </Link>
-              </Reveal>
+              </li>
             );
           })}
-        </ul>
+        </MotionReveal>
+      </div>
+
+      {/* THE CITIES (UIUX item 9): the map's chips, folded into this room
+          under their own label. The drawing shows beside them from 64rem
+          only; on a phone the chips are the whole answer. */}
+      <div className="nf-cities">
+        <div className="nf-cities__list">
+          <p className="nf-section-label">{m.cities}</p>
+          <ul className="nf-map-room__list">
+            {CITIES.map((city) => (
+              <li key={city}>
+                <Link href={door(`/search?q=${encodeURIComponent(city)}`)} prefetch={false} className="nf-map-room__chip">
+                  <UiIcon name="location" size={16} aria-hidden />
+                  {city}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="nf-cities__map">
+          <NigeriaMapArt />
+        </div>
       </div>
     </section>
   );

@@ -12,14 +12,16 @@ import type { MiniListing } from "@/lib/site/listing-card";
  * frame, the badge, the title, the place, the price through <Amount> on
  * integer kobo with the suffix the record dictates.
  *
- * The badge is `Verified` only when the record says the lister was checked
- * by a person. Otherwise it is the market ("To rent", "For sale"), which is
- * true of every listing and dresses nothing up.
+ * The badge is "Example" on an example listing, `Verified` only when the
+ * record says the lister was checked by a person, and otherwise the market
+ * ("To rent", "For sale"), which is true of every listing and dresses
+ * nothing up.
  */
 export function ListingMini({
   listing,
   locale,
   verifiedLabel,
+  exampleLabel,
   saveLabel,
   sizes = "(max-width: 640px) 80vw, 248px",
   priority = false,
@@ -27,6 +29,8 @@ export function ListingMini({
   listing: MiniListing;
   locale: Locale;
   verifiedLabel: string;
+  /** The word an example listing's badge says: "Example". */
+  exampleLabel: string;
   saveLabel?: string;
   sizes?: string;
   priority?: boolean;
@@ -45,12 +49,24 @@ export function ListingMini({
             className="object-cover"
           />
         )}
-        <span
-          className={`nf-badge ${listing.verified ? "nf-badge--verified" : "nf-badge--info"} nf-landing-float-badge`}
-        >
-          {listing.verified && <UiIcon name="verified" size={12} aria-hidden />}
-          {listing.verified ? verifiedLabel : listing.market}
-        </span>
+        {/* THE EXAMPLE DISCLOSURE (UIUX item 6). An example listing says
+            "Example" where the market would be, with the same shared
+            `nf-badge--example` class the in-app cards use; an example is never
+            verified (the database's check constraint), so the two marks
+            cannot meet. `example-notice.test.ts` guards this line. */}
+        {listing.example ? (
+          <span className="nf-badge nf-badge--example nf-landing-float-badge">
+            <UiIcon name="info" size={12} aria-hidden />
+            {exampleLabel}
+          </span>
+        ) : (
+          <span
+            className={`nf-badge ${listing.verified ? "nf-badge--verified" : "nf-badge--info"} nf-landing-float-badge`}
+          >
+            {listing.verified && <UiIcon name="verified" size={12} aria-hidden />}
+            {listing.verified ? verifiedLabel : listing.market}
+          </span>
+        )}
         {saveLabel && (
           <span className="nf-landing-float-save" aria-hidden="true">
             <span>

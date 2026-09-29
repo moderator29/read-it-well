@@ -5,9 +5,9 @@ import type { Locale } from "@vallo/i18n/core";
 import { useHydrated, usePlayWhenVisible } from "@/components/motion/useInView";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { ListingMini } from "./ListingMini";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The AI chat showcase (Track M): a scripted conversation in a panel.
@@ -51,7 +51,7 @@ export function AiShowcase({
 }: {
   scripts: ShowcaseScript[];
   locale: Locale;
-  labels: { caption: string; replay: string; you: string; name: string; verified: string; script: string };
+  labels: { caption: string; replay: string; you: string; name: string; verified: string; example: string; script: string };
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   /* Reduced motion, or the motion setting at Calm or Off: the finished first
@@ -135,9 +135,9 @@ export function AiShowcase({
 
       <div className="nf-ai-show-panel" data-leaving={leaving ? "true" : undefined} aria-hidden="true" inert>
         <div className="nf-ai-show-head">
-          <span className="nf-ai-show-avatar">
-            <BrandIcon name="bot" size={32} />
-          </span>
+          <IconPlate size="sm" tone="brand" className="nf-ai-show-avatar">
+            <UiIcon name="bot" size={20} />
+          </IconPlate>
           <span className="nf-ai-show-name">{labels.name}</span>
         </div>
 
@@ -168,7 +168,7 @@ export function AiShowcase({
               {script.cards.map((card, i) =>
                 t >= replyEnd + 200 + i * CARD_GAP ? (
                   <div key={card.id} className="nf-ai-card" data-live={live ? "true" : undefined}>
-                    <ListingMini listing={card} locale={locale} verifiedLabel={labels.verified} sizes="170px" />
+                    <ListingMini listing={card} locale={locale} verifiedLabel={labels.verified} exampleLabel={labels.example} sizes="170px" />
                   </div>
                 ) : (
                   <div key={card.id} className="nf-ai-card nf-ai-card--slot" />
@@ -178,7 +178,7 @@ export function AiShowcase({
           )}
           {script.note && t >= replyEnd + 200 && (
             <div className="nf-ai-note" data-live={live ? "true" : undefined}>
-              <BrandIcon name="doc-review" size={24} />
+              <UiIcon name="file-search" size={16} />
               {script.note}
             </div>
           )}

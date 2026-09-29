@@ -9,8 +9,9 @@ import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
  * and only the handful of fields a card prints should cross that boundary.
  * The mapper also settles the two honesty questions once, here, rather than
  * in every card: what the price is per (read off `pricePeriod`, never
- * guessed) and what the badge says (`verified` only when the record says the
- * lister was checked by a person; otherwise the market, which is a fact).
+ * guessed) and what the badge says ("Example" when the record is an example
+ * listing; `verified` only when the record says the lister was checked by a
+ * person; otherwise the market, which is a fact).
  */
 import { isModestExample } from "@/lib/listings/example-imagery";
 
@@ -26,6 +27,10 @@ export type MiniListing = {
   hue: number;
   kind: ListingKind;
   verified: boolean;
+  /** An example listing (`listing.isDemo`): the card says "Example" in place
+      of the market or the tick, as every card renderer in the product must
+      (`components/app/listing/example-notice.test.ts`). */
+  example: boolean;
   market: string;
   /** A modest example: draw its kind, never a scene photograph (`example-imagery.ts`). */
   drawn?: boolean;
@@ -53,6 +58,7 @@ export function toMiniListing(listing: Listing, t: Dictionary): MiniListing {
     hue: listing.hue,
     kind: listing.kind,
     verified: listing.verified,
+    example: listing.isDemo === true,
     market,
     drawn: isModestExample(listing),
   };

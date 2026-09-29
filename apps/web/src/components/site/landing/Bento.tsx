@@ -1,17 +1,24 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import type { Door } from "./doors";
 import { SectionHead } from "./SectionHead";
 
 /**
  * "Everything in one place": the bento (Track M, second pass).
  *
- * Seven doors into the product, in mixed sizes, each with one of the
- * platform's own glass objects: the house, the calendar, the assistant, the
- * Price Check report, the shield, the chat, the map pin. No line glyph
- * illustrates anything here (the founder's rule for content surfaces).
+ * Seven doors into the product, in mixed sizes, each on the FLAT ICON PLATE
+ * (spec section 4; section 16, Q3 as the lead decided it: the landing's
+ * feature cards use the plate every other surface uses, so the platform
+ * reads as one family, and the glass objects retire from light mode). The
+ * plate sits top left and the words at the foot of the card, so a tall cell
+ * is never half empty. The three front doors (rent and buy, stays, the
+ * assistant) take the brand plate; the rest are neutral.
+ *
+ * EVERY DOOR IS HONEST (UIUX item 12): a door a stranger cannot open goes
+ * to the sign-up door carrying the destination (`doors.ts`).
  *
  * STILL SINCE THE CLEAN PASS (29 September). The scenes used to loop (the
  * tag swung, the calendar turned, the assistant bobbed) and a desktop pointer
@@ -30,18 +37,18 @@ import { SectionHead } from "./SectionHead";
  * The cards are in reading order (no `grid-auto-flow: dense`), so the tab
  * order runs row by row, and the same order tiles two columns too.
  */
-type Scene = "tag" | "calendar" | "typing" | "bars" | "shield" | "messages" | "feed";
+type Glyph = "home" | "calendar-check" | "bot" | "chart-bar" | "shield-check" | "messages" | "compass";
 
-export function Bento({ t }: { t: Dictionary }) {
+export function Bento({ t, door }: { t: Dictionary; door: Door }) {
   const b = t.landingRooms.bento;
-  const cards: { key: keyof typeof b.cards; href: string; scene: Scene; size: "wide" | "tall" | "base" }[] = [
-    { key: "rent", href: "/search", scene: "tag", size: "wide" },
-    { key: "stays", href: "/stays", scene: "calendar", size: "tall" },
-    { key: "ai", href: "/assistant", scene: "typing", size: "tall" },
-    { key: "price", href: "/price", scene: "bars", size: "base" },
-    { key: "messages", href: "/messages", scene: "messages", size: "base" },
-    { key: "agree", href: "/safety", scene: "shield", size: "wide" },
-    { key: "feed", href: "/around", scene: "feed", size: "wide" },
+  const cards: { key: keyof typeof b.cards; href: string; glyph: Glyph; size: "wide" | "tall" | "base"; tone: "brand" | "neutral" }[] = [
+    { key: "rent", href: "/search", glyph: "home", size: "wide", tone: "brand" },
+    { key: "stays", href: "/stays", glyph: "calendar-check", size: "tall", tone: "brand" },
+    { key: "ai", href: "/assistant", glyph: "bot", size: "tall", tone: "brand" },
+    { key: "price", href: "/price", glyph: "chart-bar", size: "base", tone: "neutral" },
+    { key: "messages", href: "/messages", glyph: "messages", size: "base", tone: "neutral" },
+    { key: "agree", href: "/safety", glyph: "shield-check", size: "wide", tone: "neutral" },
+    { key: "feed", href: "/around", glyph: "compass", size: "wide", tone: "neutral" },
   ];
   return (
     <section className="nf-shell nf-room" data-chapter="bento" aria-labelledby="nf-landing-bento-title">
@@ -50,10 +57,10 @@ export function Bento({ t }: { t: Dictionary }) {
         <MotionReveal as="ul" stagger className="nf-bento">
           {cards.map((c) => (
             <li key={c.key} className={`nf-bento__cell nf-bento__cell--${c.size}`}>
-              <Link href={c.href} prefetch={false} className="nf-bento__card">
-                <span className={`nf-scene nf-scene--${c.scene}`} aria-hidden="true">
-                  <SceneArt scene={c.scene} />
-                </span>
+              <Link href={door(c.href)} prefetch={false} className="nf-bento__card">
+                <IconPlate size="md" tone={c.tone} className="nf-bento__plate">
+                  <UiIcon name={c.glyph} size={ICON_PLATE_GLYPH.md} />
+                </IconPlate>
                 <span className="nf-bento__text">
                   <span className="nf-bento__title">
                     {b.cards[c.key].title}
@@ -67,34 +74,5 @@ export function Bento({ t }: { t: Dictionary }) {
         </MotionReveal>
       </div>
     </section>
-  );
-}
-
-/*
- * ONE OBJECT PER CARD, AT ONE SIZE (the clean pass). The cards used to set
- * their objects at 80 to 112px with extras around them (a key tag, typing
- * dots, two message bars); in light mode each object now sits on its own
- * navy tile (the design pass), so seven different tile sizes read as
- * accident. One glass object each, all at `SCENE_ICON`.
- */
-const SCENE_ICON = 88;
-const SCENE_OBJECT: Record<Scene, BrandIconName> = {
-  tag: "modern-house",
-  calendar: "calendar-check",
-  typing: "bot",
-  bars: "report-stats",
-  shield: "shield-check",
-  messages: "chat-duo",
-  /* `map-spot`, not `people-ring`: the ring assets draw a small, faint
-     object inside a glowing ring and read as missing beside the full-size
-     objects on the other cards. Around is places near you. */
-  feed: "map-spot",
-};
-
-function SceneArt({ scene }: { scene: Scene }) {
-  return (
-    <span className="nf-scene__obj">
-      <BrandIcon name={SCENE_OBJECT[scene]} size={SCENE_ICON} />
-    </span>
   );
 }

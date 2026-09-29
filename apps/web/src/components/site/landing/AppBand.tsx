@@ -1,19 +1,19 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { Logo } from "@/design-system/brand/Logo";
+import { HeroBand } from "@/components/ui/HeroBand";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { storeBadges } from "./store-badges";
 import { StoreBadges } from "./StoreBadges";
-import { SectionHead } from "./SectionHead";
 
 /**
  * Take Vallo with you: one branded panel, no device frame (the founder's
  * ruling of 29 September removed the drawn phones).
  *
- * The panel is a night island (`data-theme="dark"`) in both themes, the same
- * navy block the header is in light mode, so it reads as the brand speaking
- * rather than one more card. On it: the app promise, the store badges, and
- * three short points on what the phone gives you.
+ * The panel is the shared `HeroBand` (navy on paper, a raised night surface
+ * at night), so it reads as the brand speaking rather than one more card.
+ * On it: the app promise, the store badges or the install line, and three
+ * short points on what the phone gives you, divided by hairlines.
  *
  * STORE-06 (also UI-07, UX-26). The store badges:
  *
@@ -51,39 +51,47 @@ export function AppBand({
   return (
     <section className="nf-shell nf-room" data-chapter="app" aria-labelledby="nf-landing-app-title">
       <MotionReveal>
-        <div className="nf-app-panel" data-theme="dark">
-          <div className="nf-app-panel__copy">
-            <SectionHead id="nf-landing-app-title" eyebrow={a.eyebrow} title={a.title} lede={a.body} />
-            {badges.length > 0 ? (
-              /* The official artwork, drawn inline (StoreBadges.tsx). */
-              <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-app-panel__badges" />
-            ) : (
-              <div className="nf-app-panel__install">
-                <UiIcon name="share" size={20} aria-hidden />
-                <div>
-                  <p className="nf-app-panel__install-title">{a.installTitle}</p>
-                  <p className="nf-app-panel__install-body">{a.installBody}</p>
+        {/* THE NAVY HERO BAND (spec section 16, Q2 as the founder widened
+            it): the light theme's one signature block, flat, no glass, the
+            same band Home and the desks open on. One panel, two columns, no
+            card inside it (UIUX item 11). */}
+        <HeroBand
+          as="div"
+          className="nf-app-band"
+          label={a.eyebrow}
+          title={<span id="nf-landing-app-title">{a.title}</span>}
+          sub={a.body}
+        >
+          <div className="nf-app-band__cols">
+            <div className="nf-app-band__store">
+              {badges.length > 0 ? (
+                /* The official artwork, drawn inline (StoreBadges.tsx). */
+                <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-app-panel__badges" />
+              ) : (
+                <div className="nf-app-band__install">
+                  <IconPlate size="sm" tone="neutral">
+                    <UiIcon name="share" size={ICON_PLATE_GLYPH.sm} />
+                  </IconPlate>
+                  <div>
+                    <p className="nf-app-band__install-title">{a.installTitle}</p>
+                    <p className="nf-app-band__install-body">{a.installBody}</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            <div className="nf-app-band__aside">
+              <p className="nf-section-label">{a.rightTitle}</p>
+              <ul className="nf-app-band__points">
+                {points.map((p) => (
+                  <li key={p.key}>
+                    <UiIcon name={p.icon} size={20} aria-hidden />
+                    {p.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="nf-app-panel__aside">
-            <span className="nf-app-panel__mark" aria-hidden="true">
-              <Logo size={40} wordSize={18} />
-            </span>
-            <p className="nf-app-panel__aside-title">{a.rightTitle}</p>
-            <ul className="nf-app-panel__points">
-              {points.map((p) => (
-                <li key={p.key}>
-                  <span className="nf-app-panel__tick" aria-hidden="true">
-                    <UiIcon name={p.icon} size={20} />
-                  </span>
-                  {p.label}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        </HeroBand>
       </MotionReveal>
     </section>
   );

@@ -1,11 +1,9 @@
-import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { SectionHead } from "./SectionHead";
 
 /**
- * "Where Vallo lives" (Track M, second pass): a drawn outline of Nigeria with
- * a glowing pin on each of its major cities.
+ * The drawn outline of Nigeria with a pin on each of its major cities. Since
+ * the unified pass (UIUX item 9) it is part of the category room: the city
+ * chips there are the links, and this drawing sits beside them from 64rem.
  *
  * THE PINS ARE PLACES, NOT CLAIMS. Each is a real Nigerian city that search
  * answers for, and the page says so in as many words; there are no counts
@@ -107,86 +105,44 @@ const OUTLINE =
     return `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
   }).join(" ") + " Z";
 
-export function NigeriaMap({ t }: { t: Dictionary }) {
-  const m = t.landingRooms.map;
+/**
+ * The drawn map alone: the outline and a pin on each city, for the category
+ * room to set beside its city chips from 64rem (UIUX item 9; the map is no
+ * longer a room of its own, and a phone does not draw it). Decorative: the
+ * chips beside it are the links and carry the names.
+ */
+export function NigeriaMapArt() {
   const pins = Object.entries(CITY_POINTS).map(([city, [lng, lat]]) => ({
     city,
     ...project(lng, lat),
   }));
   return (
-    <section
-      className="nf-shell nf-room"
-      data-chapter="map"
-      aria-labelledby="nf-landing-map-title"
-    >
-      <div className="nf-map-room">
-        <SectionHead
-          id="nf-landing-map-title"
-          eyebrow={m.overline}
-          title={m.title}
-          lede={m.body}
-        >
-          <ul className="nf-map-room__list">
-            {pins.map((p) => (
-              <li key={p.city}>
-                <Link
-                  href={`/search?q=${encodeURIComponent(p.city)}`}
-                  prefetch={false}
-                  className="nf-map-room__chip nf-m-press"
-                >
-                  {p.city}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </SectionHead>
-        <MotionReveal className="nf-ngmap">
-            <svg
-              viewBox="0 0 490 410"
-              className="nf-ngmap__svg"
-              aria-hidden="true"
+    <MotionReveal className="nf-ngmap">
+      <svg viewBox="0 0 490 410" className="nf-ngmap__svg" aria-hidden="true">
+        <path d={OUTLINE} className="nf-ngmap__land" />
+        {pins.map((p, i) => (
+          <g
+            key={p.city}
+            className="nf-ngmap__pin"
+            style={{ "--pin-i": i } as React.CSSProperties}
+            transform={`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`}
+          >
+            <circle r="11" className="nf-ngmap__halo" />
+            <circle r="4.5" className="nf-ngmap__dot" />
+            <text
+              x={LABEL_AT[p.city]?.x ?? 9}
+              y={LABEL_AT[p.city]?.y ?? 4}
+              textAnchor={LABEL_AT[p.city]?.anchor ?? "start"}
+              className="nf-ngmap__label"
             >
-              <defs>
-                <radialGradient id="nf-ngmap-glow">
-                  <stop
-                    offset="0%"
-                    stopColor="currentColor"
-                    stopOpacity="0.5"
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor="currentColor"
-                    stopOpacity="0"
-                  />
-                </radialGradient>
-              </defs>
-              <path d={OUTLINE} className="nf-ngmap__land" />
-              {pins.map((p, i) => (
-                <g
-                  key={p.city}
-                  className="nf-ngmap__pin"
-                  style={{ "--pin-i": i } as React.CSSProperties}
-                  transform={`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`}
-                >
-                  <circle
-                    r="18"
-                    className="nf-ngmap__halo"
-                    fill="url(#nf-ngmap-glow)"
-                  />
-                  <circle r="4.5" className="nf-ngmap__dot" />
-                  <text
-                    x={LABEL_AT[p.city]?.x ?? 9}
-                    y={LABEL_AT[p.city]?.y ?? 4}
-                    textAnchor={LABEL_AT[p.city]?.anchor ?? "start"}
-                    className="nf-ngmap__label"
-                  >
-                    {p.city}
-                  </text>
-                </g>
-              ))}
-            </svg>
-        </MotionReveal>
-      </div>
-    </section>
+              {p.city}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </MotionReveal>
   );
 }
+
+/** The cities, in the order the chips print them. */
+export const CITIES: readonly string[] = Object.keys(CITY_POINTS);

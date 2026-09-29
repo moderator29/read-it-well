@@ -43,7 +43,7 @@
      * (32px) and the growth rate with it; the desktop ceiling is untouched,
      * because nothing was ever wrong there.
      */
-    --nf-landing-title: clamp(2rem, 1.05rem + 3.9vw, 4.25rem);
+    --nf-landing-title: clamp(2.25rem, 1.2rem + 4vw, 4.5rem);
     --nf-landing-pill-max: 47.5rem;
     --nf-landing-card-w: 15.5rem;
     --nf-landing-hero-h: min(100svh, 56rem);
@@ -141,21 +141,6 @@
   .nf-landing .nf-m-stagger[data-reveal="in"] > * {
     animation-duration: var(--nf-duration-base);
   }
-  @media (min-width: 64rem) {
-    .nf-landing,
-    .nf-landing [data-theme="dark"],
-    .nf-site {
-      --nf-landing-fg: var(--nf-landing-on-ink);
-      --nf-landing-fg-2: var(--nf-landing-on-ink-secondary);
-      --nf-landing-fg-3: var(--nf-landing-on-ink-muted);
-      --nf-landing-accent: var(--nf-content-on-media-accent);
-      --nf-landing-hairline: var(--nf-landing-hairline-on-ink);
-      --nf-landing-control: var(--nf-landing-control-on-ink);
-      --nf-landing-control-strong: var(--nf-landing-control-on-ink-strong);
-      --nf-landing-pane: color-mix(in oklab, var(--nf-landing-ink) 78%, transparent);
-    }
-  }
-
   .nf-landing .nf-shell,
   .nf-site .nf-shell,
   .nf-site-nav .nf-shell,
@@ -356,290 +341,162 @@
   /* ----------------------------------------------------------- the hero */
 
   /*
-   * The photograph is the section. The nav sits over its top edge (the header
-   * is sticky and the hero pulls up under it by the header's own height), the
-   * copy sits on the calm left third, and the search pill hangs off the bottom
-   * edge so the stats band below can tuck under it.
+   * THE HERO IS PAPER WITH A FAINT GRID (the founder's reference 39,
+   * 29 September 2026), not a photograph: the reader's own ground in both
+   * themes, a centred column, the eyebrow capsule, the headline, one line,
+   * one action, the search and three facts. The capsule header floats over
+   * its top, so the hero pulls up under it by the header's height.
    */
   .nf-landing-hero {
     position: relative;
     isolation: isolate;
-    margin-top: calc(-1 * var(--nf-header-height-sm));
-    padding-top: var(--nf-header-height-sm);
-    display: flex;
-    flex-direction: column;
+    margin-top: calc(-1 * var(--nf-header-height-sm) - 0.625rem);
+    padding-top: calc(var(--nf-header-height-sm) + 0.625rem);
     overflow: hidden;
-  }
-
-  /*
-   * THE PHONE HERO IS THE DESKTOP COMPOSITION MADE COMPACT, not a stacked
-   * page. The founder's second-stint ruling: the villa sits at the top right
-   * blended into the deep-blue ground, and the kicker, the headline, the
-   * sub-line, the buttons and the city pills all sit over it on the left.
-   * That supersedes the fitted-band ruling FOR THE HERO ONLY; every other
-   * plate on the site is still a band inside the gutters.
-   *
-   * The ground is painted here rather than inherited, because the hero is a
-   * night photograph in both themes (the same reason the desktop hero keeps
-   * its plate in daylight) and white copy needs the dark behind it on paper
-   * too.
-   */
-  @media (max-width: 63.999rem) {
-    .nf-landing-hero {
-      --nf-landing-fg: var(--nf-landing-on-ink);
-      --nf-landing-fg-2: var(--nf-landing-on-ink-secondary);
-      --nf-landing-fg-3: var(--nf-landing-on-ink-muted);
-      --nf-landing-accent: var(--nf-content-on-media-accent);
-      --nf-landing-hairline: var(--nf-landing-hairline-on-ink);
-      --nf-landing-control: var(--nf-landing-control-on-ink);
-      --nf-landing-control-strong: var(--nf-landing-control-on-ink-strong);
-      --nf-landing-pane: color-mix(in oklab, var(--nf-landing-ink) 82%, transparent);
-      color: var(--nf-landing-on-ink);
-      background-color: var(--nf-landing-ink);
-      background-image:
-        radial-gradient(
-          120% 80% at 82% 4%,
-          color-mix(in oklab, var(--nf-glow-ink) 20%, transparent) 0%,
-          transparent 62%
-        ),
-        linear-gradient(180deg, var(--nf-landing-ink) 0%, var(--nf-landing-ink) 100%);
-    }
   }
   @media (min-width: 640px) {
     .nf-landing-hero {
-      margin-top: calc(-1 * var(--nf-header-height));
-      padding-top: var(--nf-header-height);
+      margin-top: calc(-1 * var(--nf-header-height) - 0.625rem);
+      padding-top: calc(var(--nf-header-height) + 0.625rem);
     }
   }
-  @media (min-width: 1024px) {
-    .nf-landing-hero {
-      min-height: var(--nf-landing-hero-h-desktop);
-      /* Room under the pill for the stats band to tuck up into the plate. */
-      padding-bottom: var(--nf-space-3xl);
-    }
-  }
-  /*
-   * THE PLATE IS A BAND ON THE PHONE AND THE BACKDROP FROM 64REM.
-   *
-   * One image element. Under 64rem it is a block in the flow: full width
-   * inside the gutters, rounded, 240px tall, the frame centred on the house
-   * so the whole villa reads with sky above it, never scaled past its own
-   * crop. From 64rem it leaves the flow and covers the hero, and the scrims
-   * in `::after` darken the left third for the copy and grow the canvas out
-   * of its foot.
-   */
-  .nf-landing-hero-plate {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 0;
-    width: 84%;
-    height: 27rem;
-    overflow: hidden;
-    border-bottom-left-radius: var(--nf-radius-2xl);
-  }
-  .nf-landing-hero-plate img {
-    object-fit: cover;
-    object-position: 58% 42%;
-  }
-  /* The blend: the ink at full strength down the left edge and along the
-     foot, thinning to nothing across the frame, so the photograph has no
-     cut edge anywhere except the rounded corner. */
-  .nf-landing-hero-plate::after {
-    content: "";
+  /* The grid: 1px lines every 72px (56 on a phone), faded out towards the
+     edges and the foot by a radial mask, with one soft brand bloom behind
+     the headline. Painted once; it settles on arrival (item 24). */
+  .nf-hero-grid {
+    --nf-hero-grid-line: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+    --nf-hero-grid-step: 3.5rem;
     position: absolute;
     inset: 0;
+    z-index: -1;
     pointer-events: none;
     background:
-      linear-gradient(
-        90deg,
-        var(--nf-landing-ink) 0%,
-        color-mix(in oklab, var(--nf-landing-ink) 72%, transparent) 26%,
-        color-mix(in oklab, var(--nf-landing-ink) 30%, transparent) 58%,
-        transparent 100%
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-landing-ink) 55%, transparent) 0%,
-        transparent 30%,
-        color-mix(in oklab, var(--nf-landing-ink) 60%, transparent) 76%,
-        var(--nf-landing-ink) 100%
-      );
+      radial-gradient(38rem 22rem at 50% 38%, color-mix(in oklab, var(--nf-brand-primary) 10%, transparent), transparent 70%),
+      linear-gradient(to right, var(--nf-hero-grid-line) 1px, transparent 1px) 50% 0 / var(--nf-hero-grid-step) var(--nf-hero-grid-step),
+      linear-gradient(to bottom, var(--nf-hero-grid-line) 1px, transparent 1px) 50% 0 / var(--nf-hero-grid-step) var(--nf-hero-grid-step);
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 30%, #000 45%, transparent 88%);
+    mask-image: radial-gradient(120% 90% at 50% 30%, #000 45%, transparent 88%);
   }
-  @media (min-width: 64rem) {
-    .nf-landing-hero-plate {
-      inset: 0;
-      z-index: -2;
-      width: auto;
-      height: auto;
-      border-radius: 0;
-    }
-    .nf-landing-hero-plate img {
-      object-position: 50% 50%;
-    }
+  :root:not([data-theme="light"]) .nf-hero-grid {
+    --nf-hero-grid-line: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
   }
-  /*
-   * The desktop scrims. The first darkens the left third so white copy is
-   * legible on every crop; the second is the floor, so the page's own canvas
-   * grows out of the bottom of the photograph rather than meeting it at a
-   * hard line. Under 64rem the band carries its own small foot scrim above.
-   */
-  /* (The phone band scrim is on `.nf-landing-hero-plate::after` above.) */
-  @media (min-width: 1024px) {
-    .nf-landing-hero-plate::after {
-      background:
-        linear-gradient(
-          180deg,
-          color-mix(in oklab, var(--nf-landing-ink) 45%, transparent) 0%,
-          transparent 22%
-        ),
-        linear-gradient(
-          90deg,
-          color-mix(in oklab, var(--nf-landing-ink) 70%, transparent) 0%,
-          color-mix(in oklab, var(--nf-landing-ink) 20%, transparent) 38%,
-          transparent 56%
-        ),
-        linear-gradient(
-          180deg,
-          transparent 70%,
-          color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent) 90%,
-          var(--nf-surface-canvas) 100%
-        );
+  @media (min-width: 40rem) {
+    .nf-hero-grid {
+      --nf-hero-grid-step: 4.5rem;
     }
   }
 
   .nf-landing-hero-body {
-    /* Static at every width so the plate's `top: 0; right: 0` measures the
-       whole hero, nav included, rather than the shell's box inside it. */
-    position: static;
-    flex: 1 1 auto;
-    display: grid;
-    align-content: center;
-    gap: var(--nf-gap-block);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--nf-space-md);
     padding-block: var(--nf-space-xl) var(--nf-space-2xl);
   }
-  /* The copy sits ON the photograph now, so it leads the stacking order. */
-  .nf-landing-hero-copy {
-    position: relative;
-    z-index: 1;
-  }
-  /*
-   * THE SCRIM UNDER THE HERO COPY (R1 finding A6, and R1's E12).
-   *
-   * The gradient itself is NOT defined here any more. It is `.nf-photo-scrim`
-   * in `utilities.css`, shared with the category tiles and with every other
-   * surface that sets a label on photography, because R1 filed the same
-   * finding twice against two local copies of it. What stays here is the one
-   * thing that is local: how far the scrim reaches past the copy box, and
-   * that it sits behind the words inside the copy's own stacking context.
-   */
-  .nf-landing-hero-copy > .nf-photo-scrim {
-    inset: calc(-1 * var(--nf-space-3xl)) calc(-1 * var(--nf-space-2xl));
-    z-index: -1;
-  }
-  /* The scrim's box had a visible edge on the photograph: its gradient was
-     still a quarter strong where the box ended, so a darker rectangle stood
-     behind the copy with a hard top and right side. Feathered to nothing at
-     every edge; the plate's own left-third scrim carries the rest. */
   @media (min-width: 64rem) {
-    .nf-landing-hero-copy > .nf-photo-scrim {
-      -webkit-mask-image: radial-gradient(closest-side, black 45%, transparent 100%);
-      mask-image: radial-gradient(closest-side, black 45%, transparent 100%);
-    }
-  }
-  /*
-   * THE HERO'S ONE SCROLL MOTION: a slow parallax on the photograph. As the
-   * first 100vh scrolls away the villa sinks 5 per cent behind the copy,
-   * scaled 8 per cent so no edge ever shows. A scroll timeline, so no script
-   * and nothing runs while the page is still; from 64rem only (on a phone
-   * the plate is a band), and never under reduced motion, Calm or Off
-   * (landing-rooms.css) or data saver.
-   */
-  @supports (animation-timeline: scroll()) {
-    @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
-      .nf-landing-hero-plate img {
-        animation: nf-hero-drift linear both;
-        animation-timeline: scroll(root block);
-        animation-range: 0 100vh;
-      }
-    }
-  }
-  @keyframes nf-hero-drift {
-    from {
-      transform: scale(1.08) translate3d(0, 0, 0);
-    }
-    to {
-      transform: scale(1.08) translate3d(0, 5%, 0);
-    }
-  }
-  :root[data-save-data="on"] .nf-landing-hero-plate img {
-    animation: none;
-  }
-  @media (max-width: 63.999rem) {
-
-    /* Smaller controls to match the smaller headline. The tap targets keep
-       their 44px height; only the type and the side padding come in. */
-    .nf-landing-hero .nf-btn {
-      font-size: var(--nf-text-body-sm);
-      padding-inline: var(--nf-space-md);
-    }
-    .nf-landing-sub {
-      font-size: var(--nf-text-body);
-      max-width: 30ch;
-    }
-  }
-  @media (min-width: 1024px) {
     .nf-landing-hero-body {
-      /* Static, so the plate's `inset: 0` measures the whole hero (nav
-         height included) and not the shell's box inside it. */
-      position: static;
-      grid-template-columns: minmax(0, 48rem) 1fr;
-      align-items: center;
-      /* THE HEADER'S SCROLLED STATE USED TO LAND ON THE OVERLINE (R1 finding
-         A10). The hero already offsets the header's resting height; what it
-         did not clear was the frosted plate the header grows into once the
-         page moves, which printed across the top of the breadcrumb on
-         desktop. One rung more at the top, and nothing below it moves. */
-      padding-block: var(--nf-space-3xl) var(--nf-space-2xl);
+      gap: var(--nf-space-lg);
+      padding-block: var(--nf-space-3xl) var(--nf-space-3xl);
+    }
+  }
+
+  /* The eyebrow capsule: a glyph and one true line on a hairline capsule
+     (a container, not a control), with the edge lap round its rim. */
+  .nf-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    max-width: 100%;
+    min-height: 2.25rem;
+    padding: 0.375rem var(--nf-space-md);
+    border-radius: 1.25rem;
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    background: color-mix(in oklab, var(--nf-surface-primary) 82%, transparent);
+    box-shadow: var(--nf-card-shadow, none);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--nf-brand-primary);
+    text-wrap: balance;
+  }
+  :root:not([data-theme="light"]) .nf-hero-eyebrow {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-hero-eyebrow > svg {
+    flex: none;
+  }
+  @media (max-width: 39.999rem) {
+    .nf-hero-eyebrow {
+      font-size: var(--nf-text-caption);
+      padding-inline: var(--nf-space-sm);
     }
   }
 
   .nf-landing-title {
+    /* Wide enough that "Without the runaround." holds one line from 1280
+       (UIUX item 7); balance keeps a phone's lines even. */
+    max-width: min(100%, 60rem);
     font-family: var(--nf-font-display);
     font-size: var(--nf-landing-title);
-    line-height: 0.98;
+    line-height: 1.02;
     font-weight: 700;
-    letter-spacing: var(--nf-tracking-display);
-    color: var(--nf-landing-fg);
+    letter-spacing: -0.03em;
+    color: var(--nf-content-primary);
   }
   .nf-landing-title > span {
     display: block;
     text-wrap: balance;
   }
-  .nf-landing-title .nf-gradient-text {
-    /* The word "reimagined." carries the brand ramp and a soft bloom under it,
-       which is what makes it read as lit rather than printed. */
-    filter: drop-shadow(0 0 10px var(--nf-glow-1));
+  /* The last phrase in the brand blue (reference 39). */
+  .nf-landing-title .nf-depth-line--accent {
+    color: var(--nf-brand-primary);
   }
-  /*
-   * The sub-line came down with the headline. At body-lg over 36ch it ran to
-   * three lines at 390 and was the single tallest block in the hero after the
-   * headline itself. Body size and a tighter measure put it in two, which is
-   * what the render draws; from 64rem it takes the larger size back, where
-   * there is room for it.
-   */
+  :root:not([data-theme="light"]) .nf-landing-title .nf-depth-line--accent {
+    color: var(--nf-brand-secondary);
+  }
   .nf-landing-sub {
-    max-width: 32ch;
-    font-size: var(--nf-text-body);
-    line-height: 1.5;
-    color: var(--nf-landing-fg-2);
+    max-width: 34ch;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: balance;
   }
   @media (min-width: 64rem) {
     .nf-landing-sub {
-      max-width: 64ch;
-      font-size: var(--nf-text-body-lg);
-      line-height: 1.55;
+      max-width: 44ch;
+      font-size: 1.125rem;
     }
+  }
+  .nf-hero-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-hero-join {
+    max-width: 40ch;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+    text-wrap: balance;
+  }
+  /* Three facts under the search: a lean check and 14px words, no figures. */
+  .nf-hero-facts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-hero-facts > li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-hero-facts svg {
+    color: var(--nf-state-success);
   }
 
   /* ------------------------------------------------ the listing mini card
@@ -763,223 +620,259 @@
     color: var(--nf-landing-on-ink);
   }
 
-  /* ---------------------------------------------------- the search pill */
+  /* ---------------------------------------------------------- the search */
 
+  /*
+   * ONE SURFACE (UIUX item 8; spec sections 3 and 7). The card is the
+   * elevated surface with the one hairline and the float shadow, 18px
+   * corner. Nothing inside it has a border: the field is bare, the segments
+   * are a raised well with a sliding white thumb, filters is a 44px icon
+   * button and go is the primary. Four direct children placed by grid areas,
+   * so the phone and the wide screen are one markup:
+   *
+   *   phone    "seg seg" / "field field" (go inside its right end) / "filt"
+   *   40rem+   "field seg filt go", one 64px row
+   */
   .nf-landing-pill-wrap {
     position: relative;
     z-index: 2;
     width: 100%;
     max-width: var(--nf-landing-pill-max);
     margin-inline: auto;
+    margin-top: var(--nf-space-xs);
   }
-  /* From 64rem the grid places the two in-flow children itself: the copy on
-     the first row, the search on the second. */
-  @media (min-width: 1024px) {
-    .nf-landing-hero-body > .nf-landing-hero-copy {
-      grid-row: 1;
-      grid-column: 1;
-    }
-
-    /* On the copy's own left edge, one grid line with the headline, rather
-       than centred under a photograph that no longer has a card beside it. */
-    .nf-landing-hero-body > .nf-landing-pill-wrap {
-      grid-row: 2;
-      grid-column: 1 / -1;
-      margin-inline: 0;
-    }
-  }
-
   .nf-landing-pill {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-gap-inline);
-    padding: var(--nf-gap-inline);
-    background: var(--nf-landing-pane);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    border-radius: var(--nf-container-radius);
-    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
-    backdrop-filter: blur(var(--nf-panel-blur));
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-4);
-  }
-  @media (min-width: 640px) {
-    .nf-landing-pill {
-      flex-direction: row;
-      align-items: center;
-      border-radius: var(--nf-radius-control);
-    }
+    --nf-pill-pad: 0.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "seg seg"
+      "field field"
+      "filt filt";
+    gap: var(--nf-space-xs);
+    padding: var(--nf-pill-pad);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-float-shadow, var(--nf-elev-3));
+    text-align: start;
   }
   .nf-landing-pill-field {
+    grid-area: field;
     display: flex;
-    flex: 1 1 auto;
     align-items: center;
     gap: var(--nf-gap-inline);
     min-width: 0;
-    min-height: 3rem;
-    padding-inline: var(--nf-space-sm);
-    color: var(--nf-landing-fg-3);
+    min-height: 3.25rem;
+    padding-inline: var(--nf-space-sm) 3.5rem;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-muted);
   }
-  /* The input fills the 48px field it sits in, so the whole drawn field is
-     the target and not only its 22px line of text (the second audit, S-E). */
+  /* The input fills the field, so the whole drawn field is the target. */
   .nf-landing-pill-field input {
     flex: 1 1 auto;
     align-self: stretch;
     min-width: 0;
     background: transparent;
     border: 0;
-    /* 16px, the size below which iOS Safari zooms the page on focus (F-09).
-       The desktop, with a fine pointer and room, keeps the smaller size. */
+    /* 16px: below it iOS Safari zooms the page on focus (F-09). */
     font-size: var(--nf-text-body);
-    color: var(--nf-landing-fg);
-  }
-  @media (pointer: fine) and (min-width: 48rem) {
-    .nf-landing-pill-field input {
-      font-size: var(--nf-text-body-sm);
-    }
+    color: var(--nf-content-primary);
   }
   .nf-landing-pill-field input::placeholder {
-    color: var(--nf-landing-fg-3);
+    color: var(--nf-content-muted);
   }
   .nf-landing-pill-field input:focus-visible {
     outline: none;
   }
   .nf-landing-pill-field:focus-within {
-    color: var(--nf-landing-fg);
+    color: var(--nf-content-primary);
+    box-shadow: inset 0 0 0 2px var(--nf-focus-ring);
   }
-  /*
-   * THE COLUMN COUNT COMES FROM THE COMPONENT, BECAUSE IT WAS HARDCODED AT
-   * FOUR AND THE COMPONENT HAS SHIPPED THREE SINCE 19 SEPTEMBER.
-   *
-   * The Invest segment was removed on the content truth sweep: it pointed at
-   * `/search?type=land`, which is a land listing and not an investment, so the
-   * pill was naming a capability the platform does not have. The comment at
-   * the top of `SearchPill.tsx` says the three segments "simply take the width
-   * the four had". THEY DO NOT. `repeat(4, ...)` with three in-flow children
-   * leaves the fourth track empty, so a QUARTER OF THE CONTROL IS DEAD SPACE
-   * on every phone, which is what the founder has been looking at. The
-   * `sr-only` label inside this grid is absolutely positioned and is not an
-   * in-flow item, so it never filled it.
-   *
-   * Driven from `ORDER.length` through `--nf-seg-count` now, which is exactly
-   * how `.nf-glass-seg` in `social.css` already does it. The next person to
-   * add or remove a segment changes ONE array and the control follows, which
-   * is the whole reason not to write the number twice.
-   *
-   * The wider breakpoint below switches to flex and never had this problem.
-   */
+
+  /* The quiet segmented track (spec section 7). The count and the chosen
+     index come from the component (`--nf-seg-count`, `--nf-seg-index`), so
+     the array in segments.ts is the only place the number lives. */
   .nf-landing-pill-segments {
+    grid-area: seg;
+    position: relative;
     display: grid;
     grid-template-columns: repeat(var(--nf-seg-count, 3), minmax(0, 1fr));
-    gap: var(--nf-gap-inline-tight);
-    padding: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-btn-glass-fill);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    box-shadow: var(--nf-rim-lit);
+    padding: 0.25rem;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-raised);
   }
-  @media (min-width: 640px) {
-    .nf-landing-pill-segments {
-      flex: none;
-      display: flex;
-    }
+  .nf-landing-pill-segments::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.25rem;
+    inset-inline-start: 0.25rem;
+    width: calc((100% - 0.5rem) / var(--nf-seg-count, 3));
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-card-shadow, var(--nf-elev-1));
+    transform: translateX(calc(var(--nf-seg-index, 0) * 100%));
+    transition: transform 240ms var(--nf-ease-standard);
+  }
+  :root:not([data-theme="light"]) .nf-landing-pill-segments::before {
+    background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
   }
   .nf-landing-pill-seg {
+    position: relative;
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--nf-gap-inline-tight);
-    /* 44, the tap floor (R-B); it drew 40 (the second audit, S-E). On the
-       control radius that is 14 on 44, 0.32, under the review line. */
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-control-sm, 10px);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--nf-content-muted);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-landing-pill-seg__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nf-landing-pill-seg[aria-checked="true"] {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-landing-pill-seg[aria-checked="true"] svg {
+    color: var(--nf-brand-primary);
+  }
+  :root:not([data-theme="light"]) .nf-landing-pill-seg[aria-checked="true"] svg {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-landing-pill-seg:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 0;
+  }
+
+  /* Filters: a quiet line under the field on a phone. */
+  .nf-landing-pill-filters {
+    grid-area: filt;
+    justify-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
     min-height: 2.75rem;
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
-    white-space: nowrap;
-    color: var(--nf-landing-fg-2);
-    transition:
-      background var(--nf-duration-fast) var(--nf-ease-standard),
-      color var(--nf-duration-fast) var(--nf-ease-standard);
+    color: var(--nf-content-link, var(--nf-brand-primary));
   }
-  .nf-landing-pill-seg[aria-checked="true"] {
-    color: var(--nf-content-on-brand);
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
+  .nf-landing-pill-filters > svg {
+    width: 1rem;
+    height: 1rem;
   }
-  .nf-landing-pill-seg:focus-visible {
+  @media (hover: hover) {
+    .nf-landing-pill-filters:hover {
+      background: var(--nf-interactive-hover);
+    }
+  }
+  .nf-landing-pill-filters:focus-visible,
+  .nf-landing-pill-go:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
-  .nf-landing-pill-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-inline-tight);
-  }
-  .nf-landing-pill-actions > a,
-  .nf-landing-pill-actions > button {
-    /* INLINE FLEX, NOT A GRID (R1 finding A8). `place-items: center` on a
-       grid gave the word and the arrow a row each, so the product's primary
-       control stacked its arrow above its label at 390 and read as broken.
-       A row that refuses to wrap is the whole fix. */
+
+  /* Go: the arrow inside the field's right end on a phone. */
+  .nf-landing-pill-go {
+    grid-area: field;
+    justify-self: end;
+    align-self: center;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--nf-gap-inline-tight);
-    white-space: nowrap;
     width: 2.75rem;
     height: 2.75rem;
-    /*
-     * RECTANGLES, AND THE PRODUCT HAD THIS EXACTLY INVERTED.
-     *
-     * These two 44px squares were drawn at 50%, so both were circles. Neither
-     * is the exemption: the law allows ONE round icon-only control, "the
-     * landing nav's search glyph and nothing else", and that glyph is
-     * `.nf-site-nav-glass--icon` in `SiteHeader.tsx`, which was drawing a
-     * rounded RECTANGLE. So the landing spent no circle where the reference
-     * has one and two where it has none, which R1 measured at 0.32 on the
-     * glyph against 0.50 on both of these. Both corrected, in opposite
-     * directions, in the same tranche.
-     *
-     * The phone block at the foot of this file already knew: it moves the
-     * submit to `--nf-radius-control` under 640px. That was the right shape
-     * hiding inside a media query.
-     */
-    border-radius: var(--nf-radius-control);
-    color: var(--nf-landing-fg);
-    background: transparent;
-    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-landing-pill-actions > button[type="submit"] {
+    margin-inline-end: 0.25rem;
+    border: 0;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
-    background: var(--nf-btn-lit-fill);
-    border: var(--nf-border-width) solid transparent;
-    border-color: var(--nf-btn-lit-edges);
-    box-shadow: var(--nf-btn-lit-shadow);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 18%, transparent),
+      var(--nf-card-shadow, none);
+    transition: transform var(--nf-duration-press, 120ms) var(--nf-ease-standard);
   }
-  @media (hover: hover) {
-    .nf-landing-pill-actions > a:hover {
-      background: var(--nf-landing-control);
+  .nf-landing-pill-go:active {
+    transform: scale(0.96);
+  }
+  .nf-landing-pill-go__word {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (min-width: 40rem) {
+    .nf-landing-pill {
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
+      grid-template-areas: "field seg filt go";
+      align-items: center;
+      gap: var(--nf-space-2xs);
+      min-height: 4rem;
     }
-  }
-  .nf-landing-pill-actions > a:focus-visible,
-  .nf-landing-pill-actions > button:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-  /* The phone keeps the submit reachable at full width under the segments. */
-  @media (max-width: 639px) {
-    .nf-landing-pill-actions {
-      justify-content: space-between;
-      padding-inline: var(--nf-space-2xs);
+    .nf-landing-pill-field {
+      min-height: 3rem;
+      padding-inline-end: var(--nf-space-sm);
+      background: transparent;
     }
-    .nf-landing-pill-actions > button[type="submit"] {
-      flex: 1 1 auto;
+    .nf-landing-pill-field:focus-within {
+      box-shadow: none;
+    }
+    .nf-landing-pill-segments {
+      width: 17rem;
+    }
+    .nf-landing-pill-filters {
+      width: 2.75rem;
+      padding: 0;
+      justify-content: center;
+      color: var(--nf-content-secondary);
+    }
+    .nf-landing-pill-filters > svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+    .nf-landing-pill-filters__word {
+      display: none;
+    }
+    .nf-landing-pill-go {
+      grid-area: go;
       width: auto;
-      min-inline-size: max-content;
-      padding-inline: var(--nf-space-md);
+      height: 3rem;
+      margin: 0;
+      padding: 0 var(--nf-space-md);
       border-radius: var(--nf-radius-control);
-      font-size: var(--nf-text-body-sm);
-      font-weight: 650;
+    }
+    .nf-landing-pill-go__word {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-landing-pill-segments::before,
+    .nf-landing-pill-go {
+      transition: none;
     }
   }
 

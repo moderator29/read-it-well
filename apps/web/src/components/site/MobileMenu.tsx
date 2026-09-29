@@ -41,6 +41,7 @@ export function MobileMenu({
   openLabel,
   closeLabel,
   menuLabel,
+  opener = "square",
 }: {
   links: { href: string; label: string }[];
   signIn: string;
@@ -49,6 +50,9 @@ export function MobileMenu({
   closeLabel: string;
   /** The dialog's accessible name, in the reader's language. */
   menuLabel: string;
+  /** "capsule": the landing capsule's round brand button with the menu
+      glyph (site.css, "THE LANDING CAPSULE"). */
+  opener?: "square" | "capsule";
 }) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
@@ -65,9 +69,9 @@ export function MobileMenu({
         aria-expanded={open}
         aria-label={openLabel}
         onClick={() => setOpen(true)}
-        className="nf-icon-btn h-11 w-11"
+        className={opener === "capsule" ? "nf-cap__menu" : "nf-icon-btn h-11 w-11"}
       >
-        <UiIcon name="panel-left" size={20} />
+        <UiIcon name={opener === "capsule" ? "menu" : "panel-left"} size={20} />
       </button>
 
       <Sheet

@@ -987,3 +987,98 @@
 }
 
 @layer components {}
+
+/*
+ * HOME ON THE CLEAN SPEC (UIUX item 15, 29 September 2026). The top block
+ * is the shared `HeroBand`; inside it the city is a quiet row (no box) and
+ * the four doors are 44px neutral plates with their words in one card. At
+ * night the card is a step up from the band; in light, on the navy band, it
+ * is the white paper card, so the doors read as the page's own family.
+ */
+@layer components {
+  .nf-home__loc--quiet {
+    width: auto;
+    max-width: 100%;
+    min-height: 2.75rem;
+    padding: 0;
+    gap: var(--nf-space-2xs);
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .nf-home__loc--quiet .nf-home__loc-name {
+    flex: 0 1 auto;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-home__loc--quiet .nf-home__loc-pin,
+  .nf-home__loc--quiet .nf-home__loc-chev {
+    width: 1rem;
+    height: 1rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-home__loc--quiet:active {
+    transform: none;
+    opacity: 0.7;
+  }
+  .nf-home__loc--quiet:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-xs);
+  }
+
+  .nf-home-doors {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-sm) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, var(--nf-surface-primary));
+  }
+  .nf-home-doors[data-columns="2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nf-home-door {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 4.75rem;
+    padding: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-md);
+    color: var(--nf-content-primary);
+    text-align: center;
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-home-door:hover {
+      background: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+    }
+  }
+  .nf-home-door:active .nf-plate {
+    transform: scale(0.94);
+  }
+  .nf-home-door .nf-plate {
+    transition: transform var(--nf-duration-press, 120ms) var(--nf-ease-standard);
+  }
+  .nf-home-door:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-home-door__label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-home-door .nf-plate,
+    .nf-home-door {
+      transition: none;
+    }
+  }
+}
