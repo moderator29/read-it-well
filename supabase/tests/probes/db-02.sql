@@ -124,13 +124,16 @@ begin
    where id = lid;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-02: admin approve rows=%', n; end if;
+  -- 29 September 2026: `featured` is no longer set by anybody, staff included
+  -- (v06, no paid placement; the check listings_featured_is_never_set), so
+  -- the admin's decision stamps the review and the checks, never featured.
   update public.listings set status = 'PUBLISHED', reviewer_id = admin, reviewed_at = now(), published_at = now(),
-         physically_inspected_at = now(), address_verified_at = now(), verified_by = admin, featured = true
+         physically_inspected_at = now(), address_verified_at = now(), verified_by = admin
    where id = lid;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-02: admin publish rows=%', n; end if;
   select status::text as status, featured, physically_inspected_at into r from public.listings where id = lid;
-  if r.status <> 'PUBLISHED' or not r.featured or r.physically_inspected_at is null then
+  if r.status <> 'PUBLISHED' or r.featured or r.physically_inspected_at is null then
     raise exception 'PROBE_FAIL db-02: admin decision did not land: %', row_to_json(r);
   end if;
 
