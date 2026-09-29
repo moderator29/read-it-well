@@ -60,7 +60,10 @@ export function RefundRow({
           {c.openStay}
         </Link>
       </span>
-      <span className="flex shrink-0 flex-wrap items-baseline gap-sm">
+      {/* Capped at the row's width: `shrink-0` alone sized this to its
+          max-content, whose right edge reached 476px on a 320 screen (measured
+          on the refunds desk), so its own `flex-wrap` never got a width to wrap in. */}
+      <span className="flex min-w-0 max-w-[100%] shrink-0 flex-wrap items-baseline gap-sm">
         <ui.StatusChip label={state.label} tone={state.tone} />
         <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
           {formatMoney(refund.refundMinor, locale)}

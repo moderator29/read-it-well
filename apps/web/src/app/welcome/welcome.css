@@ -486,22 +486,26 @@
 
   /* Render: four dots 39 image px apart (23 css) centred at 646 css; the
      active one 16 image px (9.5 css) in ice blue with a glow, the rest 12
-     (7 css) in deep electric. Each dot is a 44px-tall button; they sit 28px
-     apart rather than 23 so a thumb can land on one. */
+     (7 css) in deep electric. Each dot is a 44px-square button, so they sit 44px
+     apart rather than 23: a thumb lands on one, not between two. */
   .nf-gs-dots {
     display: flex;
     justify-content: center;
     margin-top: 6px;
   }
+  /* 44 wide as well as 44 tall (R-B): at 28 wide the dots were the one
+     control on /welcome under the 44px floor (measured). The dot drawn
+     inside is unchanged; only the gap between dots grows, 28 to 44. */
   .nf-gs-dot {
     display: grid;
     place-items: center;
-    width: 28px;
+    width: 44px;
     height: 44px;
     padding: 0;
     border: 0;
-    /* The tap target is 28 wide, so the control radius (14) would draw a
-       capsule; the small radius keeps its focus ring a rectangle. */
+    /* The control radius (14) on a 44px square is 0.32, under the 0.35
+       review line, but the small radius keeps its focus ring plainly a
+       rectangle. */
     border-radius: var(--nf-radius-xs);
     background: transparent;
     cursor: pointer;

@@ -73,8 +73,11 @@ export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
     };
     const rateLimited = answer.rate_limited === true;
     if (answer.status !== "ok") return fail("failed" satisfies DeviceAlertError);
-    /* A hold always has an end, except when the limit was hit with no hold in force. */
-    if (typeof answer.hold_until !== "string" && !(rateLimited && answer.hold_until === null)) {
+    /* A hold carries its end, except when the limit was hit with no hold in
+       force, or when the hold sits beside one the member is never told about
+       (SCUML items 6 and 8: the database sends no date and no reason then). */
+    const undated = answer.hold_until === null && (rateLimited || answer.hold_placed === true);
+    if (typeof answer.hold_until !== "string" && !undated) {
       return fail("failed" satisfies DeviceAlertError);
     }
     revalidatePath("/settings/devices");

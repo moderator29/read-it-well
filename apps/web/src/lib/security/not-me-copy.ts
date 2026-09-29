@@ -35,7 +35,8 @@ export function notMeConsequence(result: NotMeOutcome, copy: NotMeCopy): string 
     if (!result.holdUntil) return copy.rateLimitedNoHold;
     return plain ? copy.rateLimitedHeldPlain : copy.rateLimitedHeld;
   }
-  if (result.holdPlaced) return copy.heldConsequence;
+  /* Placed beside a hold the member is never told about: no date to give. */
+  if (result.holdPlaced) return result.holdUntil ? copy.heldConsequence : copy.heldUndatedConsequence;
   if (result.holdExtended) return copy.extendedConsequence;
   /* Pressing again does not change a hold, and the sentence says whose hold
      it is: the person's own earlier press, a support change, or neither. */

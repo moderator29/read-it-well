@@ -105,7 +105,7 @@ export function NotMePanel({
             if (!open) setOutcome(null);
           }}
           state="confirmed"
-          verdict={outcome.result.holdUntil ? copy.heldVerdict : copy.signedOutVerdict}
+          verdict={outcome.result.holdUntil || outcome.result.holdPlaced ? copy.heldVerdict : copy.signedOutVerdict}
           consequence={heldConsequence(outcome.result).replace("{until}", until).replace("{ended}", endedLine).trim()}
           actions={[
             { label: copy.changePassword, href: "/reset-password", tone: "primary" },

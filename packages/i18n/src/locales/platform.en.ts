@@ -73,6 +73,9 @@ export const platformEn = {
     heldVerdict: "Your money is on hold",
     heldConsequence:
       "No payment can be made and no payout detail can change until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
+    /* Placed beside a hold the member is not told about: no date (SCUML items 6 and 8). */
+    heldUndatedConsequence:
+      "No payment can be made and no payout detail can change for now. {ended} Change your password now: until you do, whoever has it can sign in again.",
     extendedConsequence:
       "The hold now lasts until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
     alreadyHeldConsequence:

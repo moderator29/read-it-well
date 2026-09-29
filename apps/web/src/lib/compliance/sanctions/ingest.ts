@@ -64,6 +64,7 @@ export async function ingestList(admin: Admin, source: ListSource, loadedBy: str
     .select("id, activated_at")
     .eq("source", source.source)
     .eq("sha256", sha256)
+    .eq("origin", source.origin)
     .maybeSingle();
   if (readError) return { state: "failed", reason: "read" };
   if (existing?.activated_at) return { state: "same" };

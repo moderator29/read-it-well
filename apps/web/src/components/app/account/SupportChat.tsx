@@ -442,11 +442,15 @@ export function SupportChat({
   return (
     <section className={embedded ? "block" : "nf-panel nf-panel--card block p-card"} aria-label="Help and support">
       {!embedded && (
-      <div className="flex items-center gap-group">
+      /* Wraps, so under ~400px the chip drops to its own line under the text
+         instead of squeezing the title and sentence into a 38px column
+         (measured on /help at 320). The text column's 12rem basis is the
+         width below which it yields the row to the chip. */
+      <div className="flex flex-wrap items-center gap-group">
         <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="support-shield" fill />
         </span>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-[12rem]">
           <h2 className="nf-body font-semibold leading-tight">Help and support</h2>
           {/* A title and its own subtitle are two rows of one object, so they
               take the row interval. This was mt-0.5, which is 2px: a heading

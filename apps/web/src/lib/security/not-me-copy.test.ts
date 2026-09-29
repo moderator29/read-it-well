@@ -48,3 +48,15 @@ describe("the refusal a member with a plain hold is given", () => {
     expect(refusal).not.toMatch(/20\d\d|until|review|check|compliance|staff|support|sanction/i);
   });
 });
+
+describe("this was not me, beside a hold the member is never told about (20260929015959)", () => {
+  it("says a hold is in place with no date, no cause and no placeholder left", () => {
+    const placed: NotMeOutcome = { holdUntil: null, holdPlaced: true, holdExtended: false, holdReason: null, rateLimited: false };
+    const sentence = notMeConsequence(placed, copy);
+    expect(sentence).toBe(copy.heldUndatedConsequence);
+    /* "until you do" is about the password, not the hold. */
+    const words = said(sentence).replace("until you do", "");
+    expect(words).not.toMatch(/\d{4}|until|review|check|compliance|staff|support|sanction/i);
+    expect(sentence).not.toContain("{until}");
+  });
+});
