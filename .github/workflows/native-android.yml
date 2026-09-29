@@ -22,6 +22,10 @@
 # ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and
 # ANDROID_KEY_PASSWORD from encrypted Actions secrets; see
 # docs/NATIVE_CI.md. Nothing secret is, or will be, in this repository.
+#
+# FIRST COMPILE: run 36500914409 (29 September 2026) built the first APK.
+# The APK's size and SHA-256 are printed in the "Describe the APK" step of
+# every run.
 name: Native Android
 
 on:
@@ -97,6 +101,19 @@ jobs:
       - name: Assemble debug APK
         working-directory: apps/web/android
         run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      # A failed build keeps Gradle's own reports, so the reason is on the run
+      # page rather than only in a truncated log.
+      - name: Keep the Gradle reports when the build fails
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: android-gradle-reports-${{ github.sha }}
+          path: |
+            apps/web/android/build/reports
+            apps/web/android/app/build/reports
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Describe the APK
         if: ${{ success() }}
