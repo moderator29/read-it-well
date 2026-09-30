@@ -14,7 +14,7 @@ export const onboardingMotionEn = {
     label: "A home and a hotel on the hills, with Property and Stays side by side",
   },
   know: {
-    badge: "Verified agent",
+    badge: "Verified",
     record: "The Vallo Record",
     recordHint: "Counted from what happened on Vallo",
     line: "Inspections kept",
