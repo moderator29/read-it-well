@@ -55,6 +55,7 @@ export function Segmented<T extends string>({
   shape = "control",
   variant,
   full,
+  iconOnly = false,
   label,
   itemIdPrefix,
   panelIdPrefix,
@@ -79,6 +80,12 @@ export function Segmented<T extends string>({
   /** `quiet` (default) or `solid`; see the note at the top of this file. */
   variant?: "quiet" | "solid";
   full?: boolean;
+  /**
+   * Reference 55's icon-only segmented control: each segment shows its
+   * `icon` alone and its `label` becomes the segment's accessible name
+   * (visually hidden). Every option must carry an icon.
+   */
+  iconOnly?: boolean;
   /** Accessible name for the group. Required: an unlabelled group is a puzzle. */
   label: string;
   /**
@@ -235,16 +242,15 @@ export function Segmented<T extends string>({
               full ? "flex-1" : "",
               /* On the capsule the selected ink is on-brand and comes from the
                  stylesheet, since the segment sits on the filled capsule. */
-              selected
-                ? pill
-                  ? ""
-                  : "text-[var(--nf-content-primary)]"
-                : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
+              /* Reference 55: the selected segment is brand blue in both
+                 variants, so its white word comes from the stylesheet. */
+              selected ? "" : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
+              iconOnly ? "aspect-square !px-0 justify-center" : "",
             ]
               .filter(Boolean)
               .join(" ")}
           >
-            {o.icon ? <UiIcon name={o.icon} size={16} filled={selected} /> : null}
+            {o.icon ? <UiIcon name={o.icon} size={iconOnly ? 20 : 16} filled={selected} /> : null}
             {/* `truncate` is nowrap PLUS the clip. The nowrap was already
                 here and was doing half the job: it stopped the word wrapping
                 and had nothing to stop it escaping. */}
@@ -255,7 +261,9 @@ export function Segmented<T extends string>({
                 (clamped at two); a hugging track still truncates. */}
             <span
               className={
-                full
+                iconOnly
+                  ? "sr-only"
+                  : full
                   ? "min-w-0 text-center leading-tight [text-wrap:balance] line-clamp-2"
                   : "min-w-0 truncate"
               }
