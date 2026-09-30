@@ -111,6 +111,11 @@ The Apple Developer account is still needed, for the store and for signing.
 | `WHATSAPP_VERIFY_TOKEN` | **server** | Any string; Meta sends it back once when the webhook is registered. Unset, registration cannot complete. |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | public | The one number printed on `/safety`, in E.164 (`+234...`). Unset, `/safety` prints no number. |
 | `SUPABASE_AUTH_HOOK_SECRET` | **server** | The Send Email Hook secret from Supabase (Authentication, Hooks, Send Email; paste the whole `v1,whsec_...` value). Unset, `/api/auth/email-hook` refuses every request, so no confirmation or reset email is sent: that endpoint mails any address in its body, so an unverified version would be an open relay. |
+| `PHONE_SIGNIN_ENABLED` | **server** | **Off unless exactly `true`.** A2, phone sign-in: opens `/sign-in/phone`, the phone code actions (`lib/auth/phone-sign-in.ts`) and the Send SMS hook (`/api/auth/sms-hook`). Supabase generates and checks the code; the hook only delivers it. Set it only after everything in `docs/PHONE_SIGNIN.md` is done. Email is unaffected either way. |
+| `SEND_SMS_HOOK_SECRET` | **server** | The Send SMS hook secret from Supabase (Authentication, Hooks, Send SMS; the whole `v1,whsec_...` value, `|`-separated during a rotation). Unset, `/api/auth/sms-hook` refuses every request. |
+| `TERMII_API_KEY`, `TERMII_SENDER_ID` | **server** | Termii, the code transport for Nigerian numbers (`lib/phone-otp/termii.ts`, behind the `OtpTransport` interface). Both are needed; without either `otpTransport()` is the unconfigured transport and no code is sent. Tries the DND route (reaches MTN and Airtel Do-Not-Disturb numbers) and then the generic route. |
+| `TERMII_WHATSAPP_ENABLED` | **server** | `true` puts WhatsApp first, falling back to the DND SMS route. Needs a WhatsApp sender and an approved authentication template on the Termii account. |
+| `NEXT_PUBLIC_PASSKEY_SIGNIN_ENABLED` | public | `true` shows "Sign in with a passkey" on `/sign-in` (web only). Passkeys are experimental in supabase-js 2.110 and must also be enabled in the project (Authentication, Passkeys, relying party `vallospaces.com`). Off by default. |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | public / **server** | Web Push is off. Generate the pair once with `npx web-push generate-vapid-keys`; a new pair silently kills every enrolled device. See `docs/push/FIRST_NOTIFICATION.md`. |
 | `VAPID_SUBJECT` | server | Unset, `mailto:` plus `NEXT_PUBLIC_SUPPORT_EMAIL` when that is set, otherwise `mailto:hello@vallospaces.com` (`lib/push/credentials.ts`). Some push services refuse a request without one (RFC 8292). |
 | `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT_JSON` | **server** | Android push is off. Firebase project settings, Service accounts; the JSON goes in whole, on one line. Set on Production only today, so Preview reports Android push unconfigured. Also needs `android/app/google-services.json` with its real API key. |
@@ -158,7 +163,6 @@ wondering why.
 |---|---|
 | `NODE_ENV`, `NEXT_RUNTIME`, `VERCEL`, `VERCEL_ENV`, `VERCEL_URL`, `VERCEL_GIT_COMMIT_SHA`, `VERCEL_PROJECT_PRODUCTION_URL` | Read by the code, set by Next.js or Vercel. Never set them by hand. |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Not needed, in live or test mode. The server initialises the transaction and the page resumes it by access code in Paystack's inline iframe, which takes no public key, so the browser never holds a Paystack key. There is no `NEXT_PUBLIC_PAYSTACK_TEST_PUBLIC_KEY` for the same reason. |
-| `TERMII_API_KEY` | Phone/SMS OTP has not shipped. |
 | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | No analytics client is installed. |
 
 ---
