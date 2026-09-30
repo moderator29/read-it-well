@@ -6,12 +6,15 @@
  */
 export const LAYOUT = {
   mobile: {
-    /* v3.1: the phone sits under the pill, so the pill covers only the
-       status bar and never the screen's own headings. The display runs from
-       about y 336 to 1385; keep what must be read above the captions (1230). */
-    PHONE_HERO: { cx: 540, cy: 860, height: 1080 },
-    /* The same phone lifted clear of the captions (display bottom ≈ 1255). */
-    PHONE_HIGH: { cx: 540, cy: 790, height: 960 },
+    /* v3.2: one phone size for the whole film, at the reference's scale
+       (the device fills the frame's height; the critics measured h 1080 at
+       56%, against 86-100% in the reference). HERO: top 380, just under the
+       pill; the screen's top 60% reads above the captions (1230). HIGH: the
+       same phone raised so the pill sits exactly on its status bar, for a
+       screen whose key content is lower. The phone may run off the bottom
+       of the frame; it never changes size inside a chapter. */
+    PHONE_HERO: { cx: 540, cy: 1080, height: 1400 },
+    PHONE_HIGH: { cx: 540, cy: 950, height: 1400 },
     PILL: { cx: 540, top: 290, bottom: 360 },
     CAPTIONS: { y: 1290, top: 1230, bottom: 1360, left: 44, right: 940 },
     SAFE: { top: 285, bottom: 1635, left: 44, right: 940 },

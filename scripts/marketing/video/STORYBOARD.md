@@ -1,4 +1,4 @@
-# The Vallo launch films: brief and storyboard (v3.1)
+# The Vallo launch films: brief and storyboard (v3.2)
 
 v3 answers the second critique (`scratchpad/critic/storyboard-round2.md`) and brings in what the founder's reference film does well (`REFERENCES.md`), in Vallo's own form:
 - chapter pills;
@@ -9,6 +9,13 @@ v3 answers the second critique (`scratchpad/critic/storyboard-round2.md`) and br
 - one night contrast beat.
 
 It follows the founder's ruling on 3D icons: in the films they appear only as parts of real platform components, and small.
+
+## v3.2 (the section critiques; these override v3.1 and the rows)
+
+- **One phone size for the whole mobile film:** PHONE_HERO (cx 540, cy 1080, h 1400) or PHONE_HIGH (cy 950, the pill sitting on its status bar). The phone never changes size inside a chapter, and never leaves the frame inside a chapter. It may run off the bottom edge. Pushes onto a control go beyond it (about 1.5× the screen) and return.
+- **One Vallo ground.** The daylight act is mist throughout. Rows 19–24 get at most a 14% warm light at the top of the frame, never a warm field. Row 23 is on mist: only "tonight?" is filled with the photograph, with an electric-blue ring.
+- **Give the words time.** Every readable card, label or big word stays still and complete for at least 1.2 s, or 0.25 s per word if that is longer. Card questions stay at least 1.25 s and answers at least 1.75 s. Never let two readable things change in the same 0.3 s.
+- **Clean frames:** two to four elements. Never show the same UI both lifted and on the phone.
 
 ## v3.1 amendments (the third critique and the founder's "make it all clean"; these override the rows below)
 

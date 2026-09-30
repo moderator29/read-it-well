@@ -74,7 +74,7 @@ export function timesPlus(ctx) {
      device rises only behind it, and Rent is pressed once it is at rest. */
   T.qIn = T.looking - 0.02;
   T.qRest = T.qIn + 0.3;
-  T.qShrink = T.qRest + 0.6;
+  T.qShrink = T.qRest + 0.62;
   T.riseB = T.qShrink + 0.02;
   T.rentPress = T.pill1 + 0.12;
   T.toSearch = T.rentPress + 0.12;
@@ -515,7 +515,7 @@ export function registerSound(ctx, T) {
   /* 12 */ for (const t of T.lines) s("counter_tick", t, 0);
   /* 13: each amount ticks as it lands in the total */
   for (const t of T.flies) s("counter_tick", t + 0.46, -4);
-  s("success", T.right, 0); s("pop", T.cardTurn + 0.12, -4);
+  s("success", T.right, 0); s("pop", T.cardTurn + 0.3, -4);
 
   /* Captions: off while the same words are big (02, 04, 06, 07). Each gap starts before its line's
      0.12 s fade-in, and each gap edge sits on a line's own edge, so no caption flashes or snaps. */
