@@ -25,6 +25,12 @@ export type QuantityProps = {
   max?: number;
   step?: number;
   disabled?: boolean;
+  /**
+   * False when the row already prints the number beside the control (the
+   * hotel's room count): the two buttons then sit side by side and the
+   * value is not announced twice.
+   */
+  showValue?: boolean;
   className?: string;
   "data-testid"?: string;
 };
@@ -46,6 +52,7 @@ export function Quantity({
   max = 99,
   step = 1,
   disabled = false,
+  showValue = true,
   className,
   "data-testid": testId,
 }: QuantityProps) {
@@ -74,9 +81,11 @@ export function Quantity({
       >
         <UiIcon name="minus" size={20} />
       </button>
-      <output className="nf-qty__value" aria-live="polite">
-        {value}
-      </output>
+      {showValue ? (
+        <output className="nf-qty__value" aria-live="polite">
+          {value}
+        </output>
+      ) : null}
       <button
         type="button"
         className="nf-qty__btn"

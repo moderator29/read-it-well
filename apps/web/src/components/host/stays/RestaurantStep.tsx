@@ -1,6 +1,7 @@
 "use client";
 
 import { useHostCopy } from "@/components/host/host-copy";
+import { Chip } from "@/components/ui/Chip";
 import { useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -93,19 +94,18 @@ export function RestaurantStep({
           {CUISINES.map((cuisine) => {
             const chosen = cuisines.includes(cuisine);
             return (
-              <button
+              <Chip
                 key={cuisine}
-                type="button"
-                aria-pressed={chosen}
-                className="nf-stays-chip"
-                onClick={() =>
+                behaviour="filter"
+                selected={chosen}
+                onSelectedChange={() =>
                   setCuisines((current) =>
                     chosen ? current.filter((one) => one !== cuisine) : [...current, cuisine],
                   )
                 }
               >
                 {cuisine}
-              </button>
+              </Chip>
             );
           })}
         </div>

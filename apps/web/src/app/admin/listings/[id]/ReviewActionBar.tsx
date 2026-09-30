@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { reviewListing } from "@/lib/admin/actions";
 import { Chip } from "@/components/ui/Chip";
 import { REVIEW_REASONS, composeReviewNote } from "@/lib/admin/review-reasons";
@@ -141,37 +141,39 @@ export function ReviewActionBar({
         onChange={(event) => setNotes(event.target.value)}
       />
       <div className="nf-rv-actionbar__buttons">
-        <button
-          type="button"
-          className="nf-rv-btn nf-rv-btn--approve"
+        <Button
+          variant="primary"
+          size="sm"
+          leadingIcon="verified"
           data-desk-approve
           disabled={pending}
           onClick={() => run(approving)}
         >
-          <UiIcon name="verified" size={16} />
           {approving === "publish" ? "Publish" : "Approve"}
-        </button>
-        <button
-          type="button"
-          className="nf-rv-btn nf-rv-btn--ask"
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          leadingIcon="info"
           disabled={pending || composed.length === 0}
           title={composed.length === 0 ? "Pick a reason or write what you need from the lister first" : undefined}
           onClick={() => run("request_changes")}
         >
-          <UiIcon name="info" size={16} />
           Ask for more
-        </button>
-        <button
-          type="button"
-          className="nf-rv-btn nf-rv-btn--reject"
+        </Button>
+        {/* Destructive, so the red tint at rest and the solid red once armed
+            for the confirming second press (section 19). */}
+        <Button
+          variant={armed ? "danger" : "dangerQuiet"}
+          size="sm"
+          leadingIcon="close"
           data-desk-decline
           disabled={pending}
           aria-describedby={armed ? "rv-reject-confirm" : undefined}
           onClick={onReject}
         >
-          <UiIcon name="close" size={16} />
           {armed ? "Press again to reject" : "Reject"}
-        </button>
+        </Button>
       </div>
       <div aria-live="polite">
         {armed ? (
