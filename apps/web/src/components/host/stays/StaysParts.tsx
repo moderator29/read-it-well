@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Quantity } from "@/components/ui/Quantity";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
@@ -226,31 +227,17 @@ export function StaysStepper({
   disabled?: boolean;
 }) {
   return (
-    <div className="nf-stays-stepper" role="group" aria-label={label}>
-      <button
-        type="button"
-        className="nf-stays-stepper__btn"
-        aria-label={`One fewer ${label}`}
-        disabled={disabled || value <= min}
-        onClick={() => onChange(Math.max(min, value - 1))}
-      >
-        <UiIcon name="minus" size={20} />
-      </button>
-      {showValue && (
-        <span className="nf-stays-stepper__value" aria-live="polite">
-          {value}
-        </span>
-      )}
-      <button
-        type="button"
-        className="nf-stays-stepper__btn"
-        aria-label={`One more ${label}`}
-        disabled={disabled || value >= max}
-        onClick={() => onChange(Math.min(max, value + 1))}
-      >
-        <UiIcon name="plus" size={20} />
-      </button>
-    </div>
+    <Quantity
+      value={value}
+      min={min}
+      max={max}
+      label={label}
+      decreaseLabel={`One fewer ${label}`}
+      increaseLabel={`One more ${label}`}
+      showValue={showValue}
+      disabled={disabled}
+      onChange={onChange}
+    />
   );
 }
 

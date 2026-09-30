@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { Button } from "@/components/ui/Button";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Segmented } from "@/components/ui/Segmented";
 import {
@@ -81,14 +82,15 @@ export function ServiceQuestions({
                     {serviced ? `${copy.serviced}: ${copy.servicedMeaning}` : value.covers.length === 0 ? copy.coversNone : ""}
                   </p>
                   {/* Back to unanswered, which is not the same as "covers none". */}
-                  <button
-                    type="button"
+                  <Button
+                    variant="quiet"
+                    size="sm"
                     data-testid="service-covers-unanswered"
                     onClick={() => onChange({ ...value, covers: [], coversAnswered: false })}
-                    className="nf-link-quiet mt-inline min-h-11 text-[length:var(--nf-text-caption)] text-[var(--nf-content-link)]"
+                    className="mt-inline"
                   >
                     {copy.unanswered}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>

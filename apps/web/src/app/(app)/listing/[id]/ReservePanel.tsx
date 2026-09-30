@@ -652,19 +652,18 @@ export function ReservePanel({
                 className="nf-lede font-bold text-[var(--nf-content-primary)]"
                 secondaryClassName="nf-body-sm font-medium text-[var(--nf-content-muted)]"
               />
-              <button
-                type="button"
+              {/* The 44px floor DRAWN, not faked (the system's tertiary). This
+                  was a 17px-tall link with a `before:-inset-2` overlay that
+                  pushed the hit region over the total beside it. */}
+              <Button
+                variant="quiet"
+                size="sm"
                 onClick={() => setShowPerNight((v) => !v)}
                 aria-expanded={showPerNight}
-                /* The 44px floor DRAWN, not faked. This was a 17px-tall link
-                   with a `before:-inset-2` overlay reaching for the target it
-                   should have had: an invisible box that pushes the hit region
-                   over the total beside it, so a thumb aiming at the price
-                   opened the breakdown instead. */
-                className="inline-flex min-h-11 shrink-0 items-center nf-body-sm font-semibold text-[var(--nf-brand-secondary)]"
+                className="shrink-0"
               >
                 {showPerNight ? "Hide the breakdown" : "See per night"}
-              </button>
+              </Button>
             </div>
 
             {showPerNight && (

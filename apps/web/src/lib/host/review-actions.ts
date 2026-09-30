@@ -22,7 +22,7 @@ import { CONTEST_NOTE_MAX, isContestCriterion } from "./review-contest";
 const REPLY_MAX = 1200;
 const NOT_READY = "Reviews of hotel stays are not open yet. Nothing was saved.";
 const SERVICE_DOWN = "We could not save that just now. Nothing was lost, so try again in a moment.";
-const NOT_YOURS = "That review is not of one of your places.";
+const NOT_YOURS = "That review is not of one of your places. Refresh your reviews and answer one of your own.";
 
 type DbError = { code?: string | null; message?: string | null };
 type Untyped = {

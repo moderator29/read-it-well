@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import { useEffect, useId, useState, useSyncExternalStore } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import {
@@ -103,9 +104,9 @@ export function RecentSearches({
         <>
           <div className="nf-recent__head">
             <p className="nf-section-label">{copy.title}</p>
-            <button
-              type="button"
-              className="nf-recent__clear"
+            <Button
+              variant="quiet"
+              size="sm"
               aria-label={copy.clearLabel}
               onClick={() => {
                 clearRecentSearches();
@@ -114,7 +115,7 @@ export function RecentSearches({
               }}
             >
               {copy.clear}
-            </button>
+            </Button>
           </div>
           <ul className="nf-recent__list">
             {entries.map((entry) => (

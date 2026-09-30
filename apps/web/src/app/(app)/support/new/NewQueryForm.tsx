@@ -206,13 +206,9 @@ export function NewQueryForm({
                     <span className="nf-srow__label break-words">{draft.related.label}</span>
                     <span className="nf-srow__sub">Linked, so the team opens the right record</span>
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => update({ related: null })}
-                    className="nf-caption inline-flex min-h-11 shrink-0 cursor-pointer items-center px-xs font-semibold text-[var(--nf-content-link)]"
-                  >
+                  <Button variant="quiet" size="sm" onClick={() => update({ related: null })} className="shrink-0">
                     Remove
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <button

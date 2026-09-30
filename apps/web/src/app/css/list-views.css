@@ -276,6 +276,20 @@
     cursor: pointer;
     transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /* Draws 32 and is tapped at 44, as the heart beside it is: an invisible
+     square centred on the button, painting nothing. */
+  .nf-pcard__photobtn {
+    position: relative;
+  }
+  .nf-pcard__photobtn::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
   .nf-pcard__photobtn:disabled {
     visibility: hidden;
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import type { CSSProperties } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -168,13 +169,9 @@ export function ChoicePicker({
       <div className="flex items-baseline justify-between gap-xs">
         <span className="nf-label">{label}</span>
         {allowClear && value !== "" && !disabled && (
-          <button
-            type="button"
-            onClick={() => onChange("")}
-            className="nf-tap text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
-          >
+          <Button variant="quiet" size="sm" onClick={() => onChange("")}>
             {t.pickers.clear}
-          </button>
+          </Button>
         )}
       </div>
 

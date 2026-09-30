@@ -152,12 +152,19 @@ describe("every probe in supabase/tests/probes keeps the contract", () => {
  * point; the exact map bodies are not callable) are re-made by probing AS the
  * role in `supabase/tests/probes/new-a4-01.sql`; its member-column claim was
  * rolled back by 20260929111058.
+ *
+ * 20260930140424's read-back asked role_table_grants who may INSERT into
+ * notifications; the claim is re-made in
+ * `supabase/tests/probes/notification-severity-guards.sql`.
  */
 describe("no SQL check reads grants through information_schema", () => {
   const APPLIED_AND_SUPERSEDED = new Set([
     "supabase/migrations/20260923092729_push_one_the_table_a_device_is_remembered_in.sql",
     "supabase/migrations/20260923093115_a_password_change_and_a_new_device_leave_the_building.sql",
     "supabase/migrations/20260929110457_private_columns_and_exact_points_stay_private.sql",
+    /* Its notifications INSERT claim is re-made by
+       `supabase/tests/probes/notification-severity-guards.sql`. */
+    "supabase/migrations/20260930140424_m1_followup_severity_execute_revoke.sql",
   ]);
   const OBSERVER_VIEWS =
     /information_schema\s*\.\s*(role_)?(table|column|routine|udt|usage)_(grants|privileges)|information_schema\s*\.\s*role_(table|column|routine|usage|udt)_grants/i;

@@ -8,7 +8,6 @@ import type { BookingView } from "@/lib/bookings/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
-import { TYPE } from "@/components/app/Screen";
 import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
 
 /**
@@ -133,13 +132,9 @@ export function CancelBookingControl({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={`nf-tap ${TYPE.caption} font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline`}
-      >
+      <Button variant="quiet" size="sm" onClick={() => setOpen(true)}>
         {label}
-      </button>
+      </Button>
       {open && <CancelBookingSheet booking={booking} onClose={() => setOpen(false)} />}
     </>
   );

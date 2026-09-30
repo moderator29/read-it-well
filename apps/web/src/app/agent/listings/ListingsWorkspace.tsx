@@ -2,7 +2,6 @@
 
 import { DuplicateListing } from "./DuplicateListing";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type Dictionary, type Locale, formatMoneyGlance } from "@vallo/i18n/core";
 import { fill } from "../_copy";
@@ -501,102 +500,75 @@ function ListingRow({
         listing.pricePeriod === "night" ||
         Boolean(duplicateCopy) ||
         Boolean(listing.listingRole && listing.listingRole !== "owner")) && (
-      <div className="flex flex-wrap items-center gap-x-md gap-y-xs border-t border-[var(--nf-border-subtle)] px-md py-sm">
+      <div className="flex flex-wrap items-center gap-x-2xs border-t border-[var(--nf-border-subtle)] px-xs py-2xs">
         {editable && (
-          <Link
-            href={`/agent/list?id=${listing.id}`}
-            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)]"
-          >
+          <ButtonLink href={`/agent/list?id=${listing.id}`} variant="quiet" size="sm" arrow>
             {t.workspace.actions.edit}
-            <UiIcon name="arrow-right" size={16} />
-          </Link>
+          </ButtonLink>
         )}
         {/* Closing nights only means anything on a listing let by the night.
             It was drawn on every row, so a yearly rental, an office or a
             house for sale offered a calendar of nights nobody can book. */}
         {listing.pricePeriod === "night" && (
-          <Link
-            href={`/agent/listings/${listing.id}/calendar`}
-            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
-          >
-            <UiIcon name="calendar-booking" size={16} />
+          <ButtonLink href={`/agent/listings/${listing.id}/calendar`} variant="quiet" size="sm" leadingIcon="calendar-booking">
             Calendar
-          </Link>
+          </ButtonLink>
         )}
         {/* V-57: a nightly stay declares its charges at the door before it can be published. */}
         {listing.pricePeriod === "night" && (
-          <Link
-            href={`/agent/listings/${listing.id}/arrival`}
-            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
-          >
-            <UiIcon name="info" size={16} />
+          <ButtonLink href={`/agent/listings/${listing.id}/arrival`} variant="quiet" size="sm" leadingIcon="info">
             Charges at the door
-          </Link>
+          </ButtonLink>
         )}
         {/* SCUML item 17: an agent or firm listing goes live once the owner confirms the mandate. */}
         {listing.listingRole && listing.listingRole !== "owner" && (
-          <Link
-            href={`/agent/listings/${listing.id}/mandate`}
-            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
-            data-testid="listing-mandate"
-          >
-            <UiIcon name="document" size={16} />
+          <ButtonLink href={`/agent/listings/${listing.id}/mandate`} variant="quiet" size="sm" leadingIcon="document" data-testid="listing-mandate">
             Owner&apos;s mandate
-          </Link>
+          </ButtonLink>
         )}
         {duplicateCopy && <DuplicateListing listingId={listing.id} copy={duplicateCopy} />}
         {/* V-71: a published listing's Status picture and the lister's own link. */}
         {statusLabel && listing.status === "PUBLISHED" && (
-          <Link
-            href={`/agent/listings/${listing.id}/status`}
-            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
-            data-testid="listing-status"
-          >
-            <UiIcon name="share" size={16} />
+          <ButtonLink href={`/agent/listings/${listing.id}/status`} variant="quiet" size="sm" leadingIcon="share" data-testid="listing-status">
             {statusLabel}
-          </Link>
+          </ButtonLink>
         )}
         {/* V-08: a board needs a code, and a code needs a published listing. */}
         {boardLabel && listing.reference && listing.status === "PUBLISHED" && (
-          <Link
-            href={`/agent/listings/${listing.id}/board`}
-            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
-            data-testid="listing-board"
-          >
-            <UiIcon name="document" size={16} />
+          <ButtonLink href={`/agent/listings/${listing.id}/board`} variant="quiet" size="sm" leadingIcon="document" data-testid="listing-board">
             {boardLabel}
-          </Link>
+          </ButtonLink>
         )}
         {editable && (
-          <button
-            type="button"
-            className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+          <Button
+            variant="quiet"
+            size="sm"
             onClick={() => onAction("submit", listing)}
           >
             {t.workspace.actions.submit}
-          </button>
+          </Button>
         )}
         {live && closesWithReason && (
-          <button
-            type="button"
-            className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+          <Button
+            variant="quiet"
+            size="sm"
             onClick={() => onCloseListing?.(listing)}
             data-testid="close-listing"
           >
             {closeCopy?.action}
-          </button>
+          </Button>
         )}
         {/* Taking a listing down is also the only way to EDIT a live one
             (it returns to drafts). A live rental offered only Close, which is
             final, so its rent could never be corrected. Both are offered. */}
         {live && (
-          <button
-            type="button"
-            className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+          <Button
+            variant="quiet"
+            size="sm"
             onClick={() => onAction("unpublish", listing)}
           >
             {t.workspace.actions.takeDown}
-          </button>
+          </Button>
         )}
         {/*
           Delete was the lowest-contrast element in this row - muted grey text,

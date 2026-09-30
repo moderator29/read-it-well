@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useLockRecovery, useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useRouter } from "next/navigation";
@@ -243,13 +244,9 @@ export function PayoutAccounts({
               >
                 {adding ? "Saving..." : "Save this account"}
               </button>
-              <button
-                type="button"
-                onClick={() => setConfirmed(null)}
-                className="mt-xs w-full text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
-              >
+              <Button variant="quiet" size="sm" full className="mt-xs" onClick={() => setConfirmed(null)}>
                 Not my account, change it
-              </button>
+              </Button>
             </form>
           )}
 
@@ -329,26 +326,18 @@ function AccountRow({ account }: { account: PayoutAccount }) {
             {defaultLock.sheet}
             <input type="hidden" name="stepUp" value={defaultLock.token} />
             <input type="hidden" name="accountId" value={account.id} />
-            <button
-              type="submit"
-              disabled={settingDefault}
-              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline disabled:opacity-60"
-            >
+            <Button type="submit" variant="quiet" size="sm" disabled={settingDefault}>
               {settingDefault ? "Switching..." : "Pay me here instead"}
-            </button>
+            </Button>
           </form>
         )}
         <form action={removeAction} onSubmit={account.isDefault ? (event) => void removeLock.pass(event) : undefined}>
           {account.isDefault && removeLock.sheet}
           {account.isDefault && <input type="hidden" name="stepUp" value={removeLock.token} />}
           <input type="hidden" name="accountId" value={account.id} />
-          <button
-            type="submit"
-            disabled={removing}
-            className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline disabled:opacity-60"
-          >
+          <Button type="submit" variant="quiet" size="sm" disabled={removing}>
             {removing ? "Removing..." : "Remove"}
-          </button>
+          </Button>
         </form>
       </div>
 

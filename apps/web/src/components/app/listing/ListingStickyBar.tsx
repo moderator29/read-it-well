@@ -73,6 +73,7 @@ export function ListingStickyBar({
   moveInLabel,
   moveInFromLabel,
   secondaryShortLabel,
+  sidePanelFromLg = false,
 }: {
   variant: "stay" | "rental" | "partner";
   priceMinor: number;
@@ -113,6 +114,13 @@ export function ListingStickyBar({
   moveInFromLabel?: string;
   /** The ghost half's one-word label on a phone, e.g. "Breakdown". */
   secondaryShortLabel?: string;
+  /**
+   * The page draws its own sticky side panel from `lg` (the listing page's
+   * booking panel), carrying the same action. The bar then stands down from
+   * `lg`, so a desktop reader sees one call to action, not the panel's and a
+   * pinned twin under it (and the bar no longer runs under the side rail).
+   */
+  sidePanelFromLg?: boolean;
 }) {
   // Only a stay has a date picker to read from; the hook is optional so the
   // same bar renders on rental and partner pages with no provider above it.
@@ -193,8 +201,8 @@ export function ListingStickyBar({
         now, and it is the bar's own measured height plus the inset the bar
         already absorbs, so the two can never drift apart again.
       */}
-      <div aria-hidden="true" className="nf-detail-foot-spacer" />
-      <ActionBar>
+      <div aria-hidden="true" className={sidePanelFromLg ? "nf-detail-foot-spacer lg:hidden" : "nf-detail-foot-spacer"} />
+      <ActionBar {...(sidePanelFromLg ? { className: "lg:hidden" } : {})}>
       <div
         ref={footRef}
         data-testid="listing-sticky-bar"

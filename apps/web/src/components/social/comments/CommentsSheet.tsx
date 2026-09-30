@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
 import { Sheet } from "@/components/ui/Sheet";
+import { Button } from "@/components/ui/Button";
 import { blockUser, muteTarget } from "@/lib/social/posts-actions";
 import {
   POST_COPY,
@@ -277,9 +278,9 @@ export function CommentsSheet({
           {draft ? (
             <p className="nf-comments__replying">
               Replying to <strong>{draft.label}</strong>
-              <button type="button" onClick={() => setDraft(null)}>
+              <Button variant="quiet" size="sm" className="ms-auto" onClick={() => setDraft(null)}>
                 Cancel
-              </button>
+              </Button>
             </p>
           ) : null}
           <div className="nf-comments__row">
@@ -309,24 +310,21 @@ export function CommentsSheet({
       }
     >
         <header className="nf-comments__head">
-          <button
+          <Button
             ref={headRef}
-            type="button"
-            className="nf-post__act"
+            variant="icon"
+            round
+            leadingIcon="plus"
             aria-label="Write a comment"
             onClick={() => {
               setDraft(null);
               inputRef.current?.focus();
             }}
-          >
-            <UiIcon name="plus" size={20} />
-          </button>
+          />
           <p className="nf-comments__title" aria-hidden="true">
             {title}
           </p>
-          <button type="button" className="nf-post__act" aria-label="Close" onClick={onClose}>
-            <UiIcon name="close" size={20} />
-          </button>
+          <Button variant="icon" round leadingIcon="close" aria-label="Close" onClick={onClose} />
         </header>
 
         {notice ? (

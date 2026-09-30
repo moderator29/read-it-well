@@ -181,7 +181,7 @@ export async function removeFromSupport(input: { userId: string; reason: string 
   if (c.error !== undefined) return fail(c.error);
   const prior = await readGrant(c.session.supabase, parsed.data.userId);
   if (prior === "error") return fail("Their current access could not be read. Nothing changed. Try again.");
-  if (!prior || prior.revoked_at || !(prior.scopes ?? []).includes("support")) return fail("They are not on support.");
+  if (!prior || prior.revoked_at || !(prior.scopes ?? []).includes("support")) return fail("They are not on support, so there is nothing to remove. Refresh to see the current team.");
   const rest = (prior.scopes ?? []).filter((s) => s !== "support");
 
   if (rest.length === 0) {

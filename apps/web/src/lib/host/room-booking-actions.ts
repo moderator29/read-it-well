@@ -20,7 +20,7 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
 import { createAdminClient } from "../supabase/admin";
 import { ensureHostSubaccount } from "../payments/payee-subaccount";
 
-const NOT_YOURS = "This request is not at one of your hotels.";
+const NOT_YOURS = "This request is not at one of your hotels. Refresh your requests to see the ones that are.";
 const MOVED_ON = "This request has already been answered or has lapsed. Refresh to see where it stands.";
 const DOWN = "That did not go through. The request is unchanged. Try again in a moment.";
 

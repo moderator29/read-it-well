@@ -1,8 +1,11 @@
 /*
  * THE LIFECYCLE EMAILS: THIRTEEN EVENTS THE APP ANNOUNCED AND EMAIL DID NOT.
  *
- * HELD IN pending/ ON PURPOSE. APPLY ONLY AFTER THE APP THAT KNOWS THESE
- * TEMPLATES IS DEPLOYED. The drain (`apps/web/src/lib/notify/outbox.ts`)
+ * Applied 30 September 2026 with the founder's approval, after the PR #75
+ * deploy that knows these templates was live.
+ *
+ * (It was held in pending/ on purpose: apply only after the app that knows
+ * these templates is deployed.) The drain (`apps/web/src/lib/notify/outbox.ts`)
  * settles a row whose template the running code does not know as DROPPED,
  * permanently ("no template: ..."). Applied before the deploy, every event in
  * the gap would lose its email for good. The builders are in

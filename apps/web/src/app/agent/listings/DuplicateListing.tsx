@@ -5,7 +5,6 @@ import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { duplicateListing } from "@/lib/agent/duplicate-actions";
 import { MAX_COPIES } from "@/lib/agent/duplicate";
 
@@ -32,9 +31,10 @@ export function DuplicateListing({
 
   return (
     <>
-      <button
-        type="button"
-        className="nf-tap flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+      <Button
+        variant="quiet"
+        size="sm"
+        leadingIcon="document"
         onClick={() => {
           setOpen(true);
           setMade(null);
@@ -42,9 +42,8 @@ export function DuplicateListing({
         }}
         data-testid="listing-duplicate"
       >
-        <UiIcon name="document" size={16} />
         {copy.action}
-      </button>
+      </Button>
       <Sheet open={open} onOpenChange={setOpen} title={copy.title} detents={[0.55]}>
         <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.body}</p>
         {made ? (

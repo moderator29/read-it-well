@@ -89,7 +89,7 @@ export default async function InboxPage() {
     }));
 
     return (
-      <PullToRefresh className="mx-auto max-w-2xl">
+      <PullToRefresh className="mx-auto max-w-(--container-2xl) lg:max-w-(--container-4xl)">
         <Inbox rows={rows} meId={session.user.id} canMarkRead initialSide={side} archiveOpen={views.archiveOpen} />
       </PullToRefresh>
     );
