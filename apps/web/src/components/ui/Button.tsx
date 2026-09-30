@@ -76,9 +76,11 @@ export type ButtonVariant =
   | "dangerQuiet";
 
 /**
- * EVERY BUTTON IS A PILL NOW (founder references 44 and 45, 30 September
- * 2026; CLEAN_UNIFIED_DIRECTION.md section 17). The shape lives in
- * `buttons.css` on `--nf-radius-button`, so `shape="pill"` is a no-op that
+ * EVERY TEXT BUTTON IS A RECTANGLE WITH SOFT CORNERS (the founder's ruling of
+ * 30 September 2026, over the pills of references 44, 45 and 55;
+ * CLEAN_UNIFIED_DIRECTION.md sections 17 and 19). The shape lives in
+ * `buttons.css` on `--nf-act-radius-sm/-md/-lg` (10 / 12 / 14px, one per
+ * size), and icon buttons are circles, so `shape="pill"` is a no-op that
  * nothing needs to pass. The history below is kept as the record.
  *
  * RETIRED BY THE SHAPE LAW, and kept only so nothing breaks on the night it

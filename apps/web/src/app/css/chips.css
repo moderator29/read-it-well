@@ -1140,13 +1140,14 @@
   }
 
   .nf-segmented--pill {
-    border-radius: var(--nf-plate-radius-md);
+    border-radius: var(--nf-act-radius-md);
     background: var(--nf-surface-raised);
     border: var(--nf-border-width) solid var(--nf-act-well-edge);
     box-shadow: none;
   }
   .nf-segmented--pill .nf-segmented__capsule,
   .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
+    border-radius: var(--nf-act-radius-sm);
     background: var(--nf-act-fill);
     box-shadow: var(--nf-act-shadow);
   }

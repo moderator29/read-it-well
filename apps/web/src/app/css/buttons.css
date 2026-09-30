@@ -781,8 +781,8 @@
    * Every material reads a `--nf-act-*` token (tokens.css, "THE BUTTON
    * SYSTEM"), answered for night and for paper, so no rule here names a
    * theme. The founder's finish: restrained gradients, crisp 1px and 1.5px
-   * edges, heights 44 / 48 / 56, one pill radius for every word-carrying
-   * button, one glyph size per button size, calm grey disabled states, and
+   * edges, heights 44 / 48 / 56, soft-cornered rectangles for every
+   * word-carrying button (not pills: the founder's ruling of the 30th), one glyph size per button size, calm grey disabled states, and
    * the glow ring only on the night primary under hover and focus.
    *
    * MOTION: the press is the shared scale (`--nf-press-scale*`, one grammar
@@ -798,13 +798,23 @@
    *   dropdown    "Sort by" with a chevron
    *   danger      the solid red pill; danger-quiet its tinted twin
    * ===================================================================== */
+  /* THE SHAPE (founder ruling, 30 September, over the guide's pills): every
+     text button is a rectangle with soft corners, the corner stepping with
+     the height (10 / 12 / 14px on 44 / 48 / 56). Icon buttons and the FAB
+     stay circles (below). */
   .nf-btn {
     font-weight: 600;
-    border-radius: var(--nf-radius-button);
+    border-radius: var(--nf-act-radius-md);
     transition: transform var(--nf-duration-press) var(--nf-ease-press);
   }
   .nf-btn--sm {
-    border-radius: var(--nf-radius-button);
+    border-radius: var(--nf-act-radius-sm);
+  }
+  .nf-btn--lg {
+    border-radius: var(--nf-act-radius-lg);
+  }
+  .nf-btn--icon {
+    border-radius: var(--nf-radius-circle);
   }
   .nf-btn:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
@@ -910,19 +920,18 @@
   }
 
   /* ---- 8. dropdown: "Sort by" with a chevron --------------------------- */
-  /* A control that opens a list, so it takes the field's corner rather than
-     the pill: it sits in filter rows beside fields and chips. The chevron
-     turns while the list is open. */
+  /* A control that opens a list, on the same soft corner as every text
+     button. The chevron turns while the list is open. */
   .nf-btn--dropdown {
     justify-content: space-between;
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-act-radius-md);
     color: var(--nf-act-outline-ink);
     background: var(--nf-act-surface);
     border: var(--nf-border-width) solid var(--nf-act-surface-edge);
     box-shadow: var(--nf-act-surface-shadow);
   }
   .nf-btn--dropdown.nf-btn--sm {
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-act-radius-sm);
   }
   .nf-btn--dropdown::after {
     content: none;
@@ -1110,17 +1119,17 @@
    * surface hairline with the ACTIVE SEGMENT IN BRAND BLUE and a white
    * word. Both variants take it now; `solid` (`.nf-segmented--pill`,
    * chips.css) differs only by standing on the raised well. The corners
-   * are the control's, 12px outside and 10px on the thumb.
+   * are the button system's, 12px outside and 10px on the thumb.
    */
   .nf-segmented:not(.nf-segmented--pill) {
-    border-radius: var(--nf-plate-radius-md);
+    border-radius: var(--nf-act-radius-md);
     background: var(--nf-act-well);
     border: var(--nf-border-width) solid var(--nf-act-well-edge);
     box-shadow: var(--nf-act-surface-shadow);
   }
   .nf-segmented .nf-segmented__capsule {
     height: calc(100% - 8px);
-    border-radius: var(--nf-radius-control-sm);
+    border-radius: var(--nf-act-radius-sm);
     background: var(--nf-act-fill);
     box-shadow: var(--nf-act-shadow);
     transition:

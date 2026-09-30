@@ -2097,15 +2097,16 @@
   }
 
   /* ---- 9. the quantity stepper ---------------------------------------- */
-  /* One white capsule (a navy one at night) holding two 44px round buttons
-     and the value between them. The value is tabular so 9 and 10 do not
-     move the buttons. */
+  /* One white soft-cornered rectangle (a navy one at night) holding two
+     44px soft-cornered buttons and the value between them (the founder's
+     rectangle ruling of the 30th, over the guide's capsule). The value is
+     tabular so 9 and 10 do not move the buttons. */
   .nf-qty {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-3xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-act-radius-lg);
     background: var(--nf-act-surface);
     border: var(--nf-border-width) solid var(--nf-act-surface-edge);
     box-shadow: var(--nf-act-surface-shadow);
@@ -2121,7 +2122,7 @@
     width: 2.75rem;
     height: 2.75rem;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-circle);
+    border-radius: var(--nf-act-radius-sm);
     border: 0;
     background: var(--nf-act-tint);
     color: var(--nf-act-ink);

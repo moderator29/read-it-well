@@ -32,7 +32,7 @@ describe("button system tokens", () => {
   });
 
   it("every --nf-act token a stylesheet reads exists", () => {
-    const defined = names(systemBlock);
+    const defined = names(tokens);
     for (const css of [buttons, controls, chips]) {
       for (const m of css.matchAll(/var\((--nf-act-[a-z0-9-]+)\)/g)) expect(defined.has(m[1]), m[1]).toBe(true);
     }
@@ -70,5 +70,17 @@ describe("button system rules", () => {
     expect(chips).toContain(".nf-tag--spark");
     expect(buttons).toContain(".nf-btn--fab");
     expect(buttons).toContain(".nf-link-btn");
+  });
+});
+
+describe("the soft-cornered rectangle (founder ruling, 30 September)", () => {
+  const section = buttons.slice(buttons.indexOf("THE BUTTON SYSTEM (founder reference 55"));
+  it("steps the corner with the size and keeps icon buttons round", () => {
+    expect(tokens).toMatch(/--nf-radius-button:\s*var\(--nf-act-radius-md\);/);
+    expect(section).toMatch(/\.nf-btn \{[^}]*border-radius: var\(--nf-act-radius-md\)/);
+    expect(section).toMatch(/\.nf-btn--sm \{\s*border-radius: var\(--nf-act-radius-sm\)/);
+    expect(section).toMatch(/\.nf-btn--lg \{\s*border-radius: var\(--nf-act-radius-lg\)/);
+    expect(section).toMatch(/\.nf-btn--icon \{\s*border-radius: var\(--nf-radius-circle\)/);
+    expect(section).not.toMatch(/radius-pill/);
   });
 });
