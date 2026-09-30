@@ -99,3 +99,25 @@
     background: var(--nf-surface-raised);
   }
 }
+
+/* ------------------------------------------------ D2 THE BACK ROW ON A PHOTO
+ * From 64rem a content page's head is a full-bleed photograph, and the
+ * back row above it drew a 56px strip of canvas between the site bar and
+ * the photo: a seam on every content page (/about, /help, /safety). The
+ * row now lies over the top of the head, which already opens with 96px of
+ * room, and its back button takes the on-ink white the head's copy uses. */
+@media (min-width: 64rem) {
+  @layer components {
+    .nf-shell:has(~ .nf-site-head) {
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      z-index: 2;
+    }
+  }
+  /* Unlayered: the button states its ink with a utility, and a utility
+     outranks a component rule. */
+  .nf-shell:has(~ .nf-site-head) :is(a, button) {
+    color: var(--nf-landing-on-ink);
+  }
+}
