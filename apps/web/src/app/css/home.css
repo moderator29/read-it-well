@@ -824,7 +824,8 @@
     background: transparent;
     border: 0;
     outline: none;
-    font-size: var(--nf-text-body-sm);
+    /* 16px, never less: iOS zooms the page into a smaller field on focus. */
+    font-size: var(--nf-text-body);
     color: var(--nf-content-primary);
   }
   .nf-hero-plate__input::placeholder {
