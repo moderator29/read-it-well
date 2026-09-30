@@ -92,6 +92,7 @@ export function ReportSheetPanel({
           if (!next) setAcknowledged(state);
         }}
         variant={filedWords.variant}
+        object={filedWords.object}
         title={filedWords.title}
         body={filedWords.body}
         primary={{ label: success.continue, onClick: close }}

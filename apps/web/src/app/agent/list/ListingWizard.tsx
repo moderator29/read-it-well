@@ -2025,6 +2025,7 @@ export function ListingWizard({
           open={celebrate}
           onOpenChange={setCelebrate}
           variant={words.variant}
+          object={words.object}
           title={words.title}
           body={words.body}
           primary={{ label: success.continue }}

@@ -1,16 +1,17 @@
 # Success moments
 
-Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference: `docs/design/references/2026-09-29/15-success-modal.png`. It is a centred card with a big check in a soft circle, sparkles around it, a title, one line and a full-width "Continue".
+Every "it worked" moment in `apps/web`, and how it confirms. Founder's references: `docs/design/references/2026-09-29/15-success-modal.png` (the first card) and, from 30 September, `54-success-pin-set.jpg`: a full screen with one big object in the middle, a title, one line and a full-width pill at the foot ("PIN set successfully! Your account is ready.").
 
 ## The pieces
 
-- `components/ui/SuccessSheet.tsx` is the card. It is built on `Sheet`'s new `card` geometry, so it keeps Sheet's portal, backdrop, focus trap and focus return, Escape, Back and scroll lock. It has three variants:
-  - `success` shows a tick.
-  - `submitted` shows a clock with a tick badge.
-  - `approved` shows a seal with a tick.
-- The mark animates in under 900ms. The circle scales in over 0 to 360ms, the stroke draws over 200 to 560ms, and ten sparkles and dots burst out on a stagger over 300 to 860ms. The static final state is the default, and the animation is opt-in, so reduced motion and the app's Calm and Off settings get the finished picture and nothing moving.
+- `components/ui/SuccessSheet.tsx` is the moment, in two shapes on one body:
+  - `SuccessSheet`, a dialog on `Sheet`'s `card` geometry (portal, backdrop, focus trap and return, Escape, Back, scroll lock). Below 40rem it fills the screen; from 40rem up it is a centred card over the dimmed page.
+  - `SuccessScreen`, the same moment as a page's own content, for a route whose whole job is to say it worked. It is not a dialog and leaves focus where a page does.
+- Both open on the soft top (spec section 17) and carry one of the founder's 3D objects (`components/ui/icon-3d.ts`) at 120 to 144px, in a soft halo ring, with eight small sparks round it (five blue, three in the orange spark, section 18). Each moment names its object in `SUCCESS_OBJECT` (`lib/ui/success-moments.ts`), and `successCopy()` returns it with the words. A submission never shows the seal (`verified`): it waits on a person, so it shows the clock, the calendar with a clock, the ID card or the list. `VARIANT_OBJECT` is the fallback when a caller names none.
+- Motion, transform and opacity only: the object pops in on the spring (0 to 520ms), the halo ring opens and one ring pulses out (to 700ms), the sparks burst and settle (220 to 900ms), the title, line, facts and pills rise in (340 to 900ms), then the object floats a few pixels for five slow breaths and stops. The static final state is the default and the animation is opt-in, so reduced motion and the app's Calm and Off settings get the finished picture and nothing moving; the float also stays off with ambient motion or data saver off.
+- The pills are the large button (56px): the primary full-width, an optional quiet secondary under it.
 - Title and body are announced through a polite live region, filled one frame after opening. Focus goes to the primary action. Haptics go through `lib/ui/feedback.ts`, which uses Capacitor Haptics in the native shell: `success` for success and approved, `confirm` for submitted.
-- The CSS is `app/css/success.css`. Light mode is a white card with a brand-blue mark. Dark mode is a navy glass card with the brighter brand blue and one restrained bloom behind the card.
+- The CSS is `app/css/success.css`. Both themes paint the soft top over the canvas: the lavender-white wash in light, the faint brand glow at night. The ring and blue sparks take the brand blue (the brighter member at night).
 - `lib/ui/success-moments.ts` is the registry. It holds every moment id, its variant, `successCopy()`, the one-shot flag helpers (`withDone`, `withoutDone`, `readDone`) and `showSuccess()`.
 - Copy lives in `packages/i18n/src/locales/en.ts` under `success`, and reaches the client in two ways.
   - `ClientCopy` carries on every screen only the chrome plus the account moments, inspection requested, report, ticket and contact. This keeps the slice under its 12 KB budget.
@@ -27,7 +28,7 @@ Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference
   - **Forgery:** a forged hint gets nothing, and an account flag found in the address is removed on every route without opening anything.
   - **From a client screen:** the screen calls `showSuccess(flag)` instead.
   - **`withDone` refuses account flags:** it returns the address untouched for them.
-- `/preview/success?v=success|submitted|approved&still=1` is the screenshot harness.
+- `/preview/success` is the screenshot harness: an index of every moment with its variant and object, each openable as `?moment=<id>&shape=sheet|page`, and `&still=1` for the final frame.
 
 ## Money rules
 
@@ -85,6 +86,9 @@ Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference
 | 41 | Business approved or published (host) | `/host` | The most recent business APPROVED or PUBLISHED in the last 14 days (the admin notice links here) | Status pill | "Business approved" or "Your business is live" (approved), once per device per business per step |
 | 39 | Passcode set or changed | Passcode setup | `setPasscodeAction` ok | Inline message and haptic | `showSuccess("passcode-set" \| "passcode-changed")` (PASSCODE wired) |
 | 42 | Card saved (the ₦100 check) | `/settings/payments` | `confirmCardSetup` answers `saved`: Paystack verify says success (or reversed), exactly ₦100 in NGN, this person's setup by our audit row and by the charge's metadata, a reusable token, and the card filed | The checkout polled `paymentState`, which knows only `rm-book-`, so it always read pending and ended on "we could not confirm" (B-6) | `SuccessSheet` "Card saved". The line says the ₦100 goes back to the same card and names no date. Pending keeps the checkout's confirming state; a refused check (wrong amount, not reusable) says what happens to the ₦100 |
+| 43 | Flatmate invited to share a move-in | `/tenancy/[id]` | `addRentContributor` ok | Silent refresh | `SuccessSheet` (submitted) "Invitation sent": they can accept or decline. The page refreshes when it closes |
+| 44 | Agents invited to pitch (owner's portfolio) | `/agent/portfolio?done=agents-invited&listing=` | `inviteAgents` ok with `told` above zero | Inline note | Shown on arrival when that unit of the owner's has an open invitation (`portfolioInviteArrival`). The inline note stays |
+| 45 | First sign-in by email or phone code | Sign in, then landing | `verifyEmailSignInCode` or `verifyPhoneSignInCode` ok, and the code just confirmed the address or number (`isFirstCodeSignIn`, stamped in the last five minutes) | Redirect | One-shot cookie, "Welcome to Vallo". None while finish-setup is still owed, because that step sets it |
 
 ## Deliberately not celebrated
 
@@ -95,7 +99,8 @@ Every "it worked" moment in `apps/web`, and how it confirms. Founder's reference
 - **Social reports** (post, profile, story) keep their toasts, because they are one tap inside a feed. The full report sheet (#29) celebrates.
 - **Staff console actions** (admin approvals, refunds, claim decisions). Their readers are staff, and their inline notices stay. The applicant's side of an approval is celebrated (#14, #19, #25, #40, #41).
 - **An agent accepting a booking or answering a table reservation** (`BookingsWorkspace`, `ReservationsBoard`). This is a working queue an agent clears many times a day, and a modal per row would stand between them and the next row. The guest's side is where the news is, and the guest is told by notification.
-- **Renewals offered or answered, tenancy reports countersigned, flatmates added, answered or removed** (`components/app/tenancy/*`). These are steps in a document both sides are still negotiating, and they keep their inline state. The moment the money for a move-in lands is celebrated (#6).
+- **Renewals offered or answered, tenancy reports countersigned, flatmates answered or removed** (`components/app/tenancy/*`). These are steps in a document both sides are still negotiating, and they keep their inline state. The moment the money for a move-in lands is celebrated (#6), and so is the lead's invitation to a flatmate (#43).
+- **Booking confirmed** has no moment of its own: a stay is CONFIRMED only when its payment settles, and that is the "Stay paid" receipt (#1 to #3), whose line says the dates are confirmed.
 
 ## Known limits
 

@@ -775,10 +775,10 @@ run("account created, password changed, email verified, passcode set (the root l
  */
 run("the account moments' object and button, flow by flow", () => {
   it.each([
-    ["passcode-set", "Passcode set", "shield"],
-    ["passcode-changed", "Passcode changed", "shield"],
-    ["account-created", "Welcome to Vallo", "verified"],
-    ["email-verified", "Email confirmed", "bell"],
+    ["passcode-set", "Passcode set", "passcode-lock"],
+    ["passcode-changed", "Passcode changed", "passcode-lock"],
+    ["account-created", "Welcome to Vallo", "celebrate"],
+    ["email-verified", "Email confirmed", "envelope"],
     ["password-changed", "Password changed", "shield"],
   ] as const)("%s: %s, with its object and a Continue pill that closes it", async (flag, title, object) => {
     const { page, close } = await mountInBrowser({ entry: HOST });
@@ -824,7 +824,7 @@ run("flatmate invited to share a move-in", () => {
     try {
       await inviteFlatmate(page);
       await sheetOpens(page, "Invitation sent");
-      expect(await page.locator(".nf-success__mark").getAttribute("data-object")).toBe("handover");
+      expect(await page.locator(".nf-success__mark").getAttribute("data-object")).toBe("team");
       /* It says what happens next, and never that anybody agreed. */
       expect(await page.locator(".nf-success__body").textContent()).toContain("accept or decline");
       expect((await routerCalls(page)).filter((c) => c[0] === "refresh")).toHaveLength(0);

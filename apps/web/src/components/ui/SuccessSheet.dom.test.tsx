@@ -234,7 +234,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
 
   it.each([
     ["success", "verified"],
-    ["submitted", "calendar-pending"],
+    ["submitted", "clock"],
     ["approved", "verified"],
   ] as const)("draws the %s variant with its default object", async (variant, object) => {
     const { page, close } = await mountInBrowser({ entry: entry(variant), css: CSS });
