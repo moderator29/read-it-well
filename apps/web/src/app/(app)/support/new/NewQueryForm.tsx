@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/Field";
@@ -29,6 +28,7 @@ import {
   type RelatedRecord,
 } from "@/lib/support/new-query";
 import { expectedResponse } from "@/lib/support/tickets";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 const DRAFT_KEY = "nf_support_new_draft";
 
@@ -394,9 +394,9 @@ function RecordList({
 export function FiledView({ filed, topic }: { filed: Filed; topic: string | null }) {
   return (
     <div className="nf-panel nf-panel--card block p-card text-center" data-testid="support-filed" role="status">
-      <span className="mx-auto block h-16 w-16">
-        <BrandIcon name="support-chat" fill />
-      </span>
+      <IconPlate size="lg" className="mx-auto">
+        <UiIcon name="headset" size={24} />
+      </IconPlate>
       <h2 className="nf-h3 mt-group text-[var(--nf-content-primary)]">We have your message</h2>
       <p className="nf-body-sm mx-auto mt-row max-w-[40ch] text-[var(--nf-content-secondary)]">
         {expectedResponse(topic)} We have emailed you this reference and you will get a notification when the team

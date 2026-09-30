@@ -9,12 +9,13 @@ import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { readAgentAnalytics } from "@/lib/agent/analytics-queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { ListingPitch } from "../list/ListingPitch";
 import { AnalyticsWorkspace } from "./AnalyticsWorkspace";
 import { readFunnelBoard } from "@/lib/agent/funnel-queries";
 import { ListingFunnels } from "@/components/agent/ListingFunnels";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -55,9 +56,9 @@ export default async function Page() {
     return (
       <AgentShell t={t} locale={locale} active="/agent/analytics" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
-          <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="report-stats" fill />
-          </span>
+          <IconPlate size="lg">
+            <UiIcon name="chart-bar" size={24} />
+          </IconPlate>
           <h1 className="nf-h2 mt-5">{t.agentAnalytics.title}</h1>
           <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {t.agentAnalytics.unconfigured}

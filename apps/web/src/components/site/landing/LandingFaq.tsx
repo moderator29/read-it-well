@@ -17,9 +17,30 @@ import { SectionHead } from "./SectionHead";
  * engine quotes is exactly what the page says. The block carries the CSP
  * nonce for the reason the listing page gives: `script-src` is nonce-based.
  */
+/**
+ * The three groups, by the items' keys. A key missing from every group
+ * would drop a question, so the last group takes whatever is left over
+ * (`leftovers` below keeps the list complete if a question is added).
+ */
+const FAQ_GROUP_KEYS = {
+  property: ["what", "inspection", "lister", "list"],
+  stays: ["stays", "ai", "apps"],
+  money: ["pay", "guarantee", "payout", "refund", "report"],
+} as const;
+
+type FaqGroupId = keyof typeof FAQ_GROUP_KEYS;
+
+const GROUPED: ReadonlySet<string> = new Set(Object.values(FAQ_GROUP_KEYS).flat());
+
 export function LandingFaq({ t, nonce }: { t: Dictionary; nonce?: string }) {
   const f = t.landingRooms.faq;
   const items = faqItems(t);
+  const leftovers = items.filter((item) => !GROUPED.has(item.key)).map((item) => item.key);
+  const FAQ_GROUPS: { id: FaqGroupId; keys: readonly string[] }[] = [
+    { id: "property", keys: FAQ_GROUP_KEYS.property },
+    { id: "stays", keys: FAQ_GROUP_KEYS.stays },
+    { id: "money", keys: [...FAQ_GROUP_KEYS.money, ...leftovers] },
+  ];
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -41,20 +62,36 @@ export function LandingFaq({ t, nonce }: { t: Dictionary; nonce?: string }) {
           </Link>
           </SectionHead>
         </div>
-        <MotionReveal className="nf-faq-list">
-          {items.map((item) => (
-            <details key={item.key} className="nf-faq-item">
-              <summary className="nf-faq-q">
-                <span>{item.q}</span>
-                <span className="nf-faq-chevron" aria-hidden="true">
-                  <UiIcon name="chevron-down" size={20} />
-                </span>
-              </summary>
-              <div className="nf-faq-a">
-                <p>{item.a}</p>
+        {/* ONE WHITE CARD PER GROUP, INSET DIVIDERS (UIUX item 11): the twelve
+            questions under three labels taken from the items' own keys. The
+            structured data above is the flat list, unchanged. */}
+        <MotionReveal className="nf-faq-groups">
+          {FAQ_GROUPS.map((group) => {
+            const rows = group.keys
+              .map((key) => items.find((item) => item.key === key))
+              .filter((item): item is (typeof items)[number] => Boolean(item));
+            if (rows.length === 0) return null;
+            return (
+              <div key={group.id} className="nf-faq-group">
+                <p className="nf-section-label nf-faq-group__label">{f.groups[group.id]}</p>
+                <div className="nf-faq-list">
+                  {rows.map((item) => (
+                    <details key={item.key} className="nf-faq-item">
+                      <summary className="nf-faq-q">
+                        <span>{item.q}</span>
+                        <span className="nf-faq-chevron" aria-hidden="true">
+                          <UiIcon name="chevron-down" size={20} />
+                        </span>
+                      </summary>
+                      <div className="nf-faq-a">
+                        <p>{item.a}</p>
+                      </div>
+                    </details>
+                  ))}
+                </div>
               </div>
-            </details>
-          ))}
+            );
+          })}
         </MotionReveal>
       </div>
     </section>

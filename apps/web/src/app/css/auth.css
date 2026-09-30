@@ -893,6 +893,21 @@
    * (not this tall) are untouched; a column taller than the room simply
    * starts at the top as before.
    */
+  /*
+   * A SHORT SCREEN (an iPhone SE at 320 x 568, any phone on its side). The
+   * block's 15.5rem took 44 per cent of the height and the Sign in pill
+   * started below the fold before anything was typed. Here the block is a
+   * band, so the form and its pill are on the first screen. Last in the
+   * file, so it wins over the wider-screen heights above.
+   */
+  @media (max-height: 640px) {
+    .nf-slate {
+      --nf-slate-top-h: 10rem;
+    }
+    .nf-slate-top__brand {
+      margin-top: var(--nf-space-xs);
+    }
+  }
   @media (min-width: 640px) and (min-height: 960px) {
     .nf-auth__body {
       display: flex;

@@ -148,7 +148,7 @@ export const ADMIN_SETTINGS: AdminDestination = {
     /* Track K: who holds staff access (super admin only) and the handbook. */
     { key: "staff", href: "/admin/staff", icon: ui("user"), label: "Staff" },
     { key: "handbook", href: "/admin/handbook", icon: ui("document"), label: "Staff handbook" },
-    { key: "help", href: "/settings/help", icon: ui("ticket"), label: "Help and support" },
+    { key: "help", href: "/settings/help", icon: ui("headset"), label: "Help and support" },
   ],
 };
 

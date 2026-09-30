@@ -129,6 +129,34 @@ describe("the example listing disclosure", () => {
   });
 
   /*
+   * THE LANDING'S CARDS SAY IT TOO (UIUX item 6). The landing prints real
+   * catalogue rows in the AI showcase and the two worlds room through
+   * `ListingMini`, fed by `toMiniListing`, which did not carry `isDemo`: an
+   * example flat read as live inventory on the front page. The mapper now
+   * carries it, and the card swaps its market badge for the Example mark.
+   */
+  it("says Example on the landing's listing cards", () => {
+    const mapper = read("lib/site/listing-card.ts");
+    expect(mapper).toMatch(/example:\s*listing\.isDemo\s*===\s*true/);
+    const mini = read("components/site/landing/ListingMini.tsx");
+    expect(mini).toMatch(/listing\.example\s*\?\s*\(\s*<span className="nf-badge nf-badge--example/);
+    expect(mini).toContain("exampleLabel");
+  });
+
+  /*
+   * The landing's hands-on deck draws four product moments that are
+   * illustrations, not inventory; each moment carries the Example mark.
+   */
+  it("marks every moment in the landing's hands-on deck as an example", () => {
+    const room = read("components/site/landing/StackRoom.tsx");
+    expect(room).toContain("nf-badge--example");
+    const moments = room.match(/moment:\s*\(/g)?.length ?? 0;
+    const marks = room.match(/\{example\}/g)?.length ?? 0;
+    expect(moments).toBeGreaterThan(0);
+    expect(marks).toBe(moments);
+  });
+
+  /*
    * The detail page keeps the whole sentence. This is the surface the card's
    * one-word mark is delegating to, so if it ever loses the notice the
    * disclosure has nowhere left to be said in full.

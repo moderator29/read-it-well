@@ -624,17 +624,26 @@
   .nf-card--interactive:active {
     transform: scale(var(--nf-press-scale-lg));
   }
-  @media (hover: hover) {
-    .nf-card--interactive:hover {
-      box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
+  /* ONE HOVER FOR POINTERS (the clean unified sweep, plan item 27): a
+     pressable card lifts 2px onto `--nf-card-shadow-hover` over 160ms, only
+     for a fine pointer and never while pressed, so it cannot fight the press
+     above. Reduced motion keeps the shadow and drops the lift (below). */
+  @media (hover: hover) and (pointer: fine) {
+    .nf-card--interactive:hover:not(:active),
+    .nf-card.nf-elev--hoverable:hover:not(:active),
+    .nf-panel.nf-card--interactive:hover:not(:active) {
+      transform: translateY(-2px);
+      box-shadow: var(--nf-card-shadow-hover);
+      transition:
+        transform var(--nf-duration-fast) var(--nf-ease-standard),
+        box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
     }
-    .nf-card.nf-card--interactive:hover,
-    .nf-card.nf-elev--hoverable:hover,
-    .nf-panel.nf-card--interactive:hover {
-      box-shadow:
-        var(--nf-panel-rim),
-        var(--nf-panel-glow),
-        var(--nf-elev-2);
+  }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+    .nf-card--interactive:hover:not(:active),
+    .nf-card.nf-elev--hoverable:hover:not(:active),
+    .nf-panel.nf-card--interactive:hover:not(:active) {
+      transform: none;
     }
   }
   @media (prefers-reduced-motion: reduce) {

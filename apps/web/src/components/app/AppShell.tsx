@@ -417,6 +417,11 @@ export function AppShell({
             >
               <Logo size={40} wordSize={19} responsive />
             </Link>
+            {/* The fold slot (plan item 29): a `PageHeader variant="large"`
+                portals its title here once the large title has scrolled
+                under the bar. Empty, and invisible, on every other screen. */}
+            <span className="nf-app-header__fold" />
+
             {signedIn && (
               /* UX-04, AND THE FOUNDER'S TRACK M CUT. Which side the app is on
                  used to be a visible "Property" or "Stays" tag here; the

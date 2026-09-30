@@ -8,6 +8,9 @@ import { Field } from "@/components/ui/Field";
 import { requestRefund } from "@/lib/after-gate/refund-request-actions";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
+import { Sheet } from "@/components/ui/Sheet";
+import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
+import { REFUND_ROUTE } from "@/lib/money/copy";
 
 /**
  * V-24. The dated ask for a paid stay to be cancelled.
@@ -22,12 +25,15 @@ export function RefundRequestForm({
   copy,
   reasons,
   success,
+  cancelWord = "Keep it",
 }: {
   bookingId: string;
   /** The page's `t.success`, for "Refund requested". Absent, no sheet. */
   success?: SuccessWords;
   copy: Dictionary["afterTheGate"]["refund"];
   reasons: { code: string; label: string }[];
+  /** The confirm panel's way out; the reader's word for "Cancel". */
+  cancelWord?: string;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState(reasons[0]?.code ?? "guest_choice");
@@ -41,12 +47,16 @@ export function RefundRequestForm({
    * shows its own result. "Requested", never "refunded": nothing has moved.
    */
   const [filed, setFiled] = useState(false);
+  /* The confirm step (plan item 22): the form's submit opens the panel and
+     the panel's primary files the same `requestRefund` call as before. */
+  const [confirming, setConfirming] = useState(false);
   const words = success ? successCopy(success, "refundRequested") : null;
 
   function submit() {
     setError(null);
     start(async () => {
       const result = await requestRefund({ bookingId, reason, note });
+      setConfirming(false);
       if (!result.ok) {
         setError(result.error || copy.askFailed);
         return;
@@ -63,7 +73,8 @@ export function RefundRequestForm({
       data-testid="refund-request"
       onSubmit={(event) => {
         event.preventDefault();
-        submit();
+        setError(null);
+        setConfirming(true);
       }}
     >
       <h2 className="nf-h3">{copy.askHeading}</h2>
@@ -95,6 +106,35 @@ export function RefundRequestForm({
       <Button type="submit" variant="secondary" full className="mt-md" loading={pending} disabled={pending || filed}>
         {copy.askSubmit}
       </Button>
+      <Sheet
+        open={confirming}
+        onOpenChange={(open) => {
+          if (!open && !pending) setConfirming(false);
+        }}
+        title={copy.askHeading}
+        hideTitle
+        card
+        detents={[0.9]}
+      >
+        <ConfirmPanel
+          icon="receipt"
+          tone="warning"
+          title={`${copy.askHeading}?`}
+          context={copy.askLede}
+          summary={[{ label: copy.askReason, value: reasons.find((r) => r.code === reason)?.label ?? reason }]}
+          reassurance={REFUND_ROUTE}
+          cancel={
+            <Button variant="secondary" disabled={pending} onClick={() => setConfirming(false)}>
+              {cancelWord}
+            </Button>
+          }
+          primary={
+            <Button variant="primary" loading={pending} disabled={pending || filed} onClick={submit}>
+              {copy.askSubmit}
+            </Button>
+          }
+        />
+      </Sheet>
       {success && words ? (
       <SuccessSheet
         open={filed}

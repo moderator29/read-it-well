@@ -3,13 +3,14 @@
 import { initial as initialOf } from "@/lib/text/initial";
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { FollowButton } from "./FollowButton";
 import { moreFollows } from "@/lib/social/follows-actions";
 import type { FollowDirection, FollowRow } from "@/lib/social/follows-queries";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * A list of people.
@@ -106,9 +107,9 @@ export function PeopleList({
   if (people.length === 0 && total > 0) {
     return (
       <div className="nf-panel nf-panel--card mt-md items-center p-lg text-center sm:p-xl">
-        <div className="mx-auto w-fit">
-          <BrandIcon name="user-check" size={44} />
-        </div>
+        <IconPlate size="lg" tone="brand">
+          <UiIcon name="users" size={24} />
+        </IconPlate>
         <h2 className="nf-h3 mt-sm text-[length:var(--nf-text-body-lg)]">Nobody here you can see</h2>
         <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           The count is real, and none of these accounts is reachable from your
@@ -127,9 +128,9 @@ export function PeopleList({
     const copy = EMPTY[direction];
     return (
       <div className="nf-panel nf-panel--card mt-md items-center p-lg text-center sm:p-xl">
-        <div className="mx-auto w-fit">
-          <BrandIcon name="user-check" size={44} />
-        </div>
+        <IconPlate size="lg" tone="brand">
+          <UiIcon name="users" size={24} />
+        </IconPlate>
         <h2 className="nf-h3 mt-sm text-[length:var(--nf-text-body-lg)]">
           {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}
         </h2>

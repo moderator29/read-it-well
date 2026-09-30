@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { canGoBackInApp } from "@/lib/ui/history";
 import { chooseBack, parentOf, type BackDecision } from "./resolve";
 import { previousEntry } from "./previous-entry";
-import { markNav } from "@/lib/motion/nav-direction";
+import { animateBack, markNav } from "@/lib/motion/nav-direction";
 
 /**
  * The one back control behaviour, for every drawn back control on the platform
@@ -45,8 +45,12 @@ export function performBack(decision: BackDecision, router: RouterLike): void {
      the replace path too, which has no popstate to say so. */
   if (decision.action !== "exit") markNav("back");
   if (decision.action === "back") {
-    if (decision.delta > 1) window.history.go(-decision.delta);
-    else router.back();
+    const delta = decision.delta;
+    /* A traversal gets no view transition from React; this gives it one. */
+    animateBack(() => {
+      if (delta > 1) window.history.go(-delta);
+      else router.back();
+    });
   } else if (decision.action === "replace") {
     /* A route handler answers with a redirect, not a page, so it gets a real
        request rather than a router transition. */

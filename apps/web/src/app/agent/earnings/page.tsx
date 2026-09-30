@@ -7,13 +7,14 @@ import { readAgentEarnings, type AgentEarnings } from "@/lib/agent/earnings-quer
 import { getPayoutAccounts } from "@/lib/agent/payout-queries";
 import { PayoutAccounts } from "@/components/agent/PayoutAccounts";
 import { PepQuestionPanel } from "@/components/compliance/PepQuestionPanel";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { EarningsWorkspace } from "./EarningsWorkspace";
 import { ButtonLink } from "@/components/ui/Button";
 import { readMyEarnings } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
 import { EarningsHistory } from "@/components/app/money-history/EarningsHistory";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -60,9 +61,9 @@ export default async function Page({
     return (
       <AgentShell t={t} locale={locale} active="/agent/earnings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
-          <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="bank-column" fill />
-          </span>
+          <IconPlate size="lg">
+            <UiIcon name="bank" size={24} />
+          </IconPlate>
           <h1 className="nf-h2 mt-5">{t.agentEarnings.title}</h1>
           <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {t.agentEarnings.unconfigured}

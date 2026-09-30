@@ -2,10 +2,10 @@
 
 import type { ConversationListing } from "@/lib/messages/types";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { MediaFrame } from "@/components/app/MediaFrame";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * In-chat listing options sheet.
@@ -96,9 +96,9 @@ export function ListingOptionsSheet({
 
       {/* --------------------------------------------- inspection and safety */}
       <div className="mt-md flex items-start gap-md">
-        <span className="h-14 w-14 shrink-0" aria-hidden="true">
-          <BrandIcon name="shield-lock" fill />
-        </span>
+        <IconPlate size="md" className="shrink-0">
+          <UiIcon name="shield-lock" size={20} />
+        </IconPlate>
         <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           For your safety, only pay after you have inspected the property. Conversations are
           monitored for fraud.

@@ -2370,3 +2370,122 @@
     border-inline-start-color: var(--nf-state-error);
   }
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * THE CONSOLE ON THE WORKSPACE FRAME (UI/UX plan item 20, spec 8.3 and 13).
+ *
+ * The console keeps its own rail (`AdminNav.tsx`, its routes, its children
+ * and its "All desks" drawer) and takes the look the host and agent desks
+ * share through `DeskSidebar`: the warm canvas, a full-height sidebar on the
+ * card surface with one divider on its right, rows whose current state is the
+ * brand ink at 600 and a 4px dot with no container behind it, count badges on
+ * the brand tint, and a top bar ruled by one divider. Written as one block
+ * after everything above so it reads as the change it is; nothing above is
+ * deleted, so the console's own rhythm (row heights, children, drawer) holds.
+ * Below 1024px nothing moves.
+ * ---------------------------------------------------------------------------
+ */
+@layer components {
+  .nf-admin {
+    background: var(--nf-surface-canvas);
+  }
+  @media (min-width: 1024px) {
+    .nf-admin {
+      gap: 0;
+      padding: 0;
+    }
+    .nf-admin-rail {
+      min-height: 100dvh;
+      width: var(--nf-rail-width, 14.5rem);
+      border: 0;
+      border-inline-end: var(--nf-border-width) solid var(--nf-divider);
+      border-radius: 0;
+      background: var(--nf-surface-primary);
+      box-shadow: none;
+    }
+    .nf-admin-rail__inner {
+      top: 0;
+      height: 100dvh;
+      padding: var(--nf-space-md) var(--nf-space-sm);
+    }
+    .nf-admin-main {
+      padding: 0 var(--nf-space-xl);
+    }
+    .nf-admin-bar {
+      min-height: 4rem;
+      margin-bottom: var(--nf-space-lg);
+      padding: var(--nf-space-sm) 0;
+      border-bottom: var(--nf-border-width) solid var(--nf-divider);
+    }
+  }
+  .nf-admin-rail__brand,
+  .nf-admin-rail__foot,
+  .nf-admin-nav__more {
+    border-color: var(--nf-divider);
+  }
+  .nf-admin-nav__children {
+    border-left-color: var(--nf-divider);
+  }
+  .nf-admin-nav__row {
+    position: relative;
+    border-radius: var(--nf-radius-control-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  @media (hover: hover) {
+    .nf-admin-nav__row:hover {
+      background: none;
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-admin-nav__row--on,
+  .nf-admin-nav__row--on:hover,
+  .nf-admin-nav__row--child.nf-admin-nav__row--on,
+  .nf-admin-nav__row--on:not(.nf-admin-nav__row--child) {
+    background: none;
+    border-color: transparent;
+    box-shadow: none;
+    font-weight: 600;
+    color: var(--nf-brand-primary);
+  }
+  .nf-admin-nav__row--on::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: 0.375rem;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    margin-top: -2px;
+    border-radius: 9999px;
+    background: var(--nf-brand-primary);
+  }
+  .nf-admin-nav__row--on .nf-admin-nav__count {
+    margin-inline-end: 0.5rem;
+  }
+  /* The console's badges take the platform's badge anatomy (spec 6): the
+     state hue as a quiet fill, the hue as ink, no rim and no glow. */
+  .nf-admin-badge {
+    min-width: 0;
+    min-height: 1.375rem;
+    border: 0;
+    border-radius: var(--nf-radius-badge);
+    background: color-mix(in oklab, var(--nf-admin-badge-hue) 14%, transparent);
+    box-shadow: none;
+    color: var(--nf-admin-badge-hue);
+  }
+  .nf-admin-badge--info {
+    --nf-admin-badge-hue: var(--nf-state-info);
+  }
+  .nf-admin-head__sub,
+  .nf-admin-page-head__lede {
+    color: var(--nf-content-muted);
+  }
+  .nf-admin-nav__count,
+  .nf-admin-nav__row--on .nf-admin-nav__count {
+    border-radius: var(--nf-radius-badge);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-primary);
+    font-weight: 600;
+  }
+}

@@ -1,4 +1,5 @@
 import { getDictionary } from "@vallo/i18n";
+import { PageHeader } from "@/components/app/PageHeader";
 import { PaymentMethodsPanel } from "@/components/app/payments/PaymentMethodsPanel";
 import { LogOutRow, SettingsHub } from "@/app/(app)/settings/SettingsHub";
 import { PERSON } from "../../_fixtures/people";
@@ -16,10 +17,7 @@ export default function SettingsPreview() {
   return (
     <div className="nf-shell pt-xl">
       <div className="mx-auto max-w-2xl">
-        <header className="nf-hub-head">
-          <h1 className="nf-hub-head__title">{t.nav.settings}</h1>
-          <p className="nf-hub-head__lede">{hub.ledeShort}</p>
-        </header>
+        <PageHeader variant="large" title={t.nav.settings} subtitle={hub.ledeShort} fallback="/preview/f4" />
         <div className="space-y-block">
           <SettingsHub
             t={t}

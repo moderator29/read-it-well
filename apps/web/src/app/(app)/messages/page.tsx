@@ -53,7 +53,7 @@ export default async function InboxPage() {
         <div className="mx-auto max-w-2xl">
           <div className="relative">
             <PageScene art="bot-chat" />
-            <PageHeader title="Inbox" />
+            <PageHeader variant="large" title="Inbox" />
           </div>
           <p className="nf-panel nf-panel--card nf-body p-card sm:p-cell text-center text-[var(--nf-content-muted)]">
             Messaging is paused for maintenance. Your conversations are stored on
@@ -99,7 +99,7 @@ export default async function InboxPage() {
     <div className="mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="bot-chat" />
-        <PageHeader title="Inbox" />
+        <PageHeader variant="large" title="Inbox" />
       </div>
       <InboxEmpty
         title="Sign in to see your messages"

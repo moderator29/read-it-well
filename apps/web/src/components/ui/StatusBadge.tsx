@@ -19,20 +19,61 @@ import { createElement, type ReactNode } from "react";
  *   live   announces an in-place change (a payment settling)
  *
  * Server-safe: nothing here holds state.
+ *
+ * FOUR KINDS (the clean unified sweep, 29 September 2026;
+ * `docs/design/CLEAN_UNIFIED_DIRECTION.md` section 6). The material is flat
+ * now: a tint of the hue and its ink, no ring, no lit edge, no halo.
+ *
+ *   kind   "badge" (default) a 12/600 word on the tint, 22px, 6px corner:
+ *          "Live", "Draft", "To rent"
+ *          "dot"    the badge with a 6px dot before the word:
+ *                   "Unpublished changes", "Needs more from you"
+ *          "status" a 6px dot and a 13px word with NO fill, for a row's
+ *                   trailing slot: "High", "Paid", "Awaiting reply"
+ *          "count"  a tabular number on the brand tint, at least 20 by 20:
+ *                   an unread "2" (the tone is ignored)
+ *
+ * Tones: success, pending (alias warning), error (alias danger), info,
+ * brand, neutral, and example (the `isDemo` disclosure: the neutral fill,
+ * the word "Example", never "demo" or "sample").
  */
-export type StatusBadgeTone = "success" | "pending" | "error" | "info" | "neutral";
+export type StatusBadgeTone =
+  | "success"
+  | "pending"
+  | "warning"
+  | "error"
+  | "danger"
+  | "info"
+  | "brand"
+  | "neutral"
+  | "example";
 export type StatusBadgeSize = "sm" | "md";
+export type StatusBadgeKind = "badge" | "dot" | "status" | "count";
 
 export function statusBadgeClass({
-  tone,
+  tone = "neutral",
   size = "sm",
+  kind = "badge",
   className,
 }: {
-  tone: StatusBadgeTone;
+  tone?: StatusBadgeTone;
   size?: StatusBadgeSize;
+  kind?: StatusBadgeKind;
   className?: string;
 }): string {
-  return ["nf-badge", `nf-badge--${tone}`, size === "md" ? "nf-badge--md" : "", className ?? ""]
+  if (kind === "status") {
+    return ["nf-status-dot", `nf-badge--${tone}`, className ?? ""].filter(Boolean).join(" ");
+  }
+  if (kind === "count") {
+    return ["nf-badge", "nf-badge--count", className ?? ""].filter(Boolean).join(" ");
+  }
+  return [
+    "nf-badge",
+    `nf-badge--${tone}`,
+    kind === "dot" ? "nf-badge--dot" : "",
+    size === "md" ? "nf-badge--md" : "",
+    className ?? "",
+  ]
     .filter(Boolean)
     .join(" ");
 }
@@ -40,12 +81,15 @@ export function statusBadgeClass({
 export function StatusBadge({
   tone,
   size,
+  kind,
   live = false,
   className,
   children,
 }: {
-  tone: StatusBadgeTone;
+  /** Required for every kind but `count`. */
+  tone?: StatusBadgeTone;
   size?: StatusBadgeSize;
+  kind?: StatusBadgeKind;
   live?: boolean;
   className?: string;
   children?: ReactNode;
@@ -54,7 +98,7 @@ export function StatusBadge({
      its server entry, can render it. */
   return createElement(
     "span",
-    { role: live ? "status" : undefined, className: statusBadgeClass({ tone, size, className }) },
+    { role: live ? "status" : undefined, className: statusBadgeClass({ tone, size, kind, className }) },
     children,
   );
 }

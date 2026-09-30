@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { markInboxRead } from "@/lib/messages/actions";
 import { archiveConversation, unarchiveConversation } from "@/lib/messages/archive";
-import { Chip } from "@/components/ui/Chip";
 import type { Side } from "@/lib/side.constants";
 import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -123,7 +122,12 @@ function Row({
   const preview = sharePreview(row.lastMessage) ?? row.lastMessage;
   return (
     <li className="flex items-center gap-3xs">
-      <Link href={`/messages/${row.id}`} data-testid="inbox-row" className="nf-inbox-row min-w-0 flex-1">
+      <Link
+        href={`/messages/${row.id}`}
+        data-testid="inbox-row"
+        data-unread={row.unread > 0 || undefined}
+        className="nf-inbox-row min-w-0 flex-1"
+      >
         {/* The avatar in the thread family's lit ring, carrying the verified
             mark: one mark per person per row, where the eye lands first. */}
         <span className="nf-inbox-row__ring">
@@ -136,9 +140,11 @@ function Row({
         </span>
 
         <span className="min-w-0 flex-1 leading-tight">
-          <span className={`block truncate ${TYPE.rowTitle}`}>{row.counterpartName}</span>
+          <span className={`block truncate ${TYPE.rowTitle} ${row.unread > 0 ? "font-semibold" : ""}`}>
+            {row.counterpartName}
+          </span>
           {row.listingTitle && (
-            <span className={`mt-3xs flex items-center gap-inline-tight ${TYPE.caption} text-[var(--nf-brand-secondary)]`}>
+            <span className={`nf-inbox-row__context mt-3xs flex items-center gap-inline-tight ${TYPE.caption}`}>
               {glyph && row.contextKind && (
                 <UiIcon name={glyph} size={16} className="shrink-0" label={row.contextKind} />
               )}
@@ -164,7 +170,7 @@ function Row({
         </span>
 
         <span className="flex shrink-0 flex-col items-end gap-inline-tight self-stretch">
-          <span className={`nf-numeric ${TYPE.caption}`}>{row.whenLabel}</span>
+          <span className="nf-inbox-row__when nf-numeric">{row.whenLabel}</span>
           {row.unread > 0 ? (
             <span className="nf-inbox-row__count" aria-label={`${row.unread} unread`}>
               {row.unread}
@@ -373,7 +379,9 @@ export function Inbox({
         something to mark, but it no longer moves the list when it goes.
       */}
       <PageHeader
+        variant="large"
         title="Inbox"
+        {...(unreadTotal > 0 ? { subtitle: `${unreadTotal} unread` } : {})}
         actions={
           <div className="flex shrink-0 items-center gap-inline">
             {canMarkRead && unreadTotal > 0 && (
@@ -382,9 +390,9 @@ export function Inbox({
                 onClick={markAllRead}
                 disabled={marking}
                 data-testid="inbox-mark-read"
-                className="nf-btn nf-btn--ghost nf-btn--sm disabled:opacity-60"
+                className="nf-link-quiet nf-body-sm inline-flex min-h-11 items-center px-xs font-medium text-[var(--nf-content-link)] disabled:opacity-60"
               >
-                {marking ? "Marking..." : `Mark all read (${unreadTotal})`}
+                {marking ? "Marking..." : "Mark all read"}
               </button>
             )}
             <Link
@@ -439,21 +447,29 @@ export function Inbox({
         />
       </div>
       <div className="mt-sm" data-testid="inbox-views">
-        <div role="radiogroup" aria-label={tabLabels.filterLabel} className="grid grid-cols-4 gap-2xs">
-          {VIEW_ORDER.map((key) => (
-            <Chip
-              key={key}
-              behaviour="choice"
-              selected={view === key}
-              onSelectedChange={() => setView(key)}
-              data-testid={`inbox-view-${key}`}
-              className="w-full min-w-0 justify-center px-2xs"
-            >
-              {key === "requests" ? tabLabels.requests : VIEW_LABEL[key]}
-              {key === "requests" && requests.length > 0 ? ` ${requests.length}` : ""}
-            </Chip>
-          ))}
-        </div>
+        {/* The four views as the quiet segmented control (plan item 19):
+            one track, the four words whole at 390 (a count beside "Requests"
+            cut the word, so the waiting requests are counted in a quiet line
+            under it). Radio semantics: it filters the list below. */}
+        <Segmented<View>
+          label={tabLabels.filterLabel}
+          semantics="radio"
+          variant="quiet"
+          size="sm"
+          full
+          options={VIEW_ORDER.map((key) => ({
+            value: key,
+            label: key === "requests" ? tabLabels.requests : VIEW_LABEL[key],
+          }))}
+          value={view}
+          onChange={setView}
+          itemIdPrefix="inbox-view"
+        />
+        {view !== "requests" && requests.length > 0 ? (
+          <p className="nf-caption mt-xs text-[var(--nf-content-muted)]" data-testid="inbox-requests-waiting">
+            <span className="nf-numeric">{requests.length}</span> waiting in {tabLabels.requests}
+          </p>
+        ) : null}
       </div>
 
       {archiveNote && (
@@ -484,7 +500,7 @@ export function Inbox({
         {shown.length > 0 ? (
           /* Hairline rows on the ground, not a card wrapping a divided list.
              One line between two conversations, nothing around either. */
-          <ul className="flex flex-col gap-3xs">
+          <ul className="nf-inbox-list">
             {shown.map((row) => (
               <Row
                 key={row.id}

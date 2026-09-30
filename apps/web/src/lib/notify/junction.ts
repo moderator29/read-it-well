@@ -115,7 +115,7 @@ export type Announcement = {
    * it early would mean either greeting nobody or greeting them by a name read
    * twice.
    */
-  email: ((contact: Contact) => EmailMessage) | null;
+  email: ((contact: Contact) => Pick<EmailMessage, "subject" | "html" | "text">) | null;
 };
 
 export type AnnounceResult = {

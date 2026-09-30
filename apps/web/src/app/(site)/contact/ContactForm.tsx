@@ -5,7 +5,6 @@ import Link from "next/link";
 import { submitContactForm } from "@/lib/support/actions";
 import { TicketFiledSheet } from "@/components/app/account/TicketFiledSheet";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
 import { SUPPORT_EMAIL, SUPPORT_MAILBOX } from "@/lib/support-email";
 import {
@@ -14,6 +13,8 @@ import {
   DEFAULT_CONTACT_TOPIC,
   type ContactTopic,
 } from "./topics";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The public contact form.
@@ -48,9 +49,9 @@ export function ContactForm({
       <div className="nf-panel nf-panel--card block p-card text-center" data-testid="contact-filed">
         {/* The success sheet, once, over the panel that keeps the reference. */}
         <TicketFiledSheet reference={state.data.reference} signedIn={Boolean(state.data.id)} />
-        <span className="mx-auto grid h-14 w-14 place-items-center">
-          <BrandIcon name="support-chat" fill />
-        </span>
+        <IconPlate size="md" className="mx-auto grid place-items-center">
+          <UiIcon name="headset" size={20} />
+        </IconPlate>
         <p className="mt-row text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
           Your message is with support
         </p>

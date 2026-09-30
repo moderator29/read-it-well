@@ -73,6 +73,7 @@ export default async function AdminOverviewPage({
         headingTo={safeDesk(params.next)}
         pulse={ok(pulse)}
         openReviews={counts.state === "ok" ? counts.data.listings : null}
+        queue={counts.state === "ok" ? counts.data : null}
         collected={ok(collected)}
         supply={ok(supply)}
         byRole={ok(byRole)}

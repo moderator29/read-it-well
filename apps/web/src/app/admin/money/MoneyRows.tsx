@@ -3,11 +3,12 @@ import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { AdminRead } from "@/lib/admin/queries";
 import type { RefundConsole, RefundState, RefundView } from "@/lib/admin/money-queries";
 import type { StatusTone } from "@/components/ui/StatusPill";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
 import type { AdminUi } from "../_components/ui";
 import { CalmNote } from "../_components/panels";
 import { fill } from "../_components/copy";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The money desk's rows and the refund console, out of the page so the
@@ -35,9 +36,10 @@ export function RefundRow({
   const state = { label: c.refundState[refund.state], tone: REFUND_TONE[refund.state] };
   return (
     <li className="flex flex-wrap items-baseline gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
-      {/* The row's glass object, small: money going back to a person. The
-          render carries one per row and this is the row's subject in a mark. */}
-      <BrandIcon name="payment-received" size={24} className="mt-3xs shrink-0" />
+      {/* The row's plated glyph: money going back to a person. */}
+      <IconPlate size="sm" className="shrink-0 self-center">
+        <UiIcon name="hand-coins" size={20} />
+      </IconPlate>
       <span className="min-w-0 flex-1">
         <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
           {refund.guestName ?? c.noDisplayName}

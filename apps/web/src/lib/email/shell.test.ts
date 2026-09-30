@@ -322,7 +322,13 @@ describe("one palette, and the auth generator has not drifted from it", () => {
       /* The light block may also name a light island inside the dark header
          (`:root[data-theme="light"] [data-theme="light"]`), so it opens with
          either its own selector or that pair. */
-      const start = [':root[data-theme="light"] {', ':root[data-theme="light"],\n:root[data-theme="light"] [data-theme="light"] {']
+      const start = [
+        ':root[data-theme="light"] {',
+        ':root[data-theme="light"],\n:root[data-theme="light"] [data-theme="light"] {',
+        /* Since the clean unified sweep the list goes on to the header and
+           workspace bar on paper (spec section 16, Q1). */
+        ':root[data-theme="light"],\n:root[data-theme="light"] [data-theme="light"],\n',
+      ]
         .map((marker) => tokens.indexOf(marker))
         .filter((at) => at >= 0)
         .reduce((a, b) => Math.min(a, b), Number.POSITIVE_INFINITY);

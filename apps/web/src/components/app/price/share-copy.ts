@@ -32,6 +32,7 @@ export function shareCardCopy(t: Dictionary): ShareCardCopy {
     perProperty: t.priceCheck.result.perProperty,
     basis: share.cardBasis,
     basisNoDate: share.cardBasisNoDate,
+    meterWord: share.cardMeterWord,
     typeNames: {
       apartment: share.typeApartmentPlural,
       home: share.typeHomePlural,

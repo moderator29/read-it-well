@@ -100,7 +100,7 @@ function RowGlyph({
   return (
     <span className="nf-srow__icon" aria-hidden="true">
       {mark ? (
-        <IconPlate size="sm" tone={danger ? "error" : "brand"}>
+        <IconPlate size="sm" tone={danger ? "danger" : "neutral"}>
           {mark}
         </IconPlate>
       ) : null}

@@ -1,12 +1,15 @@
 import { Amount } from "@/components/ui/Amount";
+import { ShareCardFrame } from "@/components/share/ShareCardFrame";
+import { CONFIDENCE_FILL } from "@/lib/ui/meter";
 import { EmptyState } from "@/components/app/Screen";
 import { TYPE } from "@/components/app/Screen";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { Locale } from "@vallo/i18n/core";
 import { COMPARABLES_LEAD, PRICE_CHECK_DISCLAIMER } from "@/lib/price-check/disclaimer";
 import type { PriceCheckResult } from "@/lib/price-check/gate";
 import { REFUSALS, type RefusalCode } from "@/lib/price-check/refusals";
 import type { Comparable } from "@/lib/price-check/types";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * THE RESULT SURFACE: a figure, or a refusal, and never both.
@@ -64,16 +67,6 @@ function fill(template: string, values: Record<string, string | number>): string
 }
 
 /** "quite", "fairly", "not very". Never a percentage: that would be invented. */
-/* The confidence reads on the shared status badge (SW-C6 / R-SH3): one blue,
-   three weights, as the price check has always drawn it. High is the lit
-   brand fill with the cyan word, medium the brand fill with the pale word,
-   low the neutral badge. */
-const CONFIDENCE_TONE: Record<"low" | "medium" | "high", string> = {
-  high: "nf-badge--info",
-  medium: "nf-badge--brand",
-  low: "nf-badge--neutral",
-};
-
 function confidenceWord(band: "low" | "medium" | "high", copy: ResultCopy): string {
   if (band === "high") return copy.confidenceHigh;
   if (band === "medium") return copy.confidenceMedium;
@@ -93,45 +86,46 @@ export function AnsweredResult({
 }) {
   const months = Math.max(1, Math.round(result.medianAgeDays / 30));
 
+  /*
+   * THE SHARE CARD FRAME (spec section 10, reference 33). The range is the
+   * figure, low and high at one size (see the header). The meter pictures the
+   * confidence BAND the database computed as three, six or nine bars, always
+   * in the one blue (the band is not good or bad news, so it is never green,
+   * amber and red), and its word is the band's own word: no percentage is
+   * printed because none was computed. The basis sentence is the first
+   * checklist line, always present, never behind a tap.
+   */
+  const basis = fill(copy.basis, {
+    count: result.comparableCount,
+    radius: result.radiusM,
+    months,
+  });
+
   return (
     <div>
-      <p className={TYPE.label}>{copy.askingRange}</p>
-
-      {/* All three at one size. See the header. */}
-      <p className="nf-pc-range mt-inline">
-        <Amount minorUnits={result.lowMinor} locale={locale} glance className="nf-h1" />
-        <span className="nf-pc-range__join nf-h3">to</span>
-        <Amount minorUnits={result.highMinor} locale={locale} glance className="nf-h1" />
-        <span className="nf-pc-range__suffix nf-body-sm">
-          {intent === "rent" ? copy.perYear : copy.perProperty}
-        </span>
-      </p>
-
-      {/* ALWAYS PRESENT, NEVER BEHIND A TAP. The sentence that says how thin
-          the evidence is has to be as easy to read as the figure it qualifies. */}
-      <p className="nf-pc-basis nf-body-sm">
-        {fill(copy.basis, {
-          count: result.comparableCount,
-          radius: result.radiusM,
-          months,
-        })}
-      </p>
-
-      <p className="mt-block flex items-center gap-inline">
-        <span className="nf-body-sm text-[var(--nf-content-muted)]">{copy.confidence}</span>
-        <span className={`nf-badge ${CONFIDENCE_TONE[result.confidence]} nf-pc-confidence nf-body-sm`}>
-          {confidenceWord(result.confidence, copy)}
-        </span>
-      </p>
-      <p className="mt-inline-tight nf-caption text-[var(--nf-content-muted)]">
-        {copy.confidenceBody}
-      </p>
-
-      {result.sizedShortfall && (
-        <p className="mt-block nf-body-sm text-[var(--nf-content-secondary)]">
-          {copy.sizedShortfall}
-        </p>
-      )}
+      <ShareCardFrame
+        testId="price-check-card"
+        title={copy.askingRange}
+        figureSize="lg"
+        figure={
+          <span className="nf-pc-range">
+            <Amount minorUnits={result.lowMinor} locale={locale} glance />
+            <span className="nf-pc-range__join">to</span>
+            <Amount minorUnits={result.highMinor} locale={locale} glance />
+          </span>
+        }
+        figureUnit={intent === "rent" ? copy.perYear : copy.perProperty}
+        meter={{
+          filled: CONFIDENCE_FILL[result.confidence],
+          word: `${copy.confidence}: ${confidenceWord(result.confidence, copy)}`,
+          level: "high",
+        }}
+        checks={[
+          { tone: "success", label: basis },
+          ...(result.sizedShortfall ? [{ tone: "warning" as const, label: copy.sizedShortfall }] : []),
+        ]}
+        honest={copy.confidenceBody}
+      />
 
       <Disclaimer />
     </div>
@@ -291,8 +285,8 @@ export function ComparablesRail({
 /** The mark beside a heading, kept here so the screen files stay about layout. */
 export function PriceCheckMark() {
   return (
-    <span className="block h-12 w-12">
-      <BrandIcon name="naira-coins" fill />
-    </span>
+    <IconPlate size="md" tone="brand">
+      <UiIcon name="coins" size={20} />
+    </IconPlate>
   );
 }

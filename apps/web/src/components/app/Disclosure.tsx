@@ -40,6 +40,14 @@ import { ICON, TYPE } from "./Screen";
  * plate behind its chevron: a hairline above and below where it sits in a run,
  * the label at row-title size, an optional count in the muted tone, and a
  * chevron. It is a full-width target well past 44px tall.
+ *
+ * INLINE (plan item 30, 29 September 2026): `inline` opens the content in
+ * place instead of in a sheet, for settings sub-sections, the host wizard's
+ * sections and anything short enough to read where it sits. It is a native
+ * `<details>` with the one disclosure motion in `app/css/list-group.css`
+ * (`.nf-disclosure`): the panel grows and fades in over 240ms while the
+ * chevron turns, and it is instant under reduced motion, Calm and Off. The
+ * landing FAQ takes the same classes.
  */
 export function Disclosure({
   label,
@@ -48,6 +56,8 @@ export function Disclosure({
   children,
   footer,
   detents,
+  inline = false,
+  defaultOpen = false,
   "data-testid": testId,
 }: {
   /** What is behind this. A noun phrase, e.g. "The full move-in breakdown". */
@@ -59,9 +69,31 @@ export function Disclosure({
   children: ReactNode;
   footer?: ReactNode;
   detents?: number[];
+  /** Open in place (a `<details>`) rather than in a sheet. */
+  inline?: boolean;
+  /** Inline only: start open. */
+  defaultOpen?: boolean;
   "data-testid"?: string;
 }) {
   const [open, setOpen] = useState(false);
+
+  if (inline) {
+    return (
+      <details className="nf-disclosure" open={defaultOpen || undefined} data-testid={testId}>
+        <summary>
+          <span className="nf-disclosure__label">
+            <span className={`block ${TYPE.rowTitle}`}>{title ?? label}</span>
+            {hint && <span className="nf-disclosure__hint">{hint}</span>}
+          </span>
+          <UiIcon name="chevron-down" size={ICON.row} className="nf-disclosure__chevron" />
+        </summary>
+        <div className="nf-disclosure__panel">
+          {children}
+          {footer}
+        </div>
+      </details>
+    );
+  }
 
   return (
     <>

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * The five category tiles of FD3DFE84, each a glass square with its object.
@@ -37,9 +39,9 @@ export function StayCategoryTiles({ t, active }: { t: Dictionary; active?: strin
               aria-current={on ? "true" : undefined}
               className={panelClass({ variant: "card", className: `nf-stays-tile ${on ? "nf-stays-tile--on" : ""}` })}
             >
-              <span className="nf-stays-tile__object" aria-hidden="true">
-                <BrandIcon name={tile.icon} fill drawn={32} />
-              </span>
+              <IconPlate size="sm" className="nf-stays-tile__object">
+                <UiIcon name={lineGlyphFor(tile.icon)} size={20} />
+              </IconPlate>
               <span>{copy[tile.key]}</span>
               <UiIcon name="arrow-right" size={16} className="nf-stays-tile__go" aria-hidden />
             </Link>

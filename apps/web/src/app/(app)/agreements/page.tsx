@@ -30,7 +30,7 @@ export default async function AgreementsPage() {
           <p className={TYPE.body}>Your agreements could not be read just now. Refresh to try again.</p>
         ) : rows.length === 0 ? (
           <EmptyState
-            icon="card-lock"
+            icon="contract-sign"
             title="No agreements yet"
             body="An agreement is drawn up after an inspection report is submitted, or when a host accepts your stay."
           />

@@ -121,3 +121,23 @@ export const CHART_INK = {
   axis: "var(--nf-chart-axis, var(--nf-border-default))",
   track: "var(--nf-chart-track, var(--nf-well-fill))",
 } as const;
+
+/**
+ * THE CLEAN UNIFIED TONES (29 September 2026): the fills a segmented bar
+ * (`StatusBar`) and the pipeline gauge (`Gauge`) paint a part with, by
+ * meaning. Every one is a role; `neutral` is the muted ink, for the part
+ * that carries no severity ("low", "draft").
+ */
+export type ChartTone = "brand" | "success" | "warning" | "error" | "info" | "neutral";
+
+export const TONE_FILL: Record<ChartTone, string> = {
+  brand: "var(--nf-brand-primary)",
+  success: "var(--nf-state-success)",
+  warning: "var(--nf-state-warning)",
+  error: "var(--nf-state-error)",
+  info: "var(--nf-state-info)",
+  neutral: "var(--nf-content-muted)",
+};
+
+/** The unlit tick or empty track in both themes. */
+export const TRACK_FILL = "var(--nf-surface-raised)";

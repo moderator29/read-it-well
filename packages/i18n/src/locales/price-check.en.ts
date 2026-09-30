@@ -310,6 +310,13 @@ export const priceCheckEn = {
     cardRange: "Asking {low} to {high} {period}",
     cardBasis: "Based on {count} Vallo listings, {month}",
     cardBasisNoDate: "Based on {count} Vallo listings",
+    /* The share card frame (spec section 10): the chip, the word beside the
+       meter (one bar per listing, so the word is the count itself), and the
+       stat strip's labels. A card always has at least three listings. */
+    cardChip: "Price Check",
+    cardMeterWord: "{count} listings",
+    cardStatListings: "Listings",
+    cardStatMonth: "Made",
     typeApartmentPlural: "flats",
     typeHomePlural: "houses",
     typeShopPlural: "shops",

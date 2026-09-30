@@ -4,7 +4,6 @@ import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { readHostBookings, type HostBookingBoard } from "@/lib/agent/bookings-queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { BookingsWorkspace } from "./BookingsWorkspace";
 import { ReservationsBoard } from "./ReservationsBoard";
@@ -14,6 +13,8 @@ import {
 } from "@/lib/agent/reservations-queries";
 import { ButtonLink } from "@/components/ui/Button";
 import { ListerTenancies } from "@/components/app/tenancy/ListerTenancies";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -55,9 +56,9 @@ export default async function Page() {
     return (
       <AgentShell t={t} locale={locale} active="/agent/bookings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
-          <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="calendar-check" fill />
-          </span>
+          <IconPlate size="lg">
+            <UiIcon name="calendar-check" size={24} />
+          </IconPlate>
           <h1 className="nf-h2 mt-5">{t.agentBookings.title}</h1>
           <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {t.agentBookings.unconfigured}

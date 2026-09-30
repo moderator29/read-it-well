@@ -4,6 +4,10 @@ import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { motionQuiet } from "@/lib/motion/gate";
 
 /**
+ * THE ONE REVEAL (UIUX item 25). `components/site/Reveal.tsx` is a
+ * re-export of this, so the landing and the app no longer ship two reveal
+ * systems with different offsets and delays.
+ *
  * The Track M section reveal: rise 16px and fade, 520ms entrance, with the
  * direct children of a `stagger` reveal arriving 60ms apart (six steps at most,
  * app/css/motion-kit.css). The timing table in docs/TRACK_M_MOTION_PLAN.md is
@@ -19,10 +23,14 @@ import { motionQuiet } from "@/lib/motion/gate";
  *
  * Reduced motion: never hidden, never animated.
  */
+/** The latest a reveal may start after its trigger: the sixth stagger step. */
+export const REVEAL_DELAY_CAP = 300;
+
 export function MotionReveal({
   children,
   as: Tag = "div",
   stagger = false,
+  delay = 0,
   className,
   style,
   id,
@@ -33,6 +41,14 @@ export function MotionReveal({
   as?: "div" | "section" | "ul" | "ol" | "li" | "dl";
   /** Stagger the direct children 60ms apart instead of moving as one. */
   stagger?: boolean;
+  /**
+   * A sibling's offset in milliseconds, for a list of separate reveals.
+   * CAPPED AT THE SIXTH STEP (300ms), the same ceiling the stagger has, so a
+   * long list never makes its tenth item wait half a second; the rest arrive
+   * with the sixth. This is the prop `components/site/Reveal.tsx` used to
+   * take with no cap (`i * 40` on eight category tiles).
+   */
+  delay?: number;
   className?: string;
   style?: CSSProperties;
   id?: string;
@@ -71,17 +87,23 @@ export function MotionReveal({
       { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      /* Never leave a block hidden with nothing watching it: a re-run of this
+         effect decides afresh from where the block is now. */
+      if (el.dataset.reveal === "out") delete el.dataset.reveal;
+    };
   }, []);
 
   const Comp = Tag as "div";
+  const wait = Math.min(Math.max(delay, 0), REVEAL_DELAY_CAP);
   return (
     <Comp
       ref={ref as React.Ref<HTMLDivElement>}
       id={id}
       aria-labelledby={labelledBy}
       aria-label={label}
-      style={style}
+      style={wait > 0 ? { ...style, animationDelay: `${wait}ms` } : style}
       className={[stagger ? "nf-m-stagger" : "nf-m-reveal", className ?? ""].join(" ").trim()}
     >
       {children}

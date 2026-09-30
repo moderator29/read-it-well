@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
 
 /**
@@ -37,6 +39,8 @@ export type HomeCategory = {
   meaning?: string;
   href: string;
   icon: BrandIconName;
+  /** The line glyph for the flat plate (`variant="plates"`). */
+  glyph?: UiIconName;
   /** Fetch the page whole before the tap (`WholePrefetchLink`); for light pages only. */
   whole?: boolean;
 };
@@ -45,13 +49,42 @@ export function CategoryRow({
   categories,
   label,
   columns = 4,
+  variant = "tiles",
 }: {
   categories: readonly HomeCategory[];
   /** The accessible name of the row, because it is navigation. */
   label: string;
   /** Four across on the property side, two across on the Stays side. */
   columns?: 2 | 4;
+  /**
+   * "plates" (UIUX item 15; spec section 4): the doors as 44px neutral icon
+   * plates with their words, a row in ONE white card, flat in both themes.
+   * "tiles" is the older glass-object card per door, kept for the Stays
+   * side until it moves too.
+   */
+  variant?: "tiles" | "plates";
 }) {
+  if (variant === "plates") {
+    return (
+      <nav aria-label={label} className="nf-rise nf-rise-4 mt-md">
+        <ul className="nf-home-doors" data-columns={columns} data-testid="home-categories">
+          {categories.map((category) => {
+            const Door = category.whole ? WholePrefetchLink : Link;
+            return (
+              <li key={category.key} className="min-w-0">
+                <Door href={category.href} className="nf-home-door" data-testid={`home-category-${category.key}`}>
+                  <IconPlate size="md" tone="neutral">
+                    <UiIcon name={category.glyph ?? "home"} size={ICON_PLATE_GLYPH.md} />
+                  </IconPlate>
+                  <span className="nf-home-door__label">{category.label}</span>
+                </Door>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    );
+  }
   return (
     <nav aria-label={label} className="nf-rise nf-rise-4 mt-md">
       <ul className="nf-cat-row" data-columns={columns} data-testid="home-categories">

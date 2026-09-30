@@ -2,7 +2,6 @@ import Link from "next/link";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { TicketAttachment, TicketDetail } from "@/lib/support/my-tickets";
 import {
@@ -16,8 +15,17 @@ import {
   summariseThread,
   type TicketMessage,
 } from "@/lib/support/tickets";
+import { StatusTrack } from "@/components/app/status/StatusTrack";
+import { ticketTrack, type TicketStepKey } from "@/components/app/status/tracks";
 import { ReplyBox } from "./ReplyBox";
 import { RateResolution, ReopenTicket, ResolveButton } from "./TicketActions";
+import { IconPlate } from "@/components/ui/IconPlate";
+
+const TICKET_STEP: Record<TicketStepKey, (status: string) => string> = {
+  filed: () => "Filed",
+  picked: () => "Picked up",
+  resolved: (status) => (status === "closed" ? "Closed" : "Resolved"),
+};
 
 function stamp(iso: string, locale: Locale): string {
   return formatDate(new Date(iso), locale, {
@@ -90,9 +98,9 @@ function Bubble({
   return (
     <li className="flex flex-col items-start gap-3xs" data-testid="support-reply-admin">
       <div className="flex max-w-[85%] items-end gap-row">
-        <span className="h-6.5 w-6.5 shrink-0" aria-hidden="true">
-          <BrandIcon name="support-chat" fill />
-        </span>
+        <IconPlate size="sm" className="shrink-0">
+          <UiIcon name="headset" size={20} />
+        </IconPlate>
         <div className="min-w-0 rounded-2xl rounded-bl-md border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-xs">
           <p className="nf-body-sm whitespace-pre-wrap break-words leading-relaxed text-[var(--nf-content-primary)]">
             {message.body}
@@ -164,6 +172,24 @@ export function TicketThreadView({
             </span>
           </div>
           <p className="nf-body-sm mt-row text-[var(--nf-content-secondary)]">{state.meaning}</p>
+          {/* Where it stands, on the shared status track (spec section 14):
+              filed, picked up (dated by the team's first reply), resolved. */}
+          <StatusTrack
+            className="mt-block"
+            label="Support progress"
+            testId="support-track"
+            steps={ticketTrack({
+              status: ticket.status,
+              createdAt: ticket.createdAt,
+              firstStaffReplyAt: thread.find((m) => m.senderRole === "admin")?.createdAt ?? null,
+              resolvedAt: ticket.resolvedAt,
+            }).map((step) => ({
+              key: step.key,
+              label: TICKET_STEP[step.key](ticket.status),
+              when: step.at ? stamp(step.at, locale) : null,
+              state: step.state,
+            }))}
+          />
           {replyable && summary.supportSpokeLast === false && (
             <p className="nf-caption mt-row flex items-center gap-inline text-[var(--nf-content-muted)]">
               <UiIcon name="history" size={16} className="shrink-0" />

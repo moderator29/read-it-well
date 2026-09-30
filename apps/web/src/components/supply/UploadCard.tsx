@@ -2,10 +2,12 @@
 
 import { useId, useRef, useState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
 import { createClient } from "@/lib/supabase/client";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * ONE OF THE BIG UPLOAD CARDS ON `GOVERNING-04` SCREEN TWO AND `GOVERNING-05`
@@ -136,9 +138,9 @@ export function UploadCard({
         data-on={value ? true : undefined}
         aria-describedby={`${inputId}-state`}
       >
-        <span className="nf-door__mark" aria-hidden="true">
-          <BrandIcon name={object} size={40} />
-        </span>
+        <IconPlate size="md" tone={value ? "success" : "neutral"} className="nf-door__mark">
+          <UiIcon name={lineGlyphFor(object)} size={20} />
+        </IconPlate>
         <span className="min-w-0 flex-1 text-left">
           <span className={`block ${TYPE.rowTitle}`}>{title}</span>
           <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{body}</span>

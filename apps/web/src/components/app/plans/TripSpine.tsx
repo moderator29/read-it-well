@@ -5,7 +5,6 @@ import { Disclosure } from "@/components/app/Disclosure";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { iconPlateClass } from "@/components/ui/IconPlate";
 import type { BookingView } from "@/lib/bookings/queries";
 import type { ReservationView } from "@/lib/reservations/queries";
@@ -252,11 +251,9 @@ function SpineRow({
           {item.photo ? (
             <Image src={item.photo} alt="" fill sizes="56px" className="object-cover" />
           ) : (
-            /* A table has no photograph of its own; the glass object says
-               what kind of trip this is rather than leaving a dark tile. */
-            <span className="block h-9 w-9" aria-hidden="true">
-              <BrandIcon name={item.kind === "table" ? "concierge-bell" : "hotel-room"} fill tile={false} />
-            </span>
+            /* A table has no photograph of its own; the glyph says what
+               kind of trip this is rather than leaving a blank tile. */
+            <UiIcon name={item.kind === "table" ? "concierge-bell" : "bed"} size={24} />
           )}
         </span>
 

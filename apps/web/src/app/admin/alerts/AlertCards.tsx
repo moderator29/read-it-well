@@ -1,5 +1,4 @@
 import type { AlertView } from "@/lib/admin/queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { AlertResolve } from "../_components/AdminActions";
 import { ConsiderStr } from "../_components/ConsiderStr";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
@@ -11,6 +10,8 @@ import { Constants } from "@/lib/supabase/database.types";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { gradeForSeverity } from "@/lib/trust/standards";
 import { dueChip } from "../_components/due";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The alerts desk's cards, out of the page so the preview harness draws the
@@ -69,10 +70,12 @@ export function AlertCard({
         </span>
       </div>
 
-      {/* The row's glass object, small, as the render shows one per row. A
-          risk alert is the warning mark; it is an ornament here, so no tile. */}
+      {/* The row's plated glyph, as the render shows one per row. A risk
+          alert is the warning mark, in the warning tone. */}
       <h3 className="mt-xs flex items-center gap-inline text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        <BrandIcon name="alert-triangle" size={24} />
+        <IconPlate size="sm" tone="warning">
+          <UiIcon name="alert-triangle" size={20} />
+        </IconPlate>
         <span className="min-w-0">{alert.title}</span>
       </h3>
       {alert.description && (
@@ -138,7 +141,9 @@ export function DriftCard({
       {/* Drift is a disagreement about a calendar, so the calendar clock is
           its object rather than the general warning mark. */}
       <h3 className="mt-xs flex items-center gap-inline text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        <BrandIcon name="calendar-clock" size={24} />
+        <IconPlate size="sm">
+          <UiIcon name="calendar-clock" size={20} />
+        </IconPlate>
         <span className="min-w-0">{alert.title}</span>
       </h3>
       {alert.description && (

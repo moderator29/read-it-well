@@ -75,3 +75,74 @@ export function markNavTo(href: string, fromChrome = false): void {
   if (url.origin !== window.location.origin) return;
   markNav(navDirection(window.location.pathname, url.pathname, fromChrome));
 }
+
+/*
+ * THE IN-APP BACK SLIDES BACK TOO.
+ *
+ * React only animates a navigation it runs as a transition, and a history
+ * traversal is not one: the App Router answers `popstate` synchronously (so
+ * the browser can restore the scroll position), and no view transition
+ * starts. Measured on the dev server, the browser's back button produced
+ * none at all.
+ *
+ * The back arrow (BackControl) and the Android back button (NativeRuntime)
+ * both go through `performBack`, and there the traversal is ours to start. So
+ * it starts inside a view transition of its own: the browser captures the
+ * page as it is, the traversal runs, and the update resolves once the router
+ * has committed (the `popstate` has fired and React has painted) or after a
+ * short ceiling, so a route that is not cached never holds the screen. The
+ * `nf-back` type selects the backwards slide in route-motion.css; the page is
+ * not wrapped in named groups here, so it moves as the root snapshot while
+ * the named chrome stays still.
+ *
+ * The browser's own back button and a swipe on iOS keep the browser's own
+ * behaviour, which on iOS is already an animation of its own.
+ */
+const BACK_CEILING_MS = 350;
+const AFTER_COMMIT_MS = 32;
+
+type TypedTransitionDoc = Document & {
+  startViewTransition?: (options: { update: () => Promise<void>; types: string[] }) => unknown;
+};
+
+function typedTransitionsSupported(): boolean {
+  try {
+    return CSS.supports("selector(:active-view-transition-type(a))");
+  } catch {
+    return false;
+  }
+}
+
+export function animateBack(go: () => void): void {
+  const doc = document as TypedTransitionDoc;
+  const root = document.documentElement;
+  const off = root.dataset.motion === "off";
+  let reduce = false;
+  try {
+    reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    reduce = true;
+  }
+  if (off || reduce || typeof doc.startViewTransition !== "function" || !typedTransitionsSupported()) {
+    go();
+    return;
+  }
+  markNav("back");
+  doc.startViewTransition({
+    types: ["nf-back"],
+    update: () =>
+      new Promise<void>((resolve) => {
+        let settled = false;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          window.removeEventListener("popstate", onPop);
+          resolve();
+        };
+        const onPop = () => window.setTimeout(finish, AFTER_COMMIT_MS);
+        window.addEventListener("popstate", onPop);
+        window.setTimeout(finish, BACK_CEILING_MS);
+        go();
+      }),
+  });
+}

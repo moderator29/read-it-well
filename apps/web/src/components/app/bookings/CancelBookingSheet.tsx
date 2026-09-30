@@ -9,6 +9,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { TYPE } from "@/components/app/Screen";
+import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
 
 /**
  * CANCELLING A STAY. ONE DEFINITION, BOTH SURFACES.
@@ -57,25 +58,18 @@ export function CancelBookingSheet({
         if (!next) onClose();
       }}
       title="Cancel this booking?"
-      /* The success state speaks for itself; the title stays on as the sheet's
-         accessible name. */
-      hideTitle={cancelled}
+      /* The success state speaks for itself and the confirm panel carries its
+         own title; the title stays on as the sheet's accessible name. */
+      hideTitle
+      /* Cancelled: one Done under the result. Still asking: the confirm panel
+         (plan item 22) carries its own foot, with the same form, the same
+         hidden field and the same `cancel` action as before. */
       footer={
         cancelled ? (
           <Button variant="primary" full onClick={onClose}>
             Done
           </Button>
-        ) : (
-          <form action={formAction} className="grid gap-sm">
-            <input type="hidden" name="bookingId" value={booking.id} />
-            <Button type="submit" variant="primary" full loading={pending}>
-              Yes, cancel the booking
-            </Button>
-            <Button variant="secondary" full onClick={onClose}>
-              Keep my booking
-            </Button>
-          </form>
-        )
+        ) : undefined
       }
     >
       {cancelled ? (
@@ -89,24 +83,32 @@ export function CancelBookingSheet({
           </p>
         </div>
       ) : (
-        <>
-          <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-            {booking.title}, {booking.dateRange}. This releases your dates and cannot be
-            undone.
-          </p>
-
-          {state && !state.ok && (
-            /* A cancellation that was refused is a failure, and it was drawn
-               in the pending colour on a neutral surface, which is the same
-               defect the wallet's own banner had. */
-            <p
-              role="alert"
-              className="nf-panel nf-panel--card mt-row block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] p-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
-            >
-              {state.error}
-            </p>
-          )}
-        </>
+        <ConfirmPanel
+          icon="calendar-booking"
+          tone="error"
+          title="Cancel this booking?"
+          context="This releases your dates and cannot be undone."
+          summary={[
+            { label: "Stay", value: booking.title },
+            { label: "Dates", value: booking.dateRange },
+            { label: "Total", value: booking.totalDisplay },
+          ]}
+          next={[{ icon: "calendar-check", text: "Your dates are released at once." }]}
+          error={state && !state.ok ? state.error : null}
+          cancel={
+            <Button variant="secondary" onClick={onClose}>
+              Keep my booking
+            </Button>
+          }
+          primary={
+            <form action={formAction}>
+              <input type="hidden" name="bookingId" value={booking.id} />
+              <Button type="submit" variant="primary" loading={pending}>
+                Yes, cancel the booking
+              </Button>
+            </form>
+          }
+        />
       )}
     </Sheet>
   );

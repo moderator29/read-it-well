@@ -444,6 +444,8 @@ run("agreement confirmed", () => {
     try {
       await ok.page.getByRole("checkbox").check();
       await ok.page.getByRole("button", { name: "Confirm these terms" }).click();
+      /* The confirm panel (plan item 22): the same call, from its primary. */
+      await ok.page.getByRole("dialog").getByRole("button", { name: "Confirm these terms" }).click();
       await ok.page.waitForFunction(() =>
         ((window as unknown as { __router?: { calls: unknown[][] } }).__router?.calls ?? []).some((c) => c[0] === "replace"),
       );
@@ -455,6 +457,7 @@ run("agreement confirmed", () => {
     try {
       await refused.page.getByRole("checkbox").check();
       await refused.page.getByRole("button", { name: "Confirm these terms" }).click();
+      await refused.page.getByRole("dialog").getByRole("button", { name: "Confirm these terms" }).click();
       await refused.page.getByText("These terms changed.").waitFor();
       expect((await routerCalls(refused.page)).filter((c) => c[0] === "replace")).toEqual([]);
     } finally {
@@ -524,6 +527,8 @@ run("refund requested", () => {
     const { page, close } = await mountInBrowser({ entry: REFUND, actions: { requestRefund: `async () => ({ ok: true, data: null })` } });
     try {
       await page.getByTestId("refund-request").evaluate((form) => (form as HTMLFormElement).requestSubmit());
+      /* The confirm panel (plan item 22) files the same ask from its primary. */
+      await page.getByRole("dialog").getByRole("button", { name: "Ask for a refund" }).click();
       await sheetOpens(page, "Refund requested");
       expect((await routerCalls(page)).filter((c) => c[0] === "refresh")).toEqual([]);
       await page.getByTestId("success-primary").click();
@@ -539,6 +544,8 @@ run("refund requested", () => {
     const { page, close } = await mountInBrowser({ entry: REFUND, actions: { requestRefund: `async () => ({ ok: false, error: "This stay has not been paid." })` } });
     try {
       await page.getByTestId("refund-request").evaluate((form) => (form as HTMLFormElement).requestSubmit());
+      /* The confirm panel (plan item 22) files the same ask from its primary. */
+      await page.getByRole("dialog").getByRole("button", { name: "Ask for a refund" }).click();
       await page.getByText("This stay has not been paid.").waitFor();
       await noSheet(page);
     } finally {

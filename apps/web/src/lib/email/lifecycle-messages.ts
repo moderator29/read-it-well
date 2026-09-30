@@ -1,6 +1,6 @@
 import { countOf } from "@vallo/i18n/core";
 import { OFF_PLATFORM_SENTENCE } from "../money/copy";
-import { appUrl, button, compose, heading, hello, money, note, paragraph, prettyDate, rows, type Block } from "./render";
+import { appUrl, button, clip, compose, fitSubject, heading, hello, money, note, paragraph, quoteLine, prettyDate, rows, type Block } from "./render";
 import type { EmailMessage } from "./messages";
 
 /**
@@ -29,8 +29,8 @@ function message(
   footer: string,
   footerLink?: { label: string; href: string },
 ): EmailMessage {
-  const { html, text } = compose({ preheader, blocks, footerLines: [footer], footerLink });
-  return { subject, html, text };
+  const composed = compose({ preheader, blocks, footerLines: [footer], footerLink });
+  return { subject, preheader: composed.preheader, html: composed.html, text: composed.text };
 }
 
 const BOOKINGS_SWITCH = { label: "Change what Vallo emails you", href: appUrl("/settings/notifications") };
@@ -55,10 +55,10 @@ const when = (data: InspectionChangeData) =>
 export function inspectionProposed(data: InspectionChangeData): EmailMessage {
   const at = when(data);
   return message(
-    `Another time offered to view ${data.listingTitle}`,
-    "The lister cannot do the time you asked for and has offered another.",
+    fitSubject("New viewing time offered", data.listingTitle),
+    at ? `The lister offered ${at} instead. Accept it in the app.` : "The lister offered another time. Accept it in the app.",
     [
-      heading("Another time is on offer"),
+      heading("New viewing time offered"),
       paragraph(
         `${hello(data.name)} The lister of ${data.listingTitle} cannot do the time you asked for and has offered another. Accept it in the app, or reply in the conversation to find one that suits you both.`,
       ),
@@ -77,8 +77,8 @@ export function inspectionProposed(data: InspectionChangeData): EmailMessage {
 /** The lister declined. To the person who asked. */
 export function inspectionDeclined(data: InspectionChangeData): EmailMessage {
   return message(
-    `Your viewing of ${data.listingTitle} was declined`,
-    "The lister cannot show the property at that time.",
+    fitSubject("Viewing declined", data.listingTitle),
+    data.note ? quoteLine("The lister said", data.note) : "The lister cannot show it at that time. Nothing was charged.",
     [
       heading("Viewing declined"),
       paragraph(
@@ -97,8 +97,8 @@ export function inspectionDeclined(data: InspectionChangeData): EmailMessage {
 export function inspectionWithdrawn(data: InspectionChangeData): EmailMessage {
   const at = when(data);
   return message(
-    `A viewing of ${data.listingTitle} was withdrawn`,
-    "The person who asked to view no longer needs to.",
+    fitSubject("Viewing withdrawn", data.listingTitle),
+    clip(`${data.otherPartyName ?? "The viewer"} no longer needs the viewing${at ? ` on ${at}` : ""}. Nothing to do.`, 90),
     [
       heading("Viewing withdrawn"),
       paragraph(
@@ -116,10 +116,12 @@ export function inspectionWithdrawn(data: InspectionChangeData): EmailMessage {
 export function inspectionCompleted(data: InspectionChangeData & { audience: "viewer" | "lister" }): EmailMessage {
   const viewer = data.audience === "viewer";
   return message(
-    `Viewing done: ${data.listingTitle}`,
-    viewer ? "Your visit is recorded. Here is what comes next." : "The visit is recorded as done.",
+    fitSubject("Viewing done", data.listingTitle),
+    viewer
+      ? "Next is the agreement, which you both confirm before anything is paid."
+      : clip(`The visit${data.otherPartyName ? ` by ${data.otherPartyName}` : ""} is recorded as done.`, 90),
     [
-      heading("Viewing recorded as done"),
+      heading("Viewing done"),
       paragraph(
         viewer
           ? `${hello(data.name)} Your visit to ${data.listingTitle} is recorded as done. If you want to go ahead, the next step is the agreement, which you both confirm in the app before anything is paid.`
@@ -154,10 +156,10 @@ export function supportReplied(data: SupportRepliedData): EmailMessage {
       ? data.preview.slice(0, PREVIEW_LENGTH).replace(/\s+\S*$/, "") + "..."
       : data.preview;
   return message(
-    `Vallo replied to your request ${data.reference}`,
-    "Somebody at Vallo has answered your support request.",
+    `Support replied: ${data.reference}`,
+    preview ? clip(`"${preview}"`, 90) : "Somebody at Vallo answered your request. Read it in the app.",
     [
-      heading("Support has replied"),
+      heading("Support replied"),
       paragraph(`${hello(data.name)} Somebody at Vallo has answered your request. Read the whole reply and answer it in the app.`),
       rows([
         { label: "Reference", value: data.reference, strong: true },
@@ -185,10 +187,10 @@ const placeOf = (data: AgreementChangeData) => data.listingTitle ?? "the propert
 /** Both sides confirmed the same terms and it is with Vallo. To both. */
 export function agreementSubmitted(data: AgreementChangeData): EmailMessage {
   return message(
-    `Both of you confirmed the agreement for ${placeOf(data)}`,
-    "The agreement is with Vallo for review. Nothing is paid yet.",
+    fitSubject("Both sides confirmed", data.listingTitle ?? "the agreement"),
+    `${money(data.amountMinor)} agreed. Vallo reviews it next, and nothing is paid yet.`,
     [
-      heading("Both sides have confirmed"),
+      heading("Both sides confirmed"),
       paragraph(
         `${hello(data.name)} You and the other party confirmed the same terms for ${placeOf(data)}. A person at Vallo now reviews the agreement, and you will both be told the decision. Nothing is paid until it is approved.`,
       ),
@@ -206,8 +208,8 @@ export function agreementSubmitted(data: AgreementChangeData): EmailMessage {
 /** The agreement was cancelled. To both. */
 export function agreementCancelled(data: AgreementChangeData): EmailMessage {
   return message(
-    `The agreement for ${placeOf(data)} was cancelled`,
-    "The agreement is closed. Nothing further happens on it.",
+    fitSubject("Agreement cancelled", data.listingTitle),
+    "It is closed, nothing further happens on it, and nothing is charged for it.",
     [
       heading("Agreement cancelled"),
       paragraph(
@@ -231,8 +233,10 @@ export type ClaimOpenedData = {
 /** A claim on the Vallo Guarantee was received. To the person who made it. */
 export function guaranteeClaimOpened(data: ClaimOpenedData): EmailMessage {
   return message(
-    "We have your Vallo Guarantee claim",
-    "A person at Vallo will review it against the inspection report.",
+    "Vallo Guarantee claim received",
+    data.requestedMinor !== null
+      ? `Your claim for ${money(data.requestedMinor)} is with Vallo, to review against the inspection report.`
+      : "Your claim is with Vallo, to review against the inspection report.",
     [
       heading("Claim received"),
       paragraph(
@@ -259,7 +263,7 @@ export type RungFailedData = {
 export function verificationRungFailed(data: RungFailedData): EmailMessage {
   return message(
     `Your ${data.stepName.toLowerCase()} check did not pass`,
-    "A person at Vallo looked at it. Here is what they said and what to do.",
+    data.note ? quoteLine("The reviewer said", data.note) : "Your verification page says what the step needs.",
     [
       heading(`${data.stepName} check did not pass`),
       paragraph(
@@ -279,8 +283,8 @@ export type ListingSubmittedData = { name: string | null; listingTitle: string }
 /** A listing was sent for review. To the lister, as a receipt. */
 export function listingSubmitted(data: ListingSubmittedData): EmailMessage {
   return message(
-    `${data.listingTitle} is with Vallo for review`,
-    "A person at Vallo reads every listing before it goes live.",
+    fitSubject("Listing sent for review", data.listingTitle),
+    "A person reads it before it goes live. We will tell you the outcome.",
     [
       heading("Listing sent for review"),
       paragraph(
@@ -311,11 +315,23 @@ function reservationRows(data: ReservationData) {
   ]);
 }
 
+/** "Terra Kulture confirmed 4 Oct 2026 at 19:30, 4 guests." The lock-screen line. */
+function reservationLine(data: ReservationData, outcome: "confirmed" | "cancelled"): string {
+  const at = data.date && data.time ? ` for ${prettyDate(data.date)} at ${data.time}` : "";
+  const party = data.partySize ? `, ${countOf(data.partySize, "guests", "en")}` : "";
+  return clip(
+    outcome === "confirmed"
+      ? `${data.placeName} confirmed your table${at}${party}.`
+      : `Your table at ${data.placeName}${at} is cancelled.`,
+    90,
+  );
+}
+
 /** The restaurant confirmed the table. To the guest. */
 export function reservationConfirmed(data: ReservationData): EmailMessage {
   return message(
-    `Your table at ${data.placeName} is confirmed`,
-    "The restaurant has confirmed your reservation.",
+    fitSubject("Table confirmed", data.placeName),
+    reservationLine(data, "confirmed"),
     [
       heading("Table confirmed"),
       paragraph(`${hello(data.name)} ${data.placeName} has confirmed your reservation.`),
@@ -330,8 +346,8 @@ export function reservationConfirmed(data: ReservationData): EmailMessage {
 /** The table was cancelled. To the guest. */
 export function reservationCancelled(data: ReservationData): EmailMessage {
   return message(
-    `Your table at ${data.placeName} is cancelled`,
-    "The reservation is cancelled.",
+    fitSubject("Table cancelled", data.placeName),
+    reservationLine(data, "cancelled"),
     [
       heading("Reservation cancelled"),
       paragraph(`${hello(data.name)} Your reservation at ${data.placeName} is cancelled.`),
@@ -355,8 +371,10 @@ export type RefundRequestedData = {
 /** A refund was asked for on a booking. To the guest, as a receipt. */
 export function refundRequested(data: RefundRequestedData): EmailMessage {
   return message(
-    "We have your refund request",
-    "A person at Vallo will look at it and tell you the outcome.",
+    "Refund request received",
+    data.dueBy
+      ? `A person at Vallo answers it by ${prettyDate(data.dueBy)}.`
+      : "A person at Vallo looks at it and tells you the outcome.",
     [
       heading("Refund request received"),
       paragraph(

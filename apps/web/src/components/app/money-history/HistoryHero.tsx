@@ -1,5 +1,6 @@
 import type { Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
+import { HeroBand } from "@/components/ui/HeroBand";
 import { formatKoboExact } from "@/components/app/money/money";
 
 /**
@@ -40,8 +41,11 @@ export function HistoryHero({
   const { whole, kobo } = formatKoboExact(totalMinor, locale);
   const long = whole.length + kobo.length > 12;
   return (
-    <section aria-labelledby={id} className="nf-history-hero" data-testid="history-total">
-      <p id={id} className="nf-history-hero__label">
+    /* The headline money figure sits on the hero band (the founder's widened
+       Q2): the navy block in light, a raised night surface at night, white
+       type. Same figure, same note, same facts as before. */
+    <HeroBand as="section" aria-labelledby={id} data-testid="history-total">
+      <p id={id} className="nf-history-hero__label nf-section-label">
         {label}
       </p>
       <p className={`nf-history-hero__figure nf-numeric ${long ? "nf-history-hero__figure--long" : ""}`}>
@@ -61,6 +65,6 @@ export function HistoryHero({
           ))}
         </dl>
       )}
-    </section>
+    </HeroBand>
   );
 }

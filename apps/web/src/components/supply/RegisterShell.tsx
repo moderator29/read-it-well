@@ -6,6 +6,8 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
 import { BackControl } from "@/components/ui/BackControl";
 import { Surface, TYPE } from "@/components/app/Screen";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * THE FRAME EVERY SCREEN OF THE THREE REGISTRATION FORMS STANDS IN.
@@ -87,9 +89,9 @@ export function RegisterShell({
         <BackControl onBack={onBack} label={backLabel} />
         <h1 className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{formTitle}</h1>
         {mark ? (
-          <span className="shrink-0" aria-hidden="true">
-            <BrandIcon name={mark} size={40} />
-          </span>
+          <IconPlate size="md" className="shrink-0">
+            <UiIcon name={lineGlyphFor(mark)} size={20} />
+          </IconPlate>
         ) : null}
       </div>
 

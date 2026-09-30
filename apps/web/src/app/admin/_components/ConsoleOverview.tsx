@@ -56,7 +56,7 @@ export type OverviewCounts = {
  * `/admin/support`: the dictionary names the WORK and the rail names the
  * DESK, and they were never the same word.
  */
-const DESKS: { key: keyof OverviewCounts; href: string; icon: UiIconName }[] = [
+export const DESKS: { key: keyof OverviewCounts; href: string; icon: UiIconName }[] = [
   { key: "flags", href: "/admin/queue?tab=flags", icon: "chat-bubble" },
   { key: "moderation", href: "/admin/queue?tab=held", icon: "sliders" },
   { key: "alerts", href: "/admin/alerts", icon: "bell" },

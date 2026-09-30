@@ -8,6 +8,8 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { TenancyCard } from "@/components/app/bookings/TenancyCard";
 import { BookingDetailCard } from "./BookingDetailCard";
+import { BookingTrack } from "@/components/app/status/BookingTrack";
+import { readBookingStateEvents } from "@/lib/bookings/state-events";
 import { BookingMoneyRecord } from "@/components/app/after-gate/BookingMoneyRecord";
 import { ArrivalCheck } from "@/components/app/arrival-check/ArrivalCheck";
 import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
@@ -139,6 +141,15 @@ export default async function BookingDetailPage({
   return shell(
     <>
       <BookingDetailCard booking={booking} locale={locale} />
+      {/* Where the stay is, on the shared status track (spec section 14),
+          dated from its own state events like the thread's booking face. */}
+      <BookingTrack
+        status={booking.status}
+        checkIn={booking.checkIn}
+        events={await readBookingStateEvents(booking.id)}
+        copy={t.threads.booking}
+        locale={locale}
+      />
       {/* V-20 and V-24: the terms this stay was paid under, and every refund
           with the date it is due by. Nothing at all for an unpaid stay. */}
       <BookingMoneyRecord

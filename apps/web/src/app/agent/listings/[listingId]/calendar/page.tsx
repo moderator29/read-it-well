@@ -6,8 +6,9 @@ import { getAgentContext, agentProfileFrom } from "@/lib/agent/listings-queries"
 import { getListingCalendar } from "@/lib/agent/calendar-queries";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ListingPitch } from "../../../list/ListingPitch";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CalendarEditor } from "./CalendarEditor";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export const metadata: Metadata = {
   title: "Listing calendar",
@@ -63,9 +64,9 @@ export default async function Page({
     return (
       <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
-          <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="calendar-clock" fill />
-          </span>
+          <IconPlate size="lg">
+            <UiIcon name="calendar-clock" size={24} />
+          </IconPlate>
           <h1 className="nf-h2 mt-5">{copy.title}</h1>
           <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {copy.body}

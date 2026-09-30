@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import {
   agentProfileFrom,
   getAgentContext,
@@ -15,6 +14,8 @@ import { getKycStanding } from "@/lib/agent/kyc-standing";
 import { readInspectionsForLister } from "@/lib/inspections/queries";
 import { ButtonLink } from "@/components/ui/Button";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -114,16 +115,9 @@ export default async function AgentDashboardPage() {
   return (
     <AgentShell t={t} locale={locale} active="/agent/dashboard" profile={null}>
       <div className="mx-auto max-w-lg py-section text-center">
-        <div className="relative mx-auto grid h-24 w-24 place-items-center sm:h-28 sm:w-28">
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 rounded-full opacity-60 blur-2xl"
-            style={{ background: "var(--nf-gradient-agent)" }}
-          />
-          <span className="relative block h-20 w-20 sm:h-[72px] sm:w-[72px]">
-            <BrandIcon name="wallet-secure" fill />
-          </span>
-        </div>
+        <IconPlate size="lg" tone="brand" className="mx-auto">
+          <UiIcon name="briefcase" size={24} />
+        </IconPlate>
 
         <h1 className="nf-h2 mt-heading">{state.title}</h1>
         <p className="nf-lede mx-auto mt-row max-w-[44ch]">
@@ -141,39 +135,23 @@ export default async function AgentDashboardPage() {
         <ul className="mt-section-tight grid gap-row text-left sm:grid-cols-2">
           {(
             [
-              { icon: "homes-sparkle", label: a.addListing, href: "/agent/list" },
+              { icon: "plus", label: a.addListing, href: "/agent/list" },
               { icon: "calendar-check", label: a.viewBookings, href: "/agent/bookings" },
-              { icon: "shield-check", label: a.manageListings, href: "/agent/listings" },
-              { icon: "wallet-secure", label: a.earningsReport, href: "/agent/earnings" },
-            ] as { icon: BrandIconName; label: string; href: string }[]
+              { icon: "house", label: a.manageListings, href: "/agent/listings" },
+              { icon: "wallet", label: a.earningsReport, href: "/agent/earnings" },
+            ] as { icon: UiIconName; label: string; href: string }[]
           ).map((quick) => (
             <li key={quick.href}>
               <Link
                 href={quick.href}
                 className="nf-panel nf-panel--card nf-card--interactive flex flex-row items-center gap-row p-card-sm"
               >
-                {/*
-                  NO PLATE, AND IT WAS A PLATE INSIDE A CARD.
-
-                  `.nf-icon-tile` is a glass surface in its own right: a border,
-                  a fill and an elevation rung. Four of them sat inside four
-                  `.nf-card` rows here, which is a bordered box drawn inside a
-                  bordered box, the one nesting the surface language has no
-                  exception to. `docs/ICON_SYSTEM.md` is more direct about it
-                  than that: a tinted tile behind a glyph came from the retired
-                  reference brief and is not part of this system, and in the
-                  light theme the wash on white reads as a hue this brand has
-                  banned by name. The four `admin/_components` plates went for
-                  the same reason; this was the last one. F2-034.
-
-                  The object goes UP to 48 as the plate comes off, because what
-                  stops a mark floating is its size and the air around it rather
-                  than a box, and 40px was chosen to fit inside a plinth that is
-                  no longer there.
-                */}
-                <span className="block h-12 w-12 shrink-0">
-                  <BrandIcon name={quick.icon} fill />
-                </span>
+                {/* The quick link's plated glyph (plate v2): a flat neutral
+                    square, the family every row and card on the platform
+                    uses, not a glass object. */}
+                <IconPlate size="sm" className="shrink-0">
+                  <UiIcon name={quick.icon} size={20} />
+                </IconPlate>
                 <span className="nf-body-sm font-semibold">{quick.label}</span>
               </Link>
             </li>

@@ -18,7 +18,12 @@ export function HostNav({ labels }: { labels: HostNavLabels }) {
   const label = labels.workspace;
   const active = hostNavActive(usePathname());
   return (
-    <nav aria-label={label} className="px-gutter pb-xs">
+    <nav
+      aria-label={label}
+      className="px-gutter pb-xs lg:hidden"
+      /* The rail bleeds by the same gutter this nav is padded with. */
+      style={{ "--nf-chiprow-bleed": "var(--nf-pad-shell)" } as React.CSSProperties}
+    >
       <ChipRow label={label}>
         {hostNavItems(labels).map((item) => (
           <Chip

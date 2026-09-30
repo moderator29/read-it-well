@@ -100,56 +100,14 @@
     outline-offset: 2px;
     border-radius: var(--nf-radius-xs);
   }
-  /*
-   * The lit skyline the render draws across the foot of the page, with the
-   * shield sitting on it. One inline path in the brand ink at a low opacity
-   * and one glass object: decorative, aria-hidden, no asset, no request.
-   */
-  .nf-site-footer-skyline {
-    position: relative;
-    margin-top: var(--nf-gap-section-tight);
-    height: 3.5rem;
-    color: var(--nf-brand-secondary);
-  }
-  .nf-site-footer-skyline svg {
-    position: absolute;
-    inset: auto 0 0 0;
-    width: 100%;
-    height: 100%;
-    fill: currentColor;
-    opacity: 0.08;
-  }
-  .nf-site-footer-skyline::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--nf-brand-edge), transparent);
-  }
-  .nf-site-footer-seal {
-    position: absolute;
-    left: 50%;
-    bottom: calc(-1 * var(--nf-space-md));
-    transform: translateX(-50%);
-    display: inline-grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    padding: 0.4rem;
-    /* The shared icon plate's light (Phase 1 `--nf-plate-*`) on a disc: a
-       mark, not a control, so it stays round. */
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-plate-fill);
-    border: var(--nf-border-width) solid var(--nf-plate-edge);
-    border-color: var(--nf-plate-edges);
-    box-shadow: var(--nf-plate-shadow);
-  }
 
+  /* One hairline above the legal line (UIUX item 11; the skyline and the
+     shield that sat here are gone). */
   .nf-site-footer-legal {
     display: flex;
     flex-direction: column;
     gap: var(--nf-gap-inline);
-    margin-top: var(--nf-gap-heading);
+    margin-top: var(--nf-gap-section-tight);
     padding-top: var(--nf-gap-heading);
     border-top: 1px solid var(--nf-border-subtle);
   }
@@ -451,5 +409,224 @@
   :root[data-shell="native"] .nf-site-nav,
   :root[data-shell="native"] .nf-site-footer {
     display: none;
+  }
+}
+
+/*
+ * THE EDGE LAP: `.nf-edge-lap`, with `components/site/EdgeLap.tsx` as its
+ * component (the founder, 29 September 2026: "that snake moving on the edges
+ * of the logo container, add it too on the capsule").
+ *
+ * A thin light runs round the rim of a container: two short arcs of a conic
+ * gradient, masked to a 1.5px ring that follows the element's own corner
+ * (`border-radius: inherit`), turned by the registered angle `--nf-logo-lap`
+ * on the `nf-logo-lap` keyframes. Both are the logo pill's, declared once in
+ * light.css; the keyframes are not theme-gated, so the lap runs in the night
+ * too. Transform-free and paint-only on a pseudo-element, so the container's
+ * content never repaints.
+ *
+ * REUSE IT SPARINGLY: the premium containers only (the landing's two
+ * capsules, a hero's one card). Put the class on any element with a radius;
+ * the ring sits on `::after`, so `::before` stays free for the host. The
+ * host's children are lifted above the ring. `--nf-edge-lap-speed` and
+ * `--nf-edge-lap-ink` tune it per host.
+ *
+ * STILL UNDER REDUCED MOTION, DATA SAVER, AND THE CALM AND OFF MOTION
+ * SETTINGS: the lap stops and the rim settles to a steady faint line.
+ */
+@layer components {
+  .nf-edge-lap {
+    --nf-edge-lap-ink: var(--nf-glow-ink, var(--nf-brand-primary));
+    --nf-edge-lap-speed: 6s;
+    --nf-edge-lap-width: 1.5px;
+    position: relative;
+    isolation: isolate;
+  }
+  .nf-edge-lap::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--nf-border-width, 1px));
+    z-index: 2;
+    padding: var(--nf-edge-lap-width);
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(var(--nf-mask-opaque, #000) 0 0) content-box,
+      linear-gradient(var(--nf-mask-opaque, #000) 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(var(--nf-mask-opaque, #000) 0 0) content-box exclude,
+      linear-gradient(var(--nf-mask-opaque, #000) 0 0);
+    background: conic-gradient(
+      from var(--nf-logo-lap),
+      transparent 0deg 112deg,
+      color-mix(in oklab, var(--nf-edge-lap-ink) 55%, transparent) 150deg,
+      var(--nf-edge-lap-ink) 177deg,
+      transparent 180deg 292deg,
+      color-mix(in oklab, var(--nf-edge-lap-ink) 55%, transparent) 330deg,
+      var(--nf-edge-lap-ink) 357deg,
+      transparent 360deg
+    );
+    animation: nf-logo-lap var(--nf-edge-lap-speed) linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-edge-lap::after {
+      animation: none;
+      background: color-mix(in oklab, var(--nf-edge-lap-ink) 28%, transparent);
+    }
+  }
+  :root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-edge-lap::after {
+    animation: none;
+    background: color-mix(in oklab, var(--nf-edge-lap-ink) 28%, transparent);
+  }
+}
+
+/*
+ * THE LANDING CAPSULE (`SiteHeader.tsx`, `LandingCapsule`; the founder's
+ * reference 39). One rounded capsule floating a gutter in from the page
+ * edges and 10px down from the top, on the reader's theme: white on the
+ * warm paper in light, the elevated night surface at night, with the one
+ * hairline and the float shadow. The logo mark on a round plate, the
+ * wordmark, and at the right the round brand menu button (a phone) or the
+ * nav, Sign in and Get started (from 64rem). Sticky; once the page moves
+ * (`data-scrolled`, NavScrollState) it lifts 4px and its shadow deepens:
+ * transform and shadow only, so nothing reflows while scrolling.
+ */
+@layer components {
+  .nf-cap-nav {
+    padding-top: 0.625rem;
+    pointer-events: none;
+  }
+  .nf-cap {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 3.75rem;
+    padding: 0.5rem;
+    padding-inline-end: 0.5rem;
+    border-radius: 1.875rem;
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: color-mix(in oklab, var(--nf-surface-elevated) 90%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
+    transition:
+      translate var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-cap-nav[data-scrolled="true"] .nf-cap {
+    translate: 0 -0.25rem;
+    box-shadow:
+      var(--nf-float-shadow, var(--nf-elev-2)),
+      0 14px 32px -18px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+  }
+  .nf-cap__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 2.75rem;
+    padding-inline-end: var(--nf-space-xs);
+    border-radius: 1.375rem;
+    color: var(--nf-content-primary);
+  }
+  .nf-cap__brand:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* The round plate the mark sits on (a shape, like an avatar). */
+  .nf-cap__plate {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow, var(--nf-elev-1));
+  }
+  .nf-cap__word {
+    display: inline-flex;
+    align-items: center;
+  }
+  .nf-cap__nav {
+    display: none;
+  }
+  .nf-cap__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-inline-start: auto;
+  }
+  .nf-cap__signin,
+  .nf-cap__start {
+    display: none;
+  }
+  .nf-cap__signin {
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  @media (hover: hover) {
+    .nf-cap__signin:hover {
+      background: var(--nf-interactive-hover);
+    }
+  }
+  .nf-cap__signin:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* The round brand menu button (reference 39; the header icon buttons are
+     circles by the lead's Q1 ruling). */
+  .nf-cap__menu {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 22%, transparent),
+      0 6px 16px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    transition: transform var(--nf-duration-press, 120ms) var(--nf-ease-standard);
+  }
+  .nf-cap__menu:active {
+    transform: scale(0.94);
+  }
+  .nf-cap__menu:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  @media (min-width: 64rem) {
+    .nf-cap {
+      padding-inline-end: 0.625rem;
+    }
+    .nf-cap__nav {
+      display: flex;
+      align-items: center;
+      gap: var(--nf-space-3xs);
+      margin-inline: auto;
+    }
+    .nf-cap__actions {
+      margin-inline-start: 0;
+    }
+    .nf-cap__signin {
+      display: inline-flex;
+    }
+    .nf-cap__start {
+      display: inline-flex;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-cap,
+    .nf-cap__menu {
+      transition: none;
+    }
   }
 }

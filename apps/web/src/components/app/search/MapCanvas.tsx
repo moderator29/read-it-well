@@ -5,7 +5,6 @@ import { tileProvider, warnIfNonCommercialTiles } from "@/lib/maps/tiles";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n/core";
 import "leaflet/dist/leaflet.css";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { toggleSave } from "@/lib/saved/actions";
@@ -23,6 +22,7 @@ import {
 } from "./mapGeo";
 import type { MapCopy, MapListing } from "./mapTypes";
 import { countOf } from "@vallo/i18n/core";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The discovery map.
@@ -803,7 +803,9 @@ export function MapCanvas({
           <div
             className="nf-panel nf-panel--card isolate pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] items-center p-lg text-center"
           >
-            <BrandIcon name="map-spot" size={40} className="mx-auto" />
+            <IconPlate size="md">
+              <UiIcon name="location" size={20} />
+            </IconPlate>
             <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">
               No places here
             </p>

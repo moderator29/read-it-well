@@ -14,8 +14,8 @@ import { FinalCta } from "./FinalCta";
 import { Journey } from "./Journey";
 import { Bento } from "./Bento";
 import { WorldsBand } from "./WorldsBand";
-import { NigeriaMap } from "./NigeriaMap";
-import { PlacesBand } from "@/components/cinema/LandingCinema";
+import { StackRoom } from "./StackRoom";
+import { landingDoor } from "./doors";
 
 /**
  * Everything the landing prints that comes from the platform, read once.
@@ -35,6 +35,10 @@ export type LandingData = {
       of each kind from the same catalogue page. Optional, so a fixture that
       leaves it out simply plays the script that needs no cards. */
   showcase?: MiniListing[];
+  /** Whether a stranger may open the catalogue (`VALLO_PUBLIC_CATALOGUE`).
+      Left out, it is read from the environment; the preview harness may
+      pass either answer to prove both sets of doors. */
+  open?: boolean;
 };
 
 export async function landingData(t: Dictionary): Promise<LandingData> {
@@ -95,45 +99,43 @@ export function LandingBody({
       (STORE-06, App Store 2.3.10). */
   native?: boolean;
 }) {
-  const first = data.cards[0] ?? null;
+  const door = landingDoor(data.open);
   return (
     <main id="main">
       {/*
         HOW THE PAGE GOT HERE, oldest first. The founder's render of 19
-        September set the first order (hero, feature band, community, how it
-        works, category, stays, app). Track M (25 September) added rooms on
-        "make the landing page expand": protection, the AI showcase, the
-        FAQ, the closing call, then the journey, the bento, the two worlds,
-        the map and a cinema kit. The launch pass (29 September) cut the
-        cinema kit's Truchet band, cities marquee, kinetic words, sideways
-        day and film HUD, each of which repeated a neighbour, and removed the
-        phone mockups. The clean pass below is the current order.
+        September set the first order; Track M (25 September) added rooms;
+        the launch pass and the clean pass (29 September) cut the repeats.
+        THE UNIFIED PASS (29 September, evening; UIUX items 6 to 12 and the
+        founder's references 39 to 41) is the current order, ten rooms, each
+        with one job:
+
+          Hero        the grid stage, the eyebrow capsule, the headline, the
+                      one honest action, the search, three facts
+          Hands on    four product moments in a deck you move by hand
+          Journey     find, inspect, agree, move in
+          Bento       the doors into the product, flat plates
+          Worlds      Property and Stays, with Example-tagged listings
+          AI          the assistant's rules beside an example conversation
+          Categories  eight kinds of place, then the cities
+          Community   who it is for, real figures only, the Third party label
+          App, FAQ    on your phone; the short answers in one grouped card
+          Close       the final card: sign up, or sign in
+
+        Gone from this pass: the wall of photographs (PlacesBand, which
+        repeated the category tiles' photographs; the component stays for
+        any other caller), the map as a room of its own (its cities are the
+        category room's chips now, and the drawing shows beside them from
+        64rem only), and the listing card over the community photograph.
       */}
-      {/* THE CLEAN PASS (29 September, the founder: "so clean"). Every room
-          left has one job and says it once:
-
-            - the six-chip feature band listed the same six things the bento
-              lists as doors, one screen apart, so the bento keeps them;
-            - "how Vallo protects you" printed the agreement gate and the
-              inspection fee, which the journey prints as steps two and
-              three; the Guarantee keeps its bento card and its FAQ answer;
-            - the Stays band retold the category grid's stay kinds and the
-              two worlds band's Stays side, so both of those keep them;
-            - the page-wide pointer effects (magnetic buttons, the hero
-              card's tilt, the bento's spotlight and tilt) and the light
-              sweep across buttons are gone with LandingFx and BentoFx.
-
-          The hero now carries the headline, one line, one action and the
-          search (Hero.tsx says where the rest went). */}
-      <Hero t={t} />
+      <Hero t={t} door={door} />
+      <StackRoom t={t} locale={locale} />
       <Journey t={t} />
-      <Bento t={t} />
-      <PlacesBand t={t} />
-      <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
-      <WorldsBand t={t} locale={locale} cards={data.showcase ?? data.cards} />
-      <CategoryGrid t={t} counts={data.counts} />
-      <NigeriaMap t={t} />
-      <CommunityBand t={t} locale={locale} listing={first} stats={data.stats} />
+      <Bento t={t} door={door} />
+      <WorldsBand t={t} locale={locale} cards={data.showcase ?? data.cards} door={door} />
+      <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards} door={door} />
+      <CategoryGrid t={t} counts={data.counts} door={door} />
+      <CommunityBand t={t} locale={locale} stats={data.stats} />
       {native ? null : <AppBand t={t} native={native} />}
       <LandingFaq t={t} nonce={nonce} />
       <FinalCta t={t} />

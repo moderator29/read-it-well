@@ -1,6 +1,9 @@
 import { LoopGate } from "@/components/motion/LoopGate";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * A FLOW, DRAWN (Track M, the docs pass): the order a thing happens in, as
@@ -48,18 +51,18 @@ export function DocsFlow({ label, steps, caption }: { label: string; steps: Flow
                   <span className="nf-flow__branch">
                     {step.branch.map((out) => (
                       <span key={out.label} className="nf-flow__node">
-                        <span className="nf-flow__obj">
-                          <BrandIcon name={out.object} fill />
-                        </span>
+                        <IconPlate size="md" className="nf-flow__obj">
+                          <UiIcon name={lineGlyphFor(out.object)} size={20} />
+                        </IconPlate>
                         <span className="nf-flow__label">{out.label}</span>
                       </span>
                     ))}
                   </span>
                 ) : (
                   <span className="nf-flow__node">
-                    <span className="nf-flow__obj">
-                      <BrandIcon name={step.object} fill />
-                    </span>
+                    <IconPlate size="md" className="nf-flow__obj">
+                      <UiIcon name={lineGlyphFor(step.object)} size={20} />
+                    </IconPlate>
                     <span className="nf-flow__label">{step.label}</span>
                   </span>
                 )}

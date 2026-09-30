@@ -1,9 +1,14 @@
-import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import Link from "next/link";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
-import { DetailGlyph } from "./DetailGlyph";
+import { SummaryCard } from "@/components/ui/SummaryCard";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import type { StatusSegment } from "@/components/ui/charts/StatusBar";
+import { moveInLines } from "./move-in-lines";
+import { unexplainedRemainder } from "@/lib/rent/ledger";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -37,75 +42,105 @@ export function ListingMoveInBlock({
      several whole periods. */
   const cash = cashAtDoor(listing);
 
+  /* The bar's parts are the listing's own lines (`moveInLines`, the same
+     builder the full breakdown draws), only the ones the lister declared,
+     so the segments add up to the figure above them and nothing is guessed. */
+  const TONES: Record<string, StatusSegment["tone"]> = {
+    rent: "brand",
+    caution: "success",
+    agency: "warning",
+    legal: "neutral",
+    agreement: "info",
+    service: "error",
+  };
+  const declared = hasTotal
+    ? moveInLines(listing, t.moveIn).filter((part) => typeof part.minor === "number" && part.minor > 0)
+    : [];
+  const segments: StatusSegment[] = declared.map((part) => ({
+    key: part.key,
+    label: part.label,
+    count: part.minor as number,
+    display: formatMoney(part.minor as number, locale, listing.currency),
+    tone: TONES[part.key] ?? "neutral",
+  }));
+  /* V-13's gap: a stated total above its parts keeps its own named part, as
+     the full breakdown does, so the bar never pretends the parts add up. */
+  const remainder = hasTotal
+    ? unexplainedRemainder(
+        total,
+        declared.map((part) => part.minor ?? 0),
+        stated,
+      )
+    : 0;
+  if (remainder > 0) {
+    segments.push({
+      key: "remainder",
+      label: t.afterTheGate.remainder.line,
+      count: remainder,
+      display: formatMoney(remainder, locale, listing.currency),
+      tone: "warning",
+    });
+  }
+
   return (
-    <div className="nf-detail-movein" data-testid="move-in-block">
-      <div className="min-w-0">
-        <p className="nf-detail-movein__label">
-          {hasTotal ? (stated ? copy.moveInTotal : copy.moveInFrom) : t.catalogue.card.rent}
-          <UiIcon name="info" size={16} className="text-[var(--nf-content-muted)]" />
-        </p>
-        <p className="nf-detail-movein__figure mt-inline-tight">
-          <Amount
-            minorUnits={hasTotal ? total : listing.priceMinor}
-            locale={locale}
-            currency={listing.currency}
-            secondaryClassName="text-[0.5em] font-semibold opacity-70"
-          />
-          {!hasTotal && (
-            <span className="nf-detail-movein__suffix">{PERIOD_SUFFIX_SLASH[period]}</span>
-          )}
-        </p>
-        {hasTotal && (
-          <p className="nf-caption mt-inline-tight text-[var(--nf-content-secondary)]">
-            {t.catalogue.card.rent}{" "}
+    <div data-testid="move-in-block">
+      {/* The move-in total as a summary card (plan item 18, spec 9): the
+          label, the figure, one sentence, and a bar whose parts are the real
+          lines. Beds and baths live in the spec chips, not here. */}
+      <SummaryCard
+        as="div"
+        className="nf-detail-movein-card"
+        label={hasTotal ? (stated ? copy.moveInTotal : copy.moveInFrom) : t.catalogue.card.rent}
+        badge={listing.isDemo ? <StatusBadge tone="example">{t.catalogue.card.example}</StatusBadge> : undefined}
+        figure={
+          <>
             <Amount
-              minorUnits={listing.priceMinor}
+              minorUnits={hasTotal ? total : listing.priceMinor}
               locale={locale}
               currency={listing.currency}
-              className="font-semibold text-[var(--nf-content-primary)]"
-            />{" "}
-            {PERIOD_SUFFIX_SLASH[period]}
-          </p>
-        )}
-        {cash && cash.upfrontMonths !== null && (
-          <p className="nf-caption mt-inline-tight break-words text-[var(--nf-content-primary)]" data-testid="move-in-upfront">
-            {/* The lister's DEMAND, labelled as theirs: the move-in charge on
-                Vallo still takes one rent period (audit-owned), so this is not
-                a figure Vallo collects. */}
-            {cash.restated ? (
-              t.shape.cash.listerAsks
-                .replace("{duration}", upfrontDuration(cash.upfrontMonths, t.shape.cash))
-                .replace("{amount}", formatMoney(cash.minor, locale, listing.currency))
-            ) : (
-              <strong>{upfrontText(cash.upfrontMonths, t.shape.cash)}</strong>
+              secondaryClassName="text-[0.5em] font-semibold opacity-70"
+            />
+            {!hasTotal && <span className="nf-detail-movein__suffix">{PERIOD_SUFFIX_SLASH[period]}</span>}
+          </>
+        }
+        sentence={copy.moveInInfo}
+        segments={segments.length > 1 ? segments : undefined}
+        barLabel={copy.moveInTotal}
+        footer={
+          <div className="grid gap-2xs">
+            {hasTotal && (
+              <p className="nf-caption text-[var(--nf-content-secondary)]">
+                {t.catalogue.card.rent}{" "}
+                <Amount
+                  minorUnits={listing.priceMinor}
+                  locale={locale}
+                  currency={listing.currency}
+                  className="font-semibold text-[var(--nf-content-primary)]"
+                />{" "}
+                {PERIOD_SUFFIX_SLASH[period]}
+              </p>
             )}
-          </p>
-        )}
-        <p className="nf-caption mt-inline-tight text-[var(--nf-content-muted)]">{copy.moveInInfo}</p>
-      </div>
-      {(listing.bedrooms > 0 || listing.bathrooms > 0) && (
-        <div className="nf-detail-movein__rooms">
-          <DetailGlyph name="bed" />
-          <span className="nf-numeric">
-            {listing.bedrooms > 0 && (
-              <span className="block">
-                {countOf(listing.bedrooms, "beds", locale)}
-                {listing.bathrooms > 0 && (
-                  <>
-                    {" · "}
-                    {countOf(listing.bathrooms, "baths", locale)}
-                  </>
+            {cash && cash.upfrontMonths !== null && (
+              <p className="nf-caption break-words text-[var(--nf-content-primary)]" data-testid="move-in-upfront">
+                {/* The lister's DEMAND, labelled as theirs: the move-in charge on
+                    Vallo still takes one rent period (audit-owned), so this is
+                    not a figure Vallo collects. */}
+                {cash.restated ? (
+                  t.shape.cash.listerAsks
+                    .replace("{duration}", upfrontDuration(cash.upfrontMonths, t.shape.cash))
+                    .replace("{amount}", formatMoney(cash.minor, locale, listing.currency))
+                ) : (
+                  <strong>{upfrontText(cash.upfrontMonths, t.shape.cash)}</strong>
                 )}
-              </span>
+              </p>
             )}
-            {listing.toilets !== undefined && listing.toilets > 0 && (
-              <span className="block text-[var(--nf-content-muted)]">
-                {countOf(listing.toilets, "toilets", locale)}
-              </span>
-            )}
-          </span>
-        </div>
-      )}
+            <Link href={`/rent/move-in/${listing.id}`} className="nf-link-quiet nf-caption inline-flex items-center gap-2xs font-semibold text-[var(--nf-content-link)]">
+              {copy.calculateBreakdown}
+              <UiIcon name="chevron-right" size={16} />
+            </Link>
+          </div>
+        }
+      />
     </div>
   );
 }

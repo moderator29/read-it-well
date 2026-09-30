@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { panelClass } from "@/components/ui/Panel";
 
 /**
- * The location chip, to the feed render's header bar (GOVERNING-feed-plus-bloom):
- * a glass row with the pin, the place, and the chevron that changes it.
+ * The location row under the greeting (UIUX item 15): a QUIET row, no box,
+ * with the pin, the place ("Lekki, Lagos") and the chevron that changes it.
  *
  * The city is read from the caller's own profile: their local government where
  * they have set one, otherwise their state. The chevron opens the screen that
@@ -32,7 +31,7 @@ export function CityRow({
       aria-label={
         isOwn ? `Your city is ${shown}. Change it.` : `Choose the city you explore from.`
       }
-      className={panelClass({ variant: "card", className: "nf-home__loc nf-tap mt-md" })}
+      className="nf-home__loc nf-home__loc--quiet nf-tap mt-inline"
     >
       <UiIcon name="location" size={20} className="nf-home__loc-pin" />
       <span className="nf-home__loc-name">

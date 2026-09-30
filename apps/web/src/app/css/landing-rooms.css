@@ -1418,19 +1418,6 @@
     to { opacity: 1; transform: none; }
   }
 
-  /* No hard edge under the hero where it paints its own ground. */
-  @media (max-width: 63.999rem) {
-    .nf-landing-hero::after {
-      content: "";
-      position: absolute;
-      inset: auto 0 0 0;
-      z-index: -1;
-      height: 6rem;
-      background: linear-gradient(180deg, transparent, var(--nf-surface-canvas));
-      pointer-events: none;
-    }
-  }
-
   /* The motion setting's Calm and Off (lib/motion/gate.ts): no parallax,
      no lift, and the journey's line drawn full. A pseudo-element cannot sit
      inside `:is()`, so the line's segment has a rule of its own. */
@@ -1485,5 +1472,1120 @@
     .nf-worlds__stage {
       padding: var(--nf-pad-card-sm);
     }
+  }
+}
+
+/*
+ * ========================================================================
+ * THE UNIFIED PASS (29 September 2026, evening): the landing on the clean
+ * spec (docs/design/CLEAN_UNIFIED_DIRECTION.md; UIUX items 7 to 11 and the
+ * founder's references 39 to 41). Last in the file, so each rule here is the
+ * ruling one where it meets an older rule above. Tokens only; transform and
+ * opacity only for motion; every motion answered for reduced motion, Calm
+ * and Off at the foot.
+ * ========================================================================
+ */
+@layer components {
+  /* ------------------------------------------------------ one head rule */
+
+  .nf-sec-head {
+    margin-bottom: 1.5rem;
+  }
+  .nf-sec-head--start {
+    margin-bottom: 0;
+  }
+  .nf-sec-head--center {
+    max-width: 44rem;
+  }
+  @media (min-width: 64rem) {
+    .nf-sec-head {
+      margin-bottom: 2rem;
+    }
+    .nf-sec-head--start {
+      margin-bottom: 0;
+    }
+  }
+  /* The eyebrow is the shared section label now: no hairlines, no brand. */
+  .nf-sec-head .nf-eyebrow {
+    display: block;
+    gap: 0;
+    font-size: var(--nf-text-label, 0.6875rem);
+    letter-spacing: var(--nf-tracking-label, 0.06em);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .nf-sec-head .nf-eyebrow::before,
+  .nf-sec-head .nf-eyebrow::after {
+    content: none;
+  }
+  .nf-sec-title {
+    margin-top: 0.5rem;
+    max-width: 20ch;
+    font-size: clamp(1.75rem, 1.2rem + 2.1vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .nf-sec-lede {
+    margin-top: 0.75rem;
+    max-width: 52ch;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  @media (min-width: 64rem) {
+    .nf-sec-lede {
+      font-size: 1.0625rem;
+    }
+  }
+  /* A split room's head sits at the top of its content, never the foot. */
+  .nf-landing-split {
+    align-items: start;
+  }
+
+  /* ------------------------------------ the ground: paper and white bands */
+
+  /* Rooms separate by ground as well as air: the journey, the two worlds
+     and the FAQ sit on a full-bleed band (white on paper; one step up from
+     the canvas at night). The band is the section's own background carried
+     to the viewport edges by a spread shadow clipped to its height, so it
+     adds no width and never makes the page scroll sideways. */
+  .nf-room:is([data-chapter="journey"], [data-chapter="worlds"], [data-chapter="faq"]) {
+    --nf-band: color-mix(in oklab, var(--nf-surface-canvas) 55%, var(--nf-surface-primary));
+    background: var(--nf-band);
+    box-shadow: 0 0 0 100vmax var(--nf-band);
+    clip-path: inset(0 -100vmax);
+  }
+  :root[data-theme="light"] .nf-room:is([data-chapter="journey"], [data-chapter="worlds"], [data-chapter="faq"]) {
+    --nf-band: var(--nf-surface-primary);
+  }
+
+  /* ------------------------------------------------- one card language */
+
+  .nf-bento__card,
+  .nf-step__card,
+  .nf-worlds__stage {
+    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow, none);
+  }
+  /* On the white band the cards sit on the paper's own warm well, so they
+     still read as objects rather than as outlines. */
+  :root[data-theme="light"] :is([data-chapter="journey"], [data-chapter="worlds"]) :is(.nf-step__card, .nf-worlds__stage) {
+    background: var(--nf-surface-canvas);
+    box-shadow: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-bento__card,
+    .nf-step__card {
+      transition:
+        translate 160ms var(--nf-ease-standard),
+        box-shadow 160ms var(--nf-ease-standard);
+    }
+    .nf-bento__card:hover,
+    .nf-step__card:hover {
+      translate: 0 -2px;
+      border-color: var(--nf-card-border);
+      box-shadow: var(--nf-card-shadow-hover, var(--nf-elev-2));
+    }
+    .nf-bento__card:active,
+    .nf-step__card:active {
+      translate: none;
+    }
+  }
+
+  /* ---------------------------------------------------------- the bento */
+
+  .nf-bento__card {
+    transform: none;
+    justify-content: space-between;
+    gap: var(--nf-space-lg);
+    min-height: 12rem;
+  }
+  .nf-bento__card::after {
+    content: none;
+  }
+  .nf-bento__title {
+    font-size: 1.1875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .nf-bento__body {
+    font-size: 0.9375rem;
+  }
+  @media (max-width: 39.999rem) {
+    .nf-bento .nf-bento__card {
+      min-height: 11.5rem;
+      gap: var(--nf-space-md);
+    }
+    .nf-bento .nf-bento__title {
+      font-size: 1.0625rem;
+    }
+  }
+
+  /* The tall cells carry a true fragment between the plate and the words
+     (the Stays kinds, the assistant's languages), so no cell is half
+     empty. Desktop only: the phone's swipe row keeps its cards compact. */
+  .nf-bento__chips {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-bento__chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: center;
+      gap: 0.5rem;
+      flex: 1;
+    }
+  }
+  .nf-bento__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-surface-raised);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+
+  /* -------------------------------------------------------- the journey */
+
+  .nf-step__num {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-card-border);
+    font-family: var(--nf-font-body, inherit);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-step__label {
+    margin-top: var(--nf-space-md);
+  }
+  .nf-step__title {
+    font-size: 1.1875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .nf-step__body {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+  .nf-step__chip {
+    border-radius: var(--nf-radius-badge, 6px);
+    border: 0;
+    background: var(--nf-surface-raised);
+  }
+  :root[data-theme="light"] [data-chapter="journey"] .nf-step__chip {
+    background: var(--nf-surface-primary);
+    box-shadow: inset 0 0 0 1px var(--nf-card-border);
+  }
+  @media (max-width: 39.999rem) {
+    .nf-step__body {
+      font-size: 0.875rem;
+    }
+  }
+
+  /* ---------------------------------------------------- the two worlds */
+
+  .nf-worlds__switch {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    width: min(100%, 20rem);
+    padding: 0.25rem;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-raised);
+  }
+  .nf-worlds__switch::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.25rem;
+    inset-inline-start: 0.25rem;
+    width: calc((100% - 0.5rem) / 2);
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-card-shadow, none);
+    transform: translateX(calc(var(--nf-seg-index, 0) * 100%));
+    transition: transform 240ms var(--nf-ease-standard);
+  }
+  :root:not([data-theme="light"]) .nf-worlds__switch::before {
+    background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+  }
+  .nf-worlds__tab {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    padding: 0 var(--nf-space-sm);
+    border: 0;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+    background: transparent;
+  }
+  .nf-worlds__tab[aria-pressed="true"] {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+    background: transparent;
+    box-shadow: none;
+  }
+  .nf-worlds__title {
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .nf-worlds__title::before {
+    content: none;
+  }
+
+  /* ------------------------------------------------------- the AI room */
+
+  .nf-ai-truths > li {
+    align-items: center;
+  }
+
+  /* ------------------------------------------ categories and the cities */
+
+  .nf-landing-cat-icon.nf-plate {
+    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-landing-cat:hover .nf-landing-cat-icon.nf-plate {
+      transform: translate3d(0, -3px, 0);
+    }
+  }
+  .nf-cities {
+    display: grid;
+    gap: var(--nf-space-lg);
+    margin-top: var(--nf-space-xl);
+  }
+  .nf-cities__list .nf-map-room__list {
+    margin-top: 0.5rem;
+  }
+  .nf-cities__map {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-cities {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: center;
+      gap: var(--nf-space-3xl);
+    }
+    .nf-cities__map {
+      display: block;
+    }
+  }
+  .nf-map-room__chip {
+    gap: var(--nf-space-2xs);
+    padding: 0 var(--nf-space-sm);
+    border-color: var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    font-weight: 500;
+    box-shadow: var(--nf-card-shadow, none);
+  }
+  .nf-map-room__chip > svg {
+    color: var(--nf-content-muted);
+  }
+  .nf-ngmap__land {
+    fill: color-mix(in oklab, var(--nf-brand-primary) 6%, transparent);
+    stroke: color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
+  }
+  .nf-ngmap__halo {
+    fill: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+  }
+  .nf-ngmap__dot {
+    fill: var(--nf-brand-primary);
+  }
+  :root:not([data-theme="light"]) .nf-ngmap__dot {
+    fill: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------ the FAQ */
+
+  .nf-faq-groups {
+    display: grid;
+    gap: var(--nf-space-lg);
+  }
+  .nf-faq-group__label {
+    margin-bottom: 0.5rem;
+  }
+  .nf-faq-list {
+    padding-inline: var(--nf-space-md);
+    border-top: 0;
+    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow, none);
+  }
+  :root[data-theme="light"] [data-chapter="faq"] .nf-faq-list {
+    background: var(--nf-surface-canvas);
+    box-shadow: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-faq-list {
+      padding-inline: 1.25rem;
+    }
+  }
+  .nf-faq-item {
+    border-bottom: 1px solid var(--nf-divider, var(--nf-glass-border));
+  }
+  .nf-faq-item:last-child {
+    border-bottom: 0;
+  }
+  .nf-faq-q {
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+  .nf-faq-item[open] .nf-faq-chevron {
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------ the app hero band */
+
+  .nf-app-band__cols {
+    display: grid;
+    gap: var(--nf-space-lg);
+  }
+  @media (min-width: 64rem) {
+    .nf-app-band__cols {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--nf-space-3xl);
+      align-items: start;
+    }
+  }
+  .nf-app-band__install {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .nf-app-band__install-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-app-band__install-body {
+    margin-top: 0.25rem;
+    max-width: 44ch;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-app-band__points {
+    margin-top: 0.5rem;
+  }
+  .nf-app-band__points > li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3rem;
+    padding-block: 0.625rem;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-app-band__points > li + li {
+    border-top: 1px solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+  }
+  .nf-app-band__points svg {
+    flex: none;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------- the hands-on deck (stack) */
+
+  .nf-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-md);
+    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
+  }
+  .nf-stack:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 6px;
+  }
+  .nf-stack__deck {
+    display: grid;
+    width: min(100%, 25rem);
+    padding-top: 1.75rem;
+  }
+  .nf-stack__card {
+    grid-area: 1 / 1;
+    z-index: calc(10 - var(--nf-depth, 0));
+    transform-origin: 50% 0;
+    transform: translate3d(0, calc(var(--nf-depth, 0) * -0.875rem), 0) scale(calc(1 - var(--nf-depth, 0) * 0.05));
+    transition:
+      transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 320ms var(--nf-ease-standard);
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    will-change: transform;
+  }
+  .nf-stack__card:not([data-depth="0"]) {
+    pointer-events: none;
+  }
+  .nf-stack__card[data-depth="3"] {
+    opacity: 0;
+  }
+  .nf-stack__card[data-dragging="true"],
+  .nf-stack__card[data-held="true"] {
+    transition: none;
+    cursor: grabbing;
+  }
+  .nf-stack__card[data-flung="true"] {
+    transition:
+      transform 200ms cubic-bezier(0.3, 0.7, 0.4, 1),
+      opacity 200ms linear;
+    opacity: 0.4;
+  }
+  /* The frame: a pale dotted plate round a white card (reference 40). */
+  .nf-stack__frame {
+    padding: 0.5rem;
+    border-radius: 1.75rem;
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-card-border));
+    background:
+      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent) 1px, transparent 1.5px) 0 0 / 14px 14px,
+      color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-canvas));
+    box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
+  }
+  .nf-stack__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1rem 1.5rem;
+    border-radius: 1.375rem;
+    background: var(--nf-surface-primary);
+    text-align: center;
+  }
+  .nf-stack__plates {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    width: 100%;
+    padding-top: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .nf-stack__plate {
+    position: absolute;
+    top: 0;
+    bottom: 1.5rem;
+    border-radius: 1.5rem;
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-card-border));
+    background: color-mix(in oklab, var(--nf-brand-primary) 3%, var(--nf-surface-primary));
+  }
+  .nf-stack__plate--2 {
+    inset-inline: 0;
+  }
+  .nf-stack__plate--1 {
+    top: 0.875rem;
+    inset-inline: 5%;
+  }
+  .nf-stack__moment {
+    position: relative;
+    z-index: 1;
+    width: 86%;
+    border-radius: 1.125rem;
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
+    text-align: start;
+    touch-action: none;
+    cursor: grab;
+    will-change: transform;
+  }
+  .nf-stack__moment[data-dragging="true"] {
+    cursor: grabbing;
+  }
+  .nf-stack__title {
+    font-family: var(--nf-font-display);
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-stack__body {
+    margin-top: 0.5rem;
+    max-width: 34ch;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-stack__nav {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-stack__arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-card-shadow, none);
+  }
+  .nf-stack__arrow:active {
+    transform: scale(0.95);
+  }
+  .nf-stack__dots {
+    display: flex;
+    align-items: center;
+  }
+  .nf-stack__dot {
+    display: inline-grid;
+    place-items: center;
+    /* 44 by 44, as the showcase pips: 24 wide was under the floor on
+       every tablet, where these dots are drawn. */
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    background: transparent;
+  }
+  .nf-stack__dot::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, var(--nf-content-primary) 22%, transparent);
+    transition: transform 240ms var(--nf-ease-standard), background 240ms var(--nf-ease-standard);
+  }
+  .nf-stack__dot[aria-current="true"]::before {
+    background: var(--nf-brand-primary);
+    transform: scale(1.35);
+  }
+  .nf-stack__arrow:focus-visible,
+  .nf-stack__dot:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-stack__hint {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* Reduced motion, Calm and Off: a still list, every card visible. */
+  .nf-stack--still {
+    display: grid;
+    gap: var(--nf-space-md);
+    width: 100%;
+  }
+  @media (min-width: 48rem) {
+    .nf-stack--still {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .nf-stack--still .nf-stack__card {
+    transform: none;
+    cursor: auto;
+  }
+  .nf-stack--still .nf-stack__moment {
+    cursor: auto;
+  }
+
+  /* The moments inside the cards: small product fragments. */
+  .nf-mo {
+    overflow: hidden;
+    border-radius: inherit;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-mo--pad,
+  .nf-mo__pad {
+    padding: 0.875rem;
+  }
+  .nf-mo__photo {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--nf-surface-raised);
+  }
+  .nf-mo__photo img {
+    object-fit: cover;
+    pointer-events: none;
+  }
+  .nf-mo__photo .nf-mo__example {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+  .nf-mo__example {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: none;
+    min-height: 1.375rem;
+    padding: 0 0.5rem;
+    border-radius: var(--nf-radius-badge, 6px);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .nf-mo__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .nf-mo__title {
+    display: block;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .nf-mo__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-mo__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.125rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-mo__lines {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 0.625rem;
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--nf-divider, var(--nf-glass-border));
+  }
+  .nf-mo__lines > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mo__lines dd {
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-mo__per {
+    color: var(--nf-content-muted);
+  }
+  .nf-mo__strong,
+  .nf-mo__strong dd {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-mo__slots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.375rem;
+    margin-top: 0.625rem;
+  }
+  .nf-mo__slots > li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-surface-raised);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-state-success);
+  }
+  .nf-mo__slots > li > span:first-child {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-mo__slots > li[data-chosen] {
+    background: var(--nf-brand-primary);
+    color: color-mix(in oklab, var(--nf-content-on-brand) 82%, transparent);
+  }
+  .nf-mo__slots > li[data-chosen] > span:first-child {
+    color: var(--nf-content-on-brand);
+  }
+  .nf-mo__ok {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.625rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-state-success);
+  }
+  .nf-mo__person {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+  }
+  .nf-mo__avatar {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-2, var(--nf-surface-raised));
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--nf-brand-primary);
+  }
+  .nf-mo__rows {
+    margin-top: 0.5rem;
+  }
+  .nf-mo__rows > li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-block: 0.5rem;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mo__rows > li + li {
+    border-top: 1px solid var(--nf-divider, var(--nf-glass-border));
+  }
+  .nf-mo__rows svg {
+    color: var(--nf-content-muted);
+  }
+  .nf-mo__figure {
+    margin-top: 0.25rem;
+    font-size: 1.75rem;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  /* The segmented bar (spec section 9): 6px tall, 4px gaps, radius 3. */
+  .nf-mo__bar {
+    display: flex;
+    gap: 4px;
+    margin-top: 0.75rem;
+  }
+  .nf-mo__bar > span {
+    height: 6px;
+    min-width: 6px;
+    border-radius: 3px;
+  }
+  .nf-mo [data-part="rent"] {
+    --nf-part: var(--nf-brand-primary);
+  }
+  .nf-mo [data-part="caution"] {
+    --nf-part: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-primary));
+  }
+  .nf-mo [data-part="agency"] {
+    --nf-part: color-mix(in oklab, var(--nf-brand-primary) 42%, var(--nf-surface-primary));
+  }
+  .nf-mo [data-part="legal"] {
+    --nf-part: color-mix(in oklab, var(--nf-brand-primary) 26%, var(--nf-surface-primary));
+  }
+  .nf-mo [data-part="agreement"] {
+    --nf-part: color-mix(in oklab, var(--nf-content-primary) 24%, var(--nf-surface-primary));
+  }
+  .nf-mo__bar > span {
+    background: var(--nf-part);
+    transform-origin: 0 50%;
+  }
+  .nf-mo__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-mo__legend > li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+  }
+  .nf-mo__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-part);
+  }
+  /* The bar grows once, when its card comes to the front (item 26's
+     motion, on the landing's own example). */
+  @media (prefers-reduced-motion: no-preference) {
+    .nf-stack__card[data-depth="0"] .nf-mo__bar > span {
+      animation: nf-mo-grow 620ms var(--nf-ease-entrance) both;
+    }
+    .nf-stack__card[data-depth="0"] .nf-mo__bar > span:nth-child(2) { animation-delay: 40ms; }
+    .nf-stack__card[data-depth="0"] .nf-mo__bar > span:nth-child(3) { animation-delay: 80ms; }
+    .nf-stack__card[data-depth="0"] .nf-mo__bar > span:nth-child(4) { animation-delay: 120ms; }
+    .nf-stack__card[data-depth="0"] .nf-mo__bar > span:nth-child(5) { animation-delay: 160ms; }
+  }
+  @keyframes nf-mo-grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* The hands-on room from 64rem: head left, deck right. */
+  @media (min-width: 64rem) {
+    .nf-stack-room {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--nf-space-3xl);
+      align-items: start;
+    }
+    .nf-stack-room > .nf-sec-head--center {
+      align-items: flex-start;
+      margin: var(--nf-space-2xl) 0 0;
+      text-align: start;
+    }
+    .nf-stack-room .nf-sec-head--center .nf-sec-lede {
+      text-wrap: pretty;
+    }
+  }
+
+  /* Under 64rem the category tiles are a little wider than tall, so the
+     eight scroll by in less of the page (UIUX item 9's height target). The
+     column count is lane C's and is untouched. */
+  @media (max-width: 63.999rem) {
+    .nf-landing-cat {
+      aspect-ratio: 4 / 3;
+    }
+  }
+  .nf-cities__map .nf-ngmap__svg {
+    max-width: 24rem;
+  }
+
+  /* ------------------------------------------------ the final card */
+
+  .nf-close-room {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--nf-gap-section-tight);
+    background: color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-surface-canvas));
+  }
+  .nf-close-room__grid {
+    -webkit-mask-image: radial-gradient(90% 80% at 50% 40%, #000 30%, transparent 85%);
+    mask-image: radial-gradient(90% 80% at 50% 40%, #000 30%, transparent 85%);
+  }
+  .nf-close {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    max-width: 36rem;
+    margin-inline: auto;
+    padding: 1.75rem 1.5rem;
+    border-radius: 1.75rem;
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow:
+      var(--nf-float-shadow, var(--nf-elev-3)),
+      0 24px 48px -28px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    text-align: start;
+    overflow: visible;
+  }
+  @media (min-width: 40rem) {
+    .nf-close {
+      padding: 2.5rem;
+    }
+  }
+  .nf-close__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+  }
+  .nf-close__plate {
+    display: inline-grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--nf-radius-plate-lg, 1rem);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
+  }
+  .nf-close__title {
+    margin-top: 1.5rem;
+    font-family: var(--nf-font-display);
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-close__body {
+    margin-top: 1rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+  .nf-close__actions {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  /* ------------------------------------ photographs: no neon rim either */
+
+  /* The category tiles and the community photograph lose the lit panel
+     rim (spec section 12: photography keeps its own glow, a card edge does
+     not): one hairline and the resting card shadow, the photograph's own
+     corner. */
+  .nf-landing-cat,
+  .nf-landing-stack-photo,
+  .nf-landing-stack-card {
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
+    box-shadow: var(--nf-card-shadow, none);
+  }
+
+  /* ------------------------------------ the mini listing card, any ground */
+
+  /* `ListingMini` sat on night photography when it was drawn; it sits on the
+     reader's own surface now (the AI showcase, the two worlds), so its words
+     take the theme's inks rather than the fixed white. */
+  .nf-landing-float-title {
+    color: var(--nf-content-primary);
+  }
+  .nf-landing-float-place {
+    color: var(--nf-content-muted);
+  }
+  .nf-landing-float-price {
+    color: var(--nf-content-primary);
+  }
+  .nf-landing-float-media {
+    border-radius: var(--nf-radius-card-sm, var(--nf-radius-md));
+  }
+
+  /* ------------------------------------ the deck: one height, still list */
+
+  .nf-stack__card {
+    display: flex;
+  }
+  .nf-stack__frame {
+    display: flex;
+    flex: 1;
+  }
+  .nf-stack__inner {
+    flex: 1;
+  }
+  .nf-stack--still .nf-stack__card {
+    grid-area: auto;
+    z-index: auto;
+  }
+
+  /* ------------------------------------------- the hero intro (item 24) */
+
+  /*
+   * SHORTER AND SHARPER: under 900ms from the first word to the search.
+   * The eyebrow rises first; the words arrive 45ms apart, each 420ms on
+   * the entrance curve out of a 6px blur (no blur on a slow device or data
+   * saver); the sub, the action and the facts rise 12px over 480ms from
+   * 300ms; the search at 420ms; the grid settles from 1.04 over 1200ms on a
+   * desktop. Once per visit (`data-intro`). Calm: a 160ms fade only.
+   */
+  @keyframes nf-hero-word {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.18em, 0) scale(1.06);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  @keyframes nf-hero-word-lite {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.18em, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-hero-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-hero-settle {
+    from {
+      opacity: 0;
+      transform: scale(1.04);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-hero-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  .nf-landing-title .nf-depth-word {
+    animation: nf-hero-word 420ms var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 60ms + var(--nf-i, 0) * 45ms);
+  }
+  :root:is([data-save-data="on"], [data-motion-lite="on"]) .nf-landing-title .nf-depth-word {
+    animation-name: nf-hero-word-lite;
+  }
+  .nf-landing-hero .nf-rise {
+    animation: nf-hero-rise 480ms var(--nf-ease-entrance) both;
+  }
+  .nf-landing-hero .nf-rise-1 {
+    animation-delay: var(--nf-splash-hold, 0s);
+  }
+  .nf-landing-hero .nf-rise-3 {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 300ms);
+  }
+  .nf-landing-hero .nf-rise-4 {
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 360ms);
+  }
+  .nf-landing-hero .nf-depth-last {
+    animation: nf-hero-rise 480ms var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 420ms);
+  }
+  @media (min-width: 64rem) {
+    .nf-landing-hero .nf-hero-grid {
+      animation: nf-hero-settle 1200ms var(--nf-ease-standard) both;
+    }
+  }
+  :root[data-intro="seen"] .nf-landing-hero :is(.nf-depth-word, .nf-rise, .nf-depth-last, .nf-hero-grid) {
+    animation: none;
+  }
+  :root[data-motion="calm"] .nf-landing-hero :is(.nf-depth-word, .nf-rise, .nf-depth-last) {
+    animation: nf-hero-fade 160ms linear both;
+    animation-delay: 0ms;
+  }
+  :root[data-motion="calm"] .nf-landing-hero .nf-hero-grid,
+  :root[data-motion="off"] .nf-landing-hero :is(.nf-depth-word, .nf-rise, .nf-depth-last, .nf-hero-grid) {
+    animation: none;
+  }
+
+  /* ----------------------------------------------------- reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-landing-hero :is(.nf-depth-word, .nf-rise, .nf-depth-last, .nf-hero-grid),
+    .nf-mo__bar > span {
+      animation: none;
+    }
+    .nf-stack__card,
+    .nf-stack__dot::before,
+    .nf-worlds__switch::before,
+    .nf-landing-cat-icon.nf-plate,
+    .nf-bento__card,
+    .nf-step__card {
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-stack__card, .nf-worlds__switch::before) {
+    transition: none;
   }
 }

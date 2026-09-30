@@ -8,12 +8,12 @@ import { ReportSheet } from "@/components/app/ReportSheet";
 import { blockUserSafely } from "@/lib/safety/blocks-actions";
 import { BLOCK_CONFIRM_COPY } from "@/lib/safety/blocks-copy";
 import { MediaSkyline, mediaGround } from "@/components/app/MediaFrame";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UnsafeSheet } from "@/components/app/safety/UnsafeSheet";
 import { PassportShareRow } from "@/components/app/safety/PassportShareRow";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The conversation's options sheet, behind the kebab in the header.
@@ -212,9 +212,9 @@ export function ThreadOptionsSheet({
           className="nf-share-row mt-md"
           data-testid="thread-share-into"
         >
-          <span className="h-11 w-11 shrink-0" aria-hidden="true">
-            <BrandIcon name="listing-search" fill />
-          </span>
+          <IconPlate size="sm" className="shrink-0">
+            <UiIcon name="share" size={20} />
+          </IconPlate>
           <span className="min-w-0 flex-1">
             <span className="block nf-body font-semibold text-[var(--nf-content-primary)]">
               Share a listing or a booking here
@@ -229,9 +229,9 @@ export function ThreadOptionsSheet({
 
       {/* --------------------------------------------- inspection and safety */}
       <div className="mt-md flex items-start gap-md">
-        <span className="h-14 w-14 shrink-0" aria-hidden="true">
-          <BrandIcon name="shield-lock" fill />
-        </span>
+        <IconPlate size="md" className="shrink-0">
+          <UiIcon name="shield-check" size={20} />
+        </IconPlate>
         <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {SAFETY_EDUCATION_COPY}
         </p>
@@ -305,9 +305,9 @@ export function ThreadOptionsSheet({
               data-testid="thread-block-opener"
               className="nf-share-row mt-md w-full text-left"
             >
-              <span className="h-11 w-11 shrink-0" aria-hidden="true">
-                <BrandIcon name="shield-check" fill />
-              </span>
+              <IconPlate size="sm" tone="danger" className="shrink-0">
+                <UiIcon name="block" size={20} />
+              </IconPlate>
               <span className="min-w-0 flex-1">
                 <span className="block nf-body font-semibold text-[var(--nf-content-primary)]">
                   Block {counterpartName}

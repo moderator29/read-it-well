@@ -1,6 +1,12 @@
-import { appUrl, bullets, button, compose, heading, hello, note, paragraph, rows } from "./render";
+import { appUrl, bullets, button, compose, fitSubject, heading, hello, note, paragraph, rows } from "./render";
 import type { EmailMessage } from "./messages";
 import { JOB_DESCRIPTIONS, type StaffPosition } from "../admin/staff-positions";
+
+/** "Access given: Support tickets. Read the handbook first." when it fits. */
+function accessLine(scopeWords: string): string {
+  const line = `Access given: ${scopeWords.trim()}. Read the handbook first.`;
+  return line.length <= 90 ? line : "Read the staff handbook before anything unlocks.";
+}
 
 /**
  * TRACK K: the email a person gets when the founder gives them staff access.
@@ -15,8 +21,9 @@ export function staffAccessGranted(data: {
   position?: StaffPosition | null;
 }): EmailMessage {
   const job = data.position ? JOB_DESCRIPTIONS[data.position] : null;
-  const { html, text } = compose({
-    preheader: job ? `Your position: ${job.title}. Access given: ${data.scopeWords}.` : `Access given: ${data.scopeWords}.`,
+  const composed = compose({
+    preheader:
+      accessLine(data.scopeWords),
     blocks: [
       heading("You have Vallo staff access"),
       paragraph(`${hello(data.name)} The Vallo founder gave your account access to the staff console.`),
@@ -41,5 +48,10 @@ export function staffAccessGranted(data: {
     ],
     footerLines: ["You are receiving this because your account was given staff access on Vallo."],
   });
-  return { subject: job ? `You have Vallo staff access: ${job.title}` : "You have Vallo staff access", html, text };
+  return {
+    subject: job ? fitSubject("Staff access", job.title) : "You have Vallo staff access",
+    preheader: composed.preheader,
+    html: composed.html,
+    text: composed.text,
+  };
 }

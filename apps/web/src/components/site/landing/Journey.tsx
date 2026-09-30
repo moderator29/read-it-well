@@ -5,9 +5,8 @@ import {
   NO_INSPECTION_FEE,
   PAYMENT_GATE_SENTENCE,
 } from "@/lib/money/copy";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import type { GlassMotion } from "./glass-motion";
 import { SectionHead } from "./SectionHead";
 
 /**
@@ -15,7 +14,7 @@ import { SectionHead } from "./SectionHead";
  * joined by one progress line (the founder's ruling of 29 September: no phone
  * or device frame anywhere on the landing).
  *
- * Each card carries a glass object, its number on the line, the step's name,
+ * Each card carries a flat icon plate, its number on the line, the step's name,
  * a title, one sentence, and a small product fragment: the one or two labels
  * the product itself shows at that step ("Booked", "Approved by Vallo",
  * "Straight to their bank"). The fragment repeats what the sentence says, so
@@ -39,11 +38,9 @@ import { SectionHead } from "./SectionHead";
  * `NO_CUSTODY_SENTENCE`, verbatim from `lib/money/copy.ts`. No fragment
  * carries money copy of its own.
  */
-/* Full-bleed glass objects only: `inspect-ring` drew a small, faint object
-   inside a ring beside the other three, so Inspect takes `calendar-home`
-   (booking the viewing) at the same visual weight. */
-const CHAPTER_OBJECT: readonly BrandIconName[] = ["listing-search", "calendar-home", "contract-sign", "keys-handover"];
-const CHAPTER_MOTION: readonly GlassMotion[] = ["rise", "pop", "tilt", "turn"];
+/* One flat plate per step (spec section 4; the glass objects retire from
+   the landing's cards, section 16 Q3). */
+const CHAPTER_GLYPH: readonly UiIconName[] = ["search", "calendar-booking", "file-check", "key"];
 
 type Fragment = { icon: UiIconName; label: string; tone?: "ok" };
 
@@ -93,11 +90,11 @@ export function Journey({ t }: { t: Dictionary }) {
               <span className="nf-step__num nf-numeric" aria-hidden="true">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <article className="nf-step__card nf-fx-host">
-                <span className="nf-glass-fx nf-feature-glass nf-step__glass" data-motion={CHAPTER_MOTION[i] ?? "rise"}>
-                  <BrandIcon name={CHAPTER_OBJECT[i] ?? "listing-search"} fill drawn={56} />
-                </span>
-                <span className="nf-eyebrow nf-step__label">{step.label}</span>
+              <article className="nf-step__card">
+                <IconPlate size="md" tone="brand" className="nf-step__plate">
+                  <UiIcon name={CHAPTER_GLYPH[i] ?? "search"} size={ICON_PLATE_GLYPH.md} />
+                </IconPlate>
+                <span className="nf-section-label nf-step__label">{step.label}</span>
                 <h3 className="nf-step__title">{step.title}</h3>
                 <p className="nf-step__body">{step.body}</p>
                 <ul className="nf-step__ui" aria-hidden="true">

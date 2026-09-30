@@ -2,6 +2,38 @@
 
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
+## Current rule, 29 September 2026: one family, lean glyphs on flat plates
+
+This section supersedes everything below it where the two disagree. The
+spec is `docs/design/CLEAN_UNIFIED_DIRECTION.md` section 4, and the pass that
+applied it is recorded in `docs/ICON_UPGRADE_2026-09-29.md`.
+
+- **One set.** Every icon inside a page is a `UiIcon` (Lucide geometry,
+  lean line). The navigation chrome keeps the bold line (`app/css/symbols.css`).
+  `SettingsGlyph`, `LineGlyph` and `AdminGlyph` are name maps onto `UiIcon`.
+  They are not separate drawings.
+- **One plate.** On a row, card, KPI tile, sheet head or empty state, the
+  glyph sits on `IconPlate` (`components/ui/IconPlate.tsx`, material in
+  `app/css/symbols.css`, values in the `--nf-plate-*` tokens). The plate is a
+  soft flat square: 36, 44 or 56px on a 10, 12 or 14px corner, holding a
+  20, 20 or 24px glyph (`ICON_PLATE_GLYPH`). It has no rim and no glow in
+  either theme.
+- **Tones.** The tones are `neutral` (the default), `brand` (only for the
+  one row that is the point of a screen), `success`, `warning`, `danger`,
+  `info` and `solid`.
+- **Inline glyphs** in chips and buttons are 16px with no plate.
+- **The glass objects retire.** `BrandIcon` no longer stands on a row, card,
+  button, empty state or sheet. A component that still takes a
+  `BrandIconName` draws its line twin from
+  `design-system/icons/glass-to-line.ts` (`lineGlyphFor`). The `State` kit
+  does this for every empty state. The flip, the logo and the photographic
+  hero scenes keep their artwork. The open list of the remaining glass call
+  sites is in the upgrade doc.
+- **Adding a glyph.** Copy Lucide's path data into `PATHS` in `UiIcon.tsx`,
+  name the Lucide source in a bracket comment, add the name to `UiIconName`,
+  then run `node scripts/build-icon-vectors.mjs`.
+  `ui-icon.dom.test.tsx` fails until the vector exists.
+
 **Two tiers, each with one job, plus one landing-only mark set that is not a
 tier. Never mix them.**
 

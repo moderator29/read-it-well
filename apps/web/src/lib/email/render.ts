@@ -211,6 +211,109 @@ export function dateRange(checkIn: string, checkOut: string): string {
   return prettyDate(checkIn) + " to " + prettyDate(checkOut);
 }
 
+/* ----------------------------------------------------- the lock-screen line */
+
+/**
+ * WRITTEN FOR THE LOCK SCREEN (29 September 2026, founder: "clean, sharp").
+ *
+ * What a phone shows when a Vallo email lands is three lines: the sender
+ * ("Vallo", `client.ts`), the subject in bold, and one line of preheader. So
+ * every message is written for that view first:
+ *
+ *   SUBJECT: the fact first, 45 characters or fewer, sentence case, no full
+ *   stop. Anything past about 45 is cut on a phone, so the end of a longer
+ *   subject is decoration rather than communication.
+ *
+ *   PREHEADER: one sentence, 90 characters or fewer, ending in a full stop,
+ *   saying the one thing the subject does not (who, when, how much). Never a
+ *   greeting, never marketing, never the subject again.
+ *
+ * `messages.test.ts` walks every fixture and fails over either limit.
+ */
+export const SUBJECT_MAX = 45;
+export const PREHEADER_MAX = 90;
+
+/**
+ * Cut text to `max` characters at a word boundary, with an ellipsis when
+ * anything was cut. A trailing comma or colon left by the cut goes too, so
+ * "Two bedroom flat, Herbert" never reads as "Two bedroom flat,…".
+ */
+export function clip(text: string, max: number): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const room = Math.max(1, max - 1);
+  const cut = clean.slice(0, room);
+  const atWord = cut.lastIndexOf(" ") > room * 0.5 ? cut.slice(0, cut.lastIndexOf(" ")) : cut;
+  return atWord.replace(/[\s,;:.\-]+$/, "") + "…";
+}
+
+/**
+ * A listing or place title short enough to sit in a subject.
+ *
+ * Listing titles here are written as "Two bedroom flat, Herbert Macaulay Way,
+ * Yaba": the thing, then where it is. On a lock screen the thing is what the
+ * reader recognises, so the part before the first comma is used when it says
+ * enough on its own, and the whole title is cut at a word otherwise.
+ */
+export function shortTitle(title: string, max = 28): string {
+  const clean = title.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const head = clean.split(",")[0]?.trim() ?? "";
+  if (head.length >= 8 && head.length <= max) return head;
+  return clip(clean, max);
+}
+
+/**
+ * "Booking confirmed: Two bedroom flat". The fact, then the thing it is
+ * about, cut to fit the 45 characters a phone shows. With no room left for a
+ * useful detail the fact stands alone rather than trailing a stub.
+ */
+export function fitSubject(fact: string, detail?: string | null): string {
+  const lead = fact.trim();
+  const about = (detail ?? "").trim();
+  if (about.length === 0) return clip(lead, SUBJECT_MAX);
+  const room = SUBJECT_MAX - lead.length - 2;
+  if (room < 10) return clip(lead, SUBJECT_MAX);
+  return `${lead}: ${shortTitle(about, room)}`;
+}
+
+/**
+ * A preheader that quotes somebody's words: "Reason: ..." when the label and
+ * the words both fit, the words alone when only they fit (the subject already
+ * says what they are), and the words cut at a word only as a last resort.
+ * Somebody's own sentence is never paraphrased to make it shorter.
+ */
+export function quoteLine(label: string, words: string, max = PREHEADER_MAX): string {
+  const clean = words.replace(/\s+/g, " ").trim();
+  const labelled = `${label}: ${clean}`;
+  if (labelled.length <= max) return labelled;
+  if (clean.length <= max) return clean;
+  return clip(clean, max);
+}
+
+/** "1 Sep", in Lagos. */
+export function dayMonth(isoDate: string): string {
+  const parsed = new Date(isoDate + "T12:00:00Z");
+  if (Number.isNaN(parsed.getTime())) return isoDate;
+  return formatDate(parsed, "en", { day: "numeric", month: "short" });
+}
+
+/**
+ * "1 to 5 Sep", "28 Sep to 2 Oct": a stay's dates as a lock screen wants
+ * them. The year is left off because every date on this platform is in the
+ * coming months; the full range with years stays in the body's rows.
+ */
+export function shortRange(checkIn: string, checkOut: string): string {
+  const from = dayMonth(checkIn);
+  const to = dayMonth(checkOut);
+  const [fromDay, fromMonth] = from.split(" ");
+  const [, toMonth] = to.split(" ");
+  if (fromMonth && fromMonth === toMonth && checkIn.slice(0, 4) === checkOut.slice(0, 4)) {
+    return `${fromDay} to ${to}`;
+  }
+  return `${from} to ${to}`;
+}
+
 /**
  * A name we can greet somebody by, or null.
  *
@@ -509,6 +612,8 @@ export type ComposeOptions = {
 };
 
 export type Composed = {
+  /** The inbox line as it is shipped: trimmed and held to PREHEADER_MAX. */
+  preheader: string;
   html: string;
   /** The text/plain alternative. Always present, always from the same blocks. */
   text: string;
@@ -579,9 +684,20 @@ export function documentHead(title: string, extraStyle = "", headExtra = ""): st
   </head>`;
 }
 
+/**
+ * The padding after the preheader: invisible, zero-width and non-breaking
+ * characters, enough of them to fill the rest of any client's preview line.
+ * Without it Gmail and iOS Mail pull the first body text in behind the
+ * preheader ("Hello Ada. Somebody asked..."), so the lock screen shows the
+ * sentence we wrote followed by one we did not choose. Numeric entities only,
+ * so the preview test's `&#\d+;` strip removes all of it.
+ * `scripts/build-auth-emails.mjs` mirrors this string.
+ */
+export const PREHEADER_PAD = "&#847;&#8204;&#160;".repeat(60);
+
 /** The hidden inbox line, with spacer entities so a client does not pull body copy in behind it. */
 export function preheaderHtml(text: string): string {
-  return `<span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(text)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>`;
+  return `<span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(clip(text, PREHEADER_MAX))}${PREHEADER_PAD}</span>`;
 }
 
 /**
@@ -738,5 +854,5 @@ export function compose(options: ComposeOptions): Composed {
       siteUrl(),
     ].join("\n") + "\n";
 
-  return { html: paintExplicit(html), text };
+  return { preheader: clip(options.preheader, PREHEADER_MAX), html: paintExplicit(html), text };
 }

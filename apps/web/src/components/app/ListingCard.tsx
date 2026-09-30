@@ -453,14 +453,15 @@ export function ListingCard({
               {copy.example}
             </span>
           )}
-          <span className="nf-badge nf-badge--info nf-pcard__mark nf-pcard__mark--market">
-            <UiIcon name={marketKey === "sale" ? "key" : marketKey === "rent" ? "home" : "calendar-booking"} size={12} />
-            {market}
-          </span>
           {!photo && <span className="nf-pcard__nophoto">{copy.noPhotos}</span>}
         </div>
 
         <div className="nf-pcard__body">
+          {/* The market as a word above the title (plan item 17): one badge on
+              the photograph at most (Verified or Example), never three. */}
+          <p className="nf-pcard__market" data-market={marketKey}>
+            {market}
+          </p>
           <h3 className="nf-pcard__title" title={listing.title}>
             {listing.title}
           </h3>

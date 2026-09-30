@@ -24,7 +24,7 @@ Lane: motion and transitions across the platform (phone, tablet, desktop). Built
 
 | Piece | How | Motion | Gates |
 |---|---|---|---|
-| Route transitions | A `template.tsx` in each route group wraps the page in `<ViewTransition enter exit default="none">` (the `RouteTransition` component) | Forward: the old page drifts 24px left and fades, and the new page arrives 32px from the right. Back: mirrored. Tab: a crossfade with a 6px rise. The chrome (header, dock, rail) does not move. | OS reduce: instant (existing `base.css` rule). Off: no view transition at all. Calm: a 140ms crossfade only. The flip passes the `nf-flip` type and gets none. |
+| Route transitions | A `template.tsx` in each route group wraps the page in `<ViewTransition enter exit default="none">` (the `RouteTransition` component) | Forward: the old page drifts 24px left and fades, and the new page arrives 32px from the right. Back: mirrored. Tab: a crossfade with a 6px rise. The chrome (header, dock, rail) does not move. | OS reduce: instant (existing `base.css` rule). Off: no view transition at all. Calm: a short crossfade (`--nf-duration-fast`) only. The flip passes the `nf-flip` type and gets none. |
 | Direction | `lib/motion/nav-direction.ts` classifies from and to using `lib/nav/resolve.ts` (`isAncestor`, `isAppRoot`). A click listener, `popstate` and `performBack` write `data-nav-dir` on the root. | Not applicable | Not applicable |
 | Listing morph | The name is set only on the clicked card, at click time. React's navigation transition captures it and the gallery's lead pane receives it. | The group morph uses `--nf-duration-slow` with `--nf-ease-entrance` | Skipped when quiet |
 | Row press | `:active` scale `--nf-press-scale-lg` plus a tint | `--nf-duration-press` | The tokens collapse under reduce, and Off already zeroes transitions |
@@ -32,6 +32,30 @@ Lane: motion and transitions across the platform (phone, tablet, desktop). Built
 | Sub-tab ink | One indicator that slides with `transform` (`TabInk`) | `--nf-duration-base`, standard ease | The tokens collapse |
 
 Rules kept: only transform and opacity; nothing waits on an animation; `::view-transition` never takes pointer events, so taps during a transition reach the live page; no new dependencies.
+
+## Found while building
+
+- **React does not animate a history traversal.** The App Router answers `popstate` synchronously so the browser can restore scroll, and no view transition runs. I measured this on the dev server: the browser back button produced none. So `performBack` (`lib/nav/use-back.ts`) wraps the traversal in a view transition of its own, typed `nf-back`.
+  - This covers the in-app back arrow (BackControl) and the Android back button (NativeRuntime).
+  - It gives up after 350ms, so a route that is not cached never holds the screen.
+  - The browser's own back button, and the iOS swipe back, keep the browser's native behaviour.
+- **Tab switches stagger.** The first four sections of the new page rise 40ms apart. This runs only while `data-nav-dir="tab"` is set, so it never costs anything on a first load.
+
+## Checked so far (Playwright, Chromium, dev server on :3000)
+
+- **Sign-in to sign-up, at 390 and 1440:** a view transition ran with `data-nav-dir="forward"`. The animations were `nf-route-fade-out` 160 and `nf-route-out` 240 on the old page, and `nf-route-fade-in` 240 and `nf-route-in` 240 on the new one. No console errors.
+- **About to Help, warm, at 1440:** the same four animations ran on both page groups. The site header stayed still in the mid-transition frame.
+- **Cold first visit to a route in dev:** the page arrived under its loading skeleton with no page animation, only the root. That is a dev-compile artefact, not something the transition code does.
+- **Sign-up back arrow to /welcome, at 820, after the root template:** `data-nav-dir="back"`, the same four animations, and the page arrives from the leading edge.
+- **Calm, at 390:** fades only, at 100ms: `nf-route-fade-out` and `nf-route-fade-in`, with no travel.
+- **Off, at 390:** no view-transition animation at all.
+- **Pressing the browser back button:** no transition. This is expected (see above).
+- **Signed-in surfaces were not checked in a browser:** the dock crossfade, the rail, the listing photo morph, the tab stagger and the row press.
+  - The QA member's passcode gate did not clear on the dev server. There was no wrong-code message, and the keypad returned after the refresh.
+  - I stopped rather than risk locking the account.
+  - Those surfaces are covered only by the unit tests and by review.
+- **One page error in the Off run:** "Router action dispatched before initialization". It did not recur in the other runs, and the dev server was reloading at the time.
+- Screenshots are in the session scratchpad under `motion/`.
 
 ## Left for later
 

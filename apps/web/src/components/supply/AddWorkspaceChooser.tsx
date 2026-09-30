@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
 import { TYPE } from "@/components/app/Screen";
 import { SUPPLY_DOOR_ORDER, STAYS_DOOR_ORDER } from "@/lib/supply/roles";
 import type { Side } from "@/lib/side.constants";
 import { hrefFor } from "./AddWorkspaceChooser.href";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 export { hrefFor };
 
@@ -232,9 +234,9 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
                       className="nf-door"
                       data-on={selected || undefined}
                     >
-                      <span className="nf-door__mark nf-door__mark--glass" aria-hidden="true">
-                        <BrandIcon name={DOOR_OBJECT[id] ?? "modern-house"} fill />
-                      </span>
+                      <IconPlate size="md" tone={selected ? "brand" : "neutral"} className="nf-door__mark">
+                        <UiIcon name={lineGlyphFor(DOOR_OBJECT[id] ?? "modern-house")} size={20} />
+                      </IconPlate>
                       <span className="min-w-0 flex-1 text-left">
                         <span className={`block ${TYPE.rowTitle}`}>{door.title}</span>
                         <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{door.blurb}</span>
@@ -266,9 +268,9 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
           <ul className="mt-heading grid gap-group">
             {overviewRows.map((row) => (
               <li key={row.label} className="nf-door nf-door--calm">
-                <span className="nf-door__mark nf-door__mark--glass" aria-hidden="true">
-                  <BrandIcon name={row.object} fill />
-                </span>
+                <IconPlate size="md" className="nf-door__mark">
+                  <UiIcon name={lineGlyphFor(row.object)} size={20} />
+                </IconPlate>
                 <span className={`min-w-0 flex-1 ${TYPE.body}`}>{row.label}</span>
               </li>
             ))}

@@ -17,11 +17,12 @@ import type {
 import { CALENDAR_WINDOW_NIGHTS } from "@/lib/agent/analytics-queries";
 import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";
 import type { ListingStatus } from "@/lib/agent/listings-queries";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Amount, Figure } from "@/components/ui/Amount";
 import { Progress } from "@/components/ui/Progress";
 import { ButtonLink } from "@/components/ui/Button";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The agent's analytics console.
@@ -81,16 +82,16 @@ function Tile({
   value,
   note,
 }: {
-  icon: BrandIconName;
+  icon: UiIconName;
   label: string;
   value: React.ReactNode;
   note?: string;
 }) {
   return (
     <div className="nf-panel nf-panel--card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
-      <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10">
-        <BrandIcon name={icon} fill />
-      </span>
+      <IconPlate size="sm" className="shrink-0">
+        <UiIcon name={icon} size={20} />
+      </IconPlate>
       <div className="min-w-0">
         <p className="text-[length:var(--nf-text-overline)] font-medium leading-snug text-[var(--nf-content-muted)]">
           {label}
@@ -639,9 +640,9 @@ export function AnalyticsWorkspace({
   if (nothingHappenedYet) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-md py-10 text-center sm:py-14">
-        <span className="block h-20 w-20">
-          <BrandIcon name="report-stats" fill />
-        </span>
+        <IconPlate size="lg">
+          <UiIcon name="chart-bar" size={24} />
+        </IconPlate>
         <h2 className="nf-h3">{t.emptyTitle}</h2>
         <p className="mx-auto max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}
@@ -657,7 +658,7 @@ export function AnalyticsWorkspace({
     <div className="space-y-lg">
       <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
         <Tile
-          icon="wallet-secure"
+          icon="wallet"
           label={t.headline.settled}
           value={
             earnings.readable ? (
@@ -683,7 +684,7 @@ export function AnalyticsWorkspace({
           }
         />
         <Tile
-          icon="reviews"
+          icon="star"
           label={t.headline.rating}
           value={
             reviews === null ? (

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { IconPlate } from "@/components/ui/IconPlate";
@@ -15,8 +16,8 @@ import { STATE_TONE, stateRole, type StateKind } from "@/lib/design/voice";
  * the one, and the old names become thin wrappers over it, then go.
  *
  * THE ANATOMY, fixed:
- *   1. a glyph: the commissioned object (`icon`, a BrandIcon) where the state
- *      has one, or the kind's plate (a line glyph on the tone's fill)
+ *   1. a glyph: a lean line glyph on the kind's flat plate; a state that
+ *      names an object (`icon`, a BrandIcon name) draws its line twin
  *   2. one title, under 40 characters
  *   3. one sentence of body, under 180 characters
  *   4. at most one primary and one secondary action, stacked and full width,
@@ -55,7 +56,7 @@ export type StateProps = {
   title: string;
   /** One sentence, true of the state the reader is actually in. Unused by loading. */
   body?: string;
-  /** The commissioned object. Without one the kind's plate is drawn. */
+  /** An object name; its line twin is drawn on the plate. Without one, the kind's glyph. */
   icon?: BrandIconName;
   /** The single next thing to do, naming where it goes. */
   primary?: StateAction;
@@ -119,17 +120,13 @@ export function State({
       role={role}
       className={`flex flex-col items-center px-lg py-section text-center ${className ?? ""}`}
     >
-      {icon ? (
-        /* 80px: an empty state is a sentence with a picture beside it, not a
-           poster (the size EmptyState settled on). */
-        <span className="block h-20 w-20">
-          <BrandIcon name={icon} fill drawn={80} />
-        </span>
-      ) : (
-        <IconPlate size="lg" tone={STATE_TONE[kind]}>
-          <UiIcon name={KIND_GLYPH[kind]} size={24} />
-        </IconPlate>
-      )}
+      {/* One glyph, one family (the icon upgrade, 29 September 2026): a
+          lean line glyph on the kind's flat plate. A state that names a
+          glass object draws that object's line twin (`glass-to-line.ts`);
+          the glass objects no longer stand in a state. */}
+      <IconPlate size="lg" tone={STATE_TONE[kind]}>
+        <UiIcon name={icon ? lineGlyphFor(icon) : KIND_GLYPH[kind]} size={24} />
+      </IconPlate>
       {/* `balance` stops a centred two-line title leaving a one-word orphan. */}
       <p className={`mt-block ${STATE_TITLE_CLASS} [text-wrap:balance]`}>{title}</p>
       {body && <p className={`mt-inline max-w-[42ch] ${STATE_BODY_CLASS}`}>{body}</p>}

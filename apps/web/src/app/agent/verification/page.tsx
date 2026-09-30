@@ -5,7 +5,6 @@ import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { getOwnLadder, type OwnLadder } from "@/lib/agent/verification-queries";
 import { ListingPitch } from "../list/ListingPitch";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { approvedRecently } from "@/lib/ui/recent-approval";
@@ -16,6 +15,8 @@ import {
   VERIFICATION_ORDER,
   type VerificationTier,
 } from "@/lib/trust/verification";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * /agent/verification: where this agent stands, and what the next rung wants.
@@ -191,9 +192,9 @@ export default async function Page() {
     return (
       <AgentShell t={t} locale={locale} active="/agent/verification" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
-          <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="shield-check" fill />
-          </span>
+          <IconPlate size="lg">
+            <UiIcon name="shield-check" size={24} />
+          </IconPlate>
           <h1 className="nf-h2 mt-5">{t.agent.nav.verification}</h1>
           <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {t.agentBookings.unconfigured}

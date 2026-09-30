@@ -220,6 +220,14 @@ export const trustVisibleEn = {
     /** `{rating}` is the average to one decimal, `{count}` the number of reviews. */
     reviewsValue: "{rating} from {count}",
     staysHosted: "Stays hosted",
+    /* The share card frame (spec section 10) the band is drawn on. */
+    cardTitle: "Agent record",
+    ratingUnit: "of 5",
+    reviewsWord: "{count} reviews",
+    reviewsWordOne: "1 review",
+    ratingLabel: "Average review",
+    honest: "From reviews people left on Vallo. A record of past work, not a promise about the next.",
+    noReviews: "No reviews yet. A reply time is shown until there are some.",
   },
   /** V-05: the four questions a renter answers after an inspection. */
   truth: {

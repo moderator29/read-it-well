@@ -56,6 +56,12 @@ export const landingRoomsEn = {
     title: "Questions, answered",
     body: "The short answers. The Help Centre has the long ones.",
     help: "Visit the Help Centre",
+    /* The three labels the questions are grouped under (UIUX item 11). */
+    groups: {
+      property: "Renting and buying",
+      stays: "Stays and the app",
+      money: "Money and safety",
+    },
     items: [
       {
         key: "what",
@@ -103,6 +109,61 @@ export const landingRoomsEn = {
     title: "Find the place. Keep the record.",
     body: "Start with a search. Every message, agreement and payment after it stays on the record.",
     join: "Create your account",
+    signIn: "Sign in",
+  },
+  /*
+   * "Hands on": the deck of product moments you can move by hand
+   * (`StackRoom.tsx`, the founder's reference 40). Every moment is an
+   * example and says so; the names, slots and figures below are
+   * illustrations of what the screens show, never inventory or a person.
+   * The viewing and payment cards' sentences are the money constants and
+   * are not here.
+   */
+  stack: {
+    overline: "Hands on",
+    title: "Four moments of a move, as you will see them.",
+    body: "Examples drawn from the screens you will use. Move them around.",
+    hint: "Drag a card, or flick it to see the next.",
+    prev: "Previous card",
+    next: "Next card",
+    position: "{n} of {total}",
+    cards: {
+      listing: {
+        title: "Every cost on the card",
+        body: "The move-in total adds the caution deposit and the agency, legal and agreement fees the listing states, not just the rent.",
+      },
+      viewing: { title: "Book the viewing" },
+      agent: {
+        title: "Know who is behind it",
+        body: "Every listing names who is behind it, and a person reviews every agent application by hand before they can publish.",
+      },
+      pay: { title: "Pay once you both agree" },
+    },
+    ui: {
+      example: "Example",
+      listingTitle: "Two bedroom flat",
+      place: "Lekki Phase 1, Lagos",
+      rent: "Rent",
+      perYear: "/yr",
+      moveIn: "Move-in total",
+      caution: "Caution",
+      agency: "Agency",
+      legal: "Legal",
+      agreement: "Agreement",
+      viewing: "Book a viewing",
+      date: "Saturday 4 October",
+      slots: ["10:00", "11:30", "14:00", "16:30"],
+      chosen: "Chosen",
+      open: "Open",
+      noFee: "No inspection fee",
+      agentInitials: "TA",
+      agentName: "Tunde A.",
+      agentRole: "Agent, Lekki",
+      reviewed: "Application reviewed by a person",
+      named: "Named on every listing",
+      record: "Messages kept on the record",
+      bank: "Straight to their bank",
+    },
   },
   /*
    * The journey (Track M, second pass; no phone since 29 September): four
@@ -138,8 +199,19 @@ export const landingRoomsEn = {
     body: "Search, stays, the assistant, agreements and messages, side by side.",
     cards: {
       rent: { title: "Rent and buy", body: "Homes, land, shops and offices, with the move-in total printed on the card." },
-      stays: { title: "Vallo Stays", body: "Hotels, shortlets and guest houses, with the free nights and the full total before you book." },
-      ai: { title: "Vallo AI", body: "Ask in English, Yorùbá, Hausa or Igbo. It names only places that are on Vallo." },
+      stays: {
+        title: "Vallo Stays",
+        body: "Hotels, shortlets and guest houses, with the free nights and the full total before you book.",
+        /* The kinds the Stays side lists (lib/stays/types.ts), shown on the
+           tall card from 64rem. */
+        chips: ["Hotels", "Shortlets", "Guest houses", "Resorts"],
+      },
+      ai: {
+        title: "Vallo AI",
+        body: "Ask in English, Yorùbá, Hausa or Igbo. It names only places that are on Vallo.",
+        /* The four languages it answers in. */
+        chips: ["English", "Yorùbá", "Hausa", "Igbo"],
+      },
       price: { title: "Price Check", body: "What similar places nearby are advertised for, or a plain \"not enough to tell\"." },
       agree: { title: "Agreements and the Guarantee", body: "Both of you confirm the agreement before any payment opens." },
       messages: { title: "Messages", body: "Every conversation with the lister stays on the platform, so there is a record." },
@@ -166,6 +238,8 @@ export const landingRoomsEn = {
     overline: "Where Vallo lives",
     title: "Built for the whole of Nigeria",
     body: "Search any of these cities, or anywhere else you know.",
+    /* The label over the city chips in the category room (UIUX item 9). */
+    cities: "Cities",
   },
   badges: {
     appleSmall: "Download on the",

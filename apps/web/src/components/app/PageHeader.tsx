@@ -4,6 +4,7 @@ import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { BackControl } from "@/components/ui/BackControl";
+import { LargeTitleFold } from "./LargeTitleFold";
 
 /**
  * Page header with the platform back flow.
@@ -24,6 +25,10 @@ export function PageHeader({
   leading,
   tone = "default",
   layout = "inline",
+  variant,
+  breadcrumb,
+  badge,
+  back = true,
 }: {
   title: string;
   subtitle?: string;
@@ -61,11 +66,79 @@ export function PageHeader({
    * with the subtitle as a lede beneath it. Same back flow, same names.
    */
   layout?: "inline" | "stacked";
+  /**
+   * The clean spec's two headers (CLEAN_UNIFIED_DIRECTION.md section 8).
+   *
+   * `large` is reference 31's top of a phone screen: the title at 30/36, one
+   * muted sub-line (`subtitle`), up to two 44px icon buttons (`actions`) on
+   * the title's first line, no card around it. It folds into the app bar as
+   * the page scrolls (`LargeTitleFold`). `desk` is reference 30's workspace
+   * strip: a breadcrumb over a 22px title, a dot badge after the title, the
+   * actions on the right with ONE primary. Both keep the same back flow.
+   * Omitted, `layout` decides as before.
+   */
+  variant?: "large" | "desk";
+  /** `desk` only: the trail over the title, joined with a middle dot. */
+  breadcrumb?: string[];
+  /** `desk` only: a dot badge after the title ("Draft", "Unpublished changes"). */
+  badge?: React.ReactNode;
+  /**
+   * Whether the header draws the back control. Every header did, and every
+   * header still does unless a screen says otherwise: a desk page whose shell
+   * already draws the way back turns it off so the screen never has two.
+   */
+  back?: boolean;
 }) {
   /* The glass square the renders draw, 44px, named for where it goes. */
-  const backButton = (
+  const backButton = back ? (
     <BackControl fallback={fallback} surface="glass" {...(backLabel ? { label: backLabel } : {})} />
-  );
+  ) : null;
+
+  if (variant === "large") {
+    return (
+      <LargeTitleFold title={title}>
+        <div className="nf-ph-large__row">
+          {backButton}
+          {leading}
+          <div className="min-w-0 flex-1">
+            <h1 className="nf-ph-large__title [overflow-wrap:anywhere]" data-fold-anchor>
+              {title}
+            </h1>
+            {subtitle &&
+              (subtitleHref ? (
+                <Link href={subtitleHref} className="nf-ph-large__sub nf-ph-large__sub--link">
+                  <span className="min-w-0">{subtitle}</span>
+                  <UiIcon name="chevron-right" size={ICON.inline} className="shrink-0" />
+                </Link>
+              ) : (
+                <p className="nf-ph-large__sub">{subtitle}</p>
+              ))}
+          </div>
+          {actions ? <div className="nf-ph-large__actions">{actions}</div> : null}
+        </div>
+      </LargeTitleFold>
+    );
+  }
+
+  if (variant === "desk") {
+    return (
+      <div className="nf-ph-desk">
+        {backButton}
+        {leading}
+        <div className="min-w-0 flex-1">
+          {breadcrumb && breadcrumb.length > 0 ? (
+            <p className="nf-ph-desk__crumb">{breadcrumb.join(" · ")}</p>
+          ) : null}
+          <div className="flex min-w-0 flex-wrap items-center gap-x-sm gap-y-2xs">
+            <h1 className="nf-ph-desk__title [overflow-wrap:anywhere]">{title}</h1>
+            {badge}
+          </div>
+          {subtitle ? <p className="nf-ph-desk__sub">{subtitle}</p> : null}
+        </div>
+        {actions ? <div className="nf-ph-desk__actions">{actions}</div> : null}
+      </div>
+    );
+  }
 
   if (layout === "stacked") {
     return (
@@ -102,7 +175,13 @@ export function PageHeader({
 
   return (
     <div
-      className={`mb-heading flex items-center gap-md rounded-[var(--nf-radius-lg)] ${
+      /* WRAPS RATHER THAN BREAKS A WORD. At 360 the back square, a title
+         and a text action ("Mark all read") left the title about 115px, and
+         "Notifications" broke as "Notificatio / ns". The title now keeps a
+         basis wide enough for a whole word at `nf-h2`, and when the row
+         cannot hold that beside the actions, the actions take their own
+         line at the end instead. An icon action still fits on the row. */
+      className={`mb-heading flex flex-wrap items-center gap-x-md gap-y-inline rounded-[var(--nf-radius-lg)] ${
         tone === "verified" ? "nf-page-header--verified" : ""
       }`}
     >
@@ -120,7 +199,7 @@ export function PageHeader({
       */}
       {backButton}
       {leading}
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-[11rem]">
         {/*
           NEITHER OF THESE TRUNCATES, AND THE COMMENT THAT SAID SO WAS WRONG.
           A header that reads "Places on R..." tells somebody nothing and cannot
@@ -156,7 +235,7 @@ export function PageHeader({
             </p>
           ))}
       </div>
-      {actions}
+      {actions ? <div className="ms-auto flex shrink-0 items-center gap-inline">{actions}</div> : null}
     </div>
   );
 }

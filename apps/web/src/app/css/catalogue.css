@@ -116,6 +116,13 @@
   /* Up to three lines, then the ellipsis, with the whole title on the
      element's title attribute. Two lines cut "Luxury 2 bedroom apartment
      with BQ" in the two-up grid at 320 before its last words. */
+  /* The market as a quiet word above the title (plan item 17). */
+  .nf-pcard__market {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
   .nf-pcard__title {
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -123,7 +130,7 @@
     overflow: hidden;
     overflow-wrap: anywhere;
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1.25;
     color: var(--nf-content-primary);
   }
@@ -162,14 +169,17 @@
   }
   /* The figure. Brand blue on the night theme, as every price in the renders
      is, and the one thing on the card set in the display face. */
+  /* One price line (plan item 17): 17/600 tabular in the ink, the period
+     muted after it. The accent stays for the one action on a screen. */
   .nf-pcard__price {
     margin-top: var(--nf-space-3xs);
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-body-lg);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-    color: var(--nf-brand-secondary);
+    font-family: var(--nf-font-sans);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
     white-space: nowrap;
   }
   /* One across, so the figure keeps the heading rung it always had. */
@@ -238,13 +248,11 @@
   /* The "+N" mark that stands for the facts a two-up card has no room for.
      It reads as a count rather than as a fact, so it takes the muted tone and
      the well fill, and it never wraps the row: it is the last cell on it. */
+  /* Plain text, not a chip (plan item 17): the count reads as the last
+     fact on the line. */
   .nf-pcard__fact--more {
-    padding: 0 var(--nf-space-3xs);
-    border-radius: var(--nf-radius-xs);
     color: var(--nf-content-muted);
-    font-weight: 650;
-    background: var(--nf-btn-glass-fill);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    font-weight: 500;
   }
 
   /* The marks on the photograph. Verified is the brand mark of the renders:
@@ -288,10 +296,6 @@
      the photograph is this file's. */
   .nf-pcard__mark--verified {
     top: var(--nf-space-2xs);
-    left: var(--nf-space-2xs);
-  }
-  .nf-pcard__mark--market {
-    bottom: var(--nf-space-2xs);
     left: var(--nf-space-2xs);
   }
   /* The disclosure on an illustrative row. Cyan outline, never a fill, so it
@@ -2012,16 +2016,18 @@
     justify-content: space-between;
     gap: var(--nf-space-sm);
   }
+  /* One price line (plan item 17): 17/600 tabular in the ink. */
   .nf-stay-card__price {
     flex-shrink: 0;
     text-align: right;
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h4);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
+    font-family: var(--nf-font-sans);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
     white-space: nowrap;
-    color: var(--nf-brand-secondary);
+    color: var(--nf-content-primary);
   }
   .nf-stay-card__per {
     display: block;
@@ -2066,12 +2072,13 @@
     font-weight: 500;
     white-space: nowrap;
     color: var(--nf-content-secondary);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    background: var(--nf-btn-glass-fill);
-    box-shadow: var(--nf-btn-glass-shadow);
+    /* A quiet neutral chip (spec 12): the raised well, no rim, no glow. */
+    border: 0;
+    background: var(--nf-surface-raised);
+    box-shadow: none;
   }
   .nf-stay-card__chip > svg {
-    color: var(--nf-brand-secondary);
+    color: var(--nf-content-muted);
   }
 
 

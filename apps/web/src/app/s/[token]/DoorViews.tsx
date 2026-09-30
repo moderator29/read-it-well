@@ -1,6 +1,7 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
+import { AreaShareCard } from "@/components/share/AreaShareCard";
 import type { ShareLines } from "@/lib/price-check/share-card";
 import { doorSignInHref, type DoorCard, type DoorLines } from "@/lib/share/door";
 import { DoorRetry } from "./DoorRetry";
@@ -108,18 +109,15 @@ export function DoorAreaView({
   copy: Copy;
 }) {
   return (
-    <article className="nf-panel nf-door__card" data-testid="door-card-area">
-      <p className="nf-door__eyebrow">{copy.areaEyebrow}</p>
-      <h1 className="nf-door__title">{lines.headline}</h1>
-      <div>
-        <p className="nf-door__headline">{lines.range}</p>
-        <p className="nf-door__second">{lines.basis}</p>
-      </div>
-      <p className="nf-door__note">{lines.footer}</p>
+    <div className="grid gap-block" data-testid="door-card-area">
+      {/* The share card frame (spec section 10): the same card the unfurl
+          image draws, so the page and the picture agree. */}
+      <h1 className="sr-only">{lines.headline}</h1>
+      <AreaShareCard lines={lines} chip={copy.areaEyebrow} />
       <ButtonLink href={doorSignInHref(card)} variant="primary" full data-testid="door-sign-in">
         {copy.signInArea}
       </ButtonLink>
-    </article>
+    </div>
   );
 }
 

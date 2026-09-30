@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { setFeeRate } from "@/lib/admin/money-actions";
 import { reviewKycDocument } from "@/lib/admin/kyc-actions";
+import { Sheet } from "@/components/ui/Sheet";
+import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
 
 /**
  * The two decisions the money side of the console takes here (the escrow
@@ -153,6 +155,7 @@ export function FeeRateForm({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [pending, start] = useTransition();
 
   function submit() {
@@ -169,6 +172,15 @@ export function FeeRateForm({
       return;
     }
 
+    /* The confirm step (plan item 22): the checks above are unchanged; a
+       rate that passes them is shown in the confirm panel, whose primary
+       records it with exactly the call this button made before. */
+    setConfirming(true);
+  }
+
+  function record() {
+    const percentValue = Number(percent);
+    const flatValue = Number(flatNaira);
     start(async () => {
       const result = await setFeeRate({
         kind,
@@ -180,12 +192,14 @@ export function FeeRateForm({
         note,
       });
       if (!result.ok) {
+        setConfirming(false);
         setError(
           result.fieldErrors?.["note"] ?? result.fieldErrors?.["effectiveFrom"] ?? result.error,
         );
         return;
       }
       setNote("");
+      setConfirming(false);
       setDone(true);
       router.refresh();
     });
@@ -256,6 +270,42 @@ export function FeeRateForm({
         </Button>
       </div>
       <Refusal message={error} />
+      <Sheet
+        open={confirming}
+        onOpenChange={(next) => {
+          if (!next && !pending) setConfirming(false);
+        }}
+        title="Record this rate?"
+        hideTitle
+        card
+        detents={[0.9]}
+      >
+        <ConfirmPanel
+          icon="price-tag"
+          tone="warning"
+          title={`Record a ${percent || "0"}% ${kind === "commission" ? "commission" : "listing fee"}?`}
+          context="A new rate is added; the old one stays on record for what it already charged."
+          summary={[
+            { label: "Percentage", value: `${percent || "0"}%` },
+            { label: "Flat amount", value: `₦${flatNaira || "0"}` },
+            { label: "Starts", value: startsAt ? startsAt.replace("T", " ") : "Now" },
+          ]}
+          next={[
+            { icon: "clock", text: "It applies to charges from its start, never to anything already charged." },
+            { icon: "user-check", text: "It is recorded with your name on it." },
+          ]}
+          cancel={
+            <Button type="button" size="sm" variant="secondary" disabled={pending} onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+          }
+          primary={
+            <Button type="button" size="sm" disabled={pending} onClick={record}>
+              {pending ? "Recording" : "Record this rate"}
+            </Button>
+          }
+        />
+      </Sheet>
       {done && (
         <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">
           Recorded, with your name on it.

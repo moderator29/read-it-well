@@ -95,11 +95,11 @@ type Belonging = {
 function BelongingRow({ row, value }: { row: Belonging; value: string | null }) {
   return (
     <Link href={row.href} className="nf-pf-row" data-testid={`row-${row.key}`}>
-      {/* The shared icon plate every account row uses (`IconPlate`): a
-          soft brand-tinted tile with a hairline in light, the navy glass
-          plate at night, and the glyph at the rows' one size. */}
+      {/* The shared icon plate every account row uses (`IconPlate`), in
+          its neutral tone: a soft flat square, the glyph at the rows' one
+          size. */}
       <span className="nf-pf-glyph" aria-hidden="true">
-        <IconPlate size="sm" tone="brand">
+        <IconPlate size="sm">
           <UiIcon name={row.glyph} size={ROW_GLYPH} />
         </IconPlate>
       </span>
@@ -222,13 +222,12 @@ export function AccountBody({
           aria-labelledby="account-tab-account"
           className="nf-pf-panel"
         >
+          {/* Plans, Saved, Agreements and the workspaces: one group, one
+              card, inset hairlines (plan item 16). */}
           <div className="nf-pf-rows" data-testid="belongings">
             {rows.map((row) => (
               <BelongingRow key={row.key} row={row} value={rowValue(row.key, facts, COPY, locale)} />
             ))}
-          </div>
-
-          <div className="nf-pf-switch">
             <SwitchRoleRow line={switchLine ?? COPY.switchNone} title={COPY.switchTitle} />
           </div>
 

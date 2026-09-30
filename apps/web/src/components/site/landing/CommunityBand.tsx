@@ -2,18 +2,17 @@ import Image from "next/image";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { intlTag } from "@vallo/i18n/core";
 import { CountUp } from "@/components/motion/CountUp";
-import { Reveal } from "@/components/site/Reveal";
-import type { MiniListing } from "@/lib/site/listing-card";
+import { MotionReveal } from "@/components/motion/Reveal";
 import { photo } from "@/lib/site/photos";
 import type { PlatformStats } from "@/lib/platform-stats";
-import { ListingMini } from "./ListingMini";
 import { statTiles } from "./stat-tiles";
 import { SectionHead } from "./SectionHead";
 
 /**
- * The community band: copy and three honest figures on the left, the
- * layered stack on the right (the villa plate, the skyline plate, one real
- * listing card, and the Third party card).
+ * The community band: copy and up to three honest figures on the left, and
+ * on the right one photograph with the Third party card over its foot. The
+ * listing card that also sat over the photograph showed the same villa
+ * twice and is gone (UIUX item 9).
  *
  * THE THIRD PARTY CARD IS A LABEL, NOT A LISTING. The render shows a
  * partner hotel dressed as a card. This platform has no partner inventory
@@ -25,12 +24,10 @@ import { SectionHead } from "./SectionHead";
 export function CommunityBand({
   t,
   locale,
-  listing,
   stats,
 }: {
   t: Dictionary;
   locale: Locale;
-  listing: MiniListing | null;
   stats: PlatformStats | null;
 }) {
   const c = t.landing.face.community;
@@ -44,10 +41,8 @@ export function CommunityBand({
   return (
     <section className="nf-shell nf-room" data-chapter="community" aria-labelledby="nf-landing-community-title">
       <div className="nf-landing-split nf-landing-split--even">
-        <Reveal className="flex flex-col gap-heading">
-          <div>
-            <SectionHead id="nf-landing-community-title" eyebrow={c.overline} title={c.title} lede={c.body} />
-          </div>
+        <div className="flex flex-col gap-heading">
+          <SectionHead id="nf-landing-community-title" eyebrow={c.overline} title={c.title} lede={c.body} />
           {figures.length > 0 && (
             <ul className="nf-landing-figures">
               {figures.map((f) => (
@@ -62,9 +57,9 @@ export function CommunityBand({
               ))}
             </ul>
           )}
-        </Reveal>
+        </div>
 
-        <Reveal delay={80}>
+        <MotionReveal delay={80}>
           <div className="nf-landing-stack" data-theme="dark">
             <div className="nf-landing-stack-photo nf-landing-stack-photo--main">
               <Image
@@ -74,19 +69,6 @@ export function CommunityBand({
                 sizes="(max-width: 1024px) 100vw, 560px"
               />
             </div>
-            <div className="nf-landing-stack-photo nf-landing-stack-photo--side hidden lg:block">
-              <Image
-                src={photo("skyline-waterfront-dusk")}
-                alt=""
-                fill
-                sizes="200px"
-              />
-            </div>
-            {listing && (
-              <div className="nf-landing-stack-card nf-landing-stack-card--a">
-                <ListingMini listing={listing} locale={locale} verifiedLabel={t.landing.face.card.verified} />
-              </div>
-            )}
             <div className="nf-landing-stack-card nf-landing-stack-card--b">
               <span className="nf-badge nf-badge--neutral nf-landing-tag">{c.thirdParty}</span>
               <p className="nf-landing-float-title mt-row text-[var(--nf-content-primary)]">
@@ -95,7 +77,7 @@ export function CommunityBand({
               <p className="nf-caption mt-inline-tight">{c.thirdPartyBody}</p>
             </div>
           </div>
-        </Reveal>
+        </MotionReveal>
       </div>
     </section>
   );

@@ -109,6 +109,7 @@ export default async function SavedPage() {
           of them yet has no other way to reach that screen and read what it
           is for. */}
       <PageHeader
+        variant="large"
         title={t.nav.saved}
         actions={
           <Link

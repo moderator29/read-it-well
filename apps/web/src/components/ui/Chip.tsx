@@ -378,8 +378,15 @@ export function Chip(props: ChipProps) {
 const EDGE_FADE =
   "linear-gradient(to right, var(--nf-content-primary) 0, var(--nf-content-primary) calc(100% - 2.5rem), transparent 100%)";
 
-/** The screen gutter. Bleeding by exactly this puts the rail edge-to-edge. */
-const GUTTER = "1.25rem";
+/**
+ * The screen gutter. Bleeding by exactly this puts the rail edge-to-edge.
+ *
+ * A rail whose parent sits in the page gutter sets `--nf-chiprow-bleed` to
+ * `var(--nf-pad-shell)`: the rail's own padding is `px-gutter` (the token),
+ * so a fixed 20px bleed left it 4px short of the screen edge at the old 24px
+ * gutter and 4px past it at 16 (the host tabs, measured -4..364 at 360).
+ */
+const GUTTER = "var(--nf-chiprow-bleed, 1.25rem)";
 
 export function ChipRow({
   children,

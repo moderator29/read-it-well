@@ -8,7 +8,8 @@ import { photo } from "@/lib/site/photos";
  *
  * Brand-neutral and fictional: the catalogue's invented street names, no
  * real agency, no real person. Prices are integer kobo. `verified` is true
- * on one card so the badge's two states are both visible; the harness is
+ * on one card and `example` on another so the badge's three states are all
+ * visible; the harness is
  * the proof of the look, never of the data, and it is a 404 in production.
  * The stats are the sandbox's own baseline counts from the ledger, so the
  * tiles are shown at a realistic width rather than at "10K+".
@@ -26,6 +27,7 @@ export const PREVIEW_CARDS: MiniListing[] = [
     hue: 1,
     kind: "villa",
     verified: true,
+    example: false,
     market: "To rent",
   },
   {
@@ -40,6 +42,7 @@ export const PREVIEW_CARDS: MiniListing[] = [
     hue: 3,
     kind: "shortlet",
     verified: false,
+    example: false,
     market: "Per night",
   },
   {
@@ -54,6 +57,9 @@ export const PREVIEW_CARDS: MiniListing[] = [
     hue: 4,
     kind: "rental",
     verified: false,
+    /* One example card, so the Example mark is proven beside the other two
+       badge states. */
+    example: true,
     market: "To rent",
   },
   {
@@ -68,6 +74,7 @@ export const PREVIEW_CARDS: MiniListing[] = [
     hue: 0,
     kind: "hotel",
     verified: false,
+    example: false,
     market: "Per night",
   },
   {
@@ -82,6 +89,7 @@ export const PREVIEW_CARDS: MiniListing[] = [
     hue: 2,
     kind: "home",
     verified: false,
+    example: false,
     market: "For sale",
   },
 ];

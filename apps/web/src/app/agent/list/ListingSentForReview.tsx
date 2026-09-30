@@ -1,7 +1,8 @@
 import type { Dictionary } from "@vallo/i18n/core";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 type WizardCopy = Dictionary["agentListings"];
 
@@ -49,12 +50,9 @@ export function ListingSentForReview({
   return (
       <div className="mx-auto max-w-2xl px-gutter py-3xl">
         <div className="nf-lw-done">
-          <span className="nf-lw-done__object" aria-hidden="true">
-            <BrandIcon name="home-check" fill />
-            <span className="nf-lw-done__tick">
-              <UiIcon name="verified-badge" size={20} />
-            </span>
-          </span>
+          <IconPlate size="lg" tone="success">
+            <UiIcon name="circle-check" size={24} />
+          </IconPlate>
           <h1 className="nf-lw-done__verdict">{copy.submitted.title}</h1>
           <p className="nf-lw-done__body">{copy.submitted.body}</p>
 
@@ -75,9 +73,9 @@ export function ListingSentForReview({
               ] as const
             ).map((row) => (
               <p key={row.key} className="nf-lw-next__row">
-                <span className="nf-lw-next__plate" aria-hidden="true">
-                  <BrandIcon name={row.object} fill />
-                </span>
+                <IconPlate size="sm" className="nf-lw-next__plate">
+                  <UiIcon name={lineGlyphFor(row.object)} size={20} />
+                </IconPlate>
                 <span>{row.text}</span>
               </p>
             ))}

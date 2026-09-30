@@ -42,7 +42,7 @@ export function SwitchRoleRow({ line, title }: { line: string; title: string }) 
     >
       {/* The same plate and glyph as the rows above (AccountBody). */}
       <span className="nf-pf-glyph" aria-hidden="true">
-        <IconPlate size="sm" tone="brand">
+        <IconPlate size="sm">
           <UiIcon name="briefcase" size={ROW_GLYPH} />
         </IconPlate>
       </span>

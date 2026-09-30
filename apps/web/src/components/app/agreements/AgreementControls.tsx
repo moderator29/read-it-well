@@ -5,6 +5,9 @@ import { useState, useTransition } from "react";
 import { amendAgreement, cancelAgreement, confirmAgreement, createClaimEvidenceUpload, fileGuaranteeClaim } from "@/lib/agreements/actions";
 import { createClient } from "@/lib/supabase/client";
 import { withDone, type RecordDoneFlag } from "@/lib/ui/success-moments";
+import { Sheet } from "@/components/ui/Sheet";
+import { Button } from "@/components/ui/Button";
+import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
 
 /**
  * The controls on an agreement page (Track A): confirm the exact version,
@@ -40,21 +43,60 @@ function useAction() {
 export function ConfirmTerms({ agreementId, version, disabled }: { agreementId: string; version: number; disabled?: boolean }) {
   const { pending, error, run } = useAction();
   const [read, setRead] = useState(false);
+  /* The confirm step (plan item 22): the button opens the one confirm panel,
+     whose primary makes exactly the call this button made before. */
+  const [asking, setAsking] = useState(false);
   return (
     <div className="grid gap-inline" data-testid="confirm-terms">
       <label className="flex items-start gap-inline">
         <input type="checkbox" checked={read} onChange={(e) => setRead(e.target.checked)} />
         <span>I have read these terms (version {version}) and I agree to them.</span>
       </label>
-      {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
+      {error && !asking ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
       <button
         type="button"
         className="nf-btn nf-btn--primary nf-btn--md nf-btn--full"
         disabled={!read || pending || disabled}
-        onClick={() => run(() => confirmAgreement({ agreementId, version }), undefined, "agreement-confirmed")}
+        onClick={() => setAsking(true)}
       >
         Confirm these terms
       </button>
+      <Sheet
+        open={asking}
+        onOpenChange={(next) => {
+          if (!next && !pending) setAsking(false);
+        }}
+        title="Sign the agreement?"
+        hideTitle
+        card
+        detents={[0.9]}
+      >
+        <ConfirmPanel
+          icon="file-check"
+          title="Sign the agreement?"
+          context={`You are confirming version ${version} of these terms.`}
+          next={[
+            { icon: "users", text: "When both of you have confirmed the same version, it goes to Vallo." },
+            { icon: "shield-check", text: "A person at Vallo reviews it." },
+            { icon: "credit-card", text: "Payment opens once Vallo approves it." },
+          ]}
+          error={error}
+          cancel={
+            <Button variant="secondary" disabled={pending} onClick={() => setAsking(false)}>
+              Not yet
+            </Button>
+          }
+          primary={
+            <Button
+              variant="primary"
+              disabled={!read || pending || disabled}
+              onClick={() => run(() => confirmAgreement({ agreementId, version }), () => setAsking(false), "agreement-confirmed")}
+            >
+              Confirm these terms
+            </Button>
+          }
+        />
+      </Sheet>
     </div>
   );
 }
@@ -123,26 +165,43 @@ export function CancelAgreement({ agreementId }: { agreementId: string }) {
   const [sure, setSure] = useState(false);
   return (
     <div className="grid gap-inline">
-      {error ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
-      {!sure ? (
-        <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" onClick={() => setSure(true)}>
-          Cancel this agreement
-        </button>
-      ) : (
-        <div className="flex flex-wrap gap-inline">
-          <button
-            type="button"
-            className="nf-btn nf-btn--glass nf-btn--md"
-            disabled={pending}
-            onClick={() => run(() => cancelAgreement({ agreementId }))}
-          >
-            Yes, cancel it
-          </button>
-          <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" disabled={pending} onClick={() => setSure(false)}>
-            Keep it
-          </button>
-        </div>
-      )}
+      {error && !sure ? <p role="alert" className="text-[var(--nf-status-error)]">{error}</p> : null}
+      <button type="button" className="nf-btn nf-btn--ghost nf-btn--md" onClick={() => setSure(true)}>
+        Cancel this agreement
+      </button>
+      <Sheet
+        open={sure}
+        onOpenChange={(next) => {
+          if (!next && !pending) setSure(false);
+        }}
+        title="Cancel this agreement?"
+        hideTitle
+        card
+        detents={[0.9]}
+      >
+        <ConfirmPanel
+          icon="circle-x"
+          tone="error"
+          title="Cancel this agreement?"
+          context="Nobody can confirm or pay under it once it is cancelled."
+          error={error}
+          cancel={
+            <Button variant="secondary" disabled={pending} onClick={() => setSure(false)}>
+              Keep it
+            </Button>
+          }
+          primary={
+            <Button
+              variant="secondary"
+              className="text-[var(--nf-state-error)]"
+              disabled={pending}
+              onClick={() => run(() => cancelAgreement({ agreementId }), () => setSure(false))}
+            >
+              Yes, cancel it
+            </Button>
+          }
+        />
+      </Sheet>
     </div>
   );
 }

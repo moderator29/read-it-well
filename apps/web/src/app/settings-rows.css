@@ -52,13 +52,18 @@
    */
   .nf-sgroup__label {
     display: block;
-    padding-block: var(--nf-space-0) var(--nf-gap-inline);
+    /* The clean spec's section label (section 2, plan item 16): 11/14, 600,
+       caps, tracked 0.06em, muted, 8px above its card. */
+    padding-block: var(--nf-space-0) 0.5rem;
     padding-inline: var(--nf-space-2xs);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-size: 0.6875rem;
+    line-height: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
     /* The 0.04em it carried was there to hold 12px uppercase apart. At a
-       readable size, tracked-out lower case just looks loose. */
-    letter-spacing: var(--nf-tracking-normal);
+       readable size, tracked-out lower case just looks loose. The label is
+       caps now, and caps want the air. */
+    letter-spacing: var(--nf-tracking-label, 0.06em);
     color: var(--nf-content-muted);
   }
 
@@ -138,7 +143,7 @@
     inset-inline-end: 0;
     top: 0;
     height: 1px;
-    background: var(--nf-border-subtle);
+    background: var(--nf-divider);
   }
 
   a.nf-srow,
@@ -147,9 +152,11 @@
     cursor: pointer;
   }
 
-  a.nf-srow:hover,
-  button.nf-srow:not(:disabled):hover {
-    background: var(--nf-glass-fill-thin);
+  @media (hover: hover) and (pointer: fine) {
+    a.nf-srow:hover,
+    button.nf-srow:not(:disabled):hover {
+      background: var(--nf-surface-secondary);
+    }
   }
 
   button.nf-srow:disabled {
@@ -201,6 +208,17 @@
     flex: 1 1 0;
     line-height: 1.3;
   }
+  /*
+   * A ROW WITH A SENTENCE UNDER ITS LABEL NEEDS A WIDER FLOOR. At 360,
+   * "What you are looking for" with its one-line note and the value "Nothing
+   * in particular" kept the body at the 6.5rem floor: the note ran to six
+   * lines of two words and only the chevron wrapped, alone, to the row's
+   * foot. With a 9.5rem floor the value and the chevron go to the next line
+   * together, right-aligned, and the note reads as a sentence.
+   */
+  .nf-srow__body:has(> .nf-srow__sub) {
+    min-width: min(100%, 9.5rem);
+  }
 
   /*
    * THE LABEL IS THE DEFAULT READING SIZE NOW, NOT A STEP UNDER IT.
@@ -213,7 +231,7 @@
    */
   .nf-srow__label {
     display: block;
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-row, 0.9375rem);
     font-weight: 500;
     color: var(--nf-content-primary);
   }
@@ -221,7 +239,7 @@
   .nf-srow__sub {
     display: block;
     margin-top: var(--nf-space-3xs);
-    font-size: var(--nf-text-body-sm);
+    font-size: var(--nf-text-caption);
     line-height: 1.45;
     color: var(--nf-content-muted);
   }
@@ -294,8 +312,10 @@
     border-radius: var(--nf-radius-sm);
   }
 
-  .nf-srow:has(> .nf-srow__select:hover) {
-    background: var(--nf-glass-fill-thin);
+  @media (hover: hover) and (pointer: fine) {
+    .nf-srow:has(> .nf-srow__select:hover) {
+      background: var(--nf-surface-secondary);
+    }
   }
 
   /*

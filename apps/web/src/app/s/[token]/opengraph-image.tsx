@@ -46,7 +46,14 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     if (share === null) return doorImage({ kind: "mark" }, copy);
     const states = await listStates();
     const stateName = states.find((row) => row.code === share.stateCode)?.name ?? share.stateCode;
-    return doorImage({ kind: "area", lines: shareLines(share, shareCardCopy(t), DEFAULT_LOCALE, stateName) }, copy);
+    return doorImage(
+      {
+        kind: "area",
+        lines: shareLines(share, shareCardCopy(t), DEFAULT_LOCALE, stateName),
+        chip: t.priceCheck.share.cardChip,
+      },
+      copy,
+    );
   }
   if (card.kind === "example") return doorImage({ kind: "example", card }, copy);
   if (card.kind === "stay") {

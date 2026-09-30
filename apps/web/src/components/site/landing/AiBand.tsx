@@ -1,15 +1,16 @@
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { AiShowcase, type ShowcaseScript } from "./AiShowcase";
-import type { GlassMotion } from "./glass-motion";
+import type { Door } from "./doors";
 import { SectionHead } from "./SectionHead";
 
-const TRUTH_OBJECTS: readonly BrandIconName[] = ["listing-search", "coin-naira", "doc-review"];
-const TRUTH_MOTION: readonly GlassMotion[] = ["rise", "turn", "tilt"];
+/* Flat neutral plates beside the three rules (spec section 4). */
+const TRUTH_GLYPHS: readonly UiIconName[] = ["file-search", "receipt", "shield-check"];
 const RENT_KINDS: ReadonlySet<ListingKind> = new Set(["rental"]);
 const STAY_KINDS: ReadonlySet<ListingKind> = new Set(["shortlet", "hotel", "villa", "apartment"]);
 
@@ -27,7 +28,7 @@ function pick(cards: MiniListing[], kinds: ReadonlySet<ListingKind>): MiniListin
  * The AI room: what the assistant does, in three sentences taken from the
  * rules it runs under (`home.aiCard.truths`), beside the scripted example.
  */
-export function AiBand({ t, locale, cards }: { t: Dictionary; locale: Locale; cards: MiniListing[] }) {
+export function AiBand({ t, locale, cards, door }: { t: Dictionary; locale: Locale; cards: MiniListing[]; door: Door }) {
   const a = t.landingRooms.ai;
   const truths = t.home.aiCard.truths;
   const [one, two, three] = a.scripts;
@@ -49,16 +50,16 @@ export function AiBand({ t, locale, cards }: { t: Dictionary; locale: Locale; ca
           </div>
           <MotionReveal as="ul" stagger className="nf-ai-truths">
             {[truths.listings, truths.costs, truths.title].map((line, i) => (
-              <li key={line} className="nf-fx-host">
-                <span className="nf-glass-fx nf-feature-glass nf-feature-glass--sm" data-motion={TRUTH_MOTION[i] ?? "rise"}>
-                  <BrandIcon name={TRUTH_OBJECTS[i] ?? "bot"} fill drawn={40} />
-                </span>
+              <li key={line}>
+                <IconPlate size="sm" tone="neutral">
+                  <UiIcon name={TRUTH_GLYPHS[i] ?? "bot"} size={ICON_PLATE_GLYPH.sm} />
+                </IconPlate>
                 <span>{line}</span>
               </li>
             ))}
           </MotionReveal>
           <div>
-            <ButtonLink href="/assistant" variant="primary" size="md" trailingIcon="arrow-right">
+            <ButtonLink href={door("/assistant")} variant="primary" size="md" trailingIcon="arrow-right">
               {a.cta}
             </ButtonLink>
           </div>
@@ -73,6 +74,7 @@ export function AiBand({ t, locale, cards }: { t: Dictionary; locale: Locale; ca
               you: a.you,
               name: a.name,
               verified: t.landing.face.card.verified,
+              example: t.landing.face.card.example,
               script: a.caption,
             }}
           />

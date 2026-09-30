@@ -1,9 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * THE PARTS THE SIX DRAWN STAYS PANELS ARE ASSEMBLED FROM.
@@ -108,8 +110,12 @@ export function StaysHero({
 }) {
   return (
     <div className={`nf-stays-hero${inline ? " nf-stays-hero--inline" : ""}`}>
-      <span className="nf-stays-hero__object">
-        <BrandIcon name={mark} fill />
+      {/* The mark as a lean glyph on the brand plate (the icon upgrade): it
+          centres above the words, or leads them in the inline hero. */}
+      <span className={inline ? "shrink-0" : "flex justify-center"}>
+        <IconPlate size="lg" tone="brand">
+          <UiIcon name={lineGlyphFor(mark)} size={24} />
+        </IconPlate>
       </span>
       {children}
     </div>
@@ -297,9 +303,9 @@ export function StaysTile({
       className={`nf-stays-tile${variant === "band" ? " nf-stays-tile--band" : ""}`}
     >
       {variant === "mark" && mark && (
-        <span className="nf-stays-tile__mark" aria-hidden="true">
-          <BrandIcon name={mark} fill />
-        </span>
+        <IconPlate size="md" className="nf-stays-tile__mark">
+          <UiIcon name={lineGlyphFor(mark)} size={20} />
+        </IconPlate>
       )}
       <span className={variant === "band" ? undefined : "nf-stays-tile__title"}>{title}</span>
       {meaning && variant !== "band" && <span className="nf-stays-tile__meta">{meaning}</span>}
@@ -346,7 +352,7 @@ export function StaysTiles({
 export function StaysGlyph({ mark, icon }: { mark?: BrandIconName; icon?: UiIconName }) {
   return (
     <span className="nf-stays-glyph" aria-hidden="true">
-      {mark ? <BrandIcon name={mark} size={24} /> : icon ? <UiIcon name={icon} size={16} /> : null}
+      {mark ? <UiIcon name={lineGlyphFor(mark)} size={16} /> : icon ? <UiIcon name={icon} size={16} /> : null}
     </span>
   );
 }

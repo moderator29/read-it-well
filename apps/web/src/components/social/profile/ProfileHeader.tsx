@@ -3,8 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { TierBadge } from "@/components/trust/TierBadge";
+import { ShareCardFrame } from "@/components/share/ShareCardFrame";
+import { BADGE_TIER_LABEL } from "@/lib/trust/badge-tier";
+import { ratingFill } from "@/lib/ui/meter";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { BackChevron } from "./BackChevron";
 import { ButtonLink } from "@/components/ui/Button";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
@@ -13,6 +16,7 @@ import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profile
 import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import "./social-profile.css";
+import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
  * The top of a person's page.
@@ -288,7 +292,7 @@ export function ProfileHeader({
           ) : null}
           {standing.map((badge) => (
             <span key={badge.code} className="nf-social-chip nf-social-chip--brand">
-              <BrandIcon name={objectFor(badge.objectName)} size={16} />
+              <UiIcon name={lineGlyphFor(objectFor(badge.objectName))} size={16} />
               {badge.name}
             </span>
           ))}
@@ -348,33 +352,48 @@ export function ProfileHeader({
 
       {/* --------------------------------------------- agents only, ever */}
       {trust ? (
-        <dl className="nf-social-trust nf-panel nf-panel--card">
-          {/* V-21: NO SCORE. The "Trust score" cell was a number out of 100
-              nobody could explain, and it is gone with its column. What is
-              left are plain facts, each printed only when there is one: the
-              reviews, the stays hosted (never a zero, which told every rental
-              agent their lets did not count), and the reply time. */}
-          {trust.reviewCount > 0 && trust.averageRating !== null ? (
-            <div className="nf-social-trust__cell">
-              <dt>{visible.reviews}</dt>
-              <dd className="nf-numeric">
-                {visible.reviewsValue
-                  .replace("{rating}", formatRating(trust.averageRating, locale))
-                  .replace("{count}", formatNumber(trust.reviewCount, locale))}
-              </dd>
-            </div>
-          ) : null}
-          {trust.completedDeals > 0 ? (
-            <div className="nf-social-trust__cell">
-              <dt>{visible.staysHosted}</dt>
-              <dd className="nf-numeric">{formatNumber(trust.completedDeals, locale)}</dd>
-            </div>
-          ) : null}
-          <div className="nf-social-trust__cell">
-            <dt>{copy.responseTime}</dt>
-            <dd className="nf-numeric">{trust.responseTime}</dd>
-          </div>
-        </dl>
+        /* V-21: NO SCORE. The "Trust score" cell was a number out of 100
+           nobody could explain, and it is gone with its column. The card
+           (spec section 10) prints plain facts, each only when there is one:
+           the average review with its count, the stays hosted (never a zero,
+           which told every rental agent their lets did not count), and the
+           reply time. The meter is the average out of five on ten bars, and
+           its word is the review count it came from. */
+        <ShareCardFrame
+          className="mt-md"
+          testId="profile-agent-record"
+          title={visible.cardTitle}
+          chip={profile.badgeTier === "gold" ? { label: BADGE_TIER_LABEL.gold } : undefined}
+          {...(trust.reviewCount > 0 && trust.averageRating !== null
+            ? {
+                eyebrow: visible.ratingLabel,
+                figure: formatRating(trust.averageRating, locale),
+                figureUnit: visible.ratingUnit,
+                meter: {
+                  filled: ratingFill(trust.averageRating),
+                  word:
+                    trust.reviewCount === 1
+                      ? visible.reviewsWordOne
+                      : visible.reviewsWord.replace("{count}", formatNumber(trust.reviewCount, locale)),
+                },
+                honest: visible.honest,
+              }
+            : {
+                eyebrow: copy.responseTime,
+                figure: trust.responseTime,
+                figureSize: "lg" as const,
+                honest: visible.noReviews,
+              })}
+          stats={[
+            ...(trust.reviewCount > 0 && trust.averageRating !== null
+              ? [{ label: visible.reviews, value: formatNumber(trust.reviewCount, locale) }]
+              : []),
+            ...(trust.completedDeals > 0
+              ? [{ label: visible.staysHosted, value: formatNumber(trust.completedDeals, locale) }]
+              : []),
+            ...(trust.reviewCount > 0 ? [{ label: copy.responseTime, value: trust.responseTime }] : []),
+          ]}
+        />
       ) : null}
     </header>
   );

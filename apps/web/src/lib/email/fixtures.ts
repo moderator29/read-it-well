@@ -2,6 +2,19 @@ import * as messages from "./messages";
 import * as agreementMessages from "./agreement-messages";
 import * as lifecycle from "./lifecycle-messages";
 import type { EmailMessage } from "./messages";
+import { paymentInstrumentChanged, type PaymentInstrumentEvent } from "./payment-instrument-messages";
+import { scamRecall } from "./safety-messages";
+import { staffAccessGranted } from "./staff-messages";
+import { deletionCompleted, deletionStarted } from "../account-deletion/emails";
+
+const INSTRUMENT_EVENTS: PaymentInstrumentEvent[] = [
+  "card_saved",
+  "card_default_changed",
+  "card_removed",
+  "bank_added",
+  "bank_default_changed",
+  "bank_removed",
+];
 
 /**
  * One representative call for every message this product can send.
@@ -450,6 +463,33 @@ export const EVERY_MESSAGE: NamedMessage[] = [
       body: "My withdrawal has not arrived after two working days.",
     }),
   },
+  /* Outside the three catalogue modules, and held to the same rules: the
+     payment-instrument notices, the scam recall, staff access and the two
+     account deletion letters (29 September, lock-screen pass). */
+  ...INSTRUMENT_EVENTS.map((event) => ({
+    name: `paymentInstrumentChanged:${event}`,
+    message: paymentInstrumentChanged({
+      event,
+      name: "Ada",
+      cardType: "Visa",
+      last4: "4081",
+      bankName: "Guaranty Trust Bank",
+    }),
+  })),
+  {
+    name: "scamRecall",
+    message: scamRecall({ name: "Ada", listingTitle: LISTING, category: "off_platform_payment" }),
+  },
+  {
+    name: "staffAccessGranted",
+    message: staffAccessGranted({ name: "Chidi Okafor", scopeWords: "Support tickets and member lookups", position: "support_agent" }),
+  },
+  { name: "staffAccessGranted:plain", message: staffAccessGranted({ name: null, scopeWords: "Support tickets" }) },
+  {
+    name: "deletionStarted",
+    message: deletionStarted({ name: "Ada", purgeAfter: "2026-10-29T12:00:00Z", restoreCode: "KQ7M-2PXD" }),
+  },
+  { name: "deletionCompleted", message: deletionCompleted({ name: "Ada" }) },
 ];
 
 /**

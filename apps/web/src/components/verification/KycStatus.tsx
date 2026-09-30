@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { trackStates } from "@/components/app/status/tracks";
 import { ICON_PLATE_GLYPH, IconPlate, type IconPlateTone } from "@/components/ui/IconPlate";
 
 /* The status plate takes the state's own tone on the shared plate (orphans
@@ -118,6 +120,7 @@ export function KycStatus({
         icon="calendar-booking"
         title={w.pendingTitle}
         body={w.pendingBody}
+        track={<ReviewTrack state="pending" sentAt={status.submittedAt} w={w} />}
       >
         {status.submittedAt && (
           <p className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
@@ -136,6 +139,7 @@ export function KycStatus({
         icon="verified"
         title={w.approvedTitle}
         body={w.approvedBody}
+        track={<ReviewTrack state="approved" w={w} />}
       />
     );
   }
@@ -159,6 +163,7 @@ export function KycStatus({
         icon="info"
         title={w.moreInfoTitle}
         body={status.request}
+        track={<ReviewTrack state="more_info" w={w} />}
       >
         <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           <span className="font-semibold text-[var(--nf-content-primary)]">{w.fixLabel} </span>
@@ -215,6 +220,7 @@ export function KycStatus({
       icon="shield-stop"
       title={w.rejectedTitle}
       body={status.reason}
+      track={<ReviewTrack state="rejected" w={w} />}
     >
       {/*
         The fix, given the same weight as the reason. A reader who has just been
@@ -243,6 +249,7 @@ function Panel({
   title,
   body,
   children,
+  track,
 }: {
   tone: "warning" | "success" | "danger";
   pill: string;
@@ -252,6 +259,8 @@ function Panel({
   title: string;
   body: string;
   children?: React.ReactNode;
+  /** The review's stages on the shared status track, under the head. */
+  track?: React.ReactNode;
 }) {
   return (
     <section className="nf-panel nf-panel--card block p-lg">
@@ -272,8 +281,42 @@ function Panel({
           {children}
         </div>
       </div>
+      {track ? <div className="mt-lg">{track}</div> : null}
     </section>
   );
+}
+
+/**
+ * The review on the shared status track (spec section 14): sent, with a
+ * person, decided. Asked for more holds at review, because the review is
+ * still open and the next move is theirs; a refusal stops at the decision.
+ * The only time the record gives this surface is when it was sent.
+ */
+function ReviewTrack({
+  state,
+  sentAt,
+  w,
+}: {
+  state: "pending" | "more_info" | "approved" | "rejected";
+  sentAt?: string;
+  w: ReturnType<typeof getDictionary>["verification"]["status"];
+}) {
+  const states =
+    state === "approved"
+      ? trackStates(3, 2, "complete")
+      : state === "rejected"
+        ? trackStates(3, 2, "failed")
+        : trackStates(3, 1);
+  const steps: TrackStep[] = [
+    { key: "sent", label: w.submittedPrefix, when: sentAt ?? null, state: states[0]! },
+    { key: "review", label: state === "more_info" ? w.moreInfoPill : w.pendingPill, state: states[1]! },
+    {
+      key: "decision",
+      label: state === "approved" ? w.approvedPill : state === "rejected" ? w.rejectedPill : w.trackDecision,
+      state: states[2]!,
+    },
+  ];
+  return <StatusTrack label={w.pendingTitle} steps={steps} testId="kyc-track" />;
 }
 
 

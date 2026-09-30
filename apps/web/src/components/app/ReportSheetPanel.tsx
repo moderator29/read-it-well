@@ -13,12 +13,13 @@ import {
   type ReportTarget,
 } from "@/lib/reports/categories";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { responseTimeFor } from "@/lib/trust/standards";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy } from "@/lib/ui/success-moments";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The report sheet's BODY: the categories, the details, the send, the "we have
@@ -110,9 +111,9 @@ export function ReportSheetPanel({
                 </p>
                 {state?.ok ? (
                   <div className={panelClass({ variant: "card", className: "block p-lg text-center" })} data-testid="report-filed">
-                    <span className="mx-auto block h-16 w-16">
-                      <BrandIcon name="shield-check" fill />
-                    </span>
+                    <IconPlate size="lg" className="mx-auto">
+                      <UiIcon name="shield-check" size={24} />
+                    </IconPlate>
                     <p className="mt-sm text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Thank you, we have it
                     </p>
@@ -128,9 +129,9 @@ export function ReportSheetPanel({
                   </div>
                 ) : !signedIn ? (
                   <div className={panelClass({ variant: "card", className: "block p-lg text-center" })}>
-                    <span className="mx-auto block h-16 w-16">
-                      <BrandIcon name="shield-lock" fill />
-                    </span>
+                    <IconPlate size="lg" className="mx-auto">
+                      <UiIcon name="shield-lock" size={24} />
+                    </IconPlate>
                     <p className="mt-sm text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Sign in to report this
                     </p>

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { SupportChat } from "@/components/app/account/SupportChat";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The top of the support home.
@@ -53,9 +53,9 @@ export function SupportHero({
           </h1>
           <p className="nf-body-sm mt-row text-[var(--nf-content-secondary)]">{promise}</p>
         </div>
-        <span className="block h-16 w-16 shrink-0" aria-hidden="true">
-          <BrandIcon name="support-shield" fill />
-        </span>
+        <IconPlate size="lg" className="shrink-0">
+          <UiIcon name="headset" size={24} />
+        </IconPlate>
       </div>
 
       <Button

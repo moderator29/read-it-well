@@ -147,7 +147,50 @@ export type UiIconName =
   | "stamp"
   | "survey"
   | "droplet"
-  | "gate";
+  | "gate"
+  /* THE ROW AND CARD GLYPHS (29 September 2026, the icon upgrade). Lucide
+     drawings that replaced the glass objects on rows, cards, sheet heads
+     and KPI tiles, and the hand-drawn settings, feed and console glyphs, so
+     every plate on the platform draws from this one set. */
+  | "shield-check"
+  | "globe"
+  | "headset"
+  | "log-out"
+  | "camera"
+  | "pencil"
+  | "users"
+  | "lock"
+  | "calendar-check"
+  | "calendar-clock"
+  | "clock"
+  | "credit-card"
+  | "bank"
+  | "concierge-bell"
+  | "alert-triangle"
+  | "chart-bar"
+  | "trending-up"
+  | "file-text"
+  | "file-check"
+  | "file-search"
+  | "user-check"
+  | "user-pen"
+  | "messages"
+  | "bot"
+  | "id-card"
+  | "receipt"
+  | "hand-coins"
+  | "banknote"
+  | "hourglass"
+  | "circle-check"
+  | "circle-x"
+  | "clipboard-list"
+  | "square-check"
+  /* The feed's repost as a LEVEL loop (the feed image), beside `repost`. */
+  | "repost-loop"
+  | "shield-lock"
+  /* The motion levels (Settings, Motion): play is standard, pause is off. */
+  | "circle-play"
+  | "circle-pause";
 
 /*
  * THE OUTLINES. Lucide names in brackets where the drawing is Lucide's, so the
@@ -828,6 +871,317 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M12 12v3.5" />
     </>
   ),
+  /* The row and card glyphs (see the union above). */
+  // [shield-check]
+  "shield-check": (
+    <>
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      <path d="m9 12 2 2 4-4" />
+    </>
+  ),
+  // [globe]
+  globe: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+      <path d="M2 12h20" />
+    </>
+  ),
+  // [headset]
+  headset: (
+    <>
+      <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z" />
+      <path d="M21 16v2a4 4 0 0 1-4 4h-5" />
+    </>
+  ),
+  // [log-out]
+  "log-out": (
+    <>
+      <path d="m16 17 5-5-5-5" />
+      <path d="M21 12H9" />
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    </>
+  ),
+  // [camera]
+  camera: (
+    <>
+      <path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" />
+      <circle cx="12" cy="13" r="3" />
+    </>
+  ),
+  // [pencil]
+  pencil: (
+    <>
+      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+      <path d="m15 5 4 4" />
+    </>
+  ),
+  // [users-round]
+  users: (
+    <>
+      <path d="M18 21a8 8 0 0 0-16 0" />
+      <circle cx="10" cy="8" r="5" />
+      <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" />
+    </>
+  ),
+  // [lock]
+  lock: (
+    <>
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </>
+  ),
+  // [calendar-check]
+  "calendar-check": (
+    <>
+      <path d="M8 2v3" />
+      <path d="M16 2v3" />
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18" />
+      <path d="m9 15 2 2 4-4" />
+    </>
+  ),
+  // [calendar-clock]
+  "calendar-clock": (
+    <>
+      <path d="M16 14v2.2l1.6 1" />
+      <path d="M16 2v3" />
+      <path d="M21 7.338V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h2.338" />
+      <path d="M3 9h5.859" />
+      <path d="M8 2v3" />
+      <circle cx="16" cy="16" r="6" />
+    </>
+  ),
+  // [clock]
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v6l4 2" />
+    </>
+  ),
+  // [credit-card]
+  "credit-card": (
+    <>
+      <rect width="20" height="14" x="2" y="5" rx="2" />
+      <line x1="2" x2="22" y1="10" y2="10" />
+      <path d="M6 14h2" />
+    </>
+  ),
+  // [landmark]
+  bank: (
+    <>
+      <path d="M10 18v-7" />
+      <path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z" />
+      <path d="M14 18v-7" />
+      <path d="M18 18v-7" />
+      <path d="M3 22h18" />
+      <path d="M6 18v-7" />
+    </>
+  ),
+  // [concierge-bell]
+  "concierge-bell": (
+    <>
+      <path d="M3 20a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1Z" />
+      <path d="M20 16a8 8 0 1 0-16 0" />
+      <path d="M12 4v4" />
+      <path d="M10 4h4" />
+    </>
+  ),
+  // [triangle-alert]
+  "alert-triangle": (
+    <>
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+      <path d="M12 9v4" />
+      <path d="M12 17h.01" />
+    </>
+  ),
+  // [chart-column]
+  "chart-bar": (
+    <>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <path d="M18 17V9" />
+      <path d="M13 17V5" />
+      <path d="M8 17v-3" />
+    </>
+  ),
+  // [trending-up]
+  "trending-up": (
+    <>
+      <path d="M16 7h6v6" />
+      <path d="m22 7-8.5 8.5-5-5L2 17" />
+    </>
+  ),
+  // [file-text]
+  "file-text": (
+    <>
+      <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      <path d="M10 9H8" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
+    </>
+  ),
+  // [file-check]
+  "file-check": (
+    <>
+      <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      <path d="m9 15 2 2 4-4" />
+    </>
+  ),
+  // [file-search]
+  "file-search": (
+    <>
+      <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      <circle cx="11.5" cy="14.5" r="2.5" />
+      <path d="M13.3 16.3 15 18" />
+    </>
+  ),
+  // [user-check]
+  "user-check": (
+    <>
+      <path d="m16 11 2 2 4-4" />
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+    </>
+  ),
+  // [user-pen]
+  "user-pen": (
+    <>
+      <path d="M11.5 15H7a4 4 0 0 0-4 4v2" />
+      <path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />
+      <circle cx="10" cy="7" r="4" />
+    </>
+  ),
+  // [messages-square]
+  messages: (
+    <>
+      <path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+      <path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1" />
+    </>
+  ),
+  // [bot]
+  bot: (
+    <>
+      <path d="M12 8V4H8" />
+      <rect width="16" height="12" x="4" y="8" rx="2" />
+      <path d="M2 14h2" />
+      <path d="M20 14h2" />
+      <path d="M15 13v2" />
+      <path d="M9 13v2" />
+    </>
+  ),
+  // [id-card]
+  "id-card": (
+    <>
+      <path d="M13 19a4 4 0 00-8 0" />
+      <path d="M16 10h2" />
+      <path d="M16 14h2" />
+      <circle cx="9" cy="12" r="3" />
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+    </>
+  ),
+  // [receipt]
+  receipt: (
+    <>
+      <path d="M12 17V7" />
+      <path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8" />
+      <path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" />
+    </>
+  ),
+  // [hand-coins]
+  "hand-coins": (
+    <>
+      <path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17" />
+      <path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9" />
+      <path d="m2 16 6 6" />
+      <circle cx="16" cy="9" r="2.9" />
+      <circle cx="6" cy="5" r="3" />
+    </>
+  ),
+  // [banknote]
+  banknote: (
+    <>
+      <rect width="20" height="12" x="2" y="6" rx="2" />
+      <circle cx="12" cy="12" r="2" />
+      <path d="M6 12h.01M18 12h.01" />
+    </>
+  ),
+  // [hourglass]
+  hourglass: (
+    <>
+      <path d="M5 22h14" />
+      <path d="M5 2h14" />
+      <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" />
+      <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
+    </>
+  ),
+  // [circle-check]
+  "circle-check": (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m16 9-5.5 5.5L8 12" />
+    </>
+  ),
+  // [circle-x]
+  "circle-x": (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m15 9-6 6" />
+      <path d="m9 9 6 6" />
+    </>
+  ),
+  // [clipboard-list]
+  "clipboard-list": (
+    <>
+      <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <path d="M12 11h4" />
+      <path d="M12 16h4" />
+      <path d="M8 11h.01" />
+      <path d="M8 16h.01" />
+    </>
+  ),
+  // [square-check]
+  "square-check": (
+    <>
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="m16 9-5.5 5.5L8 12" />
+    </>
+  ),
+  // [repeat]
+  "repost-loop": (
+    <>
+      <path d="m17 2 4 4-4 4" />
+      <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+      <path d="m7 22-4-4 4-4" />
+      <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+    </>
+  ),
+  // [shield-lock]
+  "shield-lock": (
+    <>
+      <path d="M20 9.807V6a1 1 0 00-1-1c-2 0-4.49-1.19-6.24-2.72a1.17 1.17 0 00-1.52 0C9.5 3.8 7 5 5 5a1 1 0 00-1 1v7c0 3.88 2.107 6.254 5 7.796" />
+      <path d="M19 17v-2a2 2 0 00-4 0v2" />
+      <rect x="13" y="17" width="8" height="5" rx="1" />
+    </>
+  ),
+  // [circle-play]
+  "circle-play": (
+    <>
+      <path d="M9 9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 14.996z" />
+      <circle cx="12" cy="12" r="10" />
+    </>
+  ),
+  // [circle-pause]
+  "circle-pause": (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="10" x2="10" y1="15" y2="9" />
+      <line x1="14" x2="14" y1="15" y2="9" />
+    </>
+  ),
 };
 
 /*
@@ -1085,10 +1439,9 @@ export type IconSize = keyof typeof ICON_SIZE;
  * 29 September target (pump.fun's app icons, about 2 to 2.25 at 24), a
  * quarter over the weight Lucide's geometry is drawn for. It was 1.5 until
  * then, the thin line of SF Symbols regular, which read as hesitant beside
- * the bold type. The
- * sibling glyph components (`LineGlyph`, `SettingsGlyph`, `FeatureGlyph`)
- * take their width from `uiIconStrokeWidth`, so they went bold with the set
- * and stay matched.
+ * the bold type. `LineGlyph` and `SettingsGlyph` are name maps onto this
+ * set (since 29 September 2026), and `FeatureGlyph` takes its width from
+ * `uiIconStrokeProps`, so all of them follow the set's weight.
  *
  * SCALED BY SIZE, OPTICALLY. One fixed pixel weight at every step clogs the
  * small steps (2px on a 12px glyph is a third of a counter) and starves the

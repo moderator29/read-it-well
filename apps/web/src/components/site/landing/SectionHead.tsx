@@ -13,6 +13,13 @@ import { MotionReveal } from "@/components/motion/Reveal";
  * the hero's headline does that, and a section head simply arrives. With
  * scripts off, or under reduced motion, it is simply there.
  *
+ * ONE HEAD RULE (UIUX item 10): centred only above a full-width grid (the
+ * hands-on deck, the journey, the bento, the two worlds), start-aligned in
+ * every split room and aligned to the top of its content. The eyebrow is
+ * the shared section label (`.nf-section-label`, 11px caps), the title at
+ * most 20ch at 600, the lede at most 52ch; head to content is 24px on a
+ * phone and 32 on a desktop (landing-rooms.css, "THE UNIFIED PASS").
+ *
  * `[[phrase]]` in the title takes the brand ink; a translation without
  * brackets renders plain.
  */
@@ -39,7 +46,7 @@ export function SectionHead({
     .filter((part) => part.text);
   return (
     <MotionReveal className={`nf-sec-head nf-depth-gate nf-sec-head--${align} ${className ?? ""}`.trim()}>
-      {eyebrow && <span className="nf-eyebrow">{eyebrow}</span>}
+      {eyebrow && <span className="nf-section-label nf-eyebrow">{eyebrow}</span>}
       <h2 id={id} className="nf-sec-title">
         {parts.map((part, i) => (
           <Fragment key={`${i}-${part.text}`}>

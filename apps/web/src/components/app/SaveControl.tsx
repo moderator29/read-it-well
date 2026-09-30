@@ -333,20 +333,28 @@ export function SaveButton({
 }) {
   const name = useClientCopy().a11y.favourite;
   const titleId = useId();
+  /* Plan item 28: the tap that SAVES pops the heart once (1, 1.22, 1 on the
+     spring, `list-views.css`); the tap that unsaves just empties it. The
+     count remounts the glyph so every save restarts the pop. */
+  const [pop, setPop] = useState(0);
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={() => {
+        if (!saved) setPop((n) => n + 1);
+        onToggle();
+      }}
       disabled={pending}
       aria-pressed={saved}
       aria-label={name}
       aria-describedby={titleId}
       data-testid="card-save"
-      className={[surface === "media" ? "nf-pcard__heart" : "nf-icon-btn", className ?? ""]
+      className={[surface === "media" ? "nf-pcard__heart" : "nf-icon-btn", pop > 0 ? "nf-heart-pop" : "", className ?? ""]
         .filter(Boolean)
         .join(" ")}
     >
       <UiIcon
+        key={pop}
         name="heart"
         size="sm"
         filled={saved}

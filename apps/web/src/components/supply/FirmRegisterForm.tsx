@@ -21,6 +21,7 @@ import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * GOVERNING-05, THE FIRM FORM, WHICH IS A BRANCH AND NOT A THIRD ROLE.
@@ -289,18 +290,11 @@ export function FirmRegisterForm({
                     className="nf-door"
                     data-on={chosen || undefined}
                   >
-                    <span className="nf-door__mark" aria-hidden="true">
-                      {/* BOTH TWINNED, AND THAT IS THE POINT. `doc-shield` has no light
-                          twin and `seal-check` has one, so in daylight these two
-                          cards were a frosted object beside dark artwork on a navy
-                          plate. `contract-sign` is a letter carrying a signature,
-                          which is what the row asks for, and it is twinned like the
-                          seal beside it. */}
-                      <BrandIcon
-                        name={route === "letter" ? "contract-sign" : "seal-check"}
-                        size={40}
-                      />
-                    </span>
+                    <IconPlate size="md" tone={chosen ? "brand" : "neutral"} className="nf-door__mark">
+                      {/* A letter carrying a signature, or the ticked seal:
+                          what each row asks for. */}
+                      <UiIcon name={route === "letter" ? "pencil" : "circle-check"} size={20} />
+                    </IconPlate>
                     <span className="min-w-0 flex-1 text-left">
                       <span className={`block ${TYPE.rowTitle}`}>
                         {route === "letter"

@@ -370,7 +370,7 @@ describe("the security messages", () => {
       contextFor(PAYER, "Ada"),
     );
     expect(message).not.toBeNull();
-    expect(message?.subject).toContain("new sign-in");
+    expect(message?.subject).toMatch(/new sign-in/i);
   });
 
   it("still sends when the timestamp is unusable, because the warning matters more", () => {

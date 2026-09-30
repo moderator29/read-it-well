@@ -58,6 +58,37 @@ export const OG_INK_MUTED = "#8E9CC4";
 // eslint-disable-next-line nf/no-raw-colour -- Satori resolves no custom property. Held to tokens.css by og-palette.test.ts.
 export const OG_BRAND = "#0069FE";
 
+/*
+ * THE SHARE CARD FRAME'S EXTRA INKS (spec section 10), for
+ * `components/share/og-share-card.tsx`: the card on the canvas, the round
+ * status marks, the quiet brand of the chip, and the hairline that draws the
+ * stat strip and the meter's empty bars.
+ */
+
+/** `--nf-surface-primary` in dark: the card on the canvas. */
+// eslint-disable-next-line nf/no-raw-colour -- Satori resolves no custom property. Held to tokens.css by og-palette.test.ts.
+export const OG_CARD = "#000020";
+
+/** `--nf-surface-elevated` in dark: the chip's ground. */
+// eslint-disable-next-line nf/no-raw-colour -- Satori resolves no custom property. Held to tokens.css by og-palette.test.ts.
+export const OG_CHIP = "#000040";
+
+/** `--nf-content-link` in dark, which is `--nf-brand-quiet`: the chip's glyph. */
+// eslint-disable-next-line nf/no-raw-colour -- Satori resolves no custom property. Held to tokens.css by og-palette.test.ts.
+export const OG_BRAND_QUIET = "#5C9FFF";
+
+/** `--nf-state-success` in dark: a check that holds. */
+// eslint-disable-next-line nf/no-raw-colour -- Satori resolves no custom property. Held to tokens.css by og-palette.test.ts.
+export const OG_SUCCESS = "#10B981";
+
+/** `--nf-state-warning` in dark: a check that is missing, and a mid meter. */
+// eslint-disable-next-line nf/no-raw-colour -- Satori resolves no custom property. Held to tokens.css by og-palette.test.ts.
+export const OG_WARNING = "#00C8FF";
+
+/** `--nf-border-default` in dark: the stat strip's hairline and an empty bar. */
+// eslint-disable-next-line nf/no-raw-colour -- Satori resolves no custom property. Held to tokens.css by og-palette.test.ts.
+export const OG_HAIRLINE = "rgb(255 255 255 / 0.13)";
+
 /**
  * Each literal above beside the LAYER-2 token it was resolved from.
  *
@@ -75,4 +106,10 @@ export const OG_PALETTE_SOURCES: readonly { value: string; token: string }[] = [
   { value: OG_INK_SECONDARY, token: "--nf-content-secondary" },
   { value: OG_INK_MUTED, token: "--nf-content-muted" },
   { value: OG_BRAND, token: "--nf-brand-primary" },
+  { value: OG_CARD, token: "--nf-surface-primary" },
+  { value: OG_CHIP, token: "--nf-surface-elevated" },
+  { value: OG_BRAND_QUIET, token: "--nf-content-link" },
+  { value: OG_SUCCESS, token: "--nf-state-success" },
+  { value: OG_WARNING, token: "--nf-state-warning" },
+  { value: OG_HAIRLINE, token: "--nf-border-default" },
 ];

@@ -1030,5 +1030,587 @@
   .nf-switch-standing[data-standing="active"] {
     color: var(--nf-status-approved);
   }
+
+  /* ----------------------------------------- THE CLEAN SPEC'S PAGE HEADERS
+   *
+   * `PageHeader variant="large"` (spec 8.1, reference 31) and
+   * `variant="desk"` (spec 8.2, reference 30). No card around either: the
+   * large title sits on the canvas, the desk strip is a white frame on paper
+   * in light and the canvas one step up at night, ruled by one divider.
+   */
+  .nf-ph-large {
+    margin-block: 0.5rem 1.25rem;
+  }
+  .nf-ph-large__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .nf-ph-large__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-title-lg, 1.875rem);
+    line-height: var(--nf-leading-title-lg, 2.25rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-ph-large__row > .nf-icon-btn:first-child {
+    margin-top: -0.25rem;
+  }
+  .nf-ph-large__sub {
+    margin-top: 0.25rem;
+    font-size: 0.9375rem;
+    line-height: 1.375rem;
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  .nf-ph-large__sub--link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--nf-content-link);
+  }
+  .nf-ph-large__actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: -0.25rem;
+  }
+  /* The actions a large header holds are 44px icon buttons that float over
+     the paper: round (the lead's Q1 ruling for the header pair), white in
+     light and the raised night surface in dark, with the float shadow. */
+  .nf-ph-large__actions .nf-icon-btn {
+    /* A circle, not a capsule: the button is a 44px square, so half its side
+       rounds it exactly (Q1, decided by the lead). */
+    border-radius: 50%;
+    background: var(--nf-surface-elevated);
+    border: 1px solid var(--nf-card-border, var(--nf-container-edge));
+    box-shadow: var(--nf-float-shadow, none);
+  }
+  /* A quiet text action ("Mark all read", "Saved searches") keeps its own
+     look beside the round buttons. */
+  .nf-ph-large__actions .nf-link-quiet {
+    min-height: 2.75rem;
+  }
+
+  /* Where scroll timelines exist, the large title fades and lifts 8px over
+     the first 56px of scroll, driven by the scroll and not by a timer. The
+     class switch in `LargeTitleFold` still decides the bar. */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      :root:not([data-motion="off"]):not([data-motion="calm"]) .nf-ph-large__row {
+        animation: nf-ph-fold linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 56px;
+      }
+    }
+  }
+  @keyframes nf-ph-fold {
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  /* The bar's half of the fold: a slot between the menu and the bell. */
+  .nf-app-header__row {
+    position: relative;
+  }
+  .nf-app-header__fold {
+    position: absolute;
+    inset-inline: 4.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    overflow: hidden;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms var(--nf-ease-standard);
+  }
+  .nf-app-header__brand {
+    transition: opacity 160ms var(--nf-ease-standard);
+  }
+  .nf-app-header[data-folded] .nf-app-header__fold {
+    opacity: 1;
+  }
+  .nf-app-header[data-folded] .nf-app-header__brand {
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* The bar's hairline appears with the folded title. */
+  .nf-app-header[data-folded] {
+    box-shadow: 0 1px 0 var(--nf-divider);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-app-header__fold,
+    .nf-app-header__brand {
+      transition: none;
+    }
+  }
+  :root[data-motion="off"] .nf-app-header__fold,
+  :root[data-motion="off"] .nf-app-header__brand {
+    transition: none;
+  }
+
+  /* The desk strip (spec 8.2). */
+  .nf-ph-desk {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 4.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--nf-divider);
+  }
+  .nf-ph-desk__crumb {
+    font-size: var(--nf-text-caption);
+    line-height: 1.125rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-ph-desk__title {
+    font-family: var(--nf-font-display);
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+  }
+  .nf-ph-desk__sub {
+    margin-top: 0.125rem;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-ph-desk__actions {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  @media (max-width: 39.99rem) {
+    .nf-ph-desk {
+      flex-wrap: wrap;
+    }
+    .nf-ph-desk__actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  /* ------------------------------------------ THE WORKSPACE SIDEBAR (item 20)
+   *
+   * `components/app/desk/DeskSidebar.tsx`, spec 8.3 and reference 38: 232px,
+   * the card surface with one divider on its right, groups under section
+   * labels, bold glyphs, and a current row marked by the filled glyph, the
+   * brand label at 600 and a 4px dot. No container behind the current row in
+   * either theme (the dock's law). Hidden below 1024px; each desk keeps its
+   * phone navigation there.
+   */
+  .nf-desk-side {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-desk-side {
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      flex: none;
+      width: var(--nf-rail-width, 14.5rem);
+      height: 100dvh;
+      padding: 1rem 0.75rem;
+      background: var(--nf-surface-primary);
+      border-inline-end: 1px solid var(--nf-divider);
+    }
+  }
+  .nf-desk-side__switch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--nf-card-border, var(--nf-container-edge));
+    border-radius: var(--nf-radius-card-sm, var(--nf-radius-md));
+    color: var(--nf-content-primary);
+  }
+  .nf-desk-side__plate {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-plate, 10px);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand, var(--nf-content-inverse));
+  }
+  .nf-desk-side__desk,
+  .nf-desk-side__org {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .nf-desk-side__desk {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.25rem;
+  }
+  .nf-desk-side__org {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-desk-side__scroll {
+    flex: 1;
+    min-height: 0;
+    margin-top: 1.25rem;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .nf-desk-side__group + .nf-desk-side__group {
+    margin-top: 1.25rem;
+  }
+  .nf-desk-side__heading {
+    padding-inline: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.6875rem;
+    line-height: 0.875rem;
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-label, 0.06em);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-desk-side__row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    padding-inline: 0.5rem 1rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    transition: color 120ms var(--nf-ease-standard);
+  }
+  .nf-desk-side__glyph {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-desk-side__label {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .nf-desk-side__row[aria-current="page"] {
+    font-weight: 600;
+    color: var(--nf-brand-primary);
+  }
+  .nf-desk-side__row[aria-current="page"] .nf-desk-side__glyph {
+    color: var(--nf-brand-primary);
+  }
+  .nf-desk-side__dot {
+    position: absolute;
+    inset-inline-end: 0.375rem;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    margin-top: -2px;
+    border-radius: 9999px;
+    background: var(--nf-brand-primary);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-desk-side__row:hover {
+      color: var(--nf-content-primary);
+    }
+    .nf-desk-side__row:hover .nf-desk-side__glyph {
+      color: var(--nf-content-primary);
+    }
+    .nf-desk-side__row[aria-current="page"]:hover,
+    .nf-desk-side__row[aria-current="page"]:hover .nf-desk-side__glyph {
+      color: var(--nf-brand-primary);
+    }
+  }
+  .nf-desk-side__row:focus-visible,
+  .nf-desk-side__switch:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-desk-side__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding-inline: 0.375rem;
+    border-radius: var(--nf-radius-badge, 6px);
+    background: var(--nf-brand-tint-2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--nf-brand-primary);
+  }
+  .nf-desk-side__row[aria-current="page"] .nf-desk-side__count {
+    margin-inline-end: 0.5rem;
+  }
+  .nf-desk-side__foot {
+    display: grid;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-desk-person {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    color: var(--nf-content-primary);
+  }
+  .nf-desk-person__avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--nf-surface-raised);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .nf-desk-person__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-desk-person__name,
+  .nf-desk-person__line {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .nf-desk-person__name {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-desk-person__line {
+    font-size: 0.75rem;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------- THE CONFIRM PANEL (item 22)
+   *
+   * `components/app/confirm/ConfirmPanel.tsx`, spec 15, references 35 and 37.
+   * Content only: it sits inside the existing sheet or dialog, which keeps
+   * its own surface, radius and motion. 480px wide at most on a desk.
+   */
+  .nf-confirm {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+    color: var(--nf-content-primary);
+  }
+  .nf-confirm__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .nf-confirm__title {
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .nf-confirm__context {
+    margin-top: 0.125rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-confirm__strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: var(--nf-radius-well, 14px);
+    background: var(--nf-surface-raised);
+  }
+  .nf-confirm__strip[data-cells="1"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .nf-confirm__strip[data-cells="2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nf-confirm__fact {
+    display: grid;
+    align-content: start;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.75rem;
+  }
+  .nf-confirm__fact + .nf-confirm__fact {
+    border-inline-start: 1px solid var(--nf-divider);
+  }
+  .nf-confirm__value {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .nf-confirm__lines {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .nf-confirm__line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-confirm__line .nf-numeric {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-confirm__total {
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--nf-divider);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-confirm__assure {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-state-success-surface);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-state-success);
+  }
+  .nf-confirm__section {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .nf-confirm__steps {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .nf-confirm__steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.125rem;
+    color: var(--nf-content-secondary);
+  }
+  .nf-confirm__step-glyph {
+    flex: none;
+    margin-top: 0.0625rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-confirm__people {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .nf-confirm__person {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card-sm, 14px);
+    background: var(--nf-surface-primary);
+  }
+  .nf-confirm__who {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .nf-confirm__avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    background: var(--nf-surface-raised);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .nf-confirm__name {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-confirm__role {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-confirm__message {
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--nf-radius-control-sm, 10px);
+    background: var(--nf-surface-raised);
+  }
+  .nf-confirm__subject {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-confirm__preheader {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-confirm__error {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-state-error);
+  }
+  .nf-confirm__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-confirm__told {
+    min-width: 0;
+    flex: 1 1 12rem;
+    font-size: 0.75rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-confirm__actions {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  /* A flow's primary may arrive inside its own form (the same form it
+     always had); the form lays its button out as the button would be. */
+  .nf-confirm__actions > form {
+    display: flex;
+  }
+  .nf-confirm__actions > form > * {
+    flex: 1 1 auto;
+  }
+  @media (max-width: 39.99rem) {
+    .nf-confirm__actions > * {
+      flex: 1 1 0;
+      min-width: max-content;
+    }
+  }
 }
 

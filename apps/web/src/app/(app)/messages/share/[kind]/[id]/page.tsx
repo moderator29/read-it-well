@@ -113,7 +113,7 @@ export default async function SharePage({
           ref: { kind: "booking", id: booking.id },
           title: booking.title,
           line: booking.dateRange,
-          icon: "hotel-room",
+          icon: "calendar-booking",
         });
       }
     }
@@ -123,7 +123,7 @@ export default async function SharePage({
         ref: { kind: "listing", id: entry.listing.id },
         title: entry.listing.title,
         line: [entry.listing.area, entry.listing.city].filter(Boolean).join(", "),
-        icon: "heart-home",
+        icon: "heart",
       });
     }
     for (const row of chatted.data ?? []) {
@@ -133,7 +133,7 @@ export default async function SharePage({
         ref: { kind: "listing", id: listing.id },
         title: listing.title,
         line: [listing.area, listing.city].filter(Boolean).join(", "),
-        icon: "home-search",
+        icon: "chat-bubble",
       });
     }
 

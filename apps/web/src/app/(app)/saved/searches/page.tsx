@@ -117,7 +117,7 @@ export default async function SavedSearchesPage({
             secondary={
               <Link
                 href="/saved"
-                className="nf-link-quiet nf-body text-[var(--nf-content-link)]"
+                className="nf-tap nf-link-quiet nf-body text-[var(--nf-content-link)]"
               >
                 Your saved places
               </Link>

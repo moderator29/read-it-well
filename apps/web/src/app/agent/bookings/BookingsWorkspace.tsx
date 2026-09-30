@@ -21,7 +21,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { TextArea } from "@/components/ui/Field";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The host's bookings console: requests that need a decision, plus the stays
@@ -454,9 +454,9 @@ export function BookingsWorkspace({
           </ul>
         ) : (
           <div className="flex flex-col items-center gap-md py-10 text-center sm:py-14">
-            <span className="block h-20 w-20">
-              <BrandIcon name="calendar-check" fill />
-            </span>
+            <IconPlate size="lg">
+              <UiIcon name="calendar-check" size={24} />
+            </IconPlate>
             <h3 className="nf-h3">{emptyCopy[active].title}</h3>
             <p className="mx-auto max-w-[38ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {emptyCopy[active].body}

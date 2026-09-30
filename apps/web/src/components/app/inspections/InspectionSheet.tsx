@@ -48,7 +48,9 @@ import {
   type InspectionOutcome,
   type InspectionState,
 } from "@/lib/inspections/types";
-import { ladderFor, type LadderKey } from "./ladder";
+import { type LadderKey } from "./ladder";
+import { StatusTrack } from "@/components/app/status/StatusTrack";
+import { viewingTrack } from "@/components/app/status/tracks";
 import { statusFor, type BadgeTone } from "./status";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { TruthQuestions } from "./TruthQuestions";
@@ -235,7 +237,6 @@ export function InspectionSheet({
 
   const waiting = waitingOn(inspection.state);
   const yourMove = waiting === side;
-  const rungs = ladderFor(inspection);
   const shown = inspection.slotAt ?? inspection.requestedAt;
   const when = whenLine(shown, locale);
   const status = statusFor(inspection, side);
@@ -450,15 +451,33 @@ export function InspectionSheet({
         </dl>
 
         {/* -------------------------------------------------------- lifecycle */}
-        <ol className="nf-ix-life" aria-label="Inspection progress">
-          {rungs.map((rung) => (
-            <li key={rung.key} className={`nf-ix-life__step${rung.done ? " nf-ix-life__step--done" : ""}`}>
-              <span className="nf-ix-life__dot" aria-hidden="true" />
-              <span className="nf-ix-life__label">{RUNG_LABEL[rung.key]}</span>
-              <span className="sr-only">{rung.done ? "done" : "not yet"}</span>
-            </li>
-          ))}
-        </ol>
+        {/* The shared status track (spec section 14): the four rungs the
+            record can honestly say happened, dated from the request's own
+            times; a decline or a withdrawal stops it where it stood. */}
+        <StatusTrack
+          label="Inspection progress"
+          testId="inspection-track"
+          steps={viewingTrack({
+            state: inspection.state,
+            outcome: inspection.outcome ?? null,
+            createdAt: inspection.createdAt,
+            respondedAt: inspection.respondedAt,
+            slotAt: inspection.slotAt,
+          }).map((step) => {
+            const at = step.at ? whenLine(step.at, locale) : null;
+            return {
+              key: step.key,
+              label:
+                step.state === "failed"
+                  ? inspection.state === "DECLINED"
+                    ? "Declined"
+                    : "Withdrawn"
+                  : RUNG_LABEL[step.key],
+              when: at && at.day ? `${at.day}, ${at.time}` : null,
+              state: step.state,
+            };
+          })}
+        />
 
         {/* ------------------------------------------ V-59, the tenancy review */}
         {tenancyReview && (

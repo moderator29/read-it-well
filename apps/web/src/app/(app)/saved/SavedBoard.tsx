@@ -22,10 +22,13 @@ import {
 import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
 import { EmptyActions } from "@/components/app/EmptyActions";
-import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
+import { MetaStrip } from "@/components/ui/MetaStrip";
+import { EmptyState, ICON } from "@/components/app/Screen";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { savedBoardKey, uniqueBoardKeys } from "./saved-board-key";
+import { motionQuiet } from "@/lib/motion/gate";
+import { SwipeToRemove } from "./SwipeToRemove";
 
 /**
  * The shortlist, made interactive.
@@ -80,6 +83,10 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   const [phase, setPhase] = useState<Record<string, Phase>>({});
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [hydrating, setHydrating] = useState(false);
+  /* Plan item 28: a removed card fades (160ms) and then folds its height away
+     (240ms) before the Undo chip takes the slot; under reduced motion, Calm
+     and Off it is replaced at once. */
+  const [leaving, setLeaving] = useState<Record<string, true>>({});
   const synced = useRef(false);
 
   /* Slots, phases and messages are keyed by shelf and id (`savedBoardKey`),
@@ -168,6 +175,23 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
 
   function unsave(item: SavedBoardItem) {
     const key = savedBoardKey(item);
+    if (motionQuiet()) {
+      commitUnsave(item);
+      return;
+    }
+    setLeaving((prev) => ({ ...prev, [key]: true }));
+    window.setTimeout(() => {
+      setLeaving((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      commitUnsave(item);
+    }, 400);
+  }
+
+  function commitUnsave(item: SavedBoardItem) {
+    const key = savedBoardKey(item);
     removedItems.current.set(key, item);
     setMessage(key, null);
     setPhase((prev) => ({ ...prev, [key]: "removed" }));
@@ -249,19 +273,14 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
   return (
     <>
       <Reveal>
-        <p className={`mb-heading flex items-center gap-inline ${TYPE.bodyLg}`}>
-          <UiIcon
-            name="heart"
-            size={ICON.inline}
-            className="shrink-0 text-[var(--nf-brand-secondary)]"
-          />
-          <span>
-            <span className="font-semibold text-[var(--nf-content-primary)]">
-              {countOf(visible, "places", locale)} saved
-            </span>{" "}
-            &middot; ready to compare
+        {/* The count as a meta strip (plan item 17): the figure, then what
+            the list is for, divided by a hairline. */}
+        <MetaStrip className="mb-heading" leading={<UiIcon name="heart" size={16} />}>
+          <span className="font-semibold text-[var(--nf-content-primary)] nf-numeric">
+            {countOf(visible, "places", locale)} saved
           </span>
-        </p>
+          <span>Ready to compare</span>
+        </MetaStrip>
       </Reveal>
 
       <Reveal delay={60}>
@@ -269,28 +288,36 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
           {rendered.map(({ key, item, state }) => (
             <li key={key}>
               {state === undefined && item ? (
-                <div className="flex h-full flex-col gap-xs">
-                  {item.card}
-                  {/* Under the card, not over it: the card carries its own
-                      heart in the top-right corner now, and a second heart on
-                      the same corner was two controls for one thought. */}
-                  <button
-                    type="button"
-                    onClick={() => unsave(item)}
-                    disabled={pending}
-                    aria-pressed="true"
-                    aria-label="Remove from saved"
-                    data-testid="saved-heart"
-                    className="nf-shelf-chip self-end disabled:opacity-60"
-                  >
-                    <UiIcon name="heart" size={ICON.inline} className="[&_path]:fill-current" />
-                    Remove
-                  </button>
+                <div className={`nf-saved-slot${leaving[key] ? " nf-saved-slot--leaving" : ""}`}>
+                  <div className="nf-saved-slot__inner">
+                    {/* The card carries its own heart; Remove lives behind a
+                        swipe on touch and as a quiet action under the card,
+                        not as a second bordered button (plan items 17, 28). */}
+                    <SwipeToRemove
+                      label="Remove"
+                      onRemove={() => unsave(item)}
+                      disabled={pending || Boolean(leaving[key])}
+                    >
+                      {item.card}
+                    </SwipeToRemove>
+                    <button
+                      type="button"
+                      onClick={() => unsave(item)}
+                      disabled={pending || Boolean(leaving[key])}
+                      aria-pressed="true"
+                      aria-label="Remove from saved"
+                      data-testid="saved-heart"
+                      className="nf-saved-remove"
+                    >
+                      <UiIcon name="heart" size={16} className="[&_path]:fill-current" />
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div
                   data-testid="undo-chip"
-                  className="nf-panel nf-panel--card h-full flex-row items-center justify-between gap-md p-card"
+                  className="nf-panel nf-panel--card nf-saved-undo h-full flex-row items-center justify-between gap-md p-card"
                 >
                   <p className="nf-body text-[var(--nf-content-secondary)]">
                     {state === "restoring" ? "Putting it back" : "Removed from saved"}

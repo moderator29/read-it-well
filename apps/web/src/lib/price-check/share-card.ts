@@ -64,6 +64,15 @@ export type ShareLines = {
   basis: string;
   /** "Asking prices, not sold prices. vallo.ng" */
   footer: string;
+  /**
+   * The share card frame's parts (spec section 10), as structured values so
+   * the image does not re-parse a sentence: the listing count the figure came
+   * from (at least three, by check constraint), the word beside the meter
+   * ("9 listings"), and the month, or null when the row carried no dates.
+   */
+  count: number;
+  meterWord: string;
+  month: string | null;
 };
 
 export type ShareCardCopy = {
@@ -83,6 +92,8 @@ export type ShareCardCopy = {
   basis: string;
   /** "Based on {count} Vallo listings" when the card carries no dates. */
   basisNoDate: string;
+  /** "{count} listings", the word beside the card's meter. */
+  meterWord?: string;
   /** Plural names by property type, as the card writes them. */
   typeNames: Record<string, string>;
 };
@@ -196,5 +207,13 @@ export function shareLines(
       ? fill(copy.basisNoDate, { count: share.listingCount })
       : fill(copy.basis, { count: share.listingCount, month });
 
-  return { headline, range, basis, footer: SHARE_CARD_FOOTER };
+  return {
+    headline,
+    range,
+    basis,
+    footer: SHARE_CARD_FOOTER,
+    count: share.listingCount,
+    meterWord: fill(copy.meterWord ?? "{count} listings", { count: share.listingCount }),
+    month,
+  };
 }

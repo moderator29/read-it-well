@@ -11,6 +11,8 @@ import {
   OG_INK_SECONDARY,
   OG_PANEL,
 } from "@/lib/price-check/og-palette";
+import { ogShareCard } from "@/components/share/og-share-card";
+import { countFill } from "@/lib/ui/meter";
 
 /**
  * THE DOOR'S IMAGE, DRAWN FROM ALREADY-DECIDED WORDS (V-07).
@@ -32,7 +34,12 @@ export const DOOR_IMAGE_SIZE = { width: 1200, height: 630 };
 
 export type DoorImageFace =
   | { kind: "mark" }
-  | { kind: "area"; lines: ShareLines }
+  | {
+      kind: "area";
+      lines: ShareLines;
+      /** The chip's word ("Price Check"); the card frame's head. */
+      chip?: string;
+    }
   | { kind: "example"; card: Extract<DoorCard, { kind: "example" }> }
   | {
       kind: "listing";
@@ -135,22 +142,19 @@ function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
     );
   }
   if (input.kind === "area") {
+    /* THE SHARE CARD FRAME (spec section 10): the headline, the range as the
+       figure, one meter bar per listing it came from with the count as its
+       word, the basis as the honest line and the standing footer under it. */
     const lines = input.lines;
-    return (
-      <Frame>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={EYEBROW}>{copy.areaEyebrow}</div>
-          <div style={{ display: "flex", marginTop: 24, color: OG_INK, fontSize: 60, lineHeight: 1.15 }}>{lines.headline}</div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", background: OG_PANEL, borderRadius: 24, borderTop: `2px solid ${OG_BRAND}`, padding: "32px 40px", color: OG_INK, fontSize: 54 }}>
-            {lines.range}
-          </div>
-          <div style={{ display: "flex", marginTop: 22, color: OG_INK_SECONDARY, fontSize: 30 }}>{lines.basis}</div>
-          <div style={{ display: "flex", marginTop: 12, color: OG_INK_MUTED, fontSize: 26 }}>{lines.footer}</div>
-        </div>
-      </Frame>
-    );
+    return ogShareCard({
+      ...DOOR_IMAGE_SIZE,
+      title: lines.headline,
+      chip: input.chip ?? copy.areaEyebrow,
+      figure: lines.range,
+      meter: { filled: countFill(lines.count), word: lines.meterWord },
+      checks: [{ tone: "success", label: lines.basis }],
+      honest: lines.footer,
+    });
   }
   if (input.kind === "example") {
     return (

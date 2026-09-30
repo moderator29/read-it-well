@@ -1,30 +1,46 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { withoutComments } from "@/lib/copy/source-scan";
 
 /**
- * The reveal must be visible in the server markup. This suite runs in Node
- * with the react-server build, so the client component cannot be rendered
- * here; the guard reads its source instead.
+ * ONE REVEAL (UIUX item 25). `components/site/Reveal.tsx` is a re-export of
+ * `MotionReveal`, so the guarantees the old site reveal carried are held
+ * against `components/motion/Reveal.tsx` now. This suite runs in Node with
+ * the react-server build, so the client component cannot be rendered here;
+ * the guard reads its source instead, with the comments taken out so a note
+ * cannot satisfy it.
  */
-const source = readFileSync(join(process.cwd(), "src/components/site/Reveal.tsx"), "utf8");
+const read = (path: string) => withoutComments(readFileSync(join(process.cwd(), "src", path), "utf8"));
+const site = read("components/site/Reveal.tsx");
+const motion = read("components/motion/Reveal.tsx");
 
-describe("site Reveal", () => {
-  it("renders shown, and only the effect hides a block", () => {
-    expect(source).toContain('data-shown="true"');
-    expect(source).not.toMatch(/useState\(false\)/);
-    /* Hiding happens after the above-the-fold check and the observer check. */
-    const fold = source.indexOf("getBoundingClientRect().top < window.innerHeight");
-    const guard = source.indexOf('typeof IntersectionObserver === "undefined"');
-    const hide = source.indexOf('el.dataset.shown = "false"');
+describe("the one reveal", () => {
+  it("is the site reveal and the motion reveal at once", () => {
+    expect(site).toMatch(/export\s*\{\s*MotionReveal as Reveal\s*\}\s*from\s*"@\/components\/motion\/Reveal"/);
+  });
+
+  it("renders shown, and only the effect hides a block below the fold", () => {
+    /* The server markup carries no hidden state at all. */
+    expect(motion).not.toMatch(/data-reveal=/);
+    expect(motion).not.toMatch(/useState\(false\)/);
+    const fold = motion.indexOf("getBoundingClientRect().top < window.innerHeight");
+    const guard = motion.indexOf('typeof IntersectionObserver === "undefined"');
+    const hide = motion.indexOf('el.dataset.reveal = "out"');
     expect(fold).toBeGreaterThan(-1);
-    expect(guard).toBeGreaterThan(fold);
+    expect(guard).toBeGreaterThan(-1);
+    expect(hide).toBeGreaterThan(fold);
     expect(hide).toBeGreaterThan(guard);
   });
 
-  it("never hides under reduced motion", () => {
-    const quiet = source.indexOf("if (motionQuiet()) return;");
+  it("never hides under reduced motion, Calm or Off", () => {
+    const quiet = motion.indexOf("motionQuiet()");
     expect(quiet).toBeGreaterThan(-1);
-    expect(quiet).toBeLessThan(source.indexOf('el.dataset.shown = "false"'));
+    expect(quiet).toBeLessThan(motion.indexOf('el.dataset.reveal = "out"'));
+  });
+
+  it("caps a sibling's delay at the sixth stagger step", () => {
+    expect(motion).toContain("REVEAL_DELAY_CAP = 300");
+    expect(motion).toMatch(/Math\.min\(Math\.max\(delay, 0\), REVEAL_DELAY_CAP\)/);
   });
 });

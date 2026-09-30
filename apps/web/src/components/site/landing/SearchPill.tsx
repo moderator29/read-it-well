@@ -6,7 +6,12 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ORDER, type Segment } from "./segments";
 
 /**
- * The floating search pill: a text field, three segments, a filter glyph.
+ * The landing search, ONE SURFACE (UIUX item 8): a field, the quiet
+ * segmented Buy / Rent / Stay, a filters button and the go button on one
+ * card, with no border inside it. From 40rem they sit in one 64px row; on a
+ * phone the segments lead, full width, the go button sits inside the field's
+ * right end, and filters become a quiet "Filters" line under it (landing.css,
+ * "the search").
  *
  * THE SEGMENTS AND THE HEADLINE ARE ONE THING. The landing headline reads
  * "Rent, buy or stay. Without the runaround." and it names these three
@@ -54,6 +59,8 @@ export function SearchPill({
     label: string;
     placeholder: string;
     filters: string;
+    /** The visible word on the phone's quiet Filters line. */
+    filtersShort: string;
     go: string;
   };
 }) {
@@ -75,14 +82,18 @@ export function SearchPill({
       <label className="nf-landing-pill-field">
         <UiIcon name="search" size={20} aria-hidden />
         <span className="sr-only">{labels.placeholder}</span>
-        <input type="search" name="q" placeholder={labels.placeholder} autoComplete="off" />
+        <input type="search" name="q" placeholder={labels.placeholder} autoComplete="off" enterKeyHint="search" />
       </label>
       {route.market && <input type="hidden" name="market" value={route.market} />}
+      {/* ONE QUIET SEGMENTED TRACK (spec section 7): a raised well, a white
+          thumb that slides to the chosen segment (a pseudo-element moved by
+          `--nf-seg-index`, transform only, 240ms; it jumps under reduced
+          motion). */}
       <div
         className="nf-landing-pill-segments"
         role="radiogroup"
         aria-labelledby={groupId}
-        style={{ "--nf-seg-count": ORDER.length } as CSSProperties}
+        style={{ "--nf-seg-count": ORDER.length, "--nf-seg-index": ORDER.indexOf(segment) } as CSSProperties}
       >
         <span id={groupId} className="sr-only">
           {labels.label}
@@ -99,43 +110,27 @@ export function SearchPill({
             onKeyDown={(e) => onKey(e, i)}
           >
             <UiIcon name={ROUTES[s].icon} size={16} aria-hidden />
-            {/*
-              THE LABEL IS ITS OWN BLOCK NOW, AND THAT IS HALF OF A FIX WHOSE
-              OTHER HALF IS A STYLESHEET.
-              `--nf-seg-count` freed the TRACK, which was the dead fourth
-              column. It did not free the ITEM: `minmax(0, 1fr)` removes the
-              track's automatic minimum and a grid item keeps `min-width:auto`
-              regardless, so with `white-space: nowrap` on the segment the
-              min-content width is still the whole word. In Hausa "Masauki" and
-              in Igbo "Gbazite" are seven characters against roughly 35px of
-              room after the 16px glyph, the 4px gap and 24px of padding, so
-              the WORD paints outside the control even though the track is now
-              right. `text-overflow` cannot act on a flex container's anonymous
-              text run, so it needs this span to exist before the stylesheet
-              can clip anything.
-              HANDED TO GROUP B: `.nf-landing-pill-seg` at
-              `app/css/landing.css` wants `min-inline-size: 0`, and this span
-              wants `overflow: hidden; text-overflow: ellipsis`.
-            */}
+            {/* Its own block so a long word in Hausa or Igbo can ellipsis
+                inside the segment instead of painting past it. */}
             <span className="nf-landing-pill-seg__label">{labels[s]}</span>
           </button>
         ))}
       </div>
-      <div className="nf-landing-pill-actions">
-        <Link href="/search" aria-label={labels.filters} prefetch={false}>
-          <UiIcon name="sliders" size={20} aria-hidden />
-        </Link>
-        {/* Word first, arrow after it, as "Explore Properties" already does.
-            The two used to be laid out by `place-items: center` on a grid,
-            which at 390 put the arrow in a row of its own above the word and
-            made the product's primary control read as broken (R1 finding
-            A8). Above 640 the button is a circle and the word is for screen
-            readers only. */}
-        <button type="submit" aria-label={labels.go}>
-          <span className="sm:sr-only">{labels.go}</span>
-          <UiIcon name="arrow-right" size={20} aria-hidden />
-        </button>
-      </div>
+      {/* The discovery page, whose own drawer holds every filter this
+          platform has. A 44px icon button beside the search on a wide
+          screen; a quiet "Filters" line under the field on a phone. */}
+      <Link href="/search" prefetch={false} className="nf-landing-pill-filters" aria-label={labels.filters}>
+        <UiIcon name="sliders" size={20} aria-hidden />
+        <span className="nf-landing-pill-filters__word" aria-hidden="true">
+          {labels.filtersShort}
+        </span>
+      </Link>
+      {/* Word and arrow on a wide screen; the arrow alone inside the
+          field's right end on a phone, with the word for a screen reader. */}
+      <button type="submit" className="nf-landing-pill-go" aria-label={labels.go}>
+        <span className="nf-landing-pill-go__word">{labels.go}</span>
+        <UiIcon name="arrow-right" size={20} aria-hidden />
+      </button>
     </form>
   );
 }

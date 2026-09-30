@@ -4,6 +4,7 @@ import { getShellIdentity } from "@/lib/app/shell-queries";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostNav } from "./HostNav";
+import { HostDeskSidebar } from "./HostDeskSidebar";
 import { HostDrawer, HostTitle } from "./HostDrawer";
 import { hostNavLabels } from "./host-nav-model";
 
@@ -25,6 +26,7 @@ export async function HostShell({
   chromeBack = true,
   nav = chromeBack,
   immersive = false,
+  wide = false,
 }: {
   children: ReactNode;
   fallback?: string;
@@ -58,6 +60,8 @@ export async function HostShell({
    * composer is pinned to the bottom edge. The same contract as `AgentShell`.
    */
   immersive?: boolean;
+  /** The workspace home's dashboard width (plan item 14) rather than a form's. */
+  wide?: boolean;
 }) {
   /* The bell's dot, failing soft to zero: a badge is never worth a page. */
   const [unread, t] = await Promise.all([
@@ -72,6 +76,16 @@ export async function HostShell({
   const labels = hostNavLabels(t);
   return (
     <div className={immersive ? "nf-host nf-host--immersive" : "nf-host"}>
+      {/* From 1024px the destinations are the shared workspace sidebar (plan
+          item 20); below it the chip row under the bar, as before. */}
+      {nav ? (
+        <HostDeskSidebar
+          labels={labels}
+          mainLabel={t.desk.sidebar.main}
+          deskName={t.desk.sidebar.hostDesk}
+        />
+      ) : null}
+      <div className="nf-host__col">
       <WorkspaceHeader
         back={chromeBack ? fallback : false}
         menu={nav ? <HostDrawer labels={labels} /> : undefined}
@@ -85,9 +99,10 @@ export async function HostShell({
       >
         {nav ? <HostNav labels={labels} /> : null}
       </WorkspaceHeader>
-      <main id="main" className={immersive ? "nf-host__fill" : "nf-host__body"}>
+      <main id="main" className={immersive ? "nf-host__fill" : wide ? "nf-host__body nf-host__body--wide" : "nf-host__body"}>
         {children}
       </main>
+      </div>
     </div>
   );
 }
