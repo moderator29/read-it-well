@@ -1,4 +1,5 @@
-import type { Locale } from "@vallo/i18n/core";
+import { intlTag, type Locale } from "@vallo/i18n/core";
+import { CountedText, HeroFigure } from "@/components/ui/HeroFigure";
 import { Amount } from "@/components/ui/Amount";
 import { HeroBand } from "@/components/ui/HeroBand";
 import { formatKoboExact } from "@/components/app/money/money";
@@ -44,15 +45,18 @@ export function HistoryHero({
     /* The headline money figure sits on the hero band (the founder's widened
        Q2): the navy block in light, a raised night surface at night, white
        type. Same figure, same note, same facts as before. */
-    <HeroBand as="section" aria-labelledby={id} data-testid="history-total">
-      <p id={id} className="nf-history-hero__label nf-section-label">
-        {label}
-      </p>
-      <p className={`nf-history-hero__figure nf-numeric ${long ? "nf-history-hero__figure--long" : ""}`}>
-        {whole}
+    /* SECTION 17 (refs 44 and 45): the figure is centred, the label a muted
+       caption above it, the note a quiet line under it, and the naira count
+       up once (never under reduced motion, Calm or Off). */
+    <HeroBand as="section" aria-labelledby={id} data-testid="history-total" className="nf-history-hero--centred">
+      <HeroFigure id={id} caption={label} sub={note} size={long ? "md" : "lg"}>
+        {totalMinor >= 0 ? (
+          <CountedText text={whole} value={Math.floor(totalMinor / 100)} tag={intlTag[locale] ?? "en-NG"} />
+        ) : (
+          whole
+        )}
         <span className="nf-history-kobo nf-history-kobo--hero">{kobo}</span>
-      </p>
-      <p className="nf-history-hero__note">{note}</p>
+      </HeroFigure>
       {facts.length > 0 && (
         <dl className="nf-history-hero__facts">
           {facts.map((fact) => (

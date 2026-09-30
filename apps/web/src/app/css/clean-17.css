@@ -91,3 +91,67 @@
     color: var(--nf-content-muted);
   }
 }
+
+@layer components {
+  /* ------------------------------------------------ THE CENTRED FIGURE
+   * A screen's one headline figure (section 17, refs 44 and 45): centred
+   * and large, a muted caption above, one quiet sub-line under. On the soft
+   * top or inside a hero band (which lends it the night palette). */
+  .nf-hero-figure {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    text-align: center;
+  }
+  .nf-hero-figure__caption {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.35;
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+  .nf-hero-figure__value {
+    font-size: clamp(2.25rem, 10vw, 2.75rem);
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-hero-figure__value--md {
+    font-size: clamp(1.75rem, 8vw, 2.125rem);
+  }
+  .nf-hero-figure__sub {
+    max-width: 40ch;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+  }
+}
+
+@layer components {
+  /* The money history's total, centred (section 17): its facts centre under
+     the figure too. */
+  .nf-history-hero--centred .nf-history-hero__facts {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@layer components {
+  /* A share card whose figure is the screen's one headline (Price Check's
+     answer): the figure centred with its unit under it, the meter centred
+     beneath (section 17). The checks and the honest line stay left, where
+     sentences read. */
+  .nf-share-card[data-align="center"] .nf-share-card__lead {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .nf-share-card[data-align="center"] .nf-share-card__figure {
+    justify-content: center;
+  }
+  .nf-share-card[data-align="center"] .nf-share-card__eyebrow {
+    text-align: center;
+  }
+}

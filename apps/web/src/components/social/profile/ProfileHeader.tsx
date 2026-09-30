@@ -362,6 +362,7 @@ export function ProfileHeader({
         <ShareCardFrame
           className="mt-md"
           testId="profile-agent-record"
+          align="center"
           title={visible.cardTitle}
           chip={profile.badgeTier === "gold" ? { label: BADGE_TIER_LABEL.gold } : undefined}
           {...(trust.reviewCount > 0 && trust.averageRating !== null
