@@ -219,14 +219,15 @@ export function PasscodeSetup({
         : mode === "reset"
           ? copy.resetTitle
           : copy.setupTitle;
+  /* The step line under the title; the longer "why" for a new or reset code
+     waits in the status line under the dots until something needs saying. */
   const subtitle =
     step === "current"
       ? copy.currentBody
       : step === "confirm"
-        ? fill(copy.confirmBody, { count: length })
-        : mode === "reset"
-          ? copy.resetBody
-          : copy.setupBody;
+        ? fill(copy.stepConfirm, { count: length })
+        : fill(copy.stepChoose, { count: length });
+  const hint = step === "enter" ? (mode === "reset" ? copy.resetBody : copy.setupBody) : "";
 
   return (
     <PasscodeFrame
@@ -242,7 +243,7 @@ export function PasscodeSetup({
     >
       <PasscodeDots length={width} filled={code.length} shake={shake} label={fill(copy.digitsEntered, { count: code.length, total: width })} />
       <p className="nf-passcode__message" role="status" aria-live="polite" data-testid="passcode-message">
-        {message ?? (busy ? copy.checking : "")}
+        {message ?? (busy ? copy.checking : hint)}
       </p>
       <Keypad onDigit={onDigit} onDelete={onDelete} disabled={busy || leaving} label={copy.keypadLabel} deleteLabel={copy.deleteKey} />
       <div className="nf-passcode__foot">
