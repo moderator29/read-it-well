@@ -636,53 +636,30 @@
 
   /* ============================================================ THE PILL */
   /*
-   * The full-width pill: the brand gradient with white words in light, white
-   * with navy words in dark. It is the shared `Button` (spinner, haptics,
-   * press) wearing this; the shared lit bar's edges, pool and text glow are
-   * put down here, because the reference's pill is one flat object.
+   * THE DOORS TAKE THE PLATFORM'S PRIMARY (the button system, reference 55,
+   * 30 September 2026): one primary everywhere. This rule keeps only the
+   * door's geometry, the full-width pill on the large rung (56px); the
+   * material, hover, press, focus and disabled states are `.nf-btn--primary`
+   * in buttons.css, read from the `--nf-act-*` tokens, so sign in, the
+   * welcome and the passcode screens draw the same blue pill as the app.
    */
   .nf-slate .nf-slate-pill.nf-btn {
-    --nf-btn-h: 3.25rem;
-    height: 3.25rem;
-    min-height: 3.25rem;
+    --nf-btn-h: 3.5rem;
+    height: 3.5rem;
+    min-height: 3.5rem;
     padding-block: 0;
     gap: var(--nf-space-xs);
     border-radius: var(--nf-radius-pill);
     font-size: 1rem;
     font-weight: 600;
   }
-  .nf-slate .nf-slate-pill.nf-btn--primary {
-    border: 0;
-    background: var(--nf-slate-pill);
-    color: var(--nf-slate-pill-ink);
-    text-shadow: none;
-    box-shadow: var(--nf-slate-pill-shadow);
-  }
   /* The platform's edge runner (`edge-m.css`) laps every button; on a pill
      its straight edges begin at half the height, not at the control corner. */
   .nf-slate .nf-slate-pill.nf-btn::before {
     --nf-edge-r: calc(var(--nf-btn-h) / 2 + 2px);
   }
-  .nf-slate .nf-slate-pill.nf-btn--primary::after {
-    display: none;
-  }
-  @media (hover: hover) {
-    .nf-slate .nf-slate-pill.nf-btn--primary:hover:not(:disabled) {
-      box-shadow: var(--nf-slate-pill-shadow), 0 0 0 3px var(--nf-glow-2);
-    }
-  }
-  /* The second way on: an outline pill in the page's ink. */
-  .nf-slate .nf-slate-pill--quiet.nf-btn {
-    border: 1.5px solid var(--nf-slate-hair);
-    background: var(--nf-slate-card);
-    color: var(--nf-content-primary);
-    box-shadow: var(--nf-slate-card-shadow);
-  }
-  @media (hover: hover) {
-    .nf-slate .nf-slate-pill--quiet.nf-btn:hover {
-      border-color: var(--nf-slate-ink);
-    }
-  }
+  /* The second way on is the platform's secondary, the outlined blue pill
+     (`.nf-btn--glass`, buttons.css); nothing here repaints it. */
   .nf-slate .nf-auth__actions {
     margin-top: var(--nf-space-xs);
   }

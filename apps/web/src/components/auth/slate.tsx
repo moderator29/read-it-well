@@ -224,12 +224,12 @@ export function AuthPillButton({
   quiet = false,
   ...props
 }: Omit<ComponentProps<typeof Button>, "variant" | "size" | "full"> & {
-  /** The secondary pill: an outline in the page's ink, for a second way on. */
+  /** The secondary pill (the outlined blue pill of the button system), for a second way on. */
   quiet?: boolean;
 }) {
   return (
     <Button
-      variant={quiet ? "ghost" : "primary"}
+      variant={quiet ? "secondary" : "primary"}
       size="lg"
       full
       className={`nf-slate-pill${quiet ? " nf-slate-pill--quiet" : ""}${className ? ` ${className}` : ""}`}
@@ -259,7 +259,7 @@ export function AuthPillLink({
   return (
     <ButtonLink
       href={href}
-      variant={quiet ? "ghost" : "primary"}
+      variant={quiet ? "secondary" : "primary"}
       size="lg"
       full
       {...(prefetch === undefined ? {} : { prefetch })}
