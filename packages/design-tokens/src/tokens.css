@@ -2451,8 +2451,20 @@
    * spec's cards are 18px (`--nf-radius-card`), not 22, and a 16 to 17px
    * phone gutter is the industry's (and the references') density.
    */
-  --nf-pad-shell: clamp(1rem, 0.61rem + 1.74vw, 2rem);  /* the page gutter, 16 -> 32 */
-  --nf-pad-card: var(--nf-space-lg);       /* 24, the ordinary card */
+  /*
+   * STEPPED, NOT CONTINUOUS (pixel polish, 30 September). The clamp gave a
+   * 16.5px gutter at 390 and 17.2 at 430, so every card edge, rail bleed
+   * and hairline on a phone sat on a fractional pixel, off the 4px grid.
+   * The spec's three values, stepped: 16 on a phone, 24 from 40rem (a
+   * tablet), 32 from 80rem (desktop). The steps are the @media blocks
+   * after this rule set. Every consumer reads the token, so the bleeds
+   * still land on the screen edge.
+   */
+  --nf-pad-shell: 1rem;                    /* the page gutter, 16 / 24 / 32 */
+  /* The ordinary card: 16 on a phone, 20 from 40rem (spec 1.4). It was 24
+     everywhere, so a phone card spent 48 of its 358px on padding and sat
+     beside list groups and figure tiles padded 16. */
+  --nf-pad-card: var(--nf-space-md);
   --nf-pad-card-lg: clamp(2rem, 1rem + 4vw, 4rem);      /* the one card a page is built around */
   --nf-pad-card-sm: var(--nf-space-md);    /* 16, a card inside another surface */
   /*
@@ -3566,6 +3578,19 @@
  * Durations collapse rather than animations being deleted, so components keep
  * one code path and transitions simply resolve immediately.
  */
+/* The stepped gutter and card padding (see `--nf-pad-shell` above). */
+@media (min-width: 40rem) {
+  :root {
+    --nf-pad-shell: 1.5rem;
+    --nf-pad-card: 1.25rem;
+  }
+}
+@media (min-width: 80rem) {
+  :root {
+    --nf-pad-shell: 2rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* A night subtree (`[data-theme="dark"]`: auth, first run, every
      photograph region) redeclares the palette and with it the durations, so
