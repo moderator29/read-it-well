@@ -1,0 +1,22 @@
+import type { Translation } from "../../fallback";
+import { passcodeYo } from "./passcode";
+import { deskYo } from "./desk";
+import { frontDoorYo } from "./frontDoor";
+import { landingRoomsYo } from "./landingRooms";
+import { trustDoorsYo } from "./trustDoors";
+import { shapeYo } from "./shape";
+
+/**
+ * Every machine-drafted namespace for this locale, laid under the locale
+ * file by `withFallback`. MACHINE DRAFTS, NOT FINAL: each namespace here is
+ * recorded as `machine-draft` in `review-status.ts` until a native speaker
+ * has read it.
+ */
+export const yoDrafts = {
+  passcode: passcodeYo,
+  desk: deskYo,
+  frontDoor: frontDoorYo,
+  landingRooms: landingRoomsYo,
+  trustDoors: trustDoorsYo,
+  shape: shapeYo,
+} satisfies Translation;

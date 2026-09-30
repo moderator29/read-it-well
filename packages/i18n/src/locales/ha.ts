@@ -1,6 +1,8 @@
 import { unitsHa } from "./units";
 import type { Dictionary } from "./en";
 import { withFallback, type Translation } from "./fallback";
+/* Machine drafts, one module per namespace, awaiting a native speaker. */
+import { haDrafts } from "./drafts/ha";
 
 /**
  * Hausa.
@@ -3546,4 +3548,4 @@ export const ha: Dictionary = withFallback({
     close: "Close",
   },
 
-} satisfies Translation);
+} satisfies Translation, haDrafts);

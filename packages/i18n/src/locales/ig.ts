@@ -1,6 +1,8 @@
 import { unitsIg } from "./units";
 import type { Dictionary } from "./en";
 import { withFallback, type Translation } from "./fallback";
+/* Machine drafts, one module per namespace, awaiting a native speaker. */
+import { igDrafts } from "./drafts/ig";
 
 /**
  * Igbo.
@@ -3575,4 +3577,4 @@ export const ig: Dictionary = withFallback({
     close: "Close",
   },
 
-} satisfies Translation);
+} satisfies Translation, igDrafts);

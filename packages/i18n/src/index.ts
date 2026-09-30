@@ -19,3 +19,11 @@ const dictionaries: Record<Locale, Dictionary> = { en, yo, ha, ig };
 export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE];
 }
+export {
+  REVIEW_STATUS,
+  reviewStateOf,
+  draftNamespaces,
+  type ReviewState,
+  type NamespaceReview,
+  type TranslatedLocale,
+} from "./review-status";

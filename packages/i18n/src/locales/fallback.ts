@@ -74,9 +74,20 @@ function paths(value: unknown, prefix = "", into = new Set<string>()): Set<strin
   return into;
 }
 
-export function withFallback(translation: Translation): Dictionary {
-  const merged = merge(en, translation) as Dictionary;
-  supplied.set(merged, paths(translation));
+export function withFallback(
+  translation: Translation,
+  /**
+   * Whole namespaces kept in their own draft modules (`locales/drafts/`),
+   * laid under the locale's own file: a key the locale file declares wins
+   * over a draft of the same key. Every draft namespace is recorded as a
+   * machine draft awaiting a native speaker in `review-status.ts`.
+   */
+  drafts: Translation = {},
+): Dictionary {
+  const merged = merge(merge(en, drafts), translation) as Dictionary;
+  const keys = paths(drafts);
+  for (const key of paths(translation)) keys.add(key);
+  supplied.set(merged, keys);
   return merged;
 }
 

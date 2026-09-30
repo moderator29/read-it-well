@@ -1,4 +1,12 @@
-import { DEFAULT_LOCALE, LOCALES, getDictionary, suppliedKeys, type Locale } from "@vallo/i18n";
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  getDictionary,
+  pluralTag,
+  reviewStateOf,
+  suppliedKeys,
+  type Locale,
+} from "@vallo/i18n";
 
 /**
  * How much of a locale is actually in that locale.
@@ -136,4 +144,80 @@ export function localeCompleteness(locale: Locale): LocaleCompleteness {
 /** Every offered locale, measured. */
 export function allLocaleCompleteness(): LocaleCompleteness[] {
   return LOCALES.map(localeCompleteness);
+}
+
+/**
+ * COVERAGE PER NAMESPACE, IN THE THREE STATES A KEY CAN BE IN (C11a).
+ *
+ * The gate above answers one narrow question (was English smuggled into a
+ * translation file). This answers the one a speaker brief needs: for each
+ * namespace, how many keys a locale has not reached (`missing`), how many it
+ * carries as a machine draft awaiting a native speaker (`draft`, from
+ * `review-status.ts`), how many it declares in the locale file itself
+ * (`unreviewed`: those files were not signed off by a speaker either), and
+ * how many a named speaker has read (`reviewed`). The four add up to `total`.
+ */
+export type NamespaceCoverage = {
+  namespace: string;
+  total: number;
+  missing: number;
+  draft: number;
+  unreviewed: number;
+  reviewed: number;
+};
+
+const PLURAL_FORMS = new Set(["zero", "one", "two", "few", "many"]);
+
+export function namespaceCoverage(locale: Locale): NamespaceCoverage[] {
+  const english = flatten(getDictionary(DEFAULT_LOCALE));
+  const declared =
+    locale === DEFAULT_LOCALE
+      ? new Set(english.keys())
+      : suppliedKeys(getDictionary(locale));
+  /* A plural form the locale's own rules never select (Yoruba and Igbo have
+     no `one`) is unreachable there, so it is neither a gap nor a draft. */
+  const categories = new Set<string>(
+    new Intl.PluralRules(pluralTag[locale]).resolvedOptions().pluralCategories,
+  );
+  const rows = new Map<string, NamespaceCoverage>();
+  for (const key of english.keys()) {
+    const leaf = key.slice(key.lastIndexOf(".") + 1);
+    if (
+      PLURAL_FORMS.has(leaf) &&
+      !categories.has(leaf) &&
+      english.has(key.slice(0, key.lastIndexOf(".") + 1) + "other")
+    ) {
+      continue;
+    }
+    const namespace = key.split(".")[0];
+    let row = rows.get(namespace);
+    if (!row) {
+      row = { namespace, total: 0, missing: 0, draft: 0, unreviewed: 0, reviewed: 0 };
+      rows.set(namespace, row);
+    }
+    row.total += 1;
+    if (!declared.has(key)) {
+      row.missing += 1;
+      continue;
+    }
+    const state = reviewStateOf(locale, key);
+    if (state === "machine-draft") row.draft += 1;
+    else if (state === "native-reviewed") row.reviewed += 1;
+    else row.unreviewed += 1;
+  }
+  return [...rows.values()];
+}
+
+/** The per-namespace rows summed: one line per locale for a report. */
+export function coverageTotals(locale: Locale): Omit<NamespaceCoverage, "namespace"> {
+  return namespaceCoverage(locale).reduce(
+    (sum, row) => ({
+      total: sum.total + row.total,
+      missing: sum.missing + row.missing,
+      draft: sum.draft + row.draft,
+      unreviewed: sum.unreviewed + row.unreviewed,
+      reviewed: sum.reviewed + row.reviewed,
+    }),
+    { total: 0, missing: 0, draft: 0, unreviewed: 0, reviewed: 0 },
+  );
 }
