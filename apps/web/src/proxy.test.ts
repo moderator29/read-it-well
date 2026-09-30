@@ -310,6 +310,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/sanctions-lists",
   "/api/cron/sanctions-screen",
   "/api/cron/pg-cron-watch",
+  /* C8: the nightly duplicate-photo hash backfill, behind the cron bearer. */
+  "/api/cron/photo-hash-backfill",
   /* SCUML item 15: the daily risk classification, behind the cron bearer. */
   "/api/cron/risk-classes",
   /* Crypto payments read back from the provider, behind the cron bearer. */

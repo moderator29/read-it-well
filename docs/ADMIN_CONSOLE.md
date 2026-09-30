@@ -816,6 +816,8 @@ a fall is emerald. The line is alerts raised per day.
 | vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
 | vallo_purge_email_outbox | pg_cron `25 2 * * *` | daily 03:25 | | forgets emails the outbox has already delivered |
 | vallo_purge_web_vitals | pg_cron `35 2 * * *` | daily 03:35 | | deletes field speed figures older than 30 days (V-80) |
+| vallo_photo_hash_backfill | pg_cron `5 2 * * *` | daily 03:05 | | asks the app to hash listing photos uploaded before hashing existed, so the duplicate-photo signal works (C8) |
+| vallo_purge_job_runs | pg_cron `55 2 * * *` | daily 03:55 | | forgets counted scheduled runs older than 90 days (C7) |
 | vallo_purge_money_step_ups | pg_cron `45 2 * * *` | daily 03:45 | | forgets used money-lock challenges and proofs after a day (V-81) |
 | vallo_escrow_book_the_float | pg_cron `5 3 * * *` | daily 04:05 | | books the day's escrow float snapshot as a liability (`private.escrow_float_snapshot_take`) |
 | vallo_sweep_price_check_events | pg_cron `40 3 * * *` | daily 04:40 | | deletes price check events older than 24 months (the retention schedule, run) |
@@ -832,7 +834,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-17 Vercel Cron jobs and 31 pg_cron jobs in all. The numbers are derived,
+17 Vercel Cron jobs and 33 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by
