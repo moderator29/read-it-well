@@ -23,6 +23,7 @@ export function useLongPress(onLongPress: () => void, options: { disabled?: bool
   const holdTimer = useRef<number | null>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
   const fired = useRef(false);
+  const releaseSwallow = useRef<(() => void) | null>(null);
   const [holding, setHolding] = useState(false);
   const latest = useRef(onLongPress);
   useEffect(() => {
@@ -43,6 +44,18 @@ export function useLongPress(onLongPress: () => void, options: { disabled?: bool
   const fire = useCallback(() => {
     cancel();
     fired.current = true;
+    /* The click that ends the hold lands wherever the finger lifts, which is
+       now under the sheet this opened: swallow that one click, anywhere. */
+    const swallow = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    const release = () => document.removeEventListener("click", swallow, { capture: true });
+    document.addEventListener("click", swallow, { capture: true, once: true });
+    /* Let go of it shortly after the finger lifts (onPointerUp), or after a
+       few seconds if no lift ever reaches us. */
+    releaseSwallow.current = release;
+    window.setTimeout(release, 5000);
     feedback("select");
     latest.current();
   }, [cancel]);
@@ -72,6 +85,9 @@ export function useLongPress(onLongPress: () => void, options: { disabled?: bool
       /* Some phones send no click after a held press; forget it shortly so
          the next ordinary tap is not swallowed. */
       if (fired.current) window.setTimeout(() => (fired.current = false), 400);
+      const release = releaseSwallow.current;
+      releaseSwallow.current = null;
+      if (release) window.setTimeout(release, 350);
     },
     onPointerCancel: cancel,
     onPointerLeave: cancel,
