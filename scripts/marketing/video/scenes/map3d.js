@@ -565,7 +565,7 @@ function latheGeometry(profile, segments) {
   for (let r = 0; r < rows - 1; r += 1) {
     for (let s = 0; s < segments; s += 1) {
       const a = r * W + s, b = r * W + s + 1, c = (r + 1) * W + s + 1, d = (r + 1) * W + s;
-      idx.push(a, d, c, a, c, b);
+      idx.push(a, b, c, a, c, d);
     }
   }
   const g = new THREE.BufferGeometry();
@@ -828,7 +828,7 @@ const FRAG_RIPPLE = /* glsl */ `
     if (a < 0.002) discard;
     vec3 c = uColor * a;
     if (uGlowPass > 0.5) { gl_FragColor = vec4(c * 0.5, 0.0); return; }
-    gl_FragColor = vec4(toSRGB(c), 0.0);
+    gl_FragColor = vec4(c, 0.0);
   }
 `;
 
@@ -900,7 +900,6 @@ const FRAG_FINAL = /* glsl */ `
     // over the transparent background the glow keeps a little alpha of its own
     float g = max(c.r, max(c.g, c.b));
     float a = max(m.a, min(1.0, g * uHaloAlpha));
-    c = min(c, vec3(a / max(uHaloAlpha, 1e-3) + m.a));
     gl_FragColor = vec4(c, a);
   }
 `;
@@ -1138,6 +1137,9 @@ export async function createLiveMap(o) {
     glowMat.uniforms.uGlowPass = glowPass;
     glowMat.uniforms.uOnlyGlow.value = 1;
     glowMat.uniforms.uGlowGain.value = 1.3;
+    glowMat.transparent = true;
+    glowMat.depthWrite = false;
+    glowMat.blending = THREE.AdditiveBlending;
     const halo = new THREE.Mesh(new THREE.TubeGeometry(curve, segs, 0.1, 8, false), glowMat);
     halo.userData.glowOnly = true;
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 12), lightMat("#ffffff", 1.2, 1.6));
@@ -1163,6 +1165,13 @@ export async function createLiveMap(o) {
     const dur = Math.min(0.62, Math.max(0.3, 0.26 + 0.052 * length));
     return { city, from, to, length, curve, core, halo, head, headHalo, dot, dotHalo, ripple, launch, start, dur, land: start + dur };
   });
+
+  /* the sticker's landing: a soft ring around the home's spot */
+  const landRing = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), rippleMat("#8fd3ff"));
+  landRing.rotation.x = -Math.PI / 2;
+  landRing.position.set(lagos.x, topY + 0.005, lagos.z);
+  landRing.renderOrder = 3;
+  model.add(landRing);
 
   function lightMat(color, intensity, glowGain, { onlyGlow = false, shape = 0 } = {}) {
     return new THREE.ShaderMaterial({
@@ -1319,7 +1328,7 @@ export async function createLiveMap(o) {
     const TIP = 10;
     for (let k = 1; k <= TIP; k += 1) {
       const u = k / TIP;
-      prof.push({ r: Math.max(1e-4, tp.r * (1 - u)), y: mix(tp.y, -L, u), nr: -Math.cos(th), ny: -Math.sin(th) * 0 + Math.sin(th - Math.PI / 2), v: th + u });
+      prof.push({ r: Math.max(1e-4, tp.r * (1 - u)), y: mix(tp.y, -L, u), nr: Math.sin(th), ny: Math.cos(th), v: th + u });
     }
     const geo = latheGeometry(prof, 48);
     geo.scale(1, 1, 0.52); // a flattened pin: it faces the camera like the mark will
@@ -1555,7 +1564,6 @@ export async function createLiveMap(o) {
     slabMat.uniforms.uWarmCol.value.copy(lin("#ff8a3d")).multiplyScalar(0.05 * lit);
     slabMat.uniforms.uWarmR.value = 0.55;
 
-    /* the landing ripple of the sticker: reuse the first route's ripple before the routes */
     /* the routes */
     for (const r of routes) {
       const tr = t - r.start;
@@ -1579,7 +1587,7 @@ export async function createLiveMap(o) {
       const headOn = tr > 0 && t < r.land + 0.12;
       r.head.visible = r.headHalo.visible = headOn;
       if (headOn) {
-        const p = r.curve.getPoint(growU);
+        const p = r.curve.getPointAt(growU);
         const fade = 1 - prog(t, r.land, r.land + 0.12);
         r.head.position.copy(p);
         r.headHalo.position.copy(p);
@@ -1608,21 +1616,16 @@ export async function createLiveMap(o) {
         m.uAmt.value = 0.55 * (1 - lu);
       }
     }
-    // the sticker's landing: a soft ring around the home's spot (first route's ripple is idle)
-    const lr = routes[routes.length - 1].launch; // Ibadan's launch ring is idle until 2.64
+    // the sticker's landing: a soft ring around the home's spot
     const su = prog(t, T.land, T.land + 0.8);
-    if (su > 0 && su < 1 && t < routes[routes.length - 1].start - 0.1) {
-      lr.visible = true;
-      lr.position.set(lagos.x, topY + 0.005, lagos.z);
+    landRing.visible = su > 0 && su < 1;
+    if (landRing.visible) {
       const rad = mix(0.2, 1.1, EASE.land(su));
-      lr.scale.set(rad * 2 + 0.3, rad * 2 + 0.3, 1);
-      const m = lr.material.uniforms;
+      landRing.scale.set(rad * 2 + 0.3, rad * 2 + 0.3, 1);
+      const m = landRing.material.uniforms;
       m.uRadius.value = rad / (rad + 0.15);
       m.uWidth.value = 0.14;
       m.uAmt.value = 0.5 * (1 - su) * (1 - su);
-    } else {
-      const an = anchors.Ibadan;
-      lr.position.set(an.x, topY + 0.005, an.z);
     }
 
     /* the pin */
@@ -1835,7 +1838,7 @@ function radialTexture(size, stops) {
 function silhouetteShadow(outline, centre, R, keyDir) {
   const size = 256;
   const F = new Float32Array(size * size);
-  const toPx = (x, y) => [((x - (centre[0] - R)) / (2 * R)) * size, ((centre[1] + R - y) / (2 * R)) * size];
+  const toPx = (x, y) => [((x - (centre[0] - R)) / (2 * R)) * size, ((y - (centre[1] - R)) / (2 * R)) * size];
   const P = outline.map(([x, y]) => toPx(x - keyDir.x * 0.1, y + keyDir.z * 0.1));
   const xs = [];
   for (let j = 0; j < size; j += 1) {
