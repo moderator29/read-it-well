@@ -369,7 +369,7 @@ def s_impact_soft(rng):
     y = 0.9 * sub + 0.55 * chord + 0.55 * whomp + 0.4 * hit
     ir = reverb_ir(1.1, rng, predelay=0.018, damp=0.35)
     y = add_reverb(filt(y, "lowpass", 5000), ir, -11)
-    return y, "Deep, warm logo hit: sub drop + soft D-major body + short dark reverb (~1.5 s)", -19
+    return y, "Deep, warm logo hit: sub drop + soft D-major body + short dark reverb (~1.5 s)", -22.5
 
 
 def s_riser(rng, bpm: float = 104.0):
@@ -394,7 +394,7 @@ def s_riser(rng, bpm: float = 104.0):
     R = (0.55 * nzR + 0.5 * ton) * amp * pulse
     y = filt(np.stack([L, R], axis=1), "lowpass", 7000, order=4)
     return y, ("Build-up riser 2.5 s (noise + gliding D3-D4 tone, 16th pulses at 104 BPM), loudest at "
-               "the very end and cut off there - place its END on the downbeat (t_start = downbeat - 2.5)"), -21
+               "the very end and cut off there - place its END on the downbeat (t_start = downbeat - 2.5)"), -22.5
 
 
 def s_counter_tick(rng):
@@ -521,6 +521,7 @@ def qa_row(name: str, x: np.ndarray, desc: str, target: float) -> dict:
         "true_peak_dbtp": round(true_peak_db(x2, SR), 2),
         "loudness_peak_100ms_lufs": round(peak100, 1),
         "recommended_gain_db": round(target - peak100, 1),
+        "calibrated_peak_100ms_lufs": target,
         "description": desc,
         "qa": {
             "dc_offset": float(f"{float(np.abs(x2.mean(axis=0)).max()):.1e}"),
@@ -579,8 +580,11 @@ def main():
                       "file sits in a stereo mix (mono files centred). Targets assume the voice normalized to "
                       "-16 LUFS as mix.py does before its -14 LUFS master (its median 100 ms loudness is then "
                       "about -16): UI taps/clicks/ticks land 13-16 LU under the voice, pops and toggles ~12, "
-                      "swipes/slides/whooshes 9-11, chimes/dings ~9, the badge stamp ~8, the riser's end ~5 "
-                      "and the logo hit ~3 LU under. Film builds can override per event with gain_db."),
+                      "swipes/slides/whooshes 9-11, chimes/dings ~9, the badge stamp ~8, the logo hit and the "
+                      "riser's end 6.5. Nothing is calibrated above voice - 6.5 LU, so cues at offset_db 0 never "
+                      "meet mix.py's hard cap (no event louder than voice - 6 LU)."),
+        "voice_reference_lufs": -16.0,
+        "cap_below_voice_lu": 6.0,
         "files": rows,
     }
     if not a.only:
