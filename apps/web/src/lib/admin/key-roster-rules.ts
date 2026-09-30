@@ -7,11 +7,19 @@
  * path (docs/SUPPORT_STAFF.md, "A lost console key") needs a second super
  * admin to act, and there may not be one.
  */
-export type RosterKey = { label: string | null; createdAt: string; lastUsedAt: string | null };
+export type RosterKey = {
+  label: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+  /** Revoked for the console (C14 break-glass); it still serves the money lock and passcode. */
+  consoleRevoked?: boolean;
+};
 
 export type RosterWarning = "no-key" | "one-key" | "super-admin-needs-two";
 
-export function rosterWarning(kind: "super_admin" | "admin" | "staff", keys: readonly RosterKey[]): RosterWarning | null {
+export function rosterWarning(kind: "super_admin" | "admin" | "staff", all: readonly RosterKey[]): RosterWarning | null {
+  /* Only keys that can still open the console count. */
+  const keys = all.filter((k) => !k.consoleRevoked);
   if (keys.length === 0) return "no-key";
   if (kind === "super_admin" && keys.length < 2) return "super-admin-needs-two";
   if (keys.length === 1) return "one-key";

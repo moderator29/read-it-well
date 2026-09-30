@@ -1,3 +1,4 @@
+import { dateTimeLabel } from "@/lib/format/when";
 import type { Metadata } from "next";
 import { STAFF_SCOPE_LABEL, STAFF_SCOPES } from "@/lib/admin/guard";
 import { readStaffDesk, type StaffRow } from "@/lib/admin/staff-queries";
@@ -14,8 +15,8 @@ import { internalFlagsInstalled } from "@/lib/admin/internal-accounts";
 export const metadata: Metadata = { title: "Staff", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-const when = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString("en-NG", { timeZone: "Africa/Lagos", dateStyle: "medium", timeStyle: "short" }) : "not yet";
+/* The one way the console says when (lib/format/when.ts). */
+const when = (iso: string | null) => (iso ? dateTimeLabel(iso) : "not yet");
 
 /**
  * TRACK K: THE STAFF DESK. Only the founder's super admin account opens it,
@@ -140,6 +141,7 @@ export default async function StaffPage() {
                         {keys.map((k, i) => (
                           <li key={`${row.userId}-${i}`}>
                             {k.label ?? "Unnamed device"} · added {when(k.createdAt)} · last proved {when(k.lastUsedAt)}
+                            {k.consoleRevoked ? " · revoked for the console" : ""}
                           </li>
                         ))}
                       </ul>
@@ -149,14 +151,14 @@ export default async function StaffPage() {
                         {ROSTER_WARNING_TEXT[warning]}
                       </p>
                     ) : null}
-                    {keys.length > 0 ? <ClearKeysForm userId={row.userId} name={row.name} /> : null}
+                    {keys.some((k) => !k.consoleRevoked) ? <ClearKeysForm userId={row.userId} name={row.name} /> : null}
                   </li>
                 );
               })}
             </ul>
           )}
           <p className="nf-caption mt-row">
-            A lost phone: a second super admin confirms who it is, clears the keys here, and the person sets up a new
+            A lost phone: a second super admin confirms who it is, revokes the keys for the console here, and the person sets up a new
             key at their next visit. The written steps are &quot;A lost console key&quot; in the staff guide.
           </p>
         </Panel>

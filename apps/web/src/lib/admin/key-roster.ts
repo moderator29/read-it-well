@@ -21,14 +21,34 @@ export async function readKeyRoster(userIds: readonly string[]): Promise<Map<str
     const db = createAdminClient() as Loose;
     const { data, error } = await db
       .from("money_credentials")
-      .select("user_id, label, created_at, last_used_at")
+      .select("user_id, credential_id, label, created_at, last_used_at")
       .in("user_id", [...userIds])
       .order("created_at", { ascending: true });
     if (error) return null;
+    /* C14: which keys are revoked for the console. A failed read marks none. */
+    const revoked = new Set<string>();
+    try {
+      const r = await db.from("console_key_revocations").select("credential_id").in("user_id", [...userIds]);
+      for (const row of (r.data ?? []) as { credential_id: string }[]) revoked.add(row.credential_id);
+    } catch {
+      /* No marks. */
+    }
     const out = new Map<string, RosterKey[]>();
-    for (const row of (data ?? []) as { user_id: string; label: string | null; created_at: string; last_used_at: string | null }[]) {
+    for (const row of (data ?? []) as {
+      user_id: string;
+      credential_id: string;
+      label: string | null;
+      created_at: string;
+      last_used_at: string | null;
+    }[]) {
       const list = out.get(row.user_id) ?? [];
-      list.push({ label: row.label, createdAt: row.created_at, lastUsedAt: row.last_used_at });
+      /* The credential id is used for the mark only and never leaves here. */
+      list.push({
+        label: row.label,
+        createdAt: row.created_at,
+        lastUsedAt: row.last_used_at,
+        consoleRevoked: revoked.has(row.credential_id),
+      });
       out.set(row.user_id, list);
     }
     return out;

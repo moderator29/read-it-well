@@ -7,9 +7,10 @@ import { Switch } from "@/components/ui/Switch";
 import { clearConsoleKeys, markInternalByEmail, setInternalAccount } from "@/lib/admin/key-roster-actions";
 
 /**
- * C14 break-glass: a SECOND super admin clears a person's console keys after
- * confirming who they are (docs/SUPPORT_STAFF.md, "A lost console key"). The
- * person then sets up a new key at their next console visit. Audited.
+ * C14 break-glass: a SECOND super admin revokes a person's keys FOR THE
+ * CONSOLE after confirming who they are (docs/SUPPORT_STAFF.md, "A lost
+ * console key"). The keys keep serving the money lock and passcode; the
+ * console refuses them and offers the person a new key. Audited.
  */
 export function ClearKeysForm({ userId, name }: { userId: string; name: string }) {
   const [open, setOpen] = useState(false);
@@ -20,7 +21,7 @@ export function ClearKeysForm({ userId, name }: { userId: string; name: string }
   if (!open) {
     return (
       <Button type="button" variant="quiet" size="sm" onClick={() => setOpen(true)}>
-        Lost their key? Clear it
+        Lost their key? Revoke it for the console
       </Button>
     );
   }
@@ -35,7 +36,7 @@ export function ClearKeysForm({ userId, name }: { userId: string; name: string }
           else {
             setMessage({
               ok: true,
-              text: `${result.data.removed} ${result.data.removed === 1 ? "key" : "keys"} cleared. ${name} sets up a new key at their next console visit.`,
+              text: `${result.data.removed} ${result.data.removed === 1 ? "key" : "keys"} revoked for the console. ${name} sets up a new key at their next console visit.`,
             });
             router.refresh();
           }
@@ -43,7 +44,8 @@ export function ClearKeysForm({ userId, name }: { userId: string; name: string }
       }}
     >
       <p className="nf-caption">
-        Only after you have confirmed it is really {name}, on a call or in person. Their old keys stop working at once.
+        Only after you have confirmed it is really {name}, on a call or in person. Their current keys stop opening the
+        console at once; they still work for that person&apos;s own money lock and passcode.
       </p>
       <label className="grid gap-2xs nf-caption">
         <span>Reason (goes in the audit log)</span>
@@ -51,7 +53,7 @@ export function ClearKeysForm({ userId, name }: { userId: string; name: string }
       </label>
       <div className="flex flex-wrap gap-xs">
         <Button type="submit" variant="danger" size="sm" disabled={pending || reason.trim().length < 10}>
-          Clear their keys
+          Revoke for the console
         </Button>
         <Button type="button" variant="quiet" size="sm" onClick={() => setOpen(false)}>
           Cancel

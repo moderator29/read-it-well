@@ -16,9 +16,9 @@ import { isNotInstalled } from "./support-queue";
 
 const WORDS: Record<string, string> = {
   forbidden: "Only a super admin can do this.",
-  invalid_target: "Pick somebody other than yourself. A second super admin clears your keys.",
-  reason_required: "Say why, in at least ten characters. It goes in the audit log.",
-  not_staff: "That person is not on the staff, so they have no console key to clear.",
+  invalid_target: "Pick somebody other than yourself. A second super admin revokes your keys for the console.",
+  reason_required: "Say why, in 10 to 500 characters. It goes in the audit log.",
+  not_staff: "That person holds no console access, so there is no console key to revoke.",
   signed_out: SIGNED_OUT_MESSAGE,
 };
 
@@ -33,7 +33,11 @@ function statusOf(data: unknown): string {
   return String((data as Record<string, unknown> | null)?.status ?? "");
 }
 
-/** C14 break-glass: clear a person's console keys so they enrol a new one at their next visit. */
+/**
+ * C14 break-glass: revoke a person's keys FOR THE CONSOLE. The keys stay for
+ * their money lock and passcode unlock (migration 20260930085021 deletes no
+ * key); the console refuses them and offers to set up a new one.
+ */
 export async function clearConsoleKeys(input: { userId: string; reason: string }): Promise<ActionResult<{ removed: number }>> {
   const parsed = validate(
     z.object({ userId: z.string().uuid(), reason: z.string().trim().min(10, WORDS.reason_required!).max(500) }),
@@ -49,7 +53,7 @@ export async function clearConsoleKeys(input: { userId: string; reason: string }
   if (error) {
     return fail(
       isNotInstalled(error)
-        ? "Clearing keys is not switched on yet: its database change is waiting to be applied. Nothing changed."
+        ? "Revoking console keys is not switched on yet: its database change is waiting to be applied. Nothing changed."
         : "That did not go through. Nothing changed. Try again.",
     );
   }

@@ -184,11 +184,14 @@ phone cannot get back in by themselves. The way back:
    email is exactly what somebody holding the lost phone could send.
 2. **A second super admin confirms who it is** (a call on the number already on
    file, or face to face), then opens **Staff, Console keys**, finds the person,
-   chooses **Lost their key? Clear it** and writes why (at least ten
-   characters). A super admin cannot clear their own keys: that is the point of
-   needing a second one.
-3. Their old keys stop working at once and one audit row is written,
-   `staff.console_keys_cleared`, with the reason and how many keys went.
+   chooses **Lost their key? Revoke it for the console** and writes why (10 to
+   500 characters). A super admin cannot do this for themselves: that is the
+   point of needing a second one. Only people with console access can be
+   chosen.
+3. Their current keys stop opening the console at once and one audit row is
+   written, `staff.console_keys_revoked`, with the reason and the count. The
+   keys are NOT deleted: the same key is also that person's money lock and
+   passcode unlock, which keep working.
 4. **They sign in on the new phone.** The console asks them to set up a key.
    That is the one-time enrolment; nothing else is sent.
 5. If the phone may be in somebody else's hands, also **sign them out

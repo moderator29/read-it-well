@@ -10,6 +10,7 @@ describe("the console key roster (C14)", () => {
     expect(rosterWarning("staff", [key(), key()])).toBeNull();
     expect(rosterWarning("super_admin", [key()])).toBe("super-admin-needs-two");
     expect(rosterWarning("super_admin", [key(), key()])).toBeNull();
+    expect(rosterWarning("staff", [key(), { ...key(), consoleRevoked: true }])).toBe("one-key");
   });
   it("reads the newest proof across keys", () => {
     expect(lastProved([key("2026-09-28T10:00:00Z"), key("2026-09-29T10:00:00Z"), key(null)])).toBe("2026-09-29T10:00:00Z");
