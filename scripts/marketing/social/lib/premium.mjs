@@ -299,72 +299,137 @@ export function phone(screen, ground, place, extra = {}) {
   return { screen, model: "island", color: "black-titanium", rotation: { x: 0, y: 0, z: 0 }, fov: 20, shadow: SHADOW[ground], ...place, ...extra };
 }
 
-/* Empty bands of a capture: rows whose brightness spread (98th - 2nd
- * percentile, x 60 to 1260) stays under 24 levels, so no text, icon, control
- * or photograph crosses them. Capture px (the web view, no status bar). */
-const bandCache = new Map();
-export async function emptyBands(id, thr = 24) {
-  const key = `${id}:${thr}`;
-  if (bandCache.has(key)) return bandCache.get(key);
-  const { data, info } = await sharp(join(SOURCE, `${id}.webp`)).greyscale().raw().toBuffer({ resolveWithObject: true });
+/* ------------------------------------------------------------------ the clearance rule */
+
+/*
+ * Every phone's screen is checked against the frame's edges in the post's own
+ * pixels. The display is read for ink: a pixel is ink where it steps by more
+ * than 20 grey levels to its neighbour across or down (text, icons, controls,
+ * outlines; soft glows and gradients are not ink). Ink in a straight run of
+ * 40 px or more along a row is a horizontal line, along a column a vertical
+ * line (card outlines, hairlines, the tops of buttons); all other ink is
+ * treated as text. Each ink pixel is carried into the post through the
+ * phone's screen homography, and:
+ *   - text keeps 32 px or more from every frame edge, and no text is cut by
+ *     an edge (none within 8 px outside it);
+ *   - a line keeps 8 px or more from an edge it runs along;
+ *   - a photograph or an illustration may be cut: a post declares it with
+ *     `images: [[x0, y0, x1, y1, "what"]]` in display px, and ink inside it
+ *     is not counted.
+ */
+const inkCache = new Map();
+async function inkMap(file) {
+  if (inkCache.has(file)) return inkCache.get(file);
+  const { data, info } = await sharp(file).greyscale().raw().toBuffer({ resolveWithObject: true });
   const W = info.width;
-  const x0 = 60;
-  const x1 = Math.min(1260, W);
-  const n = x1 - x0;
-  const out = [];
-  let s = -1;
-  for (let y = 0; y <= info.height; y++) {
-    let empty = false;
-    if (y < info.height) {
-      const row = Array.from(data.subarray(y * W + x0, y * W + x1)).sort((a, b) => a - b);
-      empty = row[Math.floor(n * 0.98)] - row[Math.floor(n * 0.02)] < thr;
-    }
-    if (empty && s < 0) s = y;
-    if (!empty && s >= 0) {
-      out.push([s, y - 1]);
-      s = -1;
+  const H = info.height;
+  const edge = new Uint8Array(W * H);
+  for (let y = 0; y < H - 2; y++) {
+    for (let x = 0; x < W - 1; x++) {
+      const i = y * W + x;
+      const v = data[i];
+      if (Math.abs(data[i + 1] - v) > 20 || Math.abs(data[i + W] - v) > 20 || Math.abs(data[i + 2 * W] - v) > 20) edge[i] = 1;
     }
   }
-  bandCache.set(key, out);
-  return out;
+  const hline = new Uint8Array(W * H);
+  const vline = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) {
+    let s = -1;
+    for (let x = 0; x <= W; x++) {
+      const on = x < W && edge[y * W + x];
+      if (on && s < 0) s = x;
+      if (!on && s >= 0) {
+        if (x - s >= 40) for (let k = s; k < x; k++) hline[y * W + k] = 1;
+        s = -1;
+      }
+    }
+  }
+  for (let x = 0; x < W; x++) {
+    let s = -1;
+    for (let y = 0; y <= H; y++) {
+      const on = y < H && edge[y * W + x];
+      if (on && s < 0) s = y;
+      if (!on && s >= 0) {
+        if (y - s >= 40) for (let k = s; k < y; k++) vline[k * W + x] = 1;
+        s = -1;
+      }
+    }
+  }
+  const m = { W, H, edge, hline, vline };
+  inkCache.set(file, m);
+  return m;
 }
 
 /**
- * Check one rendered phone against the rule: its screen scale, and, for a
- * straight phone that runs off the frame, what the frame edge crosses.
- * Returns { scale, edge, notes }.
+ * The clearance of one phone's screen from the frame edges. Returns the
+ * nearest text (px, edge), the nearest line along an edge, and a list of
+ * breaches.
+ */
+export async function edgeClearance(spec, layer, { W, H }) {
+  const { screenFile } = await import("./phones.mjs");
+  const { homography } = await import("../../phone3d/studio.mjs");
+  const file = screenFile(spec.screen, spec.model);
+  const ink = await inkMap(file);
+  const { width: iw, height: ih, quad } = layer.image;
+  const M = homography([[0, 0], [iw, 0], [iw, ih], [0, ih]], quad);
+  const kx = iw / ink.W;
+  const ky = ih / ink.H;
+  const images = spec.images || [];
+  const inImage = (x, y) => images.some(([a, b, c, d]) => x >= a && x <= c && y >= b && y <= d);
+  let text = { d: Infinity };
+  let line = { d: Infinity };
+  const breaches = new Set();
+  for (let y = 0; y < ink.H; y += 2) {
+    for (let x = 0; x < ink.W; x += 2) {
+      const i = y * ink.W + x;
+      if (!ink.edge[i] || inImage(x, y)) continue;
+      const X = x * kx;
+      const Y = y * ky;
+      const dd = M[6] * X + M[7] * Y + M[8];
+      const px = (M[0] * X + M[1] * Y + M[2]) / dd;
+      const py = (M[3] * X + M[4] * Y + M[5]) / dd;
+      const e = { left: px, right: W - px, top: py, bottom: H - py };
+      if (ink.hline[i] || ink.vline[i]) {
+        const along = ink.hline[i] ? ["top", "bottom"] : ["left", "right"];
+        for (const k of along) {
+          if (e[k] > -2 && e[k] < line.d) line = { d: e[k], edge: k, at: [x, y] };
+          if (e[k] > -2 && e[k] < 8) breaches.add(`a line ${e[k].toFixed(0)} px from the ${k} edge (display ${x},${y})`);
+        }
+        continue;
+      }
+      const inside = px >= 0 && px <= W && py >= 0 && py <= H;
+      const nearest = Object.entries(e).sort((a, b) => a[1] - b[1])[0];
+      if (inside && nearest[1] < text.d) text = { d: nearest[1], edge: nearest[0], at: [x, y] };
+      if (inside && nearest[1] < 32) breaches.add(`text ${nearest[1].toFixed(0)} px from the ${nearest[0]} edge (display ~${Math.round(x / 20) * 20},${Math.round(y / 20) * 20})`);
+      if (!inside) {
+        const out = Object.entries(e).filter(([, v]) => v < 0).sort((a, b) => b[1] - a[1])[0];
+        if (out && out[1] > -8) breaches.add(`text cut by the ${out[0]} edge (display ~${Math.round(x / 20) * 20},${Math.round(y / 20) * 20})`);
+      }
+    }
+  }
+  return { text, line, breaches: [...breaches].slice(0, 6), count: breaches.size };
+}
+
+/**
+ * Check one rendered phone against the rules: its screen scale, the one bleed
+ * size (640 to 685 px across), and the clearance rule above.
  */
 export async function checkPhone(spec, layer, { W, H }) {
   const q = layer.image.quad;
-  const iw = layer.image.width;
-  const ih = layer.image.height;
-  const scale = Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) / iw;
+  const scale = Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) / layer.image.width;
   const notes = [];
-  if (spec.kind === "bleed" && scale < 0.45 && !spec.exempt) notes.push(`screen at ${scale.toFixed(3)}x, under 0.45x`);
-  if (spec.exempt) notes.push(`exempt: ${spec.exempt}`);
-  const r = spec.rotation || {};
-  const straight = !r.x && !r.y && !r.z;
-  let edge = null;
-  if (straight && q[3][1] > H + 0.5 && !spec.screen.includes("/")) {
-    const per = (q[3][1] - q[0][1]) / ih;
-    const yCap = (H - q[0][1]) / per - 186;
-    const bands = await emptyBands(spec.screen);
-    /* a post may declare the empty region its foot falls in, when a card's
-     * thin border runs through it: [from, to, what it holds] in capture px */
-    const declared = spec.edgeBand && yCap >= spec.edgeBand[0] && yCap <= spec.edgeBand[1] ? [spec.edgeBand[0], spec.edgeBand[1]] : null;
-    const b = declared || bands.find(([a, z]) => yCap >= a && yCap <= z);
-    if (declared) notes.push(`declared band: ${spec.edgeBand[2]}`);
-    edge = { yCap: Math.round(yCap) };
-    if (!b && spec.exemptBand) notes.push(`bottom edge crosses ${spec.exemptBand} (no text) at capture y ${Math.round(yCap)}`);
-    else if (!b) notes.push(`bottom edge crosses live UI at capture y ${Math.round(yCap)}`);
-    else {
-      const band = (b[1] - b[0] + 1) * per;
-      const above = (yCap - b[0]) * per;
-      const below = (b[1] - yCap) * per;
-      edge = { ...edge, band: [b[0], b[1]], bandPx: +band.toFixed(1), abovePx: +above.toFixed(1), belowPx: +below.toFixed(1) };
-      if (band < 24) notes.push(`edge band ${band.toFixed(1)} px, under 24`);
-    }
+  if (spec.kind === "bleed" && !spec.exempt) {
+    if (scale < 0.45) notes.push(`screen at ${scale.toFixed(3)}x, under 0.45x`);
+    if (layer.box.w < 639.5 || layer.box.w > 685.5) notes.push(`bleed ${Math.round(layer.box.w)} px across, outside 640 to 685`);
   }
-  if (straight && (q[0][0] < -0.5 || q[1][0] > W + 0.5)) notes.push("the screen runs off a side edge");
-  return { scale: +scale.toFixed(3), edge, notes };
+  if (spec.exempt) notes.push(`exempt: ${spec.exempt}`);
+  const c = await edgeClearance(spec, layer, { W, H });
+  if (c.count) notes.push(...c.breaches, ...(c.count > c.breaches.length ? [`and ${c.count - c.breaches.length} more`] : []));
+  return {
+    scale: +scale.toFixed(3),
+    text: Number.isFinite(c.text.d) ? `${c.text.d.toFixed(0)} px (${c.text.edge})` : "none near",
+    line: Number.isFinite(c.line.d) ? `${c.line.d.toFixed(0)} px (${c.line.edge})` : "none near",
+    ok: c.count === 0,
+    notes,
+  };
 }

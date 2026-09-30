@@ -97,7 +97,7 @@ for (const f of files) {
   for (const post of Array.isArray(mod) ? mod : [mod]) {
     if (only && !only.some((o) => post.id === o || post.file.startsWith(o))) continue;
     const { W, H } = post;
-    const specs = typeof post.phones === "function" ? post.phones() : post.phones || [];
+    const specs = typeof post.phones === "function" ? await post.phones() : post.phones || [];
     const phones = [];
     for (const s of specs) phones.push(await phoneLayer(s, { W, H, scale: 1, draft: true }));
     const html = await post.html({ W, H, phones, scale: 1, draft: true });

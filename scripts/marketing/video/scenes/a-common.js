@@ -63,33 +63,37 @@ export function timesPlus(ctx) {
   T.flies = [0, 1, 2, 3, 4].map((k) => T.all6 + k * 0.12);
   /* 04 -> 05: the device rises behind the closed iris, so the iris opens (8.19) onto it in place. */
   T.riseAt = T.widen - 0.45;
-  /* 06: the device drops away as the row opens; "One app." lands on "all", "One account." on the
-     second "one"; the Property | Stays tabs rise with it; all leave just before row 07. */
+  /* 06 (v3.2: every readable thing still for 1.2 s at least, and never two changing within 0.3 s):
+     the device drops away as the row opens; "One app." lands on "all", the Property | Stays tabs
+     rise under it once it is still, "One account." lands just before the second "one"; all three
+     leave together 0.46 s before row 07's question. */
   T.dropAt = T.rows[5];
   T.oneAppIn = T.all - 0.08;
-  T.oneAccIn = T.one2 - 0.08;
-  T.tabsUp = T.one2 - 0.14;
-  T.row6Out = T.rows[6] - 0.26;
-  /* 07: the question lands as one object by 15.30, rests to 15.90, and becomes the pill at 16.21; the
-     device rises only behind it, and Rent is pressed once it is at rest. */
-  T.qIn = T.looking - 0.02;
-  T.qRest = T.qIn + 0.3;
-  T.qShrink = T.qRest + 0.62;
+  T.tabsUp = T.oneAppIn + 0.62;
+  T.oneAccIn = T.one2 - 0.2;
+  T.row6Out = T.rows[6] - 0.56;
+  /* 07: the question lands as one object by 15.16, rests to 15.98, and becomes the pill at 16.21;
+     the device rises only behind it, and Rent is pressed once it is at rest. */
+  T.qIn = T.looking - 0.1;
+  T.qRest = T.qIn + 0.26;
+  T.qShrink = T.pill1 - 0.23;
   T.riseB = T.qShrink + 0.02;
-  T.rentPress = T.pill1 + 0.12;
+  T.rentPress = T.pill1 + (ctx.isMobile ? 0.2 : 0.34);
   T.toSearch = T.rentPress + 0.12;
-  /* 09: the push onto the Villas tile starts with the sheet; the count rolls just after the press;
-     then the pull back, with the Apply button lifting as the one body. */
+  /* 09: the push onto the Villas tile starts with the sheet. Mobile pulls back after the press, and
+     the count rolls on the phone's own Apply as it comes into view; desktop's echo is in view
+     throughout, so it rolls 0.32 s after the press. Both roll inside "exactly" (19.49-20.18). */
   T.villasPush = T.filterPress + 0.04;
-  T.countRoll = T.exactly + 0.12;
-  T.pullBack = T.exactly + 0.36;
+  T.pullBack = T.exactly + 0.12;
+  T.countRoll = T.exactly + (ctx.isMobile ? 0.47 : 0.32);
   /* 10: the cost section opens straight on "see" (its total is out of frame), then a slow drift. */
   T.open = T.need + 0.62;
-  /* 13: card 1 comes in under the receipt with "all", turns as the total lands on "right" (its answer
-     is readable from ~28.84) and leaves for the top right in the section's last 0.22 s. */
-  T.cardIn = T.all6 + 0.1;
-  T.cardTurn = T.right - 0.2;
-  T.cardOut = T.end - 0.22;
+  /* 13: card 1 comes in with its question as the receipt settles (it stays through the print, the
+     question the receipt answers), turns so its answer opens exactly as the total lands on "right",
+     and holds until it leaves for the top right in the section's last 0.2 s. */
+  T.cardIn = T.call + 1.12;
+  T.cardTurn = T.right - 0.3;
+  T.cardOut = T.end - 0.2;
   return T;
 }
 
@@ -513,9 +517,11 @@ export function registerSound(ctx, T) {
   /* 10 */ if (m) s("swipe", T.open, -2);
   /* 11 (v3.1: no whoosh inside a chapter; the receipt's flight has its slide) */ s("card_slide", T.call + 0.17, -2);
   /* 12 */ for (const t of T.lines) s("counter_tick", t, 0);
-  /* 13: each amount ticks as it lands in the total */
+  /* 13: card 1 slides in as the receipt settles; each amount ticks as it lands in the total; the
+     total lands on "right" (card 1's answer opens on the same frame, so the success cue carries both) */
+  s("card_slide", T.cardIn, -4);
   for (const t of T.flies) s("counter_tick", t + 0.46, -4);
-  s("success", T.right, 0); s("pop", T.cardTurn + 0.3, -4);
+  s("success", T.right, 0);
 
   /* Captions: off while the same words are big (02, 04, 06, 07). Each gap starts before its line's
      0.12 s fade-in, and each gap edge sits on a line's own edge, so no caption flashes or snaps. */

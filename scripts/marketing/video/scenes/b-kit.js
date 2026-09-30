@@ -101,17 +101,11 @@ export function mist(ctx, parent) {
   }, parent);
 }
 
-/** Warm light: mist washed with peach (#FFB27A at 25%). */
-export function warm(ctx, parent) {
-  return ctx.el("div", {
-    class: "fill",
-    style: {
-      background: `radial-gradient(80% 50% at 50% 62%, rgb(255 178 122 / 0.22) 0%, rgb(255 178 122 / 0) 72%),
-        linear-gradient(180deg, rgb(255 178 122 / 0.2) 0%, rgb(255 178 122 / 0.27) 100%),
-        linear-gradient(180deg, #ffffff 0%, #f6f9ff 38%, #f3f7ff 70%, #ecf2ff 100%)`,
-    },
-  }, parent);
-}
+/** The mist string (section c's ground, pixel for pixel). */
+export const MIST = `radial-gradient(70% 45% at 50% 42%, rgb(0 105 254 / 0.07) 0%, rgb(0 105 254 / 0) 70%),
+        linear-gradient(180deg, #ffffff 0%, #f6f9ff 38%, #f3f7ff 70%, #ecf2ff 100%)`;
+/** v3.2: rows 19 to 24 get at most a 14% warm light at the top of the frame, over the unchanged mist. */
+export const WARM_TOP = "radial-gradient(90% 38% at 50% 0%, rgb(255 178 122 / 0.14) 0%, rgb(255 178 122 / 0) 70%)";
 
 /** Night: the brand navy (matches section c's ground). */
 export function night(ctx, parent, { x = 50, y = 40, glow = 0.26 } = {}) {
@@ -492,44 +486,49 @@ export function camera(ctx, world) {
 /* ---------- the day card and the month calendar (both films) ---------- */
 
 /**
- * The day card: its pages turn (Thursday, Friday) to Saturday; on
- * "inspection" 11:00 AM stamps in with "Inspection set" and the Example
- * chip; then it shrinks into a blue calendar chip (for the dock). k scales
- * the whole card (1 = 470 x 440). Returns { wrap, tOut1, chipAt, chipSize }.
+ * The day card: two blank blue pages turn to Saturday (only Saturday
+ * 11:00 AM is in FACTS); on "inspection" 11:00 AM and "Inspection set" with
+ * the Example chip stamp in together; then it shrinks into a blue calendar
+ * chip (for the dock). layout "wide" (470 x 440 at k 1, the chip beside the
+ * words) or "narrow" (360 x 400 at k 1, the chip on its own line).
+ * Returns { wrap, tOut1, chipAt, chipSize }.
  */
-export function dayCard(ctx, parent, T, { X, Y, k = 1, chipAt, tIn, tOut0, tOut1 }) {
+export function dayCard(ctx, parent, T, { X, Y, k = 1, layout = "wide", chipAt, tIn, tOut0, tOut1 }) {
   const { tl } = ctx;
-  const W = 470 * k;
-  const H = 440 * k;
+  const narrow = layout === "narrow";
+  const W = (narrow ? 360 : 470) * k;
+  const H = (narrow ? 400 : 440) * k;
   const r = (v) => Math.round(v * k);
   const wrap = ctx.el("div", { class: "abs", style: { left: `${X}px`, top: `${Y}px`, width: `${W}px`, height: `${H}px`, perspective: `${r(1600)}px`, visibility: "hidden" } }, parent);
   const card = ctx.el("div", {
     class: "abs",
     style: { inset: "0px", borderRadius: `${r(36)}px`, background: "#fff", boxShadow: SHADOW.l, overflow: "hidden", transformStyle: "preserve-3d", border: "1px solid rgb(255 255 255 / 0.9)" },
   }, wrap);
-  const BAND = r(124);
-  const pages = ["Thursday", "Friday", "Saturday"].map((d, i) => {
+  const BAND = r(narrow ? 108 : 124);
+  const pages = [null, null, "Saturday"].map((d, i) => {
     const pg = ctx.el("div", { class: "abs", style: { inset: "0px", background: "#fff", transformOrigin: "50% 0%", backfaceVisibility: "hidden", zIndex: String(10 - i) } }, card);
     const band = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: "0px", height: `${BAND}px`, background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 55%, #0052d6)`, display: "flex", alignItems: "center", justifyContent: "center" } }, pg);
-    ctx.el("div", { text: d, style: { font: `700 ${r(52)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: "#fff", transform: `translateY(${r(3)}px)` } }, band);
-    for (let j = 0; j < 3; j += 1) box(ctx, pg, { x: r(48), y: BAND + r(80) + j * r(74), w: W - r(96), h: Math.max(1, r(2)), style: { background: "rgb(16 32 80 / 0.07)" } });
+    if (d) ctx.el("div", { text: d, style: { font: `700 ${r(narrow ? 46 : 52)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: "#fff", transform: `translateY(${r(3)}px)` } }, band);
+    for (let j = 0; j < 3; j += 1) box(ctx, pg, { x: r(44), y: BAND + r(76) + j * r(narrow ? 84 : 74), w: W - r(88), h: Math.max(1, r(2)), style: { background: "rgb(16 32 80 / 0.07)" } });
     return pg;
   });
   const sat = pages[2];
-  const time = ctx.el("div", { class: "abs", text: "11:00 AM", style: { left: "0px", right: "0px", top: `${BAND + r(58)}px`, textAlign: "center", font: `700 ${r(92)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.04em", color: NAVY, opacity: "0", background: "#fff" } }, sat);
-  const row = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: `${BAND + r(196)}px`, display: "flex", alignItems: "center", justifyContent: "center", gap: `${r(12)}px`, opacity: "0", background: "#fff", padding: `${r(10)}px 0` } }, sat);
+  const time = ctx.el("div", { class: "abs", text: "11:00 AM", style: { left: "0px", right: "0px", top: `${BAND + r(narrow ? 44 : 58)}px`, textAlign: "center", font: `700 ${r(narrow ? 76 : 92)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.04em", color: NAVY, opacity: "0", background: "#fff" } }, sat);
+  const rows = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: `${BAND + r(narrow ? 150 : 196)}px`, display: "flex", flexDirection: narrow ? "column" : "row", alignItems: "center", justifyContent: "center", gap: `${r(narrow ? 16 : 12)}px`, opacity: "0", background: "#fff", padding: `${r(10)}px 0` } }, sat);
+  const row = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: `${r(12)}px` } }, rows);
   const plate = ctx.el("span", { style: { width: `${r(42)}px`, height: `${r(42)}px`, borderRadius: `${r(13)}px`, display: "grid", placeItems: "center", background: "rgb(0 105 254 / 0.1)", color: ELECTRIC, flex: "none" } }, row);
   ctx.icon("check", { size: r(28), stroke: 3 }, plate);
-  ctx.el("span", { text: "Inspection set", style: { font: `600 ${r(34)}px/1 Inter, sans-serif`, letterSpacing: "-0.015em", color: NAVY } }, row);
-  exampleChip(ctx, row, { size: r(20) });
+  ctx.el("span", { text: "Inspection set", style: { font: `600 ${r(narrow ? 32 : 34)}px/1 Inter, sans-serif`, letterSpacing: "-0.015em", color: NAVY, whiteSpace: "nowrap" } }, row);
+  exampleChip(ctx, rows, { size: r(narrow ? 22 : 20) });
 
   tl.fromTo(wrap, { x: -W - 60, y: r(60), rotation: -14 }, { x: 0, y: 0, rotation: -2.5, duration: 0.42, ease: "land", immediateRender: false }, tIn);
   tl.fromTo(card, { rotationY: 36 }, { rotationY: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, tIn);
   [T.r17 + 0.02, T.r17 + 0.12].forEach((tf, i) => {
     tl.fromTo(pages[i], { rotationX: 0 }, { rotationX: 96, duration: 0.14, ease: "power2.in", immediateRender: false }, tf);
   });
-  tl.fromTo(time, { scale: 1.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.18, ease: "power4.out", immediateRender: false }, T.inspection);
-  tl.fromTo(row, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: "power3.out", immediateRender: false }, T.inspection + 0.12);
+  /* the time and "Inspection set" stamp in together, on "inspection" */
+  tl.fromTo(time, { scale: 1.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "power4.out", immediateRender: false }, T.inspection);
+  tl.fromTo(rows, { scale: 1.25, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "power4.out", immediateRender: false }, T.inspection);
 
   const chipSize = 100;
   tl.fromTo(wrap, { x: 0, y: 0, scale: 1, rotation: -2.5 }, { x: chipAt.x - (X + W / 2), y: chipAt.y - (Y + H / 2), scale: chipSize / H, rotation: 0, duration: tOut1 - tOut0, ease: "power3.inOut", immediateRender: false }, tOut0);
@@ -539,7 +538,7 @@ export function dayCard(ctx, parent, T, { X, Y, k = 1, chipAt, tIn, tOut0, tOut1
   ctx.icon("calendar-check", { size: 50, stroke: 2.2 }, faceIcon);
   tl.fromTo(face, { opacity: 0 }, { opacity: 1, duration: (tOut1 - tOut0) * 0.45, ease: "power1.inOut", immediateRender: false }, tOut0 + (tOut1 - tOut0) * 0.5);
   showDuring(ctx, wrap, [[tIn, tOut1 + 0.02]]);
-  return { wrap, tOut1, chipAt, chipSize: (chipSize / H) * W };
+  return { wrap, tOut1, chipAt, chipSize: (chipSize / H) * W, W, H };
 }
 
 /**
@@ -557,6 +556,7 @@ export function monthCalendar(ctx, parent, CAL, o) {
     const c = idx % 7;
     return { x: PAD + colW * (c + 0.5), y: o.row0 + o.rowH * (r + 0.5) };
   };
+  if (o.caption) ctx.el("div", { class: "abs", text: o.caption, style: { left: `${PAD}px`, right: `${PAD}px`, top: `${o.captionTop}px`, font: `600 ${o.captionSize}px/1 Inter, sans-serif`, letterSpacing: "-0.01em", color: INK2, whiteSpace: "nowrap" } }, parent);
   const head = ctx.el("div", { class: "abs", style: { left: `${PAD}px`, right: `${PAD}px`, top: `${o.headTop}px`, display: "flex", alignItems: "center", justifyContent: "space-between" } }, parent);
   ctx.el("div", { text: "October 2026", style: { font: `700 ${o.head}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: NAVY } }, head);
   const nav = ctx.el("div", { style: { display: "flex", gap: `${Math.round(o.head * 0.27)}px` } }, head);
@@ -593,4 +593,40 @@ export function monthCalendar(ctx, parent, CAL, o) {
       showDuring(ctx, band2, [[t19 + 0.16, until]]);
     },
   };
+}
+
+/**
+ * The chapter ring (v3.2): the circle draws itself; its few particles fly
+ * out beyond the circle only, so none lands on the words it circles.
+ */
+export function ringOut(ctx, parent, { cx, cy, r, t, dots = 8, seed = 7, stroke = 4, color = ELECTRIC, dur = 0.8 }) {
+  const { tl } = ctx;
+  const size = r * 2 + 220;
+  const wrap = ctx.el("div", { class: "abs", style: { left: `${cx - size / 2}px`, top: `${cy - size / 2}px`, width: `${size}px`, height: `${size}px`, pointerEvents: "none" } }, parent);
+  wrap.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="${color}" stroke-width="${stroke}" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
+  const circle = wrap.querySelector("circle");
+  ctx.gsap.set(circle, { attr: { "stroke-dashoffset": 1 } });
+  tl.fromTo(circle, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: dur, ease: "power2.inOut", immediateRender: false }, t);
+  const rand = ctx.random(seed);
+  for (let i = 0; i < dots; i += 1) {
+    const a = ((i + 0.2 + rand() * 0.6) / dots) * Math.PI * 2;
+    const d0 = r + 10;
+    const d1 = r + 26 + rand() * 46;
+    const dash = rand() < 0.4;
+    const sz = dash ? 4 : 6 + rand() * 6;
+    const piece = ctx.el("div", {
+      class: "abs",
+      style: {
+        left: `${size / 2 - (dash ? 12 : sz / 2)}px`, top: `${size / 2 - sz / 2}px`, width: dash ? "24px" : `${sz}px`, height: `${sz}px`,
+        borderRadius: dash ? "3px" : "50%", background: color, opacity: "0", transform: dash ? `rotate(${(a * 180) / Math.PI}deg)` : "none",
+      },
+    }, wrap);
+    const t0 = t + 0.12 + (i / dots) * 0.5;
+    const move = { x: Math.cos(a) * d0, y: Math.sin(a) * d0 };
+    ctx.gsap.set(piece, { ...move, opacity: 0 });
+    tl.fromTo(piece, { ...move, opacity: 0 }, { x: Math.cos(a) * d1, y: Math.sin(a) * d1, opacity: 0.9, duration: 0.5, ease: "power3.out", immediateRender: false }, t0);
+    tl.fromTo(piece, { opacity: 0.9 }, { opacity: 0, duration: 0.45, ease: "power1.in", immediateRender: false }, t0 + 0.6);
+    showDuring(ctx, piece, [[t0, t0 + 1.06]]);
+  }
+  return wrap;
 }

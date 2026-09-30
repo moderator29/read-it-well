@@ -1,18 +1,21 @@
 /**
- * Mobile rows 14 to 18: talking (30.58 to 40.96), storyboard v3.1.
- *   14  the villa card lands on the thread's Maitama card; the phone dims and
- *       "owner", "landlord", "agent" land in WORDS, each pushing the last out;
- *       the last shrinks into the pill ("Talk straight to the lister").
- *   15  the phone pushes in on the thread's lower half; the composer lifts off
- *       below its place; the member's real message types; send; the bubble
- *       flies up into its place with its tick.
- *   16  the share sheet rises; "Send in a Vallo chat" lifts in place and is
- *       pressed on "listings"; the Maitama villa (what the sheet shares) flies
- *       off; the sheet closes and the phone slides right.
- *   17  the day card swings in over the phone's left edge; its pages turn to
- *       Saturday; on "inspection" 11:00 AM stamps with "Inspection set".
- *   18  back to the inbox (PHONE_HERO); the day card docks as the unread dot;
- *       the menu opens the drawer at 40.6 and the phone pushes toward FLIP.
+ * Mobile rows 14 to 18: talking (30.58 to 40.96), storyboard v3.2.
+ * One phone size (h 1400, PHONE_HIGH); pushes go beyond it and come back.
+ *   14  the villa card lands on the thread's Maitama card as the phone rises;
+ *       the phone dims and "owner", "landlord", "agent" stack in WORDS under
+ *       the pill "Talk straight to the lister", which rolled in on the cut.
+ *   15  the words go; the phone pushes onto the thread's foot (the thread
+ *       above stays softly washed, so only the message area is live); the
+ *       composer lifts off its slot; the member's real message types; send
+ *       on "app"; the bubble flies into its place with its tick.
+ *   16  in the same push the share sheet rises: "Send in a Vallo chat" is
+ *       pressed on "chat"; the Maitama villa (what the sheet shares) flies
+ *       off; the sheet closes and the phone returns, to the right.
+ *   17  the day card swings in beside the thread ("…Saturday morning?"):
+ *       blank pages turn to Saturday; on "inspection" 11:00 AM and
+ *       "Inspection set" stamp in together; it holds to the row's end.
+ *   18  back to the inbox, the phone recentred; the card docks as the unread
+ *       dot; the menu opens the drawer; the phone pushes onto FLIP.
  */
 import { LAYOUT } from "./layout.js";
 import {
@@ -48,23 +51,44 @@ export async function talk(ctx, S, T) {
   const pL = S.pL;
   const thread = ctx.src.display("thread-light");
   const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
-  const HERO = { cx: L.PHONE_HERO.cx, cy: L.PHONE_HERO.cy, height: L.PHONE_HERO.height };
-  const PUSH = { cx: 540, cy: 505, height: 1180 };
-  /* flat (a turned screen costs about 2x to composite), far enough right that the day card clears the screen's text */
-  const RIGHT = { cx: 720, cy: 790, height: 960, ry: 0 };
-  const FLIPPOSE = { cx: 540, cy: 233, height: 1500 };
+  /* the push onto the thread's foot (1.5x): the composer sits just above the captions */
+  const PUSH15 = { cx: 510, cy: 210, height: 2100 };
+  /* the same phone, moved right so the day card has the left side (flat: a turned screen costs 2x) */
+  const RIGHT17 = { cx: 700, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
+  /* the push onto FLIP (1.5x): the pill falls in the drawer's gap under "AI Assistant" */
+  const FLIPPOSE = { cx: 540, cy: 42, height: 2100 };
+
+  /* ---------- the clock of the rows ---------- */
+  const tWordsOut = T.right + 0.22;          // 33.95: the three words go together; the push begins
+  const tLift = tWordsOut + 0.1;             // 34.05: the composer lifts
+  const tType0 = tWordsOut + 0.13;           // 34.08
+  const tType1 = T.app - 0.08;               // 34.46
+  const tPress = T.app - 0.04;               // 34.50: send
+  const tSend = T.app;                       // 34.54: the bubble leaves
+  const tLandBubble = T.app + 0.4;           // 34.94
+  const tSink = tLandBubble - 0.02;
+  const tPressRow = T.chat;                  // 36.15: "Send in a Vallo chat"
+  const tFly0 = T.chat + 0.08;               // 36.23
+  const tFly1 = T.chat + 0.55;               // 36.70
+  const tClose0 = T.chat + 0.11;             // 36.26: the sheet closes
+  const tClose1 = T.chat + 0.4;              // 36.55
+  const tSlide = T.chat + 0.25;              // 36.40: the phone returns, to the right
+  const tBack = T.r18 + 0.05;                // 38.70: back to the inbox
+  const tDock = ctx.beat(68.3);              // 39.40
+  const tMenu = T.place + 0.33;              // 40.45
+  const tDrawer = tMenu + 0.08;              // 40.53
+  const tFlipPush = tDrawer + 0.07;          // 40.60
 
   const over = ctx.scene("b-m-talk", T.r14, T.r19 + 0.1, { z: 20 });
-  const type = ctx.scene("b-m-talk-type", T.r14, T.r15 + 0.1, { z: 30 });
+  const type = ctx.scene("b-m-talk-type", T.r14, T.r15 + 0.6, { z: 30 });
 
   /* ---------- the phone ---------- */
   const pose = track(ctx, pL.pose, { ...A_OUT.phone });
-  pose.to(T.r14, 0.52, { ...HIGH, opacity: 1 }, "glide");                          // up to PHONE_HIGH as the card flies in
-  pose.to(T.owner - 0.2, 0.34, { height: 920, cy: 800 }, "power2.inOut");            // settles back, dimmed, for the words
-  pose.to(T.r15 - 0.3, 0.46, PUSH, "power2.inOut");                                  // pushes in on the thread's lower half
-  pose.to(T.chat + 0.3, 0.47, RIGHT, "glide");                                       // slides right for the day card
-  pose.to(T.r18 - 0.25, 0.56, { ...HERO, ry: 0 }, "power2.inOut");                   // PHONE_HERO, the inbox
-  pose.to(T.place + 0.08, 0.62, FLIPPOSE, "power2.inOut");                           // toward FLIP as the drawer opens
+  pose.to(T.r14, 0.52, { ...HIGH, opacity: 1 }, "glide");        // up to PHONE_HIGH as the card flies in
+  pose.to(tWordsOut, 0.46, PUSH15, "power2.inOut");                // the push onto the thread's foot
+  pose.to(tSlide, 0.47, RIGHT17, "glide");                        // back to h 1400, to the right
+  pose.to(tBack, 0.5, HIGH, "power2.inOut");                       // recentred with the inbox
+  pose.to(tFlipPush, 0.6, FLIPPOSE, "power2.inOut");               // the push onto FLIP
   S.pLpose = pose;
   S.FLIPPOSE = FLIPPOSE;
 
@@ -82,51 +106,62 @@ export async function talk(ctx, S, T) {
   box(ctx, drawer.el, { x: 52, y: 614, w: 440, h: 86, style: { background: "rgb(243 244 241)" } });
   const status = screenPage(ctx, pL, ctx.src.display("messages-lt"));
   status.img.style.clipPath = `inset(0px 0px ${DH - 186}px 0px)`;
-  showDuring(ctx, th.el, [[T.r14, T.r18 + 0.3]]);
-  showDuring(ctx, msgs.el, [[T.r18 - 0.25, T.r19 + 1.1]]);
-  showDuring(ctx, shareBg.el, [[T.r16, T.listings + 0.45]]);
-  showDuring(ctx, shareSheet.el, [[T.r16, T.listings + 0.45]]);
-  const tMenu = T.place + 0.33;
-  const tDrawer = tMenu + 0.08;
+  showDuring(ctx, th.el, [[T.r14, tBack + 0.45]]);
+  showDuring(ctx, msgs.el, [[tBack, T.r19 + 1.1]]);
+  showDuring(ctx, shareBg.el, [[T.share, tClose1 + 0.05]]);
+  showDuring(ctx, shareSheet.el, [[T.share, tClose1 + 0.05]]);
   showDuring(ctx, drawerDim.el, [[tDrawer, T.r19 + 1.1]]);
   showDuring(ctx, drawer.el, [[tDrawer, T.r19 + 1.1]]);
   showDuring(ctx, status.el, [[tDrawer, T.r19 + 1.1]]);
   S.drawerPage = drawer;
 
-  /* Row 14: a white wash dims the thread while the words land. */
-  const wash = box(ctx, th.el, { x: 0, y: 0, w: DW, h: DH, style: { background: "#ffffff", opacity: "0", zIndex: "60" } });
-  tl.fromTo(wash, { opacity: 0 }, { opacity: 0.8, duration: 0.3, ease: "power2.inOut", immediateRender: false }, T.owner - 0.2);
-  tl.fromTo(wash, { opacity: 0.8 }, { opacity: 0, duration: 0.4, ease: "power2.inOut", immediateRender: false }, T.r15 - 0.3);
-
-  /* The member's bubble is not sent yet: the thread's own bubble waits under a patch. */
-  const tLandBubble = T.app + 0.4;
-  /* (clear of the Maitama card's shadow just above the bubble) */
-  const bubblePatch = box(ctx, th.el, { x: BUBBLE.x - 16, y: BUBBLE.y - 3, w: BUBBLE.w + 32, h: BUBBLE.h + 13, style: { background: "#f3f4f1", opacity: "0" } });
-  /* It fades in over the cut's first 0.3 s: if section a's last frame still shows the sent bubble, it dissolves rather than popping; if not, nothing changes. */
-  tl.fromTo(bubblePatch, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false }, T.r14);
-  const tickPatch = box(ctx, th.el, { ...TICK, style: { background: "rgb(0 96 232)", borderRadius: "8px" } });
+  /* The member's bubble is not sent yet: covered from the cut (section a covers it from 29.39). */
+  const bubblePatch = box(ctx, th.el, { x: BUBBLE.x - 16, y: BUBBLE.y - 3, w: BUBBLE.w + 32, h: BUBBLE.h + 13, style: { background: "#f3f4f1" } });
   showDuring(ctx, bubblePatch, [[0, tLandBubble]]);
+  const tickPatch = box(ctx, th.el, { ...TICK, style: { background: "rgb(0 96 232)", borderRadius: "8px" } });
   showDuring(ctx, tickPatch, [[tLandBubble, T.r18]]);
   tl.fromTo(tickPatch, { scale: 1, opacity: 1 }, { scale: 0, opacity: 0, duration: 0.16, ease: "power2.in", immediateRender: false }, tLandBubble + 0.08);
+  /* the composer's own slot, empty while the composer is lifted (never the same UI twice) */
+  const slot = box(ctx, th.el, { x: 0, y: BAR.y, w: DW, h: BAR.h, style: { background: "#f3f4f1", zIndex: "5" } });
+  showDuring(ctx, slot, [[tLift, tSink + 0.26]]);
+
+  /* Row 14: a white wash dims the thread under the words (0.92); for row 15 it draws back to
+     the thread's foot, so only the message area is live and the pill sits on calm white. */
+  const wash = box(ctx, th.el, { x: 0, y: 0, w: DW, h: DH, style: { zIndex: "60", visibility: "hidden" } });
+  const washOn = [T.owner - 0.2, T.share + 0.45];
+  ctx.onFrame((t) => {
+    const on = t >= washOn[0] && t < washOn[1];
+    wash.style.visibility = on ? "inherit" : "hidden";
+    if (!on) return;
+    const a = 0.92 * ramp(ctx, t, T.owner - 0.2, T.owner + 0.1, "power2.inOut") * (1 - ramp(ctx, t, T.share + 0.2, T.share + 0.42, "power1.inOut"));
+    const k = ramp(ctx, t, tWordsOut, tWordsOut + 0.42, "power2.inOut");
+    const s1 = mix(DH + 40, 2352, k);
+    const s2 = mix(DH + 80, 2394, k);
+    wash.style.background = `linear-gradient(180deg, rgb(255 255 255) 0px, rgb(255 255 255) ${s1.toFixed(1)}px, rgb(255 255 255 / 0) ${s2.toFixed(1)}px)`;
+    wash.style.opacity = a.toFixed(3);
+  });
 
   /* Row 18: back to the inbox (the thread slides off right, the inbox comes in from the left). */
-  const tBack = T.r18 - 0.2;
   th.el.style.boxShadow = "-30px 0 60px -20px rgb(16 32 80 / 0.25)";
   tl.fromTo(th.el, { x: 0 }, { x: DW, duration: 0.42, ease: "power3.inOut", immediateRender: false }, tBack);
   ctx.gsap.set(msgs.el, { x: -DW * 0.3 });
   tl.fromTo(msgs.el, { x: -DW * 0.3 }, { x: 0, duration: 0.42, ease: "power3.inOut", immediateRender: false }, tBack);
 
   /* Row 16: the share sheet rises over the thread, then closes. */
-  const sheetY = (t) => kf(ctx, t, [[T.r16, DH - SHEET_TOP + 20], [T.r16 + 0.26, 0, "power3.out"], [T.listings + 0.11, 0], [T.listings + 0.4, DH - SHEET_TOP + 20, "power2.in"]]);
+  const sheetY = (t) => kf(ctx, t, [[T.share, DH - SHEET_TOP + 20], [T.share + 0.26, 0, "power3.out"], [tClose0, 0], [tClose1, DH - SHEET_TOP + 20, "power2.in"]]);
   ctx.onFrame((t) => {
-    if (t < T.r16 || t > T.listings + 0.45) return;
+    if (t < T.share || t > tClose1 + 0.06) return;
     shareSheet.el.style.transform = `translateY(${sheetY(t).toFixed(1)}px)`;
-    shareBg.el.style.opacity = String((ramp(ctx, t, T.r16, T.r16 + 0.18, "power1.out") * (1 - ramp(ctx, t, T.listings + 0.13, T.listings + 0.36, "power1.in"))).toFixed(3));
+    shareBg.el.style.opacity = String((ramp(ctx, t, T.share, T.share + 0.18, "power1.out") * (1 - ramp(ctx, t, tClose0, tClose0 + 0.24, "power1.in"))).toFixed(3));
   });
+  const flash = box(ctx, shareSheet.el, { ...SENDROW, style: { background: "rgb(0 105 254 / 0.1)", borderRadius: "40px", opacity: "0" } });
+  tl.fromTo(flash, { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "power1.out", immediateRender: false }, tPressRow);
+  tl.fromTo(flash, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.in", immediateRender: false }, tPressRow + 0.1);
 
   /* Row 18: the drawer slides in over a dimmed inbox. */
   ctx.gsap.set(drawer.el, { x: -DRAWER_W });
   tl.fromTo(drawer.el, { x: -DRAWER_W }, { x: 0, duration: 0.4, ease: "power3.out", immediateRender: false }, tDrawer);
+  ctx.gsap.set(drawerDim.el, { opacity: 0 });
   tl.fromTo(drawerDim.el, { opacity: 0 }, { opacity: 1, duration: 0.34, ease: "power1.out", immediateRender: false }, tDrawer);
 
   /* ==================== row 14 ==================== */
@@ -145,71 +180,45 @@ export async function talk(ctx, S, T) {
   });
   ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
 
-  /* "owner", "landlord", "agent" land in WORDS over the dimmed phone; each one's leading edge shoves the last out. */
-  const W = L.WORDS;
+  /* "owner", "landlord", "agent" stack in WORDS, left-aligned at x 120, each entering from the left on its word. */
+  const X0 = 120;
   const words = [
-    { text: "owner", blue: true, y: 712, t: T.owner, from: -1, rest: W.x + W.w / 2 - 24, rot: 1.5 },
-    { text: "landlord", blue: false, y: 792, t: T.landlord, from: 1, rest: W.x + W.w / 2 + 20, rot: -1.5 },
-    { text: "agent", blue: false, y: 748, t: T.agent, from: -1, rest: W.x + W.w / 2 - 12, rot: 1 },
+    { text: "owner", blue: true, y: 600, t: T.owner, k: 1.04 },
+    { text: "landlord", blue: false, y: 770, t: T.landlord, k: 1 },
+    { text: "agent", blue: false, y: 940, t: T.agent, k: 0.97 },
   ].map((w) => {
-    const el = ctx.el("div", { class: "abs", text: w.text, style: { left: "0px", top: "0px", font: "700 150px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: w.blue ? ELECTRIC : NAVY, whiteSpace: "nowrap", transformOrigin: "50% 50%", visibility: "hidden" } }, type);
+    const el = ctx.el("div", { class: "abs", text: w.text, style: { left: "0px", top: "0px", font: "700 150px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: w.blue ? ELECTRIC : NAVY, whiteSpace: "nowrap", transformOrigin: "0% 50%", visibility: "hidden" } }, type);
     return { ...w, el };
   });
-  const pillY = (L.PILL.top + L.PILL.bottom) / 2;
-  const tShrink = T.r15 - 0.3;
-  const GAP = 36;
   let wd = null;
   ctx.onFrame((t) => {
-    if (t < T.r14 || t > T.r15 + 0.1) {
+    if (t < T.r14 || t > tWordsOut + 0.3) {
       words.forEach((w) => (w.el.style.visibility = "hidden"));
       return;
     }
     if (!wd) {
-      /* one size for all three, the widest ("landlord") fitted to 820 px (the safe width, with air) */
-      const size = Math.min(160, (820 / measure("landlord", "700 100px Poppins")) * 100);
-      [1.04, 1, 0.97].forEach((k, i) => (words[i].el.style.fontSize = `${(size * k).toFixed(1)}px`));
+      /* one size for all three, "landlord" fitted to 800 px (x 120 to 920, inside the safe width) */
+      const size = Math.min(160, (800 / measure("landlord", "700 100px Poppins")) * 100);
+      words.forEach((w) => (w.el.style.fontSize = `${(size * w.k).toFixed(1)}px`));
       wd = words.map((w) => ({ w: w.el.offsetWidth, h: w.el.offsetHeight }));
     }
-    const xs = words.map((w, i) => {
-      const off = w.from < 0 ? -wd[i].w / 2 - 30 : ctx.W + wd[i].w / 2 + 30;
-      return kf(ctx, t, [[w.t - 0.18, off], [w.t + 0.4, w.rest, "land"]]);
-    });
-    const rots = words.map((w, i) => kf(ctx, t, [[w.t - 0.18, w.from * -7], [w.t + 0.4, w.rot, "land"]]));
-    /* the push: word i is held clear of word i+1's leading edge, then keeps sliding out */
-    for (let i = words.length - 2; i >= 0; i -= 1) {
-      const nx = xs[i + 1];
-      const dir = words[i + 1].from; /* +1: the next word comes from the right and pushes left */
-      const contact = nx - dir * ((wd[i].w + wd[i + 1].w) / 2 + GAP);
-      const drift = 900 * ramp(ctx, t, words[i + 1].t - 0.02, words[i + 1].t + 0.36, "power2.in");
-      if (t >= words[i + 1].t - 0.18) {
-        xs[i] = (dir > 0 ? Math.min(xs[i], contact) : Math.max(xs[i], contact)) - dir * drift;
-        rots[i] += -dir * 6 * ramp(ctx, t, words[i + 1].t - 0.1, words[i + 1].t + 0.2);
-      }
-    }
+    const out = ramp(ctx, t, tWordsOut, tWordsOut + 0.24, "power2.in");
     words.forEach((w, i) => {
-      let x = xs[i];
-      let y = w.y;
-      let s = 1;
-      let o = 1;
-      if (i === words.length - 1) {
-        const k = ramp(ctx, t, tShrink, tShrink + 0.3, "power3.inOut");
-        x = mix(x, 540, k);
-        y = mix(y, pillY, k);
-        s = mix(1, 0.3, k);
-        o = 1 - ramp(ctx, t, T.r15 - 0.04, T.r15 + 0.05, "power1.in");
-      }
-      const on = t >= w.t - 0.18 && Math.abs(x - 540) < 540 + wd[i].w / 2 + 40 && o > 0.001;
+      const on = t >= w.t - 0.14 && out < 0.999;
       w.el.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
-      w.el.style.transform = `translate(${(x - wd[i].w / 2).toFixed(2)}px, ${(y - wd[i].h / 2).toFixed(2)}px) rotate(${rots[i].toFixed(2)}deg) scale(${s.toFixed(4)})`;
-      w.el.style.opacity = o.toFixed(3);
+      const k = ramp(ctx, t, w.t - 0.14, w.t + 0.26, "land");
+      const x = mix(-wd[i].w - 40, X0, k);
+      const y = w.y - wd[i].h / 2 + 40 * out;
+      w.el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${((1 - k) * -5).toFixed(2)}deg)`;
+      w.el.style.opacity = (1 - out).toFixed(3);
     });
   });
   words.forEach((w) => ctx.sfx("pop_low", w.t, { offset: -4 }));
 
   /* ==================== row 15 ==================== */
 
-  /* The composer, re-drawn from the capture at display px; it lifts off to just below its place. */
+  /* The composer, re-drawn from the capture at display px; it lifts off its slot at the phone's own scale. */
   const comp = ctx.el("div", {
     class: "abs",
     style: { left: "0px", top: "0px", width: `${DW}px`, height: `${BAR.h}px`, transformOrigin: "0 0", background: "#f3f4f1", borderRadius: "54px", visibility: "hidden" },
@@ -226,23 +235,11 @@ export async function talk(ctx, S, T) {
   const send = ctx.el("div", { class: "abs", style: { left: "1140px", bottom: "25px", width: "132px", height: "131px", borderRadius: "34px", background: "#0042a2", display: "grid", placeItems: "center", color: "rgb(210 225 255 / 0.8)", boxShadow: "inset 0 0 0 3px rgb(90 140 230 / 0.35)" } }, comp);
   ctx.icon("arrow-up-right", { size: 58, stroke: 2.2 }, send);
 
-  const tLift = T.r15;
-  const tType0 = T.r15 + 0.05;
-  const tType1 = T.inside + 0.3;
-  const tSend = T.app;
-  const tSink = tLandBubble - 0.02;
   const GROW = 64;
-  const compH = (t) => BAR.h + GROW * ramp(ctx, t, tLift + 0.02, tLift + 0.14, "power2.out") * (1 - ramp(ctx, t, tSend + 0.1, tSend + 0.34, "power2.inOut"));
-  const SC = 880 / DW;
-  const BOTTOM = 1212;
-  const compTarget = (h) => rectQuad({ x: 60, y: BOTTOM - h * SC, w: DW * SC, h: h * SC });
-  const compQuad = (t, h) => {
-    const up = ramp(ctx, t, tLift, tLift + 0.34, "glide");
-    const down = ramp(ctx, t, tSink, tSink + 0.26, "power2.inOut");
-    const k = up * (1 - down);
-    const attached = displayQuad(pL, { x: BAR.x, y: BAR.y + BAR.h - h, w: DW, h });
-    return lerpQuad(attached, compTarget(h), k);
-  };
+  const LIFT = 46;
+  const compH = (t) => BAR.h + GROW * ramp(ctx, t, tType0 + 0.04, tType0 + 0.16, "power2.out") * (1 - ramp(ctx, t, tSend + 0.1, tSend + 0.34, "power2.inOut"));
+  const liftK = (t) => ramp(ctx, t, tLift, tLift + 0.3, "glide") * (1 - ramp(ctx, t, tSink, tSink + 0.26, "power2.inOut"));
+  const compQuad = (t, h, q) => shiftQuad(displayQuad(pL, { x: BAR.x, y: BAR.y + BAR.h - h, w: DW, h }, q), 0, -LIFT * liftK(t));
   let lastH = null;
   ctx.onFrame((t) => {
     const on = t >= tLift && t < tSink + 0.26;
@@ -255,16 +252,15 @@ export async function talk(ctx, S, T) {
       lastH = h;
     }
     placeQuad(comp, DW, h, compQuad(t, h));
-    comp.style.boxShadow = t < tLift + 0.1 || t > tSink + 0.16 ? "none" : SHADOW.l;
+    comp.style.boxShadow = liftK(t) > 0.2 ? SHADOW.l : "none";
     const n = t < tType0 ? 0 : t >= tSend ? (t < tSend + 0.02 ? MESSAGE.length : 0) : Math.round(MESSAGE.length * ramp(ctx, t, tType0, tType1, "power1.inOut"));
     typedText.textContent = MESSAGE.slice(0, n);
     ph.style.opacity = t < tType0 || t >= tSend + 0.34 ? "1" : "0";
-    caret.style.visibility = t >= tLift + 0.05 && t < tSend && (t < tType1 || Math.floor((t - tType1) * 4) % 2 === 0) ? "inherit" : "hidden";
+    caret.style.visibility = t >= tType0 && t < tSend && (t < tType1 || Math.floor((t - tType1) * 4) % 2 === 0) ? "inherit" : "hidden";
   });
-  for (let k = 0; k < 8; k += 1) ctx.sfx(`type_key_${(k % 6) + 1}`, tType0 + ((tType1 - tType0) * k) / 7.4, { offset: -6 });
-
-  tl.fromTo(send, { scale: 1 }, { scale: 0.9, duration: 0.08, ease: "power2.out", immediateRender: false }, T.the7 - 0.02);
-  tl.fromTo(send, { scale: 0.9 }, { scale: 1, duration: 0.3, ease: "back.out(2.2)", immediateRender: false }, T.the7 + 0.07);
+  for (let k = 0; k < 8; k += 1) ctx.sfx(`type_key_${(k % 6) + 1}`, tType0 + ((tType1 - tType0) * k) / 7, { offset: -6 });
+  tl.fromTo(send, { scale: 1 }, { scale: 0.9, duration: 0.08, ease: "power2.out", immediateRender: false }, tPress - 0.02);
+  tl.fromTo(send, { scale: 0.9 }, { scale: 1, duration: 0.3, ease: "back.out(2.2)", immediateRender: false }, tPress + 0.07);
 
   /* The bubble leaves the field and flies up into its place in the thread. */
   const bubble = cropBody(ctx, over, { src: thread, crop: BUBBLE, iw: DW, shadow: SHADOW.m });
@@ -287,59 +283,34 @@ export async function talk(ctx, S, T) {
 
   /* ==================== row 16 ==================== */
 
-  /* "Send in a Vallo chat" lifts in place off the sheet and is pressed on "listings". */
-  const shareSrc = ctx.src.display("listing-share-lt");
-  const sendRow = cropBody(ctx, over, { src: shareSrc, crop: SENDROW, iw: DW, radius: 34, bg: "#fff" });
-  const flash = ctx.el("div", { class: "fill", style: { background: "rgb(0 105 254 / 0.12)", opacity: "0" } }, sendRow);
-  const tRowLift = T.r16 + 0.17;
-  quadDriver(ctx, sendRow, SENDROW.w, SENDROW.h, {
-    t0: tRowLift, t1: T.listings + 0.36,
-    quadAt: (t) => {
-      const q = displayQuad(pL, { ...SENDROW, y: SENDROW.y + sheetY(t) });
-      const k = ramp(ctx, t, tRowLift, tRowLift + 0.14, "power3.out") * (1 - ramp(ctx, t, T.listings + 0.1, T.listings + 0.3, "power2.in"));
-      const dip = 0.035 * Math.sin(Math.PI * ramp(ctx, t, T.listings - 0.04, T.listings + 0.2, "power1.inOut"));
-      const s = 1 + 0.06 * k - dip;
-      const c0 = { x: (q[0].x + q[2].x) / 2, y: (q[0].y + q[2].y) / 2 };
-      const c = { x: c0.x, y: c0.y - 12 * k };
-      return q.map((p) => ({ x: c.x + (p.x - c0.x) * s, y: c.y + (p.y - c0.y) * s }));
-    },
-  });
-  ctx.onFrame((t) => {
-    if (t < tRowLift || t > T.listings + 0.36) return;
-    sendRow.style.boxShadow = ramp(ctx, t, tRowLift, tRowLift + 0.1) * (1 - ramp(ctx, t, T.listings + 0.1, T.listings + 0.25)) > 0.5 ? SHADOW.m : "none";
-  });
-  tl.fromTo(flash, { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "power1.out", immediateRender: false }, T.listings);
-  tl.fromTo(flash, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.in", immediateRender: false }, T.listings + 0.08);
-
   /* The Maitama villa (the card the sheet shares) comes off the press and flies away: sent. */
-  const tFly0 = T.listings + 0.08;
-  const tFly1 = T.chat - 0.02;
+  const pushQ = quadAtPose(pL, PUSH15);
+  const rowAt = mapQuad(pushQ, 1000 / DW, (SENDROW.y + 124) / DH);
   const flyer = cropBody(ctx, over, { src: thread, crop: MAITAMA, iw: DW, radius: 40, shadow: SHADOW.l });
   quadDriver(ctx, flyer, MAITAMA.w, MAITAMA.h, {
     t0: tFly0, t1: tFly1,
     quadAt: (t) => {
       const k = ramp(ctx, t, tFly0, tFly1, "power2.in");
-      const up = ramp(ctx, t, tFly0, tFly0 + 0.3, "power3.out");
+      const up = ramp(ctx, t, tFly0, tFly0 + 0.28, "power3.out");
       const w = mix(170, 440, up);
-      const x = mix(540, 1260, k) - w / 2;
-      const y = mix(mix(919, 760, up), -260, k) - (w * 0.72) / 2;
+      const x = mix(rowAt.x - 90, 1300, k) - w / 2;
+      const y = mix(mix(rowAt.y, rowAt.y - 170, up), -300, k) - (w * 0.72) / 2;
       return rectQuad({ x, y, w, h: w * (MAITAMA.h / MAITAMA.w), rot: mix(-4, 12, k) });
     },
     opacityAt: (t) => ramp(ctx, t, tFly0, tFly0 + 0.06),
   });
-  ctx.sfx("card_slide", ctx.beat(61.7), { offset: -2 }); // 35.60
-  ctx.sfx("bubble_send", ctx.beat(62.6), { offset: -2 }); // 36.12
+  ctx.sfx("card_slide", tFly0, { offset: -2 });
 
   /* ==================== row 17 ==================== */
-  /* 432 px wide from x 50: it overlaps the phone's bezel, never the screen's text (which starts near x 521) */
-  const day = dayCard(ctx, over, T, { X: 50, Y: 500, k: 0.92, chipAt: { x: 255, y: 870 }, tIn: T.r17 - 0.1, tOut0: T.keep - 0.1, tOut1: T.r18 - 0.02 });
+  /* Narrow, at x 44-393: beside the thread, clear of its text (which starts at x 405 with the phone at cx 700). */
+  const DAY = { X: 44, Y: 690, k: 0.97 };
+  const day = dayCard(ctx, over, T, { X: DAY.X, Y: DAY.Y, k: DAY.k, layout: "narrow", chipAt: { x: DAY.X + (360 * DAY.k) / 2, y: DAY.Y + (400 * DAY.k) / 2 }, tIn: T.r17 - 0.1, tOut0: T.r18, tOut1: T.r18 + 0.42 });
   ctx.sfx("card_slide", ctx.beat(64.05), { offset: -2 }); // 36.95
   ctx.sfx("stamp", T.inspection);
 
   /* ==================== row 18 ==================== */
 
   /* The day card docks into the inbox row as its unread dot. */
-  const tDock = ctx.beat(67.95); // 39.20
   const dot = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "100px", height: "100px", borderRadius: "30px", background: `linear-gradient(160deg, #3d8bff, ${ELECTRIC} 60%, #0050d0)`, display: "grid", placeItems: "center", color: "#fff", transformOrigin: "0 0", visibility: "hidden", boxShadow: SHADOW.s } }, over);
   const dotIcon = ctx.el("div", { style: { display: "grid", placeItems: "center" } }, dot);
   ctx.icon("calendar-check", { size: 50, stroke: 2.2 }, dotIcon);
@@ -358,37 +329,36 @@ export async function talk(ctx, S, T) {
   });
   ctx.onFrame((t) => {
     if (t < tChip0 - 0.02 || t > tDock + 0.05) return;
-    const k = ramp(ctx, t, tChip0 + 0.1, tDock - 0.05, "power2.in");
+    const k = ramp(ctx, t, tChip0 + 0.05, tDock - 0.05, "power2.in");
     dot.style.borderRadius = `${mix(30, 50, k).toFixed(1)}px`;
-    dotIcon.style.opacity = String((1 - ramp(ctx, t, tChip0 + 0.1, tChip0 + 0.35)).toFixed(3));
+    dotIcon.style.opacity = String((1 - ramp(ctx, t, tChip0 + 0.05, tChip0 + 0.25)).toFixed(3));
   });
-  /* (no ring at the dot: v3.1 keeps rings to rows 04, 19 and 23) */
   ctx.sfx("pop", tDock, { offset: -2 });
 
-  /* ==================== the pointer ==================== */
-  const orbT = track(ctx, S.orb, { x: 1180, y: 1100, opacity: 0 });
+  /* ==================== the pointer (kept inside x 940, the platforms' safe width) ==================== */
+  const orbT = track(ctx, S.orb, { x: 900, y: 1300, opacity: 0 });
   S.orbT = orbT;
-  const sendAt = { x: 60 + 1206 * SC, y: BOTTOM - 90.5 * SC };
-  orbT.to(T.right + 0.1, 0.12, { opacity: 1 }, "power1.out");
-  orbT.to(T.right + 0.1, 0.46, { x: sendAt.x, y: sendAt.y }, "glide");
-  pressAt(ctx, S.orb, T.the7, { ringParent: S.pointer, x: sendAt.x, y: sendAt.y, sound: "tap" });
-  orbT.to(T.app + 0.08, 0.42, { x: 1000, y: 1060 }, "glide");
-  /* the row's chevron at the pushed pose */
-  const rowQ = displayQuad(pL, { x: 1180, y: 2440, w: 40, h: 40 }, quadAtPose(pL, PUSH));
-  const rowAt = { x: rowQ[0].x, y: rowQ[0].y + 10 };
-  orbT.to(T.r16 + 0.04, 0.3, { x: rowAt.x, y: rowAt.y }, "glide");
-  pressAt(ctx, S.orb, T.listings, { ringParent: S.pointer, x: rowAt.x, y: rowAt.y, sound: "tap" });
-  orbT.to(T.listings + 0.12, 0.4, { x: 1040, y: 1000 }, "glide");
-  orbT.to(T.listings + 0.3, 0.22, { opacity: 0 }, "power1.in");
+  const hPress = BAR.h + GROW;
+  const sendAt = mapQuad(shiftQuad(displayQuad(pL, { x: 0, y: BAR.y + BAR.h - hPress, w: DW, h: hPress }, pushQ), 0, -LIFT), 1206 / DW, (hPress - 90.5) / hPress);
+  orbT.to(tWordsOut + 0.08, 0.14, { opacity: 1 }, "power1.out");
+  orbT.to(tWordsOut + 0.08, 0.36, { x: sendAt.x + 4, y: sendAt.y + 30 }, "glide");
+  orbT.to(tPress - 0.1, 0.08, { x: sendAt.x, y: sendAt.y }, "power2.out");
+  pressAt(ctx, S.orb, tPress, { ringParent: S.pointer, x: sendAt.x, y: sendAt.y, sound: "tap" });
+  orbT.to(tPress + 0.1, 0.4, { x: sendAt.x - 40, y: sendAt.y + 70 }, "glide");
+  /* to the share sheet's row, there by 35.80, pressed on "chat" */
+  orbT.to(T.share + 0.12, 0.43, { x: rowAt.x + 10, y: rowAt.y + 8 }, "glide");
+  orbT.to(tPressRow - 0.1, 0.08, { x: rowAt.x, y: rowAt.y }, "power2.out");
+  pressAt(ctx, S.orb, tPressRow, { ringParent: S.pointer, x: rowAt.x, y: rowAt.y, sound: "tap" });
+  orbT.to(tPressRow + 0.1, 0.36, { x: 900, y: 1180, opacity: 0 }, "power2.in");
   /* Row 18: the menu, which opens the drawer. */
-  const menuQ = displayQuad(pL, { x: MENU.x, y: MENU.y, w: 1, h: 1 }, quadAtPose(pL, HERO));
-  const menuAt = { x: menuQ[0].x + 18, y: menuQ[0].y + 16 };
-  orbT.to(tMenu - 0.42, 0.14, { opacity: 1 }, "power1.out");
-  orbT.to(tMenu - 0.42, 0.38, { x: menuAt.x, y: menuAt.y }, "glide");
+  const menuQ = displayQuad(pL, { x: MENU.x, y: MENU.y, w: 1, h: 1 }, quadAtPose(pL, HIGH));
+  const menuAt = { x: menuQ[0].x + 14, y: menuQ[0].y + 12 };
+  orbT.to(tMenu - 0.44, 0.14, { opacity: 1 }, "power1.out");
+  orbT.to(tMenu - 0.44, 0.38, { x: menuAt.x, y: menuAt.y }, "glide");
   pressAt(ctx, S.orb, tMenu, { sound: null });
   ripple(ctx, msgs.el, { x: MENU.x, y: MENU.y, t: tMenu, size: 200, sound: "tap_soft", offset: -6 });
   /* then on to FLIP, where row 19 presses it */
   const flipQ = displayQuad(pL, { x: FLIP.x, y: FLIP.y, w: 1, h: 1 }, quadAtPose(pL, FLIPPOSE));
   S.flipAt = { x: flipQ[0].x, y: flipQ[0].y };
-  orbT.to(tMenu + 0.12, 0.8, { x: S.flipAt.x + 16, y: S.flipAt.y + 12 }, "glide");
+  orbT.to(tFlipPush + 0.1, 0.62, { x: S.flipAt.x + 12, y: S.flipAt.y + 10 }, "glide");
 }

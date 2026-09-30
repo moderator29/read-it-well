@@ -1,13 +1,15 @@
 /**
  * Mobile rows 11-13 (23.08-30.58): Signature 1. On "call" the cost section
  * lifts off the glass toward the camera and becomes a receipt with six empty
- * slots, while the phone fades away (nothing ghosts under the receipt); the
- * lines print as they are named; the amounts arc into the total, which rolls
- * and lands on ₦26,100,000 on "right"; card 1, under the receipt, turns to its
- * answer as the total lands and leaves for the top right at the very end; the
- * receipt folds into the Maitama villa card in one scaling move, at rest on
- * section b's A_OUT rect at 30.577 (scenes/handoffs.md, "A -> B"), with the
- * phone back under it at 30%.
+ * slots, while the phone fades away (nothing ghosts under the receipt, and the
+ * section is gone from the screen as it lifts: v3.2, no UI shown twice); card
+ * 1 comes in under the receipt with its question as it settles; the lines
+ * print as they are named; the amounts arc into the total, which rolls and
+ * lands on ₦26,100,000 on "right", as card 1 opens on its answer; card 1
+ * leaves for the top right at the very end; the receipt folds into the
+ * Maitama villa card in one scaling move, at rest on section b's A_OUT rect at
+ * 30.577 (scenes/handoffs.md, "A -> B"), with the phone (v3.2's one size)
+ * back under it at 30%.
  */
 import { QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
@@ -19,7 +21,8 @@ const H = 1920;
 
 /* The hand-off to section b: b-m-talk.js A_OUT, recorded in handoffs.md. */
 export const A_OUT = {
-  phone: { cx: 540, cy: 1500, height: 1180, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 },
+  /* v3.2: the film's one phone size (h 1400); b-m-talk.js A_OUT.phone must match */
+  phone: { cx: 540, cy: 1500, height: 1400, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 },
   villa: { x: 160, y: 498, w: 760, h: 548 },
   crop: { x: 52, y: 1602, w: 1088, h: 784 }, // thread-light display px: the Maitama card
 };
@@ -30,7 +33,7 @@ export const RECEIPT_M = { x: 150, y: 390, w: 780, h: 820 };
 
 export async function buildReceiptMobile(ctx, T, product) {
   const { tl } = ctx;
-  const { P, p } = product;
+  const { P, p, listing } = product;
   const R = RECEIPT_M;
   const END = T.end;
   const ir = { immediateRender: false };
@@ -40,6 +43,13 @@ export async function buildReceiptMobile(ctx, T, product) {
   tl.fromTo(P, { cx: PUSH_REST.cx, cy: PUSH_REST.cy, height: PUSH_REST.height, rx: 0, ry: 0, rz: 0 }, { cx: A_OUT.phone.cx, cy: A_OUT.phone.cy, height: A_OUT.phone.height, rx: 0, ry: 0, rz: 0, duration: 1.05, ease: "power3.inOut", ...ir }, T.call + 0.05);
   tl.fromTo(P, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.out", ...ir }, T.call - 0.06);
   tl.fromTo(P, { opacity: 0 }, { opacity: A_OUT.phone.opacity, duration: 0.35, ease: "power1.inOut", ...ir }, END - 0.37);
+  /* v3.2: no UI shown twice. The cost section leaves the screen as it lifts (the lifted skin covers
+     this patch on its first frame), so the fading phone never shows it under the receipt. */
+  const gone = ctx.el("div", { class: "abs", style: { left: "0px", top: "440px", width: "1320px", height: "2080px", background: "#f3f4f1", visibility: "hidden", zIndex: "30" } }, listing.el);
+  ctx.onFrame((t) => {
+    const on = t >= T.call;
+    if ((gone.style.visibility !== "hidden") !== on) gone.style.visibility = on ? "inherit" : "hidden";
+  });
   /* the thread comes up on the phone while it is invisible */
   const thread = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: "2868px", overflow: "hidden", visibility: "hidden", zIndex: "45" } }, p.screen);
   ctx.img(ctx.src.display("thread-light"), { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: "2868px" } }, thread);
@@ -195,19 +205,21 @@ export async function buildReceiptMobile(ctx, T, product) {
      transform and the surface's radius and opacity, belongs to the hook above, for every frame) */
   tl.fromTo(skinWrap, { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power1.inOut" }, lift.t0 + 0.12);
 
-  /* ---------- card 1 (row 13): under the receipt, clear of its lines and of the captions ---------- */
+  /* ---------- card 1 (rows 12-13): under the receipt, clear of its lines and of the captions ---------- */
   const cardScene = ctx.scene("a-card1", T.cardIn, END, { z: 10 });
   const box = { x: 230, y: 1380, w: 620, h: 170 };
   const card = questionCard(ctx, cardScene, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box, fontSize: 40 });
   Object.assign(card.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
   Object.assign(card.back.style, { justifyContent: "center", textAlign: "center", fontSize: "33px", lineHeight: "1.22", textWrap: "balance" });
   freshLayers(ctx, [card.root], { from: T.cardIn, to: END });
-  /* in from the right edge (wholly off frame at its first frame) as "all added up" begins */
+  /* In from the right edge (wholly off frame at its first frame) as the receipt settles: its question
+     stays still through the print (v3.2: 1.25 s at least), the question the receipt answers. */
   tl.fromTo(card.root, { x: 900, rotation: 14 }, { x: 0, rotation: -2, duration: 0.5, ease: "back.out(1.2)" }, T.cardIn);
   tl.fromTo(card.root, { y: 60 }, { y: 0, duration: 0.5, ease: "power3.out" }, T.cardIn);
-  /* it turns as the total lands on "right": the answer is readable from about 28.84 */
+  /* It turns so its answer opens exactly as the total lands on "right" (28.87): the answer's figure is
+     never readable before the receipt's. */
   card.turn(T.cardTurn, { sound: null });
-  /* and leaves for the top right in the section's last 0.22 s: right first, then up (never over the
+  /* It leaves for the top right in the section's last 0.2 s: right first, then up (never over the
      folding card), to section c's start: centre (1300, -105), 24 deg, 0.9, answer side up */
   const cx0 = box.x + box.w / 2;
   const cy0 = box.y + box.h / 2;

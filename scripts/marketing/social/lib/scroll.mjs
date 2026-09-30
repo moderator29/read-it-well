@@ -12,8 +12,9 @@
  *       * `fixedBack`: the stay and restaurant pages' fixed back control, which
  *         fades in once the photograph's own back has left the screen
  *         (apps/web/src/components/app/listing/ListingGallery.tsx). It is
- *         taken, with a round mask, from `restaurant-hours`, a real capture of
- *         a scrolled restaurant page, at the same place (centre 101, 89.5).
+ *         taken, with a round mask, from a real capture of the same page
+ *         scrolled (`stay-amenities`, `restaurant-hours`), at the same place
+ *         (centre 101, 89.5).
  *       * `footRows`: a fixed bar at the foot of the viewport capture (the
  *         listing's sticky price bar, ListingStickyBar.tsx) stays at the foot.
  *
@@ -33,12 +34,15 @@ const W = 1320;
 const BAR = 186;
 const H = 2868;
 const VIEW = H - BAR;
-const BACK = { from: "restaurant-hours", cx: 101, cy: 89.5, r: 66 };
+/* the fixed back control, where the product draws it once the photograph's
+ * own back has scrolled away: centre (101, 89.5) capture px on every detail
+ * page; taken from a real capture of the same page scrolled */
+const BACK = { cx: 101, cy: 89.5, r: 66 };
 
-export async function scrolledDisplay({ id, offset, page = "full", fixedBack = false, footRows = 0 }) {
+export async function scrolledDisplay({ id, offset, page = "full", fixedBack = null, footRows = 0 }) {
   const dir = join(CACHE, "displays");
   await mkdir(dir, { recursive: true });
-  const out = join(dir, `${id}-${page}-scroll${offset}${fixedBack ? "-back" : ""}${footRows ? `-foot${footRows}` : ""}-ios.png`);
+  const out = join(dir, `${id}-${page}-scroll${offset}${fixedBack ? `-back-${fixedBack}` : ""}${footRows ? `-foot${footRows}` : ""}-ios.png`);
   if (existsSync(out)) return out;
 
   const bar = await sharp(join(SCREENS, `${id}-ios.png`)).extract({ left: 0, top: 0, width: W, height: BAR }).png().toBuffer();
@@ -68,7 +72,7 @@ export async function scrolledDisplay({ id, offset, page = "full", fixedBack = f
     const s = BACK.r * 2 + 4;
     const x = Math.round(BACK.cx - s / 2);
     const y = Math.round(BACK.cy - s / 2);
-    const crop = await sharp(join(SOURCE, `${BACK.from}.webp`)).extract({ left: x, top: y, width: s, height: s }).png().toBuffer();
+    const crop = await sharp(join(SOURCE, `${fixedBack}.webp`)).extract({ left: x, top: y, width: s, height: s }).png().toBuffer();
     const mask = Buffer.from(`<svg width="${s}" height="${s}"><circle cx="${BACK.cx - x}" cy="${BACK.cy - y}" r="${BACK.r}" fill="#fff"/></svg>`);
     const round = await sharp(crop).ensureAlpha().composite([{ input: mask, blend: "dest-in" }]).png().toBuffer();
     layers.push({ input: round, left: x, top: BAR + y });

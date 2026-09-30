@@ -37,15 +37,15 @@ for (const f of files) {
     if (only && !only.some((o) => post.id === o || post.file.startsWith(o))) continue;
     const t0 = Date.now();
     const { W, H } = post;
-    const specs = typeof post.phones === "function" ? post.phones() : post.phones || [];
+    const specs = typeof post.phones === "function" ? await post.phones() : post.phones || [];
     const phones = [];
     for (const spec of specs) {
       const layer = await phoneLayer(spec, { W, H, scale, draft });
       phones.push(layer);
       /* the phone-scale rule (lib/premium.mjs): report the screen scale and what the frame edge crosses */
       const c = await checkPhone(spec, layer, { W, H });
-      const e = c.edge ? ` edge@${c.edge.yCap}${c.edge.bandPx !== undefined ? ` band ${c.edge.bandPx}px (+${c.edge.abovePx}/-${c.edge.belowPx})` : ""}` : "";
-      console.log(`  ${post.file.replace(/\.png$/, "")} ${spec.screen} ${spec.kind || "pose"} ${c.scale}x${e}${c.notes.length ? "  ! " + c.notes.join("; ") : ""}`);
+      const name = spec.screen.includes("/") ? spec.screen.split("/").pop().replace(/-ios\.png$/, "") : spec.screen;
+      console.log(`  ${c.ok ? "ok " : "!! "}${post.file.replace(/\.png$/, "")} ${name} ${spec.kind || "pose"} ${c.scale}x ${Math.round(layer.box.w)}w  text ${c.text}  line ${c.line}${c.notes.length ? "\n       " + c.notes.join("\n       ") : ""}`);
     }
     const html = await post.html({ W, H, phones, scale, draft });
     const raw = await renderHtml({ html, width: W, height: H, scale, name: post.file.replace(/\.png$/, "") });
