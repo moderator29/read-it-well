@@ -30,12 +30,12 @@ export default {
     page({
       W,
       H,
-      bg: "#0062F0",
+      bg: "#0052CC",
       css: `
       .ground{position:absolute;inset:0;background:
-        radial-gradient(60% 50% at 50% 0%, rgba(143,211,255,.45), rgba(143,211,255,0) 70%),
-        radial-gradient(70% 50% at 50% 100%, rgba(0,30,120,.55), rgba(0,30,120,0) 70%),
-        linear-gradient(180deg,#1A78FF 0%,#0062F0 45%,#004BC4 100%)}
+        radial-gradient(60% 40% at 50% -6%, rgba(143,211,255,.16), rgba(143,211,255,0) 70%),
+        radial-gradient(70% 50% at 50% 100%, rgba(0,20,100,.55), rgba(0,20,100,0) 70%),
+        linear-gradient(180deg,#0A5CE6 0%,#0052CC 45%,#0042A8 100%)}
       .say{position:absolute;width:${PW + 12}px;text-align:center;font:700 25px/1.18 Inter;letter-spacing:-.02em;color:#fff}
       .say span{display:block;color:#BFE6FF}
       .head{position:absolute;left:0;right:0;top:92px;text-align:center;font-size:78px;color:#fff;line-height:1.04}

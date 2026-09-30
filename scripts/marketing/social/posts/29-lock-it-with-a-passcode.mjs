@@ -31,7 +31,7 @@ export default {
       `,
       body: `
       <div class="ground"></div>
-      <div class="keys">${KEYS.map((k) => `<div>${k || "&nbsp;"}</div>`).join("")}</div>
+      <div class="keys noaudit">${KEYS.map((k) => `<div>${k || "&nbsp;"}</div>`).join("")}</div>
       ${grain(0.06, "overlay")}
       ${phoneHtml(phones[0], { shadowOpacity: 1 })}
       <div class="head h">Lock it with<br><span class="accent-d">a passcode.</span></div>

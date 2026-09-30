@@ -1,7 +1,7 @@
 /**
  * Measures and small parts shared by the shot layouts.
  */
-import { px, esc, exampleChip } from "../components.mjs";
+import { px, esc, exampleChip, sticker } from "../components.mjs";
 import { night, glow, stars, fill } from "../grounds.mjs";
 import { icon, C } from "../lib.mjs";
 
@@ -25,6 +25,25 @@ export function frame(ctx, { top, bottom, hlBottom = false } = {}) {
   const phoneBottom = bottom ?? (ios ? 150 : 118);
   return { hlTop, size, phoneTop, phoneH: ctx.H - phoneTop - phoneBottom, max };
 }
+
+/** A sticker kept a clear margin inside the image, however it is turned. */
+export function stickerIn(ctx, o) {
+  const s = o.size;
+  const m = 48 * ctx.u + s * 0.12;
+  const x = Math.min(ctx.W - m - s / 2, Math.max(m + s / 2, o.x));
+  const y = Math.min(ctx.H - m - s / 2, Math.max(m + s / 2, o.y));
+  return sticker({ ...o, x, y });
+}
+
+/** The vignette of a pair: only the outer edges darken, never the seam. */
+export const pairVignette = (a = 0.45) =>
+  fill(`linear-gradient(90deg, rgb(1 1 24 / ${a}) 0%, rgb(1 1 24 / 0) 14%, rgb(1 1 24 / 0) 86%, rgb(1 1 24 / ${a}) 100%), linear-gradient(180deg, rgb(1 1 24 / ${a * 0.5}) 0%, rgb(1 1 24 / 0) 14%, rgb(1 1 24 / 0) 80%, rgb(1 1 24 / ${a}) 100%)`, "z-index:6");
+
+/** The handsets of a pair, in page coordinates (the second half is offset by W). */
+export const pairBoxes = (ctxs, W) => ctxs.map((c, k) => {
+  const b = c.placed[c.placed.length - 1];
+  return { ...b, x: b.x + k * W, r: b.r + k * W, cx: b.cx + k * W };
+});
 
 /** A dark vignette that settles the corners. */
 export const vignette = (a = 0.5, at = "50% 45%") =>

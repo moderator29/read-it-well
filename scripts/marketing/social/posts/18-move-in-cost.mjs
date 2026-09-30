@@ -56,11 +56,11 @@ export default {
       .lb{flex:1;font:600 27px/1.1 Inter;color:#fff;letter-spacing:-.01em;display:flex;flex-direction:column;gap:5px;white-space:nowrap}
       .lb span{font:500 19px/1 Inter;color:rgba(190,210,255,.66);letter-spacing:0}
       .am{font:700 29px/1 Inter;color:#DCE8FF;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-      .plus{position:absolute;left:${CX - 50}px;width:30px;text-align:center;font:600 30px/1 Inter;color:rgba(143,211,255,.55)}
+      .plus{position:absolute;left:${CX - 50}px;width:30px;text-align:center;font:600 30px/1 Inter;color:rgba(160,215,255,.85)}
       .total{position:absolute;left:${CX + 50}px;top:${totalTop}px;width:${CW}px;border-radius:30px;padding:24px 30px 26px;
-        background:linear-gradient(135deg,#1C7BFF 0%,#0056D0 100%);border:1.5px solid rgba(170,210,255,.55);
+        background:linear-gradient(135deg,#0A5FE0 0%,#0046B0 100%);border:1.5px solid rgba(170,210,255,.55);
         box-shadow:0 30px 70px rgba(0,40,140,.55), 0 0 60px rgba(0,105,254,.35), inset 0 1px 0 rgba(255,255,255,.25)}
-      .total .t1{display:flex;align-items:center;justify-content:space-between;font:600 26px/1 Inter;color:rgba(255,255,255,.92)}
+      .total .t1{display:flex;align-items:center;justify-content:space-between;font:600 26px/1 Inter;color:#fff}
       .total .t2{margin-top:14px;font:800 58px/1 Inter;color:#fff;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
       .eq{position:absolute;left:${CX + 2}px;top:${totalTop + 44}px;font:600 36px/1 Inter;color:rgba(143,211,255,.8)}
       .note{position:absolute;left:${CX + 52}px;top:${totalTop + 172}px;font:500 26px/1.35 Inter;color:rgba(214,226,255,.72)}
@@ -74,7 +74,7 @@ export default {
       ${LINES.slice(1).map((_, i) => `<div class="plus" style="top:${TOP + (i + 1) * (CH + GAP) + CH / 2 - 16}px;left:${CX - 44 + (i + 1) * 10}px">+</div>`).join("")}
       <div class="eq">=</div>
       <div class="total">
-        <div class="t1"><span>Total to move in</span>${chip("Example", { theme: "dark", size: 19, style: "background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);color:#fff" })}</div>
+        <div class="t1"><span>Total to move in</span>${chip("Example", { theme: "dark", size: 19, style: "background:rgba(0,10,50,.32);border-color:rgba(255,255,255,.35);color:#fff" })}</div>
         <div class="t2">₦26,100,000</div>
       </div>
       <div class="note">Rent plus every fee, added up.</div>

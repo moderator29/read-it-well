@@ -2,9 +2,9 @@
  * Shots 1 to 12: home, the account, the move-in cost, search, filters,
  * listings, sharing, messages and stays.
  */
-import { headline, popup, sticker, pill, px } from "../components.mjs";
+import { headline, popup, pill, px } from "../components.mjs";
 import { night, glow, beam, rings, ribbon, floorGrid, photo, stars, floorGlow, fill, horizon, electric, bokeh } from "../grounds.mjs";
-import { frame, vignette, darkBase, iconDisc, dotted, COST, costCard, totalCard } from "./common.mjs";
+import { frame, vignette, stickerIn, pairVignette, pairBoxes, iconDisc, dotted, COST, costCard, totalCard } from "./common.mjs";
 import { photoUrl } from "../lib.mjs";
 
 export const SET_A = [
@@ -26,8 +26,8 @@ export const SET_A = [
         floorGlow({ cx: W / 2, y: p.box.b + 16, w: p.box.w * 1.15, alpha: 0.55 }),
         vignette(0.5),
         p.html,
-        sticker({ code: "1f3e1", x: p.box.x - 4 * u, y: p.box.y + p.box.h * 0.42, size: 240 * u, rotate: -9 }),
-        sticker({ code: "1f511", x: Math.min(p.box.r + 4 * u, W - 118 * u), y: p.box.y + p.box.h * 0.8, size: 196 * u, rotate: 24 }),
+        stickerIn(ctx, { code: "1f3e1", x: p.box.x - 4 * u, y: p.box.y + p.box.h * 0.42, size: 240 * u, rotate: -9 }),
+        stickerIn(ctx, { code: "1f511", x: Math.min(p.box.r + 4 * u, W - 118 * u), y: p.box.y + p.box.h * 0.8, size: 196 * u, rotate: 24 }),
         headline({ lines: ["Find your next", "home in Nigeria"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -50,7 +50,7 @@ export const SET_A = [
         horizon({ W, H, y: H * 0.8, z: 3 }),
         vignette(0.4),
         p.html,
-        sticker({ code: "1f6ce-fe0f", x: p.box.r + 14, y: p.box.y + p.box.h * 0.3, size: 214 * u, rotate: 10 }),
+        stickerIn(ctx, { code: "1f6ce-fe0f", x: p.box.r + 14, y: p.box.y + p.box.h * 0.3, size: 214 * u, rotate: 10 }),
         headline({ lines: ["Homes and stays,", "one account"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -60,7 +60,7 @@ export const SET_A = [
   {
     n: 3, slug: "the-full-move-in-cost", captures: ["listing-cost"], theme: "dark", pairWith: 4,
     async layout(ctx) {
-      const { W, H, u, ios } = ctx;
+      const { W, u, ios } = ctx;
       const f = frame(ctx, { top: ios ? 800 : 705, bottom: ios ? 140 : 110 });
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "listing-cost", cx: W * 0.415, cy, h: f.phoneH, rotation: { x: -3, y: 20, z: -2 }, fov: 26 });
@@ -75,18 +75,26 @@ export const SET_A = [
       const [tx, ty] = p.at(430, 2480);
       const tw = 620 * u;
       return [
-        night({ top: "#050C52", mid: "#03073A", bottom: "#010118" }),
-        glow({ x: W * 0.36, y: cy, rx: W * 0.62, ry: f.phoneH * 0.5, alpha: 0.55, blur: 30 }),
-        glow({ x: W * 0.86, y: cy, rx: W * 0.4, ry: 820, color: "143 211 255", alpha: 0.14, blur: 40 }),
-        stars({ W, H, count: 34, top: 30, bottom: f.phoneTop, seed: 5 }),
-        vignette(0.45),
         p.html,
         ...cards,
         totalCard({ x: Math.min(tx, W - 64 * u - tw), y: ty - 36 * u, w: tw, rotate: -2, s: u }),
         headline({ lines: ["The full move-in cost,", "before you call"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size,
-          sub: "Rent plus every fee the agent named, added up.", subSize: 42 * u }),
+          sub: "Rent plus every fee on the listing, added up.", subSize: 42 * u }),
       ].join("\n");
     },
+    ground({ W, H, pageW, u, ctxs }) {
+      const [a, b] = pairBoxes(ctxs, W);
+      return [
+        fill("linear-gradient(180deg, #050C52 0%, #03073A 48%, #010118 100%)"),
+        glow({ x: a.cx - 40 * u, y: a.cy, rx: W * 0.62, ry: a.h * 0.5, alpha: 0.55, blur: 30 }),
+        glow({ x: b.cx, y: b.cy - 100 * u, rx: W * 0.66, ry: b.h * 0.48, alpha: 0.42, blur: 40 }),
+        glow({ x: W, y: H * 0.6, rx: W * 0.42, ry: 820 * u, color: "143 211 255", alpha: 0.12, blur: 40 }),
+        stars({ W: pageW, H, count: 66, top: 30, bottom: H * 0.26, seed: 5 }),
+        rings({ W: pageW, H, cx: b.cx, cy: b.cy + 120 * u, r: W * 0.78, ratio: 0.32, rotate: -8, alpha: 0.12, count: 2, dash: "4 18" }),
+        pairVignette(0.45),
+      ].join("\n");
+    },
+    /* A ribbon of light leaves the cost lines and runs on into Search. */
     bridge({ W, H, pageW, u }) {
       const d = `M ${W * 0.3} ${H * 0.52} C ${W * 0.62} ${H * 0.6}, ${W * 0.82} ${H * 0.64}, ${W} ${H * 0.655} S ${W * 1.36} ${H * 0.7}, ${W * 1.5} ${H * 0.84} S ${W * 1.78} ${H * 1.02}, ${W * 1.98} ${H * 1.06}`;
       return ribbon({ d, W: pageW, H, width: 50 * u, from: [W * 0.3, 0], to: [W * 1.98, 0], stops: [[0, "#0056D0", 0], [0.2, "#0069FE", 0.9], [0.5, "#5C9FFF"], [0.8, "#8FD3FF", 0.8], [1, "#8FD3FF", 0]], z: 9, coreAlpha: 0.75 });
@@ -97,20 +105,17 @@ export const SET_A = [
   {
     n: 4, slug: "search-homes-across-nigeria", captures: ["search"], theme: "dark", pairedFrom: 3,
     async layout(ctx) {
-      const { W, H, u } = ctx;
+      const { W, u } = ctx;
       const f = frame(ctx);
       const cy = f.phoneTop + f.phoneH / 2;
-      const p = await ctx.phone({ id: "search", cx: W * 0.58, cy, h: f.phoneH, rotation: { x: -6, y: -14, z: 2 }, fov: 26 });
+      const p = await ctx.phone({ id: "search", cx: W * 0.605, cy, h: f.phoneH, rotation: { x: -6, y: -14, z: 2 }, fov: 26 });
       const b = p.box;
       return [
-        darkBase(ctx, { top: "#040A48", mid: "#030736", bottom: "#010118", seed: 8, starBottom: f.phoneTop,
-          glows: [{ x: W * 0.55, y: cy - 100, rx: W * 0.68, ry: f.phoneH * 0.48, alpha: 0.42, blur: 40 }] }),
-        rings({ W, H, cx: b.cx, cy: b.cy + 120, r: W * 0.78, ratio: 0.32, rotate: -8, alpha: 0.12, count: 2, dash: "4 18" }),
-        pill({ x: 52 * u, y: b.y + b.h * 0.27, text: "Lagos", lucide: "map-pin", size: 38 * u, z: 36, active: true, rotate: -3 }),
-        pill({ x: 92 * u, y: b.y + b.h * 0.45, text: "Abuja", lucide: "map-pin", size: 36 * u, z: 36, rotate: 2 }),
-        pill({ x: 40 * u, y: b.y + b.h * 0.63, text: "Port Harcourt", lucide: "map-pin", size: 36 * u, z: 36, rotate: -2 }),
+        pill({ x: 50 * u, y: b.y + b.h * 0.27, text: "Lagos", lucide: "map-pin", size: 36 * u, z: 36, active: true, rotate: -3 }),
+        pill({ x: 84 * u, y: b.y + b.h * 0.45, text: "Abuja", lucide: "map-pin", size: 34 * u, z: 36, rotate: 2 }),
+        pill({ x: 50 * u, y: b.y + b.h * 0.63, text: "Port Harcourt", lucide: "map-pin", size: 32 * u, z: 36, rotate: -2 }),
         p.html,
-        sticker({ code: "1f50d", x: Math.min(b.r - 30 * u, W - 120 * u), y: b.y + 40 * u, size: 210 * u, rotate: 14 }),
+        stickerIn(ctx, { code: "1f50d", x: Math.min(b.r - 30 * u, W - 120 * u), y: b.y + 40 * u, size: 210 * u, rotate: 14 }),
         headline({ lines: ["Search homes", "across Nigeria"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -120,12 +125,13 @@ export const SET_A = [
   {
     n: 5, slug: "filter-by-what-you-need", captures: ["filters-villas"], theme: "dark",
     async layout(ctx) {
-      const { W, H, u, ios } = ctx;
+      const { W, H, u } = ctx;
       const f = frame(ctx);
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "filters-villas", cx: W * 0.6, cy, h: f.phoneH * 0.93, rotation: { x: -20, y: -14, z: 3 }, fov: 30, color: "natural-titanium" });
       const b = p.box;
       const x0 = 66 * u;
+      /* The same choices the sheet on screen offers. */
       const chips = [
         ["Villas", "house", true, 0.2, -4],
         ["Self-contain", "door-open", false, 0.38, 2],
@@ -150,10 +156,9 @@ export const SET_A = [
   {
     n: 6, slug: "see-every-home-up-close", captures: ["listing"], theme: "dark",
     async layout(ctx) {
-      const { W, H, u } = ctx;
+      const { W } = ctx;
       const f = frame(ctx, { hlBottom: true });
-      const cy = f.phoneTop + f.phoneH / 2;
-      const p = await ctx.phone({ id: "listing", cx: W / 2, cy, h: f.phoneH, rotation: { x: 4, y: 0, z: 0 }, fov: 24, color: "natural-titanium" });
+      const p = await ctx.phone({ id: "listing", cx: W / 2, cy: f.phoneTop + f.phoneH / 2, h: f.phoneH, rotation: { x: 4, y: 0, z: 0 }, fov: 24, color: "natural-titanium" });
       return [
         fill("#02041F"),
         `<div class="g" style="inset:0;background:url('${photoUrl("villa-exterior-sunset.jpg")}') 50% 30% / cover no-repeat;filter:blur(6px) brightness(0.8) saturate(1.15);transform:scale(1.04)"></div>`,
@@ -193,21 +198,28 @@ export const SET_A = [
   {
     n: 8, slug: "talk-straight-to-the-owner", captures: ["thread"], theme: "dark", pairWith: 9,
     async layout(ctx) {
-      const { W, H, u } = ctx;
+      const { W, u } = ctx;
       const f = frame(ctx);
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "thread", cx: W * 0.44, cy, h: f.phoneH, rotation: { x: -5, y: 16, z: -2.5 }, fov: 26 });
-      const b = p.box;
-      ctx.anchors = { popup: [W - 90 * u, p.at(700, 860)[1] + 190 * u] };
+      /* The card lands over the first listing's photograph, where it hides no words. */
+      const py = p.at(700, 860)[1];
+      ctx.anchors = { popup: [W - 44 * u, py + 92 * u] };
       return [
-        night({ top: "#15106A", mid: "#0A0848", bottom: "#030220" }),
-        glow({ x: W * 0.2, y: cy - 300, rx: W * 0.7, ry: f.phoneH * 0.46, color: "60 90 255", alpha: 0.5, blur: 40 }),
-        glow({ x: W * 0.95, y: cy + 400, rx: W * 0.5, ry: 700, color: "143 211 255", alpha: 0.14, blur: 50 }),
-        bokeh({ W, H, count: 12, seed: 41, color: "120 150 255", top: 0, bottom: H }),
-        vignette(0.4),
         p.html,
-        popup({ x: W - 800 * u - 50 * u, y: p.at(700, 860)[1], w: 800 * u, rotate: -3, emoji: "1f4ac", title: "New message", line: "The owner replied", meta: "now", scale: u * 1.1 }),
+        popup({ x: W - 800 * u - 50 * u, y: py, w: 800 * u, rotate: -3, emoji: "1f4ac", title: "New message", line: "The owner replied", meta: "now", scale: u * 1.1 }),
         headline({ lines: ["Talk straight", "to the owner"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
+      ].join("\n");
+    },
+    ground({ W, H, pageW, u, ctxs }) {
+      const [a, b] = pairBoxes(ctxs, W);
+      return [
+        fill("linear-gradient(180deg, #15106A 0%, #0A0848 48%, #030220 100%)"),
+        glow({ x: a.cx - 200 * u, y: a.cy - 300 * u, rx: W * 0.7, ry: a.h * 0.46, color: "60 90 255", alpha: 0.5, blur: 40 }),
+        glow({ x: b.cx + 150 * u, y: b.cy - 260 * u, rx: W * 0.7, ry: b.h * 0.46, color: "60 90 255", alpha: 0.5, blur: 40 }),
+        glow({ x: W, y: H * 0.78, rx: W * 0.6, ry: 760 * u, color: "143 211 255", alpha: 0.13, blur: 50 }),
+        bokeh({ W: pageW, H, count: 18, seed: 41, color: "120 150 255", top: H * 0.3, bottom: H }),
+        pairVignette(0.4),
       ].join("\n");
     },
     /* A dotted line leaves the pop-up and crosses the seam to the first
@@ -216,7 +228,7 @@ export const SET_A = [
       const [x0, y0] = ctxs[0].anchors.popup;
       const [x1, y1] = ctxs[1].anchors.first;
       const X1 = W + x1;
-      const d = `M ${x0} ${y0} C ${x0 + 40 * u} ${y0 + 220 * u}, ${X1 - 260 * u} ${y1 - 40 * u}, ${X1 - 16 * u} ${y1}`;
+      const d = `M ${x0} ${y0} C ${x0 + 130 * u} ${y0}, ${X1 - 150 * u} ${y1}, ${X1 - 14 * u} ${y1}`;
       return dotted({ d, W: pageW, H, dot: 10 * u, gap: 30 * u, z: 45 });
     },
   },
@@ -228,34 +240,30 @@ export const SET_A = [
       const { W, H, u } = ctx;
       const f = frame(ctx);
       const cy = f.phoneTop + f.phoneH / 2;
-      const p = await ctx.phone({ id: "messages", cx: W * 0.61, cy, h: f.phoneH, rotation: { x: -5, y: -18, z: 2.5 }, fov: 26, color: "natural-titanium" });
+      const p = await ctx.phone({ id: "messages", cx: W * 0.635, cy, h: f.phoneH * 0.94, rotation: { x: -5, y: -18, z: 2.5 }, fov: 26, color: "natural-titanium" });
       /* Owners, hosts and restaurants: every kind of conversation runs into
-         the one inbox row on the screen (the avatar at display 185, 1494). */
-      const [ax, ay] = p.at(185, 1494);
-      const size = 36 * u;
+         the inbox's one row (its avatar sits at display 166, 1397). */
+      const [ax, ay] = p.at(166, 1397);
+      const [ex] = p.at(0, 1397);
+      const edge = ex - 22 * u;
+      const size = 33 * u;
+      const pillH = size * 2.18;
+      const x0 = 50 * u;
       const rows = [
-        ["Owners", "house", ay - 420 * u],
-        ["Hosts", "bed-double", ay - 70 * u],
-        ["Restaurants", "utensils", ay + 280 * u],
+        ["Owners", "house", ay - 470 * u, 214 * u],
+        ["Hosts", "bed-double", ay - 90 * u, 186 * u],
+        ["Restaurants", "utensils", ay + 300 * u, 292 * u],
       ];
-      const x0 = 56 * u;
-      const pillH = size * 2.2;
-      const pillW = { Owners: 250 * u, Hosts: 210 * u, Restaurants: 330 * u };
       ctx.anchors = { first: [x0, rows[0][2] + pillH / 2] };
-      const lines = rows.map(([t, , y]) => {
-        const sx = x0 + pillW[t];
+      const lines = rows.map(([, , y, w]) => {
+        const sx = x0 + w + 8 * u;
         const sy = y + pillH / 2;
-        return `M ${sx} ${sy} C ${sx + 160 * u} ${sy}, ${ax - 220 * u} ${ay}, ${ax - 30 * u} ${ay}`;
+        return `M ${sx} ${sy} C ${sx + 90 * u} ${sy}, ${edge - 110 * u} ${ay}, ${edge} ${ay} L ${ax - 62 * u} ${ay}`;
       });
       return [
-        night({ top: "#15106A", mid: "#0A0848", bottom: "#030220" }),
-        glow({ x: W * 0.05, y: cy + 400, rx: W * 0.5, ry: 700, color: "143 211 255", alpha: 0.14, blur: 50 }),
-        glow({ x: W * 0.8, y: cy - 260, rx: W * 0.7, ry: f.phoneH * 0.46, color: "60 90 255", alpha: 0.5, blur: 40 }),
-        bokeh({ W, H, count: 12, seed: 43, color: "120 150 255", top: 0, bottom: H }),
-        vignette(0.4),
         p.html,
-        ...lines.map((d) => dotted({ d, W, H, dot: 9 * u, gap: 26 * u, z: 30 })),
-        `<div class="g" style="left:${px(ax - 26 * u)};top:${px(ay - 26 * u)};width:${px(52 * u)};height:${px(52 * u)};border-radius:50%;box-shadow:0 0 0 ${px(4 * u)} rgb(143 211 255 / 0.85), 0 0 ${px(40 * u)} ${px(10 * u)} rgb(0 105 254 / 0.8);z-index:31"></div>`,
+        ...lines.map((d) => dotted({ d, W, H, dot: 9 * u, gap: 24 * u, z: 30 })),
+        `<div class="g" style="left:${px(ax - 56 * u)};top:${px(ay - 56 * u)};width:${px(112 * u)};height:${px(112 * u)};border-radius:50%;box-shadow:0 0 0 ${px(4 * u)} rgb(143 211 255 / 0.9), 0 0 ${px(44 * u)} ${px(12 * u)} rgb(0 105 254 / 0.75);z-index:31"></div>`,
         ...rows.map(([t, ic, y], i) => pill({ x: x0, y, text: t, lucide: ic, size, z: 36, active: i === 0 })),
         headline({ lines: ["Every conversation", "in one place"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
@@ -266,23 +274,28 @@ export const SET_A = [
   {
     n: 10, slug: "hotels-shortlets-and-resorts", captures: ["stays"], theme: "dark", pairWith: 11,
     async layout(ctx) {
-      const { W, H, u } = ctx;
+      const { W, u } = ctx;
       const f = frame(ctx);
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "stays", cx: W * 0.47, cy, h: f.phoneH, rotation: { x: -6, y: 14, z: -2 }, fov: 26 });
-      const b = p.box;
       return [
-        fill("linear-gradient(180deg, #060B4A 0%, #0A0B45 38%, #2A1450 64%, #5A2140 78%, #1A0A28 100%)"),
-        glow({ x: W * 0.9, y: H * 0.78, rx: W * 0.8, ry: 520, color: "255 107 26", alpha: 0.42, blur: 50 }),
-        glow({ x: W * 0.3, y: cy - 300, rx: W * 0.6, ry: f.phoneH * 0.4, alpha: 0.4, blur: 40 }),
-        stars({ W, H, count: 50, top: 30, bottom: H * 0.45, seed: 61 }),
-        vignette(0.35),
         p.html,
-        sticker({ code: "1f334", x: b.x + 20 * u, y: b.y + b.h * 0.7, size: 240 * u, rotate: -8 }),
         headline({ lines: ["Hotels, shortlets", "and resorts"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
-    bridge({ W, H, pageW, u }) {
+    ground({ W, H, pageW, u, ctxs }) {
+      const [a, b] = pairBoxes(ctxs, W);
+      return [
+        fill("linear-gradient(180deg, #060B4A 0%, #0A0B45 38%, #2A1450 64%, #5A2140 78%, #1A0A28 100%)"),
+        glow({ x: W, y: H * 0.8, rx: W * 1.25, ry: 560 * u, color: "255 107 26", alpha: 0.42, blur: 50 }),
+        glow({ x: a.cx - 150 * u, y: a.cy - 300 * u, rx: W * 0.6, ry: a.h * 0.4, alpha: 0.4, blur: 40 }),
+        glow({ x: b.cx + 150 * u, y: b.cy - 300 * u, rx: W * 0.6, ry: b.h * 0.4, alpha: 0.4, blur: 40 }),
+        stars({ W: pageW, H, count: 96, top: 30, bottom: H * 0.45, seed: 61 }),
+        pairVignette(0.35),
+      ].join("\n");
+    },
+    /* A photograph of the resort's pool deck lies across the seam. */
+    bridge({ W, H, u }) {
       const w = 980 * u;
       const h = 620 * u;
       return photo({ src: "resort-pool-deck.jpg", x: W - w / 2, y: H * 0.72, w, h, rotate: -4, radius: 48 * u, z: 9, brightness: 0.95 });
@@ -293,20 +306,16 @@ export const SET_A = [
   {
     n: 11, slug: "book-a-room-in-a-few-taps", captures: ["stay"], theme: "dark", pairedFrom: 10,
     async layout(ctx) {
-      const { W, H, u, ios } = ctx;
+      const { W, u, ios } = ctx;
       const f = frame(ctx, { top: ios ? 820 : 735 });
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "stay", cx: W * 0.55, cy, h: f.phoneH, rotation: { x: -6, y: -14, z: 2 }, fov: 26 });
       const b = p.box;
       return [
-        fill("linear-gradient(180deg, #060B4A 0%, #0A0B45 38%, #2A1450 64%, #5A2140 78%, #1A0A28 100%)"),
-        glow({ x: W * 0.1, y: H * 0.78, rx: W * 0.8, ry: 520, color: "255 107 26", alpha: 0.42, blur: 50 }),
-        glow({ x: W * 0.7, y: cy - 300, rx: W * 0.6, ry: f.phoneH * 0.4, alpha: 0.4, blur: 40 }),
-        stars({ W, H, count: 50, top: 30, bottom: H * 0.45, seed: 62 }),
-        vignette(0.35),
         p.html,
-        /* Off the stay page: the card lands on the handset's top edge, clear of its "no such property" notice. */
-        popup({ x: W * 0.5 - 450 * u, y: b.y - 205 * u, w: 900 * u, rotate: -2.5, emoji: "1f6cf-fe0f", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", amount: "₦450,000", meta: "now", example: true, scale: u * 1.08 }),
+        /* The card lands on the handset's top edge, clear of the stay page's
+           "no such property" notice. */
+        popup({ x: W * 0.5 - 450 * u, y: b.y - 170 * u, w: 900 * u, rotate: -2.5, emoji: "1f6cf-fe0f", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: "now", example: true, scale: u * 1.1 }),
         headline({ lines: ["Book a room", "in a few taps"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -316,13 +325,13 @@ export const SET_A = [
   {
     n: 12, slug: "pick-your-dates", captures: ["stays-dates", "stays-filters"], theme: "dark",
     async layout(ctx) {
-      const { W, H, u, ios } = ctx;
+      const { W, H, u } = ctx;
       const f = frame(ctx);
       const h = f.phoneH * 0.9;
       const back = await ctx.phone({ id: "stays-filters", cx: W * 0.355, cy: f.phoneTop + h / 2 - 10, h: h * 0.9, rotation: { x: -4, y: 20, z: -5 }, fov: 26, z: 18, color: "natural-titanium" });
       const front = await ctx.phone({ id: "stays-dates", cx: W * 0.62, cy: f.phoneTop + f.phoneH - h / 2, h, rotation: { x: -4, y: -14, z: 3 }, fov: 26, z: 22 });
       return [
-        fill("linear-gradient(180deg, #0E3BB0 0%, #0A2A86 30%, #061555 62%, #020522 100%)"),
+        fill("linear-gradient(180deg, #061A66 0%, #0A2A86 34%, #061555 64%, #020522 100%)"),
         glow({ x: W * 0.5, y: f.phoneTop + f.phoneH / 2, rx: W * 0.72, ry: f.phoneH * 0.5, color: "92 159 255", alpha: 0.4, blur: 40 }),
         stars({ W, H, count: 30, top: 30, bottom: f.phoneTop, seed: 71 }),
         vignette(0.35),
@@ -330,7 +339,7 @@ export const SET_A = [
         back.html,
         `<div class="g" style="left:${px(back.box.x)};top:${px(back.box.y)};width:${px(back.box.w)};height:${px(back.box.h)};z-index:19;background:radial-gradient(60% 50% at 70% 50%, rgb(1 1 24 / 0.35), transparent 70%)"></div>`,
         front.html,
-        sticker({ code: "1f4c5", x: Math.min(front.box.r - 30 * u, W - 120 * u), y: front.box.y + 30 * u, size: 210 * u, rotate: 12 }),
+        stickerIn(ctx, { code: "1f4c5", x: Math.min(front.box.r - 30 * u, W - 120 * u), y: front.box.y + 30 * u, size: 210 * u, rotate: 12 }),
         headline({ lines: ["Pick your dates,", "see what's free"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },

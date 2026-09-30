@@ -20,12 +20,12 @@ export default {
         linear-gradient(180deg,#FFF9F2 0%,#FDF0E4 100%)}
       .edge{position:absolute;inset:34px;border-radius:44px;border:1.5px solid rgba(160,90,40,.14)}
       .eyebrow{position:absolute;left:86px;top:104px;display:inline-flex;align-items:center;height:52px;padding:0 24px;border-radius:999px;
-        background:rgba(255,107,26,.12);color:#B8440A;font:700 24px/1 Inter;letter-spacing:.005em}
+        background:rgba(255,107,26,.12);color:#A33A06;font:700 24px/1 Inter;letter-spacing:.005em}
       .step{position:absolute;left:86px;right:86px}
       .num{position:absolute;left:0;top:14px;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
-        background:linear-gradient(145deg,#FF7A2E,#E85A0C);color:#fff;font:700 32px/1 Poppins;box-shadow:0 10px 24px rgba(232,90,12,.35)}
+        background:linear-gradient(145deg,#C24A0C,#A8380A);color:#fff;font:700 32px/1 Poppins;box-shadow:0 10px 24px rgba(194,74,12,.32)}
       .t{margin-left:92px;font:700 96px/1.0 Poppins;letter-spacing:-.035em;color:#1A0F08}
-      .t2{margin-left:92px;margin-top:6px;font:700 56px/1.06 Poppins;letter-spacing:-.03em;color:#C24A0C}
+      .t2{margin-left:92px;margin-top:6px;font:700 56px/1.06 Poppins;letter-spacing:-.03em;color:#A83E08}
       .b{margin-left:94px;margin-top:22px;width:760px;font:500 30px/1.42 Inter;color:#5A4638}
       .rule{position:absolute;left:86px;right:86px;top:752px;height:1.5px;background:linear-gradient(90deg,rgba(160,90,40,.25),rgba(160,90,40,.05))}
       .foot{position:absolute;left:86px;right:86px;bottom:80px;display:flex;align-items:center;justify-content:space-between;font:500 23px/1 Inter;color:#7A6456}

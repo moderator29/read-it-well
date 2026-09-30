@@ -6,7 +6,7 @@
 import { headline, popup, sticker, pill, px, esc } from "../components.mjs";
 import { photoUrl } from "../lib.mjs";
 import { night, glow, beam, rings, ribbon, photo, art, studio, stars, floorGlow, fill, electric, bokeh } from "../grounds.mjs";
-import { frame, vignette, darkBase, iconDisc, dotted } from "./common.mjs";
+import { frame, vignette, darkBase, stickerIn, pairVignette, pairBoxes, iconDisc, dotted } from "./common.mjs";
 import { brandUrl } from "../lib.mjs";
 
 /* A seeded scatter of street lines, for Price Check's map. */
@@ -48,7 +48,7 @@ export const SET_C = [
         streets({ W, H, seed: 13, u }),
         `<svg class="g" style="left:0;top:0;z-index:7" width="${W}" height="${H}"><ellipse cx="${px0}" cy="${py0 + 90 * u}" rx="${60 * u}" ry="${18 * u}" fill="rgb(0 0 20 / 0.5)"/>${radar}</svg>`,
         p.html,
-        sticker({ code: "1f4cd", x: px0, y: py0, size: 230 * u, rotate: 0, z: 36 }),
+        stickerIn(ctx, { code: "1f4cd", x: px0, y: py0, size: 230 * u, rotate: 0, z: 36 }),
         headline({ lines: ["See what places", "nearby are asking"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -135,11 +135,21 @@ export const SET_C = [
       const p = await ctx.phone({ id: "host-start", cx: W * 0.46, cy, h: f.phoneH, rotation: { x: -6, y: 15, z: -2 }, fov: 26 });
       const b = p.box;
       return [
-        darkBase(ctx, { top: "#0A0A40", mid: "#070530", bottom: "#030112", seed: 211, starBottom: f.phoneTop,
-          glows: [{ x: W * 0.3, y: cy - 200, rx: W * 0.6, ry: f.phoneH * 0.44, alpha: 0.48, blur: 40 }, { x: W * 0.9, y: H * 0.86, rx: W * 0.6, ry: 500, color: "255 107 26", alpha: 0.3, blur: 50 }] }),
         p.html,
-        sticker({ code: "1f3e8", x: Math.max(b.x + 20 * u, 128 * u), y: b.y + b.h * 0.36, size: 240 * u, rotate: -8 }),
+        stickerIn(ctx, { code: "1f3e8", x: b.r - 30 * u, y: p.at(1180, 1040)[1], size: 220 * u, rotate: 8 }),
         headline({ lines: ["Host your hotel", "or shortlet"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
+      ].join("\n");
+    },
+    ground({ W, H, pageW, u, ctxs }) {
+      const [a, b] = pairBoxes(ctxs, W);
+      return [
+        fill("linear-gradient(180deg, #0A0A40 0%, #070530 48%, #030112 100%)"),
+        glow({ x: a.cx - 200 * u, y: a.cy - 200 * u, rx: W * 0.6, ry: a.h * 0.44, alpha: 0.48, blur: 40 }),
+        glow({ x: b.cx + 200 * u, y: b.cy - 200 * u, rx: W * 0.6, ry: b.h * 0.44, alpha: 0.48, blur: 40 }),
+        glow({ x: W * 0.75, y: H * 0.9, rx: W * 0.8, ry: 520 * u, color: "255 107 26", alpha: 0.3, blur: 50 }),
+        glow({ x: W * 1.35, y: H * 0.78, rx: W * 0.6, ry: 500 * u, color: "92 159 255", alpha: 0.18, blur: 50 }),
+        stars({ W: pageW, H, count: 64, top: 30, bottom: H * 0.22, seed: 211 }),
+        pairVignette(0.45),
       ].join("\n");
     },
     bridge({ W, H, pageW, u }) {
@@ -158,10 +168,9 @@ export const SET_C = [
       const p = await ctx.phone({ id: "host-earnings", cx: W * 0.55, cy, h: f.phoneH, rotation: { x: -6, y: -15, z: 2 }, fov: 26, color: "natural-titanium" });
       const b = p.box;
       return [
-        darkBase(ctx, { top: "#0A0A40", mid: "#070530", bottom: "#030112", seed: 212, starBottom: f.phoneTop,
-          glows: [{ x: W * 0.7, y: cy - 200, rx: W * 0.6, ry: f.phoneH * 0.44, alpha: 0.48, blur: 40 }, { x: W * 0.1, y: H * 0.86, rx: W * 0.6, ry: 500, color: "92 159 255", alpha: 0.2, blur: 50 }] }),
         p.html,
-        popup({ x: 44 * u, y: b.y + b.h * 0.3, w: 900 * u, rotate: -3, emoji: "1f3e6", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", meta: "now", example: true, scale: u * 1.1 }),
+        /* A notification banner across the top of the screen, as the phone shows one. */
+        popup({ x: b.cx - 440 * u, y: b.y + 44 * u, w: 880 * u, rotate: -1.5, emoji: "1f3e6", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", meta: "now", example: true, scale: u * 1.08 }),
         headline({ lines: ["Your share goes", "straight to your bank"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -182,7 +191,7 @@ export const SET_C = [
           mask: "radial-gradient(60% 55% at 50% 42%, #000 40%, transparent 100%)", opacity: 0.95 }),
         vignette(0.4),
         p.html,
-        sticker({ code: "1f44b", x: b.x + 6 * u, y: b.y + b.h * 0.3, size: 230 * u, rotate: -14 }),
+        stickerIn(ctx, { code: "1f44b", x: b.x + 6 * u, y: b.y + b.h * 0.3, size: 230 * u, rotate: -14 }),
         headline({ lines: ["Welcome back,", "sign in in seconds"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -204,7 +213,7 @@ export const SET_C = [
         stars({ W, H, count: 40, top: 30, bottom: H * 0.5, seed: 221 }),
         back.html,
         front.html,
-        sticker({ code: "1f30d", x: Math.min(front.box.r - 30 * u, W - 125 * u), y: front.box.y + 40 * u, size: 220 * u, rotate: 10 }),
+        stickerIn(ctx, { code: "1f30d", x: Math.min(front.box.r - 30 * u, W - 125 * u), y: front.box.y + 40 * u, size: 220 * u, rotate: 10 }),
         headline({ lines: ["Vallo speaks", "your language"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size,
           sub: "English, Hausa, Yorùbá and Igbo.", subSize: 44 * u }),
       ].join("\n");
@@ -225,8 +234,8 @@ export const SET_C = [
         glow({ x: W * 0.15, y: H * 0.3, rx: W * 0.6, ry: 700, color: "255 190 120", alpha: 0.28, blur: 50 }),
         glow({ x: W * 0.9, y: H * 0.75, rx: W * 0.6, ry: 800, color: "120 160 255", alpha: 0.26, blur: 50 }),
         p.html,
-        sticker({ code: "2600-fe0f", x: b.x - 10 * u, y: b.y + b.h * 0.24, size: 230 * u, rotate: -8 }),
-        sticker({ code: "1f319", x: b.r + 10 * u, y: b.y + b.h * 0.7, size: 210 * u, rotate: 14 }),
+        stickerIn(ctx, { code: "2600-fe0f", x: b.x - 10 * u, y: b.y + b.h * 0.24, size: 230 * u, rotate: -8 }),
+        stickerIn(ctx, { code: "1f319", x: b.r + 10 * u, y: b.y + b.h * 0.7, size: 210 * u, rotate: 14 }),
         headline({ lines: ["Light or dark,", "your call"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size, theme: "light" }),
       ].join("\n");
     },
@@ -269,8 +278,8 @@ export const SET_C = [
         glow({ x: W * 0.12, y: H * 0.2, rx: W * 0.4, ry: 500, color: "255 190 130", alpha: 0.2, blur: 50 }),
         `<img class="abs" src="${brandUrl("vallo-icon.png")}" style="left:${px(W / 2 - iconSize / 2)};top:${px(top)};width:${px(iconSize)};height:${px(iconSize)};border-radius:22.4%;box-shadow:0 30px 60px -20px rgb(0 40 140 / 0.45);z-index:40">`,
         headline({ lines: ["Vallo.", "Real estate, done right."], cx: W / 2, y: hlY, max: f.max, size: f.size * 0.94, theme: "light", serif: "right." }),
-        `<div class="abs" style="left:0;width:${W}px;top:${px(pillY)};display:flex;justify-content:center;z-index:40">
-          <span style="display:inline-flex;align-items:center;gap:${px(14 * u)};font:600 ${px(34 * u)}/1 Inter;color:#0A1030;padding:${px(24 * u)} ${px(40 * u)};border-radius:999px;background:rgb(255 255 255 / 0.92);box-shadow:inset 0 0 0 1px rgb(10 20 70 / 0.08), 0 20px 40px -20px rgb(20 30 90 / 0.3)">Coming soon on iPhone and Android</span></div>`,
+        `<div class="abs" data-bleed style="left:0;width:${W}px;top:${px(pillY)};display:flex;justify-content:center;z-index:40">
+          <span data-chk style="display:inline-flex;align-items:center;gap:${px(14 * u)};font:600 ${px(34 * u)}/1 Inter;color:#0A1030;padding:${px(24 * u)} ${px(40 * u)};border-radius:999px;background:rgb(255 255 255 / 0.92);box-shadow:inset 0 0 0 1px rgb(10 20 70 / 0.08), 0 20px 40px -20px rgb(20 30 90 / 0.3)">Coming soon on iPhone and Android</span></div>`,
         p.html,
       ].join("\n");
     },

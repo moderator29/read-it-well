@@ -55,10 +55,11 @@ async function ensureBrowser() {
 }
 
 /**
- * Render `html` (a whole document) at width x height CSS px.
- * Returns an RGB buffer at native size (Lanczos from `scale` x).
+ * Open `html` (a whole document) in a page served from the local server, with
+ * fonts and images loaded. The caller closes the page. `errors` collects load
+ * problems.
  */
-export async function renderHtml({ html, width, height, scale = 2, name = "page" }) {
+export async function openPage({ html, width, height, scale = 2, name = "page" }) {
   await ensureServer();
   const b = await ensureBrowser();
   const file = join(CACHE, "html", `${name}.html`);
@@ -74,6 +75,15 @@ export async function renderHtml({ html, width, height, scale = 2, name = "page"
     await Promise.all([...document.images].map((i) => (i.complete ? null : i.decode().catch(() => null))));
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   });
+  return { page, errors };
+}
+
+/**
+ * Render `html` (a whole document) at width x height CSS px.
+ * Returns an RGB buffer at native size (Lanczos from `scale` x).
+ */
+export async function renderHtml({ html, width, height, scale = 2, name = "page" }) {
+  const { page, errors } = await openPage({ html, width, height, scale, name });
   const shot = await page.screenshot({ type: "png", fullPage: false });
   await page.close();
   if (errors.length) console.warn(`  ! ${name}: ${[...new Set(errors)].join(" | ")}`);

@@ -135,9 +135,9 @@ export function horizon({ W, H, y, r = W * 1.9, left = "#FF8A3D", right = "#3E8B
 /** The brand's electric blue as a bright ground, lit from the top left. */
 export function electric({ W, H, angle = 170 } = {}) {
   return [
-    fill(`linear-gradient(${angle}deg, #2F80FF 0%, #0B5DF2 34%, #0648C8 68%, #042F8C 100%)`),
-    glow({ x: W * 0.15, y: H * 0.12, rx: W * 0.75, ry: H * 0.28, color: "190 225 255", alpha: 0.4, blur: 40 }),
-    glow({ x: W * 0.8, y: H * 0.95, rx: W * 0.8, ry: H * 0.26, color: "2 10 70", alpha: 0.6, blur: 50 }),
+    fill(`linear-gradient(${angle}deg, #0A52DC 0%, #0A55E4 30%, #0645C4 64%, #032C84 100%)`),
+    glow({ x: W * 0.72, y: H * 0.5, rx: W * 0.7, ry: H * 0.24, color: "110 175 255", alpha: 0.32, blur: 50 }),
+    glow({ x: W * 0.8, y: H * 0.97, rx: W * 0.8, ry: H * 0.24, color: "2 10 70", alpha: 0.6, blur: 50 }),
   ].join("\n");
 }
 

@@ -61,7 +61,7 @@ body{position:relative;font-family:"Inter",sans-serif;-webkit-font-smoothing:ant
 .h6{font-family:"Poppins","Inter",sans-serif;font-weight:600;letter-spacing:-0.03em;line-height:1.06}
 .serif{font-family:"Instrument Serif",serif;font-style:italic;font-weight:400;letter-spacing:-0.01em}
 .accent-d{background:linear-gradient(92deg,#5C9FFF 0%,#8FD3FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.accent-l{color:#0069FE}
+.accent-l{color:#0056D0}
 .warm{background:linear-gradient(92deg,#FF6B1A 0%,#FFB27A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .body-d{color:rgba(255,255,255,.72);font-weight:400}
 .body-l{color:#4A5170;font-weight:400}
@@ -164,7 +164,7 @@ export function popup({ theme = "dark", icon: ic, title, sub, amount = "", time 
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:${s(12)}px;justify-content:space-between">
         <div style="font:700 ${s(31)}px/1.15 Poppins,Inter,sans-serif;letter-spacing:-0.02em;color:${d ? "#fff" : "#0A1030"};white-space:nowrap">${title}</div>
-        ${time ? `<div style="font:500 ${s(22)}px/1 Inter,sans-serif;color:${d ? "rgba(255,255,255,.55)" : "#6B7290"};white-space:nowrap">${time}</div>` : ""}
+        ${time ? `<div style="font:500 ${s(22)}px/1 Inter,sans-serif;color:${d ? "rgba(255,255,255,.62)" : "#5A6079"};white-space:nowrap">${time}</div>` : ""}
       </div>
       <div style="margin-top:${s(7)}px;font:450 ${s(24)}px/1.3 Inter,sans-serif;color:${d ? "rgba(225,234,255,.78)" : "#4A5170"}">${sub}</div>
       ${amount || chipText ? `<div style="margin-top:${s(12)}px;display:flex;align-items:center;gap:${s(14)}px">
@@ -176,7 +176,7 @@ export function popup({ theme = "dark", icon: ic, title, sub, amount = "", time 
 
 /** The quiet corner labels the reference mockups carry, in Vallo's words. */
 export function corners({ left = "", right = "vallospaces.com", theme = "light", top = 56, side = 64, size = 21, style = "" } = {}) {
-  const col = theme === "light" ? "#6A7089" : "rgba(214,226,255,.62)";
+  const col = theme === "light" ? "#5A6079" : "rgba(214,226,255,.62)";
   const st = `position:absolute;top:${top}px;font:500 ${size}px/1 Inter,sans-serif;letter-spacing:.01em;color:${col};white-space:nowrap;${style}`;
   return `${left ? `<div style="${st};left:${side}px">${left}</div>` : ""}${right ? `<div style="${st};right:${side}px">${right}</div>` : ""}`;
 }

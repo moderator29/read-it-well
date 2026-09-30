@@ -4,7 +4,7 @@
  */
 import { headline, popup, sticker, pill, px, reflection } from "../components.mjs";
 import { night, glow, beam, rings, ribbon, photo, art, stars, floorGlow, fill, electric, stage, bokeh } from "../grounds.mjs";
-import { frame, vignette, darkBase, iconDisc, dotted, noteCard } from "./common.mjs";
+import { frame, vignette, darkBase, stickerIn, pairVignette, pairBoxes, iconDisc, dotted, noteCard } from "./common.mjs";
 import { icon, artUrl } from "../lib.mjs";
 
 /* Points along a quadratic Bezier, for the string of lights. */
@@ -24,13 +24,19 @@ export const SET_B = [
       const p = await ctx.phone({ id: "restaurants", cx: W * 0.46, cy, h: f.phoneH, rotation: { x: -6, y: 15, z: -2 }, fov: 26 });
       const b = p.box;
       return [
-        fill("linear-gradient(180deg, #0A0B3C 0%, #0B0A30 45%, #1C0E26 78%, #120818 100%)"),
-        glow({ x: W * 0.55, y: H * 0.86, rx: W * 0.85, ry: 560, color: "255 140 60", alpha: 0.32, blur: 50 }),
-        glow({ x: W * 0.35, y: cy - 200, rx: W * 0.6, ry: f.phoneH * 0.42, color: "0 105 254", alpha: 0.42, blur: 40 }),
-        stars({ W, H, count: 30, top: 30, bottom: f.phoneTop, seed: 81 }),
-        vignette(0.4),
         p.html,
         headline({ lines: ["Find a restaurant", "you love"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
+      ].join("\n");
+    },
+    ground({ W, H, pageW, u, ctxs }) {
+      const [a, b] = pairBoxes(ctxs, W);
+      return [
+        fill("linear-gradient(180deg, #0A0B3C 0%, #0B0A30 45%, #1C0E26 78%, #120818 100%)"),
+        glow({ x: W, y: H * 0.88, rx: W * 1.5, ry: 600 * u, color: "255 140 60", alpha: 0.32, blur: 50 }),
+        glow({ x: a.cx - 120 * u, y: a.cy - 200 * u, rx: W * 0.6, ry: a.h * 0.42, color: "0 105 254", alpha: 0.42, blur: 40 }),
+        glow({ x: b.cx + 120 * u, y: b.cy - 200 * u, rx: W * 0.6, ry: b.h * 0.42, color: "0 105 254", alpha: 0.42, blur: 40 }),
+        stars({ W: pageW, H, count: 56, top: 30, bottom: H * 0.2, seed: 81 }),
+        pairVignette(0.4),
       ].join("\n");
     },
     bridge({ W, H, pageW, u }) {
@@ -57,11 +63,6 @@ export const SET_B = [
       const p = await ctx.phone({ id: "restaurant", cx: W * 0.55, cy, h: f.phoneH, rotation: { x: -6, y: -15, z: 2 }, fov: 26, color: "natural-titanium" });
       const b = p.box;
       return [
-        fill("linear-gradient(180deg, #0A0B3C 0%, #0B0A30 45%, #1C0E26 78%, #120818 100%)"),
-        glow({ x: W * 0.45, y: H * 0.86, rx: W * 0.85, ry: 560, color: "255 140 60", alpha: 0.32, blur: 50 }),
-        glow({ x: W * 0.65, y: cy - 200, rx: W * 0.6, ry: f.phoneH * 0.42, color: "0 105 254", alpha: 0.42, blur: 40 }),
-        stars({ W, H, count: 30, top: 30, bottom: f.phoneTop, seed: 82 }),
-        vignette(0.4),
         p.html,
         popup({ x: 44 * u, y: b.y + b.h * 0.6, w: 920 * u, rotate: -3, emoji: "1f942", tone: "warm", title: "Table for 2", line: "Tonight, 8:00 PM · Harbour Lights Kitchen", meta: "now", example: true, scale: u * 1.06 }),
         headline({ lines: ["Reserve your table", "in seconds"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
@@ -86,7 +87,7 @@ export const SET_B = [
           glows: [{ x: W * 0.55, y: cy, rx: W * 0.66, ry: f.phoneH * 0.5, alpha: 0.46, blur: 40 }, { x: sx, y: sy, rx: 420, ry: 420, color: "143 211 255", alpha: 0.2, blur: 30 }] }),
         `<svg class="g" style="left:0;top:0;z-index:7" width="${W}" height="${H}">${waves}</svg>`,
         p.html,
-        sticker({ code: "1f4e3", x: sx, y: sy, size: 250 * u, rotate: -14, z: 36 }),
+        stickerIn(ctx, { code: "1f4e3", x: sx, y: sy, size: 250 * u, rotate: -14, z: 36 }),
         headline({ lines: ["Hear what's happening", "around you"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -108,9 +109,9 @@ export const SET_B = [
           glows: [{ x: W * 0.62, y: cy - 150, rx: W * 0.62, ry: f.phoneH * 0.46, alpha: 0.48, blur: 40 }] }),
         `<svg class="g" style="left:0;top:0;z-index:7" width="${W}" height="${H}">${arc(W * 0.62, 0.16)}${arc(W * 0.46, 0.12)}</svg>`,
         p.html,
-        noteCard({ x: 60 * u, y: b.y + b.h * 0.16, w: cw * 0.94, lucide: "house", title: "New home", line: "For your saved search", meta: "2m", example: true, s: u * 0.98, rotate: 4, z: 31 }),
-        noteCard({ x: 36 * u, y: b.y + b.h * 0.33, w: cw * 1.02, lucide: "file-check", title: "Agreement confirmed", line: "By both of you", meta: "1m", example: true, s: u * 1.04, rotate: -2, z: 33 }),
-        noteCard({ x: 48 * u, y: b.y + b.h * 0.51, w: cw * 1.08, lucide: "calendar-check", title: "Inspection set", line: "Saturday, 11:00 AM", meta: "now", example: true, s: u * 1.1, rotate: -5, z: 35 }),
+        noteCard({ x: 64 * u, y: b.y + b.h * 0.16, w: cw * 0.94, lucide: "house", title: "New home", line: "For your saved search", meta: "2m", example: true, s: u * 0.98, rotate: 4, z: 31 }),
+        noteCard({ x: 52 * u, y: b.y + b.h * 0.33, w: cw * 1.02, lucide: "file-check", title: "Agreement confirmed", line: "By both of you", meta: "1m", example: true, s: u * 1.04, rotate: -2, z: 33 }),
+        noteCard({ x: 56 * u, y: b.y + b.h * 0.51, w: cw * 1.08, lucide: "calendar-check", title: "Inspection set", line: "Saturday, 11:00 AM", meta: "now", example: true, s: u * 1.1, rotate: -5, z: 35 }),
         headline({ lines: ["Know the moment", "anything changes"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -127,12 +128,12 @@ export const SET_B = [
       const b = p.box;
       return [
         night({ top: "#03052C", mid: "#020424", bottom: "#010118" }),
-        `<div class="g" style="left:${px(W * 0.5 - 760 * u)};top:${px(f.phoneTop - 420 * u)};width:${px(1520 * u)};height:${px(1520 * u)};border-radius:50%;background:radial-gradient(circle at 38% 34%, rgb(190 230 255 / 0.9) 0%, rgb(92 159 255 / 0.85) 18%, rgb(0 105 254 / 0.75) 38%, rgb(40 40 200 / 0.4) 60%, rgb(2 4 40 / 0) 72%);filter:blur(30px);opacity:0.8;z-index:1"></div>`,
+        `<div class="g" style="left:${px(W * 0.5 - 760 * u)};top:${px(f.phoneTop - 120 * u)};width:${px(1520 * u)};height:${px(1520 * u)};border-radius:50%;background:radial-gradient(circle at 38% 34%, rgb(190 230 255 / 0.9) 0%, rgb(92 159 255 / 0.85) 18%, rgb(0 105 254 / 0.75) 38%, rgb(40 40 200 / 0.4) 60%, rgb(2 4 40 / 0) 72%);filter:blur(30px);opacity:0.8;z-index:1"></div>`,
         glow({ x: W * 0.82, y: f.phoneTop + 200, rx: 420, ry: 420, color: "255 150 90", alpha: 0.18, blur: 40 }),
         stars({ W, H, count: 40, top: 30, bottom: H * 0.9, seed: 111 }),
         vignette(0.45),
         p.html,
-        sticker({ code: "2728", x: Math.min(b.r + 20 * u, W - 90 * u), y: b.y - 10 * u, size: 150 * u, rotate: 12 }),
+        stickerIn(ctx, { code: "2728", x: Math.min(b.r + 20 * u, W - 90 * u), y: b.y - 10 * u, size: 150 * u, rotate: 12 }),
         headline({ lines: ["Ask the AI assistant,", "any time of day"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -181,7 +182,7 @@ export const SET_B = [
         stage({ W, H, floorY: b.b + 4 * u }),
         beam({ x: W / 2, top: -200, h: b.b + 200, wTop: 200 * u, wBottom: W * 1.3, alpha: 0.2, blur: 50 }),
         stars({ W, H, count: 24, top: 30, bottom: f.phoneTop, seed: 131 }),
-        reflection(p, { opacity: 0.3, length: 0.26 }),
+        reflection(p, { opacity: 0.3, length: 0.26, bottom: H - 8 }),
         p.html,
         ...discs,
         headline({ lines: ["Everything,", "one tap away"], cx: W / 2, y: f.hlTop - (ios ? 10 : 10), max: f.max, size: f.size }),
@@ -202,7 +203,7 @@ export const SET_B = [
         electric({ W, H }),
         rings({ W, H, cx: W * 0.45, cy: cy + 260 * u, r: W * 0.86, ratio: 0.3, rotate: -8, alpha: 0.2, count: 3 }),
         p.html,
-        popup({ x: W - 900 * u - 40 * u, y: b.y + b.h * 0.44, w: 900 * u, rotate: -3, theme: "light", lucide: "landmark", title: "Payment settled", line: "Straight to the owner's bank", meta: "now", example: true, scale: u * 1.1 }),
+        popup({ x: W - 900 * u - 60 * u, y: b.y + b.h * 0.44, w: 900 * u, rotate: -3, theme: "light", lucide: "landmark", title: "Payment settled", line: "Straight to the owner's bank", meta: "now", example: true, scale: u * 1.1 }),
         headline({ lines: ["Vallo never holds", "your money"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size, accent: 0,
           sub: "Money goes straight to the owner, the host or the business, through Paystack.", subSize: 40 * u, subMax: f.max * 0.9, subColor: "#FFFFFF" }),
       ].join("\n");
@@ -228,8 +229,8 @@ export const SET_B = [
           glows: [{ x: W * 0.56, y: cy - 100, rx: W * 0.64, ry: f.phoneH * 0.48, alpha: 0.48, blur: 40 }] }),
         p.html,
         /* A card and a bank account settle into the empty half of the screen. */
-        card(70 * u, p.at(0, 1830)[1], -9, "linear-gradient(135deg, #3E8BFF 0%, #0069FE 45%, #003F98 100%)", 31),
-        card(150 * u, p.at(0, 2150)[1], 5, "linear-gradient(135deg, #1B2466 0%, #0E1447 55%, #060A2E 100%)", 32, true),
+        card(70 * u, p.at(0, 1770)[1], -9, "linear-gradient(135deg, #3E8BFF 0%, #0069FE 45%, #003F98 100%)", 31),
+        card(150 * u, p.at(0, 2030)[1], 5, "linear-gradient(135deg, #1B2466 0%, #0E1447 55%, #060A2E 100%)", 32, true),
         headline({ lines: ["Your cards and banks,", "in one place"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -273,7 +274,7 @@ export const SET_B = [
         stage({ W, H, floorY: b.b + 4 * u }),
         glow({ x: W / 2, y: cy, rx: W * 0.7, ry: f.phoneH * 0.5, alpha: 0.4, blur: 40 }),
         `<svg class="g" style="left:0;top:0;z-index:2" width="${W}" height="${H}">${dial}</svg>`,
-        reflection(p, { opacity: 0.28, length: 0.26 }),
+        reflection(p, { opacity: 0.28, length: 0.26, bottom: H - 8 }),
         p.html,
         popup({ x: W / 2 - 470 * u, y: b.y - 40 * u, w: 940 * u, rotate: 0, emoji: "1f512", title: "Passcode on", line: "Vallo locks when you step away", meta: "now", scale: u * 1.1 }),
         headline({ lines: ["Lock Vallo", "with a passcode"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
@@ -296,7 +297,7 @@ export const SET_B = [
         glow({ x: W * 0.85, y: cy + 400, rx: W * 0.55, ry: 700, color: "255 178 122", alpha: 0.3, blur: 50 }),
         stars({ W, H, count: 30, top: 30, bottom: H * 0.5, seed: 171 }),
         p.html,
-        sticker({ code: "1f91d", x: Math.min(b.r - 10 * u, W - 130 * u), y: b.y + b.h * 0.64, size: 240 * u, rotate: 8 }),
+        stickerIn(ctx, { code: "1f91d", x: Math.min(b.r - 10 * u, W - 130 * u), y: b.y + b.h * 0.64, size: 240 * u, rotate: 8 }),
         headline({ lines: ["Help from", "a real person"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },

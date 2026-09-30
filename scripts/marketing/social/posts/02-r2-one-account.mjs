@@ -36,10 +36,10 @@ export default {
       <div class="ribbon" style="left:-120px;top:520px;width:420px;height:160px;background:linear-gradient(90deg,#9CC6FF,#D9C8FF);transform:rotate(-24deg)"></div>
       <div class="ribbon" style="left:820px;top:980px;width:420px;height:170px;background:linear-gradient(90deg,#FFD0B0,#FFB27A);transform:rotate(-18deg)"></div>
       ${grain(0.05, "soft-light")}
-      <div class="word">ONE<span style="display:inline-block;width:.34em"></span>ACCOUNT</div>
+      <div class="word noaudit">ONE<span style="display:inline-block;width:.34em"></span>ACCOUNT</div>
       ${phoneHtml(phones[0], { shadowOpacity: 0.85 })}
       ${phoneHtml(phones[1], { shadowOpacity: 0.85 })}
-      ${corners({ left: "Vallo &nbsp;·&nbsp; Homes and stays", right: "vallospaces.com", top: 52 })}
+      ${corners({ left: "Vallo &nbsp;·&nbsp; Get started", right: "vallospaces.com", top: 52 })}
       `,
     }),
 };

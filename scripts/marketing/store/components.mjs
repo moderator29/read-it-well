@@ -26,7 +26,7 @@ export function headline({
   const dark = theme === "dark";
   const ink = color || (dark ? "#FFFFFF" : "#07102E");
   const g = grad || (dark
-    ? "linear-gradient(92deg, #A9DEFF 0%, #6FB1FF 45%, #3E8BFF 100%)"
+    ? "linear-gradient(92deg, #BDE5FF 0%, #86C2FF 45%, #5C9FFF 100%)"
     : "linear-gradient(92deg, #0056D0 0%, #1F4FE6 55%, #3A36D8 100%)");
   const lineHtml = lines.map((l, i) => {
     let t = esc(l);
@@ -140,11 +140,11 @@ export function placePhone(p, { cx, cy, z = 20, extra = "" }) {
  * mirrored about the line `gap` px below the body's lowest point and faded
  * out over `length` of the handset's height.
  */
-export function reflection(pl, { gap = 4, length = 0.2, opacity = 0.2, z = 19, blur = 5 } = {}) {
+export function reflection(pl, { gap = 4, length = 0.2, opacity = 0.2, z = 19, blur = 5, bottom = Infinity } = {}) {
   const { src, left, top, w, h } = pl.img;
   const floor = pl.box.b + gap;
-  const H = h * length;
-  return `<div class="abs" style="left:${px(left)};top:${px(floor)};width:${px(w)};height:${px(H)};overflow:hidden;z-index:${z};opacity:${opacity};-webkit-mask-image:linear-gradient(180deg, #000 0%, rgb(0 0 0 / 0.5) 35%, transparent 100%);mask-image:linear-gradient(180deg, #000 0%, rgb(0 0 0 / 0.5) 35%, transparent 100%)">
+  const H = Math.min(h * length, bottom - floor);
+  return `<div class="abs" data-bleed style="left:${px(left)};top:${px(floor)};width:${px(w)};height:${px(H)};overflow:hidden;z-index:${z};opacity:${opacity};-webkit-mask-image:linear-gradient(180deg, #000 0%, rgb(0 0 0 / 0.5) 35%, transparent 100%);mask-image:linear-gradient(180deg, #000 0%, rgb(0 0 0 / 0.5) 35%, transparent 100%)">
     <img src="${src}" style="position:absolute;left:0;top:${px(top - floor)};width:${px(w)};height:${px(h)};transform:scaleY(-1);transform-origin:50% ${px(floor - top)};filter:blur(${blur}px)"></div>`;
 }
 

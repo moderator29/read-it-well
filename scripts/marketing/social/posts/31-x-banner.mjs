@@ -13,9 +13,9 @@ export default {
   W: 1500,
   H: 500,
   phones: [
-    { ...PH, screen: "stays", rotation: { x: 10, y: 14, z: 7 }, h: 600, cx: 976, top: 168 },
-    { ...PH, screen: "home", model: "android", color: "silver", rotation: { x: 10, y: 0, z: 0 }, h: 640, cx: 1164, top: 86 },
-    { ...PH, screen: "restaurant", rotation: { x: 10, y: -14, z: -7 }, h: 600, cx: 1346, top: 168 },
+    { ...PH, screen: "stays", rotation: { x: 10, y: 14, z: 7 }, h: 570, cx: 950, top: 176 },
+    { ...PH, screen: "home", model: "android", color: "silver", rotation: { x: 10, y: 0, z: 0 }, h: 620, cx: 1126, top: 92 },
+    { ...PH, screen: "restaurants", rotation: { x: 10, y: -14, z: -7 }, h: 570, cx: 1302, top: 176 },
   ],
   html: ({ W, H, phones }) =>
     page({
@@ -34,14 +34,14 @@ export default {
         radial-gradient(1.4px 1.4px at 47% 30%, rgba(255,255,255,.5), transparent 60%),
         radial-gradient(1.2px 1.2px at 56% 10%, rgba(255,255,255,.6), transparent 60%),
         radial-gradient(1.3px 1.3px at 21% 40%, rgba(255,255,255,.45), transparent 60%)}
-      .tag{position:absolute;left:96px;top:198px;font-size:60px;color:#fff;line-height:1.02}
-      .soon{position:absolute;left:100px;top:292px;font:500 24px/1 Inter;color:rgba(214,226,255,.78);letter-spacing:.005em}
+      .tag{position:absolute;left:96px;top:170px;font-size:57px;color:#fff;line-height:1.02}
+      .soon{position:absolute;left:100px;top:258px;font:500 24px/1 Inter;color:rgba(214,226,255,.8);letter-spacing:.005em}
       `,
       body: `
       <div class="ground"></div>
       <div class="stars"></div>
       ${grain(0.06, "overlay")}
-      <div class="abs" style="left:96px;top:112px">${wordmark({ theme: "dark", h: 56 })}</div>
+      <div class="abs" style="left:96px;top:90px">${wordmark({ theme: "dark", h: 54 })}</div>
       <div class="tag h">Real estate, <span class="accent-d">done right.</span></div>
       <div class="soon">Coming soon on iPhone and Android.</div>
       ${phoneHtml(phones[0], { shadowOpacity: 1 })}

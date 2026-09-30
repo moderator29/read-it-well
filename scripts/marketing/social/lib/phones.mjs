@@ -126,7 +126,7 @@ export async function phoneLayer(spec, { W, H, scale = 2, draft = false }) {
     height: RH,
     fill,
     offset,
-    supersample: draft ? 1 : spec.supersample ?? 1.5,
+    supersample: draft ? 1 : spec.supersample ?? 2,
     shadow,
     shadowMode: shadow.type === "none" ? "composite" : "separate",
     screenFit: spec.screenFit,

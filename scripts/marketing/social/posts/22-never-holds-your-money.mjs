@@ -39,7 +39,7 @@ export default {
       .arrow .hd{position:relative;left:22px;color:#0069FE}
       .note{position:absolute;left:78px;right:78px;top:846px;font:500 30px/1.4 Inter;color:#3B4262;letter-spacing:-.01em}
       .note b{color:#070B2A;font-weight:650}
-      .foot{position:absolute;left:78px;right:78px;bottom:52px;display:flex;align-items:center;justify-content:space-between;font:500 22px/1 Inter;color:#6A7089}
+      .foot{position:absolute;left:78px;right:78px;bottom:52px;display:flex;align-items:center;justify-content:space-between;font:500 22px/1 Inter;color:#5A6079}
       `,
       body: `
       <div class="ground"></div>

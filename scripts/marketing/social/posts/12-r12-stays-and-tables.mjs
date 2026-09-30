@@ -32,8 +32,8 @@ export default {
       ${grain(0.06, "soft-light")}
       ${phoneHtml(phones[0], { shadowOpacity: 0.9 })}
       ${phoneHtml(phones[1], { shadowOpacity: 0.9 })}
-      ${corners({ left: "", right: "vallospaces.com", theme: "dark", top: 52, side: 60, size: 22, style: "color:rgba(255,255,255,.9)" })}
-      ${corners({ left: "Vallo &nbsp;·&nbsp; Stays and tables", right: "", theme: "dark", top: 1126, side: 60, size: 22, style: "color:rgba(22,20,90,.72)" })}
+      ${corners({ left: "", right: "vallospaces.com", theme: "dark", top: 52, side: 60, size: 22, style: "color:#14125A" })}
+      ${corners({ left: "Vallo &nbsp;·&nbsp; Stays and tables", right: "", theme: "dark", top: 1126, side: 60, size: 22, style: "color:#14125A" })}
       `,
     }),
 };

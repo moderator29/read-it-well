@@ -197,10 +197,10 @@ async function edgeCheck(m) {
     halves.forEach((half, k) => {
       const hr = half.getBoundingClientRect();
       const els = [
-        ...half.querySelectorAll(".st, .pop, .pill, .card, .abs:not(.g), .hl .ln, .hl .sub, .ebpill"),
+        ...half.querySelectorAll(".st, .pop, .pill, .card, .abs:not(.g), .hl .ln, .hl .sub, .ebpill, [data-chk]"),
       ];
       for (const el of els) {
-        if (el.closest("[data-bleed]")) continue;
+        if (el.closest("[data-bleed]") && !el.hasAttribute("data-chk")) continue;
         const r = el.getBoundingClientRect();
         if (r.width === 0 || r.height === 0) continue;
         const d = Math.min(r.left - hr.left, hr.right - r.right, r.top - hr.top, hr.bottom - r.bottom);
@@ -269,6 +269,11 @@ for (const store of STORE_LIST) {
       }
       if (partner && shot.bridge) {
         parts.push(await shot.bridge({ W: S.W, H: S.H, pageW, store, u: S.W / 1320, ctxs }));
+      }
+      /* A pair's ground is drawn once across both images, so it runs
+         unbroken through the seam. */
+      if (partner && shot.ground) {
+        parts.unshift(await shot.ground({ W: S.W, H: S.H, pageW, store, u: S.W / 1320, ctxs, ios: store === "app-store" }));
       }
       const html = page({ width: pageW, height: S.H, body: parts.join("\n") });
       const buf = await renderHtml(html, pageW, S.H);
