@@ -256,8 +256,13 @@ export function AccountHero({
         </Link>
       </div>
 
-      {/* --------------------------------- the person, beside the picture */}
-      <div className="nf-pf-id">
+      {/* ---------------------- the person, on the hero band under the cover
+          (plan item 16; spec section 16, Q2: "the profile and trust hero").
+          The photograph stays a photograph; the face, the name with its
+          tier, the handle, the bio and the counts sit on one clean band that
+          laps the cover's foot: navy on the warm paper in light, the raised
+          night surface at night. */}
+      <div className="nf-pf-id nf-hero-band" data-theme="dark">
         <button
           type="button"
           onClick={() => avatarInput.current?.click()}

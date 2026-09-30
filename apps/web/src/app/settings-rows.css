@@ -561,8 +561,13 @@
    * same family as everything else on the screen, one step down in presence
    * rather than one step towards grey.
    */
+  /* SUPERSEDED FOR THE ROWS (plan item 16, 30 September 2026). Inside the
+     white group cards in light, a line of brand-tinted slate under every
+     label read as a stray blue line through the card. The clean spec's row
+     sub-line (section 1.1) is the neutral `--nf-content-subtle` in both
+     themes, as on every other grouped list. */
   .nf-hub .nf-srow__sub {
-    color: color-mix(in oklab, var(--nf-brand-secondary) 30%, var(--nf-content-secondary));
+    color: var(--nf-content-subtle);
   }
   .nf-hub .nf-srow__value {
     color: var(--nf-content-primary);
