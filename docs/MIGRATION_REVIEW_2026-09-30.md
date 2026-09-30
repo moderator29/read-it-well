@@ -70,6 +70,13 @@ it was last written before the review commit (0d751029) and matches the review
 point for point. Its read-back passed. The cron and alerts tests pass
 (23 files, 293 tests).
 
+| 18 | `20260930160000` | `20260930123325` | `c13b_an_acknowledgement_stays_with_the_first_person` (APPLY, verdict 4203acbd; file as at 50ee22c4) |
+
+Row 18 was applied after its review. Its read-back passed, including the live
+probe alert: the guard refused a second person taking it, and the row was
+deleted in the same transaction (0 probe alerts remain). The alert-related
+tests pass (16 files, 240 tests).
+
 The verdicts below are the review as it was written before the apply.
 
 ## Summary

@@ -1,7 +1,7 @@
 -- C13b: AN ACKNOWLEDGEMENT STAYS WITH THE FIRST PERSON (30 September 2026).
 --
--- PENDING. A follow-up to 20260930122539_c13_alert_acknowledged_by_and_skipped_runs.sql,
--- written for the lead to review and apply; not applied by its author.
+-- Applied 30 September 2026 with the founder's approval. A follow-up to
+-- 20260930122539_c13_alert_acknowledged_by_and_skipped_runs.sql.
 -- Replaces one trigger function and re-creates its trigger. Adds nothing,
 -- drops no data, changes no policy (RLS on public.risk_alerts is untouched:
 -- `risk_alerts_admin_all` stays the only policy), and is safe to run twice.
