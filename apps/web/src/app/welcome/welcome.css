@@ -250,13 +250,9 @@
     object-fit: cover;
     object-position: 50% 30%;
   }
+  /* Get started is always dark (layout.tsx, the night door), so the day
+     photograph never shows. */
   .nf-gs-photo__img--light {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-gs-photo__img--light {
-    display: block;
-  }
-  :root[data-theme="light"] .nf-gs-photo__img--dark {
     display: none;
   }
 
@@ -905,17 +901,9 @@
     align-items: center;
     gap: var(--nf-space-xs);
   }
+  /* Always dark (the night door): the day lockup never shows. */
   .nf-gs-lockup__set--day {
     display: none;
-  }
-  :root[data-theme="light"] :is(.nf-gs-lockup--canvas, .nf-gs-lockup--themed) .nf-gs-lockup__set--day {
-    display: inline-flex;
-  }
-  :root[data-theme="light"] :is(.nf-gs-lockup--canvas, .nf-gs-lockup--themed) .nf-gs-lockup__set--night {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-gs-lockup--themed {
-    filter: none;
   }
   .nf-gs-question {
     margin-top: var(--nf-space-2xl);
