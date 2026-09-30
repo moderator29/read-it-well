@@ -64,6 +64,7 @@
  */
 
 import { looksNative, nativePlatform } from "@/lib/native/platform";
+import { readMotion } from "@/lib/motion/motion-pref";
 
 export type FeedbackKind = "select" | "confirm" | "success" | "warning" | "error";
 
@@ -147,7 +148,12 @@ async function haptics(): Promise<HapticsPlugin | null> {
 
 function reducedMotion(): boolean {
   try {
-    return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true) return true;
+    /* B14: the in-app Motion setting says the same thing in the app's own
+       words. Calm and Off turn feedback down exactly as the system's
+       reduce-motion does: success and error only. */
+    const level = readMotion().level;
+    return level === "calm" || level === "off";
   } catch {
     return false;
   }

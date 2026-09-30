@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { feedback } from "@/lib/ui/feedback";
 
 const REVEAL = 96;
 const OPEN_AT = 56;
@@ -78,6 +79,8 @@ export function SwipeToRemove({
           start.current = null;
           setDragging(false);
           if (!s || s.locked !== "x") return;
+          /* B14: crossing the threshold is felt once, as a confirm. */
+          if (dx <= -OPEN_AT && s.base > -OPEN_AT) feedback("confirm");
           setDx((now) => (now <= -OPEN_AT ? -REVEAL : 0));
         }}
         onPointerCancel={() => {

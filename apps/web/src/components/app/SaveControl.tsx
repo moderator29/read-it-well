@@ -11,6 +11,7 @@ import {
 } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { toggleSave } from "@/lib/saved/actions";
+import { feedback } from "@/lib/ui/feedback";
 import {
   saveRestaurant,
   saveStay,
@@ -265,6 +266,7 @@ export function useSaveControl(
           say(result.error, "error");
           return;
         }
+        if (next) feedback("confirm");
         say(next ? "Saved" : "Removed");
         return;
       }
@@ -281,6 +283,7 @@ export function useSaveControl(
         if (next) addLocalSave(listingId);
         else removeLocalSave(listingId);
         deviceChanged();
+        if (next) feedback("confirm");
         say(next ? "Saved on this device" : "Removed");
         return;
       }
@@ -294,6 +297,8 @@ export function useSaveControl(
 
       const settled = result.data.mode === "db" ? result.data.saved : next;
       setOverride(settled);
+      /* B14: the heart is felt only once the save is ACCEPTED, as a confirm. */
+      if (settled) feedback("confirm");
       say(settled ? "Saved" : "Removed");
     }
   }, [listingId, pending, place, saved, say, OUTBOX_COPY]);

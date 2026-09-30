@@ -21,7 +21,8 @@ import { ShareSheet } from "@/components/app/messages/ShareSheet";
 import type { SharedKind } from "@/components/app/messages/share";
 import { createShareLink } from "@/lib/share/actions";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import { nativeHaptic, nativeShare } from "@/lib/native/device";
+import { nativeShare } from "@/lib/native/device";
+import { feedback } from "@/lib/ui/feedback";
 
 /**
  * The two controls that float over the gallery: share and save.
@@ -228,6 +229,7 @@ export function ListingActions({
         // A catalogue id can never be a row, so the device owns this save.
         if (next) addLocalSave(listingId);
         else removeLocalSave(listingId);
+        if (next) feedback("confirm");
         /* And the store is told, so every other heart for this listing on the
            page behind this one moves with it rather than waiting for a reload. */
         deviceSavesChanged();
@@ -235,7 +237,10 @@ export function ListingActions({
         return;
       }
       setSaved(result.data.saved);
-      if (result.data.saved) void nativeHaptic("success");
+      /* B14: a save accepted by the server is a CONFIRM. "success" is kept
+         for money and confirmed viewings, so a heart never feels like a
+         settled payment. */
+      if (result.data.saved) feedback("confirm");
       say(result.data.saved ? "Saved to your shortlist" : "Removed from saved");
     });
   }

@@ -48,6 +48,7 @@ import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
 import { accountNumbersIn, isAccountMoment } from "@/lib/messages/account-moment";
 import { offPlatformAsk } from "@/lib/messages/off-platform-ask";
 import { ScamShield } from "@/components/app/messages/ScamShield";
+import { feedback } from "@/lib/ui/feedback";
 import type { AccountCheckView } from "@/lib/messages/account-check";
 import type { ChargeOffer } from "@/lib/messages/charge-offer";
 import { PushPrompt } from "@/components/app/push/PushPrompt";
@@ -448,6 +449,8 @@ export function ThreadView({
   }, []);
 
   const markFailed = useCallback((tempId: string) => {
+    /* B14: a message that failed and was kept is felt as a warning. */
+    feedback("warning");
     setItems((prev) => prev.map((m) => (m.id === tempId ? { ...m, state: "failed" } : m)));
   }, []);
 
@@ -480,6 +483,8 @@ export function ThreadView({
       if (!tempId) return;
       waitingKeys.current.delete(detail.key);
       const sent = detail.data as { id: string; createdAt: string };
+      /* B14: delivered from the outbox, felt as a confirm (on delivery, not on the tap). */
+      feedback("confirm");
       adoptResult(tempId, sent.id, lagosTimeLabel(sent.createdAt));
     };
     window.addEventListener(OUTBOX_SENT_EVENT, onSent);
