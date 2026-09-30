@@ -9,6 +9,7 @@ import type { LockMode } from "@/lib/passcode/decide";
 import { fill, herePath, markTabUnlocked } from "@/lib/passcode/tab";
 import { feedback } from "@/lib/ui/feedback";
 import { Keypad, PasscodeDots } from "./Keypad";
+import { PasskeyUnlockKey } from "./PasskeyUnlockKey";
 import { PasscodeFrame } from "./PasscodeFrame";
 
 export type PasscodeCopy = Dictionary["passcode"];
@@ -33,6 +34,7 @@ export function PasscodeLock({
   avatarUrl,
   onUnlocked,
   verify = verifyPasscodeAction,
+  passkey = false,
 }: {
   copy: PasscodeCopy;
   locale: Locale;
@@ -45,6 +47,8 @@ export function PasscodeLock({
   onUnlocked?: () => void;
   /** The check. Always the real action in the app; the preview harness passes a fixture. */
   verify?: (code: string) => Promise<VerifyResult>;
+  /** C14: this member has a platform key, so the keypad offers Face ID or fingerprint. */
+  passkey?: boolean;
 }) {
   const titleId = useId();
   const router = useRouter();
@@ -186,6 +190,21 @@ export function PasscodeLock({
             disabled={busy || cooling || leaving}
             label={copy.keypadLabel}
             deleteLabel={copy.deleteKey}
+            accessory={
+              passkey && !cooling ? (
+                <PasskeyUnlockKey
+                  disabled={busy || leaving}
+                  onUnlocked={() => {
+                    feedback("success");
+                    markTabUnlocked();
+                    setMessage(null);
+                    if (onUnlocked) onUnlocked();
+                    router.refresh();
+                  }}
+                  onFailed={() => setMessage("That did not work. Enter your passcode instead.")}
+                />
+              ) : undefined
+            }
           />
         </>
       )}

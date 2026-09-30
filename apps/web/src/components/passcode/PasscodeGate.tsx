@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { resolvePasscodeGate } from "@/lib/passcode/state";
+import { passkeyUnlockOffered } from "@/lib/passcode/passkey-unlock";
 import { PasscodeGuard } from "./PasscodeGuard";
 import { PasscodeLock } from "./PasscodeLock";
 import { PasscodeSetup } from "./PasscodeSetup";
@@ -34,13 +35,24 @@ export async function PasscodeGate({
 }) {
   const { view } = await resolvePasscodeGate();
   const copy = t.passcode;
+  /* C14: one read of whether this member holds a platform key; only asked
+     when a lock can be drawn. A failed read is "no", which leaves the code. */
+  const passkey = view.kind === "unlocked" || view.kind === "locked" ? await passkeyUnlockOffered().catch(() => false) : false;
 
   switch (view.kind) {
     case "open":
       return <>{children}</>;
     case "unlocked":
       return (
-        <PasscodeGuard copy={copy} locale={locale} length={view.length} mint={view.mint} name={name} avatarUrl={avatarUrl}>
+        <PasscodeGuard
+          copy={copy}
+          locale={locale}
+          length={view.length}
+          mint={view.mint}
+          name={name}
+          avatarUrl={avatarUrl}
+          passkey={passkey}
+        >
           {children}
         </PasscodeGuard>
       );
@@ -56,6 +68,7 @@ export async function PasscodeGate({
           lockedUntil={view.lockedUntil}
           name={name}
           avatarUrl={avatarUrl}
+          passkey={passkey && view.mode === "code"}
         />
       );
   }

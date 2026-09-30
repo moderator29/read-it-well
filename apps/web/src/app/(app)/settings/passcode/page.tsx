@@ -6,6 +6,8 @@ import { getShellIdentity } from "@/lib/app/shell-queries";
 import { readPasscodeSession, readPasscodeStatus, sessionSignedInWithin } from "@/lib/passcode/state";
 import { FRESH_RESET_SECONDS } from "@/lib/passcode/rules";
 import { PasscodeSettings } from "./PasscodeSettings";
+import { PasskeyIdleSetting } from "./PasskeyIdleSetting";
+import { passkeyUnlockOffered } from "@/lib/passcode/passkey-unlock";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -57,6 +59,11 @@ export default async function PasscodeSettingsPage() {
         name={identity.signedIn && identity.userName !== "Guest" ? identity.userName : ""}
         avatarUrl={identity.avatarUrl}
       />
+      {state === "set" ? (
+        <div className="mt-block">
+          <PasskeyIdleSetting hasPasskey={await passkeyUnlockOffered().catch(() => false)} />
+        </div>
+      ) : null}
     </div>
   );
 }
