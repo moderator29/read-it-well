@@ -30,6 +30,8 @@ import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { savedBoardKey, uniqueBoardKeys } from "./saved-board-key";
 import { motionQuiet } from "@/lib/motion/gate";
 import { SwipeToRemove } from "./SwipeToRemove";
+import { changeLine, type SavedChange, type SavedChangeCopy } from "@/lib/saved/changes";
+import Link from "next/link";
 
 /**
  * The shortlist, made interactive.
@@ -69,9 +71,16 @@ export type SavedBoardItem = {
    */
   place?: SavePlaceTarget;
   card: ReactNode;
+  /** B13: what moved on this listing lately (lib/saved/changes.ts). */
+  changes?: SavedChange[];
+  /** B13: where "See similar nearby" goes when it is no longer available. */
+  similarHref?: string;
 };
 
 type Phase = "removed" | "restoring";
+
+/** B13: the last time this phone opened Saved. */
+const SAVED_VISIT_KEY = "vallo_saved_last_visit";
 
 function sameOrder(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((id, i) => id === b[i]);
@@ -82,6 +91,7 @@ export function SavedBoard({
   comparable = 0,
   compare,
   copy = { shortlist: "Your shortlist", ready: "Ready to compare" },
+  changeCopy,
 }: {
   items: SavedBoardItem[];
   /** B3: how many saved properties the compare can take as columns. */
@@ -89,6 +99,8 @@ export function SavedBoard({
   /** B3: the compare control (SavedCompare), drawn beside the count. */
   compare?: ReactNode;
   copy?: { shortlist: string; ready: string };
+  /** B13: the change lines' words; without them no line is drawn. */
+  changeCopy?: SavedChangeCopy & { similar: string };
 }) {
   const locale = useClientLocale();
   const router = useRouter();
@@ -101,6 +113,22 @@ export function SavedBoard({
      and Off it is replaced at once. */
   const [leaving, setLeaving] = useState<Record<string, true>>({});
   const synced = useRef(false);
+  /* B13: when this phone last opened Saved, read once per mount (the
+     LastVisit pattern), so a change line says "since you last looked". */
+  const [lastSaved, setLastSaved] = useState<number | null | undefined>(undefined);
+  useEffect(() => {
+    let before: number | null = null;
+    try {
+      const raw = window.localStorage.getItem(SAVED_VISIT_KEY);
+      const parsed = raw === null ? Number.NaN : Number(raw);
+      before = Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+      window.localStorage.setItem(SAVED_VISIT_KEY, String(Date.now()));
+    } catch {
+      before = null;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLastSaved(before);
+  }, []);
 
   /* Slots, phases and messages are keyed by shelf and id (`savedBoardKey`),
      never by id alone: a listing and a place are two tables, and a repeated
@@ -319,6 +347,9 @@ export function SavedBoard({
                     >
                       {item.card}
                     </SwipeToRemove>
+                    {changeCopy && lastSaved !== undefined ? (
+                      <ChangeLine item={item} since={lastSaved} locale={locale} copy={changeCopy} />
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => unsave(item)}
@@ -381,5 +412,36 @@ function CountedPhrase({ phrase, value, locale }: { phrase: string; value: numbe
       <CountUp value={value} tag={intlTag[locale]} eager />
       {phrase.slice(at + num.length)}
     </>
+  );
+}
+
+/**
+ * B13: one muted line on a saved card when something moved since this phone
+ * last opened Saved: the price, availability, or new viewing windows. A place
+ * that is no longer available offers similar places nearby. It stays saved.
+ */
+function ChangeLine({
+  item,
+  since,
+  locale,
+  copy,
+}: {
+  item: SavedBoardItem;
+  since: number | null;
+  locale: Locale;
+  copy: SavedChangeCopy & { similar: string };
+}) {
+  const line = changeLine(item.changes, since, locale, copy);
+  if (!line) return null;
+  return (
+    <p className="nf-saved-change" data-gone={line.gone || undefined} data-testid="saved-change">
+      <UiIcon name={line.gone ? "info" : "history"} size={16} />
+      <span>{line.text}</span>
+      {line.gone && item.similarHref ? (
+        <Link href={item.similarHref} className="nf-saved-change__similar">
+          {copy.similar}
+        </Link>
+      ) : null}
+    </p>
   );
 }

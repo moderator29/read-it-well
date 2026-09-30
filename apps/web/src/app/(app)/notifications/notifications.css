@@ -106,3 +106,49 @@
     margin-top: var(--nf-space-md);
   }
 }
+
+/* B11: "Needs you" rows carry their one verb inline; bundles open in place. */
+@layer components {
+  .nf-notif__needs {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-notif__needs-open {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    color: inherit;
+  }
+  .nf-notif__needs .nf-notif__time {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+  }
+  .nf-notif__verb {
+    flex: none;
+    min-height: 2.75rem;
+  }
+  .nf-notif__fold {
+    flex: none;
+    align-self: center;
+    color: var(--nf-content-muted);
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  [aria-expanded="true"] > .nf-notif__fold {
+    transform: rotate(180deg);
+  }
+  .nf-notif__bundle {
+    padding-inline-start: var(--nf-space-lg);
+    border-top: 1px solid var(--nf-divider);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-notif__fold {
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-notif__fold {
+    transition: none;
+  }
+}

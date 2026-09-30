@@ -9,6 +9,8 @@ import { loadNotificationPage } from "@/lib/notify/inbox";
 import { Reveal } from "@/components/site/Reveal";
 import { toNotificationItem, type NotificationItem } from "@/lib/notify/links";
 import { LiveNotifications } from "./LiveNotifications";
+import { loadUnreadCounts } from "@/lib/messages/unread";
+import { sectionClock } from "@/lib/notify/sections";
 
 export const metadata: Metadata = { title: "Notifications" };
 
@@ -33,7 +35,12 @@ export default async function NotificationsPage() {
   const session = await resolveSession();
 
   if (session.state === "signed-in") {
-    const page = await loadNotificationPage(session.supabase);
+    /* B11: the conversations still waiting on this person, so a message row
+       stays in "Needs you" until the thread is read, not the row. */
+    const [page, unread] = await Promise.all([
+      loadNotificationPage(session.supabase),
+      loadUnreadCounts(session.supabase),
+    ]);
 
     /* A failed read is a fault and says so. It used to arrive here as an
        empty list and render "You are all caught up", which is the one thing
@@ -62,7 +69,13 @@ export default async function NotificationsPage() {
        control has to sit in it and only that component knows what is unread. */
     return (
       <div className="mx-auto max-w-2xl">
-        <LiveNotifications initial={initial} initialMore={page.more} userId={session.user.id} />
+        <LiveNotifications
+          initial={initial}
+          initialMore={page.more}
+          userId={session.user.id}
+          openThreads={unread ? [...unread.byConversation.keys()] : []}
+          now={sectionClock()}
+        />
       </div>
     );
   }

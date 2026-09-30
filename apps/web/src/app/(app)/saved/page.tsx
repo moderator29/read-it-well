@@ -17,6 +17,8 @@ import { resolveSession } from "@/lib/actions/session";
 import { shelfFromListing } from "@/lib/offline/shelf";
 import { comparable, compareTable } from "@/lib/saved/compare";
 import { SavedCompare } from "./SavedCompare";
+import { readSavedChanges } from "@/lib/saved/changes";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const metadata: Metadata = { title: "Saved" };
 
@@ -64,6 +66,14 @@ export default async function SavedPage() {
   ]);
   /* V-77: the phone's shelf is kept for one account at a time. */
   const owner = session.state === "signed-in" ? session.user.id : null;
+  /* B13: what moved on these saves lately (none until the migration lands). */
+  const changes =
+    session.state === "signed-in"
+      ? await readSavedChanges(
+          session.supabase as unknown as SupabaseClient,
+          entries.filter((e) => e.mode === "db").map((e) => e.listing.id),
+        )
+      : new Map();
 
   /* The copies are built here, from the same rows the cards draw, so the
      phone's copy cannot disagree with the card. */
@@ -116,6 +126,8 @@ export default async function SavedPage() {
           eager={entry.savedAt === newest}
         />
       ),
+      changes: changes.get(entry.listing.id),
+      similarHref: `/search?q=${encodeURIComponent(entry.listing.area || entry.listing.city)}`,
     })),
     ...places.map<SavedBoardItem>((entry) => ({
       id: entry.row.entity_id,
@@ -168,6 +180,7 @@ export default async function SavedPage() {
         items={items}
         comparable={compare.columns.length}
         copy={{ shortlist: cc.shortlist, ready: cc.ready }}
+        changeCopy={t.catalogue.savedChanges}
         compare={
           <SavedCompare
             table={compare}

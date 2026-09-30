@@ -4,6 +4,7 @@ import { sameOriginPath } from "./same-origin";
 import { quietVerdict, readQuietHours } from "./quiet-hours";
 import type { PushPayload } from "./types";
 import { actionsFor, recipientLocale } from "./actions";
+import { severityOf } from "@/lib/notify/severity";
 
 /**
  * EVERY DECISION ABOUT ONE QUEUED PUSH, AS A PURE FUNCTION.
@@ -132,6 +133,12 @@ export function decide(input: {
     return { action: "suppress", outcome: "suppressed_preference" };
   }
 
+  /* B13: a price drop on a saved place pushes unless the member turned that
+     one off (settings, "Price drops on places you saved", default on). */
+  if (isSavedPriceDrop(notification.href) && !wantsSavedPriceDrops(settings)) {
+    return { action: "suppress", outcome: "suppressed_preference" };
+  }
+
   const urgent = isUrgentKind(notification.kind) || isUrgentPath(notification.href);
   const quiet = quietVerdict({ quiet: readQuietHours(settings), at: now, urgent });
   if (quiet.held) {
@@ -153,6 +160,8 @@ export function decide(input: {
       href: safeHref(notification.href),
       tag: collapseTag(notification.kind),
       urgent,
+      /* B11: an fyi never wakes the phone: it arrives silent. */
+      quiet: !urgent && severityOf(notification).severity === "fyi",
       actions: actionsFor(notification.kind, notification.href, recipientLocale(settings)),
     },
   };
@@ -241,4 +250,18 @@ export function planCollapse(
   }
 
   return { send, collapsed };
+}
+
+/** B13: the saved-place price-drop notification (the pending trigger's href). */
+export function isSavedPriceDrop(href: string | null): boolean {
+  return typeof href === "string" && /^\/listing\/[^?#]+\?(?:.*&)?change=price-down(?:&|$)/.test(href);
+}
+
+/** B13: the member's "price drops on places you saved" push switch; on unless turned off. */
+export function wantsSavedPriceDrops(settings: unknown): boolean {
+  if (!settings || typeof settings !== "object") return true;
+  const notifications = (settings as Record<string, unknown>).notifications;
+  if (!notifications || typeof notifications !== "object") return true;
+  const value = (notifications as Record<string, unknown>).savedPriceDrops;
+  return value !== false;
 }

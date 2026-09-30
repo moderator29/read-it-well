@@ -389,3 +389,27 @@
     animation: none;
   }
 }
+
+/* ------------------------------------------- B13: changes on saved places */
+@layer components {
+  .nf-saved-change {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-2xs) var(--nf-space-xs);
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-saved-change > svg {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-saved-change__similar {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+}

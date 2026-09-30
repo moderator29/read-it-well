@@ -17,6 +17,9 @@ import {
 } from "@/lib/messages/useRealtime";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
+import Link from "next/link";
+import { bundle, type SeverityVerb, type SeverityVerdict } from "@/lib/notify/severity";
+import { sectionRows } from "@/lib/notify/sections";
 
 /**
  * The signed-in notifications inbox, in the home register.
@@ -79,15 +82,34 @@ function iconFor(kind: string): UiIconName {
   return KIND_ICON[kind] ?? "bell";
 }
 
+/* B11: the one verb an action row offers inline. English with the rest of
+   this screen's words, which have not reached the dictionary yet. */
+const VERB: Record<SeverityVerb, string> = {
+  reply: "Reply",
+  confirm: "Confirm",
+  review: "Review",
+  addDetails: "Add details",
+  check: "Check",
+  renew: "Renew",
+  open: "Open",
+};
+
 export function LiveNotifications({
   initial,
   initialMore = false,
   userId,
+  openThreads = [],
+  now = 0,
 }: {
   initial: NotificationItem[];
   /** True when the server read stopped at a page and older rows exist. */
   initialMore?: boolean;
   userId: string;
+  /** B11: conversations that still hold an unread message for this person. */
+  openThreads?: string[];
+  /** The server's clock at render, so the 14-day window agrees on hydration.
+      Without it (a preview) no row ages out of "Needs you". */
+  now?: number;
 }) {
   const router = useRouter();
   const [items, setItems] = useState<NotificationItem[]>(initial);
@@ -210,64 +232,66 @@ export function LiveNotifications({
     );
   }
 
-  /* New is everything unread, Earlier is everything else. Order inside each is
-     the order the database gave us, which is newest first. */
-  const sections: { label: string; items: NotificationItem[] }[] = [
-    { label: "New", items: items.filter((n) => !n.read) },
-    { label: "Earlier", items: items.filter((n) => n.read) },
-  ].filter((section) => section.items.length > 0);
+  /*
+   * B11: NEEDS YOU, THEN NEW, THEN EARLIER (lib/notify/sections.ts). "Needs
+   * you" holds the action rows that are still open, each with its one verb
+   * inline; a row leaves it when its record is done where the record can say
+   * so (a conversation with nothing unread), otherwise when it is opened.
+   * Rows about one conversation or one post fold into one row that opens.
+   */
+  const sectioned = sectionRows(items, new Set(openThreads), now);
+  const sections: { key: string; label: string; entries: { row: NotificationItem; verdict: SeverityVerdict }[] }[] = [
+    { key: "needs", label: "Needs you", entries: sectioned.needsYou },
+    { key: "new", label: "New", entries: sectioned.fresh },
+    { key: "earlier", label: "Earlier", entries: sectioned.earlier },
+  ].filter((section) => section.entries.length > 0);
 
   return (
     <div>
       {header}
 
       <div className="nf-notif">
-        {sections.map((section) => (
-          /* ONE GROUPED LIST per section, rows on inset hairlines inside a
-             single card (section 17: notifications read as one list, not a
-             stack of cards), each glyph on the ROUND tinted plate of
-             reference 44. Unread is the dot, the title at full weight and
-             primary ink, never colour alone. */
-          <ListGroup
-            key={section.label}
-            aria-label={section.label}
-            label={section.label}
-            action={
-              <span
-                className="nf-notif__count nf-numeric"
-                aria-label={`${section.items.length} in ${section.label}`}
-              >
-                {section.items.length}
-              </span>
-            }
-            className="nf-notif__group"
-          >
-            {section.items.map((n) => (
-              <ListRow
-                key={n.id}
-                className={n.read ? "nf-notif__row" : "nf-notif__row nf-notif__row--unread"}
-                leading={
-                  <IconPlate size="sm" shape="round" tone={KIND_TONE[n.kind] ?? "neutral"}>
-                    <UiIcon name={iconFor(n.kind)} size={ICON_PLATE_GLYPH.sm} />
-                  </IconPlate>
-                }
-                title={n.title}
-                sub={n.body || undefined}
-                value={<span className="nf-notif__time nf-numeric">{lagosTimeLabel(n.createdAt)}</span>}
-                status={
-                  n.read ? undefined : (
-                    <>
-                      <span aria-hidden="true" className="nf-notif__dot" />
-                      <span className="sr-only">Unread</span>
-                    </>
-                  )
-                }
-                {...(n.href ? { href: n.href } : {})}
-                onClick={() => markOne(n.id)}
-              />
-            ))}
-          </ListGroup>
-        ))}
+        {sections.map((section) => {
+          const verdicts = new Map(section.entries.map((e) => [e.row.id, e.verdict]));
+          const bundles = bundle(section.entries.map((e) => e.row));
+          return (
+            /* ONE GROUPED LIST per section, rows on inset hairlines inside a
+               single card (section 17), each glyph on the ROUND tinted plate
+               of reference 44. Unread is the dot, the title at full weight
+               and primary ink, never colour alone. */
+            <ListGroup
+              key={section.key}
+              aria-label={section.label}
+              label={section.label}
+              action={
+                <span
+                  className="nf-notif__count nf-numeric"
+                  aria-label={`${section.entries.length} in ${section.label}`}
+                >
+                  {section.entries.length}
+                </span>
+              }
+              className={`nf-notif__group${section.key === "needs" ? " nf-notif__group--needs" : ""}`}
+              data-testid={`notifications-${section.key}`}
+            >
+              {bundles.map((b) =>
+                section.key === "needs" ? (
+                  <NeedsRow
+                    key={b.key}
+                    lead={b.lead}
+                    count={b.rows.length}
+                    verb={verdicts.get(b.lead.id)?.verb}
+                    onOpen={() => b.rows.forEach((r) => !r.read && markOne(r.id))}
+                  />
+                ) : b.rows.length > 1 ? (
+                  <BundleRow key={b.key} rows={b.rows} onOpen={(id) => markOne(id)} />
+                ) : (
+                  <PlainRow key={b.key} n={b.lead} onOpen={() => markOne(b.lead.id)} />
+                ),
+              )}
+            </ListGroup>
+          );
+        })}
       </div>
 
       {problem && (
@@ -290,5 +314,119 @@ export function LiveNotifications({
         </div>
       )}
     </div>
+  );
+}
+
+function plateFor(n: NotificationItem) {
+  return (
+    <IconPlate size="sm" shape="round" tone={KIND_TONE[n.kind] ?? "neutral"}>
+      <UiIcon name={iconFor(n.kind)} size={ICON_PLATE_GLYPH.sm} />
+    </IconPlate>
+  );
+}
+
+function unreadMark(read: boolean) {
+  return read ? undefined : (
+    <>
+      <span aria-hidden="true" className="nf-notif__dot" />
+      <span className="sr-only">Unread</span>
+    </>
+  );
+}
+
+function PlainRow({ n, onOpen }: { n: NotificationItem; onOpen(): void }) {
+  return (
+    <ListRow
+      className={n.read ? "nf-notif__row" : "nf-notif__row nf-notif__row--unread"}
+      leading={plateFor(n)}
+      title={n.title}
+      sub={n.body || undefined}
+      value={<span className="nf-notif__time nf-numeric">{lagosTimeLabel(n.createdAt)}</span>}
+      status={unreadMark(n.read)}
+      {...(n.href ? { href: n.href } : {})}
+      onClick={onOpen}
+    />
+  );
+}
+
+/** "3 new messages": one row that opens to the rows it folds. */
+function BundleRow({ rows, onOpen }: { rows: NotificationItem[]; onOpen(id: string): void }) {
+  const [open, setOpen] = useState(false);
+  const lead = rows[0]!;
+  const unread = rows.some((r) => !r.read);
+  const title = lead.kind === "message" ? `${rows.length} new messages` : `${rows.length} updates on one post`;
+  return (
+    <li className="nf-list-item">
+      <button
+        type="button"
+        className={`nf-list-row nf-list-row--two nf-notif__row${unread ? " nf-notif__row--unread" : ""}`}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        data-testid="notification-bundle"
+      >
+        <span className="nf-list-row__lead">{plateFor(lead)}</span>
+        <span className="nf-list-row__text">
+          <span className="nf-list-row__title">{title}</span>
+          <span className="nf-list-row__sub">{lead.body || lead.title}</span>
+        </span>
+        <span className="nf-list-row__end">
+          <span className="nf-list-row__value">
+            <span className="nf-notif__time nf-numeric">{lagosTimeLabel(lead.createdAt)}</span>
+          </span>
+          {unreadMark(!unread)}
+        </span>
+        <UiIcon name="chevron-down" size={16} className="nf-notif__fold" />
+      </button>
+      {open ? (
+        <ul className="nf-notif__bundle">
+          {rows.map((n) => (
+            <PlainRow key={n.id} n={n} onOpen={() => onOpen(n.id)} />
+          ))}
+        </ul>
+      ) : null}
+    </li>
+  );
+}
+
+/** A "Needs you" row: the record, and its one verb beside it. */
+function NeedsRow({
+  lead,
+  count,
+  verb,
+  onOpen,
+}: {
+  lead: NotificationItem;
+  count: number;
+  verb?: SeverityVerb;
+  onOpen(): void;
+}) {
+  const title = count > 1 && lead.kind === "message" ? `${count} new messages` : lead.title;
+  const inner = (
+    <>
+      <span className="nf-list-row__lead">{plateFor(lead)}</span>
+      <span className="nf-list-row__text">
+        <span className="nf-list-row__title">{title}</span>
+        {lead.body ? <span className="nf-list-row__sub">{lead.body}</span> : null}
+        <span className="nf-notif__time nf-numeric">{lagosTimeLabel(lead.createdAt)}</span>
+      </span>
+    </>
+  );
+  return (
+    <li className="nf-list-item">
+      <div className="nf-list-row nf-list-row--two nf-notif__row nf-notif__row--unread nf-notif__needs">
+        {lead.href ? (
+          <Link href={lead.href} onClick={onOpen} className="nf-notif__needs-open">
+            {inner}
+          </Link>
+        ) : (
+          <div className="nf-notif__needs-open">{inner}</div>
+        )}
+        {verb && lead.href ? (
+          <ButtonLink href={lead.href} size="sm" variant="primary" onClick={onOpen} className="nf-notif__verb">
+            {VERB[verb]}
+          </ButtonLink>
+        ) : null}
+      </div>
+    </li>
   );
 }
