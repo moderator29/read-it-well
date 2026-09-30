@@ -86,10 +86,20 @@
     inset: 0;
     transition: transform var(--nf-duration-deliberate) var(--nf-ease-standard);
   }
-  @media (hover: hover) {
-    .nf-pcard:hover .nf-pcard__photo {
-      transform: scale(1.04);
+  /* THE PHOTO LEANS IN ON HOVER (plan item 27): a 3 percent zoom inside the
+     media's own clip, over about 600ms, on listing and stay cards alike. A
+     fine pointer only, so a finger never leaves a card zoomed, and never
+     while the card is pressed (the press is lane A's). Off under reduced
+     motion (below) and under the Calm and Off motion settings. */
+  @media (hover: hover) and (pointer: fine) {
+    .nf-pcard:hover:not(:active) .nf-pcard__photo {
+      transform: scale(1.03);
     }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pcard__photo,
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pcard:hover:not(:active) .nf-pcard__photo {
+    transition: none;
+    transform: none;
   }
   /*
    * THE BODY'S SCALE IS THE RENDER'S, and the old one was half again too
@@ -2208,8 +2218,8 @@
     .nf-stays-tile:active {
       transform: none;
     }
-    @media (hover: hover) {
-      .nf-pcard:hover .nf-pcard__photo {
+    @media (hover: hover) and (pointer: fine) {
+      .nf-pcard:hover:not(:active) .nf-pcard__photo {
         transform: none;
       }
     }
