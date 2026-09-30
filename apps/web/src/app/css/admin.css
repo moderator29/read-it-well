@@ -910,6 +910,56 @@
     box-shadow: var(--nf-selected-shadow-inline);
   }
 
+  /*
+   * ONE FILTER LANGUAGE (integration QA O2, 30 September; spec section 7).
+   * The queue stacked two brand-filled rows: lane tabs ("All 42",
+   * "Listings 18") over status chips ("All", "Pending"). Both are filters,
+   * so both are now the QUIET SEGMENTED control: a raised well, the choices
+   * as bare labels on it, the chosen one on the white thumb (the raised
+   * night surface in dark) with the card shadow. No brand fill and no glow
+   * on either row; the status dot keeps each state's hue, never colour
+   * alone, since the word is always there.
+   */
+  .nf-admin-tabs,
+  .nf-admin-status {
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-3xs);
+    border-radius: var(--nf-plate-radius-md);
+    background: var(--nf-surface-raised);
+  }
+  .nf-admin-tabs,
+  .nf-admin-status {
+    width: fit-content;
+    max-width: 100%;
+  }
+  .nf-admin-status__label {
+    padding-inline: var(--nf-space-xs) var(--nf-space-2xs);
+  }
+  .nf-admin-tab,
+  .nf-admin-chip {
+    border-radius: var(--nf-radius-control-sm);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: var(--nf-content-muted);
+    font-weight: 500;
+  }
+  .nf-admin-tab--on,
+  .nf-admin-chip--on,
+  .nf-admin-chip--all.nf-admin-chip--on {
+    color: var(--nf-content-primary);
+    border-color: var(--nf-card-border);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-card-shadow);
+    font-weight: 600;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-admin-tab:not(.nf-admin-tab--on):hover,
+    .nf-admin-chip:not(.nf-admin-chip--on):hover {
+      color: var(--nf-content-primary);
+    }
+  }
+
   /* ------------------------------------------------------------ table */
 
   /* The dense table is a list of rows on a grid, so a row can carry its
