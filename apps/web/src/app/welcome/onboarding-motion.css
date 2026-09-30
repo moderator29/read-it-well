@@ -40,6 +40,9 @@
     padding: calc(env(safe-area-inset-top, 0px) + var(--nf-space-xs)) var(--nf-space-md)
       max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
     color: var(--nf-content-primary);
+    /* One screen, never a scroll: the pill's glow and the scenes waiting
+       either side stay inside it. */
+    overflow: clip;
     /* The page scrolls up and down; sideways is the steps'. */
     touch-action: pan-y;
     -webkit-user-select: none;
