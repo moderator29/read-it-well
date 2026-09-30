@@ -1,9 +1,10 @@
 /* 28 · Education. "Before you pay rent: inspect first, and pay on Vallo, never
  * to anybody outside it." A warm paper notice, two numbered steps, and one
  * sticker pair that says it without words: a magnifier over a house.
- * "No inspection fee." quotes the live landing page (packages/i18n en.ts,
- * the landing eyebrow); the rest is the product's own advice. */
-import { grain, lockup, page, sticker } from "../lib/kit.mjs";
+ * "Vallo charges no inspection fee." is an approved claim (DESIGN.md, the
+ * founder, and the live landing page), set as its own badge so it reads at a
+ * glance. It speaks only for Vallo's own charges. */
+import { grain, icon, lockup, page, sticker } from "../lib/kit.mjs";
 
 export default {
   id: "28",
@@ -29,7 +30,10 @@ export default {
       .t{margin-left:92px;font:700 96px/1.0 Poppins;letter-spacing:-.035em;color:#1A0F08}
       .t2{margin-left:92px;margin-top:6px;font:700 56px/1.06 Poppins;letter-spacing:-.03em;color:#A83E08}
       .b{margin-left:94px;margin-top:22px;width:760px;font:500 30px/1.42 Inter;color:#5A4638}
-      .rule{position:absolute;left:86px;right:86px;top:752px;height:1.5px;background:linear-gradient(90deg,rgba(160,90,40,.25),rgba(160,90,40,.05))}
+      .fee{margin-left:92px;margin-top:22px;display:inline-flex;align-items:center;gap:14px;height:64px;padding:0 28px 0 18px;border-radius:20px;
+        background:linear-gradient(135deg,#C24A0C,#A8380A);color:#fff;font:700 29px/1 Inter;letter-spacing:-.01em;white-space:nowrap;
+        box-shadow:0 16px 36px rgba(168,56,10,.28), inset 0 1px 0 rgba(255,255,255,.18)}
+      .rule{position:absolute;left:86px;right:86px;top:780px;height:1.5px;background:linear-gradient(90deg,rgba(160,90,40,.25),rgba(160,90,40,.05))}
       .foot{position:absolute;left:86px;right:86px;bottom:80px;display:flex;align-items:center;justify-content:space-between;font:500 23px/1 Inter;color:#7A6456}
       `,
       body: `
@@ -39,13 +43,14 @@ export default {
       <div class="abs" style="left:770px;top:104px">${sticker("1f3e1", 208)}</div>
       <div class="abs" style="left:716px;top:222px;transform:rotate(-12deg)">${sticker("1f50d", 150)}</div>
       <div class="eyebrow">Before you pay rent</div>
-      <div class="step" style="top:436px">
+      <div class="step" style="top:414px">
         <div class="num">1</div>
         <div class="t">Inspect first.</div>
-        <div class="b">See the place in person before you agree to anything. No inspection fee.</div>
+        <div class="b">See the place in person before you agree to anything.</div>
+        <div class="fee">${icon("badge-check", { size: 30, color: "#FFFFFF", stroke: 2.2 })}Vallo charges no inspection fee.</div>
       </div>
       <div class="rule"></div>
-      <div class="step" style="top:812px">
+      <div class="step" style="top:832px">
         <div class="num">2</div>
         <div class="t">Pay on Vallo,</div>
         <div class="t2">never to anybody outside it.</div>

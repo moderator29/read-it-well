@@ -286,19 +286,21 @@ export const SET_C = [
   },
 ];
 
-/** Play's feature graphic, 1024 x 500. */
+/** Play's feature graphic, 1024 x 500: the wordmark, the line, one handset. */
 export async function FEATURE(ctx) {
   const W = 1024;
   const H = 500;
-  const p = await ctx.phone({ id: "home", cx: 790, cy: 262, h: 440, rotation: { x: -6, y: -18, z: 4 }, fov: 26 });
+  const p = await ctx.phone({ id: "home", cx: 792, cy: 250, h: 404, rotation: { x: -6, y: -20, z: 5 }, fov: 26, margin: 34 });
   return [
-    fill("linear-gradient(120deg, #06105C 0%, #030840 55%, #010118 100%)"),
-    glow({ x: 800, y: 250, rx: 360, ry: 300, alpha: 0.6, blur: 20 }),
-    glow({ x: 120, y: 60, rx: 360, ry: 200, color: "143 211 255", alpha: 0.16, blur: 30 }),
-    stars({ W, H, count: 30, seed: 3 }),
-    `<img class="abs" src="${brandUrl("vallo-wordmark.png")}" style="left:64px;top:118px;width:250px;z-index:30">`,
-    `<div class="abs" style="left:64px;top:196px;width:560px;z-index:30;font:700 52px/1.08 Poppins;letter-spacing:-0.03em;color:#fff">Real estate,<br><span style="background:linear-gradient(92deg,#A9DEFF,#6FB1FF 45%,#3E8BFF);-webkit-background-clip:text;background-clip:text;color:transparent">done right.</span></div>`,
-    `<div class="abs" style="left:64px;top:334px;z-index:30;font:500 22px/1.3 Inter;color:rgb(214 226 255 / 0.84)">Homes, stays and tables in one app.</div>`,
+    fill("linear-gradient(115deg, #071466 0%, #040A4A 40%, #020631 70%, #010118 100%)"),
+    glow({ x: 800, y: 250, rx: 330, ry: 260, alpha: 0.62, blur: 16 }),
+    glow({ x: 150, y: 40, rx: 380, ry: 180, color: "143 211 255", alpha: 0.14, blur: 24 }),
+    glow({ x: 990, y: 520, rx: 300, ry: 160, color: "255 107 26", alpha: 0.22, blur: 24 }),
+    stars({ W, H, count: 34, seed: 3, maxAlpha: 0.4 }).replace(/r="([\d.]+)"/g, (m, r) => `r="${(r * 0.55).toFixed(2)}"`),
+    rings({ W, H, cx: 792, cy: 300, r: 330, ratio: 0.3, rotate: -10, alpha: 0.16, count: 2, width: 1.4 }),
+    `<img class="abs" src="${brandUrl("vallo-wordmark.png")}" style="left:68px;top:112px;width:196px;z-index:30">`,
+    `<div class="abs" style="left:66px;top:178px;width:560px;z-index:30;font:700 56px/1.06 Poppins;letter-spacing:-0.03em;color:#fff">Real estate,<br><span style="background:linear-gradient(92deg,#BDE5FF,#86C2FF 45%,#5C9FFF);-webkit-background-clip:text;background-clip:text;color:transparent">done right.</span></div>`,
+    `<div class="abs" style="left:68px;top:320px;z-index:30;font:500 21px/1.3 Inter;color:rgb(222 232 255 / 0.9)">Homes, stays and tables in one app.</div>`,
     p.html,
   ].join("\n");
 }

@@ -76,7 +76,7 @@ function makeCtx(shot, store, offset) {
     async phone({ id, cx, cy, h, rotation, fov, color, shadow, z = 20, extra = "", reflection, exposure, envIntensity, keyLight, margin }) {
       const file = screenFile(id, store);
       if (!existsSync(file)) throw new Error(`missing display ${file}`);
-      const m = margin ?? 60 * (S.W / 1320);
+      const m = margin ?? 60 * ctx.u;
       let height = h;
       let pl;
       for (let pass = 0; pass < 4; pass += 1) {
@@ -85,17 +85,18 @@ function makeCtx(shot, store, offset) {
         let y = cy;
         pl = placePhone(p, { cx: x, cy: y, z, extra });
         const b = pl.box;
-        const tooWide = b.w > S.W - 2 * m;
-        const tooTall = b.h > S.H - 2 * m;
+        const { W: CW, H: CH } = ctx;
+        const tooWide = b.w > CW - 2 * m;
+        const tooTall = b.h > CH - 2 * m;
         if (tooWide || tooTall) {
-          const k = Math.min((S.W - 2 * m) / b.w, (S.H - 2 * m) / b.h) * 0.995;
+          const k = Math.min((CW - 2 * m) / b.w, (CH - 2 * m) / b.h) * 0.995;
           height = Math.floor(height * k);
           continue;
         }
         if (b.x < m) x += m - b.x;
-        if (b.r > S.W - m) x -= b.r - (S.W - m);
+        if (b.r > CW - m) x -= b.r - (CW - m);
         if (b.y < m) y += m - b.y;
-        if (b.b > S.H - m) y -= b.b - (S.H - m);
+        if (b.b > CH - m) y -= b.b - (CH - m);
         if (x !== cx || y !== cy) pl = placePhone(p, { cx: x, cy: y, z, extra });
         break;
       }
@@ -302,6 +303,7 @@ if (WITH_FEATURE && FEATURE) {
   const ctx = makeCtx({ n: 0 }, "google-play", 0);
   ctx.W = W;
   ctx.H = H;
+  ctx.u = 0.5;
   const body = await FEATURE(ctx);
   const buf = await renderHtml(page({ width: W, height: H, body }), W, H);
   const file = PROOF ? join(PROOF, "feature-graphic.jpg") : join(OUT, "google-play", "feature-graphic.png");
