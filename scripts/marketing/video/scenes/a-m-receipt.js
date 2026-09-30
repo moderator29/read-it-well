@@ -130,7 +130,7 @@ export async function buildReceiptMobile(ctx, T, product) {
   /* The five amounts fly one by one into the total, each with a tick: a copy lifts off its line and
      arcs through the empty lane between the labels and the amounts (never across other text), at
      three quarters of its size or more, into the total slot. */
-  const BULGE = 170;
+  const BULGE = 250;
   slots.forEach((s, k) => {
     if (!s.amount) return;
     const fly = ctx.el("div", { class: "abs", text: naira(LINES[k].amount), style: { right: `${PAD}px`, top: `${s.top + 11}px`, font: "700 32px/1.2 Inter, sans-serif", letterSpacing: "-0.01em", color: ELECTRIC, whiteSpace: "nowrap", visibility: "hidden", transformOrigin: "100% 50%" } }, body);
@@ -141,9 +141,10 @@ export async function buildReceiptMobile(ctx, T, product) {
       const on = raw > 0 && raw < 1;
       fly.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
+      /* out into the lane first, then down, then back into the slot: never across another amount */
       const u = ctx.ease("power2.inOut")(raw);
-      const x = -4 * BULGE * u * (1 - u);
-      const y = dy * u;
+      const x = -BULGE * Math.sqrt(Math.sin(Math.PI * raw));
+      const y = dy * ctx.ease("power2.inOut")(ctx.progress(raw, 0.22, 0.92));
       const sc = 1 - 0.28 * u;
       fly.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
       fly.style.opacity = String(Math.min(1, raw * 8) * (1 - ctx.progress(raw, 0.82, 1)));
@@ -153,7 +154,7 @@ export async function buildReceiptMobile(ctx, T, product) {
 
   /* ---------- the lift (row 11), the slow push through rows 12-13, and the fold ---------- */
   const lift = { t0: T.call, t1: T.call + 1.1 };
-  const fold = { t0: T.cardOut - 0.26, t1: END };
+  const fold = { t0: T.foldAt, t1: END };
   const V = A_OUT.villa;
   const PUSH_END = 1.02;
   const rest = (t) => {

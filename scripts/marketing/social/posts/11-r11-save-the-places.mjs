@@ -14,7 +14,7 @@ export default {
   file: "11-r11-save-the-places-you-love.png",
   W,
   H,
-  phones: [phone("saved", "night", { kind: "pose", rotation: { x: -24, y: -22, z: 10 }, fov: 36, w: 860, cx: 660, top: TOP }, { shadow: "none" })],
+  phones: [phone("saved", "night", { kind: "pose", rotation: { x: -24, y: -22, z: 10 }, fov: 36, w: 860, cx: 660, top: TOP }, { shadow: "none", images: [[40, 1110, 1280, 2020, "the saved villa's photograph"]] })],
   html: ({ phones }) =>
     frame({
       W,
@@ -23,7 +23,7 @@ export default {
       body: `
       ${headline(["Save the places", "you <k>love.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("saved-heart", { W, H, slot: "B", cy: (TOP + H) / 2 })}
+      ${icon3d("saved-heart", { W, H, slot: "B", top: 490 })}
       `,
     }),
 };

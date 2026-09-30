@@ -20,7 +20,7 @@ export default {
       H,
       ground: "night",
       body: `
-      ${headline(["Search, save", "and <k>message.</k>"], { W, H })}
+      ${headline(["Search, save,", "<k>message.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
       ${icon3d("envelope", { W, H, slot: "A" })}
       `,

@@ -20,9 +20,9 @@ export default {
       H,
       ground: "night",
       body: `
-      ${headline(["Your account", "takes a <k>minute.</k>"], { W, H })}
+      ${headline(["Sign up", "in a <k>minute.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("phone-code", { W, H, slot: "A" })}
+      ${icon3d("phone-code", { W, H, slot: "B", cy: 440 + 830 / 2 })}
       `,
     }),
 };

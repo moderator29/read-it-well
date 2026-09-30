@@ -14,7 +14,7 @@ export default {
   file: "19-talk-to-the-owner.png",
   W,
   H,
-  phones: [phone("thread", "night", PLACE.bleed({ w: 745, cx: 668 }), { edgeBand: [1377, 1430, "the first card's foot and the gap to the second card; card borders only, no text"] })],
+  phones: [phone("thread", "night", PLACE.bleed({ w: 660, cx: 630 }), { images: [[40, 1600, 1160, 1920, "the second shared listing's photograph"]] })],
   html: ({ phones }) =>
     frame({
       W,

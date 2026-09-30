@@ -24,7 +24,7 @@ export default {
       ${headline(["Reserve your", "table <k>tonight.</k>"], { W, H })}
       ${subline("The restaurant confirms, right inside Vallo.", { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("clock", { W, H, slot: "A" })}
+      ${icon3d("restaurant", { W, H, slot: "A" })}
       `,
     }),
 };

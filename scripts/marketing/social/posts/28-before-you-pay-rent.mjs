@@ -16,7 +16,7 @@ export default {
   file: "28-no-inspection-fee.png",
   W,
   H,
-  phones: [phone("welcome-3", "night", PLACE.bleed({ w: 700, cx: 650 }), { exemptBand: "the art" })],
+  phones: [phone("welcome-3", "night", PLACE.bleed({ w: 660, cx: 630 }), { images: [[40, 1300, 1280, 1960, "the welcome card's illustration"]] })],
   html: ({ phones }) =>
     frame({
       W,
@@ -26,7 +26,7 @@ export default {
       ${headline(["Vallo charges <k>no</k>", "inspection fee."], { W, H })}
       ${subline("Inspect first. Pay on Vallo, never to anybody outside it.", { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("calendar-pending", { W, H, slot: "B", cy: (490 + H) / 2 })}
+      ${icon3d("search", { W, H, slot: "B", cy: (490 + H) / 2 })}
       `,
     }),
 };

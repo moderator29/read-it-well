@@ -14,14 +14,14 @@ export default {
   file: "05-r5-search-homes-across-nigeria.png",
   W,
   H,
-  phones: [phone("search-buy", "night", { kind: "pose", rotation: { x: 13, y: 0, z: 0 }, fov: 30, w: 880, cx: 540, top: 452 }, { shadow: "none" })],
+  phones: [phone("search-buy", "night", { kind: "pose", rotation: { x: 13, y: 0, z: 0 }, fov: 30, w: 880, cx: 540, top: 452 }, { shadow: "none", images: [[30, 1190, 1290, 1680, "the first two listings' photographs"]] })],
   html: ({ phones }) =>
     frame({
       W,
       H,
       ground: "night",
       body: `
-      ${headline(["Search homes", "across <k>Nigeria.</k>"], { W, H })}
+      ${headline(["Search homes", "in <k>Nigeria.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
       ${icon3d("map", { W, H, slot: "A" })}
       `,

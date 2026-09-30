@@ -24,7 +24,7 @@ export default {
       ground: "night",
       body: `
       ${headline(["Lock it with", "a <k>passcode.</k>"], { W, H })}
-      ${subline("Vallo locks after five minutes away.", { W, H })}
+      ${subline("Vallo locks after five idle minutes.", { W, H })}
       ${phoneHtml(phones[0])}
       ${icon3d("passcode-lock", { W, H, slot: "A" })}
       `,

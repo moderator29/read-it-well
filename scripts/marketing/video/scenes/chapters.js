@@ -9,8 +9,8 @@ const b = (k) => k * B;
 export const CHAPTERS = [
   { start: b(28.1), end: b(36), parts: [["Find a ", false], ["home", true]] },
   { start: b(36), end: b(53), parts: [["The full cost, ", false], ["up front", true]] },
-  { start: b(58), end: b(71), parts: [["Talk straight to the ", false], ["lister", true]] },
-  { start: b(74), end: b(85), parts: [["Book a ", false], ["room", true]] },
+  { start: b(53), end: b(71), parts: [["Talk straight to the ", false], ["lister", true]] },
+  { start: b(74.6), end: b(85), parts: [["Book a ", false], ["room", true]] },
   { start: b(88), end: b(94), parts: [["Reserve a ", false], ["table", true]] },
   { start: b(94.3), end: b(109), parts: [["Checked by a ", false], ["person", true]] },
   { start: b(115), end: b(126), parts: [["Straight to the ", false], ["owner", true]] },

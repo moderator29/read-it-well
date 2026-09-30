@@ -22,7 +22,7 @@ export default {
       body: `
       ${headline(["Find your", "next <k>home.</k>"], { W, H })}
       ${phoneHtml(phones[0], { shadowOpacity: 0.9 })}
-      ${icon3d("rent", { W, H, slot: "A", ground: "mist" })}
+      ${icon3d("apartment", { W, H, slot: "A", ground: "mist" })}
       `,
     }),
 };

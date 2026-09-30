@@ -94,9 +94,9 @@ export async function buildReceiptDesktop(ctx, T, product) {
 
   /* ---------- the geometry: the lift, the settle, the slow push, the fold ---------- */
   const lift = { t0: T.call + 0.04, dur: 0.9, stagger: 0.03 };
-  const settle = { t0: T.call + 0.2, t1: T.call + 1.0 };
+  const settle = { t0: T.call + 0.62, t1: T.call + 1.1 };
   const liftEnd = lift.t0 + 0.07 + 5 * lift.stagger + lift.dur;
-  const fold = { t0: T.cardOut - 0.26, t1: END };
+  const fold = { t0: T.foldAt, t1: END };
   const PUSH_END = 1.02;
   const V = D_OUT.villa;
   const restS = (t) => (0.97 + 0.03 * ctx.ease("power2.out")(ctx.progress(t, settle.t0, settle.t1))) * (1 + (PUSH_END - 1) * ctx.ease("drift")(ctx.progress(t, liftEnd, fold.t0)));
@@ -128,10 +128,11 @@ export async function buildReceiptDesktop(ctx, T, product) {
     placeOnQuad(body, RC.w, RC.h, rectQuad(bf.x + (RC.w * bf.s) / 2, bf.y + (RC.h * bf.s) / 2, RC.w * bf.s, RC.h * bf.s, 0));
     if (t < fold.t0) {
       placeOnQuad(shell, RC.w, RC.h, rectQuad(C0.x, C0.y, RC.w * bf.s, RC.h * bf.s, 0));
-      const a = ctx.ease("power1.out")(ctx.progress(t, settle.t0, settle.t0 + 0.25));
-      surface.style.opacity = String(a);
+      /* the surface comes up under the pieces once they are most of the way there; what the receipt
+         prints itself comes after they land, so nothing overprints */
+      surface.style.opacity = String(ctx.ease("power1.out")(ctx.progress(t, settle.t0, settle.t0 + 0.25)));
       surface.style.borderRadius = "40px";
-      print.style.opacity = String(a);
+      print.style.opacity = String(ctx.ease("power1.inOut")(ctx.progress(t, liftEnd - 0.12, liftEnd + 0.2)));
       villa.style.visibility = "hidden";
       return;
     }
@@ -211,7 +212,7 @@ export async function buildReceiptDesktop(ctx, T, product) {
 
   /* Row 13: the five amounts fly one by one into the total: a copy lifts off its line and arcs out to
      the right (never across the names), at 0.7 of its size or more, and down into the total slot. */
-  const BULGE = 96;
+  const BULGE = 150;
   LINES.forEach((line, k) => {
     if (line.amount == null) return;
     const top = ROW0 + k * ROW_H + 18;
@@ -224,7 +225,7 @@ export async function buildReceiptDesktop(ctx, T, product) {
       fly.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
       const u = ctx.ease("power2.inOut")(raw);
-      fly.style.transform = `translate(${(4 * BULGE * u * (1 - u)).toFixed(1)}px, ${(dy * u).toFixed(1)}px) scale(${(1 - 0.3 * u).toFixed(3)})`;
+      fly.style.transform = `translate(${(BULGE * Math.sqrt(Math.sin(Math.PI * raw))).toFixed(1)}px, ${(dy * ctx.ease("power2.inOut")(ctx.progress(raw, 0.22, 0.92))).toFixed(1)}px) scale(${(1 - 0.3 * u).toFixed(3)})`;
       fly.style.opacity = String(Math.min(1, raw * 8) * (1 - ctx.progress(raw, 0.82, 1)));
     });
     tl.fromTo(amountEls[k].el, { color: NAVY }, { color: "#9aa3b4", duration: 0.2, ease: "power1.out" }, t0 + 0.02);
@@ -242,10 +243,10 @@ export async function buildReceiptDesktop(ctx, T, product) {
   tl.fromTo(card.root, { x: 520, y: -420, rotation: 22 }, { x: 0, y: 0, rotation: 3, duration: 0.5, ease: "back.out(1.15)" }, T.cardIn);
   /* its answer opens exactly as the total lands on "right" (28.87) */
   card.turn(T.cardTurn, { sound: null });
-  /* and it leaves for the top right in the section's last 0.2 s, to section c's start: centre
+  /* and it leaves for the top right as the fold starts (the receipt folds toward it), to section c's start: centre
      (2070, -330), 22 deg, 0.9, answer side up */
   const c0 = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
-  tl.fromTo(card.root, { x: 0, y: 0, rotation: 3, scale: 1 }, { x: 2070 - c0.x, y: -330 - c0.y, rotation: 22, scale: 0.9, duration: 0.2, ease: "power3.in", ...ir }, T.cardOut);
+  tl.fromTo(card.root, { x: 0, y: 0, rotation: 3, scale: 1 }, { x: 2070 - c0.x, y: -330 - c0.y, rotation: 22, scale: 0.9, duration: END - T.cardOut, ease: "power2.in", ...ir }, T.cardOut);
 
   /* ---------- under the fold: the window goes to WINDOW_LEFT on the thread, and undims ---------- */
   const thread = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1440px", height: "900px", overflow: "hidden", visibility: "hidden", zIndex: "20", opacity: "0" } }, win.content);

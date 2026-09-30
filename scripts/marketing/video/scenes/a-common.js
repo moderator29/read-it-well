@@ -93,7 +93,9 @@ export function timesPlus(ctx) {
      and holds until it leaves for the top right in the section's last 0.2 s. */
   T.cardIn = T.call + 1.12;
   T.cardTurn = T.right - 0.3;
-  T.cardOut = T.end - 0.2;
+  /* (desktop: the receipt folds toward it, so it leaves as the fold starts, over 0.46 s) */
+  T.foldAt = T.end - 0.46;
+  T.cardOut = ctx.isMobile ? T.end - 0.2 : T.foldAt;
   return T;
 }
 

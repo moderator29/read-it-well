@@ -16,7 +16,7 @@ export default {
   file: "22-never-holds-your-money.png",
   W,
   H,
-  phones: [phone("agreements", "night", PLACE.bleed({ cx: 620 }))],
+  phones: [phone("agreements", "night", PLACE.bleed({ w: 641, cx: 630 }))],
   html: ({ phones }) =>
     frame({
       W,

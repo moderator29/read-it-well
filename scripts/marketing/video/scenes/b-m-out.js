@@ -1,16 +1,17 @@
 /**
- * Mobile rows 23 and 24 (49.04 to 54.23), storyboard v3.1, on the warm light.
- *   23  the dusk (b-mobile.js): "Going out / tonight?" in WORDS, the letters
- *       windows onto a warm restaurant photo (atmosphere only, never named,
- *       at 1.15x), in the last ring; from 50.2 the camera pushes through the
- *       O of "Going" and the frame fills with warm light.
- *   24  restaurant-light rises (PHONE_HERO), its notice readable; on
- *       "reserve" the Table for 2 card (Example) arrives beside the phone;
- *       then the card flies off and the phone turns away.
+ * Mobile rows 23 and 24 (49.04 to 54.23), storyboard v3.2, on the mist.
+ *   23  "Going out" in navy, "tonight?" filled with a warm restaurant photo
+ *       (atmosphere only, never named, 1.3x at most, its edges feathered),
+ *       centred on the frame's axis in the electric ring. From 50.19 the
+ *       camera pushes through the "o" of "tonight?" and comes out on the
+ *       mist, where the restaurant rises.
+ *   24  restaurant-light at PHONE_HIGH, its notice readable; on "reserve"
+ *       the Table for 2 card arrives with its Example chip, over the
+ *       restaurant's photo (no text under it); it holds to 53.86 and flies
+ *       off; the phone turns away as the chapter ends.
  */
-import { ringBurst } from "../engine/components.js";
 import { LAYOUT } from "./layout.js";
-import { NAVY, INK2, DW, ramp, mix, screenPage, showDuring, glassCard, iconPlate, exampleChip, measure, quadAtPose } from "./b-kit.js";
+import { NAVY, INK2, ramp, mix, screenPage, showDuring, glassCard, iconPlate, exampleChip, measure, ringOut } from "./b-kit.js";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const svgEl = (tag, attrs, parent) => {
@@ -20,133 +21,143 @@ const svgEl = (tag, attrs, parent) => {
   return n;
 };
 
-export async function goingOut(ctx, S, T) {
+/**
+ * The row 23 title, shared by both films: "Going out" (navy) over
+ * "tonight?" (the photo), in a ring, pushed through the "o" of "tonight?".
+ */
+export function goingTitle(ctx, layer, T, { id, CX, CY, R, maxSize, feather, tPush }) {
   const { tl } = ctx;
+  const PH = { w: 1448 * 1.3, h: 1086 * 1.3 };
+  const svg = svgEl("svg", { width: ctx.W, height: ctx.H, viewBox: `0 0 ${ctx.W} ${ctx.H}`, style: "position:absolute;left:0;top:0;overflow:visible" }, layer);
+  const defs = svgEl("defs", {}, svg);
+  /* the letters of "tonight?" are the windows */
+  const mask = svgEl("mask", { id: `${id}-letters`, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: ctx.W, height: ctx.H }, defs);
+  svgEl("rect", { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: "black" }, mask);
+  const gMask = svgEl("g", {}, mask);
+  /* the photo's edges feathered, so its rectangle never shows as the letters grow */
+  const fx = feather.x / PH.w;
+  const fy = feather.y / PH.h;
+  const lgV = svgEl("linearGradient", { id: `${id}-fv`, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+  [[0, 0], [fy, 1], [1 - fy, 1], [1, 0]].forEach(([o, a]) => svgEl("stop", { offset: o, "stop-color": "white", "stop-opacity": a }, lgV));
+  const lgH = svgEl("linearGradient", { id: `${id}-fh`, x1: 0, y1: 0, x2: 1, y2: 0 }, defs);
+  [[0, 0], [fx, 1], [1 - fx, 1], [1, 0]].forEach(([o, a]) => svgEl("stop", { offset: o, "stop-color": "white", "stop-opacity": a }, lgH));
+  const px = CX - PH.w / 2;
+  const py = CY - PH.h / 2;
+  const fMask = svgEl("mask", { id: `${id}-feather`, maskUnits: "userSpaceOnUse", x: px, y: py, width: PH.w, height: PH.h }, defs);
+  const fMaskIn = svgEl("mask", { id: `${id}-featherH`, maskUnits: "userSpaceOnUse", x: px, y: py, width: PH.w, height: PH.h }, defs);
+  svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: `url(#${id}-fh)` }, fMaskIn);
+  svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: `url(#${id}-fv)`, ...(fx > 0 ? { mask: `url(#${id}-featherH)` } : {}) }, fMask);
+  const shown = svgEl("g", { mask: `url(#${id}-letters)` }, svg);
+  const photoG = svgEl("g", { mask: `url(#${id}-feather)` }, shown);
+  const img = svgEl("image", { href: ctx.src.photo("restaurant-02-lounge.jpg"), x: px, y: py, width: PH.w, height: PH.h, preserveAspectRatio: "xMidYMid slice" }, photoG);
+  svgEl("rect", { x: px, y: py, width: PH.w, height: PH.h, fill: "rgb(255 170 90)", opacity: 0.1 }, photoG);
+  ctx.pending = (ctx.pending ?? []).concat(new Promise((ok) => { img.addEventListener("load", ok, { once: true }); img.addEventListener("error", ok, { once: true }); }));
+  /* "Going out" in navy, live */
+  const gNavy = svgEl("g", {}, svg);
+  const mk = (parent, text, fill) => {
+    const n = svgEl("text", { x: 0, y: 0, fill, "font-family": "Poppins", "font-weight": 800, "letter-spacing": "-0.035em", opacity: 0 }, parent);
+    n.textContent = text;
+    return n;
+  };
+  const words = [
+    { node: mk(gNavy, "Going", NAVY), t: T.going, line: 0 },
+    { node: mk(gNavy, "out", NAVY), t: T.out, line: 0 },
+    { node: mk(gMask, "tonight?", "white"), t: T.tonight, line: 1 },
+  ];
+  let L = null;
+  const doLayout = () => {
+    const w100 = (s) => measure(s, "800 100px Poppins");
+    const wide = Math.max(w100("Going out"), w100("tonight?")) / 100;
+    let size = maxSize;
+    while (Math.hypot((wide * size) / 2, 0.99 * size) > R - 34) size -= 1;
+    const font = `800 ${size}px Poppins`;
+    const sp = measure("Going out", font) - measure("Going", font) - measure("out", font);
+    const w1 = measure("Going out", font);
+    const w2 = measure("tonight?", font);
+    const base1 = CY - 0.25 * size;
+    const base2 = base1 + size;
+    const pos = [[CX - w1 / 2, base1], [CX - w1 / 2 + measure("Going", font) + sp, base1], [CX - w2 / 2, base2]];
+    words.forEach((w, i) => {
+      w.node.setAttribute("font-size", size.toFixed(1));
+      w.node.setAttribute("x", pos[i][0].toFixed(1));
+      w.node.setAttribute("y", pos[i][1].toFixed(1));
+    });
+    /* the counter of the "o" in "tonight?" */
+    const tW = measure("t", font);
+    const toW = measure("to", font);
+    L = { o: { x: pos[2][0] + tW + (toW - tW) / 2 - size * 0.02, y: base2 - 0.28 * size } };
+  };
+  const tPush1 = tPush + 0.46;
+  const tEnd = tPush1 + 0.02;
+  ctx.onFrame((t) => {
+    if (t < T.r23 - 0.05 || t > tEnd + 0.05) return;
+    if (!L) doLayout();
+    words.forEach((w) => {
+      const k = ramp(ctx, t, w.t - 0.04, w.t + 0.3, "land");
+      w.node.setAttribute("opacity", Math.min(1, k * 1.6).toFixed(3));
+      w.node.setAttribute("transform", `translate(0 ${((1 - k) * 50).toFixed(2)})`);
+    });
+    const p = ramp(ctx, t, tPush, tPush1, "power3.in");
+    const s = Math.exp(p * Math.log(90));
+    const tr = `translate(${L.o.x.toFixed(2)} ${L.o.y.toFixed(2)}) scale(${s.toFixed(4)}) translate(${(-L.o.x).toFixed(2)} ${(-L.o.y).toFixed(2)})`;
+    gMask.setAttribute("transform", tr);
+    gNavy.setAttribute("transform", tr);
+  });
+  showDuring(ctx, svg, [[T.r23 - 0.05, tEnd]]);
+  /* the ring: electric, round the words, its particles outside it */
+  const ringWrap = ctx.el("div", { class: "fill" }, layer);
+  layer.insertBefore(ringWrap, svg);
+  ringOut(ctx, ringWrap, { cx: CX, cy: CY, r: R, t: T.going + 0.04, dots: 8, seed: 23, stroke: 4 });
+  ringWrap.style.transformOrigin = `${CX}px ${CY}px`;
+  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.4, duration: 0.3, ease: "power2.in", immediateRender: false }, tPush);
+  showDuring(ctx, ringWrap, [[T.going, tPush + 0.3]]);
+  return { tEnd };
+}
+
+export async function goingOut(ctx, S, T) {
   const L = LAYOUT.mobile;
-  const W = L.WORDS;
-  const CX = W.x + W.w / 2;
-  const CY = W.y + W.h / 2 + 10;
 
   /* ==================== row 23 ==================== */
   const layer = ctx.scene("b-m-going", T.r23 - 0.05, T.r24 + 0.3, { z: 30 });
   ctx.sfx("whoosh_short", T.r23, { offset: -2 });
-
-  /* The photo behind the letters: fixed to the stage (the letters are windows), at 1.15x. */
-  const PH = { w: 1448 * 1.15, h: 1086 * 1.15 };
-  const svg = svgEl("svg", { width: ctx.W, height: ctx.H, viewBox: `0 0 ${ctx.W} ${ctx.H}`, style: "position:absolute;left:0;top:0;overflow:visible" }, layer);
-  const defs = svgEl("defs", {}, svg);
-  const mask = svgEl("mask", { id: "b-m-going-mask", maskUnits: "userSpaceOnUse", x: 0, y: 0, width: ctx.W, height: ctx.H }, defs);
-  svgEl("rect", { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: "black" }, mask);
-  const g = svgEl("g", {}, mask);
-  const lines = [
-    [{ text: "Going", t: T.going }, { text: "out", t: T.out }],
-    [{ text: "tonight?", t: T.tonight }],
-  ];
-  const texts = lines.map((ln) => ln.map((w) => ({ ...w, node: svgEl("text", { x: 0, y: 0, fill: "white", "font-family": "Poppins", "font-weight": 800, "letter-spacing": "-0.035em", opacity: 0 }, g) })));
-  texts.flat().forEach((w) => (w.node.textContent = w.text));
-  const shown = svgEl("g", { mask: "url(#b-m-going-mask)" }, svg);
-  const img = svgEl("image", { href: ctx.src.photo("restaurant-02-lounge.jpg"), x: CX - PH.w / 2, y: CY - PH.h / 2, width: PH.w, height: PH.h, preserveAspectRatio: "xMidYMid slice" }, shown);
-  svgEl("rect", { x: CX - PH.w / 2, y: CY - PH.h / 2, width: PH.w, height: PH.h, fill: "rgb(255 170 90)", opacity: 0.12 }, shown);
-  /* the photo must be loaded before frame one, like every ctx.img */
-  ctx.pending = (ctx.pending ?? []).concat(new Promise((ok) => { img.addEventListener("load", ok, { once: true }); img.addEventListener("error", ok, { once: true }); }));
-
-  /* layout, once the font has loaded: two centred lines, at most 820 px wide */
-  let layout = null;
-  const doLayout = () => {
-    const f100 = "800 100px Poppins";
-    const size = Math.min(152, (820 / measure("Going out", f100)) * 100);
-    const font = `800 ${size}px Poppins`;
-    const sp = measure("Going out", font) - measure("Going", font) - measure("out", font);
-    const lineW = [measure("Going", font) + sp + measure("out", font), measure("tonight?", font)];
-    const base = [CY - size * 0.12, CY + size * 0.92];
-    const pos = [
-      [CX - lineW[0] / 2, CX - lineW[0] / 2 + measure("Going", font) + sp],
-      [CX - lineW[1] / 2],
-    ];
-    texts.forEach((ln, i) => ln.forEach((w, j) => {
-      w.node.setAttribute("font-size", size.toFixed(1));
-      w.node.setAttribute("x", pos[i][j].toFixed(1));
-      w.node.setAttribute("y", base[i].toFixed(1));
-    }));
-    /* the O of "Going": its left stroke is where the camera goes through */
-    const gW = measure("G", font);
-    const oW = measure("Go", font) - gW;
-    const o = { x: pos[0][0] + gW + oW * 0.2, y: base[0] - size * 0.27 };
-    layout = { size, o };
-  };
-  /* each word rises into place on its voice; from 50.2 the push through the O */
   const tPush = ctx.beat(87); // 50.19
-  const tPush1 = tPush + 0.46;
-  ctx.onFrame((t) => {
-    if (t < T.r23 - 0.05 || t > T.r24 + 0.3) return;
-    if (!layout) doLayout();
-    texts.flat().forEach((w) => {
-      const k = ramp(ctx, t, w.t - 0.04, w.t + 0.4, "land");
-      w.node.setAttribute("opacity", Math.min(1, k * 1.6).toFixed(3));
-      w.node.setAttribute("transform", `translate(0 ${((1 - k) * 60).toFixed(2)})`);
-    });
-    const p = ramp(ctx, t, tPush, tPush1, "power3.in");
-    const s = Math.exp(p * Math.log(70));
-    const { o } = layout;
-    g.setAttribute("transform", `translate(${o.x.toFixed(2)} ${o.y.toFixed(2)}) scale(${s.toFixed(4)}) translate(${(-o.x).toFixed(2)} ${(-o.y).toFixed(2)})`);
-  });
-
-  /* The last ring: it circles the words, with a burst, as "Going" lands. */
-  const ringWrap = ctx.el("div", { class: "fill" }, layer);
-  layer.insertBefore(ringWrap, svg);
-  /* centred on the two lines (their block sits about 0.15 of the size below CY), clear of every letter and of the pill; the burst in the ring's white */
-  ringWrap.style.setProperty("--sky", "#ffffff");
-  ringBurst(ctx, ringWrap, { cx: CX, cy: CY + 22, r: 450, t: T.going + 0.04, dots: 12, seed: 23, stroke: 4, color: "#ffffff" });
-  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.5, duration: 0.36, ease: "power2.in", immediateRender: false }, tPush);
-  ringWrap.style.transformOrigin = `${CX}px ${CY + 22}px`;
-  showDuring(ctx, ringWrap, [[T.going, tPush + 0.36]]);
-
-  /* The frame fills with warm light, which opens onto the restaurant. */
-  const light = ctx.el("div", { class: "fill", style: { background: "radial-gradient(70% 55% at 50% 45%, #fff3e2 0%, #ffd9ae 55%, #ffc48a 100%)", opacity: "0" } }, layer);
-  tl.fromTo(light, { opacity: 0 }, { opacity: 1, duration: 0.24, ease: "power1.in", immediateRender: false }, tPush + 0.26);
-  tl.fromTo(light, { opacity: 1 }, { opacity: 0, duration: 0.42, ease: "power2.inOut", immediateRender: false }, T.r24 - 0.08);
-  showDuring(ctx, svg, [[T.r23 - 0.05, tPush1 + 0.06]]);
-  showDuring(ctx, light, [[tPush + 0.26, T.r24 + 0.36]]);
+  goingTitle(ctx, layer, T, { id: "b-m-going", CX: ctx.W / 2, CY: 780, R: 400, maxSize: 170, feather: { x: 0, y: 240 }, tPush });
 
   /* ==================== row 24 ==================== */
   const pL = S.pL;
-  const HERO = { cx: L.PHONE_HERO.cx, cy: L.PHONE_HERO.cy, height: L.PHONE_HERO.height };
+  const HIGH = { cx: L.PHONE_HIGH.cx, cy: L.PHONE_HIGH.cy, height: L.PHONE_HIGH.height };
+  const tRise = T.r24 - 0.12;
+  const tOff = ctx.beat(93.36);    // 53.86
+  const tTurn = ctx.beat(93.43);   // 53.90
   const pose = S.pLpose;
-  pose.to(T.r24 - 0.13, 0.001, { ...HERO, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
-  pose.to(T.r24 - 0.12, 0.58, HERO, "glide");                                    // rises as the warm light clears
-  /* a slow rise while the card arrives: a flat move (a turned screen costs ~3x to composite in software) */
-  pose.to(T.r24 + 0.46, T.seconds + 0.34 - (T.r24 + 0.46), { cy: HERO.cy - 12 }, "drift");
-  pose.to(T.seconds + 0.34, 0.5, { cx: 330, ry: -64, opacity: 0 }, "power2.in");  // turns away
+  pose.to(tRise - 0.01, 0.001, { ...HIGH, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
+  pose.to(tRise, 0.58, HIGH, "glide");                                             // rises through the "o"
+  pose.to(tRise + 0.6, tTurn - tRise - 0.6, { cy: HIGH.cy - 12 }, "drift");        // a slow rise while the card holds
+  pose.to(tTurn, 0.33, { cx: 330, ry: -64, opacity: 0 }, "power2.in");            // turns away as the chapter ends
   const page = screenPage(ctx, pL, ctx.src.display("restaurant-light"));
-  showDuring(ctx, page.el, [[T.r24 - 0.32, T.r25 + 0.1]]);
+  showDuring(ctx, page.el, [[tRise - 0.02, T.r25 + 0.1]]);
 
-  /* The table card: free-standing, beside the phone (BODY_LEFT, clear of the page's text). */
+  /* The table card: over the restaurant's photo (display y 186-1180), where no text is; the notice stays readable below. */
   const cards = ctx.scene("b-m-table", T.r24, T.r25 + 0.1, { z: 20 });
-  const q = quadAtPose(pL, HERO);
-  const right = q[0].x + 98 * ((q[1].x - q[0].x) / DW) - 4;
-  const CWd = Math.round(right - L.BODY_LEFT.x);
-  const card = glassCard(ctx, cards, { w: CWd, radius: 30, shadow: "l", style: { display: "flex", flexDirection: "column", gap: "12px", padding: "22px 22px 20px", visibility: "hidden" } });
-  const top = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: "14px" } }, card);
-  iconPlate(ctx, top, "utensils", { size: 56 });
-  ctx.el("div", { text: "Table for 2", style: { font: "600 31px/1.05 Poppins, Inter, sans-serif", letterSpacing: "-0.025em", color: NAVY, whiteSpace: "nowrap" } }, top);
-  ctx.el("div", { html: "Tonight, 8:00 PM<br>Harbour Lights Kitchen", style: { font: "500 21px/1.36 Inter, sans-serif", color: INK2, whiteSpace: "nowrap" } }, card);
-  const ex = exampleChip(ctx, ctx.el("div", {}, card), { size: 18, style: { opacity: "0" } });
+  const CWd = 560;
+  const X = (ctx.W - CWd) / 2;
+  const Y = 452;
+  const card = glassCard(ctx, cards, { w: CWd, radius: 30, shadow: "l", style: { display: "flex", flexDirection: "column", gap: "12px", padding: "24px 26px 22px", visibility: "hidden" } });
+  const top = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: "16px" } }, card);
+  iconPlate(ctx, top, "utensils", { size: 60 });
+  ctx.el("div", { text: "Table for 2", style: { font: "600 36px/1.05 Poppins, Inter, sans-serif", letterSpacing: "-0.025em", color: NAVY, whiteSpace: "nowrap" } }, top);
+  exampleChip(ctx, top, { size: 18, style: { marginLeft: "auto" } });
+  ctx.el("div", { html: "Tonight, 8:00 PM<br>Harbour Lights Kitchen", style: { font: "500 25px/1.36 Inter, sans-serif", color: INK2, whiteSpace: "nowrap" } }, card);
   const tIn = T.reserve;
-  const tStamp = T.table;
-  const tOff = T.seconds + 0.2;
   ctx.sfx("pop", tIn);
-  ctx.sfx("stamp", tStamp, { offset: -2 });
-  tl.fromTo(ex, { scale: 1.8, opacity: 0, rotation: -12 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.2, ease: "power4.out", immediateRender: false }, tStamp);
   showDuring(ctx, card, [[tIn, tOff + 0.4]]);
-  const Y = 986;
   ctx.onFrame((t) => {
     if (t < tIn || t > tOff + 0.4) return;
-    const k = ramp(ctx, t, tIn, tIn + 0.5, "back.out(1.5)");
-    const off = ramp(ctx, t, tOff, tOff + 0.36, "power3.in");
-    const bob = Math.sin((t - tIn) * 2.1) * 3 * ramp(ctx, t, tIn + 0.5, tIn + 0.9);
-    const x = mix(-CWd - 40, L.BODY_LEFT.x, k) - off * 700;
-    const y = Y + bob - off * 520;
-    card.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${(mix(-6, 0, k) - off * 18).toFixed(2)}deg)`;
+    const k = ramp(ctx, t, tIn, tIn + 0.45, "back.out(1.4)");
+    const off = ramp(ctx, t, tOff, tOff + 0.34, "power3.in");
+    const x = mix(ctx.W + 40, X, k) + off * 640;
+    const y = Y - off * 560;
+    card.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${(mix(6, 0, k) + off * 16).toFixed(2)}deg)`;
     card.style.opacity = String((1 - off * 0.3).toFixed(3));
   });
 }

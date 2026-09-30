@@ -23,7 +23,7 @@ export default {
       body: `
       ${headline(["See the <k>full</k> cost", "before you call."], { W, H })}
       ${await component(card.id, card, { x: 80, y: 480, w: 920, radius: 40 })}
-      ${icon3d("contract", { W, H, slot: "B", bottom: H - 80 })}
+      ${icon3d("contract", { W, H, slot: "B", top: 480 + 526 + 48 })}
       `,
     }),
 };

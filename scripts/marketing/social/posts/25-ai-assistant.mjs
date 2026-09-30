@@ -14,14 +14,14 @@ export default {
   file: "25-ai-assistant.png",
   W,
   H,
-  phones: [phone("assistant-caution-2", "night", PLACE.bleed({ w: 684 }))],
+  phones: [phone("assistant-caution-2", "night", PLACE.bleed({ w: 667, top: 495 }))],
   html: ({ phones }) =>
     frame({
       W,
       H,
       ground: "night",
       body: `
-      ${headline(["Ask what a fee", "really <k>means.</k>"], { W, H })}
+      ${headline(["Ask what fees", "really <k>mean.</k>"], { W, H })}
       ${subline("The AI assistant explains, any time of day.", { W, H })}
       ${phoneHtml(phones[0])}
       ${icon3d("assistant", { W, H, slot: "A" })}

@@ -78,7 +78,7 @@ const BASE_CAPTURES = [
   { id: "home", full: true, steps: HOME },
   /* "Looked at recently" is what this phone remembers (lib/search/memory.ts),
      so the capture looks at three places first. */
-  { id: "home-recent", steps: [{ goto: LISTING_BANANA }, { goto: LISTING_SALE }, { goto: LISTING_RENT }, ...HOME, { reveal: "h2:text-is('Looked at recently')", offset: 110 }] },
+  { id: "home-recent", steps: [{ goto: LISTING_BANANA }, { goto: LISTING_SALE }, { goto: LISTING_RENT }, ...HOME, { reveal: "h2:text-is('Looked at recently')", offset: 200 }] },
   { id: "drawer", steps: [...HOME, { click: "button[aria-label='Open menu']" }, { wait: 1200 }] },
   { id: "search", full: true, steps: go("/search?market=rent") },
   { id: "search-buy", steps: go("/search?market=buy") },
@@ -90,7 +90,8 @@ const BASE_CAPTURES = [
   { id: "listing", full: true, steps: go(LISTING_RENT) },
   { id: "listing-cost", steps: reveal(LISTING_RENT, "h2:text-is('What you will actually pay')", 96) },
   { id: "listing-cost-total", steps: reveal(LISTING_RENT, "[data-testid=move-in-line-caution]", 150) },
-  { id: "listing-amenities", steps: reveal(LISTING_RENT, "h2:text-is('Amenities')", 96) },
+  /* v2: the "Light, water and getting in" section whole, with all three items. */
+  { id: "listing-amenities", steps: reveal(LISTING_RENT, "h2:text-is('Light, water and getting in')", 150) },
   { id: "listing-share", steps: [{ goto: LISTING_RENT }, { click: "[data-testid=listing-share]" }, { wait: 1200 }] },
   { id: "listing-sale", full: true, steps: go(LISTING_SALE) },
   { id: "listing-banana", steps: go(LISTING_BANANA) },
@@ -102,7 +103,8 @@ const BASE_CAPTURES = [
   { id: "stays-dates", steps: go(STAYS_DATES) },
   { id: "stays-filters", steps: go("/stays/search?filters=open") },
   { id: "stay", full: true, steps: go(STAY) },
-  { id: "stay-amenities", steps: reveal(STAY, "h2:text-is('Amenities')", 96) },
+  /* v2: scrolled so no sticky button is sliced under the status bar. */
+  { id: "stay-amenities", steps: reveal(STAY, "h2:text-is('Amenities')", 260) },
   { id: "restaurants", full: true, steps: go("/restaurants") },
   { id: "restaurant", full: true, steps: go(RESTAURANT) },
   { id: "restaurant-hours", steps: reveal(RESTAURANT, "h2:text-is('Opening hours')", 96) },
@@ -135,7 +137,7 @@ const BASE_CAPTURES = [
     steps: [{ goto: "/support" }, { click: `summary:has-text("${q}")` }, { wait: 900 }, { reveal: `summary:has-text("${q}")`, offset: 330 }, { blur: true }, { wait: 500 }],
   })),
   { id: "settings", steps: reveal("/settings", "text=Data saver", 150) },
-  { id: "appearance", steps: go("/settings/appearance") },
+  { id: "appearance", steps: [{ goto: "/settings/appearance" }, { into: "text=Opening splash", offset: 700 }] },
   { id: "passcode", steps: go("/settings/passcode") },
   {
     id: "passcode-create",
