@@ -23,7 +23,29 @@ import type { GuideSlug } from "./slugs";
  * article is marked `lang="en"` so a screen reader pronounces it correctly.
  */
 
-export type GuideBlock = string | { list: string[] };
+/**
+ * A block of a guide: a paragraph, a list, a pull-quote or a callout.
+ *
+ *   quote    a sentence LIFTED FROM THIS GUIDE'S OWN PARAGRAPHS, set large
+ *            (the test refuses a quote the guide does not already say, so a
+ *            pull-quote can never be a new claim);
+ *   callout  a short aside on a tinted card: `vallo` for what the product
+ *            itself does, `rule` for a published rule with its caveat, `warn`
+ *            for a step that must not be skipped.
+ */
+export type GuideBlock =
+  | string
+  | { list: string[] }
+  | { quote: string }
+  | { callout: string; title: string; tone: "vallo" | "rule" | "warn" };
+
+/** Every sentence a block prints, for the word count, the claims lint and the quote check. */
+export function blockText(block: GuideBlock): string[] {
+  if (typeof block === "string") return [block];
+  if ("list" in block) return block.list;
+  if ("quote" in block) return [block.quote];
+  return [block.title, block.callout];
+}
 
 export type GuideSection = { id: string; title: string; blocks: GuideBlock[] };
 
@@ -65,6 +87,7 @@ export const GUIDES: readonly Guide[] = [
         blocks: [
           "Most rental scams share one shape: a place that looks better than its price, somebody who is in a hurry, and a request for money before you have seen the inside of the property. The money is usually asked for as an inspection fee, a form fee or a deposit to hold the place, sent by transfer to a personal account.",
           "Once the transfer is made there is usually no record that ties the person to the property, and no way to get the money back. So the most useful habit is simple: do not send money for a home you have not seen, to a person you cannot identify.",
+          { quote: "Do not send money for a home you have not seen, to a person you cannot identify." },
         ],
       },
       {
@@ -97,7 +120,11 @@ export const GUIDES: readonly Guide[] = [
         title: "Inspect, in daylight, before any money moves",
         blocks: [
           "For a rental, view the property in person or on a live video call before you pay anything. Go in daylight, bring somebody with you if you can, and look at the water, the light, the road and the gate. Ask to see the room you will actually rent, not a show flat.",
-          `${NO_INSPECTION_FEE} If somebody asks you for an inspection fee on a property listed on Vallo, that is a private arrangement with them, and you can report it.`,
+          {
+            tone: "vallo",
+            title: "On Vallo",
+            callout: `${NO_INSPECTION_FEE} If somebody asks you for an inspection fee on a property listed on Vallo, that is a private arrangement with them, and you can report it.`,
+          },
         ],
       },
       {
@@ -105,7 +132,11 @@ export const GUIDES: readonly Guide[] = [
         title: "Pay in a way that leaves a record",
         blocks: [
           "Whatever platform you use, pay in a way that leaves a record with the property and the other person's real name on it, and keep every message. Cash handed over at an inspection leaves nothing to trace.",
-          `On Vallo, payment for a rental opens only after the inspection report and the agreement. ${PAYMENT_GATE_SENTENCE} A Vallo receipt carries a code that anybody can look up at vallospaces.com/r.`,
+          {
+            tone: "vallo",
+            title: "On Vallo",
+            callout: `${PAYMENT_GATE_SENTENCE} A Vallo receipt carries a code that anybody can look up at vallospaces.com/r.`,
+          },
         ],
       },
       {
@@ -119,7 +150,12 @@ export const GUIDES: readonly Guide[] = [
         id: "if-it-happened",
         title: "If it has already happened",
         blocks: [
-          "Contact your bank at once and ask them to flag the transfer; the sooner you ask, the more they can try. Keep every message, number, account name and receipt. You can report the matter to the police, and if the person advertised on Vallo, report them to Vallo from the listing or the contact page so the account can be looked at.",
+          {
+            tone: "warn",
+            title: "Act the same day",
+            callout: "Contact your bank at once and ask them to flag the transfer. The sooner you ask, the more they can try.",
+          },
+          "Keep every message, number, account name and receipt. You can report the matter to the police, and if the person advertised on Vallo, report them to Vallo from the listing or the contact page so the account can be looked at.",
         ],
       },
     ],
@@ -141,6 +177,7 @@ export const GUIDES: readonly Guide[] = [
         blocks: [
           "In most Nigerian cities the rent is only part of what you pay to move in. On top of it come fees for the agent and the lawyer, a refundable deposit, and often a service charge. Together they can add a large share to the first payment, and landlords often want more than one year of rent at the start.",
           "The move-in total is the whole amount you have to find before you get the keys. Knowing it before you inspect saves you from travelling to a place you cannot afford.",
+          { quote: "The move-in total is the whole amount you have to find before you get the keys." },
         ],
       },
       {
@@ -163,8 +200,9 @@ export const GUIDES: readonly Guide[] = [
         id: "lagos-rule",
         title: "Is there a limit on the fees?",
         blocks: [
-          LAGOS_RULE ||
-            "Vallo does not cap anybody's fee. It prints the fees each listing states so you can compare them.",
+          LAGOS_RULE
+            ? { tone: "rule", title: "The published rule in Lagos", callout: LAGOS_RULE }
+            : "Vallo does not cap anybody's fee. It prints the fees each listing states so you can compare them.",
           "For other states Vallo prints no rule, because it has none it can cite. Fees are agreed between you and the agent or landlord, so ask for every figure in writing before you pay.",
         ],
       },
@@ -173,7 +211,12 @@ export const GUIDES: readonly Guide[] = [
         title: "How to add it up",
         blocks: [
           "Add one period of rent to every fee and the deposit, then add the rent for each further year the landlord wants up front. The move-in calculator at vallospaces.com/move-in-cost does exactly this with the figures you type. It prints nothing as typical; the only rule it offers is the one above, labelled as a maximum.",
-          "On a Vallo listing the lister states the move-in total themselves. Where they did not, the listing shows the sum of the parts they named and says it is a sum, not a quote.",
+          {
+            tone: "vallo",
+            title: "On Vallo",
+            callout:
+              "The lister states the move-in total themselves. Where they did not, the listing shows the sum of the parts they named and says it is a sum, not a quote.",
+          },
         ],
       },
       {
@@ -210,6 +253,7 @@ export const GUIDES: readonly Guide[] = [
         blocks: [
           "Most homes in Lagos are let through agents, though some landlords let their own property. The usual order is: you find a place, you inspect it, you agree the terms, you pay the move-in total, and you sign a tenancy agreement before you get the keys.",
           "Rent is usually quoted per year, and many landlords ask for one or two years at the start. Fees for the agent and the lawyer, a caution deposit and a service charge are commonly added on top. Ask for the move-in total, not just the rent.",
+          { quote: "Ask for the move-in total, not just the rent." },
         ],
       },
       {
@@ -225,15 +269,20 @@ export const GUIDES: readonly Guide[] = [
         title: "Inspecting",
         blocks: [
           "Inspect every place before you pay anything. Test the taps, the switches and the sockets, look at the ceilings for water marks, and check whether the meter is prepaid and whose name it is in. Ask who you will call when something breaks.",
-          `${NO_INSPECTION_FEE} On Vallo, the inspection report is eight items with photographs, and it becomes the record of what the place was like when you moved in.`,
+          {
+            tone: "vallo",
+            title: "On Vallo",
+            callout: `${NO_INSPECTION_FEE} The inspection report is eight items with photographs, and it becomes the record of what the place was like when you moved in.`,
+          },
         ],
       },
       {
         id: "fees",
         title: "Fees and the published rule",
         blocks: [
-          LAGOS_RULE ||
-            "Vallo does not cap anybody's fee. It prints the fees each listing states so you can compare them.",
+          LAGOS_RULE
+            ? { tone: "rule", title: "The published rule in Lagos", callout: LAGOS_RULE }
+            : "Vallo does not cap anybody's fee. It prints the fees each listing states so you can compare them.",
         ],
       },
       {
@@ -241,7 +290,11 @@ export const GUIDES: readonly Guide[] = [
         title: "The agreement",
         blocks: [
           "Read the tenancy agreement before you pay. It should name the landlord, the tenant, the property, the rent, the period, what each fee was for, how the caution deposit is returned, who repairs what, and how either side can end the tenancy. If something you were promised is not in it, ask for it to be added.",
-          `On Vallo, the agreement is drawn up from the listing's own figures and the inspection report. ${PAYMENT_GATE_SENTENCE}`,
+          {
+            tone: "vallo",
+            title: "On Vallo",
+            callout: `The agreement is drawn up from the listing's own figures and the inspection report. ${PAYMENT_GATE_SENTENCE}`,
+          },
         ],
       },
       {
@@ -270,6 +323,7 @@ export const GUIDES: readonly Guide[] = [
         blocks: [
           "Renting in Abuja follows the same broad order as elsewhere in Nigeria: find a place, inspect it, agree the terms, pay the move-in total and sign a tenancy agreement. Rent is usually quoted per year, and landlords often ask for one or more years at the start.",
           "Many estates charge a service charge for security, waste, water or a shared generator, and it can be a large part of the yearly cost. Ask for the figure and what it covers before you inspect.",
+          { quote: "Ask for the figure and what it covers before you inspect." },
         ],
       },
       {
@@ -291,7 +345,7 @@ export const GUIDES: readonly Guide[] = [
         title: "Inspecting",
         blocks: [
           "Inspect before you pay anything. Look at the water system, the meter and whose name it is in, the ceilings, the windows and the doors, and ask who handles repairs.",
-          NO_INSPECTION_FEE,
+          { tone: "vallo", title: "On Vallo", callout: NO_INSPECTION_FEE },
         ],
       },
       {
@@ -299,7 +353,7 @@ export const GUIDES: readonly Guide[] = [
         title: "The agreement and paying",
         blocks: [
           "Read the tenancy agreement before you pay: the parties, the property, the rent, the period, each fee, how the caution deposit is returned and who repairs what. Pay in a way that leaves a record, get a receipt for every payment, and check who you are dealing with before you send any money.",
-          PAYMENT_GATE_SENTENCE,
+          { tone: "vallo", title: "On Vallo", callout: PAYMENT_GATE_SENTENCE },
         ],
       },
     ],
@@ -327,6 +381,7 @@ export const GUIDES: readonly Guide[] = [
         title: "Booking and paying",
         blocks: [
           "You choose your dates and ask to book. Some hosts accept each request themselves; others let you book without waiting. Either way you pay on Vallo, through the checkout, never by transfer to a host's own account.",
+          { quote: "Either way you pay on Vallo, through the checkout, never by transfer to a host's own account." },
           "A restaurant table is a request, not a payment: you ask for a date, a time and a party size, the restaurant answers, and you pay the restaurant when you eat.",
         ],
       },
@@ -343,8 +398,7 @@ export const GUIDES: readonly Guide[] = [
         title: "If the place is not what was listed",
         blocks: [
           "If you could not get in, or the place was not what was listed, do not cancel: report it from the booking, and a person at Vallo looks at it.",
-          GUARANTEE_SENTENCE,
-          GUARANTEE_SCOPE,
+          { tone: "vallo", title: "The Vallo Guarantee", callout: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE}` },
         ],
       },
       {
@@ -373,7 +427,8 @@ export function guideBySlug(slug: string): Guide | null {
 /** Words in a guide, for the reading time. */
 export function guideWords(guide: Guide): number {
   const text = guide.sections
-    .flatMap((section) => [section.title, ...section.blocks.flatMap((block) => (typeof block === "string" ? [block] : block.list))])
+    /* A pull-quote repeats a sentence already counted, so it is left out. */
+    .flatMap((section) => [section.title, ...section.blocks.filter((block) => !(typeof block === "object" && "quote" in block)).flatMap(blockText)])
     .join(" ");
   return text.split(/\s+/).filter(Boolean).length;
 }

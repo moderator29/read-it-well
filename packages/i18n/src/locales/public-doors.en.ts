@@ -128,6 +128,9 @@ export const publicDoorsEn = {
     onThisPage: "On this page",
     more: "More guides",
     all: "All guides",
+    kind: "Guide",
+    sources: "Sources",
+    nextLabel: "Next step",
   },
 
   prefs: {

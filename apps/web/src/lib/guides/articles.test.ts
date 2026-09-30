@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { unbackedClaim } from "@/lib/trust/claims";
-import { GUIDES, guideBySlug, readingMinutes } from "./articles";
+import { GUIDES, blockText, guideBySlug, readingMinutes } from "./articles";
 import { GUIDE_SLUGS } from "./slugs";
 
 const EVERY_TEXT = (slug: string) => {
@@ -9,7 +9,7 @@ const EVERY_TEXT = (slug: string) => {
   return [
     guide.title,
     guide.description,
-    ...guide.sections.flatMap((s) => [s.title, ...s.blocks.flatMap((b) => (typeof b === "string" ? [b] : b.list))]),
+    ...guide.sections.flatMap((s) => [s.title, ...s.blocks.flatMap(blockText)]),
   ];
 };
 
@@ -34,6 +34,20 @@ describe("A14 guides", () => {
         /* A percentage may appear only as the cited rule's maximum. */
         const percents = text.match(/\d+(\.\d+)?%/g) ?? [];
         if (percents.length > 0) expect(text, `${slug}: a percent outside the cited rule`).toMatch(/Tenancy Law/);
+      }
+    }
+  });
+
+  it("pulls every pull-quote from the guide's own paragraphs, so it is never a new claim", () => {
+    for (const guide of GUIDES) {
+      const blocks = guide.sections.flatMap((section) => section.blocks);
+      const prose = blocks
+        .filter((block) => typeof block === "string" || !("quote" in block))
+        .flatMap(blockText)
+        .join(" ")
+        .toLowerCase();
+      for (const block of blocks) {
+        if (typeof block === "object" && "quote" in block) expect(prose, `${guide.slug}: ${block.quote}`).toContain(block.quote.toLowerCase());
       }
     }
   });

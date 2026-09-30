@@ -35,7 +35,10 @@ export default async function SiteLayout({
     <>
       {!shell && <SiteHeader t={t} locale={locale} />}
 
-      <main id="main" className="nf-site relative overflow-hidden">
+      {/* overflow-clip, not hidden: it clips the aurora the same way but is
+          not a scroll container, so `position: sticky` inside works (the
+          guide's contents column, the move-in calculator's result). */}
+      <main id="main" className="nf-site relative overflow-clip">
         <div className="nf-aurora" aria-hidden="true" />
         <div className="nf-grid-veil" aria-hidden="true" />
         <div className="relative z-10">
