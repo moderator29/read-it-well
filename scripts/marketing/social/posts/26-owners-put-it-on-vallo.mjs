@@ -24,8 +24,8 @@ export default {
       ${headline(["Have a <k>property?</k>"], { W, H })}
       ${subline("Put it on Vallo and welcome guests from across the country.", { W, H, lines: 1 })}
       ${phoneHtml(phones[0])}
-      ${popcard({ ground: "night", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", x: 88, y: 430, width: 520 })}
-      ${icon3d("earnings", { x: 800, y: 540, size: 210, ground: "night" })}
+      ${popcard({ ground: "night", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", x: 88, y: 470, width: 520 })}
+      ${icon3d("earnings", { x: 800, y: 580, size: 210, ground: "night" })}
       `,
     }),
 };

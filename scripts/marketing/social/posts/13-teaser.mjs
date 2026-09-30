@@ -12,7 +12,7 @@ const H = 1350;
 /* the window: an arch 520 wide, its top a half circle */
 const win = { x: 480, y: 500, w: 520, h: 760 };
 /* the art (1080 x 1440) at 0.9, placed so the doorway sits in the window's upper middle */
-const art = { s: 0.9, left: -322, top: -40 };
+const art = { s: 0.9, left: -232, top: -70 };
 
 export default {
   id: "13",

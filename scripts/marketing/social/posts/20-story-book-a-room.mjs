@@ -14,7 +14,7 @@ export default {
   file: "20-story-book-a-room.png",
   W,
   H,
-  phones: [phone("stays-dates", "night", { h: 940, cx: 540, top: 630 })],
+  phones: [phone("stays-dates", "night", { h: 890, cx: 540, top: 690 })],
   html: ({ phones }) =>
     frame({
       W,

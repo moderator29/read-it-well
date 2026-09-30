@@ -22,9 +22,23 @@ import { track, ramp, spring, during, place, coin, mist, measure, dispToStage, s
 /* Where builder B leaves the coin at 62.88 (row 27: the verified mark on
    card 2 spins off into the coin). Updated from scenes/handoffs.md. */
 export const COIN_IN = {
-  mobile: { x: 330, y: 560, size: 96, spin: 0 },
-  desktop: { x: 1500, y: 420, size: 88, spin: 0 },
+  mobile: { x: 330, y: 470, size: 110, spin: 0, vy: 233, vspin: 1400 }, // b-m-checked.js COIN_OUT (falling, spinning)
+  desktop: { x: 1500, y: 420, size: 88, spin: 0, vy: 200, vspin: 1200 },
 };
+/* Where cards 1 and 2 left (handoffs.md: A's card 1, B's card 2): centre, rotation. */
+const CARD_OUT = {
+  mobile: { c1: { x: 1300, y: -105, r: 24 }, c2: { x: -575, y: -6, r: -24 } },
+  desktop: { c1: { x: 2060, y: -180, r: 22 }, c2: { x: -560, y: -200, r: -22 } },
+};
+
+/** A cubic from p0 to p1 over [t0, t1] leaving at velocity v0 and arriving at rest. */
+function hermite(t, t0, t1, p0, p1, v0) {
+  const d = t1 - t0;
+  const u = Math.min(1, Math.max(0, (t - t0) / d));
+  const h10 = u * u * u - 2 * u * u + u;
+  const h01 = -2 * u * u * u + 3 * u * u;
+  return p0 * (1 - h01) + p1 * h01 + v0 * d * h10;
+}
 
 /* The real lock (`lock`, dark in both themes), as a member meets it before
    money moves: its six dots and keys (display px on mobile, content px on
@@ -403,7 +417,7 @@ export async function buildPay(ctx, S) {
   const C = coin(ctx, coinScene, { size: COIN_D });
   {
     const IN = COIN_IN[ctx.film];
-    const land = K.r28 + 0.3; // it rests in the lock
+    const land = K.r28 + 0.42; // it comes to rest beside the lock's dots
     const up = K.pay + 0.07; // let go on "pay"
     const hop = M ? { x: 0, y: -150 } : { x: -30, y: -110 };
     during(ctx, K.r28, K.r32 + 0.06, (tt) => {
@@ -411,12 +425,12 @@ export async function buildPay(ctx, S) {
       const land29 = drawAt[0] + 0.2;
       if (tt < land29) {
         /* 28: down into the lock, rest, spring up on "pay", then down onto Your card */
-        const a = ramp(ctx, tt, K.r28, land, "power2.out");
-        const ay = ramp(ctx, tt, K.r28, land, "power2.in");
+        /* carries on from B's fall: moving down and spinning, it settles at rest */
+        const a = ramp(ctx, tt, K.r28, land, "power2.inOut");
         x = mix(IN.x, LOCK.x, a);
-        y = mix(IN.y, LOCK.y, ay);
+        y = hermite(tt, K.r28, land, IN.y, LOCK.y, IN.vy);
         size = mix(IN.size, LOCK.d, a);
-        spin = IN.spin + track(ctx, tt, [[K.r28, 0], [land, 720, "power3.out"]]);
+        spin = IN.spin + hermite(tt, K.r28, land, 0, 360, IN.vspin);
         sy = 1 - 0.1 * spring(tt, land, { freq: 3.2, decay: 10 });
         /* the hop up and the fall to Your card: one arc */
         const u = ramp(ctx, tt, up, land29, "none");
@@ -510,10 +524,11 @@ export async function buildPay(ctx, S) {
       place(c3.root, { x: S1.x, y: mix(S1.y - (M ? 900 : 640), S1.y, a) - f3 * (M ? 1000 : 700), r: swing, o: 1 });
       const turn = ramp(ctx, tt, turnAt, turnAt + 0.6, "back.out(1.4)");
       c3.inner.style.transform = `rotateY(${(turn * 180).toFixed(2)}deg)`;
-      [[c2, S0, -1, 0], [c1, S2, 1, 0.1]].forEach(([c, S, side, lag]) => {
+      const OUT = CARD_OUT[ctx.film];
+      [[c2, S0, -1, 0, OUT.c2], [c1, S2, 1, 0.1, OUT.c1]].forEach(([c, S, side, lag, from]) => {
         const b = ramp(ctx, tt, back1 + lag, full + lag * 0.5, "power3.out");
         const f = ramp(ctx, tt, off + lag * 0.2, K.r32 - 0.02, "power3.in");
-        place(c.root, { x: mix(side < 0 ? -w : ctx.W + w, S.x, b) + side * f * (M ? 760 : 1000), y: mix(-h, S.y, b), r: side * (mix(34, 0, b) + f * 16), o: b > 0 ? 1 : 0 });
+        place(c.root, { x: mix(from.x, S.x, b) + side * f * (M ? 760 : 1000), y: mix(from.y, S.y, b), r: mix(from.r, 0, b) + side * f * 16, o: b > 0 ? 1 : 0 });
         c.inner.style.transform = "rotateY(180deg)";
       });
     });

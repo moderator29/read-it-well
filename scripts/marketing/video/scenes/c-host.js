@@ -113,8 +113,9 @@ export async function buildHost(ctx, S) {
     /* the pointer passes over each row as it is named */
     const ptr = orb(ctx, winScene, { size: 40 });
     const at = ROWS.map((r) => C(760, (r.d[0] + r.d[1]) / 2));
-    const xs = [[K.r37, at[0].x + 220], [named[0] - 0.05, at[0].x, "glide"], [named[1] - 0.05, at[1].x, "glide"], [named[2] - 0.05, at[2].x, "glide"]];
-    const ys = [[K.r37, at[0].y + 140], [named[0] - 0.05, at[0].y, "glide"], [named[1] - 0.05, at[1].y, "glide"], [named[2] - 0.05, at[2].y, "glide"]];
+    /* it rests on each row while it is lit, and glides to the next just before it is named */
+    const xs = [[K.r37, at[0].x + 220], [named[0] - 0.06, at[0].x, "glide"], [named[1] - 0.34, at[0].x], [named[1] - 0.04, at[1].x, "glide"], [named[2] - 0.34, at[1].x], [named[2] - 0.04, at[2].x, "glide"]];
+    const ys = [[K.r37, at[0].y + 140], [named[0] - 0.06, at[0].y, "glide"], [named[1] - 0.34, at[0].y], [named[1] - 0.04, at[1].y, "glide"], [named[2] - 0.34, at[1].y], [named[2] - 0.04, at[2].y, "glide"]];
     during(ctx, K.r37, K.r38 + 0.01, (t) => {
       const x = track(ctx, t, xs);
       const y = track(ctx, t, ys);

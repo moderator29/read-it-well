@@ -206,17 +206,21 @@ export async function buildLang(ctx, S) {
   {
     const names = [["English", K.english], ["Hausa", K.hausa], ["Yorùbá", K.yoruba], ["Igbo", K.igbo]];
     const size = M ? 88 : 112;
-    const nodes = names.map(([text]) => ctx.el("div", { class: "abs c-display", text, style: { left: "0px", top: "0px", fontSize: `${size}px`, color: "#ffffff", whiteSpace: "nowrap", lineHeight: "1.1" } }, nameScene));
+    /* one line's slot, clipped, so each name rolls up and out as the next rolls in */
+    const slotW = M ? 380 : 640;
+    const slotH = Math.round(size * 1.34);
+    const slot = ctx.el("div", { class: "abs", style: { left: `${M ? deviceAt.x - slotW : deviceAt.x}px`, top: `${Math.round(deviceAt.y - slotH / 2)}px`, width: `${slotW}px`, height: `${slotH}px`, overflow: "hidden" } }, nameScene);
+    const nodes = names.map(([text]) => ctx.el("div", { class: "abs c-display", text, style: { left: "0px", top: "0px", fontSize: `${size}px`, color: "#ffffff", whiteSpace: "nowrap", lineHeight: "1.1" } }, slot));
     const widths = names.map(([text]) => measure(text, `700 ${size}px "C Poppins"`));
     during(ctx, K.english - 0.2, K.r37 + 0.05, (t) => {
       nodes.forEach((n, i) => {
         const tin = names[i][1];
-        const inU = ramp(ctx, t, tin - 0.06, tin + 0.3, "power3.out");
+        const inU = ramp(ctx, t, tin - 0.08, tin + 0.26, "power3.out");
         const tout = i < names.length - 1 ? names[i + 1][1] : K.r37 - 0.05;
-        const outU = ramp(ctx, t, tout - 0.06, tout + 0.2, "power3.in");
-        const x = M ? deviceAt.x - widths[i] / 2 : deviceAt.x + widths[i] / 2;
-        const y = deviceAt.y + (1 - inU) * size * 0.9 - outU * size * 0.9;
-        place(n, { x, y, o: Math.min(1, inU * 1.6) * (1 - outU) });
+        const outU = ramp(ctx, t, tout - 0.08, tout + 0.18, "power3.in");
+        const x = M ? slotW - widths[i] / 2 - 4 : widths[i] / 2 + 4;
+        const y = slotH / 2 + (1 - inU) * slotH - outU * slotH;
+        place(n, { x, y, o: inU > 0 && outU < 1 ? 1 : 0 });
       });
     });
   }

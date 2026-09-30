@@ -40,7 +40,7 @@ export async function stays(ctx, S, T) {
   pose.to(T.pick - 0.28, 0.44, { cy: 2650 }, "power2.in");                          // leaves the calendar alone
   pose.to(T.and10 + 0.3, 0.001, { cx: 540, height: 760 }, "none");
   pose.to(T.and10 + 0.31, 0.5, DATES, "glide");                                     // back small, with the date fields
-  pose.to(T.r23 - 0.1, 0.44, { cy: 2300 }, "power2.in");                            // drops into the dusk
+  pose.to(T.r23 - 0.16, 0.32, { cy: 2300 }, "power3.in");                           // drops into the dusk
 
   const staysPage = screenPage(ctx, pL, ctx.src.display("stays-lt"));
   const datesPage = screenPage(ctx, pL, ctx.src.display("stays-dates-lt"));
@@ -221,8 +221,8 @@ export async function stays(ctx, S, T) {
   ctx.el("span", { text: "now", style: { font: "500 19px/1 Inter, sans-serif", color: "#8a90a0" } }, eMeta);
 
   const tLand = T.r22;
-  const tE = T.few + 0.07;
-  const tAway = T.r23 - 0.08;
+  const tE = T.r22 + 0.02;
+  const tAway = T.r23 - 0.14;
   const COL = { e: 404, a: 660, b: 744, c: 828, d: 470 };
   const items = [
     { el: A, box: "left", y: COL.a, t: tLand + 0.02, sound: false },

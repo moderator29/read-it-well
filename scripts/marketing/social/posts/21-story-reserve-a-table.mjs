@@ -14,7 +14,7 @@ export default {
   file: "21-story-reserve-a-table.png",
   W,
   H,
-  phones: [phone("restaurant", "night", { h: 940, cx: 540, top: 630 })],
+  phones: [phone("restaurant", "night", { h: 890, cx: 540, top: 690 })],
   html: ({ phones }) =>
     frame({
       W,

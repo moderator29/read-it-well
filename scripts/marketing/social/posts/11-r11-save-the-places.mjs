@@ -23,7 +23,7 @@ export default {
       body: `
       ${headline(["Save the places", "you <k>love.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("saved-heart", { x: 186, y: 640, size: 210, ground: "night" })}
+      ${icon3d("saved-heart", { x: 196, y: 522, size: 200, ground: "night" })}
       `,
     }),
 };

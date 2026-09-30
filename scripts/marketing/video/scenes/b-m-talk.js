@@ -36,8 +36,8 @@ const DRAWER_W = 1103;
 
 /* Section a's last frame (A -> B in handoffs.md): the phone and the villa card. */
 export const A_OUT = {
-  phone: { cx: 540, cy: 1500, height: 960, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 },
-  villa: { x: 190, y: 560, w: 700, h: 504, rot: 0 },
+  phone: { cx: 540, cy: 1500, height: 1180, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 },
+  villa: { x: 160, y: 498, w: 760, h: 548, rot: 0 },
 };
 
 const MESSAGE = "I like these two as well. Could we view all three on Saturday morning?";

@@ -103,7 +103,7 @@ export async function createContext({ film, stage }) {
      * Never tween a scene root's visibility yourself: animate its children.
      */
     scene(id, start, end, { z = 0 } = {}) {
-      const root = ctx.el("div", { class: "scene", attrs: { "data-scene": id }, style: { zIndex: String(z) } }, stage);
+      const root = ctx.el("div", { class: "scene", attrs: { "data-scene": id, "data-off": "" }, style: { zIndex: String(z) } }, stage);
       scenes.push({ id, start, end, root, on: false });
       return root;
     },
@@ -229,6 +229,9 @@ export async function createContext({ film, stage }) {
         const on = t >= s.start && t < s.end;
         if (on !== s.on) {
           s.root.style.visibility = on ? "visible" : "hidden";
+          /* data-off hides every descendant too (tokens.css), even one a hook
+             set to "visible", which CSS would otherwise let show through. */
+          s.root.toggleAttribute("data-off", !on);
           s.on = on;
         }
       }

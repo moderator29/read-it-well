@@ -105,11 +105,12 @@ export async function buildClose(ctx, S) {
 
   /* the whitening, from the centre */
   const whiteScene = ctx.scene("c40-white", white - 0.02, K.r41 + 0.03, { z: 12 });
-  const disc = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(closest-side, #ffffff 80%, rgb(255 255 255 / 0) 100%)" } }, whiteScene);
-  const reach = Math.hypot(ctx.W, ctx.H) / 2 / 100 * 1.3;
+  /* a soft white light from the centre that fills the frame by 95.77 */
+  const disc = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(closest-side, #ffffff 0%, #ffffff 45%, rgb(255 255 255 / 0.6) 70%, rgb(255 255 255 / 0) 100%)" } }, whiteScene);
+  const reach = Math.hypot(ctx.W, ctx.H) / 2 / (100 * 0.45);
   during(ctx, white - 0.02, K.r41 + 0.03, (t) => {
-    const u = ramp(ctx, t, white, K.r41 - 0.02, "power2.in");
-    place(disc, { x: ctx.W / 2, y: ctx.H / 2, s: 0.05 + reach * u, o: t >= white ? 1 : 0 });
+    const u = ramp(ctx, t, white, K.r41 - 0.01, "power1.in");
+    place(disc, { x: ctx.W / 2, y: ctx.H / 2, s: 0.4 + reach * u, o: t >= white ? Math.min(1, 0.4 + u * 3) : 0 });
   });
   ctx.sfx("whoosh_long", K.r41, { offset: -4 });
 

@@ -284,9 +284,9 @@ export async function buildAssist(ctx, S) {
         { lines: ["How renting", "works"], t: K.renting, anchor: "right", x: 382, y: 826 },
       ]
       : [
-        { lines: ["Prices"], t: K.prices, anchor: "left", x: 1450, y: 400 },
-        { lines: ["Areas"], t: K.areas, anchor: "left", x: 1450, y: 500 },
-        { lines: ["How renting", "works"], t: K.renting, anchor: "left", x: 1450, y: 620 },
+        { lines: ["Prices"], t: K.prices, anchor: "left", x: 1450, y: 600 },
+        { lines: ["Areas"], t: K.areas, anchor: "left", x: 1450, y: 690 },
+        { lines: ["How renting", "works"], t: K.renting, anchor: "left", x: 1450, y: 800 },
       ];
     const nodes = items.map((it) => {
       const s = it.lines.length > 1 ? Math.round(size * (M ? 0.86 : 0.9)) : size;

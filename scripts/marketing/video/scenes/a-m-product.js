@@ -53,7 +53,7 @@ export async function buildProductMobile(ctx, T, open) {
   tl.to(P, { ry: 0, height: HERO.height - 60, duration: 0.6, ease: "power2.inOut" }, T.rows[5] + 0.02);
   tl.to(P, { height: HERO.height, duration: 0.45, ease: "power2.out" }, T.accountEnd + 0.02);
   /* 06 -> 07: the phone drops away for the chapter's words, then rises to PHONE_HIGH. */
-  tl.to(P, { cy: 2560, rx: 10, duration: 0.36, ease: "power3.in" }, T.rows[6] - 0.18);
+  tl.to(P, { cy: 2560, rx: 10, duration: 0.32, ease: "power3.in" }, T.rows[6] - 0.36);
   tl.fromTo(P, { cy: 2400, rx: 12, height: HIGH.height }, { cy: HIGH.cy, rx: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, T.pill1 - 0.5);
   /* 07 -> 08: three-quarter right after the slide. */
   tl.to(P, { cx: TURN.cx, ry: TURN.ry, duration: 0.55, ease: "glide" }, T.buy + 0.1);
@@ -124,7 +124,7 @@ export async function buildProductMobile(ctx, T, open) {
   const veilScene = ctx.scene("a-veil", T.rows[5], T.rows[6] + 0.2, { z: Z.veil });
   const veil = ctx.el("div", { class: "fill", style: { background: "#f6f9ff" } }, veilScene);
   tl.fromTo(veil, { opacity: 0 }, { opacity: 0.86, duration: 0.42, ease: "power2.out" }, T.rows[5]);
-  tl.to(veil, { opacity: 0, duration: 0.34, ease: "power2.inOut" }, T.accountEnd + 0.04);
+  tl.to(veil, { opacity: 0, duration: 0.28, ease: "power2.inOut" }, T.accountEnd + 0.02);
 
   const wordsScene = ctx.scene("a-words", T.rows[5], T.pill1 + 0.3, { z: Z.words });
   const WD = L.WORDS; // x 44, y 520, w 896, h 520
@@ -160,7 +160,7 @@ export async function buildProductMobile(ctx, T, open) {
   ctx.img(ctx.src.display("messages-lt"), { class: "abs", style: { left: `${-TABS.x}px`, top: `${-TABS.y}px`, width: "1320px", height: "2868px", maxWidth: "none" } }, tabs);
   const tabsShadow = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "62px", boxShadow: SHADOW } }, tabs);
   const tabsTo = { cx: 540, cy: yB + Math.round(sB * 1.0) + 92, s: 0.66 };
-  const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.accountEnd + 0.06, down1: T.accountEnd + 0.46 };
+  const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.accountEnd + 0.04, down1: T.accountEnd + 0.36 };
   ctx.onFrame((t) => {
     const on = t >= tabsT.up0 && t < tabsT.down1;
     tabs.style.visibility = on ? "visible" : "hidden";

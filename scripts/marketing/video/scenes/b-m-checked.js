@@ -74,7 +74,7 @@ export async function checked(ctx, S, T) {
   const pose = S.pLpose;
   pose.to(tCol - 0.04, 0.001, { ...VERIF, cy: 2500, rx: 0, ry: 0, opacity: 1 }, "none");
   pose.to(tCol - 0.03, 0.56, VERIF, "glide");                                      // rises at the right
-  pose.to(T.r27 - 0.16, 0.46, { cx: 1280, ry: 18 }, "power2.in");                  // leaves for card 2
+  pose.to(T.r27 - 0.16, 0.46, { cx: 1500, ry: 18, opacity: 0 }, "power2.in");      // leaves for card 2
   const page = screenPage(ctx, pL, ctx.src.display("verification-lt"));
   showDuring(ctx, page.el, [[tCol - 0.05, T.r27 + 0.4]]);
 

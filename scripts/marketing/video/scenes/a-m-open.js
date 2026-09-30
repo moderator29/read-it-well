@@ -50,12 +50,12 @@ export function buildOpenMobile(ctx, T) {
   });
 
   /* Row 01: frame one is finished (all three cards readable at t = 0); each card sets down on its beat. */
-  const lift = [-2.5, 2, -2];
+  const lift = [-3.5, 3, -3];
   cards.forEach((c) => {
     const k = c.i;
-    tl.set(c.root, { rotation: c.box.r + lift[k], y: -24 }, 0);
-    tl.fromTo(c.root, { y: -24, rotation: c.box.r + lift[k] }, { y: 0, rotation: c.box.r, duration: 0.5, ease: "power2.inOut" }, T.settle[k] - 0.5);
-    tl.fromTo(c.front, { scale: 1.012 }, { scale: 1, duration: 0.5, ease: "power2.inOut" }, T.settle[k] - 0.5);
+    tl.set(c.root, { rotation: c.box.r + lift[k], y: -34 }, 0);
+    tl.fromTo(c.root, { y: -34, rotation: c.box.r + lift[k] }, { y: 0, rotation: c.box.r, duration: 0.52, ease: "power2.inOut" }, T.settle[k] - 0.52);
+    tl.fromTo(c.front, { scale: 1.025 }, { scale: 1, duration: 0.52, ease: "power2.inOut" }, T.settle[k] - 0.52);
   });
   /* A slow bob once settled, until the gather. */
   cards.forEach((c) => {

@@ -8,6 +8,13 @@
 /* ---------- backgrounds ---------- */
 
 /** Deep navy with a soft electric glow from the top: the films' night canvas. */
+/** Shows a node only from t0 to t1, whichever way the film is sought: a ring
+    made with fromTo would otherwise sit at its start state before its press. */
+function gate(ctx, node, t0, t1) {
+  node.style.visibility = "hidden";
+  ctx.onFrame((t) => { node.style.visibility = t >= t0 && t < t1 ? "inherit" : "hidden"; });
+}
+
 export function bgNavy(ctx, parent, { glowX = 50, glowY = 8, glow = 0.55 } = {}) {
   return ctx.el("div", {
     class: "fill",
@@ -132,6 +139,7 @@ export function tap(ctx, screen, { x, y, t, size = 240, color = "rgb(143 211 255
     },
   }, screen);
   ctx.tl.fromTo(ring, { scale: 0.2, opacity: 0.95 }, { scale: 1, opacity: 0, duration: 0.55, ease: "power2.out" }, t);
+  gate(ctx, ring, t, t + 0.55);
   if (sound) ctx.sfx(sound, t, { offset });
   return ring;
 }
@@ -150,6 +158,7 @@ export function click(ctx, pointer, t, { ringParent, x, y, sound = "tap", offset
   if (ringParent) {
     const ring = ctx.el("div", { class: "abs", style: { left: `${x - 60}px`, top: `${y - 60}px`, width: "120px", height: "120px", borderRadius: "50%", border: "3px solid rgb(143 211 255 / 0.9)", opacity: 0, zIndex: 790 } }, ringParent);
     ctx.tl.fromTo(ring, { scale: 0.2, opacity: 1 }, { scale: 1, opacity: 0, duration: 0.5, ease: "power2.out" }, t);
+    gate(ctx, ring, t, t + 0.5);
   }
   if (sound) ctx.sfx(sound, t, { offset });
 }
@@ -378,6 +387,7 @@ export function press(ctx, pointer, t, { ringParent, x, y, sound = "tap", offset
   if (ring && ringParent) {
     const r = ctx.el("div", { class: "abs", style: { left: `${x - 50}px`, top: `${y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.8)", opacity: 0, zIndex: 840 } }, ringParent);
     ctx.tl.fromTo(r, { scale: 0.25, opacity: 1 }, { scale: 1.25, opacity: 0, duration: 0.55, ease: "power2.out" }, t);
+    gate(ctx, r, t, t + 0.55);
   }
   if (sound) ctx.sfx(sound, t, { offset });
 }
