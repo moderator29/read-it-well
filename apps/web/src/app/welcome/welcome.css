@@ -1169,6 +1169,11 @@
     .nf-gs-title {
       font-size: clamp(3rem, 4.2vw, 4rem);
     }
+    /* A wider measure beside the art, so the held height (the longest
+       step) is two or three lines, not four, and the dots do not float. */
+    .nf-gs-sub {
+      max-width: 44ch;
+    }
     .nf-gs-foot {
       grid-column: 2;
       grid-row: 3;

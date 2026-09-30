@@ -169,7 +169,7 @@ export function InterestChoices({
                  (`.nf-interest[aria-pressed="true"]` in settings-rows.css reads
                  the `--nf-selected-*` tokens), as the console's selected row.
                  It was `.nf-card` with an inline flat tint. */
-              className="nf-panel nf-panel--card nf-interest nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-center gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
+              className="nf-panel nf-panel--card nf-interest nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-start gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
             >
               {selected && (
                 <UiIcon
