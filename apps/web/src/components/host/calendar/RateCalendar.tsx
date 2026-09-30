@@ -3,7 +3,7 @@ import "@/app/host/host-desk.css";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { formatMoney, type Locale } from "@vallo/i18n/core";
+import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
@@ -108,7 +108,7 @@ function cellWords(cell: NightCell, locale: Locale): string {
             ? "not on sale"
             : tone === "full"
               ? "fully booked"
-              : `${left} ${left === 1 ? "room" : "rooms"} left`;
+              : countOf(left, "roomsLeft", "en");
   const own = tone === "override" ? ", your own price for this night" : "";
   const elsewhere = cell.imported && tone !== "imported" ? `, ${heldWords(cell)}` : "";
   return `${day}, ${price}${own}, ${state}${elsewhere}`;
@@ -535,7 +535,7 @@ export function RateCalendar(props: RateCalendarProps) {
         <div className="nf-rcal__bar" role="region" aria-label="Selected nights">
           <div className="min-w-0">
             <p className="nf-rcal__bar-count">
-              {selected.size} {selected.size === 1 ? "night" : "nights"}
+              {countOf(selected.size, "nights", locale)}
             </p>
             <p className="nf-caption nf-rcal__bar-sub">{describeSelection(selectedDates)}</p>
           </div>

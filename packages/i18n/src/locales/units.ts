@@ -186,6 +186,28 @@ export const unitsEn = {
     one: "{count} of your businesses is still trading.",
     other: "{count} of your businesses are still trading.",
   },
+  /* Integration pass: the last hand-inflected phrases (admin, host desk, agent, spoken money). */
+  accounts: { one: "1 account", other: "{count} accounts" },
+  consoleKeys: { one: "1 key", other: "{count} keys" },
+  payments: { one: "1 payment", other: "{count} payments" },
+  requestsAre: { one: "1 request is", other: "{count} requests are" },
+  ofThemAre: { one: "{count} of them is", other: "{count} of them are" },
+  liveListingsHave: {
+    one: "One live listing has",
+    other: "{count} live listings have",
+  },
+  roomsLeft: { one: "1 room left", other: "{count} rooms left" },
+  nightsClosed: { one: "1 night closed", other: "{count} nights closed" },
+  reviewsOfYourStays: {
+    one: "1 review of your stays",
+    other: "{count} reviews of your stays",
+  },
+  keysRevoked: {
+    one: "1 key revoked for the console.",
+    other: "{count} keys revoked for the console.",
+  },
+  usDollars: { one: "US dollar", other: "US dollars" },
+  pounds: { one: "pound", other: "pounds" },
 } satisfies Record<string, PluralForms>;
 
 export type UnitNoun = keyof typeof unitsEn;

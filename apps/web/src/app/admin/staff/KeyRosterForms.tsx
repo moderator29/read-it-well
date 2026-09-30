@@ -1,5 +1,6 @@
 "use client";
 
+import { countOf } from "@vallo/i18n/core";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -36,7 +37,7 @@ export function ClearKeysForm({ userId, name }: { userId: string; name: string }
           else {
             setMessage({
               ok: true,
-              text: `${result.data.removed} ${result.data.removed === 1 ? "key" : "keys"} revoked for the console. ${name} sets up a new key at their next console visit.`,
+              text: `${countOf(result.data.removed, "keysRevoked", "en")} ${name} sets up a new key at their next console visit.`,
             });
             router.refresh();
           }

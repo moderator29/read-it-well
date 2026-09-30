@@ -1,4 +1,4 @@
-import type { Locale } from "@vallo/i18n";
+import { countOf, type Locale } from "@vallo/i18n";
 import type { HostReviewsRead } from "@/lib/host/reviews";
 import { RATING_TREND_MIN, averageRating } from "@/lib/host/review-contest";
 import { EmptyState } from "@/components/app/Screen";
@@ -33,7 +33,7 @@ export function HostReviewsView({
             ? "What guests wrote about their stay"
             : reviews.length === 0
               ? "No reviews yet"
-              : `${reviews.length} ${reviews.length === 1 ? "review" : "reviews"} of your stays`
+              : countOf(reviews.length, "reviewsOfYourStays", locale)
         }
       />
 
@@ -70,7 +70,7 @@ export function HostReviewsView({
                   .filter((c) => c.count > 0)
                   .map((c) => ({
                     key: String(c.stars),
-                    label: `${c.stars} star${c.stars === 1 ? "" : "s"}`,
+                    label: countOf(c.stars, "stars", locale),
                     count: c.count,
                     tone: c.stars >= 4 ? ("success" as const) : c.stars === 3 ? ("warning" as const) : ("error" as const),
                   }))}

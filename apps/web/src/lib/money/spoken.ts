@@ -1,4 +1,4 @@
-import { formatMoney, type Locale } from "@vallo/i18n/core";
+import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 
 /**
  * B15: MONEY AS A SCREEN READER SHOULD SAY IT. Pure, client-safe.
@@ -45,8 +45,8 @@ function oneDecimalTrunc(value: number): string {
 
 function currencyWord(currency: string, amount: number): string {
   if (currency === "NGN") return "naira";
-  if (currency === "USD") return amount === 1 ? "US dollar" : "US dollars";
-  if (currency === "GBP") return amount === 1 ? "pound" : "pounds";
+  if (currency === "USD") return countOf(amount, "usDollars", "en");
+  if (currency === "GBP") return countOf(amount, "pounds", "en");
   return currency;
 }
 

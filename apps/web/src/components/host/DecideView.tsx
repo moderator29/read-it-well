@@ -1,6 +1,6 @@
 import Link from "next/link";
 import "@/app/host/host-desk.css";
-import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { HostRoomBooking } from "@/lib/host/room-bookings";
 import { clockFor, type DecideItem } from "@/lib/host/decide";
 import { stayDateLabel } from "@/lib/stays/date-label";
@@ -48,7 +48,7 @@ export function DecideView({
         subtitle={
           sorted.length === 0
             ? "Nothing is waiting for you"
-            : `${sorted.length} ${sorted.length === 1 ? "request is" : "requests are"} waiting for your answer`
+            : `${countOf(sorted.length, "requestsAre", locale)} waiting for your answer`
         }
       />
 
@@ -66,7 +66,7 @@ export function DecideView({
               figure={sorted.length}
               sentence={
                 counts.late + counts.soon > 0
-                  ? `${counts.late + counts.soon} of them ${counts.late + counts.soon === 1 ? "is" : "are"} close to lapsing. Answer those first.`
+                  ? `${countOf(counts.late + counts.soon, "ofThemAre", locale)} close to lapsing. Answer those first.`
                   : "Each one has time to spare. Answering fast is what guests remember."
               }
               segments={[

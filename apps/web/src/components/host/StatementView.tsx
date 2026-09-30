@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, type Locale } from "@vallo/i18n";
 import { addMonths } from "@/lib/host/rate-calendar";
 import { statementTotals, type StatementLine } from "@/lib/host/statement";
 import { EARNINGS_SETTLEMENT, HISTORY_NOT_A_BALANCE } from "@/lib/money/copy";
@@ -92,7 +92,7 @@ export function StatementView({
               {...(totals.shareMinor >= 0 && totals.shareMinor % 100 === 0
                 ? { figure: totals.shareMinor / 100, prefix: "₦", tag }
                 : { figure: <span className="nf-numeric">{formatMoney(totals.shareMinor, locale)}</span> })}
-              sentence={`${totals.payments} ${totals.payments === 1 ? "payment" : "payments"}${totals.reversals ? `, ${totals.reversals} reversed by refunds` : ""}. ${EARNINGS_SETTLEMENT}`}
+              sentence={`${countOf(totals.payments, "payments", locale)}${totals.reversals ? `, ${totals.reversals} reversed by refunds` : ""}. ${EARNINGS_SETTLEMENT}`}
               footer={
                 <dl className="nf-stmt-line__split nf-stmt-totals">
                   <dt>Guests paid</dt>

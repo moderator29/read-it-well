@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Locale } from "@vallo/i18n/core";
+import { countOf, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { Switch } from "@/components/ui/Switch";
@@ -238,7 +238,7 @@ function ImportRow({
           ) : null}
         </p>
         <p className="nf-caption">
-          {imp.lastError && imp.failures > 0 ? imp.lastError : `${ago(imp.lastSyncedAt, now)}, ${imp.nightsBlocked} ${imp.nightsBlocked === 1 ? "night" : "nights"} closed`}
+          {imp.lastError && imp.failures > 0 ? imp.lastError : `${ago(imp.lastSyncedAt, now)}, ${countOf(imp.nightsBlocked, "nightsClosed", locale)}`}
         </p>
       </div>
       <Switch

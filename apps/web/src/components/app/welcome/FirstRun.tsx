@@ -670,7 +670,7 @@ export function FirstRun({
               data-om-scene={i}
               data-state={state}
               data-scene={s.key}
-              style={{ visibility: Math.abs(i - index) > 1 ? "hidden" : undefined } as CSSProperties}
+              style={{ visibility: Math.abs(i - index) >= 2 ? "hidden" : undefined } as CSSProperties}
             >
               {scene(s.key, i)}
             </div>

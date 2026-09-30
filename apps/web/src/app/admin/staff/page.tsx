@@ -1,4 +1,5 @@
 import { dateTimeLabel } from "@/lib/format/when";
+import { countOf } from "@vallo/i18n/core";
 import type { Metadata } from "next";
 import { STAFF_SCOPE_LABEL, STAFF_SCOPES } from "@/lib/admin/guard";
 import { readStaffDesk, type StaffRow } from "@/lib/admin/staff-queries";
@@ -131,7 +132,7 @@ export default async function StaffPage() {
                       {row.name}
                       <span className="nf-caption text-[var(--nf-content-secondary)]">
                         {" · "}
-                        {keys.length === 0 ? "no key" : keys.length === 1 ? "1 key" : `${keys.length} keys`}
+                        {keys.length === 0 ? "no key" : countOf(keys.length, "consoleKeys", "en")}
                         {" · last proved "}
                         {when(lastProved(keys))}
                       </span>

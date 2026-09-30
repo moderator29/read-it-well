@@ -1,4 +1,5 @@
 import { getLocale } from "@/lib/locale";
+import { countOf } from "@vallo/i18n/core";
 import { readInternalIds } from "@/lib/admin/internal-accounts";
 import { getSendBackReasons } from "@/lib/admin/reads/review-reasons";
 import { getBookingOutcomes, getPriceCheckDemand, getSupplySeries, getThinAreas } from "@/lib/admin/reads/analytics";
@@ -69,7 +70,7 @@ export default async function AdminAnalyticsPage({
       ) : null}
       {/* C10: the figures above leave these accounts out; the count is read, not assumed. */}
       <p className="nf-caption mt-block">
-        Internal activity excluded: {internal.length} {internal.length === 1 ? "account" : "accounts"} (QA, staff and
+        Internal activity excluded: {countOf(internal.length, "accounts", locale)} (QA, staff and
         anyone marked on the staff page). Example listings are left out as well.
       </p>
     </>

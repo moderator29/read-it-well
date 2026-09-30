@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@vallo/i18n/core";
+import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -73,7 +73,7 @@ export function SelectionPanel({
   const overrides = cells.some((c) => c.overrideMinor !== null);
   const closed = cells.some((c) => c.closed);
   const allClosed = cells.length > 0 && cells.every((c) => c.closed);
-  const nights = `${dates.length} ${dates.length === 1 ? "night" : "nights"}`;
+  const nights = countOf(dates.length, "nights", locale);
   const priceMinor = nairaToMinor(price);
 
   const run = (
@@ -91,7 +91,7 @@ export function SelectionPanel({
       router.refresh();
     });
 
-  const count = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
+  const count = (n: number) => countOf(n, "nights", locale);
 
   return (
     <div className="nf-rcal-panel" data-testid="rate-calendar-panel">

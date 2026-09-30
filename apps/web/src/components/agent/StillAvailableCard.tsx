@@ -1,5 +1,6 @@
 "use client";
 
+import { countOf } from "@vallo/i18n/core";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -44,7 +45,7 @@ export function StillAvailableCard({ items }: { items: StillAvailableItem[] }) {
       ) : (
         <>
           <p className="nf-body-sm mt-2xs text-[var(--nf-content-secondary)]">
-            {left.length === 1 ? "One live listing has" : `${left.length} live listings have`} not been confirmed in two
+            {countOf(left.length, "liveListingsHave", "en")} not been confirmed in two
             weeks. Confirm the ones still open; take down the ones that have gone.
           </p>
           <div className="mt-row">
