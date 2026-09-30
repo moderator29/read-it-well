@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * A workspace's drawer: the panel toggle in the bar and the full-page sheet
@@ -40,18 +40,19 @@ export function WorkspaceDrawer({
 
   return (
     <>
-      <button
-        type="button"
+      {/* The panel toggle, matching Personal Mode: a panel arrives beside the
+          content. The system's round icon button, as the back arrow beside
+          it is (`surface="round"`). */}
+      <Button
+        variant="icon"
+        round
+        leadingIcon="panel-left"
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={openLabel}
-        className="nf-ws-bar__btn nf-tap lg:hidden"
-      >
-        {/* The panel toggle, matching Personal Mode: a panel arrives beside
-            the content. Drawn bare, as the back arrow is. */}
-        <UiIcon name="panel-left" size={20} />
-      </button>
+        className="nf-ws-bar__btn lg:hidden"
+      />
 
       <Sheet
         open={open}
@@ -65,14 +66,14 @@ export function WorkspaceDrawer({
         <div className="nf-agent-drawer flex flex-col">
           <div className="mb-md flex items-center justify-between px-2xs">
             {head}
-            <button
-              type="button"
+            <Button
+              variant="icon"
+              round
+              leadingIcon="close"
               onClick={close}
               aria-label={closeLabel}
-              className="nf-ws-bar__btn nf-tap -mr-2xs"
-            >
-              <UiIcon name="close" size={20} />
-            </button>
+              className="-mr-2xs"
+            />
           </div>
           {children(close)}
         </div>

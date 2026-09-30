@@ -2,6 +2,7 @@
 
 import { fail, ok, type ActionResult } from "@/lib/actions/envelope";
 import { writeEmailPreferences } from "./preferences";
+import { INVALID_PREFS_LINK } from "./preferences-refusals";
 import { EMAIL_CHANNELS, readUnsubscribe, unsubscribeKey } from "./unsubscribe-token";
 import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
 import { headers } from "next/headers";
@@ -15,7 +16,7 @@ export async function saveEmailPreferences(_prev: ActionResult | null, formData:
   const key = unsubscribeKey();
   const token = String(formData.get("token") ?? "");
   const claims = key ? readUnsubscribe(key, token, Math.floor(Date.now() / 1000)) : null;
-  if (!claims) return fail("invalid-token");
+  if (!claims) return fail(INVALID_PREFS_LINK);
   const verdict = await consume({
     bucket: "email_prefs",
     subject: subjectForIp(ipFromHeaders(await headers())),

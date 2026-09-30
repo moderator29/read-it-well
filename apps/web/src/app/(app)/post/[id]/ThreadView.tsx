@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "@/components/social/feed/PostCard";
 import { Composer } from "@/components/social/feed/Composer";
@@ -453,13 +454,9 @@ function MutedReply({ who, onShow }: { who: string; onShow: () => void }) {
       <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
         You muted {who}.
       </p>
-      <button
-        type="button"
-        onClick={onShow}
-        className="min-h-11 text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
-      >
+      <Button variant="quiet" size="sm" onClick={onShow}>
         Read it anyway
-      </button>
+      </Button>
     </div>
   );
 }

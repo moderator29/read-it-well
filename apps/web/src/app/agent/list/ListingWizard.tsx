@@ -74,6 +74,7 @@ import { moveInLines } from "@/components/app/listing/move-in-lines";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/VideoWalkthrough";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { Quantity } from "@/components/ui/Quantity";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
@@ -671,6 +672,7 @@ function Stepper({
   value,
   min,
   max,
+  label,
   fewerLabel,
   moreLabel,
   inline,
@@ -679,33 +681,27 @@ function Stepper({
   value: number;
   min: number;
   max: number;
+  /** The group's accessible name: the thing being counted. */
+  label: string;
   fewerLabel: string;
   moreLabel: string;
   inline?: boolean;
   onChange: (next: number) => void;
 }) {
+  /* The system's quantity stepper (section 19, kind 9). Inline beside a
+     fact it sits at the row's end; alone it runs the full width, as the
+     render draws the backup hours. */
   return (
-    <div className={`nf-lw-step${inline ? " nf-lw-step--inline" : ""}`}>
-      <button
-        type="button"
-        className="nf-lw-step__end"
-        aria-label={fewerLabel}
-        disabled={value <= min}
-        onClick={() => onChange(Math.max(min, value - 1))}
-      >
-        <UiIcon name="minus" size={20} />
-      </button>
-      <span className="nf-lw-step__value">{value}</span>
-      <button
-        type="button"
-        className="nf-lw-step__end"
-        aria-label={moreLabel}
-        disabled={value >= max}
-        onClick={() => onChange(Math.min(max, value + 1))}
-      >
-        <UiIcon name="plus" size={20} />
-      </button>
-    </div>
+    <Quantity
+      value={value}
+      min={min}
+      max={max}
+      label={label}
+      decreaseLabel={fewerLabel}
+      increaseLabel={moreLabel}
+      onChange={onChange}
+      className={inline ? "justify-self-end" : "w-full justify-between"}
+    />
   );
 }
 
@@ -2282,6 +2278,7 @@ export function ListingWizard({
                     value={values.bedrooms}
                     min={0}
                     max={20}
+                    label={copy.basics.counters.bedrooms}
                     fewerLabel={counterAria("fewer", copy.basics.counters.bedrooms)}
                     moreLabel={counterAria("more", copy.basics.counters.bedrooms)}
                     onChange={(v) => set("bedrooms", v)}
@@ -2297,6 +2294,7 @@ export function ListingWizard({
                     value={values.bathrooms}
                     min={0}
                     max={20}
+                    label={copy.basics.counters.bathrooms}
                     fewerLabel={counterAria("fewer", copy.basics.counters.bathrooms)}
                     moreLabel={counterAria("more", copy.basics.counters.bathrooms)}
                     onChange={(v) => set("bathrooms", v)}
@@ -2315,6 +2313,7 @@ export function ListingWizard({
                     value={toiletCount}
                     min={0}
                     max={20}
+                    label={copy.drawn.rooms.toilets}
                     fewerLabel={counterAria("fewer", copy.drawn.rooms.toilets)}
                     moreLabel={counterAria("more", copy.drawn.rooms.toilets)}
                     onChange={(v) => set("toilets", v === 0 ? "" : String(v))}
@@ -2330,6 +2329,7 @@ export function ListingWizard({
                     value={parkingCount}
                     min={0}
                     max={20}
+                    label={copy.drawn.rooms.parking}
                     fewerLabel={counterAria("fewer", copy.drawn.rooms.parking)}
                     moreLabel={counterAria("more", copy.drawn.rooms.parking)}
                     onChange={(v) => set("parkingSpaces", v === 0 ? "" : String(v))}
@@ -2789,6 +2789,7 @@ export function ListingWizard({
                   value={backupHours}
                   min={0}
                   max={MAX_BACKUP_HOURS}
+                  label={copy.drawn.supply.backupHours}
                   fewerLabel={counterAria("fewer", copy.drawn.supply.backupHours)}
                   moreLabel={counterAria("more", copy.drawn.supply.backupHours)}
                   onChange={(v) => set("powerBackupHours", String(v))}
@@ -3725,14 +3726,14 @@ export function ListingWizard({
                       </span>
                     )}
                   </span>
-                  <button
-                    type="button"
-                    className="nf-lw-detail__edit"
+                  <Button
+                    variant="quiet"
+                    size="sm"
                     onClick={() => go(row.step)}
                     aria-label={`${copy.drawn.checkOver.edit}: ${row.label}`}
                   >
                     {copy.drawn.checkOver.edit}
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>

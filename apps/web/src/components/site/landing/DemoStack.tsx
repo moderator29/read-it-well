@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { Button } from "@/components/ui/Button";
 import { useHydrated } from "@/components/motion/useInView";
 import { useMotionGate } from "@/components/motion/useMotionGate";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SPRING_SNAPPY, SPRING_SOFT, flickDirection, releaseVelocity, rubber, springTo } from "./spring";
 
 /**
@@ -225,9 +225,7 @@ export function DemoStack({ cards, labels }: { cards: StackCard[]; labels: Label
         })}
       </div>
       <div className="nf-stack__nav">
-        <button type="button" className="nf-stack__arrow" aria-label={labels.prev} onClick={() => go(-1)}>
-          <UiIcon name="arrow-left" size={20} aria-hidden />
-        </button>
+        <Button variant="icon" round leadingIcon="arrow-left" aria-label={labels.prev} onClick={() => go(-1)} />
         <div className="nf-stack__dots">
           {cards.map((c, i) => (
             <button
@@ -240,9 +238,7 @@ export function DemoStack({ cards, labels }: { cards: StackCard[]; labels: Label
             />
           ))}
         </div>
-        <button type="button" className="nf-stack__arrow" aria-label={labels.next} onClick={() => go(1)}>
-          <UiIcon name="arrow-right" size={20} aria-hidden />
-        </button>
+        <Button variant="icon" round leadingIcon="arrow-right" aria-label={labels.next} onClick={() => go(1)} />
       </div>
       <p className="nf-stack__hint" aria-live="polite">
         <span className="sr-only">{position}. </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
 import { SettingsGroup } from "@/components/app/account/rows";
@@ -73,15 +74,15 @@ export function MyReports({ list, locale }: { list: MyReportsList; locale: Local
                   {status}
                 </StatusPill>
                 {open && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="quiet"
+                    size="sm"
                     disabled={pending}
                     onClick={() => withdraw(report.id)}
-                    className="nf-link-quiet nf-caption inline-flex min-h-11 items-center px-2xs text-[var(--nf-content-link)]"
                     data-testid="my-report-withdraw"
                   >
                     {armed === report.id ? copy.withdrawConfirm : copy.withdraw}
-                  </button>
+                  </Button>
                 )}
               </span>
             </div>

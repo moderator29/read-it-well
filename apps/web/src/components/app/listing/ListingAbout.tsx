@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -32,13 +33,14 @@ export function ListingAbout({ paragraphs }: { paragraphs: string[] }) {
       </div>
 
       {expandable && (
-        <button
-          type="button"
+        <Button
+          variant="quiet"
+          size="sm"
           onClick={() => setOpen((current) => !current)}
           aria-expanded={open}
           aria-controls={regionId}
           data-testid="about-toggle"
-          className="nf-tap mt-xs inline-flex items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4 transition-colors hover:text-[var(--nf-brand-primary)]"
+          className="mt-xs"
         >
           {open ? "Show less" : "Read more"}
           <UiIcon
@@ -46,7 +48,7 @@ export function ListingAbout({ paragraphs }: { paragraphs: string[] }) {
             size={16}
             className={`transition-transform ${open ? "rotate-180" : ""}`}
           />
-        </button>
+        </Button>
       )}
     </div>
   );

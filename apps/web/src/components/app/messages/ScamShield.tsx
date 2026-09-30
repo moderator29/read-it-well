@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import { useId, useState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -77,9 +78,9 @@ export function ScamShield({
         )}
 
         <div className="nf-scam-shield__actions">
-          <button
-            type="button"
-            className="nf-tap nf-scam-shield__toggle"
+          <Button
+            variant="quiet"
+            size="sm"
             aria-expanded={open}
             aria-controls={open ? stepsId : undefined}
             onClick={() => setOpen((v) => !v)}
@@ -87,7 +88,7 @@ export function ScamShield({
           >
             {open ? copy.hide : copy.whatToDo}
             <UiIcon name="chevron-down" size={14} className={`nf-scam-shield__chev${open ? " is-open" : ""}`} />
-          </button>
+          </Button>
           {canReport && (
             <ReportSheet targetType="message" targetId={messageId} targetLabel={quote?.trim() || copy.label} signedIn />
           )}

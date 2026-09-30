@@ -1458,6 +1458,7 @@ export default async function ListingDetailPage({
           moveInLabel={t.catalogue.detail.moveInTotal}
           moveInFromLabel={t.catalogue.detail.moveInFrom}
           secondaryShortLabel={t.catalogue.detail.breakdownShort}
+          sidePanelFromLg
         />
       </div>
     </PhotoViewerProvider>

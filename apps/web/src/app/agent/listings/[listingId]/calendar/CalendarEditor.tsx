@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
@@ -228,38 +229,32 @@ export function CalendarEditor({
               <input type="hidden" name="listingId" value={subject.listingId} />
               <input type="hidden" name="from" value={from} />
               <input type="hidden" name="to" value={to} />
-              <button
-                type="submit"
-                disabled={blocking || opening}
-                className="nf-btn nf-btn--primary w-full disabled:opacity-60"
-              >
+              <Button type="submit" variant="primary" full loading={blocking} disabled={blocking || opening}>
                 {blocking ? "Closing..." : "Close these nights"}
-              </button>
+              </Button>
             </form>
             <form action={openAction}>
               <input type="hidden" name="listingId" value={subject.listingId} />
               <input type="hidden" name="from" value={from} />
               <input type="hidden" name="to" value={to} />
-              <button
-                type="submit"
-                disabled={blocking || opening}
-                className="nf-btn nf-btn--glass w-full disabled:opacity-60"
-              >
+              <Button type="submit" variant="secondary" full loading={opening} disabled={blocking || opening}>
                 {opening ? "Reopening..." : "Reopen them"}
-              </button>
+              </Button>
             </form>
           </div>
 
-          <button
-            type="button"
+          <Button
+            variant="quiet"
+            size="sm"
+            full
+            className="mt-xs"
             onClick={() => {
               setAnchor(null);
               setEnd(null);
             }}
-            className="mt-xs w-full text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           >
             Clear selection
-          </button>
+          </Button>
 
           {error && (
             <p

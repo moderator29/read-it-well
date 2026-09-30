@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Quantity } from "@/components/ui/Quantity";
 import { useRouter } from "next/navigation";
 import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
@@ -179,30 +180,19 @@ export function SelectionPanel({
       <section className="nf-rcal-panel__block" aria-label="Rooms on sale">
         <h3 className="nf-section-label">Rooms on sale</h3>
         <div className="nf-rcal-panel__row">
-          <div className="nf-rcal-stepper" role="group" aria-label="Rooms on sale each night">
-            <button
-              type="button"
-              className="nf-rcal-stepper__btn"
-              aria-label="One fewer"
-              disabled={pending || units <= floor}
-              onClick={() => setUnits((u) => Math.max(floor, u - 1))}
-            >
-              <UiIcon name="minus" size={20} />
-            </button>
-            <output className="nf-rcal-stepper__value nf-numeric" aria-live="polite">
-              {units}
-              <span className="nf-caption"> of {room.unitsTotal}</span>
-            </output>
-            <button
-              type="button"
-              className="nf-rcal-stepper__btn"
-              aria-label="One more"
-              disabled={pending || units >= room.unitsTotal}
-              onClick={() => setUnits((u) => Math.min(room.unitsTotal, u + 1))}
-            >
-              <UiIcon name="plus" size={20} />
-            </button>
-          </div>
+          <span className="inline-flex items-center gap-2xs">
+            <Quantity
+              value={units}
+              min={floor}
+              max={room.unitsTotal}
+              label="Rooms on sale each night"
+              decreaseLabel="One fewer"
+              increaseLabel="One more"
+              disabled={pending}
+              onChange={setUnits}
+            />
+            <span className="nf-caption nf-numeric text-[var(--nf-content-muted)]">of {room.unitsTotal}</span>
+          </span>
           <Button
             variant="secondary"
             size="md"

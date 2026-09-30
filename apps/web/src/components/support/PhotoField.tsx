@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { PHOTO_ACCEPT, preparePhoto, type PreparedPhoto } from "./photo";
 
@@ -70,14 +71,9 @@ export function PhotoField({
           className="h-16 w-16 shrink-0 rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] object-cover"
         />
         <span className="nf-caption min-w-0 flex-1 text-[var(--nf-content-secondary)]">Photo attached</span>
-        <button
-          type="button"
-          onClick={remove}
-          disabled={disabled}
-          className="nf-caption inline-flex min-h-11 cursor-pointer items-center px-xs font-semibold text-[var(--nf-content-link)]"
-        >
+        <Button variant="quiet" size="sm" onClick={remove} disabled={disabled}>
           Remove
-        </button>
+        </Button>
       </div>
     );
   }

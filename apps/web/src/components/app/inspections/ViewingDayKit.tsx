@@ -121,9 +121,9 @@ export function ViewingDayKit({
         <div className="nf-day-kit__late" role="group" aria-label={copy.lateAsk}>
           <div className="nf-day-kit__head">
             <span className="nf-day-kit__ask">{copy.lateAsk}</span>
-            <button type="button" className="nf-tap nf-day-kit__link" disabled={busy} onClick={() => setAsking(false)}>
+            <Button variant="quiet" size="sm" disabled={busy} onClick={() => setAsking(false)}>
               {copy.cancel}
-            </button>
+            </Button>
           </div>
           <div className="nf-day-kit__choices">
             {LATE_OPTIONS.map((m: LateMinutes) => (
@@ -159,9 +159,9 @@ export function ViewingDayKit({
             </Button>
           </div>
           <div className="nf-day-kit__row">
-            <button type="button" className="nf-tap nf-day-kit__link" onClick={addToCalendar} data-testid="day-kit-calendar">
+            <Button variant="quiet" size="sm" onClick={addToCalendar} data-testid="day-kit-calendar">
               {copy.addToCalendar}
-            </button>
+            </Button>
           </div>
         </>
       )}

@@ -1033,9 +1033,9 @@ function Fact({ label, value, onEdit }: { label: string; value: string; onEdit: 
     <div className="nf-host-missing">
       <dt className="w-28 shrink-0 nf-caption font-semibold">{label}</dt>
       <dd className="min-w-0 flex-1">{value || <span className="text-[var(--nf-content-muted)]">Not given</span>}</dd>
-      <button type="button" onClick={onEdit} className="nf-caption font-semibold text-[var(--nf-content-link)]">
+      <Button variant="quiet" size="sm" onClick={onEdit}>
         Edit
-      </button>
+      </Button>
     </div>
   );
 }

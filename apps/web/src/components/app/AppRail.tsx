@@ -1,6 +1,7 @@
 "use client";
 
 import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
+import { Button } from "@/components/ui/Button";
 import { useMemo } from "react";
 import Link from "next/link";
 import { ThemeRow } from "@/components/site/ThemeControl";
@@ -112,14 +113,7 @@ export function AppRail({
           </Link>
         )}
         {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t.a11y.closeMenu}
-            className="nf-nav__close nf-tap"
-          >
-            <UiIcon name="close" size="sm" />
-          </button>
+          <Button variant="icon" round leadingIcon="close" onClick={onClose} aria-label={t.a11y.closeMenu} className="ms-auto" />
         )}
       </div>
 

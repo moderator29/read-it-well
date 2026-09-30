@@ -32,7 +32,6 @@ export const onboardingMotionEn = {
     rent: "Rent",
     agency: "Agency fee",
     caution: "Caution",
-    keys: "Keys in hand",
     label: "An open arch and keys, with an example move-in total",
   },
 };

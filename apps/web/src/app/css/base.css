@@ -308,6 +308,32 @@ html {
   pointer-events: auto;
 }
 
+/*
+ * A quiet link that is also a tap target ("See all"). `.nf-link-quiet` draws
+ * its hover rule on ::after with `scaleX(0)`, which collapsed the target above
+ * to nothing (measured 22px tall) and would have painted a 44px block on
+ * hover. The target moves to ::before and ::after goes back to being the rule.
+ */
+.nf-link-quiet.nf-tap::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+}
+.nf-link-quiet.nf-tap::after {
+  left: auto;
+  top: auto;
+  translate: none;
+  inset-inline-start: 0;
+  inset-block-end: -0.15rem;
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
+}
+
 /* One decision, two themes; see `--nf-selection-bg`. It was 40% of the brand
    here and 18% of it in light.css, written out in both places, which is a
    themed pair pretending to be two unrelated literals. */

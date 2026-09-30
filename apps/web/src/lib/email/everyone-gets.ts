@@ -254,8 +254,8 @@ export type AgreementSignedPreviewData = {
  * The second party confirms the same terms, so the agreement goes to Vallo for
  * review. Both parties get `agreementSubmitted` by email (outbox template
  * `agreement.submitted`, written by `private.enqueue_agreement_lifecycle_email`
- * in `supabase/migrations/pending/email_lifecycle_triggers.sql`, which is not
- * applied yet). No database trigger writes an app row for this step today.
+ * in `supabase/migrations/20260930140311_email_lifecycle_triggers.sql`, applied
+ * 30 September 2026). No database trigger writes an app row for this step today.
  */
 export function agreementSignedPreview(data: AgreementSignedPreviewData): RecipientPreview[] {
   const shared = { listingTitle: data.listingTitle, amountMinor: data.amountMinor, agreementId: data.agreementId };

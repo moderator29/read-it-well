@@ -77,6 +77,18 @@ probe alert: the guard refused a second person taking it, and the row was
 deleted in the same transaction (0 probe alerts remain). The alert-related
 tests pass (16 files, 240 tests).
 
+| 19 | pending (no version) | `20260930140311` | `email_lifecycle_triggers` (APPLY once PR #75 was live, verdict b147de7e) |
+
+Row 19 was applied after the lead confirmed production was serving PR #75
+(`/for-hosts` returned 200). Its read-back passed, with 8 enabled triggers. The
+email and notify tests pass (24 files, 2,791 tests).
+
+| 20 | pending (no version) | `20260930140424` | `m1_followup_severity_execute_revoke` (APPLY, verdict 661bbc77; file as at 1338849e) |
+| 21 | pending (no version) | `20260930140451` | `m1_followup_saved_listing_back_on_market` (APPLY, verdict 661bbc77; file as at 1338849e) |
+
+Rows 20 and 21 were applied after their review. Both read-backs passed. The
+notify and saved tests pass (17 files, 199 tests).
+
 The verdicts below are the review as it was written before the apply.
 
 ## Summary
@@ -1077,3 +1089,157 @@ reads `tgattr`, so it proves the real column list.
 which is how the `on delete set null` path works. The repo has no in-database
 function that deletes from `auth.users`, so account deletion goes through the
 Auth admin API with no caller. This behaviour is the same in the live C13.
+
+---
+
+## Review: `email_lifecycle_triggers.sql` (pending, not yet versioned): **APPLY, once the PR #75 deploy is live**
+
+Checked read-only against the live schema, and the templates against
+`origin/main` (e9e9e75f, the merge of PR #75).
+
+**Templates are on main.** All 14 template names the triggers write are
+registered in `apps/web/src/lib/notify/templates.ts`: `inspection.proposed`,
+`.declined`, `.withdrawn`, `.completed`, `support.replied`, `agreement.waiting`,
+`.submitted`, `.cancelled`, `guarantee.claim_opened`,
+`verification.rung_failed`, `listing.submitted`, `reservation.confirmed`,
+`.cancelled` and `refund.requested`. The builders are in
+`lib/email/lifecycle-messages.ts`, and `agreement.waiting` uses the existing
+agreement builder. The drain drops a row with an unknown template for good,
+so **apply only after the production deploy of PR #75 has finished**, as the
+file's own header says. That deploy is the one ordering condition.
+
+**Live schema:**
+* **Columns and allowed values:** every column the eight trigger functions
+  read exists with the expected type. Enum and CHECK values match:
+  `inspection_state`, `booking_status` (`CONFIRMED`, `CANCELLED`),
+  `agreement_status` (`in_review`, `cancelled`),
+  `agent_verification_checks.kind` (`identity`, `address`, `payout`,
+  `in_person`) and `status` (`failed`), and
+  `support_ticket_messages.sender_role` (`admin`).
+* **No trigger or function exists yet:** none of the eight trigger names exists
+  live, and neither do the eight `private.enqueue_*` function names this file
+  creates. They sit beside the existing `enqueue_inspection_booked_email` and
+  `enqueue_verification_rung_email`, whose dedupe keys (`:CONFIRMED:`, and
+  `verification:<agent>:<rung>`) differ from the new ones, so nothing is sent
+  twice.
+* **`agreement.waiting` uses the same key as the stay path:** the key is
+  byte-for-byte the one `private.agreement_tell_both` composes, so a stay that
+  already sends it still sends it once. No other live function enqueues any of
+  these 14 templates.
+* **`private.email_outbox_enqueue` never raises:**
+  * a null user, template or key returns null;
+  * a duplicate key is `on conflict do nothing`;
+  * `email_outbox` has no template CHECK and no triggers.
+
+  So none of these triggers can fail the write it rides on. Every dedupe key
+  is built only from NOT NULL parts, or from parts wrapped in `coalesce`.
+
+**RLS, grants and search_path:**
+* The file creates no table and no policy, so RLS is untouched.
+  `email_outbox` stays RLS on with no policy, service role only. The three
+  short texts copied into payloads (a lister's note, a reviewer's note and a
+  venue name) stay there.
+* All eight functions are definers, with execute revoked from PUBLIC, anon and
+  authenticated.
+* They use `search_path to 'public'`, not `''`. That matches every existing
+  `enqueue_*` function and `email_outbox_enqueue` itself. Every relation in the
+  bodies is qualified (`public.` or `private.`), and the API roles have USAGE
+  but not CREATE on `public`, so nothing can shadow a name. This is safe, but
+  it is not the house `''`. Switching to `''` would need no body change.
+
+**Idempotency:** `create or replace` everywhere, and `drop trigger if exists`
+before each `create trigger`. The read-back counts the 8 enabled triggers and
+raises otherwise.
+
+**Hot tables:** all eight triggers are AFTER, and cheap:
+* On `listings`, the trigger fires on insert or status change and does work
+  only on entering SUBMITTED (one `agents` lookup, one queue insert).
+* On `deal_agreements`, it acts on insert and on `in_review` or `cancelled`,
+  never on `paid`. That means at most two queue inserts, and it cannot raise
+  (see above), so the agreement and payment-gate path cannot be blocked.
+* `inspection_requests`, `reservations`, `support_ticket_messages`,
+  `guarantee_claims`, `agent_verification_checks` and `refund_requests` are
+  low volume.
+* No payment or settlement table gets a trigger.
+
+**Probes:** `sec-agreement-helpers` counts only `agreement.approved` rows.
+`sec-13` checks that a deleted account's outbox rows go (cascade) and that
+the purge works. Neither is affected by extra rows. No probe asserts the
+outbox is empty after an agreement, inspection or listing write.
+
+**When applying:** rename the file to `<version>_email_lifecycle_triggers.sql`
+in `supabase/migrations/` and record it with
+`node scripts/check-migrations.mjs --record`. The file itself says to do this.
+
+---
+
+## Review: M1 follow-ups (commit 1338849e)
+
+### `m1_followup_severity_execute_revoke.sql`: **APPLY**
+
+It revokes EXECUTE on `public.notification_severity(notification_kind, text, text)`
+from PUBLIC, anon and authenticated, and grants it to service_role. The live
+ACL has PUBLIC, anon, authenticated and service_role, so after the change only
+postgres and service_role hold it. It also revokes EXECUTE on
+`private.stamp_notification_severity()` (owned by postgres; its live ACL is
+NULL, meaning PUBLIC) from the same three roles.
+
+**Why the trigger keeps working (checked against live):**
+* Postgres checks EXECUTE on a trigger function only when the trigger is
+  created, so revoking it on the stamp function changes nothing at fire time.
+* The stamp trigger runs as the role doing the insert, and it calls
+  `notification_severity`, so every role that can insert into `notifications`
+  must keep EXECUTE. Live, the non-superuser roles holding INSERT are
+  `postgres` and `service_role`, which is exactly what the column grants show,
+  plus the predefined `pg_write_all_data`, which **has no members**. The
+  superuser `supabase_admin` bypasses the check.
+* Every function that inserts into `public.notifications` is a definer owned
+  by postgres.
+* The only caller of `notification_severity` anywhere in the database is the
+  stamp function, and the app never calls it over RPC.
+* The read-back's INSERT-grantee check, which reads
+  `information_schema.role_table_grants`, lists `service_role` and `postgres`
+  under the migration role, so it passes. It then calls the function as the
+  migration role.
+
+It changes only revokes and grants: no table, no policy, no payment path.
+Running it twice is safe. **db-06** is unaffected: a member's insert into
+notifications is still refused on privilege, before any trigger.
+
+### `m1_followup_saved_listing_back_on_market.sql`: **APPLY**
+
+**Body diffed against live:** the applied migration's function body
+(`20260930104610`) is identical to the M1 file I reviewed at 6bb94258, and it
+matches the live `pg_get_functiondef` text. Diffed mechanically, the new body
+differs **only by additions**:
+* the new variable `told_gone boolean`;
+* the `told_gone` read, taken before this transition's own availability row is
+  inserted;
+* the new "available again" loop after the existing "gone" loop.
+
+Every line of the price branch, the gone notice, the `listing_changes`
+inserts, the lister and demo exclusions and the `return null` is unchanged.
+The header is unchanged too (plpgsql, SECURITY DEFINER, `search_path ''`).
+`CREATE OR REPLACE` keeps the live ACL (`{postgres=X}`), and the revoke is
+re-stated. The trigger (`listings_record_change`, AFTER UPDATE OF the price
+columns, `status` and `closed_at`) is not touched.
+
+**Behaviour:**
+* The "back" notice fires only when the listing becomes live again **and** an
+  earlier `availability = false` row exists for it, so a listing published for
+  the first time stays silent.
+* Savers get it; never the lister, and never on a demo listing.
+* It uses the same `private.notify` path, kind `listing`. Its severity falls to
+  `update`, as the read-back proves by calling the live severity function.
+* The extra EXISTS uses `listing_changes_listing_idx (listing_id, changed_at)`
+  and runs only on a transition to live. It cannot raise, so listing writes
+  cannot be blocked.
+
+**Note (not a blocker):** the check asks whether a "gone" row was ever
+recorded, not whether this saver was told. A person who saved the listing
+while it was off the market would get "available again" without having seen
+"gone". The wording is still true.
+
+**Both files** are unversioned names. When applying, rename each to
+`<version>_<name>.sql` in `supabase/migrations/` and record it, as each file
+says. They are independent, so either order works.

@@ -649,23 +649,13 @@ export function SupportChat({
                 or hand it to a person. The 44px floor is drawn on the button
                 rather than faked with an overlay, because there is room here. */}
             <div className="flex flex-wrap items-center gap-x-group gap-y-inline border-t border-[var(--nf-border-subtle)] p-row">
-              <button
-                type="button"
-                data-testid="support-human"
-                onClick={askForHuman}
-                className="inline-flex min-h-11 min-w-0 cursor-pointer items-center gap-inline nf-caption font-semibold text-[var(--nf-content-primary)]"
-              >
-                <UiIcon name="user" size={ICON.inline} className="shrink-0" />
+              <Button variant="quiet" size="sm" leadingIcon="user" data-testid="support-human" onClick={askForHuman}>
                 Talk to a person
-              </button>
+              </Button>
               {messages.length > 0 && (
-                <button
-                  type="button"
-                  onClick={clearConversation}
-                  className="min-h-11 nf-caption font-medium text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
-                >
+                <Button variant="quiet" size="sm" onClick={clearConversation}>
                   Clear conversation
-                </button>
+                </Button>
               )}
               {signedIn && (
                 <Link
