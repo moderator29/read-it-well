@@ -358,3 +358,71 @@ SELECT, so the db-06 sequence check passes.
   `('calendar_feeds', 'id')` and `('calendar_imports', 'iu')` are added to its
   allowlist. Make that probe change in the same commit and then apply the file.
   The design notes in section 1 are for the host team and do not block it.
+
+---
+
+## Re-review: c14 second draft (commit b9ec4cf7)
+
+**Verdict: APPLY.** This replaces the flagged APPLY for c14 in section 6.
+Its position in the apply order does not change.
+
+**What it adds:** the table `console_key_revocations` (a PK on `credential_id`
+that references `money_credentials(credential_id)`, which is UNIQUE, with
+delete cascade; RLS on, no policy, all privileges revoked from anon and
+authenticated). It adds `private.refuse_revoked_console_key()` (definer,
+`search_path ''`, revoked from the API roles) with a BEFORE INSERT OR UPDATE OF
+`credential_id` trigger on `console_step_ups`. It also adds a reworked
+`admin_clear_console_keys(p_user, p_reason)` with the same signature and the
+same `keys_removed` key the staff page reads. It **deletes no money
+credential**, and the read-back enforces that.
+
+**Checked against the live schema:**
+* `console_step_ups` has `user_id` (not null), `session_id` (not null),
+  `credential_id` (text, **nullable**), `verified_at` and `expires_at`. It has
+  **no triggers and no policies** today, and anon and authenticated have no
+  grants on it, so only the service role writes it. The new trigger is its
+  only trigger. `console_key_revocations` and the trigger function do not exist
+  yet, so nothing collides.
+* The function uses `staff_grants.user_id` and `revoked_at`,
+  `user_roles.user_id` and `role`, the `audit_log` columns and
+  `private.console_step_up_ok()`, and all of them exist.
+  `private.has_role(actor, 'super_admin')` already requires a live proof when
+  the actor is the caller, so the explicit `console_step_up_ok()` check repeats
+  it. That is harmless.
+* The authorisation is correct. It requires a super admin with a live proof,
+  refuses the caller themselves, requires a reason of 10 to 500 characters, and
+  accepts only a target with a live staff grant or an admin or super_admin role
+  (anyone else gets `not_staff`, and the app has wording for that status). It
+  writes one audit row.
+
+**Money lock and passcode unlock are not blocked.** The only writer of
+`console_step_ups` anywhere is `apps/web/src/lib/security/console-step-up.ts`
+(a service-role upsert that always sets `credential_id`). No database function
+inserts, updates or deletes it. The money-lock and passcode code
+(`lib/security/money-step-up.ts`, `money-lock-guard.ts`) never touches it and
+never reads `console_key_revocations`. The key row stays, so it keeps working
+for money and unlock.
+
+**Probes:** 29 probes insert console proofs, including `sec-console-mfa` and
+the `console_probe_uid` preamble. All of them insert without `credential_id`,
+so it is null and the trigger passes. `sec-console-mfa` extends a proof with
+`update ... set expires_at`, and the trigger does not fire because it is
+scoped to `update of credential_id`. The probe's "a member wrote their own
+console proof" check still gets `insufficient_privilege`, because the privilege
+check runs before any trigger. `db-06` is fine because the new table has no
+write grants. `db-20` is fine because the new table has no policies. The
+custody-name rule does not match. No probe calls `admin_clear_console_keys`.
+
+**Notes (not blockers):**
+* A proof written with a null `credential_id` is not checked. Only the service
+  role can write proofs and the app always sets the id, so this gap exists only
+  in principle. Making the column NOT NULL would break the 29 probe preambles,
+  so leaving it nullable is the right call for now.
+* The cascade means that if the target deletes a revoked key from their
+  money-lock settings, its revocation row goes with it. Re-enrolling the same
+  authenticator would then open the console again. This only matters to
+  someone who already holds the target's session and money lock.
+* As the file says, the app still owes one change: `ConsoleStepUp.tsx` offers
+  enrolment only to a person with no key. It should count keys that are not
+  revoked. Until then the person adds a second key from the money-lock
+  settings.
