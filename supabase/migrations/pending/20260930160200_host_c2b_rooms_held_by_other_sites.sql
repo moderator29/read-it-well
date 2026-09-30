@@ -1,49 +1,55 @@
--- HOST C2b (second draft): A BOOKING ON ANOTHER SITE HOLDS ONE ROOM, AND
+-- HOST C2b (third draft): A BOOKING ON ANOTHER SITE HOLDS ONE ROOM, AND
 -- EVERY WRITER RESPECTS THE HOLD (30 September 2026).
--- PENDING: written by the host build team for re-review, replacing the held
--- 20260930160000 draft (docs/MIGRATION_REVIEW_2026-09-30.md). Idempotent.
--- Adds one column to room_inventory and two to calendar_import_nights, three
--- functions and two triggers; replaces private.calendar_import_release and
+-- PENDING: written by the host build team for re-review (rounds 2 and 3 in
+-- docs/MIGRATION_REVIEW_2026-09-30.md). Idempotent. Adds columns to
+-- room_inventory, rate_calendar and calendar_import_nights, four functions and
+-- four triggers; replaces private.calendar_import_release and
 -- public.apply_calendar_import (same signatures and grants). No row is
--- deleted, no column dropped, nothing about price or payment is touched.
+-- deleted, no column dropped. How a stay is priced does not change: pricing
+-- and search read `rate_calendar.closed`, `units_open` and `units_booked`
+-- exactly as before; this file only decides what those hold.
 --
--- WHAT WAS WRONG WITH THE LIVE C2 (20260930084937). One Airbnb booking of one
--- Deluxe room closed every rate plan of the room type that night, so Vallo
--- stopped selling all twelve Deluxe rooms.
--- WHAT WAS WRONG WITH THE FIRST C2b. It kept the hold only in the absolute
--- `units_open`, which (1) has no row beyond the 90-day horizon, (2) is
--- overwritten by the host's own writes, and (3) was never re-taken on a night
--- that was full at the first pull. Each lost the hold for good.
+-- WHY. The live C2 (20260930084937) closed every rate plan of a room type for
+-- one booking elsewhere, so one Airbnb booking took all twelve Deluxe rooms
+-- off Vallo. The first C2b kept the hold only in the absolute `units_open`,
+-- which later writes and missing rows lost.
 --
--- THE RULE NOW, ENFORCED WHERE EVERY WRITER PASSES:
+-- THE RULE, ENFORCED WHERE EVERY WRITER PASSES:
 --   rooms on sale  <=  rooms of the type  -  rooms held by other sites
--- where "rooms held" is the number of linked calendars that list the night
--- (`calendar_import_nights`, one room each). A BEFORE INSERT/UPDATE trigger on
--- room_inventory (`room_inventory_zz_respects_import_holds`) clamps every
--- write to that ceiling and records how many rooms it held back
--- (`units_held_back`), so:
---   * a row created later (the host opening nights 91+ days out) is born
---     clamped, because the hold is in the ledger, not in the row;
---   * a host's absolute write ("12 on sale") is treated as a request, clamped
---     to 11 while Airbnb holds one, and given its 12th room back only when the
---     hold ends; a host's deliberate lower number is never raised by a release;
---   * a night full of Vallo guests at the first pull is still held: the rule
---     is re-applied whenever a Vallo booking is released, so the room a
---     cancelling Vallo guest frees goes to the hold, not back on sale;
---   * never below what Vallo guests already hold (units_booked): a night where
---     the rule cannot be met is a conflict, told to the host once
---     (`conflict_told`), and told again only if it recurs after clearing.
--- FALLBACK, as the live C2 did: a night with no inventory row yet has its
--- rate plans closed (`plans_closed`), so nothing can price or reserve it. The
--- moment an inventory row is created for that night the clamp holds the room
--- and the import's closure is lifted (AFTER INSERT trigger), so the other
--- rooms are not kept off sale for nothing. A closure the host made is never
--- lifted (`was_closed`).
--- A whole-place listing is unchanged: one booking elsewhere is the whole
--- place (`availability`).
+-- where "held" counts the linked calendars that list the night
+-- (`calendar_import_nights`, one room each).
 --
--- The behaviour is proven by supabase/tests/probes/calendar-holds.sql (a
--- night with no inventory row, a host upsert, a full night, a release).
+--   room_inventory_zz_respects_import_holds, BEFORE UPDATE OF units_open,
+--     units_booked, units_held_back: caps the write at `units_total - held`
+--     ALWAYS (with or without a hold, so nothing can put more than the room
+--     total on sale), never below the rooms Vallo guests hold, and records
+--     how many rooms of the request it held back (`units_held_back`, which a
+--     member can no longer forge: a direct write to it is recomputed).
+--     A host's write is a request; a booking-function write or this file's
+--     refresh carries the standing request (`units_open + units_held_back`),
+--     so a cancelling Vallo guest's room goes to the hold, and a released
+--     hold gives the host's rooms back up to what they asked, never more.
+--   BEFORE INSERT: the proposed row is left as asked (units_held_back forced
+--     to 0), so an UPSERT's conflict update sees the host's real request in
+--     EXCLUDED, not a clamped copy. room_inventory_after_insert_holds then
+--     clamps a genuinely inserted row at once, in the same statement.
+--   Nights with no inventory row: the rate plans are closed, as the live C2
+--     did, until a row exists; then the clamp holds the room and the import's
+--     closure is lifted.
+--   Closures carry their source. rate_calendar gains `host_closed` and
+--     `import_closed`, with `closed = host_closed or import_closed`, kept by
+--     a trigger: an import can only set or clear its own part (inside this
+--     file, flagged), a host write sets only the host's part. So a second
+--     import on a night the first closed never mistakes that for the host's
+--     closure, and lifting an import's closure never reopens the host's.
+--   Conflicts (Vallo guests hold more rooms than the holds leave) are told
+--     once per night and told again only if they clear and recur.
+-- A whole-place listing is unchanged (`availability`).
+--
+-- Proven by supabase/tests/pending/calendar-holds.sql (moves to probes/ once
+-- this is applied): free night, plain update, UPSERT, forged units_held_back,
+-- over-total request, a full night and a cancelled Vallo room, a night with
+-- no row, two imports on a night with no row, host closure kept, release.
 
 -- --------------------------------------------------------------- columns
 
@@ -54,21 +60,89 @@ alter table public.room_inventory add constraint room_inventory_units_held_back_
 alter table public.calendar_import_nights add column if not exists plans_closed boolean not null default false;
 alter table public.calendar_import_nights add column if not exists conflict_told boolean not null default false;
 
+alter table public.rate_calendar add column if not exists host_closed boolean not null default false;
+alter table public.rate_calendar add column if not exists import_closed boolean not null default false;
+-- Every closure that exists today is a host's (or the seed's): no import
+-- night existed when this was written.
+update public.rate_calendar set host_closed = true where closed and not host_closed and not import_closed;
+
 do $$
 begin
-  -- Room-type nights written by the live C2 closed rate plans without saying
-  -- so in `plans_closed`; the new release could not give them back. None
-  -- existed when this was written (0 import nights on 30 September).
   if exists (select 1 from public.calendar_import_nights cin join public.calendar_imports ci on ci.id = cin.import_id
-              where ci.room_type_id is not null and not cin.plans_closed and not cin.was_closed) then
-    raise exception 'host c2b: room-type import nights from the first C2 exist; convert them by hand before applying';
+              where ci.room_type_id is not null) then
+    raise exception 'host c2b: room-type import nights from the live C2 exist; convert them by hand before applying';
   end if;
 end $$;
 
+-- ------------------------------------------------- closures carry a source
+
+create or replace function private.rate_calendar_closure_source()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  flag text := coalesce(current_setting('vallo.import_closure', true), '');
+begin
+  if tg_op = 'INSERT' then
+    if flag = 'close' then
+      new.host_closed := false;
+      new.import_closed := true;
+    else
+      new.host_closed := coalesce(new.closed, false) or coalesce(new.host_closed, false);
+      new.import_closed := false;
+    end if;
+  elsif flag in ('close', 'open') then
+    -- This file's own writes touch the import's part only.
+    new.host_closed := old.host_closed;
+    new.import_closed := (flag = 'close');
+  else
+    -- Anybody else: the host's part, from `host_closed` when it was written,
+    -- else from `closed` when that changed; never the import's part.
+    new.import_closed := old.import_closed;
+    if new.host_closed is distinct from old.host_closed then
+      null;
+    elsif new.closed is distinct from old.closed then
+      new.host_closed := new.closed;
+    else
+      new.host_closed := old.host_closed;
+    end if;
+  end if;
+  new.closed := new.host_closed or new.import_closed;
+  return new;
+end;
+$function$;
+revoke all on function private.rate_calendar_closure_source() from public, anon, authenticated;
+drop trigger if exists rate_calendar_closure_source on public.rate_calendar;
+create trigger rate_calendar_closure_source before insert or update on public.rate_calendar
+  for each row execute function private.rate_calendar_closure_source();
+
+-- Close or lift the import's part of one night for every plan of a room type.
+create or replace function private.set_import_closure(p_room_type uuid, p_date date, p_close boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  perform set_config('vallo.import_closure', case when p_close then 'close' else 'open' end, true);
+  if p_close then
+    insert into public.rate_calendar (rate_plan_id, date, closed)
+    select rp.id, p_date, true from public.rate_plans rp where rp.room_type_id = p_room_type
+    on conflict (rate_plan_id, date) do update set closed = true;
+  else
+    update public.rate_calendar rc set closed = false
+     where rc.date = p_date and rc.import_closed
+       and rc.rate_plan_id in (select rp.id from public.rate_plans rp where rp.room_type_id = p_room_type);
+  end if;
+  perform set_config('vallo.import_closure', '', true);
+end;
+$function$;
+revoke all on function private.set_import_closure(uuid, date, boolean) from public, anon, authenticated;
+
 -- ------------------------------------------------------ the hold and the rule
 
--- How many rooms of a type other sites hold on a night: one per linked
--- calendar that lists it.
 create or replace function private.room_import_holds(p_room_type uuid, p_date date)
 returns integer
 language sql
@@ -90,35 +164,31 @@ set search_path = ''
 as $function$
 declare
   total     integer;
-  held      integer;
   requested integer;
   ceiling   integer;
   carried   boolean;
 begin
-  held := private.room_import_holds(new.room_type_id, new.date);
-  -- A write that is not a new request carries the standing one forward: the
-  -- booking functions (which move units_booked only) and this file's refresh.
-  carried := tg_op = 'UPDATE' and (
-    coalesce(current_setting('vallo.inventory_writer', true), '') in ('reserve_room_nights', 'release_room_nights')
-    or coalesce(current_setting('vallo.import_hold_refresh', true), '') = 'on');
+  if tg_op = 'INSERT' then
+    -- Left as asked, so an upsert's conflict update sees the real request;
+    -- a real insert is clamped by the AFTER INSERT trigger in this statement.
+    new.units_held_back := 0;
+    return new;
+  end if;
+  carried := coalesce(current_setting('vallo.inventory_writer', true), '') in ('reserve_room_nights', 'release_room_nights')
+          or coalesce(current_setting('vallo.import_hold_refresh', true), '') = 'on';
   if carried then
     requested := old.units_open + old.units_held_back;
   else
     requested := new.units_open;
   end if;
-  if held = 0 then
-    ceiling := requested;
-  else
-    select rt.units_total into total from public.room_types rt where rt.id = new.room_type_id;
-    ceiling := greatest(coalesce(total, 0) - held, 0);
-  end if;
+  select rt.units_total into total from public.room_types rt where rt.id = new.room_type_id;
+  requested := least(requested, coalesce(total, 0));
+  ceiling := greatest(coalesce(total, 0) - private.room_import_holds(new.room_type_id, new.date), 0);
   if carried then
-    -- Never below the rooms Vallo guests hold.
     new.units_open := greatest(least(requested, ceiling), new.units_booked);
   else
-    -- A host asking for fewer than are booked is still refused by the table's
-    -- own CHECK, with the sentence the host already knows; the holds alone
-    -- never push a night below its bookings.
+    -- Fewer than are booked is still refused by the table's CHECK, with the
+    -- sentence the host knows; the holds alone never push below bookings.
     new.units_open := greatest(least(requested, ceiling), least(new.units_booked, requested));
   end if;
   new.units_held_back := greatest(requested - new.units_open, 0);
@@ -126,14 +196,12 @@ begin
 end;
 $function$;
 revoke all on function private.room_inventory_respects_import_holds() from public, anon, authenticated;
--- Named to run after room_inventory_open_within_total, which checks the raw
--- request against the room total first.
 drop trigger if exists room_inventory_zz_respects_import_holds on public.room_inventory;
 create trigger room_inventory_zz_respects_import_holds
-  before insert or update of units_open, units_booked on public.room_inventory
+  before insert or update of units_open, units_booked, units_held_back on public.room_inventory
   for each row execute function private.room_inventory_respects_import_holds();
 
--- Re-apply the rule to one night after a hold starts or ends.
+-- Re-apply the rule to one night (carrying the standing request).
 create or replace function private.refresh_import_holds(p_room_type uuid, p_date date)
 returns void
 language plpgsql
@@ -149,35 +217,38 @@ end;
 $function$;
 revoke all on function private.refresh_import_holds(uuid, date) from public, anon, authenticated;
 
--- A night that had no inventory row was held by closing its rate plans. Once
--- a row exists the clamp holds the room, so the import's closure is lifted.
-create or replace function private.room_inventory_takes_over_import_closures()
+-- A row just inserted: clamp it now, and lift the import's fallback closure,
+-- which the clamp makes unnecessary.
+create or replace function private.room_inventory_after_insert_holds()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $function$
 begin
-  if not exists (select 1 from public.calendar_import_nights cin join public.calendar_imports ci on ci.id = cin.import_id
-                  where ci.room_type_id = new.room_type_id and cin.date = new.date and cin.plans_closed) then
+  -- Rooms of a type no calendar is linked to need nothing (and a host opening
+  -- a year of nights pays nothing for this trigger).
+  if not exists (select 1 from public.calendar_imports ci where ci.room_type_id = new.room_type_id) then
     return null;
   end if;
-  if not exists (select 1 from public.calendar_import_nights cin join public.calendar_imports ci on ci.id = cin.import_id
-                  where ci.room_type_id = new.room_type_id and cin.date = new.date and cin.was_closed) then
-    update public.rate_calendar rc set closed = false
-     where rc.date = new.date and rc.closed
-       and rc.rate_plan_id in (select rp.id from public.rate_plans rp where rp.room_type_id = new.room_type_id);
+  perform private.refresh_import_holds(new.room_type_id, new.date);
+  if exists (select 1 from public.calendar_import_nights cin join public.calendar_imports ci on ci.id = cin.import_id
+              where ci.room_type_id = new.room_type_id and cin.date = new.date and cin.plans_closed) then
+    perform private.set_import_closure(new.room_type_id, new.date, false);
+    update public.calendar_import_nights cin set plans_closed = false
+      from public.calendar_imports ci
+     where ci.id = cin.import_id and ci.room_type_id = new.room_type_id and cin.date = new.date and cin.plans_closed;
   end if;
-  update public.calendar_import_nights cin set plans_closed = false
-    from public.calendar_imports ci
-   where ci.id = cin.import_id and ci.room_type_id = new.room_type_id and cin.date = new.date and cin.plans_closed;
   return null;
 end;
 $function$;
-revoke all on function private.room_inventory_takes_over_import_closures() from public, anon, authenticated;
+revoke all on function private.room_inventory_after_insert_holds() from public, anon, authenticated;
+-- The second draft's name for the closure half of this trigger.
 drop trigger if exists room_inventory_takes_over_import_closures on public.room_inventory;
-create trigger room_inventory_takes_over_import_closures after insert on public.room_inventory
-  for each row execute function private.room_inventory_takes_over_import_closures();
+drop function if exists private.room_inventory_takes_over_import_closures();
+drop trigger if exists room_inventory_after_insert_holds on public.room_inventory;
+create trigger room_inventory_after_insert_holds after insert on public.room_inventory
+  for each row execute function private.room_inventory_after_insert_holds();
 
 -- ------------------------------------------------------- pull and release
 
@@ -201,15 +272,12 @@ begin
   loop
     released := released + 1;
     if i.room_type_id is not null then
-      -- The fallback closure goes when no other import still relies on it.
-      if n.plans_closed and not n.was_closed
-         and not exists (select 1 from public.calendar_import_nights o join public.calendar_imports oi on oi.id = o.import_id
-                          where oi.room_type_id = i.room_type_id and o.date = n.date and o.plans_closed) then
-        update public.rate_calendar rc set closed = false
-         where rc.date = n.date and rc.closed
-           and rc.rate_plan_id in (select rp.id from public.rate_plans rp where rp.room_type_id = i.room_type_id);
+      -- The import's closure goes when no other import still needs it; the
+      -- host's own closure is a different part and is never touched.
+      if not exists (select 1 from public.calendar_import_nights o join public.calendar_imports oi on oi.id = o.import_id
+                      where oi.room_type_id = i.room_type_id and o.date = n.date and o.plans_closed) then
+        perform private.set_import_closure(i.room_type_id, n.date, false);
       end if;
-      -- One hold fewer: the rule gives back what it held back, up to the request.
       perform private.refresh_import_holds(i.room_type_id, n.date);
     else
       continue when n.was_closed;
@@ -238,7 +306,7 @@ declare
   dropped     date[];
   d           date;
   prior       boolean;
-  closed_now  boolean;
+  has_row     boolean;
   v_conflicts integer := 0;
   v_new       integer := 0;
   place       text;
@@ -284,22 +352,17 @@ begin
 
   foreach d in array added loop
     if i.room_type_id is not null then
-      prior := exists (select 1 from public.rate_calendar rc join public.rate_plans rp on rp.id = rc.rate_plan_id
-                        where rp.room_type_id = i.room_type_id and rc.date = d and rc.closed);
-      closed_now := false;
       -- The hold is the row: record it first, so the rule counts it.
-      insert into public.calendar_import_nights (import_id, date, was_closed) values (i.id, d, prior)
+      insert into public.calendar_import_nights (import_id, date, was_closed) values (i.id, d, false)
       on conflict (import_id, date) do nothing;
-      if exists (select 1 from public.room_inventory ri where ri.room_type_id = i.room_type_id and ri.date = d) then
+      has_row := exists (select 1 from public.room_inventory ri where ri.room_type_id = i.room_type_id and ri.date = d);
+      if has_row then
         perform private.refresh_import_holds(i.room_type_id, d);
-      elsif not prior then
-        -- No row yet: close the night on every plan until one exists.
-        insert into public.rate_calendar (rate_plan_id, date, closed)
-        select rp.id, d, true from public.rate_plans rp where rp.room_type_id = i.room_type_id
-        on conflict (rate_plan_id, date) do update set closed = true;
-        closed_now := true;
+      else
+        -- No row yet: the import's part of the closure, until one exists.
+        perform private.set_import_closure(i.room_type_id, d, true);
       end if;
-      update public.calendar_import_nights set plans_closed = closed_now where import_id = i.id and date = d;
+      update public.calendar_import_nights set plans_closed = not has_row where import_id = i.id and date = d;
     else
       prior := exists (select 1 from public.availability av where av.listing_id = i.listing_id and av.date = d and av.status = 'unavailable')
                and not exists (select 1 from public.calendar_import_nights o join public.calendar_imports oi on oi.id = o.import_id
@@ -317,9 +380,8 @@ begin
   end loop;
 
   if i.room_type_id is not null then
-    -- Every night this import holds, not just the new ones: a night becomes a
-    -- conflict when Vallo guests hold more rooms than the type has left after
-    -- the holds. Told once; told again only if it clears and recurs.
+    -- Every night this import holds: a conflict is Vallo guests holding more
+    -- rooms than the holds leave. Told once; again only if it clears and recurs.
     with nights as (
       select cin.date,
              exists (select 1 from public.room_inventory ri join public.room_types rt on rt.id = ri.room_type_id
@@ -364,29 +426,44 @@ grant execute on function public.apply_calendar_import(uuid, date[], text) to se
 -- ------------------------------------------------------------ read-back
 do $$
 declare
-  def text;
+  def   text;
+  names text[];
 begin
-  if not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'room_inventory' and column_name = 'units_held_back') then
-    raise exception 'host c2b: room_inventory.units_held_back is missing';
+  if not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'room_inventory' and column_name = 'units_held_back')
+     or not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'rate_calendar' and column_name = 'import_closed') then
+    raise exception 'host c2b: a column is missing';
   end if;
-  if not exists (select 1 from pg_trigger where tgname = 'room_inventory_zz_respects_import_holds' and tgrelid = 'public.room_inventory'::regclass)
-     or not exists (select 1 from pg_trigger where tgname = 'room_inventory_takes_over_import_closures' and tgrelid = 'public.room_inventory'::regclass) then
-    raise exception 'host c2b: a room_inventory trigger is missing';
+  -- The real BEFORE-trigger order on room_inventory (by name): the total
+  -- check must see the raw request before the hold rule caps it.
+  names := array(select t.tgname::text from pg_trigger t
+                  where t.tgrelid = 'public.room_inventory'::regclass and not t.tgisinternal
+                    and (t.tgtype & 2) = 2 order by t.tgname);
+  if array_position(names, 'room_inventory_open_within_total') is null
+     or array_position(names, 'room_inventory_zz_respects_import_holds') is null
+     or array_position(names, 'room_inventory_zz_respects_import_holds') < array_position(names, 'room_inventory_open_within_total') then
+    raise exception 'host c2b: the hold rule would run before the total check (%)', names;
   end if;
-  -- The clamp must run after the total check, so a request over the total is
-  -- still refused rather than quietly clamped.
-  if 'room_inventory_zz_respects_import_holds' < 'room_inventory_open_within_total' then
-    raise exception 'host c2b: the hold trigger would run before the total check';
+  -- The rule fires on a direct write to units_held_back, so it cannot be forged.
+  if position('units_held_back' in pg_get_triggerdef((select oid from pg_trigger where tgname = 'room_inventory_zz_respects_import_holds'
+                                                          and tgrelid = 'public.room_inventory'::regclass))) = 0 then
+    raise exception 'host c2b: a direct write to units_held_back would not be recomputed';
+  end if;
+  if not exists (select 1 from pg_trigger where tgname = 'room_inventory_after_insert_holds' and tgrelid = 'public.room_inventory'::regclass)
+     or not exists (select 1 from pg_trigger where tgname = 'rate_calendar_closure_source' and tgrelid = 'public.rate_calendar'::regclass) then
+    raise exception 'host c2b: a trigger is missing';
+  end if;
+  if exists (select 1 from public.rate_calendar where closed is distinct from (host_closed or import_closed)) then
+    raise exception 'host c2b: a rate_calendar closure has no source';
   end if;
   def := pg_get_functiondef('public.apply_calendar_import(uuid,date[],text)'::regprocedure);
-  if position('refresh_import_holds' in def) = 0 or position('plans_closed' in def) = 0 or position('conflict_told' in def) = 0 then
+  if position('set_import_closure' in def) = 0 or position('refresh_import_holds' in def) = 0 or position('conflict_told' in def) = 0 then
     raise exception 'host c2b: apply_calendar_import is not the held-room version';
   end if;
   if has_function_privilege('authenticated', 'public.apply_calendar_import(uuid,date[],text)', 'execute')
-     or has_function_privilege('authenticated', 'private.refresh_import_holds(uuid,date)', 'execute') then
+     or has_function_privilege('authenticated', 'private.refresh_import_holds(uuid,date)', 'execute')
+     or has_function_privilege('authenticated', 'private.set_import_closure(uuid,date,boolean)', 'execute') then
     raise exception 'host c2b: a hold function is open to members';
   end if;
-  -- With no import anywhere the rule must leave every existing row as it is.
   if exists (select 1 from public.room_inventory where units_held_back <> 0)
      and not exists (select 1 from public.calendar_import_nights) then
     raise exception 'host c2b: rooms are held back with no import';

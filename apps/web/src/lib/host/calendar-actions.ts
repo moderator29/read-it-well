@@ -177,12 +177,22 @@ export async function setNightsClosed(input: unknown): Promise<ActionResult<{ ni
   const got = await session();
   if (!got.ok) return got.result;
   const db = got.s.supabase;
-  const { error } = closed
-    ? await db.from("rate_calendar").upsert(
-        owned.planIds.flatMap((id) => nights.map((date) => ({ rate_plan_id: id, date, closed: true }))),
-        { onConflict: "rate_plan_id,date" },
-      )
-    : await db.from("rate_calendar").update({ closed: false }).in("rate_plan_id", owned.planIds).in("date", nights);
+  /* C2b: a closure carries its source. The host's part is `host_closed`
+     (the database keeps `closed = host_closed or import_closed`), so a host
+     closing a night another site already holds still records the host's
+     choice, and reopening never lifts the other site's hold. A database
+     before the C2b migration has no such column: write `closed` alone. */
+  const write = (withSource: boolean) => {
+    const own = (value: boolean) => (withSource ? { closed: value, host_closed: value } : { closed: value }) as { closed: boolean };
+    return closed
+      ? db.from("rate_calendar").upsert(
+          owned.planIds.flatMap((id) => nights.map((date) => ({ rate_plan_id: id, date, ...own(true) }))),
+          { onConflict: "rate_plan_id,date" },
+        )
+      : db.from("rate_calendar").update(own(false)).in("rate_plan_id", owned.planIds).in("date", nights);
+  };
+  let { error } = await write(true);
+  if (error && (error.code === "42703" || error.code === "PGRST204")) ({ error } = await write(false));
   if (error) return fail(error.code === "42501" ? NOT_YOURS_MESSAGE : SERVICE_DOWN_MESSAGE);
 
   refresh();

@@ -1,6 +1,6 @@
 -- HOST C2b (30 September 2026): a booking on another site holds ONE room of a
 -- room type, and every writer respects the hold. Run after
--- 20260930160200_host_c2b_rooms_held_by_other_sites.sql; the whole probe
+-- 20260930160200_host_c2b_rooms_held_by_other_sites.sql (waits in tests/pending until then); the whole probe
 -- rolls back (PROBE_OK is raised at the end).
 --
 --  * a free night: one room held, the others still for sale;
@@ -10,11 +10,14 @@
 --  * a night with no inventory row: plans closed as the fallback, and the row
 --    the host creates later is born clamped, the closure lifted;
 --  * dropping the nights gives every room back; a request over the total is
---    still refused.
+--    still refused;
+--  * round 3: the host's UPSERT keeps its request, a forged units_held_back is
+--    recomputed, two imports on a night with no row do not keep it closed,
+--    and the host's own closure survives an import's release.
 do $$
 declare
   host  constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
-  biz uuid; acc uuid; rt uuid; rp uuid; pol uuid; imp uuid;
+  biz uuid; acc uuid; rt uuid; rp uuid; pol uuid; imp uuid; imp2 uuid;
   today date := (now() at time zone 'Africa/Lagos')::date;
   r record; res jsonb; n int;
 begin
@@ -73,6 +76,51 @@ begin
   res := public.apply_calendar_import(imp, array[]::date[]);
   select count(*) into n from public.room_inventory where room_type_id = rt and date in (today + 5, today + 400) and units_open = 3 and units_held_back = 0;
   if n <> 2 then raise exception 'PROBE_FAIL calendar-holds: dropping the nights gave back % of 2 rooms', n; end if;
+
+  -- Round 3. A second linked calendar, and a night the host closed themselves.
+  insert into public.calendar_imports (owner_id, room_type_id, source, url)
+  values (host, rt, 'booking_com', 'https://admin.booking.com/probe.ics') returning id into imp2;
+  insert into public.rate_calendar (rate_plan_id, date, closed) values (rp, today + 402, true);
+  res := public.apply_calendar_import(imp, array[today + 5, today + 410, today + 402]);
+  res := public.apply_calendar_import(imp2, array[today + 5, today + 410]);
+
+  -- The host's UPSERT asks for 3 while two rooms are held: 1 on sale, 2 remembered.
+  insert into public.room_inventory (room_type_id, date, units_open) values (rt, today + 5, 3)
+  on conflict (room_type_id, date) do update set units_open = excluded.units_open;
+  select * into r from public.room_inventory where room_type_id = rt and date = today + 5;
+  if r.units_open <> 1 or r.units_held_back <> 2 then
+    raise exception 'PROBE_FAIL calendar-holds: the upsert kept % open, % held back', r.units_open, r.units_held_back;
+  end if;
+
+  -- A forged units_held_back is recomputed, and a reservation cannot use it.
+  update public.room_inventory set units_held_back = 50 where room_type_id = rt and date = today + 6;
+  select * into r from public.room_inventory where room_type_id = rt and date = today + 6;
+  if r.units_held_back <> 0 then raise exception 'PROBE_FAIL calendar-holds: a forged hold-back stood (%)', r.units_held_back; end if;
+  perform private.reserve_room_nights(rt, today + 6, today + 7, 1, rp);
+  select * into r from public.room_inventory where room_type_id = rt and date = today + 6;
+  if r.units_open > 3 then raise exception 'PROBE_FAIL calendar-holds: % rooms on sale of 3', r.units_open; end if;
+
+  -- Two imports on a night with no row: the imports' closure only, lifted by the row.
+  if not exists (select 1 from public.rate_calendar where rate_plan_id = rp and date = today + 410 and closed and import_closed and not host_closed) then
+    raise exception 'PROBE_FAIL calendar-holds: two imports did not close a night with no row as the imports';
+  end if;
+  insert into public.room_inventory (room_type_id, date, units_open) values (rt, today + 410, 3)
+  on conflict (room_type_id, date) do update set units_open = excluded.units_open;
+  if exists (select 1 from public.rate_calendar where rate_plan_id = rp and date = today + 410 and closed) then
+    raise exception 'PROBE_FAIL calendar-holds: a night held by two imports stayed closed after its row came';
+  end if;
+  select * into r from public.room_inventory where room_type_id = rt and date = today + 410;
+  if r.units_open <> 1 then raise exception 'PROBE_FAIL calendar-holds: two holds left % open of 3', r.units_open; end if;
+
+  res := public.apply_calendar_import(imp, array[]::date[]);
+  res := public.apply_calendar_import(imp2, array[]::date[]);
+  select * into r from public.room_inventory where room_type_id = rt and date = today + 5;
+  if r.units_open <> 3 or r.units_held_back <> 0 then
+    raise exception 'PROBE_FAIL calendar-holds: the upserted request did not come back (% open)', r.units_open;
+  end if;
+  if not exists (select 1 from public.rate_calendar where rate_plan_id = rp and date = today + 402 and closed and host_closed) then
+    raise exception 'PROBE_FAIL calendar-holds: the host''s own closure was lifted by an import';
+  end if;
 
   raise exception 'PROBE_OK calendar-holds';
 end
