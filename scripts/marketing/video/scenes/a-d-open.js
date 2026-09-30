@@ -87,17 +87,25 @@ export function buildOpenDesktop(ctx, T) {
   const C = { x: 960, y: 480 };
   const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
   const stack = [{ dy: -10, r: -2 }, { dy: 0, r: 1.2 }, { dy: 10, r: -0.8 }];
+  /* The deal (the card_slide cues): right, left, then the last card to the centre. Each card's moves
+     are one chain of tweens that never overlap on a property (so a frame never depends on the seek
+     direction): the first card's gather carries it straight to its spot, and the centre card's deal
+     hands it straight to the fan. */
+  const spots = [{ c: 2, dx: 560, r: 4, t: T.b(7.1), settle: true }, { c: 0, dx: -560, r: -4, t: T.b(7.8), settle: true }, { c: 1, dx: 0, r: 0, t: T.b(8.5), settle: false }];
+  const OUT = 0.19;
   cards.forEach((c, k) => {
-    const p = at(c, 0, stack[k].dy);
-    tl.to(c.root, { x: p.x, y: p.y, rotation: stack[k].r, scale: 0.92, duration: 0.5, ease: "power3.inOut" }, T.shouldnt + k * 0.03);
-  });
-  /* The deal (the card_slide cues): right, left, then the last card to the centre. */
-  const spots = [{ c: 2, dx: 560, r: 4, t: T.b(7.1) }, { c: 0, dx: -560, r: -4, t: T.b(7.8) }, { c: 1, dx: 0, r: 0, t: T.b(8.5) }];
-  spots.forEach((s) => {
-    const c = cards[s.c];
-    const p = at(c, s.dx, 10);
-    tl.to(c.root, { x: p.x, y: p.y - 40, rotation: s.r * 1.6, duration: 0.2, ease: "power2.out" }, s.t);
-    tl.to(c.root, { y: p.y, rotation: s.r, duration: 0.24, ease: "back.out(1.6)" }, s.t + 0.2);
+    const s0 = spots.find((sp) => sp.c === k);
+    const p = at(c, s0.dx, 10);
+    const t0 = T.shouldnt + k * 0.03;
+    const out = { x: p.x, y: p.y - 40, rotation: s0.r * 1.6 };
+    if (s0.t < t0 + 0.5) {
+      tl.to(c.root, { ...out, scale: 0.92, duration: s0.t + OUT - t0, ease: "power3.inOut" }, t0);
+    } else {
+      const g = at(c, 0, stack[k].dy);
+      tl.to(c.root, { x: g.x, y: g.y, rotation: stack[k].r, scale: 0.92, duration: 0.5, ease: "power3.inOut" }, t0);
+      tl.to(c.root, { ...out, duration: OUT, ease: "power2.out" }, s0.t);
+    }
+    if (s0.settle) tl.to(c.root, { y: p.y, rotation: s0.r, duration: 0.24, ease: "back.out(1.6)" }, s0.t + OUT);
   });
   tl.set(cards[1].layer, { zIndex: 5 }, T.b(8.5));
   /* On "gamble" the spread fans a touch, like a hand; the centre card stays on top. */
@@ -137,9 +145,11 @@ export function buildOpenDesktop(ctx, T) {
   const RING = { cx: 960, cy: 530, r: 300 };
   const markW = 300;
   const markH = (markW * 587) / 614;
-  const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: `${RING.cx - markW / 2}px`, top: `${RING.cy - markH / 2}px`, width: `${markW}px`, height: `${markH}px` } }, vallo);
+  /* The landing moves the mark; the step left moves its holder (the two overlap in time, never on one element). */
+  const markWrap = ctx.el("div", { class: "abs", style: { left: `${RING.cx - markW / 2}px`, top: `${RING.cy - markH / 2}px`, width: `${markW}px`, height: `${markH}px` } }, vallo);
+  const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: "0px", top: "0px", width: `${markW}px`, height: `${markH}px` } }, markWrap);
   tl.fromTo(mark, { scale: 1.45, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "land" }, T.drop);
-  tl.to(mark, { x: -170, scale: 0.62, duration: 0.55, ease: "power3.inOut" }, T.vallo - 0.06);
+  tl.to(markWrap, { x: -170, scale: 0.62, duration: 0.55, ease: "power3.inOut" }, T.vallo - 0.06);
   const ring = ringBurst(ctx, vallo, { cx: RING.cx, cy: RING.cy, r: RING.r, t: T.drop + 0.06, color: SKY, stroke: 4, dots: 16, seed: 12, dur: 0.75 });
   const wmW = 350;
   const wmH = (wmW * 167) / 758;

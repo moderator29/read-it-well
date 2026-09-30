@@ -133,7 +133,7 @@ export async function deskChecked(ctx, S, T) {
   ctx.el("div", { html: "Checked by<br>a person", style: { font: "600 52px/1.08 Poppins, Inter, sans-serif", letterSpacing: "-0.03em", color: NAVY } }, verdict);
   exampleChip(ctx, ctx.el("div", {}, verdict), { size: 22 });
   const tV = T.person;
-  const tV1 = T.r27 - 0.1;
+  const tV1 = T.r27 - 0.36; // the verdict clears before card 2 arrives (0.9 s after it lands)
   const VX = RP.x + (RP.w - VW) / 2;
   const VY = 250;
   ctx.sfx("stamp", tV, { offset: 2 });
@@ -142,7 +142,7 @@ export async function deskChecked(ctx, S, T) {
   ctx.onFrame((t) => {
     if (t < tV - 0.06 || t > tV1 + 0.4) return;
     const k = ramp(ctx, t, tV - 0.06, tV + 0.34, "land");
-    const rise = ramp(ctx, t, tV1, tV1 + 0.36, "power2.in");
+    const rise = ramp(ctx, t, tV1, tV1 + 0.32, "power2.in");
     const y = mix(VY + 40, VY, k) - rise * 600;
     verdict.style.transform = `translate(${VX.toFixed(2)}px, ${y.toFixed(2)}px) scale(${mix(0.92, 1, k).toFixed(4)})`;
     verdict.style.opacity = String((Math.min(1, k * 2) * (1 - rise)).toFixed(3));
@@ -160,7 +160,7 @@ export async function deskChecked(ctx, S, T) {
   const tOut = T.dealing + 0.28;
   const c0 = { x: BOX.x + BOX.w / 2, y: BOX.y + BOX.h / 2 };
   ctx.gsap.set(card.root, { transformOrigin: "50% 50%" });
-  tl.fromTo(card.root, { x: -420, y: -640, rotation: -28 }, { x: 0, y: 0, rotation: -2, duration: 0.52, ease: "back.out(1.2)", immediateRender: false }, tIn);
+  tl.fromTo(card.root, { x: 180, y: -640, rotation: 18 }, { x: 0, y: 0, rotation: -2, duration: 0.52, ease: "back.out(1.2)", immediateRender: false }, tIn);
   card.turn(tTurn, { sound: null });
   ctx.sfx("pop", T.who);
   tl.fromTo(card.root, { x: 0, y: 0, rotation: -2, scale: 1 }, { x: OUT.x - c0.x, y: OUT.y - c0.y, rotation: OUT.r, scale: OUT.s, duration: 0.5, ease: "power3.in", immediateRender: false }, tOut);

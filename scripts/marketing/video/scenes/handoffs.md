@@ -67,3 +67,54 @@ Both films restyle the card's faces after building it, so it reads centred:
   - It leaves the frame over the top right corner by about 30.45. Its last position: centre (2070, −330),
     rotation 22°, scale 0.9, answer side up.
   - Section c brings it back from there (the top right).
+
+## B → C (t = 62.885 = ctx.beat(109))
+
+Written by builder B. Section b's scenes end at 62.885 (exclusive). What is on screen at the cut:
+the mist ground (the same `mist()` string as `c-kit.js`), the chapter pill (the engine's), and the
+naira coin, falling. Nothing else: B's phone, cards, pointer and type are all gone by then.
+
+### The coin (section c's `coin()` from `c-kit.js`, which B imports)
+
+B's coin is the verified mark on card 2's back spinning off: the badge turns edge-on (rotateY to 90°)
+by 61.99, then the coin carries on from 90° and falls. At 62.885 it is exactly on c's `COIN_IN`:
+
+- **Mobile** (`b-m-checked.js` `COIN_OUT`): centre (330, 470), size 110, spin 720 (≡ 0), tilt 0,
+  opacity 1, shadow 0. Moving: vy ≈ +235 px/s (down; y is `power2.in` from 400 at 62.29), spin rate
+  ≈ 1,410 °/s (`power1.in` from 90° at 61.99). x and size arrive at rest (`power1.inOut`, `power2.inOut`).
+  Matches c's `COIN_IN.mobile` (vy 233, vspin 1400).
+- **Desktop** (`b-d-checked.js` `COIN_OUT_D`): centre (1500, 420), size 88, spin 720 (≡ 0), tilt 0,
+  opacity 1, shadow 0. Moving: vy ≈ +202 px/s (down; y is `power2.in` from 360 at 62.29), spin rate
+  1,200 °/s. x and size arrive at rest. Matches c's `COIN_IN.desktop`.
+
+### Card 2 leaves to the top left (for section c, row 31)
+
+`questionCard(ctx, parent, { q: QUESTIONS[1].q, a: QUESTIONS[1].a, box, mark: true, fontSize })`, front
+text centred, turned to its answer (inner rotationY 180) from 61.09 (0.62 s, `back.out(1.4)`). Its
+back is the engine's inline mark (white badge, electric tick) and "Checked by a real person at Vallo."
+From 61.81 the card flies out (0.5 s, `power3.in`); from 61.83 its mark hides (the spinning twin takes over);
+gone by 62.31, answer side up:
+
+- **Mobile:** box `{ x: 110, y: 640, w: 830, h: 228 }`, fontSize 52; out with
+  `{ x: -1100, y: -760, rotation: -24, scale: 0.8 }` (transform-origin 50% 50%). Last position: centre
+  (−575, −6), rotation −24°, scale 0.8 = c's `CARD_OUT.mobile.c2`.
+- **Desktop:** box `{ x: 1200, y: 400, w: 600, h: 160 }` (RIGHT_PANEL), fontSize 40; out to centre
+  (−560, −200), rotation −22°, scale 0.8 = c's `CARD_OUT.desktop.c2`.
+
+### Devices
+
+- **Mobile:** B's phone left the frame at 60.58 (to the right, opacity 0). No phone at the cut; c's
+  phone rises into PHONE_HIGH.
+- **Desktop:** B's window (`d-verification-lt` at WINDOW_LEFT, flat, scale 0.708333, B's own
+  `browserWindow`) fades out from 62.585 and is at opacity 0 at 62.885, so c's lock window
+  (rising from WINDOW_LEFT y + 40, fading in from 62.845) comes up over an empty ground: a dissolve
+  through the mist between two different pages. If c would rather cut straight to its window at
+  full opacity on WINDOW_LEFT, B can hold its window to the cut instead: tell B.
+- **Pointer:** hidden since 46.6 (both films).
+
+### A note for section a (A → B, both films)
+
+A's last frames show the member's sent bubble in the thread ("I like these two as well. Could we view
+all three on Saturday morning?", `thread-light` display y 2398–2637 / `d-thread-lt` css y 764–823).
+In B that message is sent in row 15, so B covers the bubble from 30.577 (fading the cover in over
+0.3 s so nothing pops). If a covers it too (a patch of `#f3f4f1` over it from 29.39), the cut is clean.

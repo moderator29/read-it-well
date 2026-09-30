@@ -271,7 +271,7 @@ export async function createPhoneStudio(options = {}) {
       ss,
       reflection: opts.reflection ?? 0.12,
       exposure: opts.exposure ?? 1.0,
-      env: opts.env === 'dark' ? 'dark' : 'light',
+      env: typeof opts.env === 'object' && opts.env ? opts.env : ['dark', 'night'].includes(opts.env) ? opts.env : 'light',
       envIntensity: opts.envIntensity ?? 1.0,
       keyLight: opts.keyLight ?? 1.0,
       screenFit: opts.screenFit || 'cover',

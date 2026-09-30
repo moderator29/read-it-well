@@ -11,7 +11,7 @@
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
 import { NAVY, ELECTRIC, SHADOW_L, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas } from "./a-common.js";
-import { LOW, LEFT, cssToStage } from "./a-d-product.js";
+import { LOW_REST, LEFT, cssToStage } from "./a-d-product.js";
 
 /* The hand-off to section b (handoffs.md, desktop). */
 export const D_OUT = {
@@ -55,7 +55,7 @@ export async function buildReceiptDesktop(ctx, T, product) {
     const on = t >= threadIn;
     if ((thread.style.visibility !== "hidden") !== on) thread.style.visibility = on ? "inherit" : "hidden";
   });
-  tl.to(R, { x: LEFT.x, y: LEFT.y, scale: LEFT.s, duration: 0.8, ease: "power3.inOut" }, threadIn + 0.1);
+  tl.fromTo(R, { x: LOW_REST.x, y: LOW_REST.y, scale: LOW_REST.s }, { x: LEFT.x, y: LEFT.y, scale: LEFT.s, duration: 0.8, ease: "power3.inOut", immediateRender: false }, threadIn + 0.1);
   tl.to(dim, { opacity: 0, duration: 0.4, ease: "power2.inOut" }, END - 0.5);
 
   /* ---------- the receipt ---------- */
@@ -169,12 +169,12 @@ export async function buildReceiptDesktop(ctx, T, product) {
   });
 
   /* ---------- card 1 answers at the right edge ---------- */
-  const cardScene = ctx.scene("a-card1", T.there - 0.4, END, { z: 10 });
+  const cardScene = ctx.scene("a-card1", T.there - 0.26, END, { z: 10 });
   const box = { x: 1250, y: 150, w: 600, h: 160 };
   const card = questionCard(ctx, cardScene, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box, fontSize: 38 });
   Object.assign(card.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
   Object.assign(card.back.style, { justifyContent: "center", textAlign: "center", fontSize: "31px", lineHeight: "1.22", textWrap: "balance" });
-  tl.fromTo(card.root, { x: 520, y: -460, rotation: 24, opacity: 1 }, { x: 0, y: 0, rotation: 3, duration: 0.44, ease: "back.out(1.15)" }, T.there - 0.26);
+  tl.fromTo(card.root, { x: 520, y: -460, rotation: 24 }, { x: 0, y: 0, rotation: 3, duration: 0.44, ease: "back.out(1.15)" }, T.there - 0.26);
   card.turn(T.there + 0.02, { sound: null });
   const out = T.there + 0.93;
   tl.to(card.root, { x: 520, y: -560, rotation: 22, scale: 0.9, duration: 0.36, ease: "power3.in" }, out);
@@ -197,6 +197,7 @@ export async function buildReceiptDesktop(ctx, T, product) {
       villa.style.visibility = "hidden";
       const m = 0.96 + 0.04 * ctx.ease("power2.out")(ctx.progress(t, T.call + 0.3, T.call + 0.9));
       placeOnQuad(shell, RC.w, RC.h, rectQuad(RC.x + RC.w / 2, RC.y + RC.h / 2, RC.w * m, RC.h * m, 0));
+      surface.style.opacity = "1";
       return;
     }
     const k = ctx.ease("power3.inOut")(ctx.progress(t, fold.t0, fold.t1));

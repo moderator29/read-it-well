@@ -160,7 +160,7 @@ export async function stays(ctx, S, T) {
   const tPop = T.and10;
   const tGrowDates = tPop + 0.22;
   const tDrop0 = tCalOut0 + 0.04;
-  const tDrop1 = T.r22;
+  const tDrop1 = T.r22 - 0.14; // lands early enough for "Room booked" to be read 1.5 s before row 23
   const dchip = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", height: "84px", display: "flex", alignItems: "center", padding: "0 34px", borderRadius: "999px", background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 60%, #0056d0)`, color: "#fff", font: "600 36px/1 Inter, sans-serif", letterSpacing: "-0.015em", whiteSpace: "nowrap", boxShadow: "0 22px 44px -20px rgb(0 70 200 / 0.6)", visibility: "hidden" } }, layer);
   const datesPart = ctx.el("span", { text: "16 Oct → 19 Oct · ", style: { display: "inline-block", overflow: "hidden", maxWidth: "0px", whiteSpace: "nowrap" } }, dchip);
   ctx.el("span", { text: "3 nights" }, dchip);
@@ -169,11 +169,12 @@ export async function stays(ctx, S, T) {
     return { x: (q[0].x + q[2].x) / 2, y: (q[0].y + q[2].y) / 2, w: q[1].x - q[0].x };
   };
   ctx.sfx("pop", tPop);
-  showDuring(ctx, dchip, [[tPop, T.r22 + 0.08]]);
+  showDuring(ctx, dchip, [[tPop, tDrop1 + 0.08]]);
   ctx.onFrame((t) => {
-    if (t < tPop || t > T.r22 + 0.1) return;
+    if (t < tPop || t > tDrop1 + 0.1) return;
     const pop = ctx.ease("back.out(2)")(ctx.progress(t, tPop, tPop + 0.32));
     const grow = ramp(ctx, t, tGrowDates, tGrowDates + 0.3, "power3.inOut");
+    datesPart.style.opacity = (grow * grow).toFixed(3); // a partial date never reads as a number
     datesPart.style.maxWidth = `${(grow * 420).toFixed(1)}px`;
     const drop = ramp(ctx, t, tDrop0, tDrop1, "glide");
     const from = { x: CAL.x + CAL.w / 2, y: CAL.y + CAL.h + 2 };
@@ -182,7 +183,7 @@ export async function stays(ctx, S, T) {
     const y = mix(from.y, to.y, drop) - 120 * Math.sin(Math.PI * drop);
     const sc = mix(0.3 + 0.7 * pop, 0.56, drop);
     dchip.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) scale(${sc.toFixed(4)})`;
-    dchip.style.opacity = String((1 - ramp(ctx, t, T.r22 - 0.02, T.r22 + 0.06)).toFixed(3));
+    dchip.style.opacity = String((1 - ramp(ctx, t, tDrop1 - 0.02, tDrop1 + 0.06)).toFixed(3));
   });
 
   /* ==================== the results, in the body boxes ==================== */
@@ -220,9 +221,9 @@ export async function stays(ctx, S, T) {
   exampleChip(ctx, eMeta, { size: 18 });
   ctx.el("span", { text: "now", style: { font: "500 19px/1 Inter, sans-serif", color: "#8a90a0" } }, eMeta);
 
-  const tLand = T.r22;
-  const tE = T.r22 - 0.06;
-  const tAway = T.r23 - 0.26;
+  const tLand = tDrop1;
+  const tE = tDrop1 + 0.02;
+  const tAway = T.r23 - 0.24;
   const COL = { e: 404, a: 660, b: 744, c: 828, d: 470 };
   const items = [
     { el: A, box: "left", y: COL.a, t: tLand + 0.02, sound: false },
@@ -232,7 +233,8 @@ export async function stays(ctx, S, T) {
   ];
   for (const [i, it] of items.entries()) {
     if (it.sound) ctx.sfx("pop", it.t, { offset: -4 });
-    const end = tAway + 0.24 + i * 0.02;
+    const out0 = tAway - 0.06 + i * 0.01; // the chips and the price leave first, "Room booked" last: all gone by 49.02
+    const end = out0 + 0.24;
     showDuring(ctx, it.el, [[it.t, end]]);
     let size = null;
     ctx.onFrame((t) => {
@@ -242,7 +244,7 @@ export async function stays(ctx, S, T) {
       const x1 = it.box === "left" ? leftBox.x : rightBox.x;
       const y1 = it.y + Math.sin((t - it.t) * 2.2 + i * 1.3) * 3 * ramp(ctx, t, it.t + 0.4, it.t + 0.8);
       const src = fieldsC(t);
-      const away = ramp(ctx, t, tAway + i * 0.02, tAway + i * 0.02 + 0.22, "power2.in");
+      const away = ramp(ctx, t, out0, out0 + 0.22, "power2.in");
       const s = mix(0.4, 1, k);
       const x = mix(src.x - size.w / 2, x1, k);
       const y = mix(src.y - size.h / 2, y1, k) - away * 480;
@@ -253,11 +255,11 @@ export async function stays(ctx, S, T) {
   }
   /* "Room booked" comes off the dates chip, with the chime, and stays readable 1.5 s. */
   ctx.sfx("chime_notify", tE);
-  showDuring(ctx, E, [[tE, tAway + 0.22]]);
+  showDuring(ctx, E, [[tE, tAway + 0.24]]);
   ctx.onFrame((t) => {
-    if (t < tE || t >= tAway + 0.22) return;
+    if (t < tE || t >= tAway + 0.24) return;
     const k = ramp(ctx, t, tE, tE + 0.42, "land");
-    const away = ramp(ctx, t, tAway - 0.02, tAway + 0.2, "power2.in");
+    const away = ramp(ctx, t, tAway, tAway + 0.22, "power2.in");
     const y = mix(COL.a, COL.e, k) + Math.sin((t - tE) * 2) * 3 * ramp(ctx, t, tE + 0.4, tE + 0.8) - away * 480;
     E.style.transformOrigin = "0 0";
     E.style.transform = `translate(${leftBox.x}px, ${y.toFixed(2)}px) scale(${mix(0.7, 1, k).toFixed(4)})`;

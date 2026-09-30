@@ -157,26 +157,27 @@ export async function deskStays(ctx, S, T) {
   /* ==================== D22: the window folds into the strip; the chip lands ==================== */
   const sH = (56 + STRIP.viewH) * S.HERO.s;
   const stripWv = { cx: 960, cy: STRIP_TOP + sH / 2, s: S.HERO.s, ry: 0, opacity: 1, ...STRIP };
-  wvT.to(T.and10 + 0.3, 0.56, { cx: stripWv.cx, cy: stripWv.cy, s: stripWv.s, ...STRIP }, "glide");
+  wvT.to(T.and10 + 0.3, 0.48, { cx: stripWv.cx, cy: stripWv.cy, s: stripWv.s, ...STRIP }, "glide");
   /* everything lifts away before "Going" (49.04); "Room booked" has 1.5 s to be read first */
-  const tAway = T.r23 - 0.26;
-  wvT.to(tAway, 0.26, { cy: stripWv.cy - 420, opacity: 0 }, "power2.in");
+  const tAway = T.r23 - 0.24;
+  wvT.to(tAway - 0.06, 0.22, { cy: stripWv.cy - 420, opacity: 0 }, "power2.in");
   const P = (x, y) => S.toStageAt(stripWv, cam0, x, y);
   const fieldsC = P(FIELDS.x + FIELDS.w / 2, FIELDS.y + FIELDS.h / 2);
 
   const tPop = T.and10;
   const tGrow = tPop + 0.22;
   const tDrop0 = tCalOut0 + 0.04;
-  const tDrop1 = T.r22;
+  const tDrop1 = T.r22 - 0.14; // lands early enough for "Room booked" to be read 1.5 s before row 23
   const dchip = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", height: "70px", display: "flex", alignItems: "center", padding: "0 30px", borderRadius: "999px", background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 60%, #0056d0)`, color: "#fff", font: "600 30px/1 Inter, sans-serif", letterSpacing: "-0.015em", whiteSpace: "nowrap", boxShadow: "0 22px 44px -20px rgb(0 70 200 / 0.6)", visibility: "hidden" } }, cards);
   const datesPart = ctx.el("span", { text: "16 Oct → 19 Oct · ", style: { display: "inline-block", overflow: "hidden", maxWidth: "0px", whiteSpace: "nowrap" } }, dchip);
   ctx.el("span", { text: "3 nights" }, dchip);
   ctx.sfx("pop", tPop);
-  showDuring(ctx, dchip, [[tPop, T.r22 + 0.08]]);
+  showDuring(ctx, dchip, [[tPop, tDrop1 + 0.08]]);
   ctx.onFrame((t) => {
-    if (t < tPop || t > T.r22 + 0.1) return;
+    if (t < tPop || t > tDrop1 + 0.1) return;
     const pop = ctx.ease("back.out(2)")(ctx.progress(t, tPop, tPop + 0.32));
     const grow = ramp(ctx, t, tGrow, tGrow + 0.3, "power3.inOut");
+    datesPart.style.opacity = (grow * grow).toFixed(3); // a partial date never reads as a number
     datesPart.style.maxWidth = `${(grow * 360).toFixed(1)}px`;
     const drop = ramp(ctx, t, tDrop0, tDrop1, "glide");
     const from = { x: calC.x, y: CAL.y + CAL.h + 4 };
@@ -184,7 +185,7 @@ export async function deskStays(ctx, S, T) {
     const y = mix(from.y, fieldsC.y, drop) - 110 * Math.sin(Math.PI * drop);
     const sc = mix(0.3 + 0.7 * pop, 0.74, drop);
     dchip.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) scale(${sc.toFixed(4)})`;
-    dchip.style.opacity = String((1 - ramp(ctx, t, T.r22 - 0.02, T.r22 + 0.06)).toFixed(3));
+    dchip.style.opacity = String((1 - ramp(ctx, t, tDrop1 - 0.02, tDrop1 + 0.06)).toFixed(3));
   });
 
   /* ==================== the results, each under the field it answers ==================== */
@@ -226,8 +227,8 @@ export async function deskStays(ctx, S, T) {
   exampleChip(ctx, eMeta, { size: 19 });
   ctx.el("span", { text: "now", style: { font: "500 20px/1 Inter, sans-serif", color: "#8a90a0" } }, eMeta);
 
-  const tLand = T.r22;
-  const tE = T.r22 - 0.06;
+  const tLand = tDrop1;
+  const tE = tDrop1 + 0.02;
   const items = [
     { el: E, x: colX.a, y: Y1, t: tE, sound: null },
     { el: A, x: colX.a, y: Y0, t: tLand + 0.06, sound: null },
@@ -238,8 +239,8 @@ export async function deskStays(ctx, S, T) {
   ctx.sfx("chime_notify", tE);
   for (const [i, it] of items.entries()) {
     if (it.sound) ctx.sfx(it.sound, it.t, { offset: -4 });
-    const lag = it.el === E ? 0.03 : 0; // the chips and the price leave together, "Room booked" just after: nothing crosses
-    const end = tAway + 0.24 + lag;
+    const out0 = it.el === E ? tAway : tAway - 0.06; // the chips and the price leave together, "Room booked" just after: nothing crosses, all gone by 49.02
+    const end = out0 + 0.24;
     it.el.style.transformOrigin = "0 0";
     showDuring(ctx, it.el, [[it.t, end]]);
     let size = null;
@@ -247,7 +248,7 @@ export async function deskStays(ctx, S, T) {
       if (t < it.t || t >= end) return;
       if (!size) size = { w: it.el.offsetWidth, h: it.el.offsetHeight };
       const k = ramp(ctx, t, it.t, it.t + 0.44, "land");
-      const away = ramp(ctx, t, tAway + lag, tAway + lag + 0.22, "power2.in");
+      const away = ramp(ctx, t, out0, out0 + 0.22, "power2.in");
       const s = mix(0.4, 1, k);
       const bob = Math.sin((t - it.t) * 2.2 + i * 1.3) * 2.5 * ramp(ctx, t, it.t + 0.44, it.t + 0.84);
       const x = mix(fieldsC.x - (size.w * s) / 2, it.x, k);

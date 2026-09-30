@@ -346,8 +346,10 @@ export function scrollBlur(ctx, el, speed, { k = 0.4, max = 36 } = {}) {
     const q = s < 1 ? 0 : Math.round(s * 2) / 2;
     if (q === last) return;
     last = q;
-    if (q === 0) el.style.filter = "none";
-    else {
+    if (q === 0) {
+      el.style.filter = "none";
+      g.setAttribute("stdDeviation", "0 0");
+    } else {
       g.setAttribute("stdDeviation", `0 ${q}`);
       el.style.filter = `url(#${id})`;
     }

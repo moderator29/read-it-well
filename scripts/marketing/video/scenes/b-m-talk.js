@@ -77,6 +77,8 @@ export async function talk(ctx, S, T) {
   const drawerDim = screenPage(ctx, pL, null, { bg: "rgb(18 22 40 / 0.3)" });
   const drawer = screenPage(ctx, pL, ctx.src.display("drawer-light"));
   drawer.img.style.clipPath = `inset(0px ${DW - DRAWER_W}px 0px 0px round 0px 100px 100px 0px)`;
+  /* the account handle under the name stays covered (it is framed out anyway, as insurance) */
+  box(ctx, drawer.el, { x: 52, y: 614, w: 440, h: 86, style: { background: "rgb(243 244 241)" } });
   const status = screenPage(ctx, pL, ctx.src.display("messages-lt"));
   status.img.style.clipPath = `inset(0px 0px ${DH - 186}px 0px)`;
   showDuring(ctx, th.el, [[T.r14, T.r18 + 0.3]]);
@@ -97,7 +99,10 @@ export async function talk(ctx, S, T) {
 
   /* The member's bubble is not sent yet: the thread's own bubble waits under a patch. */
   const tLandBubble = T.app + 0.4;
-  const bubblePatch = box(ctx, th.el, { x: BUBBLE.x - 16, y: BUBBLE.y - 10, w: BUBBLE.w + 32, h: BUBBLE.h + 20, style: { background: "#f3f4f1" } });
+  /* (clear of the Maitama card's shadow just above the bubble) */
+  const bubblePatch = box(ctx, th.el, { x: BUBBLE.x - 16, y: BUBBLE.y - 3, w: BUBBLE.w + 32, h: BUBBLE.h + 13, style: { background: "#f3f4f1", opacity: "0" } });
+  /* It fades in over the cut's first 0.3 s: if section a's last frame still shows the sent bubble, it dissolves rather than popping; if not, nothing changes. */
+  tl.fromTo(bubblePatch, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false }, T.r14);
   const tickPatch = box(ctx, th.el, { ...TICK, style: { background: "rgb(0 96 232)", borderRadius: "8px" } });
   showDuring(ctx, bubblePatch, [[0, tLandBubble]]);
   showDuring(ctx, tickPatch, [[tLandBubble, T.r18]]);
@@ -127,7 +132,7 @@ export async function talk(ctx, S, T) {
 
   /* The villa card (section a's folded receipt) flies in and lands on its twin in the thread. */
   const tLand = T.r14 + 0.52;
-  const villa = cropBody(ctx, over, { src: thread, crop: MAITAMA, iw: DW, radius: 40, shadow: SHADOW.l });
+  const villa = cropBody(ctx, over, { src: thread, crop: MAITAMA, iw: DW, radius: 40, shadow: SHADOW.l, canvas: true });
   quadDriver(ctx, villa, MAITAMA.w, MAITAMA.h, {
     t0: T.r14, t1: tLand + 0.16,
     quadAt: (t) => {

@@ -92,6 +92,32 @@ export const ENV_PRESETS = {
       { name: 'floor', pos: [0, -10, 2], size: [30, 24], intensity: 0.5 },
     ],
   },
+  // for near-black grounds (the store images' night ground): the dark studio plus a ring of
+  // light around the phone, a little in front of it and a little behind, so the rounded front
+  // edge of a black frame catches one continuous highlight on all four sides, the bottom
+  // included. The flat front of the band and the cover glass reflect only what is behind the
+  // camera, which stays dark, so the frame reads as a thin bright line, not a lit band.
+  night: {
+    blur: 0.03,
+    room: { wall: 0.12, lightScale: 0.3, pointScale: 0.45, dropFront: true },
+    panels: [
+      { name: 'topBig', pos: [0, 12, -5], size: [30, 20], intensity: 3.6 },
+      { name: 'topFront', pos: [-2, 10, 6], size: [20, 3], intensity: 5.5 },
+      { name: 'rimL', pos: [-12, 2, -4], size: [3.4, 24], intensity: 12 },
+      { name: 'rimR', pos: [12, 2, -2], size: [3.4, 24], intensity: 10 },
+      { name: 'floor', pos: [0, -10, 2], size: [30, 24], intensity: 0.5 },
+    ],
+    // arcs of an open cylinder around the view axis: `from`/`to` in degrees, 0 = below the
+    // phone, 90 = its right, 180 = above, 270 = its left; z0..z1 along the axis (+z = camera)
+    // (radius 3: inside the room's floor at y -4.4 and nearer than its boxes, so nothing
+    // occludes the ring)
+    arcs: [
+      { name: 'ringBottom', radius: 3, z0: -0.9, z1: 2.7, from: -50, to: 50, intensity: 7 },
+      { name: 'ringRight', radius: 3, z0: -0.9, z1: 2.7, from: 40, to: 140, intensity: 7 },
+      { name: 'ringTop', radius: 3, z0: -0.9, z1: 2.7, from: 130, to: 230, intensity: 6 },
+      { name: 'ringLeft', radius: 3, z0: -0.9, z1: 2.7, from: 220, to: 320, intensity: 7 },
+    ],
+  },
 };
 export const DEFAULT_ENV = ENV_PRESETS.light;
 
@@ -111,6 +137,20 @@ export function buildEnvironment(renderer, cfg = DEFAULT_ENV) {
     mesh.position.set(...p.pos);
     mesh.scale.set(p.size[0], p.size[1], 1);
     mesh.lookAt(0, 0, 0);
+    root.add(mesh);
+  }
+  for (const a of cfg.arcs || []) {
+    const len = Math.abs(a.z1 - a.z0);
+    const t0 = (a.from * Math.PI) / 180;
+    const tl = ((a.to - a.from) * Math.PI) / 180;
+    const geo = new THREE.CylinderGeometry(a.radius, a.radius, len, a.segments || 48, 1, true, t0, tl);
+    geo.rotateX(Math.PI / 2); // cylinder axis along the view axis (theta 0 lands below the phone)
+    const m = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(1, 1, 1).multiplyScalar(a.intensity),
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geo, m);
+    mesh.position.set(0, 0, (a.z0 + a.z1) / 2);
     root.add(mesh);
   }
   const pmrem = new THREE.PMREMGenerator(renderer);

@@ -60,7 +60,7 @@ export async function checked(ctx, S, T) {
       const gone = ramp(ctx, t, tGone + i * 0.03, tGone + i * 0.03 + 0.3, "power2.in");
       const s = mix(1, 0.5, col);
       const x = mix(c.cx - wv / 2, L.BODY_LEFT.x + 12, col) - gone * 420;
-      const y = mix(c.y - 90 * (1 - k), 432 + i * 74, col);
+      const y = mix(c.y + 90 * (1 - k), 432 + i * 74, col);
       const rot = (1 - k) * (i % 2 ? 7 : -7);
       c.el.style.transformOrigin = "0 0";
       c.el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${rot.toFixed(2)}deg) scale(${s.toFixed(4)})`;
@@ -74,7 +74,7 @@ export async function checked(ctx, S, T) {
   const pose = S.pLpose;
   pose.to(tCol - 0.04, 0.001, { ...VERIF, cy: 2500, rx: 0, ry: 0, opacity: 1 }, "none");
   pose.to(tCol - 0.03, 0.56, VERIF, "glide");                                      // rises at the right
-  pose.to(T.r27 - 0.16, 0.46, { cx: 1500, ry: 18, opacity: 0 }, "power2.in");      // leaves for card 2
+  pose.to(T.r27 - 0.36, 0.4, { cx: 1500, ry: 18, opacity: 0 }, "power2.in");       // leaves before card 2 arrives
   const page = screenPage(ctx, pL, ctx.src.display("verification-lt"));
   showDuring(ctx, page.el, [[tCol - 0.05, T.r27 + 0.4]]);
 
@@ -113,14 +113,14 @@ export async function checked(ctx, S, T) {
   ctx.el("div", { html: "Checked by<br>a person", style: { font: "600 40px/1.1 Poppins, Inter, sans-serif", letterSpacing: "-0.03em", color: NAVY } }, verdict);
   exampleChip(ctx, ctx.el("div", {}, verdict), { size: 20 });
   const tV = T.person;
-  const tV1 = T.r27 - 0.1;
+  const tV1 = T.r27 - 0.36; // the verdict clears before card 2 arrives (0.9 s after it lands)
   ctx.sfx("stamp", tV, { offset: 2 });
   tl.fromTo(vm, { scale: 1.9, rotation: -24, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.22, ease: "power4.out", immediateRender: false }, tV);
   showDuring(ctx, verdict, [[tV - 0.06, tV1 + 0.4]]);
   ctx.onFrame((t) => {
     if (t < tV - 0.06 || t > tV1 + 0.4) return;
     const k = ramp(ctx, t, tV - 0.06, tV + 0.34, "land");
-    const rise = ramp(ctx, t, tV1, tV1 + 0.36, "power2.in");
+    const rise = ramp(ctx, t, tV1, tV1 + 0.32, "power2.in");
     const y = mix(PY + 60, PY + 30, k) - rise * 520;
     verdict.style.transform = `translate(${(PX - 10).toFixed(2)}px, ${y.toFixed(2)}px) scale(${mix(0.92, 1, k).toFixed(4)})`;
     verdict.style.opacity = String((Math.min(1, k * 2) * (1 - rise)).toFixed(3));

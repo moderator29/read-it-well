@@ -110,22 +110,29 @@ export function buildOpenMobile(ctx, T) {
   const C = { x: 540, y: 720 };
   const at = (c, dx = 0, dy = 0) => ({ x: C.x - (c.box.x + c.box.w / 2) + dx, y: C.y - (c.box.y + c.box.h / 2) + dy });
   const stack = [{ dy: -12, r: -2.2 }, { dy: 0, r: 1.4 }, { dy: 12, r: -0.8 }];
-  cards.forEach((c, k) => {
-    const p = at(c, 0, stack[k].dy);
-    tl.to(c.root, { x: p.x, y: p.y, rotation: stack[k].r, scale: 0.9, duration: 0.5, ease: "power3.inOut" }, T.shouldnt + k * 0.03);
-  });
-  /* Three cuts, one card each (top to bottom), on the card_slide cues. */
+  /* Three cuts, one card each (bottom, middle, top), on the card_slide cues. Each card's moves are one
+     chain of tweens that never overlap on a property, so a frame never depends on the seek direction:
+     the bottom card's gather carries it straight out to its cut, and the top card's cut hands it
+     straight to the fan. */
   const moves = [
     { c: 2, t: T.b(7.1), dx: 460, r: 11, back: -1.5, zb: 0 },
     { c: 1, t: T.b(7.8), dx: -460, r: -11, back: 1.8, zb: -1 },
-    { c: 0, t: T.b(8.5), dx: 460, r: 10, back: -0.6, zb: -2 },
+    { c: 0, t: T.b(8.5), dx: -460, r: -10, back: null, zb: -2 },
   ];
-  moves.forEach((m) => {
-    const c = cards[m.c];
-    const home = at(c, 0, stack[m.c].dy);
-    tl.to(c.root, { x: home.x + m.dx, y: home.y - 26, rotation: m.r, duration: 0.19, ease: "power2.out" }, m.t);
-    tl.set(c.layer, { zIndex: m.zb }, m.t + 0.19);
-    tl.to(c.root, { x: home.x, y: home.y, rotation: m.back, duration: 0.2, ease: "power2.inOut" }, m.t + 0.19);
+  const OUT = 0.19;
+  cards.forEach((c, k) => {
+    const home = at(c, 0, stack[k].dy);
+    const m = moves.find((mv) => mv.c === k);
+    const t0 = T.shouldnt + k * 0.03;
+    const out = { x: home.x + m.dx, y: home.y - 26, rotation: m.r };
+    if (m.t < t0 + 0.5) {
+      tl.to(c.root, { ...out, scale: 0.9, duration: m.t + OUT - t0, ease: "power3.inOut" }, t0);
+    } else {
+      tl.to(c.root, { x: home.x, y: home.y, rotation: stack[k].r, scale: 0.9, duration: 0.5, ease: "power3.inOut" }, t0);
+      tl.to(c.root, { ...out, duration: OUT, ease: "power2.out" }, m.t);
+    }
+    tl.set(c.layer, { zIndex: m.zb }, m.t + OUT);
+    if (m.back != null) tl.to(c.root, { x: home.x, y: home.y, rotation: m.back, duration: 0.2, ease: "power2.inOut" }, m.t + OUT);
   });
   /* On "gamble" they fan like a hand, around a pivot far below the stack. */
   const P = 700;

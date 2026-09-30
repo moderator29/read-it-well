@@ -59,8 +59,11 @@ export async function deskTalk(ctx, S, T) {
   const pMsgs = S.page("d-messages-lt", [[T.r18 - 0.3, T.planning + 0.3]]);
   S.pMsgs = pMsgs;
   /* the member's bubble is not sent yet */
-  const patch = box(ctx, pThread, { x: BUBBLE.x - 6, y: BUBBLE.y - 4, w: BUBBLE.w + 12, h: BUBBLE.h + 8, style: { background: "#f3f4f1" } });
+  /* (clear of the Maitama card's shadow just above the bubble) */
+  const patch = box(ctx, pThread, { x: BUBBLE.x - 6, y: BUBBLE.y - 1, w: BUBBLE.w + 12, h: BUBBLE.h + 5, style: { background: "#f3f4f1", opacity: "0" } });
   showDuring(ctx, patch, [[0, tLandBubble]]);
+  /* It fades in over the cut's first 0.3 s: if section a's last frame still shows the sent bubble, it dissolves rather than popping; if not, nothing changes. */
+  tl.fromTo(patch, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false }, T.r14);
   const tick = box(ctx, pThread, { ...TICK, style: { background: "rgb(0 96 232)", borderRadius: "4px" } });
   showDuring(ctx, tick, [[tLandBubble, T.r16 + 0.2]]);
   tl.fromTo(tick, { scale: 1, opacity: 1 }, { scale: 0, opacity: 0, duration: 0.16, ease: "power2.in", immediateRender: false }, tLandBubble + 0.08);
@@ -86,7 +89,7 @@ export async function deskTalk(ctx, S, T) {
 
   /* ==================== D14 ==================== */
   const tLand = T.r14 + 0.52;
-  const villa = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l });
+  const villa = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l, canvas: true });
   quadDriver(ctx, villa, MAITAMA_CROP.w, MAITAMA_CROP.h, {
     t0: T.r14, t1: tLand + 0.16,
     quadAt: (t) => {

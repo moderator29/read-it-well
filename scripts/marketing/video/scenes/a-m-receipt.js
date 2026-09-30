@@ -9,6 +9,7 @@
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
 import { NAVY, ELECTRIC, SHADOW_L, displayRectQuad, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas } from "./a-common.js";
+import { PUSH_REST } from "./a-m-product.js";
 
 const W = 1080;
 const H = 1920;
@@ -27,8 +28,9 @@ export async function buildReceiptMobile(ctx, T, product) {
   const END = T.end;
 
   /* ---------- the phone sinks and dims under the receipt; the thread comes up on it while it is dim ---------- */
-  tl.to(P, { cx: A_OUT.phone.cx, cy: A_OUT.phone.cy, height: A_OUT.phone.height, rx: 0, ry: 0, rz: 0, duration: 1.05, ease: "power3.inOut" }, T.call + 0.05);
-  tl.to(P, { opacity: A_OUT.phone.opacity, duration: 0.3, ease: "power2.out" }, T.call - 0.06);
+  /* (fromTo from where row 10's drift leaves it, so the pose chain holds whichever way the film is sought) */
+  tl.fromTo(P, { cx: PUSH_REST.cx, cy: PUSH_REST.cy, height: PUSH_REST.height, rx: 0, ry: 0, rz: 0 }, { cx: A_OUT.phone.cx, cy: A_OUT.phone.cy, height: A_OUT.phone.height, rx: 0, ry: 0, rz: 0, duration: 1.05, ease: "power3.inOut", immediateRender: false }, T.call + 0.05);
+  tl.fromTo(P, { opacity: 1 }, { opacity: A_OUT.phone.opacity, duration: 0.3, ease: "power2.out", immediateRender: false }, T.call - 0.06);
   const thread = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: "2868px", overflow: "hidden", visibility: "hidden", zIndex: "45" } }, p.screen);
   ctx.img(ctx.src.display("thread-light"), { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: "2868px" } }, thread);
   const threadIn = T.there + 0.2;
@@ -128,8 +130,10 @@ export async function buildReceiptMobile(ctx, T, product) {
 
   /* ---------- the lift (row 11): off the glass, toward the camera, into the receipt box ---------- */
   const lift = { t0: T.call, t1: T.call + 1.1 };
+  /* (this hook owns the shell's transform and the surface's opacity before the fold; the fold's hook owns them after) */
   ctx.onFrame((t) => {
-    if (t < lift.t0 - 0.01 || t >= fold.t0) return;
+    if (t >= fold.t0) return;
+    surface.style.opacity = "1";
     const k = ctx.ease("glide")(ctx.progress(t, lift.t0, lift.t1));
     const from = displayRectQuad(P, W, H, SKIN);
     /* a slow settle after the flight: the last millimetres */
@@ -143,13 +147,14 @@ export async function buildReceiptMobile(ctx, T, product) {
   tl.fromTo(surface, { borderRadius: "24px" }, { borderRadius: "44px", duration: 0.8, ease: "power2.out" }, lift.t0);
 
   /* ---------- card 1 answers (row 13) ---------- */
-  const cardScene = ctx.scene("a-card1", T.there - 0.4, END, { z: 10 });
+  const swing = T.there - 0.26;
+  const cardScene = ctx.scene("a-card1", swing, END, { z: 10 });
   const box = { x: 230, y: 470, w: 620, h: 170 };
   const card = questionCard(ctx, cardScene, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box, fontSize: 40 });
   Object.assign(card.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
   Object.assign(card.back.style, { justifyContent: "center", textAlign: "center", fontSize: "33px", lineHeight: "1.22", textWrap: "balance" });
-  const swing = T.there - 0.26;
-  tl.fromTo(card.root, { x: 620, y: -560, rotation: 26, opacity: 1 }, { x: 0, y: 0, rotation: -3, duration: 0.44, ease: "back.out(1.15)" }, swing);
+  /* It swings in from beyond the top right corner (wholly off frame at its first frame). */
+  tl.fromTo(card.root, { x: 900, y: -760, rotation: 26 }, { x: 0, y: 0, rotation: -3, duration: 0.44, ease: "back.out(1.15)" }, swing);
   card.turn(T.there + 0.02, { sound: null });
   const out = T.there + 0.93;
   tl.to(card.root, { x: 760, y: -660, rotation: 24, scale: 0.9, duration: 0.36, ease: "power3.in" }, out);

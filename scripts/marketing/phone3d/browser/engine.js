@@ -160,11 +160,13 @@ class Engine {
 
   /** Switch between the named presets ('light' | 'dark'); PMREMs are cached. */
   useEnvironment(name) {
-    if (this.envName === name) return;
+    // a preset name, or a config object of the same shape as ENV_PRESETS' entries
+    const key = typeof name === 'string' ? name : JSON.stringify(name);
+    if (this.envName === key) return;
     this.envCache = this.envCache || {};
-    if (!this.envCache[name]) this.envCache[name] = buildEnvironment(this.renderer, ENV_PRESETS[name] || DEFAULT_ENV);
-    this.scene.environment = this.envCache[name].texture;
-    this.envName = name;
+    if (!this.envCache[key]) this.envCache[key] = buildEnvironment(this.renderer, typeof name === 'string' ? ENV_PRESETS[name] || DEFAULT_ENV : name);
+    this.scene.environment = this.envCache[key].texture;
+    this.envName = key;
   }
 
   usePhone(model, color) {

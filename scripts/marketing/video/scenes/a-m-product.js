@@ -27,6 +27,8 @@ const SHIFT = { cx: 410, cy: HIGH.cy, height: HIGH.height };
 /* Row 10's push toward the costs: big enough that the listing's sticky bar (and its short total,
    "₦26.1m") sits below the frame, with the display's top at y 480, under the chapter pill. */
 export const PUSH = { cx: 540, cy: 1321, height: 1716 };
+/* ...and where its slow drift has taken it by "call", when the receipt lifts. */
+export const PUSH_REST = { cx: 540, cy: 1326, height: 1730 };
 const SB = 186; // the status bar in every display
 const Z = { mist: 3, map: 4, phone: 5, veil: 6, bodies: 7, words: 8, pointer: 12 };
 
@@ -45,26 +47,29 @@ export async function buildProductMobile(ctx, T, open) {
   open.clipDay(phoneWrap);
   const p = phone(ctx, { model: "island", parent: phoneWrap, env: "light", edge: "#f3f4f1" });
   await Promise.all(ctx.pending ?? []);
-  Object.assign(p.pose, { ...HERO, ...flat, opacity: 1 });
+  Object.assign(p.pose, { ...HERO, ...flat, cy: 1760, rx: 16, ry: -6, opacity: 1 });
   const P = p.pose;
 
-  /* The pose, row by row (GSAP on p.pose only). */
-  tl.fromTo(P, { cx: 540, cy: 1760, height: HERO.height, rx: 16, ry: -6, rz: 0, opacity: 1 }, { cy: HERO.cy, rx: 0, duration: 1.05, ease: "power3.out" }, T.widen + 0.02);
-  tl.fromTo(P, { ry: -6 }, { ry: 6, duration: T.rows[5] - T.homes + 0.2, ease: "sine.inOut" }, T.homes);
+  /* The pose, row by row (GSAP on p.pose only). Each tween names the same properties in its from and
+     its to (GSAP ignores a from-only property on a plain object), each starts where the one before it
+     on that property ended, none overlap, and only the first renders at build: any frame is the same
+     whichever way the film is sought. */
+  tl.fromTo(P, { cy: 1760, rx: 16 }, { cy: HERO.cy, rx: 0, duration: 1.05, ease: "power3.out" }, T.widen + 0.02);
+  tl.fromTo(P, { ry: -6 }, { ry: 6, duration: T.rows[5] + 0.02 - T.homes, ease: "sine.inOut", immediateRender: false }, T.homes);
   /* 06: pushed back under the veil while the words land, then forward again. */
-  tl.to(P, { ry: 0, height: HERO.height - 60, duration: 0.6, ease: "power2.inOut" }, T.rows[5] + 0.02);
-  tl.to(P, { height: HERO.height, duration: 0.45, ease: "power2.out" }, T.accountEnd + 0.02);
-  /* 06 -> 07: the phone drops away for the chapter's words, then rises to PHONE_HIGH. */
-  tl.to(P, { cy: 2560, rx: 10, duration: 0.32, ease: "power3.in" }, T.rows[6] - 0.36);
-  tl.fromTo(P, { cy: 2400, rx: 12, height: HIGH.height }, { cy: HIGH.cy, rx: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, T.pill1 - 0.5);
+  tl.fromTo(P, { ry: 6, height: HERO.height }, { ry: 0, height: HERO.height - 60, duration: 0.6, ease: "power2.inOut", immediateRender: false }, T.rows[5] + 0.02);
+  tl.fromTo(P, { height: HERO.height - 60 }, { height: HERO.height, duration: 0.4, ease: "power2.out", immediateRender: false }, T.accountEnd + 0.02);
+  /* 06 -> 07: the phone drops away for the chapter's words (easing back to PHONE_HIGH's size as it goes), then rises. */
+  tl.fromTo(P, { cy: HERO.cy, rx: 0, height: HERO.height }, { cy: 2560, rx: 10, height: HIGH.height, duration: 0.32, ease: "power3.in", immediateRender: false }, T.rows[6] - 0.36);
+  tl.fromTo(P, { cy: 2560, rx: 10 }, { cy: HIGH.cy, rx: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, T.pill1 - 0.5);
   /* 07 -> 08: three-quarter right after the slide. */
-  tl.to(P, { cx: TURN.cx, ry: TURN.ry, duration: 0.55, ease: "glide" }, T.buy + 0.1);
+  tl.fromTo(P, { cx: HIGH.cx, ry: 0 }, { cx: TURN.cx, ry: TURN.ry, duration: 0.55, ease: "glide", immediateRender: false }, T.buy + 0.1);
   /* 08 -> 09: a shift left as the sheet rises (room for the lifted Apply at the right). */
-  tl.to(P, { cx: SHIFT.cx, ry: 0, duration: 0.5, ease: "glide" }, T.filterPress + 0.04);
+  tl.fromTo(P, { cx: TURN.cx, ry: TURN.ry }, { cx: SHIFT.cx, ry: 0, duration: 0.5, ease: "glide", immediateRender: false }, T.filterPress + 0.04);
   /* 09 -> 10: on the press, centre and push in, so the listing opens with its sticky bar already
      below the frame (it is there by T.open). */
-  tl.to(P, { cx: PUSH.cx, cy: PUSH.cy, height: PUSH.height, duration: 0.6, ease: "power2.inOut" }, T.need + 0.1);
-  tl.to(P, { cy: PUSH.cy + 5, height: PUSH.height + 14, duration: T.call - T.movein, ease: "sine.inOut" }, T.movein);
+  tl.fromTo(P, { cx: SHIFT.cx, cy: HIGH.cy, height: HIGH.height }, { cx: PUSH.cx, cy: PUSH.cy, height: PUSH.height, duration: 0.6, ease: "power2.inOut", immediateRender: false }, T.need + 0.1);
+  tl.fromTo(P, { cy: PUSH.cy, height: PUSH.height }, { cy: PUSH_REST.cy, height: PUSH_REST.height, duration: T.call - T.movein, ease: "sine.inOut", immediateRender: false }, T.movein);
 
   /* ================= the screens (under the glass) ================= */
   /** A page: a full display; its own status bar is drawn fixed on top (a slide never moves it). */
@@ -110,6 +115,9 @@ export async function buildProductMobile(ctx, T, open) {
   slide(home1, stay, T.hotels);
   slide(stay, stays, T.shortlets);
   slide(stays, rest, T.restaurants);
+  /* The home page comes back for row 07: put it back in place while it is hidden (a fromTo from where
+     the first slide left it, so the chain holds whichever way the film is sought). */
+  tl.fromTo(home1.el, { x: -420, filter: "brightness(0.92)" }, { x: 0, filter: "brightness(1)", duration: 0.01, ease: "none", immediateRender: false }, T.rows[6]);
   slide(home2, search, T.buy);
   /* The status bars: always the current page's, never sliding. */
   during(await barOf("home-light"), [[T.widen, T.hotels], [T.rows[6] + 0.3, T.buy]]);
@@ -184,8 +192,14 @@ export async function buildProductMobile(ctx, T, open) {
   const y2 = y1 + Math.round(sL * 1.04);
   const q1 = bigLine([["Looking for", false]], sL, { left: WD.x + 28, top: y1 });
   const q2 = bigLine([["a ", false], ["home", true], ["?", false]], sH, { right: W - (WD.x + WD.w - 28), top: y2 });
-  tl.fromTo(q1, { x: -150, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "land" }, T.looking - 0.06);
-  tl.fromTo(q2, { x: 150, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "land" }, T.home - 0.1);
+  /* The entries move xPercent (and fade in quickly), so they never share a property with the shrink
+     (x, y, scale) and the fade (opacity) that follow before "a home?" has fully landed. */
+  const wq1e = measure("Looking for", `700 ${sL}px Poppins`, -0.035);
+  const wq2e = measure("a home?", `700 ${sH}px Poppins`, -0.035);
+  tl.fromTo(q1, { xPercent: (-150 / wq1e) * 100 }, { xPercent: 0, duration: 0.5, ease: "land" }, T.looking - 0.06);
+  tl.fromTo(q1, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, T.looking - 0.06);
+  tl.fromTo(q2, { xPercent: (150 / wq2e) * 100 }, { xPercent: 0, duration: 0.5, ease: "land" }, T.home - 0.1);
+  tl.fromTo(q2, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, T.home - 0.1);
   /* They shrink into the PILL box (y 290-360) just before the chapter pill appears (16.21). */
   const pillY = (L.PILL.top + L.PILL.bottom) / 2;
   q1.style.transformOrigin = "50% 50%";
@@ -253,7 +267,7 @@ export async function buildProductMobile(ctx, T, open) {
   /* The filter button, pressed at 18.30 (display px, on the scrolled page). */
   const FILTER_D = { x: 1195, y: 481 - SCROLL };
   const filterAt = displayToStage({ ...TURN, rx: 0, rz: 0, fov: 24 }, W, H, FILTER_D.x, FILTER_D.y);
-  tl.fromTo(pointer, { x: 1160, y: 560 }, { x: filterAt.x, y: filterAt.y, duration: 0.52, ease: "glide", immediateRender: false }, T.filterPress - 0.6);
+  tl.fromTo(pointer, { x: 1160, y: 980 }, { x: filterAt.x, y: filterAt.y, duration: 0.52, ease: "glide", immediateRender: false }, T.filterPress - 0.6);
   pressAt(ctx, pointer, T.filterPress, { parent: pointerScene, x: filterAt.x, y: filterAt.y });
   rippleAt(ctx, search.el, { x: FILTER_D.x, y: FILTER_D.y, t: T.filterPress, size: 230 });
 

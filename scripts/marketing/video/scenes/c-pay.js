@@ -16,7 +16,7 @@
  *     three show their answers until they fly off (72.4-72.69).
  */
 import { QUESTIONS } from "./layout.js";
-import { orb, press, tap, browserWindow } from "../engine/components.js";
+import { orb, tap, browserWindow } from "../engine/components.js";
 import { track, ramp, spring, during, place, coin, mist, measure, dispToStage, screenImage, passDot, verifiedMark, SHADOW, mix, scaledSrc, opa } from "./c-kit.js";
 
 /* Where builder B leaves the coin at 62.88 (row 27: the verified mark on
@@ -166,6 +166,7 @@ export async function buildPay(ctx, S) {
 
   /* the pointer glides over the keys and presses them */
   const ptr = orb(ctx, over, { size: M ? 44 : 40 });
+  ptr.style.visibility = "hidden";
   {
     const k = presses.map((pr) => KEY(pr.key));
     const start = { x: k[0].x + (M ? 70 : 60), y: k[0].y + (M ? 90 : 70) };
@@ -175,19 +176,36 @@ export async function buildPay(ctx, S) {
     const xs = [[K.r28, start.x], ...presses.map((pr, i) => [pr.t - lead[i], k[i].x, "glide"]), [K.pay + 0.3, end.x, "power2.in"]];
     const ys = [[K.r28, start.y], ...presses.map((pr, i) => [pr.t - lead[i], k[i].y + hover, "glide"]), [K.pay + 0.3, end.y, "power2.in"]];
     const half = M ? 22 : 20;
-    during(ctx, K.r28, K.r29, (tt) => {
+    /* The dip of each press (the engine's press(): 1.1 x 0.8 in 0.09 s, back in
+       0.32 s with a little overshoot), summed as a pure function of t: six
+       presses this close would overlap as GSAP tweens on one transform, whose
+       values between presses depend on the frames rendered before. */
+    const squash = (tt) => {
+      let q = 0;
+      for (const pr of presses) q += ramp(ctx, tt, pr.t - 0.06, pr.t + 0.03, "power2.out") - ramp(ctx, tt, pr.t + 0.05, pr.t + 0.37, "back.out(2.2)");
+      return Math.min(1.15, q);
+    };
+    /* desktop: a ring opens under each press (the engine's press ring) */
+    const rings = M ? [] : presses.map((pr, i) => ctx.el("div", { class: "abs", style: { left: `${k[i].x - 50}px`, top: `${k[i].y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.8)", zIndex: 840, visibility: "hidden" } }, over));
+    during(ctx, K.r28 - 0.05, K.r29 + 0.1, (tt) => {
       const x = track(ctx, tt, xs);
       const y = track(ctx, tt, ys);
       const o = ramp(ctx, tt, K.r28 - 0.02, K.r28 + 0.1) * (1 - ramp(ctx, tt, K.pay + 0.08, K.pay + 0.3));
+      const q = squash(tt);
       ptr.style.left = `${(x - half).toFixed(2)}px`;
       ptr.style.top = `${(y - half).toFixed(2)}px`;
+      ptr.style.transform = `scale(${(1 + 0.1 * q).toFixed(4)}, ${(1 - 0.2 * q).toFixed(4)})`;
       ptr.style.opacity = opa(o);
       ptr.style.visibility = o > 0.001 ? "" : "hidden";
+      rings.forEach((r, i) => {
+        const on = tt >= presses[i].t && tt < presses[i].t + 0.55;
+        const e = ctx.ease("power2.out")(ctx.progress(tt, presses[i].t, presses[i].t + 0.55));
+        r.style.transform = `scale(${(0.25 + e).toFixed(4)})`;
+        r.style.opacity = on ? opa(1 - e) : "0";
+        r.style.visibility = on ? "" : "hidden";
+      });
     });
-    presses.forEach((pr, i) => {
-      press(ctx, ptr, pr.t, { ringParent: M ? null : over, x: k[i].x, y: k[i].y, sound: null, ring: !M });
-      ctx.sfx(`type_key_${pr.snd}`, pr.t, { offset: -6 });
-    });
+    presses.forEach((pr) => ctx.sfx(`type_key_${pr.snd}`, pr.t, { offset: -6 }));
   }
 
   /* the dots, lifted beside the phone (BODY_LEFT) or echoed in RIGHT_PANEL */
@@ -201,7 +219,7 @@ export async function buildPay(ctx, S) {
       class: "abs",
       style: {
         left: "0px", top: "0px", width: `${width}px`, height: `${height}px`, borderRadius: "999px", overflow: "hidden",
-        background: "linear-gradient(180deg, #03165a 0%, #011146 100%)", border: "1.5px solid rgb(120 170 255 / 0.3)", boxShadow: SHADOW.light,
+        background: "linear-gradient(180deg, #03165a 0%, #011146 100%)", border: "1.5px solid rgb(120 170 255 / 0.3)", boxShadow: SHADOW.light, visibility: "hidden",
       },
     }, over);
     const dots = [];
@@ -214,7 +232,7 @@ export async function buildPay(ctx, S) {
     ctx.sfx("glass_clink", K.pay, { offset: -4 });
     const from = M ? DOTS_AT : { x: home.x, y: home.y + 60 };
     const fromScale = M ? (G.dots.dx * 5 + G.dots.d) * dispToStage(L.PHONE_HIGH, 0, 0).s / (gap * 5 + D) : 0.7;
-    during(ctx, K.r28, K.r29, (tt) => {
+    during(ctx, K.r28 - 0.05, K.r29 + 0.1, (tt) => {
       const u = ramp(ctx, tt, K.r28 + 0.16, K.r28 + 0.5, "land");
       const out = ramp(ctx, tt, K.pay + 0.2, K.pay + 0.5, "power2.in");
       const s = mix(fromScale, 1, u) * (1 - 0.04 * out);

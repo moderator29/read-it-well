@@ -22,6 +22,8 @@ export const HERO = { x: L.WINDOW_HERO.x, y: L.WINDOW_HERO.y, s: L.WINDOW_HERO.w
 export const LEFT = { x: L.WINDOW_LEFT.x, y: L.WINDOW_LEFT.y, s: L.WINDOW_LEFT.width / 1440 };
 /* Row 10: the hero window lowered, so the page's total card (css y 710) sits below the frame. */
 export const LOW = { x: HERO.x, y: 238, s: HERO.s };
+/* ...and where its slow drift has taken it by "call". */
+export const LOW_REST = { x: HERO.x, y: 228, s: HERO.s };
 /* Row 09: the push onto the filter drawer (the capture at 1:1 at most: css scale <= 2). */
 const PUSHF = { x: -1180, y: -24, s: 1.5 };
 const Z = { mist: 3, map: 4, window: 5, veil: 6, bodies: 7, words: 8, pointer: 12 };
@@ -44,20 +46,22 @@ export async function buildProductDesktop(ctx, T, open) {
   const win = browserWindow(ctx, { parent: winWrap, width: L.WINDOW_HERO.width, theme: "light", url: "vallospaces.com" });
   win.root.style.boxShadow = "0 60px 120px -50px rgb(16 32 80 / 0.42), 0 18px 40px -22px rgb(16 32 80 / 0.22), 0 0 0 1px rgb(16 32 80 / 0.07)";
   const R = win.root;
-  const at = (f) => ({ x: f.x, y: f.y, scale: f.s });
 
-  /* The framing, row by row (x, y, scale of the window's root; origin 0 0). */
-  tl.fromTo(R, { x: HERO.x, y: 760, scale: HERO.s }, { y: HERO.y, duration: 1.05, ease: "power3.out" }, T.widen + 0.02);
+  /* The framing, row by row (x, y, scale of the window's root; origin 0 0). Each tween names all
+     three in its from and its to, starts where the one before it ended, and none overlap: any frame
+     is the same whichever way the film is sought. */
+  const F = (f, y = f.y) => ({ x: f.x, y, scale: f.s });
+  tl.fromTo(R, F(HERO, 760), { ...F(HERO), duration: 1.05, ease: "power3.out" }, T.widen + 0.02);
   /* 06 -> 07: the window drops away for the chapter's words, then rises again. */
-  tl.to(R, { y: 1260, duration: 0.32, ease: "power3.in" }, T.rows[6] - 0.36);
-  tl.fromTo(R, { ...at(HERO), y: 1200 }, { y: HERO.y, duration: 0.42, ease: "power3.out", immediateRender: false }, T.pill1 - 0.5);
+  tl.fromTo(R, F(HERO), { ...F(HERO, 1260), duration: 0.32, ease: "power3.in", immediateRender: false }, T.rows[6] - 0.36);
+  tl.fromTo(R, F(HERO, 1260), { ...F(HERO), duration: 0.42, ease: "power3.out", immediateRender: false }, T.pill1 - 0.5);
   /* 07 -> 08: to the left, the side window. */
-  tl.to(R, { ...at(LEFT), duration: 0.6, ease: "glide" }, T.buy + 0.08);
+  tl.fromTo(R, F(HERO), { ...F(LEFT), duration: 0.6, ease: "glide", immediateRender: false }, T.buy + 0.08);
   /* 08 -> 09: the push onto the drawer. */
-  tl.to(R, { ...at(PUSHF), duration: 0.62, ease: "power3.inOut" }, T.filterPress + 0.16);
-  /* 09 -> 10: back out to the lowered hero framing as the listing opens. */
-  tl.to(R, { ...at(LOW), duration: 0.9, ease: "power3.inOut" }, T.need + 0.12);
-  tl.to(R, { y: LOW.y - 10, duration: T.call - T.movein, ease: "sine.inOut" }, T.movein);
+  tl.fromTo(R, F(LEFT), { ...F(PUSHF), duration: 0.62, ease: "power3.inOut", immediateRender: false }, T.filterPress + 0.16);
+  /* 09 -> 10: back out to the lowered hero framing as the listing opens, then a slow drift. */
+  tl.fromTo(R, F(PUSHF), { ...F(LOW), duration: 0.9, ease: "power3.inOut", immediateRender: false }, T.need + 0.12);
+  tl.fromTo(R, F(LOW), { ...F(LOW_REST), duration: T.call - T.movein, ease: "sine.inOut", immediateRender: false }, T.movein);
 
   /* ================= the pages ================= */
   const page = (id, { bg = "#f3f4f1" } = {}) => {
@@ -211,7 +215,7 @@ export async function buildProductDesktop(ctx, T, open) {
 
   /* "More" (the filters), clicked at 18.30. */
   const moreAt = cssToStage(LEFT, 724, 100);
-  tl.fromTo(pointer, { x: 1300, y: 700 }, { x: moreAt.x, y: moreAt.y, duration: 0.55, ease: "glide", immediateRender: false }, T.filterPress - 0.62);
+  tl.fromTo(pointer, { x: 2000, y: 800 }, { x: moreAt.x, y: moreAt.y, duration: 0.55, ease: "glide", immediateRender: false }, T.filterPress - 0.62);
   pressAt(ctx, pointer, T.filterPress, { parent: pointerScene, x: moreAt.x, y: moreAt.y });
 
   /* ================= row 09: the filters ================= */

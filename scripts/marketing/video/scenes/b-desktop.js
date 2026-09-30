@@ -89,8 +89,14 @@ export async function buildDesktop(ctx) {
     content.style.width = `${w.viewW.toFixed(2)}px`;
     content.style.height = `${w.viewH.toFixed(2)}px`;
     inner.style.transform = `translate(${(-w.viewLeft).toFixed(2)}px, ${(-w.viewTop).toFixed(2)}px)`;
-    win.root.style.transformOrigin = `${(w.viewW / 2).toFixed(2)}px ${(H / 2).toFixed(2)}px`;
-    win.root.style.transform = `translate(${(w.cx - w.viewW / 2).toFixed(2)}px, ${(w.cy - H / 2).toFixed(2)}px) perspective(2600px) rotateY(${w.ry.toFixed(2)}deg) scale(${w.s.toFixed(5)})`;
+    if (Math.abs(w.ry) < 0.005) {
+      /* flat: a 2D transform from the corner, rasterised exactly as section a leaves the window */
+      win.root.style.transformOrigin = "0px 0px";
+      win.root.style.transform = `translate(${(w.cx - (w.viewW / 2) * w.s).toFixed(2)}px, ${(w.cy - (H / 2) * w.s).toFixed(2)}px) scale(${w.s.toFixed(4)}, ${w.s.toFixed(4)})`;
+    } else {
+      win.root.style.transformOrigin = `${(w.viewW / 2).toFixed(2)}px ${(H / 2).toFixed(2)}px`;
+      win.root.style.transform = `translate(${(w.cx - w.viewW / 2).toFixed(2)}px, ${(w.cy - H / 2).toFixed(2)}px) perspective(2600px) rotateY(${w.ry.toFixed(2)}deg) scale(${w.s.toFixed(5)})`;
+    }
     win.root.style.opacity = w.opacity.toFixed(3);
     win.root.style.visibility = w.opacity > 0.001 ? "inherit" : "hidden";
   });
@@ -131,7 +137,7 @@ export async function buildDesktop(ctx) {
   /* Captions are off where the same words are big on screen. */
   /* Each gap covers exactly the caption lines (they open 0.12 s before their first word). */
   ctx.hideCaptions(T.r14 - 0.14, T.right - 0.12);       // "Talk straight to the owner, / the landlord or the agent,"
-  ctx.hideCaptions(T.r19, T.browse - 0.12);             // row 19 is "off": "Planning a trip?"
+  ctx.hideCaptions(T.planning - 0.14, T.browse - 0.12); // row 19 is "off": "Planning a trip?" ("one place." has faded by 41.12)
   ctx.hideCaptions(T.going - 0.14, T.find - 0.12);      // row 23 is "off": "Going out tonight?"
   ctx.hideCaptions(T.owners - 0.14, T.verified - 0.12); // the role chips: "Owners, hosts, hotels and restaurants with the"
 

@@ -360,7 +360,7 @@ export function placeQuad(el, w, h, q) {
  * crop at 1:1 of the source), placed each frame by quad. Never shown above
  * the source's own pixels: callers keep the placed size at or under w x h.
  */
-export function cropBody(ctx, parent, { src, crop, iw, radius = 0, shadow = null, bg = null, z = 0 }) {
+export function cropBody(ctx, parent, { src, crop, iw, radius = 0, shadow = null, bg = null, z = 0, canvas = false }) {
   const el = ctx.el("div", {
     class: "abs",
     style: {
@@ -368,7 +368,21 @@ export function cropBody(ctx, parent, { src, crop, iw, radius = 0, shadow = null
       borderRadius: `${radius}px`, ...(shadow ? { boxShadow: shadow } : {}), ...(bg ? { background: bg } : {}), visibility: "hidden",
     },
   }, parent);
-  ctx.img(src, { style: { position: "absolute", left: `${-crop.x}px`, top: `${-crop.y}px`, width: `${iw}px`, height: "auto", maxWidth: "none" } }, el);
+  if (canvas) {
+    /* the crop drawn once into a canvas at 1:1 (as section a draws the handed-over villa card), so both sides of a cut rasterise alike */
+    const c = ctx.el("canvas", { class: "abs", style: { left: "0px", top: "0px", width: `${crop.w}px`, height: `${crop.h}px` } }, el);
+    c.width = crop.w;
+    c.height = crop.h;
+    const img = new Image();
+    const ready = new Promise((ok, bad) => {
+      img.onload = ok;
+      img.onerror = () => bad(new Error(`image failed: ${src}`));
+    });
+    img.src = src;
+    ctx.pending = (ctx.pending ?? []).concat(ready.then(() => c.getContext("2d").drawImage(img, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h)));
+  } else {
+    ctx.img(src, { style: { position: "absolute", left: `${-crop.x}px`, top: `${-crop.y}px`, width: `${iw}px`, height: "auto", maxWidth: "none" } }, el);
+  }
   return el;
 }
 
