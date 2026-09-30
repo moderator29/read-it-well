@@ -1,8 +1,9 @@
-/* R1 · after IMG_6727: one straight phone, whole and centred, with air around
- * it (the whole placement, no subline). Night: the welcome keeps its dark
- * look in both themes. The first welcome card, "Two worlds. One platform."
- * Keys with a house tag are the post's 3D icon, the same as the X header's,
- * which carries the same tagline. */
+/* R1 · after IMG_6727: one straight phone, whole and centred, a little
+ * bigger than the reference (w 440, 0.31x). Night. The home screen scrolled
+ * to what the app is for: the places looked at recently and the featured
+ * properties, each with its Example chip. Keys with a house tag are the
+ * post's 3D icon, the same as the X header's, which carries the same
+ * tagline. */
 import { PLACE, frame, headline, icon3d, phone } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
@@ -14,7 +15,7 @@ export default {
   file: "01-r1-real-estate-done-right.png",
   W,
   H,
-  phones: [phone("welcome-1", "night", PLACE.whole())],
+  phones: [phone("home-recent", "night", PLACE.whole({ h: 915, top: 415 }))],
   html: ({ phones }) =>
     frame({
       W,

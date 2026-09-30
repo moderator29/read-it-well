@@ -201,7 +201,7 @@ export function iconBox(name, size = 200) {
  * corners and a soft shadow, never larger than its source (crop px). `w` is
  * its width in post px. Returns the html; `componentHeight` gives its height.
  */
-export async function component(id, crop, { x, y, w, radius = 32, ground = "night" } = {}) {
+export async function component(id, crop, { x, y, w, radius = 32, ground = "night", ring = true } = {}) {
   if (w > crop.w) throw new Error(`component ${id}: ${w} px wide would upscale a ${crop.w} px crop`);
   const dir = join(CACHE, "comp");
   await mkdir(dir, { recursive: true });
@@ -209,7 +209,7 @@ export async function component(id, crop, { x, y, w, radius = 32, ground = "nigh
   if (!existsSync(file)) await sharp(join(SOURCE, `${id}.webp`)).extract({ left: crop.x, top: crop.y, width: crop.w, height: crop.h }).png().toFile(file);
   const h = componentHeight(crop, w);
   const sh = GROUND[ground].dark
-    ? "0 50px 100px -30px rgba(0,0,10,.75), 0 18px 36px -12px rgba(0,0,20,.5), 0 0 0 1.5px rgba(130,178,255,.22)"
+    ? `0 50px 100px -30px rgba(0,0,10,.75), 0 18px 36px -12px rgba(0,0,20,.5)${ring ? ", 0 0 0 1.5px rgba(130,178,255,.22)" : ""}`
     : "0 50px 100px -30px rgba(20,32,96,.30), 0 16px 32px -12px rgba(20,32,96,.16)";
   return `<div style="position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;border-radius:${radius}px;overflow:hidden;box-shadow:${sh}">
     <img src="${u(file)}" alt="" style="display:block;width:${w}px;height:${h}px"></div>`;

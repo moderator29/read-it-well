@@ -16,7 +16,7 @@ import { u } from "../lib/render.mjs";
 const W = 1080;
 const H = 1350;
 const PW = 920;
-const PAD = 24;
+const PAD = 0;
 const CW = PW - 2 * PAD;
 /* each headline cut from its own capture, 28 rows of air above and below */
 const CROPS = [
@@ -52,8 +52,8 @@ export default {
       ground: "night",
       body: `
       ${headline(["In your", "<k>language.</k>"], { W, H })}
-      ${subline("Vallo speaks English, Hausa, Yorùbá and Igbo.", { W, H })}
-      <div style="position:absolute;left:80px;top:${TOP}px;width:${PW}px;height:${PH}px;border-radius:36px;overflow:hidden;background:#010118;
+      ${subline("Vallo comes in English, Hausa, Yorùbá and Igbo.", { W, H })}
+      <div style="position:absolute;left:80px;top:${TOP}px;width:${PW}px;height:${PH}px;border-radius:36px;overflow:hidden;background:rgb(0,8,23);
           box-shadow:0 60px 110px -30px rgba(0,0,10,.8), 0 18px 40px -14px rgba(0,0,20,.5), 0 0 0 1.5px rgba(130,178,255,.24)">${rows.join("")}</div>
       ${icon3d("local-talks", { W, H, slot: "A" })}
       `,

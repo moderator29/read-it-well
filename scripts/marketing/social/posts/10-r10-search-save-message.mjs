@@ -13,7 +13,7 @@ export default {
   file: "10-r10-search-save-and-message.png",
   W,
   H,
-  phones: [phone("welcome-4", "night", PLACE.lyingBack({ w: 630, cx: 560, bottom: 1290 }))],
+  phones: [phone("welcome-4", "night", PLACE.lyingBack({ w: 700, cx: 560, bottom: 1330 }))],
   html: ({ phones }) =>
     frame({
       W,

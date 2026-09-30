@@ -471,8 +471,20 @@ def event_gain(ev: dict, index: dict) -> tuple[float, str, float | None]:
     return rec + float(ev.get("offset_db", 0.0)), "offset_db", rec
 
 
+SIGNATURE_CAP_LU = 1.0    # a signature cue (the film's payoffs) may come up to the voice minus this
+
+
+def signature_for(ev: dict, t: float, signature: list[dict] | None) -> dict | None:
+    """The signature entry (name and time window) that lifts this cue, if any."""
+    for s in signature or []:
+        if s["name"] == ev["name"] and s["from"] - 0.02 <= t <= s["to"] + 0.02:
+            return s
+    return None
+
+
 def build_sfx_bus(events: list[dict], sfx_dir: Path, timeline: dict | None, N: int,
-                  voice_ref_lufs: float = VOICE_LUFS) -> tuple[np.ndarray, np.ndarray, list, list]:
+                  voice_ref_lufs: float = VOICE_LUFS, signature: list[dict] | None = None
+                  ) -> tuple[np.ndarray, np.ndarray, list, list]:
     """Place every event, capping each one BEFORE summing so that its 100 ms
     loudness never exceeds voice_ref_lufs - SFX_CAP_LU (the voice as the mixer
     sets it; the ducked music plays no part). Also builds the same cue sheet
@@ -488,13 +500,18 @@ def build_sfx_bus(events: list[dict], sfx_dir: Path, timeline: dict | None, N: i
     for ev in events:
         t = resolve_event_time(ev, timeline)
         gain, mode, rec = event_gain(ev, index)
+        sig = signature_for(ev, t, signature)
+        if sig:
+            gain += float(sig["lift_db"])
+            mode += f" + signature lift {sig['lift_db']:+g} dB"
+        ev_cap = voice_ref_lufs - SIGNATURE_CAP_LU if sig else cap
         pan = float(ev.get("pan", 0.0))
         y = pan_event(load_sfx(sfx_dir, ev["name"]), pan)
         i = int(round(t * SR))
         if i >= N or i + len(y) <= 0:
             continue
         l_req, t_peak = peak_l100(undb(gain) * y)
-        take = max(0.0, l_req - cap) if l_req > cap + 0.005 else 0.0
+        take = max(0.0, l_req - ev_cap) if l_req > ev_cap + 0.005 else 0.0
         applied = gain - take
         a0 = max(0, -i)
         j = min(N, i + len(y))
@@ -507,10 +524,12 @@ def build_sfx_bus(events: list[dict], sfx_dir: Path, timeline: dict | None, N: i
                "kit_peak_l100_lufs": None if rec is None else round(l_req - (gain - rec), 2)}
         if "offset_db" in ev and "gain_db" not in ev:
             row["offset_db"] = float(ev["offset_db"])
+        if sig:
+            row["signature"] = True
         placed.append(row)
         if take > 0:
             capped.append({"name": ev["name"], "t": round(t, 3), "db_taken_off": round(take, 2),
-                           "requested_peak_l100_lufs": round(l_req, 2), "capped_to_lufs": round(cap, 2)})
+                           "requested_peak_l100_lufs": round(l_req, 2), "capped_to_lufs": round(ev_cap, 2)})
     return bus, kit_bus, placed, capped
 
 
@@ -573,7 +592,8 @@ def bed_check(bus: np.ndarray, kit_bus: np.ndarray, bed: np.ndarray, placed: lis
 
 def mix(voice_path: str, plan: list[dict], music: np.ndarray | None, events: list[dict], sfx_dir: Path,
         timeline: dict | None, out: Path, music_gain_db: float = 0.0, duck_db: float = -9.0,
-        duration: float | None = None, write_stems: bool = True, bed_lufs: float | None = None) -> dict:
+        duration: float | None = None, write_stems: bool = True, bed_lufs: float | None = None,
+        signature: dict | None = None) -> dict:
     voice_src = read_audio(voice_path, SR, channels=1)
     voice_end = max(s["dst_start"] + s["src_end"] - s["src_start"] for s in plan)
     total_s = duration or max(voice_end + 1.0, (len(music) / SR) if music is not None else 0.0)
@@ -599,7 +619,30 @@ def mix(voice_path: str, plan: list[dict], music: np.ndarray | None, events: lis
     music_d = music * undb_arr(g_duck)[:, None]
 
     # -- sfx: each event capped at voice - 6 LU (100 ms loudness) before summing
-    sfx_bus, kit_bus, placed, capped = build_sfx_bus(events, sfx_dir, timeline, N, VOICE_LUFS)
+    sig_cues = (signature or {}).get("cues", [])
+    sfx_bus, kit_bus, placed, capped = build_sfx_bus(events, sfx_dir, timeline, N, VOICE_LUFS, sig_cues)
+    # The music makes room for each signature cue (a short dip at its peak), and
+    # rides back up over the silent end card instead of sitting at its ducked level.
+    if signature:
+        g = np.zeros(N)
+        dip, half = float(signature.get("dip_db", -3.0)), float(signature.get("dip_s", 0.25)) / 2
+        for row in placed:
+            if row.get("signature"):
+                c = row["peak_at_s"]
+                a, b = int((c - half - 0.06) * SR), int((c + half + 0.06) * SR)
+                a, b = max(0, a), min(N, b)
+                if b > a:
+                    x = np.linspace(-1, 1, b - a)
+                    g[a:b] = np.minimum(g[a:b], dip * np.clip((1 - np.abs(x)) * 3, 0, 1))
+        ride = signature.get("end_ride")
+        if ride:
+            a = int(ride["from"] * SR)
+            r = max(1, int(ride.get("ramp", 0.6) * SR))
+            if a < N:
+                up = np.full(N - a, float(ride["db"]))
+                up[:min(r, N - a)] = np.linspace(0, float(ride["db"]), r)[:min(r, N - a)]
+                g[a:] += up
+        music_d = music_d * undb_arr(g)[:, None]
     for c in capped:
         print(f"CAPPED {c['name']:14s} t={c['t']:8.3f}s  -{c['db_taken_off']:.2f} dB "
               f"(asked {c['requested_peak_l100_lufs']:.1f} LUFS, cap {c['capped_to_lufs']:.1f})")
@@ -721,6 +764,7 @@ def main():
     mp.add_argument("--timings", help="timings.json of the voice file (without --timeline: shifted and written; "
                                       "with it: cross-checked against the timeline)")
     mp.add_argument("--duration", type=float, help="final length (default: timeline/music length)")
+    mp.add_argument("--signature", help="JSON: signature cues to lift over the bed, their music dip, and the end ride")
     mp.add_argument("--out", default="out")
     a = ap.parse_args()
 
@@ -769,7 +813,8 @@ def main():
         music = read_audio(a.music, SR, channels=2)
     events = json.loads(Path(a.sfx_events).read_text()) if a.sfx_events else []
     reps = mix(a.voice, plan, music, events, Path(a.sfx_dir), anchors, out, a.music_gain_db, a.duck_db,
-               duration, bed_lufs=a.bed_lufs)
+               duration, bed_lufs=a.bed_lufs,
+               signature=json.loads(Path(a.signature).read_text()) if a.signature else None)
     for k, r in reps.items():
         m4 = r.get("m4a", {})
         print(f"{k:11s} I {r['integrated_lufs']:6.2f} LUFS  TP {r['true_peak_dbtp']:6.2f} dBTP  LRA {r['loudness_range_lu']:4.1f} LU"

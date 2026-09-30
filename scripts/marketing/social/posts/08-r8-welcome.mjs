@@ -12,9 +12,9 @@ const H = 1350;
 const CW = 290;
 const CH = Math.round((CW * 2682) / 1320);
 const CARDS = [
-  { id: "welcome-1", x: 80, y: 500 },
-  { id: "welcome-2", x: 395, y: 460 },
-  { id: "welcome-3", x: 710, y: 540 },
+  { id: "welcome-1", x: 80, y: 580 },
+  { id: "welcome-2", x: 395, y: 540 },
+  { id: "welcome-3", x: 710, y: 620 },
 ];
 
 const card = (id, x, y) => `<div style="position:absolute;left:${x}px;top:${y}px;width:${CW}px;height:${CH}px;border-radius:34px;overflow:hidden;

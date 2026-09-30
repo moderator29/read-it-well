@@ -63,6 +63,7 @@ await run("python3", [
   "--sfx-events", cues,
   "--sfx-dir", join(AUDIO, "out", "sfx"),
   "--timings", join(AUDIO, "out", "timings.json"),
+  "--signature", join(HERE, "signature-cues.json"),
   "--out", mixDir,
 ]);
 

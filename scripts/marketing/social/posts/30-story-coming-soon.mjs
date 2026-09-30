@@ -1,19 +1,19 @@
-/* 30 · Story. "Almost here." Night. The closing hero, a pair with 14: the
- * launch line, exactly "Coming soon on iPhone and Android.", under the
- * headline, and the app's own icon at 600 px (its source is 1024) centred in
- * the story's field with the iOS corner radius and a soft contact shadow. No
- * logos and no store badges. A megaphone is the post's 3D icon. Everything
- * sits inside the story's safe zone (top 250 and bottom 340 px clear). */
+/* 30 · Story. "Almost here." Night. The closing bookend to 14, made its own:
+ * the launch line, exactly "Coming soon on iPhone and Android.", under the
+ * headline, and the app's own icon alone at 720 px (its source is 1024),
+ * centred in the story's field with the iOS corner radius and a soft contact
+ * shadow. The icon is the post's one object: no 3D icon beside it. No logos
+ * and no store badges. Everything sits inside the story's safe zone. */
 import { join } from "node:path";
-import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
+import { frame, headline, subline } from "../lib/premium.mjs";
 import { BRAND } from "../lib/paths.mjs";
 import { u } from "../lib/render.mjs";
 
 const W = 1080;
 const H = 1920;
-const S = 600;
+const S = 720;
 const X = (W - S) / 2;
-const Y = 790;
+const Y = 1090 - 720 / 2;
 
 export default {
   id: "30",
@@ -34,7 +34,6 @@ export default {
           box-shadow:0 50px 90px -30px rgba(0,0,10,.85), 0 16px 34px -12px rgba(0,0,20,.55)">
         <img src="${u(join(BRAND, "vallo-icon.png"))}" alt="Vallo" style="display:block;width:${S}px;height:${S}px">
       </div>
-      ${icon3d("megaphone", { W, H, slot: "A" })}
       `,
     }),
 };
