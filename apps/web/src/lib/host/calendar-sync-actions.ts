@@ -25,7 +25,7 @@ import { checkFeedUrl } from "./ical";
 const SYNC_NOT_READY =
   "Calendar sync is not switched on yet. Nothing about your nights changed; set them by hand until it is.";
 const SERVICE_DOWN = "We could not save that just now. Nothing changed, so try again in a moment.";
-const NOT_YOURS = "That room is not on your account.";
+const NOT_YOURS = "That room is not on your account. Refresh the calendar and pick one of your own rooms.";
 
 type Untyped = {
   from: (table: string) => {

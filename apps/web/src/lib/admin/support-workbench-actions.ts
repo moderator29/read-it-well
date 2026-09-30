@@ -149,7 +149,7 @@ export async function returnSupportEscalation(input: {
   escalationId: string;
   note: string;
 }): Promise<ActionResult<null>> {
-  if (!isUserId(input?.ticketId)) return fail("That ticket could not be identified.");
+  if (!isUserId(input?.ticketId)) return fail("That ticket could not be identified. Refresh the queue and open it again.");
   const door = await ticketDoor(input.ticketId);
   if (door.mode === "none") {
     return fail(door.state === "not-admin" ? WORDS.forbidden! : adminRefusal({ state: door.state }));

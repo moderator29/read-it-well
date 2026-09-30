@@ -96,6 +96,6 @@ export async function markInternalByEmail(input: { email: string }): Promise<Act
   const parsed = validate(z.object({ email: z.string().trim().email("Enter an email address.").max(320) }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const user = await findUserByEmail(parsed.data.email);
-  if (!user) return fail("No account uses that email address.");
+  if (!user) return fail("No account uses that email address. Check the spelling, or ask them to sign up first.");
   return setInternalAccount({ userId: user.id, internal: true, reason: "Marked internal on the staff page" });
 }

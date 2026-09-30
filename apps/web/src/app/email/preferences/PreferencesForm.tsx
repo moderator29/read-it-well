@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { saveEmailPreferences } from "@/lib/email/preferences-actions";
+import { INVALID_PREFS_LINK } from "@/lib/email/preferences-refusals";
 
 type Copy = Dictionary["publicDoors"]["prefs"];
 type Channel = keyof Copy["channels"];
@@ -51,7 +52,7 @@ export function PreferencesForm({
         {state?.ok && <p className="nf-body-sm text-[var(--nf-state-success)]">{copy.saved}</p>}
         {state && !state.ok && (
           <p role="alert" className="nf-body-sm text-[var(--nf-state-error)]">
-            {state.error === "invalid-token" ? copy.invalidTitle : copy.failed}
+            {state.error === INVALID_PREFS_LINK ? `${copy.invalidTitle}. ${copy.invalidBody}` : copy.failed}
           </p>
         )}
       </div>

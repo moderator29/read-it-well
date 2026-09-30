@@ -21,6 +21,6 @@ export async function rememberHearAbout(value: string): Promise<ActionResult<nul
   if (session.state !== "signed-in") return fail("Sign in to answer this.");
 
   const { error } = await session.supabase.auth.updateUser({ data: { hear_about: value } });
-  if (error) return fail("That did not save.");
+  if (error) return fail("That did not save. Try again in a moment.");
   return ok(null);
 }
