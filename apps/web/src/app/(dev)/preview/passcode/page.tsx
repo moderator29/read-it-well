@@ -1,7 +1,8 @@
 /* Screenshot harness for the passcode screens (docs/PASSCODE.md): the real
    lock and setup components with fixture props, so they can be drawn in a
    sandbox with no session. `?s=lock`, `lock4`, `setup`, `reset`,
-   `password-only` or `unavailable`. Closed outside development by the
+   `password-only`, `unavailable` or `passkey` (the Face ID or fingerprint key
+   bottom left of the keypad). Closed outside development by the
    preview layout's own guard. */
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -24,6 +25,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       length={s === "lock4" ? 4 : 6}
       name="Ada Okafor"
       verify={fixtureWrongCode}
+      passkey={s === "passkey"}
     />
   );
 }
