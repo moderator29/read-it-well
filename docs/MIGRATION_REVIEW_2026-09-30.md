@@ -454,3 +454,92 @@ custody-name rule does not match. No probe calls `admin_clear_console_keys`.
   enrolment only to a person with no key. It should count keys that are not
   revoked. Until then the person adds a second key from the money-lock
   settings.
+
+---
+
+## Review: host_c2b_c4b (`20260930160000_host_c2b_c4b_one_room_per_booking_elsewhere_and_contests_close_with_their_report`)
+
+**Verdict: HOLD.** The C2b half would weaken the double-booking protection that
+the live C2 (`20260930084937`) already gives. The C4b half is sound, and I would
+apply it on its own if the Host team splits the file.
+
+The review is against the live objects: C2 and C4 as applied, `room_inventory`
+and its triggers, `reserve_room_nights`, `moderation_decide`, the `reports`
+triggers and the probes. Live data today: 0 calendar imports, 0 import nights,
+0 contests, and 990 `room_inventory` rows, 90 nights for each of 11 room types
+(`2026-09-18` to `2026-12-16`).
+
+### C2b: one room per booking elsewhere. HOLD
+
+**What it changes:** it adds `calendar_import_nights.units_taken smallint`
+(0 or 1), which is safe on the 0 live rows. It replaces
+`private.calendar_import_release` and `public.apply_calendar_import`. For a
+room type, an import no longer closes rate plans. It decrements
+`room_inventory.units_open` by one where a room is free, and the release adds
+it back, capped at `units_total`. The grants are unchanged (service_role only).
+The live triggers `room_inventory_booked_by_function_only` and
+`room_inventory_within_total` let the decrement through.
+
+**Why it is held.** Live C2 closes every rate plan for the night, and that
+closure holds whatever `room_inventory` says. C2b's hold lives only in
+`units_open`. In three common cases that hold is lost for good:
+
+1. **Nights with no inventory row.** Inventory rows exist only 90 days ahead,
+   and an import accepts nights up to 540 days ahead. For a night with no row,
+   the `update` touches nothing, so `took` is 0 and no conflict is counted. The
+   night row is still recorded with `units_taken = 0`. Because the row exists,
+   later pulls never retry it ("never taken twice"). When the host opens those
+   dates later (`setNightsRooms` or the setup action upsert
+   `room_inventory`), Vallo sells a room that Airbnb has already sold.
+2. **The host's own inventory write erases the hold.** `lib/host/calendar-actions.ts`
+   (`setNightsRooms`) and `lib/host/actions.ts` upsert an **absolute**
+   `units_open` value. Setting 12 on a night where an import took 1 silently
+   puts the room back on sale. When the feed later drops the night, the release
+   adds 1 on top of whatever the host set. It is capped at the room total, but
+   it can reopen a room the host deliberately closed.
+3. **A night that was full when first pulled.** It is recorded with
+   `units_taken = 0`, so the host is told once. If a Vallo guest later cancels,
+   the freed room is never taken for the Airbnb booking, and Vallo can sell it
+   again.
+
+Case 1 alone covers every Airbnb booking more than 90 days out. That is the
+kind of double booking C2 was written to prevent.
+
+**What it needs (Host team):** keep the hold in the ledger, not in an absolute
+number that other writers overwrite. Options:
+* Enforce `units_open <= units_total - (rooms held by imports that night)` in a
+  BEFORE INSERT/UPDATE trigger on `room_inventory`, so host writes and newly
+  created rows respect imports.
+* Or retry nights that took 0 on later pulls, with a per-night "conflict
+  already told" flag so the host is not notified on every pull.
+* Or keep the live C2 rate-plan closure as a fallback for nights with no
+  inventory row.
+
+Whichever they choose, the read-back should prove that a night with no
+inventory row, and a host upsert, both still leave the room held.
+
+### C4b: a contest closes with its report. Sound, APPLY when split
+
+**What it changes:** it widens `review_contests_status_chk` to add
+`withdrawn`. The live check name matches, and the 0 rows pass. It adds the
+definer `private.close_contest_with_its_report()` (revoked from the API roles)
+with an AFTER UPDATE OF `status` trigger on `reports`. When the linked report
+becomes `resolved` or `dismissed`, the contest closes as `kept` and the lister
+is told. When the report becomes `withdrawn`, the contest closes as
+`withdrawn`. All three values exist in `report_status`.
+
+**Checks:**
+* `decide_review_contest` closes its contest before it updates the report, so
+  the trigger finds nothing open and does nothing.
+* `moderation_decide` never touches reviews, so "kept" is the only true outcome
+  when a report is resolved on the Reports lane. Hiding stays with
+  `decide_review_contest`.
+* It does not conflict with the live `reports` triggers (`reports_02_claim` is
+  BEFORE, and the others are on INSERT).
+* The app already has wording for `withdrawn` (`lib/host/review-contest.ts`).
+
+### Probes
+
+The file adds no table grants and no policies, so `db-06` and `db-20` are
+unchanged. No probe calls `apply_calendar_import` or reads `review_contests`,
+and no probe updates `reports.status`.
