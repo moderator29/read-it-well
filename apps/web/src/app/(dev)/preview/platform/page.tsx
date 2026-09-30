@@ -1,6 +1,7 @@
 import "@/app/admin/_review/review.css";
 import { StillAvailableCard } from "@/components/agent/StillAvailableCard";
 import { ReviewActionBar } from "@/app/admin/listings/[id]/ReviewActionBar";
+import { ContestDecision } from "@/app/admin/_lanes/ContestDecision";
 import { PasskeyIdleSetting } from "@/app/(app)/settings/passcode/PasskeyIdleSetting";
 import { ROSTER_WARNING_TEXT, rosterWarning } from "@/lib/admin/key-roster-rules";
 
@@ -34,6 +35,22 @@ export default function PlatformPreview() {
       <section className="nf-console mx-auto w-full max-w-[48rem]">
         <h2 className="nf-h3 mb-xs">Listing review: reason chips</h2>
         <ReviewActionBar listingId="00000000-0000-4000-8000-0000000000b1" status="SUBMITTED" nextHref={null} queueHref="/admin/listings" />
+      </section>
+      <section className="nf-console mx-auto w-full max-w-[48rem]">
+        <h2 className="nf-h3 mb-xs">Reports: a lister asked Vallo to look at a review</h2>
+        <ContestDecision
+          contest={{
+            id: "00000000-0000-4000-8000-0000000000c1",
+            reportId: "00000000-0000-4000-8000-0000000000c2",
+            reviewId: "00000000-0000-4000-8000-0000000000c3",
+            criterion: "personal_data",
+            note: "The guest printed our manager's phone number.",
+            rating: 2,
+            body: "Front desk was slow at check-in. Call the manager on 0803 000 0000 if you want the truth.",
+            place: "Example: Marina Court Hotel",
+            hidden: false,
+          }}
+        />
       </section>
       <section className="mx-auto w-full max-w-[36rem]">
         <h2 className="nf-h3 mb-xs">Passcode: with a key</h2>
