@@ -173,7 +173,7 @@ export const SHOTS = [
         const edge = Math.min(...[HEADER.top, 275, HEADER.bottom].map((y) => sp.at(-m.frame, y)[0]));
         const menuLeft = Math.min(...[237, 313].map((y) => sp.at(HEADER.menu[0], y)[0]));
         /* the rule's overhang, or less where the menu button comes first */
-        const right = Math.min(edge + m.overhang, menuLeft - 12 * u);
+        const right = Math.min(edge + m.overhang, menuLeft - 16 * u);
         const [, midY] = sp.at(0, 275);
         const cardH = 158 * m.card;
         ctx.cardCheck = { rightOf: menuLeft - 12 * u };
@@ -219,13 +219,13 @@ export const SHOTS = [
   std(23, "light-or-dark-your-call", "appearance", ["Light or dark,", "your call"]),
   std(24, "rooms-amenities-all-laid-out", "stay-amenities", ["Rooms, amenities,", "all laid out"]),
   std(25, "vallo-charges-no-inspection-fee", "support-inspection", ["Vallo charges no", "inspection fee"]),
-  std(26, "apply-for-your-verified-mark", "verification", ["Apply for your", "verified mark"]),
+  std(26, "earn-the-verified-mark", "verification", ["Earn the", "verified mark"]),
   std(27, "back-where-you-left-off", "home-recent", ["Back where", "you left off"]),
   std(28, "ask-about-prices-areas-or-renting", "assistant", ["Ask about prices,", "areas or renting"]),
   std(29, "restaurants-all-in-one-place", "restaurants", ["Restaurants,", "all in one place"]),
   std(30, "lock-vallo-with-a-passcode", "passcode", ["Lock Vallo", "with a passcode"]),
   std(31, "need-a-bq-filter-for-it", "filters-detached-bq", ["Need a BQ?", "Filter for it"]),
-  std(32, "one-sign-up-for-all-of-vallo", "sign-up", ["One sign-up", "for all of Vallo"]),
+  std(32, "one-account-for-all-of-vallo", "sign-up", ["One account", "for all of Vallo"]),
   std(33, "the-agents-fees-spelled-out", "listing-cost-total", ["The agent’s fees,", "spelled out"]),
   std(34, "browse-stays-before-you-sign-up", "stays-dates-gb", ["Browse stays", "before you sign up"]),
   std(35, "vallo-real-estate-done-right", "welcome-4", ["Vallo. Real estate,", "done right."], { sub: "Homes, hotels, shortlets and restaurants." }),

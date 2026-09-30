@@ -73,13 +73,13 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 23 | Light or dark, / your call | `appearance` | recaptured with the toggles clear of the dock; header cleaned |
 | 24 | Rooms, amenities, / all laid out | `stay-amenities` | recaptured; opens on the stay's "Nothing here can be booked" notice |
 | 25 | Vallo charges no / inspection fee | `support-inspection` | worded exactly so; header cleaned; 06's twin, 19 places apart |
-| 26 | Apply for your / verified mark | `verification` | step 1 of 5, the ID upload; "verified" about a person |
+| 26 | Earn the / verified mark | `verification` | step 1 of 5, the ID upload; "verified" about a person |
 | 27 | Back where / you left off | `home-recent` | recaptured; "Looked at recently"; header cleaned |
 | 28 | Ask about prices, / areas or renting | `assistant` | the assistant's start screen and its suggestion chips; 08's twin, 20 places apart |
 | 29 | Restaurants, / all in one place | `restaurants` | shares a photograph with 10, 19 places apart |
 | 30 | Lock Vallo / with a passcode | `passcode` | the settings screen; 15's twin, 15 places apart |
 | 31 | Need a BQ? / Filter for it | `filters-detached-bq` | "Comes with a BQ" on, Apply (6); 22's twin, 9 places apart |
-| 32 | One sign-up / for all of Vallo | `sign-up` | public |
+| 32 | One account / for all of Vallo | `sign-up` | public |
 | 33 | The agent’s fees, / spelled out | `listing-cost-total` | "Fees to the agent: ₦4,500,000, 25.0% of a year's rent"; 11's twin; not for submission until the rename |
 | 34 | Browse stays / before you sign up | `stays-dates-gb` | public (Sign in and Sign up in its header); 18's twin, 16 places apart |
 | 35 | Vallo. Real estate, / done right. | `welcome-4` | public; subline "Homes, hotels, shortlets and restaurants." |
@@ -107,7 +107,7 @@ The Maitama living-room photograph, which the example stock reuses, now leads on
 - **Headlines rewritten:**
   - "Each verified mark" and "Back where you left off", for line spacing;
   - "Rooms, amenities, / all laid out", so line 1 no longer ends on "and";
-  - "Inspect first, then pay on Vallo" and "One sign-up for all of Vallo", so they no longer repeat the screen's own words;
+  - "Inspect first, then pay on Vallo" and "One account for all of Vallo", so they no longer repeat the screen's own words;
   - "Real help, from real people", for line spacing on Play.
 
 ### The system (DESIGN.md section 6a)
