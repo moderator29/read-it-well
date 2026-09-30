@@ -106,7 +106,7 @@ jobs:
       # page rather than only in a truncated log.
       - name: Keep the Gradle reports when the build fails
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: android-gradle-reports-${{ github.sha }}
           path: |
@@ -139,7 +139,7 @@ jobs:
 
       - name: Keep the APK
         if: ${{ success() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: vallo-android-debug-${{ github.sha }}
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
@@ -207,7 +207,7 @@ jobs:
 
       - name: Keep the screenshots
         if: ${{ always() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: android-emulator-smoke-${{ github.sha }}
           path: shots
