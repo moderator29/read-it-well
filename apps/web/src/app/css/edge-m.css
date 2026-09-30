@@ -1,5 +1,6 @@
 /*
- * TRACK M: THE MOVING EDGE ON EVERY CONTAINER AND BUTTON (25 September 2026).
+ * TRACK M: THE MOVING EDGE (25 September 2026; narrowed to the premium
+ * containers on 30 September, below).
  *
  * The founder liked the light chasing round the logo plate ("the edges moving
  * like a snake") and asked for it on all containers and buttons, in both
@@ -40,12 +41,24 @@
  * The round dock button is a circle, the one shape that looks the same at
  * every angle, so its ring is drawn once and simply turned.
  *
- * WHO HAS ONLY THE LONG-EDGE RUNNER. Full-size buttons keep ::after for their
- * gloss, and tappable panels (`.nf-tap`) keep it for the widened touch target.
- * The pill capsule has no straight sides. On these the light goes along the
- * top and back along the bottom. The small filter button on the home search
- * keeps ::before for its 44pt target, so its runner takes ::after in place of
- * its gloss.
+ * WHO HAS ONLY THE LONG-EDGE RUNNER. The dock's pill capsule has no straight
+ * sides, so on it the light goes along the top and back along the bottom.
+ *
+ * ONLY THE PREMIUM CONTAINERS CARRY IT (plan item 2, 30 September 2026).
+ * On every panel, door, button, shelf square, filter control and the side
+ * menu it was noise: a light running round everything says nothing is the
+ * point. The glow budget (spec section 1.2) keeps it for the containers that
+ * open a world or hold the headline:
+ *
+ *   the dock's capsule and its round button   (`.nf-tabbar`, `.nf-dock-island`)
+ *   the hero band, and the KPI row it holds   (`.nf-hero-band`, HeroBand.tsx)
+ *   the main summary card                     (`.nf-summary`, SummaryCard.tsx)
+ *
+ * The capsules, the dock's centre "+" and the logo plates already run their
+ * own ring (`.nf-edge-lap` in site.css, `.nf-dock-plus::before` in
+ * shell-m.css, the logo lap), so a band or summary card that wears
+ * `.nf-edge-lap` is left to that ring and not given a second light here.
+ * Ordinary cards and buttons get no moving light at all.
  *
  * WHEN IT STOPS. Reduced motion, data saving, the Living backgrounds switch
  * off, and the Calm and Off motion levels all remove the light: the runners
@@ -94,7 +107,8 @@
   }
 
   .nf-door,
-  .nf-shelf-square {
+  .nf-shelf-square,
+  .nf-summary {
     position: relative;
   }
 
@@ -103,44 +117,26 @@
   /* Where each host's straight edge begins: its corner radius and a hair.
      `--nf-edge-len` is the line's share of the edge it runs along. Set on
      the runners themselves, so nothing leaks into the host's children. */
-  .nf-panel::before,
-  .nf-panel::after,
-  .nf-door::before,
-  .nf-door::after {
-    --nf-edge-r: calc(var(--nf-container-radius) + 2px);
+  .nf-hero-band:not(.nf-edge-lap)::before,
+  .nf-hero-band:not(.nf-edge-lap)::after {
+    --nf-edge-r: calc(var(--nf-radius-xl) + 2px);
+    --nf-edge-lap: 9s;
   }
-  .nf-btn::before {
-    --nf-edge-r: calc(var(--nf-radius-control) + 2px);
-  }
-  .nf-shelf-square::before,
-  .nf-shelf-square::after,
-  .nf-hero-plate__filters::after {
-    --nf-edge-r: 0.75rem;
+  .nf-summary:not(.nf-edge-lap)::before,
+  .nf-summary:not(.nf-edge-lap)::after {
+    --nf-edge-r: calc(var(--nf-radius-card) + 2px);
   }
   /* The capsule is a pill 68px tall: its straight edges begin at half that.
-     It and the side menu lap more slowly, so the light reads as a sheen. */
+     It laps more slowly, so the light reads as a sheen. */
   .nf-tabbar::before {
     --nf-edge-r: 2.25rem;
     --nf-edge-lap: 11s;
   }
-  .nf-drawer--left::after {
-    --nf-edge-r: var(--nf-radius-2xl);
-    --nf-edge-len: 0.22;
-    --nf-edge-lap: 11s;
-  }
 
   /* The long-edge runner. */
-  .nf-panel::before,
-  .nf-door::before,
-  .nf-shelf-square::before,
-  .nf-btn:not(
-      .nf-btn--sm,
-      .nf-btn--ghost,
-      .nf-btn--danger-quiet,
-      .nf-btn--link
-    )::before,
-  .nf-tabbar::before,
-  .nf-hero-plate__filters::after {
+  .nf-hero-band:not(.nf-edge-lap)::before,
+  .nf-summary:not(.nf-edge-lap)::before,
+  .nf-tabbar::before {
     /* x0: the straight top edge begins. x1: the line's head has reached its
        end. x2: the line has shrunk into that end. x3: on the way back, the
        head has reached the start again. y1: the bottom edge. All in the
@@ -179,11 +175,9 @@
       var(--nf-edge-delay, 0s) infinite;
   }
 
-  /* The side runner. Tappable panels keep ::after for their touch target. */
-  .nf-panel:not(.nf-tap)::after,
-  .nf-door:not(.nf-tap)::after,
-  .nf-shelf-square:not(.nf-tap)::after,
-  .nf-drawer--left::after {
+  /* The side runner. */
+  .nf-hero-band:not(.nf-edge-lap)::after,
+  .nf-summary:not(.nf-edge-lap)::after {
     /* The same stations down the side, in the box's own height. xl: the box
        moved over to the left edge. */
     --nf-edge-y0: var(--nf-edge-r);
@@ -296,51 +290,6 @@
     }
   }
 
-  /* The side menu is tall and its top and bottom sit on the screen's edges,
-     so its light only runs the sides: down the edge that faces the app, and
-     up the one against the screen. */
-  .nf-drawer--left::after {
-    animation-name: nf-edge-tall;
-  }
-  @keyframes nf-edge-tall {
-    0% {
-      translate: 0 var(--nf-edge-y0);
-      scale: 1 0;
-    }
-    10% {
-      translate: 0 var(--nf-edge-y0);
-      scale: 1 1;
-    }
-    35% {
-      translate: 0 var(--nf-edge-y1);
-      scale: 1 1;
-    }
-    45% {
-      translate: 0 var(--nf-edge-y2);
-      scale: 1 0;
-    }
-    50% {
-      translate: var(--nf-edge-xl) var(--nf-edge-y2);
-      scale: 1 0;
-    }
-    60% {
-      translate: var(--nf-edge-xl) var(--nf-edge-y2);
-      scale: 1 -1;
-    }
-    85% {
-      translate: var(--nf-edge-xl) var(--nf-edge-y3);
-      scale: 1 -1;
-    }
-    95% {
-      translate: var(--nf-edge-xl) var(--nf-edge-y0);
-      scale: 1 0;
-    }
-    100% {
-      translate: 0 var(--nf-edge-y0);
-      scale: 1 0;
-    }
-  }
-
   /* The round dock button: a ring drawn once and turned. */
   .nf-dock-island::before {
     content: "";
@@ -370,41 +319,14 @@
     }
   }
 
-  /* Neighbours start at different points of the lap. Both runners of one
-     host share the delay, so the hand-over at each corner stays in step. */
-  .nf-panel:nth-child(3n + 2)::before,
-  .nf-panel:nth-child(3n + 2)::after,
-  .nf-door:nth-child(3n + 2)::before,
-  .nf-door:nth-child(3n + 2)::after,
-  .nf-btn:nth-child(3n + 2)::before {
-    --nf-edge-delay: -2.5s;
-  }
-  .nf-panel:nth-child(3n)::before,
-  .nf-panel:nth-child(3n)::after,
-  .nf-door:nth-child(3n)::before,
-  .nf-door:nth-child(3n)::after,
-  .nf-btn:nth-child(3n)::before {
-    --nf-edge-delay: -5s;
-  }
-
   /* ---------------------------------------------------- when it stops */
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-panel::before,
-    .nf-door::before,
-    .nf-shelf-square::before,
-    .nf-btn:not(
-        .nf-btn--sm,
-        .nf-btn--ghost,
-        .nf-btn--danger-quiet,
-        .nf-btn--link
-      )::before,
+    .nf-hero-band:not(.nf-edge-lap)::before,
+    .nf-hero-band:not(.nf-edge-lap)::after,
+    .nf-summary:not(.nf-edge-lap)::before,
+    .nf-summary:not(.nf-edge-lap)::after,
     .nf-tabbar::before,
-    .nf-hero-plate__filters::after,
-    .nf-panel:not(.nf-tap)::after,
-    .nf-door:not(.nf-tap)::after,
-    .nf-shelf-square:not(.nf-tap)::after,
-    .nf-drawer--left::after,
     .nf-dock-island::before {
       display: none;
     }
@@ -416,15 +338,8 @@
       [data-motion="off"]
     )
     :is(
-      .nf-panel,
-      .nf-door,
-      .nf-shelf-square,
-      .nf-btn:not(
-          .nf-btn--sm,
-          .nf-btn--ghost,
-          .nf-btn--danger-quiet,
-          .nf-btn--link
-        ),
+      .nf-hero-band:not(.nf-edge-lap),
+      .nf-summary:not(.nf-edge-lap),
       .nf-tabbar,
       .nf-dock-island
     )::before,
@@ -434,13 +349,7 @@
       [data-motion="calm"],
       [data-motion="off"]
     )
-    :is(
-      .nf-hero-plate__filters,
-      .nf-panel:not(.nf-tap),
-      .nf-door:not(.nf-tap),
-      .nf-shelf-square:not(.nf-tap),
-      .nf-drawer--left
-    )::after {
+    :is(.nf-hero-band:not(.nf-edge-lap), .nf-summary:not(.nf-edge-lap))::after {
     display: none;
   }
 }
