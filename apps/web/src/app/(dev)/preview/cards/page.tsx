@@ -1,5 +1,8 @@
 import { ShareCardFrame } from "@/components/share/ShareCardFrame";
 import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { BookingTrack } from "@/components/app/status/BookingTrack";
+import { HeroBand } from "@/components/ui/HeroBand";
+import { getDictionary } from "@vallo/i18n";
 import {
   agreementTrack,
   applicationTrack,
@@ -146,6 +149,31 @@ export default async function CardsPreview({
       {tracks && (
         <section className="grid gap-block" aria-label="Status tracks">
           <h2 className="nf-h4">Status tracks</h2>
+          {/* Plan item 21: the booking and agreement pages open with the track
+              on the hero band. Fixtures, as everything on this page. */}
+          <BookingTrack
+            status="CONFIRMED"
+            checkIn="2099-10-04"
+            events={[
+              { at: "2026-09-01T09:02:00Z", to: "PENDING" },
+              { at: "2026-09-01T09:06:00Z", to: "CONFIRMED" },
+            ]}
+            copy={getDictionary("en").threads.booking}
+            locale="en"
+            band={{ title: "Example: Shortlet in Lekki Phase 1", sub: "Sat 4 Oct to Mon 6 Oct" }}
+          />
+          <HeroBand
+            className="nf-status-band"
+            label="Live status"
+            title="Example: Two bedroom flat in Yaba"
+            sub="Rental · With Vallo for review"
+            data-testid="track-agreement-band"
+          >
+            <StatusTrack
+              label="Agreement progress"
+              steps={steps(agreementTrack({ status: "in_review", events: AGREEMENT_EVENTS.slice(0, 2) }), AGREEMENT_LABELS)}
+            />
+          </HeroBand>
           <div className="nf-panel nf-panel--card p-card" data-testid="track-booking">
             <StatusTrack
               title="Live status"

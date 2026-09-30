@@ -140,16 +140,21 @@ export default async function BookingDetailPage({
 
   return shell(
     <>
-      <BookingDetailCard booking={booking} locale={locale} />
       {/* Where the stay is, on the shared status track (spec section 14),
-          dated from its own state events like the thread's booking face. */}
+          dated from its own state events like the thread's booking face.
+          It opens the page on the hero band (plan item 21), the stay named
+          and dated above the track; the full card follows. */}
       <BookingTrack
         status={booking.status}
         checkIn={booking.checkIn}
         events={await readBookingStateEvents(booking.id)}
         copy={t.threads.booking}
         locale={locale}
+        band={{ title: booking.title, sub: booking.dateRange }}
       />
+      <div className="mt-md">
+        <BookingDetailCard booking={booking} locale={locale} />
+      </div>
       {/* V-20 and V-24: the terms this stay was paid under, and every refund
           with the date it is due by. Nothing at all for an unpaid stay. */}
       <BookingMoneyRecord

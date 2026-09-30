@@ -9,6 +9,7 @@ import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
 import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
 import { PageHeader } from "@/components/app/PageHeader";
+import { HeroBand } from "@/components/ui/HeroBand";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
 import { agreementArrival } from "@/lib/ui/arrival-moments";
@@ -158,19 +159,25 @@ export default async function AgreementPage({
         haptic={moment ? undefined : false}
       />
       <PageHeader title="Agreement" />
-      <p className={`${TYPE.body} mt-inline`}>
-        <strong>{a.listingTitle}</strong> · {a.kind === "rent" ? "Rental" : "Stay"}
-      </p>
-      <p className={`${TYPE.rowMeta} mt-2xs`} data-testid="agreement-status">
-        {AGREEMENT_STATUS_LABEL[a.status] ?? a.status}
-      </p>
-
       {/* Where it stands, on the shared status track (spec section 14): drawn
           up, both confirmed, approved, paid, each dated from this agreement's
-          own events. Sent back or cancelled stops the track where it stood. */}
-      <div className="nf-panel nf-panel--card mt-block p-card">
+          own events. Sent back or cancelled stops the track where it stood.
+          It opens the page on the hero band (plan item 21; spec section 16,
+          Q2: the agreement's live-status header), the property named above
+          the track with the kind and the status word under it. */}
+      <HeroBand
+        className="nf-status-band mt-inline"
+        label="Live status"
+        title={a.listingTitle}
+        sub={
+          <>
+            {a.kind === "rent" ? "Rental" : "Stay"} ·{" "}
+            <span data-testid="agreement-status">{AGREEMENT_STATUS_LABEL[a.status] ?? a.status}</span>
+          </>
+        }
+      >
         <StatusTrack label="Agreement progress" steps={agreementSteps(a.status, a.events)} testId="agreement-track" />
-      </div>
+      </HeroBand>
 
       {a.status === "rejected" && a.decisionReason ? (
         <div className="nf-card mt-block p-card" role="note">
