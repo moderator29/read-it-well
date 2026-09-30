@@ -81,23 +81,55 @@
     user-select: none;
   }
 
-  /* The art: full bleed, 58 percent of the screen, fading into the page
-     from a little below its middle, as reference 42 melts its hills into
-     the white card. */
+  /* The art: full bleed, and it takes EVERYTHING the words and controls
+     leave, so on any phone from 568 to 932 tall the words, the dots and the
+     controls sit as one composed group anchored to the foot (reference 42)
+     and no dead band opens between them. The floor keeps a picture on the
+     shortest phone; the words overlap its fade by `--nf-gs-overlap`. */
   .nf-gs-art {
     position: relative;
     isolation: isolate;
-    flex: none;
-    height: clamp(18rem, 60svh, 46rem);
+    flex: 1 1 auto;
+    min-height: clamp(14rem, 42svh, 22rem);
     overflow: hidden;
     -webkit-user-select: none;
     user-select: none;
     background: var(--nf-surface-artwork);
-    mask-image: linear-gradient(180deg, black 0%, black 70%, transparent 100%);
-    -webkit-mask-image: linear-gradient(180deg, black 0%, black 70%, transparent 100%);
+    /* An eased fade (many stops on a smooth curve), never a two-stop ramp:
+       a linear ramp shows a visible edge where it starts. */
+    --nf-gs-fade: linear-gradient(
+      180deg,
+      black 0%,
+      black 58%,
+      color-mix(in srgb, black 94%, transparent) 64%,
+      color-mix(in srgb, black 80%, transparent) 71%,
+      color-mix(in srgb, black 58%, transparent) 78%,
+      color-mix(in srgb, black 34%, transparent) 85%,
+      color-mix(in srgb, black 14%, transparent) 92%,
+      color-mix(in srgb, black 3%, transparent) 97%,
+      transparent 100%
+    );
+    mask-image: var(--nf-gs-fade);
+    -webkit-mask-image: var(--nf-gs-fade);
+  }
+  /* The foot of the picture goes soft before it goes: a blur that rises
+     from nothing, so the hills melt into the page rather than end on it. */
+  .nf-gs-art::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 38%;
+    z-index: 3;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    mask-image: linear-gradient(180deg, transparent 0%, black 70%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 70%);
   }
   /* The haze the art sinks through: the page's own colour rising over the
-     foot of the picture, so the fade reads as mist rather than a cut. */
+     foot of the picture on the same eased curve, so the fade reads as mist
+     rather than a cut: into the warm canvas in light, into the night in
+     dark. */
   .nf-gs-art::after {
     content: "";
     position: absolute;
@@ -106,9 +138,12 @@
     pointer-events: none;
     background: linear-gradient(
       180deg,
-      transparent 62%,
-      color-mix(in oklab, var(--nf-surface-canvas) 30%, transparent) 78%,
-      color-mix(in oklab, var(--nf-surface-canvas) 78%, transparent) 92%,
+      transparent 56%,
+      color-mix(in oklab, var(--nf-surface-canvas) 6%, transparent) 64%,
+      color-mix(in oklab, var(--nf-surface-canvas) 20%, transparent) 72%,
+      color-mix(in oklab, var(--nf-surface-canvas) 44%, transparent) 80%,
+      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 88%,
+      color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent) 95%,
       var(--nf-surface-canvas) 100%
     );
   }
@@ -201,8 +236,11 @@
     position: absolute;
     left: -18%;
     right: -18%;
-    bottom: 12%;
-    height: 44%;
+    /* The ground reaches the foot of the picture, so nothing but ground is
+       under the fade: a strip of bright sky under the hills was the hard
+       band the fade used to end on. */
+    bottom: 0;
+    height: 50%;
     transform: translate3d(calc(var(--d, 0) * 26vw), 0, 0);
     background:
       radial-gradient(
@@ -235,7 +273,12 @@
     left: 50%;
     bottom: 21%;
     z-index: 1;
-    width: min(80vw, 27rem);
+    /* SIZED FROM THE PICTURE'S HEIGHT as well as the width (percentages of
+       the layer, which is the art), so a short phone gets a smaller house
+       that still clears the lockup (3.75rem) rather than the same house cut
+       off at the top. The renders are 557 by 470. */
+    height: min(calc(79% - 3.75rem), 67.5vw, 22.75rem);
+    aspect-ratio: 557 / 470;
     translate: -50% 0;
     transform: translate3d(calc(var(--d, 0) * 42vw), 0, 0) scale(calc(1 - var(--a, 0) * 0.12));
     transform-origin: 50% 100%;
@@ -245,14 +288,34 @@
     display: block;
     animation: nf-gs-bob 6.4s var(--nf-ease-standard) infinite alternate;
   }
+  /* The box is the render's shape; the coin (a square) stands on its
+     foot, where the house's plinth would be. */
+  .nf-gs-hero__float {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+  }
   .nf-gs-hero__img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: contain;
+    /* The renders' glow runs off the top and sides of the file, which drew
+       a straight line across the sky. The file's edges fade out. */
+    mask-image:
+      linear-gradient(180deg, transparent 0%, black 16%),
+      linear-gradient(90deg, transparent 0%, black 7%, black 93%, transparent 100%);
+    -webkit-mask-image:
+      linear-gradient(180deg, transparent 0%, black 16%),
+      linear-gradient(90deg, transparent 0%, black 7%, black 93%, transparent 100%);
+    mask-composite: intersect;
+    -webkit-mask-composite: source-in;
     filter: drop-shadow(0 24px 30px color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent));
   }
   .nf-gs-hero__coin {
     display: block;
+    flex: none;
     width: 48%;
     aspect-ratio: 1;
     margin: 0 auto 16%;
@@ -271,7 +334,8 @@
   .nf-gs-sat {
     position: absolute;
     z-index: 2;
-    width: clamp(4rem, 21vw, 7.5rem);
+    /* From the picture's height too, as the hero is. */
+    height: clamp(3rem, min(21vw, 19%), 7.5rem);
     aspect-ratio: 1;
     transform: translate3d(calc(var(--d, 0) * 78vw), 0, 0) rotate(calc(var(--d, 0) * 14deg));
   }
@@ -319,7 +383,7 @@
     background: color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 42%, transparent);
     box-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent);
     color: var(--nf-content-on-brand);
-    font-size: var(--nf-text-overline);
+    font-size: 0.6875rem;
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: 0.14em;
@@ -380,7 +444,7 @@
     z-index: 2;
     width: 100%;
     max-width: 36rem;
-    margin: -3.5rem auto 0;
+    margin: calc(-1 * var(--nf-gs-overlap, 3rem)) auto 0;
     padding-inline: max(1.5rem, env(safe-area-inset-left, 0px)) max(1.5rem, env(safe-area-inset-right, 0px));
     /* The words lean with a dragging finger, and come back on release. */
     transform: translate3d(var(--nf-gs-drag, 0px), 0, 0);
@@ -389,14 +453,29 @@
     transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
   }
 
-  /* Big and tight, two lines, as reference 42 sets it. */
+  /* The step on screen and every step's invisible sizer share one cell
+     (FirstRun.tsx), so the block holds the tallest step at this width. */
+  .nf-gs-stack {
+    display: grid;
+  }
+  .nf-gs-stack > .nf-gs-slide {
+    grid-area: 1 / 1;
+  }
+  .nf-gs-slide--sizer {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* Big and tight, two lines, as reference 42 sets it: a little lighter
+     than a bold (the reference's headline is a heavy regular), tracked in
+     as the size grows. */
   .nf-gs-title {
     margin: 0;
     font-family: var(--nf-font-display);
-    font-size: clamp(2.125rem, 9.2vw, 3.25rem);
+    font-size: clamp(2rem, 9vw, 3.25rem);
     font-weight: 700;
-    line-height: 1.02;
-    letter-spacing: -0.035em;
+    line-height: 1.04;
+    letter-spacing: -0.032em;
     color: var(--nf-content-primary);
   }
   .nf-gs-title__a,
@@ -405,15 +484,16 @@
     /* A searched word can be forty letters with no space (V-18). */
     overflow-wrap: anywhere;
   }
+  /* The body: a comfortable measure (about 45 characters on a phone, never
+     past 34 on a wide screen), no widow on its last line. The steps hold
+     their height through the sizers, not a guessed line count. */
   .nf-gs-sub {
-    max-width: 30rem;
-    /* Four lines held, so the dots and the controls never jump between
-       steps whose sentences differ in length. */
-    min-height: calc(4 * 1.5em);
-    margin: 0.875rem 0 0;
-    font-size: 0.9375rem;
+    max-width: 34ch;
+    margin: var(--nf-space-sm) 0 0;
+    font-size: 1rem;
     line-height: 1.5;
     color: var(--nf-content-secondary);
+    text-wrap: pretty;
   }
   .nf-gs-note {
     max-width: 30rem;
@@ -447,30 +527,36 @@
 
   /* ------------------------------------------------------------ the dots */
 
-  /* Each dot is a 44px button (the tap floor); the small dot inside fades
-     as the pill arrives on it. The pill is one element that slides along
-     the carousel's position and stretches in transit. */
+  /* The dots sit close, as reference 42 draws them (a 1.5rem pitch), each
+     one a button 44px tall and a pitch wide, abutting, so the whole strip
+     is live and a press lands on the nearest dot (24px wide meets WCAG
+     2.5.8; the dots are the third way to move, after the swipe and Next,
+     which keep the 44px floor). The small dot
+     inside fades as the pill arrives on it. The pill is one element that
+     slides along the carousel's position and stretches in transit; its
+     left edge lines up with the words when it is on the first step. */
   .nf-gs-dots {
+    --nf-gs-pitch: 1.5rem;
     position: relative;
     display: flex;
-    margin: var(--nf-space-sm) 0 0 -1.125rem;
+    margin: var(--nf-space-sm) 0 0;
   }
   .nf-gs-dots__bar {
     position: absolute;
     top: 50%;
-    left: calc(1.375rem - 0.75rem);
-    width: 1.5rem;
+    left: 0;
+    width: var(--nf-gs-pitch);
     height: 0.5rem;
     margin-top: -0.25rem;
     border-radius: var(--nf-radius-pill);
     background: var(--nf-content-primary);
     pointer-events: none;
-    transform: translate3d(calc(var(--nf-gs-pos, 0) * 2.75rem), 0, 0) scaleX(var(--nf-gs-stretch, 1));
+    transform: translate3d(calc(var(--nf-gs-pos, 0) * var(--nf-gs-pitch)), 0, 0) scaleX(var(--nf-gs-stretch, 1));
   }
   .nf-gs-dot {
     display: grid;
     place-items: center;
-    width: 2.75rem;
+    width: var(--nf-gs-pitch);
     height: 2.75rem;
     padding: 0;
     border: 0;
@@ -502,8 +588,10 @@
     gap: var(--nf-space-md);
     width: 100%;
     max-width: 36rem;
-    margin: auto auto 0;
-    padding: var(--nf-space-lg) max(1.5rem, env(safe-area-inset-right, 0px)) 0
+    margin: 0 auto;
+    /* 16px under the dots' strip: with the strip's own air that is the same
+       gap above the controls as between the words and the dots. */
+    padding: var(--nf-space-md) max(1.5rem, env(safe-area-inset-right, 0px)) 0
       max(1.5rem, env(safe-area-inset-left, 0px));
   }
   .nf-gs-foot--last {
@@ -540,6 +628,24 @@
   .nf-slate .nf-slate-pill.nf-btn.nf-gs-next {
     min-width: 8.5rem;
     padding-inline: 1.75rem;
+  }
+  /* The arrow leans the way the page will go: a nudge on hover, a firm
+     push while pressed, and back on the spring when let go. */
+  .nf-gs-next svg,
+  .nf-gs-cta svg {
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  @media (hover: hover) {
+    .nf-gs-next:hover svg,
+    .nf-gs-cta:hover svg {
+      transform: translate3d(0.1875rem, 0, 0);
+    }
+  }
+  .nf-gs-next:active svg,
+  .nf-gs-cta:active svg {
+    transform: translate3d(0.375rem, 0, 0);
+    transition-duration: var(--nf-duration-fast);
+    transition-timing-function: var(--nf-ease-standard);
   }
   .nf-gs-doors {
     display: grid;
@@ -939,20 +1045,37 @@
   /* ------------------------------------------------------------ wider */
 
   @media (min-width: 40rem) {
-    .nf-gs-hero {
-      width: min(66vw, 30rem);
+    .nf-gs-carousel {
+      --nf-gs-overlap: 4rem;
     }
-    /* A tablet's column is short beside its height: the controls follow
-       the words instead of waiting at the foot of the screen. */
-    .nf-gs-foot {
-      margin-top: var(--nf-space-2xl);
+    .nf-gs-hero {
+      height: min(calc(79% - 3.75rem), 55.75vw, 25.25rem);
     }
     .nf-gs-sub {
-      min-height: calc(3 * 1.5em);
       font-size: 1.0625rem;
     }
-    .nf-gs-copy {
-      margin-top: -4.5rem;
+    .nf-gs-foot {
+      padding-top: var(--nf-space-lg);
+      padding-bottom: var(--nf-space-lg);
+    }
+  }
+
+  /* A SHORT PHONE (568 to 640 tall): the words step down a size so the
+     picture keeps a third of the screen. */
+  @media (max-width: 39.99rem) and (max-height: 40rem) {
+    .nf-gs-carousel {
+      --nf-gs-overlap: 2.25rem;
+    }
+    .nf-gs-title {
+      font-size: clamp(1.75rem, 8.4vw, 2rem);
+    }
+    .nf-gs-sub {
+      margin-top: var(--nf-space-xs);
+      font-size: 0.9375rem;
+      line-height: 1.45;
+    }
+    .nf-gs-foot {
+      padding-top: var(--nf-space-xs);
     }
   }
 
@@ -991,11 +1114,11 @@
       );
     }
     .nf-gs-hero {
-      width: min(40vw, 34rem);
+      height: min(calc(84% - 3.75rem), 33.75vw, 28.75rem);
       bottom: 16%;
     }
     .nf-gs-sat {
-      width: clamp(5rem, 8vw, 8.5rem);
+      height: clamp(5rem, 8vw, 8.5rem);
     }
     .nf-gs-copy {
       grid-column: 2;
@@ -1056,6 +1179,11 @@
     .nf-gs-copy {
       transform: none;
     }
+    .nf-gs-next svg,
+    .nf-gs-cta svg {
+      transition: none;
+      transform: none;
+    }
   }
   /* Calm: the words fade on the short ladder; nothing drifts. Off lands
      every animation at once (motion-pref.css). */
@@ -1066,6 +1194,9 @@
   }
   :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-gs-hero__float, .nf-gs-sat__float, .nf-gs-orb, .nf-gs-question .nf-interest__burst) {
     animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-gs-next, .nf-gs-cta) svg {
+    transform: none;
   }
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-gs-coin__spin {
     animation: none;

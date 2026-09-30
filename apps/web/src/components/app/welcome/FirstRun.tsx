@@ -667,7 +667,7 @@ export function FirstRun({
             }
           }}
           label={t.common.back}
-          surface="media"
+          surface="round"
           className="nf-gs-back"
           data-testid="welcome-back"
         />
@@ -715,28 +715,43 @@ export function FirstRun({
         </div>
 
         <div className="nf-gs-copy">
-          <div
-            key={slide.key}
-            className="nf-gs-slide"
-            role="group"
-            aria-roledescription="slide"
-            aria-label={stepName(index)}
-            data-slide={slide.key}
-          >
-            <h1 className="nf-gs-title">
-              <span className="nf-gs-title__a">
-                <RiseWords text={slide.titleA} />
-              </span>
-              <span className="nf-gs-title__b">
-                <RiseWords text={slide.titleB} start={wordsIn(slide.titleA)} />
-              </span>
-            </h1>
-            <p
-              className="nf-gs-sub nf-gs-rise"
-              style={{ "--nf-i": wordsIn(slide.titleA) + wordsIn(slide.titleB) } as CSSProperties}
+          <div className="nf-gs-stack">
+            {/* Every step's words, invisible, in the same cell as the step on
+                screen: the block is as tall as the longest step at this width,
+                so the dots and the controls never jump between steps, and no
+                line count has to be guessed per phone. */}
+            {slides.map((s) => (
+              <div key={`size-${s.key}`} className="nf-gs-slide nf-gs-slide--sizer" aria-hidden="true">
+                <p className="nf-gs-title">
+                  <span className="nf-gs-title__a">{s.titleA}</span>
+                  <span className="nf-gs-title__b">{s.titleB}</span>
+                </p>
+                <p className="nf-gs-sub">{s.body}</p>
+              </div>
+            ))}
+            <div
+              key={slide.key}
+              className="nf-gs-slide"
+              role="group"
+              aria-roledescription="slide"
+              aria-label={stepName(index)}
+              data-slide={slide.key}
             >
-              {slide.body}
-            </p>
+              <h1 className="nf-gs-title">
+                <span className="nf-gs-title__a">
+                  <RiseWords text={slide.titleA} />
+                </span>
+                <span className="nf-gs-title__b">
+                  <RiseWords text={slide.titleB} start={wordsIn(slide.titleA)} />
+                </span>
+              </h1>
+              <p
+                className="nf-gs-sub nf-gs-rise"
+                style={{ "--nf-i": wordsIn(slide.titleA) + wordsIn(slide.titleB) } as CSSProperties}
+              >
+                {slide.body}
+              </p>
+            </div>
           </div>
 
           <div className="nf-gs-dots" role="group" aria-label={t.welcomeCards.label}>
