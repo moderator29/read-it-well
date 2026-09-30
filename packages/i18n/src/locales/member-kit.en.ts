@@ -65,6 +65,15 @@ export const memberKitEn = {
     noVisible: "The version moved, but no line reads differently. Read the terms below before you confirm again.",
     confirmLead: "You are confirming these changes",
   },
+  /** B7: the lister's reply-time line, printed only when the record supports it. */
+  replyTime: {
+    hour: "Usually replies within an hour",
+    hours: "Usually replies within a few hours",
+    day: "Usually replies within a day",
+    how: "How this is measured",
+    explain:
+      "From this lister's conversations on Vallo in the last 90 days: the usual time between a renter's first message and the lister's first reply. It shows only when there are at least 8 such conversations, and a conversation with no reply counts as slow.",
+  },
 };
 
 export type MemberKitCopy = typeof memberKitEn;

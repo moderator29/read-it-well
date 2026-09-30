@@ -14,6 +14,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { renterQuestions } from "@/lib/enquiry/renter-questions";
 import { readViewingSlots } from "@/lib/viewings/queries";
+import { ReplyTimeLine } from "@/components/app/listing/ReplyTimeLine";
 
 export const metadata: Metadata = { title: "New message" };
 
@@ -143,6 +144,7 @@ export default async function NewMessagePage({
             suffix={suffix}
             questions={questions}
             questionsTitle={t.memberKit.questions.title}
+            replyLine={<ReplyTimeLine listingId={listing} locale={locale} />}
           />
         </div>
       );

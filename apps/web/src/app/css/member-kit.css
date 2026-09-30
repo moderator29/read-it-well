@@ -149,3 +149,32 @@
     font-weight: 700;
   }
 }
+
+@layer components {
+  /* ------------------------------------------------ B7 the reply-time line */
+
+  .nf-reply-time {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-reply-time__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-2xs) var(--nf-space-xs);
+    min-height: 44px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .nf-reply-time__line::-webkit-details-marker {
+    display: none;
+  }
+  .nf-reply-time__how {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .nf-reply-time__explain {
+    padding-bottom: var(--nf-space-xs);
+    line-height: 1.5;
+  }
+}
