@@ -653,3 +653,16 @@ approve a payout, request a refund, publish a listing, assign a viewing.
 - **Q3: flat, not glass.** Landing feature cards use the flat icon plate
   (section 4) like every other surface, so the whole platform reads as one
   family. The glass objects retire from light mode.
+
+## 17. Founder references 44 and 45 (30 September): these override earlier shape rules
+
+The founder asked for every screen to fit the style of refs 44 and 45 in both themes. Where this section conflicts with sections 0 to 16, this section wins:
+
+- **Pill buttons.** Primary and secondary buttons are full pills: the primary filled in brand blue, the secondary white (in light) or a raised night surface (in dark), with a soft shadow. The capsule ban on controls is lifted for buttons.
+- **Round header buttons.** Back, search, bell, more and similar buttons are 44px white circles with a soft shadow (Q1, extended to back and more).
+- **The soft top.** Light screens open on a soft lavender-white gradient behind the header, fading into the warm canvas. Dark screens get the same shape as a faint night glow.
+- **Centred hero figures.** A screen's one headline figure (a total, a score or a balance) sits centred, large, with a muted caption above and a quiet sub-line under.
+- **Round coloured icon plates in list rows.** Rows may use a ROUND plate tinted in one of the palette tones, as in ref 44's AI rating list. Settings-style utility rows keep the neutral square plate; content rows (ranking, stats, categories, notifications) use the round tinted plate.
+- **Figure tiles.** A 2x2 grid of white tiles, each with a label and chevron, a big number, and a small coloured delta or sub-line (the delta only where a real previous value exists).
+- **The dock.** The active tab is a tinted pill with its icon and label; inactive tabs are icon only; the glyphs are solid cutout shapes (ref 45). This replaces section 16's "no container behind the active tab".
+- **Notifications** read as ONE grouped list with inset dividers, not separate cards.
