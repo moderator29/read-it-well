@@ -182,10 +182,19 @@ describe("every rendered email survives a real mail client", () => {
 /* --------------------------------------------------------- images blocked */
 
 describe("every rendered email reads completely with images blocked", () => {
-  it.each(EVERY_HTML)("$name carries the lockup, one sized image, and nothing else in a picture", ({ html }) => {
+  it.each(EVERY_HTML)("$name carries the lockup, at most one sized 3D mark, and nothing else in a picture", ({ html }) => {
     const images = html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images).toHaveLength(1);
-    const [lockup] = images;
+    expect(images.length).toBeGreaterThanOrEqual(1);
+    expect(images.length).toBeLessThanOrEqual(2);
+    const [lockup, mark] = images;
+    /*
+     * The 3D mark (`icons.ts`) is decoration under a headline that names the
+     * message, so its alt is empty: with images off it is a quiet gap.
+     */
+    if (mark) {
+      expect(mark).toContain('alt=""');
+      expect(mark).toContain("/brand/3d/email/");
+    }
 
     /*
      * Explicit width and height so a blocked image reserves exactly its own box

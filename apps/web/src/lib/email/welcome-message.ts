@@ -20,7 +20,8 @@
  * scheme) from the same palette (`theme.ts`), so it is visibly the same
  * family, and it satisfies every structural rule `shell.test.ts` holds the
  * whole catalogue to: tables only, one style block that nothing depends on,
- * every ground painted, one image (the lockup), a hidden inbox line, 600px
+ * every ground painted, the lockup plus the one 3D object every message
+ * carries above its headline (`icons.ts`), a hidden inbox line, 600px
  * and fluid.
  *
  * WHO SENDS IT. Not this file. `lib/notify/welcome.ts` (`welcomeOnce`) sends
@@ -44,11 +45,13 @@ import {
   footerRows,
   greetingName,
   hello,
+  heroMarkHtml,
   paintExplicit,
   PREHEADER_MAX,
   siteUrl,
   SUBJECT_MAX,
 } from "./render";
+import type { EmailKind } from "./icons";
 import { BRAND, BUTTON_GRADIENT, DARK, FONT_SANS, LEGAL_LINE, SIGN_OFF, SKY } from "./theme";
 
 /**
@@ -421,7 +424,7 @@ function litButton(label: string, url: string): string {
                   <!--<![endif]-->`;
 }
 
-function renderHtml(version: Version, greetingLine: string): string {
+function renderHtml(version: Version, greetingLine: string, icon: EmailKind): string {
   /* THE HERO: a quiet panel carrying the eyebrow, the greeting headline, the
      one-sentence lede and the two sides of the account as two labelled lines.
      The panel is a solid navy rung for every client and carries a brand-blue
@@ -457,7 +460,8 @@ function renderHtml(version: Version, greetingLine: string): string {
     headExtra:
       "\n    <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->",
     extraStyle: PHONE_STYLE,
-    card: `${hero}
+    card: `${heroMarkHtml(icon)}
+                ${hero}
                 <p class="rm-body" style="margin:0 0 24px;${TEXT}font-size:16px;line-height:1.65;color:${DARK.body};">${escapeHtml(version.opening)}</p>
                 <p class="rm-muted" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${DARK.muted};">${escapeHtml(SECTION_LABEL)}</p>
                 ${valueCards}
@@ -555,7 +559,7 @@ export function welcome(data: WelcomeData): EmailMessage {
        shows; the plain welcome is the honest fallback, never a cut name. */
     subject: subject.length <= SUBJECT_MAX ? subject : CHROME.subjectPlain,
     preheader: clip(version.preheader, PREHEADER_MAX),
-    html: paintExplicit(renderHtml(version, hi)),
+    html: paintExplicit(renderHtml(version, hi, data.role ? `welcome:${data.role}` : "welcome:unstated")),
     text: renderText(version, hi),
   };
 }

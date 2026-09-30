@@ -60,6 +60,7 @@ import {
   type Block,
   type ReceiptRow,
 } from "./render";
+import type { EmailKind } from "./icons";
 import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
 import { mailEn, type MailCopy } from "@vallo/i18n/mail";
 
@@ -222,6 +223,7 @@ function accessRows(access?: ArrivalAccess | null, copy: MailCopy = mailEn): Rec
 
 /** Build a message from a subject, a preheader and blocks. */
 function message(
+  icon: EmailKind,
   subject: string,
   preheader: string,
   blocks: readonly (Block | null | undefined | false)[],
@@ -229,6 +231,7 @@ function message(
   footerLink?: { label: string; href: string },
 ): EmailMessage {
   const composed = compose({
+    icon,
     preheader,
     blocks,
     ...(footerLines ? { footerLines } : {}),
@@ -266,6 +269,7 @@ export function verificationCode(data: VerificationCodeData): EmailMessage {
   const m = copy.verificationCode;
   const minutes = data.expiresInMinutes;
   return message(
+    "verificationCode",
     fill(m.subject, { code: data.code }),
     fill(m.preheader, { minutes }),
     [
@@ -320,6 +324,7 @@ export function passwordReset(data: PasswordResetData): EmailMessage {
   const m = copy.passwordReset;
   const minutes = data.expiresInMinutes;
   return message(
+    "passwordReset",
     /* No code in the subject: a reset code grants a password change, and a
        lock-screen notification is readable by anybody holding the phone. */
     m.subject,
@@ -414,6 +419,7 @@ export function passwordChanged(data: PasswordChangedData): EmailMessage {
   const when = securityRows({ date: data.date, time: data.time }, copy);
   const at = when[0]?.value ?? null;
   return message(
+    "passwordChanged",
     m.subject,
     at ? fill(m.preheaderAt, { at }) : m.preheader,
     [
@@ -447,6 +453,7 @@ export type EmailRecoveryData = {
  */
 export function emailRecoveryOpened(data: EmailRecoveryData): EmailMessage {
   return message(
+    "emailRecoveryOpened",
     "Your email address is changing",
     clip(`Moving to ${data.newAddressMasked} ${data.eligibleAt ? `on ${data.eligibleAt}` : "in 72 hours"}, unless you stop it.`, 90),
     [
@@ -471,6 +478,7 @@ export function emailRecoveryOpened(data: EmailRecoveryData): EmailMessage {
 /** SEC-15. Sent to the OLD address once the move has happened. */
 export function emailRecoveryCompleted(data: EmailRecoveryData): EmailMessage {
   return message(
+    "emailRecoveryCompleted",
     "Your Vallo email address changed",
     `Your account now signs in with ${data.newAddressMasked}.`,
     [
@@ -529,6 +537,7 @@ export function newDeviceSignIn(data: NewDeviceSignInData): EmailMessage {
       ? fill(m.placeOnly, { place })
       : null;
   return message(
+    "newDeviceSignIn",
     m.subject,
     who ? clip(at ? fill(m.preheaderWhoAt, { who, at }) : fill(m.preheaderWho, { who }), 90) : m.preheader,
     [
@@ -589,6 +598,7 @@ export function inspectionScheduled(data: InspectionScheduledData): EmailMessage
   if (phone.length > 0) list.push({ label: "Their number", value: phone });
 
   return message(
+    "inspectionScheduled",
     `Inspection booked for ${dayMonth(data.date)} at ${data.time}`,
     viewing
       ? clip(`At ${data.address}${other ? `, with ${other}` : ""}.`, 90)
@@ -643,6 +653,7 @@ export type ListingApprovedData = {
 /** To the lister when a listing passes review and goes live. */
 export function listingApproved(data: ListingApprovedData): EmailMessage {
   return message(
+    "listingApproved",
     fitSubject("Your listing is live", data.listingTitle),
     clip(`It is in search now${data.reference ? ` as ${data.reference}` : ""}, and people can message you about it.`, 90),
     [
@@ -697,6 +708,7 @@ export type ListingRejectedData = {
 export function listingRejected(data: ListingRejectedData): EmailMessage {
   const again = data.canResubmit !== false;
   return message(
+    "listingRejected",
     fitSubject("Listing not published", data.listingTitle),
     quoteLine("Reason", data.reason),
     [
@@ -745,6 +757,7 @@ export type ListingPassedReviewData = {
  */
 export function listingPassedReview(data: ListingPassedReviewData): EmailMessage {
   return message(
+    "listingPassedReview",
     fitSubject("Listing passed review", data.listingTitle),
     "We put it live next, and there is nothing for you to do.",
     [
@@ -792,6 +805,7 @@ export type ListingChangesRequestedData = {
  */
 export function listingChangesRequested(data: ListingChangesRequestedData): EmailMessage {
   return message(
+    "listingChangesRequested",
     fitSubject("Change needed", data.listingTitle),
     quoteLine("The reviewer asks", data.reason),
     [
@@ -832,6 +846,7 @@ export type AgentApplicationData = {
  */
 export function agentApplicationApproved(data: AgentApplicationData): EmailMessage {
   return message(
+    "agentApplicationApproved",
     "Your agent application is approved",
     `Reference ${data.reference}. Your agent workspace is open and you can list now.`,
     [
@@ -864,6 +879,7 @@ export type AgentApplicationRefusedData = AgentApplicationData & {
 /** To an applicant when their agent registration is refused. */
 export function agentApplicationRejected(data: AgentApplicationRefusedData): EmailMessage {
   return message(
+    "agentApplicationRejected",
     "Your agent application was not approved",
     quoteLine("Reason", data.reason),
     [
@@ -887,6 +903,7 @@ export function agentApplicationRejected(data: AgentApplicationRefusedData): Ema
 /** To an applicant when the reviewer needs something more before deciding. */
 export function agentApplicationNeedsMore(data: AgentApplicationRefusedData): EmailMessage {
   return message(
+    "agentApplicationNeedsMore",
     "Your agent application needs one more thing",
     quoteLine("Needed", data.reason),
     [
@@ -945,6 +962,7 @@ const RUNG_MEANS: Record<VerificationRung, string> = {
 export function verificationRungPassed(data: VerificationRungPassedData): EmailMessage {
   const next = data.nextRung ?? null;
   return message(
+    "verificationRungPassed",
     `Verified: ${RUNG_NAME[data.rung].toLowerCase()}`,
     RUNG_MEANS[data.rung],
     [
@@ -997,6 +1015,7 @@ export function newEnquiry(data: NewEnquiryData): EmailMessage {
   const shown = preview.length > 240 ? preview.slice(0, 237) + "..." : preview;
 
   return message(
+    "newEnquiry",
     fitSubject(who ? `Enquiry from ${who}` : "New enquiry", data.listingTitle),
     shown.length > 0
       ? clip(`"${shown}"`, 90)
@@ -1045,6 +1064,7 @@ export type BookingRequestedData = {
 /** To the guest, the moment their request is saved. */
 export function bookingRequested(data: BookingRequestedData): EmailMessage {
   return message(
+    "bookingRequested",
     fitSubject("Request sent", data.listingTitle),
     `${shortRange(data.checkIn, data.checkOut)}, ${nightsLine(data.nights)}, ${money(data.totalMinor)}. The host is reviewing it.`,
     [
@@ -1088,6 +1108,7 @@ export type BookingRequestedHostData = {
 export function bookingRequestedHost(data: BookingRequestedHostData): EmailMessage {
   const who = greetingName(data.guestName);
   return message(
+    "bookingRequestedHost",
     fitSubject("Booking request", data.listingTitle),
     `${who ?? "A guest"} wants ${shortRange(data.checkIn, data.checkOut)}, ${nightsLine(data.nights)}, ${money(data.totalMinor)}.`,
     [
@@ -1137,6 +1158,7 @@ export function bookingConfirmed(data: BookingConfirmedData): EmailMessage {
   const gate = accessRows(data.access, copy);
   const range = shortRange(data.checkIn, data.checkOut);
   return message(
+    "bookingConfirmed",
     fitSubject(m.subject, data.listingTitle),
     fill(m.preheader, { range, nights: nightsLine(data.nights, locale) }),
     [
@@ -1178,6 +1200,7 @@ export function stayArrivalDetails(data: StayArrivalDetailsData): EmailMessage {
   const gate = accessRows(data.access);
   const booker = greetingName(data.bookedByName);
   return message(
+    "stayArrivalDetails",
     fitSubject("Your stay is booked", data.listingTitle),
     `${booker ?? "Somebody"} booked it for you: ${shortRange(data.checkIn, data.checkOut)}, ${nightsLine(data.nights)}.`,
     [
@@ -1222,6 +1245,7 @@ export function bookingCancelled(data: BookingCancelledData): EmailMessage {
   const m = copy.bookingCancelled;
   const label = copy.common.rows;
   return message(
+    "bookingCancelled",
     fitSubject(m.subject, data.listingTitle),
     fill(m.preheader, { range: shortRange(data.checkIn, data.checkOut) }),
     [
@@ -1284,6 +1308,7 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
   }
 
   return message(
+    "bookingRefunded",
     returned
       ? fill(m.subjectRefund, { amount: money(data.refundMinor) })
       : fitSubject(m.subjectCancelled, data.listingTitle),
@@ -1340,6 +1365,7 @@ export function supportTicketFiled(data: SupportTicketFiledData): EmailMessage {
   }
 
   return message(
+    "supportTicketFiled",
     `Support request received: ${data.reference}`,
     "A person at Vallo will reply to this email address.",
     [

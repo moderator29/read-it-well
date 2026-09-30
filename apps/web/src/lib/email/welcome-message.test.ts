@@ -276,7 +276,10 @@ describe("it is built to survive a mail client", () => {
 
   it.each(ALL)("$role puts no words in a picture and gives every image alt text", ({ message }) => {
     const images = message.html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images).toHaveLength(1);
+    // The lockup and the role's 3D mark above the hero (icons.ts).
+    expect(images).toHaveLength(2);
+    expect(images[1]).toContain("/brand/3d/email/");
+    expect(images[1]).toContain('alt=""');
     for (const image of images) {
       expect(image).toMatch(/\balt="[^"]*"/);
       expect(image).toMatch(/\bwidth="\d+"/);

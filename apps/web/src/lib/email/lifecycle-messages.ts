@@ -1,6 +1,7 @@
 import { countOf } from "@vallo/i18n/core";
 import { OFF_PLATFORM_SENTENCE } from "../money/copy";
 import { appUrl, button, clip, compose, fitSubject, heading, hello, money, note, paragraph, quoteLine, prettyDate, rows, type Block } from "./render";
+import type { EmailKind } from "./icons";
 import type { EmailMessage } from "./messages";
 
 /**
@@ -23,13 +24,14 @@ import type { EmailMessage } from "./messages";
  */
 
 function message(
+  icon: EmailKind,
   subject: string,
   preheader: string,
   blocks: readonly (Block | null | false)[],
   footer: string,
   footerLink?: { label: string; href: string },
 ): EmailMessage {
-  const composed = compose({ preheader, blocks, footerLines: [footer], footerLink });
+  const composed = compose({ icon, preheader, blocks, footerLines: [footer], footerLink });
   return { subject, preheader: composed.preheader, html: composed.html, text: composed.text };
 }
 
@@ -55,6 +57,7 @@ const when = (data: InspectionChangeData) =>
 export function inspectionProposed(data: InspectionChangeData): EmailMessage {
   const at = when(data);
   return message(
+    "inspectionProposed",
     fitSubject("New viewing time offered", data.listingTitle),
     at ? `The lister offered ${at} instead. Accept it in the app.` : "The lister offered another time. Accept it in the app.",
     [
@@ -77,6 +80,7 @@ export function inspectionProposed(data: InspectionChangeData): EmailMessage {
 /** The lister declined. To the person who asked. */
 export function inspectionDeclined(data: InspectionChangeData): EmailMessage {
   return message(
+    "inspectionDeclined",
     fitSubject("Viewing declined", data.listingTitle),
     data.note ? quoteLine("The lister said", data.note) : "The lister cannot show it at that time. Nothing was charged.",
     [
@@ -97,6 +101,7 @@ export function inspectionDeclined(data: InspectionChangeData): EmailMessage {
 export function inspectionWithdrawn(data: InspectionChangeData): EmailMessage {
   const at = when(data);
   return message(
+    "inspectionWithdrawn",
     fitSubject("Viewing withdrawn", data.listingTitle),
     clip(`${data.otherPartyName ?? "The viewer"} no longer needs the viewing${at ? ` on ${at}` : ""}. Nothing to do.`, 90),
     [
@@ -116,6 +121,7 @@ export function inspectionWithdrawn(data: InspectionChangeData): EmailMessage {
 export function inspectionCompleted(data: InspectionChangeData & { audience: "viewer" | "lister" }): EmailMessage {
   const viewer = data.audience === "viewer";
   return message(
+    "inspectionCompleted",
     fitSubject("Viewing done", data.listingTitle),
     viewer
       ? "Next is the agreement, which you both confirm before anything is paid."
@@ -156,6 +162,7 @@ export function supportReplied(data: SupportRepliedData): EmailMessage {
       ? data.preview.slice(0, PREVIEW_LENGTH).replace(/\s+\S*$/, "") + "..."
       : data.preview;
   return message(
+    "supportReplied",
     `Support replied: ${data.reference}`,
     preview ? clip(`"${preview}"`, 90) : "Somebody at Vallo answered your request. Read it in the app.",
     [
@@ -187,6 +194,7 @@ const placeOf = (data: AgreementChangeData) => data.listingTitle ?? "the propert
 /** Both sides confirmed the same terms and it is with Vallo. To both. */
 export function agreementSubmitted(data: AgreementChangeData): EmailMessage {
   return message(
+    "agreementSubmitted",
     fitSubject("Both sides confirmed", data.listingTitle ?? "the agreement"),
     `${money(data.amountMinor)} agreed. Vallo reviews it next, and nothing is paid yet.`,
     [
@@ -208,6 +216,7 @@ export function agreementSubmitted(data: AgreementChangeData): EmailMessage {
 /** The agreement was cancelled. To both. */
 export function agreementCancelled(data: AgreementChangeData): EmailMessage {
   return message(
+    "agreementCancelled",
     fitSubject("Agreement cancelled", data.listingTitle),
     "It is closed, nothing further happens on it, and nothing is charged for it.",
     [
@@ -233,6 +242,7 @@ export type ClaimOpenedData = {
 /** A claim on the Vallo Guarantee was received. To the person who made it. */
 export function guaranteeClaimOpened(data: ClaimOpenedData): EmailMessage {
   return message(
+    "guaranteeClaimOpened",
     "Vallo Guarantee claim received",
     data.requestedMinor !== null
       ? `Your claim for ${money(data.requestedMinor)} is with Vallo, to review against the inspection report.`
@@ -262,6 +272,7 @@ export type RungFailedData = {
 /** A verification step did not pass. To the lister. */
 export function verificationRungFailed(data: RungFailedData): EmailMessage {
   return message(
+    "verificationRungFailed",
     `Your ${data.stepName.toLowerCase()} check did not pass`,
     data.note ? quoteLine("The reviewer said", data.note) : "Your verification page says what the step needs.",
     [
@@ -283,6 +294,7 @@ export type ListingSubmittedData = { name: string | null; listingTitle: string }
 /** A listing was sent for review. To the lister, as a receipt. */
 export function listingSubmitted(data: ListingSubmittedData): EmailMessage {
   return message(
+    "listingSubmitted",
     fitSubject("Listing sent for review", data.listingTitle),
     "A person reads it before it goes live. We will tell you the outcome.",
     [
@@ -330,6 +342,7 @@ function reservationLine(data: ReservationData, outcome: "confirmed" | "cancelle
 /** The restaurant confirmed the table. To the guest. */
 export function reservationConfirmed(data: ReservationData): EmailMessage {
   return message(
+    "reservationConfirmed",
     fitSubject("Table confirmed", data.placeName),
     reservationLine(data, "confirmed"),
     [
@@ -346,6 +359,7 @@ export function reservationConfirmed(data: ReservationData): EmailMessage {
 /** The table was cancelled. To the guest. */
 export function reservationCancelled(data: ReservationData): EmailMessage {
   return message(
+    "reservationCancelled",
     fitSubject("Table cancelled", data.placeName),
     reservationLine(data, "cancelled"),
     [
@@ -371,6 +385,7 @@ export type RefundRequestedData = {
 /** A refund was asked for on a booking. To the guest, as a receipt. */
 export function refundRequested(data: RefundRequestedData): EmailMessage {
   return message(
+    "refundRequested",
     "Refund request received",
     data.dueBy
       ? `A person at Vallo answers it by ${prettyDate(data.dueBy)}.`

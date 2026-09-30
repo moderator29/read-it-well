@@ -43,6 +43,7 @@ function receiptRows(view: CryptoPaymentView, providerName: string): ReceiptRow[
 
 function mail(subject: string, preheader: string, blocks: Block[]): CryptoMessage["email"] {
   const composed = compose({
+    icon: "cryptoPayment",
     preheader,
     blocks,
     footerLines: [

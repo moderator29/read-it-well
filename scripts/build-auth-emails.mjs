@@ -79,7 +79,7 @@
  *   catalogue. See docs/email/AUTH_EMAILS.md, "The language question".
  */
 
-import { mkdirSync, writeFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -418,6 +418,30 @@ function factBand(title, lines) {
  * reader did not ask for this and has half a second to decide it is real.
  * The lockup itself is in the band (`brandBand`).
  */
+/**
+ * The 3D mark, mirrored from `heroMarkHtml` in apps/web/src/lib/email/render.ts
+ * (see `icons.ts` there): one of the founder's objects above the purpose
+ * line, a 128 px PNG drawn at 64, sized so a blocked image keeps its box, and
+ * alt empty because the headline names the message.
+ */
+const ICON_SIZE = 64;
+const ICON_DIR = join(__dirname, "..", "apps", "web", "public", "brand", "3d", "email");
+/**
+ * `icon` is [wanted, stand-in]: the wanted object once its PNG exists, the
+ * stand-in until then. Rerun this script when the 3D rollout lands a file;
+ * `shell.test.ts` fails on the committed templates until somebody does.
+ */
+function heroMark([want, now]) {
+  const name = existsSync(join(ICON_DIR, `${want}.png`)) ? want : now;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
+                    <tr>
+                      <td style="font-size:0;line-height:0;mso-line-height-rule:exactly;">
+                        <img src="{{ .SiteURL }}/brand/3d/email/${name}.png" width="${ICON_SIZE}" height="${ICON_SIZE}" alt="" border="0" style="display:block;width:${ICON_SIZE}px;height:${ICON_SIZE}px;border:0;outline:none;text-decoration:none;" />
+                      </td>
+                    </tr>
+                  </table>`;
+}
+
 function masthead(purpose) {
   return `<p class="rm-muted" style="margin:0 0 10px;font-family:${FONT_SANS};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${MUTED};">${purpose}</p>`;
 }
@@ -489,7 +513,7 @@ const SCHEME_STYLE = `
  */
 const PREHEADER_PAD = "&#847;&#8204;&#160;".repeat(60);
 
-function shellHtml({ subject, preheader, purpose, blocks, facts, footnote }) {
+function shellHtml({ subject, preheader, icon, purpose, blocks, facts, footnote }) {
   const body = blocks.map(htmlBlock).join("\n                ");
   const links = FOOTER_LINKS.map(
     ([label, href]) =>
@@ -522,6 +546,7 @@ function shellHtml({ subject, preheader, purpose, blocks, facts, footnote }) {
                   ${brandBand()}
                   <tr>
                     <td class="rm-card rm-pad" bgcolor="${CARD}" style="background-color:${CARD};${facts ? "" : "border-radius:0 0 19px 19px;"}padding:34px ${PAD_X}px 36px;">
+                      ${heroMark(icon)}
                       ${masthead(purpose)}
                       ${body}
                     </td>
@@ -638,6 +663,7 @@ const templates = {
   confirmation: {
     subject: "Confirm your Vallo email",
     preheader: "Tap the button or enter the code, and your account is ready.",
+    icon: ["envelope", "verified"],
     purpose: "Confirm your email",
     blocks: [
       heading("Confirm your email address"),
@@ -662,6 +688,7 @@ const templates = {
   "magic-link": {
     subject: "Your Vallo sign-in link",
     preheader: "It works once and expires shortly. Nobody from Vallo will ask for it.",
+    icon: ["envelope", "shield"],
     purpose: "Sign in to Vallo",
     blocks: [
       heading("Here is your sign-in link"),
@@ -692,6 +719,7 @@ const templates = {
   recovery: {
     subject: "Set a new Vallo password",
     preheader: "The link works once. If you did not ask, ignore this.",
+    icon: ["passcode-lock", "shield"],
     purpose: "Password reset",
     blocks: [
       heading("Set a new password"),
@@ -719,6 +747,7 @@ const templates = {
   "email-change": {
     subject: "Confirm your new Vallo address",
     preheader: "Nothing changes until you approve it from this email.",
+    icon: ["envelope", "id-check"],
     purpose: "Security confirmation",
     blocks: [
       heading("Confirm your new email address"),
@@ -750,6 +779,7 @@ const templates = {
   invite: {
     subject: "You have been invited to Vallo",
     preheader: "Accept it and your account is set up in a moment.",
+    icon: ["team", "keys"],
     purpose: "Your invitation",
     blocks: [
       heading("You have been invited to Vallo"),

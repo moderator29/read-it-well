@@ -29,6 +29,7 @@ const WHY: Record<ScamRecallData["category"], string> = {
 export function scamRecall(data: ScamRecallData): EmailMessage {
   const about = data.listingTitle ? ` about ${data.listingTitle}` : "";
   const composed = compose({
+    icon: "scamRecall",
     preheader: data.listingTitle
       ? `It was about ${shortTitle(data.listingTitle, 40)}. If you paid them anything, tell us now.`
       : "If you paid them anything, tell us now.",
