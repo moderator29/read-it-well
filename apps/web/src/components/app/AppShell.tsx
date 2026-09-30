@@ -449,7 +449,7 @@ export function AppShell({
                      header `SignedOutActions` renders null, so this is the
                      first item after the brand and it is the one that has to
                      push the group right. */
-                  className="nf-tap nf-icon-btn nf-app-header__btn ms-auto"
+                  className="nf-tap nf-icon-btn nf-icon-btn--round nf-app-header__btn ms-auto"
                 >
                   <UiIcon name="bell" size={20} />
                   {marked && <span aria-hidden="true" className="nf-app-header__dot" />}

@@ -1014,6 +1014,44 @@
       color: var(--nf-brand-quiet);
     }
   }
+  /* THE BELL IS THE ONE ROUND BUTTON (spec section 16, Q1, as the lead
+     decided it; plan item 13). The menu stays the bare glyph above; the bell
+     on the app header and its twin on the workspace bar wear
+     `nf-icon-btn--round`: a 44px circle, white on the warm canvas in light
+     and the raised night surface in dark, on the card hairline with the
+     float shadow, as reference 31 draws it. Written here, after the bare
+     rule, so the bare rule cannot take its fill or its radius. */
+  .nf-app-header .nf-app-header__btn.nf-icon-btn--round,
+  .nf-ws-bar .nf-ws-bell.nf-icon-btn--round {
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-float-shadow);
+    color: var(--nf-content-primary);
+  }
+  .nf-app-header .nf-app-header__btn.nf-icon-btn--round > svg,
+  .nf-ws-bar .nf-ws-bell.nf-icon-btn--round > svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-app-header .nf-app-header__btn.nf-icon-btn--round:hover,
+    .nf-ws-bar .nf-ws-bell.nf-icon-btn--round:hover {
+      border: var(--nf-border-width) solid var(--nf-border-default);
+      background: linear-gradient(var(--nf-interactive-hover), var(--nf-interactive-hover)), var(--nf-surface-elevated);
+      box-shadow: var(--nf-float-shadow);
+      color: var(--nf-content-primary);
+    }
+  }
+  /* The unread mark sits on the circle's shoulder, ringed in the circle's
+     own fill so it reads as cut out of it. */
+  .nf-app-header .nf-app-header__btn.nf-icon-btn--round .nf-app-header__dot,
+  .nf-ws-bar .nf-ws-bell.nf-icon-btn--round .nf-ws-bell__dot {
+    top: 0.5rem;
+    right: 0.5rem;
+    border: 1.5px solid var(--nf-surface-elevated);
+    box-shadow: none;
+  }
   .nf-app-header .nf-app-header__dot {
     top: 0.625rem;
     right: 0.6875rem;

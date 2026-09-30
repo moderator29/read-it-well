@@ -72,7 +72,7 @@ export function WorkspaceHeader({
               ? bell.unreadLabel.replace("{count}", String(bell.unread))
               : bell.label
           }
-          className="nf-ws-bell nf-tap"
+          className="nf-ws-bell nf-icon-btn nf-icon-btn--round nf-tap"
           data-unread={marked ? "" : undefined}
         >
           <UiIcon name="bell" size={24} className="nf-ws-bell__glyph" />
