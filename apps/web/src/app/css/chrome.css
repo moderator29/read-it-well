@@ -1330,6 +1330,13 @@
   .nf-desk-side__row[aria-current="page"] .nf-desk-side__glyph {
     color: var(--nf-brand-primary);
   }
+  /* At night the brand blue as text is 4.3:1 on the canvas (under AA at
+     14px); the label and glyph take the link ink, the dot keeps the brand.
+     (Integration QA, 30 September; the member rail in shell-m.css matches.) */
+  :root:not([data-theme="light"]) .nf-desk-side__row[aria-current="page"],
+  :root:not([data-theme="light"]) .nf-desk-side__row[aria-current="page"] .nf-desk-side__glyph {
+    color: var(--nf-content-link);
+  }
   .nf-desk-side__dot {
     position: absolute;
     inset-inline-end: 0.375rem;

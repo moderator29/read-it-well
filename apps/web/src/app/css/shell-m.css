@@ -685,6 +685,14 @@
   .nf-nav .nf-nav__row.nf-nav__row--on .nf-nav__glyph {
     color: var(--nf-brand-primary);
   }
+  /* At night the brand blue as TEXT is 4.3:1 on the canvas, under AA for a
+     15px label, so the label and glyph take the link ink (about 7:1); the dot
+     keeps the brand (a shape, 3:1 is its bar). Same in the desk sidebar and
+     the console rail. */
+  :root:not([data-theme="light"]) .nf-nav .nf-nav__row.nf-nav__row--on,
+  :root:not([data-theme="light"]) .nf-nav .nf-nav__row.nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-content-link);
+  }
 }
 
 /*
