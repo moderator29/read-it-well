@@ -174,7 +174,7 @@ function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; t
     <ListRow
       href={item.href}
       leading={
-        <IconPlate size="sm" tone={item.tone === "neutral" ? "neutral" : item.tone}>
+        <IconPlate size="sm" shape="round" tone={item.tone === "neutral" ? "neutral" : item.tone}>
           <UiIcon name={ATTENTION_ICON[item.kind]} size={20} />
         </IconPlate>
       }
