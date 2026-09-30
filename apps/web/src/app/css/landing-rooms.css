@@ -386,70 +386,16 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  .nf-faq-list {
-    border-top: 1px solid var(--nf-glass-border);
-  }
   /*
-   * The accordion. `interpolate-size` lets the panel's height ease between
-   * zero and its content over 240ms on the standard curve, where the browser
-   * supports `::details-content`; everywhere else it opens instantly, which
-   * is also what reduced motion gets. It works with scripts off.
+   * The questions are the shared inline disclosure in one ListGroup card per
+   * group (LandingFaq.tsx; `.nf-disclosure` and `.nf-list-group` in
+   * list-group.css own the motion, the card and the dividers). Only the
+   * answer's reading measure is the landing's own.
    */
-  .nf-faq-item {
-    interpolate-size: allow-keywords;
-    border-bottom: 1px solid var(--nf-glass-border);
-  }
-  .nf-faq-item::details-content {
-    height: 0;
-    overflow: clip;
-    transition:
-      height var(--nf-duration-base) var(--nf-ease-standard),
-      content-visibility var(--nf-duration-base) allow-discrete;
-  }
-  .nf-faq-item[open]::details-content {
-    height: auto;
-  }
-  .nf-faq-q {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--nf-gap-row);
-    min-height: 3.5rem;
-    padding: var(--nf-space-sm) 0;
-    list-style: none;
-    cursor: pointer;
-    font-size: var(--nf-text-body);
-    font-weight: 650;
-    color: var(--nf-content-primary);
-  }
-  .nf-faq-q::-webkit-details-marker {
-    display: none;
-  }
-  .nf-faq-q:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-    border-radius: var(--nf-radius-xs);
-  }
-  .nf-faq-chevron {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    width: 2rem;
-    height: 2rem;
-    color: var(--nf-content-secondary);
-    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
-  }
-  .nf-faq-item[open] .nf-faq-chevron {
-    transform: rotate(180deg);
-    color: var(--nf-brand-secondary);
-  }
   .nf-faq-a {
-    padding-bottom: var(--nf-space-md);
-    padding-inline-end: var(--nf-space-2xl);
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.6;
-    color: var(--nf-content-secondary);
+    margin: 0;
     max-width: var(--nf-measure-body);
+    line-height: 1.6;
   }
 
   /* ====================================================== the close */
@@ -536,7 +482,6 @@
       animation: none;
     }
     .nf-landing-cat-icon,
-    .nf-faq-chevron,
     .nf-room-link svg,
     .nf-ai-show-panel,
     .nf-ai-show-pip::before {
@@ -547,9 +492,6 @@
     .nf-landing-cat:focus-visible .nf-landing-cat-icon,
     .nf-room-link:hover svg {
       transform: none;
-    }
-    .nf-faq-item::details-content {
-      transition: none;
     }
   }
 }
@@ -1810,37 +1752,12 @@
     display: grid;
     gap: var(--nf-space-lg);
   }
-  .nf-faq-group__label {
-    margin-bottom: 0.5rem;
-  }
-  .nf-faq-list {
-    padding-inline: var(--nf-space-md);
-    border-top: 0;
-    border-radius: var(--nf-radius-card, var(--nf-radius-lg));
-    border: var(--nf-border-width) solid var(--nf-card-border);
-    background: var(--nf-surface-primary);
-    box-shadow: var(--nf-card-shadow, none);
-  }
-  :root[data-theme="light"] [data-chapter="faq"] .nf-faq-list {
-    background: var(--nf-surface-canvas);
-    box-shadow: none;
-  }
-  @media (min-width: 64rem) {
-    .nf-faq-list {
-      padding-inline: 1.25rem;
-    }
-  }
-  .nf-faq-item {
-    border-bottom: 1px solid var(--nf-divider, var(--nf-glass-border));
-  }
-  .nf-faq-item:last-child {
-    border-bottom: 0;
-  }
   .nf-faq-q {
-    font-size: 0.9375rem;
+    font-size: var(--nf-text-row);
     font-weight: 500;
+    color: var(--nf-content-primary);
   }
-  .nf-faq-item[open] .nf-faq-chevron {
+  .nf-faq-item[open] .nf-disclosure__chevron {
     color: var(--nf-content-primary);
   }
 

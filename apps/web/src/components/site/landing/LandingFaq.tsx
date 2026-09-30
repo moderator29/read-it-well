@@ -2,16 +2,19 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { DisclosureInline } from "@/components/app/DisclosureInline";
+import { ListGroup } from "@/components/ui/ListGroup";
 import { structuredDataJson } from "@/lib/listings/syndication";
 import { faqItems } from "./faq-items";
 import { SectionHead } from "./SectionHead";
 
 /**
  * The landing FAQ (Track M). Every money answer is a `lib/money/copy.ts`
- * constant, verbatim (faq-items.ts). Built on `<details>` and `<summary>`, so it opens
- * and closes with scripts off and a keyboard gets it for free. The panel's
- * height eases over 240ms and the chevron turns half a circle
- * (landing-rooms.css); reduced motion is instant.
+ * constant, verbatim (faq-items.ts). Each question is the shared inline
+ * disclosure (`DisclosureInline`, plan item 30): a `<details>` that opens
+ * with scripts off, its panel easing over 240ms while the chevron turns, on
+ * the one motion in list-group.css; reduced motion, Calm and Off are
+ * instant. Each group is one `ListGroup` card with inset dividers.
  *
  * The same questions go out as FAQPage structured data, so what a search
  * engine quotes is exactly what the page says. The block carries the CSP
@@ -62,9 +65,9 @@ export function LandingFaq({ t, nonce }: { t: Dictionary; nonce?: string }) {
           </Link>
           </SectionHead>
         </div>
-        {/* ONE WHITE CARD PER GROUP, INSET DIVIDERS (UIUX item 11): the twelve
-            questions under three labels taken from the items' own keys. The
-            structured data above is the flat list, unchanged. */}
+        {/* ONE LISTGROUP CARD PER GROUP, INSET DIVIDERS (UIUX items 11 and
+            30): the twelve questions under three labels taken from the items'
+            own keys. The structured data above is the flat list, unchanged. */}
         <MotionReveal className="nf-faq-groups">
           {FAQ_GROUPS.map((group) => {
             const rows = group.keys
@@ -72,24 +75,15 @@ export function LandingFaq({ t, nonce }: { t: Dictionary; nonce?: string }) {
               .filter((item): item is (typeof items)[number] => Boolean(item));
             if (rows.length === 0) return null;
             return (
-              <div key={group.id} className="nf-faq-group">
-                <p className="nf-section-label nf-faq-group__label">{f.groups[group.id]}</p>
-                <div className="nf-faq-list">
-                  {rows.map((item) => (
-                    <details key={item.key} className="nf-faq-item">
-                      <summary className="nf-faq-q">
-                        <span>{item.q}</span>
-                        <span className="nf-faq-chevron" aria-hidden="true">
-                          <UiIcon name="chevron-down" size={20} />
-                        </span>
-                      </summary>
-                      <div className="nf-faq-a">
-                        <p>{item.a}</p>
-                      </div>
-                    </details>
-                  ))}
-                </div>
-              </div>
+              <ListGroup key={group.id} label={f.groups[group.id]} className="nf-faq-group">
+                {rows.map((item) => (
+                  <li key={item.key} className="nf-list-item">
+                    <DisclosureInline title={item.q} titleClassName="nf-faq-q" className="nf-faq-item">
+                      <p className="nf-faq-a">{item.a}</p>
+                    </DisclosureInline>
+                  </li>
+                ))}
+              </ListGroup>
             );
           })}
         </MotionReveal>
