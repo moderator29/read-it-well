@@ -3,7 +3,10 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { EmptyActions } from "@/components/app/EmptyActions";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { IconPlate } from "@/components/ui/IconPlate";
+import type { Icon3DName } from "@/components/ui/icon-3d";
+import { stateArtFor } from "@/components/ui/state-art";
 import { SkeletonText } from "@/components/ui/Skeleton";
 import { STATE_TONE, stateRole, type StateKind } from "@/lib/design/voice";
 
@@ -58,6 +61,12 @@ export type StateProps = {
   body?: string;
   /** An object name; its line twin is drawn on the plate. Without one, the kind's glyph. */
   icon?: BrandIconName;
+  /**
+   * The founder's 3D object in place of the plate. Derived from `icon` when
+   * one matches (`state-art.ts`); pass a name to choose, or `false` to keep
+   * the glyph.
+   */
+  art?: Icon3DName | false;
   /** The single next thing to do, naming where it goes. */
   primary?: StateAction;
   /** A quiet second way onward. Only drawn beside a primary. */
@@ -83,6 +92,7 @@ export function State({
   title,
   body,
   icon,
+  art,
   primary,
   secondary,
   action,
@@ -92,6 +102,8 @@ export function State({
   "data-testid": testId,
 }: StateProps) {
   const role = stateRole(kind);
+  /* Objects are for empty and done; an error or offline keeps its glyph. */
+  const object = kind === "empty" || kind === "done" ? stateArtFor(icon, art) : undefined;
 
   if (kind === "loading") {
     /* The title is read out, not shown: a live region announces its text, and
@@ -124,9 +136,17 @@ export function State({
           lean line glyph on the kind's flat plate. A state that names a
           glass object draws that object's line twin (`glass-to-line.ts`);
           the glass objects no longer stand in a state. */}
-      <IconPlate size="lg" tone={STATE_TONE[kind]}>
-        <UiIcon name={icon ? lineGlyphFor(icon) : KIND_GLYPH[kind]} size={24} />
-      </IconPlate>
+      {object ? (
+        /* The founder's 3D object (30 September): an empty or done state
+           that names one draws it, 88px in a fixed box (lazy, no shift). */
+        <span className="grid size-[5.5rem] place-items-center" data-art={object}>
+          <Icon3D name={object} size={88} />
+        </span>
+      ) : (
+        <IconPlate size="lg" tone={STATE_TONE[kind]}>
+          <UiIcon name={icon ? lineGlyphFor(icon) : KIND_GLYPH[kind]} size={24} />
+        </IconPlate>
+      )}
       {/* `balance` stops a centred two-line title leaving a one-word orphan. */}
       <p className={`mt-block ${STATE_TITLE_CLASS} [text-wrap:balance]`}>{title}</p>
       {body && <p className={`mt-inline max-w-[42ch] ${STATE_BODY_CLASS}`}>{body}</p>}
