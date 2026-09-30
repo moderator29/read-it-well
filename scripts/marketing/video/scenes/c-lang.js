@@ -20,6 +20,32 @@ const PHRASES = ["Two worlds.", "Duniya biyu.", "Ayé méjì.", "Ụwa abụọ.
    faint edge, the active pill a brighter navy, Inter 700 in white. */
 const NAVIES = ["#1c233e", "#0b2a6b", "#141e4a", "#0f1a44"];
 
+/* An image re-seated in bands: the rows [y0, y1) move by dy (x0-x1), the
+   strip they leave is filled with `fill`. Headlines then share one y. */
+export function seated(ctx, parent, src, w, h, bands) {
+  const box = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, overflow: "hidden", visibility: "hidden" } }, parent);
+  ctx.img(src, { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px` } }, box);
+  for (const b of bands) {
+    const x0 = b.x0 ?? 0;
+    const x1 = b.x1 ?? w;
+    if (b.fill) ctx.el("div", { class: "abs", style: { left: `${x0}px`, top: `${b.dy > 0 ? b.y0 : b.y1 + b.dy}px`, width: `${x1 - x0}px`, height: `${Math.abs(b.dy)}px`, background: b.fill } }, box);
+    const clip = ctx.el("div", { class: "abs", style: { left: `${x0}px`, top: `${b.y0 + b.dy}px`, width: `${x1 - x0}px`, height: `${b.y1 - b.y0}px`, overflow: "hidden" } }, box);
+    ctx.img(src, { class: "abs", style: { left: `${-x0}px`, top: `${-b.y0}px`, width: `${w}px`, height: `${h}px` } }, clip);
+  }
+  return box;
+}
+
+
+const F = "rgb(1 8 22)";
+/* The desktop welcome pages re-seated: the column (bar, headline, text) at
+   English's y, and its Continue button back at English's y (568). */
+export const DESK_BANDS = [
+  [],
+  [{ x0: 740, x1: 1330, y0: 240, y1: 572, dy: 24, fill: F }, { x0: 740, x1: 1330, y0: 582, y1: 662, dy: -24, fill: F }],
+  [{ x0: 740, x1: 1330, y0: 240, y1: 572, dy: 24, fill: F }, { x0: 740, x1: 1330, y0: 582, y1: 662, dy: -24, fill: F }],
+  [{ x0: 740, x1: 1330, y0: 230, y1: 584, dy: 37, fill: F }, { x0: 740, x1: 1330, y0: 594, y1: 675, dy: -36, fill: F }],
+];
+
 export async function buildLang(ctx, S) {
   const { K, L } = S;
   const M = ctx.isMobile;
@@ -138,21 +164,6 @@ export async function buildLang(ctx, S) {
   ];
   for (const c of cuts.slice(1)) ctx.sfx("swipe", c.t, { offset: -2 });
 
-  /* An image re-seated in bands: the rows [y0, y1) move by dy (x0-x1), the
-     strip they leave is filled with `fill`. Headlines then share one y. */
-  const seated = (parent, src, w, h, bands) => {
-    const box = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, overflow: "hidden", visibility: "hidden" } }, parent);
-    ctx.img(src, { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px` } }, box);
-    for (const b of bands) {
-      const x0 = b.x0 ?? 0;
-      const x1 = b.x1 ?? w;
-      if (b.fill) ctx.el("div", { class: "abs", style: { left: `${x0}px`, top: `${b.dy > 0 ? b.y0 : b.y1 + b.dy}px`, width: `${x1 - x0}px`, height: `${Math.abs(b.dy)}px`, background: b.fill } }, box);
-      const clip = ctx.el("div", { class: "abs", style: { left: `${x0}px`, top: `${b.y0 + b.dy}px`, width: `${x1 - x0}px`, height: `${b.y1 - b.y0}px`, overflow: "hidden" } }, box);
-      ctx.img(src, { class: "abs", style: { left: `${-x0}px`, top: `${-b.y0}px`, width: `${w}px`, height: `${h}px` } }, clip);
-    }
-    return box;
-  };
-
   let screens; // the four screens, in cut order
   let deviceAt; // stage anchor for the names (right edge x, centre y)
   if (M) {
@@ -163,8 +174,8 @@ export async function buildLang(ctx, S) {
          higher. That band of the same capture (display y 1845-2400) is
          seated 162 px lower; the Continue button (y 2640) stays where it is.
          The strip it leaves lies under the art's scrim (below). */
-      ? seated(p.screen, ctx.src.display(c.id), 1320, 2868, [{ y0: 1845, y1: 2400, dy: 162, fill: null }])
-      : seated(p.screen, ctx.src.display(c.id), 1320, 2868, [])));
+      ? seated(ctx, p.screen, ctx.src.display(c.id), 1320, 2868, [{ y0: 1845, y1: 2400, dy: 162, fill: null }])
+      : seated(ctx, p.screen, ctx.src.display(c.id), 1320, 2868, [])));
     /* the art's scrim: the names are read over the dimmed art, never beside the phone */
     const scrim = ctx.el("div", { class: "abs", style: { left: "0px", top: "330px", width: "1320px", height: `${2005 - 330}px`, background: "linear-gradient(180deg, rgb(1 6 19 / 0) 0%, rgb(1 6 19 / 0.8) 7%, rgb(1 6 19 / 0.84) 80%, rgb(1 6 19 / 0.96) 100%)", visibility: "hidden" } }, p.screen);
     p.poses.push({
@@ -194,15 +205,7 @@ export async function buildLang(ctx, S) {
     const win = browserWindow(ctx, { parent: winScene, width: 1440, url: "vallospaces.com", theme: "dark" });
     /* the right column (progress bar, headline, text, Continue) is centred on the
        page, so it sits higher in Hausa, Yorùbá and Igbo: re-seat it to English's y */
-    /* ...and its Continue button sits lower: seat it back at English's y (568) */
-    const F = "rgb(1 8 22)";
-    const col = [
-      [],
-      [{ x0: 740, x1: 1330, y0: 240, y1: 572, dy: 24, fill: F }, { x0: 740, x1: 1330, y0: 582, y1: 662, dy: -24, fill: F }],
-      [{ x0: 740, x1: 1330, y0: 240, y1: 572, dy: 24, fill: F }, { x0: 740, x1: 1330, y0: 582, y1: 662, dy: -24, fill: F }],
-      [{ x0: 740, x1: 1330, y0: 230, y1: 584, dy: 37, fill: F }, { x0: 740, x1: 1330, y0: 594, y1: 675, dy: -36, fill: F }],
-    ];
-    screens = col.map((bands, i) => seated(win.content, ctx.src.capture(cuts[i].id), 1440, 900, bands));
+    screens = DESK_BANDS.map((bands, i) => seated(ctx, win.content, ctx.src.capture(cuts[i].id), 1440, 900, bands));
     const s0 = W.width / 1440;
     during(ctx, rise[0] - 0.02, K.r37 + 0.02, (t) => {
       const u = ramp(ctx, t, rise[0], rise[1], "land");
