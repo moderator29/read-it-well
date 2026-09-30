@@ -55,7 +55,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search the help centre, e.g. refund, inspection, verify"
           aria-label="Search help articles"
-          className="nf-field pl-block"
+          className="nf-field ps-[calc(0.875rem+1.25rem+var(--nf-gap-row))]"
         />
       </div>
       <p className="mt-inline text-[0.8125rem] text-[var(--nf-content-muted)]" role="status">
@@ -83,7 +83,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
                           className="nf-m-chevron shrink-0 text-[var(--nf-content-muted)]"
                         />
                       </summary>
-                      <p className="px-group pb-group text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)] sm:px-heading sm:pb-heading">
+                      <p className="max-w-measure-body px-group pb-group text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)] sm:px-heading sm:pb-heading">
                         {f.a}
                       </p>
                     </details>

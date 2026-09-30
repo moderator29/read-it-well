@@ -226,6 +226,14 @@
   @media (min-width: 64rem) {
     .nf-site-head {
       padding-block: var(--nf-space-4xl) var(--nf-space-3xl);
+      /* From 64rem the copy stands on the photograph and its ink scrim, so
+         it takes the on-ink whites in both themes (landing.css names them).
+         Without this, light mode printed the theme's dark ink on the dusk
+         plate and /help, /about and every content page opened on an
+         unreadable title (pixel polish, 30 September). */
+      --nf-landing-fg: var(--nf-landing-on-ink);
+      --nf-landing-fg-2: var(--nf-landing-on-ink-secondary);
+      --nf-landing-fg-3: var(--nf-landing-on-ink-muted);
     }
     .nf-site-head-aurora {
       display: none;
