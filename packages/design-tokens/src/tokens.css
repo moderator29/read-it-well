@@ -3600,8 +3600,9 @@
  * dock, sheets, headers). Under data saver and on a low-end device the outer
  * glow goes and the edge and fill stay (below).
  *
- * Contrast: the fill's lightest corner (the bloom, top left) measures about
- * #0B1A44 over the canvas; the body ink is 14:1 on it, the muted ink 5.2:1.
+ * Contrast, measured in the browser: the fill's lightest corner (the bloom,
+ * top left) is about #04215A over the night canvas; the body ink is 15.3:1
+ * on it, the secondary 11.5:1, the muted 5.6:1 and the focus ring 5.7:1.
  */
 :root:not([data-theme="light"]),
 :root:not([data-theme="light"]) [data-theme="dark"] {
