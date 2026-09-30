@@ -92,7 +92,7 @@ const BASE_CAPTURES = [
   { id: "listing-cost-total", steps: reveal(LISTING_RENT, "[data-testid=move-in-line-caution]", 150) },
   { id: "listing-amenities", steps: reveal(LISTING_RENT, "h2:text-is('Amenities')", 96) },
   { id: "listing-share", steps: [{ goto: LISTING_RENT }, { click: "[data-testid=listing-share]" }, { wait: 1200 }] },
-  { id: "listing-sale", steps: go(LISTING_SALE) },
+  { id: "listing-sale", full: true, steps: go(LISTING_SALE) },
   { id: "listing-banana", steps: go(LISTING_BANANA) },
   { id: "price", steps: go(PRICE) },
   { id: "saved", full: true, steps: go("/saved") },
