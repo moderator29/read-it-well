@@ -108,7 +108,7 @@ describe("the button system's new primitives", () => {
 
   it("Segmented icon-only keeps each label as the segment's name", () => {
     const html = renderToString(
-      <Segmented
+      <Segmented<"home" | "search">
         label="View"
         iconOnly
         value="home"
