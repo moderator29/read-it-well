@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
@@ -6,11 +7,11 @@ import { CHAPTERS, CHAPTER_INDEX } from "./chapters";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
-export const metadata: Metadata = {
-  title: "Documentation",
-  description:
-    "The full Vallo documentation, both sides: property search and its power and water filters, the stays journey from dated search to Plans, holding a restaurant table, the wallet, Around, the agent workspace, trust and safety, and your rights under the NDPA.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("docs");
+}
 
 /**
  * The table of contents.

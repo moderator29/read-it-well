@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
@@ -7,11 +8,11 @@ import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { NO_CUSTODY_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
 
-export const metadata: Metadata = {
-  title: "Cancellation policy",
-  description:
-    "How cancelling works on Vallo: a listed stay follows the platform schedule, everything back until 72 hours before check-in, half back inside that window, nothing back once check-in day starts, fixed on the booking when it is paid. A hotel room shows its own rate's terms. A restaurant table is free to cancel and a tenancy is settled in its own agreement.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("cancellations");
+}
 
 /**
  * The cancellation policy.

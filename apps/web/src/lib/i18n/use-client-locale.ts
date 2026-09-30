@@ -8,6 +8,7 @@ import {
   type Locale,
 } from "@vallo/i18n/core";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import { splitLocalePrefix } from "@/lib/i18n/public-locale";
 
 /**
  * The reader's locale, read on the client (the reasoning, and the SSR safety
@@ -46,6 +47,12 @@ function subscribe(): () => void {
  * There is deliberately no second implementation of the matching rule here.
  */
 function readClientLocale(): Locale {
+  /* A10: the address first, as on the server. `/yo/about` renders Yoruba
+     from the server whatever the cookie says, so the client must agree or a
+     client component would draw English beside it. */
+  const fromAddress = splitLocalePrefix(window.location.pathname).locale;
+  if (fromAddress) return fromAddress;
+
   // Cookies are `name=value; name=value`. Match on a boundary so a cookie
   // whose name merely ENDS with ours (`x_nf_locale`) cannot answer for it.
   const match = document.cookie.match(

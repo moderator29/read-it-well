@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/i18n/public-metadata";
 import Link from "next/link";
 import { formatDate } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
@@ -18,7 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: g.metaTitle,
     description: g.metaDescription,
-    alternates: { canonical: "/guides" },
+    /* A10: canonical in the page's language, and the hreflang set. */
+    alternates: (await localizedAlternates("/guides")) ?? { canonical: "/guides" },
     openGraph: { url: "/guides", title: g.metaTitle, description: g.metaDescription },
   };
 }

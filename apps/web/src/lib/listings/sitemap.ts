@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
+import { LOCALES } from "@vallo/i18n/core";
 import { GUIDE_SLUGS } from "@/lib/guides/slugs";
+import { alternateUrls, localizedPath } from "@/lib/i18n/public-locale";
 
 /**
  * What the sitemap says, decided away from the route that serves it.
@@ -107,17 +109,30 @@ export function buildSitemap(
   areaPages: readonly { path: string; lastModified?: string | null }[] = [],
 ): MetadataRoute.Sitemap {
   const base = origin.replace(/\/+$/, "");
+  /* A10: every public page in all four languages, each entry naming the
+     other three as its alternates (hreflang), English also as x-default. */
+  const languages = (path: string) => {
+    const urls = alternateUrls(base, path);
+    return { alternates: { languages: urls } };
+  };
   return [
-    ...PUBLIC_PAGES.map((page) => ({
-      url: `${base}${page.path === "/" ? "" : page.path}` || base,
-      changeFrequency: page.changeFrequency,
-    })),
+    ...PUBLIC_PAGES.flatMap((page) =>
+      LOCALES.map((locale) => {
+        const localized = localizedPath(page.path, locale);
+        return {
+          url: localized === "/" ? base : `${base}${localized}`,
+          changeFrequency: page.changeFrequency,
+          ...languages(page.path),
+        };
+      }),
+    ),
     ...areaPages
       .filter((page) => /^\/areas\/[a-z0-9-]+\/[a-z0-9-]+$/.test(page.path))
       .map((page) => ({
         url: `${base}${page.path}`,
         changeFrequency: "weekly" as const,
         ...(page.lastModified ? { lastModified: page.lastModified } : {}),
+        ...languages(page.path),
       })),
   ];
 }

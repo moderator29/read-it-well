@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { FIRST_RUN_COOKIE } from "@/components/app/welcome/first-run-seen";
@@ -15,10 +16,11 @@ import { emailFromQuery } from "@/components/auth/auth-intent";
 import { arrivalOf } from "@/app/welcome/plan";
 import { wallHeading } from "@/components/app/welcome/wall-heading";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  robots: { index: false, follow: false },
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("signIn", { robots: { index: false, follow: false } });
+}
 
 /**
  * Notices the auth callback can send here. A link that has expired or been

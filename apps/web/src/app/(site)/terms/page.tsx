@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { TERMS_SECTIONS as sections } from "@/lib/legal/terms";
 
-export const metadata: Metadata = {
-  title: "Terms of service",
-  description:
-    "The rules for using Vallo: accounts, payments, refunds, what a verified badge means, listing a property, agreements and approval, the Vallo Guarantee and acceptable use.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("terms");
+}
 
 /**
  * Terms of service.

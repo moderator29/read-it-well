@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { createClient } from "@/lib/supabase/server";
@@ -7,10 +8,11 @@ import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { AuthPillLink } from "@/components/auth/slate";
 import { passwordChangeProof, type PasswordChangeProof } from "@/lib/auth/password-change-proof";
 
-export const metadata: Metadata = {
-  title: "Choose a new password",
-  robots: { index: false, follow: false },
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("resetPassword", { robots: { index: false, follow: false } });
+}
 
 /*
  * The session is the ticket, so this page has to run per request. Cached, it

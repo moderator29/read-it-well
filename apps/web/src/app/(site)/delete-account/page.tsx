@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import { SiteHead } from "@/components/site/SiteHead";
@@ -7,11 +8,11 @@ import { GRACE_WINDOW_DAYS } from "@/lib/account-deletion/constants";
 import { DESTROYED_TABLES, RETAINED_TABLES } from "@/lib/account-deletion/plan";
 import { RestoreForm } from "./RestoreForm";
 
-export const metadata: Metadata = {
-  title: "Delete your account",
-  description:
-    "How to delete your Vallo account, what is destroyed, what is kept for the period Nigerian law requires, how long it takes, and how to stop a deletion you have already started.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("deleteAccount");
+}
 
 /**
  * The public account deletion page.

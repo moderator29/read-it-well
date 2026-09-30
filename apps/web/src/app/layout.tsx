@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { cookies, headers } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { localizedAlternates, openGraphLocales } from "@/lib/i18n/public-metadata";
 import { prefersLessData } from "@/lib/save-data";
 import { NONCE_HEADER } from "@/lib/security/csp";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
@@ -59,7 +60,7 @@ const PRELOADED_FONTS: Record<string, readonly string[]> = {
   default: ["inter-latin", "poppins-700-latin"],
 };
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   /*
    * THE FALLBACK WAS `http://localhost:3000`, WRITTEN OUT HERE.
    *
@@ -200,6 +201,37 @@ export const metadata: Metadata = {
     apple: [{ url: "/pwa/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
+
+/*
+ * A10: THE SITE'S TITLE AND DESCRIPTION IN THE READER'S LANGUAGE, AND ON A
+ * PUBLIC PAGE THE ADDRESS IT IS CANONICAL AT.
+ *
+ * `/ha`, `/yo` and `/ig` serve the public pages through a rewrite, so a
+ * relative canonical would name the bare English address and tell a search
+ * engine the Hausa page is a copy. On a public page the canonical is the
+ * address as typed, with the four languages as hreflang alternates
+ * (`lib/i18n/public-metadata.ts`); everywhere else it is `./` as before.
+ * The words are `publicMeta.site`, English unchanged.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const site = getDictionary(locale).publicMeta.site;
+  const alternates = await localizedAlternates();
+  return {
+    ...baseMetadata,
+    title: { default: site.title, template: "%s | Vallo" },
+    description: site.description,
+    alternates: alternates ?? baseMetadata.alternates,
+    openGraph: {
+      ...baseMetadata.openGraph,
+      ...(alternates?.canonical ? { url: alternates.canonical as string } : {}),
+      title: site.title,
+      description: site.shareDescription,
+      ...openGraphLocales(locale),
+    },
+    twitter: { ...baseMetadata.twitter, title: site.title, description: site.shareDescription },
+  };
+}
 
 export const viewport: Viewport = {
   /*

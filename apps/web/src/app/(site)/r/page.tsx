@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { redirect } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -7,11 +8,11 @@ import { Button } from "@/components/ui/Button";
 
 /* A7: the lookup form itself is a public tool and is indexed (it is in the
    sitemap); each `/r/[code]` answer keeps its own metadata. */
-export const metadata: Metadata = {
-  title: "Check a receipt",
-  description: "Type the code on a Vallo receipt to see whether it is genuine. No account needed.",
-  alternates: { canonical: "/r" },
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("receiptCheck");
+}
 
 /**
  * V-55. Type a receipt code. A plain GET form, so it works with no script at

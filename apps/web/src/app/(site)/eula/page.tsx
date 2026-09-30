@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import Link from "next/link";
 import { SiteHead } from "@/components/site/SiteHead";
 import { EULA_LAST_UPDATED, EULA_SECTIONS as sections } from "@/lib/legal/eula";
 
-export const metadata: Metadata = {
-  title: "Community rules",
-  description:
-    "What you may post on Vallo and how you may behave towards other people here: no tolerance for abuse, a report control on every surface, blocking, and a twenty four hour commitment on every report.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("eula");
+}
 
 /**
  * The community rules, which is the end user licence agreement.

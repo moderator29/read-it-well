@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
@@ -11,11 +12,11 @@ import { e164 } from "@/lib/notify/whatsapp";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 
-export const metadata: Metadata = {
-  title: "Safety centre",
-  description:
-    "How payments work on both sides of Vallo, how a stay is paid for against how a tenancy is, how inspections work, what we will never ask you for, and how to report someone who asks you to pay outside the platform.",
-};
+/* A10: the title and description in the page's own language, with its
+   canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata("safety");
+}
 
 /**
  * The safety centre.
