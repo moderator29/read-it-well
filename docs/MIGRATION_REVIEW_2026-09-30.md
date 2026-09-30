@@ -77,6 +77,12 @@ probe alert: the guard refused a second person taking it, and the row was
 deleted in the same transaction (0 probe alerts remain). The alert-related
 tests pass (16 files, 240 tests).
 
+| 19 | pending (no version) | `20260930140311` | `email_lifecycle_triggers` (APPLY once PR #75 was live, verdict b147de7e) |
+
+Row 19 was applied after the lead confirmed production was serving PR #75
+(`/for-hosts` returned 200). Its read-back passed, with 8 enabled triggers. The
+email and notify tests pass (24 files, 2,791 tests).
+
 The verdicts below are the review as it was written before the apply.
 
 ## Summary

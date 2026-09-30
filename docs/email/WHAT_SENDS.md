@@ -112,14 +112,15 @@ explains what the account somebody just opened actually is, and it carries the
 link to those switches. Muting it behind a switch the reader has not been shown
 yet would be silencing the letter that tells them the switches exist.
 
-### 1b. The lifecycle emails (29 September 2026): built, triggers PENDING
+### 1b. The lifecycle emails (29 September 2026): built, triggers LIVE since 30 September
 
 Thirteen events the app already announced in the bell and never by email.
 Builders in `lib/email/lifecycle-messages.ts`, registry entries in
 `lib/notify/templates.ts`, triggers in
-`supabase/migrations/pending/email_lifecycle_triggers.sql`.
+`supabase/migrations/20260930140311_email_lifecycle_triggers.sql`.
 
-**NOT APPLIED, ON PURPOSE.** The drain settles a row whose template the
+**APPLIED 30 September 2026**, after the PR #75 deploy that knows these
+templates was live. It was held until then on purpose: the drain settles a row whose template the
 running code does not know as DROPPED, for good. The triggers go live only
 after the code that builds these templates is deployed: apply the pending
 file, rename it to its version, move it into `supabase/migrations/`, record
@@ -131,20 +132,20 @@ nothing.
 
 | Template key | Builder | What writes the row | Dedupe key | `/settings` mute | State |
 |---|---|---|---|---|---|
-| `inspection.proposed` | `inspectionProposed` | `inspection_requests` state to PROPOSED, to the requester | `inspection:<id>:PROPOSED:<slot epoch>` | **Bookings** | PENDING |
-| `inspection.declined` | `inspectionDeclined` | state to DECLINED, to the requester | `inspection:<id>:DECLINED` | **Bookings** | PENDING |
-| `inspection.withdrawn` | `inspectionWithdrawn` | state to WITHDRAWN, to the lister | `inspection:<id>:WITHDRAWN` | **Bookings** | PENDING |
-| `inspection.completed` | `inspectionCompleted` | state to COMPLETED, to both | `inspection:<id>:COMPLETED:<party>` | **Bookings** | PENDING |
-| `support.replied` | `supportReplied` | a staff message on a ticket with an account | `support:reply:<message id>` | none | PENDING |
-| `agreement.waiting` | `agreementWaiting` | an agreement inserted, to both (the rent path; the stay path already sent it, with the same key) | `agreement.waiting:<id>:<terms version>:<party>` | none | PENDING for rent |
-| `agreement.submitted` | `agreementSubmitted` | status to `in_review` (both confirmed), to both | `agreement.submitted:<id>:<version>:<party>` | none | PENDING |
-| `agreement.cancelled` | `agreementCancelled` | status to `cancelled`, to both | `agreement.cancelled:<id>:<version>:<party>` | none | PENDING |
-| `guarantee.claim_opened` | `guaranteeClaimOpened` | a claim filed, to the claimant | `guarantee:claim:<id>:opened` | none | PENDING |
-| `verification.rung_failed` | `verificationRungFailed` | a check marked failed, to the agent | `verification:<agent>:<kind>:failed:<decided epoch>` | none | PENDING |
-| `listing.submitted` | `listingSubmitted` | a non-demo listing to SUBMITTED, to the lister | `listing:<id>:SUBMITTED:<epoch>` | none | PENDING |
-| `reservation.confirmed` | `reservationConfirmed` | a table to CONFIRMED, to the guest | `reservation:<id>:CONFIRMED` | **Bookings** | PENDING |
-| `reservation.cancelled` | `reservationCancelled` | a table to CANCELLED, to the guest | `reservation:<id>:CANCELLED` | **Bookings** | PENDING |
-| `refund.requested` | `refundRequested` | a refund request filed, to the guest | `refund:<id>:requested` | **Bookings** | PENDING |
+| `inspection.proposed` | `inspectionProposed` | `inspection_requests` state to PROPOSED, to the requester | `inspection:<id>:PROPOSED:<slot epoch>` | **Bookings** | LIVE |
+| `inspection.declined` | `inspectionDeclined` | state to DECLINED, to the requester | `inspection:<id>:DECLINED` | **Bookings** | LIVE |
+| `inspection.withdrawn` | `inspectionWithdrawn` | state to WITHDRAWN, to the lister | `inspection:<id>:WITHDRAWN` | **Bookings** | LIVE |
+| `inspection.completed` | `inspectionCompleted` | state to COMPLETED, to both | `inspection:<id>:COMPLETED:<party>` | **Bookings** | LIVE |
+| `support.replied` | `supportReplied` | a staff message on a ticket with an account | `support:reply:<message id>` | none | LIVE |
+| `agreement.waiting` | `agreementWaiting` | an agreement inserted, to both (the rent path; the stay path already sent it, with the same key) | `agreement.waiting:<id>:<terms version>:<party>` | none | LIVE for rent |
+| `agreement.submitted` | `agreementSubmitted` | status to `in_review` (both confirmed), to both | `agreement.submitted:<id>:<version>:<party>` | none | LIVE |
+| `agreement.cancelled` | `agreementCancelled` | status to `cancelled`, to both | `agreement.cancelled:<id>:<version>:<party>` | none | LIVE |
+| `guarantee.claim_opened` | `guaranteeClaimOpened` | a claim filed, to the claimant | `guarantee:claim:<id>:opened` | none | LIVE |
+| `verification.rung_failed` | `verificationRungFailed` | a check marked failed, to the agent | `verification:<agent>:<kind>:failed:<decided epoch>` | none | LIVE |
+| `listing.submitted` | `listingSubmitted` | a non-demo listing to SUBMITTED, to the lister | `listing:<id>:SUBMITTED:<epoch>` | none | LIVE |
+| `reservation.confirmed` | `reservationConfirmed` | a table to CONFIRMED, to the guest | `reservation:<id>:CONFIRMED` | **Bookings** | LIVE |
+| `reservation.cancelled` | `reservationCancelled` | a table to CANCELLED, to the guest | `reservation:<id>:CANCELLED` | **Bookings** | LIVE |
+| `refund.requested` | `refundRequested` | a refund request filed, to the guest | `refund:<id>:requested` | **Bookings** | LIVE |
 
 Viewings, tables and refunds answer to the Bookings switch because the
 Bookings card promises exactly that. An agreement, a claim, a support answer,

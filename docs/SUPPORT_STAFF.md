@@ -169,9 +169,10 @@ status, notes, audit trail, keys and the Support team panel all work on the
 database as it is.
 
 The reply **email** to a member is the `support.replied` template, enqueued by
-`private.enqueue_support_reply_email` in the separate pending file
-`supabase/migrations/pending/email_lifecycle_triggers.sql`. Until that is
-applied, members are told of a reply in the app only.
+`private.enqueue_support_reply_email` in
+`supabase/migrations/20260930140311_email_lifecycle_triggers.sql` (applied
+30 September 2026), so members are told of a reply by email as well as in the
+app.
 
 ## A lost console key (C14, 30 September 2026)
 
