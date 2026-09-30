@@ -5,6 +5,9 @@ import { formatMoney } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readAgreement } from "@/lib/agreements/queries";
+import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
+import type { TermChange } from "@/lib/agreements/terms-diff";
+import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
@@ -113,6 +116,26 @@ export default async function AgreementPage({
    * written by the database into a notification, where no flag can ride, so
    * it opens from the status itself, once per device.
    */
+  /* B9: what moved since this party last confirmed. Null (today's page)
+     until the versions migration is applied, and whenever there is nothing
+     to show. */
+  const kit = getDictionary(locale).memberKit.agreementDiff;
+  const since =
+    party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
+      ? await readChangesSinceConfirmed({
+          agreementId: a.id,
+          currentVersion: a.termsVersion,
+          currentTerms: a.terms,
+          currentAmountMinor: a.amountMinor,
+        })
+      : null;
+  const worded: WordedChange[] = (since?.changes ?? []).map((c: TermChange) => ({
+    key: c.key,
+    label: c.label,
+    before: termValue(c, c.before, locale, kit.notStated),
+    after: termValue(c, c.after, locale, kit.notStated),
+  }));
+
   const arrival = agreementArrival(a, done);
   const moment: SuccessMomentId | null = arrival && !arrival.seenOnce ? arrival.moment : null;
   const approvedMoment: SuccessMomentId | null = arrival?.seenOnce ? arrival.moment : null;
@@ -159,6 +182,21 @@ export default async function AgreementPage({
               : "A stay's terms are its booking, so they cannot be changed here. Message the host about the reason, or cancel this agreement."}
           </p>
         </div>
+      ) : null}
+
+      {since ? (
+        <AgreementChanges
+          changes={worded}
+          copy={kit}
+          byLine={
+            since.by && since.at
+              ? kit.by
+                  .replace("{who}", since.by === "you" ? kit.you : kit.other)
+                  .replace("{date}", new Date(since.at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))
+              : kit.byUndated
+          }
+          versionsLine={kit.versions.replace("{from}", String(since.fromVersion)).replace("{to}", String(since.toVersion))}
+        />
       ) : null}
 
       <Section title={`The terms (version ${a.termsVersion})`}>
@@ -214,7 +252,12 @@ export default async function AgreementPage({
             {a.otherConfirmedCurrent ? "The other side confirmed it." : "The other side has not confirmed it yet."}
           </p>
           {a.status === "awaiting_parties" && !a.youConfirmedCurrent ? (
-            <ConfirmTerms agreementId={a.id} version={a.termsVersion} />
+            <ConfirmTerms
+              agreementId={a.id}
+              version={a.termsVersion}
+              changes={worded.length > 0 ? worded : undefined}
+              changesLead={kit.confirmLead}
+            />
           ) : null}
           {a.kind === "rent" ? (
             <AmendTerms
@@ -329,6 +372,19 @@ function agreementSteps(status: string, events: { at: string; action: string }[]
       : null,
     state: step.state,
   }));
+}
+
+/** One side of a changed line, in words: money, a day, or the text itself. */
+function termValue(
+  c: TermChange,
+  v: TermChange["before"],
+  locale: Parameters<typeof formatMoney>[1],
+  notStated: string,
+): string {
+  if (v === null) return notStated;
+  if (c.kind === "money" && typeof v === "number") return formatMoney(v, locale);
+  if (c.kind === "date" && typeof v === "string") return day(v) ?? v;
+  return String(v);
 }
 
 function FragmentLine({ label, value }: { label: string; value: string }) {

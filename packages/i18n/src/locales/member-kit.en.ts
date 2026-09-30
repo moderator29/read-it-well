@@ -50,6 +50,21 @@ export const memberKitEn = {
     service: { label: "Service charge?", text: "Is there a service charge, and what does it cover?" },
     viewing: { label: "Inspect on Saturday?", text: "Can I inspect on Saturday?" },
   },
+  /** B9: the card above an agreement whose terms moved since you confirmed. */
+  agreementDiff: {
+    title: "What changed since you confirmed",
+    /** `{who}` is "The other side" or "You"; `{date}` a date and time. */
+    by: "{who} changed the terms on {date}.",
+    byUndated: "The terms were changed after you confirmed.",
+    other: "The other side",
+    you: "You",
+    versions: "You confirmed version {from}. This is version {to}.",
+    was: "Was",
+    now: "Now",
+    notStated: "Not stated",
+    noVisible: "The version moved, but no line reads differently. Read the terms below before you confirm again.",
+    confirmLead: "You are confirming these changes",
+  },
 };
 
 export type MemberKitCopy = typeof memberKitEn;

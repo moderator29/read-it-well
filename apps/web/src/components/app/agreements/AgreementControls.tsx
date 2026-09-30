@@ -40,7 +40,20 @@ function useAction() {
   return { pending, error, run };
 }
 
-export function ConfirmTerms({ agreementId, version, disabled }: { agreementId: string; version: number; disabled?: boolean }) {
+export function ConfirmTerms({
+  agreementId,
+  version,
+  disabled,
+  changes,
+  changesLead,
+}: {
+  agreementId: string;
+  version: number;
+  disabled?: boolean;
+  /** B9: the lines that moved since this party confirmed, already worded. */
+  changes?: { key: string; label: string; before: string; after: string }[];
+  changesLead?: string;
+}) {
   const { pending, error, run } = useAction();
   const [read, setRead] = useState(false);
   /* The confirm step (plan item 22): the button opens the one confirm panel,
@@ -74,7 +87,22 @@ export function ConfirmTerms({ agreementId, version, disabled }: { agreementId: 
         <ConfirmPanel
           icon="file-check"
           title="Sign the agreement?"
-          context={`You are confirming version ${version} of these terms.`}
+          context={
+            changes && changes.length > 0 && changesLead
+              ? `${changesLead}, in version ${version} of these terms.`
+              : `You are confirming version ${version} of these terms.`
+          }
+          lines={changes?.map((c) => ({
+            label: c.label,
+            amount: (
+              <span className="inline-flex flex-wrap items-center justify-end gap-2xs">
+                <span className="sr-only">was</span>
+                <s className="text-[var(--nf-content-muted)]">{c.before}</s>
+                <span className="sr-only">now</span>
+                <strong>{c.after}</strong>
+              </span>
+            ),
+          }))}
           next={[
             { icon: "users", text: "When both of you have confirmed the same version, it goes to Vallo." },
             { icon: "shield-check", text: "A person at Vallo reviews it." },
