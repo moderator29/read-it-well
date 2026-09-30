@@ -287,16 +287,16 @@ function Group({
           accessible name names its group, because nine controls all called
           "Clear" are nine identical announcements.
         */}
-        <button
-          type="button"
+        <Button
+          variant="quiet"
+          size="sm"
           onClick={onClear}
           disabled={!onClear}
           aria-label={`${clearLabel}: ${title}`}
           data-testid={`${id}-clear`}
-          className="nf-filters__clear"
         >
           {clearLabel}
-        </button>
+        </Button>
       </div>
       {hint && <p className="nf-filters__hint">{hint}</p>}
       {children}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import { useSyncExternalStore } from "react";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
@@ -42,9 +43,9 @@ export function LookedAtRecently({
         <h2 id="lookback-title" className="nf-section-label">
           {copy.title}
         </h2>
-        <button type="button" className="nf-recent__clear" aria-label={copy.clearLabel} onClick={clearRecentListings}>
+        <Button variant="quiet" size="sm" aria-label={copy.clearLabel} onClick={clearRecentListings}>
           {copy.clear}
-        </button>
+        </Button>
       </div>
       <ul className="nf-lookback__track nf-scroll-x">
         {entries.map((entry) => (

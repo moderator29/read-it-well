@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -385,15 +386,15 @@ export function Inbox({
         actions={
           <div className="flex shrink-0 items-center gap-inline">
             {canMarkRead && unreadTotal > 0 && (
-              <button
-                type="button"
+              <Button
+                variant="quiet"
+                size="sm"
                 onClick={markAllRead}
                 disabled={marking}
                 data-testid="inbox-mark-read"
-                className="nf-link-quiet nf-body-sm inline-flex min-h-11 items-center px-xs font-medium text-[var(--nf-content-link)] disabled:opacity-60"
               >
                 {marking ? "Marking..." : "Mark all read"}
-              </button>
+              </Button>
             )}
             <Link
               href="/search"
@@ -401,7 +402,8 @@ export function Inbox({
               data-testid="inbox-compose"
               className="nf-icon-btn h-11 w-11"
             >
-              <UiIcon name="search" size={ICON.row} />
+              {/* A pencil, not a second magnifier: the field under the header is the search. */}
+              <UiIcon name="pencil" size={ICON.row} />
             </Link>
           </div>
         }

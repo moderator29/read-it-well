@@ -1091,14 +1091,14 @@ export function ThreadView({
                 {m.state === "failed" && (
                   <p className="mt-inline-tight flex items-center gap-xs nf-caption text-[var(--nf-state-error)]">
                     Not sent.
-                    <button
-                      type="button"
+                    <Button
+                      variant="quiet"
+                      size="sm"
                       onClick={() => retry(m.id)}
                       aria-label={retryLabel(m)}
-                      className="font-semibold underline underline-offset-2"
                     >
                       Retry
-                    </button>
+                    </Button>
                   </p>
                 )}
               </div>
