@@ -6,6 +6,7 @@ import { AuthBackBar } from "./AuthBackBar";
 import { AuthFocal } from "./AuthFocal";
 import { AuthHeroLine } from "./AuthHeroLine";
 import { KeepPillInView } from "./KeepPillInView";
+import { AuthMain } from "./AuthMain";
 import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
 
 /**
@@ -23,7 +24,8 @@ import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
  * THE 3D GLASS DOOR (the founder, 30 September, after the passcode
  * reference): a bright blue bowl in both themes with the Vallo lockup, one
  * object in a glowing ring across its curve (`AuthFocal`), glass fields and
- * a glossy blue pill; the page is warm paper in light and night in dark. The block and its pieces are
+ * a glossy blue pill; the page is warm paper in light and night in dark,
+ * except the sign-up flow, which is night in both (`AuthMain`). The block and its pieces are
  * `components/auth/slate.tsx`; the whole surface is `app/css/auth.css`.
  */
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -31,7 +33,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const t = getDictionary(locale);
 
   return (
-    <main id="main" className="nf-auth nf-slate">
+    <AuthMain>
       {/* V-35, V-77: a phone at the way in keeps nobody's gate code or shortlist. */}
       <ForgetOnSignOut />
       <KeepPillInView />
@@ -66,6 +68,6 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         {" · "}
         <Link href="/eula">{t.safety.rulesLink}</Link>
       </p>
-    </main>
+    </AuthMain>
   );
 }

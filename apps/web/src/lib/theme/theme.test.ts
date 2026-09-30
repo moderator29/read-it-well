@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_THEME, THEME_BOOT_SCRIPT, parseThemeChoice, resolveTheme, serverTheme } from "./theme";
+import { CHROME_COLOUR, CHROME_COLOUR_LIGHT } from "./chrome";
+import { isNightDoorPath } from "./night-door";
 
 /**
  * DARK IS THE DEFAULT FOR EVERYBODY WHO HAS NOT CHOSEN (the founder,
@@ -11,7 +13,17 @@ import { DEFAULT_THEME, THEME_BOOT_SCRIPT, parseThemeChoice, resolveTheme, serve
  * is the one thing that decides the first frame and it is a string no type
  * checker reads.
  */
-function boot({ stored, cookie = "", prefersLight }: { stored: string | null; cookie?: string; prefersLight: boolean }) {
+function boot({
+  stored,
+  cookie = "",
+  prefersLight,
+  pathname = "/",
+}: {
+  stored: string | null;
+  cookie?: string;
+  prefersLight: boolean;
+  pathname?: string;
+}) {
   const dataset: Record<string, string> = {};
   let colour: string | null = null;
   const document = {
@@ -22,13 +34,14 @@ function boot({ stored, cookie = "", prefersLight }: { stored: string | null; co
   const localStorage = { getItem: () => stored };
   const matchMedia = () => ({ matches: prefersLight });
   const window = { matchMedia };
-  new Function("document", "localStorage", "matchMedia", "window", THEME_BOOT_SCRIPT)(
+  new Function("document", "localStorage", "matchMedia", "window", "location", THEME_BOOT_SCRIPT)(
     document,
     localStorage,
     matchMedia,
     window,
+    { pathname },
   );
-  return { theme: dataset.theme, choice: dataset.themeChoice, colour };
+  return { theme: dataset.theme, choice: dataset.themeChoice, colour, door: dataset.door };
 }
 
 describe("theme default", () => {
@@ -56,6 +69,44 @@ describe("theme default", () => {
     expect(boot({ stored: "system", prefersLight: true }).theme).toBe("light");
     expect(resolveTheme("system", false)).toBe("dark");
     expect(resolveTheme("dark", true)).toBe("dark");
+  });
+});
+
+/**
+ * THE NIGHT DOORS (the founder, 30 September 2026): Get started and the
+ * sign-up flow are dark whatever was chosen, before the first paint, chrome
+ * included; the choice itself is kept. Sign in, forgot password and the new
+ * password page follow the theme.
+ */
+describe("night doors before paint", () => {
+  const doors = ["/welcome", "/welcome/", "/sign-up", "/sign-up/verify", "/sign-up/email", "/sign-up/finish"];
+  const themed = ["/", "/sign-in", "/sign-in/code", "/forgot-password", "/reset-password", "/welcomes", "/sign-upx", "/home"];
+
+  it("paints a door dark under an explicit Light and keeps the choice", () => {
+    for (const pathname of doors) {
+      expect(boot({ stored: "light", prefersLight: true, pathname })).toEqual({
+        theme: "dark",
+        choice: "light",
+        colour: CHROME_COLOUR,
+        door: "night",
+      });
+    }
+  });
+
+  it("leaves every other screen to the theme", () => {
+    for (const pathname of themed) {
+      expect(boot({ stored: "light", prefersLight: false, pathname })).toMatchObject({
+        theme: "light",
+        colour: CHROME_COLOUR_LIGHT,
+        door: undefined,
+      });
+    }
+  });
+
+  it("the script and `isNightDoorPath` agree", () => {
+    for (const pathname of [...doors, ...themed]) {
+      expect(boot({ stored: "light", prefersLight: false, pathname }).door === "night").toBe(isNightDoorPath(pathname));
+    }
   });
 });
 
