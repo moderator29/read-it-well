@@ -172,6 +172,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/start": "/",
   "/sign-in": "/welcome",
   "/sign-in/email": "/sign-in",
+  /* A3 and A2: the email code and the phone doors open from the sign-in
+     form, and back returns to it. */
+  "/sign-in/code": "/sign-in",
+  "/sign-in/phone": "/sign-in",
   "/sign-up": "/welcome",
   "/sign-up/email": "/sign-up",
   "/sign-up/verify": "/sign-up/email",
