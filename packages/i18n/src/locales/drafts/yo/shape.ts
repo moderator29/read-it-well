@@ -167,18 +167,9 @@ export const shapeYo = {
   },
   unit: {
     shapes: {
-      self_contain: "Self-contain",
       room_parlour: "Yàrá àti pálọ̀",
-      mini_flat: "Mini flat",
       flat: "Fúláàtì",
-      duplex: "Duplex",
-      terrace: "Terrace",
-      semi_detached: "Semi-detached",
       detached: "Ilé tí ó dá dúró",
-      bungalow: "Bungalow",
-      maisonette: "Maisonette",
-      penthouse: "Penthouse",
-      boys_quarters: "Boys' quarters",
     },
     meanings: {
       self_contain: "Yàrá kan pẹ̀lú ilé ìdáná àti ilé ìgbọ̀nsẹ̀ tirẹ̀",

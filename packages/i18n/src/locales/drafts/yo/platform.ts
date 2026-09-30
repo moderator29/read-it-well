@@ -225,7 +225,6 @@ export const platformYo = {
     couldNotKeep: "O kò sí lórí ayélujára, fóònù yìí kò sì lè pa ìyẹn mọ́ fún lẹ́yìn náà.",
     sentTitle: "A ti fi ránṣẹ́ báyìí tí o ní àmì nẹ́tíwọ́ọ̀kì",
     failedTitle: "Nǹkan kan tí o ṣe láìsí ayélujára kò lọ",
-    failedItem: "{what}: {reason}",
     what: {
       save: "Fífi ibi kan pamọ́",
       unsave: "Yíyọ ibi tí a fipamọ́ kúrò",

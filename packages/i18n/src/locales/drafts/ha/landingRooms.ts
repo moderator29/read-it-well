@@ -5,14 +5,12 @@ import type { Translation } from "../../fallback";
    agent's initials stay as English writes them. */
 export const landingRoomsHa = {
   ai: {
-    overline: "Vallo AI",
     title: "Tambaya da kalmomi masu sauƙi. Sami ainihin wurare.",
     body: "Tambaya da Turanci, Yarbanci, Hausa ko Igbo, da kalmominka.",
     caption: "Misalin hira",
     replay: "Sake kunnawa",
     cta: "Tambayi mataimakin",
     you: "Kai",
-    name: "Vallo AI",
     lawyer: "Tambayi lauya kafin ka biya",
     scripts: [
       {
@@ -127,7 +125,6 @@ export const landingRoomsHa = {
       chosen: "An zaɓa",
       open: "A buɗe",
       noFee: "Babu kuɗin dubawa",
-      agentName: "Tunde A.",
       agentRole: "Wakili, Lekki",
       reviewed: "Mutum ya duba takardar nema",
       named: "An ambace shi a kowane jeri",
@@ -163,12 +160,10 @@ export const landingRoomsHa = {
     cards: {
       rent: { title: "Haya da saye", body: "Gidaje, filaye, shaguna da ofisoshi, tare da jimlar kuɗin shiga a kan katin." },
       stays: {
-        title: "Vallo Stays",
         body: "Otal-otal, shortlet da gidajen baƙi, tare da darare da ke babu kowa da cikakkiyar jimilla kafin ka yi ajiya.",
         chips: ["Otal-otal", "Shortlet", "Gidajen baƙi", "Wuraren shaƙatawa"],
       },
       ai: {
-        title: "Vallo AI",
         body: "Tambaya da Turanci, Yarbanci, Hausa ko Igbo. Yana ambaton wuraren da ke kan Vallo kaɗai.",
         chips: ["Turanci", "Yarbanci", "Hausa", "Igbo"],
       },

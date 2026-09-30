@@ -131,7 +131,6 @@ export const trustVisibleHa = {
   vnin: {
     title: "Tabbatar da NIN ɗinka maimakon haka",
     lede: "Buga *346*3*NIN ɗinka*{code}# a wayar da ke haɗe da NIN ɗinka, ka liƙa virtual NIN mai haruffa goma sha shida da NIMC ya aiko maka. Vallo ba ya taɓa adana NIN ɗinka.",
-    label: "Virtual NIN",
     submit: "Tabbatar da NIMC",
     checking: "Ana dubawa da NIMC",
   },

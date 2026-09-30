@@ -131,7 +131,6 @@ export const trustVisibleYo = {
   vnin: {
     title: "Fìdí rẹ̀ múlẹ̀ pẹ̀lú NIN rẹ dípò",
     lede: "Tẹ *346*3*NIN rẹ*{code}# lórí fóònù tí ó so mọ́ NIN rẹ, kí o sì lẹ virtual NIN oní-lẹ́tà mẹ́rìndínlógún tí NIMC fi ránṣẹ́ sí ọ. Vallo kì í pa NIN rẹ mọ́.",
-    label: "Virtual NIN",
     submit: "Fìdí rẹ̀ múlẹ̀ pẹ̀lú NIMC",
     checking: "À ń ṣàyẹ̀wò pẹ̀lú NIMC",
   },

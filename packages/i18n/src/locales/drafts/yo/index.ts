@@ -1,6 +1,8 @@
 import type { Translation } from "../../fallback";
 import { passcodeYo } from "./passcode";
 import { deskYo } from "./desk";
+import { publicMetaYo } from "./publicMeta";
+import { hostWorkspaceYo } from "./hostWorkspace";
 import { frontDoorYo } from "./frontDoor";
 import { landingRoomsYo } from "./landingRooms";
 import { trustDoorsYo } from "./trustDoors";
@@ -9,6 +11,14 @@ import { afterTheGateYo } from "./afterTheGate";
 import { trustVisibleYo } from "./trustVisible";
 import { platformYo } from "./platform";
 import { priceCheckYo } from "./priceCheck";
+import { landlordYo } from "./landlord";
+import { cryptoPayYo } from "./cryptoPay";
+import { arrivalCheckYo } from "./arrivalCheck";
+import { reelYo } from "./reel";
+import { mailYo } from "./mail";
+import { compliancePepYo } from "./compliancePep";
+import { complianceRiskYo } from "./complianceRisk";
+import { complianceBeneficialOwnershipYo } from "./complianceBeneficialOwnership";
 
 /**
  * Every machine-drafted namespace for this locale, laid under the locale
@@ -19,6 +29,8 @@ import { priceCheckYo } from "./priceCheck";
 export const yoDrafts = {
   passcode: passcodeYo,
   desk: deskYo,
+  publicMeta: publicMetaYo,
+  hostWorkspace: hostWorkspaceYo,
   frontDoor: frontDoorYo,
   landingRooms: landingRoomsYo,
   trustDoors: trustDoorsYo,
@@ -27,4 +39,12 @@ export const yoDrafts = {
   trustVisible: trustVisibleYo,
   platform: platformYo,
   priceCheck: priceCheckYo,
+  landlord: landlordYo,
+  cryptoPay: cryptoPayYo,
+  arrivalCheck: arrivalCheckYo,
+  reel: reelYo,
+  mail: mailYo,
+  compliancePep: compliancePepYo,
+  complianceRisk: complianceRiskYo,
+  complianceBeneficialOwnership: complianceBeneficialOwnershipYo,
 } satisfies Translation;

@@ -1,0 +1,252 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Igbo speaker's review
+   (review-status.ts). The SMS lines keep their reply digits and {code}
+   exactly: a landlord answers them by typing 1, 2 or 3. */
+export const landlordIg = {
+  sms: {
+    vacancy:
+      "Vallo: {place} gị ọ ka dị maka mgbazinye? Zaa 1 {code} ma ọ bụrụ ee, 2 {code} ma ọ bụrụ na a gbazinyela ya, 3 {code} ma ọ bụrụ na ị rịọghị onye ọ bụla ka ọ gbazinye ya. Ma ọ bụ zaa ebe a: {link}",
+    rent:
+      "Vallo: onye mgbazinye akwụọla {total} maka {place} gị. Zaa 1 {code} ma ọ bụrụ na ọ ziri ezi, 2 {code} ma ọ bụrụ na ọ bụghị ihe unu kwekọrịtara. Ọnụọgụ niile dị ebe a: {link}",
+  },
+
+  reply: {
+    metaTitle: "Azịza gị nye Vallo",
+    chip: "Maka onye nwe ụlọ",
+    loading: "Na-emeghe ajụjụ gị",
+    vacancyTitle: "{place} gị ọ ka dị?",
+    vacancyLedeNoAgent:
+      "E depụtara ya maka mgbazinye na Vallo. Ọ bụ naanị gị maara nke ọma, ya mere anyị na-ajụ gị kama onye nnọchiteanya.",
+    yes: "Ee, ọ ka dị",
+    let: "Mba, a gbazinyela ya",
+    notInstructed: "Arịọghị m onye ọ bụla ka ọ gbazinye ya",
+    whatHappens:
+      "Ọ bụrụ na a gbazinyela ya, ndepụta ya niile na Vallo na-agbada ozugbo. Ọ bụrụ na ị rịọghị onye ọ bụla ka ọ gbazinye ya, a na-emechi ndepụta ahụ, otu anyị na-akpọghachikwa gị.",
+    rentTitle: "Onye mgbazinye akwụọla ụgwọ mgbazinye maka {place} gị",
+    rentLedeNoAgent:
+      "A kwụrụ {total} na Vallo, maka mgbazinye site na {moveIn}. Ndị a bụ ọnụọgụ a nara onye mgbazinye, ruo kobo.",
+    rows: {
+      rent: "Mgbazinye",
+      caution: "Ego nchekwa, a kwụrụ gị ya",
+      service: "Ụgwọ ọrụ",
+      agency: "Ụgwọ onye nnọchiteanya",
+      legal: "Ụgwọ onye ọka iwu",
+      agreement: "Ụgwọ nkwekọrịta",
+      total: "Mkpokọta a kwụrụ",
+      totalSum: "Mkpokọta a kwụrụ, nchikota akụkụ ndị ahụ",
+    },
+    right: "Nke ahụ ziri ezi",
+    notAgreed: "Nke ahụ abụghị ihe m kwetara",
+    noteLabel: "Gịnị ka i kwetara? (ọ bụghị iwu)",
+    noteHint: "Ruo mkpụrụedemede 400. Otu anyị na-agụ nke a tupu ha akpọọ gị.",
+    privacy:
+      "Vallo anaghị egosi onye ọ bụla nọmba gị. Ibe a na-egosi mpaghara, ọ dịghị mgbe adreesị.",
+    stop: "Kwụsị ozi ndị a",
+    stopHint: "Anyị agaghị eziga nọmba a ozi ọzọ, banyere ụlọ a ma ọ bụ nke ọ bụla ọzọ.",
+    working: "Na-ezipụ azịza gị",
+    answeredOn: "Ị zara na {date}.",
+    failed: "Azịza gị eruteghị anyị. Ọ dịghị ihe gbanwere. Biko nwaa ọzọ.",
+    done: {
+      available: {
+        title: "Daalụ. Ndepụta ahụ na-egosi ugbu a na ị kwadoro ya",
+        body: "Ndị na-achọ mgbazinye na-ahụ na onye nwe ya kwadoro na ọ dị taa. Anyị ga-ajụ ọzọ n'ihe dị ka izu abụọ.",
+      },
+      let: {
+        title: "Daalụ. E wedatala ya",
+        body: "Ndepụta niile nke ụlọ a na Vallo gbadara otu mgbe, a gwakwala onye ọ bụla na-eche nyocha ụlọ.",
+      },
+      notInstructed: {
+        title: "Daalụ maka ịgwa anyị. Emechiela ndepụta ahụ",
+        body: "Otu anyị ga-akpọghachi gị na nọmba a tupu ihe ọ bụla ọzọ emee.",
+      },
+      confirmed: {
+        title: "Daalụ. Onye mgbazinye ga-ahụ na ị kwadoro ọnụọgụ ndị ahụ",
+        body: "Ọ dịghị ihe ọzọ a chọrọ n'aka gị.",
+      },
+      disputed: {
+        title: "Daalụ. Otu anyị ga-ele ya anya",
+        body: "A na-agwa onye mgbazinye na a na-ajụ ajụjụ banyere ọnụọgụ ndị ahụ, anyị ga-akpọghachikwa gị na nọmba a.",
+      },
+      stopped: {
+        title: "Anyị agaghị eziga nọmba a ozi ọzọ",
+        body: "Ndepụta gị ka dị otú ha dị. Ọ bụrụ na ị gbanwee obi gị, gwa onye nnọchiteanya, otu anyị ga-akpọ gị ịjụ.",
+      },
+    },
+    states: {
+      unknown: {
+        title: "Anyị amataghị njikọ a",
+        body: "Ikekwe e detughị ya niile. Mepee ya ọzọ site n'ozi anyị zitere. A naghị egosi ihe ọ bụla banyere ụlọ ọ bụla ebe a na-enweghị njikọ na-arụ ọrụ.",
+      },
+      used: {
+        title: "Ị zaala nke a",
+        body: "Daalụ. Enwere ike ịza ozi ọ bụla otu ugboro. Anyị ga-ajụ ọzọ n'ozi na-esote.",
+      },
+      expired: {
+        title: "Ajụjụ a emechiela",
+        body: "Ọ nọ na-emeghe izu anọ. Ọ dịghị ihe gbanwere n'ihi ya, anyị ga-ajụkwa ọzọ n'ozi na-esote.",
+      },
+      closed: {
+        title: "Anyị anaghị anabata azịza ebe a ugbu a",
+        body: "Ọ dịghị ihe gbanwere n'ihi njikọ a. Ọ dịghị ihe ị ga-eme.",
+      },
+      failed: {
+        title: "Anyị enweghị ike imeghe ajụjụ gị",
+        body: "Nsogbu a sitere n'akụkụ anyị, ọ bụghị n'akụkụ gị. Ọ dịghị ihe gbanwere. Biko nwaa njikọ ahụ ọzọ mgbe nkeji ole na ole gachara.",
+      },
+    },
+  },
+
+  listing: {
+    ownerConfirmedToday: "Onye nwe ya kwadoro na ọ dị taa",
+    ownerConfirmedDay: "Onye nwe ya kwadoro na ọ dị ụbọchị 1 gara aga",
+    ownerConfirmedDays: "Onye nwe ya kwadoro na ọ dị ụbọchị {n} gara aga",
+    notReconfirmed: "Akwadoghị ya ọzọ",
+    notReconfirmedBody:
+      "Onye nwe ya azaghị ajụjụ anyị banyere ịdị ya ruo izu atọ, ya mere ndepụta a anaghị anabata nyocha ụlọ ọhụrụ.",
+  },
+
+  offers: {
+    title: "Onyinye {n} na ụlọ a",
+    card: "Ndị nnọchiteanya {n} nyere ya",
+    lede: "Vallo jikọtara ndepụta ndị a n'otu ụlọ. Onye ndepụta ọ bụla na-edobe mkpokọta ego ịbanye nke ya, ya mere tụnyere ha ebe a.",
+    thisOne: "Ndepụta a",
+    moveIn: "Iji banye",
+    noMoveIn: "E kwughị ya",
+    view: "Lee onyinye ahụ",
+    failed: "Enweghị ike ịgụ onyinye ndị ọzọ na ụlọ a ugbu a.",
+  },
+
+  rentFact: {
+    confirmed: "Onye nwe ụlọ, {name}, kwadoro ọnụọgụ ndị a na {date}",
+    confirmedNoName: "Onye nwe ụlọ kwadoro ọnụọgụ ndị a na {date}",
+    waiting: "Onye nwe ụlọ azabeghị",
+    waitingBody: "Anyị zigara onye nwe ụlọ ọnụọgụ ndị a na {date}.",
+    disputed: "Onye nwe ụlọ na-agbagha ọnụọgụ ndị a",
+    disputedBody: "Otu anyị na-ele ya anya, ha ga-akpọtụrụ gị.",
+  },
+
+  close: {
+    action: "Mechie",
+    title: "Mechie ndepụta a",
+    body: "Kedu otú o si gwụ? Mgbazinye na-ewedata ndepụta niile nke otu ụlọ ahụ, a na-agwakwa onye ọ bụla na-eso ya.",
+    reasons: {
+      let_through_vallo: "E gbazinyere site na Vallo",
+      let_elsewhere: "E gbazinyere ebe ọzọ",
+      owner_withdrew: "Onye nwe ya wepụrụ ya",
+      mandate_ended: "Ikike m gwụrụ",
+    },
+    closedReasons: {
+      let_through_vallo: "E gbazinyere site na Vallo",
+      let_elsewhere: "E gbazinyere ebe ọzọ",
+      owner_withdrew: "Onye nwe ya wepụrụ ya",
+      mandate_ended: "Ikike gwụrụ",
+      let_owner_confirmed: "E gbazinyere ya, onye nwe ya kwadoro",
+      owner_denied_mandate: "Onye nwe ya kwuru na o nyeghị iwu maka ndepụta a",
+      let_same_property: "E gbazinyere ya, site na ndepụta ọzọ nke otu ụlọ ahụ",
+    },
+    closedLabel: "Emechiri: {reason}",
+    groupTitle: "Emechiri",
+    groupBlurb: "Emechiri ya na ihe kpatara ya. Ndepụta emechiri na-anọ na mmechi; depụta ụlọ ahụ ọzọ dịka ndepụta ọhụrụ.",
+    confirm: "Mechie ndepụta ahụ",
+    keep: "Hapụ ya ka o mepee",
+    choose: "Họrọ otú o si gwụ.",
+    failed: "Emechighị ndepụta ahụ. Ọ dịghị ihe gbanwere. Biko nwaa ọzọ.",
+    noRent:
+      "Akwụghị mgbazinye site na Vallo maka ndepụta a, ya mere enweghị ike imechi ya dịka e gbazinyere site na Vallo. Họrọ E gbazinyere ebe ọzọ kama.",
+  },
+
+  owner: {
+    prompt: "Nke a ọ ka dị?",
+    body: "I depụtara ya dịka onye nwe ya, ya mere anyị na-ajụ gị kwa izu abụọ. Ịza na-edobe ya n'ọnọdụ ya n'ọchụchọ. Izu atọ na-enweghị azịza na-ebuga ya na njedebe ọchụchọ, ọ na-akwụsịkwa ịnabata arịrịọ nyocha ụlọ ruo mgbe ị zara. Ọ bụrụ na a gbazinyela ya, mechie ya kama.",
+    yes: "Ee, ọ ka dị",
+    let: "A gbazinyela ya",
+    thanks: "Daalụ. Anyị ga-ajụ ọzọ n'ihe dị ka izu abụọ.",
+    failed: "Azịza ahụ eruteghị anyị. Ọ dịghị ihe gbanwere. Biko nwaa ọzọ.",
+  },
+
+  portfolio: {
+    nav: "Ụlọ",
+    metaTitle: "Ụlọ na ikike",
+    title: "Ụlọ na ikike",
+    lede: "Ụlọ ndị i nwere na onye na-agbazinye ha, na ndị nwe ụlọ na mpaghara gị na-ahọrọ onye nnọchiteanya.",
+    buildingsTitle: "Ụlọ m",
+    buildingsLede: "Ụlọ ọ bụla i depụtara dịka onye nwe ya, a chịkọtara ha dịka ebe si dị.",
+    let: "E gbazinyere ya ruo {date}",
+    letNoDate: "E gbazinyere ya",
+    achieved: "Nwetara {amount} {period}",
+    vacant: "E gbazinyeghị ya",
+    alsoListed: "{names} depụtakwara ya",
+    mandateTo: "E nyere {names} ikike",
+    inviteTitle: "Kpọọ ndị nnọchiteanya ka ha gosi onwe ha",
+    inviteLede: "Ndị nnọchiteanya enyochara na-edepụta na {place} na-ahụ ebe ụlọ ahụ dị, ime ụlọ ihi ụra na oke ọnụahịa ị na-arịọ, ọ dịghị mgbe adreesị. Ha na-aza site na ndetu na ndekọ ha na Vallo.",
+    inviteMin: "Na-arịọ site na (naịra kwa afọ)",
+    inviteMax: "Na-arịọ ruo (naịra kwa afọ)",
+    inviteSend: "Kpọọ ndị nnọchiteanya",
+    inviteSent: "E zigara ndị nnọchiteanya {n} oku.",
+    inviteSentNone: "Oku mepere emepe. Ọ dịbeghị onye nnọchiteanya enyochara na-edepụta n'ebe a; ọ ga-anọ na-emeghe izu abụọ.",
+    inviteBand: "Nye oke, nke kacha nta na mbụ, nke kacha elu ekwesịghị ịkarị okpukpu atọ nke kacha nta.",
+    inviteFailed: "Ezigaghị oku ahụ. Ọ dịghị ihe gbanwere. Biko nwaa ọzọ.",
+    invitationOpen: "Oku mepere emepe · ngosi {n}",
+    invitationAwarded: "E nyere ikike · ngosi {n}",
+    withdraw: "Weghachi oku ahụ",
+    pitchesTitle: "Ngosi onwe",
+    pitchesNone: "Ọ dịbeghị onye nnọchiteanya gosiri onwe ya.",
+    pitchRecord: "Mgbazinye {lets} site na Vallo · ndepụta {live} dị ndụ · na Vallo kemgbe {since}",
+    pitchVerified: "Enyochara",
+    award: "Nye onye nnọchiteanya a ikike",
+    awarded: "E nyere ikike",
+    awardFailed: "Nke ahụ agaghị. Ọ dịghị ihe gbanwere. Biko nwaa ọzọ.",
+    briefsTitle: "Ndị nwe ụlọ na-ahọrọ onye nnọchiteanya",
+    briefsLede: "Ndị nwe ụlọ n'ebe ị na-edepụta, na-arịọ ndị nnọchiteanya enyochara ka ha gosi onwe ha. Naanị ndị nnọchiteanya enyochara na-ahụ ndị a.",
+    briefLine: "{type} nwere ime ụlọ ihi ụra {beds} na {place}",
+    briefBand: "Na-arịọ {min} ruo {max} {period}",
+    briefExpires: "Mepere ruo {date}",
+    pitchLabel: "Gịnị mere ọ bụ gị, n'ahịrị ole na ole",
+    pitchPlaceholder: "Ihe i gbazinyere nso, otú ị ga-esi kpọsaa ya, otú ị na-aza ngwa ngwa.",
+    pitchSend: "Zipu ngosi m",
+    pitched: "E gosila gị. Onye nwe ụlọ ga-ahụ ndekọ gị n'akụkụ ndetu gị.",
+    youHaveIt: "Onye nwe ụlọ nyere gị ikike. Depụta ụlọ ahụ ma tinye ikike ahụ ya na onye nwe ya dịka onye isi.",
+    pitchShort: "Kwuo ntakịrị karịa: opekata mpe mkpụrụedemede iri.",
+    pitchFailed: "Ngosi gị ezipụghị. Ọ dịghị ihe gbanwere. Biko nwaa ọzọ.",
+    emptyTitle: "Ọ dịbeghị ihe ebe a",
+    emptyBody: "Ụlọ ndị i depụtara dịka onye nwe ha na-apụta ebe a, otú ahụkwa ndị nwe ụlọ nọ gị nso na-ahọrọ onye nnọchiteanya ozugbo e nyochara gị.",
+    readFailed: "Enweghị ike ịgụ nke a ugbu a. Ọ dịghị ihe gbanwere.",
+    period: { year: "kwa afọ", quarter: "kwa ọnwa atọ", month: "kwa ọnwa" },
+  },
+
+  admin: {
+    consentTitle: "Nkwenye onye isi",
+    consentRead: "Gụọrọ onye isi nke a na oku ahụ, okwu n'okwu:",
+    consentGiven: "Ha kwetara",
+    consentWithdraw: "Ha rịọrọ anyị ka anyị kwụsị",
+    consentRecorded: "{name} dekọrọ nkwenye na {date}.",
+    consentWithdrawn: "E weghachiri nkwenye na {date}. Ọ dịghị ihe a ga-ezigara nọmba a.",
+    consentRecordedNow: "E dekọrọ nkwenye ugbu a, site n'aka gị.",
+    consentWithdrawnNow: "E weghachiri nkwenye ugbu a. Ọ dịghị ihe a ga-ezigara nọmba a.",
+    consentNone: "E dekọghị nkwenye. Ọ dịghị mgbe a ga-ezigara nọmba a ihe ọ bụla.",
+    consentNoNumber: "E nyeghị nọmba, ya mere ọ dịghị onye a ga-ajụ.",
+    consentReadFailed: "Enweghị ike ịgụ nkwenye ugbu a. Ọ dịghị ihe a na-eziga na-enweghị ya.",
+    consentFailed: "E dekọghị nkwenye. Ọ dịghị ihe gbanwere. Nwaa ọzọ.",
+    lineOff: "Agbanyụrụ ahịrị onye nwe ụlọ, ya mere ezigabeghị ihe ọ bụla, ọbụna na nkwenye.",
+    lineOn: "Ahịrị onye nwe ụlọ gbanyere. Na nkwenye, a na-ajụ onye isi ihe dị ka otu ugboro kwa izu abụọ, ọ dịghị mgbe karịa otu ugboro n'izu.",
+    matchTitle: "Otu ụlọ ahụ?",
+    matchLede:
+      "Ndepụta nwere ike ịbụ otu flat a, a tụrụ aro ha site n'onye nwe ya dị na ndekọ ma ọ bụ pin, mgbe niile ya na otu ime ụlọ ihi ụra na ụdị. Ọ dịghị ihe a na-ejikọ ruo mgbe ị kwuru.",
+    matchNone: "Ọ dịghị ndepụta ọzọ yiri ụlọ a.",
+    matchFailed: "Enweghị ike ịgụ ndakọrịta a tụrụ aro ugbu a.",
+    signalPrincipal: "Otu onye nwe ya na ndekọ",
+    signalDifferent: "Onye nwe ya dị iche na ndekọ",
+    closedStays: "Ndepụta emechiri na-anọ na mmechi. Megheghachi ya naanị ma ọ bụrụ na e mechiri ya n'amaghị ama.",
+    reopenLabel: "Gịnị mere a na-emeghe ya ọzọ? Nke a na-aba na ndekọ nyocha.",
+    reopen: "Megheghachi ndepụta ahụ",
+    stoppedBefore: "Nọmba a rịọrọ anyị ka anyị kwụsị na {date}. Dekọọ ihe onye isi kwuru na oku a tupu i dekọọ nkwenye ọzọ.",
+    reconsentNote: "Ihe onye isi kwuru na oku a",
+    signalNear: "Pin dị anya mita {m}",
+    join: "Otu ụlọ ahụ",
+    apart: "Ọ bụghị otu",
+    split: "Wepụ ndepụta a n'ụlọ ahụ",
+    onProperty: "Ndepụta a dị n'ụlọ nwere onyinye ndị ọzọ.",
+    decisionFailed: "E dekọghị mkpebi ahụ. Ọ dịghị ihe gbanwere.",
+  },
+} satisfies NonNullable<Translation["landlord"]>;

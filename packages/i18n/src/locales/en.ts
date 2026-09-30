@@ -32,6 +32,12 @@ import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 import { passcodeEn } from "./passcode.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
+/* The public pages' titles and descriptions, per language (A10). */
+import { publicMetaEn } from "./public-meta.en";
+/* The host workspace's words, moved out of the pages (C11). */
+import { hostWorkspaceEn } from "./host-workspace.en";
+/* Outbound mail in the member's language (A11). */
+import { mailEn } from "./mail.en";
 /* The small things (toast, copy, connection, pull to refresh, card menu). */
 import { detailsEn } from "./details.en";
 
@@ -5949,6 +5955,12 @@ export const en = {
   passcode: passcodeEn,
 
   desk: deskEn,
+
+  publicMeta: publicMetaEn,
+
+  hostWorkspace: hostWorkspaceEn,
+
+  mail: mailEn,
 
   /*
    * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).

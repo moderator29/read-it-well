@@ -131,7 +131,6 @@ export const trustVisibleIg = {
   vnin: {
     title: "Kwado site na NIN gị kama",
     lede: "Pịa *346*3*NIN gị*{code}# n'ekwentị ejikọrọ na NIN gị, ma tinye virtual NIN nwere mkpụrụedemede iri na isii NIMC zitere gị. Vallo anaghị echekwa NIN gị.",
-    label: "Virtual NIN",
     submit: "Kwado site na NIMC",
     checking: "Na-elele na NIMC",
   },

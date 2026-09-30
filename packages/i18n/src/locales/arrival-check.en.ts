@@ -52,4 +52,4 @@ export const arrivalCheckEn = {
     cancel: "Cancel",
     ruleNone: "Nothing was ruled: this report has already been ruled on, or it is not a report.",
   },
-} as const;
+};

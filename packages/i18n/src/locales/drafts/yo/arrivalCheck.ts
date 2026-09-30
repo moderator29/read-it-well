@@ -1,0 +1,46 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Yoruba speaker's review
+   (review-status.ts). A safety surface: 112 is kept exactly. */
+export const arrivalCheckYo = {
+  title: "Ṣé ó rí bí a ṣe kéde rẹ̀?",
+  lede: "O ti dé. Sọ fún wa bóyá ibi náà bá àkọsílẹ̀ mu. Èyí wà ní ṣíṣí títí di {time}.",
+  yes: "Bẹ́ẹ̀ni, ó rí bí a ṣe kéde rẹ̀",
+  no: "Rárá, nǹkan kan kò tọ̀nà",
+  reasonLabel: "Kí ni kò tọ̀nà?",
+  reasons: {
+    not_as_listed: "Kì í ṣe ibi tí ó wà nínú àkọsílẹ̀",
+    no_access: "Mi ò lè wọlé",
+  },
+  photosLabel: "Àwòrán, tí a yà báyìí",
+  photosHint: "Ya àwòrán kan ó kéré tán tí ó fi ìṣòro náà hàn: ilẹ̀kùn, yàrá, mítà. Títí dé {max}.",
+  takePhoto: "Ya àwòrán",
+  photoCount: "A ti fi àwòrán {count} nínú {max} kún un",
+  noteLabel: "Ohunkóhun mìíràn (kò pọn dandan)",
+  send: "Fi ìròyìn náà ránṣẹ́",
+  back: "Padà",
+  uploadFailed: "Àwòrán yẹn kò gòkè. Tún gbìyànjú.",
+  failed: "A kò lè fi èyí ránṣẹ́ báyìí. Tún gbìyànjú. Bí o kò bá lè wọlé tí ọkàn rẹ kò sì balẹ̀, pe 112.",
+  readFailed: "A kò lè gbé àyẹ̀wò ìdé wọlé báyìí. Tún ojú ewé gbé ní ìṣẹ́jú kan. Bí o kò bá lè wọlé tí ọkàn rẹ kò sì balẹ̀, pe 112.",
+  closedOrAnswered: "A ti ti àyẹ̀wò ìdé fún ibùgbé yìí.",
+  answeredYes: "O sọ fún wa pé ó rí bí a ṣe kéde rẹ̀ ní {time}.",
+  answeredReport: "O ròyìn ibùgbé yìí ní {time}. Ẹgbẹ́ wa ní àwọn àwòrán rẹ, wọn yóò sì kàn sí ọ. Nọ́mbà ìtọ́kasí rẹ ni {reference}.",
+  answeredReportNoRef: "O ròyìn ibùgbé yìí ní {time}. Ẹgbẹ́ wa ní àwọn àwòrán rẹ, wọn yóò sì kàn sí ọ.",
+  admin: {
+    title: "Àyẹ̀wò ìdé",
+    asListed: "Àlejò sọ pé ó rí bí a ṣe kéde rẹ̀.",
+    reported: "Àlejò ròyìn: {reason}.",
+    photos: "Àwòrán {n}",
+    note: "Àkọsílẹ̀ àlejò",
+    uphold: "Fọwọ́sí ìròyìn náà",
+    decline: "Kọ ìròyìn náà",
+    ruledUpheld: "A fọwọ́sí i ní {when}.",
+    ruledDeclined: "A kọ̀ ọ́ ní {when}.",
+    ruleFailed: "A kò fi ìdájọ́ náà pamọ́. Tún gbìyànjú.",
+    confirmUphold: "Fọwọ́sí ìròyìn yìí? Ìsanwó ibùgbé náà yóò wà ní ìdádúró títí a ó fi pinnu dídá owó padà.",
+    confirmDecline: "Kọ ìròyìn yìí? Ìdádúró ìsanwó ibùgbé náà yóò gbé kúrò.",
+    confirm: "Fìdí rẹ̀ múlẹ̀",
+    cancel: "Fagilé",
+    ruleNone: "A kò dájọ́ nǹkan kan: a ti dájọ́ ìròyìn yìí tẹ́lẹ̀, tàbí kì í ṣe ìròyìn.",
+  },
+} satisfies NonNullable<Translation["arrivalCheck"]>;

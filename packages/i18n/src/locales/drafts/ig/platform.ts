@@ -225,7 +225,6 @@ export const platformIg = {
     couldNotKeep: "Ị nọghị n'ịntanetị, ekwentị a enweghịkwa ike idebe nke ahụ maka ma emechaa.",
     sentTitle: "E zipụrụ ya ugbu a i nwere netwọk",
     failedTitle: "Ihe i mere mgbe ị nọghị n'ịntanetị agaghị",
-    failedItem: "{what}: {reason}",
     what: {
       save: "Ichekwa ebe",
       unsave: "Iwepụ ebe echekwara",

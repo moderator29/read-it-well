@@ -1,6 +1,8 @@
 import type { Translation } from "../../fallback";
 import { passcodeHa } from "./passcode";
 import { deskHa } from "./desk";
+import { publicMetaHa } from "./publicMeta";
+import { hostWorkspaceHa } from "./hostWorkspace";
 import { frontDoorHa } from "./frontDoor";
 import { landingRoomsHa } from "./landingRooms";
 import { trustDoorsHa } from "./trustDoors";
@@ -9,6 +11,14 @@ import { afterTheGateHa } from "./afterTheGate";
 import { trustVisibleHa } from "./trustVisible";
 import { platformHa } from "./platform";
 import { priceCheckHa } from "./priceCheck";
+import { landlordHa } from "./landlord";
+import { cryptoPayHa } from "./cryptoPay";
+import { arrivalCheckHa } from "./arrivalCheck";
+import { reelHa } from "./reel";
+import { mailHa } from "./mail";
+import { compliancePepHa } from "./compliancePep";
+import { complianceRiskHa } from "./complianceRisk";
+import { complianceBeneficialOwnershipHa } from "./complianceBeneficialOwnership";
 
 /**
  * Every machine-drafted namespace for this locale, laid under the locale
@@ -19,6 +29,8 @@ import { priceCheckHa } from "./priceCheck";
 export const haDrafts = {
   passcode: passcodeHa,
   desk: deskHa,
+  publicMeta: publicMetaHa,
+  hostWorkspace: hostWorkspaceHa,
   frontDoor: frontDoorHa,
   landingRooms: landingRoomsHa,
   trustDoors: trustDoorsHa,
@@ -27,4 +39,12 @@ export const haDrafts = {
   trustVisible: trustVisibleHa,
   platform: platformHa,
   priceCheck: priceCheckHa,
+  landlord: landlordHa,
+  cryptoPay: cryptoPayHa,
+  arrivalCheck: arrivalCheckHa,
+  reel: reelHa,
+  mail: mailHa,
+  compliancePep: compliancePepHa,
+  complianceRisk: complianceRiskHa,
+  complianceBeneficialOwnership: complianceBeneficialOwnershipHa,
 } satisfies Translation;

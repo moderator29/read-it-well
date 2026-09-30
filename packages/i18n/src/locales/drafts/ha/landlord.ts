@@ -1,0 +1,252 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Hausa speaker's review
+   (review-status.ts). The SMS lines keep their reply digits and {code}
+   exactly: a landlord answers them by typing 1, 2 or 3. */
+export const landlordHa = {
+  sms: {
+    vacancy:
+      "Vallo: shin {place} ɗinka har yanzu akwai shi don haya? Amsa 1 {code} idan ee, 2 {code} idan an ba da haya, 3 {code} idan ba ka nemi kowa ya ba da hayarsa ba. Ko amsa a nan: {link}",
+    rent:
+      "Vallo: wani mai haya ya biya {total} don {place} ɗinka. Amsa 1 {code} idan daidai ne, 2 {code} idan ba abin da kuka amince ba ne. Kowane adadi yana nan: {link}",
+  },
+
+  reply: {
+    metaTitle: "Amsarka ga Vallo",
+    chip: "Don mai gida",
+    loading: "Ana buɗe tambayarka",
+    vacancyTitle: "Shin {place} ɗinka har yanzu akwai shi?",
+    vacancyLedeNoAgent:
+      "An sanya shi don haya a Vallo. Kai ne mutum ɗaya da ya sani da tabbaci, don haka muna tambayarka maimakon wakili.",
+    yes: "Ee, har yanzu akwai shi",
+    let: "A'a, an ba da haya",
+    notInstructed: "Ban nemi kowa ya ba da hayarsa ba",
+    whatHappens:
+      "Idan an ba da haya, kowane jerinsa a Vallo yana saukowa nan take. Idan ba ka nemi kowa ya ba da hayarsa ba, ana rufe jerin kuma ƙungiyarmu tana kiranka.",
+    rentTitle: "Wani mai haya ya biya hayar {place} ɗinka",
+    rentLedeNoAgent:
+      "An biya {total} a Vallo, don haya daga {moveIn}. Waɗannan su ne alƙaluman da aka caji mai haya, har kobo.",
+    rows: {
+      rent: "Haya",
+      caution: "Ajiyar kariya, an biya maka",
+      service: "Kuɗin sabis",
+      agency: "Kuɗin wakili",
+      legal: "Kuɗin lauya",
+      agreement: "Kuɗin yarjejeniya",
+      total: "Jimillar da aka biya",
+      totalSum: "Jimillar da aka biya, haɗin sassan",
+    },
+    right: "Wannan daidai ne",
+    notAgreed: "Wannan ba abin da na amince ba ne",
+    noteLabel: "Me ka amince? (ba dole ba)",
+    noteHint: "Har zuwa haruffa 400. Ƙungiyarmu tana karanta wannan kafin ta kira ka.",
+    privacy:
+      "Vallo ba ya taɓa nuna lambarka ga kowa. Wannan shafi yana nuna unguwa, ba adireshi ba.",
+    stop: "Dakatar da waɗannan saƙonni",
+    stopHint: "Ba za mu sake aika saƙo zuwa wannan lamba ba, game da wannan gida ko wani daban.",
+    working: "Ana aika amsarka",
+    answeredOn: "Ka amsa a {date}.",
+    failed: "Amsarka ba ta iso gare mu ba. Babu abin da ya canza. Da fatan za ka sake gwadawa.",
+    done: {
+      available: {
+        title: "Na gode. Jerin yanzu yana nuna cewa ka tabbatar da shi",
+        body: "Masu neman haya suna ganin cewa mai gida ya tabbatar akwai shi yau. Za mu sake tambaya nan da kusan makonni biyu.",
+      },
+      let: {
+        title: "Na gode. An sauke shi",
+        body: "Kowane jerin wannan gida a Vallo ya sauka lokaci ɗaya, kuma an gaya wa duk wanda ke jiran duba gida.",
+      },
+      notInstructed: {
+        title: "Na gode da ka gaya mana. An rufe jerin",
+        body: "Ƙungiyarmu za ta kira ka a wannan lamba kafin wani abu ya faru.",
+      },
+      confirmed: {
+        title: "Na gode. Mai haya zai ga cewa ka tabbatar da alƙaluman",
+        body: "Ba a buƙatar wani abu kuma daga gare ka.",
+      },
+      disputed: {
+        title: "Na gode. Ƙungiyarmu za ta duba shi",
+        body: "Ana gaya wa mai haya cewa ana tambayar alƙaluman, kuma za mu kira ka a wannan lamba.",
+      },
+      stopped: {
+        title: "Ba za mu sake aika saƙo zuwa wannan lamba ba",
+        body: "Jerinka suna nan yadda suke. Idan ka canza ra'ayi, gaya wa wakili kuma ƙungiyarmu za ta kira ka ta tambaya.",
+      },
+    },
+    states: {
+      unknown: {
+        title: "Ba mu gane wannan mahaɗin ba",
+        body: "Wataƙila ba a kwafe shi gaba ɗaya ba. Sake buɗe shi daga saƙon da muka aiko. Ba a nuna komai game da kowane gida a nan ba tare da mahaɗi mai aiki ba.",
+      },
+      used: {
+        title: "Ka riga ka amsa wannan",
+        body: "Na gode. Ana iya amsa kowane saƙo sau ɗaya. Za mu sake tambaya a saƙo na gaba.",
+      },
+      expired: {
+        title: "Wannan tambayar ta rufe",
+        body: "Ta kasance a buɗe na makonni huɗu. Babu abin da ya canza saboda ita, kuma za mu sake tambaya a saƙo na gaba.",
+      },
+      closed: {
+        title: "Ba ma karɓar amsoshi a nan a yanzu",
+        body: "Babu abin da ya canza saboda wannan mahaɗin. Ba ka buƙatar yin komai.",
+      },
+      failed: {
+        title: "Ba mu iya buɗe tambayarka ba",
+        body: "Laifin daga ɓangarenmu ne, ba naka ba. Babu abin da ya canza. Da fatan za ka sake gwada mahaɗin bayan 'yan mintuna.",
+      },
+    },
+  },
+
+  listing: {
+    ownerConfirmedToday: "Mai gida ya tabbatar akwai shi yau",
+    ownerConfirmedDay: "Mai gida ya tabbatar akwai shi kwana 1 da ya wuce",
+    ownerConfirmedDays: "Mai gida ya tabbatar akwai shi kwanaki {n} da suka wuce",
+    notReconfirmed: "Ba a sake tabbatarwa ba",
+    notReconfirmedBody:
+      "Mai gida bai amsa tambayarmu game da samuwa ba na makonni uku, don haka wannan jeri ba ya karɓar sabbin duba gida.",
+  },
+
+  offers: {
+    title: "Tayi {n} a kan wannan gida",
+    card: "Wakilai {n} ne suka yi tayi",
+    lede: "Vallo ya danganta waɗannan jeri da gida ɗaya. Kowane mai sanarwa yana saita nasa jimlar kuɗin shiga, don haka kwatanta su a nan.",
+    thisOne: "Wannan jeri",
+    moveIn: "Don shiga",
+    noMoveIn: "Ba a faɗa ba",
+    view: "Duba tayin",
+    failed: "Ba a iya karanta sauran tayin da ke kan wannan gida yanzu ba.",
+  },
+
+  rentFact: {
+    confirmed: "Mai gida, {name}, ya tabbatar da waɗannan alƙaluman a {date}",
+    confirmedNoName: "Mai gida ya tabbatar da waɗannan alƙaluman a {date}",
+    waiting: "Mai gida bai amsa ba tukuna",
+    waitingBody: "Mun aika wa mai gida waɗannan alƙaluman a {date}.",
+    disputed: "Mai gida yana jayayya da waɗannan alƙaluman",
+    disputedBody: "Ƙungiyarmu tana duba shi kuma za ta tuntuɓe ka.",
+  },
+
+  close: {
+    action: "Rufe",
+    title: "Rufe wannan jeri",
+    body: "Yaya ya ƙare? Ba da haya yana sauke kowane jerin gida ɗaya, kuma ana gaya wa duk wanda ke bibiyarsa.",
+    reasons: {
+      let_through_vallo: "An ba da haya ta Vallo",
+      let_elsewhere: "An ba da haya a wani wuri",
+      owner_withdrew: "Mai gida ya janye shi",
+      mandate_ended: "Izinina ya ƙare",
+    },
+    closedReasons: {
+      let_through_vallo: "An ba da haya ta Vallo",
+      let_elsewhere: "An ba da haya a wani wuri",
+      owner_withdrew: "Mai gida ya janye shi",
+      mandate_ended: "Izini ya ƙare",
+      let_owner_confirmed: "An ba da haya, mai gida ya tabbatar",
+      owner_denied_mandate: "Mai gida ya ce bai ba da umarnin wannan jeri ba",
+      let_same_property: "An ba da haya, ta wani jerin gida ɗaya",
+    },
+    closedLabel: "An rufe: {reason}",
+    groupTitle: "An rufe",
+    groupBlurb: "An rufe tare da dalili. Jerin da aka rufe yana zama a rufe; sake sanya gidan a matsayin sabon jeri.",
+    confirm: "Rufe jerin",
+    keep: "Bar shi a buɗe",
+    choose: "Zaɓi yadda ya ƙare.",
+    failed: "Ba a rufe jerin ba. Babu abin da ya canza. Da fatan za ka sake gwadawa.",
+    noRent:
+      "Ba a biya haya ta Vallo don wannan jeri ba, don haka ba za a iya rufe shi a matsayin an ba da haya ta Vallo ba. Zaɓi An ba da haya a wani wuri maimakon haka.",
+  },
+
+  owner: {
+    prompt: "Har yanzu akwai wannan?",
+    body: "Ka sanya shi a matsayin mai gida, don haka muna tambayarka kowane mako biyu. Amsawa tana riƙe shi a matsayinsa a bincike. Makonni uku ba tare da amsa ba suna matsar da shi zuwa ƙarshen bincike, kuma yana daina karɓar buƙatun duba gida har sai ka amsa. Idan an ba da haya, rufe shi maimakon haka.",
+    yes: "Ee, har yanzu akwai shi",
+    let: "An ba da haya",
+    thanks: "Na gode. Za mu sake tambaya nan da kusan makonni biyu.",
+    failed: "Wannan amsar ba ta iso gare mu ba. Babu abin da ya canza. Da fatan za ka sake gwadawa.",
+  },
+
+  portfolio: {
+    nav: "Gine-gine",
+    metaTitle: "Gine-gine da izini",
+    title: "Gine-gine da izini",
+    lede: "Gidajen da ka mallaka da wanda ke ba da hayarsu, da masu gidaje a unguwanninka da ke zaɓar wakili.",
+    buildingsTitle: "Gine-ginena",
+    buildingsLede: "Kowane gida da ka sanya a matsayin mai shi, an haɗa su bisa wuri.",
+    let: "An ba da haya har zuwa {date}",
+    letNoDate: "An ba da haya",
+    achieved: "An samu {amount} {period}",
+    vacant: "Ba a ba da haya ba",
+    alsoListed: "{names} ma sun sanya shi",
+    mandateTo: "An ba {names} izini",
+    inviteTitle: "Gayyaci wakilai su gabatar da kansu",
+    inviteLede: "Wakilai da aka tabbatar da ke sanya jeri a {place} tuni suna ganin wurin gidan, ɗakunan kwana da iyakar farashin da kake nema, ba adireshi ba. Suna amsawa da bayani da rikodinsu a Vallo.",
+    inviteMin: "Nema daga (naira a shekara)",
+    inviteMax: "Nema har zuwa (naira a shekara)",
+    inviteSend: "Gayyaci wakilai",
+    inviteSent: "An aika gayyata ga wakilai {n}.",
+    inviteSentNone: "Gayyata a buɗe. Babu wakili da aka tabbatar da ke sanya jeri a wannan wuri tukuna; tana zama a buɗe na makonni biyu.",
+    inviteBand: "Ba da iyaka, mafi ƙanƙanta da farko, mafi girma bai wuce ninki uku na mafi ƙanƙanta ba.",
+    inviteFailed: "Ba a aika gayyatar ba. Babu abin da ya canza. Da fatan za ka sake gwadawa.",
+    invitationOpen: "Gayyata a buɗe · gabatarwa {n}",
+    invitationAwarded: "An ba da izini · gabatarwa {n}",
+    withdraw: "Janye gayyatar",
+    pitchesTitle: "Gabatarwa",
+    pitchesNone: "Babu wakili da ya gabatar da kansa tukuna.",
+    pitchRecord: "Haya {lets} ta Vallo · jeri {live} masu aiki · a Vallo tun {since}",
+    pitchVerified: "An tabbatar",
+    award: "Ba wannan wakilin izini",
+    awarded: "An ba da izini",
+    awardFailed: "Hakan bai wuce ba. Babu abin da ya canza. Da fatan za ka sake gwadawa.",
+    briefsTitle: "Masu gidaje da ke zaɓar wakili",
+    briefsLede: "Masu gidaje a wuraren da kake sanya jeri tuni, suna neman wakilai da aka tabbatar su gabatar da kansu. Wakilai da aka tabbatar kaɗai ke ganin waɗannan.",
+    briefLine: "{type} mai ɗakunan kwana {beds} a {place}",
+    briefBand: "Suna neman {min} zuwa {max} {period}",
+    briefExpires: "A buɗe har zuwa {date}",
+    pitchLabel: "Me ya sa kai, a 'yan layuka",
+    pitchPlaceholder: "Abin da ka ba da haya a kusa, yadda za ka tallata shi, yadda kake amsawa da sauri.",
+    pitchSend: "Aika gabatarwata",
+    pitched: "An gabatar. Mai gida zai ga rikodinka a gefen bayaninka.",
+    youHaveIt: "Mai gida ya ba ka izini. Sanya gidan kuma ka haɗa izinin tare da mai gida a matsayin shugaba.",
+    pitchShort: "Faɗi ɗan ƙari: aƙalla haruffa goma.",
+    pitchFailed: "Gabatarwarka ba ta aika ba. Babu abin da ya canza. Da fatan za ka sake gwadawa.",
+    emptyTitle: "Babu komai a nan tukuna",
+    emptyBody: "Gidajen da ka sanya a matsayin mai su suna bayyana a nan, haka ma masu gidaje kusa da kai da ke zaɓar wakili da zarar an tabbatar da kai.",
+    readFailed: "Ba a iya karanta wannan yanzu ba. Babu abin da ya canza.",
+    period: { year: "a shekara", quarter: "a kowane wata uku", month: "a wata" },
+  },
+
+  admin: {
+    consentTitle: "Izinin shugaba",
+    consentRead: "Karanta wannan ga shugaba a kiran, kalma bayan kalma:",
+    consentGiven: "Sun amince",
+    consentWithdraw: "Sun nemi mu daina",
+    consentRecorded: "{name} ya rubuta izini {date}.",
+    consentWithdrawn: "An janye izini {date}. Ba za a aika komai zuwa wannan lamba ba.",
+    consentRecordedNow: "An rubuta izini yanzun nan, kai ne.",
+    consentWithdrawnNow: "An janye izini yanzun nan. Ba za a aika komai zuwa wannan lamba ba.",
+    consentNone: "Ba a rubuta izini ba. Ba za a taɓa aika komai zuwa wannan lamba ba.",
+    consentNoNumber: "Ba a ba da lamba ba, don haka babu wanda za a tambaya.",
+    consentReadFailed: "Ba a iya karanta izini yanzu ba. Ba a aika komai ba tare da shi ba.",
+    consentFailed: "Ba a rubuta izini ba. Babu abin da ya canza. Sake gwadawa.",
+    lineOff: "An kashe layin mai gida, don haka ba a aika komai ba tukuna, ko da akwai izini.",
+    lineOn: "Layin mai gida yana kunne. Tare da izini, ana tambayar shugaba kusan sau ɗaya a kowane mako biyu, ba fiye da sau ɗaya a mako ba.",
+    matchTitle: "Gida ɗaya ne?",
+    matchLede:
+      "Jerin da ƙila fulat ɗaya ne da wannan, an gabatar da su bisa mai gidan da ke rikodi ko fil, kuma koyaushe da ɗakunan kwana da nau'i iri ɗaya. Ba a haɗa komai ba har sai ka ce haka.",
+    matchNone: "Babu wani jeri da yake kama da wannan gida.",
+    matchFailed: "Ba a iya karanta daidaitawar da aka gabatar yanzu ba.",
+    signalPrincipal: "Mai gida ɗaya a rikodi",
+    signalDifferent: "Wani mai gida daban a rikodi",
+    closedStays: "Jerin da aka rufe yana zama a rufe. Sake buɗe shi ne kawai idan an rufe shi bisa kuskure.",
+    reopenLabel: "Me ya sa ake sake buɗe shi? Wannan yana shiga rikodin bincike.",
+    reopen: "Sake buɗe jerin",
+    stoppedBefore: "Wannan lambar ta nemi mu daina a {date}. Rubuta abin da shugaba ya faɗa a wannan kiran kafin ka sake rubuta izini.",
+    reconsentNote: "Abin da shugaba ya faɗa a wannan kiran",
+    signalNear: "Fil-fil suna da nisan mita {m}",
+    join: "Gida ɗaya ne",
+    apart: "Ba ɗaya ba ne",
+    split: "Cire wannan jeri daga gidan",
+    onProperty: "Wannan jeri yana kan gida mai wasu tayi.",
+    decisionFailed: "Ba a rubuta wannan hukunci ba. Babu abin da ya canza.",
+  },
+} satisfies NonNullable<Translation["landlord"]>;

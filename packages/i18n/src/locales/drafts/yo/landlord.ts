@@ -1,0 +1,252 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Yoruba speaker's review
+   (review-status.ts). The SMS lines keep their reply digits and {code}
+   exactly: a landlord answers them by typing 1, 2 or 3. */
+export const landlordYo = {
+  sms: {
+    vacancy:
+      "Vallo: ṣé {place} rẹ ṣì wà fún háyà? Fèsì 1 {code} bí ó bá wà, 2 {code} bí a ti yá a jáde, 3 {code} bí o kò bá ní kí ẹnikẹ́ni yá a jáde. Tàbí dáhùn níbí: {link}",
+    rent:
+      "Vallo: ayálégbé kan ti san {total} fún {place} rẹ. Fèsì 1 {code} bí ó bá tọ̀nà, 2 {code} bí kì í bá ṣe ohun tí ẹ fohùn ṣọ̀kan lé lórí. Gbogbo nọ́mbà wà níbí: {link}",
+  },
+
+  reply: {
+    metaTitle: "Ìdáhùn rẹ sí Vallo",
+    chip: "Fún onílé",
+    loading: "À ń ṣí ìbéèrè rẹ",
+    vacancyTitle: "Ṣé {place} rẹ ṣì wà?",
+    vacancyLedeNoAgent:
+      "A kéde rẹ̀ fún háyà lórí Vallo. Ìwọ nìkan ni o mọ̀ dájú, nítorí náà a ń béèrè lọ́wọ́ rẹ dípò aṣojú.",
+    yes: "Bẹ́ẹ̀ni, ó ṣì wà",
+    let: "Rárá, a ti yá a jáde",
+    notInstructed: "Mi ò ní kí ẹnikẹ́ni yá a jáde",
+    whatHappens:
+      "Bí a bá ti yá a jáde, gbogbo àkọsílẹ̀ rẹ̀ lórí Vallo yóò wálẹ̀ lẹ́sẹ̀kẹsẹ̀. Bí o kò bá ní kí ẹnikẹ́ni yá a jáde, a ó ti àkọsílẹ̀ náà, ẹgbẹ́ wa yóò sì pè ọ́ padà.",
+    rentTitle: "Ayálégbé kan ti san háyà fún {place} rẹ",
+    rentLedeNoAgent:
+      "A san {total} lórí Vallo, fún háyà láti {moveIn}. Àwọn nọ́mbà tí a gbà lọ́wọ́ ayálégbé nìyí, títí dé kọ́bọ̀.",
+    rows: {
+      rent: "Háyà",
+      caution: "Owó ìkìlọ̀, tí a san fún ọ",
+      service: "Owó iṣẹ́",
+      agency: "Owó aṣojú",
+      legal: "Owó agbẹjọ́rò",
+      agreement: "Owó àdéhùn",
+      total: "Àpapọ̀ tí a san",
+      totalSum: "Àpapọ̀ tí a san, àròpọ̀ àwọn apá",
+    },
+    right: "Ìyẹn tọ̀nà",
+    notAgreed: "Ìyẹn kì í ṣe ohun tí mo gbà",
+    noteLabel: "Kí ni o gbà? (kò pọn dandan)",
+    noteHint: "Títí dé lẹ́tà 400. Ẹgbẹ́ wa ń ka èyí kí wọ́n tó pè ọ́.",
+    privacy:
+      "Vallo kì í fi nọ́mbà rẹ han ẹnikẹ́ni. Ojú ewé yìí ń fi àdúgbò hàn, kì í ṣe àdírẹ́sì.",
+    stop: "Dá àwọn ìránṣẹ́ wọ̀nyí dúró",
+    stopHint: "A kò ní fi ìránṣẹ́ ránṣẹ́ sí nọ́mbà yìí mọ́, nípa ilé yìí tàbí èyíkéyìí mìíràn.",
+    working: "À ń fi ìdáhùn rẹ ránṣẹ́",
+    answeredOn: "O dáhùn ní {date}.",
+    failed: "Ìdáhùn rẹ kò dé ọ̀dọ̀ wa. Kò sí ohun tí ó yí padà. Jọ̀wọ́ tún gbìyànjú.",
+    done: {
+      available: {
+        title: "Ẹ ṣé. Àkọsílẹ̀ náà ń fi hàn báyìí pé o fìdí rẹ̀ múlẹ̀",
+        body: "Àwọn tí ń wá ilé ń rí i pé onílé fìdí rẹ̀ múlẹ̀ pé ó wà lónìí. A ó tún béèrè ní nǹkan bí ọ̀sẹ̀ méjì.",
+      },
+      let: {
+        title: "Ẹ ṣé. A ti gbé e kúrò",
+        body: "Gbogbo àkọsílẹ̀ ilé yìí lórí Vallo wálẹ̀ lẹ́ẹ̀kan náà, a sì ti sọ fún ẹnikẹ́ni tí ó ń dúró de àyẹ̀wò ilé.",
+      },
+      notInstructed: {
+        title: "Ẹ ṣé fún sísọ fún wa. A ti ti àkọsílẹ̀ náà",
+        body: "Ẹgbẹ́ wa yóò pè ọ́ padà lórí nọ́mbà yìí kí ohunkóhun mìíràn tó ṣẹlẹ̀.",
+      },
+      confirmed: {
+        title: "Ẹ ṣé. Ayálégbé yóò rí i pé o fìdí àwọn nọ́mbà náà múlẹ̀",
+        body: "A kò nílò nǹkan mìíràn lọ́wọ́ rẹ.",
+      },
+      disputed: {
+        title: "Ẹ ṣé. Ẹgbẹ́ wa yóò wò ó",
+        body: "A ń sọ fún ayálégbé pé a ń bi àwọn nọ́mbà náà léèrè, a ó sì pè ọ́ padà lórí nọ́mbà yìí.",
+      },
+      stopped: {
+        title: "A kò ní fi ìránṣẹ́ ránṣẹ́ sí nọ́mbà yìí mọ́",
+        body: "Àwọn àkọsílẹ̀ rẹ wà bí wọ́n ṣe wà. Bí o bá yí ọkàn padà, sọ fún aṣojú, ẹgbẹ́ wa yóò sì pè ọ́ láti béèrè.",
+      },
+    },
+    states: {
+      unknown: {
+        title: "A kò mọ ìjápọ̀ yìí",
+        body: "Bóyá a kò da gbogbo rẹ̀ kọ. Tún un ṣí láti inú ìránṣẹ́ tí a fi ránṣẹ́. A kì í fi nǹkan kan nípa ilé kankan hàn níbí láìsí ìjápọ̀ tí ń ṣiṣẹ́.",
+      },
+      used: {
+        title: "O ti dáhùn èyí tẹ́lẹ̀",
+        body: "Ẹ ṣé. A lè dáhùn ìránṣẹ́ kọ̀ọ̀kan lẹ́ẹ̀kan. A ó tún béèrè nínú ìránṣẹ́ tí ó kàn.",
+      },
+      expired: {
+        title: "Ìbéèrè yìí ti tì",
+        body: "Ó wà ní ṣíṣí fún ọ̀sẹ̀ mẹ́rin. Kò sí ohun tí ó yí padà nítorí rẹ̀, a ó sì tún béèrè nínú ìránṣẹ́ tí ó kàn.",
+      },
+      closed: {
+        title: "A kò gba ìdáhùn níbí lọ́wọ́lọ́wọ́",
+        body: "Kò sí ohun tí ó yí padà nítorí ìjápọ̀ yìí. O kò nílò láti ṣe ohunkóhun.",
+      },
+      failed: {
+        title: "A kò lè ṣí ìbéèrè rẹ",
+        body: "Ẹ̀bi náà wà lọ́dọ̀ wa, kì í ṣe lọ́dọ̀ rẹ. Kò sí ohun tí ó yí padà. Jọ̀wọ́ tún gbìyànjú ìjápọ̀ náà lẹ́yìn ìṣẹ́jú díẹ̀.",
+      },
+    },
+  },
+
+  listing: {
+    ownerConfirmedToday: "Onílé fìdí rẹ̀ múlẹ̀ pé ó wà lónìí",
+    ownerConfirmedDay: "Onílé fìdí rẹ̀ múlẹ̀ pé ó wà ní ọjọ́ 1 sẹ́yìn",
+    ownerConfirmedDays: "Onílé fìdí rẹ̀ múlẹ̀ pé ó wà ní ọjọ́ {n} sẹ́yìn",
+    notReconfirmed: "A kò tún fìdí rẹ̀ múlẹ̀",
+    notReconfirmedBody:
+      "Onílé kò dáhùn ìbéèrè wa nípa wíwà rẹ̀ fún ọ̀sẹ̀ mẹ́ta, nítorí náà àkọsílẹ̀ yìí kò gba àyẹ̀wò ilé tuntun.",
+  },
+
+  offers: {
+    title: "Ìfilọ̀ {n} lórí ilé yìí",
+    card: "Aṣojú {n} ló fi í lọ̀",
+    lede: "Vallo so àwọn àkọsílẹ̀ wọ̀nyí mọ́ ilé kan. Olùkéde kọ̀ọ̀kan ń ṣètò àpapọ̀ owó ìwọlé tirẹ̀, nítorí náà fi wọ́n wéra níbí.",
+    thisOne: "Àkọsílẹ̀ yìí",
+    moveIn: "Láti wọlé",
+    noMoveIn: "A kò sọ ọ́",
+    view: "Wo ìfilọ̀ náà",
+    failed: "A kò lè ka àwọn ìfilọ̀ mìíràn lórí ilé yìí báyìí.",
+  },
+
+  rentFact: {
+    confirmed: "Onílé, {name}, fìdí àwọn nọ́mbà wọ̀nyí múlẹ̀ ní {date}",
+    confirmedNoName: "Onílé fìdí àwọn nọ́mbà wọ̀nyí múlẹ̀ ní {date}",
+    waiting: "Onílé kò tíì dáhùn",
+    waitingBody: "A fi àwọn nọ́mbà wọ̀nyí ránṣẹ́ sí onílé ní {date}.",
+    disputed: "Onílé tako àwọn nọ́mbà wọ̀nyí",
+    disputedBody: "Ẹgbẹ́ wa ń wò ó, wọn yóò sì kàn sí ọ.",
+  },
+
+  close: {
+    action: "Tì",
+    title: "Ti àkọsílẹ̀ yìí",
+    body: "Báwo ló ṣe parí? Yíyá jáde ń mú gbogbo àkọsílẹ̀ ilé kan náà wálẹ̀, a sì ń sọ fún ẹnikẹ́ni tí ó ń tẹ̀lé e.",
+    reasons: {
+      let_through_vallo: "A yá a jáde nípasẹ̀ Vallo",
+      let_elsewhere: "A yá a jáde níbòmíràn",
+      owner_withdrew: "Onílé yọ ọ́ kúrò",
+      mandate_ended: "Àṣẹ mi ti parí",
+    },
+    closedReasons: {
+      let_through_vallo: "A yá a jáde nípasẹ̀ Vallo",
+      let_elsewhere: "A yá a jáde níbòmíràn",
+      owner_withdrew: "Onílé yọ ọ́ kúrò",
+      mandate_ended: "Àṣẹ ti parí",
+      let_owner_confirmed: "A yá a jáde, onílé fìdí rẹ̀ múlẹ̀",
+      owner_denied_mandate: "Onílé sọ pé òun kò pàṣẹ àkọsílẹ̀ yìí",
+      let_same_property: "A yá a jáde, nípasẹ̀ àkọsílẹ̀ mìíràn ti ilé kan náà",
+    },
+    closedLabel: "A ti tì í: {reason}",
+    groupTitle: "A ti tì í",
+    groupBlurb: "A tì í pẹ̀lú ìdí kan. Àkọsílẹ̀ tí a ti tì ń wà ní títì; kéde ilé náà lẹ́ẹ̀kan sí i bí àkọsílẹ̀ tuntun.",
+    confirm: "Ti àkọsílẹ̀ náà",
+    keep: "Fi sílẹ̀ ní ṣíṣí",
+    choose: "Yan bí ó ṣe parí.",
+    failed: "A kò ti àkọsílẹ̀ náà. Kò sí ohun tí ó yí padà. Jọ̀wọ́ tún gbìyànjú.",
+    noRent:
+      "A kò san háyà kankan nípasẹ̀ Vallo fún àkọsílẹ̀ yìí, nítorí náà a kò lè tì í bí a ti yá a jáde nípasẹ̀ Vallo. Yan A yá a jáde níbòmíràn dípò.",
+  },
+
+  owner: {
+    prompt: "Ṣé èyí ṣì wà?",
+    body: "O kéde rẹ̀ bí onílé, nítorí náà a ń bi ọ́ ní gbogbo ọ̀sẹ̀ méjì. Dídáhùn ń pa á mọ́ sí ipò rẹ̀ nínú ìwádìí. Ọ̀sẹ̀ mẹ́ta láìsí ìdáhùn ń gbé e lọ sí òpin ìwádìí, kò sì ní gba ìbéèrè àyẹ̀wò ilé mọ́ títí o ó fi dáhùn. Bí a bá ti yá a jáde, tì í dípò.",
+    yes: "Bẹ́ẹ̀ni, ó ṣì wà",
+    let: "A ti yá a jáde",
+    thanks: "Ẹ ṣé. A ó tún béèrè ní nǹkan bí ọ̀sẹ̀ méjì.",
+    failed: "Ìdáhùn yẹn kò dé ọ̀dọ̀ wa. Kò sí ohun tí ó yí padà. Jọ̀wọ́ tún gbìyànjú.",
+  },
+
+  portfolio: {
+    nav: "Àwọn ilé",
+    metaTitle: "Àwọn ilé àti àṣẹ",
+    title: "Àwọn ilé àti àṣẹ",
+    lede: "Àwọn ilé tí o ní àti ẹni tí ó ń yá wọn jáde, àti àwọn onílé ní àwọn àdúgbò rẹ tí wọ́n ń yan aṣojú.",
+    buildingsTitle: "Àwọn ilé mi",
+    buildingsLede: "Gbogbo ilé tí o kéde bí onílé, tí a kó jọ ní ìbámu pẹ̀lú ibi.",
+    let: "A yá a jáde títí di {date}",
+    letNoDate: "A yá a jáde",
+    achieved: "A rí {amount} {period}",
+    vacant: "A kò yá a jáde",
+    alsoListed: "{names} náà kéde rẹ̀",
+    mandateTo: "A fún {names} ní àṣẹ",
+    inviteTitle: "Pe àwọn aṣojú láti gbé ara wọn kalẹ̀",
+    inviteLede: "Àwọn aṣojú tí a ti fọwọ́sí tí wọ́n ti ń kéde ní {place} ń rí ibi ilé náà, àwọn yàrá ìsùn àti ààlà iye tí o ń béèrè, kì í ṣe àdírẹ́sì. Wọ́n ń dáhùn pẹ̀lú àkọsílẹ̀ kékeré àti àkọsílẹ̀ wọn lórí Vallo.",
+    inviteMin: "Ń béèrè láti (náírà lọ́dún)",
+    inviteMax: "Ń béèrè títí dé (náírà lọ́dún)",
+    inviteSend: "Pe àwọn aṣojú",
+    inviteSent: "A fi ìpè ránṣẹ́ sí aṣojú {n}.",
+    inviteSentNone: "Ìpè wà ní ṣíṣí. Kò tíì sí aṣojú tí a ti fọwọ́sí tí ó ń kéde ní ibí yìí; ó máa wà ní ṣíṣí fún ọ̀sẹ̀ méjì.",
+    inviteBand: "Fún wa ní ààlà kan, èyí tí ó kéré jù ní àkọ́kọ́, èyí tí ó ga jù kò gbọdọ̀ ju ìlọ́po mẹ́ta èyí tí ó kéré jù lọ.",
+    inviteFailed: "A kò fi ìpè náà ránṣẹ́. Kò sí ohun tí ó yí padà. Jọ̀wọ́ tún gbìyànjú.",
+    invitationOpen: "Ìpè wà ní ṣíṣí · ìgbékalẹ̀ {n}",
+    invitationAwarded: "A ti fún ní àṣẹ · ìgbékalẹ̀ {n}",
+    withdraw: "Gba ìpè náà padà",
+    pitchesTitle: "Àwọn ìgbékalẹ̀",
+    pitchesNone: "Kò tíì sí aṣojú tí ó gbé ara rẹ̀ kalẹ̀.",
+    pitchRecord: "Háyà {lets} nípasẹ̀ Vallo · àkọsílẹ̀ {live} tí ó wà láàyè · lórí Vallo láti {since}",
+    pitchVerified: "A ti fọwọ́sí",
+    award: "Fún aṣojú yìí ní àṣẹ",
+    awarded: "A ti fún ní àṣẹ",
+    awardFailed: "Ìyẹn kò lọ. Kò sí ohun tí ó yí padà. Jọ̀wọ́ tún gbìyànjú.",
+    briefsTitle: "Àwọn onílé tí ń yan aṣojú",
+    briefsLede: "Àwọn onílé ní àwọn ibi tí o ti ń kéde, tí wọ́n ń ní kí àwọn aṣojú tí a ti fọwọ́sí gbé ara wọn kalẹ̀. Àwọn aṣojú tí a ti fọwọ́sí nìkan ló ń rí ìwọ̀nyí.",
+    briefLine: "{type} oní yàrá ìsùn {beds} ní {place}",
+    briefBand: "Wọ́n ń béèrè {min} sí {max} {period}",
+    briefExpires: "Ó ṣí títí di {date}",
+    pitchLabel: "Kí ló dé tí ó fi jẹ́ ìwọ, ní ìlà díẹ̀",
+    pitchPlaceholder: "Ohun tí o ti yá jáde nítòsí, bí o ṣe máa polówó rẹ̀, bí o ṣe ń dáhùn kíákíá tó.",
+    pitchSend: "Fi ìgbékalẹ̀ mi ránṣẹ́",
+    pitched: "A ti gbé ọ kalẹ̀. Onílé yóò rí àkọsílẹ̀ rẹ lẹ́gbẹ̀ẹ́ ọ̀rọ̀ rẹ.",
+    youHaveIt: "Onílé fún ọ ní àṣẹ. Kéde ilé náà kí o sì so àṣẹ náà mọ́ ọn pẹ̀lú onílé bí olórí.",
+    pitchShort: "Sọ díẹ̀ sí i: ó kéré tán lẹ́tà mẹ́wàá.",
+    pitchFailed: "Ìgbékalẹ̀ rẹ kò lọ. Kò sí ohun tí ó yí padà. Jọ̀wọ́ tún gbìyànjú.",
+    emptyTitle: "Kò tíì sí nǹkan kan níbí",
+    emptyBody: "Àwọn ilé tí o kéde bí onílé ń hàn níbí, bẹ́ẹ̀ náà ni àwọn onílé nítòsí rẹ tí wọ́n ń yan aṣojú ní kété tí a bá fọwọ́sí ọ.",
+    readFailed: "A kò lè ka èyí báyìí. Kò sí ohun tí ó yí padà.",
+    period: { year: "lọ́dún", quarter: "ní oṣù mẹ́ta mẹ́ta", month: "lóṣù" },
+  },
+
+  admin: {
+    consentTitle: "Ìfọwọ́sí olórí",
+    consentRead: "Ka èyí fún olórí lórí ìpè náà, ọ̀rọ̀ sí ọ̀rọ̀:",
+    consentGiven: "Wọ́n gbà",
+    consentWithdraw: "Wọ́n ní kí a dáwọ́ dúró",
+    consentRecorded: "{name} kọ ìfọwọ́sí sílẹ̀ ní {date}.",
+    consentWithdrawn: "A gba ìfọwọ́sí padà ní {date}. A kò ní fi nǹkan kan ránṣẹ́ sí nọ́mbà yìí.",
+    consentRecordedNow: "A kọ ìfọwọ́sí sílẹ̀ báyìí, ìwọ ni.",
+    consentWithdrawnNow: "A gba ìfọwọ́sí padà báyìí. A kò ní fi nǹkan kan ránṣẹ́ sí nọ́mbà yìí.",
+    consentNone: "A kò kọ ìfọwọ́sí sílẹ̀. A kò ní fi nǹkan kan ránṣẹ́ sí nọ́mbà yìí rí.",
+    consentNoNumber: "A kò fún wa ní nọ́mbà, nítorí náà kò sí ẹni tí a ó béèrè.",
+    consentReadFailed: "A kò lè ka ìfọwọ́sí báyìí. A kì í fi nǹkan kan ránṣẹ́ láìsí rẹ̀.",
+    consentFailed: "A kò kọ ìfọwọ́sí sílẹ̀. Kò sí ohun tí ó yí padà. Tún gbìyànjú.",
+    lineOff: "A ti pa ìlà onílé, nítorí náà a kò fi nǹkan kan ránṣẹ́ síbẹ̀, kódà pẹ̀lú ìfọwọ́sí.",
+    lineOn: "Ìlà onílé wà ní títàn. Pẹ̀lú ìfọwọ́sí, a ń bi olórí ní nǹkan bí ẹ̀ẹ̀kan ní ọ̀sẹ̀ méjì, kì í ju ẹ̀ẹ̀kan lọ ní ọ̀sẹ̀ kan.",
+    matchTitle: "Ilé kan náà?",
+    matchLede:
+      "Àwọn àkọsílẹ̀ tí ó lè jẹ́ fúláàtì kan náà yìí, tí a dábàá lórí onílé tí ó wà nínú àkọsílẹ̀ tàbí pinni, àti nígbà gbogbo pẹ̀lú yàrá ìsùn àti irú kan náà. A kò so nǹkan kan pọ̀ títí o ó fi sọ bẹ́ẹ̀.",
+    matchNone: "Kò sí àkọsílẹ̀ mìíràn tí ó dà bí ilé yìí.",
+    matchFailed: "A kò lè ka àwọn ìbáramu tí a dábàá báyìí.",
+    signalPrincipal: "Onílé kan náà nínú àkọsílẹ̀",
+    signalDifferent: "Onílé mìíràn nínú àkọsílẹ̀",
+    closedStays: "Àkọsílẹ̀ tí a ti tì ń wà ní títì. Tún un ṣí nìkan bí a bá tì í ní àṣìṣe.",
+    reopenLabel: "Kí ló dé tí a fi ń tún un ṣí? Èyí ń lọ sínú àkọsílẹ̀ àyẹ̀wò.",
+    reopen: "Tún àkọsílẹ̀ náà ṣí",
+    stoppedBefore: "Nọ́mbà yìí ní kí a dáwọ́ dúró ní {date}. Kọ ohun tí olórí sọ lórí ìpè yìí sílẹ̀ kí o tó tún kọ ìfọwọ́sí sílẹ̀.",
+    reconsentNote: "Ohun tí olórí sọ lórí ìpè yìí",
+    signalNear: "Àwọn pinni jìnnà síra ní mítà {m}",
+    join: "Ilé kan náà",
+    apart: "Kì í ṣe kan náà",
+    split: "Yọ àkọsílẹ̀ yìí kúrò lórí ilé náà",
+    onProperty: "Àkọsílẹ̀ yìí wà lórí ilé kan tí ó ní àwọn ìfilọ̀ mìíràn.",
+    decisionFailed: "A kò kọ ìpinnu yẹn sílẹ̀. Kò sí ohun tí ó yí padà.",
+  },
+} satisfies NonNullable<Translation["landlord"]>;

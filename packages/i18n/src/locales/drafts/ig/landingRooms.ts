@@ -5,14 +5,12 @@ import type { Translation } from "../../fallback";
    agent's initials stay as English writes them. */
 export const landingRoomsIg = {
   ai: {
-    overline: "Vallo AI",
     title: "Jụọ n'okwu dị mfe. Nweta ezigbo ebe.",
     body: "Jụọ n'asụsụ Bekee, Yorùbá, Hausa ma ọ bụ Igbo, n'okwu nke gị.",
     caption: "Mkparịta ụka ihe atụ",
     replay: "Kpọọ ọzọ",
     cta: "Jụọ onye enyemaka",
     you: "Gị",
-    name: "Vallo AI",
     lawyer: "Jụọ onye ọka iwu tupu ị kwụọ ụgwọ",
     scripts: [
       {
@@ -127,7 +125,6 @@ export const landingRoomsIg = {
       chosen: "Ahọrọla",
       open: "Mepere emepe",
       noFee: "Enweghị ụgwọ nyocha",
-      agentName: "Tunde A.",
       agentRole: "Onye nnọchiteanya, Lekki",
       reviewed: "Mmadụ nyochara arịrịọ ahụ",
       named: "A kpọrọ aha ya na ndepụta ọ bụla",
@@ -163,12 +160,10 @@ export const landingRoomsIg = {
     cards: {
       rent: { title: "Gbazite ma zụta", body: "Ụlọ, ala, ụlọ ahịa na ọfịs, ya na mkpokọta ego ịbanye e dere na kaadị." },
       stays: {
-        title: "Vallo Stays",
         body: "Họtel, shortlet na ụlọ ọbịa, ya na abalị ndị tọgbọrọ chakoo na mkpokọta ego tupu i debe.",
         chips: ["Họtel", "Shortlet", "Ụlọ ọbịa", "Ebe ezumike"],
       },
       ai: {
-        title: "Vallo AI",
         body: "Jụọ n'asụsụ Bekee, Yorùbá, Hausa ma ọ bụ Igbo. Ọ na-akpọ aha naanị ebe dị na Vallo.",
         chips: ["Bekee", "Yorùbá", "Hausa", "Igbo"],
       },

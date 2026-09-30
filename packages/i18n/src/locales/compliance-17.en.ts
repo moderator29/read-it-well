@@ -165,4 +165,4 @@ export const complianceBeneficialOwnershipEn = {
     renewWaitingEnded: "We have your renewal and will confirm it with {name}. The old mandate has ended, so the listing needs this one confirmed.",
     renew: "Send the renewal",
   },
-} as const;
+};

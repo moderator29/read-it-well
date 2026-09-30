@@ -42,6 +42,8 @@ export type NamespaceReview =
 export const DRAFTED_2026_09_30 = [
   "passcode",
   "desk",
+  "publicMeta",
+  "hostWorkspace",
   "frontDoor",
   "landingRooms",
   "trustDoors",
@@ -50,6 +52,14 @@ export const DRAFTED_2026_09_30 = [
   "trustVisible",
   "platform",
   "priceCheck",
+  "landlord",
+  "cryptoPay",
+  "arrivalCheck",
+  "reel",
+  "mail",
+  "compliancePep",
+  "complianceRisk",
+  "complianceBeneficialOwnership",
 ] as const;
 
 function drafted(
@@ -84,3 +94,34 @@ export function draftNamespaces(locale: TranslatedLocale): string[] {
     .filter(([, entry]) => entry.state === "machine-draft")
     .map(([ns]) => ns);
 }
+
+/**
+ * COPY THAT STAYS ENGLISH BY DECISION, NOT BY OVERSIGHT.
+ *
+ * The compliance desk's console: SCUML lanes, goAML and NFIU filings, STR
+ * reasoning, risk classes. Only staff read it, it is the language of the
+ * reports it produces, and a wrong word in a translated regulatory term is
+ * worse than English. The member-facing parts of the same modules (the PEP
+ * question a lister answers, the agent's mandate page, the gate's refusal)
+ * are NOT here and are drafted like everything else.
+ *
+ * Dotted prefixes. The completeness report counts these keys as `staff`
+ * rather than `missing`, so a real gap is never hidden among them.
+ */
+export const STAFF_ENGLISH = [
+  "compliance",
+  "complianceStr",
+  "complianceThreshold",
+  "complianceRisk.lane",
+  "complianceRisk.gate.admin",
+  "compliancePep.lane",
+  "complianceBeneficialOwnership.lane",
+  "complianceBeneficialOwnership.actingFor",
+  "complianceBeneficialOwnership.decide",
+] as const;
+
+/** Is this dotted key staff-only copy that stays English by decision? */
+export function isStaffEnglish(key: string): boolean {
+  return STAFF_ENGLISH.some((prefix) => key === prefix || key.startsWith(`${prefix}.`));
+}
+

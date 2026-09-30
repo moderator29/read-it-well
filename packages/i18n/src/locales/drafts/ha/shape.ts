@@ -167,18 +167,9 @@ export const shapeHa = {
   },
   unit: {
     shapes: {
-      self_contain: "Self-contain",
       room_parlour: "Ɗaki da falo",
-      mini_flat: "Mini flat",
       flat: "Fulat",
-      duplex: "Duplex",
-      terrace: "Terrace",
-      semi_detached: "Semi-detached",
       detached: "Gida mai zaman kansa",
-      bungalow: "Bungalow",
-      maisonette: "Maisonette",
-      penthouse: "Penthouse",
-      boys_quarters: "Boys' quarters",
     },
     meanings: {
       self_contain: "Ɗaki ɗaya mai nasa kicin da banɗaki",

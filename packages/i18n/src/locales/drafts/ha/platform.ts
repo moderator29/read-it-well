@@ -225,7 +225,6 @@ export const platformHa = {
     couldNotKeep: "Ba ka kan layi, kuma wannan wayar ba ta iya ajiye wannan don daga baya ba.",
     sentTitle: "An aika yanzu da kake da sigina",
     failedTitle: "Wani abu da ka yi ba tare da layi ba bai wuce ba",
-    failedItem: "{what}: {reason}",
     what: {
       save: "Ajiye wuri",
       unsave: "Cire wurin da aka ajiye",

@@ -23,7 +23,10 @@ export {
   REVIEW_STATUS,
   reviewStateOf,
   draftNamespaces,
+  STAFF_ENGLISH,
+  isStaffEnglish,
   type ReviewState,
   type NamespaceReview,
   type TranslatedLocale,
 } from "./review-status";
+export type { PublicPageKey } from "./locales/public-meta.en";

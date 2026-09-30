@@ -167,18 +167,8 @@ export const shapeIg = {
   },
   unit: {
     shapes: {
-      self_contain: "Self-contain",
       room_parlour: "Ime ụlọ na palọ",
-      mini_flat: "Mini flat",
-      flat: "Flat",
-      duplex: "Duplex",
-      terrace: "Terrace",
-      semi_detached: "Semi-detached",
       detached: "Ụlọ kwụ onwe ya",
-      bungalow: "Bungalow",
-      maisonette: "Maisonette",
-      penthouse: "Penthouse",
-      boys_quarters: "Boys' quarters",
     },
     meanings: {
       self_contain: "Otu ime ụlọ nwere kichin na ụlọ mposi nke ya",

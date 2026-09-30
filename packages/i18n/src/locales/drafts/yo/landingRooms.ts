@@ -5,14 +5,12 @@ import type { Translation } from "../../fallback";
    agent's initials stay as English writes them. */
 export const landingRoomsYo = {
   ai: {
-    overline: "Vallo AI",
     title: "Béèrè ní ọ̀rọ̀ tí ó rọrùn. Rí ibi gidi.",
     body: "Béèrè ní Gẹ̀ẹ́sì, Yorùbá, Hausa tàbí Igbo, ní ọ̀rọ̀ ara rẹ.",
     caption: "Àpẹẹrẹ ìfọ̀rọ̀wérọ̀",
     replay: "Tún un ṣe",
     cta: "Béèrè lọ́wọ́ olùrànlọ́wọ́",
     you: "Ìwọ",
-    name: "Vallo AI",
     lawyer: "Béèrè lọ́wọ́ agbẹjọ́rò kí o tó san owó",
     scripts: [
       {
@@ -127,7 +125,6 @@ export const landingRoomsYo = {
       chosen: "A ti yàn án",
       open: "Ó ṣí",
       noFee: "Kò sí owó àyẹ̀wò",
-      agentName: "Tunde A.",
       agentRole: "Aṣojú, Lekki",
       reviewed: "Ènìyàn kan yẹ ìbéèrè wò",
       named: "A dárúkọ rẹ̀ lórí gbogbo àkọsílẹ̀",
@@ -163,12 +160,10 @@ export const landingRoomsYo = {
     cards: {
       rent: { title: "Háyà àti rírà", body: "Ilé, ilẹ̀, ṣọ́ọ̀bù àti ọ́fíìsì, pẹ̀lú àpapọ̀ owó ìwọlé lórí káàdì." },
       stays: {
-        title: "Vallo Stays",
         body: "Hótẹ́ẹ̀lì, shortlet àti ilé àlejò, pẹ̀lú àwọn alẹ́ tí ó ṣófo àti àpapọ̀ owó kí o tó ṣe ìfipamọ́.",
         chips: ["Hótẹ́ẹ̀lì", "Shortlet", "Ilé àlejò", "Ibi ìsinmi"],
       },
       ai: {
-        title: "Vallo AI",
         body: "Béèrè ní Gẹ̀ẹ́sì, Yorùbá, Hausa tàbí Igbo. Ó ń dárúkọ àwọn ibi tí ó wà lórí Vallo nìkan.",
         chips: ["Gẹ̀ẹ́sì", "Yorùbá", "Hausa", "Igbo"],
       },

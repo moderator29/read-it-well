@@ -1,0 +1,52 @@
+import type { Translation } from "../../fallback";
+
+/* MACHINE DRAFT, 30 September 2026. Needs a native Hausa speaker's review
+   (review-status.ts). Only `lister`, the agent's own mandate page; the
+   console copy stays English by decision (STAFF_ENGLISH). */
+export const complianceBeneficialOwnershipHa = {
+  lister: {
+    title: "Wanda kake ba da haya a madadinsa",
+    lede: "Idan ka ba da hayar gida a madadin mai shi, muna tabbatarwa da mai gidan cewa shi ne ya roƙe ka. Wannan binciken ne ke sa jerin ka ya cancanci amincewa, kuma masu neman haya suna ganin ranar da muka yi shi.",
+    whyLive: "Jerin wakili ko kamfani yana fara aiki ne kawai bayan mai gidan ya tabbatar.",
+    grace: "Jerin ka zai ci gaba da aiki har zuwa {date} yayin da kake ƙara wannan.",
+    takenDown: "An cire wannan jerin daga kasuwa har sai mai gidan ya tabbatar. Da zarar ya tabbatar, zai iya komawa aiki.",
+    owner: "Ka sanya wannan a matsayin mai gidan, don haka babu wanda za a tabbatar da shi.",
+    example: "Wannan jerin misali ne, don haka ba ya buƙatar komai a nan.",
+    notYours: "Wannan jerin ba naka ba ne.",
+    failed: "Ba mu iya karanta wannan yanzu ba. Babu abin da ya canza. Sake gwadawa nan ba da jimawa ba.",
+    back: "Koma ga jerin ka",
+    waiting: "Mun karɓi abin da ka aiko kuma za mu tabbatar da shi tare da {name}. Kana iya gyara shi kafin mu yi.",
+    approved: "{name} ya tabbatar a {date}. Babu sauran abin da za a yi.",
+    rejected: "Ba mu iya tabbatar da wannan ba: {reason} Sake aikawa da bayanan da suka dace.",
+    kind: "Abin da mai gidan ya roƙe ka ka yi",
+    kinds: { letting: "Ba da haya", sale: "Sayar da shi", management: "Kula da shi" },
+    name: "Cikakken sunan mai gidan",
+    phone: "Lambar wayar mai gidan",
+    phoneHint: "Za mu iya kiran wannan lambar don tabbatarwa. Ba ma nuna ta ga masu neman haya.",
+    relationship: "Alaƙarsa da gidan",
+    relationships: {
+      owner: "Shi ne mai shi",
+      joint_owner: "Yana da shi tare da wasu",
+      family_of_owner: "Ɗan uwan mai gidan",
+      company_director: "Darakta a kamfanin da ya mallake shi",
+      executor_or_trustee: "Mai zartar da wasiyya ko amintacce",
+      attorney: "Yana riƙe da ikon wakilci",
+      other: "Wani abu daban",
+    },
+    exclusive: "Kai kaɗai ne ke ba da hayarsa?",
+    exclusiveYes: "E, ni kaɗai",
+    exclusiveNo: "A'a, akwai wasu ma",
+    exclusiveUnknown: "Ban tabbata ba",
+    signedOn: "Ranar da mai gidan ya ba ka umarni (ba dole ba)",
+    expiresOn: "Ranar da zai ƙare (ba dole ba, ba a baya ba)",
+    send: "Aika don tabbatarwa",
+    update: "Ajiye gyaran",
+    sent: "An aika. Za mu tabbatar da shi tare da mai gidan.",
+    link: "Izinin mai gidan",
+    renewDue: "Izininka daga {name} zai ƙare a {date}. Aika sabuntawa yanzu don mu tabbatar da shi tare da shi kuma jerin ya ci gaba da aiki ba tare da tsayawa ba.",
+    renewEnded: "Izininka daga {name} ya ƙare a {date}, don haka ba ya aiki kuma. Aika sabo kuma za mu tabbatar da shi tare da shi.",
+    renewWaiting: "Mun karɓi sabuntawarka kuma za mu tabbatar da ita tare da {name}. Izinin da ke rubuce yana aiki har zuwa ranar ƙarewarsa.",
+    renewWaitingEnded: "Mun karɓi sabuntawarka kuma za mu tabbatar da ita tare da {name}. Tsohon izinin ya ƙare, don haka jerin yana buƙatar a tabbatar da wannan.",
+    renew: "Aika sabuntawar",
+  },
+} satisfies NonNullable<Translation["complianceBeneficialOwnership"]>;

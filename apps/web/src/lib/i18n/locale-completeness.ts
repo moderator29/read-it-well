@@ -2,6 +2,7 @@ import {
   DEFAULT_LOCALE,
   LOCALES,
   getDictionary,
+  isStaffEnglish,
   pluralTag,
   reviewStateOf,
   suppliedKeys,
@@ -161,6 +162,8 @@ export type NamespaceCoverage = {
   namespace: string;
   total: number;
   missing: number;
+  /** Staff-only copy left in English by decision (`STAFF_ENGLISH`). */
+  staff: number;
   draft: number;
   unreviewed: number;
   reviewed: number;
@@ -189,15 +192,21 @@ export function namespaceCoverage(locale: Locale): NamespaceCoverage[] {
     ) {
       continue;
     }
-    const namespace = key.split(".")[0];
-    let row = rows.get(namespace);
-    if (!row) {
-      row = { namespace, total: 0, missing: 0, draft: 0, unreviewed: 0, reviewed: 0 };
-      rows.set(namespace, row);
-    }
+    const namespace = key.split(".")[0] ?? key;
+    const row: NamespaceCoverage = rows.get(namespace) ?? {
+      namespace,
+      total: 0,
+      missing: 0,
+      staff: 0,
+      draft: 0,
+      unreviewed: 0,
+      reviewed: 0,
+    };
+    rows.set(namespace, row);
     row.total += 1;
     if (!declared.has(key)) {
-      row.missing += 1;
+      if (isStaffEnglish(key)) row.staff += 1;
+      else row.missing += 1;
       continue;
     }
     const state = reviewStateOf(locale, key);
@@ -214,10 +223,11 @@ export function coverageTotals(locale: Locale): Omit<NamespaceCoverage, "namespa
     (sum, row) => ({
       total: sum.total + row.total,
       missing: sum.missing + row.missing,
+      staff: sum.staff + row.staff,
       draft: sum.draft + row.draft,
       unreviewed: sum.unreviewed + row.unreviewed,
       reviewed: sum.reviewed + row.reviewed,
     }),
-    { total: 0, missing: 0, draft: 0, unreviewed: 0, reviewed: 0 },
+    { total: 0, missing: 0, staff: 0, draft: 0, unreviewed: 0, reviewed: 0 },
   );
 }
