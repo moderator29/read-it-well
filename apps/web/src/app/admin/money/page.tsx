@@ -1,3 +1,4 @@
+import { dateTimeLabel } from "@/lib/format/when";
 import type { Metadata } from "next";
 import { MoneyHistoryPanel } from "../_components/MoneyHistoryPanel";
 import { formatMoney, getDictionary } from "@vallo/i18n";
@@ -117,7 +118,7 @@ export default async function AdminMoneyPage({
       <ReconciliationPanel
         health={runs.state === "ok" ? runs.data : null}
         now={requestTime()}
-        when={(iso) => (iso ? new Date(iso).toLocaleString("en-NG", { timeZone: "Africa/Lagos" }) : "never")}
+        when={(iso) => (iso ? dateTimeLabel(iso) : "never")}
         variant="check"
         locale={locale}
       />

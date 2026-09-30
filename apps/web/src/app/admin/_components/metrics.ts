@@ -1,3 +1,4 @@
+import { agoShort } from "@/lib/format/when";
 /**
  * Pure arithmetic for the console's figures: the change against the previous
  * period, the axis ticks, the "12m ago" stamps and the alert vocabulary. No
@@ -58,20 +59,14 @@ export function niceTicks(max: number, count = 4): number[] {
   return ticks;
 }
 
-/** "just now", "12m ago", "3h ago", "2d ago", then the date. */
+/** "just now", "12m ago", "3h ago", "2d ago", then the date: `agoShort`'s
+ *  words, with the console's own date past a week. */
 export function sinceLabel(iso: string | null, now: number, formatDate: (d: Date) => string): string {
   if (!iso) return "Not recorded";
   const at = Date.parse(iso);
   if (!Number.isFinite(at)) return "Not recorded";
-  const seconds = Math.max(0, Math.round((now - at) / 1000));
-  if (seconds < 60) return "just now";
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return formatDate(new Date(at));
+  if (now - at >= 7 * 86_400_000) return formatDate(new Date(at));
+  return agoShort(at, { now });
 }
 
 export type AlertTone = "success" | "pending" | "error" | "info";

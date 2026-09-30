@@ -1,3 +1,4 @@
+import { agoShort, dateTimeLabel } from "@/lib/format/when";
 import Link from "next/link";
 import { countOf } from "@vallo/i18n/core";
 import type { ReactNode } from "react";
@@ -72,17 +73,12 @@ function when(iso: string | null): string {
   if (!iso) return "not recorded";
   const at = Date.parse(iso);
   if (Number.isNaN(at)) return "not recorded";
-  return new Date(at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", dateStyle: "medium", timeStyle: "short" });
+  return dateTimeLabel(at);
 }
 
+/* The console's dense age (lib/format/when.ts): "12m ago", then the date. */
 function ago(iso: string, now: number): string {
-  const mins = Math.floor((now - Date.parse(iso)) / 60_000);
-  if (!Number.isFinite(mins) || mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return days < 30 ? `${days}d ago` : when(iso);
+  return agoShort(iso, { now }) || "just now";
 }
 
 function statusWord(status: string): { label: string; tone: StatusTone } {
