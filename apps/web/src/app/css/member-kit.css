@@ -269,3 +269,85 @@ html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__labe
     outline: 2px solid Highlight;
   }
 }
+
+@layer components {
+  /* --------------------------------------------- B16 stories as a sequence */
+
+  /* The header and the foot sit over the tap zones, so their own controls
+     keep working; the zones take the picture between them. */
+  .nf-story--seq .nf-story__top,
+  .nf-story--seq .nf-story__foot {
+    position: relative;
+    z-index: 2;
+  }
+  .nf-story-seq__bars {
+    position: absolute;
+    z-index: 3;
+    inset-inline: var(--nf-space-md);
+    top: calc(var(--nf-social-bar, 0px) + var(--nf-space-2xs));
+    display: flex;
+    gap: var(--nf-space-3xs);
+    pointer-events: none;
+  }
+  .nf-story-seq__bar {
+    flex: 1 1 0;
+    height: 3px;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-surface-control-on-media);
+    overflow: hidden;
+  }
+  .nf-story-seq__fill {
+    display: block;
+    height: 100%;
+    background: var(--nf-content-on-media);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  .nf-story-seq__fill.is-done {
+    transform: scaleX(1);
+  }
+  .nf-story-seq__fill.is-running {
+    animation-name: nf-story-fill;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes nf-story-fill {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .nf-story-seq__zone {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    bottom: 0;
+    width: 33.333%;
+    background: transparent;
+    touch-action: pan-x;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-story-seq__zone--prev {
+    left: 0;
+  }
+  .nf-story-seq__zone--next {
+    right: 0;
+  }
+  .nf-story-seq__zone:disabled {
+    pointer-events: none;
+  }
+  .nf-story-seq__zone:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -6px;
+  }
+  .nf-story-seq__warm {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
