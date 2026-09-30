@@ -31,6 +31,10 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
   const copy = getDictionary(await getLocale()).publicDoors.invite;
   const { code, door } = await doorFor((await params).code);
   const known = Boolean(code && door?.found);
+  /* A lookup the limiter refused (door null) names nobody but still keeps a
+     well-formed code for sign-up; only a code the database answered "no" to
+     is dropped. */
+  const keep = code !== null && door?.found !== false;
   const title = known && door?.firstName ? copy.doorTitle.replace("{name}", door.firstName) : copy.doorTitleNoName;
 
   return (
@@ -39,9 +43,9 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
         <Logo size={40} wordSize={18} />
         <h1 className="nf-door-page__title">{title}</h1>
         <p className="nf-door-page__lede">{copy.doorBody}</p>
-        {!known && <p className="nf-caption text-[var(--nf-content-muted)]">{copy.doorUnknown}</p>}
+        {!keep && <p className="nf-caption text-[var(--nf-content-muted)]">{copy.doorUnknown}</p>}
         <div className="nf-door-page__actions">
-          <ButtonLink href={known && code ? `/join/${code}/start` : "/sign-up"} variant="primary" size="lg" full trailingIcon="arrow-right">
+          <ButtonLink href={keep && code ? `/join/${code}/start` : "/sign-up"} variant="primary" size="lg" full trailingIcon="arrow-right">
             {copy.doorStart}
           </ButtonLink>
           <ButtonLink href="/sign-in" variant="secondary" size="lg" full>

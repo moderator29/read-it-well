@@ -293,6 +293,8 @@ const EXPECTED_PUBLIC = new Set([
   /* API, each one guarded by a signature, a bearer secret, or nothing because
      it is telemetry a signed-out browser has to be able to post. */
   "/api/auth/email-hook",
+  /* A2: the Send SMS hook, signed, and off by default. */
+  "/api/auth/sms-hook",
   "/api/client-error",
   /* A12: RFC 8058 one-click unsubscribe, by signed token. A6: the
      first-party funnel beacon, rate limited, recording no person. */

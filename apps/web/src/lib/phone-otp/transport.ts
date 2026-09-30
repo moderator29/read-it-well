@@ -1,3 +1,4 @@
+import { termiiConfig, termiiTransport } from "./termii";
 /**
  * HOW A CODE REACHES A PHONE (V-50): AN INTERFACE, AND THE FOUNDER'S VENDOR
  * BEHIND IT.
@@ -49,5 +50,8 @@ export function capturingTransport(outbox: CapturedMessage[]): OtpTransport {
 
 /** The transport this deployment uses. No vendor is wired yet. */
 export function otpTransport(): OtpTransport {
-  return unconfiguredTransport;
+  /* A2: Termii when its key and sender id are set; otherwise nothing is sent
+     and every caller says so. Never a fake success. */
+  const termii = termiiConfig();
+  return termii ? termiiTransport(termii) : unconfiguredTransport;
 }

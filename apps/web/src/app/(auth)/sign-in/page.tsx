@@ -10,6 +10,7 @@ import { requestSurface } from "@/lib/auth/surface";
 import { chooserEmail, signInWithEmail, signUpMethodForEmail } from "@/lib/auth/actions";
 import type { EmailStatus } from "@/lib/auth/form-state";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
+import { AltSignInDoors } from "@/components/auth/AltSignInDoors";
 import { emailFromQuery } from "@/components/auth/auth-intent";
 import { arrivalOf } from "@/app/welcome/plan";
 import { wallHeading } from "@/components/app/welcome/wall-heading";
@@ -92,18 +93,22 @@ export default async function SignInPage({
   }
 
   return (
-    <EmailAuthForm
-      mode="sign-in"
-      t={t}
-      action={signInWithEmail}
-      next={next}
-      initialEmail={address}
-      accountMethod={accountMethod}
-      googleReady={configured("google") && surface === "web"}
-      appleReady={configured("apple") && surface !== "android-native"}
-      surface={surface}
-      notice={noticeText}
-      emailReady={configured("email")}
-    />
+    <>
+      <EmailAuthForm
+        mode="sign-in"
+        t={t}
+        action={signInWithEmail}
+        next={next}
+        initialEmail={address}
+        accountMethod={accountMethod}
+        googleReady={configured("google") && surface === "web"}
+        appleReady={configured("apple") && surface !== "android-native"}
+        surface={surface}
+        notice={noticeText}
+        emailReady={configured("email")}
+      />
+      {/* A3 and A2: the code-by-email door, and phone and passkey when switched on. */}
+      <AltSignInDoors t={t} next={next} surface={surface} />
+    </>
   );
 }

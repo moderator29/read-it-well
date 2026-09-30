@@ -288,6 +288,9 @@ const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-im
  */
 const PUBLIC_API_PATHS = new Set([
   "/api/auth/email-hook",
+  /* A2: Supabase's Send SMS hook, behind the Standard Webhooks signature and
+     off unless PHONE_SIGNIN_ENABLED is true. */
+  "/api/auth/sms-hook",
   /* C2: a room's calendar for Airbnb or Booking.com to subscribe to. The
      64-character token in the query is the whole key; it returns dates only. */
   "/api/calendar/feed",
@@ -305,6 +308,8 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
+  /* C8: the nightly duplicate-photo hash backfill, behind the cron bearer. */
+  "/api/cron/photo-hash-backfill",
   /* SCUML item 15: the daily risk classification, behind the cron bearer. */
   "/api/cron/risk-classes",
   "/api/cron/saved-search-alerts",

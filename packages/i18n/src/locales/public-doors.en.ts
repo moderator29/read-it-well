@@ -155,6 +155,7 @@ export const publicDoorsEn = {
     verify: "Sign in",
     resend: "Send a new code",
     usePassword: "Use my password instead",
+    passkey: "Sign in with a passkey",
     badEmail: "Enter a valid email address.",
     badCode: "Enter the 6 digits from the email.",
     wrongCode: "That code is not right or has expired. Send a new one and try again.",

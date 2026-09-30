@@ -1,6 +1,7 @@
 import "server-only";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { INVITE_COOKIE, normaliseInviteCode } from "./code";
 
@@ -8,10 +9,10 @@ type Rpc = (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: u
 
 /**
  * A5. The signed-in member's own invite code, made on first ask through
- * `public.my_referral_code()`. Null when signed out, or until the pending
- * migration `20260930180000_a5_invite_codes_a_member_can_share.sql` is
- * applied (the function does not exist, the call fails, the page says the
- * link could not be made).
+ * `public.my_referral_code()`. Null when signed out, or if the migration
+ * `20260930084741_a5_invite_codes_a_member_can_share.sql` (applied
+ * 30 September 2026) were missing (the function would not exist, the call
+ * fails, the page says the link could not be made).
  */
 export async function myInviteCode(): Promise<string | null> {
   try {
@@ -23,9 +24,22 @@ export async function myInviteCode(): Promise<string | null> {
   }
 }
 
-/** What the invite door may show about a code: whether it exists, and a first name at most. */
+/**
+ * What the invite door may show about a code: whether it exists, and a first
+ * name at most. Rate limited per address and FAILS CLOSED: a caller walking
+ * codes to collect first names is answered as if no code matched, and so is
+ * a limiter that cannot answer. Twenty lookups in ten minutes is more than a
+ * person opening invites will ever need.
+ */
 export async function inviteDoor(code: string): Promise<{ found: boolean; firstName: string | null } | null> {
   try {
+    const verdict = await consume({
+      bucket: "invite_door",
+      subject: subjectForIp(ipFromHeaders(await headers())),
+      limit: 20,
+      windowSeconds: 600,
+    });
+    if (!verdict.allowed || verdict.degraded) return null;
     const supabase = await createClient();
     const { data, error } = await (supabase.rpc as unknown as Rpc)("referral_door", { p_code: code });
     if (error || !data || typeof data !== "object") return null;
