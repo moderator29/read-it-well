@@ -143,7 +143,7 @@ is stored) / **Required or optional?** / **Purposes**.
 | App activity → Other actions | **No** | | |
 | Web browsing → Web browsing history | **No** | | |
 | App info and performance → **Crash logs** | Yes if `SENTRY_DSN` is set at submission, otherwise No | Optional | App functionality |
-| App info and performance → Diagnostics / Other app performance data | **No** | | |
+| App info and performance → **Diagnostics** | **Yes** (corrected 30 September 2026, C15: page speed samples) | Required | Analytics, App functionality |
 | Device or other IDs → **Device or other IDs** | Yes | Optional | App functionality, Fraud prevention, security and compliance (FCM token; new-device fingerprint) |
 
 ### Section 3: Security practices (shown on the listing)
