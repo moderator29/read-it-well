@@ -43,7 +43,7 @@ const FRONT = { rotation: { x: 0, y: 0, z: 0 }, fov: 20 };
 export function M(ctx) {
   const { W, H, ios } = ctx;
   const size = ios ? 112 : 100;
-  const hlTop = ios ? 150 : 130;
+  const hlTop = ios ? 140 : 130;
   const phoneTop = ios ? 490 : 470;
   const phoneBottom = ios ? 100 : 90;
   return {
@@ -51,24 +51,24 @@ export function M(ctx) {
     side: ios ? 80 : 88,
     /* the phone's frame is 1080 px wide on the App Store and 946 on Play */
     max: ios ? 1130 : 996,
-    subSize: ios ? 38 : 34,
+    subSize: ios ? 30 : 34,
     phoneTop,
     phoneH: H - phoneTop - phoneBottom,
     /* how far a card overhangs the phone's edge, in px (and still keeps 40 px to the
        image's edge), and how far the frame's outer edge lies outside the display, in
        display px (2.35 mm on the island, 1.95 mm on the Android) */
-    overhang: ios ? 70 : 80,
+    overhang: ios ? 50 : 80,
     frame: ios ? 42 : 36,
     /* the cards keep the same size against the phone in both stores (the Play
        phone is 0.876 of the App Store's width) */
-    card: ios ? 1 : 0.876,
+    card: 1.3 * (ios ? 1 : 0.876),
   };
 }
 
 function head(ctx, m, lines, { align = "center", sub } = {}) {
   return headline({
     lines, cx: ctx.W / 2, x: m.side, y: m.hlTop, max: m.max, size: m.size, align, weight: 600, lineHeight: m.lh,
-    sub, subSize: m.subSize, subGap: m.subSize * 0.42, subColor: "rgb(255 255 255 / 0.62)",
+    sub, subSize: m.subSize, subGap: m.subSize * (ctx.ios ? 0.5 : 0.42), subColor: "rgb(255 255 255 / 0.6)",
   });
 }
 
@@ -117,7 +117,7 @@ const HEADER = { top: 186, bottom: 365, bell: { x: 1204, y: 275, r: 66 }, menu: 
  * the phone is drawn once, tilted by the 3D studio, and keeps the studio's
  * own mapping of the capture.
  */
-function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, extraB }) {
+function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, extraA, extraB }) {
   const shared = async ({ pc, W, H, ios }) => {
     const m = M({ W, H, ios });
     const o = { id, cy: m.phoneTop + m.phoneH / 2, h: m.phoneH * h, rotation, fov, color: PHONE_COLOR, margin: ios ? 64 : 70 };
@@ -143,7 +143,7 @@ function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, extraB }
     return [head(ctx, m, S.lines, { align: "left" }), extra ? await extra(ctx, m) : ""].join("\n");
   };
   return [
-    { n: a.n, slug: a.slug, captures: [id], pairWith: b.n, shared, layout: words(a) },
+    { n: a.n, slug: a.slug, captures: [id], pairWith: b.n, shared, layout: words(a, extraA) },
     { n: b.n, slug: b.slug, captures: [id], pairedFrom: a.n, layout: words(b, extraB) },
   ];
 }
@@ -152,112 +152,90 @@ function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, extraB }
 
 export const SHOTS = [
   std(1, "find-your-next-home-in-nigeria", "home", ["Find your next home", "in Nigeria"]),
-  std(2, "the-move-in-total-before-you-call", "listing-cost", ["The move-in total,", "before you call"]),
+  /* 2: the listing itself, whose move-in total sits under the photograph. */
+  std(2, "the-move-in-total-before-you-call", "listing", ["The move-in total,", "before you call"]),
   std(3, "homes-and-stays-one-account", "welcome-1", ["Homes and stays,", "one account"]),
 
-  /* 4 and 5: the stays home across the seam, leaning right; the booking
-     arrives over the app's header on 5, covering the bell whole, and
-     overhangs the phone's right edge. */
+  /* 4 and 5, the one connected pair: the stays home across the seam, leaning
+     right, slid so the seam passes clear of every word. The booking arrives
+     on 4, over the phone's left edge beside the header (clear of the menu),
+     where the ground is open; on 5 the phone's right side has no room for a
+     card of this size within the overhang rule. */
   ...pair(
     { n: 4, slug: "hotels-shortlets-and-resorts", lines: ["Hotels, shortlets", "and resorts"] },
     { n: 5, slug: "book-a-room-in-a-few-taps", lines: ["Book a room", "in a few taps"] },
     {
-      /* The phone slid left (about 220 px on the App Store) so the seam
-         passes clear of the area line ("Ibeju-Lekki, Lagos State") and the
-         hero's headline, and through the space between "across" and
-         "Nigeria." on its subline. */
       id: "stays", rotation: { x: -16, y: -16, z: -17 }, fov: 26, h: 1, through: [893, 1272],
-      async extraB(ctx, m) {
+      async extraA(ctx, m) {
         const { u, W } = ctx;
         const sp = ctx.shared.phone;
-        const at = (x, y) => { const [px, py] = sp.at(x, y); return [px - W, py]; };
-        /* The bell, whole; the end of the logo, left clear; the frame's right
-           edge beside the bell, which the card overhangs. */
-        const ring = Array.from({ length: 24 }, (_, k) => at(HEADER.bell.x + HEADER.bell.r * Math.cos((k * Math.PI) / 12), HEADER.bell.y + HEADER.bell.r * Math.sin((k * Math.PI) / 12)));
-        const bell = { l: Math.min(...ring.map((p) => p[0])), r: Math.max(...ring.map((p) => p[0])), t: Math.min(...ring.map((p) => p[1])), b: Math.max(...ring.map((p) => p[1])) };
-        const logoEnd = Math.max(at(HEADER.logo[1], 237)[0], at(HEADER.logo[1], 313)[0]);
-        const edge = Math.max(at(1320 + m.frame, HEADER.top)[0], at(1320 + m.frame, HEADER.bottom)[0]);
-        /* The card is as wide as its words, set from its right edge; at both
-           stores' sizes that leaves it clear of the end of the logo. */
+        /* the frame's left edge along the header, and the menu button */
+        const edge = Math.min(...[HEADER.top, 275, HEADER.bottom].map((y) => sp.at(-m.frame, y)[0]));
+        const menuLeft = Math.min(...[237, 313].map((y) => sp.at(HEADER.menu[0], y)[0]));
         const right = edge + m.overhang;
-        const top = bell.t - 30 * m.card;
-        ctx.cardCheck = { clearOf: logoEnd + 12 * u };
-        return popup({ right: W - right, fit: true, y: top, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
+        const [, midY] = sp.at(0, 275);
+        const cardH = 158 * m.card;
+        ctx.cardCheck = { rightOf: menuLeft - 12 * u };
+        return popup({ right: W - right, fit: true, y: midY - cardH / 2, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
       },
     },
   ),
 
-  std(6, "search-homes-across-nigeria", "search", ["Search homes", "across Nigeria"]),
-  std(7, "see-every-home-up-close", "listing", ["See every home", "up close"]),
+  std(6, "vallo-never-holds-your-money", "support-money", ["Vallo never holds", "your money"]),
+  std(7, "see-the-stay-before-you-book", "stay", ["See the stay", "before you book"]),
   std(8, "ask-the-ai-assistant-any-time-of-day", "assistant-caution-2", ["Ask the AI assistant", "any time of day"]),
   std(9, "save-favourites-compare-later", "saved", ["Save favourites,", "compare later"]),
+  std(10, "find-a-restaurant-you-love", "restaurant", ["Find a restaurant", "you love"]),
+  std(11, "every-fee-added-up", "listing-cost", ["Every fee,", "added up"]),
+  std(12, "each-verified-mark-checked-by-a-person", "welcome-2", ["Each verified mark,", "checked by a person"]),
 
-  /* 10 and 11: the restaurant across the seam, leaning left, the phone
-     slid left (about 130 px) so the seam passes 44 px clear of the
-     restaurant's name. */
-  ...pair(
-    { n: 10, slug: "find-a-restaurant-you-love", lines: ["Find a restaurant", "you love"] },
-    { n: 11, slug: "hours-dress-code-and-seats-up-front", lines: ["Hours, dress code", "and seats, up front"] },
-    { id: "restaurant", rotation: { x: -16, y: 16, z: 17 }, fov: 26, h: 1, clear: { box: [148, 1250, 851, 1310], gap: 44 } },
-  ),
-
-  std(12, "vallo-never-holds-your-money", "support-money", ["Vallo never holds", "your money"]),
-  std(13, "light-water-and-getting-in", "listing-amenities", ["Light, water", "and getting in"]),
-  std(14, "every-verified-mark-checked-by-a-person", "welcome-2", ["Every verified mark,", "checked by a person"]),
-  std(15, "help-from-a-real-person", "support", ["Help from", "a real person"]),
-  std(16, "vallo-speaks-your-language", "welcome-yo", ["Vallo speaks", "your language"], { sub: "English, Hausa, Yorùbá and Igbo." }),
-  std(17, "vallo-charges-no-inspection-fee", "support-inspection", ["Vallo charges no", "inspection fee"]),
-
-  /* 18: the host's side. The payout arrives over the app's header, covering
-     the menu and the logo whole, and overhangs the phone's left edge. No
-     amount: none on these screens would honestly apply. */
-  std(18, "have-a-property-put-it-on-vallo", "host-start", ["Have a property?", "Put it on Vallo"], {
+  /* 13: the host's side. The payout arrives over the app's header, covering
+     the menu and the logo whole, clear of the back button below, and
+     overhangs the phone's left edge. No amount. */
+  std(13, "have-a-property-put-it-on-vallo", "host-start", ["Have a property?", "Put it on Vallo"], {
     async extra(ctx, m, p) {
       const { u } = ctx;
       const [edge] = p.at(-m.frame, HEADER.top);
       const left = edge - m.overhang;
-      /* as wide as its words, which covers the menu, the logo and the
-         wordmark whole and stays clear of the bell */
-      const [, bellTop] = p.at(HEADER.bell.x, HEADER.bell.y - HEADER.bell.r);
-      return popup({ x: left, fit: true, y: bellTop - 30 * m.card, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", line2: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
+      /* the back button starts at display y 464 */
+      const [, backTop] = p.at(100, 464);
+      const cardH = 172 * m.card;
+      return popup({ x: left, fit: true, y: backTop - 23 * u - cardH, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", line2: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
     },
   }),
 
-  std(19, "see-the-stay-before-you-book", "stay", ["See the stay", "before you book"]),
-  std(20, "pick-your-dates-see-the-price", "stays-dates", ["Pick your dates,", "see the price"]),
-  std(21, "light-or-dark-your-call", "appearance", ["Light or dark,", "your call"]),
-  std(22, "talk-to-the-owner-or-the-agent", "thread", ["Talk to the owner", "or the agent"]),
-  std(23, "filter-by-exactly-what-you-need", "filters-villas", ["Filter by exactly", "what you need"]),
-  /* 24: a home for sale. The Karsana terrace (listing-sale) rather than the
-     Chevron Drive house (listing-banana): the example stock reuses its
-     photographs, and the Chevron Drive house opens on the same photograph as
-     the Maitama villa on 7. */
-  std(24, "homes-to-buy-not-just-to-rent", "listing-sale", ["Homes to buy,", "not just to rent"]),
-  std(25, "six-digits-and-youre-back-in", "lock", ["Six digits,", "and you’re back in"]),
-  std(26, "talk-first-pay-when-sure", "welcome-3", ["Talk first.", "Pay when sure."]),
-  std(27, "amenities-and-rooms-all-laid-out", "stay-amenities", ["Amenities and", "rooms, all laid out"]),
-  std(28, "pick-up-where-you-left-off", "home-recent", ["Pick up where", "you left off"]),
-  std(29, "lock-vallo-with-a-passcode", "passcode", ["Lock Vallo", "with a passcode"]),
-  std(30, "your-account-takes-a-minute", "sign-up", ["Your account", "takes a minute"]),
-  std(31, "every-fee-added-up", "listing-cost-total", ["Every fee,", "added up"]),
-  /* 32 and 33 swapped from the brief's order: the two filter sheets (23 and
-     33) look alike at store size, so they sit ten places apart. */
-  std(32, "restaurants-all-in-one-place", "restaurants", ["Restaurants,", "all in one place"]),
-  std(33, "need-a-bq-filter-for-it", "filters-detached-bq", ["Need a BQ?", "Filter for it"]),
-  std(34, "rent-or-buy-in-one-search", "search-buy", ["Rent or buy,", "in one search"]),
-
-  /* 35: the closing card, on the onboarding's own last slide ("Ready when
-     you are."). The app icon is left out: the grid has no place for it and
-     the logo is on the screen. */
+  /* 14: the villas search, whose Map button sits over photographs, not over
+     an Example chip. */
+  std(14, "search-homes-across-nigeria", "search-villas", ["Search homes", "across Nigeria"]),
+  std(15, "six-digits-and-youre-back-in", "lock", ["Six digits,", "and you’re back in"]),
+  std(16, "vallo-speaks-your-language", "welcome-yo", ["Vallo speaks", "your language"], { sub: "English, Hausa, Yorùbá and Igbo." }),
+  std(17, "light-water-and-getting-in", "listing-amenities", ["Light, water", "and getting in"]),
+  std(18, "pick-your-dates-see-the-price", "stays-dates", ["Pick your dates,", "see the price"]),
+  std(19, "homes-to-buy-not-just-to-rent", "listing-sale", ["Homes to buy,", "not just to rent"]),
+  std(20, "real-help-from-real-people", "support", ["Real help,", "from real people"]),
+  std(21, "inspect-first-then-pay-on-vallo", "welcome-3", ["Inspect first,", "then pay on Vallo"]),
+  std(22, "filter-by-exactly-what-you-need", "filters-villas", ["Filter by exactly", "what you need"]),
+  std(23, "light-or-dark-your-call", "appearance", ["Light or dark,", "your call"]),
+  std(24, "rooms-amenities-all-laid-out", "stay-amenities", ["Rooms, amenities,", "all laid out"]),
+  std(25, "vallo-charges-no-inspection-fee", "support-inspection", ["Vallo charges no", "inspection fee"]),
+  std(26, "apply-for-your-verified-mark", "verification", ["Apply for your", "verified mark"]),
+  std(27, "back-where-you-left-off", "home-recent", ["Back where", "you left off"]),
+  std(28, "ask-about-prices-areas-or-renting", "assistant", ["Ask about prices,", "areas or renting"]),
+  std(29, "restaurants-all-in-one-place", "restaurants", ["Restaurants,", "all in one place"]),
+  std(30, "lock-vallo-with-a-passcode", "passcode", ["Lock Vallo", "with a passcode"]),
+  std(31, "need-a-bq-filter-for-it", "filters-detached-bq", ["Need a BQ?", "Filter for it"]),
+  std(32, "one-sign-up-for-all-of-vallo", "sign-up", ["One sign-up", "for all of Vallo"]),
+  std(33, "the-agents-fees-spelled-out", "listing-cost-total", ["The agent’s fees,", "spelled out"]),
+  std(34, "browse-stays-before-you-sign-up", "stays-dates-gb", ["Browse stays", "before you sign up"]),
   std(35, "vallo-real-estate-done-right", "welcome-4", ["Vallo. Real estate,", "done right."], { sub: "Homes, hotels, shortlets and restaurants." }),
 ];
 
 /** Play's feature graphic, 1024 x 500, on the same night ground: the wordmark, one line, one phone. */
 export async function FEATURE(ctx) {
-  const p = await ctx.phone({ id: "home", cx: 740, cy: 258, h: 440, rotation: { x: -6, y: -16, z: 4 }, fov: 24, margin: 30, color: PHONE_COLOR });
+  const p = await ctx.phone({ id: "home", cx: 766, cy: 258, h: 440, rotation: { x: -6, y: -16, z: 4 }, fov: 24, margin: 30, color: PHONE_COLOR });
   return [
-    `<img class="abs" src="${brandUrl("vallo-wordmark.png")}" style="left:120px;top:146px;width:176px;z-index:30">`,
-    `<div class="abs" style="left:118px;top:206px;width:460px;z-index:30;font:600 64px/1.04 Poppins;letter-spacing:-0.03em;color:#fff">Real estate,<br>done right.</div>`,
+    `<img class="abs" src="${brandUrl("vallo-wordmark.png")}" style="left:146px;top:146px;width:176px;z-index:30">`,
+    `<div class="abs" style="left:144px;top:206px;width:460px;z-index:30;font:600 64px/1.04 Poppins;letter-spacing:-0.03em;color:#fff">Real estate,<br>done right.</div>`,
     p.html,
   ].join("\n");
 }

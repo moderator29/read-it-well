@@ -17,7 +17,8 @@
  *   18  back to the inbox, the phone recentred; the card docks as the unread
  *       dot; the menu opens the drawer; the phone pushes onto FLIP.
  */
-import { LAYOUT } from "./layout.js";
+import { questionCard } from "../engine/components.js";
+import { LAYOUT, QUESTIONS } from "./layout.js";
 import {
   DW, DH, NAVY, ELECTRIC, SHADOW, ramp, kf, mix, track, screenPage, showDuring, box, cropBody, quadDriver,
   displayQuad, quadAtPose, rectQuad, lerpQuad, shiftQuad, placeQuad, mapQuad, pressAt, ripple, measure, dayCard,
@@ -39,7 +40,7 @@ const DRAWER_W = 1103;
 
 /* Section a's last frame (A -> B in handoffs.md): the phone and the villa card. */
 export const A_OUT = {
-  phone: { cx: 540, cy: 1500, height: 1180, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 },
+  phone: { cx: 540, cy: 1500, height: 1400, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 },
   villa: { x: 160, y: 498, w: 760, h: 548, rot: 0 },
 };
 
@@ -179,6 +180,20 @@ export async function talk(ctx, S, T) {
     opacityAt: (t) => 1 - ramp(ctx, t, tLand, tLand + 0.14, "power1.out"),
   });
   ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
+
+  /* Card 1, taken over from section a at the cut in its end state (answer side up, at rest under the
+     phone), so its answer reads 28.87 to 31.30; then it leaves for the top right, where row 31 brings it back. */
+  const card1Out = ctx.beat(54.25); // 31.30
+  const c1Scene = ctx.scene("b-m-card1", T.r14, card1Out + 0.4, { z: 25 });
+  const C1 = { x: 230, y: 1380, w: 620, h: 170 };
+  const card1 = questionCard(ctx, c1Scene, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: C1, fontSize: 40 });
+  Object.assign(card1.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
+  Object.assign(card1.back.style, { justifyContent: "center", textAlign: "center", fontSize: "33px", lineHeight: "1.22", textWrap: "balance" });
+  card1.turn(T.r14 - 5, { sound: null }); // already turned at the cut
+  const c1c = { x: C1.x + C1.w / 2, y: C1.y + C1.h / 2 };
+  ctx.gsap.set(card1.root, { transformOrigin: "50% 50%", rotation: -2 });
+  tl.fromTo(card1.root, { x: 0, rotation: -2, scale: 1 }, { x: 1300 - c1c.x, rotation: 24, scale: 0.9, duration: 0.34, ease: "power2.out", immediateRender: false }, card1Out);
+  tl.fromTo(card1.root, { y: 0 }, { y: -105 - c1c.y, duration: 0.34, ease: "power3.in", immediateRender: false }, card1Out);
 
   /* "owner", "landlord", "agent" stack in WORDS, left-aligned at x 120, each entering from the left on its word. */
   const X0 = 120;

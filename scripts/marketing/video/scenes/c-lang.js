@@ -11,7 +11,7 @@
  *     name lands beside the device, rolling the last one away.
  */
 import { browserWindow } from "../engine/components.js";
-import { track, ramp, spring, during, place, dispToStage, measure, night, mix, opa } from "./c-kit.js";
+import { track, ramp, spring, during, place, dispToStage, measure, night, mix, opa, roll } from "./c-kit.js";
 
 /* The welcome words (FACTS: welcome, slide 1, in four languages). */
 const PHRASES = ["Two worlds.", "Duniya biyu.", "Ayé méjì.", "Ụwa abụọ.", "One platform.", "Dandali ɗaya.", "Pèpéle kan.", "Otu ikpo okwu."];
@@ -23,10 +23,10 @@ const NAVIES = ["#1c233e", "#0b2a6b", "#141e4a", "#0f1a44"];
 export async function buildLang(ctx, S) {
   const { K, L } = S;
   const M = ctx.isMobile;
-  const lit = [ctx.beat(138.15), ctx.beat(138.6), ctx.beat(139)]; // 79.70, 79.96, 80.19
-  const toPill = [K.language - 0.12, K.language + 0.14]; // the lit pills fly into the chapter pill (81.0)
-  const part = [K.language, K.language + 0.7];
-  const rise = [K.language + 0.02, K.r36 - 0.04];
+  const lit = [K.speaks, K.your18, K.language]; // each pill lights on its word
+  const toPill = [81.45, 81.7]; // the lit pills fly into the chapter pill
+  const part = [81.3, 81.95];
+  const rise = [81.3, 81.95];
 
   /* ================= the ground and the wall ================= */
   const wallScene = ctx.scene("c35-wall", K.r35 - 0.02, K.r37 + 0.05, { z: 2 });
@@ -50,7 +50,7 @@ export async function buildLang(ctx, S) {
       class: "abs",
       style: {
         left: "0px", top: "0px", width: `${w}px`, height: `${H}px`, borderRadius: "999px", background: fill, border: "2px solid rgb(255 255 255 / 0.07)",
-        display: "flex", alignItems: "center", justifyContent: "center", font: `700 ${FS}px/1 Inter, sans-serif`, letterSpacing: "-0.01em", color: dim ? "rgb(255 255 255 / 0.4)" : "#fff", whiteSpace: "nowrap",
+        display: "flex", alignItems: "center", justifyContent: "center", font: `700 ${FS}px/1 Inter, sans-serif`, letterSpacing: "-0.01em", color: dim ? "rgb(255 255 255 / 0.28)" : "#fff", whiteSpace: "nowrap",
       },
       text: word ?? "",
     }, wallLayer);
@@ -74,7 +74,7 @@ export async function buildLang(ctx, S) {
     let guard = 0;
     while (x < ctx.W + 40 && guard < 40) {
       guard += 1;
-      const word = rand() < 0.42 ? PHRASES[phrase++ % PHRASES.length] : null;
+      const word = rand() < 0.25 ? PHRASES[phrase++ % PHRASES.length] : null;
       const w = word ? textW(word, FS) + 2 * pad : Math.round(150 + rand() * 280);
       const hit = reserved.find(([a, b]) => x < b + GAP && x + w > a - GAP);
       if (hit) {
@@ -101,9 +101,9 @@ export async function buildLang(ctx, S) {
     litPills.push({ el, span, x: litX[i], y, w: litW[i] });
     ctx.sfx("pop", lit[i], { offset: -2 });
   });
-  ctx.hideCaptions(K.r35, K.r37);
+  ctx.hideCaptions(79.495, 85.265); // on caption span edges: nothing flashes
 
-  const partCentre = M ? 640 : 590; // where the device rises
+  const partCentre = M ? 540 : 590; // where the device rises
   during(ctx, K.r35 - 0.02, K.r37 + 0.05, (t) => {
     const drift = (t - K.r35) * (M ? 26 : 30);
     const p = ramp(ctx, t, part[0], part[1], "power3.inOut");
@@ -146,7 +146,7 @@ export async function buildLang(ctx, S) {
     for (const b of bands) {
       const x0 = b.x0 ?? 0;
       const x1 = b.x1 ?? w;
-      ctx.el("div", { class: "abs", style: { left: `${x0}px`, top: `${b.y0}px`, width: `${x1 - x0}px`, height: `${Math.abs(b.dy)}px`, background: b.fill } }, box);
+      if (b.fill) ctx.el("div", { class: "abs", style: { left: `${x0}px`, top: `${b.dy > 0 ? b.y0 : b.y1 + b.dy}px`, width: `${x1 - x0}px`, height: `${Math.abs(b.dy)}px`, background: b.fill } }, box);
       const clip = ctx.el("div", { class: "abs", style: { left: `${x0}px`, top: `${b.y0 + b.dy}px`, width: `${x1 - x0}px`, height: `${b.y1 - b.y0}px`, overflow: "hidden" } }, box);
       ctx.img(src, { class: "abs", style: { left: `${-x0}px`, top: `${-b.y0}px`, width: `${w}px`, height: `${h}px` } }, clip);
     }
@@ -157,36 +157,52 @@ export async function buildLang(ctx, S) {
   let deviceAt; // stage anchor for the names (right edge x, centre y)
   if (M) {
     const p = S.dark;
-    const P = { ...L.PHONE_HIGH, cx: 640 };
+    const P = L.PHONE_HERO;
     screens = cuts.map((c) => (c.id === "welcome-ig"
-      /* the Igbo card is shorter: its toggle, headline and text sit 162 px higher */
-      ? seated(p.screen, ctx.src.display(c.id), 1320, 2868, [{ y0: 1826, y1: 2600, dy: 162, fill: "rgb(1 6 19)" }])
+      /* The Igbo card is shorter: its toggle, headline and text sit 162 px
+         higher. That band of the same capture (display y 1845-2400) is
+         seated 162 px lower; the Continue button (y 2640) stays where it is.
+         The strip it leaves lies under the art's scrim (below). */
+      ? seated(p.screen, ctx.src.display(c.id), 1320, 2868, [{ y0: 1845, y1: 2400, dy: 162, fill: null }])
       : seated(p.screen, ctx.src.display(c.id), 1320, 2868, [])));
+    /* the art's scrim: the names are read over the dimmed art, never beside the phone */
+    const scrim = ctx.el("div", { class: "abs", style: { left: "0px", top: "330px", width: "1320px", height: `${2005 - 330}px`, background: "linear-gradient(180deg, rgb(1 6 19 / 0) 0%, rgb(1 6 19 / 0.8) 7%, rgb(1 6 19 / 0.84) 80%, rgb(1 6 19 / 0.96) 100%)", visibility: "hidden" } }, p.screen);
     p.poses.push({
       t0: rise[0] - 0.02, t1: K.r37 + 0.02,
       fn: (t) => ({
         cx: P.cx, height: P.height, fov: 24, rz: 0,
-        cy: track(ctx, t, [[rise[0], P.cy + 1250], [rise[1], P.cy, "land"]]),
-        rx: track(ctx, t, [[rise[0], 14], [rise[1] + 0.1, 0, "land"]]),
-        ry: track(ctx, t, [[rise[0], -8], [rise[1] + 0.1, 0, "land"]]),
+        cy: track(ctx, t, [[rise[0], P.cy + 1650], [rise[1], P.cy, "power3.out"]]),
+        rx: track(ctx, t, [[rise[0], 12], [rise[1], 0, "power3.out"]]),
+        ry: 0,
         opacity: 1,
       }),
     });
     ctx.onFrame((t) => {
       /* runs on every frame: the phone outlives these rows */
       const k = cuts.reduce((acc, c, i) => (t >= c.t ? i : acc), 0);
-      const on = t >= rise[0] - 0.1 && t < K.r37;
+      /* the last language stays under the host screen until it has slid in */
+      const on = t >= rise[0] - 0.1 && t < K.r37 + 0.35;
       screens.forEach((s, i) => { s.style.visibility = on && i === k ? "" : "hidden"; });
+      const sc = ramp(ctx, t, K.english - 0.25, K.english - 0.05) * (1 - ramp(ctx, t, K.r37 - 0.15, K.r37 + 0.05));
+      scrim.style.opacity = opa(sc);
+      scrim.style.visibility = sc > 0.001 ? "" : "hidden";
     });
-    deviceAt = { x: 382, y: dispToStage(P, 0, 2172).y + 20 };
+    deviceAt = { x: 540, y: dispToStage(P, 0, 1150).y };
   } else {
     const W = L.WINDOW_LEFT;
     const winScene = ctx.scene("c35-win", rise[0] - 0.02, K.r37 + 0.02, { z: 5 });
     const win = browserWindow(ctx, { parent: winScene, width: 1440, url: "vallospaces.com", theme: "dark" });
     /* the right column (progress bar, headline, text, Continue) is centred on the
        page, so it sits higher in Hausa, Yorùbá and Igbo: re-seat it to English's y */
-    const col = (dy) => (dy ? [{ x0: 740, x1: 1330, y0: 250, y1: 700, dy, fill: "rgb(1 8 22)" }] : []);
-    screens = [0, 26, 26, 37].map((dy, i) => seated(win.content, ctx.src.capture(cuts[i].id), 1440, 900, col(dy)));
+    /* ...and its Continue button sits lower: seat it back at English's y (568) */
+    const F = "rgb(1 8 22)";
+    const col = [
+      [],
+      [{ x0: 740, x1: 1330, y0: 240, y1: 572, dy: 24, fill: F }, { x0: 740, x1: 1330, y0: 582, y1: 662, dy: -24, fill: F }],
+      [{ x0: 740, x1: 1330, y0: 240, y1: 572, dy: 24, fill: F }, { x0: 740, x1: 1330, y0: 582, y1: 662, dy: -24, fill: F }],
+      [{ x0: 740, x1: 1330, y0: 230, y1: 584, dy: 37, fill: F }, { x0: 740, x1: 1330, y0: 594, y1: 675, dy: -36, fill: F }],
+    ];
+    screens = col.map((bands, i) => seated(win.content, ctx.src.capture(cuts[i].id), 1440, 900, bands));
     const s0 = W.width / 1440;
     during(ctx, rise[0] - 0.02, K.r37 + 0.02, (t) => {
       const u = ramp(ctx, t, rise[0], rise[1], "land");
@@ -201,27 +217,18 @@ export async function buildLang(ctx, S) {
     deviceAt = { x: L.RIGHT_PANEL.x + 60, y: L.RIGHT_PANEL.y + 330 };
   }
 
-  /* the names, rolling in their slot beside the device */
-  const nameScene = ctx.scene("c36-names", K.english - 0.2, K.r37 + 0.05, { z: 10 });
+  /* the names: one line that rolls to each spoken name (over the dimmed art
+     on mobile, in RIGHT_PANEL on desktop) */
+  const nameScene = ctx.scene("c36-names", K.english - 0.2, K.r37 + 0.1, { z: 10 });
   {
-    const names = [["English", K.english], ["Hausa", K.hausa], ["Yorùbá", K.yoruba], ["Igbo", K.igbo]];
-    const size = M ? 88 : 112;
-    /* one line's slot, clipped, so each name rolls up and out as the next rolls in */
-    const slotW = M ? 380 : 640;
-    const slotH = Math.round(size * 1.34);
-    const slot = ctx.el("div", { class: "abs", style: { left: `${M ? deviceAt.x - slotW : deviceAt.x}px`, top: `${Math.round(deviceAt.y - slotH / 2)}px`, width: `${slotW}px`, height: `${slotH}px`, overflow: "hidden" } }, nameScene);
-    const nodes = names.map(([text]) => ctx.el("div", { class: "abs c-display", text, style: { left: "0px", top: "0px", fontSize: `${size}px`, color: "#ffffff", whiteSpace: "nowrap", lineHeight: "1.1" } }, slot));
-    const widths = names.map(([text]) => measure(text, `700 ${size}px "C Poppins"`));
-    during(ctx, K.english - 0.2, K.r37 + 0.05, (t) => {
-      nodes.forEach((n, i) => {
-        const tin = names[i][1];
-        const inU = ramp(ctx, t, tin - 0.08, tin + 0.26, "power3.out");
-        const tout = i < names.length - 1 ? names[i + 1][1] : K.r37 - 0.05;
-        const outU = ramp(ctx, t, tout - 0.08, tout + 0.18, "power3.in");
-        const x = M ? slotW - widths[i] / 2 - 4 : widths[i] / 2 + 4;
-        const y = slotH / 2 + (1 - inU) * slotH - outU * slotH;
-        place(n, { x, y, o: inU > 0 && outU < 1 ? 1 : 0 });
-      });
+    const R = roll(ctx, nameScene, {
+      items: [{ text: "English", t: K.english }, { text: "Hausa", t: K.hausa }, { text: "Yorùbá", t: K.yoruba }, { text: "Igbo", t: K.igbo }],
+      size: M ? 120 : 112, color: "#ffffff", weight: 700, align: M ? "center" : "left", rollFirst: true,
+    });
+    during(ctx, K.english - 0.2, K.r37 + 0.1, (t) => {
+      const o = 1 - ramp(ctx, t, K.r37 - 0.15, K.r37 + 0.05);
+      place(R.slot, { x: M ? deviceAt.x : deviceAt.x + R.width / 2, y: deviceAt.y, o });
+      R.update(t);
     });
   }
 }

@@ -16,7 +16,7 @@ export function times(ctx) {
   const we = (i, word, n = 1) => ctx.word(i, word, n).end;
   return {
     r28: b(109), r29: b(112), r30: b(115), r31: b(121), r32: b(126), r33: b(129), r34: b(134),
-    r35: b(138), r36: b(142), r37: b(148), r38: b(153), r39: b(156), r40: b(160), r41: b(166), r42: ctx.bar(44), end: b(176),
+    r35: b(138), r36: b(142), r37: b(148), r38: b(153), r39: b(156), r40: b(160), r41: b(167), r42: ctx.bar(44), end: b(176),
     /* 14: And when it's time to pay… Vallo never holds your money. */
     and14: w(14, "And"), when: w(14, "when"), its: w(14, "it's"), time: w(14, "time"), to: w(14, "to"), pay: w(14, "pay"),
     vallo14: w(14, "Vallo"), never: w(14, "never"), holds: w(14, "holds"), your14: w(14, "your"), money: w(14, "money"), moneyEnd: we(14, "money"),

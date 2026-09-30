@@ -24,6 +24,7 @@ export const CLEAN = {
   "home-recent": "home",
   "support-money": "support",
   "support-inspection": "support",
+  appearance: "support",
 };
 
 const CACHE = join(MARKETING, "node_modules", ".cache", "store-displays");

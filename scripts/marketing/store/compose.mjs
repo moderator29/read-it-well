@@ -441,7 +441,8 @@ for (const store of STORE_LIST) {
       ctxs.forEach((c, k) => {
         if (!c.cardCheck) return;
         for (const pr of pops[k] || []) {
-          if (pr.l < c.cardCheck.clearOf) problems.push(`${store} ${shotName(halves[k])}: the card's left edge (${Math.round(pr.l)}) runs over what it should leave clear (${Math.round(c.cardCheck.clearOf)})`);
+          if (c.cardCheck.rightOf !== undefined && pr.r > c.cardCheck.rightOf) problems.push(`${store} ${shotName(halves[k])}: the card's right edge (${Math.round(pr.r)}) runs over what it should leave clear (${Math.round(c.cardCheck.rightOf)})`);
+          if (c.cardCheck.clearOf !== undefined && pr.l < c.cardCheck.clearOf) problems.push(`${store} ${shotName(halves[k])}: the card's left edge (${Math.round(pr.l)}) runs over what it should leave clear (${Math.round(c.cardCheck.clearOf)})`);
         }
       });
       for (const v of await edgeCheck(40 * (S.W / 1320))) {

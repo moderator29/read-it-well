@@ -37,7 +37,7 @@ export async function build(ctx) {
     /* the light phone's display edge follows its screen: the lock (dark),
        the assistant (light grey), the end card's home (light) */
     ctx.onFrame((t) => {
-      const edge = t < K.r30 ? "#042267" : t < K.r38 ? "#f3f4f1" : "#ececfc";
+      const edge = t < K.r29 + 0.1 ? "#042267" : t < K.r38 ? "#f3f4f1" : "#ececfc";
       if (S.light.frame.style.background !== edge) {
         S.light.frame.style.background = edge;
         S.light.screen.style.background = edge;

@@ -28,7 +28,7 @@ const BASE = `
   .pop { display: flex; align-items: center; font-family: "Inter", sans-serif; }
   .pop.dk { color: #FFFFFF;
     background: linear-gradient(180deg, rgb(22 31 92) 0%, rgb(12 18 66) 100%);
-    box-shadow: inset 0 0 0 1.5px rgb(120 170 255 / 0.35), 0 60px 110px -30px rgb(0 0 12 / 0.9), 0 20px 44px -14px rgb(0 0 20 / 0.6); }
+    box-shadow: inset 0 0 0 1.5px rgb(120 170 255 / 0.35), 0 26px 40px -18px rgb(0 0 12 / 0.85), 0 10px 22px -10px rgb(0 0 20 / 0.6); }
   .pchip { flex: none; border-radius: 50%; display: grid; place-items: center; }
   .pop .pchip.solid { background: linear-gradient(160deg, #4A95FF 0%, #0069FE 55%, #0050C8 100%); box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.3); }
   .ptxt { flex: 1; min-width: 0; }

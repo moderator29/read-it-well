@@ -1,6 +1,6 @@
 # App Store and Google Play screenshots: the handbook
 
-Produced on 30 September 2026: the second round, after a premium review of the first. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
+Produced on 30 September 2026: the third round, after two premium reviews. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
 
 **The short version.** There are 35 images for each store, in store order, made to DESIGN.md section 6a (`scripts/marketing/DESIGN.md`):
 
@@ -9,7 +9,7 @@ Produced on 30 September 2026: the second round, after a premium review of the f
 - the Google Play images use the Android handset with the punch hole, at 1440 x 2560, and the phone's frame is 66% of the width;
 - the frame of every phone is lit so it reads as a bright line on the dark ground;
 - the app's screen is laid on flat, as sharp as the capture allows;
-- two images carry a card that has just arrived, and two pairs share one tilted phone across their seam;
+- two images carry a card that has just arrived, and one pair (04 and 05) shares one tilted phone across its seam;
 - Play also has a 1024 x 500 feature graphic.
 
 ---
@@ -31,14 +31,16 @@ Each file is named `<NN>-<slug>.png` after its place in the list (section 3) and
 
 ## 2. What to submit
 
-The App Store takes up to 10 screenshots per display size; Google Play takes up to 8 per device type. The first three are what a person sees in search results before opening the listing. A pair (4 and 5, 10 and 11) goes in whole or not at all: both images, next to each other and in order, since on its own each half shows a phone cut at its edge.
+The App Store takes up to 10 screenshots per display size; Google Play takes up to 8 per device type. The first three are what a person sees in search results before opening the listing. The pair (04 and 05) goes in whole or not at all: both images, next to each other and in order, since on its own each half shows a phone cut at its edge.
 
-- **App Store (10):** `01`, `02`, `03`, `04` + `05` (the stays pair, with "Room booked"), `07`, `08`, `12`, `17`, `18`.
-- **Google Play (8):** `01`, `02`, `04` + `05`, `07`, `12`, `17`, `18`; plus `feature-graphic.png`, which Play requires.
+- **App Store (10), in this upload order:** `01`, `02`, `03`, `04` + `05` (the pair, with "Room booked"), `06`, `07`, `08`, `12`, `13`.
+- **Google Play (8):** `01`, `02`, `04` + `05`, `06`, `07`, `12`, `13`; plus `feature-graphic.png`, which Play requires.
 
-These picks put the move-in total, the money rule ("Vallo never holds your money"), the inspection-fee rule and the host's side in the first swipe or two, and include the pair in the first swipe.
+The picks are the store order's first eight or ten, plus 12 and 13. They cover homes and the move-in total, one account, stays and booking, the money rule, a stay's own page, the assistant, the verified mark, and hosts with their payout.
 
-**Not yet:** leave `22` (the thread) out of any submission until the product tags listing cards shared into a chat with the Example label (section 6).
+- They never hold two screens that look alike. 06 ("Vallo never holds your money") and 25 ("Vallo charges no inspection fee") are the same help-centre page with a different answer open, so only one goes in.
+- To show the inspection fee instead of the money rule, swap `06` for `25`.
+- The critic's round-2 proposal put both in, at the old 12 and 17. It is adjusted here so twins are never both picked.
 
 ## 3. The 35
 
@@ -47,58 +49,75 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | # | Headline | Screen (capture id) | Notes |
 |---|---|---|---|
 | 01 | Find your next home / in Nigeria | `home` | |
-| 02 | The move-in total, / before you call | `listing-cost` | the villa's own move-in lines |
+| 02 | The move-in total, / before you call | `listing` | the villa, its Example notice and "Move-in total ₦26,100,000"; no lister name in view |
 | 03 | Homes and stays, / one account | `welcome-1` | public |
-| 04 | Hotels, shortlets / and resorts | `stays` | pair with 05: one phone across the seam, which passes clear of the area line and the hero's headline |
-| 05 | Book a room / in a few taps | `stays` | card: "Room booked · Lagoon Crest Resort · 3 nights", Example |
-| 06 | Search homes / across Nigeria | `search` | |
-| 07 | See every home / up close | `listing` | |
+| 04 | Hotels, shortlets / and resorts | `stays` | the pair's left half; card "Room booked · Lagoon Crest Resort · 3 nights", Example |
+| 05 | Book a room / in a few taps | `stays` | the pair's right half |
+| 06 | Vallo never holds / your money | `support-money` | the help centre's own answer; header cleaned (section 6) |
+| 07 | See the stay / before you book | `stay` | Lagoon Crest Resort |
 | 08 | Ask the AI assistant / any time of day | `assistant-caution-2` | the assistant's own answer, unedited |
 | 09 | Save favourites, / compare later | `saved` | |
-| 10 | Find a restaurant / you love | `restaurant` | pair with 11; the seam passes 44 px clear of the restaurant's name |
-| 11 | Hours, dress code / and seats, up front | `restaurant` | what the page shows: "Opens at 18:00", "Smart casual", "Seats 80" |
-| 12 | Vallo never holds / your money | `support-money` | the help centre's own answer to "Does Vallo hold my money?"; header cleaned (section 6) |
-| 13 | Light, water / and getting in | `listing-amenities` | the listing's own section of that name |
-| 14 | Every verified mark, / checked by a person | `welcome-2` | public; "Verified means a person checked." |
-| 15 | Help from / a real person | `support` | |
+| 10 | Find a restaurant / you love | `restaurant` | |
+| 11 | Every fee, / added up | `listing-cost` | the fee lines; not for submission until the lister is renamed (section 6) |
+| 12 | Each verified mark, / checked by a person | `welcome-2` | public; "Verified means a person checked." |
+| 13 | Have a property? / Put it on Vallo | `host-start` | card "Payment settled · Straight to your bank · Lagoon Crest Resort · 3 nights", Example, no amount |
+| 14 | Search homes / across Nigeria | `search-villas` | the Map button sits over photographs, not over an Example chip |
+| 15 | Six digits, / and you’re back in | `lock` | the passcode lock |
 | 16 | Vallo speaks / your language | `welcome-yo` | public; subline "English, Hausa, Yorùbá and Igbo." |
-| 17 | Vallo charges no / inspection fee | `support-inspection` | worded exactly so; the help centre's own answer; header cleaned |
-| 18 | Have a property? / Put it on Vallo | `host-start` | card: "Payment settled · Straight to your bank · Lagoon Crest Resort · 3 nights", Example, no amount |
-| 19 | See the stay / before you book | `stay` | Lagoon Crest Resort |
-| 20 | Pick your dates, / see the price | `stays-dates` | British dates, 16/10/2026 to 19/10/2026 |
-| 21 | Light or dark, / your call | `appearance` | |
-| 22 | Talk to the owner / or the agent | `thread` | not for submission yet (section 2) |
-| 23 | Filter by exactly / what you need | `filters-villas` | Villas selected, Apply (3) |
-| 24 | Homes to buy, / not just to rent | `listing-sale` | the three bedroom terrace for sale in Karsana, ₦95,000,000 asking price (see "The order") |
-| 25 | Six digits, / and you’re back in | `lock` | the passcode lock |
-| 26 | Talk first. / Pay when sure. | `welcome-3` | public; the product's own words |
-| 27 | Amenities and / rooms, all laid out | `stay-amenities` | broken after "and" to keep within the measure |
-| 28 | Pick up where / you left off | `home-recent` | "Looked at recently"; header cleaned |
-| 29 | Lock Vallo / with a passcode | `passcode` | the settings screen: "Vallo locks after 5 minutes away" |
-| 30 | Your account / takes a minute | `sign-up` | public; the page's own "Your account takes a minute" |
-| 31 | Every fee, / added up | `listing-cost-total` | "Total to move in ₦26,100,000" |
-| 32 | Restaurants, / all in one place | `restaurants` | |
-| 33 | Need a BQ? / Filter for it | `filters-detached-bq` | "Comes with a BQ" on, Apply (6) |
-| 34 | Rent or buy, / in one search | `search-buy` | the search with Buy chosen |
-| 35 | Vallo. Real estate, / done right. | `welcome-4` | public; the onboarding's last slide; subline "Homes, hotels, shortlets and restaurants." |
+| 17 | Light, water / and getting in | `listing-amenities` | the section whole: Light, Water, The gate |
+| 18 | Pick your dates, / see the price | `stays-dates` | British dates, 16/10/2026 to 19/10/2026 |
+| 19 | Homes to buy, / not just to rent | `listing-sale` | the Karsana terrace, ₦95,000,000 asking price |
+| 20 | Real help, / from real people | `support` | |
+| 21 | Inspect first, / then pay on Vallo | `welcome-3` | public; the screen's own claim ("book an inspection first. When you pay, pay on Vallo"), not its headline |
+| 22 | Filter by exactly / what you need | `filters-villas` | Villas selected, Apply (3) |
+| 23 | Light or dark, / your call | `appearance` | recaptured with the toggles clear of the dock; header cleaned |
+| 24 | Rooms, amenities, / all laid out | `stay-amenities` | recaptured; opens on the stay's "Nothing here can be booked" notice |
+| 25 | Vallo charges no / inspection fee | `support-inspection` | worded exactly so; header cleaned; 06's twin, 19 places apart |
+| 26 | Apply for your / verified mark | `verification` | step 1 of 5, the ID upload; "verified" about a person |
+| 27 | Back where / you left off | `home-recent` | recaptured; "Looked at recently"; header cleaned |
+| 28 | Ask about prices, / areas or renting | `assistant` | the assistant's start screen and its suggestion chips; 08's twin, 20 places apart |
+| 29 | Restaurants, / all in one place | `restaurants` | shares a photograph with 10, 19 places apart |
+| 30 | Lock Vallo / with a passcode | `passcode` | the settings screen; 15's twin, 15 places apart |
+| 31 | Need a BQ? / Filter for it | `filters-detached-bq` | "Comes with a BQ" on, Apply (6); 22's twin, 9 places apart |
+| 32 | One sign-up / for all of Vallo | `sign-up` | public |
+| 33 | The agent’s fees, / spelled out | `listing-cost-total` | "Fees to the agent: ₦4,500,000, 25.0% of a year's rent"; 11's twin; not for submission until the rename |
+| 34 | Browse stays / before you sign up | `stays-dates-gb` | public (Sign in and Sign up in its header); 18's twin, 16 places apart |
+| 35 | Vallo. Real estate, / done right. | `welcome-4` | public; subline "Homes, hotels, shortlets and restaurants." |
 
 The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 
-**The order.** The first swipe shows 1, 2 and 3 and then a pair (4 and 5). No more than two screens without a photograph or artwork come in a row.
+**The order.** The first swipe shows 1, 2 and 3 and then the pair (4 and 5). No more than two screens without a photograph or artwork come in a row. Screens that look alike at store size sit at least nine places apart, and never both in the picks:
 
-- The brief's own order would have put five screens without a photograph or artwork together (its 14 to 18), so the stretch from 13 to 21 was reordered within itself: listing-amenities 13, welcome-2 14, support 15, welcome-yo 16, support-inspection 17, host-start 18, the stay 19, stays-dates 20, appearance 21. The first swipe, the pairs, 12 and 18 keep the brief's places.
-- The thread and the filters swapped (22 and 23), and so did the restaurants and the BQ filter (32 and 33), so photographs and text screens alternate at the end.
-- Screens that look alike at store size sit far apart: the onboarding's two twins (03 and 16), the two filter sheets (23 and 33), the two searches (06 and 34) and the two move-in pages (02 and 31).
-- **24 shows the Karsana terrace (`listing-sale`), not the Chevron Drive house (`listing-banana`) the brief named.** The example stock reuses its photographs, and the Chevron Drive house opens on the same photograph as the Maitama villa on 07, so 24 would have read as a repeat of 07. The Karsana terrace tells the same "for sale" story with its own photograph, and its price is in the facts file.
+- 06 and 25 (help centre);
+- 08 and 28 (assistant);
+- 11 and 33 (fee lines);
+- 15 and 30 (passcode);
+- 18 and 34 (stay dates);
+- 22 and 31 (filter sheet);
+- 10 and 29 (a shared photograph).
+
+The Maitama living-room photograph, which the example stock reuses, now leads only 02. It appears smaller on 09, 14 and 27.
+
+**Changes from round 2:**
+
+- **The restaurant pair is gone.** A search over 450 poses of `restaurant` and `restaurants` found none whose seam crosses no word, so 10 is a plain image and 11 is a different screen.
+- **The thread (round 2's 22) is cut.** Its shared listing cards carry no Example tag.
+- **02 now shows `listing`**, so position 2 no longer reads "Kept by / Paid to Vallo Examples".
+- **Search is `search-villas`**, whose Map button hides no Example chip. `search-buy` is cut.
+- **Headlines rewritten:**
+  - "Each verified mark" and "Back where you left off", for line spacing;
+  - "Rooms, amenities, / all laid out", so line 1 no longer ends on "and";
+  - "Inspect first, then pay on Vallo" and "One sign-up for all of Vallo", so they no longer repeat the screen's own words;
+  - "Real help, from real people", for line spacing on Play.
 
 ### The system (DESIGN.md section 6a)
 
-- **One ground.** Every image sits on the same raster, a vertical gradient from `#050B3D` (the top row reads 5, 11, 61) to `#010118` (the last row reads 1, 1, 24). `compose.mjs` draws it pixel by pixel, not the browser, so it is identical in every file. Nothing else is drawn on it: no photographs, glows, textures or vignettes. On the one ground, the seams of the two pairs disappear.
+- **One ground.** Every image sits on the same raster, a vertical gradient from `#050B3D` (the top row reads 5, 11, 61) to `#010118` (the last row reads 1, 1, 24). `compose.mjs` draws it pixel by pixel, not the browser, so it is identical in every file. Nothing else is drawn on it: no photographs, glows, textures or vignettes. On the one ground, the pair's seam disappears.
 - **One grid, no icon.** The headline sits at the top and is centred on its ink (a line's letters, not its type box, are centred, to the pixel). It is set in Poppins 600, tracking −0.03em, leading 1.08, white, on two lines, at the same size and on the same baselines in every image:
-  - App Store: 112 px, the block from y 150, the phone from y 490 to 2768;
+  - App Store: 112 px, the block from y 140, the phone from y 490 to 2768;
   - Play: 100 px, the block from y 130, the phone from y 470 to 2470.
 
-  The cap height is 2.7% of the image's height in both stores, so the two sets read the same size in their store rows. No line is wider than the phone's frame plus 50 px: 1130 px on the App Store (the frame is 1080 px wide) and 996 px on Play (946). The widest, "checked by a person", is 1114 px and 995 px. Play's type is 100 px rather than 112 because at 112 that line and "Find your next home" would overrun its measure. `compose.mjs` fails any headline that would need shrinking to fit. Sublines appear only on 16 and 35, in Inter 500 at 62% white. The pairs set their headlines flush left, on the same baselines.
+  The cap height is 2.7% of the image's height in both stores, so the two sets read the same size in their store rows. No line is wider than the phone's frame plus 50 px: 1130 px on the App Store (the frame is 1080 px wide) and 996 px on Play (946). The widest, "checked by a person", is 1114 px and 995 px. Play's type is 100 px rather than 112 because at 112 that line and "Find your next home" would overrun its measure. `compose.mjs` fails any headline that would need shrinking to fit. Sublines appear only on 16 and 35, in Inter 500 at 60% white (30 px on the App Store, 34 on Play), at least 60 px above the phone's rim. The pair sets its headlines flush left, on the same baselines.
 - **One phone, lit for the dark ground.**
   - Every image has the same handset, colour (black titanium) and light, from the 3D studio in `scripts/marketing/phone3d/`: the island handset on the App Store, the punch-hole handset on Play.
   - The studio's "night" light is a ring of light around the phone, a little in front of it and a little behind. Its frame's rounded front edge catches one continuous highlight on all four sides, the bottom included. Measured on the finished App Store images, it is at least 4 px wide at luminance 150 or more on every side, with peaks of 181 to 202. The Android's narrower edge takes a wider, brighter ring and reads at least 3 px wide.
@@ -109,14 +128,13 @@ The layouts are in `scripts/marketing/store/shots/premium.mjs`.
   - The screen then matches a direct Lanczos reduction of the capture: 0.99 of its edge energy and 0.98 of its fine detail.
   - The glass reflection is kept, at half the studio's default, and lifts the screen by about one level.
   - The two tilted phones keep the studio's own mapping of the capture.
-- **Two cards, one rule.** 05 and 18 each carry one of DESIGN.md section 4's cards, opaque navy with the Example chip and no amount. The card arrives over the app's header, as a notification does:
-  - It covers the bell whole on 05, and the menu and the logo whole on 18, and never sits partly on a button or a word.
-  - It overhangs one edge of the phone: 70 px on the App Store (where the phone leaves about 120 px to the image's edge) and 80 px on Play.
-- **Two pairs.** Each pair shares one phone, tilted by the 3D studio across its seam: 04 and 05 (the stays home, leaning right) and 10 and 11 (the restaurant, leaning left). Each phone is slid left of the seam so the seam cuts no name:
-  - on the stays home it passes clear of the area line and the hero's headline, and between two words of the small line under it;
-  - on the restaurant it passes 44 px clear of "Harbour Lights Kitchen".
-
-  Across the two images the phone is whole; only the seam between them cuts it.
+- **Two cards, one rule.** 04 and 13 each carry one of DESIGN.md section 4's cards: opaque navy, the Example chip, no amount, 1.3 times round 2's size (a 45 px title), so they read at store size.
+  - Each card overhangs the phone's left edge: 50 px on the App Store, which keeps 13's card about 68 px from the image edge, and 80 px on Play.
+  - Its shadow is limited, so the ground next to every image edge stays pixel-identical.
+  - On 13 the card covers the menu and the logo whole, and stays clear of the bell and the back button below.
+  - On 04 it arrives beside the stays header and ends clear of the menu button.
+  - "Room booked" moved from 05 to 04 because a card this size cannot sit on 05. There, the phone's right edge is too close to the image edge for any overhang within the rule.
+- **One pair.** 04 and 05 share one phone, tilted by the 3D studio across their seam (the stays home, leaning right). The phone slides left until the seam crosses no word: it passes clear of the area line and the hero's headline, and between two words of the small line under it. Across the two images the phone is whole; only the seam between them cuts it.
 - **Files.** 24-bit truecolour PNG (IHDR colour type 2), no alpha, no palette.
 
 ## 4. The sizes each store takes
@@ -145,39 +163,46 @@ One to ten screenshots per display size and language, in .png, .jpg or .jpeg, wi
 ## 5. How the set was checked
 
 - Every image was looked at at full size, both halves.
-- Both pairs were proofed side by side with a 40 px gap, as the stores show them.
+- The pair was proofed side by side with a 40 px gap, as the stores show them.
 - PIL checks on every file:
   - the size, mode RGB, IHDR colour type 2 at 8 bits;
   - far more than 256 colours;
   - the top row reads 5, 11, 61 and the bottom row 1, 1, 24;
-  - the ground column at x 20 is identical in every image of a store;
+  - the whole top and bottom rows, and eight points on the corners and mid-edges, are identical in every image of a store (the pair's seam sides excepted);
   - every Play file is under 8 MB.
 - `compose.mjs` also checked each image as it drew it:
   - every word and card is at least 40 px inside its image;
   - every headline line has at least 4.5:1 contrast;
-  - no headline had to shrink.
+  - no headline had to shrink;
+  - no card runs over what it must leave clear.
+- The gap between line 1's descenders and line 2's ascenders is measured on every image (section 3).
 
 ## 6. Before you submit: things to know
 
-- **Every listing, stay and restaurant on screen is example stock**, because that is all the platform holds today. Their own pages show the Example notice and cards show the Example tag; no image crops either out. The two cards (05, 18) carry the Example chip; their names and nights are illustrative, from DESIGN.md section 4, and neither shows an amount.
-- **The QA account's home area is "Ibeju-Lekki, Lagos State"** (the founder's choice; `home`, `home-recent` and `stays` were recaptured with it on the evening of 30 September 2026, so their greeting reads "Good evening"). It shows on 01, 04, 05 and the feature graphic, and in a pill on the stays hero photograph.
-- **The QA account's name is on screen:** "omojuni" on the home, stays, support and lock screens. No email address or phone number appears in any image.
-- **Three headers were cleaned** (12, 17 and 28).
-  - These captures were taken scrolled, and the app's translucent header let the labels scrolled under it show through as faint ghost text beside the logo.
-  - `scripts/marketing/store/clean.mjs` finds the header's own parts (the status bar, the menu, the logo and the bell) on an unscrolled capture of the same header. It keeps them as captured and sets the rest of the band, where the ghost labels were, to the band's own colour. Nothing below the header's hairline is touched.
-- **Listing cards shared into a chat carry no Example tag** (22). That is how the product draws a shared card today. Add the tag to the shared card in the product and recapture before submitting 22.
+- **Every listing, stay and restaurant on screen is example stock**, because that is all the platform holds today. Their own pages show the Example notice and cards show the Example tag; no image crops either out. The two cards (04, 13) carry the Example chip; their names and nights are illustrative, from DESIGN.md section 4, and neither shows an amount.
+- **The QA account's home area is "Ibeju-Lekki, Lagos State"** (the founder's choice). It shows on 01, 04 and the feature graphic, and in a pill on the home and stays hero photographs.
+- **The QA account's first name, "omojuni", is on screen** on the home greetings (01, 04) and on 20 ("Hi omojuni") and 15 ("Welcome back, omojuni"). No email address or phone number appears in any image.
+- **Five headers were cleaned:** 06, 23, 25, 27 and one more with the same app header.
+  - These captures were taken scrolled, and the app's translucent header let what scrolled under it show through as faint ghost text.
+  - `scripts/marketing/store/clean.mjs` finds the header's own parts (the status bar, the menu, the logo and the bell) on an unscrolled capture of the same header. It keeps them as captured and sets the rest of the band to the band's own colour. Nothing below the header's hairline is touched.
 - **Product text that is shown but never lifted:**
-  - "Kept by Vallo Examples" and "Paid to Vallo Examples" on the fee lines (02, 31): the example lister's name;
-  - "Nobody can pay to be higher" (06, 34), a ranking promise that is not in the facts file, so it stays small and in place;
-  - the counts "40 properties found" (06), "12 properties found" (34) and "69 stays" (20);
-  - the onboarding art's "₦2,150,000" (35), labelled Example.
+  - "Kept by / Paid to Vallo Examples" on the fee lines (11, 33): the example lister's name;
+  - "Nobody can pay to be higher" (14), a ranking promise that is not in the facts file;
+  - "within 1 day, and within 4 hours" (20);
+  - "5 minutes away" (30);
+  - the counts "52 properties found" (14) and "69 stays" (18, 34);
+  - the onboarding art's "₦450,000" (21) and "₦2,150,000" (35), both labelled Example.
 
   None is repeated in a headline or a card.
-- **The restaurant carries a "No photographs yet" chip** on its placeholder photograph (10, 33). That is the product's own label. Hiding it when a placeholder is shown, or capturing a restaurant with its own photographs, would be better.
+- **Four product fixes, for a later recapture.** None blocks this set:
+  1. An Example tag on listing cards shared into a chat. The thread can then return, under "Talk to the owner / or the agent".
+  2. Rename the example lister from "Vallo Examples" to "Example Lettings". 11 and 33 can then be submitted, and "Kept by / Paid to Vallo" no longer reads as Vallo taking fees.
+  3. No "No photographs yet" chip printed on a photograph (10, 29). Show placeholder art with the chip, or relabel it "Illustrative photo".
+  4. Translate the onboarding buttons. The Yorùbá slide on 16 still says "Continue".
 
 ## 7. What the captures wrote to production
 
-Only to the QA member account, and only through the product's own screens: sign-ins (each writes a "New sign-in to Vallo" notification) and the assistant's consent and question (08). `scripts/marketing/capture/plan.mjs` lists every capture and its steps.
+Only to the QA member account, and only through the product's own screens: sign-ins (each writes a "New sign-in to Vallo" notification) and the assistant's consent and question (08, 28). `scripts/marketing/capture/plan.mjs` lists every capture and its steps.
 
 ## 8. Regenerating
 

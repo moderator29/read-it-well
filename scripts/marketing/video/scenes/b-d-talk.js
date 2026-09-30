@@ -16,6 +16,8 @@
  *        warm light blooms from the click; "Planning a trip?" lands in its
  *        ring at the left, then shrinks into the pill ("Book a room").
  */
+import { questionCard } from "../engine/components.js";
+import { QUESTIONS } from "./layout.js";
 import { NAVY, ELECTRIC, SHADOW, ramp, kf, mix, showDuring, box, cropBody, quadDriver, rectQuad, lerpQuad, shiftQuad, pressAt, dayCard, measure, ringOut } from "./b-kit.js";
 import { CW, CH } from "./b-desktop.js";
 
@@ -103,6 +105,19 @@ export async function deskTalk(ctx, S, T) {
     opacityAt: (t) => 1 - ramp(ctx, t, tLand, tLand + 0.14, "power1.out"),
   });
   ctx.sfx("card_slide", ctx.beat(53.4)); // 30.81
+
+  /* Card 1, taken over from section a at the cut in its end state (answer side up, right of where the
+     receipt was), so its answer reads to 31.30; then it leaves for the top right, where row 31 brings it back. */
+  const card1Out = ctx.beat(54.25); // 31.30
+  const C1 = { x: 1384, y: 150, w: 500, h: 160 };
+  const card1 = questionCard(ctx, cards, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: C1, fontSize: 34 });
+  Object.assign(card1.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
+  Object.assign(card1.back.style, { justifyContent: "center", textAlign: "center", fontSize: "28px", lineHeight: "1.22", textWrap: "balance" });
+  card1.turn(T.r14 - 5, { sound: null }); // already turned at the cut
+  const c1c = { x: C1.x + C1.w / 2, y: C1.y + C1.h / 2 };
+  ctx.gsap.set(card1.root, { transformOrigin: "50% 50%", rotation: 3 });
+  tl.fromTo(card1.root, { x: 0, y: 0, rotation: 3, scale: 1 }, { x: 2070 - c1c.x, y: -330 - c1c.y, rotation: 22, scale: 0.9, duration: 0.36, ease: "power2.in", immediateRender: false }, card1Out);
+  showDuring(ctx, card1.root, [[T.r14, card1Out + 0.4]]);
 
   /* owner, landlord, agent land in RIGHT_PANEL, one at a time, each at its own height and size */
   const words = [
