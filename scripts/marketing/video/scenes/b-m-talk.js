@@ -176,7 +176,7 @@ export async function talk(ctx, S, T) {
      phone), so its answer reads 28.87 to 31.30; then it leaves for the top right, where row 31 brings it back. */
   const card1Out = ctx.beat(54.25); // 31.30
   const c1Scene = ctx.scene("b-m-card1", T.r14, card1Out + 0.4, { z: 25 });
-  const C1 = { x: 230, y: 1380, w: 620, h: 170 };
+  const C1 = { x: 230, y: 1246, w: 620, h: 170 };
   const card1 = questionCard(ctx, c1Scene, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: C1, fontSize: 40 });
   Object.assign(card1.front.style, { justifyContent: "center", textAlign: "center", textWrap: "balance" });
   Object.assign(card1.back.style, { justifyContent: "center", textAlign: "center", fontSize: "33px", lineHeight: "1.22", textWrap: "balance" });
