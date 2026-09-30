@@ -673,7 +673,8 @@
   /* The founder, 30 September: the doors' buttons are clean rectangles
      with softly rounded corners, not pills. */
   .nf-om .nf-om-foot :is(.nf-om-cta, .nf-om-second) {
-    border-radius: var(--nf-radius-control);
+    /* The button system's large corner (tokens.css, --nf-act-radius-*). */
+    border-radius: var(--nf-act-radius-lg);
   }
 
   /* ---------------------------------------------------------- the motion */

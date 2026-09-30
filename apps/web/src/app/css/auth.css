@@ -638,7 +638,8 @@
   /*
    * THE DOORS TAKE THE PLATFORM'S PRIMARY (the button system, reference 55,
    * 30 September 2026): one primary everywhere. This rule keeps only the
-   * door's geometry, the full-width pill on the large rung (56px); the
+   * door's geometry, the full-width bar on the large rung (56px, the soft
+   * 14px corner of the founder's rectangle ruling); the
    * material, hover, press, focus and disabled states are `.nf-btn--primary`
    * in buttons.css, read from the `--nf-act-*` tokens, so sign in, the
    * welcome and the passcode screens draw the same blue pill as the app.
@@ -649,14 +650,14 @@
     min-height: 3.5rem;
     padding-block: 0;
     gap: var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-act-radius-lg);
     font-size: 1rem;
     font-weight: 600;
   }
-  /* The platform's edge runner (`edge-m.css`) laps every button; on a pill
-     its straight edges begin at half the height, not at the control corner. */
+  /* The platform's edge runner (`edge-m.css`) laps every button; its
+     corner follows the bar's own. */
   .nf-slate .nf-slate-pill.nf-btn::before {
-    --nf-edge-r: calc(var(--nf-btn-h) / 2 + 2px);
+    --nf-edge-r: calc(var(--nf-act-radius-lg) + 2px);
   }
   /* The second way on is the platform's secondary, the outlined blue pill
      (`.nf-btn--glass`, buttons.css); nothing here repaints it. */
