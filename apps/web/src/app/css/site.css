@@ -79,6 +79,27 @@
       grid-column: span 1;
     }
   }
+  /* The support column's nine links: across both phone tracks in two
+     columns of their own (it was a single column of nine, the footer's
+     longest run at 390), one column again from 1024px. */
+  .nf-site-footer-col--wide {
+    grid-column: span 2;
+  }
+  .nf-site-footer-col--wide > ul {
+    columns: 2;
+    column-gap: var(--nf-gap-group);
+  }
+  .nf-site-footer-col--wide li {
+    break-inside: avoid;
+  }
+  @media (min-width: 1024px) {
+    .nf-site-footer-col--wide {
+      grid-column: span 1;
+    }
+    .nf-site-footer-col--wide > ul {
+      columns: 1;
+    }
+  }
   .nf-site-footer-link {
     display: inline-flex;
     align-items: center;

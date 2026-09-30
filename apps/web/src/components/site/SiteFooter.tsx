@@ -68,6 +68,8 @@ export function SiteFooter({ t }: { t: Dictionary }) {
     },
     {
       title: f.support,
+      /* Nine links: two columns of its own on a phone and a tablet. */
+      wide: true,
       links: [
         { href: "/help", label: face.footer.helpSupport },
         /* A7: the two checks a stranger can run with no account. */
@@ -124,7 +126,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
           </div>
 
           {columns.map((col) => (
-            <nav key={col.title} aria-label={col.title}>
+            <nav key={col.title} aria-label={col.title} className={"wide" in col && col.wide ? "nf-site-footer-col--wide" : undefined}>
               <h2 className="nf-overline mb-row text-[var(--nf-content-muted)]">{col.title}</h2>
               <ul>
                 {col.links.map((l) => (
