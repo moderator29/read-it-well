@@ -20,8 +20,8 @@ import { ITERATION_QUIET_SCRIPT } from "@/lib/motion/iteration-quiet";
 import { ClientCopyProvider } from "@/lib/i18n/client-copy";
 import { clientCopyOf } from "@/lib/i18n/client-copy-of";
 import { SuccessFlagHost } from "@/components/ui/SuccessFlagHost";
-
 import { DetailsHost } from "@/components/ui/DetailsHost";
+
 /*
  * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
  * not through next/font. That file explains which subsets ship and why; this
@@ -476,6 +476,8 @@ export default async function RootLayout({
           {/* The account's success moments (sign-up, email, password,
               passcode), wherever they land: docs/SUCCESS_MOMENTS.md. */}
           <SuccessFlagHost />
+          {/* The one toast, the connection line and back to top. */}
+          <DetailsHost />
         </ClientCopyProvider>
         {/* The splash itself: hidden unless the script above said so, gone
             for good once its door has opened. Pure CSS; see threshold.css. */}
@@ -490,5 +492,3 @@ export default async function RootLayout({
     </html>
   );
 }
-          {/* The one toast, the connection line and back to top. */}
-          <DetailsHost />
