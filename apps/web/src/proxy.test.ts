@@ -281,6 +281,11 @@ const EXPECTED_PUBLIC = new Set([
   "/move-in-cost",
   "/guides",
   "/guides/[slug]",
+  /* A12: the sign-in-free email preferences, by signed token. A5: the
+     invite door and the step that keeps its code for sign-up. */
+  "/email/preferences",
+  "/join/[code]",
+  "/join/[code]/start",
   /* No network, and which home. */
   "/home-or-landing",
   "/open",
@@ -289,6 +294,10 @@ const EXPECTED_PUBLIC = new Set([
      it is telemetry a signed-out browser has to be able to post. */
   "/api/auth/email-hook",
   "/api/client-error",
+  /* A12: RFC 8058 one-click unsubscribe, by signed token. A6: the
+     first-party funnel beacon, rate limited, recording no person. */
+  "/api/email/unsubscribe",
+  "/api/funnel",
   "/api/cron/account-purge",
   "/api/cron/complete-stays",
   "/api/cron/email-outbox",

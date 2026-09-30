@@ -287,12 +287,25 @@ export async function sendMessage(
 }
 
 /**
- * OPS-14: the List-Unsubscribe header for mail a /settings switch can turn
- * off, pointing at that switch. Not one-click (no List-Unsubscribe-Post):
- * that needs a signed, sign-in-free endpoint, which does not exist yet.
+ * OPS-14 and A12: the List-Unsubscribe headers for mail a /settings switch
+ * can turn off.
+ *
+ * Given a signed token (`lib/email/unsubscribe-token.ts`), it is RFC 8058
+ * one-click: `List-Unsubscribe` names the sign-in-free endpoint and
+ * `List-Unsubscribe-Post: List-Unsubscribe=One-Click` tells Gmail and Yahoo
+ * they may POST it. Without a token (no service key to sign with) it falls
+ * back to the settings switch, which needs a sign-in, and claims no
+ * one-click it cannot honour. Security mail has no channel and never reaches
+ * this function.
  */
-export function listUnsubscribeHeaders(origin: string, channel: string): Record<string, string> {
+export function listUnsubscribeHeaders(origin: string, channel: string, token?: string | null): Record<string, string> {
   const base = origin.replace(/\/+$/, "");
+  if (token) {
+    return {
+      "List-Unsubscribe": `<${base}/api/email/unsubscribe?token=${encodeURIComponent(token)}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    };
+  }
   return { "List-Unsubscribe": `<${base}/settings/notifications?channel=${encodeURIComponent(channel)}>` };
 }
 

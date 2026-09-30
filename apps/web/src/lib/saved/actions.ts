@@ -16,6 +16,8 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { recordFunnelStep } from "../funnel/record";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
@@ -95,6 +97,8 @@ export async function toggleSave(input: {
     // 23505: already saved in another tab. The user's intent is satisfied.
     if (error.code === "23505") {
       revalidatePath("/saved");
+      /* A6: the funnel's "first result". The database keeps only the first. */
+      after(() => recordFunnelStep("first_result"));
       return ok({ mode: "db", listingId, saved: true });
     }
     return fail(SAVE_DOWN_MESSAGE);

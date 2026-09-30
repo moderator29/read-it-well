@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FunnelBeacon } from "@/components/site/FunnelBeacon";
 import { forListingCard } from "@/lib/i18n/slice";
 import { after } from "next/server";
 import { demandRecorder } from "@/lib/demand/record";
@@ -446,6 +447,8 @@ export default async function SearchPage({
 
   return (
     <>
+      {/* A6: the funnel's "first search", once a search has something in it. */}
+      {Object.keys(raw).length > 0 && <FunnelBeacon step="first_search" />}
       {/*
         THE WAY BACK, ON THE BAR'S OWN ROW.
 

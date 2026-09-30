@@ -252,6 +252,14 @@ export function SettingsHub({
           sub={hub.languageSub}
           glyph={<HubGlyph name="globe" />}
         />
+        {/* A5: the member's own invite link. */}
+        <RowLink
+          href="/settings/invite"
+          glyph={<HubGlyph name="users" />}
+          label={t.publicDoors.invite.rowTitle}
+          sub={t.publicDoors.invite.rowSub}
+          testId="hub-invite"
+        />
       </SettingsGroup>
 
       <SettingsGroup label="Privacy and security">

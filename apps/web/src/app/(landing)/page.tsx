@@ -9,6 +9,7 @@ import { LandingBody, landingData } from "@/components/site/landing/LandingBody"
 import { requestSurface } from "@/lib/auth/surface";
 import { NONCE_HEADER } from "@/lib/security/csp";
 import { JsonLd } from "@/components/site/JsonLd";
+import { FunnelBeacon } from "@/components/site/FunnelBeacon";
 import { organizationLd, websiteLd } from "@/lib/site/structured-data";
 import { publicCatalogueEnabled } from "@/lib/catalogue/public-access";
 
@@ -92,6 +93,8 @@ export default async function LandingPage() {
       <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
       {/* A13: who publishes this site, stated once, on the home page. */}
       <JsonLd data={[organizationLd(), websiteLd({ searchOpen: publicCatalogueEnabled() })]} />
+      {/* A6: the first-party funnel's landing view and "get started" door. */}
+      <FunnelBeacon step="landing_view" watchStart />
       <SiteHeader t={t} locale={locale} variant="landing" />
       <LandingBody t={t} locale={locale} data={data} native={native} nonce={nonce} />
       <SiteFooter t={t} />

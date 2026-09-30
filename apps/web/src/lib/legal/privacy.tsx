@@ -154,9 +154,20 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
           <li>
             <strong>Price checks.</strong> When you use the price check, we record the
             area, the kind of property and how far you got, against your account, so we
-            can see whether it gives useful answers. That is the only record we keep of
-            how the product is used. There is no other analytics and no advertising
-            tracking in Vallo.
+            can see whether it gives useful answers. That and the sign-up step counts
+            below are the only records we keep of how the product is used. There is no
+            other analytics and no advertising tracking in Vallo.
+          </li>
+          <li>
+            <strong>Sign-up step counts.</strong> We count, ourselves, how many visits
+            reach each step of joining Vallo: opening the home page, starting to sign up,
+            and, once you have an account, your first search and your first save. Each
+            count carries the language, whether it was the website or the app, the part
+            of the page you came from, and a random visit number kept in a cookie that is
+            deleted when you close your browser. Before you have an account nothing ties a
+            count to you; after, the first search and the first save are linked to your
+            account only so that each is counted once. Nothing is shared with anyone, and
+            the counts are deleted after 90 days.
           </li>
           <li>
             <strong>Emails we send you.</strong> A record of each one is kept for 90
@@ -457,9 +468,9 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
     body: (
       <>
         <p>
-          We use only cookies and device storage that the product needs to work. There is
-          no analytics, advertising or tracking cookie in Vallo, and none from a third
-          party.
+          We use only cookies and device storage that the product needs to work, and one
+          first-party cookie for the sign-up step counts in section 2. There is no analytics
+          from a third party, and no advertising or tracking cookie in Vallo.
         </p>
         <ul>
           <li>Your sign-in session (set by our sign-in provider, Supabase).</li>
@@ -468,6 +479,10 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
             search results shown, and whether you have seen the welcome cards.
           </li>
           <li>That you agreed to how the AI assistant works (section 12).</li>
+          <li>
+            A random visit number for the sign-up step counts, deleted when you close your
+            browser.
+          </li>
           <li>
             On your device only: places you saved before signing in, your support chat,
             whether notifications are on for this device, and your data-saver choice.
