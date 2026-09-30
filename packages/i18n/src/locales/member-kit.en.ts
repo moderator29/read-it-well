@@ -98,6 +98,28 @@ export const memberKitEn = {
     perMonthNote: "This is the rent divided by the whole months left. Vallo does not hold or save money for you.",
     open: "Open your tenancy",
   },
+  /** B5: the viewing day kit on a confirmed inspection. */
+  dayKit: {
+    label: "Viewing day",
+    addToCalendar: "Add to calendar",
+    /** `{area}` is the area only, never a street. */
+    calendarTitle: "Viewing: {area}",
+    calendarAlarm: "Your viewing starts in 90 minutes",
+    dayOf: "Today",
+    onMyWay: "On my way",
+    runningLate: "Running late",
+    lateAsk: "How late?",
+    /** `{minutes}` is 15, 30 or 60. */
+    lateChoice: "{minutes} min",
+    cancel: "Cancel",
+    /** The fixed messages sent into the thread. */
+    onMyWayMessage: "I am on my way to the viewing.",
+    lateMessage: "I am running about {minutes} minutes late for the viewing. Sorry, I am on my way.",
+    sent: "Sent in your conversation.",
+    kept: "No signal. It will send by itself when you are back online.",
+    failed: "That did not send. Try again.",
+    noThread: "Open the conversation to send a message.",
+  },
 };
 
 export type MemberKitCopy = typeof memberKitEn;

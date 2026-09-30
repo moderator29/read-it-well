@@ -57,6 +57,7 @@ import { TruthQuestions } from "./TruthQuestions";
 import { DrawUpAgreement } from "@/components/app/agreements/DrawUpAgreement";
 import { AGREEMENT_STATUS_LABEL } from "@/components/app/agreements/status";
 import { NO_INSPECTION_FEE, PRIVATE_FEE_NOTE, NO_INSPECTION_FEE_HEADLINE } from "@/lib/money/copy";
+import { ViewingDayKit } from "./ViewingDayKit";
 import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 
 /**
@@ -186,7 +187,10 @@ export function InspectionSheet({
   needPhotos = 0,
   agreement = null,
   success,
+  dayKit,
 }: {
+  /** B5: the viewing day kit's words. Absent, no kit. */
+  dayKit?: Dictionary["memberKit"]["dayKit"];
   /** The page's `t.success`, for "report submitted" and "recorded". Absent, no sheet. */
   success?: SuccessWords;
   inspection: Inspection;
@@ -601,6 +605,18 @@ export function InspectionSheet({
         {/* V-35: the gate code, which works with no signal on either phone. */}
         {/* Mounted only while this card is open: a closed card asks for no
             seed, writes no pack and runs no clock (review finding 6). */}
+        {/* B5: add to calendar, and on the day "On my way" and "Running late". */}
+        {inspection.state === "CONFIRMED" && dayKit && (
+          <ViewingDayKit
+            inspectionId={inspection.id}
+            slotAt={inspection.slotAt}
+            area={facts?.area || facts?.city || ""}
+            place={[facts?.area, facts?.city].filter(Boolean).join(", ")}
+            conversationId={inspection.conversationId}
+            copy={dayKit}
+          />
+        )}
+
         {inspection.state === "CONFIRMED" && gateCopy && expanded && (
           <GateHandshake inspectionId={inspection.id} locale={locale} copy={gateCopy} />
         )}
