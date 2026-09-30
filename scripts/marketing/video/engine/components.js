@@ -327,7 +327,14 @@ export function questionCard(ctx, parent, { q, a, box, mark = false, fontSize = 
   const front = face(false);
   front.textContent = q;
   const back = face(true);
-  if (mark) ctx.img("/repo/assets/icons/ui/verified-badge.svg", { style: { width: `${Math.round(size * 1.3)}px`, height: `${Math.round(size * 1.3)}px`, flex: "none", filter: "brightness(0) invert(1)" } }, back);
+  if (mark) {
+    /* The product's verified mark (assets/icons/ui/verified-badge.svg), drawn
+       inline as a white badge with an electric tick on the blue back. A CSS
+       filter would whiten the tick too and leave a plain disc. */
+    const px = Math.round(size * 1.3);
+    const badge = ctx.el("div", { style: { width: `${px}px`, height: `${px}px`, flex: "none" } }, back);
+    badge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="m16.2 9-5.6 5.6L7.8 11.8" fill="none" stroke="#0069fe" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
   ctx.el("span", { text: a }, back);
   return {
     root,

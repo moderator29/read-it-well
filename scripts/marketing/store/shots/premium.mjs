@@ -75,7 +75,7 @@ function std(n, slug, id, iconName, lines, { sub } = {}) {
       const m = M(ctx);
       const p = await stdPhone(ctx, m, id);
       return [
-        fill(GROUND),
+        fill(await ctx.ground(GROUND)),
         lineIcon({ name: iconName, x: ctx.W / 2, top: m.iconTop, size: m.iconSize }),
         head(ctx, m, lines, { sub }),
         p.html,
@@ -109,7 +109,7 @@ function pair(a, b, { id, rotation, fov, cy, h, extraB }) {
   return [
     {
       n: a.n, slug: a.slug, captures: [id], pairWith: b.n, shared,
-      ground: ({ pageW, H }) => `<div class="g" style="left:0;top:0;width:${pageW}px;height:${H}px;background:${GROUND}"></div>`,
+      ground: async ({ pageW, H, ground }) => `<div class="g" style="left:0;top:0;width:${pageW}px;height:${H}px;background:${await ground(GROUND)}"></div>`,
       layout: words(a),
     },
     { n: b.n, slug: b.slug, captures: [id], pairedFrom: a.n, layout: words(b, extraB) },
@@ -184,7 +184,7 @@ export const SHOTS = [
       const [, y] = p.at(660, 2040);
       const w = 900 * u;
       return [
-        fill(GROUND),
+        fill(await ctx.ground(GROUND)),
         lineIcon({ name: "banknote", x: W / 2, top: m.iconTop, size: m.iconSize }),
         head(ctx, m, ["Your share goes", "straight to your bank"]),
         p.html,
@@ -208,7 +208,7 @@ export const SHOTS = [
       const p = await stdPhone(ctx, m, "home-recent");
       const s = m.iconSize * 1.25;
       return [
-        fill(GROUND),
+        fill(await ctx.ground(GROUND)),
         `<img class="abs" src="${brandUrl("vallo-icon.png")}" style="left:${px(W / 2 - s / 2)};top:${px(m.iconTop + m.iconSize - s)};width:${px(s)};height:${px(s)};border-radius:22.4%;z-index:40;box-shadow:0 0 0 1px rgb(255 255 255 / 0.14)">`,
         head(ctx, m, ["Vallo. Real estate,", "done right."], { sub: "Coming soon on iPhone and Android." }),
         p.html,
@@ -221,7 +221,7 @@ export const SHOTS = [
 export async function FEATURE(ctx) {
   const p = await ctx.phone({ id: "home", cx: 792, cy: 258, h: 420, rotation: { x: -6, y: -16, z: 4 }, fov: 24, margin: 34, color: PHONE_COLOR, shadow: { type: "drop", opacity: 0.45 } });
   return [
-    fill(GROUND),
+    fill(await ctx.ground(GROUND)),
     `<img class="abs" src="${brandUrl("vallo-wordmark.png")}" style="left:74px;top:150px;width:176px;z-index:30">`,
     `<div class="abs" style="left:72px;top:212px;width:560px;z-index:30;font:600 56px/1.05 Poppins;letter-spacing:-0.03em;color:#fff">Real estate,<br>done right.</div>`,
     p.html,

@@ -16,7 +16,8 @@
  * A connected pair (`pairWith`) is drawn as one page twice as wide and cut
  * in two: its ground runs under both images and its one phone (`shared`)
  * crosses the seam. --feature also draws Play's 1024 x 500 feature graphic.
- * --proof writes quick JPEGs to DIR instead of the store folders, and
+ * --proof writes quick JPEGs to DIR instead of the store folders (--png
+ * keeps them lossless), and
  * `STORE_SCREENS=dir` reads the displays from another folder.
  *
  * Every image is checked as it is drawn: each phone stays clear of the
@@ -47,6 +48,8 @@ const PROOF = arg("--proof");
 const FEATURE_ONLY = args.includes("--feature-only");
 const WITH_FEATURE = args.includes("--feature") || FEATURE_ONLY;
 const VERBOSE = args.includes("--verbose");
+/* --png keeps proofs lossless, for comparing pixels. */
+const PROOF_EXT = args.includes("--png") ? "png" : "jpg";
 
 const TMP = join(tmpdir(), `vallo-store-${process.pid}`);
 mkdirSync(TMP, { recursive: true });
@@ -56,6 +59,27 @@ const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromi
 const context = await browser.newContext({ deviceScaleFactor: RES, viewport: { width: 800, height: 800 } });
 const tab = await context.newPage();
 const problems = [];
+
+/**
+ * A ground (a CSS background) drawn once at the page's device scale and
+ * kept as a PNG, so every image that uses it carries exactly the same
+ * pixels: Chromium dithers a gradient a little differently in each page.
+ * Returns a CSS background value that tiles it horizontally.
+ */
+const grounds = new Map();
+async function groundRaster(css, w, h) {
+  const key = `${css}|${w}|${h}`;
+  if (!grounds.has(key)) {
+    const p = await context.newPage();
+    await p.setViewportSize({ width: w, height: h });
+    await p.setContent(`<!doctype html><html><body style="margin:0"><div style="width:${w}px;height:${h}px;background:${css}"></div></body></html>`);
+    const file = join(TMP, `ground-${grounds.size}.png`);
+    writeFileSync(file, await p.screenshot({ type: "png" }));
+    await p.close();
+    grounds.set(key, `url("file://${file}") 0 0 / ${w}px ${h}px repeat-x`);
+  }
+  return grounds.get(key);
+}
 
 /** The context a layout draws with: one image, its store, its handsets. */
 function makeCtx(shot, store, offset) {
@@ -72,6 +96,8 @@ function makeCtx(shot, store, offset) {
     u: S.W / 1320,
     placed,
     screen: (id) => screenFile(id, store),
+    /** The ground `css`, as the one shared raster (see groundRaster). */
+    ground: (css) => groundRaster(css, ctx.W, ctx.H),
     /** Render and place a handset showing capture `id`. */
     /**
      * Render and place a handset showing capture `id`, its body centred on
@@ -228,7 +254,7 @@ async function write(buf, file, { width, height, left = 0 }) {
   const scaled = await sharp(buf).resize(Math.round(pageW), Math.round(pageH), { kernel: "lanczos3" }).toBuffer();
   img = sharp(scaled).extract({ left, top: 0, width, height }).flatten({ background: "#010118" }).removeAlpha().toColourspace("srgb");
   mkdirSync(join(file, ".."), { recursive: true });
-  if (PROOF) {
+  if (PROOF && PROOF_EXT === "jpg") {
     await img.jpeg({ quality: 90, chromaSubsampling: "4:4:4" }).toFile(file);
     return;
   }
@@ -248,7 +274,7 @@ async function write(buf, file, { width, height, left = 0 }) {
 }
 
 const outFile = (store, shot) =>
-  PROOF ? join(PROOF, store, `${shotName(shot)}.jpg`) : join(OUT, store, `${shotName(shot)}.png`);
+  PROOF ? join(PROOF, store, `${shotName(shot)}.${PROOF_EXT}`) : join(OUT, store, `${shotName(shot)}.png`);
 
 const made = [];
 const t0 = performance.now();
@@ -271,7 +297,7 @@ for (const store of STORE_LIST) {
          context as wide as both images, so each half can place its words
          (and the one pop-up) around it. */
       let shared = null;
-      const args = { W: S.W, H: S.H, pageW, store, u: S.W / 1320, ios: store === "app-store" };
+      const args = { W: S.W, H: S.H, pageW, store, u: S.W / 1320, ios: store === "app-store", ground: (css) => groundRaster(css, S.W, S.H) };
       if (partner && shot.shared) {
         const pc = makeCtx(shot, store, 0);
         pc.W = pageW;
@@ -322,7 +348,7 @@ if (WITH_FEATURE && FEATURE) {
   ctx.u = 0.5;
   const body = await FEATURE(ctx);
   const buf = await renderHtml(page({ width: W, height: H, body }), W, H);
-  const file = PROOF ? join(PROOF, "feature-graphic.jpg") : join(OUT, "google-play", "feature-graphic.png");
+  const file = PROOF ? join(PROOF, `feature-graphic.${PROOF_EXT}`) : join(OUT, "google-play", "feature-graphic.png");
   await write(buf, file, { width: W, height: H });
   made.push("google-play/feature-graphic");
 }

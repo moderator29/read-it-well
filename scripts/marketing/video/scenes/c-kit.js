@@ -18,7 +18,7 @@ export function times(ctx) {
     r28: b(109), r29: b(112), r30: b(115), r31: b(121), r32: b(126), r33: b(129), r34: b(134),
     r35: b(138), r36: b(142), r37: b(148), r38: b(153), r39: b(156), r40: b(160), r41: b(166), r42: ctx.bar(44), end: b(176),
     /* 14: And when it's time to pay… Vallo never holds your money. */
-    when: w(14, "when"), its: w(14, "it's"), time: w(14, "time"), to: w(14, "to"), pay: w(14, "pay"),
+    and14: w(14, "And"), when: w(14, "when"), its: w(14, "it's"), time: w(14, "time"), to: w(14, "to"), pay: w(14, "pay"),
     vallo14: w(14, "Vallo"), never: w(14, "never"), holds: w(14, "holds"), your14: w(14, "your"), money: w(14, "money"), moneyEnd: we(14, "money"),
     /* 15: Your payment goes straight to the owner, the host or the business, through a licensed payment processor. */
     payment: w(15, "payment"), goes: w(15, "goes"), straight: w(15, "straight"), owner: w(15, "owner"), host: w(15, "host"), business: w(15, "business"),
@@ -295,9 +295,24 @@ export function coin(ctx, parent, { size = 150, layers = 14, z = 0 } = {}) {
   return { wrap, body, set, state, size: S };
 }
 
-/** The verified mark as an inline image (the product's own). */
-export function verifiedMark(ctx, parent, size, style = {}) {
-  return ctx.img("/repo/assets/icons/ui/verified-badge.svg", { style: { width: `${size}px`, height: `${size}px`, ...style } }, parent);
+/**
+ * The product's verified mark (assets/icons/ui/verified-badge.svg), inline so
+ * its colours can be set: `fill` for the disc, `check` for the tick. On the
+ * blue answer cards: a white disc with an electric tick.
+ */
+let badgeSvg = null;
+export async function verifiedMark(ctx, parent, size, { fill = "#ffffff", check = "#0069fe", style = {} } = {}) {
+  if (!badgeSvg) {
+    badgeSvg = await fetch("/repo/assets/icons/ui/verified-badge.svg").then((r) => {
+      if (!r.ok) throw new Error("verified-badge.svg");
+      return r.text();
+    });
+  }
+  const span = ctx.el("span", { style: { display: "inline-grid", width: `${size}px`, height: `${size}px`, flex: "none", ...style } }, parent);
+  span.innerHTML = badgeSvg
+    .replace(/width="24"/, `width="${size}"`).replace(/height="24"/, `height="${size}"`)
+    .replace(/fill="currentColor"/, `fill="${fill}"`).replace(/stroke="#fff"/, `stroke="${check}"`);
+  return span;
 }
 
 /** A round tick badge (electric disc, white check). */

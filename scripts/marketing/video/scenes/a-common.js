@@ -15,13 +15,14 @@ export const NAVY = "#0b1230";
 export const ELECTRIC = "#0069fe";
 export const SKY = "#8fd3ff";
 export const QUIET = "#5c9fff";
-/* One shadow language for everything that floats on the light grounds. */
-export const SHADOW = "0 34px 64px -28px rgb(11 18 48 / 0.34), 0 10px 22px -12px rgb(11 18 48 / 0.16)";
-export const SHADOW_SOFT = "0 22px 44px -22px rgb(11 18 48 / 0.30), 0 6px 14px -8px rgb(11 18 48 / 0.12)";
+/* One shadow language across the film (the same values as sections b and c). */
+export const SHADOW = "0 26px 56px -26px rgb(16 32 80 / 0.38), 0 6px 16px -8px rgb(16 32 80 / 0.16)";
+export const SHADOW_L = "0 40px 90px -40px rgb(16 32 80 / 0.42), 0 10px 24px -12px rgb(16 32 80 / 0.18)";
+export const SHADOW_SOFT = "0 14px 32px -16px rgb(16 32 80 / 0.34), 0 3px 10px -5px rgb(16 32 80 / 0.16)";
 /* ...and its night twin. */
-export const SHADOW_NIGHT = "0 34px 70px -26px rgb(0 0 16 / 0.75), 0 10px 24px -12px rgb(0 0 24 / 0.5)";
-/* The mist (the light chapters' ground): #F3F7FF to white, lit from above. */
-export const MIST = "radial-gradient(120% 70% at 50% 0%, #ffffff 0%, rgb(255 255 255 / 0) 62%), linear-gradient(180deg, #eef3fe 0%, #f3f7ff 42%, #f8faff 74%, #ffffff 100%)";
+export const SHADOW_NIGHT = "0 26px 56px -24px rgb(0 0 12 / 0.75), 0 6px 16px -8px rgb(0 0 12 / 0.5)";
+/* The mist, the daylight ground: the same string as sections b and c (b-kit / c-kit mist()). */
+export const MIST = "radial-gradient(70% 45% at 50% 42%, rgb(0 105 254 / 0.07) 0%, rgb(0 105 254 / 0) 70%), linear-gradient(180deg, #ffffff 0%, #f6f9ff 38%, #f3f7ff 70%, #ecf2ff 100%)";
 
 /* ---------- the clock ---------- */
 
@@ -60,6 +61,14 @@ export function timesPlus(ctx) {
   T.lines = [T.rentLine, T.fees, T.fees + 0.19, T.fees + 0.38, T.caution, T.deposit];
   /* 13: the five amounts leave for the total one by one from "all". */
   T.flies = [0, 1, 2, 3, 4].map((k) => T.all6 + k * 0.12);
+  /* 06: the Property | Stays tabs rise on "with one account". */
+  T.tabsUp = T.one2 - 0.14;
+  /* 07: the Rent press lands inside the word "rent", once the phone has risen. */
+  T.rentPress = T.rent + 0.15;
+  /* 09: the lifted Apply button's count rolls just after the Villas press. */
+  T.countRoll = T.exactly + 0.12;
+  /* 10: the listing's flick scroll starts on "see" and lands on "move-in". */
+  T.flick = T.see - 0.1;
   return T;
 }
 
@@ -245,6 +254,89 @@ export const CITIES = [
   { name: "Ibadan", lon: 3.9, lat: 7.38 },
 ];
 
+/* ---------- type ---------- */
+
+/** Loads the section's faces, so widths can be measured at build time. */
+export async function loadFonts() {
+  await Promise.all(["700 100px Poppins", "600 100px Poppins", "600 40px Inter", "700 40px Inter", "500 40px Inter"].map((f) => document.fonts.load(f, "Vallo ₦ 0123456789")));
+}
+
+/** A text's width in px at a CSS font, with letter-spacing in em (as the stage draws it). */
+export function measure(text, font, letterSpacingEm = 0) {
+  const c = measure.canvas ?? (measure.canvas = document.createElement("canvas"));
+  const g = c.getContext("2d");
+  g.font = font;
+  const px = parseFloat(font.match(/(\d+(?:\.\d+)?)px/)[1]);
+  return g.measureText(text).width + [...text].length * letterSpacingEm * px;
+}
+
+/** The largest size (<= size) at which `text` fits `maxW`, for a font template like "700 {}px Poppins". */
+export function fitSize(text, template, size, maxW, letterSpacingEm = -0.03) {
+  const w = measure(text, template.replace("{}", String(size)), letterSpacingEm);
+  return w <= maxW ? size : Math.floor((size * maxW) / w);
+}
+
+/* ---------- the odometer ---------- */
+
+/*
+ * The total rolls into place like an odometer: each digit column spins at a
+ * steady high speed (more than a digit a frame, so it is a vertical smear,
+ * never a readable digit), then brakes in the last 0.12 s onto its digit;
+ * the columns stop left to right, the last on t1. The smear is a vertical
+ * gaussian (an SVG filter), strongest at full speed. Only ₦26,100,000 is
+ * ever readable. (The engine's odometer blurs by at most 3 px, which leaves
+ * wrong digits readable mid-spin.)
+ */
+let vblurReady = false;
+function vblurFilters(ctx) {
+  if (vblurReady) return;
+  vblurReady = true;
+  const holder = ctx.el("div", { style: { position: "absolute", width: "0px", height: "0px", overflow: "hidden" } }, ctx.stage);
+  const steps = [2, 4, 7, 10, 14, 18];
+  holder.innerHTML = `<svg width="0" height="0"><defs>${steps.map((k, i) => `<filter id="a-vblur-${i}" x="-5%" y="-60%" width="110%" height="220%"><feGaussianBlur stdDeviation="0 ${k}"/></filter>`).join("")}</defs></svg>`;
+}
+
+export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "₦", speed = 72, brake = 0.12 }) {
+  vblurFilters(ctx);
+  const text = value.toLocaleString("en-NG");
+  const box = ctx.el("div", { style: { display: "flex", alignItems: "flex-start", font, color, lineHeight: "1", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" } }, parent);
+  if (prefix) ctx.el("span", { text: prefix, style: { display: "inline-block", height: "1.08em" } }, box);
+  const digits = [...text].filter((c) => /\d/.test(c)).length;
+  let k = 0;
+  [...text].forEach((ch) => {
+    if (!/\d/.test(ch)) {
+      ctx.el("span", { text: ch, style: { display: "inline-block" } }, box);
+      return;
+    }
+    const idx = k;
+    k += 1;
+    const col = ctx.el("span", { style: { display: "inline-block", position: "relative", height: "1.08em", overflow: "hidden" } }, box);
+    ctx.el("span", { text: "0", style: { visibility: "hidden", display: "block", lineHeight: "1.08em" } }, col);
+    const land = t0 + ((t1 - t0) * (idx + 1)) / digits;
+    const run = land - t0;
+    /* whole digits travelled: the steady spin, then half the brake */
+    const final = Number(ch);
+    const travel = Math.max(10, Math.round(speed * (run - brake / 2) / 10) * 10 + final);
+    const v = travel / (run - brake / 2);
+    const strip = ctx.el("span", { style: { position: "absolute", left: "0px", top: "0px", display: "flex", flexDirection: "column" } }, col);
+    for (let s = 0; s <= travel; s += 1) ctx.el("span", { text: String(s % 10), style: { display: "block", height: "1.08em", lineHeight: "1.08em" } }, strip);
+    let lastF = -2;
+    ctx.onFrame((t) => {
+      const u = Math.min(Math.max(t - t0, 0), run);
+      const tb = run - brake;
+      const pos = u <= tb ? v * u : v * tb + v * ((u - tb) - (u - tb) ** 2 / (2 * brake));
+      const vel = u <= 0 || u >= run ? 0 : u <= tb ? v : v * (1 - (u - tb) / brake);
+      strip.style.transform = `translateY(${(-pos * 1.08).toFixed(4)}em)`;
+      const f = vel / 60 < 0.12 ? -1 : Math.min(5, Math.floor((vel / 60) * 4));
+      if (f !== lastF) {
+        col.style.filter = f < 0 ? "none" : `url(#a-vblur-${f})`;
+        lastF = f;
+      }
+    });
+  });
+  return box;
+}
+
 /**
  * The section's sound cues and caption gaps (STORYBOARD.md, rows 01-13). The
  * films share one clock and one soundtrack, so both register the same cues.
@@ -254,16 +346,17 @@ export function registerSound(ctx, T) {
   /* 02 */ s("whoosh_short", T.rows[1], -2);
   /* 03 */ s("card_slide", T.b(7.1), 0); s("card_slide", T.b(7.8), 0); s("card_slide", T.b(8.5), 0); s("whoosh_long", T.rush, 0);
   /* 04 */ s("impact_soft", T.drop, 0); s("sparkle", T.sparkle, -3);
-  /* 05 */ for (const t of [T.hotels, T.shortlets, T.restaurants, T.welcome]) s("swipe", t, -3);
-  /* 06 */ s("pop", T.one1, -4);
-  /* 07 */ s("whoosh_short", T.rows[6], -4); s("tap", T.rent, 0); s("swipe", T.buy, -2);
+  /* 05 */ for (const t of [T.hotels, T.shortlets, T.restaurants]) s("swipe", t, -3);
+  /* 06 */ s("pop", T.tabsUp, -4);
+  /* 07 (the chapter's opener) */ s("whoosh_short", T.rows[6], -4); s("tap", T.rentPress, 0); s("swipe", T.buy, -2);
   /* 08 */ for (const t of T.dots) s("tap_soft", t, -6); s("tap", T.filterPress, 0);
-  /* 09 */ s("toggle_on", T.exactly, 3); s("counter_tick", T.exactly + 0.11, -2); s("tap", T.need, 0);
-  /* 10 */ s("swipe", T.movein, -2);
-  /* 11 */ s("whoosh_short", T.call, 0); s("card_slide", T.call + 0.17, -2);
+  /* 09 */ s("toggle_on", T.exactly, 3); s("counter_tick", T.countRoll, -2); s("tap", T.need, 0);
+  /* 10 */ s("swipe", T.flick, -2);
+  /* 11 (the receipt opens the chapter) */ s("whoosh_short", T.call, 0); s("card_slide", T.call + 0.17, -2);
   /* 12 */ for (const t of T.lines) s("counter_tick", t, 0);
-  /* 13 */ for (const t of T.flies) s("counter_tick", t + 0.22, -4); s("success", T.right, 0); s("pop", T.there + 0.11, 0);
-  /* Captions: off where the same words are big on screen (rows 02, 04, 05, 06, 07 until the pill). */
+  /* 13 */ for (const t of T.flies) s("counter_tick", t + 0.24, -4); s("success", T.right, 0); s("pop", T.there + 0.11, 0);
+  /* Captions: off while the same words are big (02, 04, 06, 07 until the pill). Row 05 has no big words (v3.1). */
   ctx.hideCaptions(T.rows[1], T.rows[2]);
-  ctx.hideCaptions(T.rows[3], T.pill1);
+  ctx.hideCaptions(T.rows[3], T.rows[4]);
+  ctx.hideCaptions(T.rows[5], T.pill1);
 }

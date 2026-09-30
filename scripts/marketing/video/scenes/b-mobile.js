@@ -1,12 +1,12 @@
 /**
- * Section b, mobile film (rows 14 to 27, 30.58 to 62.88).
+ * Section b, mobile film (rows 14 to 27, 30.58 to 62.88), storyboard v3.1.
  *
- * Layers (z): the ground 0, the phones 10, bodies and cards 20, big type 30,
- * the pointer 40. One light phone carries rows 14 to 22 and 26; a dark one
- * carries row 24 (the night chapter).
+ * Layers (z): the ground 0, the phone 10, bodies and cards 20, big type 30,
+ * the pointer 40. One light phone carries every row (the whole section is
+ * on the light ground; rows 19 to 24 wear the warm wash, row 23 a dusk).
  */
 import { orb } from "../engine/components.js";
-import { clock, mist, warm, night, bokeh, phone3d, ramp } from "./b-kit.js";
+import { clock, mist, phone3d, ramp } from "./b-kit.js";
 import { talk } from "./b-m-talk.js";
 import { switcher } from "./b-m-switch.js";
 import { stays } from "./b-m-stays.js";
@@ -21,7 +21,7 @@ export function times(ctx) {
     r23: b(85), r24: b(88), r25: b(94), r26: b(100), r27: b(105), end: b(109),
     owner: w(7, "owner"), landlord: w(7, "landlord"), agent: w(7, "agent"), right: w(7, "right"), inside: w(7, "inside"), the7: w(7, "the", 4), app: w(7, "app"),
     share: w(8, "Share"), listings: w(8, "listings"), chat: w(8, "chat"), plan: w(8, "plan"), inspection: w(8, "inspection"),
-    keep: w(8, "keep"), conversation: w(8, "conversation"), one: w(8, "one"), place: w(8, "place"),
+    keep: w(8, "keep"), conversation: w(8, "conversation"), one: w(8, "one"), place: w(8, "place"), placeEnd: we(8, "place"),
     planning: w(9, "Planning"), a9: w(9, "a"), trip: w(9, "trip"),
     browse: w(10, "Browse"), hotels: w(10, "hotels"), shortlets: w(10, "shortlets"), resorts: w(10, "resorts"), pick: w(10, "pick"), dates: w(10, "dates"),
     and10: w(10, "and"), book: w(10, "book"), room: w(10, "room"), few: w(10, "few"), taps: w(10, "taps"),
@@ -33,48 +33,68 @@ export function times(ctx) {
   };
 }
 
+/** Where the FLIP press blooms the warm light from (row 19), set by the switch. */
+export const BLOOM = { x: 706, y: 900 };
+
 export async function buildMobile(ctx) {
   const T = times(ctx);
   const S = { T };
 
-  /* The ground: mist, then the warm wash (rows 19 to 22), then night (22 to 24), then mist again. */
+  /* ---------- the ground: mist; the warm wash (19 to 24); row 23's dusk ---------- */
   const ground = ctx.scene("b-m-ground", T.r14, T.end + 0.02, { z: 0 });
   mist(ctx, ground);
-  S.warm = warm(ctx, ground);
-  S.night = ctx.el("div", { class: "fill", style: { opacity: "0" } }, ground);
-  night(ctx, S.night, { y: 46, glow: 0.2 });
-  S.bokeh = ctx.el("div", { class: "fill" }, S.night);
-  bokeh(ctx, S.bokeh, { area: { x: -80, y: -60, w: 1240, h: 2040 }, count: 18, seed: 23, t0: T.r22 });
-  S.ground = ground;
+  S.warm = ctx.el("div", {
+    class: "fill",
+    style: {
+      visibility: "hidden",
+      background: `radial-gradient(80% 50% at 50% 60%, rgb(255 178 122 / 0.26) 0%, rgb(255 178 122 / 0) 72%),
+        linear-gradient(180deg, rgb(255 190 140 / 0.22) 0%, rgb(255 178 122 / 0.3) 100%),
+        linear-gradient(180deg, #fffaf6 0%, #fbf3ee 60%, #f7ece4 100%)`,
+    },
+  }, ground);
+  S.dusk = ctx.el("div", {
+    class: "fill",
+    style: {
+      visibility: "hidden", opacity: "0",
+      background: `radial-gradient(90% 55% at 50% 42%, rgb(255 214 170 / 0.7) 0%, rgb(255 214 170 / 0) 70%),
+        linear-gradient(180deg, #ffe3c8 0%, #ffc890 42%, #f7a25e 78%, #ee8a45 100%)`,
+    },
+  }, ground);
 
-  /* The warm wash: hidden until the switch (row 19) wipes it in; gone once night has come. */
+  /* The warm wash blooms from the FLIP press (row 19) and gives way to mist as row 25 opens. */
+  const tBloom = T.planning;
   ctx.onFrame((t) => {
-    const p = ramp(ctx, t, T.planning, T.planning + 0.5, "power2.inOut");
-    const edge = -30 + p * 160;
-    const on = t >= T.planning && t < T.r23 + 0.05;
+    const on = t >= tBloom && t < T.r25 + 0.1;
     S.warm.style.visibility = on ? "visible" : "hidden";
     if (!on) return;
-    const mask = p >= 1 ? "none" : `linear-gradient(90deg, #000 0%, #000 ${edge.toFixed(2)}%, transparent ${(edge + 30).toFixed(2)}%)`;
-    S.warm.style.webkitMaskImage = mask;
-    S.warm.style.maskImage = mask;
+    const r = ramp(ctx, t, tBloom, tBloom + 0.62, "power2.inOut") * 2300;
+    const clip = r >= 2299 ? "none" : `circle(${r.toFixed(1)}px at ${BLOOM.x}px ${BLOOM.y}px)`;
+    S.warm.style.clipPath = clip;
+    S.warm.style.opacity = String((1 - ramp(ctx, t, T.r25 - 0.34, T.r25 + 0.06, "power2.inOut")).toFixed(3));
   });
+  /* Row 23: the dusk (peach to amber, no navy), in with the row, out as the phone rises in row 24. */
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, T.r23 - 0.2, T.r23 + 0.24, "power2.inOut") * (1 - ramp(ctx, t, T.r24 - 0.1, T.r24 + 0.45, "power2.inOut"));
+    S.dusk.style.visibility = a > 0.001 ? "visible" : "hidden";
+    S.dusk.style.opacity = a.toFixed(3);
+  });
+  S.ground = ground;
 
-  /* Night comes as the result cards lift away (row 22) and goes as the chips land (row 25). */
-  ctx.tl.fromTo(S.night, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut", immediateRender: false }, T.r23 - 0.5);
-  ctx.tl.fromTo(S.night, { opacity: 1 }, { opacity: 0, duration: 0.42, ease: "power2.inOut", immediateRender: false }, T.r25 - 0.4);
-
-  /* The phones (each waits for the ones before it to load). */
+  /* ---------- the phone ---------- */
   const phones = ctx.scene("b-m-phone", T.r14, T.end + 0.02, { z: 10 });
   S.phones = phones;
   S.pL = await phone3d(ctx, { model: "island", parent: phones, env: "light", edge: "#f3f4f1" });
-  S.pD = await phone3d(ctx, { model: "island", parent: phones, env: "dark", edge: "#0a1024" });
-  S.pD.pose.opacity = 0;
 
-  /* The glossy pointer, over everything but the pill. */
+  /* ---------- the glossy pointer ---------- */
   const pointer = ctx.scene("b-m-pointer", T.r14, T.end + 0.02, { z: 40 });
   S.pointer = pointer;
   S.orb = orb(ctx, pointer);
-  ctx.gsap.set(S.orb, { x: 1180, y: 1100, opacity: 0 });
+
+  /* Captions are off where the same words are big on screen. */
+  ctx.hideCaptions(T.r14, T.r15);
+  ctx.hideCaptions(T.r19, T.r20);
+  ctx.hideCaptions(T.r23, T.r24);
+  ctx.hideCaptions(T.r25, T.r26);
 
   await talk(ctx, S, T);
   await switcher(ctx, S, T);

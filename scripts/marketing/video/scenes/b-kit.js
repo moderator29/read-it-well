@@ -222,11 +222,18 @@ export function iconPlate(ctx, parent, name, { size = 64, theme = "light", round
   return node;
 }
 
-/** Measures text in px for a CSS font (fonts must be loaded). */
-export function measure(text, font) {
-  const c = measure.c ?? (measure.c = document.createElement("canvas").getContext("2d"));
-  c.font = font;
-  return c.measureText(text).width;
+/**
+ * Measures text in px for a CSS font and tracking, with a hidden span (a
+ * detached canvas does not see the page's web fonts). Call it from a frame
+ * hook, once the fonts have loaded.
+ */
+export function measure(text, font, letterSpacing = "-0.035em") {
+  const n = measure.n ?? (measure.n = Object.assign(document.createElement("span"), { style: "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap" }));
+  if (!n.isConnected) document.body.appendChild(n);
+  n.style.font = font;
+  n.style.letterSpacing = letterSpacing;
+  n.textContent = text;
+  return n.getBoundingClientRect().width;
 }
 
 /* ---------- the phone ---------- */
