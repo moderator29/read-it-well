@@ -139,39 +139,64 @@ export async function talk(ctx, S, T) {
   });
   ctx.sfx("card_slide", 30.8);
 
-  /* "owner", "landlord", "agent" land in WORDS over the dimmed phone, each pushing the last out. */
+  /* "owner", "landlord", "agent" land in WORDS over the dimmed phone; each one's leading edge shoves the last out. */
   const W = L.WORDS;
   const words = [
-    { text: "owner", blue: true, y: 712, t: T.owner, from: -1 },
-    { text: "landlord", blue: false, y: 792, t: T.landlord, from: 1 },
-    { text: "agent", blue: false, y: 748, t: T.agent, from: -1 },
+    { text: "owner", blue: true, y: 712, t: T.owner, from: -1, rest: W.x + W.w / 2 - 24, rot: 1.5 },
+    { text: "landlord", blue: false, y: 792, t: T.landlord, from: 1, rest: W.x + W.w / 2 + 20, rot: -1.5 },
+    { text: "agent", blue: false, y: 748, t: T.agent, from: -1, rest: W.x + W.w / 2 - 12, rot: 1 },
   ].map((w) => {
-    const el = ctx.el("div", { class: "abs", text: w.text, style: { left: "0px", top: "0px", font: "700 150px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: w.blue ? ELECTRIC : NAVY, whiteSpace: "nowrap" } }, type);
-    ctx.gsap.set(el, { xPercent: -50, yPercent: -50, x: w.from * 1400, y: w.y });
+    const el = ctx.el("div", { class: "abs", text: w.text, style: { left: "0px", top: "0px", font: "700 150px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.035em", color: w.blue ? ELECTRIC : NAVY, whiteSpace: "nowrap", transformOrigin: "50% 50%", visibility: "hidden" } }, type);
     return { ...w, el };
   });
-  /* One size for all three, the widest ("landlord") fitted to 820 px (the safe width with air). */
-  let fitted = false;
-  ctx.onFrame(() => {
-    if (fitted) return;
-    const size = Math.min(160, (820 / measure("landlord", "700 100px Poppins")) * 100);
-    const sizes = [size * 1.04, size, size * 0.97];
-    words.forEach((w, i) => (w.el.style.fontSize = `${sizes[i].toFixed(1)}px`));
-    fitted = true;
-  });
-  const cx = [W.x + W.w / 2 - 24, W.x + W.w / 2 + 20, W.x + W.w / 2 - 12];
-  words.forEach((w, i) => {
-    tl.fromTo(w.el, { x: w.from * 1400, rotation: w.from * 5 }, { x: cx[i], rotation: w.from * -1.5, duration: 0.6, ease: "land", immediateRender: false }, w.t - 0.16);
-    const next = words[i + 1];
-    if (next) tl.fromTo(w.el, { x: cx[i], rotation: w.from * -1.5 }, { x: next.from * 1400, rotation: next.from * 8, duration: 0.34, ease: "leave", immediateRender: false }, next.t - 0.1);
-    ctx.sfx("pop_low", w.t, { offset: -4 });
-  });
-  /* The last word shrinks into the chapter pill's place as the pill takes over. */
-  const last = words[2].el;
   const pillY = (L.PILL.top + L.PILL.bottom) / 2;
-  tl.fromTo(last, { y: words[2].y, scale: 1 }, { y: pillY, scale: 0.3, duration: 0.3, ease: "power3.inOut", immediateRender: false }, T.r15 - 0.3);
-  tl.fromTo(last, { x: cx[2] }, { x: 540, duration: 0.3, ease: "power3.inOut", immediateRender: false }, T.r15 - 0.3);
-  tl.fromTo(last, { opacity: 1 }, { opacity: 0, duration: 0.09, ease: "power1.in", immediateRender: false }, T.r15 - 0.04);
+  const tShrink = T.r15 - 0.3;
+  const GAP = 36;
+  let wd = null;
+  ctx.onFrame((t) => {
+    if (t < T.r14 || t > T.r15 + 0.1) return;
+    if (!wd) {
+      /* one size for all three, the widest ("landlord") fitted to 820 px (the safe width, with air) */
+      const size = Math.min(160, (820 / measure("landlord", "700 100px Poppins")) * 100);
+      [1.04, 1, 0.97].forEach((k, i) => (words[i].el.style.fontSize = `${(size * k).toFixed(1)}px`));
+      wd = words.map((w) => ({ w: w.el.offsetWidth, h: w.el.offsetHeight }));
+    }
+    const xs = words.map((w, i) => {
+      const off = w.from < 0 ? -wd[i].w / 2 - 30 : ctx.W + wd[i].w / 2 + 30;
+      return kf(ctx, t, [[w.t - 0.18, off], [w.t + 0.4, w.rest, "land"]]);
+    });
+    const rots = words.map((w, i) => kf(ctx, t, [[w.t - 0.18, w.from * -7], [w.t + 0.4, w.rot, "land"]]));
+    /* the push: word i is held clear of word i+1's leading edge, then keeps sliding out */
+    for (let i = words.length - 2; i >= 0; i -= 1) {
+      const nx = xs[i + 1];
+      const dir = words[i + 1].from; /* +1: the next word comes from the right and pushes left */
+      const contact = nx - dir * ((wd[i].w + wd[i + 1].w) / 2 + GAP);
+      const drift = 900 * ramp(ctx, t, words[i + 1].t - 0.02, words[i + 1].t + 0.36, "power2.in");
+      if (t >= words[i + 1].t - 0.18) {
+        xs[i] = (dir > 0 ? Math.min(xs[i], contact) : Math.max(xs[i], contact)) - dir * drift;
+        rots[i] += -dir * 6 * ramp(ctx, t, words[i + 1].t - 0.1, words[i + 1].t + 0.2);
+      }
+    }
+    words.forEach((w, i) => {
+      let x = xs[i];
+      let y = w.y;
+      let s = 1;
+      let o = 1;
+      if (i === words.length - 1) {
+        const k = ramp(ctx, t, tShrink, tShrink + 0.3, "power3.inOut");
+        x = mix(x, 540, k);
+        y = mix(y, pillY, k);
+        s = mix(1, 0.3, k);
+        o = 1 - ramp(ctx, t, T.r15 - 0.04, T.r15 + 0.05, "power1.in");
+      }
+      const on = t >= w.t - 0.18 && Math.abs(x - 540) < 540 + wd[i].w / 2 + 40 && o > 0.001;
+      w.el.style.visibility = on ? "inherit" : "hidden";
+      if (!on) return;
+      w.el.style.transform = `translate(${(x - wd[i].w / 2).toFixed(2)}px, ${(y - wd[i].h / 2).toFixed(2)}px) rotate(${rots[i].toFixed(2)}deg) scale(${s.toFixed(4)})`;
+      w.el.style.opacity = o.toFixed(3);
+    });
+  });
+  words.forEach((w) => ctx.sfx("pop_low", w.t, { offset: -4 }));
 
   /* ==================== row 15 ==================== */
 
