@@ -24,7 +24,8 @@ import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { MetaStrip } from "@/components/ui/MetaStrip";
 import { EmptyState, ICON } from "@/components/app/Screen";
-import { countOf } from "@vallo/i18n/core";
+import { countOf, formatNumber, intlTag, type Locale } from "@vallo/i18n/core";
+import { CountUp } from "@/components/motion/CountUp";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { savedBoardKey, uniqueBoardKeys } from "./saved-board-key";
 import { motionQuiet } from "@/lib/motion/gate";
@@ -76,7 +77,19 @@ function sameOrder(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((id, i) => id === b[i]);
 }
 
-export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
+export function SavedBoard({
+  items,
+  comparable = 0,
+  compare,
+  copy = { shortlist: "Your shortlist", ready: "Ready to compare" },
+}: {
+  items: SavedBoardItem[];
+  /** B3: how many saved properties the compare can take as columns. */
+  comparable?: number;
+  /** B3: the compare control (SavedCompare), drawn beside the count. */
+  compare?: ReactNode;
+  copy?: { shortlist: string; ready: string };
+}) {
   const locale = useClientLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -275,12 +288,18 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
       <Reveal>
         {/* The count as a meta strip (plan item 17): the figure, then what
             the list is for, divided by a hairline. */}
-        <MetaStrip className="mb-heading" leading={<UiIcon name="heart" size={16} />}>
-          <span className="font-semibold text-[var(--nf-content-primary)] nf-numeric">
-            {countOf(visible, "places", locale)} saved
-          </span>
-          <span>Ready to compare</span>
-        </MetaStrip>
+        <div className="nf-saved-meta mb-heading">
+          <MetaStrip leading={<UiIcon name="heart" size={16} />}>
+            <span className="font-semibold text-[var(--nf-content-primary)] nf-numeric">
+              {/* The count counts up once on first view (the founder's
+                  count-up ruling); the server prints the final number. */}
+              <CountedPhrase phrase={countOf(visible, "places", locale)} value={visible} locale={locale} /> saved
+            </span>
+            {/* B3: "Ready to compare" only when the compare is really there. */}
+            <span>{comparable >= 2 ? copy.ready : copy.shortlist}</span>
+          </MetaStrip>
+          {comparable >= 2 ? compare : null}
+        </div>
       </Reveal>
 
       <Reveal delay={60}>
@@ -342,6 +361,25 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
           ))}
         </ul>
       </Reveal>
+    </>
+  );
+}
+
+/**
+ * A counted phrase ("3 places", or the number where the locale puts it) with
+ * its number counting up once on first view. The number is found in the
+ * phrase the dictionary built, so a language that puts it after the noun
+ * keeps its order; a phrase with no plain number prints as given.
+ */
+function CountedPhrase({ phrase, value, locale }: { phrase: string; value: number; locale: Locale }) {
+  const num = formatNumber(value, locale);
+  const at = phrase.indexOf(num);
+  if (at < 0) return <>{phrase}</>;
+  return (
+    <>
+      {phrase.slice(0, at)}
+      <CountUp value={value} tag={intlTag[locale]} eager />
+      {phrase.slice(at + num.length)}
     </>
   );
 }
