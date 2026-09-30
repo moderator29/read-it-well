@@ -519,40 +519,22 @@ function slabGeometry(C, { height, bevel, segments, sink }) {
       idx.push(a, b, c, a, c, d);
     }
   }
-  // the top: the last bevel ring, triangulated with a grid of inner points (so the baked
-  // light can vary across it)
+  // the top: the last bevel ring, triangulated (its light is smooth and computed per pixel,
+  // so it needs no inner vertices)
   const top = [];
   const base = P.length / 3;
-  const ring2 = [];
   for (let i = 0; i < n; i += 1) {
     const [x, y] = C[i];
     const [ox, oy] = out[i];
     const px = x - ox * bevelAt[i], py = y - oy * bevelAt[i];
     top.push(new THREE.Vector2(px, py));
-    ring2.push([px, py]);
-  }
-  const holes = [];
-  const step = 0.42;
-  let gx0 = Infinity, gx1 = -Infinity, gy0 = Infinity, gy1 = -Infinity;
-  for (const [x, y] of ring2) { gx0 = Math.min(gx0, x); gx1 = Math.max(gx1, x); gy0 = Math.min(gy0, y); gy1 = Math.max(gy1, y); }
-  for (let gy = Math.ceil(gy0 / step) * step; gy < gy1; gy += step) {
-    for (let gx = Math.ceil(gx0 / step) * step; gx < gx1; gx += step) {
-      const p = [gx + (Math.round(gy / step) % 2 ? step / 2 : 0), gy];
-      if (!inside(p, ring2)) continue;
-      let d = Infinity;
-      for (let i = 0; i < n; i += 1) d = Math.min(d, segDist(p, ring2[i], ring2[(i + 1) % n]).d);
-      if (d > step * 0.55) holes.push([new THREE.Vector2(p[0], p[1])]);
-    }
-  }
-  const all = top.concat(holes.map((h) => h[0]));
-  for (const v of all) {
-    P.push(v.x, height, -v.y);
+    P.push(px, height, -py);
     N.push(0, 1, 0);
-    U.push(v.x, -v.y);
+    U.push(px, -py);
   }
-  const faces = THREE.ShapeUtils.triangulateShape(top.slice(), holes);
+  const faces = THREE.ShapeUtils.triangulateShape(top.slice(), []);
   for (const [a, b, c] of faces) {
-    const A = all[a], B = all[b], Cc = all[c];
+    const A = top[a], B = top[b], Cc = top[c];
     const s = (B.x - A.x) * (Cc.y - A.y) - (B.y - A.y) * (Cc.x - A.x);
     if (s >= 0) idx.push(base + a, base + b, base + c);
     else idx.push(base + a, base + c, base + b);
@@ -676,13 +658,15 @@ const VERT_LIT = /* glsl */ `
 const VERT_VELVET = /* glsl */ `
   uniform float uGlowPass;
   uniform float uInflate;
-  attribute vec3 aDiff;
+  attribute vec3 aAmb;
+  attribute vec3 aKey;
   attribute vec3 aSheen;
   attribute vec3 aRim;
   varying vec3 vPos;
   varying vec3 vN;
   varying vec2 vUv;
-  varying vec3 vDiff;
+  varying vec3 vAmb;
+  varying vec3 vKey;
   varying vec3 vSheen;
   varying vec3 vRim;
   void main() {
@@ -692,7 +676,8 @@ const VERT_VELVET = /* glsl */ `
     vPos = wp.xyz;
     vN = normalize(mat3(modelMatrix) * normal);
     vUv = uv;
-    vDiff = aDiff;
+    vAmb = aAmb;
+    vKey = aKey;
     vSheen = aSheen;
     vRim = aRim;
     gl_Position = projectionMatrix * viewMatrix * wp;
@@ -703,6 +688,12 @@ const FRAG_VELVET = /* glsl */ `
   ${GLSL_COMMON}
   uniform vec3 uRimDir;
   uniform float uSheenPow;
+  uniform vec3 uPool;
+  uniform float uPoolR;
+  uniform float uPoolAmt;
+  uniform vec2 uGradDir;
+  uniform float uGradR;
+  uniform float uGradAmt;
   uniform sampler2D uGrain;
   uniform float uGrainScale;
   uniform float uGrainAmt;
@@ -717,23 +708,28 @@ const FRAG_VELVET = /* glsl */ `
   varying vec3 vPos;
   varying vec3 vN;
   varying vec2 vUv;
-  varying vec3 vDiff;
+  varying vec3 vAmb;
+  varying vec3 vKey;
   varying vec3 vSheen;
   varying vec3 vRim;
   void main() {
     vec3 N = normalize(vN);
     vec3 V = normalize(cameraPosition - vPos);
     float nv = clamp(dot(N, V), 0.0, 1.0);
+    // the soft pool of the key light and the front-to-back falloff (smooth: per pixel)
+    vec2 dp = (vPos.xz - uPool.xz) / uPoolR;
+    float pool = 1.0 - uPoolAmt + uPoolAmt * exp(-dot(dp, dp));
+    float grad = 1.0 + uGradAmt * clamp(dot(vPos.xz - uPool.xz, uGradDir) / uGradR, -1.0, 1.0);
     float fx = 1.0 - nv;
     float fr = fx * fx * sqrt(fx); // (1 - n.v)^2.5
     float behind = clamp(dot(-V, uRimDir) * 0.5 + 0.5, 0.0, 1.0);
-    vec3 sheen = fr * (vSheen + vRim * behind);
+    vec3 sheen = fr * (vSheen * pool + vRim * (0.3 + 0.7 * behind));
     if (uGlowPass > 0.5) {
       gl_FragColor = vec4(max(sheen - uGlowFloor, 0.0) * uGlowGain * 0.5, 1.0);
       return;
     }
     vec2 g = texture2D(uGrain, vUv * uGrainScale).rg - 0.5;
-    vec3 diff = vDiff;
+    vec3 diff = (vAmb + vKey * pool) * grad;
     if (uShadowAmt > 0.0) {
       vec2 st = (vPos.xz - uShadowRect.xy) * uShadowRect.zw;
       diff *= 1.0 - uShadowAmt * texture2D(uShadow, st).r * clamp(N.y * 4.0 - 3.0, 0.0, 1.0);
@@ -840,7 +836,8 @@ const FRAG_ROUTE = /* glsl */ `
     c += uHot * (head + pulse);
     float body = uOnlyGlow > 0.5 ? nv * nv : (0.55 + 0.45 * nv);
     c *= body;
-    if (uGlowPass > 0.5) { gl_FragColor = vec4(c * uGlowGain * 0.5, 1.0); return; }
+    // the five routes meet at the home: their glow fades as they arrive, so it stays visible
+    if (uGlowPass > 0.5) { gl_FragColor = vec4(c * uGlowGain * 0.5 * (1.0 - 0.85 * smoothstep(0.7, 1.0, u)), 1.0); return; }
     if (uOnlyGlow > 0.5) discard;
     gl_FragColor = vec4(toSRGB(c), 1.0);
   }
@@ -1078,6 +1075,12 @@ export async function createLiveMap(o) {
     uGlowPass: glowPass,
     uRimDir: { value: rimDir },
     uSheenPow: { value: u.sheenPow },
+    uPool: { value: u.pool },
+    uPoolR: { value: u.poolR },
+    uPoolAmt: { value: u.poolAmt },
+    uGradDir: { value: new THREE.Vector2(u.gradDir[0], u.gradDir[1]).normalize() },
+    uGradR: { value: u.gradR },
+    uGradAmt: { value: u.gradAmt },
     uInflate: { value: u.inflate ?? 0 },
     uGrain: { value: grain },
     uGrainScale: { value: u.grainScale },
@@ -1092,36 +1095,34 @@ export async function createLiveMap(o) {
     uWarmR: { value: 0 },
   });
 
-  /** Bakes the view-independent light of the velvet into the geometry (see VERT_VELVET). */
-  function bakeVelvet(geo, u, offset = new THREE.Vector3()) {
+  /** Bakes the parts of the velvet's light that depend on the surface's normal and height
+      (see VERT_VELVET); the smooth pool and falloff are added per pixel. */
+  function bakeVelvet(geo, u) {
     const pos = geo.attributes.position, nor = geo.attributes.normal;
     const n = pos.count;
-    const D = new Float32Array(n * 3), S = new Float32Array(n * 3), Rm = new Float32Array(n * 3);
+    const A = new Float32Array(n * 3), K = new Float32Array(n * 3), S = new Float32Array(n * 3), Rm = new Float32Array(n * 3);
     const albedo = lin(u.albedo), key = lin(u.key).multiplyScalar(u.keyAmt);
     const sky = lin(u.sky).multiplyScalar(u.skyAmt), ground = lin(u.ground).multiplyScalar(u.groundAmt);
     const sheenC = lin(u.sheen).multiplyScalar(u.sheenAmt), rimC = lin(u.rim).multiplyScalar(u.rimAmt);
-    const gd = new THREE.Vector2(u.gradDir[0], u.gradDir[1]).normalize();
     const smooth = (a, b, x) => { const v = clamp01((x - a) / (b - a)); return v * v * (3 - 2 * v); };
     for (let i = 0; i < n; i += 1) {
-      const x = pos.getX(i) + offset.x, y = pos.getY(i) + offset.y, z = pos.getZ(i) + offset.z;
+      const y = pos.getY(i);
       const nx = nor.getX(i), ny = nor.getY(i), nz = nor.getZ(i);
       const kd = clamp01((nx * keyDir.x + ny * keyDir.y + nz * keyDir.z + 0.5) / 1.5);
-      const px = (x - u.pool.x) / u.poolR, pz = (z - u.pool.z) / u.poolR;
-      const pool = mix(1, Math.exp(-(px * px + pz * pz)), u.poolAmt);
-      const grad = 1 + u.gradAmt * Math.max(-1, Math.min(1, ((x - u.pool.x) * gd.x + (z - u.pool.z) * gd.y) / u.gradR));
       const side = 1 - clamp01(ny);
       const ao = mix(1, mix(u.ao[2], 1, smooth(u.ao[0], u.ao[1], y)), side);
       const h = ny * 0.5 + 0.5;
       const toRim = clamp01(nx * rimDir.x + ny * rimDir.y + nz * rimDir.z);
       for (let c = 0; c < 3; c += 1) {
         const k = ["r", "g", "b"][c];
-        const hemi = mix(ground[k], sky[k], h);
-        D[i * 3 + c] = albedo[k] * (hemi + key[k] * kd * pool) * grad * ao;
-        S[i * 3 + c] = (sheenC[k] * (0.35 + 0.65 * kd) * pool + rimC[k] * toRim * 0.3) * ao;
-        Rm[i * 3 + c] = rimC[k] * toRim * 0.7 * ao;
+        A[i * 3 + c] = albedo[k] * mix(ground[k], sky[k], h) * ao;
+        K[i * 3 + c] = albedo[k] * key[k] * kd * ao;
+        S[i * 3 + c] = sheenC[k] * (0.35 + 0.65 * kd) * ao;
+        Rm[i * 3 + c] = rimC[k] * toRim * ao;
       }
     }
-    geo.setAttribute("aDiff", new THREE.BufferAttribute(D, 3));
+    geo.setAttribute("aAmb", new THREE.BufferAttribute(A, 3));
+    geo.setAttribute("aKey", new THREE.BufferAttribute(K, 3));
     geo.setAttribute("aSheen", new THREE.BufferAttribute(S, 3));
     geo.setAttribute("aRim", new THREE.BufferAttribute(Rm, 3));
     return geo;
@@ -1171,7 +1172,7 @@ export async function createLiveMap(o) {
   LOOK.plinth.shadow = shadowTex;
   LOOK.plinth.shadowRect = new THREE.Vector4(centre3.x - plinthR, centre3.z + plinthR, 1 / (2 * plinthR), -1 / (2 * plinthR));
   LOOK.plinth.shadowAmt = 0.9;
-  const plinth = new THREE.Mesh(bakeVelvet(plinthGeometry(plinthR, PLINTH), LOOK.plinth, centre3), shader(FRAG_VELVET, velvetUniforms(LOOK.plinth)));
+  const plinth = new THREE.Mesh(bakeVelvet(plinthGeometry(plinthR, PLINTH), LOOK.plinth), shader(FRAG_VELVET, velvetUniforms(LOOK.plinth)));
   plinth.position.set(centre3.x, 0, centre3.z);
   model.add(plinth);
 
@@ -1446,7 +1447,7 @@ export async function createLiveMap(o) {
     const body = new THREE.Mesh(geo, pinMat);
     const coreGeo = new THREE.CylinderGeometry(0.42, 0.42, 1.12, 40);
     coreGeo.rotateX(Math.PI / 2);
-    const core = new THREE.Mesh(coreGeo, lightMat("#f4f9ff", 1.0, 0.9));
+    const core = new THREE.Mesh(coreGeo, lightMat("#f4f9ff", 1.0, 0.22));
     const inner = new THREE.Group();
     inner.add(body, core);
     root.add(inner);

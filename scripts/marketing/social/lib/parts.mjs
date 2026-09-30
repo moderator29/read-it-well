@@ -6,7 +6,7 @@ import { lift } from "./fun.mjs";
 
 export const PARTS = {
   /* property */
-  "move-in-card": { id: "listing", x: 36, y: 1470, w: 1248, h: 700 },
+  "move-in-card": { id: "listing", x: 36, y: 1480, w: 1248, h: 625 },
   "for-rent-chip": { id: "listing", x: 44, y: 752, w: 290, h: 92 },
   "cost-rent": { id: "listing-cost", x: 30, y: 648, w: 1260, h: 352 },
   "cost-agency": { id: "listing-cost", x: 30, y: 1000, w: 1260, h: 262 },
@@ -34,7 +34,7 @@ export const PARTS = {
   "thread-bubble": { id: "thread", x: 112, y: 2206, w: 1036, h: 246 },
   "ask-bubble": { id: "assistant-caution", x: 508, y: 400, w: 640, h: 218 },
   "answer-bubble": { id: "assistant-caution", x: 200, y: 660, w: 1036, h: 880 },
-  "ask-chips": { id: "assistant-caution", x: 48, y: 2238, w: 1272, h: 170 },
+  "ask-chip": { id: "assistant-caution", x: 44, y: 2238, w: 730, h: 170 },
   /* account */
   "passcode-dots": { id: "passcode-create", x: 360, y: 1425, w: 600, h: 105 },
   "passcode-note": { id: "passcode-create", x: 150, y: 1520, w: 1020, h: 110 },
@@ -53,7 +53,11 @@ export const PARTS = {
   "pill-stays": { id: "welcome-1", x: 590, y: 1578, w: 680, h: 170 },
   "toggle": { id: "welcome-1", x: 384, y: 1810, w: 556, h: 126 },
   "signup-button": { id: "sign-up", x: 44, y: 1200, w: 1232, h: 178 },
-  "welcome4-total": { id: "welcome-4", x: 60, y: 1560, w: 1200, h: 330 },
+  "welcome4-total": { id: "welcome-4", x: 112, y: 1368, w: 1096, h: 372 },
+  "pay-on-vallo": { id: "welcome-3", x: 180, y: 1750, w: 960, h: 185 },
+  "inspection-ask": { id: "welcome-3", x: 50, y: 318, w: 670, h: 250 },
+  "inspection-yes": { id: "welcome-3", x: 800, y: 925, w: 470, h: 118 },
+  "vallo-record": { id: "welcome-2", x: 60, y: 1540, w: 740, h: 195 },
 };
 
 /** Lift a named part (see PARTS) as a floating body. */
