@@ -99,6 +99,55 @@
     border-top: var(--nf-border-width) solid var(--nf-divider);
   }
 
+  /* The check's answers (CheckForm.tsx): a note for a state, a card for an
+     answer, each with its glyph so no answer is colour alone. */
+  .nf-check-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-primary);
+  }
+  .nf-check-note > svg {
+    flex: none;
+    margin-top: 0.1875rem;
+  }
+  .nf-check-note[data-tone="error"] > svg {
+    color: var(--nf-state-error);
+  }
+  .nf-check-note[data-tone="warning"] > svg {
+    color: var(--nf-state-warning);
+  }
+  .nf-check-answer {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+  }
+  .nf-check-answer[data-tone="warning"] {
+    background: color-mix(in oklab, var(--nf-state-warning) 7%, var(--nf-surface-primary));
+  }
+  .nf-check-answer[data-tone="success"] {
+    background: color-mix(in oklab, var(--nf-state-success) 6%, var(--nf-surface-primary));
+  }
+  .nf-check-answer__title {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--nf-content-primary);
+  }
+  .nf-check-answer__body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+
   /* The Third party label, under the community room's lede: the tag and
      what it means, on a hairline, no card. */
   .nf-landing-thirdparty {

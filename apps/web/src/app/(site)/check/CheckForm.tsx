@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useId } from "react";
+import { useActionState, useId, useState } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconPlate } from "@/components/ui/IconPlate";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { checkAgent, type CheckOutcome } from "@/lib/doors/agent-check-actions";
 import { BRAND_DOMAIN } from "@/lib/brand-domain";
@@ -42,6 +43,10 @@ export function CheckForm({
 }) {
   const fieldId = useId();
   const [state, action, pending] = useActionState<ActionResult<CheckOutcome> | null, FormData>(checkAgent, null);
+  /* Held here so the typed number survives the answer: a form action resets
+     its uncontrolled fields, which emptied the field under "that is not a
+     number" and made the visitor type it again. */
+  const [query, setQuery] = useState(initial);
 
   return (
     <div className="mt-md">
@@ -56,7 +61,8 @@ export function CheckForm({
           inputMode="text"
           autoComplete="off"
           spellCheck={false}
-          defaultValue={initial}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
           placeholder={copy.placeholder}
           className="nf-field"
           maxLength={40}
@@ -69,17 +75,17 @@ export function CheckForm({
 
       <div aria-live="polite" className="mt-md">
         {state && !state.ok && (
-          <p role="alert" className="text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-error)]" data-testid="check-failed">
+          <Note tone="error" icon="alert-triangle" alert testId="check-failed">
             {copy.failed}
-          </p>
+          </Note>
         )}
-        {state?.ok && <Answer outcome={state.data} copy={copy} locale={locale} warning={warning} />}
+        {state?.ok && <CheckAnswer outcome={state.data} copy={copy} locale={locale} warning={warning} />}
       </div>
     </div>
   );
 }
 
-function Answer({
+export function CheckAnswer({
   outcome,
   copy,
   locale,
@@ -91,22 +97,30 @@ function Answer({
   warning?: WarningCopy;
 }) {
   if (outcome.state === "unreadable") {
-    return <p className="text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-warning)]">{copy.unreadable}</p>;
+    return (
+      <Note tone="warning" icon="info">
+        {copy.unreadable}
+      </Note>
+    );
   }
   if (outcome.state === "limited") {
-    return <p className="text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-warning)]">{copy.limited.replace("{when}", outcome.retryIn)}</p>;
+    return (
+      <Note tone="warning" icon="hourglass">
+        {copy.limited.replace("{when}", outcome.retryIn)}
+      </Note>
+    );
   }
   const result = outcome.result;
   if (!result.found) {
     return (
-      <div className="rounded-[var(--nf-container-radius)] border border-[var(--nf-border-subtle)] p-md" data-testid="check-no">
-        <p className="flex items-center gap-xs font-semibold text-[var(--nf-content-primary)]">
-          <UiIcon name="info" size={20} className="shrink-0" />
+      <div className="nf-check-answer" data-tone="warning" data-testid="check-no">
+        <p className="nf-check-answer__title">
+          <IconPlate size="sm" shape="round" tone="warning">
+            <UiIcon name="shield-stop" size={20} />
+          </IconPlate>
           {result.kind === "code" ? copy.noCodeTitle : copy.noTitle}
         </p>
-        <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {result.kind === "code" ? copy.noCodeBody : copy.noBody}
-        </p>
+        <p className="nf-check-answer__body">{result.kind === "code" ? copy.noCodeBody : copy.noBody}</p>
         {warning && (
           <>
             <ButtonLink
@@ -115,14 +129,13 @@ function Answer({
               size="md"
               full
               leadingIcon="share"
-              className="mt-sm"
               target="_blank"
               rel="noopener noreferrer"
               data-testid="check-warning-share"
             >
               {warning.share}
             </ButtonLink>
-            <p className="nf-caption mt-xs text-[var(--nf-content-muted)]">{warning.note}</p>
+            <p className="nf-caption text-[var(--nf-content-muted)]">{warning.note}</p>
           </>
         )}
       </div>
@@ -145,26 +158,50 @@ function Answer({
         ? copy.yesTitle.replace("{name}", result.displayName)
         : copy.yesTitleNoName;
   return (
-    <div className="rounded-[var(--nf-container-radius)] border border-[var(--nf-border-subtle)] p-md" data-testid="check-yes">
-      <p className="flex items-center gap-xs font-semibold text-[var(--nf-content-primary)]">
-        {checked && <UiIcon name="verified-badge" size={20} className="shrink-0 text-[var(--nf-state-success)]" />}
+    <div className="nf-check-answer" data-tone={checked ? "success" : "neutral"} data-testid="check-yes">
+      <p className="nf-check-answer__title">
+        <IconPlate size="sm" shape="round" tone={checked ? "success" : "neutral"}>
+          <UiIcon name={checked ? "verified-badge" : "user"} size={20} />
+        </IconPlate>
         {title}
       </p>
       {result.role && (
-        <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">{copy.yesRole[result.role]}</p>
+        <p className="text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">{copy.yesRole[result.role]}</p>
       )}
       {result.kind === "code" && result.hint && (
-        <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">{copy.codeHint.replace("{hint}", result.hint)}</p>
+        <p className="text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">{copy.codeHint.replace("{hint}", result.hint)}</p>
       )}
-      {checked && <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">{checked}</p>}
-      <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+      {checked && <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">{checked}</p>}
+      <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
         {result.kind === "code" ? copy.codeCheck : copy.yesWhy}
       </p>
       {result.handle && (
-        <ButtonLink href={`/u/${encodeURIComponent(result.handle)}`} variant="secondary" size="md" full className="mt-sm">
+        <ButtonLink href={`/u/${encodeURIComponent(result.handle)}`} variant="secondary" size="md" full>
           {copy.yesTalk}
         </ButtonLink>
       )}
     </div>
+  );
+}
+
+/** A one-line state under the field: a glyph and the words, never colour alone. */
+function Note({
+  tone,
+  icon,
+  alert = false,
+  testId,
+  children,
+}: {
+  tone: "error" | "warning";
+  icon: UiIconName;
+  alert?: boolean;
+  testId?: string;
+  children: string;
+}) {
+  return (
+    <p className="nf-check-note" data-tone={tone} role={alert ? "alert" : undefined} data-testid={testId}>
+      <UiIcon name={icon} size={16} aria-hidden />
+      <span>{children}</span>
+    </p>
   );
 }
