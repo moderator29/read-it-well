@@ -47,7 +47,15 @@ function check(label, condition) {
 const browser = await chromium.launch({ executablePath: EXECUTABLE });
 try {
   console.log("signed out");
-  for (const route of HOST_ROUTES) await expectSignInWall(check, route);
+  /* The wall is the proxy's, and the proxy lets everything through when the
+     build has no Supabase anon key (isSupabaseConfigured). A CI run without
+     the NEXT_PUBLIC_SUPABASE_ANON_KEY repository variable has no wall to
+     test, so it says so instead of reporting a wall that cannot exist. */
+  if (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    for (const route of HOST_ROUTES) await expectSignInWall(check, route);
+  } else {
+    skip("NEXT_PUBLIC_SUPABASE_ANON_KEY is not set, so the proxy has no sign-in wall to test");
+  }
   const apply = await fetch(`${BASE_URL}/host/apply`, { redirect: "manual" });
   check(`signed out, /host/apply answers its own door (${apply.status})`, apply.status === 200 || apply.status === 307);
 
