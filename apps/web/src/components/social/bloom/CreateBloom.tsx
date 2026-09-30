@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useOverlay } from "@/lib/ui/use-overlay";
@@ -418,13 +419,9 @@ export function CreateBloom({
               </ul>
             ) : (
               <>
-                <button
-                  type="button"
-                  onClick={() => setPicking(true)}
-                  className="mb-sm text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
-                >
+                <Button variant="quiet" size="sm" onClick={() => setPicking(true)} className="mb-sm self-start">
                   {chosen ? "Post somewhere else" : "Post in a place instead"}
-                </button>
+                </Button>
 
                 <Composer
                   areaId={chosen?.id}

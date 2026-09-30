@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -224,13 +225,9 @@ export function StoryComposer({
         )}
       </button>
       {preview ? (
-        <button
-          type="button"
-          onClick={() => fileInput.current?.click()}
-          className="-mt-sm self-start text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
-        >
+        <Button variant="quiet" size="sm" onClick={() => fileInput.current?.click()} className="-mt-sm self-start">
           Choose a different picture
-        </button>
+        </Button>
       ) : null}
 
       {/* ----------------------------------------------------- the headline */}
