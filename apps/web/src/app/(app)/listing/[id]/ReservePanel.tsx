@@ -248,6 +248,7 @@ export function ReservePanel({
             if (!open) setSuccessClosed(true);
           }}
           variant={words.variant}
+          object={words.object}
           title={words.title}
           body={words.body}
           amount={{ minorUnits: r.totalMinor, currency, locale }}

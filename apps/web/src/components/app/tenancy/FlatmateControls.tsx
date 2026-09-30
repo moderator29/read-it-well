@@ -243,6 +243,7 @@ export function SettleShareOnReturn({
             if (!open) close();
           }}
           variant={words.variant}
+          object={words.object}
           title={words.title}
           body={words.body}
           amount={receipt.amountMinor !== null ? { minorUnits: receipt.amountMinor } : undefined}

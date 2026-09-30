@@ -99,6 +99,7 @@ export function ReviewForm({
           if (!open) setSuccessClosed(true);
         }}
         variant={posted.variant}
+        object={posted.object}
         title={posted.title}
         body={posted.body}
         details={[{ label: success.detail.for, value: subject.title }]}

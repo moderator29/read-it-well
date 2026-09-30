@@ -427,6 +427,7 @@ export function HostWizard({
         open={celebrate}
         onOpenChange={setCelebrate}
         variant={applied.variant}
+        object={applied.object}
         title={applied.title}
         body={applied.body}
         primary={{ label: successWords.continue }}

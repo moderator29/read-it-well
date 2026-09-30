@@ -393,6 +393,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
           if (!open) setSuccessClosed(true);
         }}
         variant={appliedWords.variant}
+        object={appliedWords.object}
         title={appliedWords.title}
         body={appliedWords.body}
         primary={{ label: t.success.continue }}

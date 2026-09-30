@@ -94,6 +94,7 @@ export function SuccessFromFlag({
         if (!open) setLatched(null);
       }}
       variant={words.variant}
+      object={words.object}
       title={words.title}
       body={words.body}
       details={latched.details}

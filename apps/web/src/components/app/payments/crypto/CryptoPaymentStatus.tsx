@@ -305,6 +305,7 @@ export function CryptoPaymentStatus({
         open={celebrate}
         onOpenChange={setCelebrate}
         variant={paidWords.variant}
+        object={paidWords.object}
         title={paidWords.title}
         body={paidWords.body}
         amount={{ minorUnits: view.amountMinor, locale }}

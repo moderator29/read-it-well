@@ -81,6 +81,7 @@ export function SuccessFlagHost() {
         if (!open) setFlag(null);
       }}
       variant={words.variant}
+      object={words.object}
       title={words.title}
       body={words.body}
       primary={{ label: copy.continue }}

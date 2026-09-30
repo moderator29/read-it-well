@@ -69,6 +69,7 @@ export function VninPanel({
           open={matched}
           onOpenChange={setMatched}
           variant={matchedWords.variant}
+          object={matchedWords.object}
           title={matchedWords.title}
           body={matchedWords.body}
           primary={{ label: success.continue }}

@@ -564,6 +564,7 @@ export function PayPanel({
           router.refresh();
         }}
         variant={paid.variant}
+        object={paid.object}
         title={paid.title}
         body={paid.body}
         amount={{ minorUnits: view.totalMinor, currency: view.currency, locale: view.locale }}

@@ -539,6 +539,7 @@ export function PaymentMethodsPanel({
         open={accountAdded}
         onOpenChange={setAccountAdded}
         variant={addedWords.variant}
+        object={addedWords.object}
         title={addedWords.title}
         body={addedWords.body}
         primary={{ label: success.continue }}
@@ -548,6 +549,7 @@ export function PaymentMethodsPanel({
         open={cardSaved}
         onOpenChange={setCardSaved}
         variant={cardSavedWords.variant}
+        object={cardSavedWords.object}
         title={cardSavedWords.title}
         body={cardSavedWords.body}
         primary={{ label: success.continue }}

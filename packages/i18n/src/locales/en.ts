@@ -6164,6 +6164,17 @@ export const en = {
       },
       passcodeSet: { title: "Passcode set", body: "It unlocks Vallo on this device from now on." },
       passcodeChanged: { title: "Passcode changed", body: "Use your new passcode to unlock Vallo on this device." },
+      /* The lead asked a flatmate to share the move-in; nothing is agreed
+         until they answer. */
+      flatmateInvited: {
+        title: "Invitation sent",
+        body: "They can accept or decline their share from their Vallo account. Their answer shows here.",
+      },
+      /* Only when the database says it told at least one agent ({n}). */
+      agentsInvited: {
+        title: "Invitation sent",
+        body: "We told {n} agents, and they can pitch for {place}. Their pitches show here.",
+      },
     },
   },
 

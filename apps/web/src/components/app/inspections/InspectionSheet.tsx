@@ -859,6 +859,7 @@ export function InspectionSheet({
           if (!next) setDone(null);
         }}
         variant={doneWords.variant}
+        object={doneWords.object}
         title={doneWords.title}
         body={doneWords.body}
         details={inspection.listingTitle ? [{ label: success.detail.for, value: inspection.listingTitle }] : undefined}

@@ -215,6 +215,7 @@ export function PaymentReturn({
         open={open}
         onOpenChange={onOpenChange}
         variant={words.variant}
+        object={words.object}
         title={words.title}
         body={words.body}
         /* The amount the settlement recorded, not the page's figure. */

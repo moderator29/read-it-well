@@ -122,6 +122,7 @@ export function ReserveTable({
             if (!open) setSuccessClosed(true);
           }}
           variant={words.variant}
+          object={words.object}
           title={words.title}
           body={words.body}
           details={[{ label: success.detail.when, value: `${dayLabel(date, todayIso)}, ${time}` }]}

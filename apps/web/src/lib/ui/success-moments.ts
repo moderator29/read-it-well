@@ -1,5 +1,6 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import type { FeedbackKind } from "@/lib/ui/feedback";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 
 /**
  * EVERY "IT WORKED" MOMENT, BY NAME (docs/SUCCESS_MOMENTS.md).
@@ -75,6 +76,76 @@ export const SUCCESS_VARIANT: Readonly<Record<SuccessMomentId, SuccessVariant>> 
   passwordChanged: "success",
   passcodeSet: "success",
   passcodeChanged: "success",
+  flatmateInvited: "submitted",
+  agentsInvited: "submitted",
+};
+
+/**
+ * THE OBJECT AT THE CENTRE OF EACH MOMENT (founder reference 54, 30
+ * September): one of the founder's 3D objects (components/ui/icon-3d.ts),
+ * chosen for what the moment is ABOUT rather than how it feels. The picture
+ * never claims more than the words: a submission shows the calendar with a
+ * clock (it waits on a person), never the seal, and the seal is kept for a
+ * decision somebody else made in your favour or for the account itself.
+ *
+ * Only names whose files exist may appear here (icon-3d.test.ts checks the
+ * files, and the type checks the name).
+ */
+export const SUCCESS_OBJECT: Readonly<Record<SuccessMomentId, Icon3DName>> = {
+  stayPaid: "calendar-booked",
+  stayPaidRecorded: "calendar-booked",
+  rentPaid: "keys",
+  sharePaid: "earnings",
+  moveInPaid: "keys",
+  cryptoPaid: "coin",
+  inspectionRequested: "calendar-pending",
+  inspectionBooked: "calendar-booked",
+  inspectionReportSubmitted: "list",
+  inspectionRecorded: "list",
+  agreementDrawn: "handover",
+  agreementConfirmed: "handover",
+  agreementInReview: "calendar-pending",
+  agreementApprovedRenter: "handover",
+  agreementApprovedOwner: "handover",
+  claimFiled: "shield",
+  refundRequested: "coin",
+  listingSubmitted: "list",
+  listingApproved: "home-verified",
+  listingLive: "home-verified",
+  agentApplied: "id-check",
+  hostApplied: "id-check",
+  registrationFiled: "id-check",
+  kycSubmitted: "id-check",
+  identityMatched: "verified",
+  verificationApproved: "verified",
+  agentApproved: "verified",
+  hostApproved: "verified",
+  hostLive: "hotel",
+  ticketFiled: "assistant",
+  contactSent: "assistant",
+  reportFiled: "shield",
+  stayRequested: "calendar-pending",
+  stayHeld: "calendar-booked",
+  tableRequested: "restaurant",
+  reviewPosted: "stay-rated",
+  tenancyReviewSent: "stay-rated",
+  bankAccountAdded: "card-secure",
+  cardSaved: "card-secure",
+  payoutAccountAdded: "earnings",
+  accountCreated: "verified",
+  emailVerified: "bell",
+  passwordChanged: "shield",
+  passcodeSet: "shield",
+  passcodeChanged: "shield",
+  flatmateInvited: "handover",
+  agentsInvited: "handover",
+};
+
+/** The object when a caller names no moment: by what kind of news it is. */
+export const VARIANT_OBJECT: Readonly<Record<SuccessVariant, Icon3DName>> = {
+  success: "verified",
+  submitted: "calendar-pending",
+  approved: "verified",
 };
 
 /**
@@ -88,7 +159,7 @@ export const SUCCESS_FEEL: Readonly<Record<SuccessVariant, FeedbackKind>> = {
   approved: "success",
 };
 
-export type SuccessCopy = { variant: SuccessVariant; title: string; body: string };
+export type SuccessCopy = { variant: SuccessVariant; object: Icon3DName; title: string; body: string };
 
 type MomentWords = { title: string; body: string };
 
@@ -108,7 +179,7 @@ export function successCopy<M extends Partial<Record<SuccessMomentId, MomentWord
   const words = copy.moments[id] as MomentWords;
   const fill = (text: string) =>
     Object.entries(values).reduce((out, [key, value]) => out.split(`{${key}}`).join(value), text);
-  return { variant: SUCCESS_VARIANT[id], title: fill(words.title), body: fill(words.body) };
+  return { variant: SUCCESS_VARIANT[id], object: SUCCESS_OBJECT[id], title: fill(words.title), body: fill(words.body) };
 }
 
 /* ------------------------------------------------------ the one-shot flag */
