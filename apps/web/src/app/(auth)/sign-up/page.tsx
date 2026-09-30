@@ -4,6 +4,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
+import { phoneSignInEnabled } from "@/lib/auth/phone-sign-in-flag";
 import { SignUpOptions } from "@/components/auth/SignUpOptions";
 
 /* A10: the title and description in the page's own language, with its
@@ -58,6 +59,7 @@ export default async function SignUpPage({
       appleReady={ready("apple")}
       surface={surface}
       next={next}
+      phoneReady={phoneSignInEnabled()}
     />
   );
 }
