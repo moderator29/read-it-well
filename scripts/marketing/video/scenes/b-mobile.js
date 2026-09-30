@@ -68,7 +68,8 @@ export async function buildMobile(ctx) {
     S.warm.style.visibility = on ? "visible" : "hidden";
     if (!on) return;
     const r = ramp(ctx, t, tBloom, tBloom + 0.62, "power2.inOut") * 2300;
-    const clip = r >= 2299 ? "none" : `circle(${r.toFixed(1)}px at ${BLOOM.x}px ${BLOOM.y}px)`;
+    const at = S.bloom ?? BLOOM;
+    const clip = r >= 2299 ? "none" : `circle(${r.toFixed(1)}px at ${at.x.toFixed(1)}px ${at.y.toFixed(1)}px)`;
     S.warm.style.clipPath = clip;
     S.warm.style.opacity = String((1 - ramp(ctx, t, T.r25 - 0.34, T.r25 + 0.06, "power2.inOut")).toFixed(3));
   });

@@ -30,7 +30,9 @@ export async function buildAssist(ctx, S) {
   /* ================= the ground: light, then night after the phone leaves ================= */
   const sky = ctx.scene("c32-sky", K.r32 - 0.3, K.r35 + 0.02, { z: 1 });
   ctx.el("div", { class: "fill", style: { background: `radial-gradient(70% 45% at 50% 42%, rgb(0 105 254 / 0.07) 0%, rgb(0 105 254 / 0) 70%), linear-gradient(180deg, #ffffff 0%, #f6f9ff 38%, #f3f7ff 70%, #ecf2ff 100%)` } }, sky);
-  const nightL = ctx.el("div", { class: "fill", style: { opacity: 0, background: "radial-gradient(70% 42% at 50% 40%, rgb(0 105 254 / 0.28) 0%, rgb(0 105 254 / 0) 70%), linear-gradient(180deg, #000a2e 0%, #02063f 50%, #010118 100%)" } }, sky);
+  /* night falls from the top: a tall navy curtain with a long soft edge */
+  const curtain = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H * 2}px`, background: "linear-gradient(180deg, #000a2e 0%, #02063f 32%, #010118 50%, rgb(2 6 63 / 0.85) 62%, rgb(2 6 63 / 0.35) 80%, rgb(2 6 63 / 0) 100%)" } }, sky);
+  const glowN = ctx.el("div", { class: "fill", style: { opacity: 0, background: "radial-gradient(70% 42% at 50% 40%, rgb(0 105 254 / 0.28) 0%, rgb(0 105 254 / 0) 70%)" } }, sky);
   const stars = [];
   {
     const rand = ctx.random(3401);
@@ -45,7 +47,10 @@ export async function buildAssist(ctx, S) {
   }
   ctx.sfx("sparkle", ctx.beat(137), { offset: -4 });
   during(ctx, K.r32 - 0.3, K.r35 + 0.02, (t) => {
-    nightL.style.opacity = ramp(ctx, t, night[0], night[1], "sine.inOut").toFixed(4);
+    const n = ramp(ctx, t, night[0], night[1], "power2.inOut");
+    curtain.style.transform = `translateY(${(-ctx.H * 2 + n * ctx.H * 2).toFixed(1)}px)`;
+    curtain.style.visibility = n > 0 ? "" : "hidden";
+    glowN.style.opacity = ramp(ctx, t, night[1] - 0.3, night[1] + 0.1).toFixed(3);
     for (const s of stars) {
       const on = ramp(ctx, t, s.t, s.t + 0.4, "power2.out");
       s.node.style.opacity = on > 0 ? (on * (0.6 + 0.4 * Math.sin(t * s.sp + s.ph) ** 2)).toFixed(3) : "0";
@@ -101,7 +106,8 @@ export async function buildAssist(ctx, S) {
   };
 
   if (M) {
-    const P = L.PHONE_HIGH;
+    /* PHONE_HIGH moved right (v3.1: side content moves the phone to cx 640) */
+    const P = { ...L.PHONE_HIGH, cx: 640 };
     const p = S.light;
     const at = (x, y) => dispToStage(P, x, y);
     const lt = screenImage(ctx, p, "assistant-lt");
@@ -135,7 +141,7 @@ export async function buildAssist(ctx, S) {
     const k = 880 / (1271 - 48);
     const inputScene = ctx.scene("c32-input", K.r32 + 0.8, tBubble + 0.5, { z: 8 });
     const bar = inputBar(inputScene, k);
-    const home = { x: 540, y: 1004 };
+    const home = { x: 560, y: 1004 };
     const onScreen = at((48 + 1271) / 2, (2643 + 2820) / 2);
     const sScreen = onScreen.s / k;
     caret = { x: home.x - bar.w / 2 + bar.caretX, y: home.y };
@@ -274,9 +280,9 @@ export async function buildAssist(ctx, S) {
     const size = M ? 54 : 60;
     const items = M
       ? [
-        { lines: ["Prices"], t: K.prices, anchor: "right", x: L.BODY_LEFT.x + L.BODY_LEFT.w - 36, y: 640 },
-        { lines: ["Areas"], t: K.areas, anchor: "left", x: L.BODY_RIGHT.x + 26, y: 760 },
-        { lines: ["How renting", "works"], t: K.renting, anchor: "right", x: L.BODY_LEFT.x + L.BODY_LEFT.w - 36, y: 900 },
+        { lines: ["Prices"], t: K.prices, anchor: "right", x: 382, y: 612 },
+        { lines: ["Areas"], t: K.areas, anchor: "right", x: 382, y: 704 },
+        { lines: ["How renting", "works"], t: K.renting, anchor: "right", x: 382, y: 826 },
       ]
       : [
         { lines: ["Prices"], t: K.prices, anchor: "left", x: 1450, y: 400 },
@@ -284,7 +290,7 @@ export async function buildAssist(ctx, S) {
         { lines: ["How renting", "works"], t: K.renting, anchor: "left", x: 1450, y: 620 },
       ];
     const nodes = items.map((it) => {
-      const s = it.lines.length > 1 ? Math.round(size * (M ? 0.8 : 0.9)) : size;
+      const s = it.lines.length > 1 ? Math.round(size * (M ? 0.86 : 0.9)) : size;
       const n = ctx.el("div", { class: "abs c-display", style: { left: "0px", top: "0px", fontSize: `${s}px`, lineHeight: "1.06", color: "#0b1230", whiteSpace: "nowrap", textAlign: it.anchor } }, words);
       it.lines.forEach((ln, i) => { if (i) n.appendChild(document.createElement("br")); n.appendChild(document.createTextNode(ln)); });
       return { ...it, n, w: Math.max(...it.lines.map((ln) => measure(ln, `700 ${s}px "C Poppins"`))) };
@@ -295,8 +301,9 @@ export async function buildAssist(ctx, S) {
         const inU = ramp(ctx, t, it.t - 0.08, it.t + 0.38, "land");
         const outU = ramp(ctx, t, leave[0] - 0.1 + i * 0.04, leave[0] + 0.2 + i * 0.04, "power2.in");
         const cx = it.anchor === "right" ? it.x - it.w / 2 : it.x + it.w / 2;
-        const from = it.anchor === "right" ? -1 : 1;
-        place(it.n, { x: cx + from * (1 - inU) * 60 * (M ? 1 : -1) * (M ? -1 : 1), y: it.y + (1 - inU) * 18 - outU * 30, o: Math.min(1, inU * 2) * (1 - outU) });
+        /* each word slides out from the device's side */
+        const dx = M ? 50 : -50;
+        place(it.n, { x: cx + dx * (1 - inU), y: it.y - outU * 30, o: Math.min(1, inU * 2) * (1 - outU) });
       });
     });
   }

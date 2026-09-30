@@ -80,14 +80,14 @@ export async function talk(ctx, S, T) {
   const status = screenPage(ctx, pL, ctx.src.display("messages-lt"));
   status.img.style.clipPath = `inset(0px 0px ${DH - 186}px 0px)`;
   showDuring(ctx, th.el, [[T.r14, T.r18 + 0.3]]);
-  showDuring(ctx, msgs.el, [[T.r18 - 0.25, T.r19 + 0.7]]);
+  showDuring(ctx, msgs.el, [[T.r18 - 0.25, T.r19 + 1.1]]);
   showDuring(ctx, shareBg.el, [[T.r16, T.listings + 0.45]]);
   showDuring(ctx, shareSheet.el, [[T.r16, T.listings + 0.45]]);
   const tMenu = T.place + 0.33;
   const tDrawer = tMenu + 0.08;
-  showDuring(ctx, drawerDim.el, [[tDrawer, T.r19 + 0.7]]);
-  showDuring(ctx, drawer.el, [[tDrawer, T.r19 + 0.7]]);
-  showDuring(ctx, status.el, [[tDrawer, T.r19 + 0.7]]);
+  showDuring(ctx, drawerDim.el, [[tDrawer, T.r19 + 1.1]]);
+  showDuring(ctx, drawer.el, [[tDrawer, T.r19 + 1.1]]);
+  showDuring(ctx, status.el, [[tDrawer, T.r19 + 1.1]]);
   S.drawerPage = drawer;
 
   /* Row 14: a white wash dims the thread while the words land. */
