@@ -40,6 +40,8 @@ import { hostWorkspaceEn } from "./host-workspace.en";
 import { mailEn } from "./mail.en";
 /* The small things (toast, copy, connection, pull to refresh, card menu). */
 import { detailsEn } from "./details.en";
+/* Get started in motion: the chips and controls of the four scenes. */
+import { onboardingMotionEn } from "./onboarding-motion.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -5984,6 +5986,8 @@ export const en = {
   hostWorkspace: hostWorkspaceEn,
 
   mail: mailEn,
+
+  onboardingMotion: onboardingMotionEn,
 
   /*
    * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).
