@@ -197,8 +197,8 @@ export async function talk(ctx, S, T) {
       return;
     }
     if (!wd) {
-      /* one size for all three, "landlord" fitted to 800 px (x 120 to 920, inside the safe width) */
-      const size = Math.min(160, (800 / measure("landlord", "700 100px Poppins")) * 100);
+      /* one size for all three, "landlord" at most 700 px wide and 140 px tall: air between the stacked lines */
+      const size = Math.min(140, (700 / measure("landlord", "700 100px Poppins")) * 100);
       words.forEach((w) => (w.el.style.fontSize = `${(size * w.k).toFixed(1)}px`));
       wd = words.map((w) => ({ w: w.el.offsetWidth, h: w.el.offsetHeight }));
     }

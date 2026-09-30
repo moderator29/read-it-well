@@ -1,11 +1,9 @@
-/* R8 · after IMG_6735: the onboarding as a wall of flat cards, staggered in
- * three columns that run off the foot. 1080 x 1350, so Instagram's grid crops
- * no words. Night. The welcome cards below their own resolution (0.22x): the
- * first three slides, each column running on into the first slide in Hausa,
- * Yorùbá and Igbo, whose foot is cut only through the illustration, never
- * through a line of text. A handover of keys is the post's 3D icon. */
+/* R8 · after IMG_6735: the onboarding as flat cards, staggered, on one
+ * clean ground. 1080 x 1350, so Instagram's grid crops no words. Night. The
+ * first three welcome cards, whole, at their own resolution's 0.22x, 25 px
+ * apart. A handover of keys is the post's 3D icon, in slot A. */
 import { join } from "node:path";
-import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
+import { frame, headline, icon3d } from "../lib/premium.mjs";
 import { SOURCE } from "../lib/paths.mjs";
 import { u } from "../lib/render.mjs";
 
@@ -13,11 +11,10 @@ const W = 1080;
 const H = 1350;
 const CW = 290;
 const CH = Math.round((CW * 2682) / 1320);
-const GAP = 25;
-const COLS = [
-  { x: 80, top: 486, ids: ["welcome-1", "welcome-ha"] },
-  { x: 80 + CW + GAP, top: 566, ids: ["welcome-2", "welcome-yo"] },
-  { x: 80 + 2 * (CW + GAP), top: 526, ids: ["welcome-3", "welcome-ig"] },
+const CARDS = [
+  { id: "welcome-1", x: 80, y: 500 },
+  { id: "welcome-2", x: 395, y: 460 },
+  { id: "welcome-3", x: 710, y: 540 },
 ];
 
 const card = (id, x, y) => `<div style="position:absolute;left:${x}px;top:${y}px;width:${CW}px;height:${CH}px;border-radius:34px;overflow:hidden;
@@ -36,8 +33,7 @@ export default {
       ground: "night",
       body: `
       ${headline(["Welcome", "to <k>Vallo.</k>"], { W, H })}
-      ${subline("Homes, stays and tables.", { W, H })}
-      ${COLS.map((c) => c.ids.map((id, i) => card(id, c.x, c.top + i * (CH + GAP))).join("")).join("")}
+            ${CARDS.map((c) => card(c.id, c.x, c.y)).join("")}
       ${icon3d("handover", { W, H, slot: "A" })}
       `,
     }),

@@ -318,6 +318,48 @@ export function installGrain(ctx, { opacity = 0.045, tiles = 6 } = {}) {
 
 /* ---------- the spine's question cards ---------- */
 
+/** When a flat turn swaps faces (s after its start); the whole turn takes 0.62 s. */
+export const TURN_SWAP = 0.3;
+
+/**
+ * A flat card turn that reads as a turn: the card narrows to its edge
+ * (0.3 s, power2.in) and opens on the other face (0.32 s, back.out(1.4)),
+ * with a slight skewY that follows the narrowing (up to 6°, one way closing
+ * and the other opening, as a turning card's near edge), a shade on the
+ * narrowing face and a highlight sweeping the face that opens. Pure in t:
+ * CSS 3D turns are raster-cached by Chromium differently depending on the
+ * frames drawn before. `turns` is a sorted list of start times (the caller
+ * may add to it); the caller shows the front before start + TURN_SWAP and
+ * the back after it.
+ */
+export function installFlatTurn(ctx, { inner, front, back }, turns) {
+  const overlay = (face, bg) => ctx.el("div", { class: "abs", style: { inset: 0, borderRadius: "inherit", pointerEvents: "none", opacity: 0, background: bg } }, face);
+  const shade = overlay(front, "linear-gradient(90deg, rgb(0 6 30 / 0.05) 0%, rgb(0 6 30 / 0.85) 100%)");
+  const light = overlay(back, "linear-gradient(105deg, rgb(255 255 255 / 0) 30%, rgb(255 255 255 / 0.55) 50%, rgb(255 255 255 / 0) 70%)");
+  light.style.backgroundSize = "260% 100%";
+  const ease = (name, u) => ctx.ease(name)(Math.min(1, Math.max(0, u)));
+  ctx.onFrame((t) => {
+    let at = null;
+    for (const a of turns) if (t >= a) at = a;
+    if (at === null) {
+      inner.style.transform = "";
+      shade.style.opacity = "0";
+      light.style.opacity = "0";
+      return;
+    }
+    const close = (t - at) / TURN_SWAP;
+    const open = (t - at - TURN_SWAP) / (0.62 - TURN_SWAP);
+    const n = close < 1 ? 1 - 0.98 * ease("power2.in", close) : 0.02 + 0.98 * ease("back.out(1.4)", open);
+    const edge = Math.max(0, 1 - Math.min(1, n));
+    const skew = 6 * edge * (close < 1 ? 1 : -1);
+    inner.style.transform = n >= 0.9999 && Math.abs(n - 1) < 1e-4 ? "" : `skewY(${skew.toFixed(3)}deg) scaleX(${Math.max(0.001, n).toFixed(4)})`;
+    shade.style.opacity = close < 1 ? (0.75 * ease("power1.in", close)).toFixed(4) : "0";
+    const lit = close >= 1 && open < 1.4 ? Math.sin(Math.PI * Math.min(1, Math.max(0, open / 1.4))) : 0;
+    light.style.opacity = (0.8 * lit).toFixed(4);
+    light.style.backgroundPosition = `${(100 - Math.min(1, Math.max(0, open / 1.4)) * 100).toFixed(1)}% 0%`;
+  });
+}
+
 /**
  * A glass question card that turns over to its answer (the films' spine:
  * three doubts in frame one, each answered later). Build it at a box
@@ -352,7 +394,7 @@ export function questionCard(ctx, parent, { q, a, box, mark = false, fontSize = 
   ctx.el("span", { text: a }, back);
   const turns = [];
   ctx.onFrame((t) => {
-    const flipped = turns.some((at) => t >= at + 0.3);
+    const flipped = turns.some((at) => t >= at + TURN_SWAP);
     front.style.visibility = flipped ? "hidden" : "inherit";
     back.style.visibility = flipped ? "inherit" : "hidden";
   });
@@ -368,9 +410,9 @@ export function questionCard(ctx, parent, { q, a, box, mark = false, fontSize = 
      * frames drawn before it, which breaks parallel renders.
      */
     turn(t, { sound = "pop", offset = 0 } = {}) {
+      if (!turns.length) installFlatTurn(ctx, { inner, front, back }, turns);
       turns.push(t);
-      ctx.tl.fromTo(inner, { scaleX: 1 }, { scaleX: 0.02, duration: 0.3, ease: "power2.in", immediateRender: false }, t);
-      ctx.tl.fromTo(inner, { scaleX: 0.02 }, { scaleX: 1, duration: 0.32, ease: "back.out(1.4)", immediateRender: false }, t + 0.3);
+      turns.sort((x, y) => x - y);
       if (sound) ctx.sfx(sound, t + 0.18, { offset });
     },
   };

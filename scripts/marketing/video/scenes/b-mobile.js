@@ -54,7 +54,6 @@ export async function buildMobile(ctx) {
   const phones = ctx.scene("b-m-phone", T.r14, T.end, { z: 10 });
   S.phones = phones;
   S.pL = await phone3d(ctx, { model: "island", parent: phones, env: "light", edge: "#f3f4f1" });
-  window.__bS = S; // DEBUG (remove)
 
   /* ---------- the glossy pointer ---------- */
   const pointer = ctx.scene("b-m-pointer", T.r14, T.end, { z: 40 });

@@ -44,13 +44,21 @@ export async function deskStays(ctx, S, T) {
   /* ---------- the window's pages ---------- */
   const staysSrc = ctx.src.capture("d-stays-lt");
   const staySrc = ctx.src.capture("d-stay-lt");
-  const pStays = S.page("d-stays-lt", [[S.tSwap, T.and10 + 0.6]]);
-  const pDates = S.page("d-stays-dates-lt", [[T.and10 + 0.3, T.r23 + 0.3]]);
-  tl.fromTo(pDates, { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "power1.inOut", immediateRender: false }, T.and10 + 0.3);
+  const tHotels = ctx.beat(75.25);           // 43.41, inside "hotels"
+  const tPop = T.and10;                      // 46.39: "3 nights"
+  const tFold0 = tPop + 0.01;                // the window folds into its strip
+  const tFold1 = tFold0 + 0.4;
+  const tFade = tFold0 + 0.22;               // then the dates page fades in, the fold >80% done
+  const pStays = S.page("d-stays-lt", [[S.tSwap, tFold1 + 0.1]]);
+  const pDates = S.page("d-stays-dates-lt", [[tFade, T.r23 + 0.3]]);
+  /* never below CSS y 302: the capture's results row (with its own prices) never paints */
+  pDates.style.clipPath = "inset(0px 0px 598px 0px)";
+  ctx.gsap.set(pDates, { opacity: 0 });
+  tl.fromTo(pDates, { opacity: 0 }, { opacity: 1, duration: 0.18, ease: "power1.inOut", immediateRender: false }, tFade);
 
   /* ==================== D20: the tiles lift in place ==================== */
   const tiles = [
-    { r: HOTELS, t: T.hotels, back: T.shortlets + 0.02 },
+    { r: HOTELS, t: tHotels, back: T.shortlets + 0.02 },
     { r: SHORTLETS, t: T.shortlets, back: T.resorts - 0.04 },
   ];
   for (const tile of tiles) {
@@ -80,10 +88,10 @@ export async function deskStays(ctx, S, T) {
   const tileAt = (r) => S.toStageAt(heroWv, cam0, r.x + 170, r.y + 64);
   const hAt = tileAt(HOTELS);
   const sAt = tileAt(SHORTLETS);
-  orbT.to(T.hotels - 0.42, 0.16, { opacity: 1 }, "power1.out");
-  orbT.to(T.hotels - 0.42, 0.4, { x: hAt.x + 14, y: hAt.y + 12 }, "glide");
-  pressAt(ctx, S.orb, T.hotels, { sound: "tap_soft", offset: -2 });
-  orbT.to(T.hotels + 0.2, 0.46, { x: sAt.x + 14, y: sAt.y + 12 }, "glide");
+  orbT.to(tHotels - 0.42, 0.16, { opacity: 1 }, "power1.out");
+  orbT.to(tHotels - 0.42, 0.4, { x: hAt.x + 14, y: hAt.y + 12 }, "glide");
+  pressAt(ctx, S.orb, tHotels, { sound: "tap_soft", offset: -2 });
+  orbT.to(tHotels + 0.08, 0.24, { x: sAt.x + 14, y: sAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, T.shortlets, { sound: "tap_soft", offset: -2 });
   orbT.to(T.shortlets + 0.16, 0.42, { x: 1990, y: 980 }, "power2.in");
   orbT.to(T.shortlets + 0.3, 0.2, { opacity: 0 }, "power1.in");
@@ -112,14 +120,14 @@ export async function deskStays(ctx, S, T) {
   pin.style.color = ELECTRIC;
   ctx.el("span", { text: "Lekki, Lagos" }, loc);
   const back = glassCard(ctx, inner, { w: CAL.w, h: CAL.h, radius: 36, shadow: "l", style: { backfaceVisibility: "hidden", transformOrigin: "50% 50%" } });
-  const cal = monthCalendar(ctx, back, CAL, { pad: 41, headTop: 37, head: 38, wkTop: 110, wk: 19, num: 25, row0: 151, rowH: 69, dot: 62 });
+  const cal = monthCalendar(ctx, back, CAL, { pad: 41, caption: "Lagoon Crest Resort · Lekki, Lagos", captionTop: 30, captionSize: 20, headTop: 62, head: 38, wkTop: 128, wk: 19, num: 25, row0: 166, rowH: 70, dot: 62 });
 
   const tRise0 = T.resorts - 0.02;
   const tRise1 = T.resorts + 0.5;
   const tFlip0 = T.pick - 0.28;
   const tFlip1 = tFlip0 + 0.5;
-  const tCalOut0 = T.and10 + 0.34;
-  const tCalOut1 = tCalOut0 + 0.36;
+  const tCalOut0 = tPop + 0.06;
+  const tCalOut1 = tCalOut0 + 0.3;
   ctx.sfx("card_slide", T.resorts, { offset: -2 });
   showDuring(ctx, flipper, [[tRise0, tCalOut1]]);
   ctx.onFrame((t) => {
@@ -157,28 +165,39 @@ export async function deskStays(ctx, S, T) {
   /* ==================== D22: the window folds into the strip; the chip lands ==================== */
   const sH = (56 + STRIP.viewH) * S.HERO.s;
   const stripWv = { cx: 960, cy: STRIP_TOP + sH / 2, s: S.HERO.s, ry: 0, opacity: 1, ...STRIP };
-  wvT.to(T.and10 + 0.3, 0.48, { cx: stripWv.cx, cy: stripWv.cy, s: stripWv.s, ...STRIP }, "glide");
-  /* everything lifts away before "Going" (49.04); "Room booked" has 1.5 s to be read first */
+  wvT.to(tFold0, tFold1 - tFold0, { cx: stripWv.cx, cy: stripWv.cy, s: stripWv.s, ...STRIP }, "glide");
+  /* everything lifts away before "Going" (49.04) */
   const tAway = T.r23 - 0.24;
   wvT.to(tAway - 0.06, 0.22, { cy: stripWv.cy - 420, opacity: 0 }, "power2.in");
   const P = (x, y) => S.toStageAt(stripWv, cam0, x, y);
   const fieldsC = P(FIELDS.x + FIELDS.w / 2, FIELDS.y + FIELDS.h / 2);
 
-  const tPop = T.and10;
-  const tGrow = tPop + 0.22;
-  const tDrop0 = tCalOut0 + 0.04;
-  const tDrop1 = T.r22 - 0.14; // lands early enough for "Room booked" to be read 1.5 s before row 23
+  const tGrow0 = tPop + 0.06;
+  const tGrow1 = tGrow0 + 0.2;
+  const tDrop0 = T.book;
+  const tDrop1 = T.room;
   const dchip = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", height: "70px", display: "flex", alignItems: "center", padding: "0 30px", borderRadius: "999px", background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 60%, #0056d0)`, color: "#fff", font: "600 30px/1 Inter, sans-serif", letterSpacing: "-0.015em", whiteSpace: "nowrap", boxShadow: "0 22px 44px -20px rgb(0 70 200 / 0.6)", visibility: "hidden" } }, cards);
-  const datesPart = ctx.el("span", { text: "16 Oct → 19 Oct · ", style: { display: "inline-block", overflow: "hidden", maxWidth: "0px", whiteSpace: "nowrap" } }, dchip);
+  const datesPart = ctx.el("span", { style: { display: "inline-flex", alignItems: "center", overflow: "hidden", maxWidth: "0px", whiteSpace: "nowrap", opacity: "0" } }, dchip);
+  ctx.el("span", { text: "16 Oct" }, datesPart);
+  const arrow = ctx.icon("arrow-right", { size: 21, stroke: 2.4 }, datesPart);
+  arrow.style.margin = "0 8px";
+  ctx.el("span", { text: "19 Oct", style: { marginRight: "10px" } }, datesPart);
+  ctx.el("span", { text: "·", style: { marginRight: "10px" } }, datesPart);
   ctx.el("span", { text: "3 nights" }, dchip);
   ctx.sfx("pop", tPop);
   showDuring(ctx, dchip, [[tPop, tDrop1 + 0.08]]);
+  let fullW = null;
   ctx.onFrame((t) => {
     if (t < tPop || t > tDrop1 + 0.1) return;
-    const pop = ctx.ease("back.out(2)")(ctx.progress(t, tPop, tPop + 0.32));
-    const grow = ramp(ctx, t, tGrow, tGrow + 0.3, "power3.inOut");
-    datesPart.style.opacity = (grow * grow).toFixed(3); // a partial date never reads as a number
-    datesPart.style.maxWidth = `${(grow * 360).toFixed(1)}px`;
+    if (fullW == null) {
+      datesPart.style.maxWidth = "none";
+      fullW = datesPart.offsetWidth;
+    }
+    const pop = ctx.ease("back.out(2)")(ctx.progress(t, tPop, tPop + 0.3));
+    const grow = ramp(ctx, t, tGrow0, tGrow1, "power3.inOut");
+    datesPart.style.maxWidth = `${(grow * fullW).toFixed(1)}px`;
+    /* the width first; the dates fade in only once it is complete, so no part of a date ever shows */
+    datesPart.style.opacity = ramp(ctx, t, tGrow1 - 0.01, tGrow1 + 0.11, "power1.out").toFixed(3);
     const drop = ramp(ctx, t, tDrop0, tDrop1, "glide");
     const from = { x: calC.x, y: CAL.y + CAL.h + 4 };
     const x = mix(from.x, fieldsC.x, drop);
@@ -191,19 +210,8 @@ export async function deskStays(ctx, S, T) {
   /* ==================== the results, each under the field it answers ==================== */
   const colX = { a: P(COL.checkIn, 0).x, b: P(COL.checkOut, 0).x, c: P(COL.guests, 0).x, cR: P(COL.guestsR, 0).x, d: P(COL.button, 0).x, dR: P(COL.buttonR, 0).x };
   const Y0 = P(0, STRIP.viewTop + STRIP.viewH).y + 42;
-  const CHIP_H = 64;
-  const Y1 = Y0 + CHIP_H + 28;
   const DH = 250;
-  const EH = Y0 + DH - Y1;
-  const mkChip = (icon, text) => {
-    const el = glassCard(ctx, cards, { w: null, radius: 999, shadow: "s", style: { width: "auto", height: `${CHIP_H}px`, display: "flex", alignItems: "center", gap: "12px", padding: "0 24px 0 12px", whiteSpace: "nowrap", font: "600 25px/1 Inter, sans-serif", letterSpacing: "-0.015em", visibility: "hidden" } });
-    iconPlate(ctx, el, icon, { size: 42, round: true });
-    ctx.el("span", { text }, el);
-    return el;
-  };
-  const A = mkChip("calendar-days", "16 Oct → 19 Oct");
-  const B = mkChip("moon", "3 nights");
-  const C = mkChip("users", "2 guests");
+  const EH = 150;
   /* D: the price, under "Show prices for these dates" */
   const DW2 = colX.dR - colX.d;
   const D = glassCard(ctx, cards, { w: DW2, h: DH, radius: 24, shadow: "m", style: { overflow: "hidden", visibility: "hidden" } });
@@ -227,21 +235,18 @@ export async function deskStays(ctx, S, T) {
   exampleChip(ctx, eMeta, { size: 19 });
   ctx.el("span", { text: "now", style: { font: "500 20px/1 Inter, sans-serif", color: "#8a90a0" } }, eMeta);
 
-  const tLand = tDrop1;
-  const tE = tDrop1 + 0.02;
+  const tE = tDrop1 + 0.03;                  // "Room booked" comes off the chip, on "room"
+  const tPrice = T.few - 0.08;               // the price comes out of "Show prices"
   /* each result comes out of the field it answers (the price out of "Show prices"), so nothing crosses */
   const fy = FIELDS.y + FIELDS.h / 2;
   const items = [
-    { el: E, x: colX.a, y: Y1, t: tE, sound: null, from: fieldsC },
-    { el: A, x: colX.a, y: Y0, t: tLand + 0.06, sound: null, from: P((COL.checkIn + COL.checkOut) / 2 - 8, fy) },
-    { el: B, x: colX.b, y: Y0, t: tLand + 0.12, sound: "pop", from: P((COL.checkOut + COL.guests) / 2 - 8, fy) },
-    { el: C, x: colX.c, y: Y0, t: tLand + 0.18, sound: "pop", from: P((COL.guests + COL.guestsR) / 2, fy) },
-    { el: D, x: colX.d, y: Y0, t: tLand + 0.24, sound: "pop", from: P((COL.button + COL.buttonR) / 2, fy) },
+    { el: E, x: colX.a, y: Y0, t: tE, sound: null, from: fieldsC },
+    { el: D, x: colX.d, y: Y0, t: tPrice, sound: "pop", from: P((COL.button + COL.buttonR) / 2, fy) },
   ];
   ctx.sfx("chime_notify", tE);
   for (const [i, it] of items.entries()) {
     if (it.sound) ctx.sfx(it.sound, it.t, { offset: -4 });
-    const out0 = it.el === E ? tAway : tAway - 0.06; // the chips and the price leave together, "Room booked" just after: nothing crosses, all gone by 49.02
+    const out0 = it.el === E ? tAway : tAway - 0.06; // the price first, "Room booked" just after: all gone by 49.02
     const end = out0 + 0.24;
     it.el.style.transformOrigin = "0 0";
     showDuring(ctx, it.el, [[it.t, end]]);

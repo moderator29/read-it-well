@@ -1,7 +1,9 @@
-/* 14 · "Meet Vallo." Night. The product moment is the app's own icon, shown
- * alone at 440 px (its source is 1024) with the iOS corner radius; the line
- * under the headline is the website's own: "Rent, buy or stay. Without the
- * runaround." A party popper is the post's 3D icon, in slot A. */
+/* 14 · "Meet Vallo." Night. A hero post: the app's own icon as the whole
+ * product moment, at 600 px (its source is 1024, so nothing is upscaled),
+ * centred under the headline with the iOS corner radius and a soft contact
+ * shadow scaled with it; the line under the headline is the website's own,
+ * "Rent, buy or stay. Without the runaround." A party popper is the post's
+ * 3D icon, in slot A. */
 import { join } from "node:path";
 import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
 import { BRAND } from "../lib/paths.mjs";
@@ -9,9 +11,9 @@ import { u } from "../lib/render.mjs";
 
 const W = 1080;
 const H = 1350;
-const S = 440;
+const S = 600;
 const X = (W - S) / 2;
-const Y = 640;
+const Y = 515;
 
 export default {
   id: "14",

@@ -220,7 +220,7 @@ export async function buildReceiptDesktop(ctx, T, product) {
     const t0 = T.flies[k];
     const dy = TT + 22 - top;
     ctx.onFrame((t) => {
-      const raw = ctx.progress(t, t0, t0 + 0.5);
+      const raw = ctx.progress(t, t0, t0 + 0.42);
       const on = raw > 0 && raw < 1;
       fly.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;

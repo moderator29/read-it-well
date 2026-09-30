@@ -17,7 +17,7 @@ export default {
   file: "04-r4-what-you-will-actually-pay.png",
   W,
   H,
-  phones: [phone("listing-cost", "night", { kind: "pose", rotation: { x: -46, y: 16, z: 48 }, fov: 50, w: 960, cx: 470, cy: 880 })],
+  phones: [phone("listing-cost", "night", { kind: "pose", rotation: { x: -46, y: 16, z: 48 }, fov: 50, w: 960, cx: 474, cy: 880 })],
   html: ({ phones }) =>
     frame({
       W,

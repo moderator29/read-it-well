@@ -1,40 +1,47 @@
-/* 24 · "Vallo speaks your language." Night. The literal proof: the first
- * welcome slide's headline as captured in each of the app's four languages,
- * English, Hausa, Yorùbá and Igbo ("Two worlds. One platform." and its three
- * translations), stacked as one column of real components at 0.58x, 24 px apart. Nothing
- * here says the assistant answers in these languages. A pin with a speech
- * bubble (local talk) is the post's 3D icon, in slot B at the foot. */
+/* 24 · "In your language." Night. The literal proof: the first welcome
+ * slide's headline as captured in each of the app's four languages, English,
+ * Hausa, Yorùbá and Igbo ("Two worlds. One platform." and its three
+ * translations), cut with air round every accent and descender and stacked as
+ * one centred column of real components at 0.70x. Nothing here says the
+ * assistant answers in these languages. A pin with a speech bubble (local
+ * talk) is the post's 3D icon, in slot A. */
 import { component, componentHeight, frame, headline, icon3d, subline } from "../lib/premium.mjs";
 
 const W = 1080;
 const H = 1350;
-const CW = 760;
-const GAP = 24;
-/* each headline cut from its own capture, 184 rows around the two lines */
-const CROPS = [
-  { id: "welcome-1", crop: { x: 0, y: 1973, w: 1320, h: 184 } },
-  { id: "welcome-ha", crop: { x: 0, y: 1977, w: 1320, h: 184 } },
-  { id: "welcome-yo", crop: { x: 0, y: 1972, w: 1320, h: 184 } },
-  { id: "welcome-ig", crop: { x: 0, y: 1810, w: 1320, h: 184 } },
-];
-const CH = componentHeight(CROPS[0].crop, CW);
+const CW = 920;
+const GAP = 16;
 const TOP = 480;
+/* each headline cut from its own capture, 28 rows of air above and below */
+const CROPS = [
+  { id: "welcome-1", crop: { x: 0, y: 1957, w: 1320, h: 233 } },
+  { id: "welcome-ha", crop: { x: 0, y: 1954, w: 1320, h: 236 } },
+  { id: "welcome-yo", crop: { x: 0, y: 1954, w: 1320, h: 236 } },
+  { id: "welcome-ig", crop: { x: 0, y: 1796, w: 1320, h: 229 } },
+];
 
 export default {
   id: "24",
   file: "24-speaks-your-language.png",
   W,
   H,
-  html: async () =>
-    frame({
+  html: async () => {
+    let y = TOP;
+    const parts = [];
+    for (const c of CROPS) {
+      parts.push(await component(c.id, c.crop, { x: 80, y, w: CW, radius: 28 }));
+      y += componentHeight(c.crop, CW) + GAP;
+    }
+    return frame({
       W,
       H,
       ground: "night",
       body: `
-      ${headline(["Vallo speaks", "your <k>language.</k>"], { W, H })}
-      ${subline("English, Hausa, Yorùbá and Igbo. Switch at any time.", { W, H })}
-      ${(await Promise.all(CROPS.map((c, i) => component(c.id, c.crop, { x: 80, y: TOP + i * (CH + GAP), w: CW, radius: 28 })))).join("")}
-      ${icon3d("local-talks", { W, H, slot: "B", bottom: H - 80 })}
+      ${headline(["In your", "<k>language.</k>"], { W, H })}
+      ${subline("Vallo speaks English, Hausa, Yorùbá and Igbo.", { W, H })}
+      ${parts.join("")}
+      ${icon3d("local-talks", { W, H, slot: "A" })}
       `,
-    }),
+    });
+  },
 };

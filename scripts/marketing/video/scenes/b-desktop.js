@@ -1,5 +1,5 @@
 /**
- * Section b, desktop film (rows 14 to 27, 30.58 to 62.88), storyboard v3.1.
+ * Section b, desktop film (rows 14 to 27, 30.58 to 62.88), storyboard v3.2.
  *
  * One browser window carries the section (its page changes by time, it
  * turns over in row 19 and crops to its date fields in row 22), inside a
@@ -9,7 +9,7 @@
  */
 import { orb, browserWindow } from "../engine/components.js";
 import { LAYOUT } from "./layout.js";
-import { mist, ramp, track, camera, showDuring } from "./b-kit.js";
+import { mist, ramp, track, camera, showDuring, WARM_TOP } from "./b-kit.js";
 import { times } from "./b-mobile.js";
 import { deskTalk } from "./b-d-talk.js";
 import { deskStays } from "./b-d-stays.js";
@@ -25,40 +25,16 @@ export async function buildDesktop(ctx) {
   const L = LAYOUT.desktop;
   const S = { T, L };
 
-  /* ---------- the ground: mist; the warm wash (19 to 24); row 23's dusk ---------- */
+  /* ---------- the ground: mist throughout; rows 19 to 24 add a 14% warm light at the top (v3.2) ---------- */
   const ground = ctx.scene("b-d-ground", T.r14, T.end, { z: 0 });
   mist(ctx, ground);
-  S.warm = ctx.el("div", {
-    class: "fill",
-    style: {
-      visibility: "hidden",
-      background: `radial-gradient(70% 60% at 50% 60%, rgb(255 178 122 / 0.26) 0%, rgb(255 178 122 / 0) 72%),
-        linear-gradient(180deg, rgb(255 190 140 / 0.22) 0%, rgb(255 178 122 / 0.3) 100%),
-        linear-gradient(180deg, #fffaf6 0%, #fbf3ee 60%, #f7ece4 100%)`,
-    },
-  }, ground);
-  S.dusk = ctx.el("div", {
-    class: "fill",
-    style: {
-      visibility: "hidden", opacity: "0",
-      background: `radial-gradient(70% 60% at 50% 42%, rgb(255 214 170 / 0.7) 0%, rgb(255 214 170 / 0) 70%),
-        linear-gradient(180deg, #ffe3c8 0%, #ffc890 42%, #f7a25e 78%, #ee8a45 100%)`,
-    },
-  }, ground);
+  S.warm = ctx.el("div", { class: "fill", style: { background: WARM_TOP, opacity: "0", visibility: "hidden" } }, ground);
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, T.planning, T.planning + 0.6, "power2.inOut") * (1 - ramp(ctx, t, T.r25 - 0.34, T.r25 + 0.06, "power2.inOut"));
+    S.warm.style.visibility = a > 0.001 ? "inherit" : "hidden";
+    S.warm.style.opacity = a.toFixed(3);
+  });
   S.bloom = { x: 960, y: 540 };
-  ctx.onFrame((t) => {
-    const on = t >= T.planning && t < T.r25 + 0.1;
-    S.warm.style.visibility = on ? "inherit" : "hidden";
-    if (!on) return;
-    const r = ramp(ctx, t, T.planning, T.planning + 0.66, "power2.inOut") * 2400;
-    S.warm.style.clipPath = r >= 2399 ? "none" : `circle(${r.toFixed(1)}px at ${S.bloom.x.toFixed(1)}px ${S.bloom.y.toFixed(1)}px)`;
-    S.warm.style.opacity = String((1 - ramp(ctx, t, T.r25 - 0.34, T.r25 + 0.06, "power2.inOut")).toFixed(3));
-  });
-  ctx.onFrame((t) => {
-    const a = ramp(ctx, t, T.r23 - 0.2, T.r23 + 0.24, "power2.inOut") * (1 - ramp(ctx, t, T.r24 - 0.1, T.r24 + 0.45, "power2.inOut"));
-    S.dusk.style.visibility = a > 0.001 ? "inherit" : "hidden";
-    S.dusk.style.opacity = a.toFixed(3);
-  });
 
   /* ---------- the world, the camera, the window ---------- */
   const worldScene = ctx.scene("b-d-world", T.r14, T.end, { z: 10 });

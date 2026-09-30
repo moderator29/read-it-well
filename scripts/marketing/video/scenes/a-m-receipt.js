@@ -137,14 +137,14 @@ export async function buildReceiptMobile(ctx, T, product) {
     const t0 = T.flies[k];
     const dy = TT + 30 - (s.top + 11);
     ctx.onFrame((t) => {
-      const raw = ctx.progress(t, t0, t0 + 0.5);
+      const raw = ctx.progress(t, t0, t0 + 0.42);
       const on = raw > 0 && raw < 1;
       fly.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
       /* out into the lane first, then down, then back into the slot: never across another amount */
       const u = ctx.ease("power2.inOut")(raw);
-      const x = -BULGE * Math.sqrt(Math.sin(Math.PI * raw));
-      const y = dy * ctx.ease("power2.inOut")(ctx.progress(raw, 0.22, 0.92));
+      const x = -BULGE * Math.sqrt(Math.sin(Math.PI * ctx.progress(raw, 0, 0.85)));
+      const y = dy * ctx.ease("power2.inOut")(ctx.progress(raw, 0.2, 1));
       const sc = 1 - 0.28 * u;
       fly.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
       fly.style.opacity = String(Math.min(1, raw * 8) * (1 - ctx.progress(raw, 0.82, 1)));

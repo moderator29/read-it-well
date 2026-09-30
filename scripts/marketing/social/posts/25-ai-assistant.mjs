@@ -14,7 +14,7 @@ export default {
   file: "25-ai-assistant.png",
   W,
   H,
-  phones: [phone("assistant-caution-2", "night", PLACE.bleed({ w: 667, top: 495 }))],
+  phones: [phone("assistant-caution-2", "night", PLACE.bleed({ w: 673 }))],
   html: ({ phones }) =>
     frame({
       W,

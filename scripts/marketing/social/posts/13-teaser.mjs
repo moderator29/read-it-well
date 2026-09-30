@@ -1,8 +1,9 @@
-/* 13 · Teaser. "Something good is coming." Night. The one picture is the
- * brand's own onboarding art, the orange doorway, shown at its native size in
- * a window cut to the same arch, the doorway on the window's axis and the
- * blue sky, not the near-black top of the art, in the crown. A gift is the
- * post's 3D icon, in the left column. */
+/* 13 · Teaser. "Something good is coming." Night. A hero post: the brand's
+ * own onboarding art, the orange doorway, at its native size in a tall window
+ * cut to the same arch (640 x 830, the whole-phone box of the set, right
+ * margin), the doorway on the window's axis, the starry sky in its crown and
+ * only a strip of velvet ground under the stairs. A gift, the "something
+ * good", is the post's 3D icon, in the left column on the window's centre. */
 import { join } from "node:path";
 import { frame, headline, icon3d, subline } from "../lib/premium.mjs";
 import { BRAND } from "../lib/paths.mjs";
@@ -11,9 +12,9 @@ import { u } from "../lib/render.mjs";
 const W = 1080;
 const H = 1350;
 /* the window: an arch 520 wide, its top a half circle */
-const win = { x: 480, y: 500, w: 520, h: 760 };
-/* the art (1080 x 1440) at 1.0: the doorway (art x 544) on the window's axis */
-const art = { s: 1, left: -284, top: -300 };
+const win = { x: 360, y: 440, w: 640, h: 830 };
+/* the art (1080 x 1440) at 1.0: the doorway (art x 544) on the window's axis (320), sky from art row 60 */
+const art = { s: 1, left: 320 - 544, top: -60 };
 
 export default {
   id: "13",

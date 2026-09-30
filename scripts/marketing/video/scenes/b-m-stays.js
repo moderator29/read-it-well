@@ -17,8 +17,8 @@
  */
 import { LAYOUT } from "./layout.js";
 import {
-  DW, DH, NAVY, INK2, ELECTRIC, SHADOW, ramp, mix, screenPage, showDuring, box, cropBody, quadDriver, displayQuad, quadAtPose,
-  rectQuad, exampleChip, photoExample, iconPlate, pressAt, ripple, glassCard, monthCalendar,
+  DW, NAVY, INK2, ELECTRIC, SHADOW, ramp, mix, screenPage, showDuring, box, cropBody, quadDriver, displayQuad, quadAtPose,
+  exampleChip, photoExample, iconPlate, pressAt, ripple, glassCard, monthCalendar,
 } from "./b-kit.js";
 
 /* stays-lt (display px). */

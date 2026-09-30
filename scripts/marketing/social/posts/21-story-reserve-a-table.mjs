@@ -1,8 +1,9 @@
-/* 21 · Story. "Reserve your table tonight." Night. The example restaurant's
- * page on one whole phone lying back (10's pose, w 700): its photograph at the
- * far end, and at the near end what matters, big: Opens at 18:00, Harbour
- * Lights Kitchen, the Example notice, Victoria Island, and what it offers. A
- * clock is the post's 3D icon. Everything sits inside the story's safe zone. */
+/* 21 · Story. "Reserve your table tonight." Night. The restaurants list
+ * ("Book a table on Vallo. The restaurant confirms, and the conversation
+ * lives inside the reservation.", an Example chip on every card, Harbour
+ * Lights Kitchen opens at 18:00) on one whole phone lying back (10's pose,
+ * w 700). The cloche, the subject, is the post's 3D icon, as on 17.
+ * Everything sits inside the story's safe zone. */
 import { PLACE, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
@@ -14,7 +15,7 @@ export default {
   file: "21-story-reserve-a-table.png",
   W,
   H,
-  phones: [phone("restaurant", "night", PLACE.lyingBack())],
+  phones: [phone("restaurants", "night", PLACE.lyingBack())],
   html: ({ phones }) =>
     frame({
       W,

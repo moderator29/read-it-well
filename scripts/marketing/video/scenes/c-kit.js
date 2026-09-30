@@ -421,3 +421,34 @@ export function measure(text, font, letterSpacing = "-0.03em") {
   n.textContent = text;
   return n.getBoundingClientRect().width;
 }
+
+/**
+ * One line that replaces its word in place: each change is one roll (the old
+ * word up and out, the new one up and in, driven by the same u, power3.inOut,
+ * 0.28 s from t - 0.1), clipped to exactly one line, so two words never
+ * overprint. items: [{ text, t }] (t: when that word takes the line; the
+ * first one rolls in too when rollFirst). Returns { slot, width, height,
+ * update(t) }; place `slot` yourself (it is left-aligned; align "center"
+ * centres the words in it).
+ */
+export function roll(ctx, parent, { items, size, color = "#ffffff", weight = 700, font = '"C Poppins"', align = "left", rollFirst = false, letterSpacing = "-0.03em" }) {
+  const H = Math.round(size * 1.34);
+  const widths = items.map((it) => measure(it.text, `${weight} ${size}px ${font}`, letterSpacing));
+  const W = Math.ceil(Math.max(...widths)) + Math.round(size * 0.2);
+  const slot = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${W}px`, height: `${H}px`, overflow: "hidden" } }, parent);
+  const nodes = items.map((it) => ctx.el("div", {
+    class: "abs",
+    text: it.text,
+    style: { left: "0px", top: "0px", width: `${W}px`, height: `${H}px`, lineHeight: `${H}px`, textAlign: align, font: `${weight} ${size}px ${font}`, letterSpacing, color, whiteSpace: "nowrap", visibility: "hidden" },
+  }, slot));
+  const u = (i, t) => (i === 0 && !rollFirst ? 1 : ramp(ctx, t, items[i].t - 0.1, items[i].t + 0.18, "power3.inOut"));
+  function update(t) {
+    nodes.forEach((n, i) => {
+      const y = (1 - u(i, t)) * H - (i + 1 < items.length ? u(i + 1, t) : 0) * H;
+      const on = Math.abs(y) < H - 0.5;
+      n.style.visibility = on ? "" : "hidden";
+      n.style.transform = `translateY(${y.toFixed(2)}px)`;
+    });
+  }
+  return { slot, nodes, width: W, height: H, update };
+}

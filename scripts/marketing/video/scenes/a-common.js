@@ -410,7 +410,7 @@ function vblurFilters(ctx) {
   vblurReady = true;
   const holder = ctx.el("div", { style: { position: "absolute", width: "0px", height: "0px", overflow: "hidden" } }, ctx.stage);
   const steps = [2, 4, 7, 10, 14, 18];
-  holder.innerHTML = `<svg width="0" height="0"><defs>${steps.map((k, i) => `<filter id="a-vblur-${i}" x="-5%" y="-60%" width="110%" height="220%"><feGaussianBlur stdDeviation="0 ${k}"/></filter>`).join("")}</defs></svg>`;
+  holder.innerHTML = `<svg width="0" height="0"><defs>${steps.map((k, i) => `<filter id="a-vblur-${i}" x="-5%" y="-60%" width="110%" height="220%"><feGaussianBlur stdDeviation="${i >= 4 ? 1.5 : 0} ${k}"/></filter>`).join("")}</defs></svg>`;
 }
 
 /**
@@ -483,11 +483,12 @@ export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "
       const pos = u <= tb ? v * u : v * tb + v * ((u - tb) - (u - tb) ** 2 / (2 * brake));
       const vel = u <= 0 || u >= run ? 0 : u <= tb ? v : v * (1 - (u - tb) / brake);
       strip.style.transform = `translateY(${(-pos * 1.08).toFixed(4)}em)`;
-      /* The spin stays blurred (never below step 3) until it is within 0.4 digit of its stop, then
-         cross-fades (about 0.04 s) into the sharp landed digit: no wrong digit is ever sharp. */
+      /* The spin stays heavily blurred (never below step 4, 14 px, with a little sideways blur) and
+         cross-fades into the sharp landed digit over its last digit of travel: no wrong digit is ever
+         readable. */
       const left = travel - pos;
-      const k = ctx.clamp(1 - left / 0.4);
-      const f = Math.max(3, Math.min(5, Math.floor((vel / 60) * 4)));
+      const k = ctx.clamp(1 - left / 1.0);
+      const f = Math.max(4, Math.min(5, Math.floor((vel / 60) * 4)));
       if (f !== lastF) {
         col.style.filter = `url(#a-vblur-${f})`;
         lastF = f;
@@ -522,7 +523,7 @@ export function registerSound(ctx, T) {
   /* 13: card 1 slides in as the receipt settles; each amount ticks as it lands in the total; the
      total lands on "right" (card 1's answer opens on the same frame, so the success cue carries both) */
   s("card_slide", T.cardIn, -4);
-  for (const t of T.flies) s("counter_tick", t + 0.46, -4);
+  for (const t of T.flies) s("counter_tick", t + 0.38, -4);
   s("success", T.right, 0);
 
   /* Captions: off while the same words are big (02, 04, 06, 07). Each gap starts before its line's

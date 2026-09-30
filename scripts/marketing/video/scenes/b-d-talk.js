@@ -16,8 +16,7 @@
  *        warm light blooms from the click; "Planning a trip?" lands in its
  *        ring at the left, then shrinks into the pill ("Book a room").
  */
-import { ringBurst } from "../engine/components.js";
-import { NAVY, ELECTRIC, SHADOW, ramp, kf, mix, showDuring, box, cropBody, quadDriver, rectQuad, lerpQuad, shiftQuad, pressAt, dayCard, measure } from "./b-kit.js";
+import { NAVY, ELECTRIC, SHADOW, ramp, kf, mix, showDuring, box, cropBody, quadDriver, rectQuad, lerpQuad, shiftQuad, pressAt, dayCard, measure, ringOut } from "./b-kit.js";
 import { CW, CH } from "./b-desktop.js";
 
 /* d-thread-lt (CSS px of the 1440 x 900 page); crops are in capture px (2880 wide). */
@@ -26,7 +25,6 @@ const MAITAMA_CROP = { x: 1884, y: 980, w: 796, h: 538 };
 const BUBBLE = { x: 857, y: 764, w: 483, h: 59 };
 const BUBBLE_CROP = { x: 1714, y: 1528, w: 966, h: 118 };
 const TICK = { x: 1308.5, y: 800.5, w: 14, h: 11 }; // the tick only, clear of "02:42"
-const COMPOSER_C = { x: 1032, y: 870 };
 /* d-listing-share-lt: the sheet and its "Send in a Vallo chat" row. */
 const SHEET = { x: 448, y: 617, w: 543, h: 283 };
 const SENDROW = { x: 474, y: 726, w: 492, h: 80 };
@@ -53,17 +51,21 @@ export async function deskTalk(ctx, S, T) {
 
   /* ---------- the window's pages ---------- */
   const tLandBubble = T.app + 0.4;
-  const pThread = S.page("d-thread-lt", [[T.r14, T.r16 + 0.1]]);
-  const pShare = S.page("d-listing-share-lt", [[T.r16, T.listings + 0.5]]);
-  const pListing = S.page("d-listing-lt", [[T.listings + 0.24, T.r18 - 0.1]]);
-  const pMsgs = S.page("d-messages-lt", [[T.r18 - 0.3, T.planning + 0.3]]);
+  const tClose0 = T.chat + 0.11;             // 36.26: the sheet closes after the press on "chat"
+  const tClose1 = T.chat + 0.4;
+  const tBack = T.r18 + 0.05;                // 38.70: to the inbox, at the hero scale
+  const tClick = T.planning;
+  const tTurn0 = tClick + 0.3;               // 41.84: the window turns over at TURN
+  S.tSwap = tTurn0 + 0.26;                   // 42.10: its back is d-stays-lt
+  const pThread = S.page("d-thread-lt", [[T.r14, T.share + 0.2]]);
+  const pShare = S.page("d-listing-share-lt", [[T.share, tClose1 + 0.1]]);
+  const pListing = S.page("d-listing-lt", [[tClose0, tBack + 0.5]]);
+  const pMsgs = S.page("d-messages-lt", [[tBack, S.tSwap]]);
   S.pMsgs = pMsgs;
   /* the member's bubble is not sent yet */
   /* (clear of the Maitama card's shadow just above the bubble) */
-  const patch = box(ctx, pThread, { x: BUBBLE.x - 6, y: BUBBLE.y - 1, w: BUBBLE.w + 12, h: BUBBLE.h + 5, style: { background: "#f3f4f1", opacity: "0" } });
-  showDuring(ctx, patch, [[0, tLandBubble]]);
-  /* It fades in over the cut's first 0.3 s: if section a's last frame still shows the sent bubble, it dissolves rather than popping; if not, nothing changes. */
-  tl.fromTo(patch, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false }, T.r14);
+  const patch = box(ctx, pThread, { x: BUBBLE.x - 6, y: BUBBLE.y - 1, w: BUBBLE.w + 12, h: BUBBLE.h + 5, style: { background: "#f3f4f1" } });
+  showDuring(ctx, patch, [[0, tLandBubble]]); // at full opacity from the cut (section a covers it from 29.39)
   const tick = box(ctx, pThread, { ...TICK, style: { background: "rgb(0 96 232)", borderRadius: "4px" } });
   showDuring(ctx, tick, [[tLandBubble, T.r16 + 0.2]]);
   tl.fromTo(tick, { scale: 1, opacity: 1 }, { scale: 0, opacity: 0, duration: 0.16, ease: "power2.in", immediateRender: false }, tLandBubble + 0.08);
@@ -73,19 +75,20 @@ export async function deskTalk(ctx, S, T) {
   const notch = box(ctx, pShare, { x: SHEET.x, y: SHEET.y, w: SHEET.w, h: SHEET.h, style: { background: "#9fa1a8" } });
   pShare.insertBefore(notch, shareImg);
   const sheet = ctx.img(ctx.src.capture("d-listing-share-lt"), { class: "abs", style: { left: "0px", top: "0px", width: `${CW}px`, height: `${CH}px`, clipPath: `inset(${SHEET.y}px ${CW - SHEET.x - SHEET.w}px 0px ${SHEET.x}px round 16px 16px 0px 0px)` } }, pShare);
-  const sheetY = (t) => kf(ctx, t, [[T.r16, SHEET.h + 10], [T.r16 + 0.26, 0, "power3.out"], [T.listings + 0.11, 0], [T.listings + 0.4, SHEET.h + 10, "power2.in"]]);
+  const sheetY = (t) => kf(ctx, t, [[T.share, SHEET.h + 10], [T.share + 0.26, 0, "power3.out"], [tClose0, 0], [tClose1, SHEET.h + 10, "power2.in"]]);
   const rowFlash = box(ctx, pShare, { ...SENDROW, style: { background: "rgb(0 105 254 / 0.1)", borderRadius: "12px", opacity: "0" } });
   ctx.onFrame((t) => {
-    if (t < T.r16 || t > T.listings + 0.5) return;
+    if (t < T.share || t > tClose1 + 0.1) return;
     const y = sheetY(t);
     sheet.style.transform = `translateY(${y.toFixed(2)}px)`;
     rowFlash.style.transform = `translateY(${y.toFixed(2)}px)`;
-    pShare.style.opacity = String(ramp(ctx, t, T.r16, T.r16 + 0.16, "power1.out").toFixed(3));
+    pShare.style.opacity = String(ramp(ctx, t, T.share, T.share + 0.16, "power1.out").toFixed(3));
   });
-  tl.fromTo(rowFlash, { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "power1.out", immediateRender: false }, T.listings);
-  tl.fromTo(rowFlash, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.in", immediateRender: false }, T.listings + 0.08);
+  tl.fromTo(rowFlash, { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "power1.out", immediateRender: false }, T.chat);
+  tl.fromTo(rowFlash, { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.in", immediateRender: false }, T.chat + 0.08);
   /* the listing comes back unblurred as the sheet closes */
-  tl.fromTo(pListing, { opacity: 0 }, { opacity: 1, duration: 0.26, ease: "power1.inOut", immediateRender: false }, T.listings + 0.24);
+  ctx.gsap.set(pListing, { opacity: 0 });
+  tl.fromTo(pListing, { opacity: 0 }, { opacity: 1, duration: 0.26, ease: "power1.inOut", immediateRender: false }, tClose0);
 
   /* ==================== D14 ==================== */
   const tLand = T.r14 + 0.52;
@@ -112,9 +115,9 @@ export async function deskTalk(ctx, S, T) {
     return { ...w, mask, el };
   });
   let wSize = null;
-  const tFly = T.r15 - 0.34;
+  const tFly = T.inside + 0.4;               // 34.40: they fade out together (no flight into the pill)
   ctx.onFrame((t) => {
-    if (t < T.r14 || t > T.r15 + 0.1) {
+    if (t < T.r14 || t > tFly + 0.4) {
       words.forEach((w) => (w.mask.style.visibility = "hidden"));
       return;
     }
@@ -123,25 +126,19 @@ export async function deskTalk(ctx, S, T) {
       words.forEach((w) => (w.el.style.fontSize = `${(wSize * w.k).toFixed(1)}px`));
     }
     words.forEach((w, i) => {
-      const k = ramp(ctx, t, w.t - 0.06, w.t + 0.44, "land");
-      const fly = ramp(ctx, t, tFly + i * 0.04, tFly + i * 0.04 + 0.3, "power3.inOut");
-      const on = t >= w.t - 0.06 && fly < 0.999;
+      const k = ramp(ctx, t, w.t - 0.06, w.t + 0.34, "land");
+      const out = ramp(ctx, t, tFly, tFly + 0.24, "power2.in");
+      const on = t >= w.t - 0.06 && out < 0.999;
       w.mask.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
       w.el.style.transform = `translateY(${((1 - k) * 110).toFixed(2)}%)`;
-      const x = mix(RP.x + 40 + w.dx, 960 - 60, fly);
-      const y = mix(w.y - wSize * 0.62, 66 - wSize * 0.3, fly);
-      w.mask.style.transformOrigin = "0 50%";
-      w.mask.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) scale(${mix(1, 0.24, fly).toFixed(4)})`;
-      w.mask.style.opacity = String((1 - ramp(ctx, t, tFly + 0.2 + i * 0.04, tFly + 0.32 + i * 0.04)).toFixed(3));
+      w.mask.style.transform = `translate(${(RP.x + 40 + w.dx).toFixed(2)}px, ${(w.y - wSize * 0.62 + 30 * out).toFixed(2)}px)`;
+      w.mask.style.opacity = (1 - out).toFixed(3);
     });
   });
   words.forEach((w) => ctx.sfx("pop_low", w.t, { offset: -4 }));
 
-  /* the 2.5x push onto the composer (WINDOW_LEFT's 0.708 x 2.5 = 1.77: the capture stays at or under its own pixels) */
-  const compW = S.toStageAt(S.wv, { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 }, COMPOSER_C.x, COMPOSER_C.y);
-  cam.to(T.agent + 0.02, 0.42, { s: 2.5, fx: compW.x, fy: compW.y, tx: 900, ty: 560 }, "power2.inOut");
-  cam.to(T.r15 + 0.02, 0.46, { s: 1, tx: compW.x, ty: compW.y }, "power2.inOut");
+  /* (no push onto the empty composer: the echo in RIGHT_PANEL is the close-up) */
 
   /* ==================== D15: the echo in RIGHT_PANEL ==================== */
   const echo = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${RP.w - 40}px`, display: "flex", alignItems: "flex-end", gap: "14px", padding: "16px", borderRadius: "34px", background: "#f3f4f1", boxShadow: SHADOW.l, visibility: "hidden" } }, cards);
@@ -198,12 +195,12 @@ export async function deskTalk(ctx, S, T) {
   /* ==================== D16: the share ==================== */
   const rowW = S.toStageAt(S.wv, { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 }, SENDROW.x + SENDROW.w / 2, SENDROW.y + SENDROW.h / 2);
   const PUSH16 = { s: 2.5, fx: rowW.x, fy: rowW.y, tx: 900, ty: 560 };
-  cam.to(T.r16 - 0.3, 0.4, PUSH16, "power2.inOut"); // settled before the pointer reaches the row
-  cam.to(T.listings + 0.12, 0.46, { s: 1, tx: rowW.x, ty: rowW.y }, "power2.inOut");
+  cam.to(T.share, 0.5, PUSH16, "power3.inOut"); // after the echo has gone; settled by 35.75
+  cam.to(T.chat + 0.15, 0.46, { s: 1, tx: rowW.x, ty: rowW.y }, "power2.inOut");
   const chev = S.toStageAt(S.wv, PUSH16, SENDCHEV.x, SENDCHEV.y);
   const flyer = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l });
-  const tFly0 = T.listings + 0.08;
-  const tFly1 = T.chat - 0.02;
+  const tFly0 = T.chat + 0.08;
+  const tFly1 = T.chat + 0.55;
   quadDriver(ctx, flyer, MAITAMA_CROP.w, MAITAMA_CROP.h, {
     t0: tFly0, t1: tFly1,
     quadAt: (t) => {
@@ -216,21 +213,21 @@ export async function deskTalk(ctx, S, T) {
     },
     opacityAt: (t) => ramp(ctx, t, tFly0, tFly0 + 0.06),
   });
-  ctx.sfx("card_slide", ctx.beat(61.7), { offset: -2 }); // 35.60
-  ctx.sfx("bubble_send", ctx.beat(62.6), { offset: -2 }); // 36.12
+  ctx.sfx("card_slide", tFly0, { offset: -2 });
 
   /* ==================== D17: the day card in RIGHT_PANEL ==================== */
   const k17 = 1.2;
   const DX = RP.x + (RP.w - 470 * k17) / 2;
   const DY = RP.y + 70;
-  const day = dayCard(ctx, cards, T, { X: DX, Y: DY, k: k17, chipAt: { x: DX + 150, y: DY + 470 }, tIn: T.r17 - 0.1, tOut0: T.keep - 0.1, tOut1: T.r18 - 0.02 });
+  const day = dayCard(ctx, cards, T, { X: DX, Y: DY, k: k17, chipAt: { x: DX + 150, y: DY + 470 }, tIn: T.r17 - 0.1, tOut0: T.r18, tOut1: T.r18 + 0.42 });
   ctx.sfx("card_slide", ctx.beat(64.05), { offset: -2 }); // 36.95
   ctx.sfx("stamp", T.inspection);
 
   /* ==================== D18: the inbox, the dock, the push toward FLIP ==================== */
-  wvT.to(T.r18 - 0.3, 0.56, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
-  tl.fromTo(pMsgs, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false }, T.r18 - 0.3);
-  const tDock = ctx.beat(67.95); // 39.20
+  wvT.to(tBack, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
+  ctx.gsap.set(pMsgs, { opacity: 0 });
+  tl.fromTo(pMsgs, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false }, tBack);
+  const tDock = ctx.beat(68.3); // 39.40
   const heroCam = { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 };
   const dotAt = S.toStageAt({ ...S.wv, cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, heroCam, DOT.x, DOT.y);
   const chip = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "100px", height: "100px", borderRadius: "30px", background: `linear-gradient(160deg, #3d8bff, ${ELECTRIC} 60%, #0050d0)`, display: "grid", placeItems: "center", color: "#fff", transformOrigin: "0 0", visibility: "hidden", boxShadow: SHADOW.s } }, cards);
@@ -253,32 +250,31 @@ export async function deskTalk(ctx, S, T) {
   });
   /* (no ring at the dot: v3.1 keeps rings to rows 04, 19 and 23) */
   ctx.sfx("pop", tDock, { offset: -2 });
-  /* the push toward FLIP: 1.6 x 1.111 = 1.78, at or under the capture's own pixels; FLIP sits above y 1000 */
+  /* the push toward FLIP: 1.8 x 1.111 = 2.0, the capture's own pixels; FLIP at the right third, above y 1000,
+     with the window's edge and the mist on the left (the title lands there), not a slab of empty page */
   const flipW = { x: S.HERO.cx + (FLIP_C.x - CW / 2) * S.HERO.s, y: S.HERO.cy + (56 + FLIP_C.y - (CH + 56) / 2) * S.HERO.s };
-  const PUSH18 = { s: 1.6, fx: flipW.x, fy: flipW.y, tx: 640, ty: 700 };
+  const PUSH18 = { s: 1.8, fx: flipW.x, fy: flipW.y, tx: 1400, ty: 620 };
   cam.to(T.place + 0.18, 0.66, PUSH18, "power2.inOut");
 
   /* ==================== D19: the switch ==================== */
   const heroWv = { ...S.wv, cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s };
   const chevAt = S.toStageAt(heroWv, PUSH18, FLIP_CHEV.x, FLIP_CHEV.y);
-  S.bloom.x = chevAt.x;
-  S.bloom.y = chevAt.y;
-  const tClick = T.planning;
   ctx.sfx("whoosh_long", T.r19, { offset: -2 });
   ctx.sfx("toggle_on", tClick, { offset: 4 });
   /* the camera pulls back as the window turns over to Stays and moves right, clear of the title */
-  cam.to(tClick + 0.04, 0.56, { s: 1, tx: flipW.x, ty: flipW.y }, "power2.inOut");
+  cam.to(tClick + 0.04, 0.36, { s: 1, tx: flipW.x, ty: flipW.y }, "power2.inOut");   // back to 1x by 41.94
   /* the side scale (as in D14, D16 and D26), at the right: clear of the title at the left */
   const TURN = { cx: 1920 - 80 - (CW / 2) * S.LEFT.s, cy: S.LEFT.cy, s: S.LEFT.s };
-  wvT.to(tClick + 0.04, 0.56, TURN, "power2.inOut");
-  wvT.to(tClick + 0.04, 0.26, { ry: 90 }, "power2.in");
-  wvT.to(tClick + 0.3, 0.001, { ry: -90 }, "none");
-  wvT.to(tClick + 0.301, 0.3, { ry: 0 }, "power2.out");
-  wvT.to(T.r20 - 0.36, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "power2.inOut");
-  S.tSwap = tClick + 0.3;
+  wvT.to(tClick + 0.04, 0.26, TURN, "power2.inOut");                                  // at TURN by 41.84
+  wvT.to(tTurn0, 0.26, { ry: 90 }, "power2.in");                                        // the turn, in place, 41.84-42.36
+  wvT.to(S.tSwap, 0.001, { ry: -90 }, "none");
+  wvT.to(S.tSwap + 0.001, 0.26, { ry: 0 }, "power2.out");
+  const tHold = ctx.beat(74.2);                                                          // 42.81
+  wvT.to(tHold + 0.04, 0.5, { cx: S.HERO.cx, cy: S.HERO.cy, s: S.HERO.s }, "glide");    // rises to the hero at 42.85-43.35
 
-  /* "Planning / a trip?" at the left, in a ring that circles the words */
+  /* "Planning / a trip?" at the left, over the mist, in a ring that circles the words only */
   const TC = { x: 350, y: 560 };
+  const RR = 300;
   const title = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "700px", textAlign: "center", fontFamily: "Poppins, Inter, sans-serif", fontWeight: "700", letterSpacing: "-0.035em", lineHeight: "1.06", color: NAVY, whiteSpace: "nowrap", visibility: "hidden" } }, type);
   const l1 = ctx.el("div", {}, title);
   const l2 = ctx.el("div", {}, title);
@@ -286,32 +282,34 @@ export async function deskTalk(ctx, S, T) {
     const mask = ctx.el("span", { style: { display: "inline-block", overflow: "hidden", verticalAlign: "top", padding: "0.06em 0.04em 0.14em", margin: "-0.06em -0.04em -0.14em", marginLeft: gap ? "0.22em" : "0" } }, parent);
     const w = ctx.el("span", { text, style: { display: "inline-block", color } }, mask);
     ctx.gsap.set(w, { yPercent: 118 });
-    tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: 0.52, ease: "land", immediateRender: false }, t);
+    tl.fromTo(w, { yPercent: 118 }, { yPercent: 0, duration: 0.34, ease: "land", immediateRender: false }, t);
   };
-  wordEl(l1, "Planning", NAVY, tClick + 0.06);
-  wordEl(l2, "a", NAVY, T.a9);
-  wordEl(l2, "trip?", ELECTRIC, T.trip, true);
+  wordEl(l1, "Planning", NAVY, tTurn0);
+  wordEl(l2, "a", NAVY, Math.max(T.a9, tTurn0 + 0.04));
+  wordEl(l2, "trip?", ELECTRIC, Math.max(T.trip, tTurn0 + 0.08), true);
   let tSize = null;
-  const tShrink = T.r20 - 0.4;
-  showDuring(ctx, title, [[tClick, T.r20 + 0.04]]);
+  const tShrink1 = tHold + 0.3;
+  showDuring(ctx, title, [[tTurn0 - 0.02, tShrink1 + 0.04]]);
   ctx.onFrame((t) => {
-    if (t < tClick || t > T.r20 + 0.05) return;
+    if (t < tTurn0 - 0.02 || t > tShrink1 + 0.05) return;
     if (!tSize) {
-      tSize = Math.min(120, (440 / measure("Planning", "700 100px Poppins")) * 100);
+      const wP = measure("Planning", "700 100px Poppins") / 100;
+      tSize = Math.min(120, 440 / wP);
+      while (Math.hypot((wP * tSize) / 2, 1.06 * tSize) > RR - 34) tSize -= 1;
       title.style.fontSize = `${tSize.toFixed(1)}px`;
     }
-    const k = ramp(ctx, t, tShrink, tShrink + 0.34, "power3.inOut");
+    const k = ramp(ctx, t, tHold, tShrink1, "power3.inOut");
     const cx = mix(TC.x, 960, k);
     const cy = mix(TC.y, 66, k);
     title.style.transformOrigin = "350px 50%";
     title.style.transform = `translate(${(cx - 350).toFixed(2)}px, ${(cy - tSize * 1.06).toFixed(2)}px) scale(${mix(1, 0.2, k).toFixed(4)})`;
-    title.style.opacity = String((1 - ramp(ctx, t, T.r20 - 0.06, T.r20 + 0.02)).toFixed(3));
+    title.style.opacity = String((1 - ramp(ctx, t, tShrink1 - 0.06, tShrink1 + 0.02)).toFixed(3));
   });
   const ringWrap = ctx.el("div", { class: "fill" }, type);
-  ringBurst(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: 276, t: tClick + 0.1, dots: 12, seed: 19, stroke: 4 });
+  ringOut(ctx, ringWrap, { cx: TC.x, cy: TC.y, r: RR, t: tTurn0 + 0.06, dots: 8, seed: 19, stroke: 4 });
   ringWrap.style.transformOrigin = `${TC.x}px ${TC.y}px`;
-  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9, duration: 0.3, ease: "power2.in", immediateRender: false }, tShrink - 0.06);
-  showDuring(ctx, ringWrap, [[tClick, tShrink + 0.3]]);
+  tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9, duration: 0.28, ease: "power2.in", immediateRender: false }, tHold - 0.04);
+  showDuring(ctx, ringWrap, [[tTurn0, tHold + 0.26]]);
 
   /* ==================== the pointer ==================== */
   const o = S.orbT;
@@ -319,10 +317,10 @@ export async function deskTalk(ctx, S, T) {
   o.to(T.right + 0.1, 0.14, { opacity: 1 }, "power1.out");
   o.to(T.right + 0.1, 0.46, { x: sendAt.x + 14, y: sendAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, T.the7, { ringParent: S.pointer, x: sendAt.x, y: sendAt.y, sound: "tap" });
-  o.to(T.app + 0.3, 0.5, { x: chev.x + 16, y: chev.y + 12 }, "glide");
-  pressAt(ctx, S.orb, T.listings, { ringParent: S.pointer, x: chev.x, y: chev.y, sound: "tap" });
-  o.to(T.listings + 0.14, 0.4, { x: 1700, y: 860 }, "glide");
-  o.to(T.listings + 0.3, 0.2, { opacity: 0 }, "power1.in");
+  o.to(T.share + 0.05, 0.5, { x: chev.x + 16, y: chev.y + 12 }, "glide");     // there by 35.80
+  pressAt(ctx, S.orb, T.chat, { ringParent: S.pointer, x: chev.x, y: chev.y, sound: "tap" });
+  o.to(T.chat + 0.14, 0.4, { x: 1700, y: 860 }, "glide");
+  o.to(T.chat + 0.3, 0.2, { opacity: 0 }, "power1.in");
   o.to(T.r19 - 0.2, 0.16, { opacity: 1 }, "power1.out");
   o.to(T.r19 - 0.2, 0.6, { x: chevAt.x + 16, y: chevAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, tClick, { ringParent: S.pointer, x: chevAt.x, y: chevAt.y, sound: null });

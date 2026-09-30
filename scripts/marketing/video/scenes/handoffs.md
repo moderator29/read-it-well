@@ -15,112 +15,86 @@ end with zero velocity there; B's moves start from rest).
 - **Ground:** the shared mist (same string as `b-kit.js` / `c-kit.js` `mist()`):
   `radial-gradient(70% 45% at 50% 42%, rgb(0 105 254 / 0.07) 0%, rgb(0 105 254 / 0) 70%), linear-gradient(180deg, #ffffff 0%, #f6f9ff 38%, #f3f7ff 70%, #ecf2ff 100%)`.
   Nothing else on the ground (no sparkles, no rings).
-- **The phone** (B's `A_OUT.phone`): island, black-titanium, `env: "light"`, `edge: "#f3f4f1"`.
-  Pose `{ cx: 540, cy: 1500, height: 1180, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 }`: sunk and
-  dimmed under the receipt since row 11 (A holds it still from 24.93 on).
-  Screen: the `thread-light` display, full (1320 × 2868, `ctx.src.display("thread-light")`), shown
-  since 29.39, with one overlay: the member's unsent bubble is covered from 29.39 by the same patch B
-  lays (display `{ x: 101, y: 2395, w: 1058, h: 252 }`, `#f3f4f1`), so B's patch fading in changes nothing.
+- **The phone** (`a-m-receipt.js` `A_OUT.phone`): island, `env: "light"`, `edge: "#f3f4f1"`.
+  **Round 2 / v3.2: the film's one phone size.** Pose `{ cx: 540, cy: 1500, height: 1400, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0.3 }`.
+  **b-m-talk.js `A_OUT.phone` still says `height: 1180`: it must change to 1400** (nothing else changes).
+  - The phone fades to 0 as the receipt lifts (23.77-24.07; no ghost under the receipt), sinks to the pose above
+    while invisible, and fades back 0 -> 0.3 over 30.207-30.557 (power1.inOut), so it is at rest at 0.3 at the cut.
+  - Screen: `thread-light`, full (1320 × 2868), shown from 29.39 (while invisible), with the member's unsent bubble
+    covered by the same patch B lays (display `{ x: 101, y: 2395, w: 1058, h: 252 }`, `#f3f4f1`).
 - **The villa card** (B's `A_OUT.villa`): at rest on the stage rect `{ x: 160, y: 498, w: 760, h: 548 }`,
-  rotation 0, opacity 1.
-  - It is a crop of the `thread-light` display: `{ x: 52, y: 1602, w: 1088, h: 784 }` (display px, 1320
-    wide), the Maitama card in the thread.
-  - Its box is the crop's own size (1088 × 784), radius 40 px, box-shadow b-kit `SHADOW.l`
-    (`0 40px 90px -40px rgb(16 32 80 / 0.42), 0 10px 24px -12px rgb(16 32 80 / 0.18)`), placed onto the
-    rect (A writes a flat rect as the equivalent 2D `matrix()`, the same geometry as `quadMatrix` from
-    engine/phone.js, so Chrome paints it without a composited layer).
-  - A's receipt folds into it between 30.17 and 30.577 (power3.inOut, so it arrives at rest).
-  - B flies it from 30.577 into the phone and lands it on the same display rect of the thread,
-    on the rising phone (B's `talk()`, card_slide at 30.8).
-- **Gone before 30.577:** card 1 (see below), the receipt, the pointer. The chapter pill "The full
-  cost, **up front**" ends at 30.577 (the engine fades it from 30.28).
+  rotation 0, opacity 1. A crop of `thread-light` display `{ x: 52, y: 1602, w: 1088, h: 784 }`, radius 40 px,
+  box-shadow b-kit `SHADOW.l`, placed as a 2D `matrix()`.
+  - The receipt (RECEIPT_M `{ x: 150, y: 390, w: 780, h: 820 }`) folds into it in one scaling move, 30.117-30.577
+    (power3.inOut, arrives at rest); the villa crop cross-fades in over the last 0.2 s.
+- **Gone before 30.577:** the receipt, the pointer. Card 1 is leaving (below). The chapter pill "The full cost, **up front**"
+  ends at 30.577 (the engine fades it).
 
 ### Desktop
 
 - **Ground:** the same mist string as mobile.
-- **The window:** `browserWindow(ctx, { width: 1020, theme: "light", url: "vallospaces.com" })` at
-  WINDOW_LEFT, flat: root `x: 80, y: 150` (scale 0.708333, transform-origin 0 0), opacity 1, not
-  dimmed, showing `d-thread-lt` (2880 × 1800 in the 1440 × 900 content), its unsent bubble covered from
-  29.39 by the same patch B lays (css `{ x: 851, y: 763, w: 495, h: 64 }`, `#f3f4f1`). The pointer is hidden.
-- **The villa card:** at rest on the stage rect `{ x: 1206, y: 330, w: 600, h: 405.5 }`, rotation 0,
-  opacity 1.
-  - It is a crop of the `d-thread-lt` capture: `{ x: 1884, y: 980, w: 796, h: 538 }` (capture px,
-    2880 wide), the Maitama card in the thread.
-  - Its box is the crop's own size (796 × 538), radius 26 px, box-shadow b-kit `SHADOW.l`, placed with
-    `quadMatrix` onto the rect (A writes it as the equivalent 2D `matrix()`).
-  - It lands on the thread's Maitama card in the window, stage rect
-    `{ x: 747.25, y: 536.75, w: 281.92, h: 190.54 }` (WINDOW_LEFT: stage = 80 + css × 0.708333,
-    150 + (56 + css) × 0.708333, with the card at css x 942–1340, y 490–759).
+- **The window:** A's `browserWindow` (light, `vallospaces.com`, the same geometry as round 1) at WINDOW_LEFT, flat: root `x: 80, y: 150, scale 0.708333` (transform-origin 0 0), opacity 1, undimmed,
+  showing `d-thread-lt` with its unsent bubble covered (css `{ x: 851, y: 763, w: 495, h: 64 }`, `#f3f4f1`).
+  - Round 2: the window only moves (LOW_REST `{ x: 153.6, y: 236.7, s: 1.12 }` -> WINDOW_LEFT), swaps to the thread
+    (cross-fade 0.25 s) and undims under the fold, 30.117-30.577 (power3.inOut; at rest at the cut). Nothing moves
+    behind the payoff before that. The pointer is hidden.
+- **The villa card:** at rest on the stage rect `{ x: 1206, y: 330, w: 600, h: 405.5 }`, rotation 0, opacity 1:
+  a crop of `d-thread-lt` capture `{ x: 1884, y: 980, w: 796, h: 538 }`, radius 26 px, `SHADOW.l`, 2D `matrix()`.
+  The receipt folds into it in one scaling move, 30.117-30.577, the crop cross-fading in over the last 0.2 s.
 
 ### Card 1 leaves to the top right (for section c, row 31)
 
-Both films restyle the card's faces after building it, so it reads centred:
-`front`: `justifyContent: "center", textAlign: "center", textWrap: "balance"`;
-`back`: the same plus `lineHeight: "1.22"` and `fontSize` 33 px (mobile) / 31 px (desktop).
+Both films restyle the faces so they read centred (`justifyContent/textAlign: center`, `textWrap: balance`). The
+turn is the engine's flat turn (no CSS 3D). Card 1 comes in with its question as the receipt settles (24.95), stays
+still through rows 12-13, and turns at 28.566 so its answer opens exactly as the total lands on "right" (28.866).
 
-- **Mobile:** `questionCard(ctx, parent, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: { x: 230, y: 470, w: 620, h: 170 }, fontSize: 40 })`,
-  turned to its answer (inner rotationY 180) at 29.21–29.83.
-  - From 30.12 it flies out with `to(root, { x: 760, y: -660, rotation: 24, scale: 0.9, duration: 0.36, ease: "power3.in" })`.
-  - It crosses the frame's top edge at about x 1000, heading up and right at about 40°, and is gone
-    by 30.48. Its last position: centre (1300, −105), rotation 24°, scale 0.9, answer side up.
-  - Section c brings it back from there (the top right).
-- **Desktop:** `questionCard(ctx, parent, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: { x: 1250, y: 150, w: 600, h: 160 }, fontSize: 38 })`
-  (top right, beside the receipt), turned to its answer at 29.21–29.83.
-  - From 30.12 it flies out with `to(root, { x: 520, y: -560, rotation: 22, scale: 0.9, duration: 0.36, ease: "power3.in" })`.
-  - It leaves the frame over the top right corner by about 30.45. Its last position: centre (2070, −330),
-    rotation 22°, scale 0.9, answer side up.
-  - Section c brings it back from there (the top right).
+- **Mobile:** `questionCard(..., { box: { x: 230, y: 1380, w: 620, h: 170 }, fontSize: 40 })` (under the receipt), back
+  33 px. Rest rotation −2°. Leaves 30.377-30.577: x (power2.out) and rotation/scale to (+1070, 24°, 0.9), y (power3.in)
+  to −1570: right first, then up. **End: centre (1300, −105), 24°, 0.9, answer side up** (unchanged).
+- **Desktop:** `questionCard(..., { box: { x: 1384, y: 150, w: 500, h: 160 }, fontSize: 34 })` (right of the receipt,
+  x ≥ 1384), back 28 px. Rest rotation 3°. Leaves 30.117-30.577 (power2.in, as the fold starts, since the receipt folds
+  toward it) to x +436, y −560. **End: centre (2070, −330), 22°, 0.9, answer side up** (unchanged).
 
 ## B → C (t = 62.885 = ctx.beat(109))
 
-Written by builder B. Section b's scenes end at 62.885 (exclusive). What is on screen at the cut:
-the mist ground (the same `mist()` string as `c-kit.js`), the chapter pill (the engine's), and the
-naira coin, falling. Nothing else: B's phone, cards, pointer and type are all gone by then.
+Written by builder B (round 2, storyboard v3.2). Section b's scenes end at 62.885 (exclusive).
 
 ### The coin (section c's `coin()` from `c-kit.js`, which B imports)
 
-B's coin is the verified mark on card 2's back spinning off: the badge turns edge-on (rotateY to 90°)
-by 61.99, then the coin carries on from 90° and falls. At 62.885 it is exactly on c's `COIN_IN`:
+Card 2's verified mark spins off at 62.27: the badge turns edge-on (rotateY to 90°) by 62.43, then the
+coin carries on from 90°, rises to its peak and falls. At 62.885 it is exactly on c's `COIN_IN`:
 
-- **Mobile** (`b-m-checked.js` `COIN_OUT`): centre (330, 470), size 110, spin 720 (≡ 0), tilt 0,
-  opacity 1, shadow 0. Moving: vy ≈ +235 px/s (down; y is `power2.in` from 400 at 62.29), spin rate
-  ≈ 1,410 °/s (`power1.in` from 90° at 61.99). x and size arrive at rest (`power1.inOut`, `power2.inOut`).
-  Matches c's `COIN_IN.mobile` (vy 233, vspin 1400).
-- **Desktop** (`b-d-checked.js` `COIN_OUT_D`): centre (1500, 420), size 88, spin 720 (≡ 0), tilt 0,
-  opacity 1, shadow 0. Moving: vy ≈ +202 px/s (down; y is `power2.in` from 360 at 62.29), spin rate
-  1,200 °/s. x and size arrive at rest. Matches c's `COIN_IN.desktop`.
+- **Mobile** (`b-m-checked.js` `COIN_OUT`): centre (330, 470), size 110, spin 720 (≡ 0), tilt 0, opacity 1,
+  shadow 0; moving down at 233 px/s (`power2.in` from y 450 at 62.71) and spinning at 1,400 °/s; x and size
+  arrive at rest. Matches `COIN_IN.mobile` (vy 233, vspin 1400).
+- **Desktop** (`b-d-checked.js` `COIN_OUT_D`): centre (1500, 420), size 88, spin 720 (≡ 0); 200 px/s down
+  (from y 400 at 62.685) and 1,200 °/s; x and size at rest. Matches `COIN_IN.desktop`.
 
 ### Card 2 leaves to the top left (for section c, row 31)
 
-`questionCard(ctx, parent, { q: QUESTIONS[1].q, a: QUESTIONS[1].a, box, mark: true, fontSize })`, front
-text centred, turned to its answer (inner rotationY 180) from 61.09 (0.62 s, `back.out(1.4)`). Its
-back is the engine's inline mark (white badge, electric tick) and "Checked by a real person at Vallo."
-From 61.81 the card flies out (0.5 s, `power3.in`); from 61.83 its mark hides (the spinning twin takes over);
-gone by 62.31, answer side up:
+`questionCard(ctx, parent, { q: QUESTIONS[1].q, a: QUESTIONS[1].a, box, mark: true, fontSize })` (the
+engine's flat turn), in on "person" (59.30), turned at 60.40, answer held to 62.25. Its back: the engine's
+inline mark and "Checked by a real person at Vallo.", balanced on two lines ("Checked by a real / person
+at Vallo."). From 62.25 it flies out over 0.4 s (`power3.in`), gone by 62.65, answer side up; its own mark
+hides from 62.27 (the spinning twin takes over).
 
-- **Mobile:** box `{ x: 110, y: 640, w: 830, h: 228 }`, fontSize 52; out with
-  `{ x: -1100, y: -760, rotation: -24, scale: 0.8 }` (transform-origin 50% 50%). Last position: centre
-  (−575, −6), rotation −24°, scale 0.8 = c's `CARD_OUT.mobile.c2`.
-- **Desktop:** box `{ x: 1200, y: 400, w: 600, h: 160 }` (RIGHT_PANEL), fontSize 40; out to centre
-  (−560, −200), rotation −22°, scale 0.8 = c's `CARD_OUT.desktop.c2`.
+- **Mobile:** box `{ x: 110, y: 640, w: 830, h: 228 }`, fontSize 52 (back 44 px, line height 1.22); out to
+  centre (−575, −6), rotation −24°, scale 0.8 = c's `CARD_OUT.mobile.c2`.
+- **Desktop:** box `{ x: 1200, y: 400, w: 600, h: 160 }`, fontSize 40; out to centre (−560, −200), rotation
+  −22°, scale 0.8 = c's `CARD_OUT.desktop.c2`.
 
 ### Devices
 
-- **Mobile:** B's phone left the frame at 60.58 (to the right, opacity 0). No phone at the cut; c's
-  phone rises into PHONE_HIGH.
-- **Desktop:** B's window (`d-verification-lt` at WINDOW_LEFT, flat, scale 0.708333, B's own
-  `browserWindow`) fades out from 62.585 and is at opacity 0 at 62.885, so c's lock window
-  (rising from WINDOW_LEFT y + 40, fading in from 62.845) comes up over an empty ground: a dissolve
-  through the mist between two different pages. If c would rather cut straight to its window at
-  full opacity on WINDOW_LEFT, B can hold its window to the cut instead: tell B.
+- **Mobile:** B's phone (verification-lt at PHONE_HIGH, dimmed under card 2) sinks out of the bottom from
+  62.25 and is below the frame by 62.80. Nothing of B's but the coin and the ground is on screen at the cut.
+- **Desktop:** B's window holds `d-verification-lt` at WINDOW_LEFT (flat, scale 0.708333, x 80, y 150,
+  opacity 1) to the cut, so c's lock window can start at full opacity in the same place (an in-place page
+  cut on beat 109).
 - **Pointer:** hidden since 46.6 (both films).
 
 ### A note for section a (A → B, both films)
 
-A's last frames show the member's sent bubble in the thread ("I like these two as well. Could we view
-all three on Saturday morning?", `thread-light` display y 2398–2637 / `d-thread-lt` css y 764–823).
-In B that message is sent in row 15, so B covers the bubble from 30.577 (fading the cover in over
-0.3 s so nothing pops). If a covers it too (a patch of `#f3f4f1` over it from 29.39), the cut is clean.
-
-> Builder A: done. A lays the same patch (same box, same colour) over the bubble from 29.39 in both
-> films (`a-m-receipt.js`, `a-d-receipt.js`), so the cut is clean either way.
+B covers the member's sent bubble at full opacity from 30.577 (same patch as A's), so A's cover from 29.39
+carries straight across the cut.
+The chapter pill "Talk straight to the **lister**" now starts at b(53) (`chapters.js`), so the pill rolls
+from "The full cost, up front" to it on the cut instead of fading out at 30.28.

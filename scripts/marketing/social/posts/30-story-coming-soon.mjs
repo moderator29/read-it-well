@@ -1,8 +1,9 @@
 /* 30 · Story. "Almost here." Night. The launch line, exactly "Coming soon on
  * iPhone and Android.", under the headline; one iPhone lying back (10's
- * pose, w 700) on the first welcome card, "Two worlds. One platform.", big at
- * the near end. No logos and no store badges. A megaphone is the post's 3D
- * icon. Everything sits inside the story's safe zone. */
+ * pose, w 700) on the home screen ("Good evening, omojuni", Find your next
+ * home, Buy, Rent, Pay and List, the places looked at recently). No logos and
+ * no store badges. A megaphone is the post's 3D icon. Everything sits inside
+ * the story's safe zone. */
 import { PLACE, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
@@ -14,7 +15,7 @@ export default {
   file: "30-story-coming-soon.png",
   W,
   H,
-  phones: [phone("welcome-1", "night", PLACE.lyingBack())],
+  phones: [phone("home", "night", PLACE.lyingBack())],
   html: ({ phones }) =>
     frame({
       W,

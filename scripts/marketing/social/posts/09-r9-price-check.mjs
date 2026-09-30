@@ -15,7 +15,7 @@ export default {
   file: "09-r9-see-what-places-are-asking.png",
   W,
   H,
-  phones: [phone("price", "night", { kind: "pose", rotation: { x: 6, y: -20, z: -11 }, fov: 30, h: 1020, cx: 660, top: TOP })],
+  phones: [phone("price", "night", { kind: "pose", rotation: { x: 6, y: -20, z: -11 }, fov: 30, h: 1020, cx: 660, top: TOP }, { images: [[120, 2480, 1300, 2868, "the pin map"]] })],
   html: ({ phones }) =>
     frame({
       W,
@@ -24,7 +24,7 @@ export default {
       body: `
       ${headline(["See what places", "nearby are <k>asking.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("land", { W, H, slot: "B", cy: (TOP + H) / 2 })}
+      ${icon3d("land", { W, H, slot: "B", bottom: 1270 })}
       `,
     }),
 };
