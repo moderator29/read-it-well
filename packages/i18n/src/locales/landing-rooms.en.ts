@@ -246,7 +246,7 @@ export const landingRoomsEn = {
     apple: "App Store",
     googleSmall: "GET IT ON",
     google: "Google Play",
-    /** Under a badge whose store listing is not live yet (no URL set). */
-    comingSoon: "Coming soon",
+    /** Under a badge whose store listing is not live yet (no URL set). A fact about today, never a date promise. */
+    comingSoon: "Not in the store yet",
   },
 };
