@@ -52,7 +52,7 @@ export default async function MoveInCostPage({
           breadcrumbLd([{ name: "Vallo", path: "/" }, { name: c.metaTitle, path: "/move-in-cost" }]),
         ]}
       />
-      <SiteHead plate="living-room-day" icon="coin-naira" chip={c.chip} title={c.title} lede={c.lede} />
+      <SiteHead plate="living-room-day" icon="coin-naira" chip={c.chip} title={c.title} lede={c.lede} tool />
       <div className="nf-shell pb-section">
         <div className="mx-auto max-w-5xl pt-block">
           <MoveInCalculator copy={c} locale={locale} initial={inputFromQuery(query)} initialState={state} origin={siteUrl()} />

@@ -273,6 +273,11 @@
       var(--nf-panel-glow),
       var(--nf-elev-2);
   }
+  @media (max-width: 63.999rem) {
+    .nf-site-head--tool .nf-site-head-plate {
+      display: none;
+    }
+  }
   .nf-site-head-plate img {
     object-fit: cover;
     object-position: 50% 55%;

@@ -250,7 +250,8 @@ export function MoveInCalculator({
       </form>
 
       <section className="nf-pd-card nf-calc__result" aria-live="polite" aria-labelledby={`${id}-total`}>
-        <p id={`${id}-total`} className="nf-section-label">
+        {/* The centred hero figure (spec section 17): caption, figure, then the bar. */}
+        <p id={`${id}-total`} className="nf-section-label nf-calc__caption">
           {copy.totalLabel}
         </p>
         {result.state === "ok" ? (
@@ -289,7 +290,9 @@ export function MoveInCalculator({
             </div>
           </>
         ) : (
-          <p className="nf-body-sm text-[var(--nf-content-secondary)]">{result.state === "invalid" ? copy.invalid : copy.emptyTotal}</p>
+          <p className="nf-calc__empty" data-tone={result.state === "invalid" ? "error" : undefined}>
+            {result.state === "invalid" ? copy.invalid : copy.emptyTotal}
+          </p>
         )}
         <div className="nf-calc__cta">
           <ButtonLink href="/start" variant="primary" size="lg" full trailingIcon="arrow-right">

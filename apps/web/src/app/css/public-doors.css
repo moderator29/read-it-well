@@ -270,14 +270,28 @@
   .nf-calc__result {
     gap: var(--nf-space-sm);
   }
+  .nf-calc__caption {
+    text-align: center;
+  }
   .nf-calc__total {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-figure);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.05;
     letter-spacing: -0.02em;
+    text-align: center;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
+  }
+  .nf-calc__empty {
+    padding-block: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    text-align: center;
+    color: var(--nf-content-secondary);
+  }
+  .nf-calc__empty[data-tone="error"] {
+    color: var(--nf-state-error);
   }
   .nf-calc__lines {
     display: grid;
@@ -326,9 +340,17 @@
     color: var(--nf-content-primary);
   }
   .nf-calc__actions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--nf-space-xs);
+  }
+  .nf-calc__actions > .nf-btn {
+    width: 100%;
+    min-width: 0;
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-calc__actions > .nf-btn svg {
+    flex: none;
   }
   .nf-calc__cta {
     display: grid;
