@@ -109,6 +109,17 @@ const FLICK_SPEED = 450;
    vertical scroll. */
 const DRAG_SLOP_PX = 8;
 
+/**
+ * How opaque a step's art is at distance `d` from the carousel's position.
+ * The step BEHIND (lower in the stack, `d <= 0`) stays fully opaque and the
+ * one arriving over it fades in: two half-faded layers over each other let
+ * the ink behind them through, and the sky dimmed at the midpoint of every
+ * turn. Visibility still hides a layer a whole step away.
+ */
+function layerOpacity(d: number): number {
+  return d <= 0 ? 1 : Number((1 - Math.min(d, 1)).toFixed(4));
+}
+
 export function FirstRun({
   t,
   interests,
@@ -405,7 +416,7 @@ export function FirstRun({
       const a = Math.min(Math.abs(d), 1);
       layer.style.setProperty("--d", d.toFixed(4));
       layer.style.setProperty("--a", a.toFixed(4));
-      layer.style.opacity = (1 - a).toFixed(4);
+      layer.style.opacity = String(layerOpacity(d));
       layer.style.visibility = a >= 1 ? "hidden" : "visible";
     });
     root.querySelectorAll<HTMLElement>("[data-dot]").forEach((dot) => {
@@ -508,7 +519,7 @@ export function FirstRun({
     const width = widthOf();
     if (quiet) {
       /* No physics: the words lean with the finger, the art stays. */
-      setDragShift(dx * 0.25);
+      setDragShift(dx * 0.18);
       return;
     }
     let target = index - dx / width;
@@ -519,7 +530,7 @@ export function FirstRun({
     else if (target > lastIndex) target = lastIndex + rubber((target - lastIndex) * width, width * 0.25) / width;
     pos.current = target;
     paint(target);
-    setDragShift(pastEnd ? rubber(dx, width * 0.06) : dx * 0.3);
+    setDragShift(pastEnd ? rubber(dx, width * 0.06) : dx * 0.18);
   };
 
   const endPress = (e: React.PointerEvent<HTMLElement>, cancelled: boolean) => {
@@ -700,7 +711,7 @@ export function FirstRun({
                   {
                     "--d": d,
                     "--a": a,
-                    opacity: 1 - a,
+                    opacity: layerOpacity(d),
                     visibility: a >= 1 ? "hidden" : "visible",
                   } as CSSProperties
                 }
