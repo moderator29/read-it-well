@@ -85,6 +85,8 @@
 /* Track M: the documentation's motion (sections, flows, the contents rail). */
 @import "./css/docs-motion.css";
 @import "./css/site.css";
+/* Recommendations A: the public doors (check room, move-in calculator, supply pages, guides, email preferences). */
+@import "./css/public-doors.css";
 @import "./css/catalogue.css";
 /* Track M: the list views (view toggle, map pill, card lift, heart, photos). */
 @import "./css/list-views.css";
