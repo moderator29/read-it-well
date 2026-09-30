@@ -49,8 +49,9 @@ export type ListingsByRole = {
   months: { month: string; owner: number; agent: number; firm: number }[];
 };
 
+/** `skipped`: the job's feature flag was off, so it fired and did nothing (C13). */
+export type JobOutcome = "ok" | "attention" | "failed" | "skipped";
 /** `getJobHealth()`: every scheduled job, both schedulers. */
-export type JobOutcome = "ok" | "attention" | "failed";
 export type JobHealthRow = {
   name: string;
   scheduler: "vercel" | "pg_cron";

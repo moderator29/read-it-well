@@ -29,8 +29,11 @@ import type { AdminClient } from "./rpc";
 
 export type CronRunRecord = {
   job: string;
-  outcome: "ok" | "attention" | "failed";
+  /** `skipped`: the job's feature flag was off and the job was not called (C13). Never alerts. */
+  outcome: "ok" | "attention" | "failed" | "skipped";
   durationMs: number;
+  /** The feature flag a skipped run was skipped for. */
+  flag?: string;
   counts?: Record<string, number>;
   /** Why a failed run failed. An error message, never a payload. */
   reason?: string;
@@ -54,7 +57,7 @@ const ENTITY_TYPE = "cron_job";
 async function recordJobRun(
   admin: AdminClient,
   job: string,
-  outcome: "ok" | "repeat",
+  outcome: "ok" | "repeat" | "skipped",
   metadata: Record<string, Json>,
 ): Promise<boolean> {
   try {
@@ -77,6 +80,7 @@ export async function reportCronRun(admin: AdminClient | null, record: CronRunRe
     duration_ms: durationMs,
     ...(record.counts ?? {}),
     ...(record.reason ? { reason: record.reason } : {}),
+    ...(record.flag ? { flag: record.flag } : {}),
   };
 
   if (!admin) {
@@ -107,6 +111,18 @@ export async function reportCronRun(admin: AdminClient | null, record: CronRunRe
     if (raised && raised.ok && raised.deduplicated && (await recordJobRun(admin, record.job, "repeat", metadata))) return;
   }
   if (record.outcome === "ok" && (await recordJobRun(admin, record.job, "ok", metadata))) return;
+
+  /* C13: a skip is counted, never alerted. `skipped` is its own job_runs
+     outcome since supabase/migrations/20260930122539_c13_alert_acknowledged_by_and_skipped_runs.sql
+     was applied (30 September 2026); without it record_job_run refuses the word, and the skip is
+     counted as a clean run whose metadata still says `outcome: "skipped"`, so
+     it never lands in the audit trail every fifteen minutes. Only when the
+     counter is missing altogether does it fall through to one audit row,
+     `cron.<job>.skipped`, like any other run. */
+  if (record.outcome === "skipped") {
+    if (await recordJobRun(admin, record.job, "skipped", metadata)) return;
+    if (await recordJobRun(admin, record.job, "ok", { ...metadata, skipped: true })) return;
+  }
 
   try {
     const { error } = await admin.from("audit_log").insert({

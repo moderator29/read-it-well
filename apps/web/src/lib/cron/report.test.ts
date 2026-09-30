@@ -275,3 +275,62 @@ describe("clean runs and repeats leave the trail once job_runs exists (C7)", () 
     expect(calls).toEqual([]);
   });
 });
+
+/**
+ * C13: A SKIPPED RUN (the job's feature flag was off) is counted and NEVER
+ * alerted. It prefers its own `skipped` outcome in job_runs, falls back to a
+ * counted clean run marked `skipped: true` while the pending migration has
+ * not widened record_job_run, and only writes the trail when the counter is
+ * missing altogether.
+ */
+describe("a skipped run stays off the desk", () => {
+  function rpcAdmin(accepts: (outcome: string) => boolean) {
+    const calls: Array<{ fn: string; args: Record<string, unknown> }> = [];
+    const base = fakeAdmin() as unknown as Record<string, unknown>;
+    return {
+      calls,
+      admin: {
+        ...base,
+        from: (base as { from: unknown }).from,
+        async rpc(fn: string, args: Record<string, unknown>) {
+          calls.push({ fn, args });
+          return { error: accepts(String(args.p_outcome)) ? null : { message: "unknown outcome" } };
+        },
+      } as never,
+    };
+  }
+
+  const skipped = { job: "landlord-line", outcome: "skipped" as const, durationMs: 3, reason: "flag_off", flag: "landlord_line" };
+
+  it("counts it under its own outcome once the migration is applied", async () => {
+    const { admin, calls } = rpcAdmin(() => true);
+    await reportCronRun(admin, skipped);
+    expect(calls).toEqual([
+      {
+        fn: "record_job_run",
+        args: {
+          p_job: "landlord-line",
+          p_outcome: "skipped",
+          p_metadata: { outcome: "skipped", duration_ms: 3, reason: "flag_off", flag: "landlord_line" },
+        },
+      },
+    ]);
+    expect(audited).toEqual([]);
+    expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
+
+  it("counts it as a clean run marked skipped before the migration", async () => {
+    const { admin, calls } = rpcAdmin((outcome) => outcome !== "skipped");
+    await reportCronRun(admin, skipped);
+    expect(calls.map((c) => c.args.p_outcome)).toEqual(["skipped", "ok"]);
+    expect(calls[1]!.args.p_metadata).toMatchObject({ outcome: "skipped", skipped: true, reason: "flag_off" });
+    expect(audited).toEqual([]);
+    expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
+
+  it("writes one trail row, and still no alert, when there is no counter at all", async () => {
+    await reportCronRun(fakeAdmin(), skipped);
+    expect(onlyAudit()).toMatchObject({ action: "cron.landlord-line.skipped", entity_id: "landlord-line" });
+    expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
+});

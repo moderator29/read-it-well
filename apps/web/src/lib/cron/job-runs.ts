@@ -16,7 +16,7 @@
 export type JobRunRow = {
   job: string;
   day: string;
-  outcome: "ok" | "attention" | "failed" | "repeat";
+  outcome: "ok" | "attention" | "failed" | "repeat" | "skipped";
   runs: number;
   last_at: string;
   last_metadata: unknown;

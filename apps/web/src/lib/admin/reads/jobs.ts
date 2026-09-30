@@ -146,7 +146,10 @@ function meta(row: RunRow): Record<string, unknown> {
 export function outcomeOf(row: RunRow): JobOutcome | null {
   if (row.action.startsWith("cron.")) {
     const tail = row.action.split(".").pop();
-    return tail === "ok" || tail === "attention" || tail === "failed" ? tail : null;
+    /* C13: before the `skipped` outcome exists in job_runs, a skip is counted
+       as a clean run whose metadata says it skipped. */
+    if (tail === "ok" && meta(row)["skipped"] === true) return "skipped";
+    return tail === "ok" || tail === "attention" || tail === "failed" || tail === "skipped" ? tail : null;
   }
   if (row.action === "wallet.reconciliation.run") {
     const outcome = meta(row)["outcome"];
@@ -191,6 +194,7 @@ export function jobStatus(row: JobHealthRow): JobStatus {
   if (row.lastOutcome === "failed") return { tone: "error", word: "Failed" };
   if (row.stale) return { tone: "error", word: "Overdue" };
   if (row.lastOutcome === "attention") return { tone: "info", word: "Attention" };
+  if (row.lastOutcome === "skipped") return { tone: "info", word: "Skipped (flag off)" };
   return { tone: "success", word: "Healthy" };
 }
 
