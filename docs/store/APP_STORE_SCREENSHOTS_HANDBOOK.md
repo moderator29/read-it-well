@@ -47,7 +47,7 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 09 | Every conversation in one place | inbox | `messages` | |
 | 10 | Hotels, shortlets and resorts | hotel | `stays` | pair with 11: one phone across the seam |
 | 11 | Book a room in a few taps | bed-double | `stays` | card: "Room booked · Lagoon Crest Resort · 3 nights", Example |
-| 12 | Pick your dates, see what's free | calendar-days | `stays-dates-gb` | public; British dates |
+| 12 | Pick your dates, see what's free | calendar-days | `stays-dates` | British dates |
 | 13 | Find a restaurant you love | utensils | `restaurant` | pair with 14: one phone across the seam |
 | 14 | Reserve your table in seconds | calendar-check | `restaurant` | |
 | 15 | What's happening around you | megaphone | `around` | |
