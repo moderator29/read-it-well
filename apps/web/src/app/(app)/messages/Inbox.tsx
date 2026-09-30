@@ -421,7 +421,7 @@ export function Inbox({
         onClear={() => setQuery("")}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search messages..."
+        placeholder="Search messages…"
         data-testid="inbox-search"
       />
 
