@@ -9,7 +9,7 @@ type Rpc = (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: u
 /**
  * A5. The signed-in member's own invite code, made on first ask through
  * `public.my_referral_code()`. Null when signed out, or until the pending
- * migration `20260930090000_a5_invite_codes_a_member_can_share.sql` is
+ * migration `20260930180000_a5_invite_codes_a_member_can_share.sql` is
  * applied (the function does not exist, the call fails, the page says the
  * link could not be made).
  */
