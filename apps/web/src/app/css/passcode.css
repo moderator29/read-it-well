@@ -408,7 +408,7 @@
   .nf-passcode__link {
     min-height: 2.75rem;
     padding-inline: var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-act-radius-sm);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-passcode-link);
@@ -505,12 +505,12 @@
     grid-template-columns: 1fr 1fr;
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-3xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-act-radius-md);
     background: var(--nf-surface-inset);
   }
   .nf-passcode-settings__segment {
     min-height: 2.75rem;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-act-radius-sm);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-secondary);
