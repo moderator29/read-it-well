@@ -125,7 +125,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
 
           {columns.map((col) => (
             <nav key={col.title} aria-label={col.title}>
-              <h2 className="nf-overline mb-row text-[var(--nf-brand-secondary)]">{col.title}</h2>
+              <h2 className="nf-overline mb-row text-[var(--nf-content-muted)]">{col.title}</h2>
               <ul>
                 {col.links.map((l) => (
                   <li key={`${l.href}-${l.label}`}>
@@ -139,7 +139,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
           ))}
 
           <div className="nf-site-footer-connect">
-            <h2 className="nf-overline mb-row text-[var(--nf-brand-secondary)]">
+            <h2 className="nf-overline mb-row text-[var(--nf-content-muted)]">
               {face.footer.stayConnected}
             </h2>
             <p className="nf-body-sm mb-group text-[var(--nf-content-secondary)]">
