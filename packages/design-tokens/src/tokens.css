@@ -3567,6 +3567,109 @@
 }
 
 /*
+ * THE NIGHT GLASS CONTAINERS (the founder, 30 September 2026: "bring back
+ * the glass containers that have the glowing ... like the side nav").
+ *
+ * The calmed night (above) moved every card onto a flat surface and a
+ * hairline. The founder wants the glass back, clean, in the material of the
+ * side navigation (reference 50, `.nf-navy-glass` in brand-glass.css):
+ * translucent navy with a blue bloom from the top left, a luminous blue
+ * hairline edge, a faint top catchlight and a soft blue glow. Three tiers,
+ * each with ONE radius, and brand-glass.css maps the shared containers onto
+ * them:
+ *
+ *   glass         a standard card or container (cards, panels, list groups,
+ *                 summary and figure tiles, desk cards, settings groups);
+ *   glass-raised  the one object a screen is built around (a hero, a
+ *                 summary at the top): a stronger bloom, edge and glow;
+ *   glass-quiet   a row or a box INSIDE a glass card: a faint fill and a
+ *                 hairline, no bloom and no glow, so glow never nests.
+ *
+ * NIGHT ONLY. Scoped to the night document and its islands; paper never
+ * reads these, and its own dark blocks already wear the navy glass.
+ *
+ * NO BLUR. A container scrolls, and a backdrop blur per card is the costliest
+ * layer a low-end Android phone is asked to draw; the glass is faked with the
+ * layered fill, the edge and the glow. Real blur stays on fixed chrome (the
+ * dock, sheets, headers). Under data saver and on a low-end device the outer
+ * glow goes and the edge and fill stay (below).
+ *
+ * Contrast: the fill's lightest corner (the bloom, top left) measures about
+ * #0B1A44 over the canvas; the body ink is 14:1 on it, the muted ink 5.2:1.
+ */
+:root:not([data-theme="light"]),
+:root:not([data-theme="light"]) [data-theme="dark"] {
+  --nf-night-glass-radius: var(--nf-radius-card);
+  --nf-night-glass-raised-radius: var(--nf-radius-card);
+  --nf-night-glass-quiet-radius: var(--nf-radius-card-sm);
+
+  /* glass */
+  --nf-night-glass-fill:
+    radial-gradient(120% 85% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 17%, transparent), transparent 62%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 8%, transparent) 0%,
+      color-mix(in oklab, var(--nf-container-ink) 2%, transparent) 70%
+    ),
+    color-mix(in oklab, var(--nf-surface-primary) 84%, transparent);
+  --nf-night-glass-edge: color-mix(in oklab, var(--nf-container-ink) 42%, transparent);
+  --nf-night-glass-catch: inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+  --nf-night-glass-glow: 0 0 24px -12px color-mix(in oklab, var(--nf-glow-ink) 42%, transparent);
+  --nf-night-glass-drop: 0 14px 30px -22px color-mix(in oklab, var(--nf-surface-artwork) 80%, transparent);
+  --nf-night-glass-shadow: var(--nf-night-glass-catch), var(--nf-night-glass-glow), var(--nf-night-glass-drop);
+  /* A pressable glass card under a fine pointer: the edge brightens and the
+     glow opens a little. Never a second ring. */
+  --nf-night-glass-edge-hover: color-mix(in oklab, var(--nf-container-ink) 62%, transparent);
+  --nf-night-glass-shadow-hover:
+    var(--nf-night-glass-catch),
+    0 0 30px -10px color-mix(in oklab, var(--nf-glow-ink) 52%, transparent),
+    var(--nf-night-glass-drop);
+
+  /* glass-raised */
+  --nf-night-glass-raised-fill:
+    radial-gradient(110% 70% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 28%, transparent), transparent 70%),
+    radial-gradient(80% 50% at 100% 100%, color-mix(in oklab, var(--nf-container-ink) 10%, transparent), transparent 70%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 10%, transparent) 0%,
+      transparent 75%
+    ),
+    color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent);
+  --nf-night-glass-raised-edge: color-mix(in oklab, var(--nf-container-ink) 55%, transparent);
+  --nf-night-glass-raised-glow: 0 0 36px -12px color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
+  --nf-night-glass-raised-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 10%, transparent),
+    var(--nf-night-glass-raised-glow),
+    0 20px 40px -26px color-mix(in oklab, var(--nf-surface-artwork) 85%, transparent);
+
+  /* glass-quiet */
+  --nf-night-glass-quiet-fill: color-mix(in oklab, var(--nf-container-ink) 6%, transparent);
+  --nf-night-glass-quiet-edge: color-mix(in oklab, var(--nf-container-ink) 22%, transparent);
+  --nf-night-glass-quiet-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 4%, transparent);
+
+  /* A floating sheet: the raised glass over a denser ground, because it sits
+     on live content (it keeps its real backdrop blur, being fixed chrome). */
+  --nf-night-glass-sheet-fill:
+    radial-gradient(110% 50% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 8%, transparent) 0%,
+      transparent 60%
+    ),
+    color-mix(in oklab, var(--nf-surface-elevated) 94%, transparent);
+}
+/* Data saver and a low-end device: the glass keeps its fill, edge and
+   catchlight, and drops the outer glow (a blurred shadow per card). */
+:root:not([data-theme="light"]):is([data-save-data="on"], [data-motion-lite="on"]),
+:root:not([data-theme="light"]):is([data-save-data="on"], [data-motion-lite="on"]) [data-theme="dark"] {
+  --nf-night-glass-glow: 0 0 0 0 transparent;
+  --nf-night-glass-drop: 0 0 0 0 transparent;
+  --nf-night-glass-shadow-hover: var(--nf-night-glass-catch);
+  --nf-night-glass-raised-glow: 0 0 0 0 transparent;
+  --nf-night-glass-raised-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+}
+
+/*
  * Locales whose orthography Poppins cannot render. Yoruba and Igbo both need
  * combining dot below on vowels, and Yoruba stacks a tone mark on top of that.
  * Switching the whole display face to Inter keeps headings visually consistent
@@ -4019,4 +4122,106 @@
  */
 :root[data-theme="light"] [data-theme="dark"] {
   --nf-glow-scale: 0.3;
+}
+
+/*
+ * THE BUTTON SYSTEM (founder reference 55, "Button Styles & Usage Guide",
+ * 30 September 2026; CLEAN_UNIFIED_DIRECTION.md section 19). Sixteen kinds,
+ * one material family: the guide's palette (Brand Blue #0066FF, Cyan
+ * #00D1FF, Orange, Gray #94A3B8, Text #0F172A) mapped onto one set of
+ * `--nf-act-*` tokens that buttons.css, controls.css and chips.css read.
+ * Finished cleaner than the image, on the founder's word: a restrained
+ * gradient (a few percent of lift, never a sheen band), crisp 1px and 1.5px
+ * edges, calm disabled states, and the glow ring only on the NIGHT primary
+ * under hover and focus.
+ *
+ * Contrast (white label on the fill's middle stop, where the label sits):
+ * #0066FF 4.8:1, the hover #0A6CFF 4.6:1, the pressed navy 17.9:1 (paper)
+ * and 13:1 (night). Brand ink on white #0057DB 6.2:1 and on the tint 5.5:1;
+ * night ink #5AA2FF 6.7:1 on the navy surface. The unchecked ring on paper
+ * #7D8CA3 is 3.4:1 (a component edge needs 3:1).
+ *
+ * Night first (the default theme and every dark island), paper below it.
+ */
+:root,
+[data-theme="dark"],
+:root[data-theme="light"] [data-theme="light"] {
+  --nf-act-blue: #0066FF;
+  --nf-act-cyan: #00D1FF;
+  --nf-act-on: #FFFFFF;
+  --nf-act-fill: linear-gradient(180deg, #1A75FF 0%, #0066FF 55%, #005CEB 100%);
+  --nf-act-fill-hover: linear-gradient(180deg, #2E82FF 0%, #0A6CFF 55%, #0062F0 100%);
+  --nf-act-fill-press: linear-gradient(180deg, #0B2C72 0%, #0A2666 100%);
+  --nf-act-press-edge: rgb(0 102 255 / 0.7);
+  --nf-act-rim: inset 0 1px 0 rgb(255 255 255 / 0.16);
+  --nf-act-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 6px 16px -8px rgb(0 102 255 / 0.55);
+  /* The glow ring: the night primary's hover and focus, and nowhere else. */
+  --nf-act-ring:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 0 0 1px rgb(0 209 255 / 0.45),
+    0 0 0 4px rgb(0 102 255 / 0.22),
+    0 8px 22px -6px rgb(0 102 255 / 0.6);
+  --nf-act-shadow-press: inset 0 1px 2px rgb(0 0 0 / 0.35);
+  --nf-act-ink: #5AA2FF;
+  --nf-act-ink-hover: #8CC0FF;
+  --nf-act-tint: rgb(0 102 255 / 0.16);
+  --nf-act-tint-press: rgb(0 102 255 / 0.26);
+  --nf-act-edge: rgb(0 102 255 / 0.72);
+  --nf-act-surface: #0C1838;
+  --nf-act-surface-ink: #FFFFFF;
+  --nf-act-surface-edge: rgb(255 255 255 / 0.09);
+  --nf-act-surface-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 8px 18px -10px rgb(0 0 0 / 0.7);
+  --nf-act-disabled-fill: rgb(148 163 184 / 0.12);
+  --nf-act-disabled-edge: rgb(148 163 184 / 0.16);
+  --nf-act-disabled-ink: rgb(148 163 184 / 0.62);
+  --nf-act-mark-edge: rgb(148 163 184 / 0.72);
+  --nf-act-track-off: #1A2548;
+  --nf-act-track-off-edge: rgb(255 255 255 / 0.1);
+  --nf-act-knob: #FFFFFF;
+  --nf-act-knob-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 6px rgb(0 0 0 / 0.25);
+  --nf-act-well: #0A1433;
+  --nf-act-well-edge: rgb(255 255 255 / 0.08);
+  --nf-act-outline-ink: #FFFFFF;
+  --nf-act-outline-hover-fill: #0066FF;
+  --nf-act-outline-hover-ink: #FFFFFF;
+  --nf-act-outline-press-fill: #0052D6;
+  --nf-act-icon-ink: #FFFFFF;
+  --nf-act-fab-size: 3.5rem;
+  --nf-act-edge-width: 1.5px;
+}
+:root[data-theme="light"],
+:root[data-theme="light"] [data-theme="light"],
+:root[data-theme="light"] :is(.nf-app-header, .nf-ws-bar)[data-theme="dark"] {
+  --nf-act-fill: linear-gradient(180deg, #1A75FF 0%, #0066FF 55%, #005EEB 100%);
+  --nf-act-fill-hover: linear-gradient(180deg, #2E82FF 0%, #0A6CFF 55%, #0064F2 100%);
+  --nf-act-fill-press: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  --nf-act-press-edge: #0F172A;
+  --nf-act-rim: inset 0 1px 0 rgb(255 255 255 / 0.2);
+  --nf-act-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 2px rgb(15 23 42 / 0.08), 0 6px 14px -6px rgb(0 102 255 / 0.45);
+  /* Paper has no glow ring: hover is the lighter fill and one step more lift. */
+  --nf-act-ring: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 1px 2px rgb(15 23 42 / 0.08), 0 10px 20px -8px rgb(0 102 255 / 0.5);
+  --nf-act-shadow-press: inset 0 1px 2px rgb(0 0 0 / 0.3);
+  --nf-act-ink: #0057DB;
+  --nf-act-ink-hover: #0047B8;
+  --nf-act-tint: #EAF2FF;
+  --nf-act-tint-press: #D6E6FF;
+  --nf-act-edge: #0066FF;
+  --nf-act-surface: #FFFFFF;
+  --nf-act-surface-ink: #0F172A;
+  --nf-act-surface-edge: rgb(15 23 42 / 0.07);
+  --nf-act-surface-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 4px 12px -4px rgb(15 23 42 / 0.1);
+  --nf-act-disabled-fill: #F1F5F9;
+  --nf-act-disabled-edge: #E2E8F0;
+  --nf-act-disabled-ink: #94A3B8;
+  --nf-act-mark-edge: #7D8CA3;
+  --nf-act-track-off: #D5DDE8;
+  --nf-act-track-off-edge: rgb(15 23 42 / 0.1);
+  --nf-act-knob-shadow: 0 1px 2px rgb(15 23 42 / 0.2), 0 2px 6px rgb(15 23 42 / 0.12);
+  --nf-act-outline-ink: #0057DB;
+  --nf-act-outline-hover-fill: #EAF2FF;
+  --nf-act-outline-hover-ink: #0047B8;
+  --nf-act-outline-press-fill: #D6E6FF;
+  --nf-act-icon-ink: #0066FF;
+  --nf-act-well: #FFFFFF;
+  --nf-act-well-edge: rgb(15 23 42 / 0.08);
 }
