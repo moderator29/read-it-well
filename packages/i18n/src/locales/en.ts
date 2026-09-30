@@ -17,6 +17,7 @@ import { trustVisibleEn } from "./trust-visible.en";
 import { memberKitEn } from "./member-kit.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
+import { publicDoorsEn } from "./public-doors.en";
 import { arrivalCheckEn } from "./arrival-check.en";
 /* The platform and the craft (devices, sign-in alert, wallet hold, feedback),
    in its own module for the same reason as Price Check. */
@@ -5851,6 +5852,8 @@ export const en = {
   landlord: landlordEn,
 
   trustDoors: trustDoorsEn,
+  /* Recommendations A: the public doors (check card, move-in calculator, guides, email preferences). */
+  publicDoors: publicDoorsEn,
   arrivalCheck: arrivalCheckEn,
 
   platform: platformEn,
