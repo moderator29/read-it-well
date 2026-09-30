@@ -29,17 +29,22 @@ export function ScamShield({
   messageId,
   canReport,
   copy,
+  quote,
 }: {
   ask: OffPlatformAsk;
   messageId: string;
   /** A real message on the platform. Seed threads have nothing to report. */
   canReport: boolean;
   copy: Dictionary["memberKit"]["scam"];
+  /** The message's own words, named at the top of the report sheet. */
+  quote?: string;
 }) {
   const [open, setOpen] = useState(false);
   const stepsId = useId();
   const fee = ask.reasons.includes("fee");
 
+  /* One column of words beside the shield glyph: the lead, the private line,
+     the steps and the actions all start on the same edge. */
   return (
     <aside
       aria-label={copy.label}
@@ -47,45 +52,46 @@ export function ScamShield({
       data-testid="scam-shield"
       data-reason={ask.reason}
     >
-      <p className="nf-scam-shield__lead">
-        <UiIcon name="shield-check" size={16} className="nf-scam-shield__icon" />
-        <span>
-          <strong>{copy.lead}</strong> {fee ? copy.feeLead : null}
-        </span>
-      </p>
+      <UiIcon name="shield-check" size={18} className="nf-scam-shield__icon" />
+      <div className="nf-scam-shield__body">
+        <p className="nf-scam-shield__lead">
+          <strong>{copy.lead}</strong>
+          {fee ? <> {copy.feeLead}</> : null}
+        </p>
+        <p className="nf-scam-shield__private">{copy.onlyYou}</p>
 
-      {open && (
-        <ol id={stepsId} className="nf-scam-shield__steps">
-          <li>{copy.stepDontTransfer}</li>
-          <li>
-            <strong>{copy.stepPayOnVallo}</strong> {PAYMENT_GATE_SENTENCE}
-          </li>
-          {fee && <li>{PRIVATE_FEE_NOTE}</li>}
-          <li>{copy.stepReport}</li>
-          <li className="nf-scam-shield__more">
-            <Link href="/safety" className="nf-tap underline underline-offset-4">
-              {copy.howPaying}
-            </Link>
-          </li>
-        </ol>
-      )}
-
-      <div className="nf-scam-shield__actions">
-        <button
-          type="button"
-          className="nf-tap nf-scam-shield__toggle"
-          aria-expanded={open}
-          aria-controls={open ? stepsId : undefined}
-          onClick={() => setOpen((v) => !v)}
-          data-testid="scam-shield-steps"
-        >
-          {open ? copy.hide : copy.whatToDo}
-          <UiIcon name="chevron-down" size={14} className={open ? "rotate-180" : undefined} />
-        </button>
-        {canReport && (
-          <ReportSheet targetType="message" targetId={messageId} targetLabel={copy.label} signedIn />
+        {open && (
+          <ol id={stepsId} className="nf-scam-shield__steps">
+            <li>{copy.stepDontTransfer}</li>
+            <li>
+              <strong>{copy.stepPayOnVallo}</strong> {PAYMENT_GATE_SENTENCE}
+            </li>
+            {fee && <li>{PRIVATE_FEE_NOTE}</li>}
+            <li>{copy.stepReport}</li>
+          </ol>
         )}
-        <span className="nf-scam-shield__private">{copy.onlyYou}</span>
+        {open && (
+          <Link href="/safety" className="nf-tap nf-scam-shield__more">
+            {copy.howPaying}
+          </Link>
+        )}
+
+        <div className="nf-scam-shield__actions">
+          <button
+            type="button"
+            className="nf-tap nf-scam-shield__toggle"
+            aria-expanded={open}
+            aria-controls={open ? stepsId : undefined}
+            onClick={() => setOpen((v) => !v)}
+            data-testid="scam-shield-steps"
+          >
+            {open ? copy.hide : copy.whatToDo}
+            <UiIcon name="chevron-down" size={14} className={`nf-scam-shield__chev${open ? " is-open" : ""}`} />
+          </button>
+          {canReport && (
+            <ReportSheet targetType="message" targetId={messageId} targetLabel={quote?.trim() || copy.label} signedIn />
+          )}
+        </div>
       </div>
     </aside>
   );
