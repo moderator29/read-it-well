@@ -30,3 +30,12 @@ export {
   type TranslatedLocale,
 } from "./review-status";
 export type { PublicPageKey } from "./locales/public-meta.en";
+/* A11: push text in the recipient's language (machine drafts, see push.ts). */
+export {
+  localizePush,
+  pushSummary,
+  pushRuleFor,
+  PUSH_TEXT_RULES,
+  PUSH_TEXT_REVIEW,
+  type PushText,
+} from "./push";

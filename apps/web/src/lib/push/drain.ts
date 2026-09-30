@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import type { JobVerdict } from "@/lib/bookings/lifecycle";
 import { deliverablePlatforms, describeCredentials } from "./credentials";
 import { decide, planCollapse, type QueuedNotification } from "./policy";
+import { recipientLocale } from "./actions";
 import type { NotificationKind } from "./preferences";
 import type { PushClient, PushPlatform, PushQueueOutcome } from "./schema";
 import { sendApns } from "./transport/apns";
@@ -259,7 +260,7 @@ export async function pushDrain(admin: PushClient): Promise<JobVerdict> {
   }
 
   for (const [userId, candidates] of sendableByUser) {
-    const plan = planCollapse(candidates);
+    const plan = planCollapse(candidates, recipientLocale(settingsByUser.get(userId)));
 
     for (const folded of plan.collapsed) {
       await admin
