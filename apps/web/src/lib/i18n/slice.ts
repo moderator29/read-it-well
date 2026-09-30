@@ -47,7 +47,7 @@ export const SLICES = {
   stayFilterSheet: ["catalogue", "shape", "stayDetail", "stays"],
   priceCheck: ["home", "priceCheck"],
   proofStrip: ["trustVisible"],
-  settingsHub: ["common", "directHome", "memberKit", "passcode", "paymentsPage", "platform", "settings", "socialProfile", "units"],
+  settingsHub: ["common", "directHome", "memberKit", "passcode", "paymentsPage", "platform", "publicDoors", "settings", "socialProfile", "units"],
 } as const satisfies Record<string, readonly (keyof Dictionary)[]>;
 
 export function forListingCard(t: Dictionary): Dictionary {

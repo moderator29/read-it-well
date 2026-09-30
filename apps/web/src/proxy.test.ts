@@ -286,6 +286,9 @@ const EXPECTED_PUBLIC = new Set([
   "/email/preferences",
   "/join/[code]",
   "/join/[code]/start",
+  /* A3 and A2: code sign-in by email, and by phone behind its switch. */
+  "/sign-in/code",
+  "/sign-in/phone",
   /* No network, and which home. */
   "/home-or-landing",
   "/open",
