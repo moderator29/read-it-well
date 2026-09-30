@@ -1,6 +1,6 @@
 -- HOST C4: REVIEWS THAT CAN REACH A HOTEL, AND A FAIR WAY TO CONTEST ONE
--- (30 September 2026). PENDING: written by the host build team, applied by
--- the lead. Idempotent and additive: no row is rewritten or deleted, no
+-- (30 September 2026). Applied 30 September 2026 with the founder's approval.
+-- Idempotent and additive: no row is rewritten or deleted, no
 -- column dropped. Must land before `room_bookings` is switched on, or no
 -- hotel stay can ever be reviewed.
 --

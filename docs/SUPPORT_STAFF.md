@@ -202,6 +202,7 @@ a second super admin and there may not be one. Until the founder names a
 second super admin (RECS_C C14), the founder's two keys are the only way back
 for the founder.
 
-The "Clear their keys" control needs the pending database change
-`20260930120200_c14_console_key_break_glass.sql`; until it is applied the
-control says so and nothing changes.
+The "Clear their keys" control uses the database change
+`20260930085021_c14_console_key_break_glass.sql` (applied 30 September
+2026). It revokes the person's keys for the console only; their money lock
+and passcode unlock keep working.

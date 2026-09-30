@@ -58,6 +58,8 @@ begin
       ('business_photos', 'idu'),
       ('business_verification_checks', 'idu'),
       ('businesses', 'idu'),
+      ('calendar_feeds', 'id'),
+      ('calendar_imports', 'iu'),
       ('cancellation_policies', 'idu'),
       ('conversation_archives', 'idu'),
       ('conversations', 'i'),

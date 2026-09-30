@@ -11,7 +11,7 @@ import { lastConfirmedVersion, termsDiff, type TermChange } from "./terms-diff";
  * confirmed from `deal_agreement_versions`.
  *
  * DEGRADES UNTIL THE MIGRATION IS APPLIED. Before
- * `20260930150000_b9_agreement_versions_keep_what_each_side_confirmed.sql`
+ * `20260930084615_b9_agreement_versions_keep_what_each_side_confirmed.sql` (applied 30 September 2026)
  * the table does not exist, the select errors, and this returns null: the
  * page is exactly today's page. After it, the card appears from the first
  * amendment made once the table is keeping versions (older terms were never

@@ -1,6 +1,6 @@
 -- B9: AN AGREEMENT KEEPS A SNAPSHOT OF EVERY VERSION OF ITS TERMS
 -- (30 September 2026).
--- PENDING: written by build team M2, applied by the lead. Idempotent and
+-- Applied 30 September 2026 with the founder's approval. Idempotent and
 -- additive: one table, one trigger function, one trigger, one backfill of the
 -- CURRENT version of each agreement. No agreement, confirmation, status,
 -- payment or settlement is changed, and no existing function is replaced.

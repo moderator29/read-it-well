@@ -5,7 +5,7 @@ import { byLocale, conversion, totals } from "./summary";
 import { FUNNEL_DOORS, FUNNEL_STEPS, doorFromChapter } from "./steps";
 
 const MIGRATION = readFileSync(
-  join(__dirname, "../../../../../supabase/migrations/pending/20260930180100_a6_first_party_front_door_funnel.sql"),
+  join(__dirname, "../../../../../supabase/migrations/20260930084814_a6_first_party_front_door_funnel.sql"),
   "utf8",
 );
 

@@ -1,5 +1,5 @@
 -- HOST C3: A HOST IS REMINDED BEFORE A REQUEST LAPSES (30 September 2026).
--- PENDING: written by the host build team, applied by the lead. Idempotent,
+-- Applied 30 September 2026 with the founder's approval. Idempotent,
 -- additive: one internal table, one function, one pg_cron job. No booking,
 -- reservation, payment or policy is changed.
 --

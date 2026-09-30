@@ -1,5 +1,5 @@
 -- B5 AND B10: VIEWING REMINDERS AND RENT-DUE REMINDERS (30 September 2026).
--- PENDING: written by build team M2, applied by the lead. Idempotent and
+-- Applied 30 September 2026 with the founder's approval. Idempotent and
 -- additive: one internal ledger table, one sweep function, one pg_cron job.
 -- No inspection, tenancy, payment or preference is changed.
 --

@@ -1,6 +1,7 @@
 -- A6. A first-party funnel you can read: from landing to first result.
--- PENDING: written by the front door build (Recommendations A, 30 September
--- 2026) for the lead to review and apply. Idempotent. Nothing destructive.
+-- Written by the front door build (Recommendations A, 30 September 2026).
+-- Applied 30 September 2026 with the founder's approval.
+-- Idempotent. Nothing destructive.
 --
 -- WHAT IS RECORDED, and it is deliberately little: a step name from a fixed
 -- list, when it happened, the locale, the surface (web, ios, android), the

@@ -12,7 +12,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * least 8 counted conversations in 90 days and never with a slow band. Like
  * `CautionRecordLine`, every other outcome renders NOTHING: an example
  * listing, a signed-out reader, a failed read, and the time before the
- * migration `20260930150100_b7_lister_reply_band_only_when_the_record_supports_it.sql`
+ * migration `20260930084642_b7_lister_reply_band_only_when_the_record_supports_it.sql`
  * is applied (the RPC does not exist yet, so the read errors).
  */
 export async function ReplyTimeLine({ listingId, locale, className = "" }: { listingId: string; locale: Locale; className?: string }) {

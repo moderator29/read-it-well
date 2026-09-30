@@ -1,6 +1,6 @@
 -- HOST C2: CALENDAR SYNC WITH OTHER BOOKING SITES, iCAL OUT AND iCAL IN
--- (30 September 2026). PENDING: written by the host build team, applied by
--- the lead. Idempotent, additive: three new tables, five new functions, no
+-- (30 September 2026). Applied 30 September 2026 with the founder's approval.
+-- Idempotent, additive: three new tables, five new functions, no
 -- existing table, row, policy or function is changed or dropped.
 --
 -- WHY. A Lagos shortlet or hotel host almost always lists on Airbnb or

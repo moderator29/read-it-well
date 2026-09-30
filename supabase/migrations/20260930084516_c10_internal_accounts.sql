@@ -1,6 +1,6 @@
 -- C10: INTERNAL ACCOUNTS LEFT OUT OF EVERY FIGURE (30 September 2026).
 --
--- WAITS FOR THE LEAD'S REVIEW. Adds one table and one function, seeds the two
+-- Applied 30 September 2026 with the founder's approval. Adds one table and one function, seeds the two
 -- QA accounts the console already names. Rewrites no existing row, drops
 -- nothing, changes no existing table, policy or function; safe to run twice.
 --

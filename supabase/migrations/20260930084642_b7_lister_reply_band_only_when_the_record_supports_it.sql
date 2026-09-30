@@ -1,5 +1,5 @@
 -- B7: AN HONEST REPLY-TIME LINE FOR LISTERS (30 September 2026).
--- PENDING: written by build team M2, applied by the lead. Idempotent and
+-- Applied 30 September 2026 with the founder's approval. Idempotent and
 -- additive: one read-only function. No table, no row, no policy is changed.
 --
 -- WHAT IT ANSWERS. For one lister, over the last 90 days: in each

@@ -1,8 +1,8 @@
 /**
  * A6. THE FRONT-DOOR FUNNEL'S VOCABULARY. Client safe.
  *
- * The same lists as the checks on `public.funnel_events` (pending migration
- * `20260930180100_a6_first_party_front_door_funnel.sql`); `steps.test.ts`
+ * The same lists as the checks on `public.funnel_events` (migration
+ * `20260930084814_a6_first_party_front_door_funnel.sql`); `summary.test.ts`
  * reads that file and fails if the two drift.
  */
 export const FUNNEL_STEPS = [

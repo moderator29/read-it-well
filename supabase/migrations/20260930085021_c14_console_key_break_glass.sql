@@ -1,6 +1,6 @@
 -- C14: A WRITTEN WAY BACK FOR A LOST CONSOLE KEY (30 September 2026).
 --
--- WAITS FOR THE LEAD'S REVIEW (second draft, after the lead held the first).
+-- Applied 30 September 2026 with the founder's approval (second draft, after the lead held the first).
 -- Idempotent and additive: one new table, one trigger, one function. It
 -- DELETES NO KEY. No existing table, row, policy or function is changed.
 --

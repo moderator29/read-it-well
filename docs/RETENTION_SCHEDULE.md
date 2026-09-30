@@ -110,7 +110,7 @@ deleting an account anonymises the person elsewhere without deleting them.
 | Avatar image | `avatars` bucket | Account closure | 30 days [L] | Purge |
 | Social profile, handle, posts, stories, comments, reactions | `public.social_profiles`, `public.posts`, `public.stories` and related | Account closure | 30 days [L] | Purge or anonymise, see 5.2 |
 | `story_views`, `post_views` | `public.story_views`, `public.post_views` | Row creation | 90 days [L] | Purge |
-| Sign-up step counts (A6): step, locale, surface, door, a random visit id, and an account only on the steps after verification | `public.funnel_events` (pending migration `20260930180100`) | Row creation | 90 days [L] | Purge, nightly by `vallo_purge_funnel_events` |
+| Sign-up step counts (A6): step, locale, surface, door, a random visit id, and an account only on the steps after verification | `public.funnel_events` (migration `20260930084814`) | Row creation | 90 days [L] | Purge, nightly by `vallo_purge_funnel_events` |
 
 The 30 day window exists so that an account closed in error can be restored. It
 must be stated in the notice if it is adopted, because during those 30 days the

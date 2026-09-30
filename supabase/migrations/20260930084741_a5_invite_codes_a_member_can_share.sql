@@ -1,6 +1,7 @@
--- A5. Invite codes a member can share. PENDING: written by the front door
--- build (Recommendations A, 30 September 2026) for the lead to review and
--- apply. Idempotent. Nothing destructive.
+-- A5. Invite codes a member can share. Written by the front door build
+-- (Recommendations A, 30 September 2026).
+-- Applied 30 September 2026 with the founder's approval.
+-- Idempotent. Nothing destructive.
 --
 -- WHY (a) AND NOT (b). Sign-up asks for a referral code and nothing ever
 -- gave anybody one: 0 of the 16 accounts at 30 September carry a code, while

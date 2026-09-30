@@ -42,8 +42,8 @@ const ENTITY_TYPE = "cron_job";
 /**
  * C7 AND C13: CLEAN RUNS AND REPEATS LEAVE THE TRAIL.
  *
- * With `public.record_job_run` installed (supabase/migrations/pending/
- * 20260930120000_c7_job_runs_out_of_the_trail.sql), a clean run, and an
+ * With `public.record_job_run` installed (supabase/migrations/
+ * 20260930084450_c7_job_runs_out_of_the_trail.sql), a clean run, and an
  * attention run whose alert folded into one already open for the same cause,
  * are counted in `job_runs` (one row per job, day and outcome) instead of
  * appending to `audit_log`. A failed run and the FIRST attention run for a

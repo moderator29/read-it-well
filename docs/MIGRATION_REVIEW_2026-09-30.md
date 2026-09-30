@@ -16,6 +16,34 @@ executable by the evaluating role), `track-a-custody-retired`,
 `info-schema-guards`, `new-a1-03` (review eligibility) and the review, agreement
 and availability fixtures against each change. Nothing was applied.
 
+## Applied, 30 September 2026
+
+All twelve files were applied to `uccixoonmbhrnyczyigt` with the founder's
+approval, one at a time and in the order below. Each apply returned success and
+passed its own read-back. Each file then moved from `pending/` to
+`supabase/migrations/` under the version the server recorded, and was recorded
+in `APPLIED.txt`. Before each apply I re-read the file and confirmed it had not
+changed since this review (host_c4 at cf09f313, c14 at b9ec4cf7). The db-06
+allowlist gained `('calendar_feeds', 'id')` and `('calendar_imports', 'iu')`
+in the same change that applied host_c2.
+
+| Order | Draft version | Recorded version | Name |
+|---|---|---|---|
+| 1 | `20260930090100` | `20260930084237` | `host_c3_decide_by_reminders` |
+| 2 | `20260930090200` | `20260930084402` | `host_c4_reviews_reach_a_hotel_and_a_fair_contest` |
+| 3 | `20260930120000` | `20260930084450` | `c7_job_runs_out_of_the_trail` |
+| 4 | `20260930120100` | `20260930084516` | `c10_internal_accounts` |
+| 5 | `20260930120300` | `20260930084536` | `c8_photo_hash_backfill_nightly` |
+| 6 | `20260930150000` | `20260930084615` | `b9_agreement_versions_keep_what_each_side_confirmed` |
+| 7 | `20260930150100` | `20260930084642` | `b7_lister_reply_band_only_when_the_record_supports_it` |
+| 8 | `20260930150200` | `20260930084714` | `b5_b10_viewing_and_rent_reminders` |
+| 9 | `20260930180000` | `20260930084741` | `a5_invite_codes_a_member_can_share` |
+| 10 | `20260930180100` | `20260930084814` | `a6_first_party_front_door_funnel` |
+| 11 | `20260930090000` | `20260930084937` | `host_c2_calendar_sync_feeds_out_and_imports_in` |
+| 12 | `20260930120200` | `20260930085021` | `c14_console_key_break_glass` (second draft, cleared by the re-review below) |
+
+The verdicts below are the review as it was written before the apply.
+
 ## Summary
 
 | # | File | Verdict |

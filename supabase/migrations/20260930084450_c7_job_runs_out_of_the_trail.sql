@@ -1,6 +1,6 @@
 -- C7 AND C13: CLEAN AND REPEATED JOB RUNS LEAVE THE AUDIT TRAIL (30 September 2026).
 --
--- WAITS FOR THE LEAD'S REVIEW. Adds one table and two functions and schedules
+-- Applied 30 September 2026 with the founder's approval. Adds one table and two functions and schedules
 -- one purge. Rewrites no existing row, drops nothing, changes no existing
 -- table, policy or function, and is safe to run twice.
 --

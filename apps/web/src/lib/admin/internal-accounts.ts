@@ -11,8 +11,8 @@ import { internalNotIn, mergeInternalIds } from "./internal-ids";
  * One list, read in one place: the QA accounts the founder named
  * (`QA_ACCOUNT_IDS`), everybody with a staff grant that is not revoked, and
  * everybody on `public.internal_accounts` (the super admin's "Leave out of
- * figures" switch on the staff page, pending migration
- * 20260930120100_c10_internal_accounts.sql). Until that table exists the read
+ * figures" switch on the staff page, migration
+ * 20260930084516_c10_internal_accounts.sql). Until that table exists the read
  * of it fails quietly and the first two still apply.
  *
  * Read with the service role because a plain admin cannot read other
