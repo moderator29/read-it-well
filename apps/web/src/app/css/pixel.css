@@ -76,3 +76,26 @@
     mask-image: linear-gradient(to bottom, black calc(100% - var(--nf-space-lg)), transparent);
   }
 }
+
+/* ------------------------------------------------ T2 THE LISTING'S MEASURE
+ * On a portrait tablet the listing is one 772px column, and its description,
+ * the move-in notes and the example notice ran to 84 to 94 characters a
+ * line. Their paragraphs keep the body measure (62ch); the cards around
+ * them keep their width. */
+@layer components {
+  .nf-cat-surface :is(.nf-detail-panel, .nf-detail-lead, .nf-movein) p {
+    max-width: var(--nf-measure-body);
+  }
+}
+
+/* ------------------------------------------------ S1 TILES ON THE BAND
+ * On the hero band (the host, agent and admin "Today", in both themes; the
+ * band lends the night palette) the figure tiles were the card surface
+ * (#040A1F) inside a band on the elevated one (#08102C): each tile stepped
+ * DOWN into the band and read as a hole. They take the raised surface, one
+ * step up, so the tile sits on the band as a card sits on the canvas. */
+@layer components {
+  .nf-hero-band .nf-kpi {
+    background: var(--nf-surface-raised);
+  }
+}
