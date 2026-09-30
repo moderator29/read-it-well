@@ -11,8 +11,8 @@
  *
  * THE TABLE IS A DRAFT FOR THE FOUNDER'S SIGN-OFF (docs/recs/RECS_B,
  * "B11 severity table"). These are the defaults meanwhile. The same table is
- * mirrored in SQL (`public.notification_severity`, pending migration
- * `m1_b11_b13_severity_and_saved_changes`), which stamps new rows; until that
+ * mirrored in SQL (`public.notification_severity`, migration
+ * `20260930104610_m1_b11_b13_severity_and_saved_changes`), which stamps new rows; until that
  * is applied, and for any row written before it, the app reads the severity
  * from here. The rules read the kind, the title the database trigger wrote
  * and the in-app destination, in order; the first that matches wins.

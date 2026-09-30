@@ -1,8 +1,8 @@
 /**
  * CHANGES ON THINGS YOU SAVED (recommendation B13, 30 September 2026).
  *
- * `public.listing_changes` (pending migration
- * `m1_b11_b13_severity_and_saved_changes`) records a listing's price moves,
+ * `public.listing_changes` (migration
+ * `20260930104610_m1_b11_b13_severity_and_saved_changes`) records a listing's price moves,
  * its availability going or coming back, and new viewing windows, readable
  * only by the people who saved that listing. Saved reads the last 30 days of
  * them for its cards; each card shows one muted line for the newest change

@@ -1,7 +1,7 @@
 -- M1: B11 (NOTIFICATIONS THAT SAY WHAT NEEDS YOU) AND B13 (CHANGES ON THINGS
 -- YOU SAVED). 30 September 2026.
 --
--- WAITS FOR THE LEAD'S REVIEW. Additive only: one nullable column on
+-- Applied 30 September 2026 with the founder's approval. Additive only: one nullable column on
 -- public.notifications (with a column grant and a stamping trigger), one new
 -- table with RLS on (public.listing_changes), two trigger functions and three
 -- triggers. Drops nothing, rewrites no policy, touches no payment table.

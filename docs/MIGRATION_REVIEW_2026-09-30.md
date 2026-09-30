@@ -57,6 +57,12 @@ guard did not fire. Its read-back passed. `calendar-holds.sql` moved from
 through execute_sql: it ended with `PROBE_OK calendar-holds`, which rolls back
 everything it wrote. A check afterwards found no probe rows left behind.
 
+| 16 | `20261001090000` | `20260930104610` | `m1_b11_b13_severity_and_saved_changes` (APPLY, verdict dba1d51c; file as at 6bb94258) |
+
+Row 16 was applied after its review. Its read-back passed, including the
+severity backfill of every existing notification. The notify and saved tests
+pass (17 files, 199 tests).
+
 The verdicts below are the review as it was written before the apply.
 
 ## Summary
