@@ -74,6 +74,13 @@ export const memberKitEn = {
     explain:
       "From this lister's conversations on Vallo in the last 90 days: the usual time between a renter's first message and the lister's first reply. It shows only when there are at least 8 such conversations, and a conversation with no reply counts as slow.",
   },
+  /** B8: the door from a listing to Price Check. Never a verdict on the listing. */
+  priceContext: {
+    title: "How does this price compare?",
+    /** `{count}` similar listings the check found. */
+    sub: "See what {count} similar places nearby are asking, in Price Check",
+    subNoCount: "See what similar places nearby are asking, in Price Check",
+  },
 };
 
 export type MemberKitCopy = typeof memberKitEn;
