@@ -58,7 +58,8 @@ describe("button system rules", () => {
 
   it("animates only transform", () => {
     for (const m of section.matchAll(/transition:\s*([^;]+);/g)) {
-      expect(m[1].split(",").every((part) => /^\s*(transform|width|none)\b/.test(part)), m[1]).toBe(true);
+      const value = m[1] ?? "";
+      expect(value.split(",").every((part) => /^\s*(transform|width|none)\b/.test(part)), value).toBe(true);
     }
   });
 

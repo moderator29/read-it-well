@@ -115,11 +115,11 @@ describe("the button system's new primitives", () => {
         onChange={() => undefined}
         options={[
           { value: "home", label: "Home", icon: "home" },
-          { value: "wallet", label: "Wallet", icon: "wallet" },
+          { value: "search", label: "Search", icon: "search" },
         ]}
       />,
     );
     expect(html).toContain('class="sr-only"');
-    expect(html).toContain("Wallet");
+    expect(html).toContain("Search");
   });
 });
