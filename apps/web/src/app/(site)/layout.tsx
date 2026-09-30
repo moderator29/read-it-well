@@ -5,6 +5,12 @@ import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteBackBar } from "./SiteBackBar";
+/* C12: the marketing sheets, out of `globals.css`. The site draws the
+   landing's shell, nav and rooms (FAQ, close, depth gate) and every public
+   door, so it loads all three, in their old cascade order. */
+import "@/app/css/landing.css";
+import "@/app/css/landing-rooms.css";
+import "@/app/css/public-doors.css";
 
 /**
  * Marketing site chrome.

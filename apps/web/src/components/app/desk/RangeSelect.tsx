@@ -2,6 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+/* C12: `nf-desk-range` lives in the workspace sheet, which left `globals.css`; the console draws this too. */
+import "@/app/css/agent.css";
 
 /**
  * THE DESKS' PERIOD SELECT (plan item 14, spec 13's top bar: "Last 30

@@ -38,6 +38,64 @@ describe("the global stylesheet (C12)", () => {
     expect(imports).not.toContain("./css/admin.css");
   });
 
+  /*
+   * C12, second pass: the route-only sheets load from the layouts (and the
+   * few components) that draw them. Each entry names every file that must
+   * import the sheet, so losing an import fails here instead of quietly
+   * unstyling a route. Where two sheets share an entry, the order is the old
+   * cascade order and is checked too.
+   */
+  const ROUTE_SHEETS: Record<string, string[]> = {
+    "landing.css": ["(landing)/layout.tsx", "(site)/layout.tsx"],
+    "landing-rooms.css": ["(landing)/layout.tsx", "(site)/layout.tsx"],
+    "public-doors.css": [
+      "(landing)/layout.tsx",
+      "(site)/layout.tsx",
+      "join/[code]/layout.tsx",
+      "email/preferences/layout.tsx",
+      "(app)/settings/invite/InviteShare.tsx",
+    ],
+    "agent.css": [
+      "agent/layout.tsx",
+      "host/layout.tsx",
+      "../components/agent/ApplyWizard.tsx",
+      "../components/app/desk/RangeSelect.tsx",
+    ],
+    "stays.css": ["host/layout.tsx", "../components/app/stays/StayCategoryTiles.tsx"],
+    "map.css": ["../components/app/search/MapCanvas.tsx"],
+    "feed-m.css": ["(app)/layout.tsx"],
+  };
+  const importsOf = (file: string) =>
+    [...readFileSync(join(APP, file), "utf8").matchAll(/import\s+"@\/app\/css\/([\w.-]+\.css)"/g)].map((m) => m[1]);
+
+  it("keeps the route-only sheets out of the global bundle", () => {
+    for (const sheet of Object.keys(ROUTE_SHEETS)) expect(imports, sheet).not.toContain(`./css/${sheet}`);
+  });
+
+  it("loads each route-only sheet from every entry that draws it", () => {
+    for (const [sheet, entries] of Object.entries(ROUTE_SHEETS)) {
+      for (const entry of entries) expect(importsOf(entry), `${entry} imports ${sheet}`).toContain(sheet);
+    }
+  });
+
+  it("keeps the old cascade order where one entry loads several", () => {
+    const inOrder = (file: string, order: string[]) => {
+      const got = importsOf(file).filter((s) => s !== undefined && order.includes(s));
+      expect(got, file).toEqual(order);
+    };
+    inOrder("(landing)/layout.tsx", ["landing.css", "landing-rooms.css", "public-doors.css"]);
+    inOrder("(site)/layout.tsx", ["landing.css", "landing-rooms.css", "public-doors.css"]);
+    inOrder("host/layout.tsx", ["agent.css", "stays.css"]);
+  });
+
+  it("keeps the sheets that many routes draw in the global bundle", () => {
+    /* The lock overlays every signed-in tree, a success moment can open on
+       any screen, and social-feed.css carries the round back control. */
+    for (const sheet of ["./css/passcode.css", "./css/success.css", "./social-feed.css"]) {
+      expect(imports, sheet).toContain(sheet);
+    }
+  });
+
   it("carries none of the dead glass and tile rules", () => {
     const dead = [
       ".nf-door__mark--glass",

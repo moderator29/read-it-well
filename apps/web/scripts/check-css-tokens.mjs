@@ -1431,20 +1431,36 @@ let parseError = null;
 try {
   const { bundle } = await import("lightningcss");
   const entry = join(ROOT, "src/app/globals.css");
-  /* Route stylesheets: partials a route layout imports instead of
-     `globals.css` (B-4; the landing imports landing-3d.css from
-     LandingBody.tsx). They are parsed after the global graph, which is
-     the order the browser receives them in. */
-  const ROUTE_STYLESHEETS = ["./css/admin.css", "./css/landing-3d.css"];
-  const graph = readFileSync(entry, "utf8")
+  /* Route stylesheets: partials a route layout or a component imports
+     instead of `globals.css` (B-4 moved admin.css; C12 moved landing,
+     landing-rooms, public-doors, agent, stays, map and feed-m; LandingBody
+     imports landing-3d.css). They are parsed after the global graph, which
+     is the order the browser receives them in. The named ones are listed so
+     they are parsed even if an import is lost; any other `app/css/*.css` a
+     TS file imports is found by the scan, so a new entry point is covered
+     without anyone remembering to add it here. */
+  const ROUTE_STYLESHEETS = [
+    "./css/admin.css",
+    "./css/landing-3d.css",
+    "./css/landing.css",
+    "./css/landing-rooms.css",
+    "./css/public-doors.css",
+    "./css/agent.css",
+    "./css/stays.css",
+    "./css/map.css",
+    "./css/feed-m.css",
+  ];
+  const imported = filesUnder(join(ROOT, "src"), [".ts", ".tsx"])
+    .flatMap((file) => [...readFileSync(file, "utf8").matchAll(/import\s+"@\/app\/(css\/[\w.-]+\.css)"/g)].map((m) => `./${m[1]}`));
+  const globalGraph = readFileSync(entry, "utf8")
     .split("\n")
-    .flatMap((line) => [...line.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]))
-    .concat(ROUTE_STYLESHEETS);
+    .flatMap((line) => [...line.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]));
+  const graph = [...new Set([...globalGraph, ...ROUTE_STYLESHEETS, ...imported])];
   const shim = join(ROOT, "src/app", ".parse-check.css");
   writeFileSync(shim, graph.map((f) => `@import "${f}";`).join("\n"));
   try {
     bundle({ filename: shim, minify: false });
-    console.log(`css parse: ${graph.length} partials bundle cleanly from globals.css.`);
+    console.log(`css parse: ${graph.length} partials bundle cleanly (${globalGraph.length} from globals.css, ${graph.length - globalGraph.length} route sheets).`);
   } finally {
     rmSync(shim, { force: true });
   }

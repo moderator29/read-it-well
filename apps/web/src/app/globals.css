@@ -60,7 +60,7 @@
  * it is component motion of the same family; nothing in it is declared twice.
  */
 @import "./css/side-flip.css";
-@import "./css/map.css";
+/* map.css (the search map's pins and zoom) is imported by MapCanvas.tsx (C12). */
 @import "./css/typography.css";
 @import "./css/buttons.css";
 @import "./css/overlays.css";
@@ -79,14 +79,19 @@
 /* The passcode lock, setup and settings (docs/PASSCODE.md); after auth.css, whose Slate block it reuses. */
 @import "./css/passcode.css";
 @import "./css/home.css";
-@import "./css/landing.css";
-/* Track M: the landing rooms (hero depth, protection, AI showcase, FAQ). */
-@import "./css/landing-rooms.css";
+/*
+ * landing.css and landing-rooms.css STOOD HERE (C12, 30 September 2026). They
+ * are imported by `app/(landing)/layout.tsx` and `app/(site)/layout.tsx`, the
+ * only trees that draw `nf-landing-*`, `nf-site-*` and the landing rooms.
+ * Nothing later in this list overrides them at equal specificity, so loading
+ * them after this bundle changes no cascade outcome.
+ */
 /* Track M: the documentation's motion (sections, flows, the contents rail). */
 @import "./css/docs-motion.css";
 @import "./css/site.css";
-/* Recommendations A: the public doors (check room, move-in calculator, supply pages, guides, email preferences). */
-@import "./css/public-doors.css";
+/* public-doors.css (check room, calculator, supply pages, guides, door
+   pages) is imported by the landing and site layouts, the join and email
+   preference layouts, and InviteShare.tsx (C12). */
 @import "./css/catalogue.css";
 /* Track M: the list views (view toggle, map pill, card lift, heart, photos). */
 @import "./css/list-views.css";
@@ -105,14 +110,13 @@
  * `@layer components`, so loading it after this bundle changes no cascade
  * outcome. The dev preview layout imports it too, for the console decks.
  */
-@import "./css/agent.css";
 /*
- * The stays set-up screens of `GOVERNING-10` and `GOVERNING-11`: the labelled
- * plate, the tile, the stepper, the rule row, the meal-plan list, the day row.
- * Sits directly after agent.css because it INHERITS that file's `nf-host-*`
- * register rather than restating it, and must therefore cascade after it.
+ * agent.css and stays.css STOOD HERE (C12). Both are imported by
+ * `app/host/layout.tsx` (agent.css first, because stays.css inherits its
+ * `nf-host-*` register), agent.css by `app/agent/layout.tsx`, and each by the
+ * one component outside those trees that draws it: ApplyWizard and
+ * RangeSelect (agent.css), StayCategoryTiles (stays.css).
  */
-@import "./css/stays.css";
 /* wallet.css (44 KB, the wallet retired on 25 September) is gone (C12); the
    few rules live screens still used are in money-surface.css, in its slot. */
 @import "./css/money-surface.css";
@@ -138,8 +142,8 @@
 @import "./css/inner-m.css";
 /* Track M: the supplier flows (registrations, set-ups, the listing wizard). */
 @import "./css/flow-m.css";
-/* Track M: the feed (arrivals, the heart, repost, story rings). */
-@import "./css/feed-m.css";
+/* feed-m.css (the feed's arrivals, heart, repost, story rings) is imported
+   by `app/(app)/layout.tsx`, the only tree that draws a post (C12). */
 /* Track M: the listing page (marks, price, sections, tiles, the booking bar). */
 @import "./css/detail-m.css";
 /* Recommendations B (member loop): recents, compare, the one-frame listing,

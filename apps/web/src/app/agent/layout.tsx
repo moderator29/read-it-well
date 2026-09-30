@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
 import { DeskKeys } from "@/components/app/desk/DeskKeys";
 import { AGENT_JUMPS, AGENT_JUMP_WORDS } from "@/components/app/desk/desk-keys";
+/* C12: the workspace sheet, out of `globals.css`. */
+import "@/app/css/agent.css";
 
 /**
  * The agent workspace's layout. Its only job is the passcode lock

@@ -4,6 +4,15 @@ import { previewHarnessIsOpen } from "@/lib/preview-harness";
 /* The staff console decks (f5, bc, bd, session-b) draw the console's own
    classes, which left `globals.css` for `app/admin/layout.tsx` (B-4). */
 import "@/app/css/admin.css";
+/* The route sheets that left `globals.css` in C12, so every deck here still
+   draws the surfaces it previews (landing, site, desks, feed, stays). */
+import "@/app/css/landing.css";
+import "@/app/css/landing-rooms.css";
+import "@/app/css/public-doors.css";
+import "@/app/css/agent.css";
+import "@/app/css/stays.css";
+import "@/app/css/feed-m.css";
+import "@/app/css/map.css";
 
 /**
  * The dev-only preview harness. Real components, fixture props, so a

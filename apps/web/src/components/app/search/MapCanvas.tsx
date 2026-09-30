@@ -6,6 +6,8 @@ import { tileProvider, warnIfNonCommercialTiles } from "@/lib/maps/tiles";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { Locale } from "@vallo/i18n/core";
 import "leaflet/dist/leaflet.css";
+/* C12: the pins and the zoom control, out of `globals.css`. */
+import "@/app/css/map.css";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { toggleSave } from "@/lib/saved/actions";

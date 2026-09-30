@@ -3,6 +3,8 @@
 import { useCopyFlash } from "@/lib/ui/use-copy";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
+/* C12: `nf-pd-card` lives in the public doors sheet, which left `globals.css`. */
+import "@/app/css/public-doors.css";
 
 /** A5. The member's invite link: copy it, or send it on WhatsApp. */
 export function InviteShare({ copy, url, code }: { copy: Dictionary["publicDoors"]["invite"]; url: string; code: string }) {
