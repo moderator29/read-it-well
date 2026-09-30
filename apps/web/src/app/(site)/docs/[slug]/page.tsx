@@ -83,7 +83,7 @@ export default async function DocChapterPage({
             <UiIcon name={lineGlyphFor(chapter.icon)} size={20} />
           </IconPlate>
           <div className="min-w-0">
-            <span className="nf-numeric block text-[0.6875rem] font-semibold tracking-[var(--nf-tracking-overline)] text-[var(--nf-content-muted)] uppercase">
+            <span className="nf-numeric block text-[length:var(--nf-text-label)] font-semibold tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)] uppercase">
               Chapter {chapter.number} of {CHAPTER_INDEX.length}
             </span>
             {/* The title arrives word by word out of depth (Track M). */}

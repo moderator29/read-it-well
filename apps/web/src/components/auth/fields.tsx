@@ -38,7 +38,7 @@ export function FormGroup({
         <h2 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
           {title}
         </h2>
-        <span className="nf-numeric shrink-0 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric shrink-0 text-[length:var(--nf-text-label)] font-semibold uppercase tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)]">
           {step}
         </span>
       </div>
@@ -393,7 +393,7 @@ export function StrengthMeter({ password, t }: { password: string; t: Dictionary
         </div>
         <span
           aria-live="polite"
-          className="min-w-[3.25rem] text-right text-[0.6875rem] font-semibold"
+          className="min-w-[3.25rem] text-right text-[length:var(--nf-text-overline)] font-semibold"
           style={{ color: score === 0 ? "var(--nf-content-muted)" : colour }}
         >
           {strengthLabel(score, t)}
