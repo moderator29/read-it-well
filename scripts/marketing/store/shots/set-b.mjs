@@ -111,9 +111,20 @@ export const SET_B = [
           glows: [{ x: W * 0.62, y: cy - 150, rx: W * 0.62, ry: f.phoneH * 0.46, alpha: 0.48, blur: 40 }] }),
         `<svg class="g" style="left:0;top:0;z-index:7" width="${W}" height="${H}">${arc(W * 0.62, 0.16)}${arc(W * 0.46, 0.12)}</svg>`,
         p.html,
-        noteCard({ x: 64 * u, y: p.at(660, 1760)[1] - 60 * u, w: cw * 0.94, lucide: "house", title: "New home", line: "For your saved search", meta: "2m", example: true, s: u * 0.98, rotate: 4, z: 31 }),
-        noteCard({ x: 52 * u, y: p.at(660, 2010)[1] - 60 * u, w: cw * 1.02, lucide: "file-check", title: "Agreement confirmed", line: "By both of you", meta: "1m", example: true, s: u * 1.04, rotate: -2, z: 33 }),
-        noteCard({ x: 56 * u, y: p.at(660, 2260)[1] - 60 * u, w: cw * 1.08, lucide: "calendar-check", title: "Inspection set", line: "Saturday, 11:00 AM", meta: "now", example: true, s: u * 1.1, rotate: -5, z: 35 }),
+        /* A stack of three in the list's empty band (display y 2080 to 2650),
+           newest in front; each overlaps the one above by its padding only. */
+        ...[
+          ["house", "New home", "For your saved search", "2m", 1.5],
+          ["file-check", "Agreement confirmed", "By both of you", "1m", -1],
+          ["calendar-check", "Inspection set", "Saturday, 11:00 AM", "now", -2.5],
+        ].map(([ic, title, line, meta, r], i, all) => {
+          /* Sized so the stack fits the band: a card is 132 s tall and the
+             next one starts 0.92 of a card lower. */
+          const y0 = p.at(660, 2085)[1];
+          const band = p.at(660, 2640)[1] - y0;
+          const s = Math.min(u, band / (132 * (1 + 0.92 * (all.length - 1))));
+          return noteCard({ x: (52 + i * 6) * u, y: y0 + i * 132 * s * 0.92, w: 790 * s * (1 + i * 0.03), lucide: ic, title, line, meta, example: true, s, rotate: r, z: 31 + i });
+        }),
         headline({ lines: ["Know the moment", "anything changes"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -121,12 +132,12 @@ export const SET_B = [
 
   /* 17 --------------------------------------------------------------- */
   {
-    n: 17, slug: "ask-the-ai-assistant", captures: ["assistant-caution"], theme: "dark",
+    n: 17, slug: "ask-the-ai-assistant", captures: ["assistant-caution-2"], theme: "dark",
     async layout(ctx) {
       const { W, H, u } = ctx;
       const f = frame(ctx);
       const cy = f.phoneTop + f.phoneH / 2;
-      const p = await ctx.phone({ id: "assistant-caution", cx: W / 2, cy, h: f.phoneH, rotation: { x: -3, y: 8, z: -1.5 }, fov: 24, color: "natural-titanium" });
+      const p = await ctx.phone({ id: "assistant-caution-2", cx: W / 2, cy, h: f.phoneH, rotation: { x: -3, y: 8, z: -1.5 }, fov: 24, color: "natural-titanium" });
       const b = p.box;
       return [
         night({ top: "#03052C", mid: "#020424", bottom: "#010118" }),
@@ -249,18 +260,20 @@ export const SET_B = [
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "verification", cx: W * 0.6, cy, h: f.phoneH * 0.96, rotation: { x: -4, y: -14, z: 2 }, fov: 24 });
       const b = p.box;
-      const aw = 660 * u;
+      /* An aurora of mint and electric: the colour of the check in the card. */
+      const scan = [0.3, 0.44, 0.58].map((k, i) => `<ellipse cx="${b.cx}" cy="${b.cy + 200 * u}" rx="${W * k * 1.3}" ry="${W * k * 0.42}" fill="none" stroke="rgb(120 240 200 / ${0.16 - i * 0.04})" stroke-width="${2.2 * u}" stroke-dasharray="${4 * u} ${16 * u}" transform="rotate(-10 ${b.cx} ${b.cy + 200 * u})"/>`).join("");
       return [
-        night({ top: "#050A40", mid: "#030630", bottom: "#010118" }),
-        glow({ x: W * 0.3, y: b.y + b.h * 0.35, rx: W * 0.55, ry: 700, color: "0 105 254", alpha: 0.45, blur: 40 }),
+        night({ top: "#04103F", mid: "#030A30", bottom: "#010118" }),
+        glow({ x: W * 0.18, y: b.y + b.h * 0.2, rx: W * 0.62, ry: 760, color: "40 200 150", alpha: 0.26, blur: 50 }),
+        glow({ x: W * 0.72, y: b.y + b.h * 0.55, rx: W * 0.62, ry: 900, color: "0 105 254", alpha: 0.46, blur: 40 }),
         stars({ W, H, count: 30, top: 30, bottom: f.phoneTop, seed: 191 }),
-        `<div class="g" style="left:${px(56 * u)};top:${px(b.y + b.h * 0.08)};width:${px(aw)};height:${px(aw * 4 / 3)};border-radius:${px(48 * u)};overflow:hidden;transform:rotate(-6deg);z-index:12;box-shadow:inset 0 0 0 2px rgb(255 255 255 / 0.1), 0 60px 120px -30px rgb(0 0 20 / 0.8)"><img src="${artUrl("step-2-dark.webp")}" style="width:100%;height:100%;object-fit:cover;object-position:50% 40%"></div>`,
+        `<svg class="g" style="left:0;top:0;z-index:3" width="${W}" height="${H}">${scan}</svg>`,
         vignette(0.35),
         p.html,
         /* In the empty band under the form (display y 2440 on), hiding no words. */
         popup({ x: 44 * u, y: p.at(660, 2440)[1], w: 900 * u, rotate: -3, emoji: "2705", tone: "mint", title: "Checked by a person", line: "Verified mark added", meta: "now", example: true, scale: u * 1.08 }),
         headline({ lines: ["The verified mark means", "a real person checked"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size * 0.92,
-          sub: "About the person, not the property.", subSize: 42 * u }),
+          sub: "About who you deal with, never the listing.", subSize: 42 * u }),
       ].join("\n");
     },
   },
@@ -281,7 +294,8 @@ export const SET_B = [
         `<svg class="g" style="left:0;top:0;z-index:2" width="${W}" height="${H}">${dial}</svg>`,
         reflection(p, { opacity: 0.28, length: 0.26, bottom: H - 8 }),
         p.html,
-        popup({ x: W / 2 - 470 * u, y: b.y - 40 * u, w: 940 * u, rotate: 0, emoji: "1f512", title: "Passcode on", line: "Vallo locks when you step away", meta: "now", scale: u * 1.1 }),
+        /* A toast over the tab bar, below the keypad: the island stays in view. */
+        popup({ x: W / 2 - 470 * u, y: p.at(660, 2628)[1], w: 940 * u, rotate: 0, emoji: "1f512", title: "Passcode on", line: "Vallo locks when you step away", meta: "now", scale: u * 1.1 }),
         headline({ lines: ["Lock Vallo", "with a passcode"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },

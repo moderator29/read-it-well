@@ -4,7 +4,10 @@ made them: formats, lengths, loudness, peaks, DC, clicks, fades, grid maths,
 timing invariants. Prints a table, writes <out>/verify_report.json and exits
 non-zero if anything fails.
 
-    python verify.py --out out [--timeline ../video/timeline.json]
+    python verify.py --out out [--timeline ../video/timeline.json] [--mix-dir out_hot]
+
+--mix-dir points at a separate mix.py output folder (default: --out); the kit,
+music and timings are always read from --out.
 """
 from __future__ import annotations
 
@@ -18,7 +21,7 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (band_energy_share, click_scan, ebur128_report, integrated_lufs, mono_compat,  # noqa: E402
-                    sample_peak_db, true_peak_db)
+                    sample_peak_db, short_loudness, true_peak_db)
 
 REQUIRED_SFX = ["tap", "tap_soft", "toggle_on", "toggle_off", "pop", "pop_low", "bubble_send", "whoosh_short",
                 "whoosh_long", "swipe", "card_slide", "chime_notify", "success", "ding_pay", "sparkle", "stamp",
@@ -166,22 +169,94 @@ def verify_mix(out: Path, timeline: dict | None):
             check(f"{name}: length = timeline duration", abs(len(x) / sr - timeline["duration"]) < 1.5 / sr)
 
 
+def _pan(y: np.ndarray, pan: float) -> np.ndarray:
+    if y.shape[1] == 1:
+        th = (np.clip(pan, -1, 1) + 1) * np.pi / 4
+        return np.concatenate([y * np.cos(th), y * np.sin(th)], axis=1) * np.sqrt(2)
+    return y * np.array([min(1.0, 1 - pan), min(1.0, 1 + pan)])[None, :]
+
+
+def verify_sfx_rules(out: Path, mix_dir: Path):
+    """Recompute, from the kit files and the placed-event list, (a) the hard
+    cap: every event's 100 ms loudness <= voice - 6 LU, with the voice level
+    measured from the voice stem; (b) that every request over the cap was
+    capped and logged; (c) the effects bus never exceeds the music bed at the
+    same moment by more than the kit intends (same cues at offset 0)."""
+    rp = mix_dir / "final_mix_report.json"
+    if not rp.exists():
+        return
+    rep = json.loads(rp.read_text())
+    sx = rep.get("sfx")
+    if not isinstance(sx, dict):
+        check("sfx rules: report has an sfx section", False)
+        return
+    index = {f["file"][:-4]: f for f in json.loads((out / "sfx" / "index.json").read_text())["files"]}
+    g = rep["limiter"]["gain_into_limiter_db"]
+    v, sr, _ = read(mix_dir / "mix_stems" / "voice.wav")
+    voice_ref = integrated_lufs(v, sr) - g  # the voice as the mixer set it, before the master gain
+    cap = voice_ref - 6.0
+    N = len(v)
+    bus, kit = np.zeros((N, 2)), np.zeros((N, 2))
+    worst, worst_name, should_cap = -1e9, None, 0
+    for e in sx["events"]:
+        y, _, _ = read(out / "sfx" / f"{e['name']}.wav")
+        y = _pan(y, e["pan"])
+        l_app = float(short_loudness(y * 10 ** (e["applied_gain_db"] / 20), sr, 0.1, 0.005).max())
+        l_req = float(short_loudness(y * 10 ** (e["requested_gain_db"] / 20), sr, 0.1, 0.005).max())
+        should_cap += l_req > cap + 0.01
+        if l_app - cap > worst:
+            worst, worst_name = l_app - cap, f"{e['name']}@{e['t']}"
+        i = int(round(e["t"] * sr))
+        j = min(N, i + len(y))
+        if i < N:
+            bus[i:j] += y[: j - i] * 10 ** (e["applied_gain_db"] / 20)
+            rec = index.get(e["name"], {}).get("recommended_gain_db")
+            if rec is not None:
+                kit[i:j] += y[: j - i] * 10 ** (rec / 20)
+    check("sfx cap: every event <= voice - 6 LU (100 ms loudness)", worst <= 0.02,
+          f"voice as set {voice_ref:.2f} LUFS -> cap {cap:.2f}; loudest event {worst_name} at {worst:+.2f} LU vs cap")
+    check("sfx cap: every over-cap request was capped and logged", should_cap == sx["sfx_capped_count"]
+          == len(sx["capped"]), f"{should_cap} requests over the cap, {sx['sfx_capped_count']} logged: "
+          + ", ".join(f"{c['name']}@{c['t']} -{c['db_taken_off']} dB" for c in sx["capped"]))
+    brep = json.loads((mix_dir / "music_bed_report.json").read_text())
+    if "normalized" in brep.get("contents", ""):
+        check("sfx vs bed: skipped (bed was re-normalized)", True)
+        return
+    bed, _, _ = read(mix_dir / "music_bed.wav")
+    lb, lk, lm = (short_loudness(z, sr, 0.1, 0.01) for z in (bus, kit, bed))
+    n = min(len(lb), len(lk), len(lm))
+    lb, lk, lm = lb[:n], lk[:n], lm[:n]
+    rel = (lb > -70) & (lb > lm - 15)
+    over = np.where(lk > -70, lb - lk, 0.0)
+    k = int(np.argmax(np.where(rel, over, -1e9)))
+    kx = int(np.argmax(np.where(rel, lb - lm, -1e9)))
+    tt = lambda q: q * 0.01 + 0.05  # noqa: E731
+    at = lambda q: sorted({e["name"] for e in sx["events"] if e["t"] - 0.05 <= tt(q) <= e["t"] + e["dur"] + 0.05})  # noqa: E731
+    check("sfx vs bed: effects never exceed the bed by more than the kit intends (tol 0.5 LU)",
+          float(over[k]) <= 0.5,
+          f"worst overshoot {over[k]:+.2f} LU at {tt(k):.2f}s {at(k)}; max excess over the bed "
+          f"{lb[kx] - lm[kx]:+.2f} LU at {tt(kx):.2f}s {at(kx)}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", default="out")
     ap.add_argument("--timeline")
+    ap.add_argument("--mix-dir", help="folder with mix.py outputs (default: --out)")
     a = ap.parse_args()
     out = Path(a.out)
+    mix_dir = Path(a.mix_dir) if a.mix_dir else out
     tl = json.loads(Path(a.timeline).read_text()) if a.timeline else None
     verify_timings(out)
     verify_sfx(out)
     verify_music(out, tl)
-    verify_mix(out, tl)
+    verify_mix(mix_dir, tl)
+    verify_sfx_rules(out, mix_dir)
     w = max(len(n) for n, _, _ in results)
     for n, ok, d in results:
         print(f"{'PASS' if ok else 'FAIL'}  {n:<{w}}  {d}")
     json.dump([{"check": n, "pass": ok, "detail": d} for n, ok, d in results],
-              open(out / "verify_report.json", "w"), indent=1)
+              open(mix_dir / "verify_report.json", "w"), indent=1)
     n_fail = sum(1 for _, ok, _ in results if not ok)
     print(f"\n{len(results) - n_fail}/{len(results)} checks passed")
     sys.exit(1 if n_fail else 0)

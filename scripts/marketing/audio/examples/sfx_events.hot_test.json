@@ -14,6 +14,27 @@
   "note": "icon lands on 'Meet Vallo' (bar 4)"
  },
  {
+  "name": "tap",
+  "t": 15.0,
+  "gain_db": 0.0,
+  "pan": 0.3,
+  "note": "hot ABSOLUTE override: must be capped"
+ },
+ {
+  "name": "tap_soft",
+  "t": 16.0,
+  "offset_db": -3,
+  "pan": -0.3,
+  "note": "quieter than the kit: untouched"
+ },
+ {
+  "name": "toggle_on",
+  "t": 19.5,
+  "offset_db": 15,
+  "pan": 0.0,
+  "note": "DELIBERATELY HOT: must be capped"
+ },
+ {
   "name": "counter_tick",
   "t": 25.385,
   "offset_db": 0,
@@ -44,6 +65,13 @@
   "offset_db": 0,
   "pan": 0.0,
   "note": "total lands"
+ },
+ {
+  "name": "chime_notify",
+  "t": 32.0,
+  "offset_db": 14,
+  "pan": 0.0,
+  "note": "DELIBERATELY HOT: must be capped"
  },
  {
   "name": "bubble_send",

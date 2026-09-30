@@ -519,21 +519,40 @@ function slabGeometry(C, { height, bevel, segments, sink }) {
       idx.push(a, b, c, a, c, d);
     }
   }
-  // the top: the last bevel ring, triangulated
+  // the top: the last bevel ring, triangulated with a grid of inner points (so the baked
+  // light can vary across it)
   const top = [];
   const base = P.length / 3;
+  const ring2 = [];
   for (let i = 0; i < n; i += 1) {
     const [x, y] = C[i];
     const [ox, oy] = out[i];
     const px = x - ox * bevelAt[i], py = y - oy * bevelAt[i];
     top.push(new THREE.Vector2(px, py));
-    P.push(px, height, -py);
-    N.push(0, 1, 0);
-    U.push(px, -py);
+    ring2.push([px, py]);
   }
-  const faces = THREE.ShapeUtils.triangulateShape(top.slice(), []);
+  const holes = [];
+  const step = 0.42;
+  let gx0 = Infinity, gx1 = -Infinity, gy0 = Infinity, gy1 = -Infinity;
+  for (const [x, y] of ring2) { gx0 = Math.min(gx0, x); gx1 = Math.max(gx1, x); gy0 = Math.min(gy0, y); gy1 = Math.max(gy1, y); }
+  for (let gy = Math.ceil(gy0 / step) * step; gy < gy1; gy += step) {
+    for (let gx = Math.ceil(gx0 / step) * step; gx < gx1; gx += step) {
+      const p = [gx + (Math.round(gy / step) % 2 ? step / 2 : 0), gy];
+      if (!inside(p, ring2)) continue;
+      let d = Infinity;
+      for (let i = 0; i < n; i += 1) d = Math.min(d, segDist(p, ring2[i], ring2[(i + 1) % n]).d);
+      if (d > step * 0.55) holes.push([new THREE.Vector2(p[0], p[1])]);
+    }
+  }
+  const all = top.concat(holes.map((h) => h[0]));
+  for (const v of all) {
+    P.push(v.x, height, -v.y);
+    N.push(0, 1, 0);
+    U.push(v.x, -v.y);
+  }
+  const faces = THREE.ShapeUtils.triangulateShape(top.slice(), holes);
   for (const [a, b, c] of faces) {
-    const A = top[a], B = top[b], Cc = top[c];
+    const A = all[a], B = all[b], Cc = all[c];
     const s = (B.x - A.x) * (Cc.y - A.y) - (B.y - A.y) * (Cc.x - A.x);
     if (s >= 0) idx.push(base + a, base + b, base + c);
     else idx.push(base + a, base + c, base + b);
@@ -579,9 +598,8 @@ function latheGeometry(profile, segments) {
 /** The round plinth: a flat top, a soft quarter-round edge and a straight side. */
 function plinthGeometry(R, { height, bevel, segments }) {
   const prof = [];
-  prof.push({ r: 0, y: 0, nr: 0, ny: 1, flat: true });
-  prof.push({ r: (R - bevel) * 0.5, y: 0, nr: 0, ny: 1, flat: true });
-  prof.push({ r: R - bevel, y: 0, nr: 0, ny: 1, flat: true });
+  const rings = 14;
+  for (let k = 0; k <= rings; k += 1) prof.push({ r: ((R - bevel) * k) / rings, y: 0, nr: 0, ny: 1, flat: true });
   const S = 8;
   for (let k = 1; k <= S; k += 1) {
     const phi = (k / S) * (Math.PI / 2);
@@ -647,14 +665,26 @@ const VERT_LIT = /* glsl */ `
   }
 `;
 
-/* The velvet's vertex shader: in the glow pass the walls and the rounded edge swell outward
-   a little, so the rim's glow is wide enough to survive the quarter-size glow buffer. */
+/* The velvet. The light is static, so its view-independent part is baked per vertex at
+   build time (bakeVelvet): the wrapped key light, a hemisphere of navy and blue, a soft pool
+   of light, a front-to-back falloff and the occlusion at the foot of the walls. The shader
+   adds what depends on the eye: the pile, whose fibres light up where the surface turns
+   away (the glowing edge of the art), strongest toward the rim light behind; plus the
+   seeded grain, the slab's shadow on the plinth and the warm spill of the home's windows.
+   In the glow pass the walls and the rounded edge swell outward a little, so the rim's glow
+   survives the quarter-size glow buffer. */
 const VERT_VELVET = /* glsl */ `
   uniform float uGlowPass;
   uniform float uInflate;
+  attribute vec3 aDiff;
+  attribute vec3 aSheen;
+  attribute vec3 aRim;
   varying vec3 vPos;
   varying vec3 vN;
   varying vec2 vUv;
+  varying vec3 vDiff;
+  varying vec3 vSheen;
+  varying vec3 vRim;
   void main() {
     vec3 p = position;
     p.xz += normal.xz * uInflate * uGlowPass;
@@ -662,34 +692,23 @@ const VERT_VELVET = /* glsl */ `
     vPos = wp.xyz;
     vN = normalize(mat3(modelMatrix) * normal);
     vUv = uv;
+    vDiff = aDiff;
+    vSheen = aSheen;
+    vRim = aRim;
     gl_Position = projectionMatrix * viewMatrix * wp;
   }
 `;
 
-/* The velvet: wrapped key light, a hemisphere of navy and blue, a soft pool of light, and
-   the pile: fibres that catch the rim light at grazing angles (the glowing edge of the art),
-   with a seeded grain. */
 const FRAG_VELVET = /* glsl */ `
   ${GLSL_COMMON}
-  uniform vec3 uAlbedo;
-  uniform vec3 uKeyDir;
-  uniform vec3 uKeyCol;
   uniform vec3 uRimDir;
-  uniform vec3 uRimCol;
-  uniform vec3 uSky;
-  uniform vec3 uGround;
-  uniform vec3 uSheenCol;
   uniform float uSheenPow;
-  uniform vec3 uPool;
-  uniform float uPoolR;
-  uniform float uPoolAmt;
-  uniform vec2 uGradDir;
-  uniform float uGradR;
-  uniform float uGradAmt;
-  uniform vec3 uAo;
   uniform sampler2D uGrain;
   uniform float uGrainScale;
   uniform float uGrainAmt;
+  uniform sampler2D uShadow;
+  uniform vec4 uShadowRect;
+  uniform float uShadowAmt;
   uniform float uGlowGain;
   uniform float uGlowFloor;
   uniform vec3 uWarmPos;
@@ -698,33 +717,32 @@ const FRAG_VELVET = /* glsl */ `
   varying vec3 vPos;
   varying vec3 vN;
   varying vec2 vUv;
+  varying vec3 vDiff;
+  varying vec3 vSheen;
+  varying vec3 vRim;
   void main() {
     vec3 N = normalize(vN);
     vec3 V = normalize(cameraPosition - vPos);
     float nv = clamp(dot(N, V), 0.0, 1.0);
-    vec2 g = texture2D(uGrain, vUv * uGrainScale).rg - 0.5;
-    float kd = clamp((dot(N, uKeyDir) + 0.5) / 1.5, 0.0, 1.0);
-    vec2 dp = (vPos.xz - uPool.xz) / uPoolR;
-    float pool = mix(1.0, exp(-dot(dp, dp)), uPoolAmt);
-    // light falls off toward the front, like the art's ground under a bright horizon
-    float grad = 1.0 + uGradAmt * clamp(dot(vPos.xz - uPool.xz, uGradDir) / uGradR, -1.0, 1.0);
-    // the walls darken toward their foot (occlusion by the plinth)
-    float side = 1.0 - clamp(N.y, 0.0, 1.0);
-    float ao = mix(1.0, mix(uAo.z, 1.0, smoothstep(uAo.x, uAo.y, vPos.y)), side);
-    vec3 hemi = mix(uGround, uSky, N.y * 0.5 + 0.5);
-    vec3 col = uAlbedo * (hemi + uKeyCol * kd * pool) * grad * ao;
-    // the pile: fibres light up where the surface turns away from the eye, most toward the rim light
     float fr = pow(1.0 - nv, uSheenPow);
-    float toRim = clamp(dot(N, uRimDir), 0.0, 1.0);
     float behind = clamp(dot(-V, uRimDir) * 0.5 + 0.5, 0.0, 1.0);
-    vec3 sheen = fr * (uSheenCol * (0.35 + 0.65 * kd) * pool + uRimCol * toRim * (0.3 + 0.7 * behind)) * ao;
-    float grain = g.x * uGrainAmt + g.y * uGrainAmt * 0.7;
-    col = col * (1.0 + grain) + sheen * (1.0 + 1.1 * g.x);
-    // warm light spilling from the home's windows
-    vec3 dw = vPos - uWarmPos;
-    col += uWarmCol * exp(-dot(dw, dw) / (uWarmR * uWarmR)) * (0.4 + 0.6 * N.y);
-    vec3 glow = max(sheen - uGlowFloor, 0.0) * uGlowGain;
-    gl_FragColor = outColor(col, glow);
+    vec3 sheen = fr * (vSheen + vRim * behind);
+    if (uGlowPass > 0.5) {
+      gl_FragColor = vec4(max(sheen - uGlowFloor, 0.0) * uGlowGain * 0.5, 1.0);
+      return;
+    }
+    vec2 g = texture2D(uGrain, vUv * uGrainScale).rg - 0.5;
+    vec3 diff = vDiff;
+    if (uShadowAmt > 0.0) {
+      vec2 st = (vPos.xz - uShadowRect.xy) * uShadowRect.zw;
+      diff *= 1.0 - uShadowAmt * texture2D(uShadow, st).r * clamp(N.y * 4.0 - 3.0, 0.0, 1.0);
+    }
+    vec3 col = diff * (1.0 + g.x * uGrainAmt + g.y * uGrainAmt * 0.7) + sheen * (1.0 + 1.1 * g.x);
+    if (uWarmR > 0.0) {
+      vec3 dw = vPos - uWarmPos;
+      col += uWarmCol * exp(-dot(dw, dw) / (uWarmR * uWarmR)) * (0.4 + 0.6 * N.y);
+    }
+    gl_FragColor = outColor(col, vec3(0.0));
   }
 `;
 
@@ -902,17 +920,27 @@ const FRAG_BLUR = /* glsl */ `
     gl_FragColor = vec4(c, 1.0);
   }
 `;
+const FRAG_COMBINE = /* glsl */ `
+  uniform sampler2D tA;
+  uniform sampler2D tB;
+  uniform float uA;
+  uniform float uB;
+  varying vec2 vUv;
+  void main() { gl_FragColor = vec4(texture2D(tA, vUv).rgb * uA + texture2D(tB, vUv).rgb * uB, 1.0); }
+`;
 const FRAG_FINAL = /* glsl */ `
   uniform sampler2D tMain;
-  uniform sampler2D tGlowA;
-  uniform sampler2D tGlowB;
+  uniform sampler2D tGlow;
   uniform vec2 uTexel;
   uniform float uTaps;
-  uniform float uGlowA;
-  uniform float uGlowB;
   uniform float uHaloAlpha;
+  uniform float uDebug;
   varying vec2 vUv;
   void main() {
+    if (uDebug > 0.5) {
+      gl_FragColor = vec4(texture2D(tGlow, vUv).rgb * 4.0, 1.0);
+      return;
+    }
     vec4 m;
     if (uTaps > 1.5) {
       vec2 o = uTexel * 0.5;
@@ -921,7 +949,7 @@ const FRAG_FINAL = /* glsl */ `
     } else {
       m = texture2D(tMain, vUv);
     }
-    vec3 glow = (texture2D(tGlowA, vUv).rgb * uGlowA + texture2D(tGlowB, vUv).rgb * uGlowB) * 2.0;
+    vec3 glow = texture2D(tGlow, vUv).rgb * 2.0;
     // add the glow in (near) linear light over the premultiplied sRGB model
     vec3 l = m.rgb * m.rgb + glow;
     vec3 c = sqrt(min(l, vec3(1.0)));
@@ -1017,8 +1045,10 @@ export async function createLiveMap(o) {
     generateMipmaps: false,
   });
   const gw = Math.max(8, Math.round(width / 4)), gh = Math.max(8, Math.round(height / 4));
-  const rtOpts = { type: THREE.UnsignedByteType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false };
-  const glowRT = new THREE.WebGLRenderTarget(gw, gh, { ...rtOpts, depthBuffer: true });
+  /* half-float glow buffers: faint glow over the transparent background is lifted a lot by
+     the encode, and 8 bits show as blocks there */
+  const rtOpts = { type: THREE.HalfFloatType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false };
+  const glowRT = new THREE.WebGLRenderTarget(gw, gh, { ...rtOpts, type: o.glowHalf === false ? THREE.UnsignedByteType : THREE.HalfFloatType, depthBuffer: true, samples: o.glowSamples ?? 4 });
   const blurA1 = new THREE.WebGLRenderTarget(gw, gh, rtOpts);
   const blurA2 = new THREE.WebGLRenderTarget(gw, gh, rtOpts);
   const hw = Math.max(4, Math.round(gw / 2)), hh = Math.max(4, Math.round(gh / 2));
@@ -1034,33 +1064,58 @@ export async function createLiveMap(o) {
 
   const velvetUniforms = (u) => ({
     uGlowPass: glowPass,
-    uAlbedo: { value: lin(u.albedo) },
-    uKeyDir: { value: keyDir },
-    uKeyCol: { value: lin(u.key).multiplyScalar(u.keyAmt) },
     uRimDir: { value: rimDir },
-    uRimCol: { value: lin(u.rim).multiplyScalar(u.rimAmt) },
-    uSky: { value: lin(u.sky).multiplyScalar(u.skyAmt) },
-    uGround: { value: lin(u.ground).multiplyScalar(u.groundAmt) },
-    uSheenCol: { value: lin(u.sheen).multiplyScalar(u.sheenAmt) },
     uSheenPow: { value: u.sheenPow },
-    uPool: { value: u.pool },
-    uPoolR: { value: u.poolR },
-    uPoolAmt: { value: u.poolAmt },
-    uGradDir: { value: new THREE.Vector2(u.gradDir[0], u.gradDir[1]).normalize() },
-    uGradR: { value: u.gradR },
-    uGradAmt: { value: u.gradAmt },
-    uAo: { value: new THREE.Vector3(u.ao[0], u.ao[1], u.ao[2]) },
     uInflate: { value: u.inflate ?? 0 },
     uGrain: { value: grain },
     uGrainScale: { value: u.grainScale },
     uGrainAmt: { value: u.grainAmt },
+    uShadow: { value: u.shadow ?? grain },
+    uShadowRect: { value: u.shadowRect ?? new THREE.Vector4() },
+    uShadowAmt: { value: u.shadowAmt ?? 0 },
     uGlowGain: { value: u.glowGain },
     uGlowFloor: { value: u.glowFloor },
     uWarmPos: { value: new THREE.Vector3(0, -100, 0) },
     uWarmCol: { value: new THREE.Color(0, 0, 0) },
-    uWarmR: { value: 0.6 },
+    uWarmR: { value: 0 },
   });
-  const shader = (frag, uniforms, extra = {}) => new THREE.ShaderMaterial({ vertexShader: frag === FRAG_VELVET ? VERT_VELVET : VERT_LIT, fragmentShader: frag, uniforms, ...extra });
+
+  /** Bakes the view-independent light of the velvet into the geometry (see VERT_VELVET). */
+  function bakeVelvet(geo, u, offset = new THREE.Vector3()) {
+    const pos = geo.attributes.position, nor = geo.attributes.normal;
+    const n = pos.count;
+    const D = new Float32Array(n * 3), S = new Float32Array(n * 3), Rm = new Float32Array(n * 3);
+    const albedo = lin(u.albedo), key = lin(u.key).multiplyScalar(u.keyAmt);
+    const sky = lin(u.sky).multiplyScalar(u.skyAmt), ground = lin(u.ground).multiplyScalar(u.groundAmt);
+    const sheenC = lin(u.sheen).multiplyScalar(u.sheenAmt), rimC = lin(u.rim).multiplyScalar(u.rimAmt);
+    const gd = new THREE.Vector2(u.gradDir[0], u.gradDir[1]).normalize();
+    const smooth = (a, b, x) => { const v = clamp01((x - a) / (b - a)); return v * v * (3 - 2 * v); };
+    for (let i = 0; i < n; i += 1) {
+      const x = pos.getX(i) + offset.x, y = pos.getY(i) + offset.y, z = pos.getZ(i) + offset.z;
+      const nx = nor.getX(i), ny = nor.getY(i), nz = nor.getZ(i);
+      const kd = clamp01((nx * keyDir.x + ny * keyDir.y + nz * keyDir.z + 0.5) / 1.5);
+      const px = (x - u.pool.x) / u.poolR, pz = (z - u.pool.z) / u.poolR;
+      const pool = mix(1, Math.exp(-(px * px + pz * pz)), u.poolAmt);
+      const grad = 1 + u.gradAmt * Math.max(-1, Math.min(1, ((x - u.pool.x) * gd.x + (z - u.pool.z) * gd.y) / u.gradR));
+      const side = 1 - clamp01(ny);
+      const ao = mix(1, mix(u.ao[2], 1, smooth(u.ao[0], u.ao[1], y)), side);
+      const h = ny * 0.5 + 0.5;
+      const toRim = clamp01(nx * rimDir.x + ny * rimDir.y + nz * rimDir.z);
+      for (let c = 0; c < 3; c += 1) {
+        const k = ["r", "g", "b"][c];
+        const hemi = mix(ground[k], sky[k], h);
+        D[i * 3 + c] = albedo[k] * (hemi + key[k] * kd * pool) * grad * ao;
+        S[i * 3 + c] = (sheenC[k] * (0.35 + 0.65 * kd) * pool + rimC[k] * toRim * 0.3) * ao;
+        Rm[i * 3 + c] = rimC[k] * toRim * 0.7 * ao;
+      }
+    }
+    geo.setAttribute("aDiff", new THREE.BufferAttribute(D, 3));
+    geo.setAttribute("aSheen", new THREE.BufferAttribute(S, 3));
+    geo.setAttribute("aRim", new THREE.BufferAttribute(Rm, 3));
+    return geo;
+  }
+  const FLAT = `${GLSL_COMMON}\n uniform vec3 uAlbedo; void main() { gl_FragColor = outColor(uAlbedo, vec3(0.0)); }`;
+  const shader = (frag, uniforms, extra = {}) => new THREE.ShaderMaterial({ vertexShader: frag === FRAG_VELVET ? VERT_VELVET : VERT_LIT, fragmentShader: o.debug === "flat" && frag === FRAG_VELVET ? FLAT : frag, uniforms, ...extra });
 
   const LOOK = {
     slab: {
@@ -1098,17 +1153,23 @@ export async function createLiveMap(o) {
   const model = new THREE.Group(); // squashes on the landing
   scene.add(model);
 
-  const plinth = new THREE.Mesh(plinthGeometry(plinthR, PLINTH), shader(FRAG_VELVET, velvetUniforms(LOOK.plinth)));
+  /* The slab's soft shadow on the plinth: its silhouette, blurred and pushed away from the
+     key light, multiplied into the plinth's top (never a shadow map). */
+  const shadowTex = silhouetteShadow(outline, centre2, plinthR, keyDir);
+  LOOK.plinth.shadow = shadowTex;
+  LOOK.plinth.shadowRect = new THREE.Vector4(centre3.x - plinthR, centre3.z + plinthR, 1 / (2 * plinthR), -1 / (2 * plinthR));
+  LOOK.plinth.shadowAmt = 0.9;
+  const plinth = new THREE.Mesh(bakeVelvet(plinthGeometry(plinthR, PLINTH), LOOK.plinth, centre3), shader(FRAG_VELVET, velvetUniforms(LOOK.plinth)));
   plinth.position.set(centre3.x, 0, centre3.z);
   model.add(plinth);
 
   const slabMat = shader(FRAG_VELVET, velvetUniforms(LOOK.slab));
-  const slab = new THREE.Mesh(slabGeometry(outline, SLAB), slabMat);
+  const slab = new THREE.Mesh(bakeVelvet(slabGeometry(outline, SLAB), LOOK.slab), slabMat);
   model.add(slab);
+  slab.renderOrder = -2; // before the plinth: it hides much of it
+  plinth.renderOrder = -1;
 
-  /* Soft shadows: the slab on the plinth (a blurred silhouette, pushed away from the key
-     light) and the house on the slab; drawn as decals, never as shadow maps. */
-  const shadowTex = silhouetteShadow(outline, centre2, plinthR, keyDir);
+  /* Soft decals on the slab: the house's shadow and the warm light of its windows. */
   const decal = (tex, { add = false, color = 0x000000, opacity = 1 } = {}) =>
     new THREE.ShaderMaterial({
       vertexShader: /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
@@ -1126,11 +1187,6 @@ export async function createLiveMap(o) {
       blendSrcAlpha: THREE.ZeroFactor,
       blendDstAlpha: THREE.OneFactor,
     });
-  const plinthShadow = new THREE.Mesh(new THREE.PlaneGeometry(plinthR * 2, plinthR * 2), decal(shadowTex, { opacity: 0.92 }));
-  plinthShadow.rotation.x = -Math.PI / 2;
-  plinthShadow.position.set(centre3.x, 0.002, centre3.z);
-  plinthShadow.renderOrder = 1;
-  model.add(plinthShadow);
 
   /* ---------- the home in Lagos ---------- */
   const lagos = anchors.Lagos;
@@ -1487,17 +1543,22 @@ export async function createLiveMap(o) {
     fragmentShader: FRAG_FINAL,
     uniforms: {
       tMain: { value: mainRT.texture },
-      tGlowA: { value: blurA2.texture },
-      tGlowB: { value: blurB2.texture },
+      tGlow: { value: blurA1.texture },
       uTexel: { value: new THREE.Vector2(1 / mainRT.width, 1 / mainRT.height) },
       uTaps: { value: aa === "ss" ? 4 : 1 },
-      uGlowA: { value: 0.85 },
-      uGlowB: { value: 0.4 },
       uHaloAlpha: { value: 1.0 },
+      uDebug: { value: o.debug === "glowB" ? 2 : o.debug === "glow" ? 1 : 0 },
     },
     depthTest: false,
     depthWrite: false,
     blending: THREE.NoBlending,
+  });
+  const combineMat = new THREE.ShaderMaterial({
+    vertexShader: VERT_QUAD,
+    fragmentShader: FRAG_COMBINE,
+    uniforms: { tA: { value: blurA2.texture }, tB: { value: blurB2.texture }, uA: { value: 0.85 }, uB: { value: 0.4 } },
+    depthTest: false,
+    depthWrite: false,
   });
   const quad = new THREE.Mesh(quadGeo, blurMat);
   quad.frustumCulled = false;
@@ -1520,6 +1581,8 @@ export async function createLiveMap(o) {
   /* ---------- the state at t ---------- */
   const glowOnly = [];
   scene.traverse((ob) => { if (ob.userData.glowOnly) glowOnly.push(ob); });
+  const decals = [];
+  scene.traverse((ob) => { if (ob.isMesh && ob.material.fragmentShader === FRAG_DECAL) decals.push(ob); });
 
   function pinState(t) {
     // rest: above the roof; drops in; hovers; lifts to the camera
@@ -1597,7 +1660,7 @@ export async function createLiveMap(o) {
     houseWarm.material.uniforms.uOpacity.value = 0.22 * lit;
     slabMat.uniforms.uWarmPos.value.set(lagos.x, topY + 0.1, lagos.z);
     slabMat.uniforms.uWarmCol.value.copy(lin("#ff8a3d")).multiplyScalar(0.05 * lit);
-    slabMat.uniforms.uWarmR.value = 0.55;
+    slabMat.uniforms.uWarmR.value = lit > 0.001 ? 0.55 : 0;
 
     /* the routes */
     for (const r of routes) {
@@ -1679,36 +1742,89 @@ export async function createLiveMap(o) {
     }
   }
 
-  function renderAt(t) {
+  /* The part of the frame the model (and its glow) can reach at t: every full-size pass is
+     scissored to it. A pure function of t, so the frame stays deterministic. */
+  const reachPts = [];
+  for (let i = 0; i < 48; i += 1) {
+    const a = (i / 48) * TAU;
+    for (const y of [0.05, -PLINTH.height]) reachPts.push(new THREE.Vector3(centre3.x + plinthR * Math.cos(a), y, centre3.z + plinthR * Math.sin(a)));
+  }
+  for (const r of routes) for (let k = 1; k < 8; k += 1) reachPts.push(r.curve.getPoint(k / 8));
+  reachPts.push(new THREE.Vector3(lagos.x, topY + house.height, lagos.z));
+  function reach(t, margin) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const add = (x, y) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); };
+    for (const p of reachPts) { const s = toScreen(p); add(s.x, s.y); }
+    if (t >= T.pinIn[0]) {
+      const ps = pinState(t);
+      const c = toScreen(ps.pos);
+      const r = ((height / 2) / Math.tan(fovY / 2)) * (ps.scale * 2.6) / Math.max(0.5, ps.pos.distanceTo(camera.position));
+      add(c.x - r, c.y - r);
+      add(c.x + r, c.y + r);
+    }
+    return [Math.max(0, Math.floor(x0 - margin)), Math.max(0, Math.floor(y0 - margin)), Math.min(width, Math.ceil(x1 + margin)), Math.min(height, Math.ceil(y1 + margin))];
+  }
+
+  const mainOnly = decals;
+  const gl = renderer.getContext();
+  function renderAt(t, profile = null) {
+    // profiling only: read a pixel back from the target just drawn, so its work is done
+    const px8 = new Uint8Array(4), pxf = new Float32Array(4);
+    const mark = profile ? (name, rt) => {
+      renderer.setRenderTarget(rt ?? null);
+      const half = rt && rt.texture.type === THREE.HalfFloatType;
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, half ? gl.FLOAT : gl.UNSIGNED_BYTE, half ? pxf : px8);
+      const now = performance.now();
+      profile[name] = +(now - profile._t).toFixed(1);
+      profile._t = now;
+    } : () => {};
+    if (profile) profile._t = performance.now();
     apply(t);
-    /* main pass */
+    // the region to draw (canvas CSS px, y down) and the same in each target's pixels (y up)
+    const R = reach(t, 110 * Math.min(sx, sy) + 8);
+    const toTarget = (rt, grow = 0) => {
+      const kx = rt.width / width, ky = rt.height / height;
+      const x = Math.max(0, Math.floor(R[0] * kx) - grow), y = Math.max(0, Math.floor((height - R[3]) * ky) - grow);
+      const w = Math.min(rt.width, Math.ceil(R[2] * kx) + grow) - x, h = Math.min(rt.height, Math.ceil((height - R[1]) * ky) + grow) - y;
+      rt.scissor.set(x, y, Math.max(1, w), Math.max(1, h));
+      rt.scissorTest = true;
+    };
+    mark("apply", mainRT);
+    /* main pass (the glow-only helpers are hidden) */
     glowPass.value = 0;
-    for (const ob of glowOnly) ob.userData.wasVisible = ob.visible;
+    for (const ob of glowOnly) { ob.userData.on = ob.visible; ob.visible = false; }
+    toTarget(mainRT, 3);
     renderer.setRenderTarget(mainRT);
     renderer.setClearColor(0x000000, 0);
     renderer.clear(true, true, false);
     renderer.render(scene, camera);
-    /* glow pass (quarter size): only light, occluded by the model */
+    mark("main", aa === "msaa" ? null : mainRT);
+    /* glow pass (quarter size): only light, occluded by the model; the decals are hidden */
+    for (const ob of glowOnly) ob.visible = ob.userData.on;
+    for (const ob of mainOnly) { ob.userData.on = ob.visible; ob.visible = false; }
     glowPass.value = 1;
-    const hidden = [];
-    scene.traverse((ob) => {
-      if (ob.isMesh && ob.material.transparent && !ob.userData.glowOnly && ob.material.fragmentShader === FRAG_DECAL && ob.visible) {
-        ob.visible = false;
-        hidden.push(ob);
-      }
-    });
     renderer.setRenderTarget(glowRT);
     renderer.setClearColor(0x000000, 1);
     renderer.clear(true, true, false);
     renderer.render(scene, camera);
-    for (const ob of hidden) ob.visible = true;
+    for (const ob of mainOnly) ob.visible = ob.userData.on;
     glowPass.value = 0;
     renderer.setClearColor(0x000000, 0);
     blur(glowRT, blurA1, blurA2, 1.0);
+    mark("glow", blurA2);
     blur(blurA2, blurB1, blurB2, 1.0);
     blur(blurB2, blurB1, blurB2, 2.0);
-    /* final: filter the model down, add the glow */
+    pass(combineMat, blurA1); // the two glows, pre-mixed at quarter size
+    mark("blur", blurA1);
+    /* final: clear the canvas, then filter the model down and add the glow inside the region */
+    renderer.setRenderTarget(null);
+    renderer.setScissorTest(false);
+    renderer.clear(true, false, false);
+    renderer.setScissor(R[0], height - R[3], R[2] - R[0], R[3] - R[1]);
+    renderer.setScissorTest(true);
     pass(finalMat, null);
+    renderer.setScissorTest(false);
+    mark("final");
   }
 
   /* glow-only helpers are skipped in the main pass by their shader (discard) */
@@ -1811,6 +1927,15 @@ export async function createLiveMap(o) {
 
     /** A city's point on the slab (Lagos: where the home stands), canvas CSS px. */
     point,
+
+    /** Renders t with a sync after each stage; returns the ms per stage (for tuning). */
+    profile(t) {
+      const out = {};
+      renderAt(t, out);
+      delete out._t;
+      lastT = t;
+      return out;
+    },
 
     dispose() {
       renderer.dispose();

@@ -67,8 +67,8 @@ export const SET_C = [
          y 1240 to 2070), where the list of plans would be. */
       const s = u * 1.1;
       const hc = 160 * s;
-      const step = hc * 0.93;
-      const yc = p.at(660, 1700)[1];
+      const step = hc * 1.12;
+      const yc = p.at(660, 1686)[1];
       const left = Math.min(p.at(90, 1300)[0], p.at(90, 2100)[0]) - 40 * u;
       const cw = Math.max(p.at(1240, 1300)[0], p.at(1240, 2100)[0]) - left + 10 * u;
       const y0 = yc - (hc + 2 * step) / 2 + 70 * u;
@@ -136,7 +136,6 @@ export const SET_C = [
       const b = p.box;
       return [
         p.html,
-        stickerIn(ctx, { code: "1f3e8", x: b.r - 30 * u, y: p.at(1180, 1040)[1], size: 220 * u, rotate: 8 }),
         headline({ lines: ["Host your hotel", "or shortlet"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -169,8 +168,9 @@ export const SET_C = [
       const b = p.box;
       return [
         p.html,
-        /* A notification banner across the top of the screen, as the phone shows one. */
-        popup({ x: b.cx - 440 * u, y: b.y + 44 * u, w: 880 * u, rotate: -1.5, emoji: "1f3e6", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", meta: "now", example: true, scale: u * 1.08 }),
+        /* In the empty band between the earnings card and the picture below
+           it (display y 1990 to 2330), so the island and every word stay clear. */
+        popup({ x: b.cx - 440 * u, y: p.at(660, 2000)[1], w: 880 * u, rotate: -1.5, emoji: "1f3e6", title: "Payment settled", line: "Straight to your bank", amount: "₦1,800,000", meta: "now", example: true, scale: u * 1.04 }),
         headline({ lines: ["Your share goes", "straight to your bank"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -199,13 +199,13 @@ export const SET_C = [
 
   /* 32 --------------------------------------------------------------- */
   {
-    n: 32, slug: "vallo-speaks-your-language", captures: ["welcome-yo-4", "welcome-ha"], theme: "dark",
+    n: 32, slug: "vallo-speaks-your-language", captures: ["welcome-yo", "welcome-ha"], theme: "dark",
     async layout(ctx) {
       const { W, H, u, ios } = ctx;
       const f = frame(ctx, { top: ios ? 780 : 690 });
       const h = f.phoneH * 0.95;
       const back = await ctx.phone({ id: "welcome-ha", cx: W * 0.35, cy: f.phoneTop + h / 2 - 10, h: h * 0.9, rotation: { x: -4, y: 20, z: -5 }, fov: 26, z: 18, color: "natural-titanium" });
-      const front = await ctx.phone({ id: "welcome-yo-4", cx: W * 0.63, cy: f.phoneTop + f.phoneH - h / 2, h, rotation: { x: -4, y: -14, z: 3 }, fov: 26, z: 22 });
+      const front = await ctx.phone({ id: "welcome-yo", cx: W * 0.63, cy: f.phoneTop + f.phoneH - h / 2, h, rotation: { x: -4, y: -14, z: 3 }, fov: 26, z: 22 });
       return [
         fill("linear-gradient(180deg, #050A45 0%, #0A0C4A 40%, #3A1A55 70%, #8A3A3A 88%, #C0602A 100%)"),
         glow({ x: W * 0.5, y: H * 1.02, rx: W * 0.9, ry: 520, color: "255 150 70", alpha: 0.6, blur: 40 }),

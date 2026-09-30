@@ -45,6 +45,16 @@ export const pairBoxes = (ctxs, W) => ctxs.map((c, k) => {
   return { ...b, x: b.x + k * W, r: b.r + k * W, cx: b.cx + k * W };
 });
 
+/** The width a pill (components.mjs) will draw at, estimated from its text. */
+export const pillWidth = (text, size, icon = true) => size * (1.8 + (icon ? 1.6 : 0)) + text.length * size * 0.56;
+
+/** The x of a handset's left screen edge at page height y (from its screen quad). */
+export function screenLeftAt(pl, y) {
+  const [[x0, y0], , , [x3, y3]] = pl.quad;
+  const t = Math.min(1, Math.max(0, (y - y0) / (y3 - y0)));
+  return x0 + (x3 - x0) * t;
+}
+
 /** A dark vignette that settles the corners. */
 export const vignette = (a = 0.5, at = "50% 45%") =>
   fill(`radial-gradient(130% 90% at ${at}, rgb(1 1 24 / 0) 55%, rgb(1 1 24 / ${a}) 100%)`, "z-index:6");

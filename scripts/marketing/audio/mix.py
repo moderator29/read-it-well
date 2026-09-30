@@ -363,25 +363,49 @@ def master(bus: np.ndarray, target_lufs: float = TARGET_LUFS, ceiling_dbtp: floa
 
 
 def encode_m4a(y: np.ndarray, wav: Path, m4a: Path, ceiling_dbtp: float = CEILING_DBTP) -> dict:
-    """AAC 256k from the WAV. AAC decoding overshoots true peaks a little on
-    dense, limited material; if the decoded M4A is over the ceiling, encode
-    again from a copy re-limited just below it (peaks only, so the loudness
-    barely moves) - up to 6 tries."""
-    src, ceil = wav, ceiling_dbtp
+    """AAC 256k from the WAV. AAC decoding can overshoot true peaks a little on
+    dense, limited material; if the decoded M4A is over the ceiling, encode from
+    a copy re-limited below it (peaks only, loudness barely moves), searching
+    for the highest pre-encode ceiling that passes (bracket + bisection)."""
     tmp = m4a.with_name(f".{m4a.stem}_enc.wav")
-    for k in range(6):
+
+    def enc(c):
+        src = wav
+        if c is not None:
+            write_wav(tmp, true_peak_limiter(y, c)[0], SR, 32)
+            src = tmp
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-c:a", "aac", "-b:a", "256k",
                         "-movflags", "+faststart", str(m4a)], check=True)
-        r = ebur128_report(m4a)
-        if r["TP"] <= ceiling_dbtp:
-            break
-        ceil -= (r["TP"] - ceiling_dbtp) + 0.1
-        write_wav(tmp, true_peak_limiter(y, ceil - 0.05)[0], SR, 32)
-        src = tmp
+        return ebur128_report(m4a)
+
+    r = enc(None)
+    best, best_r, used = None, r, ceiling_dbtp
+    if r["TP"] > ceiling_dbtp:
+        hi, lo = ceiling_dbtp, None          # hi fails, lo passes
+        c = ceiling_dbtp - (r["TP"] - ceiling_dbtp) - 0.05
+        last = None
+        for _ in range(7):
+            rc = enc(c)
+            last = c
+            if rc["TP"] <= ceiling_dbtp:
+                lo, best, best_r = c, c, rc
+            else:
+                hi = c
+            if lo is None:
+                c = c - (rc["TP"] - ceiling_dbtp) - 0.1
+            elif hi - lo > 0.08:
+                c = (hi + lo) / 2
+            else:
+                break
+        if best is None:
+            raise RuntimeError(f"could not bring {m4a.name} under {ceiling_dbtp} dBTP")
+        if last != best:  # the file on disk holds the last (failing) try: re-encode the best one
+            best_r = enc(best)
+        used = best
     if tmp.exists():
         tmp.unlink()
-    r["pre_encode_ceiling_dbtp"] = round(ceil, 2)
-    return r
+    best_r["pre_encode_ceiling_dbtp"] = round(used, 2)
+    return best_r
 
 
 def loudness_report(y: np.ndarray, wav: Path, m4a: Path | None, extra: dict | None = None) -> dict:
@@ -403,31 +427,136 @@ def loudness_report(y: np.ndarray, wav: Path, m4a: Path | None, extra: dict | No
 
 
 # ================================================================ main mix
-def build_sfx_bus(events: list[dict], sfx_dir: Path, timeline: dict | None, N: int) -> tuple[np.ndarray, list]:
-    bus = np.zeros((N, 2))
+SFX_CAP_LU = 6.0          # hard rule: no event louder than the voice minus this
+BED_TOLERANCE_LU = 0.5    # bed check: allowed overshoot of the kit's intent
+BED_AUDIBLE_LU = 15.0     # bed check ignores moments where the effects sit > 15 LU under the bed
+
+
+def pan_event(y: np.ndarray, pan: float) -> np.ndarray:
+    """Mono: constant-power pan (loudness independent of pan). Stereo: balance."""
+    if y.shape[1] == 1:
+        th = (np.clip(pan, -1, 1) + 1) * np.pi / 4
+        return np.concatenate([y * np.cos(th), y * np.sin(th)], axis=1) * math.sqrt(2)
+    return y * np.array([min(1.0, 1 - pan), min(1.0, 1 + pan)])[None, :]
+
+
+def peak_l100(y: np.ndarray) -> tuple[float, float]:
+    """Max K-weighted loudness over 100 ms windows (5 ms hop) and the centre
+    time (s, from the start of y) of that window."""
+    sl = short_loudness(y, SR, 0.1, 0.005)
+    k = int(np.argmax(sl))
+    return float(sl[k]), min(len(y) / SR, k * 0.005 + 0.05)
+
+
+def event_gain(ev: dict, index: dict) -> tuple[float, str, float | None]:
+    """(gain dB, mode, kit gain dB). gain_db = absolute override; otherwise
+    recommended_gain_db + offset_db (default 0 = the kit's calibrated level)."""
+    rec = index.get(ev["name"], {}).get("recommended_gain_db")
+    if "gain_db" in ev:
+        return float(ev["gain_db"]), "absolute gain_db", rec
+    if rec is None:
+        return -12.0 + float(ev.get("offset_db", 0.0)), "uncalibrated (-12 dB + offset)", None
+    return rec + float(ev.get("offset_db", 0.0)), "offset_db", rec
+
+
+def build_sfx_bus(events: list[dict], sfx_dir: Path, timeline: dict | None, N: int,
+                  voice_ref_lufs: float = VOICE_LUFS) -> tuple[np.ndarray, np.ndarray, list, list]:
+    """Place every event, capping each one BEFORE summing so that its 100 ms
+    loudness never exceeds voice_ref_lufs - SFX_CAP_LU (the voice as the mixer
+    sets it; the ducked music plays no part). Also builds the same cue sheet
+    at the kit's calibrated levels (offset 0), used by the bed check.
+    Returns (bus, kit_bus, placed, capped)."""
+    bus, kit_bus = np.zeros((N, 2)), np.zeros((N, 2))
     index = {}
     idx_path = sfx_dir / "index.json"
     if idx_path.exists():
         index = {f["file"][:-4]: f for f in json.loads(idx_path.read_text())["files"]}
-    placed = []
+    cap = voice_ref_lufs - SFX_CAP_LU
+    placed, capped = [], []
     for ev in events:
         t = resolve_event_time(ev, timeline)
-        y = load_sfx(sfx_dir, ev["name"])
-        gain = ev.get("gain_db", index.get(ev["name"], {}).get("recommended_gain_db", -12.0))
+        gain, mode, rec = event_gain(ev, index)
         pan = float(ev.get("pan", 0.0))
-        th = (np.clip(pan, -1, 1) + 1) * np.pi / 4
-        if y.shape[1] == 1:
-            y = np.concatenate([y * np.cos(th), y * np.sin(th)], axis=1) * math.sqrt(2)
-        else:  # stereo file: balance
-            y = y * np.array([min(1.0, 1 - pan), min(1.0, 1 + pan)])[None, :]
+        y = pan_event(load_sfx(sfx_dir, ev["name"]), pan)
         i = int(round(t * SR))
         if i >= N or i + len(y) <= 0:
             continue
+        l_req, t_peak = peak_l100(undb(gain) * y)
+        take = max(0.0, l_req - cap) if l_req > cap + 0.005 else 0.0
+        applied = gain - take
         a0 = max(0, -i)
         j = min(N, i + len(y))
-        bus[max(i, 0):j] += undb(gain) * y[a0: a0 + j - max(i, 0)]
-        placed.append({"name": ev["name"], "t": round(t, 3), "gain_db": gain, "pan": pan, "dur": round(len(y) / SR, 3)})
-    return bus, placed
+        bus[max(i, 0):j] += undb(applied) * y[a0: a0 + j - max(i, 0)]
+        if rec is not None:
+            kit_bus[max(i, 0):j] += undb(rec) * y[a0: a0 + j - max(i, 0)]
+        row = {"name": ev["name"], "t": round(t, 3), "mode": mode, "requested_gain_db": round(gain, 2),
+               "applied_gain_db": round(applied, 2), "pan": pan, "dur": round(len(y) / SR, 3),
+               "peak_l100_lufs": round(l_req - take, 2), "peak_at_s": round(t + t_peak, 3),
+               "kit_peak_l100_lufs": None if rec is None else round(l_req - (gain - rec), 2)}
+        if "offset_db" in ev and "gain_db" not in ev:
+            row["offset_db"] = float(ev["offset_db"])
+        placed.append(row)
+        if take > 0:
+            capped.append({"name": ev["name"], "t": round(t, 3), "db_taken_off": round(take, 2),
+                           "requested_peak_l100_lufs": round(l_req, 2), "capped_to_lufs": round(cap, 2)})
+    return bus, kit_bus, placed, capped
+
+
+def bed_check(bus: np.ndarray, kit_bus: np.ndarray, bed: np.ndarray, placed: list) -> dict:
+    """Does the effects bus ever exceed the music bed, at the same moment, by
+    more than the kit intends?  In every 100 ms window (10 ms hop):
+      excess   = L(effects bus) - L(bed)
+      intended = L(same cues at the kit's calibrated levels) - L(bed)
+    and the overshoot is excess - intended. Windows where the effects are more
+    than BED_AUDIBLE_LU under the bed (masked) or silent are skipped. Passes
+    when no overshoot exceeds BED_TOLERANCE_LU. (The kit's calibration puts
+    every sound 2.5-12 LU under the bed's nominal -20 LUFS.)"""
+    lb = short_loudness(bus, SR, 0.1, 0.01)
+    lk = short_loudness(kit_bus, SR, 0.1, 0.01)
+    lm = short_loudness(bed, SR, 0.1, 0.01)
+    n = min(len(lb), len(lk), len(lm))
+    lb, lk, lm = lb[:n], lk[:n], lm[:n]
+    rel = (lb > -70) & (lb > lm - BED_AUDIBLE_LU)
+    t = np.arange(n) * 0.01 + 0.05
+    excess = lb - lm
+    over = np.where(lk > -70, lb - lk, 0.0)
+    out = {"definition": "per 100 ms window: (L_effects - L_bed) - (L_effects_at_kit_levels - L_bed); "
+                         f"windows with effects > {BED_AUDIBLE_LU:g} LU under the bed are ignored",
+           "tolerance_lu": BED_TOLERANCE_LU, "windows_checked": int(rel.sum())}
+    if not rel.any():
+        return {**out, "pass": True, "worst_overshoot_lu": None, "max_excess_over_bed_lu": None, "offending": []}
+
+    def events_at(tt):
+        return sorted({p["name"] for p in placed if p["t"] - 0.05 <= tt <= p["t"] + p["dur"] + 0.05})
+    k_w = int(np.argmax(np.where(rel, over, -1e9)))
+    k_x = int(np.argmax(np.where(rel, excess, -1e9)))
+    bad = rel & (over > BED_TOLERANCE_LU)
+    offending = []
+    if bad.any():
+        idx = np.where(bad)[0]
+        start = prev = idx[0]
+        for i in list(idx[1:]) + [None]:
+            if i is None or i - prev > 5:
+                seg = slice(start, prev + 1)
+                offending.append({"from_s": round(float(t[start]), 2), "to_s": round(float(t[prev]), 2),
+                                  "overshoot_lu": round(float(over[seg].max()), 2),
+                                  "excess_over_bed_lu": round(float(excess[seg].max()), 2),
+                                  "events": events_at(float(t[(start + prev) // 2]))})
+                if i is not None:
+                    start = i
+            if i is not None:
+                prev = i
+    for p in placed:  # per-event view at the event's own peak window
+        k = min(n - 1, max(0, int(round((p["peak_at_s"] - 0.05) / 0.01))))
+        p["bed_l100_at_peak_lufs"] = round(float(lm[k]), 2)
+        p["excess_over_bed_lu"] = round(p["peak_l100_lufs"] - float(lm[k]), 2)
+        if p["kit_peak_l100_lufs"] is not None:
+            p["kit_intended_excess_lu"] = round(p["kit_peak_l100_lufs"] - float(lm[k]), 2)
+    return {**out, "pass": not bad.any(),
+            "worst_overshoot_lu": round(float(over[k_w]), 2), "worst_at_s": round(float(t[k_w]), 2),
+            "worst_events": events_at(float(t[k_w])),
+            "max_excess_over_bed_lu": round(float(excess[k_x]), 2), "max_excess_at_s": round(float(t[k_x]), 2),
+            "max_excess_events": events_at(float(t[k_x])), "offending": offending}
 
 
 def mix(voice_path: str, plan: list[dict], music: np.ndarray | None, events: list[dict], sfx_dir: Path,
@@ -457,8 +586,23 @@ def mix(voice_path: str, plan: list[dict], music: np.ndarray | None, events: lis
     g_duck = duck_curve(v, depth_db=duck_db)
     music_d = music * undb_arr(g_duck)[:, None]
 
-    # -- sfx
-    sfx_bus, placed = build_sfx_bus(events, sfx_dir, timeline, N)
+    # -- sfx: each event capped at voice - 6 LU (100 ms loudness) before summing
+    sfx_bus, kit_bus, placed, capped = build_sfx_bus(events, sfx_dir, timeline, N, VOICE_LUFS)
+    for c in capped:
+        print(f"CAPPED {c['name']:14s} t={c['t']:8.3f}s  -{c['db_taken_off']:.2f} dB "
+              f"(asked {c['requested_peak_l100_lufs']:.1f} LUFS, cap {c['capped_to_lufs']:.1f})")
+    bchk = bed_check(sfx_bus, kit_bus, music, placed)
+    vl100 = short_loudness(voice_st, SR, 0.1, 0.01)
+    sfx_rep = {"events": placed, "cap": {"rule": f"no event louder than the voice minus {SFX_CAP_LU:g} LU, "
+                                                 "measured as the max K-weighted loudness over 100 ms windows",
+                                         "voice_reference_lufs": VOICE_LUFS,
+                                         "voice_median_l100_in_speech_lufs": round(float(np.median(
+                                             vl100[vl100 > vl100.max() - 40])), 2),
+                                         "cap_lufs": VOICE_LUFS - SFX_CAP_LU},
+               "capped": capped, "sfx_capped_count": len(capped),
+               "bus_peak_l100_lufs": round(float(short_loudness(sfx_bus, SR, 0.1, 0.01).max()), 2)
+               if np.any(sfx_bus) else None,
+               "bed_check": bchk}
 
     # -- 1. final mix, 2. music + sfx (no voice, no ducking), 3. pure bed
     final, m_final = master(voice_st + music_d + sfx_bus)
@@ -502,12 +646,15 @@ def mix(voice_path: str, plan: list[dict], music: np.ndarray | None, events: lis
             "in_final_mix_lufs": round(voice_in_final, 2)},
             "music_under_voice_lufs": None if music_under is None else round(music_under, 2),
             "voice_to_music_under_speech_lu": None if music_under is None else round(voice_in_final - music_under, 1),
-            "ducking": duck_rep, "sfx_events": placed, "voice_plan": plan}),
+            "ducking": duck_rep, "sfx_capped_count": len(capped), "sfx": sfx_rep, "music_gain_db": music_gain_db,
+            "voice_plan": plan}),
         "music_only": loudness_report(music_only, out / "music_only.wav", out / "music_only.m4a", {
-            "contents": "music bed + SFX, no voice, no ducking", **m_music}),
+            "contents": "music bed + SFX, no voice, no ducking", **m_music, "sfx_capped_count": len(capped),
+            "sfx": {k: sfx_rep[k] for k in ("cap", "capped", "sfx_capped_count", "bed_check")}}),
         "music_bed": loudness_report(bed, out / "music_bed.wav", out / "music_bed.m4a", {
             "contents": "pure music bed" + (f" normalized to {bed_lufs} LUFS" if bed_lufs is not None else
-                                             " at its rendered bed level (music.py target, -20 LUFS)")}),
+                                             " at its rendered bed level (music.py target, -20 LUFS)"),
+            "sfx_capped_count": 0, "sfx": "none (the bed has no effects)"}),
     }
     for k, r in reports.items():
         write_json(out / f"{k}_report.json", r)
@@ -622,6 +769,15 @@ def main():
     print("ducking:", f["ducking"])
     print("final bus:", f["bus_compressor"], f["limiter"])
     print("music-only bus:", reps["music_only"]["bus_compressor"], reps["music_only"]["limiter"])
+    sx = f["sfx"]
+    bc = sx["bed_check"]
+    print(f"sfx: {len(sx['events'])} events, {sx['sfx_capped_count']} capped at {sx['cap']['cap_lufs']} LUFS "
+          f"(voice {sx['cap']['voice_reference_lufs']} - {SFX_CAP_LU:g}); bus peak {sx['bus_peak_l100_lufs']} LUFS")
+    print(f"bed check: {'PASS' if bc['pass'] else 'FAIL'}  worst overshoot {bc['worst_overshoot_lu']} LU at "
+          f"{bc.get('worst_at_s')}s {bc.get('worst_events')}; max excess over bed {bc['max_excess_over_bed_lu']} LU "
+          f"at {bc.get('max_excess_at_s')}s {bc.get('max_excess_events')}")
+    for o in bc["offending"]:
+        print("   over kit intent:", o)
 
 
 if __name__ == "__main__":

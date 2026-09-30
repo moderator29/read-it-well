@@ -4,7 +4,7 @@
  */
 import { headline, popup, pill, px } from "../components.mjs";
 import { night, glow, beam, rings, ribbon, floorGrid, photo, stars, floorGlow, fill, horizon, electric, bokeh } from "../grounds.mjs";
-import { frame, vignette, stickerIn, pairVignette, pairBoxes, iconDisc, dotted, COST, costCard, totalCard } from "./common.mjs";
+import { frame, vignette, stickerIn, pairVignette, pairBoxes, iconDisc, dotted, COST, costCard, totalCard, pillWidth, screenLeftAt } from "./common.mjs";
 import { photoUrl } from "../lib.mjs";
 
 export const SET_A = [
@@ -130,14 +130,18 @@ export const SET_A = [
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "filters-villas", cx: W * 0.6, cy, h: f.phoneH * 0.93, rotation: { x: -20, y: -14, z: 3 }, fov: 30, color: "natural-titanium" });
       const b = p.box;
-      const x0 = 66 * u;
-      /* The same choices the sheet on screen offers. */
+      /* The same choices the sheet on screen offers. Each pill ends just past
+         the screen's left edge, so it overlaps the bezel and never a word. */
+      const size = 38 * u;
       const chips = [
-        ["Villas", "house", true, 0.2, -4],
-        ["Self-contain", "door-open", false, 0.38, 2],
-        ["Mini flat", "key-round", false, 0.56, -2],
-        ["Comes with a BQ", "circle-check", false, 0.74, 3],
-      ];
+        ["Villas", "house", true, 0.22, -4],
+        ["Mini flat", "key-round", false, 0.42, 2],
+        ["Duplex", "house", false, 0.62, -2],
+      ].map(([t, ic, on, k, r]) => {
+        const y = b.y + b.h * k;
+        const x = Math.max(56 * u, Math.min(80 * u, screenLeftAt(p, y + size) + 24 * u - pillWidth(t, size)));
+        return [t, ic, on, x, y, r];
+      });
       return [
         night({ top: "#050A3E", mid: "#030630", bottom: "#010118" }),
         glow({ x: W * 0.62, y: cy - 200, rx: W * 0.6, ry: f.phoneH * 0.46, alpha: 0.5, blur: 40 }),
@@ -146,7 +150,7 @@ export const SET_A = [
         stars({ W, H, count: 28, top: 40, bottom: f.phoneTop, seed: 31 }),
         vignette(0.45),
         p.html,
-        ...chips.map(([t, ic, on, k, r], i) => pill({ x: x0 + (i % 2) * 50 * u, y: b.y + b.h * k, text: t, lucide: ic, size: 40 * u, rotate: r, z: 36, active: on })),
+        ...chips.map(([t, ic, on, x, y, r]) => pill({ x, y, text: t, lucide: ic, size, rotate: r, z: 36, active: on })),
         headline({ lines: ["Filter by exactly", "what you need"], cx: W / 2, y: f.hlTop, max: f.max, size: f.size }),
       ].join("\n");
     },
@@ -229,7 +233,11 @@ export const SET_A = [
       const [x0, y0] = ctxs[0].anchors.popup;
       const [x1, y1] = ctxs[1].anchors.first;
       const X1 = W + x1;
-      const d = `M ${x0} ${y0} C ${x0 + 130 * u} ${y0}, ${X1 - 150 * u} ${y1}, ${X1 - 14 * u} ${y1}`;
+      /* A plain S: the control points stay between the two ends, so the
+         line never loops back on itself. */
+      const X = X1 - 16 * u;
+      const k = (X - x0) * 0.55;
+      const d = `M ${x0} ${y0} C ${x0 + k} ${y0}, ${X - k} ${y1}, ${X} ${y1}`;
       return dotted({ d, W: pageW, H, dot: 10 * u, gap: 30 * u, z: 45 });
     },
   },
@@ -242,8 +250,9 @@ export const SET_A = [
       const f = frame(ctx);
       const cy = f.phoneTop + f.phoneH / 2;
       const p = await ctx.phone({ id: "messages", cx: W * 0.635, cy, h: f.phoneH * 0.94, rotation: { x: -5, y: -18, z: 2.5 }, fov: 26, color: "natural-titanium" });
-      /* Owners, hosts and restaurants: every kind of conversation runs into
-         the inbox's one row (its avatar sits at display 166, 1397). */
+      /* Owners, landlords and hosts: every kind of conversation runs into
+         the inbox's one row (its avatar sits at display 166, 1397). The
+         dotted lines start under each pill, which sits above them. */
       const [ax, ay] = p.at(166, 1397);
       const [ex] = p.at(0, 1397);
       const edge = ex - 22 * u;
@@ -251,9 +260,9 @@ export const SET_A = [
       const pillH = size * 2.18;
       const x0 = 50 * u;
       const rows = [
-        ["Owners", "house", ay - 470 * u, 214 * u],
-        ["Hosts", "bed-double", ay - 90 * u, 186 * u],
-        ["Restaurants", "utensils", ay + 300 * u, 292 * u],
+        ["Owners", "house", ay - 470 * u, 150 * u],
+        ["Landlords", "key-round", ay - 90 * u, 150 * u],
+        ["Hosts", "bed-double", ay + 300 * u, 150 * u],
       ];
       ctx.anchors = { first: [x0, rows[0][2] + pillH / 2] };
       const lines = rows.map(([, , y, w]) => {

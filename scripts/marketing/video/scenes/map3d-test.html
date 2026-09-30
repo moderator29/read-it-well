@@ -62,6 +62,10 @@
           dpr: +(q.get("dpr") || 1),
           film,
           aa: q.get("aa") || "ss",
+          debug: q.get("debug") || undefined,
+          supersample: q.get("ss") ? +q.get("ss") : undefined,
+          glowSamples: q.get("gs") ? +q.get("gs") : undefined,
+          glowHalf: q.get("gh") === "0" ? false : undefined,
         });
 
         /* the labels: HTML, placed every frame from map.labels(t) */
