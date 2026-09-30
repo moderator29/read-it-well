@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition, type ReactNode } from "react";
 import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -63,6 +63,7 @@ export function InterestChoices({
   initial,
   mode = "welcome",
   t,
+  extra,
 }: {
   initial: PropertyType[];
   /* The nine market names and every word around them. `INTEREST_COPY` in
@@ -71,6 +72,12 @@ export function InterestChoices({
   t: Dictionary;
   /** `welcome` is the first run. `settings` is somebody changing their mind. */
   mode?: "welcome" | "settings";
+  /**
+   * First run only: the optional asks the sign-up form no longer carries
+   * (`ArrivalAsks`, A1), drawn above Continue. They save themselves; nothing
+   * in them is read by this form's action.
+   */
+  extra?: ReactNode;
 }) {
   const router = useRouter();
   const firstRun = mode === "welcome";
@@ -195,6 +202,8 @@ export function InterestChoices({
           />
         </div>
       )}
+
+      {firstRun && extra ? <div className="mt-md">{extra}</div> : null}
 
       {state && !state.ok && (
         <p

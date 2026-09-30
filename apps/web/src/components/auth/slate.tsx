@@ -121,6 +121,29 @@ export function AuthCurveBlock({
         <path className="nf-slate-top__edge" d={SLATE_EDGE_PATH} fill="none" />
       </svg>
 
+      {/* DEPTH (30 September): soft light drifting inside the block and two
+          of the brand's glass objects floating under the curve, clipped by
+          it. The night objects on the navy block (light mode), the day
+          objects made for a pale ground on the paper block (dark mode); the
+          stylesheet shows one set. Decorative, and gone while a field has
+          focus on a phone or on the short block. */}
+      {compact ? null : (
+        <div className="nf-slate-top__depth" aria-hidden="true">
+          <span className="nf-slate-top__light nf-slate-top__light--a" />
+          <span className="nf-slate-top__light nf-slate-top__light--b" />
+          <span className="nf-slate-top__objs">
+            <span className="nf-slate-top__obj nf-slate-top__obj--a">
+              <Image src="/brand/glass/keys-home.png" alt="" width={256} height={256} sizes="112px" className="nf-slate-top__art--on-navy" />
+              <Image src="/brand/glass/light/keys-handover.png" alt="" width={256} height={256} sizes="112px" className="nf-slate-top__art--on-paper" />
+            </span>
+            <span className="nf-slate-top__obj nf-slate-top__obj--b">
+              <Image src="/brand/glass/seal-check.png" alt="" width={256} height={256} sizes="64px" className="nf-slate-top__art--on-navy" />
+              <Image src="/brand/glass/light/seal-check.png" alt="" width={256} height={256} sizes="64px" className="nf-slate-top__art--on-paper" />
+            </span>
+          </span>
+        </div>
+      )}
+
       <div className="nf-slate-top__inner">
         <div className="nf-slate-top__bar">
           <div className="nf-slate-top__start">{start}</div>

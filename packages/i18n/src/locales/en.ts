@@ -238,6 +238,20 @@ export const en = {
     sendAnother: "Send me another code",
     sameEmailButton: "The same email carries a button that does this in one tap.",
     alreadyConfirmed: "Already confirmed? Sign in",
+    /* A4 (30 September): the code screen helps when the code does not
+       come. `{s}` is whole seconds. */
+    resendIn: "Send a new code in {s}s",
+    checkSpam: "Not in your inbox? Look in Spam and Promotions for mail from Vallo.",
+    stillNothing: "Still nothing? Check Spam and Promotions for mail from Vallo, or ask us for help.",
+    openMail: "Open {app}",
+    wrongAddress: "Wrong address?",
+    changeAddress: "Change it",
+    getHelp: "Get help with sign up",
+    codeCells: "{count} digit code",
+    /* A17: the moment after the code is accepted. */
+    youreIn: "You're in, {name}.",
+    youreInNoName: "You're in.",
+    arrivalBody: "Your account is ready. Opening it now.",
     verifyingTitle: "Verifying your email",
     verifyingBody: "One moment. We are confirming your address and opening your account.",
     signingInTitle: "Signing you in",
@@ -391,6 +405,17 @@ export const en = {
         continue: "Continue",
       },
       worldsArt: "Property and Stays, with the coin that turns between them",
+      /* A1 (30 September): what the sign-up form no longer asks, asked
+         once the account exists, beside the interests question. Optional,
+         and each answer is saved as it is given. */
+      asks: {
+        title: "Two more, if you like",
+        body: "Both are optional. You can change them later in Settings.",
+        hearAbout: "How did you hear about Vallo?",
+        place: "Where do you stay?",
+        saved: "Saved",
+        failed: "That did not save. Try again, or leave it for Settings.",
+      },
     },
     /*
      * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.

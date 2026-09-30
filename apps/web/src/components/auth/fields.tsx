@@ -158,29 +158,34 @@ export function Field({
       ? ({ autoCapitalize: "words", spellCheck: false } as const)
       : {};
   return (
-    <div>
+    <div className="nf-auth-field">
       <LabelRow
         htmlFor={id}
         label={label}
         optional={optional && t ? t.signUp.optional : undefined}
       />
-      <input
-        id={id}
-        name={name}
-        type={type}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        inputMode={inputMode ?? (type === "email" ? "email" : undefined)}
-        {...keyboard}
-        enterKeyHint={enterKeyHint}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : undefined}
-        className={className ? `nf-field nf-field--glass ${className}` : "nf-field nf-field--glass"}
-        {...(controlled
-          ? { value, onChange: (event) => onChange(event.target.value) }
-          : {})}
-        {...(onBlur ? { onBlur: (event) => onBlur(event.target.value) } : {})}
-      />
+      {/* The box carries the focus halo and the typing light (auth.css,
+          "THE FIELDS, ALIVE"); decorative, the input is unchanged. */}
+      <div className="nf-auth-field__box">
+        <input
+          id={id}
+          name={name}
+          type={type}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          inputMode={inputMode ?? (type === "email" ? "email" : undefined)}
+          {...keyboard}
+          enterKeyHint={enterKeyHint}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className={className ? `nf-field nf-field--glass ${className}` : "nf-field nf-field--glass"}
+          {...(controlled
+            ? { value, onChange: (event) => onChange(event.target.value) }
+            : {})}
+          {...(onBlur ? { onBlur: (event) => onBlur(event.target.value) } : {})}
+        />
+        <span className="nf-auth-field__halo" aria-hidden="true" />
+      </div>
       <FieldError id={errorId} error={error} />
     </div>
   );
@@ -284,9 +289,9 @@ export function PasswordField({
   const errorId = `${id}-error`;
 
   return (
-    <div>
+    <div className="nf-auth-field">
       <LabelRow htmlFor={id} label={label} />
-      <div className="relative">
+      <div className="nf-auth-field__box relative">
         <input
           id={id}
           name={id}
@@ -315,6 +320,7 @@ export function PasswordField({
         >
           <EyeGlyph off={visible} />
         </button>
+        <span className="nf-auth-field__halo" aria-hidden="true" />
       </div>
       <FieldError id={errorId} error={error} />
     </div>

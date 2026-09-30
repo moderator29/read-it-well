@@ -12,6 +12,7 @@ import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { flickDirection, releaseVelocity, rubber, springTo, type SpringConfig } from "@/components/site/landing/spring";
 import { InterestChoices } from "./InterestChoices";
+import { ArrivalAsks } from "./ArrivalAsks";
 import { Lockup, RiseWords, StepArt, wordsIn, type Art } from "./StepArt";
 import {
   forgetFirstInterest,
@@ -118,6 +119,7 @@ export function FirstRun({
   arrival = null,
   atChoice = false,
   fromSignUpForm = false,
+  asks = null,
 }: {
   t: Dictionary;
   interests: ComponentProps<typeof InterestChoices>["initial"];
@@ -144,6 +146,11 @@ export function FirstRun({
    * form, and nothing on the first-run path is labelled skip.
    */
   fromSignUpForm?: boolean;
+  /**
+   * A member only: what the one-screen sign-up no longer asks (A1), shown
+   * beside the interests question. Null when there is nothing left to ask.
+   */
+  asks?: Omit<ComponentProps<typeof ArrivalAsks>, "t"> | null;
 }) {
   const router = useRouter();
   const w = t.welcomeCards.twoWorlds;
@@ -623,7 +630,11 @@ export function FirstRun({
           </p>
           <p className="nf-gs-note nf-gs-rise">{t.welcomeCards.three.body}</p>
           <div className="nf-gs-question__choices nf-gs-rise">
-            <InterestChoices initial={interests} t={t} />
+            <InterestChoices
+              initial={interests}
+              t={t}
+              extra={asks ? <ArrivalAsks t={t} {...asks} /> : undefined}
+            />
           </div>
         </div>
       </div>
@@ -729,7 +740,7 @@ export function FirstRun({
           </div>
 
           <div className="nf-gs-dots" role="group" aria-label={t.welcomeCards.label}>
-            <span className="nf-gs-dots__pill" aria-hidden="true" />
+            <span className="nf-gs-dots__bar" aria-hidden="true" />
             {slides.map((s, i) => {
               const a = Math.min(Math.abs(i - initialIndex), 1);
               return (

@@ -59,6 +59,12 @@
     --nf-slate-edge: var(--nf-brand-primary);
     --nf-slate-hair: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
     --nf-slate-top-h: 15.5rem;
+    /* The depth pieces: the light that drifts in the block and in the page,
+       and the shadow the glass objects cast. */
+    --nf-slate-light: color-mix(in oklab, var(--nf-brand-quiet) 34%, transparent);
+    --nf-slate-obj-shadow: color-mix(in oklab, var(--nf-surface-artwork) 22%, transparent);
+    --nf-slate-page-light: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+    --nf-slate-halo: color-mix(in oklab, var(--nf-brand-quiet) 34%, transparent);
     --nf-auth-gutter: var(--nf-space-md);
     /* THE FOCUS RING. The platform's ring is one unlayered rule
        (`base.css`) that reads `--nf-focus-ring`; it is steered here rather
@@ -91,6 +97,10 @@
     --nf-slate-top-chip-edge: color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent);
     --nf-slate-edge: var(--nf-brand-quiet);
     --nf-slate-hair: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    --nf-slate-light: color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+    --nf-slate-obj-shadow: color-mix(in oklab, var(--nf-surface-artwork) 60%, transparent);
+    --nf-slate-page-light: color-mix(in oklab, var(--nf-brand-primary) 9%, transparent);
+    --nf-slate-halo: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
   }
 
   /* ========================================================== THE SCREEN */
@@ -108,6 +118,33 @@
     overflow-x: clip;
     padding-bottom: max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
     background: var(--nf-slate-page);
+  }
+  /* The page's own depth: a soft pool of brand light low on the left and a
+     second, fainter one drifting on the right, so the column stands in a
+     lit room rather than on a flat colour. Behind everything; the
+     `position: fixed` keeps it still while a long form scrolls. */
+  .nf-auth::before,
+  .nf-auth::after {
+    content: "";
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(circle, var(--nf-slate-page-light) 0%, transparent 70%);
+  }
+  .nf-auth::before {
+    bottom: -18vh;
+    left: -30vw;
+    width: max(70vw, 28rem);
+    aspect-ratio: 1;
+  }
+  .nf-auth::after {
+    top: 38vh;
+    right: -26vw;
+    width: max(52vw, 22rem);
+    aspect-ratio: 1;
+    opacity: 0.7;
+    animation: nf-slate-drift 20s var(--nf-ease-standard) infinite alternate;
   }
 
   /* ======================================================= THE TOP BLOCK */
@@ -154,6 +191,112 @@
     opacity: 0.7;
     filter: drop-shadow(0 0 6px var(--nf-glow-4));
     animation: nf-slate-morph-edge var(--nf-duration-cinematic) var(--nf-ease-entrance) both;
+  }
+
+  /*
+   * DEPTH IN THE BLOCK (30 September): the same quality as inside the
+   * platform. Two soft lights drift slowly under the curve, and two of the
+   * brand's glass objects float on the right, where the arc leaves room,
+   * clipped by the arc itself (the mask is the block's own shape, stretched
+   * the way the SVG is). They arrive after the block lands: a short rise out
+   * of a slight scale. Transform and opacity only; nothing drifts under
+   * reduced motion, Calm or Off.
+   */
+  .nf-slate-top__depth {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 260' preserveAspectRatio='none'%3E%3Cpath d='M0 0H390V64C354 168 262 256 150 256C88 256 38 236 0 206Z'/%3E%3C/svg%3E");
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 260' preserveAspectRatio='none'%3E%3Cpath d='M0 0H390V64C354 168 262 256 150 256C88 256 38 236 0 206Z'/%3E%3C/svg%3E");
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-slate-top__light {
+    position: absolute;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(circle, var(--nf-slate-light) 0%, transparent 68%);
+    animation: nf-slate-drift 14s var(--nf-ease-standard) infinite alternate;
+  }
+  .nf-slate-top__light--a {
+    top: -30%;
+    right: -12%;
+    width: 70%;
+    aspect-ratio: 1;
+  }
+  .nf-slate-top__light--b {
+    bottom: -40%;
+    left: -20%;
+    width: 60%;
+    aspect-ratio: 1;
+    animation-duration: 18s;
+    animation-delay: -6s;
+  }
+  @keyframes nf-slate-drift {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(-8%, 6%, 0) scale(1.08);
+    }
+  }
+  .nf-slate-top__obj {
+    position: absolute;
+    display: block;
+    animation:
+      nf-slate-obj-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both,
+      nf-slate-bob 6s var(--nf-ease-standard) var(--nf-duration-deliberate) infinite alternate;
+  }
+  .nf-slate-top__obj > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 18px var(--nf-slate-obj-shadow));
+  }
+  .nf-slate-top__objs {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 22%);
+    right: max(6%, calc(50% - 13rem));
+    width: clamp(4.5rem, 24vw, 7rem);
+    aspect-ratio: 1;
+  }
+  .nf-slate-top__obj--a {
+    inset: 0;
+    animation-delay: 260ms, 1100ms;
+  }
+  .nf-slate-top__obj--b {
+    top: -22%;
+    left: -34%;
+    width: 42%;
+    animation-delay: 400ms, 1300ms;
+    animation-duration: var(--nf-duration-deliberate), 4.8s;
+  }
+  @keyframes nf-slate-obj-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0) scale(0.86);
+    }
+  }
+  @keyframes nf-slate-bob {
+    from {
+      transform: translate3d(0, 2px, 0);
+    }
+    to {
+      transform: translate3d(0, -6px, 0);
+    }
+  }
+  /* The artwork for the ground, as the mark does. */
+  .nf-slate-top__obj > img.nf-slate-top__art--on-navy {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-slate-top__obj > img.nf-slate-top__art--on-navy {
+    display: block;
+  }
+  :root[data-theme="light"] .nf-slate-top__obj > img.nf-slate-top__art--on-paper {
+    display: none;
   }
 
   .nf-slate-top__inner {
@@ -254,7 +397,8 @@
     .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__brand {
       margin-top: var(--nf-space-2xs);
     }
-    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__line {
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__line,
+    .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-slate-top__depth {
       opacity: 0;
     }
     .nf-auth:has(.nf-auth__body :is(input:not([type="checkbox"]), select, textarea):focus) .nf-auth__title {
@@ -391,6 +535,78 @@
     margin-top: var(--nf-space-xs);
     font-size: var(--nf-text-overline);
     color: var(--nf-state-error);
+  }
+
+  /*
+   * THE FIELDS, ALIVE (30 September). Focus lifts a soft halo in around the
+   * card (the ink edge stays the indicator; the halo is the light around it)
+   * and the label takes the ink; while somebody types, the halo breathes;
+   * an address that is shaped like one gets a small tick that pops in at the
+   * right of the card. Opacity and transform only; reduced motion keeps the
+   * halo and drops the breathing and the pop.
+   */
+  .nf-auth-field__box {
+    position: relative;
+  }
+  .nf-auth-field__halo {
+    position: absolute;
+    inset: -4px;
+    border-radius: calc(var(--nf-radius-control) + 4px);
+    box-shadow:
+      0 0 0 3px var(--nf-slate-halo),
+      0 10px 28px -12px var(--nf-slate-halo);
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-entrance);
+  }
+  .nf-auth-field__box:focus-within .nf-auth-field__halo {
+    opacity: 1;
+    transform: none;
+  }
+  .nf-auth-field__box:focus-within:has(input:not(:placeholder-shown)) .nf-auth-field__halo {
+    animation: nf-slate-breathe 1.6s var(--nf-ease-standard) infinite alternate;
+  }
+  @keyframes nf-slate-breathe {
+    to {
+      opacity: 0.55;
+    }
+  }
+  .nf-auth-field .nf-label {
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-auth-field:focus-within .nf-label {
+    color: var(--nf-slate-ink);
+  }
+  .nf-auth-field__box:has(input[type="email"]:not(:placeholder-shown):valid:not([aria-invalid="true"]))::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: var(--nf-space-md);
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-top: -0.5625rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-success);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Zm5.2 8.1-6 6.4a1 1 0 0 1-1.5 0l-3-3.1a1 1 0 1 1 1.5-1.4l2.2 2.3 5.3-5.6a1 1 0 1 1 1.5 1.4Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Zm5.2 8.1-6 6.4a1 1 0 0 1-1.5 0l-3-3.1a1 1 0 1 1 1.5-1.4l2.2 2.3 5.3-5.6a1 1 0 1 1 1.5 1.4Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    pointer-events: none;
+    animation: nf-slate-pop 320ms var(--nf-ease-spring) both;
+  }
+  .nf-auth-field__box:has(input[type="email"]:not(:placeholder-shown):valid:not([aria-invalid="true"])) input {
+    padding-right: 2.75rem;
+  }
+  @keyframes nf-slate-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+  }
+  .nf-auth .nf-field,
+  .nf-slate-input {
+    caret-color: var(--nf-slate-ink);
   }
 
   /* First name and surname side by side, stacked below 360px. */
@@ -750,6 +966,8 @@
 
   /* ========================================================= SMALL PRINT */
   .nf-auth__legal {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: calc(26rem + 2 * var(--nf-auth-gutter));
     margin: var(--nf-space-xl) auto 0;
@@ -789,7 +1007,287 @@
     height: max(100%, 44px);
   }
 
+  /* ============================================================ THE CODE */
+  /*
+   * The confirmation code as a row of cells (`CodeInput`): one real input
+   * over the row with its own text made transparent, so paste, autofill and
+   * the phone's code suggestion work as ever, and the cells draw its value.
+   * Each digit pops in; the next empty cell carries a soft caret; a refused
+   * code shakes the row once; a surplus lights every cell as an error.
+   */
+  .nf-code__box {
+    position: relative;
+  }
+  .nf-code__cells {
+    display: flex;
+    gap: clamp(0.375rem, 2vw, 0.625rem);
+  }
+  .nf-code__cell {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    place-items: center;
+    height: 3.5rem;
+    border: 1.5px solid var(--nf-slate-card-edge);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-slate-card);
+    box-shadow: var(--nf-slate-card-shadow);
+    font-family: var(--nf-font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-code__cell[data-filled] {
+    border-color: color-mix(in oklab, var(--nf-slate-ink) 55%, transparent);
+  }
+  .nf-code__cell[data-next] {
+    border-color: var(--nf-slate-ink);
+  }
+  /* The caret in the waiting cell, blinking. */
+  .nf-code__cell[data-next]::after {
+    content: "";
+    width: 2px;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-slate-ink);
+    animation: nf-code-caret 1s steps(1, end) infinite;
+  }
+  @keyframes nf-code-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+  .nf-code[data-error] .nf-code__cell,
+  .nf-code__cell[data-over] {
+    border-color: var(--nf-state-error);
+  }
+  .nf-code__digit {
+    display: block;
+    animation: nf-code-pop 260ms var(--nf-ease-spring) both;
+  }
+  @keyframes nf-code-pop {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.35em, 0) scale(0.6);
+    }
+  }
+  .nf-code__box[data-shake="a"] .nf-code__cells {
+    animation: nf-code-shake-a 420ms var(--nf-ease-standard);
+  }
+  .nf-code__box[data-shake="b"] .nf-code__cells {
+    animation: nf-code-shake-b 420ms var(--nf-ease-standard);
+  }
+  @keyframes nf-code-shake-a {
+    15%,
+    55% {
+      transform: translate3d(-8px, 0, 0);
+    }
+    35%,
+    75% {
+      transform: translate3d(8px, 0, 0);
+    }
+  }
+  @keyframes nf-code-shake-b {
+    15%,
+    55% {
+      transform: translate3d(-8px, 0, 0);
+    }
+    35%,
+    75% {
+      transform: translate3d(8px, 0, 0);
+    }
+  }
+  /* The real input: over the whole row, taking every tap, drawing nothing. */
+  .nf-auth .nf-code__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    font-size: 1rem;
+    letter-spacing: 0;
+    outline: none;
+    -webkit-text-fill-color: transparent;
+    /* The row draws the focus (below); the platform ring would outline the
+       invisible input's box. */
+    --nf-focus-ring-width: 0px;
+  }
+  .nf-auth .nf-code__input::placeholder {
+    color: transparent;
+  }
+  .nf-auth .nf-code__input::selection {
+    background: transparent;
+  }
+  /* The keyboard focus is still shown: the row takes the halo. */
+  .nf-code__box:has(.nf-code__input:focus-visible) .nf-code__cells {
+    border-radius: var(--nf-radius-control);
+    box-shadow: 0 0 0 3px var(--nf-slate-halo);
+  }
+
+  /* The help around the code (A4). */
+  .nf-verify__change {
+    margin-top: var(--nf-space-xs);
+    font-size: 0.875rem;
+    color: var(--nf-content-secondary);
+  }
+  .nf-verify__resend {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-md);
+    text-align: center;
+  }
+  .nf-verify__resend .nf-btn {
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-verify__status,
+  .nf-verify__hint {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  .nf-verify__help {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+    text-align: center;
+  }
+  .nf-verify__mail {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-md);
+    border: 1.5px solid var(--nf-slate-hair);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-slate-card);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-decoration: none;
+  }
+  @media (hover: hover) {
+    .nf-verify__mail:hover {
+      border-color: var(--nf-slate-ink);
+    }
+  }
+  .nf-verify__same {
+    margin-top: var(--nf-space-lg);
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--nf-content-muted);
+  }
+
+  /* ========================================================= THE ARRIVAL */
+  /*
+   * The moment after the code is accepted (A17, `ArrivalMoment`): the house
+   * rises on its own light, a ring draws round it, the tick draws inside,
+   * and "You're in" arrives under it. Under a second in all.
+   */
+  .nf-arrive {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    padding-top: var(--nf-space-lg);
+    text-align: center;
+  }
+  .nf-arrive__art {
+    position: relative;
+    width: 10rem;
+    height: 10rem;
+    margin-bottom: var(--nf-space-sm);
+  }
+  .nf-arrive__glow {
+    position: absolute;
+    inset: -20%;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(circle, var(--nf-slate-light) 0%, transparent 70%);
+    animation: nf-arrive-glow 900ms var(--nf-ease-entrance) both;
+  }
+  .nf-arrive__house {
+    position: absolute;
+    inset: 8%;
+    animation: nf-arrive-rise 620ms var(--nf-ease-spring) both;
+  }
+  .nf-arrive__house > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .nf-arrive__tick {
+    position: absolute;
+    right: -0.25rem;
+    bottom: 0.25rem;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-slate-page);
+    animation: nf-arrive-pop 360ms var(--nf-ease-spring) 240ms both;
+  }
+  .nf-arrive__ring,
+  .nf-arrive__check {
+    fill: none;
+    stroke: var(--nf-state-success);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  .nf-arrive__ring {
+    animation: nf-arrive-draw 420ms var(--nf-ease-entrance) 280ms both;
+  }
+  .nf-arrive__check {
+    animation: nf-arrive-draw 320ms var(--nf-ease-entrance) 560ms both;
+  }
+  .nf-arrive__title {
+    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 300ms both;
+  }
+  .nf-arrive__body {
+    animation: nf-slate-rise var(--nf-duration-entrance) var(--nf-ease-entrance) 380ms both;
+  }
+  @keyframes nf-arrive-glow {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+  }
+  @keyframes nf-arrive-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0) scale(0.8);
+    }
+  }
+  @keyframes nf-arrive-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+  }
+  @keyframes nf-arrive-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+
   /* ============================================================== MOTION */
+  /* Calm and Off: nothing drifts or floats; the objects simply appear. */
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-slate-top__light, .nf-auth-field__halo),
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-auth::after {
+    animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-slate-top__obj {
+    animation: nf-calm-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+
   /* The block drops in from above the screen. */
   @keyframes nf-slate-drop {
     from {
@@ -858,8 +1356,22 @@
     .nf-slate-top,
     .nf-slate-top__shape,
     .nf-slate-top__edge,
-    .nf-slate-stagger > * {
-      animation: none;
+    .nf-slate-stagger > *,
+    .nf-slate-top__light,
+    .nf-slate-top__obj,
+    .nf-auth::after,
+    .nf-auth-field__box .nf-auth-field__halo,
+    .nf-auth-field__box::after,
+    .nf-code__digit,
+    .nf-code__cells,
+    .nf-code__cell[data-next]::after,
+    .nf-arrive *,
+    .nf-arrive__title,
+    .nf-arrive__body {
+      animation: none !important;
+    }
+    .nf-auth-field__halo {
+      transition: none;
     }
     .nf-slate-top,
     .nf-slate-top__brand,

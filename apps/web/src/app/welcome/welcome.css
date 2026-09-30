@@ -16,8 +16,8 @@
  * screen the art takes the left of the page, full height, and fades to the
  * right into the words.
  *
- * THE ART IS THE SAME IN BOTH THEMES, as reference 42 draws it: the electric
- * scale (`--nf-electric-*`, theme independent) and the night ink. Only the
+ * THE ART IS THE SAME IN BOTH THEMES, as reference 42 draws it: the brand
+ * blues and the night ink. Only the
  * page it fades into, and the words and controls on that page, follow the
  * theme: night navy in dark (the default), warm paper in light.
  *
@@ -126,7 +126,7 @@
       visibility var(--nf-duration-slow);
   }
 
-  /* THE SKY. The electric scale from the night ink at the top to a bright
+  /* THE SKY. The brand blues from the night ink at the top to a bright
      horizon, with a sun of white light; each step moves its sun. It travels
      least of all (14vw a step), so it reads as far away. */
   .nf-gs-sky {
@@ -144,15 +144,15 @@
       ),
       radial-gradient(
         80% 50% at 18% 62%,
-        color-mix(in oklab, var(--nf-electric-300) 70%, var(--nf-content-on-brand)) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-content-on-brand)) 0%,
         transparent 70%
       ),
       linear-gradient(
         180deg,
-        color-mix(in oklab, var(--nf-electric-700) 80%, var(--nf-surface-artwork)) 0%,
-        var(--nf-electric-450) 30%,
-        var(--nf-electric-300) 58%,
-        color-mix(in oklab, var(--nf-electric-300) 50%, var(--nf-content-on-brand)) 100%
+        color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 80%, var(--nf-surface-artwork)) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong)) 30%,
+        var(--nf-brand-primary) 58%,
+        color-mix(in oklab, var(--nf-brand-primary) 50%, var(--nf-content-on-brand)) 100%
       );
   }
   .nf-gs-layer[data-sky="noon"] .nf-gs-sky {
@@ -176,15 +176,15 @@
       radial-gradient(1px 1px at 48% 8%, var(--nf-content-on-brand) 50%, transparent 100%),
       radial-gradient(
         40% 34% at var(--nf-gs-sun-x) var(--nf-gs-sun-y),
-        color-mix(in oklab, var(--nf-electric-300) 80%, var(--nf-content-on-brand)) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 80%, var(--nf-content-on-brand)) 0%,
         transparent 72%
       ),
       linear-gradient(
         180deg,
         var(--nf-surface-artwork) 0%,
-        color-mix(in oklab, var(--nf-electric-700) 70%, var(--nf-surface-artwork)) 40%,
-        var(--nf-electric-600) 78%,
-        var(--nf-electric-300) 100%
+        color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 70%, var(--nf-surface-artwork)) 40%,
+        var(--nf-brand-primary-strong) 78%,
+        var(--nf-brand-primary) 100%
       );
   }
 
@@ -200,25 +200,25 @@
     background:
       radial-gradient(
         34% 52% at 24% 100%,
-        color-mix(in oklab, var(--nf-electric-300) 55%, var(--nf-content-on-brand)) 0%,
-        var(--nf-electric-300) 45%,
-        var(--nf-electric-450) 97%,
+        color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-content-on-brand)) 0%,
+        var(--nf-brand-primary) 45%,
+        color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong)) 97%,
         transparent 100%
       ),
       radial-gradient(
         38% 70% at 80% 100%,
-        color-mix(in oklab, var(--nf-electric-300) 70%, var(--nf-content-on-brand)) 0%,
-        var(--nf-electric-450) 55%,
-        var(--nf-electric-600) 97%,
+        color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-content-on-brand)) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong)) 55%,
+        var(--nf-brand-primary-strong) 97%,
         transparent 100%
       ),
       radial-gradient(
         70% 42% at 50% 100%,
-        var(--nf-electric-600) 0%,
-        var(--nf-electric-700) 96%,
+        var(--nf-brand-primary-strong) 0%,
+        color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 96%,
         transparent 100%
       );
-    filter: drop-shadow(0 -6px 18px color-mix(in oklab, var(--nf-electric-300) 45%, transparent));
+    filter: drop-shadow(0 -6px 18px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent));
   }
 
   /* THE HERO: the step's big glass object, standing on the hills, moving at
@@ -309,7 +309,7 @@
     padding: 0.375rem 0.75rem;
     border-radius: var(--nf-radius-pill);
     border: 1px solid color-mix(in oklab, var(--nf-content-on-brand) 34%, transparent);
-    background: color-mix(in oklab, var(--nf-electric-700) 42%, transparent);
+    background: color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-artwork)) 42%, transparent);
     box-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent);
     color: var(--nf-content-on-brand);
     font-size: 0.6875rem;
@@ -446,7 +446,7 @@
     display: flex;
     margin: var(--nf-space-sm) 0 0 -1.125rem;
   }
-  .nf-gs-dots__pill {
+  .nf-gs-dots__bar {
     position: absolute;
     top: 50%;
     left: calc(1.375rem - 0.75rem);
@@ -476,7 +476,7 @@
     background: color-mix(in oklab, var(--nf-content-primary) 30%, transparent);
     opacity: var(--a, 1);
   }
-  .nf-gs-carousel[data-quiet] .nf-gs-dots__pill {
+  .nf-gs-carousel[data-quiet] .nf-gs-dots__bar {
     transition: transform var(--nf-duration-base) var(--nf-ease-standard);
   }
   .nf-gs-carousel[data-quiet] .nf-gs-dot > span {
@@ -711,10 +711,10 @@
     overflow: hidden;
     pointer-events: none;
     background:
-      radial-gradient(60% 70% at 70% 0%, color-mix(in oklab, var(--nf-electric-300) 55%, transparent), transparent 70%),
+      radial-gradient(60% 70% at 70% 0%, color-mix(in oklab, var(--nf-brand-primary) 55%, transparent), transparent 70%),
       linear-gradient(
         180deg,
-        color-mix(in oklab, var(--nf-electric-450) 42%, var(--nf-surface-canvas)) 0%,
+        color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-brand-primary-strong)) 42%, var(--nf-surface-canvas)) 0%,
         var(--nf-surface-canvas) 100%
       );
     mask-image: linear-gradient(180deg, black 30%, transparent 100%);
@@ -726,7 +726,7 @@
     background: radial-gradient(
       circle at 34% 30%,
       color-mix(in oklab, var(--nf-content-on-brand) 70%, transparent) 0%,
-      color-mix(in oklab, var(--nf-electric-300) 60%, transparent) 38%,
+      color-mix(in oklab, var(--nf-brand-primary) 60%, transparent) 38%,
       transparent 72%
     );
     animation: nf-gs-bob 7s var(--nf-ease-standard) infinite alternate;
@@ -853,6 +853,80 @@
     }
   }
 
+  /* The optional asks after sign-up (A1, `ArrivalAsks`). */
+  .nf-gs-asks {
+    display: grid;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-md);
+  }
+  .nf-gs-asks__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-gs-asks__body {
+    margin-top: calc(-1 * var(--nf-space-sm));
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+  .nf-gs-asks__group {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-gs-asks__label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-gs-asks__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  .nf-gs-asks__chip {
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border: 1.5px solid color-mix(in oklab, var(--nf-content-primary) 16%, transparent);
+    border-radius: var(--nf-radius-control);
+    background: transparent;
+    color: var(--nf-content-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-gs-asks__chip[aria-pressed="true"] {
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    animation: nf-gs-pick 460ms var(--nf-ease-spring) both;
+  }
+  .nf-gs-asks__chip:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-gs-asks__saved,
+  .nf-gs-asks__failed {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+  }
+  .nf-gs-asks__saved {
+    color: var(--nf-state-success);
+    animation: nf-gs-tick 360ms var(--nf-ease-spring) both;
+  }
+  .nf-gs-asks__failed {
+    color: var(--nf-state-error);
+  }
+
   /* ------------------------------------------------------------ wider */
 
   @media (min-width: 40rem) {
@@ -938,6 +1012,8 @@
     .nf-gs-question .nf-interest[aria-pressed="true"],
     .nf-gs-question .nf-interest[aria-pressed="true"] > svg,
     .nf-gs-question .nf-interest__burst,
+    .nf-gs-asks__chip[aria-pressed="true"],
+    .nf-gs-asks__saved,
     .nf-gs-hero__float,
     .nf-gs-sat__float,
     .nf-gs-orb {
