@@ -129,7 +129,8 @@
   }
   .nf-terms-diff__title {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    line-height: 1.35;
     gap: var(--nf-space-xs);
     font-size: var(--nf-text-body);
     font-weight: 700;
@@ -138,6 +139,8 @@
   .nf-terms-diff__icon {
     color: var(--nf-state-warning);
     flex-shrink: 0;
+    /* On the first line's centre when the title wraps at 360. */
+    margin-top: 0.1em;
   }
   .nf-terms-diff__meta {
     font-size: var(--nf-text-body-sm);
