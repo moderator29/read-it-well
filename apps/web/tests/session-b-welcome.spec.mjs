@@ -45,6 +45,12 @@ async function goToSlide(page, n) {
   throw new Error(`slide ${n} never became current`);
 }
 
+/* The flow marks itself once hydrated (`data-hydrated` on first run), so a
+   press is only made once it will be heard. */
+async function hydrated(page) {
+  await page.locator('[data-testid="first-run"][data-hydrated]').waitFor({ timeout: 60000 });
+}
+
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 
 try {
@@ -109,7 +115,7 @@ try {
   const page = await ctx.newPage();
   await page.goto(`${BASE_URL}/welcome?tour=1&next=%2Fsign-up`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("welcome-get-started").waitFor();
-  await page.locator('[data-testid="first-run"][data-hydrated]').waitFor({ timeout: 60000 });
+  await hydrated(page);
   await goToSlide(page, 1);
   check("the first slide is the render's", (await page.locator("h1").innerText()).includes("One platform"));
   check("four dots, the first current", (await page.locator('[data-testid^="welcome-dot-"]').count()) === 4 &&
@@ -176,6 +182,7 @@ try {
     waitUntil: "domcontentloaded",
   });
   await page.getByTestId("welcome-get-started").waitFor();
+  await hydrated(page);
   const backToForm = page.getByTestId("welcome-back-to-sign-up");
   check(
     "from the sign-up form, the tour's way out reads Back to sign up, and no Skip is drawn",
@@ -192,6 +199,7 @@ try {
 
   await page.goto(`${BASE_URL}/welcome?tour=1&next=%2Fsign-in`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("welcome-get-started").waitFor();
+  await hydrated(page);
   check(
     "asked for again, first run shows again from the first slide (the founder's rule)",
     new URL(page.url()).pathname === "/welcome" &&
@@ -219,6 +227,7 @@ try {
   const rm = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
   const pr = await rm.newPage();
   await pr.goto(`${BASE_URL}/welcome?tour=1`, { waitUntil: "domcontentloaded" });
+  await hydrated(pr);
   await goToSlide(pr, 2);
   await pr.waitForTimeout(80);
   const running = await pr.evaluate(() =>
