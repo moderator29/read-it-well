@@ -111,7 +111,7 @@ export function popIn(ctx, card, t, { from = "above", distance = 90, tOut = null
   const { tl } = ctx;
   const axis = from === "left" || from === "right" ? "x" : "y";
   const sign = from === "above" || from === "left" ? -1 : 1;
-  tl.fromTo(card, { [axis]: sign * distance, scale: 0.92, opacity: 0 }, { [axis]: 0, scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)" }, t);
+  tl.fromTo(card, { [axis]: sign * distance, scale: 0.92, opacity: 0 }, { [axis]: 0, scale: 1, opacity: 0.9999, duration: 0.55, ease: "back.out(1.6)" }, t);
   if (sound) ctx.sfx(sound, t, { offset });
   if (tOut != null) tl.to(card, { [axis]: sign * distance * 0.6, opacity: 0, scale: 0.96, duration: 0.28, ease: "power2.in" }, tOut);
 }
@@ -153,8 +153,10 @@ export function cursor(ctx, parent, { size = 44 } = {}) {
 
 /** A click: the pointer dips, a ring opens at its tip, the tap sound. */
 export function click(ctx, pointer, t, { ringParent, x, y, sound = "tap", offset = 0 } = {}) {
-  ctx.tl.to(pointer, { scale: 0.86, duration: 0.08, ease: "power2.out", transformOrigin: "10% 8%" }, t - 0.02);
-  ctx.tl.to(pointer, { scale: 1, duration: 0.22, ease: "power2.out" }, t + 0.08);
+  /* fromTo with explicit start values: a .to() records its start on first
+     render, which depends on the order frames are drawn. */
+  ctx.tl.fromTo(pointer, { scale: 1 }, { scale: 0.86, duration: 0.08, ease: "power2.out", transformOrigin: "10% 8%", immediateRender: false }, t - 0.02);
+  ctx.tl.fromTo(pointer, { scale: 0.86 }, { scale: 1, duration: 0.22, ease: "power2.out", immediateRender: false }, t + 0.08);
   if (ringParent) {
     const ring = ctx.el("div", { class: "abs", style: { left: `${x - 60}px`, top: `${y - 60}px`, width: "120px", height: "120px", borderRadius: "50%", border: "3px solid rgb(143 211 255 / 0.9)", opacity: 0, zIndex: 790 } }, ringParent);
     ctx.tl.fromTo(ring, { scale: 0.2, opacity: 1 }, { scale: 1, opacity: 0, duration: 0.5, ease: "power2.out" }, t);
@@ -264,8 +266,11 @@ export function installCaptions(ctx) {
     const a = ctx.progress(t, s.from, s.from + 0.14);
     const b = 1 - ctx.progress(t, s.to - 0.12, s.to);
     const o = Math.min(a, b);
-    pill.style.opacity = String(o);
-    pill.style.transform = `translateY(${(1 - a) * 14}px) scale(${0.97 + 0.03 * a})`;
+    /* Never quite 1, and no scale: a layer that has been scaled or faded and
+       comes back to exactly 1 is painted differently by Chromium depending
+       on the frames drawn before it, which breaks parallel renders. */
+    pill.style.opacity = String(Math.min(o, 0.9999));
+    pill.style.transform = `translateY(${(1 - a) * 14}px)`;
     s.line.forEach((w, i) => {
       const cls = t >= w.end ? "w said" : t >= w.start - 0.02 ? "w now" : "w";
       if (nodes[i].className !== cls) nodes[i].className = cls;
@@ -322,15 +327,15 @@ export function installGrain(ctx, { opacity = 0.045, tiles = 6 } = {}) {
  */
 export function questionCard(ctx, parent, { q, a, box, mark = false, fontSize = null }) {
   const size = fontSize ?? Math.round(Math.min(box.h * 0.26, box.w * 0.075));
-  const root = ctx.el("div", { class: "abs", style: { left: `${box.x}px`, top: `${box.y}px`, width: `${box.w}px`, height: `${box.h}px`, perspective: `${box.w * 3}px` } }, parent);
-  const inner = ctx.el("div", { class: "abs", style: { inset: 0, transformStyle: "preserve-3d" } }, root);
+  const root = ctx.el("div", { class: "abs", style: { left: `${box.x}px`, top: `${box.y}px`, width: `${box.w}px`, height: `${box.h}px` } }, parent);
+  const inner = ctx.el("div", { class: "abs", style: { inset: 0 } }, root);
   const face = (back) => ctx.el("div", {
     class: "abs glass-dark",
     style: {
       inset: 0, borderRadius: `${Math.round(box.h * 0.18)}px`, display: "flex", alignItems: "center", gap: `${Math.round(size * 0.5)}px`,
-      padding: `0 ${Math.round(size * 1.1)}px`, backfaceVisibility: "hidden", transform: back ? "rotateY(180deg)" : "none",
-      font: `${back ? 600 : 600} ${back ? Math.round(size * 0.86) : size}px/1.16 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em",
-      ...(back ? { background: "linear-gradient(150deg, rgb(0 105 254 / 0.9), rgb(0 63 152 / 0.92))", border: "1.5px solid rgb(143 211 255 / 0.55)" } : {}),
+      padding: `0 ${Math.round(size * 1.1)}px`,
+      font: `600 ${back ? Math.round(size * 0.86) : size}px/1.16 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em",
+      ...(back ? { background: "linear-gradient(150deg, rgb(0 105 254 / 0.9), rgb(0 63 152 / 0.92))", border: "1.5px solid rgb(143 211 255 / 0.55)", visibility: "hidden" } : {}),
     },
   }, inner);
   const front = face(false);
@@ -345,14 +350,27 @@ export function questionCard(ctx, parent, { q, a, box, mark = false, fontSize = 
     badge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="m16.2 9-5.6 5.6L7.8 11.8" fill="none" stroke="#0069fe" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
   ctx.el("span", { text: a }, back);
+  const turns = [];
+  ctx.onFrame((t) => {
+    const flipped = turns.some((at) => t >= at + 0.3);
+    front.style.visibility = flipped ? "hidden" : "inherit";
+    back.style.visibility = flipped ? "inherit" : "hidden";
+  });
   return {
     root,
     inner,
     front,
     back,
-    /** Turns the card over to its answer at t (0.6 s, with a soft pop). */
+    /**
+     * Turns the card over to its answer at t (0.6 s, with a soft pop). The
+     * turn is flat: the card narrows to its edge and opens on the other face.
+     * A CSS 3D turn is raster-cached by Chromium differently depending on the
+     * frames drawn before it, which breaks parallel renders.
+     */
     turn(t, { sound = "pop", offset = 0 } = {}) {
-      ctx.tl.fromTo(inner, { rotationY: 0 }, { rotationY: 180, duration: 0.62, ease: "back.out(1.4)" }, t);
+      turns.push(t);
+      ctx.tl.fromTo(inner, { scaleX: 1 }, { scaleX: 0.02, duration: 0.3, ease: "power2.in", immediateRender: false }, t);
+      ctx.tl.fromTo(inner, { scaleX: 0.02 }, { scaleX: 1, duration: 0.32, ease: "back.out(1.4)", immediateRender: false }, t + 0.3);
       if (sound) ctx.sfx(sound, t + 0.18, { offset });
     },
   };
@@ -382,8 +400,8 @@ export function orb(ctx, parent, { size = 44, z = 850 } = {}) {
 
 /** A press of the pointer at t: it dips, a ring opens where it is, the tap sound. */
 export function press(ctx, pointer, t, { ringParent, x, y, sound = "tap", offset = 0, ring = true } = {}) {
-  ctx.tl.to(pointer, { scaleY: 0.8, scaleX: 1.1, duration: 0.09, ease: "power2.out" }, t - 0.06);
-  ctx.tl.to(pointer, { scaleY: 1, scaleX: 1, duration: 0.32, ease: "back.out(2.2)" }, t + 0.05);
+  ctx.tl.fromTo(pointer, { scaleY: 1, scaleX: 1 }, { scaleY: 0.8, scaleX: 1.1, duration: 0.09, ease: "power2.out", immediateRender: false }, t - 0.06);
+  ctx.tl.fromTo(pointer, { scaleY: 0.8, scaleX: 1.1 }, { scaleY: 1, scaleX: 1, duration: 0.32, ease: "back.out(2.2)", immediateRender: false }, t + 0.05);
   if (ring && ringParent) {
     const r = ctx.el("div", { class: "abs", style: { left: `${x - 50}px`, top: `${y - 50}px`, width: "100px", height: "100px", borderRadius: "50%", border: "3px solid rgb(0 105 254 / 0.8)", opacity: 0, zIndex: 840 } }, ringParent);
     ctx.tl.fromTo(r, { scale: 0.25, opacity: 1 }, { scale: 1.25, opacity: 0, duration: 0.55, ease: "power2.out" }, t);
@@ -439,7 +457,7 @@ export function ringBurst(ctx, parent, { cx, cy, r, t, color = "var(--electric)"
       },
     }, wrap);
     const t0 = t + 0.1 + rand() * 0.45;
-    ctx.tl.fromTo(piece, { x: Math.cos(a) * r * 0.2, y: Math.sin(a) * r * 0.2, opacity: 0 }, { x: Math.cos(a) * dist, y: Math.sin(a) * dist, opacity: 1, duration: 0.5, ease: "power3.out" }, t0);
+    ctx.tl.fromTo(piece, { x: Math.cos(a) * r * 0.2, y: Math.sin(a) * r * 0.2, opacity: 0 }, { x: Math.cos(a) * dist, y: Math.sin(a) * dist, opacity: 0.9999, duration: 0.5, ease: "power3.out" }, t0);
     ctx.tl.to(piece, { opacity: 0, duration: 0.5, ease: "power1.in" }, t0 + 0.7 + rand() * 0.6);
   }
   return wrap;
@@ -589,8 +607,8 @@ export function installChapterPill(ctx, chapters, { theme = (t) => "light" } = {
     const a = joinedIn ? 1 : ctx.ease("back.out(1.6)")(ctx.progress(t, c.start, c.start + 0.45));
     const b = joinedOut ? 1 : 1 - ctx.ease("power2.in")(ctx.progress(t, c.end - 0.3, c.end));
     const roll = joinedIn ? ctx.ease("power3.out")(ctx.progress(t, c.start, c.start + 0.35)) : 1;
-    box.style.opacity = String(Math.min(a, b));
-    pill.style.transform = `scale(${0.7 + 0.3 * Math.min(a, 1)})`;
+    box.style.opacity = String(Math.min(a, b, 0.9999));
+    pill.style.transform = `translateY(${(1 - Math.min(a, 1)) * -10}px)`;
     lines[k].style.display = "inline-block";
     lines[k].style.transform = `translateY(${(1 - roll) * 100}%)`;
     lines[k].style.opacity = String(roll);

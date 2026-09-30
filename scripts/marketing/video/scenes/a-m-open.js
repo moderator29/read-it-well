@@ -11,13 +11,16 @@ const W = 1080;
 const H = 1920;
 
 /** The night's question cards: frosted glass, the question on two balanced lines. */
-export function nightCard(ctx, parent, { q, a, box, size = 46 }) {
+export function nightCard(ctx, parent, { q, a, box, size = 46, inner = 440 }) {
   const card = questionCard(ctx, parent, { q, a, box, fontSize: size });
+  /* All three questions on two balanced lines (the text box is narrower than the shortest
+     question), so no card reads one line while another wraps. */
   Object.assign(card.front.style, {
     background: "linear-gradient(180deg, rgb(255 255 255 / 0.15) 0%, rgb(255 255 255 / 0.07) 100%)",
     border: "1.5px solid rgb(255 255 255 / 0.24)",
     boxShadow: `${SHADOW_NIGHT}, inset 0 1px 0 rgb(255 255 255 / 0.16)`,
     justifyContent: "center", textAlign: "center", color: "#fff", textWrap: "balance", lineHeight: "1.14",
+    padding: `0 ${Math.round((box.w - inner) / 2)}px`,
   });
   Object.assign(card.back.style, { justifyContent: "center", textAlign: "center", textWrap: "balance", lineHeight: "1.2" });
   /* No night card shows its back in this section (the rush turns card 2 only edge-on). Its back is
@@ -46,7 +49,8 @@ export function buildOpenMobile(ctx, T) {
   /* Three depths for the three cards: a little parallax on the push. */
   const depths = [1.012, 1.03, 1.02];
   const cards = QUESTIONS.map((q, i) => {
-    const box = L.CARDS_OPEN[i];
+    /* (card 2 sits 16 px left of its CARDS_OPEN box, so its turned corner stays inside x 940) */
+    const box = i === 1 ? { ...L.CARDS_OPEN[i], x: L.CARDS_OPEN[i].x - 16 } : L.CARDS_OPEN[i];
     const layer = ctx.el("div", { class: "fill", style: { transformOrigin: "540px 760px", zIndex: String(i + 1) } }, night);
     tl.fromTo(layer, { scale: 1 }, { scale: depths[i], duration: T.rows[2] + 0.4, ease: "drift" }, 0);
     const card = nightCard(ctx, layer, { q: q.q, a: q.a, box });
@@ -78,7 +82,7 @@ export function buildOpenMobile(ctx, T) {
     class: "abs",
     style: {
       left: "0px", top: `${bandTop}px`, width: `${W}px`, height: "300px", zIndex: "10", transformOrigin: "50% 50%",
-      background: "linear-gradient(180deg, rgb(2 6 50 / 0) 0%, rgb(2 6 50 / 0.84) 14%, rgb(2 6 50 / 0.84) 86%, rgb(2 6 50 / 0) 100%)",
+      background: "linear-gradient(180deg, rgb(2 6 50 / 0) 0%, rgb(2 6 50 / 0.9) 8%, rgb(2 6 50 / 0.9) 92%, rgb(2 6 50 / 0) 100%)",
     },
   }, night);
   tl.fromTo(band, { scaleY: 0, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.42, ease: "power3.out" }, T.finding - 0.12);
@@ -106,10 +110,16 @@ export function buildOpenMobile(ctx, T) {
   w1.forEach((s, k) => tl.to(s, { x: -1100, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + k * 0.03));
   w2.forEach((s, k) => tl.to(s, { x: 1100, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + (w2.length - 1 - k) * 0.03));
 
-  /* The cards dim behind the words. */
+  /* The cards all but vanish behind the words (8%, blurred), so no type sits over their text. */
+  const dimIn = { t0: T.finding - 0.1, t1: T.finding + 0.3 };
+  const dimOut = { t0: T.shouldnt + 0.02, t1: T.shouldnt + 0.37 };
   cards.forEach((c) => {
-    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.3, duration: 0.4, ease: "power2.out" }, T.finding - 0.1);
-    tl.to(c.root, { opacity: 1, duration: 0.35, ease: "power2.out" }, T.shouldnt + 0.02);
+    tl.fromTo(c.root, { opacity: 1 }, { opacity: 0.08, duration: dimIn.t1 - dimIn.t0, ease: "power2.out" }, dimIn.t0);
+    tl.fromTo(c.root, { opacity: 0.08 }, { opacity: 1, duration: dimOut.t1 - dimOut.t0, ease: "power2.out", immediateRender: false }, dimOut.t0);
+    ctx.onFrame((t) => {
+      const d = ctx.ease("power2.out")(ctx.progress(t, dimIn.t0, dimIn.t1)) * (1 - ctx.ease("power2.out")(ctx.progress(t, dimOut.t0, dimOut.t1)));
+      c.root.style.filter = d > 0.01 ? `blur(${(6 * d).toFixed(2)}px)` : "none";
+    });
   });
 
   /* ---------- row 03: the shuffle, the fan, the rush ---------- */

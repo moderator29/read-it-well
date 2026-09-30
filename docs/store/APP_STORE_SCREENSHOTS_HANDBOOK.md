@@ -5,8 +5,8 @@ Produced on 30 September 2026: the second round, after a premium review of the f
 **The short version.** There are 35 images for each store, in store order, made to DESIGN.md section 6a (`scripts/marketing/DESIGN.md`):
 
 - every image sits on one night ground, the headline is at the top, and the app is shown big, whole and straight on;
-- the App Store images use the handset with the camera island, at 1320 x 2868, and the phone is 83% of the image's width;
-- the Google Play images use the Android handset with the punch hole, at 1440 x 2560, and the phone is 66% of the width;
+- the App Store images use the handset with the camera island, at 1320 x 2868, and the phone's frame is 82% of the image's width;
+- the Google Play images use the Android handset with the punch hole, at 1440 x 2560, and the phone's frame is 66% of the width;
 - the frame of every phone is lit so it reads as a bright line on the dark ground;
 - the app's screen is laid on flat, as sharp as the capture allows;
 - two images carry a card that has just arrived, and two pairs share one tilted phone across their seam;
@@ -86,7 +86,7 @@ The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 
 **The order.** The first swipe shows 1, 2 and 3 and then a pair (4 and 5). No more than two screens without a photograph or artwork come in a row.
 
-- The brief's own order would have put five text screens together (its 14 to 18). So five neighbours moved by one or two places: welcome-2 to 14, welcome-yo to 16, support-inspection to 17, the stay to 19 and stays-dates to 20.
+- The brief's own order would have put five screens without a photograph or artwork together (its 14 to 18), so the stretch from 13 to 21 was reordered within itself: listing-amenities 13, welcome-2 14, support 15, welcome-yo 16, support-inspection 17, host-start 18, the stay 19, stays-dates 20, appearance 21. The first swipe, the pairs, 12 and 18 keep the brief's places.
 - The thread and the filters swapped (22 and 23), and so did the restaurants and the BQ filter (32 and 33), so photographs and text screens alternate at the end.
 - Screens that look alike at store size sit far apart: the onboarding's two twins (03 and 16), the two filter sheets (23 and 33), the two searches (06 and 34) and the two move-in pages (02 and 31).
 - **24 shows the Karsana terrace (`listing-sale`), not the Chevron Drive house (`listing-banana`) the brief named.** The example stock reuses its photographs, and the Chevron Drive house opens on the same photograph as the Maitama villa on 07, so 24 would have read as a repeat of 07. The Karsana terrace tells the same "for sale" story with its own photograph, and its price is in the facts file.
@@ -96,9 +96,9 @@ The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 - **One ground.** Every image sits on the same raster, a vertical gradient from `#050B3D` (the top row reads 5, 11, 61) to `#010118` (the last row reads 1, 1, 24). `compose.mjs` draws it pixel by pixel, not the browser, so it is identical in every file. Nothing else is drawn on it: no photographs, glows, textures or vignettes. On the one ground, the seams of the two pairs disappear.
 - **One grid, no icon.** The headline sits at the top and is centred on its ink (a line's letters, not its type box, are centred, to the pixel). It is set in Poppins 600, tracking −0.03em, leading 1.08, white, on two lines, at the same size and on the same baselines in every image:
   - App Store: 112 px, the block from y 150, the phone from y 490 to 2768;
-  - Play: 100 px, the block from y 140, the phone from y 470 to 2470.
+  - Play: 100 px, the block from y 130, the phone from y 470 to 2470.
 
-  The cap height is 2.7% of the image's height in both stores, so the two sets read the same size in their store rows. No line is wider than the phone plus 50 px (1146 px on the App Store, 1002 on Play). `compose.mjs` fails any headline that would need shrinking to fit. Sublines appear only on 16 and 35, in Inter 500 at 62% white. The pairs set their headlines flush left, on the same baselines.
+  The cap height is 2.7% of the image's height in both stores, so the two sets read the same size in their store rows. No line is wider than the phone's frame plus 50 px: 1130 px on the App Store (the frame is 1080 px wide) and 996 px on Play (946). The widest, "checked by a person", is 1114 px and 995 px. Play's type is 100 px rather than 112 because at 112 that line and "Find your next home" would overrun its measure. `compose.mjs` fails any headline that would need shrinking to fit. Sublines appear only on 16 and 35, in Inter 500 at 62% white. The pairs set their headlines flush left, on the same baselines.
 - **One phone, lit for the dark ground.**
   - Every image has the same handset, colour (black titanium) and light, from the 3D studio in `scripts/marketing/phone3d/`: the island handset on the App Store, the punch-hole handset on Play.
   - The studio's "night" light is a ring of light around the phone, a little in front of it and a little behind. Its frame's rounded front edge catches one continuous highlight on all four sides, the bottom included. Measured on the finished App Store images, it is at least 4 px wide at luminance 150 or more on every side, with peaks of 181 to 202. The Android's narrower edge takes a wider, brighter ring and reads at least 3 px wide.
@@ -111,7 +111,7 @@ The layouts are in `scripts/marketing/store/shots/premium.mjs`.
   - The two tilted phones keep the studio's own mapping of the capture.
 - **Two cards, one rule.** 05 and 18 each carry one of DESIGN.md section 4's cards, opaque navy with the Example chip and no amount. The card arrives over the app's header, as a notification does:
   - It covers the bell whole on 05, and the menu and the logo whole on 18, and never sits partly on a button or a word.
-  - It overhangs one edge of the phone: 70 px on the App Store (where the phone leaves 112 px to the image's edge) and 84 px on Play.
+  - It overhangs one edge of the phone: 70 px on the App Store (where the phone leaves about 120 px to the image's edge) and 80 px on Play.
 - **Two pairs.** Each pair shares one phone, tilted by the 3D studio across its seam: 04 and 05 (the stays home, leaning right) and 10 and 11 (the restaurant, leaning left). Each phone is slid left of the seam so the seam cuts no name:
   - on the stays home it passes clear of the area line and the hero's headline, and between two words of the small line under it;
   - on the restaurant it passes 44 px clear of "Harbour Lights Kitchen".
@@ -164,7 +164,7 @@ One to ten screenshots per display size and language, in .png, .jpg or .jpeg, wi
 - **The QA account's name is on screen:** "omojuni" on the home, stays, support and lock screens. No email address or phone number appears in any image.
 - **Three headers were cleaned** (12, 17 and 28).
   - These captures were taken scrolled, and the app's translucent header let the labels scrolled under it show through as faint ghost text beside the logo.
-  - `scripts/marketing/store/clean.mjs` keeps the header's own parts exactly as captured and sets the rest of that band to the band's own colour. Nothing below the header's hairline is touched.
+  - `scripts/marketing/store/clean.mjs` finds the header's own parts (the status bar, the menu, the logo and the bell) on an unscrolled capture of the same header. It keeps them as captured and sets the rest of the band, where the ghost labels were, to the band's own colour. Nothing below the header's hairline is touched.
 - **Listing cards shared into a chat carry no Example tag** (22). That is how the product draws a shared card today. Add the tag to the shared card in the product and recapture before submitting 22.
 - **Product text that is shown but never lifted:**
   - "Kept by Vallo Examples" and "Paid to Vallo Examples" on the fee lines (02, 31): the example lister's name;

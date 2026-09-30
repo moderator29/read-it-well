@@ -61,16 +61,35 @@ export function timesPlus(ctx) {
   T.lines = [T.rentLine, T.fees, T.fees + 0.19, T.fees + 0.38, T.caution, T.deposit];
   /* 13: the five amounts leave for the total one by one from "all". */
   T.flies = [0, 1, 2, 3, 4].map((k) => T.all6 + k * 0.12);
-  /* 06: the Property | Stays tabs rise on "with one account". */
+  /* 04 -> 05: the device rises behind the closed iris, so the iris opens (8.19) onto it in place. */
+  T.riseAt = T.widen - 0.45;
+  /* 06: the device drops away as the row opens; "One app." lands on "all", "One account." on the
+     second "one"; the Property | Stays tabs rise with it; all leave just before row 07. */
+  T.dropAt = T.rows[5];
+  T.oneAppIn = T.all - 0.08;
+  T.oneAccIn = T.one2 - 0.08;
   T.tabsUp = T.one2 - 0.14;
-  /* 07: the Rent press lands inside the word "rent", once the phone has risen. */
-  T.rentPress = T.rent + 0.25;
-  /* 09: the lifted Apply button's count rolls just after the Villas press. */
+  T.row6Out = T.rows[6] - 0.26;
+  /* 07: the question lands as one object by 15.30, rests to 15.90, and becomes the pill at 16.21; the
+     device rises only behind it, and Rent is pressed once it is at rest. */
+  T.qIn = T.looking - 0.02;
+  T.qRest = T.qIn + 0.3;
+  T.qShrink = T.qRest + 0.6;
+  T.riseB = T.qShrink + 0.02;
+  T.rentPress = T.pill1 + 0.12;
+  T.toSearch = T.rentPress + 0.12;
+  /* 09: the push onto the Villas tile starts with the sheet; the count rolls just after the press;
+     then the pull back, with the Apply button lifting as the one body. */
+  T.villasPush = T.filterPress + 0.04;
   T.countRoll = T.exactly + 0.12;
-  /* 10: the listing opens on "see" and whips down to its costs, landing on "move-in". Its move-in
-     total is never at rest on screen before 28.87: it only passes, blurred, in the whip. */
+  T.pullBack = T.exactly + 0.36;
+  /* 10: the cost section opens straight on "see" (its total is out of frame), then a slow drift. */
   T.open = T.need + 0.62;
-  T.flick = T.open + 0.02;
+  /* 13: card 1 comes in under the receipt with "all", turns as the total lands on "right" (its answer
+     is readable from ~28.84) and leaves for the top right in the section's last 0.22 s. */
+  T.cardIn = T.all6 + 0.1;
+  T.cardTurn = T.right - 0.2;
+  T.cardOut = T.end - 0.22;
   return T;
 }
 
@@ -178,6 +197,39 @@ export function freshLayers(ctx, nodes, { from = -Infinity, to = Infinity } = {}
 }
 
 /* ---------- builders ---------- */
+
+/**
+ * The mark's ring and its burst (row 04): a thin ring draws around the mark from t, and a few dots
+ * and dashes fly out and are all gone by `clearBy`, so nothing hangs frozen in the hold. Returns
+ * { ring, dots }: `ring` is the circle's own element, hidden by the caller when the iris takes over.
+ */
+export function burst(ctx, parent, { cx, cy, r, t, clearBy, color, stroke = 4, count = 16, seed = 12, dur = 0.75 }) {
+  const size = r * 2 + 40;
+  const ring = ctx.el("div", { class: "abs", style: { left: `${cx - size / 2}px`, top: `${cy - size / 2}px`, width: `${size}px`, height: `${size}px`, pointerEvents: "none" } }, parent);
+  ring.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="${color}" stroke-width="${stroke}" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
+  ctx.tl.fromTo(ring.querySelector("circle"), { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: dur, ease: "power2.inOut" }, t);
+  const dots = ctx.el("div", { class: "abs", style: { left: `${cx}px`, top: `${cy}px`, width: "0px", height: "0px", pointerEvents: "none" } }, parent);
+  const rand = ctx.random(seed);
+  for (let i = 0; i < count; i += 1) {
+    const a = rand() * Math.PI * 2;
+    const dist = r * (0.55 + rand() * 0.75);
+    const dash = rand() < 0.4;
+    const s = dash ? 4 : 6 + rand() * 8;
+    const piece = ctx.el("div", {
+      class: "abs",
+      style: {
+        left: `${-(dash ? 14 : s / 2)}px`, top: `${-s / 2}px`, width: dash ? "28px" : `${s}px`, height: `${s}px`,
+        borderRadius: dash ? "3px" : "50%", background: rand() < 0.5 ? color : "#8fd3ff", opacity: "0",
+        transform: dash ? `rotate(${((a * 180) / Math.PI).toFixed(2)}deg)` : "none",
+      },
+    }, dots);
+    const t0 = t + 0.08 + rand() * 0.3;
+    const out = Math.max(t0 + 0.45, clearBy - 0.3 - rand() * 0.25);
+    ctx.tl.fromTo(piece, { x: Math.cos(a) * r * 0.2, y: Math.sin(a) * r * 0.2, opacity: 0 }, { x: Math.cos(a) * dist, y: Math.sin(a) * dist, opacity: 1, duration: 0.45, ease: "power3.out" }, t0);
+    ctx.tl.fromTo(piece, { opacity: 1 }, { opacity: 0, duration: clearBy - out, ease: "power1.in", immediateRender: false }, out);
+  }
+  return { ring, dots };
+}
 
 /**
  * A big word on a white glass chip: type as an object that lands (rows 05-07).
@@ -341,9 +393,10 @@ export function fitSize(text, template, size, maxW, letterSpacingEm = -0.03) {
  * steady high speed (more than a digit a frame, so it is a vertical smear,
  * never a readable digit), then brakes in the last 0.12 s onto its digit;
  * the columns stop left to right, the last on t1. The smear is a vertical
- * gaussian (an SVG filter), strongest at full speed. Only ₦26,100,000 is
- * ever readable. (The engine's odometer blurs by at most 3 px, which leaves
- * wrong digits readable mid-spin.)
+ * gaussian (an SVG filter), strongest at full speed and never lighter than
+ * step 3 while the column moves; the last 0.4 digit is a cross-fade to the
+ * sharp final digit. Only ₦26,100,000 is ever readable. (The engine's
+ * odometer blurs by at most 3 px, which leaves wrong digits readable.)
  */
 let vblurReady = false;
 function vblurFilters(ctx) {
@@ -405,7 +458,8 @@ export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "
     /* each column is exactly its final digit's width (Poppins has no tabular figures), the spin centred in it */
     const fontPx = parseFloat(font.match(/(\d+(?:\.\d+)?)px/)[1]);
     const cw = measure(ch, font.split(",")[0]) + ls * fontPx;
-    const col = ctx.el("span", { style: { display: "inline-block", position: "relative", height: "1.08em", overflow: "hidden", width: `${cw.toFixed(2)}px` } }, box);
+    const cell = ctx.el("span", { style: { display: "inline-block", position: "relative", height: "1.08em", width: `${cw.toFixed(2)}px` } }, box);
+    const col = ctx.el("span", { style: { position: "absolute", left: "0px", right: "0px", top: "0px", bottom: "0px", overflow: "hidden" } }, cell);
     const run = t1 - (n - 1 - idx) * gap - t0;
     const brake = Math.min(0.12, run * 0.4);
     const final = Number(ch);
@@ -414,6 +468,8 @@ export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "
     const v = travel / (run - brake / 2);
     const strip = ctx.el("span", { style: { position: "absolute", left: "-0.2em", right: "-0.2em", top: "0px", display: "flex", flexDirection: "column", alignItems: "center" } }, col);
     for (let s = 0; s <= travel; s += 1) ctx.el("span", { text: String(s % 10), style: { display: "block", height: "1.08em", lineHeight: "1.08em" } }, strip);
+    /* the landed digit, sharp: it only ever shows the final digit */
+    const landed = ctx.el("span", { text: ch, style: { position: "absolute", left: "-0.2em", right: "-0.2em", top: "0px", display: "block", height: "1.08em", lineHeight: "1.08em", textAlign: "center", opacity: "0" } }, cell);
     let lastF = -2;
     ctx.onFrame((t) => {
       const u = Math.min(Math.max(t - t0, 0), run);
@@ -421,11 +477,17 @@ export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "
       const pos = u <= tb ? v * u : v * tb + v * ((u - tb) - (u - tb) ** 2 / (2 * brake));
       const vel = u <= 0 || u >= run ? 0 : u <= tb ? v : v * (1 - (u - tb) / brake);
       strip.style.transform = `translateY(${(-pos * 1.08).toFixed(4)}em)`;
-      const f = vel / 60 < 0.12 ? -1 : Math.min(5, Math.floor((vel / 60) * 4));
+      /* The spin stays blurred (never below step 3) until it is within 0.4 digit of its stop, then
+         cross-fades (about 0.04 s) into the sharp landed digit: no wrong digit is ever sharp. */
+      const left = travel - pos;
+      const k = ctx.clamp(1 - left / 0.4);
+      const f = Math.max(3, Math.min(5, Math.floor((vel / 60) * 4)));
       if (f !== lastF) {
-        col.style.filter = f < 0 ? "none" : `url(#a-vblur-${f})`;
+        col.style.filter = `url(#a-vblur-${f})`;
         lastF = f;
       }
+      col.style.opacity = String(1 - k);
+      landed.style.opacity = String(k);
     });
   });
   return box;
@@ -437,20 +499,74 @@ export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "
  */
 export function registerSound(ctx, T) {
   const s = (name, t, offset = 0) => ctx.sfx(name, t, { offset });
-  /* 02 */ s("whoosh_short", T.rows[1], -2);
-  /* 03 */ s("card_slide", T.b(7.1), 0); s("card_slide", T.b(7.8), 0); s("card_slide", T.b(8.5), 0); s("whoosh_long", T.rush, 0);
+  const m = ctx.isMobile;
+  /* 03 */ s("card_slide", T.b(7.1), 0); s("card_slide", T.b(7.8), 0); s("card_slide", T.b(8.5), 0);
+  /* 03 -> 04: the rush into the Vallo card opens "Meet Vallo" */ s("whoosh_long", T.rush, 0);
   /* 04 */ s("impact_soft", T.drop, 0); s("sparkle", T.sparkle, -3);
-  /* 05 */ for (const t of [T.hotels, T.shortlets, T.restaurants]) s("swipe", t, -3);
+  /* 04 -> 05: the ground changes to daylight as the iris opens */ s("whoosh_short", T.widen, -4);
+  /* 05: the pages slide on mobile (the web swaps are cross-fades, so no swipe there) */
+  if (m) for (const t of [T.hotels, T.shortlets, T.restaurants]) s("swipe", t, -3);
   /* 06 */ s("pop", T.tabsUp, -4);
-  /* 07 (the chapter's opener) */ s("whoosh_short", T.rows[6], -4); s("tap", T.rentPress, 0); s("swipe", T.buy, -2);
+  /* 07 (the chapter's opener) */ s("whoosh_short", T.rows[6], -4); s("tap", T.rentPress, 0); if (m) s("swipe", T.toSearch, -2);
   /* 08 */ for (const t of T.dots) s("tap_soft", t, -6); s("tap", T.filterPress, 0);
   /* 09 */ s("toggle_on", T.exactly, 3); s("counter_tick", T.countRoll, -2); s("tap", T.need, 0);
-  /* 10 */ s("swipe", T.flick, -2);
+  /* 10 */ if (m) s("swipe", T.open, -2);
   /* 11 (v3.1: no whoosh inside a chapter; the receipt's flight has its slide) */ s("card_slide", T.call + 0.17, -2);
   /* 12 */ for (const t of T.lines) s("counter_tick", t, 0);
-  /* 13 */ for (const t of T.flies) s("counter_tick", t + 0.24, -4); s("success", T.right, 0); s("pop", T.there + 0.11, 0);
-  /* Captions: off while the same words are big (02, 04, 06, 07 until the pill). Row 05 has no big words (v3.1). */
-  ctx.hideCaptions(T.rows[1], T.rows[2]);
-  ctx.hideCaptions(T.rows[3], T.rows[4]);
-  ctx.hideCaptions(T.rows[5], T.pill1);
+  /* 13: each amount ticks as it lands in the total */
+  for (const t of T.flies) s("counter_tick", t + 0.46, -4);
+  s("success", T.right, 0); s("pop", T.cardTurn + 0.12, -4);
+
+  /* Captions: off while the same words are big (02, 04, 06, 07). Each gap starts before its line's
+     0.12 s fade-in, and each gap edge sits on a line's own edge, so no caption flashes or snaps. */
+  const lineFrom = (t) => t - 0.12;
+  ctx.hideCaptions(T.rows[1] - 0.14, lineFrom(T.shouldnt));
+  ctx.hideCaptions(T.rows[3] - 0.14, T.we(2, "Vallo") + 0.45);
+  /* rows 06-07: mobile's line "restaurants… all in one app," and desktop's "all in one app," start the
+     gap; it ends where "Search across Nigeria," begins, so "or buy?" never shows alone */
+  ctx.hideCaptions(lineFrom(m ? T.restaurants : T.all), lineFrom(T.search));
+  /* desktop splits the first sentence "…shouldn't feel like a" / "gamble.": show the whole clause instead */
+  if (!m) {
+    const words = ctx.T.words.filter((w) => w.sentence === 1 && w.start >= T.shouldnt - 0.01);
+    captionOverride(ctx, { t0: lineFrom(T.shouldnt), t1: T.we(1, "gamble") + 0.45, words });
+  }
+}
+
+/**
+ * A caption line the engine would split badly, shown whole. This hook is registered on the first
+ * frame, after the engine's caption hook, so it runs last: from t0 to t1 it puts `words` (the
+ * timeline's own, highlighted exactly as the engine highlights them) in the engine's pill, fading
+ * in at t0 and leaving the engine's own fade-out at t1. Outside the span it does nothing.
+ */
+function captionOverride(ctx, { t0, t1, words }) {
+  let armed = false;
+  ctx.onFrame(() => {
+    if (armed) return;
+    armed = true;
+    let pill = null;
+    let spans = null;
+    let owner = null;
+    ctx.onFrame((t) => {
+      pill = pill ?? document.querySelector(".captions .pill");
+      if (!pill || t < t0 || t >= t1) return;
+      if (owner !== pill.firstChild || !spans) {
+        pill.innerHTML = "";
+        spans = words.map((w, i) => {
+          const node = ctx.el("span", { class: "w", text: w.word }, pill);
+          if (i < words.length - 1) pill.appendChild(document.createTextNode(" "));
+          return node;
+        });
+        owner = pill.firstChild;
+      }
+      words.forEach((w, i) => {
+        const cls = t >= w.end ? "w said" : t >= w.start - 0.02 ? "w now" : "w";
+        if (spans[i].className !== cls) spans[i].className = cls;
+      });
+      const a = ctx.progress(t, t0, t0 + 0.14);
+      if (t < t1 - 0.12) {
+        pill.style.opacity = String(a);
+        pill.style.transform = `translateY(${(1 - a) * 14}px) scale(${0.97 + 0.03 * a})`;
+      }
+    });
+  });
 }

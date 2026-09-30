@@ -43,13 +43,14 @@ const FRONT = { rotation: { x: 0, y: 0, z: 0 }, fov: 20 };
 export function M(ctx) {
   const { W, H, ios } = ctx;
   const size = ios ? 112 : 100;
-  const hlTop = ios ? 150 : 140;
+  const hlTop = ios ? 150 : 130;
   const phoneTop = ios ? 490 : 470;
   const phoneBottom = ios ? 100 : 90;
   return {
     W, H, size, hlTop, lh: 1.08,
     side: ios ? 80 : 88,
-    max: ios ? 1146 : 1002,
+    /* the phone's frame is 1080 px wide on the App Store and 946 on Play */
+    max: ios ? 1130 : 996,
     subSize: ios ? 38 : 34,
     phoneTop,
     phoneH: H - phoneTop - phoneBottom,

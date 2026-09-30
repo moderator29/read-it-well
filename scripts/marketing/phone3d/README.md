@@ -84,7 +84,7 @@ await studio.close();
 | `offset` / `offsetPx` | 0 | shift in fractions of the frame (`{x, y}`, +y down) or in px. The shift is a lens shift, so perspective is unchanged, like cropping a bigger photo. |
 | `reflection` | 0.12 | glass sheen on the display, 0..1 (fresnel + soft studio gradient + faint diagonal streak, blended toward white by at most a few %). `0` leaves the screen pixels untouched. |
 | `exposure` | 1.0 | tone-mapping exposure (Khronos PBR Neutral). It affects the metal only, never the screen. |
-| `env` | `'light'` | studio preset: `'light'` for light backdrops, `'dark'` (brighter rims) for dark ones |
+| `env` | `'light'` | studio preset: `'light'` for light backdrops, `'dark'` (brighter rims) for dark ones, `'night'` for near-black grounds (the dark studio plus a ring of light around the phone, so a black frame's rounded front edge reads as one continuous highlight on all four sides; the store images use it). Or a config object of the same shape as `ENV_PRESETS` in `look.js`, whose optional `arcs` add ring segments |
 | `envIntensity`, `keyLight` | 1, 1 | environment and key-light multipliers |
 | `shadow` | `{type:'none'}` | see Shadows. A string works as shorthand: `shadow: 'drop'`. |
 | `shadowMode` | `'composite'` | `'composite'`: the shadow is inside `png` (phone over shadow). `'separate'`: `png` is the phone only and the shadow comes back in `shadowPng`. |
