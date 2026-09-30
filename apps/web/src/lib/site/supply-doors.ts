@@ -56,11 +56,19 @@ export type SupplyDoor = {
   checks: string[];
   notDone: string[];
   example: { title: string; sub: string; value: string }[];
+  /** Three short facts under the head's buttons, each a sentence below in short. */
+  facts: [string, string, string];
+  /** The questions, each answered by a sentence the product enforces. */
+  faq: { q: string; a: string }[];
 };
 
 const LADDER_LINES = VERIFICATION_ORDER.map((rung) => `${rung.label}: ${rung.evidence}`);
 
 const LISTING_REVIEW = "A person at Vallo reviews each listing before it goes live, and can send it back with a reason.";
+
+const ONE_ACCOUNT = "Yes. It is one account for renting, staying and listing, with one inbox. You switch sides from your profile.";
+
+const NO_WALLET = "Vallo does not hold any money for you or for the renter. There is no wallet and nothing to withdraw.";
 
 const NO_CAP =
   "Vallo does not set or cap your fees. It prints the fees you state on the listing, beside the published rule where a state has one, so renters can compare.";
@@ -100,13 +108,21 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
     checks: [...LADDER_LINES, LISTING_REVIEW],
     notDone: [
       NO_CAP,
-      "Vallo does not hold any money for you or for the renter. There is no wallet and nothing to withdraw.",
+      NO_WALLET,
       "Passing a step says what a reviewer looked at on that date. It is not a promise about every deal you do.",
     ],
     example: [
       { title: "Enquiry: 2 bedroom flat, Yaba", sub: "Asked about the move-in total", value: "New" },
       { title: "Inspection: Saturday 10:00", sub: "Mini flat, Surulere", value: "Booked" },
       { title: "Agreement: 3 bedroom duplex", sub: "Waiting for the renter to confirm", value: "Draft" },
+    ],
+    facts: ["No inspection fee for renters", "Paid straight to your bank", "A person reviews each listing"],
+    faq: [
+      { q: "When do I get paid?", a: PAYOUT_ANSWER },
+      { q: "Does Vallo hold the money?", a: NO_CUSTODY_SENTENCE },
+      { q: "Do renters pay to inspect?", a: NO_INSPECTION_FEE },
+      { q: "Does Vallo set my agency fee?", a: NO_CAP },
+      { q: "Can I rent or book stays with the same account?", a: ONE_ACCOUNT },
     ],
   },
 
@@ -151,6 +167,17 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
       { title: "Arriving today", sub: "Studio apartment, Lekki", value: "Confirmed" },
       { title: "Table for 4, Friday 19:30", sub: "Reservation request", value: "New" },
     ],
+    facts: ["Bookings in the inbox guests use", "Paid straight to your bank", "A person reviews each listing"],
+    faq: [
+      { q: "When do I get paid?", a: PAYOUT_ANSWER },
+      { q: "Does Vallo hold the money?", a: NO_CUSTODY_SENTENCE },
+      {
+        q: "What happens when a guest cancels?",
+        a: `Guests who cancel more than ${FULL_REFUND_HOURS} hours before check-in get everything back, under the platform terms. Your listing shows the terms that apply.`,
+      },
+      { q: "What does the Vallo Guarantee cover?", a: GUARANTEE_SCOPE },
+      { q: "Can I rent or book stays with the same account?", a: ONE_ACCOUNT },
+    ],
   },
 
   landlord: {
@@ -188,12 +215,23 @@ export const SUPPLY_DOORS: Record<SupplyRole, SupplyDoor> = {
     notDone: [
       "Without a title document your listing still goes up, but it never carries an ownership mark. Nothing else changes.",
       NO_CAP,
-      "Vallo does not hold any money for you or for the renter. There is no wallet and nothing to withdraw.",
+      NO_WALLET,
     ],
     example: [
       { title: "Enquiry: 3 bedroom flat, Gwarinpa", sub: "Asked to inspect this week", value: "New" },
       { title: "Inspection report submitted", sub: "8 items with photographs", value: "Ready" },
       { title: "Agreement: yearly tenancy", sub: "Waiting for Vallo's approval", value: "Review" },
+    ],
+    facts: ["No inspection fee for renters", "Paid straight to your bank", "List with or without an agent"],
+    faq: [
+      { q: "When do I get paid?", a: PAYOUT_ANSWER },
+      { q: "Does Vallo hold the money?", a: NO_CUSTODY_SENTENCE },
+      {
+        q: "Can I list without a title document?",
+        a: "Yes. Without a title document your listing still goes up, but it never carries an ownership mark. Nothing else changes.",
+      },
+      { q: "Does Vallo set the fees?", a: NO_CAP },
+      { q: "Can I rent or book stays with the same account?", a: ONE_ACCOUNT },
     ],
   },
 };
