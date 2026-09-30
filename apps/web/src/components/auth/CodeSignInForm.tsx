@@ -1,14 +1,22 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CODE_START, type CodeSignInState } from "@/lib/auth/code-sign-in-state";
 import { sendEmailSignInCode, verifyEmailSignInCode } from "@/lib/auth/email-code";
 import { sendPhoneSignInCode, verifyPhoneSignInCode } from "@/lib/auth/phone-sign-in";
+import { RESEND_WAIT_SECONDS, resendLabel } from "@/lib/auth/mail-app";
+import { codeLengthWord } from "@/lib/auth/confirmation-code";
+import { Button } from "@/components/ui/Button";
+import { CodeInput } from "./CodeInput";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
+
+/* A sign-in code is six digits (`isSixDigits`), whatever length the sign-up
+   confirmation uses. */
+const SIGN_IN_CODE_LENGTH = 6;
 
 type Mode = "email" | "phone";
 
@@ -17,6 +25,11 @@ type Mode = "email" | "phone";
  * phone (WhatsApp first, then text). Two steps on one screen, drawn with the
  * auth screens' own classes and field, so it looks like the sign-in it sits
  * beside. The code field takes `one-time-code` autofill.
+ *
+ * THE CODE STEP IS THE SIGN-UP CODE SCREEN'S (A4, 30 September re-audit):
+ * the same cells (`CodeInput`, one real input under them), a shake on a
+ * refused code, the last digit sending the form, and "Send a new code"
+ * counting down its thirty seconds in place. The actions are unchanged.
  */
 export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; next?: string }) {
   const copy = mode === "email" ? t.publicDoors.emailCode : t.publicDoors.phone;
@@ -32,10 +45,46 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
   const onCode = sent.step === "code" && checked.step !== "ask";
   const message = state.error ? (copy as Record<string, string>)[state.error] ?? copy.failed : null;
 
+  const [code, setCode] = useState("");
+  const verifyForm = useRef<HTMLFormElement>(null);
+  /* One shake per refusal, counted as the answer arrives, as
+     VerifyCodeForm does. */
+  const [answered, setAnswered] = useState(checked);
+  const [wrongCount, setWrongCount] = useState(0);
+  if (answered !== checked) {
+    setAnswered(checked);
+    if (checked.error === "wrongCode" || checked.error === "badCode") setWrongCount((n) => n + 1);
+  }
+
+  /* The resend waits thirty seconds from every send. */
+  const [wait, setWait] = useState(RESEND_WAIT_SECONDS);
+  const [sentAnswer, setSentAnswer] = useState(sent);
+  if (sentAnswer !== sent) {
+    setSentAnswer(sent);
+    if (sent.step === "code") setWait(RESEND_WAIT_SECONDS);
+  }
+  useEffect(() => {
+    if (!onCode || wait <= 0) return;
+    const timer = window.setTimeout(() => setWait((n) => n - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [onCode, wait]);
+
+  const onDigits = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    setCode(digits);
+    if (digits.length === SIGN_IN_CODE_LENGTH && !verifying) verifyForm.current?.requestSubmit();
+  };
+
   return (
     <div className="nf-auth__screen nf-slate-stagger">
       <h1 className="nf-auth__title">{copy.title}</h1>
-      <p className="nf-auth__sub">{onCode ? copy.sentTo.replace(mode === "email" ? "{email}" : "{phone}", sent.shown ?? "") : copy.lede}</p>
+      <p className="nf-auth__sub">
+        {onCode ? (
+          <SentTo template={copy.sentTo} slot={mode === "email" ? "{email}" : "{phone}"} shown={sent.shown ?? ""} />
+        ) : (
+          copy.lede
+        )}
+      </p>
 
       {!onCode ? (
         <form action={send} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
@@ -75,19 +124,20 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
           </div>
         </form>
       ) : (
-        <form action={verify} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
+        <form ref={verifyForm} action={verify} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
           <input type="hidden" name="target" value={sent.target ?? ""} />
           {next && <input type="hidden" name="next" value={next} />}
-          <Field
-            t={t}
+          <CodeInput
             id="code-digits"
             name="code"
-            type="text"
-            inputMode="numeric"
             label={copy.codeLabel}
-            placeholder="123456"
-            autoComplete="one-time-code"
+            length={SIGN_IN_CODE_LENGTH}
+            value={code}
+            onChange={onDigits}
             error={checked.error === "badCode" ? copy.badCode : checked.error === "wrongCode" ? copy.wrongCode : undefined}
+            wrongCount={wrongCount}
+            placeholder="123456"
+            cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord(SIGN_IN_CODE_LENGTH))}
           />
           {checked.error && checked.error !== "badCode" && checked.error !== "wrongCode" && message && (
             <p role="alert" className="nf-auth__notice">
@@ -103,11 +153,18 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
       )}
 
       {onCode && (
-        <form action={send} className="nf-auth__links">
+        <form action={send} className="nf-verify__resend nf-slate-stagger">
           <input type="hidden" name={mode === "email" ? "email" : "phone"} value={sent.target ?? ""} />
-          <button type="submit" className="nf-tap nf-auth__aside" disabled={sending}>
-            {copy.resend}
-          </button>
+          <Button
+            type="submit"
+            variant="ghost"
+            size="sm"
+            loading={sending}
+            disabled={wait > 0}
+            data-testid={`code-resend-${mode}`}
+          >
+            {wait > 0 ? resendLabel(t.authFlow.resendIn, wait) : copy.resend}
+          </Button>
         </form>
       )}
 
@@ -118,5 +175,18 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
         </Link>
       </p>
     </div>
+  );
+}
+
+/** "We sent a code to a***@mail.com." with the address in the ink it is in on the sign-up code screen. */
+function SentTo({ template, slot, shown }: { template: string; slot: string; shown: string }) {
+  const [before, after = ""] = template.split(slot);
+  if (!shown) return <>{template.replace(slot, "")}</>;
+  return (
+    <>
+      {before}
+      <span className="font-semibold text-[var(--nf-content-primary)]">{shown}</span>
+      {after}
+    </>
   );
 }
