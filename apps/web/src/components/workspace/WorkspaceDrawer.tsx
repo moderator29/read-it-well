@@ -72,7 +72,7 @@ export function WorkspaceDrawer({
               leadingIcon="close"
               onClick={close}
               aria-label={closeLabel}
-              className="nf-ws-bar__btn -mr-2xs"
+              className="-mr-2xs"
             />
           </div>
           {children(close)}
