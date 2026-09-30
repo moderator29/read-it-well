@@ -2201,12 +2201,18 @@
    * design system's own six have been moved.
    * ------------------------------------------------------------------ */
   --nf-radius-control: var(--nf-radius-md);
-  /* THE BUTTON IS A PILL (founder references 44 and 45, 30 September 2026;
-     CLEAN_UNIFIED_DIRECTION.md section 17, which overrides the shape law for
-     buttons and for nothing else). Primary, secondary, quiet and danger
-     buttons read this; chips, fields, segments and tabs stay on
-     `--nf-radius-control`. */
-  --nf-radius-button: var(--nf-radius-pill);
+  /* THE BUTTON IS A RECTANGLE WITH SOFT CORNERS (founder ruling, 30
+     September 2026, over reference 55's pills; CLEAN_UNIFIED_DIRECTION.md
+     sections 17 and 19). It was the pill for a day. Every text button reads
+     the `--nf-act-radius-*` rung for its size (10 / 12 / 14px on the 44 /
+     48 / 56px rungs), so the corner keeps the same share of each height;
+     this name stays for the few readers outside the button system and
+     resolves to the middle rung. Icon buttons, the FAB, toggles, radios,
+     chips and tags stay round. */
+  --nf-act-radius-sm: 0.625rem;
+  --nf-act-radius-md: 0.75rem;
+  --nf-act-radius-lg: 0.875rem;
+  --nf-radius-button: var(--nf-act-radius-md);
   /* The clean unified radii (docs/design/CLEAN_UNIFIED_DIRECTION.md section
      1.3). Every one of them obeys the 0.30 ratio on the box it names. */
   --nf-radius-card: var(--nf-radius-lg);
