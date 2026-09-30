@@ -1,8 +1,8 @@
 # App Store and Google Play screenshots: the handbook
 
-Produced on 29 September 2026. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with three commands (section 7).
+Produced on 30 September 2026. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 7).
 
-**The short version.** There is a pool of 36 images for each store, 33 in the dark theme and 3 in the light, every one showing the live product inside a whole phone. The App Store images use a phone with a camera island at 1320 x 2868. The Google Play images use an Android phone at 1080 x 1920, and there is a 1024 x 500 feature graphic. Section 2 names the ten to submit to Apple and the eight to submit to Google.
+**The short version.** There are 35 images for each store, in store order, made to DESIGN.md section 6a (`scripts/marketing/DESIGN.md`), the founder's ruling of 30 September 2026: every image on one night ground, a small line icon and the headline at the top, and the app, big, whole and straight on. The App Store images use the handset with the camera island at 1320 x 2868; the Google Play images use the Android handset with the punch hole at 1440 x 2560. Two images carry a card that has just arrived, and two pairs share one tilted phone across their seam. Play also has a 1024 x 500 feature graphic.
 
 ---
 
@@ -10,215 +10,138 @@ Produced on 29 September 2026. This records what is in `docs/store/screenshots/`
 
 ```
 docs/store/screenshots/
-├── app-store/iphone-6.9/dark/     33 images, 1320 x 2868, PNG, no alpha
-├── app-store/iphone-6.9/light/     3 images, 1320 x 2868, PNG, no alpha
-├── google-play/phone/dark/        33 images, 1080 x 1920, PNG, no alpha
-├── google-play/phone/light/        3 images, 1080 x 1920, PNG, no alpha
-├── google-play/feature-graphic/    feature-graphic.png, 1024 x 500
-├── source/                        the 33 live screen captures (WebP) and capture-report.json
-└── overview.jpg                   every App Store image on one sheet, for choosing
+├── app-store/              35 images, 01-...png to 35-...png, 1320 x 2868, RGB PNG, no alpha
+├── google-play/            35 images, the same names, 1440 x 2560 (9:16), RGB PNG, no alpha, each under 8 MB
+│   └── feature-graphic.png 1024 x 500, RGB PNG, no alpha
+├── app-store-overview.jpg        the 35 App Store images side by side, as the store shows them
+├── google-play-overview.jpg      the same for Google Play
+├── app-store-overview-grid.jpg   the 35 seven to a row, with their file names, for review
+└── google-play-overview-grid.jpg
 ```
 
-Each file is named `<NN>-<slug>.png` after its place in the shot list (section 3), so the same number is the same image in both stores.
-
-The 6.5" App Store size (1284 x 2778) is not kept here. Apple asks for it only when a 6.9" set is missing (section 4). `node scripts/store-screenshots/compose.mjs --device iphone-6.5` renders it in about two minutes if it is ever wanted.
+Each file is named `<NN>-<slug>.png` after its place in the list (section 3), so the same number is the same image in both stores.
 
 ## 2. What to submit
 
-Both stores take far fewer images than the pool holds. The pool is for choosing; these are the picks. The order matters: the first three are what a person sees in search results before they open the listing.
+The App Store takes up to 10 screenshots per display size; Google Play takes up to 8 per device type. The list is in store order, and the first three are what a person sees in search results before opening the listing, so the simplest submission is the first 10 (Apple) and the first 8 (Google), in order. If a pair is included, include both of its images, next to each other and in order.
 
-**App Store, 10 images (6.9" display, from `app-store/iphone-6.9/`):**
+A second choice, keeping one image per part of the product:
 
-1. `01-find-your-next-home` (the product's front door)
-2. `02-full-move-in-cost` (the listing and its move-in total, on a property photograph)
-3. `03-book-a-stay` (the Stays side, two phones)
-4. `06-search-homes-across-nigeria`
-5. `31-share-listings-in-the-chat` (messages, with listings shared as cards)
-6. `13-reserve-a-table` (restaurants)
-7. `11-ask-the-assistant`
-8. `30-vallo-never-holds-your-money` (the move-in breakdown, and the product's promise about money)
-9. `21-speak-your-language` (the app in Yoruba)
-10. `25-real-estate-done-right` (the closing brand card)
+- **App Store (10):** `01`, `02`, `03`, `10` + `11` (the stays pair, with "Room booked"), `08`, `17`, `20`, `30`, `35`.
+- **Google Play (8):** `01`, `02`, `03`, `10` + `11`, `08`, `20`, `30`; plus `feature-graphic.png`, which Play requires.
 
-**Google Play, 8 images (from `google-play/phone/`), plus the feature graphic:**
+## 3. The 35
 
-1. `01-find-your-next-home`
-2. `02-full-move-in-cost`
-3. `03-book-a-stay`
-4. `06-search-homes-across-nigeria`
-5. `31-share-listings-in-the-chat`
-6. `13-reserve-a-table`
-7. `30-vallo-never-holds-your-money`
-8. `21-speak-your-language`
+Every screen is the live product at <https://www.vallospaces.com>, in its dark theme, captured on 30 September 2026 as the QA member account (public pages signed out), and composited into a whole phone display with its status bar by `scripts/marketing/screens.mjs`. The capture ids are the files in `docs/marketing/source/` (see `capture-report.json` there).
 
-Play also requires `google-play/feature-graphic/feature-graphic.png`.
-
-Good alternates, all of the same quality: `12-save-your-favourites`, `19-all-your-plans-in-one-place`, `08-message-the-agent`, `24-stays-for-every-trip`, `07-filter-by-what-you-need`. The agent and host images (`14` to `17`) show the pitch a member sees before being approved; they suit a later listing aimed at listers better than the launch listing.
-
-**Read section 6 before submitting `05`**: it shows another member's post.
-
-## 3. The shot list, as produced
-
-Every screen is the live product at <https://www.vallospaces.com>, captured on 29 September 2026 while signed in as the QA member account, except `20` and `21`, which are public. Routes with an id are shown as `<id>`.
-
-| # | Headline | Theme | Layout | Live screen(s) |
+| # | Headline | Line icon | Screen (capture id) | Notes |
 |---|---|---|---|---|
-| 01 | Find your next home in Nigeria | dark | hero | `/home` |
-| 02 | The full move-in cost, before you call | dark | photo (villa-exterior-sunset) | `/listing/<id>` |
-| 03 | Book a stay in a few taps | dark | duo | `/stay/<id>`, `/stays` |
-| 04 | Hotels, resorts and shortlets | dark | photo (resort-pool-deck) | `/stay/<id>` |
-| 05 | Hear what's happening around you | dark | hero | `/around` (the feed) |
-| 06 | Search homes across Nigeria | dark | card | `/search?market=rent` |
-| 07 | Filter by exactly what you need | dark | tilt | `/search?filters=open` |
-| 08 | Message the agent, keep it in one thread | dark | hero | `/messages/<id>` |
-| 09 | Every conversation in one inbox | dark | duo | `/messages`, `/messages/<id>` |
-| 10 | Know the moment anything changes | dark | tilt | `/notifications` |
-| 11 | Ask the AI assistant about any listing | dark | hero | `/assistant` |
-| 12 | Save your favourites, compare them later | dark | photocard (villa-pool-portrait) | `/saved` |
-| 13 | Reserve a table in the same app | dark | photo (restaurant-02-lounge) | `/restaurants` |
-| 14 | Run your listings from one workspace | dark | card | `/agent/dashboard` |
-| 15 | Put your property on Vallo | dark | tilt | `/agent/list` |
-| 16 | Track your application step by step | dark | hero | `/profile/application` |
-| 17 | Host your hotel or shortlet | dark | photo (tower-entrance-dusk) | `/host` |
-| 18 | See what places nearby are asking | dark | tilt | `/price?state=LA&area=Lekki&...` (Price Check) |
-| 19 | All your plans in one place | dark | tilt | `/profile` |
-| 20 | Homes and stays, one account | dark | hero | `/welcome` |
-| 21 | Speak your language | dark | card | `/welcome` with the language set to Yoruba |
-| 22 | Stays that fit your trip | dark | hero | `/stays/search?filters=open` |
-| 23 | Verify with confidence | dark | tilt | `/verification` |
-| 24 | Stays for every trip | dark | photo (skyline-waterfront-dusk) | `/stays/search?in=...&out=...&guests=2` |
-| 25 | Vallo. Real estate, done right. | dark | brand | none: icon, wordmark and line |
-| 26 | A lighter way to browse | light | hero | `/home` |
-| 27 | Listings that speak for themselves | light | photocard (villa-exterior-gate) | `/listing/<id>` |
-| 28 | Search, beautifully | light | duo | `/search?market=rent`, `/home` |
-| 29 | Found the one? Message the agent | dark | duo | `/listing/<id>`, `/messages/<id>` |
-| 30 | Vallo never holds your money | dark | hero | `/listing/<id>`, scrolled to its move-in breakdown |
-| 31 | Share listings right in the chat | dark | photocard (villa-pool-skyline-01) | `/messages/<id>` |
-| 32 | Book a table in a few taps | dark | tilt | `/restaurant/<id>` |
-| 33 | You choose what reaches you | dark | hero | `/settings/notifications` |
-| 34 | Welcome back, sign in in seconds | dark | hero | `/sign-in` |
-| 35 | Join Vallo with one account | dark | tilt | `/sign-up` |
-| 36 | Your cards and banks, in one place | dark | photocard (living-room-dusk) | `/settings/payments` |
+| 01 | Find your next home in Nigeria | house | `home` | |
+| 02 | Homes and stays, one account | circle-user-round | `welcome-1` | public |
+| 03 | The full move-in cost, before you call | receipt-text | `listing-cost` | the villa's own move-in lines |
+| 04 | Search homes across Nigeria | search | `search` | |
+| 05 | Filter by exactly what you need | sliders-horizontal | `filters-villas` | Villas selected, Apply (3) |
+| 06 | See every home up close | zoom-in | `listing` | |
+| 07 | Share a home in one tap | share-2 | `listing-share` | |
+| 08 | Talk straight to the owner | message-circle | `thread` | |
+| 09 | Every conversation in one place | inbox | `messages` | |
+| 10 | Hotels, shortlets and resorts | hotel | `stays` | pair with 11: one phone across the seam |
+| 11 | Book a room in a few taps | bed-double | `stays` | card: "Room booked · Lagoon Crest Resort · 3 nights", Example |
+| 12 | Pick your dates, see what's free | calendar-days | `stays-dates-gb` | public; British dates |
+| 13 | Find a restaurant you love | utensils | `restaurant` | pair with 14: one phone across the seam |
+| 14 | Reserve your table in seconds | calendar-check | `restaurant` | |
+| 15 | What's happening around you | megaphone | `around` | |
+| 16 | Know the moment anything changes | bell | `notifications` | |
+| 17 | Ask the AI assistant, any time of day | sparkles | `assistant-caution-2` | |
+| 18 | Save favourites, compare later | heart | `saved` | |
+| 19 | Everything, one tap away | layout-grid | `drawer` | |
+| 20 | Vallo never holds your money | landmark | `payments` | |
+| 21 | Cards and banks, in one place | credit-card | `payment-methods` | |
+| 22 | A real person checks every verified mark | badge-check | `verification` | about people and businesses, never a listing |
+| 23 | Lock Vallo with a passcode | lock-keyhole | `passcode-create` | step 1 of 2; nothing saved |
+| 24 | Help from a real person | headset | `support` | |
+| 25 | See what places nearby are asking | map-pin | `price` | |
+| 26 | All your plans in one place | calendar-range | `plans` | |
+| 27 | Run your listings from one workspace | layout-dashboard | `agent-dashboard` | |
+| 28 | List your property on Vallo | house-plus | `agent-properties` | |
+| 29 | Host your hotel or shortlet | key-round | `host-start` | |
+| 30 | Your share goes straight to your bank | banknote | `host-bookings` | card: "Payment settled · Straight to your bank · ₦1,800,000", Example |
+| 31 | Welcome back, sign in in seconds | log-in | `sign-in` | public |
+| 32 | Vallo speaks your language | languages | `welcome-yo` | public; subline "English, Hausa, Yorùbá and Igbo." |
+| 33 | Light or dark, your call | sun-moon | `appearance` | |
+| 34 | Listings that speak for themselves | image | `listing-sale` | |
+| 35 | Vallo. Real estate, done right. | the app icon | `home-recent` | subline "Coming soon on iPhone and Android." |
 
-The layouts, all of which show whole phones: **hero** (one phone, straight, as large as the image allows), **tilt** (one phone turned a little in 3D, with a glass object beside it), **photo** (a property photograph behind, the phone in front), **photocard** (a photograph on a tilted card behind the phone), **card** (an inset rounded panel holding the words and the phone), **duo** (two phones leaning toward each other) and **brand**.
+The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 
-`scripts/store-screenshots/shots.mjs` is the authority: each shot there carries its exact capture steps and a `note` wherever the screen or the words needed a decision.
+### The system (DESIGN.md section 6a)
 
-### How the pool got here
-
-The brief asked for 25 images in four styles, dark and light. That set was built first, then reworked twice on the founder's direction the same night: screens from inside the product's important areas rather than help pages; phones with a camera island; mostly dark; mostly one phone to an image; many compositions; and, after the second round, **every phone whole**, with nothing cropped by the edge of the image or zoomed past it. The founder's own picks from the rounds (the angled pair of stays phones, the tilted profile phone with a glass calendar beside it, the saved listing on a photograph card) set the style of the final pool.
-
-### Where the words differ from the brief, and why
-
-A store listing is copy a person reads, so it answers to the same rules as the product: `apps/web/src/lib/trust/claims.ts` (no promise word without a mechanism), `apps/web/scripts/check-valuation-words.mjs` (no valuation language), `docs/store/LISTING_COPY.md`, and the founder's rule against em dashes.
-
-| Brief | Produced | Why |
-|---|---|---|
-| Verified listings you can trust | The full move-in cost, before you call | Only a person is verified, never a listing, and every live listing is labelled example stock |
-| Payments split safely, Vallo never holds your money | Vallo never holds your money | "Safely" is an unbacked claim word; the rest is the product's own promise (`NO_CUSTODY_SENTENCE` in `lib/money/copy.ts`) |
-| Protected by the Vallo Guarantee | Not used | "Protected" is an unbacked claim word, and the Guarantee screen needs a paid agreement, which the QA account does not have |
-| Know what an area is really worth | See what places nearby are asking | "Worth" implies a valuation, which Vallo is not licensed to give; Price Check reports asking prices |
-| Message hosts, hotels and restaurants | Message the agent, keep it in one thread | The QA account's conversation is with a listing's agent; no real venue exists yet to message |
-| List your property in minutes | Put your property on Vallo | Applying takes about two minutes and review 24 to 48 hours, so "in minutes" would overstate it |
-| Book stays instantly | Book a stay in a few taps | Instant booking applies only to listings marked Instant |
-| Real inspections before you pay; Agreements both sides confirm | Not used | Neither screen exists for the QA account: inspections are refused on example listings, and an agreement follows an inspection |
+- **One backing.** Every image of a store sits on the same ground, a vertical gradient from `#050B3D` to `#010118`, identical pixel for pixel. Nothing else is drawn on it: no photographs, glows, textures or vignettes. On the one ground the set reads as one strip, and the seams of the two pairs disappear.
+- **One grid.** A lucide line icon (64 px on the App Store images, 70 on Play; sky `#8FD3FF`; 3 px of stroke), then the headline, centred, in Poppins 600 at 112 px (122 on Play), tracking −0.03em, line height 1.05, white, two lines, on the same baseline and at the same size in every image: `compose.mjs` fails any headline that would need shrinking to fit. Four headlines from the brief were tightened for that reason (15, 21, 22 and the line break of 35). Sublines only on 32 and 35, in Inter 500 at 60% white.
+- **One phone.** The same handset, colour (black titanium), light and contact shadow in every image, from the 3D studio in `scripts/marketing/phone3d/`: the island handset on the App Store images, the punch-hole handset on Play. On the plain images it is straight on, at the same scale and position, centred on its screen (optical centring: the side buttons make the body's box lopsided).
+- **Extras on two images only.** 11 and 30 each carry one of DESIGN.md section 4's cards, opaque navy glass with the Example chip, placed over the header or clear screen, never over rows of text.
+- **Two pairs.** 10 and 11 share one phone tilted by the 3D studio across their seam (the stays home); 13 and 14 share another, tilted the other way (the restaurant). Each keeps its own icon and headline, set left on the same baseline, so the words run on across the seam. Across the two images the phone is whole; only the seam between them cuts it.
 
 ## 4. The sizes each store takes
 
 Checked against the stores' own pages on 29 September 2026.
 
-**App Store** ([Screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications), [Upload app previews and screenshots](https://developer.apple.com/help/app-store-connect/manage-app-information/upload-app-previews-and-screenshots)):
+**App Store** ([Screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)):
 
 | Display | Accepted portrait sizes | Required? |
 |---|---|---|
 | 6.9" | 1260 x 2736, 1290 x 2796, **1320 x 2868** | The top of the scaling chain: supply it and every smaller iPhone uses it |
 | 6.5" | 1284 x 2778, 1242 x 2688 | Only if 6.9" is not supplied |
-| 6.3", 6.1", 5.5" and smaller | various | Optional; scaled down from the size above |
 | iPad | various | Only if the app runs on iPad. Vallo is iPhone only |
 
-One to ten screenshots per display size and language, in .png, .jpg or .jpeg. Apple's words: "Images can't include alpha channels or transparencies." Every image here is RGB with no alpha, which `compose.mjs` checks as it writes each file.
+One to ten screenshots per display size and language, in .png, .jpg or .jpeg, with no alpha channel. Every image here is RGB with no alpha, which `compose.mjs` checks as it writes each file.
 
-**Google Play** ([Add preview assets](https://support.google.com/googleplay/android-developer/answer/9866151)). That page could not be opened from the build environment, so these figures come from the search index of the page itself and should be glanced at once in a browser:
+**Google Play** ([Add preview assets](https://support.google.com/googleplay/android-developer/answer/9866151)):
 
 | Asset | Rule |
 |---|---|
-| Phone screenshots | JPEG or 24-bit PNG, no alpha; each side 320 to 3,840 px; the long side at most twice the short side; up to 8 MB each |
+| Phone screenshots | JPEG or 24-bit PNG, no alpha; each side 320 to 3,840 px; the long side at most twice the short side; up to 8 MB each. The images here are 1440 x 2560 (9:16) |
 | Count | At least 2 to publish, up to 8 per device type |
-| Promotion eligibility | At least 4 screenshots of at least 1080 px, 9:16 portrait (1080 x 1920) or 16:9 landscape |
+| Promotion eligibility | At least 4 screenshots of at least 1080 px, 9:16 portrait or 16:9 landscape |
 | Feature graphic | 1024 x 500, JPEG or 24-bit PNG, no alpha. Required |
 
-## 5. Where every part of an image comes from
+## 5. Before you submit: things to know
 
-| Part | Source |
-|---|---|
-| The screens | Live production, captured by `capture.mjs` (section 7) as the QA member account, at 440 x 894 points and 3x, the 6.9" iPhone's web view. The user agent carries `VALLO-NATIVE`, the mark the store shell sends, so the server renders what the app gets. Stored as WebP at quality 95 in `source/`, with the route and time of every capture in `source/capture-report.json` |
-| The status bar | Drawn by `templates.mjs` in the theme's colour, as the native shell draws it above the web view (`overlaysWebView: false`), showing full signal, Wi-Fi and battery |
-| The phones | Drawn by `templates.mjs`, with no maker's marks: a handset with a camera island on the App Store images, an Android handset with a punch hole on the Play images. App Store Review Guideline 2.3.10 keeps other platforms' imagery out of App Store metadata, so each store sees its own kind of phone |
-| Headlines | Poppins 600 and 700, and Inter for the rare subline: the product's own font files from `apps/web/public/fonts` |
-| Colours | `packages/design-tokens/src/tokens.css`: canvas `#010118`, electric `#0069FE`, `#0056D0`, `#003F98`, quiet `#5C9FFF` |
-| Logo, icon, wordmark | `apps/web/public/brand/vallo-icon.png` and `vallo-wordmark.png` |
-| Glass objects | `apps/web/public/brand/glass/`, the brand's own glass set (`docs/BRAND_MARKS.md`) |
-| Property photographs | `apps/web/public/brand/photos/`, the photographs the product already serves (licences in `docs/IMAGERY.md`) |
+- **Every listing, stay and restaurant on screen is example stock**, because that is all the platform holds today. Their own pages show the Example notice and cards show the Example tag; no image crops either out. The two cards (11, 30) carry the Example chip; their amounts and names are illustrative, from DESIGN.md section 4.
+- **30 shows the host's bookings page, not the earnings page.** The earnings page reads ₦0.00 ("No guest has paid yet"), which would contradict a "Payment settled · ₦1,800,000" card beside it. The bookings page says, in the product's own words, that "your share goes straight to your default bank account", and shows no amount of its own.
+- **Listing cards shared into a chat carry no Example tag** (08). That is how the product draws a shared card today. Either add the tag to the shared card in the product and recapture, or leave 08 out of a submission until then.
+- **Counts on screen are the product's own:** "40 properties found" (04) and "69 stays" (12) are what the live pages show over the example stock. Neither is repeated in a headline or card.
+- **The QA account's name is on screen:** "omojuni" on the home, stays and support screens, and the handle "@omojuni_phantom" in the menu (19). No email address or phone number appears in any image.
+- **The agent and host screens (27 to 30) are what a member sees before approval**: the pitch and the empty workspaces. There is no agent or host QA account, and none was created.
+- **Price Check (25) shows the question, not an answer.** With only example listings it declines to give a figure, as it should.
 
-**Apple's official product bezels are not used yet.** Apple publishes them at <https://developer.apple.com/design/resources/>, but this build environment's network policy refuses `devimages-cdn.apple.com`, and Apple's licence for them covers only apps on the App Store while the company is in the Developer Program, which waits on Vallo's enrolment. `scripts/store-screenshots/frames/README.md` says how to add one in a single command; the compositor then uses it on shot 01 automatically and keeps it upright, whole and uncovered, as Apple requires.
+## 6. What the captures wrote to production
 
-## 6. Before you submit: things to know
+Only to the QA member account, and only through the product's own screens: sign-ins (each writes a "New sign-in to Vallo" notification, visible in 16), the assistant's consent and questions (17), and the first step of "Change passcode" (23), which saves nothing. `scripts/marketing/capture/plan.mjs` lists every capture and its steps.
 
-- **Every listing and stay on screen is example stock**, because that is all the platform holds today. Listing and stay pages show their Example notice; cards show an Example tag. `docs/store/LISTING_COPY.md` requires the label to be visible, and it is, except in one place below.
-- **Listing cards shared into a chat carry no Example tag** (shots `08`, `09`, `29`, `31`). That is how the product draws a shared card today, not a choice made here. Either add the tag to the shared card in the product and recapture, or prefer shots without shared cards until then.
-- **`05` shows a post by another member (@kida)** alongside the Vallo account's own and the founder's. Submit it only if that account is one of the founder's or its owner agrees.
-- **The QA account's name is on screen**: "omojuni" on the home screens and "omojuni PHANTOM" on the profile. No email address or phone number appears in any image; the Settings screen was captured scrolled past the card that shows the email.
-- **Price Check (`18`) shows the question, not an answer.** With only example listings it declines to give a figure, as it should. The screen is the form, filled in for Lekki.
-- **The agent and host screens (`14` to `17`) are what a member sees before approval**: the pitch, the empty workspace, the application status. There is no agent or host QA account, and none was created.
-- **No image shows a person's hand holding the phone.** The founder asked for some. No licensed photograph of one is available: the build environment cannot reach Unsplash, Pexels or Pixabay, and a drawn hand would look worse than none. A licensed photograph with the phone's four screen corners marked can be added as a new layout.
-- **There are no wallet or crypto screens.** `/wallet` redirects to `/agreements`: the wallet was retired when Vallo stopped holding money. Crypto (Yellow Card) appears only inside a live checkout and is switched off until configured. Shot `36` shows the payment methods screen instead.
-- **No money moved and there are no "balance transactions".** Vallo has no wallet or balance by design (`docs/MONEY_ARCHITECTURE.md`), and a payment is a real Paystack charge that needs an approved agreement.
+## 7. Regenerating
 
-### What the capture wrote to production
-
-Only to the two QA accounts, and only through the product's own screens:
-
-- **Sign-ins.** Eleven sign-ins to the QA member account and one to the QA admin account. Each writes a "New sign-in to Vallo" notification and security email to that account (one of them is visible in shot `10`). They can be ended from `/settings/devices`.
-- **First run.** The interests question was skipped once on the QA member's profile.
-- **Favourites.** Three example listings saved to the QA member's favourites (shots `12` and `19` show them).
-- **The enquiry thread.** At the founder's request, the QA member shared two saved listings into its existing rental enquiry with the example lister, using the share picker, and sent one message: "I like these two as well. Could we view all three on Saturday morning?" A conversation in Vallo is always between a guest and a listing's agent, and every live listing's agent is the example account, so the thread has one side.
-
-No listing, booking, agreement, payment or account was created.
-
-## 7. Regenerating and extending
-
-Everything lives in `scripts/store-screenshots/`:
+Everything lives in `scripts/marketing/`:
 
 | File | What it does |
 |---|---|
-| `shots.mjs` | The shot list: each shot's words, layout, ground and capture steps |
-| `targets.mjs` | The store sizes |
-| `capture.mjs` | Signs in and captures the live screens into `source/` |
-| `templates.mjs` | The layouts, as HTML and CSS |
-| `compose.mjs` | Renders every shot at every size: drawn at twice the size in Chromium, brought down with a Lanczos filter, written as RGB PNG with no alpha |
-| `overview.mjs` | Writes `overview.jpg` |
-| `frames/` | Where Apple's official bezel goes, and the script that measures it |
+| `capture/plan.mjs`, `capture/run.mjs` | The live captures, into `docs/marketing/source/` |
+| `screens.mjs` | Turns each capture into a whole phone display with its status bar, into `docs/marketing/screens/` |
+| `phone3d/` | The 3D studio that draws the photoreal handsets |
+| `store/shots/premium.mjs` | The 35 images: the system, the pairs and the two cards |
+| `store/compose.mjs` | Renders both stores: drawn at twice the size in Chromium, brought down with a Lanczos filter, written as RGB PNG with no alpha. Checks every phone, word and card against the image's edges and every headline's contrast |
+| `store/overview.mjs` | Writes the two overview strips, and with `--grid` the named review grids |
 
-From the repository root, after `npm ci`:
+From the repository root, with the displays in place:
 
 ```bash
-# 1. Capture. Credentials come from the environment only; nothing writes them down.
-QA_MEMBER_EMAIL=... QA_MEMBER_PASSWORD=... node scripts/store-screenshots/capture.mjs
-#    one or a few shots:  ... capture.mjs --only 8,9
+# Both stores and Play's feature graphic, at 2x (about 25 minutes on four CPUs).
+node scripts/marketing/store/compose.mjs --feature
+#   a few images, one store, or a quick proof folder that touches nothing here:
+#   ... compose.mjs --only 10,30 --store app-store --res 1 --proof /tmp/proof
 
-# 2. Compose every shot at every committed size (about 5 minutes).
-node scripts/store-screenshots/compose.mjs
-#    a few shots, one size, or a proof folder that touches nothing committed:
-#    ... compose.mjs --only 1,2 --device iphone-6.9 --proof /tmp/proof
-
-# 3. The overview sheet.
-node scripts/store-screenshots/overview.mjs
+# The overview strips and the named review grids.
+node scripts/marketing/store/overview.mjs --grid
 ```
 
-Without the two QA values, `capture.mjs` captures the public screens only and lists what it skipped. It needs Chromium: `/opt/pw-browsers/chromium` in the build environment, or `CHROMIUM_PATH` pointing at a local Chrome.
-
-**To add a shot:** add an entry to `SHOTS` with a new number, its headline (two lines), `mode`, `layout`, `ground` or `photo`, and its capture `steps`. Capture it with `--only <n>` and compose it with `--only <n>`. Run the headline past the rules in section 3 first.
-
-**To change the words only:** edit `shots.mjs` and run `compose.mjs --only <n>`. No capture is needed.
-
-**To refresh the screens** once there is real supply: run all three steps. The file names stay the same, so a store submission can be updated image for image.
+**To change the words:** edit the headline in `store/shots/premium.mjs` and run `compose.mjs --only <n>`. Keep to DESIGN.md section 2 (no em dashes, "verified" only about people, no promise or valuation words, no invented numbers) and to two lines.

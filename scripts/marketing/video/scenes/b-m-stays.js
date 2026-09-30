@@ -39,7 +39,7 @@ export async function stays(ctx, S, T) {
 
   /* ---------- the phone ---------- */
   const pose = S.pLpose;
-  pose.to(T.r20 - 0.26, 0.001, { cy: 2500, rx: 0, opacity: 1 }, "none");
+  pose.to(T.r20 - 0.26, 0.001, { cy: 2650, height: 1300, rx: 0, opacity: 1 }, "none");
   pose.to(T.r20 - 0.25, 0.58, { cy: 760, height: 1300 }, "glide");            // rises with stays-lt
   pose.to(T.resorts + 0.66, 0.46, { cy: 2500 }, "power2.in");                   // leaves the calendar alone
   pose.to(T.and10 + 0.42, 0.5, { cy: 640, height: 1180 }, "glide");             // PHONE_HIGH for the chip
@@ -115,8 +115,8 @@ export async function stays(ctx, S, T) {
   /* timeline of the card: rises out of the phone, rests, turns over into the calendar */
   const tRise0 = T.resorts - 0.02;
   const tRise1 = T.resorts + 0.42;
-  const tFlip0 = T.pick - 0.2;
-  const tFlip1 = tFlip0 + 0.62;
+  const tFlip0 = T.pick - 0.28;
+  const tFlip1 = tFlip0 + 0.5;
   const tCalOut0 = T.and10 + 0.36;
   const tCalOut1 = tCalOut0 + 0.4;
   ctx.sfx("card_slide", T.resorts, { offset: -2 });
