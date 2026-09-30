@@ -28,12 +28,13 @@ export function SearchMemory({
   label,
   href,
 }: {
-  view: ViewKey;
+  /** Omitted on the Stays search, which has no list or map view to keep. */
+  view?: ViewKey;
   label: string;
   href: string;
 }) {
   useEffect(() => {
-    rememberView(view);
+    if (view) rememberView(view);
   }, [view]);
 
   useEffect(() => {

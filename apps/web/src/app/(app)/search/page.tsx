@@ -40,7 +40,8 @@ import {
 } from "@/lib/listings/intent";
 import { readIntentTuning } from "@/lib/interests/queries";
 import { getSavedListings } from "@/lib/saved/queries";
-import { canonicalSearch } from "@/lib/saved/searches";
+import { canonicalSearch, describeSearch } from "@/lib/saved/searches";
+import { SearchMemory } from "@/components/app/search/SearchMemory";
 import { findSavedSearch } from "@/lib/saved/searches-queries";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
@@ -518,6 +519,15 @@ export default async function SearchPage({
           {t.listingReference.impossible}
         </p>
       )}
+
+      {/* B2: this hunt goes into the phone's recent searches, which the field
+          offers back on focus. Only a real hunt (something asked), labelled
+          by the same words a saved search gets. */}
+      <SearchMemory
+        view={query.view}
+        label={canonical.key ? describeSearch(canonical.params, locale) : ""}
+        href={canonical.href}
+      />
 
       {/* Keeping the hunt, beside the count of what it found. It is drawn only
           when there is something to keep: an unfiltered /search is every place

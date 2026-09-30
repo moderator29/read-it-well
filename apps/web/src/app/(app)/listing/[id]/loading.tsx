@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { panelClass } from "@/components/ui/Panel";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
+import { ListingHandoffShell } from "@/components/app/listing/ListingHandoffShell";
 
 /**
  * The wait, on a listing.
@@ -17,12 +18,22 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
  * important figure on the page - down the screen as the user is reaching for it.
  */
 export default function LoadingListing() {
+  /* B4: a tap from a card paints the card's own facts in one frame
+     (ListingHandoffShell); a cold open keeps this skeleton. */
   return (
     <LoadingShell label="Loading this place" className="mx-auto w-full max-w-5xl">
+      <ListingHandoffShell exampleLabel="Example" verifiedLabel="Verified" fallback={<ListingSkeleton />} />
+    </LoadingShell>
+  );
+}
+
+function ListingSkeleton() {
+  return (
+    <>
       <div className="relative -mx-gutter -mt-xl sm:-mt-2xl">
         <Skeleton
           radius="none"
-          className="aspect-[4/5] w-full sm:aspect-[16/9] lg:aspect-[2/1]"
+          className="aspect-[4/3] w-full sm:aspect-[16/9] lg:aspect-[2/1]"
         />
       </div>
 
@@ -62,6 +73,6 @@ export default function LoadingListing() {
           </aside>
         </div>
       </div>
-    </LoadingShell>
+    </>
   );
 }

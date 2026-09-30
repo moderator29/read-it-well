@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
+import { RecentSearches } from "@/components/app/search/RecentSearches";
 
 /**
  * "Where are you going?" with the filter glyph beside it, to FD3DFE84.
@@ -28,7 +29,9 @@ export function StaySearchBar({
   filtersControl?: React.ReactNode;
 }) {
   const copy = t.catalogue.stays;
+  const recent = t.catalogue.recent;
   return (
+    <div>
     <div className="flex items-center gap-inline">
       <form action="/stays/search" method="get" role="search" className="nf-shelf-field">
         <UiIcon name="search" size={ICON.inline} />
@@ -57,6 +60,13 @@ export function StaySearchBar({
             <UiIcon name="sliders" size={ICON.inline} />
           </Link>
         ) : null)}
+    </div>
+    {/* B2: the phone's recent Stays hunts, offered when the field is empty. */}
+    <RecentSearches
+      inputId="stays-q"
+      path="/stays/search"
+      copy={{ title: recent.title, clear: recent.clear, clearLabel: recent.clearLabel }}
+    />
     </div>
   );
 }

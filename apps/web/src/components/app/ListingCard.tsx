@@ -13,6 +13,8 @@ import { isPropertyType, type PropertyType } from "@/lib/interests/property-type
 import { isDataSaver } from "@/lib/ui/data-saver";
 import { motionQuiet } from "@/lib/motion/gate";
 import { startPhotoMorph } from "@/lib/motion/photo-morph";
+import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
+import { cardGlance } from "@/lib/listings/card-glance";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";
 import { ButtonLink } from "@/components/ui/Button";
@@ -223,6 +225,10 @@ export function ListingCard({
       return;
     }
     const media = mediaRef.current;
+    /* B4: the listing opens in one frame. The facts this card already
+       printed, and the photo it already drew, go to the listing's loading
+       shell (lib/listings/handoff.ts), which paints them at once. */
+    handOff(cardGlance(listing, locale, copy), drawnSrcIn(media));
     if (!media || motionQuiet()) return;
     media.style.viewTransitionName = `listing-photo-${listing.id}`;
     startPhotoMorph(listing.id);

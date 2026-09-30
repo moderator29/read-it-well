@@ -142,6 +142,9 @@
 @import "./css/feed-m.css";
 /* Track M: the listing page (marks, price, sections, tiles, the booking bar). */
 @import "./css/detail-m.css";
+/* Recommendations B (member loop): recents, compare, the one-frame listing,
+   notifications that say what needs you, and changes on saved places. */
+@import "./css/member-loop.css";
 /* Track M, second round: the moving edge on every container and button. */
 @import "./css/edge-m.css";
 /* Track M: the cinema kit (Truchet field, horizontal reel, vertical columns,

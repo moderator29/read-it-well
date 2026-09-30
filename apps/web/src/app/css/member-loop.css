@@ -1,0 +1,183 @@
+/*
+ * THE MEMBER LOOP (recommendations B2, B3, B4, B11 and B13, 30 September
+ * 2026): picking up where you left off, comparing what you saved, the
+ * listing's one-frame open, notifications that say what needs you, and the
+ * changes on things you saved.
+ *
+ * Tokens only. Transform and opacity only for motion, and every motion has a
+ * reduced-motion and a Calm/Off answer at the foot. A partial of globals.css.
+ */
+@layer components {
+  /* ---------------------------------------------- B2: recent searches */
+
+  .nf-recent {
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-space-xs) 0;
+    border: 1px solid var(--nf-card-border);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-float-shadow);
+    animation: nf-loop-rise var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  .nf-recent[hidden] {
+    display: none;
+  }
+  .nf-recent--hero {
+    color: var(--nf-content-primary);
+  }
+  .nf-recent__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    padding: 0 var(--nf-space-xs) 0 var(--nf-space-md);
+  }
+  .nf-recent__clear {
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-recent__clear:focus-visible,
+  .nf-recent__row:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  .nf-recent__list {
+    display: grid;
+  }
+  .nf-recent__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    padding: var(--nf-space-2xs) var(--nf-space-md);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-recent__row:hover {
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+  }
+  .nf-recent__glyph {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-recent__label {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-recent__go {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+
+  /* ---------------------------------------- B2: looked at recently */
+
+  .nf-lookback__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-lookback__track {
+    display: flex;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-xs);
+    padding-bottom: var(--nf-space-2xs);
+    scroll-snap-type: x mandatory;
+  }
+  .nf-lookback__card {
+    position: relative;
+    display: grid;
+    flex: 0 0 9.5rem;
+    gap: var(--nf-space-3xs);
+    scroll-snap-align: start;
+    color: var(--nf-content-primary);
+  }
+  .nf-lookback__card:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-lg);
+  }
+  .nf-lookback__photo {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-card-border);
+    background: var(--nf-surface-raised);
+  }
+  .nf-lookback__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-lookback__photo .nf-badge {
+    position: absolute;
+    top: var(--nf-space-2xs);
+    left: var(--nf-space-2xs);
+  }
+  .nf-lookback__title {
+    margin-top: var(--nf-space-3xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-lookback__place {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-lookback__price {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-lookback__note {
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+
+  /* ----------------------------------------------- B4: the handoff */
+
+  .nf-handoff__price {
+    font-size: var(--nf-text-h3);
+    font-weight: 750;
+    color: var(--nf-content-primary);
+  }
+  .nf-handoff__note {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+
+  @keyframes nf-loop-rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-recent {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-recent {
+    animation: none;
+  }
+}

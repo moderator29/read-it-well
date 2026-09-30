@@ -8,6 +8,7 @@ import { CityRow } from "@/components/app/home/CityRow";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
 import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
+import { LookedAtRecently } from "@/components/app/home/LookedAtRecently";
 import { HeroBand } from "@/components/ui/HeroBand";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
@@ -230,12 +231,25 @@ export function HomeScreen({
           filtersLabel={copy.filters}
           searchLabel={t.landing.hero.searchLabel}
           kind="home"
+          recent={t.catalogue.recent}
         />
       </div>
 
       {/* ------------------------------------------------ 2. the categories */}
       <CategoryRow categories={categories} label={t.home.markets.label} variant="plates" />
       </HeroBand>
+
+      {/* B2: the places this phone opened lately, one tap back. Hidden
+          when there are none; beside "Up next", never instead of it. */}
+      <LookedAtRecently
+        copy={{
+          title: t.catalogue.recent.lookedAt,
+          clear: t.catalogue.recent.clear,
+          clearLabel: t.catalogue.recent.lookedAtClearLabel,
+          example: t.catalogue.card.example,
+          verified: t.common.verified,
+        }}
+      />
 
       {/* ------------------------------------------- 3. featured properties */}
       <FeaturedBand

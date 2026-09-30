@@ -5025,6 +5025,15 @@ export const en = {
       noPhotos: "No photographs yet",
       example: "Example",
     },
+    /* B2: what the phone remembers, offered back (lib/search/memory.ts). */
+    recent: {
+      title: "Recent searches",
+      clear: "Clear",
+      clearLabel: "Clear recent searches",
+      staysIn: "Stays in {place}",
+      lookedAt: "Looked at recently",
+      lookedAtClearLabel: "Clear the places you looked at",
+    },
     shelf: {
       searchPlaceholder: "Area, city or landmark",
       search: "Search",

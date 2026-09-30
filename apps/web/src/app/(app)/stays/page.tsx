@@ -196,6 +196,7 @@ export default async function StaysHomePage() {
           filtersLabel={t.directHome.filters}
           searchLabel={stays.heroSearch}
           kind="hotel"
+          recent={t.catalogue.recent}
         />
       </div>
 
