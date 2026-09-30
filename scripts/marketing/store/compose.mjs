@@ -181,6 +181,12 @@ function makeCtx(shot, store, offset) {
       }
       placed.push({ id, ...pl.box });
       if (flat) {
+        /* The camera cut-out, in page px, for the cards' clearance check. */
+        const c = pair.camera;
+        if (c) {
+          const k = pl.img.w / pair.black.width;
+          pl.camera = { x: pl.img.left + c.x * k, y: pl.img.top + c.y * k, r: pl.img.left + c.r * k, b: pl.img.top + c.b * k };
+        }
         /* The white twin is swapped in for page B. */
         pl.html = pl.html.replace('<img class="phone"', `<img class="phone" data-white="file://${pair.white.file}"`);
         flats.push({ id, file, quad: pl.quad });
@@ -366,6 +372,59 @@ async function edgeCheck(m) {
   }, m);
 }
 
+
+/**
+ * The clearance between each headline's two lines: line 1 alone and line 2
+ * alone are shot as masks, and in every column the space from line 1's lowest
+ * ink to line 2's highest ink within three columns either side is measured.
+ * Returns the headlines whose tightest gap (page px) is under `min`.
+ */
+async function lineGapCheck(min) {
+  const heads = await tab.evaluate(() => {
+    const halves = [...document.querySelectorAll(".half")];
+    return [...document.querySelectorAll(".hl")].map((el) => {
+      const r = el.getBoundingClientRect();
+      return { x: r.left, y: r.top, w: r.width, h: r.height, n: el.querySelectorAll(".ln").length, half: halves.findIndex((h) => h.contains(el)), text: el.textContent.trim().slice(0, 40) };
+    });
+  });
+  const mask = async (k) => {
+    const tag = await tab.addStyleTag({ content: `#stage * { visibility: hidden !important; } .hl .ln:nth-of-type(${k}), .hl .ln:nth-of-type(${k}) * { visibility: visible !important; }` });
+    const shot = await tab.screenshot({ type: "png", omitBackground: true });
+    await tag.evaluate((n) => n.remove());
+    const { data, info } = await sharp(shot).ensureAlpha().extractChannel(3).raw().toBuffer({ resolveWithObject: true });
+    return { data, w: info.width, h: info.height };
+  };
+  const A = await mask(1);
+  const B = await mask(2);
+  const out = [];
+  for (const hd of heads) {
+    if (hd.n < 2) continue;
+    const x0 = Math.max(0, Math.floor(hd.x * RES)), x1 = Math.min(A.w, Math.ceil((hd.x + hd.w) * RES));
+    const y0 = Math.max(0, Math.floor(hd.y * RES)), y1 = Math.min(A.h, Math.ceil((hd.y + hd.h) * RES));
+    const low = new Int32Array(x1 - x0).fill(-1);
+    const high = new Int32Array(x1 - x0).fill(1e9);
+    for (let x = x0; x < x1; x += 1) {
+      for (let y = y0; y < y1; y += 1) {
+        const i = y * A.w + x;
+        if (A.data[i] > 64) low[x - x0] = y;
+        if (B.data[i] > 64 && high[x - x0] === 1e9) high[x - x0] = y;
+      }
+    }
+    let gap = Infinity;
+    const r = 3 * RES;
+    for (let x = 0; x < low.length; x += 1) {
+      if (low[x] < 0) continue;
+      for (let d = -r; d <= r; d += 1) {
+        const xx = x + d;
+        if (xx < 0 || xx >= high.length || high[xx] === 1e9) continue;
+        gap = Math.min(gap, (high[xx] - low[x] - 1) / RES);
+      }
+    }
+    if (gap < min) out.push({ ...hd, gap });
+  }
+  return out;
+}
+
 /* ------------------------------------------------------------- writing */
 
 async function write(raw, pageW, pageH, file, { width, height, left = 0 }) {
@@ -437,11 +496,18 @@ for (const store of STORE_LIST) {
          uncovered (a layout's `cardCheck.clearOf`, the x its left edge keeps to). */
       const pops = await tab.evaluate(() => [...document.querySelectorAll(".half")].map((h) => {
         const hr = h.getBoundingClientRect();
-        return [...h.querySelectorAll(".pop")].map((el) => { const r = el.getBoundingClientRect(); return { l: r.left - hr.left, r: r.right - hr.left }; });
+        return [...h.querySelectorAll(".pop")].map((el) => { const r = el.getBoundingClientRect(); return { l: r.left - hr.left, r: r.right - hr.left, t: r.top, b: r.bottom }; });
       }));
       ctxs.forEach((c, k) => {
         if (!c.cardCheck) return;
         for (const pr of pops[k] || []) {
+          /* at least 20 px from the camera and from every control it leaves uncovered */
+          for (const a of c.cardCheck.avoid || []) {
+            const dx = Math.max(a.x - pr.r, pr.l - a.r, 0);
+            const dy = Math.max(a.y - pr.b, pr.t - a.b, 0);
+            const d = Math.hypot(dx, dy);
+            if (d < 20) problems.push(`${store} ${shotName(halves[k])}: the card is ${Math.round(d)} px from ${a.label} (at least 20)`);
+          }
           if (c.cardCheck.rightOf !== undefined && pr.r > c.cardCheck.rightOf) problems.push(`${store} ${shotName(halves[k])}: the card's right edge (${Math.round(pr.r)}) runs over what it should leave clear (${Math.round(c.cardCheck.rightOf)})`);
           if (c.cardCheck.clearOf !== undefined && pr.l < c.cardCheck.clearOf) problems.push(`${store} ${shotName(halves[k])}: the card's left edge (${Math.round(pr.l)}) runs over what it should leave clear (${Math.round(c.cardCheck.clearOf)})`);
         }
@@ -453,6 +519,10 @@ for (const store of STORE_LIST) {
          fit its measure is a headline that is too long. */
       for (const v of await tab.evaluate(() => [...document.querySelectorAll(".hl")].filter((el) => el.dataset.fit && +el.dataset.fit !== +el.dataset.size).map((el) => ({ text: el.textContent.trim().slice(0, 40), fit: el.dataset.fit, size: el.dataset.size })))) {
         problems.push(`${store} ${halves.map(shotName).join("+")}: headline "${v.text}" shrunk from ${v.size} to ${v.fit} px to fit`);
+      }
+      /* 16 px between the lines on the App Store, 14 on Play */
+      for (const v of await lineGapCheck(store === "app-store" ? 16 : 14)) {
+        problems.push(`${store} ${shotName(halves[Math.max(0, v.half)])}: headline "${v.text}" has ${v.gap.toFixed(1)} px between its lines`);
       }
       for (const v of await contrastCheck(4.5)) {
         problems.push(`${store} ${shotName(halves[Math.max(0, v.half)])}: "${v.text}" contrast ${v.ratio.toFixed(2)}:1`);

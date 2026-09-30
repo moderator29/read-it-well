@@ -163,11 +163,36 @@ export class Phones {
   async renderFlat(o) {
     const black = await this.render({ ...o, screen: await solid("black") });
     const white = await this.render({ ...o, screen: await solid("white") });
-    return { black, white };
+    return { black, white, camera: await camera(white) };
   }
 
   async close() {
     if (this.studio) await this.studio.close();
     this.studio = null;
   }
+}
+
+/**
+ * The camera cut-out (island or punch hole) of a straight-on handset, as a box
+ * in its PNG's pixels: the dark pixels in the top eighth of its white display.
+ */
+async function camera(white) {
+  const { data, info } = await sharp(white.file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const [tl, tr, br, bl] = white.screenQuad;
+  /* the middle three fifths across, clear of the display's rounded corners */
+  const qw = Math.min(tr[0], br[0]) - Math.max(tl[0], bl[0]);
+  const x0 = Math.ceil(Math.max(tl[0], bl[0]) + qw * 0.2);
+  const x1 = Math.floor(Math.min(tr[0], br[0]) - qw * 0.2);
+  const y0 = Math.ceil(Math.max(tl[1], tr[1])) + 4;
+  const y1 = Math.floor(y0 + (Math.min(bl[1], br[1]) - y0) / 8);
+  let cx0 = Infinity, cy0 = Infinity, cx1 = -1, cy1 = -1;
+  for (let y = y0; y < y1; y += 1) {
+    for (let x = x0; x < x1; x += 1) {
+      const i = (y * info.width + x) * 4;
+      if (data[i] + data[i + 1] + data[i + 2] < 240) {
+        cx0 = Math.min(cx0, x); cx1 = Math.max(cx1, x); cy0 = Math.min(cy0, y); cy1 = Math.max(cy1, y);
+      }
+    }
+  }
+  return cx1 < 0 ? null : { x: cx0, y: cy0, r: cx1 + 1, b: cy1 + 1 };
 }

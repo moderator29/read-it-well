@@ -6,12 +6,14 @@
  * pay, the owner's or agent's share goes straight to their bank account
  * through our payment processor, in the same transaction. There is no Vallo
  * wallet or balance, nothing to top up and nothing to withdraw." A bank is
- * the post's 3D icon, in slot A. */
-import { centreTop, component, componentHeight, frame, headline, icon3d } from "../lib/premium.mjs";
+ * the post's 3D icon, 48 px under the card (slot A would sit on "holds"). */
+import { centreTop, component, componentHeight, frame, headline, icon3d, iconBox } from "../lib/premium.mjs";
 
 const W = 1080;
 const H = 1350;
 const card = { id: "support-money", x: 20, y: 960, w: 1280, h: 830 };
+const CH = componentHeight(card, 920);
+const TOP = centreTop(CH, iconBox("bank").h);
 
 export default {
   id: "22",
@@ -25,8 +27,8 @@ export default {
       ground: "night",
       body: `
       ${headline(["Vallo never holds", "your <k>money.</k>"], { W, H })}
-      ${await component(card.id, card, { x: 80, y: centreTop(componentHeight(card, 920)), w: 920, radius: 40 })}
-      ${icon3d("bank", { W, H, slot: "A" })}
+      ${await component(card.id, card, { x: 80, y: TOP, w: 920, radius: 40 })}
+      ${icon3d("bank", { W, H, slot: "B", top: TOP + CH + 48 })}
       `,
     }),
 };

@@ -108,6 +108,16 @@ function std(n, slug, id, lines, { sub, extra } = {}) {
 
 /* Page positions on a placed phone's display (display px, 1320 x 2868). */
 const HEADER = { top: 186, bottom: 365, bell: { x: 1204, y: 275, r: 66 }, menu: [77, 126], logo: [234, 596] };
+/* Boxes on the display (display px): the camera cut-out of each handset (measured on
+   the studio's white display), the header's menu glyph, and host-start's back button. */
+const CAMERA = { island: [472, 34, 848, 145], android: [632, 20, 688, 75] };
+const MENU = [77, 256, 126, 295];
+const BACK = [55, 464, 145, 554];
+/** A display box mapped onto the page through a placed phone's `at()`, less `dx`. */
+function pageBox(at, [x0, y0, x1, y1], label, dx = 0) {
+  const pts = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => at(x, y));
+  return { x: Math.min(...pts.map((p) => p[0])) - dx, r: Math.max(...pts.map((p) => p[0])) - dx, y: Math.min(...pts.map((p) => p[1])), b: Math.max(...pts.map((p) => p[1])), label };
+}
 
 /* ------------------------------------------------------------- the pairs */
 
@@ -167,17 +177,26 @@ export const SHOTS = [
     {
       id: "stays", rotation: { x: -16, y: -16, z: -17 }, fov: 26, h: 1, through: [893, 1272],
       async extraA(ctx, m) {
-        const { u, W } = ctx;
+        const { W, ios } = ctx;
         const sp = ctx.shared.phone;
-        /* the frame's left edge along the header, and the menu button */
-        const edge = Math.min(...[HEADER.top, 275, HEADER.bottom].map((y) => sp.at(-m.frame, y)[0]));
-        const menuLeft = Math.min(...[237, 313].map((y) => sp.at(HEADER.menu[0], y)[0]));
-        /* the rule's overhang, or less where the menu button comes first */
-        const right = Math.min(edge + m.overhang, menuLeft - 16 * u);
-        const [, midY] = sp.at(0, 275);
+        /* the frame's left rim, as page x at page y (sampled along the display's left edge) */
+        const rim = Array.from({ length: 60 }, (_, k) => sp.at(-m.frame, (k * 2868) / 59));
+        const rimX = (y) => {
+          for (let k = 1; k < rim.length; k += 1) {
+            const [xa, ya] = rim[k - 1]; const [xb, yb] = rim[k];
+            if ((y - ya) * (y - yb) <= 0) return xa + ((xb - xa) * (y - ya)) / (yb - ya || 1);
+          }
+          return rim[0][0];
+        };
         const cardH = 158 * m.card;
-        ctx.cardCheck = { rightOf: menuLeft - 12 * u };
-        return popup({ right: W - right, fit: true, y: midY - cardH / 2, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
+        const [, midY] = sp.at(0, 275);
+        const top = midY - cardH / 2;
+        /* the rule's overhang past the rim beside the header, moved right (36 px on the
+           App Store, 30 on Play) so the card's whole right edge sits over the frame, at
+           least 20 px in from the rim at both its corners */
+        const right = Math.max(Math.min(rimX(top), rimX(top + cardH)) + m.overhang + (ios ? 36 : 30), rimX(top) + 20, rimX(top + cardH) + 20);
+        ctx.cardCheck = { avoid: [pageBox(sp.at, MENU, "the menu button", W), pageBox(sp.at, CAMERA[ctx.model], "the camera", W)] };
+        return popup({ right: W - right, fit: true, y: top, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
       },
     },
   ),
@@ -195,13 +214,12 @@ export const SHOTS = [
      overhangs the phone's left edge. No amount. */
   std(13, "have-a-property-put-it-on-vallo", "host-start", ["Have a property?", "Put it on Vallo"], {
     async extra(ctx, m, p) {
-      const { u } = ctx;
       const [edge] = p.at(-m.frame, HEADER.top);
       const left = edge - m.overhang;
-      /* the back button starts at display y 464 */
-      const [, backTop] = p.at(100, 464);
-      const cardH = 172 * m.card;
-      return popup({ x: left, fit: true, y: backTop - 23 * u - cardH, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", line2: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
+      /* 25 px under the camera; two lines, no third */
+      const cam = pageBox(p.at, CAMERA[ctx.model], "the camera");
+      ctx.cardCheck = { avoid: [cam, pageBox(p.at, BACK, "the back button"), pageBox(p.at, [1138, 209, 1270, 341], "the bell")] };
+      return popup({ x: left, fit: true, y: cam.b + 25, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale: m.card });
     },
   }),
 
@@ -210,12 +228,12 @@ export const SHOTS = [
   std(14, "search-homes-across-nigeria", "search-villas", ["Search homes", "across Nigeria"]),
   std(15, "six-digits-and-youre-back-in", "lock", ["Six digits,", "and you’re back in"]),
   std(16, "vallo-speaks-your-language", "welcome-yo", ["Vallo speaks", "your language"], { sub: "English, Hausa, Yorùbá and Igbo." }),
-  std(17, "light-water-and-getting-in", "listing-amenities", ["Light, water", "and getting in"]),
+  std(17, "power-water-and-the-gate", "listing-amenities", ["Power, water", "and the gate"]),
   std(18, "pick-your-dates-see-the-price", "stays-dates", ["Pick your dates,", "see the price"]),
   std(19, "homes-to-buy-not-just-to-rent", "listing-sale", ["Homes to buy,", "not just to rent"]),
   std(20, "real-help-from-real-people", "support", ["Real help,", "from real people"]),
   std(21, "inspect-first-then-pay-on-vallo", "welcome-3", ["Inspect first,", "then pay on Vallo"]),
-  std(22, "filter-by-exactly-what-you-need", "filters-villas", ["Filter by exactly", "what you need"]),
+  std(22, "filter-down-to-what-you-need", "filters-villas", ["Filter down", "to what you need"]),
   std(23, "light-or-dark-your-call", "appearance", ["Light or dark,", "your call"]),
   std(24, "rooms-amenities-all-laid-out", "stay-amenities", ["Rooms, amenities,", "all laid out"]),
   std(25, "vallo-charges-no-inspection-fee", "support-inspection", ["Vallo charges no", "inspection fee"]),

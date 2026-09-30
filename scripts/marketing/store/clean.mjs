@@ -215,38 +215,58 @@ export async function cleanDisplay(id, store) {
  *     button.
  *
  * Inside the rectangle, every pixel outside the kept discs takes its row's
- * background: the median of the darkest half of that row's pixels there.
+ * background (the median of the darkest half of that row's pixels there), or
+ * with `vertical`, a blend of the clean pixels just above and below it in its
+ * own column.
  */
 export const PATCH = {
-  "stay-amenities": { rect: [0, 186, 1320, 305], keep: [[101, 314, 72]] },
-  saved: { rect: [1086, 2730, 1124, 2810], keep: [[1206, 2779, 84]] },
+  /* the fill comes from a clean row below the outline */
+  "stay-amenities": { rect: [0, 186, 1320, 282], keep: [[101, 290, 70, 0]], fillRow: [300, 600, 1300] },
+  /* the apps button's rim (r 79 to 88) and icon are kept */
+  saved: { rect: [1099, 2742, 1140, 2808], keep: [[1206, 2779, 88, 83, 1123], [1206, 2779, 60, 0]], vertical: true },
 };
 
 export async function patchDisplay(id, store, file) {
   const plat = STORES[store].screen;
   const P = PATCH[id];
   mkdirSync(CACHE, { recursive: true });
-  const out = join(CACHE, `${id}-${plat}-patch-${Math.round(statSync(file).mtimeMs)}-v1.png`);
+  const out = join(CACHE, `${id}-${plat}-patch-${Math.round(statSync(file).mtimeMs)}-v7.png`);
   if (existsSync(out)) return out;
   const T = await raw(file);
   const { w } = T;
   const [x0, y0, x1, y1] = P.rect;
-  const kept = (x, y) => P.keep.some(([cx, cy, r]) => Math.hypot(x - cx, y - cy) <= r);
+  const kept = (x, y) => P.keep.some(([cx, cy, r, r0, xMin = 0]) => { const d = Math.hypot(x - cx, y - cy); return d <= r && d >= r0 && x >= xMin; });
   const o = Buffer.from(T.data);
-  for (let y = y0; y < y1; y += 1) {
-    const vals = [];
+  if (P.vertical) {
     for (let x = x0; x < x1; x += 1) {
-      if (kept(x, y)) continue;
-      const i = (y * w + x) * 3;
+      const a = ((y0 - 1) * w + x) * 3;
+      const b = (y1 * w + x) * 3;
+      for (let y = y0; y < y1; y += 1) {
+        if (kept(x, y)) continue;
+        const t = (y - y0 + 1) / (y1 - y0 + 1);
+        const i = (y * w + x) * 3;
+        for (let c = 0; c < 3; c += 1) o[i + c] = Math.round(T.data[a + c] * (1 - t) + T.data[b + c] * t);
+      }
+    }
+  }
+  for (let y = y0; y < y1 && !P.vertical; y += 1) {
+    const vals = [];
+    const [fy, fx0, fx1] = P.fillRow || [y, x0, x1];
+    for (let x = fx0; x < fx1; x += 1) {
+      if (!P.fillRow && kept(x, fy)) continue;
+      const i = (fy * w + x) * 3;
       vals.push([T.data[i] + T.data[i + 1] + T.data[i + 2], T.data[i], T.data[i + 1], T.data[i + 2]]);
     }
     if (!vals.length) continue;
     vals.sort((a, b) => a[0] - b[0]);
-    const dark = vals.slice(0, Math.max(1, vals.length >> 1));
+    /* the darkest half, or (outlier mode) the darkest three quarters */
+    const dark = vals.slice(0, Math.max(1, P.outliers ? (vals.length * 3) >> 2 : vals.length >> 1));
     const fill = [1, 2, 3].map((c) => dark[dark.length >> 1][c]);
     for (let x = x0; x < x1; x += 1) {
       if (kept(x, y)) continue;
       const i = (y * w + x) * 3;
+      /* `outliers`: only pixels brighter than the row's background by that much (text) */
+      if (P.outliers && T.data[i] + T.data[i + 1] + T.data[i + 2] - (fill[0] + fill[1] + fill[2]) < 3 * P.outliers) continue;
       o[i] = fill[0]; o[i + 1] = fill[1]; o[i + 2] = fill[2];
     }
   }
