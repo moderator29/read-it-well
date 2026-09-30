@@ -5,7 +5,7 @@
  *   mobile:  a-m-open.js (01-04)  a-m-product.js (05-10)  a-m-receipt.js (11-13)
  *   desktop: a-d-open.js (01-04)  a-d-product.js (05-10)  a-d-receipt.js (11-13)
  */
-import { timesPlus, registerSound, loadFonts } from "./a-common.js";
+import { timesPlus, registerSound, loadFonts, releaseImages } from "./a-common.js";
 
 export async function build(ctx) {
   const T = timesPlus(ctx);
@@ -17,13 +17,14 @@ export async function build(ctx) {
     const { buildReceiptMobile } = await import("./a-m-receipt.js");
     const open = buildOpenMobile(ctx, T);
     const product = await buildProductMobile(ctx, T, open);
-    buildReceiptMobile(ctx, T, product);
+    await buildReceiptMobile(ctx, T, product);
   } else {
     const { buildOpenDesktop } = await import("./a-d-open.js");
     const { buildProductDesktop } = await import("./a-d-product.js");
     const { buildReceiptDesktop } = await import("./a-d-receipt.js");
     const open = buildOpenDesktop(ctx, T);
     const product = await buildProductDesktop(ctx, T, open);
-    buildReceiptDesktop(ctx, T, product);
+    await buildReceiptDesktop(ctx, T, product);
   }
+  releaseImages();
 }

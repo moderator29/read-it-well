@@ -93,8 +93,9 @@ export function buildOpenMobile(ctx, T) {
     tl.fromTo(span, { x: fromX, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "land" }, t - 0.07);
     return span;
   });
-  const w1 = mk(line1, spec1, -120, null);
-  const w2 = mk(line2, spec2, 120, "Nigeria");
+  /* Each word lands from a little to its right, so it never crosses the word before it. */
+  const w1 = mk(line1, spec1, 48, null);
+  const w2 = mk(line2, spec2, 48, "Nigeria");
   /* On "shouldn't" they part: the top line out to the left, the bottom line out to the right, leading word first. */
   w1.forEach((s, k) => tl.to(s, { x: -1100, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + k * 0.03));
   w2.forEach((s, k) => tl.to(s, { x: 1100, duration: 0.3, ease: "power3.in" }, T.shouldnt - 0.1 + (w2.length - 1 - k) * 0.03));

@@ -8,7 +8,7 @@ import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1600;
 const H = 1200;
-const PH = { model: "island", color: "black-titanium", fov: 26, h: 680 };
+const PH = { model: "island", color: "black-titanium", fov: 26, h: 650 };
 
 export default {
   id: "12",
@@ -16,9 +16,9 @@ export default {
   W,
   H,
   phones: [
-    { ...PH, screen: "listing-amenities", rotation: { x: -14, y: 24, z: 15 }, cx: 990, cy: 736,
+    { ...PH, screen: "listing-amenities", rotation: { x: -14, y: 24, z: 15 }, cx: 966, cy: 756,
       shadow: { type: "drop", opacity: 0.4, ambientOpacity: 0.2, color: "#001040", offset: { x: 26, y: 50 }, blur: 50 } },
-    { ...PH, screen: "listing-cost-total", rotation: { x: -18, y: -24, z: -8 }, cx: 1346, cy: 800,
+    { ...PH, screen: "listing-cost-total", rotation: { x: -18, y: -24, z: -8 }, cx: 1362, cy: 818,
       shadow: { type: "drop", opacity: 0.4, ambientOpacity: 0.2, color: "#001040", offset: { x: 18, y: 58 }, blur: 50 } },
   ],
   html: ({ phones }) =>

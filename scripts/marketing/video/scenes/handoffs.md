@@ -51,13 +51,19 @@ end with zero velocity there; B's moves start from rest).
 
 ### Card 1 leaves to the top right (for section c, row 31)
 
+Both films restyle the card's faces after building it, so it reads centred:
+`front`: `justifyContent: "center", textAlign: "center", textWrap: "balance"`;
+`back`: the same plus `lineHeight: "1.22"` and `fontSize` 33 px (mobile) / 31 px (desktop).
+
 - **Mobile:** `questionCard(ctx, parent, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: { x: 230, y: 470, w: 620, h: 170 }, fontSize: 40 })`,
   turned to its answer (inner rotationY 180) at 29.21–29.83.
   - From 30.12 it flies out with `to(root, { x: 760, y: -660, rotation: 24, scale: 0.9, duration: 0.36, ease: "power3.in" })`.
   - It crosses the frame's top edge at about x 1000, heading up and right at about 40°, and is gone
     by 30.48. Its last position: centre (1300, −105), rotation 24°, scale 0.9, answer side up.
   - Section c brings it back from there (the top right).
-- **Desktop:** built at `{ x: 1240, y: 300, w: 600, h: 160 }` (the right edge), turned at 29.21–29.83.
+- **Desktop:** `questionCard(ctx, parent, { q: QUESTIONS[0].q, a: QUESTIONS[0].a, box: { x: 1250, y: 150, w: 600, h: 160 }, fontSize: 38 })`
+  (top right, beside the receipt), turned to its answer at 29.21–29.83.
   - From 30.12 it flies out with `to(root, { x: 520, y: -560, rotation: 22, scale: 0.9, duration: 0.36, ease: "power3.in" })`.
-  - It leaves the frame over the top right corner by 30.48. Its last position: centre (2060, −180),
+  - It leaves the frame over the top right corner by about 30.45. Its last position: centre (2070, −330),
     rotation 22°, scale 0.9, answer side up.
+  - Section c brings it back from there (the top right).

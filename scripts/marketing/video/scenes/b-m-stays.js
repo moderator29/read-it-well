@@ -13,7 +13,7 @@
 import { LAYOUT } from "./layout.js";
 import {
   DW, NAVY, INK2, ELECTRIC, SHADOW, ramp, mix, screenPage, showDuring, cropBody, quadDriver, displayQuad, quadAtPose,
-  rectQuad, lerpQuad, exampleChip, photoExample, iconPlate, pressAt, ripple, glassCard,
+  rectQuad, lerpQuad, exampleChip, photoExample, iconPlate, pressAt, ripple, glassCard, monthCalendar,
 } from "./b-kit.js";
 
 /* stays-lt (display px). */
@@ -40,7 +40,7 @@ export async function stays(ctx, S, T) {
   pose.to(T.pick - 0.28, 0.44, { cy: 2650 }, "power2.in");                          // leaves the calendar alone
   pose.to(T.and10 + 0.3, 0.001, { cx: 540, height: 760 }, "none");
   pose.to(T.and10 + 0.31, 0.5, DATES, "glide");                                     // back small, with the date fields
-  pose.to(T.r23 - 0.16, 0.32, { cy: 2300 }, "power3.in");                           // drops into the dusk
+  pose.to(T.r23 - 0.3, 0.3, { cy: 2300 }, "power3.in");                             // drops into the dusk, clear before "Going"
 
   const staysPage = screenPage(ctx, pL, ctx.src.display("stays-lt"));
   const datesPage = screenPage(ctx, pL, ctx.src.display("stays-dates-lt"));
@@ -114,7 +114,7 @@ export async function stays(ctx, S, T) {
   pin.style.color = ELECTRIC;
   ctx.el("span", { text: "Lekki, Lagos" }, loc);
   const back = glassCard(ctx, inner, { w: CAL.w, h: CAL.h, radius: 44, shadow: "l", style: { backfaceVisibility: "hidden", transformOrigin: "50% 50%" } });
-  const cal = calendar(ctx, back, CAL);
+  const cal = monthCalendar(ctx, back, CAL, { pad: 56, headTop: 50, head: 52, wkTop: 150, wk: 26, num: 34, row0: 206, rowH: 94, dot: 84 });
 
   const tRise0 = T.resorts - 0.02;
   const tRise1 = T.resorts + 0.42;
@@ -154,7 +154,7 @@ export async function stays(ctx, S, T) {
   pressAt(ctx, S.orb, tap19, { ringParent: S.pointer, x: at19.x, y: at19.y, sound: "tap" });
   orbT.to(tap19 + 0.14, 0.4, { x: 1080, y: 1150 }, "glide");
   orbT.to(tap19 + 0.3, 0.2, { opacity: 0 }, "power1.in");
-  cal.select(tap16, tap19);
+  cal.select(tap16, tap19, T.r23);
 
   /* The chip: "3 nights" pops out of the range, grows its dates, drops into the date fields. */
   const tPop = T.and10;
@@ -221,8 +221,8 @@ export async function stays(ctx, S, T) {
   ctx.el("span", { text: "now", style: { font: "500 19px/1 Inter, sans-serif", color: "#8a90a0" } }, eMeta);
 
   const tLand = T.r22;
-  const tE = T.r22 + 0.02;
-  const tAway = T.r23 - 0.14;
+  const tE = T.r22 - 0.06;
+  const tAway = T.r23 - 0.26;
   const COL = { e: 404, a: 660, b: 744, c: 828, d: 470 };
   const items = [
     { el: A, box: "left", y: COL.a, t: tLand + 0.02, sound: false },
@@ -232,7 +232,7 @@ export async function stays(ctx, S, T) {
   ];
   for (const [i, it] of items.entries()) {
     if (it.sound) ctx.sfx("pop", it.t, { offset: -4 });
-    const end = tAway + 0.3 + i * 0.03;
+    const end = tAway + 0.24 + i * 0.02;
     showDuring(ctx, it.el, [[it.t, end]]);
     let size = null;
     ctx.onFrame((t) => {
@@ -242,7 +242,7 @@ export async function stays(ctx, S, T) {
       const x1 = it.box === "left" ? leftBox.x : rightBox.x;
       const y1 = it.y + Math.sin((t - it.t) * 2.2 + i * 1.3) * 3 * ramp(ctx, t, it.t + 0.4, it.t + 0.8);
       const src = fieldsC(t);
-      const away = ramp(ctx, t, tAway + i * 0.03, tAway + i * 0.03 + 0.26, "power2.in");
+      const away = ramp(ctx, t, tAway + i * 0.02, tAway + i * 0.02 + 0.22, "power2.in");
       const s = mix(0.4, 1, k);
       const x = mix(src.x - size.w / 2, x1, k);
       const y = mix(src.y - size.h / 2, y1, k) - away * 480;
@@ -253,68 +253,14 @@ export async function stays(ctx, S, T) {
   }
   /* "Room booked" comes off the dates chip, with the chime, and stays readable 1.5 s. */
   ctx.sfx("chime_notify", tE);
-  showDuring(ctx, E, [[tE, tAway + 0.24]]);
+  showDuring(ctx, E, [[tE, tAway + 0.22]]);
   ctx.onFrame((t) => {
-    if (t < tE || t >= tAway + 0.24) return;
+    if (t < tE || t >= tAway + 0.22) return;
     const k = ramp(ctx, t, tE, tE + 0.42, "land");
-    const away = ramp(ctx, t, tAway - 0.02, tAway + 0.22, "power2.in");
+    const away = ramp(ctx, t, tAway - 0.02, tAway + 0.2, "power2.in");
     const y = mix(COL.a, COL.e, k) + Math.sin((t - tE) * 2) * 3 * ramp(ctx, t, tE + 0.4, tE + 0.8) - away * 480;
     E.style.transformOrigin = "0 0";
     E.style.transform = `translate(${leftBox.x}px, ${y.toFixed(2)}px) scale(${mix(0.7, 1, k).toFixed(4)})`;
     E.style.opacity = String((ramp(ctx, t, tE, tE + 0.1) * (1 - away)).toFixed(3));
   });
-}
-
-/**
- * The October 2026 calendar on the resort card's back (900 x 720). Oct 1
- * 2026 is a Thursday. select(t16, t19) lights 16, then 19, then sweeps the
- * range between them.
- */
-function calendar(ctx, parent, CAL) {
-  const { tl } = ctx;
-  const PAD = 56;
-  const colW = (CAL.w - PAD * 2) / 7;
-  const ROW0 = 206;
-  const ROWH = 94;
-  const cellC = (d) => {
-    const idx = d - 1 + 4;
-    const r = Math.floor(idx / 7);
-    const c = idx % 7;
-    return { x: PAD + colW * (c + 0.5), y: ROW0 + ROWH * (r + 0.5), r, c };
-  };
-  const head = ctx.el("div", { class: "abs", style: { left: `${PAD}px`, right: `${PAD}px`, top: "50px", display: "flex", alignItems: "center", justifyContent: "space-between" } }, parent);
-  ctx.el("div", { text: "October 2026", style: { font: "700 52px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.03em", color: NAVY } }, head);
-  const nav = ctx.el("div", { style: { display: "flex", gap: "14px" } }, head);
-  for (const n of ["chevron-left", "chevron-right"]) iconPlate(ctx, nav, n, { size: 56, round: true });
-  ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].forEach((d, i) => {
-    ctx.el("div", { class: "abs", text: d, style: { left: `${PAD + colW * i}px`, width: `${colW}px`, top: "150px", textAlign: "center", font: "600 26px/1 Inter, sans-serif", color: "#8a90a0" } }, parent);
-  });
-  const band1 = ctx.el("div", { class: "abs", style: { left: `${cellC(16).x}px`, top: `${cellC(16).y - 40}px`, width: `${CAL.w - PAD - cellC(16).x + 6}px`, height: "80px", background: "rgb(0 105 254 / 0.12)", borderRadius: "0 40px 40px 0", transformOrigin: "0 50%", visibility: "hidden" } }, parent);
-  const band2 = ctx.el("div", { class: "abs", style: { left: `${PAD - 6}px`, top: `${cellC(19).y - 40}px`, width: `${cellC(19).x - PAD + 6}px`, height: "80px", background: "rgb(0 105 254 / 0.12)", borderRadius: "40px 0 0 40px", transformOrigin: "0 50%", visibility: "hidden" } }, parent);
-  const dots = {};
-  for (const d of [16, 19]) {
-    const c = cellC(d);
-    dots[d] = ctx.el("div", { class: "abs", style: { left: `${c.x - 42}px`, top: `${c.y - 42}px`, width: "84px", height: "84px", borderRadius: "50%", background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 60%, #0056d0)`, boxShadow: "0 10px 22px -10px rgb(0 80 220 / 0.6)", opacity: "0" } }, parent);
-  }
-  const nums = {};
-  for (let d = 1; d <= 31; d += 1) {
-    const c = cellC(d);
-    nums[d] = ctx.el("div", { class: "abs", text: String(d), style: { left: `${c.x - 45}px`, width: "90px", top: `${c.y - 18}px`, textAlign: "center", font: "600 34px/36px Inter, sans-serif", color: NAVY, fontVariantNumeric: "tabular-nums" } }, parent);
-  }
-  return {
-    cellCentre: (d) => {
-      const c = cellC(d);
-      return { x: CAL.x + c.x, y: CAL.y + c.y };
-    },
-    select(t16, t19) {
-      for (const [d, t] of [[16, t16], [19, t19]]) {
-        tl.fromTo(dots[d], { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2.2)", immediateRender: false }, t);
-        tl.fromTo(nums[d], { color: NAVY }, { color: "#ffffff", duration: 0.1, ease: "power1.out", immediateRender: false }, t + 0.02);
-      }
-      tl.fromTo(band1, { scaleX: 0 }, { scaleX: 1, duration: 0.14, ease: "power2.in", immediateRender: false }, t19 + 0.02);
-      tl.fromTo(band2, { scaleX: 0 }, { scaleX: 1, duration: 0.14, ease: "power2.out", immediateRender: false }, t19 + 0.16);
-      showDuring(ctx, band1, [[t19 + 0.02, 999]]);
-      showDuring(ctx, band2, [[t19 + 0.16, 999]]);
-    },
-  };
 }

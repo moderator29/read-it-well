@@ -128,7 +128,7 @@ export async function checked(ctx, S, T) {
 
   /* ==================== row 27: card 2 ==================== */
   const q = QUESTIONS[1];
-  const cardLayer = ctx.scene("b-m-card2", T.r27 - 0.05, T.end + 0.02, { z: 32 });
+  const cardLayer = ctx.scene("b-m-card2", T.r27 - 0.05, T.end, { z: 32 });
   const BOX = { x: 110, y: 640, w: 830, h: 228 };
   const card = questionCard(ctx, cardLayer, { q: q.q, a: q.a, box: BOX, mark: true, fontSize: 52 });
   card.front.style.justifyContent = "center";
@@ -156,7 +156,7 @@ export async function checked(ctx, S, T) {
   const tSwap = tSpin + 0.16;
   const tEnd = T.end;
   ctx.onFrame((t) => {
-    const on = t >= tSpin && t < tEnd + 0.02;
+    const on = t >= tSpin && t < tEnd;
     m.style.visibility = on && t < tSwap ? "inherit" : "hidden";
     if (backMark) backMark.style.visibility = t >= tSpin ? "hidden" : "inherit";
     if (!on) {

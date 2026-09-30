@@ -1,7 +1,7 @@
 /* 21 · Story. "Reserve your table." Night. The example restaurant's page
  * (Harbour Lights Kitchen, opens at 18:00, its Example notice in view) on one
  * big phone, whole and centred, the same grid as the stay story before it. A
- * booked calendar is the post's 3D icon. Everything sits inside the story's
+ * clock is the post's 3D icon. Everything sits inside the story's
  * safe zone. */
 import { SLOT, frame, headline, icon3d, phone, subline } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
@@ -24,7 +24,7 @@ export default {
       ${headline(["Reserve your", "<k>table.</k>"], { W, H })}
       ${subline("The restaurant confirms, right inside Vallo.", { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("calendar-booked", { ...SLOT.story.tr, size: 210, ground: "night" })}
+      ${icon3d("clock", { ...SLOT.story.tr, size: 210, ground: "night" })}
       `,
     }),
 };

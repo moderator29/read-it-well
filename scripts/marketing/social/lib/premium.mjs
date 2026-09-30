@@ -19,8 +19,9 @@ export const GROUND = {
 
 /* type colours per ground */
 function ink(g) {
-  if (g === "mist") return { head: "#0A1030", key: "#0056D0", sub: "rgba(10,16,48,.64)", foot: "rgba(10,16,48,.58)" };
-  if (g === "electric") return { head: "#FFFFFF", key: "#FFFFFF", sub: "rgba(255,255,255,.86)", foot: "rgba(255,255,255,.80)" };
+  if (g === "mist") return { head: "#0A1030", key: "#0056D0", sub: "rgba(10,16,48,.66)", foot: "rgba(10,16,48,.66)" };
+  /* Electric's top (#0A6CFF) gives white 4.6:1, so its small type stays near full white */
+  if (g === "electric") return { head: "#FFFFFF", key: "#FFFFFF", sub: "rgba(255,255,255,.95)", foot: "#FFFFFF" };
   return { head: "#FFFFFF", key: "#8FD3FF", sub: "rgba(255,255,255,.62)", foot: "rgba(255,255,255,.56)" };
 }
 

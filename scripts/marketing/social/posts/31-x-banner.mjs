@@ -8,7 +8,7 @@ import { phoneHtml } from "../lib/kit.mjs";
 
 const W = 1500;
 const H = 500;
-const PLACE = { h: 640, top: 150 };
+const PLACE = { h: 600, top: 132 };
 
 export default {
   id: "x-banner",

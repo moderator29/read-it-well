@@ -6,14 +6,14 @@
  *   07  "Looking for / a home?" in WORDS; the phone rises; Rent is pressed.
  *   08  search across Nigeria: the page scrolls, the outline draws, the cities light.
  *   09  the Apply button is the one lifted body; Villas is pressed; 52 -> 3.
- *   10  the Maitama villa opens and flicks down to its costs; the push.
+ *   10  the push on the press; the Maitama villa opens and whips down to its costs.
  */
 import { LAYOUT } from "./layout.js";
 import { phone } from "../engine/phone.js";
 import { orb } from "../engine/components.js";
 import {
   NAVY, ELECTRIC, SHADOW, MIST, displayToStage, displayRectQuad, rectQuad, lerpQuad, placeOnQuad,
-  nigeriaOutline, CITIES, pressAt, rippleAt, fitSize, measure,
+  nigeriaOutline, CITIES, pressAt, rippleAt, fitSize, measure, cropCanvas, scrollBlur, whip,
 } from "./a-common.js";
 
 const W = 1080;
@@ -59,8 +59,9 @@ export async function buildProductMobile(ctx, T, open) {
   tl.to(P, { cx: TURN.cx, ry: TURN.ry, duration: 0.55, ease: "glide" }, T.buy + 0.1);
   /* 08 -> 09: a shift left as the sheet rises (room for the lifted Apply at the right). */
   tl.to(P, { cx: SHIFT.cx, ry: 0, duration: 0.5, ease: "glide" }, T.filterPress + 0.04);
-  /* 09 -> 10: centre again as the listing opens, then the push toward the costs. */
-  tl.to(P, { cx: PUSH.cx, cy: PUSH.cy, height: PUSH.height, duration: 0.9, ease: "power2.inOut" }, T.need + 0.18);
+  /* 09 -> 10: on the press, centre and push in, so the listing opens with its sticky bar (and the
+     bar's short total) already under the caption. */
+  tl.to(P, { cx: PUSH.cx, cy: PUSH.cy, height: PUSH.height, duration: 0.55, ease: "power2.inOut" }, T.need + 0.04);
   tl.to(P, { cy: PUSH.cy + 5, height: PUSH.height + 14, duration: T.call - T.movein, ease: "sine.inOut" }, T.movein);
 
   /* ================= the screens (under the glass) ================= */
@@ -71,15 +72,15 @@ export async function buildProductMobile(ctx, T, open) {
     return { el, img, id };
   };
   const bars = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: `${SB}px`, overflow: "hidden", zIndex: "40" } }, p.screen);
-  const barOf = (id) => {
+  const barOf = async (id) => {
     const b = ctx.el("div", { class: "abs", style: { inset: "0px", visibility: "hidden" } }, bars);
-    ctx.img(ctx.src.display(id), { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: "2868px" } }, b);
+    await cropCanvas(ctx, ctx.src.display(id), { x: 0, y: 0, w: 1320, h: SB }, { parent: b });
     return b;
   };
   /** Visibility by time (a frame hook: no history). */
   const during = (el, ranges) => ctx.onFrame((t) => {
     const on = ranges.some(([a, b]) => t >= a && t < b);
-    if ((el.style.visibility === "visible") !== on) el.style.visibility = on ? "visible" : "hidden";
+    if ((el.style.visibility !== "hidden") !== on) el.style.visibility = on ? "inherit" : "hidden";
   });
   /** An iOS push: `to` slides in from the right over `from`, which parts to the left and dims. */
   const slide = (from, to, t, dur = 0.42) => {
@@ -88,43 +89,42 @@ export async function buildProductMobile(ctx, T, open) {
   };
 
   const home1 = page("home-light");
+  const home2 = home1; // one page, two visits
   const stay = page("stay-light");
   const stays = page("stays-light");
   const rest = page("restaurant-light");
   const msgs = page("messages-lt");
-  const home2 = page("home-light");
   const search = page("search-lt", { bg: "#f3f4f1" });
   const sheet = page(null, { bg: "transparent" });
   const listing = page(null, { bg: "#f3f4f1" });
-  during(home1.el, [[T.widen, T.hotels + 0.45]]);
+  during(home1.el, [[T.widen, T.hotels + 0.45], [T.rows[6] + 0.3, T.buy + 0.45]]);
   during(stay.el, [[T.hotels, T.shortlets + 0.45]]);
   during(stays.el, [[T.shortlets, T.restaurants + 0.45]]);
   during(rest.el, [[T.restaurants, T.rows[5] + 0.3]]);
   during(msgs.el, [[T.rows[5] + 0.3, T.rows[6] + 0.3]]);
-  during(home2.el, [[T.rows[6] + 0.3, T.buy + 0.45]]);
-  during(search.el, [[T.buy, T.need + 0.7]]);
-  during(sheet.el, [[T.filterPress + 0.02, T.need + 0.7]]);
-  during(listing.el, [[T.need + 0.16, END + 1]]);
+  during(search.el, [[T.buy, T.open + 0.4]]);
+  during(sheet.el, [[T.filterPress + 0.02, T.open + 0.4]]);
+  during(listing.el, [[T.open, END + 1]]);
   slide(home1, stay, T.hotels);
   slide(stay, stays, T.shortlets);
   slide(stays, rest, T.restaurants);
   slide(home2, search, T.buy);
   /* The status bars: always the current page's, never sliding. */
-  during(barOf("home-light"), [[T.widen, T.hotels], [T.rows[6] + 0.3, T.buy]]);
-  during(barOf("stay-light"), [[T.hotels, T.shortlets]]);
-  during(barOf("stays-light"), [[T.shortlets, T.restaurants]]);
-  during(barOf("restaurant-light"), [[T.restaurants, T.rows[5] + 0.3]]);
-  during(barOf("messages-lt"), [[T.rows[5] + 0.3, T.rows[6] + 0.3]]);
-  during(barOf("search-lt"), [[T.buy, T.filterPress + 0.02]]);
-  during(barOf("filters-lt"), [[T.filterPress + 0.02, T.need + 0.16]]);
-  during(barOf("listing-lt"), [[T.need + 0.16, END + 1]]);
+  during(await barOf("home-light"), [[T.widen, T.hotels], [T.rows[6] + 0.3, T.buy]]);
+  during(await barOf("stay-light"), [[T.hotels, T.shortlets]]);
+  during(await barOf("stays-light"), [[T.shortlets, T.restaurants]]);
+  during(await barOf("restaurant-light"), [[T.restaurants, T.rows[5] + 0.3]]);
+  during(await barOf("messages-lt"), [[T.rows[5] + 0.3, T.rows[6] + 0.3]]);
+  during(await barOf("search-lt"), [[T.buy, T.filterPress + 0.02]]);
+  during(await barOf("filters-lt"), [[T.filterPress + 0.02, T.open]]);
+  during(await barOf("listing-lt"), [[T.open, END + 1]]);
 
   /* ================= row 06: one app, one account ================= */
   /* The veil: the phone steps back under the mist while the words land (never type over a live screen). */
   const veilScene = ctx.scene("a-veil", T.rows[5], T.rows[6] + 0.2, { z: Z.veil });
   const veil = ctx.el("div", { class: "fill", style: { background: "#f6f9ff" } }, veilScene);
   tl.fromTo(veil, { opacity: 0 }, { opacity: 0.86, duration: 0.42, ease: "power2.out" }, T.rows[5]);
-  tl.to(veil, { opacity: 0, duration: 0.28, ease: "power2.inOut" }, T.accountEnd + 0.02);
+  tl.to(veil, { opacity: 0, duration: 0.28, ease: "power2.inOut" }, T.accountEnd + 0.14);
 
   const wordsScene = ctx.scene("a-words", T.rows[5], T.pill1 + 0.3, { z: Z.words });
   const WD = L.WORDS; // x 44, y 520, w 896, h 520
@@ -150,20 +150,23 @@ export async function buildProductMobile(ctx, T, open) {
   oneAcc.style.transformOrigin = "100% 60%";
   tl.fromTo(oneApp, { x: -150, opacity: 0, rotation: -4 }, { x: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "land" }, T.one1 - 0.08);
   tl.fromTo(oneAcc, { x: 150, opacity: 0, rotation: 4 }, { x: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "land" }, T.one2 - 0.08);
-  tl.to(oneApp, { x: -260, opacity: 0, duration: 0.26, ease: "power2.in" }, T.accountEnd + 0.02);
-  tl.to(oneAcc, { x: 260, opacity: 0, duration: 0.26, ease: "power2.in" }, T.accountEnd + 0.06);
+  /* They leave before the veil lifts: words never sit on a live screen. */
+  tl.to(oneApp, { x: -220, duration: 0.24, ease: "power2.in" }, T.accountEnd - 0.08);
+  tl.to(oneApp, { opacity: 0, duration: 0.18, ease: "power1.out" }, T.accountEnd - 0.04);
+  tl.to(oneAcc, { x: 220, duration: 0.24, ease: "power2.in" }, T.accountEnd - 0.05);
+  tl.to(oneAcc, { opacity: 0, duration: 0.18, ease: "power1.out" }, T.accountEnd - 0.01);
 
   /* The one body: the inbox's real Property | Stays tabs (messages-lt), two worlds under one account. */
   const bodies = ctx.scene("a-bodies", T.rows[5], T.need + 0.8, { z: Z.bodies });
   const TABS = { x: 26, y: 893, w: 1268, h: 124 };
   const tabs = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${TABS.w}px`, height: `${TABS.h}px`, transformOrigin: "0 0", borderRadius: "62px", overflow: "hidden", visibility: "hidden" } }, bodies);
-  ctx.img(ctx.src.display("messages-lt"), { class: "abs", style: { left: `${-TABS.x}px`, top: `${-TABS.y}px`, width: "1320px", height: "2868px", maxWidth: "none" } }, tabs);
+  await cropCanvas(ctx, ctx.src.display("messages-lt"), TABS, { parent: tabs });
   const tabsShadow = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "62px", boxShadow: SHADOW } }, tabs);
   const tabsTo = { cx: 540, cy: yB + Math.round(sB * 1.0) + 92, s: 0.66 };
   const tabsT = { up0: T.tabsUp, up1: T.tabsUp + 0.5, down0: T.accountEnd + 0.04, down1: T.accountEnd + 0.36 };
   ctx.onFrame((t) => {
     const on = t >= tabsT.up0 && t < tabsT.down1;
-    tabs.style.visibility = on ? "visible" : "hidden";
+    tabs.style.visibility = on ? "inherit" : "hidden";
     if (!on) return;
     const from = displayRectQuad(P, W, H, TABS);
     const to = rectQuad(tabsTo.cx, tabsTo.cy, TABS.w * tabsTo.s, TABS.h * tabsTo.s, 0);
@@ -208,10 +211,11 @@ export async function buildProductMobile(ctx, T, open) {
   /* The page scrolls: the whole web view (search-lt-full, 880 wide) moves up under the fixed status bar and nav. */
   const SCROLL = 210;
   const web = ctx.el("div", { class: "abs", style: { left: "0px", top: `${SB}px`, width: "1320px", height: `${2868 - SB}px`, overflow: "hidden", background: "#f3f4f1" } }, search.el);
-  const full = ctx.img(ctx.src.capture("search-lt-full"), { class: "abs", style: { left: "0px", top: "0px", width: "1320px", height: `${(10908 * 1320) / 880}px`, maxWidth: "none" } }, web);
+  /* the whole-page capture (880 wide, 2x), cropped once to the part the scroll can show */
+  const fullH = Math.ceil((2868 - SB + 260) / 1.5);
+  const full = await cropCanvas(ctx, ctx.src.capture("search-lt-full"), { x: 0, y: 0, w: 880, h: fullH }, { parent: web, style: { width: "1320px", height: `${fullH * 1.5}px` } });
   const NAV = 2440;
-  const nav = ctx.el("div", { class: "abs", style: { left: "0px", top: `${NAV}px`, width: "1320px", height: `${2868 - NAV}px`, overflow: "hidden" } }, search.el);
-  ctx.img(ctx.src.display("search-lt"), { class: "abs", style: { left: "0px", top: `${-NAV}px`, width: "1320px", height: "2868px" } }, nav);
+  await cropCanvas(ctx, ctx.src.display("search-lt"), { x: 0, y: NAV, w: 1320, h: 2868 - NAV }, { parent: search.el, style: { top: `${NAV}px` } });
   const scrollT = { t0: T.search - 0.3, t1: T.nigeria5 + 0.2 };
   tl.fromTo(full, { y: 0 }, { y: -SCROLL, duration: scrollT.t1 - scrollT.t0, ease: "power2.inOut" }, scrollT.t0);
 
@@ -260,13 +264,15 @@ export async function buildProductMobile(ctx, T, open) {
   const win = ctx.el("div", { class: "abs", style: { left: "0px", top: `${SB}px`, width: "1320px", height: `${D}px`, overflow: "hidden" } }, listing.el);
   const lA = ctx.img(ctx.src.display("listing-lt"), { class: "abs", style: { left: "0px", top: `${-SB}px`, width: "1320px", height: "2868px", clipPath: `inset(${SB}px 0px ${2868 - BAR}px 0px)` } }, win);
   const lB = ctx.img(ctx.src.display("listing-cost-light"), { class: "abs", style: { left: "0px", top: `${-SB}px`, width: "1320px", height: "2868px", clipPath: `inset(${SB}px 0px ${2868 - BAR}px 0px)` } }, win);
-  const fixedBar = ctx.el("div", { class: "abs", style: { left: "0px", top: `${BAR}px`, width: "1320px", height: `${2868 - BAR}px`, overflow: "hidden" } }, listing.el);
-  ctx.img(ctx.src.display("listing-lt"), { class: "abs", style: { left: "0px", top: `${-BAR}px`, width: "1320px", height: "2868px" } }, fixedBar);
-  /* The listing arrives from the right and flicks straight down to "What you will actually pay":
-     its move-in total is only ever seen in motion (v3.1: unreadable until 28.87). */
-  tl.fromTo(listing.el, { x: 1320 }, { x: 0, duration: 0.36, ease: "power2.out" }, T.need + 0.16);
-  tl.fromTo(lA, { y: 0 }, { y: -D, duration: T.movein - T.flick, ease: "power3.out" }, T.flick);
-  tl.fromTo(lB, { y: D }, { y: 0, duration: T.movein - T.flick, ease: "power3.out" }, T.flick);
+  await cropCanvas(ctx, ctx.src.display("listing-lt"), { x: 0, y: BAR, w: 1320, h: 2868 - BAR }, { parent: listing.el, style: { top: `${BAR}px` } });
+  /* The listing arrives from the right and whips straight down to "What you will actually pay".
+     v3.1: its move-in total is never readable before 28.87. It is never at rest on screen: it
+     passes only in the whip's fast first quarter, under the whip's motion blur. */
+  tl.fromTo(listing.el, { x: 1320 }, { x: 0, duration: 0.36, ease: "power2.out" }, T.open);
+  const dur = T.movein - T.flick;
+  tl.fromTo(lA, { y: 0 }, { y: -D, duration: dur, ease: whip.ease }, T.flick);
+  tl.fromTo(lB, { y: D }, { y: 0, duration: dur, ease: whip.ease }, T.flick);
+  scrollBlur(ctx, win, (t) => (D / dur) * whip.slope(ctx.progress(t, T.flick, T.movein)));
 
   return { p, P, listing, phoneScene, mistScene, pointer, pointerScene };
 }
@@ -328,7 +334,7 @@ function buildFilters(ctx, T, { P, sheet, bodies, pointer, pointerScene }) {
   const back = { t0: T.need + 0.06, t1: T.need + 0.34 };
   ctx.onFrame((t) => {
     const on = t >= up.t0 && t < back.t1;
-    btn.style.visibility = on ? "visible" : "hidden";
+    btn.style.visibility = on ? "inherit" : "hidden";
     if (!on) return;
     const from = displayRectQuad(P, 1080, 1920, APPLY);
     const k1 = ctx.ease("back.out(1.2)")(ctx.progress(t, up.t0, up.t1));

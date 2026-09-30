@@ -41,7 +41,7 @@ export async function buildMobile(ctx) {
   const S = { T };
 
   /* ---------- the ground: mist; the warm wash (19 to 24); row 23's dusk ---------- */
-  const ground = ctx.scene("b-m-ground", T.r14, T.end + 0.02, { z: 0 });
+  const ground = ctx.scene("b-m-ground", T.r14, T.end, { z: 0 });
   mist(ctx, ground);
   S.warm = ctx.el("div", {
     class: "fill",
@@ -82,17 +82,17 @@ export async function buildMobile(ctx) {
   S.ground = ground;
 
   /* ---------- the phone ---------- */
-  const phones = ctx.scene("b-m-phone", T.r14, T.end + 0.02, { z: 10 });
+  const phones = ctx.scene("b-m-phone", T.r14, T.end, { z: 10 });
   S.phones = phones;
   S.pL = await phone3d(ctx, { model: "island", parent: phones, env: "light", edge: "#f3f4f1" });
 
   /* ---------- the glossy pointer ---------- */
-  const pointer = ctx.scene("b-m-pointer", T.r14, T.end + 0.02, { z: 40 });
+  const pointer = ctx.scene("b-m-pointer", T.r14, T.end, { z: 40 });
   S.pointer = pointer;
   S.orb = orb(ctx, pointer);
 
   /* Captions are off where the same words are big on screen. */
-  ctx.hideCaptions(T.r14, T.r15);
+  ctx.hideCaptions(T.r14 - 0.14, T.r15);
   ctx.hideCaptions(T.r19, T.r20);
   ctx.hideCaptions(T.r23, T.r24);
   ctx.hideCaptions(T.r25, T.r26);

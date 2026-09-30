@@ -22,7 +22,7 @@ export default {
       body: `
       ${headline(["See the <k>full</k> cost", "before you call."], { W, H })}
       ${await component(card.id, card, { x: 80, y: 480, w: 920, radius: 40 })}
-      ${icon3d("price-tag", { x: 880, y: 1150, ground: "night" })}
+      ${icon3d("price-tag", { x: 880, y: 1170, size: 200, ground: "night" })}
       `,
     }),
 };

@@ -9,7 +9,8 @@
  *
  * Needs: node scripts/marketing/screens.mjs (the phone displays) and the 3D
  * phone studio in scripts/marketing/phone3d/. Posts live in ./posts, one
- * module each; the shared look lives in ./lib/kit.mjs.
+ * module each; the premium system (grounds, grid, type, the 3D icon, the one
+ * pop-up) lives in ./lib/premium.mjs, fonts and phone layers in ./lib/kit.mjs.
  * Out: docs/marketing/social/<NN>-<slug>.png (RGB, no alpha).
  */
 import { mkdirSync, readdirSync } from "node:fs";

@@ -8,7 +8,7 @@
  */
 import { LAYOUT, QUESTIONS } from "./layout.js";
 import { questionCard, squiggle } from "../engine/components.js";
-import { NAVY, ELECTRIC, SHADOW_L, displayRectQuad, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure } from "./a-common.js";
+import { NAVY, ELECTRIC, SHADOW_L, displayRectQuad, rectQuad, lerpQuad, placeOnQuad, LINES, TOTAL, naira, rollNumber, measure, cropCanvas } from "./a-common.js";
 
 const W = 1080;
 const H = 1920;
@@ -20,7 +20,7 @@ export const A_OUT = {
   crop: { x: 52, y: 1602, w: 1088, h: 784 }, // thread-light display px: the Maitama card
 };
 
-export function buildReceiptMobile(ctx, T, product) {
+export async function buildReceiptMobile(ctx, T, product) {
   const { tl } = ctx;
   const { P, p } = product;
   const R = LAYOUT.mobile.RECEIPT; // x 90, y 390, w 900, h 820
@@ -34,7 +34,7 @@ export function buildReceiptMobile(ctx, T, product) {
   const threadIn = T.there + 0.2;
   ctx.onFrame((t) => {
     const on = t >= threadIn;
-    if ((thread.style.visibility === "visible") !== on) thread.style.visibility = on ? "visible" : "hidden";
+    if ((thread.style.visibility !== "hidden") !== on) thread.style.visibility = on ? "inherit" : "hidden";
   });
 
   /* ---------- the receipt ---------- */
@@ -44,10 +44,7 @@ export function buildReceiptMobile(ctx, T, product) {
   /* The skin: the screen's own cost section (listing-cost-light), stretched into the receipt's box so it maps back onto the glass at the lift's start. */
   const SKIN = { x: 20, y: 470, w: 1280, h: 2020 };
   const skinWrap = ctx.el("div", { class: "abs", style: { inset: "0px", borderRadius: "44px", overflow: "hidden" } }, shell);
-  ctx.img(ctx.src.display("listing-cost-light"), {
-    class: "abs",
-    style: { left: `${(-SKIN.x * R.w) / SKIN.w}px`, top: `${(-SKIN.y * R.h) / SKIN.h}px`, width: `${(1320 * R.w) / SKIN.w}px`, height: `${(2868 * R.h) / SKIN.h}px`, maxWidth: "none" },
-  }, skinWrap);
+  await cropCanvas(ctx, ctx.src.display("listing-cost-light"), SKIN, { parent: skinWrap, style: { width: `${R.w}px`, height: `${R.h}px` } });
   const body = ctx.el("div", { class: "abs", style: { inset: "0px" } }, shell);
 
   /* Header: the product's own section title, and the listing. */
@@ -83,7 +80,7 @@ export function buildReceiptMobile(ctx, T, product) {
     ctx.onFrame((tt) => {
       const u = ctx.progress(tt, t - 0.04, t + 0.46);
       const on = u > 0 && u < 1;
-      s.sweep.style.visibility = on ? "visible" : "hidden";
+      s.sweep.style.visibility = on ? "inherit" : "hidden";
       if (on) s.sweep.style.transform = `translateX(${(-320 + ctx.ease("power2.inOut")(u) * (R.w + 320)).toFixed(1)}px)`;
     });
   });
@@ -115,7 +112,7 @@ export function buildReceiptMobile(ctx, T, product) {
     ctx.onFrame((t) => {
       const u = ctx.progress(t, t0, t0 + 0.3);
       const on = u > 0 && u < 1;
-      fly.style.visibility = on ? "visible" : "hidden";
+      fly.style.visibility = on ? "inherit" : "hidden";
       if (!on) return;
       const out = ctx.ease("power2.out")(ctx.progress(u, 0, 0.3));
       const down = ctx.ease("power2.inOut")(ctx.progress(u, 0.18, 0.86));
@@ -169,7 +166,7 @@ export function buildReceiptMobile(ctx, T, product) {
   tl.to(body, { opacity: 0, duration: 0.14, ease: "power1.in" }, fold.t0);
   /* The villa card (identical to section b's): it fades in over the folding shell and comes to rest on the rect. */
   const villa = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${A_OUT.crop.w}px`, height: `${A_OUT.crop.h}px`, transformOrigin: "0 0", overflow: "hidden", borderRadius: "40px", boxShadow: SHADOW_L, visibility: "hidden" } }, scene);
-  ctx.img(ctx.src.display("thread-light"), { style: { position: "absolute", left: `${-A_OUT.crop.x}px`, top: `${-A_OUT.crop.y}px`, width: "1320px", height: "auto", maxWidth: "none" } }, villa);
+  await cropCanvas(ctx, ctx.src.display("thread-light"), A_OUT.crop, { parent: villa });
   /* The card keeps its own aspect, centred on the folding shell, and fades in as the fold closes. */
   const ratio = A_OUT.villa.h / A_OUT.villa.w;
   const cardQ = (k) => {
@@ -180,7 +177,7 @@ export function buildReceiptMobile(ctx, T, product) {
   };
   ctx.onFrame((t) => {
     const on = t >= fold.t0 && t < END;
-    villa.style.visibility = on ? "visible" : "hidden";
+    villa.style.visibility = on ? "inherit" : "hidden";
     if (!on) return;
     const k = ctx.ease("power3.inOut")(ctx.progress(t, fold.t0, fold.t1));
     placeOnQuad(villa, A_OUT.crop.w, A_OUT.crop.h, cardQ(k));

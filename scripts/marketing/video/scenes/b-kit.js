@@ -469,3 +469,109 @@ export function camera(ctx, world) {
   cam.toStage = (x, y) => ({ x: cam.tx + cam.s * (x - cam.fx), y: cam.ty + cam.s * (y - cam.fy) });
   return cam;
 }
+
+/* ---------- the day card and the month calendar (both films) ---------- */
+
+/**
+ * The day card: its pages turn (Thursday, Friday) to Saturday; on
+ * "inspection" 11:00 AM stamps in with "Inspection set" and the Example
+ * chip; then it shrinks into a blue calendar chip (for the dock). k scales
+ * the whole card (1 = 470 x 440). Returns { wrap, tOut1, chipAt, chipSize }.
+ */
+export function dayCard(ctx, parent, T, { X, Y, k = 1, chipAt, tIn, tOut0, tOut1 }) {
+  const { tl } = ctx;
+  const W = 470 * k;
+  const H = 440 * k;
+  const r = (v) => Math.round(v * k);
+  const wrap = ctx.el("div", { class: "abs", style: { left: `${X}px`, top: `${Y}px`, width: `${W}px`, height: `${H}px`, perspective: `${r(1600)}px`, visibility: "hidden" } }, parent);
+  const card = ctx.el("div", {
+    class: "abs",
+    style: { inset: "0px", borderRadius: `${r(36)}px`, background: "#fff", boxShadow: SHADOW.l, overflow: "hidden", transformStyle: "preserve-3d", border: "1px solid rgb(255 255 255 / 0.9)" },
+  }, wrap);
+  const BAND = r(124);
+  const pages = ["Thursday", "Friday", "Saturday"].map((d, i) => {
+    const pg = ctx.el("div", { class: "abs", style: { inset: "0px", background: "#fff", transformOrigin: "50% 0%", backfaceVisibility: "hidden", zIndex: String(10 - i) } }, card);
+    const band = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: "0px", height: `${BAND}px`, background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 55%, #0052d6)`, display: "flex", alignItems: "center", justifyContent: "center" } }, pg);
+    ctx.el("div", { text: d, style: { font: `700 ${r(52)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: "#fff", transform: `translateY(${r(3)}px)` } }, band);
+    for (let j = 0; j < 3; j += 1) box(ctx, pg, { x: r(48), y: BAND + r(80) + j * r(74), w: W - r(96), h: Math.max(1, r(2)), style: { background: "rgb(16 32 80 / 0.07)" } });
+    return pg;
+  });
+  const sat = pages[2];
+  const time = ctx.el("div", { class: "abs", text: "11:00 AM", style: { left: "0px", right: "0px", top: `${BAND + r(58)}px`, textAlign: "center", font: `700 ${r(92)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.04em", color: NAVY, opacity: "0", background: "#fff" } }, sat);
+  const row = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: `${BAND + r(196)}px`, display: "flex", alignItems: "center", justifyContent: "center", gap: `${r(12)}px`, opacity: "0", background: "#fff", padding: `${r(10)}px 0` } }, sat);
+  const plate = ctx.el("span", { style: { width: `${r(42)}px`, height: `${r(42)}px`, borderRadius: `${r(13)}px`, display: "grid", placeItems: "center", background: "rgb(0 105 254 / 0.1)", color: ELECTRIC, flex: "none" } }, row);
+  ctx.icon("check", { size: r(28), stroke: 3 }, plate);
+  ctx.el("span", { text: "Inspection set", style: { font: `600 ${r(34)}px/1 Inter, sans-serif`, letterSpacing: "-0.015em", color: NAVY } }, row);
+  exampleChip(ctx, row, { size: r(20) });
+
+  tl.fromTo(wrap, { x: -W - 60, y: r(60), rotation: -14 }, { x: 0, y: 0, rotation: -2.5, duration: 0.42, ease: "land", immediateRender: false }, tIn);
+  tl.fromTo(card, { rotationY: 36 }, { rotationY: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, tIn);
+  [T.r17 + 0.02, T.r17 + 0.12].forEach((tf, i) => {
+    tl.fromTo(pages[i], { rotationX: 0 }, { rotationX: 96, duration: 0.14, ease: "power2.in", immediateRender: false }, tf);
+  });
+  tl.fromTo(time, { scale: 1.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.18, ease: "power4.out", immediateRender: false }, T.inspection);
+  tl.fromTo(row, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: "power3.out", immediateRender: false }, T.inspection + 0.12);
+
+  const chipSize = 100;
+  tl.fromTo(wrap, { x: 0, y: 0, scale: 1, rotation: -2.5 }, { x: chipAt.x - (X + W / 2), y: chipAt.y - (Y + H / 2), scale: chipSize / H, rotation: 0, duration: tOut1 - tOut0, ease: "power3.inOut", immediateRender: false }, tOut0);
+  tl.fromTo(card, { borderRadius: 36 * k }, { borderRadius: 140 * k, duration: tOut1 - tOut0, ease: "power2.in", immediateRender: false }, tOut0);
+  const face = ctx.el("div", { class: "abs", style: { inset: "0px", zIndex: "20", background: `linear-gradient(160deg, #3d8bff, ${ELECTRIC} 60%, #0050d0)`, display: "grid", placeItems: "center", color: "#fff", opacity: "0" } }, card);
+  const faceIcon = ctx.el("div", { style: { display: "grid", placeItems: "center", transform: `scale(${H / chipSize})` } }, face);
+  ctx.icon("calendar-check", { size: 50, stroke: 2.2 }, faceIcon);
+  tl.fromTo(face, { opacity: 0 }, { opacity: 1, duration: (tOut1 - tOut0) * 0.45, ease: "power1.inOut", immediateRender: false }, tOut0 + (tOut1 - tOut0) * 0.5);
+  showDuring(ctx, wrap, [[tIn, tOut1 + 0.02]]);
+  return { wrap, tOut1, chipAt, chipSize: (chipSize / H) * W };
+}
+
+/**
+ * October 2026 (Oct 1 is a Thursday) in a white card of CAL.w x CAL.h.
+ * o: { pad, head, wk, num, row0, rowH, dot }. select(t16, t19) lights 16,
+ * then 19, then sweeps the range between them.
+ */
+export function monthCalendar(ctx, parent, CAL, o) {
+  const { tl } = ctx;
+  const PAD = o.pad;
+  const colW = (CAL.w - PAD * 2) / 7;
+  const cellC = (d) => {
+    const idx = d - 1 + 4;
+    const r = Math.floor(idx / 7);
+    const c = idx % 7;
+    return { x: PAD + colW * (c + 0.5), y: o.row0 + o.rowH * (r + 0.5) };
+  };
+  const head = ctx.el("div", { class: "abs", style: { left: `${PAD}px`, right: `${PAD}px`, top: `${o.headTop}px`, display: "flex", alignItems: "center", justifyContent: "space-between" } }, parent);
+  ctx.el("div", { text: "October 2026", style: { font: `700 ${o.head}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: NAVY } }, head);
+  const nav = ctx.el("div", { style: { display: "flex", gap: `${Math.round(o.head * 0.27)}px` } }, head);
+  for (const n of ["chevron-left", "chevron-right"]) iconPlate(ctx, nav, n, { size: Math.round(o.head * 1.08), round: true });
+  ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].forEach((d, i) => {
+    ctx.el("div", { class: "abs", text: d, style: { left: `${PAD + colW * i}px`, width: `${colW}px`, top: `${o.wkTop}px`, textAlign: "center", font: `600 ${o.wk}px/1 Inter, sans-serif`, color: "#8a90a0" } }, parent);
+  });
+  const bh = o.dot - 4;
+  const band1 = ctx.el("div", { class: "abs", style: { left: `${cellC(16).x}px`, top: `${cellC(16).y - bh / 2}px`, width: `${CAL.w - PAD - cellC(16).x + 6}px`, height: `${bh}px`, background: "rgb(0 105 254 / 0.12)", borderRadius: `0 ${bh / 2}px ${bh / 2}px 0`, transformOrigin: "0 50%", visibility: "hidden" } }, parent);
+  const band2 = ctx.el("div", { class: "abs", style: { left: `${PAD - 6}px`, top: `${cellC(19).y - bh / 2}px`, width: `${cellC(19).x - PAD + 6}px`, height: `${bh}px`, background: "rgb(0 105 254 / 0.12)", borderRadius: `${bh / 2}px 0 0 ${bh / 2}px`, transformOrigin: "0 50%", visibility: "hidden" } }, parent);
+  const dots = {};
+  for (const d of [16, 19]) {
+    const c = cellC(d);
+    dots[d] = ctx.el("div", { class: "abs", style: { left: `${c.x - o.dot / 2}px`, top: `${c.y - o.dot / 2}px`, width: `${o.dot}px`, height: `${o.dot}px`, borderRadius: "50%", background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 60%, #0056d0)`, boxShadow: "0 10px 22px -10px rgb(0 80 220 / 0.6)", opacity: "0" } }, parent);
+  }
+  const nums = {};
+  for (let d = 1; d <= 31; d += 1) {
+    const c = cellC(d);
+    nums[d] = ctx.el("div", { class: "abs", text: String(d), style: { left: `${c.x - 45}px`, width: "90px", top: `${c.y - o.num * 0.53}px`, textAlign: "center", font: `600 ${o.num}px/${Math.round(o.num * 1.06)}px Inter, sans-serif`, color: NAVY, fontVariantNumeric: "tabular-nums" } }, parent);
+  }
+  return {
+    cellCentre: (d) => {
+      const c = cellC(d);
+      return { x: CAL.x + c.x, y: CAL.y + c.y };
+    },
+    select(t16, t19, until = 999) {
+      for (const [d, t] of [[16, t16], [19, t19]]) {
+        tl.fromTo(dots[d], { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2.2)", immediateRender: false }, t);
+        tl.fromTo(nums[d], { color: NAVY }, { color: "#ffffff", duration: 0.1, ease: "power1.out", immediateRender: false }, t + 0.02);
+      }
+      tl.fromTo(band1, { scaleX: 0 }, { scaleX: 1, duration: 0.14, ease: "power2.in", immediateRender: false }, t19 + 0.02);
+      tl.fromTo(band2, { scaleX: 0 }, { scaleX: 1, duration: 0.14, ease: "power2.out", immediateRender: false }, t19 + 0.16);
+      showDuring(ctx, band1, [[t19 + 0.02, until]]);
+      showDuring(ctx, band2, [[t19 + 0.16, until]]);
+    },
+  };
+}

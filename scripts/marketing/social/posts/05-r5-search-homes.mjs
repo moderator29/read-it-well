@@ -1,6 +1,7 @@
 /* R5 · after IMG_6732: the top of the phone, close, content big. Night. The
- * home screen's header, greeting and "Find your next home" hero under the
- * headline, with a search glass as the post's 3D icon. */
+ * search for homes to buy: the search field, the Buy, Beds and Price filters,
+ * "12 properties found. Nobody can pay to be higher." and the first listings,
+ * each with its Example chip. A map with a pin is the post's 3D icon. */
 import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
@@ -13,7 +14,7 @@ export default {
   W,
   H,
   phones: [
-    { screen: "home", model: "island", color: "black-titanium", rotation: { x: 13, y: 0, z: 0 }, fov: 30, w: 880, cx: 540, top: 452 },
+    { screen: "search-buy", model: "island", color: "black-titanium", rotation: { x: 13, y: 0, z: 0 }, fov: 30, w: 880, cx: 540, top: 452 },
   ],
   html: ({ phones }) =>
     frame({

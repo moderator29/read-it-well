@@ -1,7 +1,7 @@
 /* R10 · after IMG_6737: a steep view down the phone's lower half, the buttons
  * big. Night. The last welcome card lying back on a long foreshortened angle:
- * an account lets you search, save, message and book inspections. The keys
- * with a house tag are the post's 3D icon. */
+ * an account lets you search, save, message and book inspections. A pin with a
+ * speech bubble is the post's 3D icon. */
 import { SLOT, frame, headline, icon3d } from "../lib/premium.mjs";
 import { phoneHtml } from "../lib/kit.mjs";
 
@@ -25,7 +25,7 @@ export default {
       body: `
       ${headline(["Search, save", "and <k>message.</k>"], { W, H })}
       ${phoneHtml(phones[0])}
-      ${icon3d("bell", { ...SLOT.post.tr, size: 210, ground: "night" })}
+      ${icon3d("local-talks", { ...SLOT.post.tr, size: 210, ground: "night" })}
       `,
     }),
 };

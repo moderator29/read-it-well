@@ -67,8 +67,10 @@ export function timesPlus(ctx) {
   T.rentPress = T.rent + 0.25;
   /* 09: the lifted Apply button's count rolls just after the Villas press. */
   T.countRoll = T.exactly + 0.12;
-  /* 10: the listing's flick scroll starts as it arrives (before "see") and lands on "move-in". */
-  T.flick = T.need + 0.4;
+  /* 10: the listing opens on "see" and whips down to its costs, landing on "move-in". Its move-in
+     total is never at rest on screen before 28.87: it only passes, blurred, in the whip. */
+  T.open = T.need + 0.5;
+  T.flick = T.need + 0.58;
   return T;
 }
 
@@ -184,7 +186,7 @@ function ringHook(ctx, node, t0, dur, s0, s1, o0) {
       return;
     }
     const p = e(k);
-    node.style.visibility = "visible";
+    node.style.visibility = "inherit";
     node.style.transform = `scale(${(s0 + (s1 - s0) * p).toFixed(4)})`;
     node.style.opacity = String(o0 * (1 - p));
   });
@@ -254,6 +256,35 @@ export const CITIES = [
   { name: "Ibadan", lon: 3.9, lat: 7.38 },
 ];
 
+/* ---------- crops ---------- */
+
+const imageCache = new Map();
+/** Loads and decodes an image once (for crops drawn at build time). */
+export function loadImage(src) {
+  if (!imageCache.has(src)) {
+    const img = new Image();
+    img.decoding = "sync";
+    img.src = src;
+    imageCache.set(src, img.decode().then(() => img));
+  }
+  return imageCache.get(src);
+}
+
+/** Lets the build-time crop sources go once every crop is drawn. */
+export function releaseImages() {
+  imageCache.clear();
+}
+
+/** A canvas holding one crop of an image (source px), drawn once at build time: light and deterministic. */
+export async function cropCanvas(ctx, src, box, { parent = null, style = {} } = {}) {
+  const img = await loadImage(src);
+  const c = ctx.el("canvas", { class: "abs", style: { left: "0px", top: "0px", width: `${box.w}px`, height: `${box.h}px`, ...style } }, parent);
+  c.width = box.w;
+  c.height = box.h;
+  c.getContext("2d").drawImage(img, box.x, box.y, box.w, box.h, 0, 0, box.w, box.h);
+  return c;
+}
+
 /* ---------- type ---------- */
 
 /** Loads the section's faces, so widths can be measured at build time. */
@@ -295,6 +326,36 @@ function vblurFilters(ctx) {
   const steps = [2, 4, 7, 10, 14, 18];
   holder.innerHTML = `<svg width="0" height="0"><defs>${steps.map((k, i) => `<filter id="a-vblur-${i}" x="-5%" y="-60%" width="110%" height="220%"><feGaussianBlur stdDeviation="0 ${k}"/></filter>`).join("")}</defs></svg>`;
 }
+
+/**
+ * A fast scroll's motion blur: a vertical gaussian on `el` as strong as the
+ * scroll is fast (a camera's shutter, exaggerated), so nothing the page
+ * carries past can be read while it moves, and gone once it slows.
+ * `speed(t)` is the scroll's speed in el's own px per second. The blur is a
+ * function of speed only, so a 30 fps review and the 60 fps film match.
+ */
+let scrollBlurs = 0;
+export function scrollBlur(ctx, el, speed, { k = 0.45, max = 60 } = {}) {
+  const id = `a-sblur-${++scrollBlurs}`;
+  const holder = ctx.el("div", { style: { position: "absolute", width: "0px", height: "0px", overflow: "hidden" } }, ctx.stage);
+  holder.innerHTML = `<svg width="0" height="0"><defs><filter id="${id}" x="-2%" y="-12%" width="104%" height="124%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter></defs></svg>`;
+  const g = holder.querySelector("feGaussianBlur");
+  let last = -1;
+  ctx.onFrame((t) => {
+    const s = Math.min(max, (k * Math.abs(speed(t))) / 60);
+    const q = s < 1 ? 0 : Math.round(s * 2) / 2;
+    if (q === last) return;
+    last = q;
+    if (q === 0) el.style.filter = "none";
+    else {
+      g.setAttribute("stdDeviation", `0 ${q}`);
+      el.style.filter = `url(#${id})`;
+    }
+  });
+}
+
+/** power4.out and its slope, for a whip scroll whose speed a hook needs. */
+export const whip = { ease: "power4.out", slope: (p) => (p <= 0 || p >= 1 ? 0 : 4 * (1 - p) ** 3) };
 
 export function rollNumber(ctx, parent, { value, t0, t1, font, color, prefix = "₦", speed = 72, gapMax = 0.075, ls = -0.02 }) {
   vblurFilters(ctx);

@@ -17,7 +17,7 @@
 import { LAYOUT } from "./layout.js";
 import {
   DW, DH, NAVY, ELECTRIC, SHADOW, ramp, kf, mix, track, screenPage, showDuring, box, cropBody, quadDriver,
-  displayQuad, quadAtPose, rectQuad, lerpQuad, shiftQuad, placeQuad, mapQuad, exampleChip, pressAt, ripple, measure,
+  displayQuad, quadAtPose, rectQuad, lerpQuad, shiftQuad, placeQuad, mapQuad, exampleChip, pressAt, ripple, measure, dayCard,
 } from "./b-kit.js";
 
 /* thread-light (display px). */
@@ -154,7 +154,10 @@ export async function talk(ctx, S, T) {
   const GAP = 36;
   let wd = null;
   ctx.onFrame((t) => {
-    if (t < T.r14 || t > T.r15 + 0.1) return;
+    if (t < T.r14 || t > T.r15 + 0.1) {
+      words.forEach((w) => (w.el.style.visibility = "hidden"));
+      return;
+    }
     if (!wd) {
       /* one size for all three, the widest ("landlord") fitted to 820 px (the safe width, with air) */
       const size = Math.min(160, (820 / measure("landlord", "700 100px Poppins")) * 100);
@@ -320,7 +323,9 @@ export async function talk(ctx, S, T) {
   ctx.sfx("bubble_send", 36.1, { offset: -2 });
 
   /* ==================== row 17 ==================== */
-  const day = dayCard(ctx, over, T);
+  const day = dayCard(ctx, over, T, { X: 60, Y: 500, k: 1, chipAt: { x: 255, y: 870 }, tIn: T.r17 - 0.1, tOut0: T.keep - 0.1, tOut1: T.r18 - 0.02 });
+  ctx.sfx("card_slide", 36.95, { offset: -2 });
+  ctx.sfx("stamp", T.inspection);
 
   /* ==================== row 18 ==================== */
 
@@ -379,64 +384,4 @@ export async function talk(ctx, S, T) {
   const flipQ = displayQuad(pL, { x: FLIP.x, y: FLIP.y, w: 1, h: 1 }, quadAtPose(pL, FLIPPOSE));
   S.flipAt = { x: flipQ[0].x, y: flipQ[0].y };
   orbT.to(tMenu + 0.12, 0.8, { x: S.flipAt.x + 16, y: S.flipAt.y + 12 }, "glide");
-}
-
-/**
- * Row 17: the day card (x 60 to 530, y 500 to 940), beside the phone's left
- * edge. Its pages turn to Saturday; on "inspection" 11:00 AM stamps in with
- * "Inspection set" and the Example chip. Then it shrinks into a chip that
- * docks in row 18.
- */
-function dayCard(ctx, parent, T) {
-  const { tl } = ctx;
-  const W = 470;
-  const H = 440;
-  const X = 60;
-  const Y = 500;
-  const tIn = T.r17 - 0.1;
-  const wrap = ctx.el("div", { class: "abs", style: { left: `${X}px`, top: `${Y}px`, width: `${W}px`, height: `${H}px`, perspective: "1600px", visibility: "hidden" } }, parent);
-  const card = ctx.el("div", {
-    class: "abs",
-    style: { inset: "0px", borderRadius: "36px", background: "#fff", boxShadow: SHADOW.l, overflow: "hidden", transformStyle: "preserve-3d", border: "1px solid rgb(255 255 255 / 0.9)" },
-  }, wrap);
-  const BAND = 124;
-  const days = ["Thursday", "Friday", "Saturday"];
-  const pages = days.map((d, i) => {
-    const pg = ctx.el("div", { class: "abs", style: { inset: "0px", background: "#fff", transformOrigin: "50% 0%", backfaceVisibility: "hidden", zIndex: String(10 - i) } }, card);
-    const band = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: "0px", height: `${BAND}px`, background: `linear-gradient(160deg, #2f83ff, ${ELECTRIC} 55%, #0052d6)`, display: "flex", alignItems: "center", justifyContent: "center" } }, pg);
-    ctx.el("div", { text: d, style: { font: "700 52px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.03em", color: "#fff", transform: "translateY(3px)" } }, band);
-    for (let r = 0; r < 3; r += 1) box(ctx, pg, { x: 48, y: BAND + 80 + r * 74, w: W - 96, h: 2, style: { background: "rgb(16 32 80 / 0.07)" } });
-    return pg;
-  });
-  const sat = pages[2];
-  const time = ctx.el("div", { class: "abs", text: "11:00 AM", style: { left: "0px", right: "0px", top: `${BAND + 58}px`, textAlign: "center", font: "700 92px/1 Poppins, Inter, sans-serif", letterSpacing: "-0.04em", color: NAVY, opacity: "0", background: "#fff" } }, sat);
-  const row = ctx.el("div", { class: "abs", style: { left: "0px", right: "0px", top: `${BAND + 196}px`, display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", opacity: "0", background: "#fff", padding: "10px 0" } }, sat);
-  const plate = ctx.el("span", { style: { width: "42px", height: "42px", borderRadius: "13px", display: "grid", placeItems: "center", background: "rgb(0 105 254 / 0.1)", color: ELECTRIC, flex: "none" } }, row);
-  ctx.icon("check", { size: 28, stroke: 3 }, plate);
-  ctx.el("span", { text: "Inspection set", style: { font: "600 34px/1 Inter, sans-serif", letterSpacing: "-0.015em", color: NAVY } }, row);
-  exampleChip(ctx, row, { size: 20 });
-
-  tl.fromTo(wrap, { x: -520, y: 60, rotation: -14 }, { x: 0, y: 0, rotation: -2.5, duration: 0.42, ease: "land", immediateRender: false }, tIn);
-  tl.fromTo(card, { rotationY: 36 }, { rotationY: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, tIn);
-  ctx.sfx("card_slide", 36.95, { offset: -2 });
-  [T.r17 + 0.02, T.r17 + 0.12].forEach((tf, i) => {
-    tl.fromTo(pages[i], { rotationX: 0 }, { rotationX: 96, duration: 0.14, ease: "power2.in", immediateRender: false }, tf);
-  });
-  tl.fromTo(time, { scale: 1.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.18, ease: "power4.out", immediateRender: false }, T.inspection);
-  ctx.sfx("stamp", T.inspection);
-  tl.fromTo(row, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: "power3.out", immediateRender: false }, T.inspection + 0.12);
-
-  /* out: it shrinks toward the inbox row and becomes the docking chip */
-  const tOut0 = T.keep - 0.1;
-  const tOut1 = T.r18 - 0.02;
-  const chipSize = 100;
-  const chipAt = { x: X + W / 2 - 40, y: Y + H / 2 + 150 };
-  tl.fromTo(wrap, { x: 0, y: 0, scale: 1, rotation: -2.5 }, { x: chipAt.x - (X + W / 2), y: chipAt.y - (Y + H / 2), scale: chipSize / H, rotation: 0, duration: tOut1 - tOut0, ease: "power3.inOut", immediateRender: false }, tOut0);
-  tl.fromTo(card, { borderRadius: 36 }, { borderRadius: 140, duration: tOut1 - tOut0, ease: "power2.in", immediateRender: false }, tOut0);
-  const face = ctx.el("div", { class: "abs", style: { inset: "0px", zIndex: "20", background: `linear-gradient(160deg, #3d8bff, ${ELECTRIC} 60%, #0050d0)`, display: "grid", placeItems: "center", color: "#fff", opacity: "0" } }, card);
-  const faceIcon = ctx.el("div", { style: { display: "grid", placeItems: "center", transform: `scale(${H / chipSize})` } }, face);
-  ctx.icon("calendar-check", { size: 50, stroke: 2.2 }, faceIcon);
-  tl.fromTo(face, { opacity: 0 }, { opacity: 1, duration: (tOut1 - tOut0) * 0.45, ease: "power1.inOut", immediateRender: false }, tOut0 + (tOut1 - tOut0) * 0.5);
-  showDuring(ctx, wrap, [[tIn, tOut1 + 0.02]]);
-  return { wrap, tOut1, chipAt, chipSize: (chipSize / H) * W };
 }
