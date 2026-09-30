@@ -70,7 +70,7 @@ export function popup({
   ].filter(Boolean).join("");
   const place = right !== undefined ? `right:${px(right)}` : `left:${px(x)}`;
   const width = fit ? "width:max-content" : `width:${px(w)}`;
-  return `<div class="pop ${dark ? "dk" : "lt"}" style="${place};top:${px(y)};${width};transform:rotate(${rotate}deg);transform-origin:${origin};z-index:${z};padding:${px(28 * s)} ${px(30 * s)};gap:${px(26 * s)};border-radius:${px(38 * s)}">
+  return `<div class="pop ${dark ? "dk" : "lt"}" style="${place};top:${px(y)};${width};transform:rotate(${rotate}deg);transform-origin:${origin};z-index:${z};padding:${px(24 * s)} ${px(30 * s)};gap:${px(26 * s)};border-radius:${px(38 * s)}">
     ${chip}
     <div class="ptxt">
       <div class="ptop"><span class="ptitle" style="font-size:${px(35 * s)}">${esc(title)}</span><span class="pright" style="gap:${px(12 * s)}">${tail}</span></div>

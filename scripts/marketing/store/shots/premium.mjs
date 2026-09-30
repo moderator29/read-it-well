@@ -179,6 +179,7 @@ export const SHOTS = [
       async extraA(ctx, m) {
         const { W, ios } = ctx;
         const sp = ctx.shared.phone;
+        /* (04 is the pair's left half, so the shared phone's page x is this image's x) */
         /* the frame's left rim, as page x at page y (sampled along the display's left edge) */
         const rim = Array.from({ length: 60 }, (_, k) => sp.at(-m.frame, (k * 2868) / 59));
         const rimX = (y) => {
@@ -188,14 +189,18 @@ export const SHOTS = [
           }
           return rim[0][0];
         };
-        const cardH = 158 * m.card;
+        const cardH = (ios ? 205 : 180) * (m.card / (ios ? 1.3 : 1.3 * 0.876));
         const [, midY] = sp.at(0, 275);
-        const top = midY - cardH / 2;
+        /* level with the header; lower (where the rim lies further left) only as far as
+           it takes for the card to reach 20 px over the rim and keep 24 px from the menu */
+        const menu = pageBox(sp.at, MENU, "the menu button");
+        let top = midY - cardH / 2;
+        while (rimX(top) + 20 > menu.x - 24 && top < midY) top += 2;
         /* the rule's overhang past the rim beside the header, moved right (36 px on the
            App Store, 30 on Play) so the card's whole right edge sits over the frame, at
            least 20 px in from the rim at both its corners */
-        const right = Math.max(Math.min(rimX(top), rimX(top + cardH)) + m.overhang + (ios ? 36 : 30), rimX(top) + 20, rimX(top + cardH) + 20);
-        ctx.cardCheck = { avoid: [pageBox(sp.at, MENU, "the menu button", W), pageBox(sp.at, CAMERA[ctx.model], "the camera", W)] };
+        const right = Math.min(menu.x - 24, Math.max(Math.min(rimX(top), rimX(top + cardH)) + m.overhang + (ios ? 36 : 30), rimX(top) + 20, rimX(top + cardH) + 20));
+        ctx.cardCheck = { avoid: [menu, pageBox(sp.at, CAMERA[ctx.model], "the camera")] };
         return popup({ right: W - right, fit: true, y: top, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
       },
     },

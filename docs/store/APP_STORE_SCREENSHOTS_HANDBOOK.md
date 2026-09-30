@@ -1,6 +1,6 @@
 # App Store and Google Play screenshots: the handbook
 
-Produced on 30 September 2026: the third round, after two premium reviews. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
+Produced on 30 September 2026: the fourth round, after three premium reviews. This records what is in `docs/store/screenshots/`, how every image was made, the sizes each store takes, and which images to submit. Everything in it can be regenerated with two commands (section 8).
 
 **The short version.** There are 35 images for each store, in store order, made to DESIGN.md section 6a (`scripts/marketing/DESIGN.md`):
 
@@ -56,25 +56,25 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 06 | Vallo never holds / your money | `support-money` | the help centre's own answer; header cleaned (section 6) |
 | 07 | See the stay / before you book | `stay` | Lagoon Crest Resort |
 | 08 | Ask the AI assistant / any time of day | `assistant-caution-2` | the assistant's own answer, unedited |
-| 09 | Save favourites, / compare later | `saved` | |
+| 09 | Save favourites, / compare later | `saved` | its one card is the Maitama villa (the same photograph as 02); a label peeking beside the dock is patched out (section 6); a recapture with another listing saved last would be better |
 | 10 | Find a restaurant / you love | `restaurant` | |
 | 11 | Every fee, / added up | `listing-cost` | the fee lines; not for submission until the lister is renamed (section 6) |
 | 12 | Each verified mark, / checked by a person | `welcome-2` | public; "Verified means a person checked." |
-| 13 | Have a property? / Put it on Vallo | `host-start` | card "Payment settled · Straight to your bank · Lagoon Crest Resort · 3 nights", Example, no amount |
+| 13 | Have a property? / Put it on Vallo | `host-start` | card "Payment settled · Straight to your bank", Example, no amount |
 | 14 | Search homes / across Nigeria | `search-villas` | the Map button sits over photographs, not over an Example chip |
 | 15 | Six digits, / and you’re back in | `lock` | the passcode lock |
 | 16 | Vallo speaks / your language | `welcome-yo` | public; subline "English, Hausa, Yorùbá and Igbo." |
-| 17 | Light, water / and getting in | `listing-amenities` | the section whole: Light, Water, The gate |
+| 17 | Power, water / and the gate | `listing-amenities` | recaptured; opens on the section "Light, water and getting in", with Light, Water and The gate |
 | 18 | Pick your dates, / see the price | `stays-dates` | British dates, 16/10/2026 to 19/10/2026 |
 | 19 | Homes to buy, / not just to rent | `listing-sale` | the Karsana terrace, ₦95,000,000 asking price |
 | 20 | Real help, / from real people | `support` | |
 | 21 | Inspect first, / then pay on Vallo | `welcome-3` | public; the screen's own claim ("book an inspection first. When you pay, pay on Vallo"), not its headline |
-| 22 | Filter by exactly / what you need | `filters-villas` | Villas selected, Apply (3) |
-| 23 | Light or dark, / your call | `appearance` | recaptured with the toggles clear of the dock; header cleaned |
-| 24 | Rooms, amenities, / all laid out | `stay-amenities` | recaptured; opens on the stay's "Nothing here can be booked" notice |
+| 22 | Filter down / to what you need | `filters-villas` | Villas selected, Apply (3) |
+| 23 | Light or dark, / your call | `appearance` | recaptured with no dock, every toggle clear; the theme switch sits just under the header, and the "Theme" label behind the header is cleaned out |
+| 24 | Rooms, amenities, / all laid out | `stay-amenities` | recaptured; opens on the Amenities heading; the outline of the card above is patched out |
 | 25 | Vallo charges no / inspection fee | `support-inspection` | worded exactly so; header cleaned; 06's twin, 19 places apart |
 | 26 | Earn the / verified mark | `verification` | step 1 of 5, the ID upload; "verified" about a person |
-| 27 | Back where / you left off | `home-recent` | recaptured; "Looked at recently"; header cleaned |
+| 27 | Back where / you left off | `home-recent` | recaptured; opens on "Looked at recently"; header cleaned |
 | 28 | Ask about prices, / areas or renting | `assistant` | the assistant's start screen and its suggestion chips; 08's twin, 20 places apart |
 | 29 | Restaurants, / all in one place | `restaurants` | shares a photograph with 10, 19 places apart |
 | 30 | Lock Vallo / with a passcode | `passcode` | the settings screen; 15's twin, 15 places apart |
@@ -96,7 +96,7 @@ The layouts are in `scripts/marketing/store/shots/premium.mjs`.
 - 22 and 31 (filter sheet);
 - 10 and 29 (a shared photograph).
 
-The Maitama living-room photograph, which the example stock reuses, now leads only 02. It appears smaller on 09, 14 and 27.
+The Maitama living-room photograph, which the example stock reuses, leads 02 and is the one saved card on 09 (seven places later). It also appears on 14's first card and twice on 27. A recapture of `saved` with another listing saved last would remove the repeat on 09.
 
 **Changes from round 2:**
 
@@ -108,7 +108,8 @@ The Maitama living-room photograph, which the example stock reuses, now leads on
   - "Each verified mark" and "Back where you left off", for line spacing;
   - "Rooms, amenities, / all laid out", so line 1 no longer ends on "and";
   - "Inspect first, then pay on Vallo" and "One account for all of Vallo", so they no longer repeat the screen's own words;
-  - "Real help, from real people", for line spacing on Play.
+  - "Real help, from real people", for line spacing on Play;
+  - in round 4, "Power, water / and the gate" (17) and "Filter down / to what you need" (22), for line spacing and so 17 no longer copies its section's title.
 
 ### The system (DESIGN.md section 6a)
 
@@ -128,12 +129,11 @@ The Maitama living-room photograph, which the example stock reuses, now leads on
   - The screen then matches a direct Lanczos reduction of the capture: 0.99 of its edge energy and 0.98 of its fine detail.
   - The glass reflection is kept, at half the studio's default, and lifts the screen by about one level.
   - The two tilted phones keep the studio's own mapping of the capture.
-- **Two cards, one rule.** 04 and 13 each carry one of DESIGN.md section 4's cards: opaque navy, the Example chip, no amount, 1.3 times round 2's size (a 45 px title), so they read at store size.
-  - Each card overhangs the phone's left edge: 50 px on the App Store, which keeps 13's card about 68 px from the image edge, and 80 px on Play.
+- **Two cards, one rule.** 04 and 13 each carry one of DESIGN.md section 4's cards: opaque navy, the Example chip, no amount, two lines, 1.3 times round 2's size (a 45 px title), so they read at store size.
+  - Each overhangs the phone's left edge (50 px on the App Store, 80 on Play past the rim beside the header). It keeps at least 64 px from the image edge and at least 20 px from the camera and from every control it leaves uncovered. `compose.mjs` fails any card that breaks that.
   - Its shadow is limited, so the ground next to every image edge stays pixel-identical.
-  - On 13 the card covers the menu and the logo whole, and stays clear of the bell and the back button below.
-  - On 04 it arrives beside the stays header and ends clear of the menu button.
-  - "Room booked" moved from 05 to 04 because a card this size cannot sit on 05. There, the phone's right edge is too close to the image edge for any overhang within the rule.
+  - On 13 the card sits 25 px under the Dynamic Island (y 659 on the App Store). It covers the menu and the logo whole and stays clear of the bell and the back button.
+  - On 04 the card lies over the tilted phone's rim along its whole right edge (at least 20 px in, the top corner included), and keeps 24 px from the menu button. On Play it sits a little lower than the header so both hold.
 - **One pair.** 04 and 05 share one phone, tilted by the 3D studio across their seam (the stays home, leaning right). The phone slides left until the seam crosses no word: it passes clear of the area line and the hero's headline, and between two words of the small line under it. Across the two images the phone is whole; only the seam between them cuts it.
 - **Files.** 24-bit truecolour PNG (IHDR colour type 2), no alpha, no palette.
 
@@ -174,15 +174,15 @@ One to ten screenshots per display size and language, in .png, .jpg or .jpeg, wi
   - every word and card is at least 40 px inside its image;
   - every headline line has at least 4.5:1 contrast;
   - no headline had to shrink;
-  - no card runs over what it must leave clear.
-- The gap between line 1's descenders and line 2's ascenders is measured on every image (section 3).
+  - every card keeps 20 px from the camera and from the controls it leaves uncovered;
+  - the space between a headline's two lines, measured column by column, is at least 16 px (App Store) or 14 px (Play).
 
 ## 6. Before you submit: things to know
 
 - **Every listing, stay and restaurant on screen is example stock**, because that is all the platform holds today. Their own pages show the Example notice and cards show the Example tag; no image crops either out. The two cards (04, 13) carry the Example chip; their names and nights are illustrative, from DESIGN.md section 4, and neither shows an amount.
 - **The QA account's home area is "Ibeju-Lekki, Lagos State"** (the founder's choice). It shows on 01, 04 and the feature graphic, and in a pill on the home and stays hero photographs.
 - **The QA account's first name, "omojuni", is on screen** on the home greetings (01, 04) and on 20 ("Hi omojuni") and 15 ("Welcome back, omojuni"). No email address or phone number appears in any image.
-- **Four headers were cleaned:** 06, 23, 25 and 27.
+- **Four headers were cleaned (06, 23, 25 and 27), and two captures patched (09 and 24):** on 09 the start of a label peeking between the dock and the apps button, and on 24 the outline of the card above, under the status bar. `clean.mjs` holds both patches.
   - These captures were taken scrolled, and the app's translucent header let what scrolled under it show through as faint ghost text.
   - `scripts/marketing/store/clean.mjs` finds the header's own parts (the status bar, the menu, the logo and the bell) on an unscrolled capture of the same header. It keeps them as captured and sets the rest of the band to the band's own colour. Nothing below the header's hairline is touched.
 - **Product text that is shown but never lifted:**
