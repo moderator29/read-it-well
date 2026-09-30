@@ -9,7 +9,7 @@ export const PARTS = {
   "move-in-card": { id: "listing", x: 36, y: 1480, w: 1248, h: 625 },
   "for-rent-chip": { id: "listing", x: 44, y: 752, w: 290, h: 92 },
   "cost-rent": { id: "listing-cost", x: 30, y: 648, w: 1260, h: 352 },
-  "cost-agency": { id: "listing-cost", x: 30, y: 1000, w: 1260, h: 262 },
+  "cost-agency": { id: "listing-cost", x: 30, y: 985, w: 1260, h: 280 },
   "cost-caution": { id: "listing-cost", x: 30, y: 1785, w: 1260, h: 360 },
   "home-tiles": { id: "home", x: 100, y: 1500, w: 1120, h: 330 },
   "home-hero": { id: "home", x: 100, y: 705, w: 1120, h: 750 },

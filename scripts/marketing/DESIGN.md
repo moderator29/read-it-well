@@ -35,7 +35,10 @@ A Nigerian app for homes, hotels, shortlets and restaurants, with one account: r
 - **Photographs:** `apps/web/public/brand/photos/*.jpg` (dusk villas, pools, skylines, restaurants), the same photographs the product serves.
 - **Vallo's 3D identity icons** (`apps/web/public/brand/3d/<name>@2x.webp`, 256 px, 53 clay objects in the brand blue with orange accents: analytics, apartment, assistant, bank, bell, boxes, buy, calendar-booked, calendar-pending, camera, card-secure, celebrate, checklist, city, clock, coin, contract, earnings, envelope, explore, folder, gift, handover, home-small, home-verified, hotel, id-check, keys, land, list, local-talks, map, megaphone, passcode-lock, pay, phone-code, power, price-tag, receipt, rent, report-flag, restaurant, saved-heart, search, shield, shortlet, stay-rated, support, team, toolbox, verified, video, villa). The founder's ruling, 30 September 2026:
   - **Social campaign:** these are the main decorative objects. Use them generously, floating in depth around phones and components, bobbing, overlapping card edges.
-  - **Store images:** fun and 3D throughout. The icons may accompany a shot, lightly.
+  - **Store images (the founder's ruling after seeing the set, 30 September 2026):**
+  - clean and premium, like X's App Store screenshots: a solid or gradient colour background (never a photograph, never a listing image), a big headline at the top or side with an optional small line icon above it, and the app on a big, whole phone;
+  - extra design (pop-up cards, floating components, icons) on only two of the 35;
+  - at least one connected pair where one phone crosses the seam of two neighbouring images.
   - **Films:** only where they are part of a real platform component, and small; otherwise not at all.
   - Never show one larger than about 260 px on a 1080-wide canvas: the sources are 256 px. Don't mix them with Fluent stickers in one image. Never use `brand/glass/` (the retired glass set). "shield" and "card-secure" must not suggest "safe", "secure" or "protected" in the copy next to them.
 - **The motion-film language** (see `video/REFERENCES.md`) suits stills too:

@@ -55,9 +55,10 @@ const T = {
   windows: [1.12, 1.62],
   routes: 1.73, // the first route leaves; then one every 0.24 s
   routeGap: 0.24,
-  pinIn: [3.08, 3.42], // the pin drops in above the home
+  pinIn: [3.1, 3.42], // the pin drops in above the home, as the city labels leave
   pinLift: [3.7, SHOT], // it lifts toward the camera
-  labelsOut: [3.52, 3.82],
+  labelsOut: [3.12, 3.42], // the five cities' labels
+  lagosOut: [3.56, 3.8], // Lagos' label (under the home) stays until the lift
 };
 const ROUTE_ORDER = ["Abuja", "Kano", "Port Harcourt", "Enugu", "Ibadan"];
 
@@ -66,6 +67,7 @@ const WIDTH = 10;
 const SLAB = { height: 0.62, bevel: 0.18, segments: 6, sink: 0.06 };
 const PLINTH = { margin: 0.3, height: 0.66, bevel: 0.2, segments: 160 };
 const HOUSE_W = 0.44; // about 4 % of the country's width
+const PIN_SCALE = 0.26; // the pin's head radius at rest (model units)
 const CLEAR = { house: 0.42, dot: 0.2 }; // how far Lagos' house and the dots stay inside the edge
 
 /* Each film: camera path and the box the country must stay inside (canvas px, at 1080 x 1920
@@ -647,14 +649,15 @@ const VERT_LIT = /* glsl */ `
   }
 `;
 
-/* The velvet. The light is static, so its view-independent part is baked per vertex at
-   build time (bakeVelvet): the wrapped key light, a hemisphere of navy and blue, a soft pool
-   of light, a front-to-back falloff and the occlusion at the foot of the walls. The shader
-   adds what depends on the eye: the pile, whose fibres light up where the surface turns
-   away (the glowing edge of the art), strongest toward the rim light behind; plus the
-   seeded grain, the slab's shadow on the plinth and the warm spill of the home's windows.
-   In the glow pass the walls and the rounded edge swell outward a little, so the rim's glow
-   survives the quarter-size glow buffer. */
+/* The velvet. The lights are fixed, so what depends only on the surface's normal and height
+   is baked per vertex at build time (bakeVelvet): the wrapped key light, a hemisphere of navy
+   and blue, the occlusion at the foot of the walls. Per pixel: the soft pool of the key light
+   and a front-to-back falloff (smooth, so no vertices are needed across the flat top), and
+   what depends on the eye: the pile, whose fibres light up where the surface turns away (the
+   glowing edge of the art), strongest toward the rim light behind; plus the seeded grain, the
+   slab's shadow on the plinth and the warm spill of the home's windows. In the glow pass the
+   walls and the rounded edge swell outward a little, so the rim's glow survives the
+   quarter-size glow buffer. */
 const VERT_VELVET = /* glsl */ `
   uniform float uGlowPass;
   uniform float uInflate;
@@ -687,7 +690,6 @@ const VERT_VELVET = /* glsl */ `
 const FRAG_VELVET = /* glsl */ `
   ${GLSL_COMMON}
   uniform vec3 uRimDir;
-  uniform float uSheenPow;
   uniform vec3 uPool;
   uniform float uPoolR;
   uniform float uPoolAmt;
@@ -864,11 +866,16 @@ const FRAG_RIPPLE = /* glsl */ `
   uniform float uRadius;
   uniform float uWidth;
   uniform float uAmt;
+  uniform sampler2D uMask;
+  uniform vec4 uMaskRect;
   varying vec2 vUv;
+  varying vec3 vPos;
   void main() {
     float r = length(vUv - 0.5) * 2.0;
     float d = (r - uRadius) / uWidth;
-    float a = exp(-d * d) * uAmt;
+    // only on the slab's top: fades out before its rounded edge
+    float inside = smoothstep(0.7, 0.98, texture2D(uMask, (vPos.xz - uMaskRect.xy) * uMaskRect.zw).r);
+    float a = exp(-d * d) * uAmt * inside;
     if (a < 0.002) discard;
     vec3 c = uColor * a;
     if (uGlowPass > 0.5) { gl_FragColor = vec4(c * 0.5, 0.0); return; }
@@ -983,6 +990,7 @@ const FRAG_FINAL = /* glsl */ `
  * @param {number} [o.supersample=1.5]
  * @param {string} [o.data]  world-atlas countries-50m.json URL
  * @param {object} [o.world] the parsed topology (skips the fetch)
+ * @param {'glow'} [o.debug] 'glow': show the blurred glow buffer instead of the frame (tuning)
  */
 export async function createLiveMap(o) {
   const { canvas, width, height } = o;
@@ -1053,11 +1061,11 @@ export async function createLiveMap(o) {
     generateMipmaps: false,
   });
   const gw = Math.max(8, Math.round(width / 4)), gh = Math.max(8, Math.round(height / 4));
-  /* half-float glow buffers: faint glow over the transparent background is lifted a lot by
-     the encode, and 8 bits show as blocks there */
-  const glowType = o.glowFloat ? THREE.HalfFloatType : THREE.UnsignedByteType;
-  const rtOpts = { type: glowType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false };
-  const glowRT = new THREE.WebGLRenderTarget(gw, gh, { ...rtOpts, depthBuffer: true, samples: o.glowSamples ?? 0 });
+  /* The glow: the scene's light at quarter size, blurred at quarter and eighth size. 8-bit
+     buffers (half-float ones are twice as slow on SwiftShader); the blurred ones hold the
+     square root of the light, see FRAG_BLUR. */
+  const rtOpts = { type: THREE.UnsignedByteType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false };
+  const glowRT = new THREE.WebGLRenderTarget(gw, gh, { ...rtOpts, depthBuffer: true });
   const blurA1 = new THREE.WebGLRenderTarget(gw, gh, rtOpts);
   const blurA2 = new THREE.WebGLRenderTarget(gw, gh, rtOpts);
   const hw = Math.max(4, Math.round(gw / 2)), hh = Math.max(4, Math.round(gh / 2));
@@ -1074,7 +1082,6 @@ export async function createLiveMap(o) {
   const velvetUniforms = (u) => ({
     uGlowPass: glowPass,
     uRimDir: { value: rimDir },
-    uSheenPow: { value: u.sheenPow },
     uPool: { value: u.pool },
     uPoolR: { value: u.poolR },
     uPoolAmt: { value: u.poolAmt },
@@ -1127,8 +1134,7 @@ export async function createLiveMap(o) {
     geo.setAttribute("aRim", new THREE.BufferAttribute(Rm, 3));
     return geo;
   }
-  const FLAT = `${GLSL_COMMON}\n uniform vec3 uAlbedo; void main() { gl_FragColor = outColor(uAlbedo, vec3(0.0)); }`;
-  const shader = (frag, uniforms, extra = {}) => new THREE.ShaderMaterial({ vertexShader: frag === FRAG_VELVET ? VERT_VELVET : VERT_LIT, fragmentShader: o.debug === "flat" && frag === FRAG_VELVET ? FLAT : frag, uniforms, ...extra });
+  const shader = (frag, uniforms, extra = {}) => new THREE.ShaderMaterial({ vertexShader: frag === FRAG_VELVET ? VERT_VELVET : VERT_LIT, fragmentShader: frag, uniforms, ...extra });
 
   const LOOK = {
     slab: {
@@ -1137,7 +1143,7 @@ export async function createLiveMap(o) {
       rim: "#0a6cff", rimAmt: 2.6,
       sky: "#2250d8", skyAmt: 0.22,
       ground: "#030a3a", groundAmt: 0.25,
-      sheen: "#1e6cff", sheenAmt: 0.66, sheenPow: 2.5,
+      sheen: "#1e6cff", sheenAmt: 0.66,
       pool: new THREE.Vector3(centre3.x - 2.8, 0, centre3.z - 0.8), poolR: 6.8, poolAmt: 0.78,
       gradDir: [-0.3, -0.95], gradR: 5.5, gradAmt: 0.3,
       ao: [-0.05, SLAB.height * 0.85, 0.35],
@@ -1151,7 +1157,7 @@ export async function createLiveMap(o) {
       rim: "#0a62ff", rimAmt: 2.0,
       sky: "#183399", skyAmt: 0.26,
       ground: "#010312", groundAmt: 0.3,
-      sheen: "#1a52e6", sheenAmt: 0.5, sheenPow: 2.5,
+      sheen: "#1a52e6", sheenAmt: 0.5,
       pool: new THREE.Vector3(centre3.x - 1.6, 0, centre3.z + 0.2), poolR: 7.0, poolAmt: 0.72,
       gradDir: [-0.3, -0.95], gradR: 6.5, gradAmt: 0.22,
       ao: [-PLINTH.height, -0.04, 0.22],
@@ -1169,6 +1175,7 @@ export async function createLiveMap(o) {
   /* The slab's soft shadow on the plinth: its silhouette, blurred and pushed away from the
      key light, multiplied into the plinth's top (never a shadow map). */
   const shadowTex = silhouetteShadow(outline, centre2, plinthR, keyDir);
+  const maskTex = silhouetteShadow(outline, centre2, plinthR, keyDir, { offset: 0, blur: 4, passes: 2, size: 512 });
   LOOK.plinth.shadow = shadowTex;
   LOOK.plinth.shadowRect = new THREE.Vector4(centre3.x - plinthR, centre3.z + plinthR, 1 / (2 * plinthR), -1 / (2 * plinthR));
   LOOK.plinth.shadowAmt = 0.9;
@@ -1302,7 +1309,7 @@ export async function createLiveMap(o) {
     return new THREE.ShaderMaterial({
       vertexShader: VERT_LIT,
       fragmentShader: FRAG_RIPPLE,
-      uniforms: { uGlowPass: glowPass, uColor: { value: lin(color) }, uRadius: { value: 0 }, uWidth: { value: 0.1 }, uAmt: { value: 0 } },
+      uniforms: { uGlowPass: glowPass, uColor: { value: lin(color) }, uRadius: { value: 0 }, uWidth: { value: 0.1 }, uAmt: { value: 0 }, uMask: { value: maskTex }, uMaskRect: { value: LOOK.plinth.shadowRect } },
       transparent: true,
       depthWrite: false,
       blending: THREE.CustomBlending,
@@ -1451,7 +1458,7 @@ export async function createLiveMap(o) {
     const inner = new THREE.Group();
     inner.add(body, core);
     root.add(inner);
-    return { root, inner, mat: pinMat, radius: R };
+    return { root, inner, mat: pinMat, radius: R, tip: L };
   }
 
   /* ---------- camera and framing ---------- */
@@ -1478,8 +1485,7 @@ export async function createLiveMap(o) {
     camera.quaternion.setFromRotationMatrix(tmpM.lookAt(camera.position, target, camera.up));
     camera.updateMatrix();
     camera.updateMatrixWorld(true);
-    camera.near = Math.max(0.3, d - plinthR * 3 - 40);
-    camera.near = 0.4;
+    camera.near = 0.4; // the pin comes close at the end
     camera.far = d + plinthR * 2 + 10;
     const top = camera.near * Math.tan(fovY / 2);
     const asp = width / height;
@@ -1560,7 +1566,7 @@ export async function createLiveMap(o) {
       uTexel: { value: new THREE.Vector2(1 / mainRT.width, 1 / mainRT.height) },
       uTaps: { value: aa === "ss" ? 4 : 1 },
       uHaloAlpha: { value: 1.0 },
-      uDebug: { value: o.debug === "glowB" ? 2 : o.debug === "glow" ? 1 : 0 },
+      uDebug: { value: o.debug === "glow" ? 1 : 0 },
     },
     depthTest: false,
     depthWrite: false,
@@ -1600,14 +1606,14 @@ export async function createLiveMap(o) {
   scene.traverse((ob) => { if (ob.isMesh && ob.material.fragmentShader === FRAG_DECAL) decals.push(ob); });
 
   function pinState(t) {
-    // rest: above the roof; drops in; hovers; lifts to the camera
-    const rest = new THREE.Vector3(lagos.x, topY + house.height + 0.42, lagos.z);
+    // rest: its tip just above the roof; drops in; hovers; lifts to the camera
+    const scale0 = PIN_SCALE;
+    const rest = new THREE.Vector3(lagos.x, topY + house.height + 0.12 + pin.tip * scale0, lagos.z);
     const inU = EASE.land(prog(t, T.pinIn[0], T.pinIn[1]));
     const bob = Math.sin(TAU * 0.9 * (t - T.pinIn[0])) * 0.025 * prog(t, T.pinIn[0], T.pinIn[1]);
     const pos = rest.clone();
     pos.y += (1 - inU) * 0.9 + bob;
-    const scale0 = 0.26;
-    let scale = scale0 * mix(0.55, 1, inU);
+    const scale = scale0 * mix(0.55, 1, inU);
     const liftU = prog(t, T.pinLift[0], T.pinLift[1]);
     if (liftU > 0) {
       // the end: in front of the camera, on the frame point where the mark will land
@@ -1784,11 +1790,10 @@ export async function createLiveMap(o) {
   const gl = renderer.getContext();
   function renderAt(t, profile = null) {
     // profiling only: read a pixel back from the target just drawn, so its work is done
-    const px8 = new Uint8Array(4), pxf = new Float32Array(4);
+    const px8 = new Uint8Array(4);
     const mark = profile ? (name, rt) => {
       renderer.setRenderTarget(rt ?? null);
-      const half = rt && rt.texture.type === THREE.HalfFloatType;
-      gl.readPixels(0, 0, 1, 1, gl.RGBA, half ? gl.FLOAT : gl.UNSIGNED_BYTE, half ? pxf : px8);
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px8);
       const now = performance.now();
       profile[name] = +(now - profile._t).toFixed(1);
       profile._t = now;
@@ -1822,7 +1827,7 @@ export async function createLiveMap(o) {
     renderer.setClearColor(0x000000, 1);
     renderer.clear(true, true, false);
     renderer.render(scene, camera);
-    if (glowRT.samples === 0) mark("glowScene", glowRT);
+    mark("glowScene", glowRT);
     for (const ob of mainOnly) ob.visible = ob.userData.on;
     glowPass.value = 0;
     renderer.setClearColor(0x000000, 0);
@@ -1842,8 +1847,6 @@ export async function createLiveMap(o) {
     mark("final");
   }
 
-  /* glow-only helpers are skipped in the main pass by their shader (discard) */
-
   /* ---------- labels, pin, points ---------- */
   /* Which side of its dot each label sits on, chosen once (at mid-shot) so it never jumps:
      of eight sides, the one whose label box (sized for the film's labels, ~34 px type on
@@ -1856,7 +1859,11 @@ export async function createLiveMap(o) {
     const font = (film === "mobile" ? 34 : 24) * Math.min(sx, sy);
     const safe = film === "mobile" ? [44 * sx, 285 * sy, 940 * sx, 1225 * sy] : [40 * sx, 40 * sy, 1880 * sx, 910 * sy];
     const pts = []; // things to keep clear of (screen px)
-    for (const r of routes) for (let k = 0; k <= 40; k += 1) { const p = toScreen(r.curve.getPointAt(k / 40)); pts.push([p.x, p.y, 1]); }
+    for (const r of routes) for (let k = 0; k <= 120; k += 1) { const p = toScreen(r.curve.getPointAt(k / 120)); pts.push([p.x, p.y, 1]); }
+    for (let k = 0; k < 48; k += 1) { // the ripples at the home
+      const a = (k / 48) * TAU;
+      for (const rr of [0.5, 0.8]) { const p = toScreen(new THREE.Vector3(lagos.x + rr * Math.cos(a), topY, lagos.z + rr * Math.sin(a))); pts.push([p.x, p.y, 0.5]); }
+    }
     const hp = toScreen(new THREE.Vector3(lagos.x, topY + house.height * 0.5, lagos.z));
     const pp = toScreen(new THREE.Vector3(lagos.x, topY + house.height + 0.6, lagos.z));
     for (let k = 0; k <= 10; k += 1) pts.push([mix(hp.x, pp.x, k / 10), mix(hp.y, pp.y, k / 10), 3]);
@@ -1897,8 +1904,8 @@ export async function createLiveMap(o) {
   }
 
   function cityOpacity(city, t) {
+    if (city === "Lagos") return EASE.soft(prog(t, 1.05, 1.45)) * (1 - EASE.soft(prog(t, T.lagosOut[0], T.lagosOut[1])));
     const outU = 1 - EASE.soft(prog(t, T.labelsOut[0], T.labelsOut[1]));
-    if (city === "Lagos") return EASE.soft(prog(t, 1.05, 1.45)) * outU;
     const r = routes.find((x) => x.city === city);
     return EASE.land(prog(t, r.start - 0.06, r.start + 0.22)) * outU;
   }
@@ -1926,6 +1933,7 @@ export async function createLiveMap(o) {
     width,
     height,
     renderer,
+    scene,
     framing,
     anchors,
     timing: {
@@ -1936,6 +1944,7 @@ export async function createLiveMap(o) {
       pinIn: T.pinIn,
       pinLift: T.pinLift,
       labelsOut: T.labelsOut,
+      lagosOut: T.lagosOut,
     },
 
     /** Draws the frame at t (seconds from the start of the map shot). Synchronous. */
@@ -2042,11 +2051,10 @@ function radialTexture(size, stops) {
 }
 
 /** The slab's shadow on the plinth: its silhouette, blurred wide and pushed away from the key. */
-function silhouetteShadow(outline, centre, R, keyDir) {
-  const size = 256;
+function silhouetteShadow(outline, centre, R, keyDir, { offset = 0.26, blur = 3, passes = 3, size = 256 } = {}) {
   const F = new Float32Array(size * size);
   const toPx = (x, y) => [((x - (centre[0] - R)) / (2 * R)) * size, ((y - (centre[1] - R)) / (2 * R)) * size];
-  const P = outline.map(([x, y]) => toPx(x - keyDir.x * 0.26, y + keyDir.z * 0.26));
+  const P = outline.map(([x, y]) => toPx(x - keyDir.x * offset, y + keyDir.z * offset));
   const xs = [];
   for (let j = 0; j < size; j += 1) {
     const y = j + 0.5;
@@ -2061,9 +2069,9 @@ function silhouetteShadow(outline, centre, R, keyDir) {
     }
   }
   const tmp = new Float32Array(size * size);
-  const r = 3;
+  const r = blur;
   const w = 2 * r + 1;
-  for (let pass = 0; pass < 3; pass += 1) {
+  for (let pass = 0; pass < passes; pass += 1) {
     for (let j = 0; j < size; j += 1) {
       let acc = 0;
       for (let i = -r; i <= r; i += 1) acc += F[j * size + Math.min(size - 1, Math.max(0, i))];

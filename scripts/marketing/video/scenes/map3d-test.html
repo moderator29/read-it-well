@@ -8,10 +8,12 @@
       will lay it out. Serve with `node scripts/marketing/video/engine/server.mjs 4180`, then:
 
         /video/scenes/map3d-test.html?film=mobile&t=2.2
-        ?film=desktop   ?aa=msaa   ?box=1 (the framing boxes, the pin's reported circle)
-        ?bg=0 (no background: see the transparent canvas)   ?labels=0
+        ?film=desktop   ?aa=msaa (4x MSAA instead of the 1.5x buffer)   ?ss=1.25 (buffer scale)
+        ?box=1 (the framing boxes, the city dots and the pin's reported circle)
+        ?bg=0 (no background: see the transparent canvas)   ?labels=0   ?debug=glow
 
-      window.__set(t) renders another time; window.__map is the map (render, labels, pin, point).
+      window.__set(t) renders another time and places the labels; window.__map is the map
+      (render, labels, pin, point, timing, framing, profile).
     -->
     <link rel="stylesheet" href="/video/engine/tokens.css" />
     <style>
@@ -62,11 +64,8 @@
           dpr: +(q.get("dpr") || 1),
           film,
           aa: q.get("aa") || "ss",
-          debug: q.get("debug") || undefined,
           supersample: q.get("ss") ? +q.get("ss") : undefined,
-          glowSamples: q.get("gs") ? +q.get("gs") : undefined,
-          glowHalf: q.get("gh") === "0" ? false : undefined,
-          glowFloat: q.get("gf") === "1" ? true : undefined,
+          debug: q.get("debug") || undefined,
         });
 
         /* the labels: HTML, placed every frame from map.labels(t) */
