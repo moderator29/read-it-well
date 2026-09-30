@@ -73,7 +73,6 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   { phrase: /\bthe name vallo checked\b/i, mechanism: AGENT_KYC },
   { phrase: /\bchecked the record on\b|\b(?:registration|mandate) checked\b/i, mechanism: SUPPLY_CHECKS },
   { phrase: /\bhow far the person behind a listing has been checked\b|\beach person is checked on their own\b|\bchecked harder than owners\b/i, mechanism: SUPPLY_CHECKS },
-  { phrase: /\ba human was checked\b/i, mechanism: AGENT_KYC },
   { phrase: /^address checked$/i, mechanism: "listings.address_verified_at, stamped by an admin (the owner write guard stops a lister writing it)" },
   { phrase: /\bchecked before (?:the listing goes|it went|going) live\b|\bsubmissions waiting to be checked\b/i, mechanism: LISTING_REVIEW },
   { phrase: /\bchecked against the parts\b/i, mechanism: "the move-in total is compared with the sum of its parts in lib/listings (stated vs computed)" },
