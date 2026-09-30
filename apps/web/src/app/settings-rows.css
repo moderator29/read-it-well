@@ -52,12 +52,12 @@
    */
   .nf-sgroup__label {
     display: block;
-    /* The clean spec's section label (section 2, plan item 16): 11/14, 600,
+    /* The clean spec's section label (section 2, plan item 16): 12/16 since the pixel polish, 600,
        caps, tracked 0.06em, muted, 8px above its card. */
     padding-block: var(--nf-space-0) 0.5rem;
     padding-inline: var(--nf-space-2xs);
     font-size: var(--nf-text-label);
-    line-height: 0.875rem;
+    line-height: var(--nf-leading-label);
     font-weight: 600;
     text-transform: uppercase;
     /* The 0.04em it carried was there to hold 12px uppercase apart. At a
