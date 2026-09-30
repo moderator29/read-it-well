@@ -2466,7 +2466,8 @@
   /* At night the brand blue as text is 4.3:1 on the canvas (under AA at
      14px): the current label takes the link ink, the dot keeps the brand, as
      in the desk sidebar and the member rail (integration QA, 30 September). */
-  :root:not([data-theme="light"]) :is(.nf-admin-nav__row--on, .nf-admin-nav__row--on:hover) {
+  :root:not([data-theme="light"]) :is(.nf-admin-nav__row--on, .nf-admin-nav__row--on:hover),
+  :root:not([data-theme="light"]) .nf-admin-nav__count {
     color: var(--nf-content-link);
   }
   /* The console's badges take the platform's badge anatomy (spec 6): the
