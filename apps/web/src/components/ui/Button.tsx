@@ -144,6 +144,13 @@ type CommonProps = {
    * so the button never changes width mid-press.
    */
   loading?: boolean;
+  /**
+   * The job just finished: the leading slot shows a check that pops in
+   * (details.css), for the moment a save or a send lands. The caller holds it
+   * for a beat (`useDoneFlash`) and lets it go; the label stays, so the
+   * button never changes width. A small win gets this, never a modal.
+   */
+  done?: boolean;
   leadingIcon?: UiIconName;
   trailingIcon?: UiIconName;
   /**
@@ -227,14 +234,31 @@ function pulse(enabled: boolean) {
   feedback("select");
 }
 
+function DoneCheck({ size }: { size: number }) {
+  return (
+    <span className="nf-btn__done" aria-hidden="true">
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <path
+          d="M5 12.5l4.5 4.5L19 7.5"
+          stroke="currentColor"
+          strokeWidth="2.25"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
 function Content({
   loading,
+  done,
   leadingIcon,
   trailingIcon,
   arrow,
   size,
   children,
-}: Pick<CommonProps, "loading" | "leadingIcon" | "trailingIcon" | "arrow" | "children"> & {
+}: Pick<CommonProps, "loading" | "done" | "leadingIcon" | "trailingIcon" | "arrow" | "children"> & {
   size: ButtonSize;
 }) {
   const icon = ICON_SIZE[size];
@@ -257,6 +281,8 @@ function Content({
     <>
       {loading ? (
         <span className="nf-spinner" aria-hidden="true" />
+      ) : done ? (
+        <DoneCheck size={icon} />
       ) : leadingIcon ? (
         <UiIcon name={leadingIcon} size={icon} />
       ) : null}
@@ -288,6 +314,7 @@ export const Button = forwardRef(function Button(
     size = "md",
     full,
     loading = false,
+    done,
     leadingIcon,
     trailingIcon,
     arrow,
@@ -327,6 +354,7 @@ export const Button = forwardRef(function Button(
     >
       <Content
         loading={loading}
+        done={done}
         leadingIcon={leadingIcon}
         trailingIcon={trailingIcon}
         arrow={arrow}
@@ -352,6 +380,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
     size = "md",
     full,
     loading = false,
+    done,
     leadingIcon,
     trailingIcon,
     arrow,
@@ -381,6 +410,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
     >
       <Content
         loading={loading}
+        done={done}
         leadingIcon={leadingIcon}
         trailingIcon={trailingIcon}
         arrow={arrow}
