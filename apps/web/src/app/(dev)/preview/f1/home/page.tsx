@@ -2,6 +2,8 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { daypartFor, lagosHour, type HomeOverview } from "@/lib/app/home-queries";
 import { HomeScreen } from "@/components/app/home/HomeScreen";
+import { UpNextCard } from "@/components/app/home/UpNext";
+import { pickUpNext } from "@/components/app/home/up-next";
 import { PERSON } from "../../_fixtures/people";
 import { LISTINGS } from "../listings";
 
@@ -14,8 +16,15 @@ import { LISTINGS } from "../listings";
  */
 export const dynamic = "force-dynamic";
 
-export default async function PreviewHome() {
+export default async function PreviewHome({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale: Locale = await getLocale();
+  /* `?upnext=1` draws the "Up next" card (plan item 15) from a fixture: the
+     route itself only draws it from the account's own records. */
+  const showUpNext = (await searchParams).upnext === "1";
   const t = getDictionary(locale);
   const listings = LISTINGS;
 
@@ -62,6 +71,44 @@ export default async function PreviewHome() {
           listings={listings}
           roles={[]}
           manageHref="/profile/setup"
+          upNext={
+            showUpNext ? (
+              <UpNextCard
+                copy={t.directHome.upNext}
+                next={pickUpNext({
+                  viewings: [
+                    {
+                      id: "preview-viewing",
+                      state: "CONFIRMED",
+                      slotAt: "2099-10-03T09:00:00Z",
+                      listingTitle: LISTINGS[0]?.title ?? null,
+                      counterpartName: "Tunde",
+                    },
+                  ],
+                  stays: [
+                    {
+                      id: "preview-stay",
+                      status: "PENDING",
+                      title: "Shortlet in Lekki Phase 1",
+                      checkIn: "2099-10-10",
+                      checkOut: "2099-10-12",
+                      dateRange: "Sat 10 Oct to Mon 12 Oct",
+                    },
+                  ],
+                  threads: [
+                    {
+                      id: "preview-thread",
+                      counterpartName: "Ada Okafor",
+                      listingTitle: "Two bedroom flat in Yaba",
+                      lastMessage: "Saturday at ten works. The gate code is on the listing.",
+                      whenLabel: "09:40",
+                      unread: 2,
+                    },
+                  ],
+                })}
+              />
+            ) : null
+          }
         />
       </div>
     </main>

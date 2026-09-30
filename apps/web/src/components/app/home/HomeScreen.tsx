@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { forListingCard } from "@/lib/i18n/slice";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
@@ -80,6 +81,7 @@ export function HomeScreen({
   listings,
   roles,
   manageHref,
+  upNext = null,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -93,6 +95,13 @@ export function HomeScreen({
    * Decided by the route, because only the route may read the account.
    */
   manageHref: string;
+  /**
+   * "Up next" (plan item 15): the route hands in the streamed card
+   * (`UpNext`, inside a `Suspense` with no fallback), which draws nothing
+   * when the account has no confirmed viewing, stay or unread thread. The
+   * preview harness leaves it out.
+   */
+  upNext?: ReactNode;
 }) {
   const greeting = DAYPART_GREETING[overview.daypart];
   const name = overview.firstName || (overview.signedIn ? "there" : "");
@@ -238,6 +247,9 @@ export function HomeScreen({
       {/* ------------------------------------------------ 2. the categories */}
       <CategoryRow categories={categories} label={t.home.markets.label} variant="plates" />
       </HeroBand>
+
+      {/* ------------------------------------------------------- up next */}
+      {upNext}
 
       {/* B2: the places this phone opened lately, one tap back. Hidden
           when there are none; beside "Up next", never instead of it. */}

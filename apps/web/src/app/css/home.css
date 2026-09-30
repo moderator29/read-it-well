@@ -1082,3 +1082,27 @@
     }
   }
 }
+
+/*
+ * "UP NEXT" (plan item 15; `components/app/home/UpNext.tsx`). The shared
+ * ListGroup card under the hero band, on the page's own ground, with the
+ * featured band's rhythm above it. A message preview is someone's words at
+ * any length, so it stops at two lines; the thread holds the rest.
+ */
+@layer components {
+  .nf-home-upnext {
+    margin-block-start: var(--nf-gap-section-tight, var(--nf-space-lg));
+  }
+  .nf-home-upnext .nf-list-row__sub {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .nf-home-upnext__when {
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+}
