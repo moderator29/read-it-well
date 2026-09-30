@@ -69,8 +69,8 @@ export function timesPlus(ctx) {
   T.countRoll = T.exactly + 0.12;
   /* 10: the listing opens on "see" and whips down to its costs, landing on "move-in". Its move-in
      total is never at rest on screen before 28.87: it only passes, blurred, in the whip. */
-  T.open = T.need + 0.5;
-  T.flick = T.need + 0.58;
+  T.open = T.need + 0.62;
+  T.flick = T.open + 0.02;
   return T;
 }
 
@@ -335,7 +335,7 @@ function vblurFilters(ctx) {
  * function of speed only, so a 30 fps review and the 60 fps film match.
  */
 let scrollBlurs = 0;
-export function scrollBlur(ctx, el, speed, { k = 0.45, max = 60 } = {}) {
+export function scrollBlur(ctx, el, speed, { k = 0.4, max = 36 } = {}) {
   const id = `a-sblur-${++scrollBlurs}`;
   const holder = ctx.el("div", { style: { position: "absolute", width: "0px", height: "0px", overflow: "hidden" } }, ctx.stage);
   holder.innerHTML = `<svg width="0" height="0"><defs><filter id="${id}" x="-2%" y="-12%" width="104%" height="124%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter></defs></svg>`;

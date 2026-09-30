@@ -94,9 +94,11 @@ export async function goingOut(ctx, S, T) {
   /* The last ring: it circles the words, with a burst, as "Going" lands. */
   const ringWrap = ctx.el("div", { class: "fill" }, layer);
   layer.insertBefore(ringWrap, svg);
-  ringBurst(ctx, ringWrap, { cx: CX, cy: CY + 50, r: 450, t: T.going + 0.04, dots: 12, seed: 23, stroke: 4, color: "#ffffff" });
+  /* centred on the two lines (their block sits about 0.15 of the size below CY), clear of every letter and of the pill; the burst in the ring's white */
+  ringWrap.style.setProperty("--sky", "#ffffff");
+  ringBurst(ctx, ringWrap, { cx: CX, cy: CY + 22, r: 450, t: T.going + 0.04, dots: 12, seed: 23, stroke: 4, color: "#ffffff" });
   tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.5, duration: 0.36, ease: "power2.in", immediateRender: false }, tPush);
-  ringWrap.style.transformOrigin = `${CX}px ${CY}px`;
+  ringWrap.style.transformOrigin = `${CX}px ${CY + 22}px`;
   showDuring(ctx, ringWrap, [[T.going, tPush + 0.36]]);
 
   /* The frame fills with warm light, which opens onto the restaurant. */
@@ -110,9 +112,9 @@ export async function goingOut(ctx, S, T) {
   const pL = S.pL;
   const HERO = { cx: L.PHONE_HERO.cx, cy: L.PHONE_HERO.cy, height: L.PHONE_HERO.height };
   const pose = S.pLpose;
-  pose.to(T.r24 - 0.3, 0.001, { ...HERO, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
-  pose.to(T.r24 - 0.29, 0.58, { ...HERO, ry: -4 }, "glide");                    // rises into the warm light
-  pose.to(T.r24 + 0.4, 2.2, { ry: 3 }, "drift");                                  // a slow turn while the card arrives
+  pose.to(T.r24 - 0.13, 0.001, { ...HERO, cy: 2600, rx: 0, ry: 0, opacity: 1 }, "none");
+  pose.to(T.r24 - 0.12, 0.58, { ...HERO, ry: -4 }, "glide");                    // rises as the warm light clears
+  pose.to(T.r24 + 0.4, T.seconds + 0.34 - (T.r24 + 0.4), { ry: 3 }, "drift");                                  // a slow turn while the card arrives
   pose.to(T.seconds + 0.34, 0.5, { cx: 330, ry: -64, opacity: 0 }, "power2.in");  // turns away
   const page = screenPage(ctx, pL, ctx.src.display("restaurant-light"));
   showDuring(ctx, page.el, [[T.r24 - 0.32, T.r25 + 0.1]]);

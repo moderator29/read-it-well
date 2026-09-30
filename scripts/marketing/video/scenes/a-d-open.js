@@ -23,9 +23,10 @@ export function buildOpenDesktop(ctx, T) {
   const world = ctx.el("div", { class: "fill", style: { transformOrigin: "1300px 560px" } }, night);
   tl.fromTo(world, { scale: 1 }, { scale: 1.06, duration: T.rows[2] + 0.4, ease: "drift" }, 0);
   /* The velvet-hills art at native size, a tall panel at the right; its left edge feathers into the night. */
-  const panel = ctx.el("div", { class: "abs", style: { left: "1060px", top: "0px", width: `${W - 1060}px`, height: `${H}px`, overflow: "hidden" } }, world);
+  /* A mask, not an overlay: the night's own gradient shows through the feather, so no seam at any height. */
+  const feather = "linear-gradient(90deg, rgb(0 0 0 / 0) 0px, rgb(0 0 0 / 0.55) 110px, #000 240px)";
+  const panel = ctx.el("div", { class: "abs", style: { left: "1060px", top: "0px", width: `${W - 1060}px`, height: `${H}px`, overflow: "hidden", WebkitMaskImage: feather, maskImage: feather } }, world);
   ctx.img(ctx.src.art("step-1-dark.webp"), { class: "abs", style: { left: "-20px", top: "-40px", width: "1080px", height: "1440px" } }, panel);
-  ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "200px", height: `${H}px`, background: "linear-gradient(90deg, #000b2e 0%, rgb(0 11 46 / 0.6) 45%, rgb(0 11 46 / 0) 100%)" } }, panel);
 
   const depths = [1.01, 1.028, 1.018];
   const cards = QUESTIONS.map((q, i) => {

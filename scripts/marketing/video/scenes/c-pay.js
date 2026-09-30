@@ -17,7 +17,7 @@
  */
 import { QUESTIONS } from "./layout.js";
 import { orb, press, tap, browserWindow } from "../engine/components.js";
-import { track, ramp, spring, during, place, coin, mist, measure, dispToStage, screenImage, passDot, verifiedMark, SHADOW, mix } from "./c-kit.js";
+import { track, ramp, spring, during, place, coin, mist, measure, dispToStage, screenImage, passDot, verifiedMark, SHADOW, mix, scaledSrc, opa } from "./c-kit.js";
 
 /* Where builder B leaves the coin at 62.88 (row 27: the verified mark on
    card 2 spins off into the coin). Updated from scenes/handoffs.md. */
@@ -99,7 +99,7 @@ export async function buildPay(ctx, S) {
     return (tt) => {
       dots.forEach((d, k) => {
         const u = fillU(tt, k);
-        d.fill.style.opacity = String(Math.min(1, u * 1.4));
+        d.fill.style.opacity = opa(u * 1.4);
         d.fill.style.transform = `scale(${(0.35 + 0.65 * u).toFixed(3)})`;
       });
       lights.forEach(({ n, t }) => { n.style.opacity = String(0.9 * (tt < t - 0.03 ? 0 : Math.exp(-(tt - t) * 7))); });
@@ -159,7 +159,7 @@ export async function buildPay(ctx, S) {
       const o = ramp(ctx, tt, K.r28 - 0.04, K.r28 + 0.16) * (1 - ramp(ctx, tt, K.r29 - 0.2, K.r29 - 0.06));
       win.root.style.transformOrigin = "0 0";
       win.root.style.transform = `translate(${W.x}px, ${y.toFixed(2)}px) scale(${sc})`;
-      win.root.style.opacity = o.toFixed(4);
+      win.root.style.opacity = opa(o);
       win.root.style.visibility = o > 0.001 ? "" : "hidden";
     });
   }
@@ -181,7 +181,7 @@ export async function buildPay(ctx, S) {
       const o = ramp(ctx, tt, K.r28 - 0.02, K.r28 + 0.1) * (1 - ramp(ctx, tt, K.pay + 0.08, K.pay + 0.3));
       ptr.style.left = `${(x - half).toFixed(2)}px`;
       ptr.style.top = `${(y - half).toFixed(2)}px`;
-      ptr.style.opacity = o.toFixed(3);
+      ptr.style.opacity = opa(o);
       ptr.style.visibility = o > 0.001 ? "" : "hidden";
     });
     presses.forEach((pr, i) => {
@@ -222,12 +222,12 @@ export async function buildPay(ctx, S) {
       place(body, { x: mix(from.x, home.x, u), y: mix(from.y, home.y, u) - (M ? 0 : 40) * out, s: s * pulse, o: Math.min(1, u * 3) * (1 - out) });
       dots.forEach((d, k) => {
         const f = fillU(tt, k);
-        d.fill.style.opacity = String(Math.min(1, f * 1.4));
+        d.fill.style.opacity = opa(f * 1.4);
         d.fill.style.transform = `scale(${(0.35 + 0.65 * f).toFixed(3)})`;
       });
       const g = ramp(ctx, tt, K.pay - 0.02, K.pay + 0.32, "power2.inOut");
       glint.style.transform = `translateX(${(-width * 0.4 + g * width * 1.45).toFixed(1)}px)`;
-      glint.style.opacity = g > 0 && g < 1 ? "1" : "0";
+      glint.style.opacity = g > 0 && g < 1 ? opa(1) : "0";
     });
   }
 
@@ -269,7 +269,8 @@ export async function buildPay(ctx, S) {
   const licensed = ctx.el("div", { class: "abs", text: "Licensed payment processor", style: { left: "0px", top: "0px", font: "600 30px/1.2 Inter, sans-serif", letterSpacing: "-0.01em", color: "var(--electric-600)", whiteSpace: "nowrap", clipPath: "inset(0 100% 0 0)" } }, pathScene);
   const trayBox = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "220px", height: "200px" } }, pathScene);
   const trayRing = ctx.el("div", { class: "abs", style: { left: "35px", top: "120px", width: "150px", height: "50px", borderRadius: "50%", border: "3px dashed rgb(0 105 254 / 0.45)", background: "radial-gradient(closest-side, rgb(0 105 254 / 0.06), rgb(0 105 254 / 0))" } }, trayBox);
-  ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: "56px", top: "8px", width: "108px", height: "103px", objectFit: "contain" } }, trayBox);
+  /* drawn at 77 to 99 px: a 150 px copy keeps every frame on one decode (scaledSrc) */
+  ctx.img(await scaledSrc(ctx.src.brand("vallo-mark.png"), 150), { class: "abs", style: { left: "56px", top: "8px", width: "108px", height: "103px", objectFit: "contain" } }, trayBox);
   if (M) ctx.hideCaptions(K.r31, K.r32);
 
   const stationAt = (i, tt) => {
@@ -292,7 +293,7 @@ export async function buildPay(ctx, S) {
       n.style.height = `${q.d.toFixed(2)}px`;
       n.style.background = small1 ? "#ffffff" : "radial-gradient(circle at 50% 38%, #ffffff 0%, #f4f8ff 60%, #e6eeff 100%)";
       n.style.border = small1 ? "3px solid rgb(0 105 254 / 0.85)" : "1.5px solid #ffffff";
-      stations[i].ring.style.opacity = String(1 - q.u);
+      stations[i].ring.style.opacity = opa(1 - q.u);
       place(n, { x: q.x, y: q.y, s: 0.55 + 0.45 * pop, o: Math.min(1, pop * 2) * (1 - gone) });
     });
     [0, 1].forEach((i) => {
@@ -304,7 +305,7 @@ export async function buildPay(ctx, S) {
       seg[i].setAttribute("x2", mix(a.x, b.x, g).toFixed(2));
       seg[i].setAttribute("y2", mix(a.y, b.y, g).toFixed(2));
       seg[i].setAttribute("stroke-width", mix(M ? 6 : 5, 3, a.u).toFixed(2));
-      seg[i].style.opacity = g > 0.001 ? "1" : "0";
+      seg[i].style.opacity = g > 0.001 ? opa(1) : "0";
     });
     [[1, K.goes], [2, K.owner]].forEach(([i, tf]) => {
       const f = ramp(ctx, tt, tf, tf + 0.6, "power2.out");

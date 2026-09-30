@@ -129,10 +129,11 @@ export async function buildDesktop(ctx) {
   S.orbT = track(ctx, S.orb, { x: 2000, y: 700, opacity: 0 });
 
   /* Captions are off where the same words are big on screen. */
-  ctx.hideCaptions(T.r14 - 0.14, T.r15);
-  ctx.hideCaptions(T.r19, T.r20);
-  ctx.hideCaptions(T.r23, T.r24);
-  ctx.hideCaptions(T.r25, T.r26);
+  /* Each gap covers exactly the caption lines (they open 0.12 s before their first word). */
+  ctx.hideCaptions(T.r14 - 0.14, T.right - 0.12);       // "Talk straight to the owner, / the landlord or the agent,"
+  ctx.hideCaptions(T.r19, T.browse - 0.12);             // row 19 is "off": "Planning a trip?"
+  ctx.hideCaptions(T.going - 0.14, T.find - 0.12);      // row 23 is "off": "Going out tonight?"
+  ctx.hideCaptions(T.owners - 0.14, T.verified - 0.12); // the role chips: "Owners, hosts, hotels and restaurants with the"
 
   await deskTalk(ctx, S, T);
   await deskStays(ctx, S, T);

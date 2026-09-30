@@ -13,7 +13,7 @@
  *     faded; vallospaces.com below them. Soon: vallospaces.com only.
  */
 import { browserWindow, squiggle, sparkles } from "../engine/components.js";
-import { track, ramp, spring, during, place, screenImage, measure, night, SHADOW, mix } from "./c-kit.js";
+import { track, ramp, spring, during, place, screenImage, measure, night, SHADOW, mix, opa, scaledSrc, own } from "./c-kit.js";
 
 const BADGES = { apple: "/video/assets/badges/app-store-black.svg", google: "/video/assets/badges/google-play-black.svg" };
 
@@ -30,7 +30,7 @@ export async function buildClose(ctx, S) {
   night(ctx, close, { y: 38, glow: 0.3 });
   const groundIn = ctx.el("div", { class: "fill" }, close);
   /* the velvet hills of frame one, anchored low, feathered into the night */
-  const art = ctx.img(ctx.src.art("step-1-dark.webp"), {
+  const art = ctx.img(own(ctx.src.art("step-1-dark.webp"), "close"), {
     class: "abs",
     style: {
       left: "0px", top: "0px", width: "1080px", height: "1440px",
@@ -40,9 +40,11 @@ export async function buildClose(ctx, S) {
   }, groundIn);
   const artAt = M ? { x: 540, y: 1000 + 720 } : { x: 960, y: 500 + 720 };
   const markSize = M ? 300 : 190;
-  const mark = ctx.img(ctx.src.brand("vallo-mark.png"), { class: "abs", style: { left: "0px", top: "0px", width: `${markSize}px`, height: `${Math.round(markSize * 587 / 614)}px` } }, close);
+  /* the mark lands from the pin's size with an overshoot (0.9 to 1.1 of its size): a copy
+     1.5 times its size keeps every frame on the copy's full-size decode (scaledSrc) */
+  const mark = ctx.img(await scaledSrc(ctx.src.brand("vallo-mark.png"), markSize * 1.5), { class: "abs", style: { left: "0px", top: "0px", width: `${markSize}px`, height: `${Math.round(markSize * 587 / 614)}px` } }, close);
   const wmW = M ? 520 : 470;
-  const wordmark = ctx.img(ctx.src.brand("vallo-wordmark.png"), { class: "abs", style: { left: "0px", top: "0px", width: `${wmW}px`, height: `${Math.round(wmW * 167 / 758)}px` } }, close);
+  const wordmark = ctx.img(own(ctx.src.brand("vallo-wordmark.png"), "close"), { class: "abs", style: { left: "0px", top: "0px", width: `${wmW}px`, height: `${Math.round(wmW * 167 / 758)}px` } }, close);
   const flash = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: "600px", height: "600px", borderRadius: "50%", background: "radial-gradient(closest-side, rgb(255 255 255 / 0.95), rgb(143 211 255 / 0.4) 40%, rgb(0 105 254 / 0) 100%)", opacity: 0 } }, close);
   ctx.sfx("impact_soft", hit, { offset: 0 });
   ctx.sfx("sparkle", K.done + 0.18, { offset: -2 });
@@ -146,8 +148,8 @@ export async function buildClose(ctx, S) {
   if (M) {
     /* the lockup above */
     const lk = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "22px" } }, top);
-    ctx.img(ctx.src.brand("vallo-mark.png"), { style: { width: "104px", height: `${Math.round(104 * 587 / 614)}px` } }, lk);
-    ctx.img(ctx.src.brand("vallo-wordmark-light.png"), { style: { width: "360px", height: `${Math.round(360 * 167 / 758)}px` } }, lk);
+    ctx.img(own(ctx.src.brand("vallo-mark.png"), "lockup"), { style: { width: "104px", height: `${Math.round(104 * 587 / 614)}px` } }, lk);
+    ctx.img(own(ctx.src.brand("vallo-wordmark-light.png"), "lockup"), { style: { width: "360px", height: `${Math.round(360 * 167 / 758)}px` } }, lk);
     /* the two phones: island (the light phone that carried rows 28-34) and Android */
     const pI = S.light;
     const pA = S.android;
@@ -207,7 +209,7 @@ export async function buildClose(ctx, S) {
       const u = rise(t, 0);
       win.root.style.transformOrigin = "0 0";
       win.root.style.transform = `translate(120px, ${(118 + (1 - u) * 900 + 3 * drift(t, 0.2)).toFixed(2)}px) scale(${s.toFixed(5)})`;
-      win.root.style.opacity = Math.min(1, u * 3).toFixed(4);
+      win.root.style.opacity = opa(u * 3);
       const b = ramp(ctx, t, K.r41 + 0.45, K.r41 + 1.1, "land");
       place(pill, { x: x0 + pw / 2, y: rowY + (1 - b) * 16, o: b });
       if (badgeRow) {

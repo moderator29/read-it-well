@@ -93,8 +93,10 @@ export async function deskOut(ctx, S, T) {
   /* the last ring: round the words, with its burst, as "Going" lands */
   const ringWrap = ctx.el("div", { class: "fill" }, layer);
   layer.insertBefore(ringWrap, svg);
-  ringBurst(ctx, ringWrap, { cx: CX, cy: CY + 60, r: 420, t: T.going + 0.04, dots: 12, seed: 23, stroke: 4, color: "#ffffff" });
-  ringWrap.style.transformOrigin = `${CX}px ${CY + 60}px`;
+  /* centred on the two lines (their block sits about 0.15 of the size below CY), clear of every letter; the burst in the ring's white */
+  ringWrap.style.setProperty("--sky", "#ffffff");
+  ringBurst(ctx, ringWrap, { cx: CX, cy: CY + 22, r: 440, t: T.going + 0.04, dots: 12, seed: 23, stroke: 4, color: "#ffffff" });
+  ringWrap.style.transformOrigin = `${CX}px ${CY + 22}px`;
   tl.fromTo(ringWrap, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.5, duration: 0.36, ease: "power2.in", immediateRender: false }, tPush);
   showDuring(ctx, ringWrap, [[T.going, tPush + 0.36]]);
 
@@ -110,8 +112,8 @@ export async function deskOut(ctx, S, T) {
   const LEFT = S.LEFT;
   const full = { viewTop: 0, viewH: CH, viewLeft: 0, viewW: CW };
   S.page("d-restaurant-lt", [[T.r24 - 0.32, T.r25]]);
-  wvT.to(T.r24 - 0.3, 0.001, { cx: LEFT.cx, cy: LEFT.cy + 760, s: LEFT.s, ry: 0, opacity: 1, ...full }, "none");
-  wvT.to(T.r24 - 0.29, 0.6, { cy: LEFT.cy }, "glide");                                   // rises into the warm light
+  wvT.to(T.r24 - 0.13, 0.001, { cx: LEFT.cx, cy: LEFT.cy + 760, s: LEFT.s, ry: 0, opacity: 1, ...full }, "none");
+  wvT.to(T.r24 - 0.12, 0.6, { cy: LEFT.cy }, "glide");                                   // rises as the warm light clears
   wvT.to(T.r24 + 0.32, T.seconds + 0.34 - (T.r24 + 0.32), { cy: LEFT.cy - 10 }, "drift");   // a slow drift while the card arrives
   wvT.to(T.seconds + 0.34, 0.5, { cx: LEFT.cx - 240, ry: -48, opacity: 0 }, "power2.in"); // turns away
 

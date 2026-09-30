@@ -1069,6 +1069,20 @@
     "theme": "dark",
     "signedIn": true
   },
+  "support-inspection": {
+    "url": "/support",
+    "at": "2026-09-30T19:05:22.129Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "support-money": {
+    "url": "/support",
+    "at": "2026-09-30T19:04:59.443Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
   "thread": {
     "url": "/messages/d140e186-9fa3-41f4-8234-32ef75a1060e",
     "at": "2026-09-30T15:29:51.077Z",

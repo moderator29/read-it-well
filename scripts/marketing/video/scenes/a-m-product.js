@@ -24,7 +24,9 @@ export const HIGH = { ...L.PHONE_HIGH };
 /* Row 08's three-quarter turn, row 09's shift (room for the one body at the right), row 10's push. */
 const TURN = { cx: 640, cy: HIGH.cy, height: HIGH.height, ry: -14 };
 const SHIFT = { cx: 410, cy: HIGH.cy, height: HIGH.height };
-export const PUSH = { cx: 540, cy: 849, height: 1141 };
+/* Row 10's push toward the costs: big enough that the listing's sticky bar (and its short total,
+   "₦26.1m") sits below the frame, with the display's top at y 480, under the chapter pill. */
+export const PUSH = { cx: 540, cy: 1321, height: 1716 };
 const SB = 186; // the status bar in every display
 const Z = { mist: 3, map: 4, phone: 5, veil: 6, bodies: 7, words: 8, pointer: 12 };
 
@@ -59,9 +61,9 @@ export async function buildProductMobile(ctx, T, open) {
   tl.to(P, { cx: TURN.cx, ry: TURN.ry, duration: 0.55, ease: "glide" }, T.buy + 0.1);
   /* 08 -> 09: a shift left as the sheet rises (room for the lifted Apply at the right). */
   tl.to(P, { cx: SHIFT.cx, ry: 0, duration: 0.5, ease: "glide" }, T.filterPress + 0.04);
-  /* 09 -> 10: on the press, centre and push in, so the listing opens with its sticky bar (and the
-     bar's short total) already under the caption. */
-  tl.to(P, { cx: PUSH.cx, cy: PUSH.cy, height: PUSH.height, duration: 0.55, ease: "power2.inOut" }, T.need + 0.04);
+  /* 09 -> 10: on the press, centre and push in, so the listing opens with its sticky bar already
+     below the frame (it is there by T.open). */
+  tl.to(P, { cx: PUSH.cx, cy: PUSH.cy, height: PUSH.height, duration: 0.6, ease: "power2.inOut" }, T.need + 0.1);
   tl.to(P, { cy: PUSH.cy + 5, height: PUSH.height + 14, duration: T.call - T.movein, ease: "sine.inOut" }, T.movein);
 
   /* ================= the screens (under the glass) ================= */

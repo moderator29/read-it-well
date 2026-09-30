@@ -11,7 +11,7 @@
  *     name lands beside the device, rolling the last one away.
  */
 import { browserWindow } from "../engine/components.js";
-import { track, ramp, spring, during, place, dispToStage, measure, night, mix } from "./c-kit.js";
+import { track, ramp, spring, during, place, dispToStage, measure, night, mix, opa } from "./c-kit.js";
 
 /* The welcome words (FACTS: welcome, slide 1, in four languages). */
 const PHRASES = ["Two worlds.", "Duniya biyu.", "Ayé méjì.", "Ụwa abụọ.", "One platform.", "Dandali ɗaya.", "Pèpéle kan.", "Otu ikpo okwu."];
@@ -120,7 +120,7 @@ export async function buildLang(ctx, S) {
       q.el.style.background = on > 0.5 ? "linear-gradient(180deg, #1f7dff 0%, #0069fe 55%, #0058e0 100%)" : NAVIES[1];
       q.el.style.borderColor = on > 0.5 ? "rgb(143 211 255 / 0.55)" : "rgb(255 255 255 / 0.07)";
       q.el.style.boxShadow = on > 0.5 ? "0 18px 44px -14px rgb(0 105 254 / 0.75)" : "none";
-      q.span.style.opacity = String(on);
+      q.span.style.opacity = opa(on);
       /* into the chapter pill */
       const u = ramp(ctx, t, toPill[0] + i * 0.02, toPill[1] + i * 0.02, "power3.in");
       const pillY = (L.PILL.top + L.PILL.bottom) / 2;
@@ -193,7 +193,7 @@ export async function buildLang(ctx, S) {
       const y = W.y + (1 - u) * 900;
       win.root.style.transformOrigin = "0 0";
       win.root.style.transform = `translate(${W.x}px, ${y.toFixed(2)}px) scale(${s0.toFixed(5)})`;
-      win.root.style.opacity = Math.min(1, u * 3).toFixed(4);
+      win.root.style.opacity = opa(u * 3);
       win.root.style.visibility = u > 0.001 ? "" : "hidden";
       const k = cuts.reduce((acc, c, i) => (t >= c.t ? i : acc), 0);
       screens.forEach((s, i) => { s.style.visibility = i === k ? "" : "hidden"; });

@@ -76,13 +76,34 @@ for (const android of [false, true]) {
 await browser.close();
 
 /* The colour of the capture's top edge: the median of its first rows. */
-async function topColour(file) {
-  const { data, info } = await sharp(file).extract({ left: 0, top: 0, width: W, height: 6 }).raw().toBuffer({ resolveWithObject: true });
+/* The app's own chrome colours (apps/web/src/lib/theme/chrome.ts), which the
+   native shell paints behind the status bar. */
+const CHROME = { dark: { r: 1, g: 1, b: 24 }, light: { r: 244, g: 244, b: 241 } };
+const REPORT = JSON.parse(readFileSync(join(SOURCE, "capture-report.json"), "utf8"));
+/* Pages that keep one theme whatever the member chose. */
+const ONE_THEME = /^(welcome|lock)/;
+
+/**
+ * The bar's colour: the flat colour of the page's header, read a few rows
+ * down so a 1 px hairline at the very top does not tint it; where the page
+ * opens on a photograph rather than a flat header, the app's chrome colour
+ * for the capture's theme.
+ */
+async function topColour(file, id) {
+  const { data, info } = await sharp(file).extract({ left: 0, top: 6, width: W, height: 10 }).raw().toBuffer({ resolveWithObject: true });
   const ch = info.channels;
   const vals = [[], [], []];
   for (let i = 0; i < data.length; i += ch) for (let c = 0; c < 3; c += 1) vals[c].push(data[i + c]);
-  const med = vals.map((v) => v.sort((a, b) => a - b)[v.length >> 1]);
-  return { r: med[0], g: med[1], b: med[2] };
+  const med = vals.map((v) => [...v].sort((a, b) => a - b)[v.length >> 1]);
+  const spread = Math.max(...vals.map((v, c) => Math.sqrt(v.reduce((sum, x) => sum + (x - med[c]) ** 2, 0) / v.length)));
+  const [r, g, b] = med;
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  /* A header is a flat navy (blue leading) or a flat near-white; anything
+     else up there is a photograph. */
+  const header = spread <= 10 && ((b >= r && b >= g && lum < 90) || lum > 200);
+  if (header) return { r, g, b };
+  const theme = ONE_THEME.test(id) ? "dark" : String(REPORT[id]?.theme ?? "dark").startsWith("light") ? "light" : "dark";
+  return CHROME[theme];
 }
 
 const files = readdirSync(SOURCE).filter((f) => f.endsWith(".webp") && !f.endsWith("-full.webp") && !f.startsWith("d-"));
@@ -93,7 +114,7 @@ for (const f of files) {
   const src = join(SOURCE, f);
   const meta = await sharp(src).metadata();
   if (meta.width !== W || meta.height !== H - BAR) { console.log(`skip ${id}: ${meta.width}x${meta.height}`); continue; }
-  const bg = await topColour(src);
+  const bg = await topColour(src, id);
   const dark = 0.2126 * bg.r + 0.7152 * bg.g + 0.0722 * bg.b < 140;
   const fg = dark ? "#FFFFFF" : "#000000";
   for (const android of [false, true]) {

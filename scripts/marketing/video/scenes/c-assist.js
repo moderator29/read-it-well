@@ -11,7 +11,7 @@
  *     night and the stars come out; the cut to the wall is on the beat, 79.62.
  */
 import { orb, press, browserWindow } from "../engine/components.js";
-import { track, ramp, spring, during, place, dispToStage, screenImage, measure, SHADOW, mix } from "./c-kit.js";
+import { track, ramp, spring, during, place, dispToStage, screenImage, measure, SHADOW, mix, opa } from "./c-kit.js";
 
 const QUESTION = "What is a caution deposit?";
 
@@ -50,10 +50,10 @@ export async function buildAssist(ctx, S) {
     const n = ramp(ctx, t, night[0], night[1], "power2.inOut");
     curtain.style.transform = `translateY(${(-ctx.H * 2 + n * ctx.H * 2).toFixed(1)}px)`;
     curtain.style.visibility = n > 0 ? "" : "hidden";
-    glowN.style.opacity = ramp(ctx, t, night[1] - 0.3, night[1] + 0.1).toFixed(3);
+    glowN.style.opacity = opa(ramp(ctx, t, night[1] - 0.3, night[1] + 0.1));
     for (const s of stars) {
       const on = ramp(ctx, t, s.t, s.t + 0.4, "power2.out");
-      s.node.style.opacity = on > 0 ? (on * (0.6 + 0.4 * Math.sin(t * s.sp + s.ph) ** 2)).toFixed(3) : "0";
+      s.node.style.opacity = on > 0 ? opa(on * (0.6 + 0.4 * Math.sin(t * s.sp + s.ph) ** 2)) : "0";
     }
   });
 
@@ -99,7 +99,7 @@ export async function buildAssist(ctx, S) {
     const txt = shownText(t);
     bar.typed.textContent = t < tBubble ? txt : "";
     bar.ph.style.display = txt.length > 0 && t < tBubble ? "none" : "";
-    bar.car.style.opacity = t < K.questionEnd + 0.6 || t >= tSend ? "0" : String(caretBlink(t));
+    bar.car.style.opacity = t < K.questionEnd + 0.6 || t >= tSend ? "0" : opa(caretBlink(t));
     const lit = ramp(ctx, t, tSend - 0.02, tSend + 0.06) * (1 - ramp(ctx, t, tSend + 0.2, tSend + 0.4));
     bar.send.style.background = lit > 0.01 ? `rgb(${mix(238, 0, lit).toFixed(0)} ${mix(242, 105, lit).toFixed(0)} ${mix(248, 254, lit).toFixed(0)})` : "#eef2f8";
     bar.send.style.color = lit > 0.5 ? "#ffffff" : "rgb(145 160 180)";
@@ -183,7 +183,7 @@ export async function buildAssist(ctx, S) {
       const o = ramp(ctx, t, tSend - 0.45, tSend - 0.3) * (1 - ramp(ctx, t, tSend + 0.16, tSend + 0.36));
       ptr.style.left = `${(x - 22).toFixed(2)}px`;
       ptr.style.top = `${(y - 22).toFixed(2)}px`;
-      ptr.style.opacity = o.toFixed(3);
+      ptr.style.opacity = opa(o);
       ptr.style.visibility = o > 0.001 ? "" : "hidden";
     });
     press(ctx, ptr, tSend, { sound: "tap", offset: 0, ring: false });
@@ -215,7 +215,7 @@ export async function buildAssist(ctx, S) {
       const { x, y, s, o } = pose(t);
       win.root.style.transformOrigin = "0 0";
       win.root.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) scale(${s.toFixed(5)})`;
-      win.root.style.opacity = o.toFixed(4);
+      win.root.style.opacity = opa(o);
       win.root.style.visibility = o > 0.001 ? "" : "hidden";
       const r = ramp(ctx, t, revealFrom, revealTo, "power1.inOut");
       lt.style.visibility = r < 1 ? "" : "hidden";
@@ -229,7 +229,7 @@ export async function buildAssist(ctx, S) {
       fieldCover.style.visibility = showTyped && txt.length > 0 ? "" : "hidden";
       fieldText.textContent = showTyped ? txt : "";
       fieldCaret.style.left = `${654 + (showTyped ? fieldText.offsetWidth : 0) + 1}px`;
-      fieldCaret.style.opacity = t < K.questionEnd + 0.7 || t >= tSend ? "0" : String(caretBlink(t));
+      fieldCaret.style.opacity = t < K.questionEnd + 0.7 || t >= tSend ? "0" : opa(caretBlink(t));
     });
     /* the echo: the field, large, in RIGHT_PANEL */
     const R = L.RIGHT_PANEL;
@@ -249,7 +249,7 @@ export async function buildAssist(ctx, S) {
       const o = ramp(ctx, t, tSend - 0.55, tSend - 0.4) * (1 - ramp(ctx, t, tSend + 0.2, tSend + 0.45));
       ptr.style.left = `${(x - 20).toFixed(2)}px`;
       ptr.style.top = `${(y - 20).toFixed(2)}px`;
-      ptr.style.opacity = o.toFixed(3);
+      ptr.style.opacity = opa(o);
       ptr.style.visibility = o > 0.001 ? "" : "hidden";
     });
     press(ctx, ptr, tSend, { ringParent: winScene, x: sendAt.x, y: sendAt.y, sound: "tap", offset: 0 });

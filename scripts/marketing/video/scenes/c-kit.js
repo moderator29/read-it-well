@@ -160,14 +160,51 @@ export async function phone3d(ctx, opts, { poses = [], fallback = {} } = {}) {
 /**
  * Places an element's centre at (x, y) with rotation r (deg), scale s (or
  * sx/sy) and opacity o; hidden when o is 0. The element sits at left/top 0.
+ *
+ * Full opacity is written as 0.9999, never 1: Chromium keeps an element that
+ * has once been translucent in its own paint layer after it returns to 1, so
+ * a page that played the fade paints it a shade differently (±1) from a page
+ * that starts after it. Never quite 1, every page paints it the same way.
  */
 export function place(el, { x = 0, y = 0, s = 1, sx = null, sy = null, r = 0, o = 1 }) {
   const X = sx ?? s;
   const Y = sy ?? s;
   el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) rotate(${r.toFixed(3)}deg) scale(${X.toFixed(4)}, ${Y.toFixed(4)})`;
-  el.style.opacity = o >= 0.999 ? "1" : o.toFixed(4);
+  el.style.opacity = opa(o);
   el.style.visibility = o > 0.001 ? "" : "hidden";
 }
+
+/** An opacity value for style.opacity: never exactly 1 (see place). */
+export const opa = (o) => (o >= 0.9999 ? "0.9999" : Math.max(0, o).toFixed(4));
+
+/**
+ * A copy of an image resampled once, at build time, to `width` px (a blob
+ * URL). Chromium decodes a downscaled image at a mip level chosen by its
+ * on-screen scale and may reuse a larger decode left in its cache, so an
+ * image that animates across a mip boundary (or appears at two sizes) paints
+ * slightly differently depending on the frames before it. Sized so that the
+ * whole on-screen range stays above half its width, the copy is always drawn
+ * from its full-size decode.
+ */
+export async function scaledSrc(src, width) {
+  const img = new Image();
+  img.src = src;
+  await img.decode();
+  const w = Math.round(width);
+  const h = Math.round((w * img.naturalHeight) / img.naturalWidth);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const g = canvas.getContext("2d", { willReadFrequently: true });
+  g.imageSmoothingEnabled = true;
+  g.imageSmoothingQuality = "high";
+  g.drawImage(img, 0, 0, w, h);
+  const blob = await new Promise((ok) => canvas.toBlob(ok, "image/png"));
+  return URL.createObjectURL(blob);
+}
+
+/** One use of a shared image file: its own decode, apart from other sizes of the same file. */
+export const own = (src, tag) => `${src}?c=${tag}`;
 
 /** One soft shadow language for every floating body (on light and on dark). */
 export const SHADOW = {
@@ -282,14 +319,14 @@ export function coin(ctx, parent, { size = 150, layers = 14, z = 0 } = {}) {
     Object.assign(state, o);
     const k = state.size / S;
     wrap.style.transform = `translate(${px(state.x - S / 2)}, ${px(state.y - S / 2)}) scale(${k.toFixed(4)})`;
-    wrap.style.opacity = String(state.opacity);
+    wrap.style.opacity = opa(state.opacity);
     wrap.style.visibility = state.opacity > 0.001 ? "" : "hidden";
     body.style.transform = `rotateX(${state.tilt.toFixed(2)}deg) rotateY(${state.spin.toFixed(2)}deg)`;
     const a = (((state.spin % 360) + 360) % 360) / 360;
     const pos = `${(a * 200 - 50).toFixed(1)}% 0%`;
     front.gloss.style.backgroundPosition = pos;
     back.gloss.style.backgroundPosition = pos;
-    shadow.style.opacity = String(state.shadow);
+    shadow.style.opacity = opa(state.shadow);
   }
   set({});
   return { wrap, body, set, state, size: S };

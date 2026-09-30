@@ -25,7 +25,7 @@ const MAITAMA = { x: 942, y: 490, w: 398, h: 269 };
 const MAITAMA_CROP = { x: 1884, y: 980, w: 796, h: 538 };
 const BUBBLE = { x: 857, y: 764, w: 483, h: 59 };
 const BUBBLE_CROP = { x: 1714, y: 1528, w: 966, h: 118 };
-const TICK = { x: 1298, y: 799, w: 24, h: 16 };
+const TICK = { x: 1308.5, y: 800.5, w: 14, h: 11 }; // the tick only, clear of "02:42"
 const COMPOSER_C = { x: 1032, y: 870 };
 /* d-listing-share-lt: the sheet and its "Send in a Vallo chat" row. */
 const SHEET = { x: 448, y: 617, w: 543, h: 283 };
@@ -147,7 +147,9 @@ export async function deskTalk(ctx, S, T) {
   const eField = ctx.el("div", { style: { flex: "1", minHeight: "62px", borderRadius: "22px", background: "#fff", padding: "14px 20px", font: "400 25px/34px Inter, sans-serif", color: NAVY, letterSpacing: "-0.01em", boxShadow: "0 4px 12px -8px rgb(16 32 80 / 0.2)" } }, echo);
   const ePh = ctx.el("span", { text: "Type a message", style: { color: "#6b7280" } }, eField);
   const eText = ctx.el("span", {}, eField);
-  const eCaret = ctx.el("span", { style: { display: "inline-block", width: "3px", height: "30px", marginLeft: "2px", verticalAlign: "-7px", background: ELECTRIC, borderRadius: "2px" } }, eField);
+  /* a zero-width caret, so it never wraps to a line of its own */
+  const eCaret = ctx.el("span", { style: { display: "inline-block", width: "0px", height: "30px", verticalAlign: "-7px", position: "relative" } }, eField);
+  ctx.el("span", { style: { position: "absolute", left: "2px", top: "0px", width: "3px", height: "30px", background: ELECTRIC, borderRadius: "2px" } }, eCaret);
   const eSend = ctx.el("div", { style: { flex: "none", width: "62px", height: "62px", borderRadius: "18px", background: "#0042a2", display: "grid", placeItems: "center", color: "rgb(210 225 255 / 0.85)" } }, echo);
   ctx.icon("arrow-up-right", { size: 30, stroke: 2.2 }, eSend);
   const tEcho = T.r15 - 0.02;
@@ -193,7 +195,7 @@ export async function deskTalk(ctx, S, T) {
   /* ==================== D16: the share ==================== */
   const rowW = S.toStageAt(S.wv, { s: 1, fx: 960, fy: 540, tx: 960, ty: 540 }, SENDROW.x + SENDROW.w / 2, SENDROW.y + SENDROW.h / 2);
   const PUSH16 = { s: 2.5, fx: rowW.x, fy: rowW.y, tx: 900, ty: 560 };
-  cam.to(T.r16 + 0.02, 0.4, PUSH16, "power2.inOut");
+  cam.to(T.r16 - 0.3, 0.4, PUSH16, "power2.inOut"); // settled before the pointer reaches the row
   cam.to(T.listings + 0.12, 0.46, { s: 1, tx: rowW.x, ty: rowW.y }, "power2.inOut");
   const chev = S.toStageAt(S.wv, PUSH16, SENDCHEV.x, SENDCHEV.y);
   const flyer = cropBody(ctx, cards, { src: thread, crop: MAITAMA_CROP, iw: 2880, radius: 26, shadow: SHADOW.l });
@@ -318,7 +320,7 @@ export async function deskTalk(ctx, S, T) {
   o.to(T.right + 0.1, 0.14, { opacity: 1 }, "power1.out");
   o.to(T.right + 0.1, 0.46, { x: sendAt.x + 14, y: sendAt.y + 12 }, "glide");
   pressAt(ctx, S.orb, T.the7, { ringParent: S.pointer, x: sendAt.x, y: sendAt.y, sound: "tap" });
-  o.to(T.app + 0.1, 0.5, { x: chev.x + 16, y: chev.y + 12 }, "glide");
+  o.to(T.app + 0.3, 0.5, { x: chev.x + 16, y: chev.y + 12 }, "glide");
   pressAt(ctx, S.orb, T.listings, { ringParent: S.pointer, x: chev.x, y: chev.y, sound: "tap" });
   o.to(T.listings + 0.14, 0.4, { x: 1700, y: 860 }, "glide");
   o.to(T.listings + 0.3, 0.2, { opacity: 0 }, "power1.in");

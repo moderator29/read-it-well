@@ -128,6 +128,12 @@ const BASE_CAPTURES = [
   { id: "payments", steps: go("/payments") },
   { id: "payment-methods", steps: go("/settings/payments") },
   { id: "support", steps: go("/support") },
+  /* Two of the help centre's popular answers, opened: the product's own words
+     for "Vallo never holds your money" and "Vallo charges no inspection fee". */
+  ...[["support-money", "Does Vallo hold my money?"], ["support-inspection", "Do I pay to inspect a property?"]].map(([id, q]) => ({
+    id,
+    steps: [{ goto: "/support" }, { click: `summary:has-text("${q}")` }, { wait: 900 }, { reveal: `summary:has-text("${q}")`, offset: 330 }, { blur: true }, { wait: 500 }],
+  })),
   { id: "settings", steps: reveal("/settings", "text=Data saver", 150) },
   { id: "appearance", steps: go("/settings/appearance") },
   { id: "passcode", steps: go("/settings/passcode") },

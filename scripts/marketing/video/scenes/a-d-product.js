@@ -273,7 +273,7 @@ export async function buildProductDesktop(ctx, T, open) {
   const dur = T.movein - T.flick;
   tl.fromTo(lA, { y: 0 }, { y: -900, duration: dur, ease: whip.ease }, T.flick);
   tl.fromTo(lB, { y: 900 }, { y: 0, duration: dur, ease: whip.ease }, T.flick);
-  scrollBlur(ctx, mainWin, (t) => (900 / dur) * whip.slope(ctx.progress(t, T.flick, T.movein)), { k: 0.65, max: 40 });
+  scrollBlur(ctx, mainWin, (t) => (900 / dur) * whip.slope(ctx.progress(t, T.flick, T.movein)), { k: 0.65, max: 24 });
 
   return { win, R, listing, pointer, pointerScene, mistScene, winScene, bodies };
 }

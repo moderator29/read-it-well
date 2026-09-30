@@ -9,7 +9,7 @@
  * head, which row 40 turns into the Vallo mark.
  */
 import { createLiveMap, SHOT } from "./map3d.js";
-import { ramp, during, place, night, mix } from "./c-kit.js";
+import { ramp, during, place, night, mix, opa } from "./c-kit.js";
 
 export async function buildMap(ctx, S) {
   const { K, L } = S;
@@ -61,7 +61,7 @@ export async function buildMap(ctx, S) {
       const el = labels[l.city];
       const o = l.opacity * (1 - out);
       el.style.visibility = o > 0.001 ? "" : "hidden";
-      el.style.opacity = o.toFixed(4);
+      el.style.opacity = opa(o);
       el.style.transformOrigin = `${l.ax * 100}% ${l.ay * 100}%`;
       el.style.transform = `translate(${l.x.toFixed(2)}px, ${l.y.toFixed(2)}px) translate(${-l.ax * 100}%, ${-l.ay * 100}%) scale(${l.scale})`;
     }

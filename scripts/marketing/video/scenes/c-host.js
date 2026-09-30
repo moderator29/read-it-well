@@ -9,7 +9,7 @@
  * the beat at 88.27 goes to the map.
  */
 import { orb, browserWindow } from "../engine/components.js";
-import { track, ramp, spring, during, place, dispToStage, measure, SHADOW, mix } from "./c-kit.js";
+import { track, ramp, spring, during, place, dispToStage, measure, SHADOW, mix, opa } from "./c-kit.js";
 
 /* The rows as captured (display px on mobile, content px on desktop). */
 const ROWS = [
@@ -73,7 +73,7 @@ export async function buildHost(ctx, S) {
       lights.forEach((n, i) => {
         const o = litU(i, t);
         n.style.visibility = o > 0.001 && t < K.r38 ? "" : "hidden";
-        n.style.opacity = o.toFixed(3);
+        n.style.opacity = opa(o);
       });
     });
     p.poses.push({ t0: K.r37 + 0.02, t1: K.r38, fn: () => ({ cx: P.cx, cy: P.cy, height: P.height, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 1 }) });
@@ -108,7 +108,7 @@ export async function buildHost(ctx, S) {
       host.style.transform = `translateX(${((1 - u) * 1440).toFixed(1)}px)`;
       win.root.style.transformOrigin = "0 0";
       win.root.style.transform = `translate(${W.x}px, ${W.y}px) scale(${s0.toFixed(5)})`;
-      lights.forEach((n, i) => { n.style.opacity = litU(i, t).toFixed(3); });
+      lights.forEach((n, i) => { n.style.opacity = opa(litU(i, t)); });
     });
     /* the pointer passes over each row as it is named */
     const ptr = orb(ctx, winScene, { size: 40 });
@@ -122,7 +122,7 @@ export async function buildHost(ctx, S) {
       const o = ramp(ctx, t, K.r37, K.r37 + 0.2);
       ptr.style.left = `${(x - 20).toFixed(2)}px`;
       ptr.style.top = `${(y - 20).toFixed(2)}px`;
-      ptr.style.opacity = o.toFixed(3);
+      ptr.style.opacity = opa(o);
       ptr.style.visibility = o > 0.001 ? "" : "hidden";
     });
     /* the bodies, re-drawn at 1.6x the page's own size, in RIGHT_PANEL */

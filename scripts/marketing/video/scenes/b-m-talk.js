@@ -23,7 +23,7 @@ import {
 /* thread-light (display px). */
 const MAITAMA = { x: 52, y: 1602, w: 1088, h: 784 };
 const BUBBLE = { x: 117, y: 2398, w: 1026, h: 239 };
-const TICK = { x: 1040, y: 2562, w: 54, h: 44 };
+const TICK = { x: 1046, y: 2566, w: 44, h: 36 }; // the tick only, clear of "02:42"
 const BAR = { x: 0, y: 2690, w: 1320, h: 178 };
 /* listing-share-lt: the sheet and its "Send in a Vallo chat" row. */
 const SHEET_TOP = 1962;
@@ -214,7 +214,9 @@ export async function talk(ctx, S, T) {
   const ph = ctx.el("div", { class: "abs", text: "Type a message", style: { left: "48px", top: "36px", font: "400 50px/1 Inter, sans-serif", color: "#6b7280", letterSpacing: "-0.005em" } }, field);
   const typed = ctx.el("div", { class: "abs", style: { left: "48px", top: "30px", width: "840px", font: "400 48px/64px Inter, sans-serif", color: NAVY, letterSpacing: "-0.01em" } }, field);
   const typedText = ctx.el("span", {}, typed);
-  const caret = ctx.el("span", { style: { display: "inline-block", width: "4px", height: "54px", marginLeft: "3px", verticalAlign: "-10px", background: ELECTRIC, borderRadius: "2px" } }, typed);
+  /* a zero-width caret, so it never wraps to a line of its own */
+  const caret = ctx.el("span", { style: { display: "inline-block", width: "0px", height: "54px", verticalAlign: "-10px", position: "relative" } }, typed);
+  ctx.el("span", { style: { position: "absolute", left: "3px", top: "0px", width: "4px", height: "54px", background: ELECTRIC, borderRadius: "2px" } }, caret);
   const send = ctx.el("div", { class: "abs", style: { left: "1140px", bottom: "25px", width: "132px", height: "131px", borderRadius: "34px", background: "#0042a2", display: "grid", placeItems: "center", color: "rgb(210 225 255 / 0.8)", boxShadow: "inset 0 0 0 3px rgb(90 140 230 / 0.35)" } }, comp);
   ctx.icon("arrow-up-right", { size: 58, stroke: 2.2 }, send);
 

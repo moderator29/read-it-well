@@ -238,7 +238,7 @@ export async function deskStays(ctx, S, T) {
   ctx.sfx("chime_notify", tE);
   for (const [i, it] of items.entries()) {
     if (it.sound) ctx.sfx(it.sound, it.t, { offset: -4 });
-    const lag = i * 0.02;
+    const lag = it.el === E ? 0.03 : 0; // the chips and the price leave together, "Room booked" just after: nothing crosses
     const end = tAway + 0.24 + lag;
     it.el.style.transformOrigin = "0 0";
     showDuring(ctx, it.el, [[it.t, end]]);

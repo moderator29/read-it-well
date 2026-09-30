@@ -50,11 +50,14 @@ export async function deskChecked(ctx, S, T) {
     const mark = verifiedMark(ctx, el, MARK, { style: { position: "absolute", right: `${-MARK * 0.4}px`, top: `${(H - MARK) / 2}px`, opacity: "0" } });
     return { ...r, el, mark, tm: markTimes[i] };
   });
-  /* the row, centred on the frame once the font has loaded */
+  /* the row, centred on the frame with 130 px of air each side, once the font has loaded */
   let row = null;
   const doRow = () => {
-    const f = "700 84px Poppins";
-    const ws = chips.map((c) => measure(c.text, f) + PAD_L + PAD_R);
+    const w100 = chips.map((c) => measure(c.text, "700 100px Poppins"));
+    const fixed = chips.length * (PAD_L + PAD_R) + GAP * (chips.length - 1) + MARK * 0.4;
+    const size = Math.min(84, ((ctx.W - 260 - fixed) / w100.reduce((a, b) => a + b, 0)) * 100);
+    chips.forEach((c) => (c.el.style.fontSize = `${size.toFixed(1)}px`));
+    const ws = w100.map((w) => (w * size) / 100 + PAD_L + PAD_R);
     const total = ws.reduce((a, b) => a + b, 0) + GAP * (ws.length - 1) + MARK * 0.4;
     let x = (ctx.W - total) / 2;
     row = ws.map((w) => {
@@ -63,9 +66,10 @@ export async function deskChecked(ctx, S, T) {
       return { x: at, w };
     });
   };
+  /* the column forms at the left, holds a beat, then slides out before the window rises there */
   const tCol = T.mark + 0.02;
-  const tCol1 = tCol + 0.4;
-  const tGone = tCol + 0.22;
+  const tCol1 = tCol + 0.34;
+  const tGone = tCol + 0.36;
   chips.forEach((c, i) => {
     ctx.sfx("pop_low", c.t, { offset: -2 });
     ctx.sfx("stamp", c.tm);
@@ -76,7 +80,7 @@ export async function deskChecked(ctx, S, T) {
       if (!row) doRow();
       const k = ramp(ctx, t, c.t - 0.02, c.t + 0.46, "land");
       const col = ramp(ctx, t, tCol + i * 0.03, tCol1 + i * 0.03, "power3.inOut");
-      const gone = ramp(ctx, t, tGone + i * 0.03, tGone + i * 0.03 + 0.3, "power2.in");
+      const gone = ramp(ctx, t, tGone + i * 0.02, tGone + i * 0.02 + 0.28, "power2.in");
       const s = mix(1, 0.5, col);
       const x = mix(row[i].x, 80, col) - gone * 520;
       const y = mix(c.cy - H / 2 - 90 * (1 - k), 330 + i * 86, col);
@@ -89,9 +93,9 @@ export async function deskChecked(ctx, S, T) {
 
   /* ==================== D26: the window, the pages, the verdict ==================== */
   const full = { viewTop: 0, viewH: CH, viewLeft: 0, viewW: CW };
-  S.page("d-verification-lt", [[tCol - 0.05, T.end]]);
-  wvT.to(tCol - 0.04, 0.001, { cx: LEFT.cx, cy: LEFT.cy + 760, s: LEFT.s, ry: 0, opacity: 1, ...full }, "none");
-  wvT.to(tCol - 0.03, 0.56, { cy: LEFT.cy }, "glide");            // rises at the left
+  S.page("d-verification-lt", [[tCol + 0.38, T.end]]);
+  wvT.to(tCol + 0.39, 0.001, { cx: LEFT.cx, cy: LEFT.cy + 760, s: LEFT.s, ry: 0, opacity: 1, ...full }, "none");
+  wvT.to(tCol + 0.4, 0.56, { cy: LEFT.cy }, "glide");             // rises at the left once the column has gone
   wvT.to(T.end - 0.3, 0.3, { opacity: 0 }, "power1.in");           // gives the place to c's lock window
 
   const PW = 400;
@@ -111,7 +115,7 @@ export async function deskChecked(ctx, S, T) {
     ctx.gsap.set(pg, { rotation: [0, -2.4, -4.6][i], x: [0, -7, -14][i], y: [0, 6, 12][i] });
     return { pg, scan };
   });
-  const tPages = T.r26 + 0.2;
+  const tPages = T.r26 + 0.34;
   const turns = [T.checked + 0.19, T.checked + 0.59, T.person - 0.08];
   showDuring(ctx, pagesWrap, [[tPages, turns[2] + 0.5]]);
   tl.fromTo(pagesWrap, { y: 620, rotation: 6 }, { y: 0, rotation: 0, duration: 0.5, ease: "land", immediateRender: false }, tPages);
