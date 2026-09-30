@@ -63,6 +63,9 @@ The screenshots are in `scratchpad/pixel/before/`, `mid/` and `after/`. They are
 | D1 | Desktop | Price Check stretched its form across 1112px at 1440. | Capped at 768px, like Settings (672) and Saved (768) | Fixed |
 | D2 | Tablet | At 1180 x 820 the side rail's list ran under its pinned foot and cut "Settings" in half. | The list fades over its last 24px and has 24px of foot room (`pixel.css` D1) | Fixed |
 | D3 | Tablet | 1180 landscape shows the side rail on member and workspace screens. The admin and agent previews lay out 2 and 4 across. | | Clean |
+| S6 | Spacing | The host and agent workspace bar padded 8 / 12, so its round back and bell buttons sat 9px from the screen edge, off the cards' 16px line. | `.nf-ws-bar__row` pads with `--nf-pad-shell` | Fixed |
+| A4 | Alignment | Console charts at 390: with 12 monthly buckets, "Aug" and "Sept" printed on top of each other. | The label before an even last stands down on a narrow chart (`admin.css`) | Fixed |
+| D4 | Desktop | From 64rem the content pages drew a 56px strip of canvas, holding only the back arrow, between the site bar and the head photograph. | The back row lies over the photo in on-ink white (`pixel.css` D2) | Fixed |
 
 ## Open, with owner and reason
 
@@ -71,6 +74,7 @@ The screenshots are in `scratchpad/pixel/before/`, `mid/` and `after/`. They are
 | The dock's tab label is 11px (`chrome.css` `.nf-tab__label`, `shell-m.css` `.nf-dockmore__*`), and the dock label weight is 650 / 750 | M1 (dock) | The dock is M1's |
 | The button label weight is 650 (`buttons.css` `.nf-btn`) | Style pass (Button) | A primitive's decision |
 | The listing and stay photo header buttons and the profile's settings gear are rounded squares. Section 17 asks for 44px circles | Style pass (headers) | A header primitive |
+| The segmented control's thumb is a full pill inside a 12px-radius track (Plans, Inbox), against spec section 7's 10 inside 12 | Style pass (Segmented) | A primitive |
 | The passcode lock's VALLO lockup sits left of the centred column (x 512 to 672 against a 720 centre at 1440) | Onboarding and auth (`AuthCurveBlock`) | Their component |
 | Two glowing primaries on the empty host home ("Start an application" and "Start") | Details / style pass | One primary per view |
 | Inbox at 1180 to 1440 is one 560px column. A two-pane list and thread would use the width. The header search button duplicates the search field | Gap-closer (thread view) | A layout change in their area |
