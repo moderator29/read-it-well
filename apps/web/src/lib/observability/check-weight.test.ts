@@ -26,6 +26,12 @@ describe("the weight budget (V-80)", () => {
       "/",
       "/welcome",
       "/sign-in",
+      /* The front-door gates (A15) add the public doors a visitor lands on. */
+      "/sign-up/email",
+      "/check",
+      "/move-in-cost",
+      "/for-agents",
+      "/guides/avoiding-rental-scams",
       "/home",
       "/search",
       "/listing/seed-2",
