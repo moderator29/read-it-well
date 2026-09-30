@@ -49,6 +49,12 @@ export type OgShareCardInput = {
   stats?: readonly { label: string; value: string }[];
   /** Right side of the foot row (a month); the Vallo word is always left. */
   footRight?: string | null;
+  /**
+   * A photograph for the left of the well (the listing link preview, plan
+   * item 23), as a data URL the route has already fetched, so a slow or
+   * missing picture can only leave the card without it, never break it.
+   */
+  photo?: string | null;
 };
 
 const METER_INK = { none: OG_HAIRLINE, low: OG_INK_MUTED, mid: OG_WARNING, high: OG_BRAND } as const;
@@ -166,12 +172,31 @@ export function ogShareCard(input: OgShareCardInput) {
             justifyContent: "space-between",
             background: OG_PANEL,
             borderRadius: 28 * s,
-            padding: `${32 * s}px ${38 * s}px`,
+            padding: input.photo ? 18 * s : `${32 * s}px ${38 * s}px`,
+            ...(input.photo ? { flexDirection: "row" as const, paddingRight: 38 * s } : {}),
           }}
         >
+          {input.photo ? (
+            // Satori draws this; there is no browser here for next/image to serve.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={input.photo}
+              alt=""
+              width={Math.round(input.width * 0.36)}
+              style={{
+                display: "flex",
+                width: "44%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: 20 * s,
+                marginRight: 34 * s,
+              }}
+            />
+          ) : null}
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between", minWidth: 0 }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             {input.figure ? (
-              <div style={{ display: "flex", color: OG_INK, fontSize: (tall ? 88 : 72) * (input.figure.length > 26 ? 0.85 : 1), letterSpacing: -2, lineHeight: 1.05 }}>
+              <div style={{ display: "flex", color: OG_INK, fontSize: (tall ? 88 : 72) * (input.figure.length > 26 ? 0.85 : 1) * (input.photo && !tall ? 0.8 : 1), letterSpacing: -2, lineHeight: 1.05 }}>
                 {input.figure}
               </div>
             ) : null}
@@ -245,6 +270,7 @@ export function ogShareCard(input: OgShareCardInput) {
                 ))}
               </div>
             ) : null}
+          </div>
           </div>
         </div>
 
