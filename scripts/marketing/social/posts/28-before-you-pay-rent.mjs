@@ -29,7 +29,7 @@ export default {
         background:linear-gradient(145deg,#C24A0C,#A8380A);color:#fff;font:700 32px/1 Poppins;box-shadow:0 10px 24px rgba(194,74,12,.32)}
       .t{margin-left:92px;font:700 96px/1.0 Poppins;letter-spacing:-.035em;color:#1A0F08}
       .t2{margin-left:92px;margin-top:6px;font:700 56px/1.06 Poppins;letter-spacing:-.03em;color:#A83E08}
-      .b{margin-left:94px;margin-top:22px;width:760px;font:500 30px/1.42 Inter;color:#5A4638}
+      .b{margin-left:94px;margin-top:22px;width:760px;font:500 30px/1.42 Inter;color:#5A4638;text-wrap:balance}
       .fee{margin-left:92px;margin-top:22px;display:inline-flex;align-items:center;gap:14px;height:64px;padding:0 28px 0 18px;border-radius:20px;
         background:linear-gradient(135deg,#C24A0C,#A8380A);color:#fff;font:700 29px/1 Inter;letter-spacing:-.01em;white-space:nowrap;
         box-shadow:0 16px 36px rgba(168,56,10,.28), inset 0 1px 0 rgba(255,255,255,.18)}
