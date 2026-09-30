@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
+import "@/app/welcome/onboarding-motion.css";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { ComponentProps, CSSProperties } from "react";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
@@ -10,10 +11,10 @@ import { isInPageStep } from "@/lib/nav/in-page-step";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { useMotionGate } from "@/components/motion/useMotionGate";
-import { flickDirection, releaseVelocity, rubber, springTo, type SpringConfig } from "@/components/site/landing/spring";
+import { releaseVelocity } from "@/components/site/landing/spring";
 import { InterestChoices } from "./InterestChoices";
 import { ArrivalAsks } from "./ArrivalAsks";
-import { Lockup, RiseWords, StepArt, wordsIn, type Art } from "./StepArt";
+import { Lockup, RiseWords } from "./StepArt";
 import {
   forgetFirstInterest,
   rememberFirstInterest,
@@ -23,44 +24,58 @@ import {
 } from "./first-run-seen";
 import type { Arrival } from "@/app/welcome/plan";
 import { wallHeading } from "./wall-heading";
-import { stepPhoto } from "./step-photos";
 import { destinationOf, withNext } from "@/lib/auth/next-link";
+import { KnowScene, MoveInScene, TalkScene, WorldsScene } from "./OnboardingScenes";
+import {
+  dragPose,
+  keyStep,
+  motionPlan,
+  progressFills,
+  sceneState,
+  skipPlan,
+  swipeStep,
+} from "./onboarding-flow";
 
 /**
- * Get started: FULL-PAGE STEPS, to `docs/design/references/2026-09-29/42`
- * (full-bleed art per step) and `43` (one full-width call on the last step).
+ * Get started IN MOTION (30 September), to the founder's onboarding video
+ * (`docs/design/references/2026-09-29/51` to `53`) inside the full-page steps
+ * of `42` and `43`.
  *
- * THE SHAPE OF A STEP. The top 55 to 60 percent of the screen is the step's
- * art, full bleed: a brand-blue sky with soft hills, Vallo's own glass
- * objects standing in it, and the whole picture fading into the page below
- * the middle. Under it a big, tight two-line headline, one line of body copy
- * and the page dots; Skip at the bottom left and Next at the bottom right.
- * The last step trades both for one full-width call.
+ * THE SHAPE OF A STEP, top to bottom:
+ *
+ *   back (steps two on), the Vallo lockup, Skip
+ *   the progress bar, one segment per step, filling as you go
+ *   the SCENE: the founder's clay art for the step in a rounded card, with
+ *     chips in our components' style arriving over it one after another and
+ *     then floating gently (`OnboardingScenes.tsx`)
+ *   a big two-line title and the body, arriving after the scene
+ *   one full-width pill: Continue, and on the last step the real call
+ *
+ * On a wide screen the scene takes the left and the words and the pill the
+ * right. The rules (which step a key or a swipe lands on, what Skip does,
+ * what moves under each motion setting) are pure functions in
+ * `onboarding-flow.ts`, tested on their own.
  *
  *   1. Two worlds. One platform.  Renting and buying, and stays.
- *   2. What verified means.       A person checked the agent, by hand.
- *   3. Talk first, pay when sure. Message and inspect before money moves.
- *   4. The ending.                A stranger: Create account (or Sign in).
+ *   2. Verified means a person    The shield and the ID under a scan frame,
+ *      checked.                   the Verified agent badge and the Record.
+ *   3. Talk first. Pay when sure. A conversation, then Pay on Vallo.
+ *   4. The ending.                The keys and an Example move-in total. A
+ *                                 stranger: Create account (or Sign in).
  *                                 Somebody signed in: one Continue into the
  *                                 app, through the interests question only
  *                                 while it is unanswered.
  *
- * THE MOTION IS ONE NUMBER. `pos` is where the carousel is, as a fractional
- * step (1.4 is forty percent of the way from step two to step three). Every
- * art layer reads its distance from it (`--d`), so the sky, the hero object
- * and the small satellites parallax at three depths and cross-fade; the dot
- * pill slides along it and stretches in transit. A drag writes `pos` straight
- * from the finger (rubber-banded past either end); a release, a tap, a key or
- * the history springs it home with the shared spring (`site/landing/spring`).
- * Transform and opacity only. The headline and the body of the step that
- * lands rise in word by word (welcome.css). Quiet (reduced motion, Calm,
- * Off): no spring and no drag physics; the step cross-fades on the short
- * ladder, and Off lands it at once.
+ * MOTION. A step change slides the scenes sideways and crossfades them
+ * (transform and opacity only, `app/welcome/onboarding-motion.css`); a drag
+ * moves them with the finger. Reduced motion, Calm and Off: every step lands
+ * at once, nothing staggers, floats or counts. A still background (Living
+ * backgrounds off, data saver) keeps the arrivals and drops the float.
  *
  * WHAT EACH CONTROL WRITES, because a first run with painted buttons is a
  * picture of onboarding:
  *
- *   Next                moves one step on. Reaching the last step records
+ *   Continue            moves one step on. Reaching the last step records
  *                       this device as shown (`rememberFirstRunSeen`).
  *   Skip, a stranger    records the device, then carries on to where they
  *                       were going (`?next=`), or lands on the ending.
@@ -68,22 +83,18 @@ import { destinationOf, withNext } from "@/lib/auth/next-link";
  *                       question (`markWelcomeSeen` + `skipInterests`, the
  *                       real skip that never asks again), then home.
  *   Continue, a member  `onDone`: records the opener on the profile, then the
- *                       interests question if it is still unasked, else home.
+ *   (last step)         interests question if it is still unasked, else home.
  *   The two doors       real links to `/sign-up` and `/sign-in`, keeping the
  *                       address the person asked for.
  *   Back                every step is a history entry, so the drawn back
- *                       button (steps two to four), the browser's back and
- *                       Android's hardware back all step to the previous
- *                       step; from step one back leaves as it came.
+ *                       button, the browser's back and Android's hardware
+ *                       back all step to the previous step; from step one
+ *                       back leaves as it came.
  *
- * THE INTERESTS QUESTION STAYS, for a signed-in person who has not answered
- * it: it is the only answer the product acts on at the door (it ranks home
- * and search), and `InterestChoices` is its one real, tested implementation.
- * It follows the steps as a fifth beat with no dot of its own.
- *
- * Swipe or drag, arrow keys and the dots all move between steps; every change
- * is announced in a polite live region, and only the step on screen is in the
- * accessibility tree (the other art layers are decorative).
+ * Swipe, the arrow keys (Home and End too) and the progress segments all move
+ * between steps; every change is announced in a polite live region and the
+ * new step's title takes focus when the change came from inside the flow.
+ * Only the step on screen is in the accessibility tree.
  */
 
 type Viewer = "member" | "guest";
@@ -93,33 +104,13 @@ type Slide = {
   titleA: string;
   titleB: string;
   body: string;
-  art: Art;
+  /** One sentence for a reader: what the scene shows. */
+  label: string;
 };
 
-const HERO = "/brand/glass/hero";
-const GLASS = "/brand/glass";
-
-/* A page turn: a little softer than the landing's card flick, with a hint of
-   settle rather than a bounce (critical damping here is about 28). */
-const SPRING_PAGE: SpringConfig = { stiffness: 210, damping: 25 };
-/* How far the finger must travel (share of the width) or how fast (px/s)
-   before a release turns the page. */
-const FLICK_SHARE = 0.18;
-const FLICK_SPEED = 450;
 /* Movement before a press becomes a horizontal drag rather than a tap or a
    vertical scroll. */
 const DRAG_SLOP_PX = 8;
-
-/**
- * How opaque a step's art is at distance `d` from the carousel's position.
- * The step BEHIND (lower in the stack, `d <= 0`) stays fully opaque and the
- * one arriving over it fades in: two half-faded layers over each other let
- * the ink behind them through, and the sky dimmed at the midpoint of every
- * turn. Visibility still hides a layer a whole step away.
- */
-function layerOpacity(d: number): number {
-  return d <= 0 ? 1 : Number((1 - Math.min(d, 1)).toFixed(4));
-}
 
 export function FirstRun({
   t,
@@ -145,17 +136,17 @@ export function FirstRun({
   next?: string | null;
   /**
    * What a stranger was stopped on the way to (V-18). Present, first run
-   * opens on the account choice headed with it and the steps stay one dot
-   * away; absent, it is the cold start and opens on step one.
+   * opens on the account choice headed with it and the steps stay one
+   * segment away; absent, it is the cold start and opens on step one.
    */
   arrival?: Arrival | null;
   /** A returning device going nowhere: open on the closing choice. */
   atChoice?: boolean;
   /**
    * The steps were opened from the sign-up form's "What Vallo is" link, and
-   * `next` is that form. The control under the steps then reads "Back to
-   * sign up" rather than Skip (E2E audit L-5): it already returned to the
-   * form, and nothing on the first-run path is labelled skip.
+   * `next` is that form. The control at the top then reads "Back to sign
+   * up" rather than Skip (E2E audit L-5): it already returned to the form,
+   * and nothing on the first-run path is labelled skip.
    */
   fromSignUpForm?: boolean;
   /**
@@ -167,11 +158,13 @@ export function FirstRun({
   const router = useRouter();
   const w = t.welcomeCards.twoWorlds;
   const f = t.welcomeCards.firstRun;
+  const m = t.onboardingMotion;
   const guest = viewer === "guest";
   /* Only a guest with the form to go back to: `skip` sends a guest to `next`. */
   const backToForm = guest && fromSignUpForm && isSignUpForm(next);
   const askQuestion = !guest && !asked;
-  const { quiet } = useMotionGate();
+  const gate = useMotionGate();
+  const motion = motionPlan(gate);
 
   const wall = guest && arrival ? wallHeading(arrival.reason, t.shape.wall) : null;
 
@@ -181,87 +174,26 @@ export function FirstRun({
         titleA: wall ? wall.titleA : f.choice.titleA,
         titleB: wall ? wall.titleB : f.choice.titleB,
         body: wall ? wall.body : f.choice.body,
-        art: {
-          hero: { kind: "coin" },
-          satellites: [
-            { src: `${GLASS}/search-home.png`, at: "tl" },
-            { src: `${GLASS}/user-check.png`, at: "br" },
-          ],
-          tags: [f.choice.left, f.choice.right],
-          sky: "night",
-          label: f.choice.art,
-          photo: stepPhoto(4),
-        },
+        label: m.moveIn.label,
       }
     : {
         key: "member",
         titleA: f.member.titleA,
         titleB: f.member.titleB,
         body: askQuestion ? f.member.bodyAsk : f.member.bodyDone,
-        art: {
-          hero: { kind: "coin" },
-          satellites: [
-            { src: `${GLASS}/modern-house.png`, at: "tl" },
-            { src: `${GLASS}/stays-hotel-palms.png`, at: "br" },
-          ],
-          tags: [w.property, w.stays],
-          sky: "night",
-          label: f.worldsArt,
-          photo: stepPhoto(4),
-        },
+        label: m.moveIn.label,
       };
 
   const slides: Slide[] = [
-    {
-      key: "worlds",
-      titleA: w.titleA,
-      titleB: w.titleB,
-      body: w.body,
-      art: {
-        hero: { kind: "image", src: `${HERO}/hero-property.png` },
-        satellites: [
-          { src: `${GLASS}/stays-hotel-palms.png`, at: "tr" },
-          { src: `${GLASS}/keys-home.png`, at: "bl" },
-        ],
-        tags: [w.property, w.stays],
-        sky: "dawn",
-        label: `${f.worldsArt}. ${w.property}: ${w.propertyHint}. ${w.stays}: ${w.staysHint}.`,
-        photo: stepPhoto(1),
-      },
-    },
+    { key: "worlds", titleA: w.titleA, titleB: w.titleB, body: w.body, label: m.worlds.label },
     {
       key: "verified",
       titleA: f.verified.titleA,
       titleB: f.verified.titleB,
       body: f.verified.body,
-      art: {
-        hero: { kind: "image", src: `${HERO}/hero-protected.png` },
-        satellites: [
-          { src: `${GLASS}/user-verified.png`, at: "tl" },
-          { src: `${GLASS}/id-card-check.png`, at: "br" },
-        ],
-        sky: "noon",
-        label: f.verified.art,
-        photo: stepPhoto(2),
-      },
+      label: m.know.label,
     },
-    {
-      key: "safe",
-      titleA: f.safe.titleA,
-      titleB: f.safe.titleB,
-      body: f.safe.body,
-      art: {
-        hero: { kind: "image", src: `${HERO}/hero-app.png` },
-        satellites: [
-          { src: `${GLASS}/chat-duo.png`, at: "tl" },
-          { src: `${GLASS}/receipt-check.png`, at: "br" },
-        ],
-        tags: [f.safe.left, f.safe.right],
-        sky: "dusk",
-        label: f.safe.art,
-        photo: stepPhoto(3),
-      },
-    },
+    { key: "safe", titleA: f.safe.titleA, titleB: f.safe.titleB, body: f.safe.body, label: m.talk.label },
     last,
   ];
   const total = slides.length;
@@ -273,6 +205,8 @@ export function FirstRun({
     !guest && !showCards ? "question" : "slides",
   );
   const [index, setIndex] = useState(initialIndex);
+  /* Bumped on every arrival, so the move-in figure counts again each time. */
+  const [visit, setVisit] = useState(0);
   const [announce, setAnnounce] = useState("");
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
@@ -301,10 +235,9 @@ export function FirstRun({
   };
 
   /* Every move is announced from here, the one place a step changes, so
-     the live region speaks for dots, buttons, swipes and keys alike and says
-     nothing on first paint. */
+     the live region speaks for segments, buttons, swipes and keys alike and
+     says nothing on first paint. */
   const titles = slides.map((s) => `${s.titleA} ${s.titleB}`).join("\n");
-  const titleList = titles.split("\n");
 
   const announceSlide = useCallback(
     (n: number) =>
@@ -312,11 +245,26 @@ export function FirstRun({
         f.slideLive
           .replace("{n}", String(n + 1))
           .replace("{total}", String(lastIndex + 1))
-          .replace("{title}", titleList[n] ?? ""),
+          .replace("{title}", titles.split("\n")[n] ?? ""),
       ),
-    // titleList is derived from titles.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [f.slideLive, lastIndex, titles],
+  );
+
+  const rootRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  /* Focus follows a change made from inside the flow, never the first paint. */
+  const moveFocus = useRef(false);
+
+  const land = useCallback(
+    (n: number) => {
+      setIndex(n);
+      setVisit((v) => v + 1);
+      announceSlide(n);
+      const active = document.activeElement;
+      moveFocus.current =
+        !active || active === document.body || !!rootRef.current?.contains(active);
+    },
+    [announceSlide],
   );
 
   /*
@@ -339,23 +287,28 @@ export function FirstRun({
       } catch {
         /* A sandbox that refuses history still moves the step. */
       }
-      setIndex(clamped);
-      announceSlide(clamped);
+      land(clamped);
       return true;
     },
-    [lastIndex, index, announceSlide],
+    [lastIndex, index, land],
   );
 
   useEffect(() => {
     const onPop = (e: PopStateEvent) => {
       const s = (e.state as { nfGsSlide?: unknown } | null)?.nfGsSlide;
-      const n = typeof s === "number" ? s : initialIndex;
-      setIndex(n);
-      announceSlide(n);
+      land(typeof s === "number" ? s : initialIndex);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [initialIndex, announceSlide]);
+  }, [initialIndex, land]);
+
+  /* The new step's title takes focus, so a keyboard or screen reader lands
+     on what just arrived rather than on a button that moved. */
+  useEffect(() => {
+    if (!moveFocus.current) return;
+    moveFocus.current = false;
+    titleRef.current?.focus({ preventScroll: true });
+  }, [index]);
 
   /* Reaching the end is having been shown it. Also covers the returning
      stranger who starts on the choice. */
@@ -380,103 +333,26 @@ export function FirstRun({
   useEffect(() => {
     if (beat !== "slides") return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
       const target = e.target as HTMLElement | null;
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        goTo(index + 1);
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        goTo(index - 1);
-      }
+      const to = keyStep(e.key, index, lastIndex);
+      if (to === null) return;
+      e.preventDefault();
+      goTo(to);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [beat, index, goTo]);
+  }, [beat, index, lastIndex, goTo]);
 
   /* ------------------------------------------------------------------ */
-  /* THE CAROUSEL'S ONE NUMBER, AND WHAT PAINTS IT                      */
+  /* THE DRAG                                                            */
   /* ------------------------------------------------------------------ */
 
-  const rootRef = useRef<HTMLElement>(null);
-  const pos = useRef(initialIndex);
-  /* The page's own velocity in px/s along `pos * width`, handed from a
-     release to the spring that follows it. */
-  const velocity = useRef(0);
-  const stopSpring = useRef<(() => void) | null>(null);
-  const dragging = useRef(false);
-
-  const widthOf = () => rootRef.current?.getBoundingClientRect().width || window.innerWidth || 1;
-
-  /* Writes `pos` onto the page: custom properties the CSS turns into
-     transforms and opacity. Nothing here reads layout. */
-  const paint = useCallback((p: number) => {
-    const root = rootRef.current;
-    if (!root) return;
-    const frac = Math.abs(p - Math.round(p));
-    root.style.setProperty("--nf-gs-pos", p.toFixed(4));
-    /* The dot pill stretches in transit and is at rest on a step. */
-    root.style.setProperty("--nf-gs-stretch", (1 + Math.min(frac, 0.5) * 1.4).toFixed(3));
-    root.querySelectorAll<HTMLElement>("[data-layer]").forEach((layer) => {
-      const d = Number(layer.dataset.layer) - p;
-      const a = Math.min(Math.abs(d), 1);
-      layer.style.setProperty("--d", d.toFixed(4));
-      layer.style.setProperty("--a", a.toFixed(4));
-      layer.style.opacity = String(layerOpacity(d));
-      layer.style.visibility = a >= 1 ? "hidden" : "visible";
-    });
-    root.querySelectorAll<HTMLElement>("[data-dot]").forEach((dot) => {
-      const a = Math.min(Math.abs(Number(dot.dataset.dot) - p), 1);
-      dot.style.setProperty("--a", a.toFixed(4));
-    });
-  }, []);
-
-  /* Spring `pos` to a step from wherever it is now, carrying any throw. */
-  const settleOn = useCallback(
-    (to: number) => {
-      stopSpring.current?.();
-      stopSpring.current = null;
-      if (quiet) {
-        pos.current = to;
-        velocity.current = 0;
-        paint(to);
-        return;
-      }
-      const width = widthOf();
-      stopSpring.current = springTo(
-        { x: pos.current * width, y: 0 },
-        { x: to * width, y: 0 },
-        { vx: velocity.current, vy: 0 },
-        (x) => {
-          pos.current = x / width;
-          paint(pos.current);
-        },
-        () => {
-          stopSpring.current = null;
-        },
-        SPRING_PAGE,
-      );
-      velocity.current = 0;
-    },
-    [quiet, paint],
-  );
-
-  /* The first paint is the server's (inline styles below); this only keeps
-     the numbers true if the beat comes back to the steps. */
-  useLayoutEffect(() => {
-    if (beat === "slides") paint(pos.current);
-  }, [beat, paint]);
-
-  /* Every change of step, from any source, springs the art to it. */
-  useEffect(() => {
-    if (beat !== "slides" || dragging.current) return;
-    settleOn(index);
-  }, [index, beat, settleOn]);
-
-  useEffect(() => () => stopSpring.current?.(), []);
-
-  /* THE DRAG. A press becomes a drag only once it has moved sideways more
-     than it has moved up or down; a vertical move is left to the page. */
+  /* A press becomes a drag only once it has moved sideways more than up or
+     down; a vertical move is left to the page. While it drags, the scenes
+     follow the finger (`dragPose`) and the words lean with it; the release
+     either turns the step (`swipeStep`) or lets everything settle back. */
   const press = useRef<{
     id: number;
     x: number;
@@ -485,8 +361,32 @@ export function FirstRun({
     samples: { t: number; x: number; y: number }[];
   } | null>(null);
 
-  const setDragShift = (px: number) => {
-    rootRef.current?.style.setProperty("--nf-gs-drag", `${px.toFixed(1)}px`);
+  const widthOf = () => rootRef.current?.getBoundingClientRect().width || window.innerWidth || 1;
+
+  const paintDrag = (dx: number | null) => {
+    const root = rootRef.current;
+    if (!root) return;
+    const scenes = root.querySelectorAll<HTMLElement>("[data-om-scene]");
+    if (dx === null) {
+      root.removeAttribute("data-dragging");
+      root.style.removeProperty("--om-lean");
+      scenes.forEach((el) => {
+        el.style.removeProperty("--om-shift");
+        el.style.removeProperty("--om-alpha");
+      });
+      return;
+    }
+    root.setAttribute("data-dragging", "");
+    const width = widthOf();
+    /* Past either end the scenes resist: a third of the pull. */
+    const pastEnd = (dx > 0 && index === 0) || (dx < 0 && index === lastIndex);
+    const share = (pastEnd ? dx / 3 : dx) / width;
+    root.style.setProperty("--om-lean", `${(dx * (pastEnd ? 0.06 : 0.12)).toFixed(1)}px`);
+    scenes.forEach((el) => {
+      const pose = dragPose(Number(el.dataset.omScene) - index, share);
+      el.style.setProperty("--om-shift", String(pose.shift));
+      el.style.setProperty("--om-alpha", String(pastEnd && pose.shift === share ? 1 : pose.opacity));
+    });
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLElement>) => {
@@ -503,10 +403,6 @@ export function FirstRun({
     if (p.axis === null) {
       if (Math.abs(dx) > DRAG_SLOP_PX && Math.abs(dx) > Math.abs(dy)) {
         p.axis = "x";
-        dragging.current = true;
-        stopSpring.current?.();
-        stopSpring.current = null;
-        rootRef.current?.setAttribute("data-dragging", "");
         try {
           e.currentTarget.setPointerCapture(e.pointerId);
         } catch {
@@ -522,38 +418,25 @@ export function FirstRun({
     if (p.axis !== "x") return;
     p.samples.push({ t: e.timeStamp, x: e.clientX, y: e.clientY });
     if (p.samples.length > 8) p.samples.shift();
-    const width = widthOf();
-    if (quiet) {
-      /* No physics: the words lean with the finger, the art stays. */
-      setDragShift(dx * 0.18);
-      return;
-    }
-    let target = index - dx / width;
-    /* Past either end the page resists, and never passes a quarter; the
-       words resist with it. */
-    const pastEnd = target < 0 || target > lastIndex;
-    if (target < 0) target = -rubber(-target * width, width * 0.25) / width;
-    else if (target > lastIndex) target = lastIndex + rubber((target - lastIndex) * width, width * 0.25) / width;
-    pos.current = target;
-    paint(target);
-    setDragShift(pastEnd ? rubber(dx, width * 0.06) : dx * 0.18);
+    /* Quiet: nothing follows the finger; the release still turns the step. */
+    if (motion.follow) paintDrag(dx);
   };
 
   const endPress = (e: React.PointerEvent<HTMLElement>, cancelled: boolean) => {
     const p = press.current;
     press.current = null;
     if (!p || p.id !== e.pointerId || p.axis !== "x") return;
-    dragging.current = false;
-    rootRef.current?.removeAttribute("data-dragging");
-    setDragShift(0);
-    const { vx } = releaseVelocity(p.samples);
-    const dir = cancelled
-      ? 0
-      : flickDirection(e.clientX - p.x, e.clientY - p.y, vx, widthOf() * FLICK_SHARE, FLICK_SPEED);
-    /* The finger's speed, turned into the page's (the page moves the other
-       way), so the spring picks up the throw. */
-    velocity.current = -vx;
-    if (dir === 0 || !goTo(index + dir)) settleOn(index);
+    paintDrag(null);
+    if (cancelled) return;
+    const to = swipeStep({
+      dx: e.clientX - p.x,
+      dy: e.clientY - p.y,
+      vx: releaseVelocity(p.samples).vx,
+      width: widthOf(),
+      index,
+      last: lastIndex,
+    });
+    goTo(to);
   };
 
   /* Leaving first run for the app is a full navigation, replacing this entry.
@@ -582,11 +465,12 @@ export function FirstRun({
 
   const skip = () => {
     setError("");
-    if (guest) {
-      if (next) {
-        router.push(onward(next));
-        return;
-      }
+    const plan = skipPlan({ guest, next });
+    if (plan.kind === "go") {
+      router.push(onward(plan.to));
+      return;
+    }
+    if (plan.kind === "ending") {
       remember();
       goTo(lastIndex);
       return;
@@ -599,7 +483,7 @@ export function FirstRun({
         return;
       }
       forgetFirstInterest();
-      leave(next ?? "/home");
+      leave(plan.to);
     });
   };
 
@@ -659,6 +543,8 @@ export function FirstRun({
   }
 
   const stepName = (n: number) => w.step.replace("{n}", String(n + 1)).replace("{total}", String(total));
+  const fills = progressFills(index, total);
+  const tag = "en-NG";
 
   const primaryDoor = signInFirst
     ? { href: signInHref, label: f.choice.signIn, testId: "welcome-sign-in" }
@@ -667,211 +553,224 @@ export function FirstRun({
     ? { href: signUpHref, label: f.choice.create, testId: "welcome-create" }
     : { href: signInHref, label: f.choice.signIn, testId: "welcome-sign-in" };
 
+  const scene = (key: string, i: number): ReactNode => {
+    const priority = i === initialIndex;
+    switch (key) {
+      case "worlds":
+        return <WorldsScene t={t} priority={priority} />;
+      case "verified":
+        return <KnowScene copy={m} priority={priority} />;
+      case "safe":
+        return <TalkScene copy={m} priority={priority} tag={tag} />;
+      default:
+        return (
+          <MoveInScene
+            t={t}
+            copy={m}
+            priority={priority}
+            active={i === index}
+            visit={visit}
+            count={motion.count}
+            tag={tag}
+          />
+        );
+    }
+  };
+
+  const showBack = index > 0 && index !== initialIndex;
+
   return (
-    <div className="nf-gs-steps nf-slate" data-testid="first-run">
-      {/* Back, on steps two to four only: reference 42 draws none on the
-          first, where back leaves first run the way it came. It steps
-          through the same history the hardware button does. */}
-      {index !== initialIndex && (
-        <BackControl
-          onBack={() => {
-            /* A step entry always has the previous step behind it; anything
-               else (a restored tab) steps without touching history. */
-            if (isInPageStep(window.history.state)) window.history.back();
-            else {
-              setIndex(index - 1);
-              announceSlide(index - 1);
-            }
-          }}
-          label={t.common.back}
-          surface="round"
-          className="nf-gs-back"
-          data-testid="welcome-back"
-        />
-      )}
+    <section
+      ref={rootRef}
+      className="nf-om"
+      data-testid="first-run"
+      aria-roledescription="carousel"
+      aria-label={f.carousel}
+      data-step={index + 1}
+      data-last={onLast ? "" : undefined}
+      data-quiet={motion.slide ? undefined : ""}
+      data-still={motion.idle ? undefined : ""}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={(e) => endPress(e, false)}
+      onPointerCancel={(e) => endPress(e, true)}
+    >
+      <span className="nf-om-glow" aria-hidden="true" />
 
-      <section
-        ref={rootRef}
-        className="nf-gs-carousel"
-        aria-roledescription="carousel"
-        aria-label={f.carousel}
-        data-quiet={quiet ? "" : undefined}
-        style={{ "--nf-gs-pos": initialIndex, "--nf-gs-stretch": 1 } as CSSProperties}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={(e) => endPress(e, false)}
-        onPointerCancel={(e) => endPress(e, true)}
-      >
-        <div className="nf-gs-art">
-          {slides.map((s, i) => {
-            const d = i - initialIndex;
-            const a = Math.min(Math.abs(d), 1);
-            return (
-              <div
-                key={s.key}
-                className="nf-gs-layer"
-                data-layer={i}
-                data-sky={s.art.sky}
-                aria-hidden="true"
-                style={
-                  {
-                    "--d": d,
-                    "--a": a,
-                    opacity: layerOpacity(d),
-                    visibility: a >= 1 ? "hidden" : "visible",
-                  } as CSSProperties
-                }
-              >
-                <StepArt art={s.art} priority={i === initialIndex} />
-              </div>
-            );
-          })}
-          {/* On the founder's pictures the lockup follows the theme (a light
-              picture needs the dark wordmark); on the glass skies it is the
-              night one. */}
-          <Lockup themed={slides.some((s) => s.art.photo)} />
-          {/* What the picture on screen shows, for a reader. */}
-          <p className="sr-only">{slide.art.label}</p>
-        </div>
-
-        <div className="nf-gs-copy">
-          <div className="nf-gs-stack">
-            {/* Every step's words, invisible, in the same cell as the step on
-                screen: the block is as tall as the longest step at this width,
-                so the dots and the controls never jump between steps, and no
-                line count has to be guessed per phone. */}
-            {slides.map((s) => (
-              <div key={`size-${s.key}`} className="nf-gs-slide nf-gs-slide--sizer" aria-hidden="true">
-                <p className="nf-gs-title">
-                  <span className="nf-gs-title__a">{s.titleA}</span>
-                  <span className="nf-gs-title__b">{s.titleB}</span>
-                </p>
-                <p className="nf-gs-sub">{s.body}</p>
-              </div>
-            ))}
-            <div
-              key={slide.key}
-              className="nf-gs-slide"
-              role="group"
-              aria-roledescription="slide"
-              aria-label={stepName(index)}
-              data-slide={slide.key}
+      <div className="nf-om-top">
+        <span className="nf-om-top__side">
+          {/* Back, from step two on (reference 51 draws none on the first,
+              where back leaves first run the way it came). It steps through
+              the same history the hardware button does. */}
+          {showBack && (
+            <BackControl
+              onBack={() => {
+                /* A step entry always has the previous step behind it;
+                   anything else (a restored tab) steps without history. */
+                if (isInPageStep(window.history.state)) window.history.back();
+                else land(index - 1);
+              }}
+              label={t.common.back}
+              surface="round"
+              className="nf-om-back"
+              data-testid="welcome-back"
+            />
+          )}
+        </span>
+        <Lockup onCanvas />
+        <span className="nf-om-top__side nf-om-top__side--end">
+          {!onLast && (
+            <button
+              type="button"
+              className="nf-om-skip"
+              onClick={skip}
+              disabled={pending}
+              data-testid={backToForm ? "welcome-back-to-sign-up" : "welcome-skip-all"}
             >
-              <h1 className="nf-gs-title">
-                <span className="nf-gs-title__a">
-                  <RiseWords text={slide.titleA} />
-                </span>
-                <span className="nf-gs-title__b">
-                  <RiseWords text={slide.titleB} start={wordsIn(slide.titleA)} />
-                </span>
-              </h1>
-              <p
-                className="nf-gs-sub nf-gs-rise"
-                style={{ "--nf-i": wordsIn(slide.titleA) + wordsIn(slide.titleB) } as CSSProperties}
-              >
-                {slide.body}
-              </p>
-            </div>
-          </div>
+              {backToForm ? t.welcomeCards.backToSignUp : t.welcomeCards.skip}
+            </button>
+          )}
+        </span>
+      </div>
 
-          <div className="nf-gs-dots" role="group" aria-label={t.welcomeCards.label}>
-            <span className="nf-gs-dots__bar" aria-hidden="true" />
-            {slides.map((s, i) => {
-              const a = Math.min(Math.abs(i - initialIndex), 1);
-              return (
-                <button
-                  key={s.key}
-                  type="button"
-                  className="nf-gs-dot"
-                  data-dot={i}
-                  style={{ "--a": a } as CSSProperties}
-                  aria-label={stepName(i)}
-                  aria-current={i === index ? "step" : undefined}
-                  onClick={() => goTo(i)}
-                  data-testid={`welcome-dot-${i + 1}`}
-                >
-                  <span />
-                </button>
-              );
-            })}
+      <div className="nf-om-progress" role="group" aria-label={m.progress}>
+        {slides.map((s, i) => (
+          <button
+            key={s.key}
+            type="button"
+            className="nf-om-seg"
+            data-filled={fills[i] ? "" : undefined}
+            data-current={i === index ? "" : undefined}
+            aria-label={stepName(i)}
+            aria-current={i === index ? "step" : undefined}
+            onClick={() => goTo(i)}
+            data-testid={`welcome-dot-${i + 1}`}
+          >
+            <span className="nf-om-seg__track">
+              <span className="nf-om-seg__fill" />
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="nf-om-stage" aria-hidden="true">
+        {slides.map((s, i) => {
+          const state = sceneState(i, index);
+          return (
+            <div
+              key={s.key}
+              className="nf-om-scene"
+              data-om-scene={i}
+              data-state={state}
+              data-scene={s.key}
+              style={{ visibility: Math.abs(i - index) > 1 ? "hidden" : undefined } as CSSProperties}
+            >
+              {scene(s.key, i)}
+            </div>
+          );
+        })}
+      </div>
+      {/* What the scene on screen shows, for a reader. */}
+      <p className="sr-only">{slide.label}</p>
+
+      <div className="nf-om-copy">
+        {/* Every step's words, invisible, in the same cell as the step on
+            screen: the block is as tall as the longest step at this width, so
+            the pill never jumps between steps. */}
+        {slides.map((s) => (
+          <div key={`size-${s.key}`} className="nf-om-words nf-om-words--sizer" aria-hidden="true">
+            <p className="nf-om-title">
+              <span className="nf-om-title__a">{s.titleA}</span> <span className="nf-om-title__b">{s.titleB}</span>
+            </p>
+            <p className="nf-om-body">{s.body}</p>
           </div>
+        ))}
+        <div
+          key={`${slide.key}-${visit}`}
+          className="nf-om-words"
+          role="group"
+          aria-roledescription="slide"
+          aria-label={stepName(index)}
+          data-slide={slide.key}
+        >
+          <h1 ref={titleRef} tabIndex={-1} className="nf-om-title">
+            <span className="nf-om-title__a">{slide.titleA}</span>{" "}
+            <span className="nf-om-title__b">{slide.titleB}</span>
+          </h1>
+          <p className="nf-om-body">{slide.body}</p>
         </div>
+      </div>
 
-        <p className="sr-only" aria-live="polite" aria-atomic="true">
-          {announce}
-        </p>
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {announce}
+      </p>
 
-        <div className={onLast ? "nf-gs-foot nf-gs-foot--last" : "nf-gs-foot"}>
-          {!onLast ? (
-            <>
-              <button
-                type="button"
-                className="nf-gs-skip"
-                onClick={skip}
-                disabled={pending}
-                data-testid={backToForm ? "welcome-back-to-sign-up" : "welcome-skip-all"}
-              >
-                <span>{backToForm ? t.welcomeCards.backToSignUp : t.welcomeCards.skip}</span>
-                <UiIcon name="chevron-right" size={16} />
-              </button>
-              <Button
-                variant="primary"
-                size="lg"
-                className="nf-slate-pill nf-gs-next"
-                onClick={() => goTo(index + 1)}
-                data-testid={index === 0 ? "welcome-get-started" : "welcome-next"}
-              >
-                <span>{f.next}</span>
-                <UiIcon name="arrow-right" size={20} />
-              </Button>
-            </>
-          ) : guest ? (
-            <div className="nf-gs-doors">
-              <ButtonLink
-                variant="primary"
-                size="lg"
-                full
-                href={primaryDoor.href}
-                onClick={door(primaryDoor.href)}
-                className="nf-slate-pill nf-gs-cta"
-                data-testid={primaryDoor.testId}
-              >
-                {primaryDoor.label}
-              </ButtonLink>
-              <ButtonLink
-                variant="ghost"
-                size="lg"
-                full
-                href={secondDoor.href}
-                onClick={door(secondDoor.href)}
-                className="nf-gs-second"
-                data-testid={secondDoor.testId}
-              >
-                {secondDoor.label}
-              </ButtonLink>
-            </div>
-          ) : (
-            <Button
+      <div className="nf-om-foot">
+        {!onLast ? (
+          <Button
+            variant="primary"
+            size="lg"
+            full
+            className="nf-om-cta"
+            onClick={() => goTo(index + 1)}
+            data-testid={index === 0 ? "welcome-get-started" : "welcome-next"}
+          >
+            <span>{m.continue}</span>
+            <span className="nf-om-cta__arrow" aria-hidden="true">
+              <UiIcon name="arrow-right" size={18} />
+            </span>
+          </Button>
+        ) : guest ? (
+          <div className="nf-om-doors">
+            <ButtonLink
               variant="primary"
               size="lg"
               full
-              className="nf-slate-pill nf-gs-cta"
-              onClick={onDone}
-              loading={pending}
-              data-testid="welcome-continue"
+              href={primaryDoor.href}
+              onClick={door(primaryDoor.href)}
+              className="nf-om-cta"
+              data-testid={primaryDoor.testId}
             >
-              <span>{f.member.continue}</span>
-              <UiIcon name="arrow-right" size={20} />
-            </Button>
-          )}
+              <span>{primaryDoor.label}</span>
+              <span className="nf-om-cta__arrow" aria-hidden="true">
+                <UiIcon name="arrow-right" size={18} />
+              </span>
+            </ButtonLink>
+            <ButtonLink
+              variant="ghost"
+              size="lg"
+              full
+              href={secondDoor.href}
+              onClick={door(secondDoor.href)}
+              className="nf-om-second"
+              data-testid={secondDoor.testId}
+            >
+              {secondDoor.label}
+            </ButtonLink>
+          </div>
+        ) : (
+          <Button
+            variant="primary"
+            size="lg"
+            full
+            className="nf-om-cta"
+            onClick={onDone}
+            loading={pending}
+            data-testid="welcome-continue"
+          >
+            <span>{f.member.continue}</span>
+            <span className="nf-om-cta__arrow" aria-hidden="true">
+              <UiIcon name="arrow-right" size={18} />
+            </span>
+          </Button>
+        )}
 
-          {error && (
-            <p role="alert" className="nf-gs-error">
-              {error}
-            </p>
-          )}
-        </div>
-      </section>
-    </div>
+        {error && (
+          <p role="alert" className="nf-gs-error">
+            {error}
+          </p>
+        )}
+      </div>
+    </section>
   );
 }

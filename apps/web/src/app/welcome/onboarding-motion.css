@@ -1,0 +1,979 @@
+/*
+ * Get started IN MOTION (30 September), to the founder's onboarding video
+ * (`docs/design/references/2026-09-29/51` to `53`). Drawn by
+ * `components/app/welcome/FirstRun.tsx` (the chrome, the steps) and
+ * `OnboardingScenes.tsx` (the four scenes). Every class starts `nf-om`.
+ *
+ * THE SHAPE, top to bottom on a phone: back, the lockup and Skip; the
+ * segmented progress; the scene (the founder's clay art in a rounded card,
+ * with chips arriving over it); the title and body; one pill. On a wide
+ * screen the scene takes the left and the rest stacks on the right.
+ *
+ * MOTION, transform and opacity only:
+ *   step change   the scenes slide sideways and crossfade (`--om-shift`,
+ *                 `--om-alpha`, written by a drag and settled by the state)
+ *   arrival       the scene's pieces pop in one after another (`--nf-om-i`),
+ *                 then the title and the body rise
+ *   idle          each chip floats gently; the Property and Stays switch
+ *                 flips; the scan line sweeps; the Continue arrow nudges
+ * Quiet (reduced motion, Calm, Off, and `data-quiet` once hydrated): every
+ * step lands at once and nothing staggers, floats or counts. Still
+ * (`data-still`: Living backgrounds off or data saver) keeps the arrivals and
+ * drops everything that loops. No filters and no blur anywhere, for low-end
+ * Android.
+ */
+@layer components {
+  .nf-om {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "top" "progress" "stage" "copy" "foot";
+    row-gap: var(--nf-space-sm);
+    width: 100%;
+    max-width: 30rem;
+    height: 100vh;
+    height: 100svh;
+    min-height: 33rem;
+    margin-inline: auto;
+    padding: calc(env(safe-area-inset-top, 0px) + var(--nf-space-xs)) var(--nf-space-md)
+      max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
+    color: var(--nf-content-primary);
+    /* The page scrolls up and down; sideways is the steps'. */
+    touch-action: pan-y;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .nf-om[data-dragging] {
+    cursor: grabbing;
+  }
+
+  /* The soft lavender-white wash at the top (reference 44); on the night it
+     is a faint blue lift. */
+  .nf-om-glow {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: 70vh;
+    pointer-events: none;
+    background: radial-gradient(
+      110% 70% at 50% 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 16%, transparent),
+      transparent 72%
+    );
+  }
+  :root[data-theme="light"] .nf-om-glow {
+    background: radial-gradient(
+      110% 70% at 50% 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-canvas)),
+      transparent 75%
+    );
+  }
+
+  /* ---------------------------------------------------------- the top bar */
+
+  .nf-om-top {
+    grid-area: top;
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+  .nf-om-top__side {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    align-items: center;
+  }
+  .nf-om-top__side--end {
+    justify-content: flex-end;
+  }
+  .nf-om-top .nf-gs-lockup {
+    position: static;
+    translate: none;
+    flex: none;
+    filter: none;
+  }
+  .nf-om-skip {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    padding: 0 var(--nf-space-sm);
+    border: 0;
+    border-radius: var(--nf-radius-pill);
+    background: transparent;
+    color: var(--nf-content-secondary);
+    font: inherit;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-om-skip:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-om-skip:active {
+    transform: scale(0.96);
+  }
+  .nf-om-skip:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+
+  /* ------------------------------------------------------- the progress */
+
+  .nf-om-progress {
+    grid-area: progress;
+    display: flex;
+    gap: var(--nf-space-xs);
+  }
+  .nf-om-seg {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  /* The tap target is 44px tall; the bar itself is four. */
+  .nf-om-seg::after {
+    content: "";
+    position: absolute;
+    inset: -0.5rem 0;
+  }
+  .nf-om-seg:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-pill);
+  }
+  .nf-om-seg__track {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 4px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+  }
+  .nf-om-seg__fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--nf-brand-primary);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--nf-duration-entrance) var(--nf-ease-entrance);
+  }
+  :root:not([data-theme="light"]) .nf-om-seg__fill {
+    background: var(--nf-brand-quiet);
+  }
+  .nf-om-seg[data-filled] .nf-om-seg__fill {
+    transform: scaleX(1);
+  }
+  /* Where you are in the flow: the spark (spec section 18). */
+  .nf-om-seg[data-current] .nf-om-seg__fill,
+  :root:not([data-theme="light"]) .nf-om-seg[data-current] .nf-om-seg__fill {
+    background: var(--nf-spark);
+  }
+
+  /* ---------------------------------------------------------- the stage */
+
+  .nf-om-stage {
+    grid-area: stage;
+    position: relative;
+    min-height: 12rem;
+  }
+  .nf-om-scene {
+    --om-shift: 1;
+    --om-alpha: 0;
+    position: absolute;
+    inset: 0;
+    opacity: var(--om-alpha);
+    transform: translate3d(calc(var(--om-shift) * 42%), 0, 0);
+    transition:
+      transform 640ms var(--nf-ease-entrance),
+      opacity 420ms var(--nf-ease-standard);
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+  .nf-om-scene[data-state="active"] {
+    --om-shift: 0;
+    --om-alpha: 1;
+  }
+  .nf-om-scene[data-state="prev"] {
+    --om-shift: -1;
+  }
+  .nf-om[data-dragging] :is(.nf-om-scene, .nf-om-copy) {
+    transition: none;
+  }
+
+  .nf-om-pop {
+    position: absolute;
+    display: block;
+  }
+  .nf-om-float {
+    display: inline-block;
+  }
+  .nf-om-art-wrap {
+    inset: 1.25rem 0.75rem 2.5rem;
+  }
+  .nf-om-art {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-2xl);
+    background: var(--nf-surface-artwork);
+    box-shadow: var(--nf-elev-4);
+  }
+  /* The founder's pictures leave their lower third empty for a fade; the
+     card leans in on the objects instead. A static transform, never
+     animated. */
+  .nf-om-art__img {
+    object-fit: cover;
+    object-position: 50% 30%;
+    transform: scale(1.3);
+    transform-origin: 50% 28%;
+  }
+  /* The art's own sky meets the card's bottom edge softly. */
+  .nf-om-art::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 38%;
+    background: linear-gradient(to top, color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent), transparent);
+  }
+
+  /* Where a piece sits over the art. */
+  .nf-om-at--tl {
+    top: 0.25rem;
+    left: 0;
+  }
+  .nf-om-at--tr {
+    top: 0.5rem;
+    right: 0;
+  }
+  .nf-om-at--bl {
+    bottom: 4.25rem;
+    left: 0;
+  }
+  .nf-om-at--br {
+    bottom: 4rem;
+    right: 0;
+  }
+  .nf-om-at--br2 {
+    bottom: 0.75rem;
+    right: 1.25rem;
+  }
+  .nf-om-at--bc {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+  }
+  .nf-om-at--mr {
+    top: 38%;
+    right: 0;
+  }
+  .nf-om-at--keys {
+    top: 0;
+    right: 0.25rem;
+  }
+  .nf-om-at--total {
+    bottom: 0;
+    left: 1.5rem;
+    right: 1.5rem;
+  }
+
+  /* ---------------------------------------------------------- the chips */
+
+  .nf-om-chip,
+  .nf-om-pay {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    max-width: 15.5rem;
+    padding: 0.4rem 0.9rem 0.4rem 0.4rem;
+    border: 1px solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-elev-3);
+    color: var(--nf-content-primary);
+    text-align: left;
+  }
+  .nf-om-chip__plate {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-2);
+  }
+  .nf-om-chip__plate .nf-icon3d {
+    width: 2rem;
+    height: 2rem;
+  }
+  .nf-om-chip__words {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .nf-om-chip__title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    line-height: 1.25;
+  }
+  .nf-om-chip__hint {
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+  }
+  .nf-om-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.45rem;
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .nf-om-pill,
+  .nf-om-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: 0.45rem 0.85rem;
+    border: 1px solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-elev-3);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .nf-om-badge {
+    border-color: transparent;
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-om-pill__dots {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .nf-om-pill__dots > span {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  :root:not([data-theme="light"]) .nf-om-pill__dots > span {
+    background: var(--nf-brand-quiet);
+  }
+
+  /* Property and Stays: a two-sided switch whose thumb flips between them. */
+  .nf-om-switch {
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0.25rem;
+    border: 1px solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-elev-3);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+  }
+  .nf-om-switch__side {
+    position: relative;
+    z-index: 1;
+    padding: 0.4rem 1rem;
+    text-align: center;
+    color: var(--nf-content-primary);
+  }
+  .nf-om-switch__thumb {
+    position: absolute;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    left: 0.25rem;
+    width: calc(50% - 0.25rem);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-tint-3);
+  }
+
+  /* The scan frame over the shield and the ID card. */
+  .nf-om-scan {
+    top: 22%;
+    left: 20%;
+    right: 20%;
+    bottom: 38%;
+  }
+  .nf-om-scan__frame {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+  }
+  .nf-om-scan__corner {
+    position: absolute;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid var(--nf-content-on-media);
+  }
+  .nf-om-scan__corner--tl {
+    top: 0;
+    left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-top-left-radius: var(--nf-radius-md);
+  }
+  .nf-om-scan__corner--tr {
+    top: 0;
+    right: 0;
+    border-left: 0;
+    border-bottom: 0;
+    border-top-right-radius: var(--nf-radius-md);
+  }
+  .nf-om-scan__corner--bl {
+    bottom: 0;
+    left: 0;
+    border-right: 0;
+    border-top: 0;
+    border-bottom-left-radius: var(--nf-radius-md);
+  }
+  .nf-om-scan__corner--br {
+    bottom: 0;
+    right: 0;
+    border-left: 0;
+    border-top: 0;
+    border-bottom-right-radius: var(--nf-radius-md);
+  }
+  .nf-om-scan__line {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 42%,
+      color-mix(in oklab, var(--nf-content-on-media) 55%, transparent) 50%,
+      transparent 58%
+    );
+  }
+
+  /* The conversation. */
+  .nf-om-bubble {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-space-2xs);
+    max-width: 14rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--nf-radius-xl);
+    box-shadow: var(--nf-elev-3);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 550;
+    line-height: 1.3;
+    text-align: left;
+  }
+  .nf-om-bubble--in {
+    border: 1px solid var(--nf-border-subtle);
+    border-bottom-left-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+  }
+  .nf-om-bubble--out {
+    border-bottom-right-radius: var(--nf-radius-sm);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-om-typing {
+    position: absolute;
+    display: inline-flex;
+    gap: 4px;
+    padding: 0.75rem 0.9rem;
+    border-radius: var(--nf-radius-xl);
+    border-bottom-right-radius: var(--nf-radius-sm);
+    background: var(--nf-brand-primary);
+    opacity: 0;
+  }
+  .nf-om-typing > span {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-brand);
+  }
+  .nf-om-pay {
+    max-width: 21rem;
+    padding-right: 0.6rem;
+  }
+  .nf-om-pay__amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    margin-left: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+  }
+
+  /* The move-in total. */
+  .nf-om-keys .nf-icon3d {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+  .nf-om-total {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-md);
+    border: 1px solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-xl);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-elev-4);
+    color: var(--nf-content-primary);
+  }
+  .nf-om-total__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+  }
+  .nf-om-total__label {
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-om-total__figure {
+    font-size: var(--nf-text-h1);
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .nf-om-total__bar {
+    display: flex;
+    gap: 3px;
+    height: 6px;
+  }
+  .nf-om-total__part {
+    display: block;
+    border-radius: var(--nf-radius-pill);
+    transform-origin: left center;
+  }
+  .nf-om-total__part--a {
+    flex: 62 1 0;
+    background: var(--nf-brand-primary);
+  }
+  .nf-om-total__part--b {
+    flex: 20 1 0;
+    background: var(--nf-brand-quiet);
+  }
+  .nf-om-total__part--c {
+    flex: 18 1 0;
+    background: var(--nf-brand-tint-4);
+  }
+  .nf-om-total__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+  }
+  .nf-om-total__key {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .nf-om-total__key::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-om-total__key--a::before {
+    background: var(--nf-brand-primary);
+  }
+  .nf-om-total__key--b::before {
+    background: var(--nf-brand-quiet);
+  }
+  .nf-om-total__key--c::before {
+    background: var(--nf-brand-tint-4);
+  }
+
+  /* ---------------------------------------------------------- the words */
+
+  .nf-om-copy {
+    grid-area: copy;
+    display: grid;
+    transform: translate3d(var(--om-lean, 0px), 0, 0);
+    transition: transform var(--nf-duration-slow) var(--nf-ease-entrance);
+  }
+  .nf-om-words {
+    grid-area: 1 / 1;
+    text-align: center;
+  }
+  .nf-om-words--sizer {
+    visibility: hidden;
+  }
+  .nf-om-title {
+    margin: 0;
+    font-size: clamp(1.75rem, 1.1rem + 2.6vw, 2.25rem);
+    font-weight: 750;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+  .nf-om-title:focus {
+    outline: none;
+  }
+  .nf-om-title:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 4px;
+    border-radius: var(--nf-radius-sm);
+  }
+  .nf-om-title__a,
+  .nf-om-title__b {
+    display: block;
+  }
+  .nf-om-title__b {
+    color: var(--nf-content-link);
+  }
+  :root[data-theme="light"] .nf-om-title__b {
+    color: var(--nf-brand-primary);
+  }
+  .nf-om-body {
+    max-width: 34ch;
+    margin: var(--nf-space-xs) auto 0;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body);
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  /* ------------------------------------------------------------ the pill */
+
+  .nf-om-foot {
+    grid-area: foot;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    padding-top: var(--nf-space-xs);
+  }
+  .nf-om-doors {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-om .nf-om-cta {
+    min-height: 3.5rem;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body);
+    font-weight: 650;
+    gap: var(--nf-space-xs);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-om .nf-om-cta:active {
+    transform: scale(0.97);
+  }
+  .nf-om .nf-om-second {
+    min-height: 3rem;
+    border-radius: var(--nf-radius-pill);
+  }
+  .nf-om-cta__arrow {
+    display: inline-flex;
+  }
+
+  /* ---------------------------------------------------------- the motion */
+
+  /* The arrival: art first, then each piece, then the title and the body. */
+  .nf-om-scene[data-state="active"] .nf-om-pop {
+    animation: nf-om-pop 620ms var(--nf-ease-spring) both;
+    animation-delay: calc(120ms + var(--nf-om-i, 0) * 110ms);
+  }
+  .nf-om-scene[data-state="active"] .nf-om-art-wrap {
+    animation-name: nf-om-rise-art;
+    animation-timing-function: var(--nf-ease-entrance);
+  }
+  .nf-om-scene[data-state="active"] .nf-om-pop--late {
+    animation-delay: calc(900ms + var(--nf-om-i, 0) * 140ms);
+  }
+  .nf-om-words:not(.nf-om-words--sizer) > .nf-om-title {
+    animation: nf-om-rise 560ms var(--nf-ease-entrance) 320ms both;
+  }
+  .nf-om-words:not(.nf-om-words--sizer) > .nf-om-body {
+    animation: nf-om-rise 560ms var(--nf-ease-entrance) 440ms both;
+  }
+
+  /* The idle: once arrived, each chip floats; the loops start after the
+     arrival has settled. */
+  .nf-om-scene[data-state="active"] .nf-om-float {
+    animation: nf-om-float 5.2s ease-in-out infinite alternate;
+    animation-delay: calc(1100ms + var(--nf-om-i, 0) * 260ms);
+  }
+  .nf-om-scene[data-state="active"] .nf-om-switch__thumb {
+    animation: nf-om-flip 4.8s var(--nf-ease-standard) 1.4s infinite;
+  }
+  .nf-om-scene[data-state="active"] .nf-om-scan__frame {
+    animation: nf-om-breathe 3.2s ease-in-out 1s infinite alternate;
+  }
+  .nf-om-scene[data-state="active"] .nf-om-scan__line {
+    animation: nf-om-sweep 2.4s ease-in-out 600ms infinite alternate;
+  }
+  .nf-om-scene[data-state="active"] .nf-om-pill__dots > span {
+    animation: nf-om-dot 1.8s ease-in-out 1.2s infinite;
+  }
+  .nf-om-pill__dots > span:nth-child(2) {
+    animation-delay: 1.4s;
+  }
+  .nf-om-pill__dots > span:nth-child(3) {
+    animation-delay: 1.6s;
+  }
+  .nf-om-scene[data-state="active"] .nf-om-typing {
+    animation: nf-om-typing 1000ms var(--nf-ease-standard) 620ms both;
+  }
+  .nf-om-scene[data-state="active"] .nf-om-typing > span {
+    animation: nf-om-bob 600ms ease-in-out infinite alternate;
+  }
+  .nf-om-typing > span:nth-child(2) {
+    animation-delay: 150ms;
+  }
+  .nf-om-typing > span:nth-child(3) {
+    animation-delay: 300ms;
+  }
+  .nf-om-scene[data-state="active"] .nf-om-total__part {
+    animation: nf-om-grow 700ms var(--nf-ease-entrance) both;
+    animation-delay: 700ms;
+  }
+  .nf-om-scene[data-state="active"] .nf-om-total__part--b {
+    animation-delay: 820ms;
+  }
+  .nf-om-scene[data-state="active"] .nf-om-total__part--c {
+    animation-delay: 940ms;
+  }
+  .nf-om-cta__arrow {
+    animation: nf-om-nudge 2.6s var(--nf-ease-standard) 1.6s infinite;
+  }
+
+  /* A still background: the arrivals stay, nothing loops. */
+  .nf-om[data-still] :is(.nf-om-float, .nf-om-switch__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing > span, .nf-om-cta__arrow) {
+    animation: none;
+  }
+
+  /* Quiet: every step lands at once. `data-quiet` is the hydrated answer
+     (reduced motion, Calm or Off); the two rules after it hold the first
+     paint before the script has read the setting. */
+  .nf-om[data-quiet] :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill),
+  .nf-om[data-quiet] .nf-om-cta {
+    transition: none;
+  }
+  .nf-om[data-quiet] :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-switch__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
+    animation: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill, .nf-om-cta) {
+      transition: none;
+    }
+    .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-switch__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill, .nf-om-cta) {
+    transition: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-cta__arrow, .nf-om-switch__thumb, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-pill__dots > span, .nf-om-typing, .nf-om-typing > span, .nf-om-total__part) {
+    animation: none;
+  }
+
+  @keyframes nf-om-pop {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0) scale(0.86);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-om-rise-art {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-om-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes nf-om-float {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(0, -6px, 0);
+    }
+  }
+  @keyframes nf-om-flip {
+    0%,
+    40% {
+      transform: translate3d(0, 0, 0);
+    }
+    50%,
+    90% {
+      transform: translate3d(100%, 0, 0);
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  @keyframes nf-om-breathe {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.04);
+    }
+  }
+  @keyframes nf-om-sweep {
+    from {
+      opacity: 1;
+      transform: translate3d(0, -45%, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 45%, 0);
+    }
+  }
+  @keyframes nf-om-dot {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    40% {
+      opacity: 1;
+    }
+  }
+  @keyframes nf-om-typing {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    25%,
+    80% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+  }
+  @keyframes nf-om-bob {
+    from {
+      transform: translate3d(0, 1px, 0);
+    }
+    to {
+      transform: translate3d(0, -2px, 0);
+    }
+  }
+  @keyframes nf-om-grow {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes nf-om-nudge {
+    0%,
+    30%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    15% {
+      transform: translate3d(4px, 0, 0);
+    }
+  }
+
+  /* ------------------------------------------------------- wider screens */
+
+  @media (min-width: 40rem) {
+    .nf-om {
+      max-width: 34rem;
+      row-gap: var(--nf-space-md);
+    }
+    .nf-om-art-wrap {
+      inset: 1.5rem 1.5rem 3rem;
+    }
+  }
+  @media (min-width: 64rem) {
+    .nf-om-art__img {
+      transform: scale(1.12);
+    }
+  }
+
+  /* Desktop: the scene on the left, the words and the pill on the right. */
+  @media (min-width: 64rem) {
+    .nf-om {
+      max-width: 72rem;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      grid-template-rows: auto minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+      grid-template-areas:
+        "top top"
+        "stage ."
+        "stage progress"
+        "stage copy"
+        "stage foot"
+        "stage .";
+      column-gap: clamp(3rem, 6vw, 6rem);
+      row-gap: var(--nf-space-lg);
+      max-height: 60rem;
+      padding-inline: var(--nf-space-2xl);
+      padding-bottom: var(--nf-space-2xl);
+    }
+    .nf-om-stage {
+      width: min(100%, 34rem);
+      max-height: 100%;
+      aspect-ratio: 5 / 6;
+      align-self: center;
+      justify-self: end;
+    }
+    .nf-om-progress,
+    .nf-om-copy,
+    .nf-om-foot {
+      max-width: 28rem;
+    }
+    .nf-om-words {
+      text-align: left;
+    }
+    .nf-om-title {
+      font-size: clamp(2.25rem, 1.2rem + 1.8vw, 3.25rem);
+    }
+    .nf-om-body {
+      margin-inline: 0;
+      font-size: var(--nf-text-body-lg);
+    }
+    .nf-om-foot {
+      padding-top: var(--nf-space-sm);
+    }
+  }
+}

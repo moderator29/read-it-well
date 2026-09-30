@@ -67,7 +67,7 @@ try {
   const intro = await ctx.newPage();
   await intro.goto(`${BASE_URL}/welcome?next=%2Fsign-up`, { waitUntil: "domcontentloaded" });
   await intro.getByTestId("welcome-intro").waitFor();
-  check("a cold start opens on the intro, not the slides", (await intro.locator(".nf-gs-dot").count()) === 0);
+  check("a cold start opens on the intro, not the slides", (await intro.locator('[data-testid^="welcome-dot-"]').count()) === 0);
   check(
     "the intro cannot be skipped: no Skip, no close, no tour door",
     (await intro.getByTestId("welcome-skip-all").count()) === 0 &&
@@ -111,11 +111,11 @@ try {
   await page.getByTestId("welcome-get-started").waitFor();
   await goToSlide(page, 1);
   check("the first slide is the render's", (await page.locator("h1").innerText()).includes("One platform"));
-  check("four dots, the first current", (await page.locator(".nf-gs-dot").count()) === 4 &&
+  check("four dots, the first current", (await page.locator('[data-testid^="welcome-dot-"]').count()) === 4 &&
     (await page.getByTestId("welcome-dot-1").getAttribute("aria-current")) === "step");
   await page.getByTestId("welcome-get-started").click();
   await page.getByTestId("welcome-dot-2").and(page.locator('[aria-current="step"]')).waitFor();
-  const live = page.locator('[aria-live="polite"]');
+  const live = page.getByTestId("first-run").locator('[aria-live="polite"]');
   check("moving on is announced", (await live.innerText()).startsWith("Slide 2 of 4"), [await live.innerText()]);
   await page.keyboard.press("ArrowRight");
   await page.getByTestId("welcome-dot-3").and(page.locator('[aria-current="step"]')).waitFor();
@@ -149,7 +149,7 @@ try {
   check("the drawn back square goes to the previous slide", new URL(page.url()).pathname === "/welcome");
 
   /* A swipe: a pointer drag right to left across the stage moves one slide on. */
-  const box = await page.locator(".nf-gs-carousel").boundingBox();
+  const box = await page.getByTestId("first-run").boundingBox();
   if (box) {
     const y = box.y + box.height * 0.6;
     await page.mouse.move(box.x + box.width * 0.8, y);
@@ -211,6 +211,28 @@ try {
     (await page.getByTestId("welcome-browse").count()) === 0 && (await page.getByTestId("welcome-skip-all").count()) === 0,
   );
   await ctx.close();
+
+  /* Get started in motion (30 September): under reduced motion a step lands
+     at once, with nothing staggering, floating or counting. */
+  console.log("\nReduced motion");
+  const rm = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  const pr = await rm.newPage();
+  await pr.goto(`${BASE_URL}/welcome?tour=1`, { waitUntil: "domcontentloaded" });
+  await goToSlide(pr, 2);
+  await pr.waitForTimeout(80);
+  const running = await pr.evaluate(() =>
+    (document.querySelector('[data-testid="first-run"]')?.getAnimations({ subtree: true }) ?? []).filter(
+      (a) => a.playState === "running",
+    ).length,
+  );
+  check(
+    "the flow is quiet and nothing is animating a moment after a step change",
+    (await pr.getByTestId("first-run").getAttribute("data-quiet")) === "" && running === 0,
+    [String(running)],
+  );
+  const noScroll = await pr.evaluate(() => document.documentElement.scrollHeight <= innerHeight);
+  check("a 390 by 844 phone does not scroll", noScroll);
+  await rm.close();
 
   console.log("\nReaching the end is seeing it");
   const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 } });
