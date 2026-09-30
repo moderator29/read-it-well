@@ -9,6 +9,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { initial } from "@/lib/text/initial";
 import { buildNav } from "./nav-model";
+import { useUnreadConversations } from "@/lib/messages/unread-live";
 import { NavTree } from "./NavTree";
 import { SideSwitch } from "./SideSwitch";
 import { COMPANY_LEGAL_NAME } from "@/lib/legal/company";
@@ -84,9 +85,13 @@ export function AppRail({
   onNavigate?: () => void;
   onClose?: () => void;
 }) {
+  /* B1: the Messages row carries the live unread-conversations count, from
+     the same store (and the same one channel) as the dock's More button. */
+  const unreadConversations = useUnreadConversations(signedIn, active) ?? 0;
   const sections = useMemo(
-    () => buildNav({ t, side, unreadNotifications, isAgent, isAdmin, isHost, signedIn }),
-    [t, side, unreadNotifications, isAgent, isAdmin, isHost, signedIn],
+    () =>
+      buildNav({ t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn }),
+    [t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn],
   );
   const drawer = variant === "drawer";
 

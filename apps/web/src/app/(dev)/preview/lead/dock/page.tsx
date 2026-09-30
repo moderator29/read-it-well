@@ -25,6 +25,7 @@ export default function DockPreview() {
         side="property"
         active="/home"
         unreadNotifications={3}
+        unreadConversationsPreview={2}
         signedIn
         switchSlot={<CreateDock t={t} listHref="/profile/setup" signedIn />}
       />

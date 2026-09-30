@@ -235,6 +235,7 @@ export function MobileTabBar({
   signedIn = false,
   switchSlot,
   prefetchFull = false,
+  unreadConversationsPreview,
 }: {
   t: ShellDictionary;
   side?: Side;
@@ -261,6 +262,8 @@ export function MobileTabBar({
    * False under data saving, when nothing is fetched ahead at all.
    */
   prefetchFull?: boolean;
+  /** Dev preview only: a fixed unread-conversations figure (B1). */
+  unreadConversationsPreview?: number;
 }) {
   /*
     FIVE SLOTS, AND THE CENTRE ONE IS THE SWITCH.
@@ -438,7 +441,15 @@ export function MobileTabBar({
           );
         })}
       </ul>
-      <DockMore items={more} label={t.nav.more} active={active} />
+      {/* B1: a member's More button and Messages row carry the live count of
+          conversations waiting on them (DockMore, lib/messages/unread-live). */}
+      <DockMore
+        items={more}
+        label={t.nav.more}
+        active={active}
+        unreadLabel={signedIn ? t.a11y.unreadConversationsOn : undefined}
+        unreadPreview={unreadConversationsPreview}
+      />
     </AutoHideDock>
   );
 }

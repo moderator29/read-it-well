@@ -4721,6 +4721,8 @@ export const en = {
      */
     notificationsUnread: "Notifications, {count} unread",
     unreadOn: "{label}, {count} unread notifications",
+    /* B1: the dock's More button and the Messages row, live. */
+    unreadConversationsOn: "{label}, {count} unread conversations",
     /* DOC-21: a horizontal scroller a keyboard can reach has to be named. */
     photoGallery: "Photographs of {title}",
     /* DOC-21: the navigation landmarks, each named for what it is, so a
@@ -5348,6 +5350,18 @@ export const en = {
     pay: "Pay",
     invest: "Invest",
     investNote: "Properties presented for their yield. Vallo sells no investment product.",
+    /* "Up next" (plan item 15): one row each for the next confirmed viewing,
+       the next stay and the latest unread thread, only when they exist. */
+    upNext: {
+      label: "Up next",
+      viewingFallback: "Your viewing",
+      viewingOn: "Viewing on {when}",
+      viewingWith: "Viewing on {when} with {name}",
+      confirmed: "Confirmed",
+      stayingNow: "Staying now",
+      awaitingHost: "Waiting for the host",
+      unread: "{count} unread",
+    },
     stays: {
       heroTitle: "Great stays. Better experiences.",
       heroLede: "Hotels, shortlets and restaurants across Nigeria.",

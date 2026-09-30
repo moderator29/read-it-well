@@ -305,20 +305,31 @@
    * dot. The centre "+" stays the brand-blue button with its running rim in
    * both themes; only its glow is tuned for a white ground.
    * ---------------------------------------------------------------- */
+  /*
+   * B1, 30 September 2026, MORE PREMIUM: the white is frosted (a whisper of
+   * translucency over the blur, so content passing under it is felt, not
+   * seen), the rim is a neutral hairline rather than a blue outline, and the
+   * depth is three layers: a contact shadow, a wide ambient and a faint
+   * brand-blue drop far below that keeps the dock's blue identity.
+   */
   :root[data-theme="light"] :is(.nf-tabbar, .nf-dock-island, .nf-dockmore__tray):not(:where([data-theme="dark"] *)) {
-    --nf-dock-fill-top: var(--nf-surface-primary);
-    --nf-dock-fill-foot: color-mix(in oklab, var(--nf-brand-primary) 3%, var(--nf-surface-primary));
-    --nf-dock-drop: 0 12px 28px -12px color-mix(in oklab, var(--nf-brand-primary) 38%, transparent);
+    --nf-dock-fill-top: color-mix(in oklab, var(--nf-surface-primary) 94%, transparent);
+    --nf-dock-fill-foot: color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 2%, var(--nf-surface-primary)) 90%, transparent);
+    --nf-dock-sheen: var(--nf-surface-primary);
+    --nf-dock-ring: var(--nf-surface-primary);
+    --nf-dock-drop:
+      0 1px 2px color-mix(in oklab, var(--nf-content-primary) 8%, transparent),
+      0 10px 28px -10px color-mix(in oklab, var(--nf-content-primary) 16%, transparent),
+      0 22px 44px -26px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
     --nf-dock-ink-on: var(--nf-brand-primary-strong);
     --nf-dock-glyph-glow: none;
     --nf-dock-dot-glow: none;
-    border-color: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
-    border-block-start-color: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
+    border-color: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+    border-block-start-color: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
     color: var(--nf-brand-primary);
     box-shadow:
       inset 0 1px 0 var(--nf-surface-primary),
-      0 0 0 0.5px color-mix(in oklab, var(--nf-brand-primary) 10%, transparent),
-      0 2px 6px -2px color-mix(in oklab, var(--nf-content-primary) 10%, transparent),
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-brand-primary) 5%, transparent),
       var(--nf-dock-drop);
   }
   /* The tabs, the round button's glyph and the tray's words: brand blue. */
