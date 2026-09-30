@@ -1,0 +1,15 @@
+{
+  "note": "intro 3.0s; extra gaps after sentences {2: 0.5}",
+  "segments": [
+    {
+      "src_start": 0.0,
+      "src_end": 5.009,
+      "dst_start": 3.0
+    },
+    {
+      "src_start": 5.009,
+      "src_end": 87.6,
+      "dst_start": 8.509
+    }
+  ]
+}

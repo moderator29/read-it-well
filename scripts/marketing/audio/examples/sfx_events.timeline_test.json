@@ -1,0 +1,17 @@
+[
+  {"name": "whoosh_short", "t": 6.733, "note": "peaks on the drop (bar 4)"},
+  {"name": "pop", "t": 6.923, "note": "icon lands on 'Meet Vallo' (bar 4)"},
+  {"name": "counter_tick", "word": "Rent,", "sentence": 6, "note": "bill parts light up (bar 12 lift)"},
+  {"name": "counter_tick", "word": "fees,", "sentence": 6},
+  {"name": "counter_tick", "word": "caution", "sentence": 6},
+  {"name": "counter_tick", "word": "deposit…", "sentence": 6},
+  {"name": "success", "word": "there.", "sentence": 6, "note": "total lands"},
+  {"name": "bubble_send", "word": "Share", "sentence": 8},
+  {"name": "sparkle", "t": 41.538, "note": "change of world (bar 19 lift)"},
+  {"name": "glass_clink", "word": "restaurant", "sentence": 12},
+  {"name": "ding_pay", "t": 64.615, "note": "coin through the ring (bar 29 lift)"},
+  {"name": "whoosh_long", "t": 89.565, "note": "peaks on bar 40 (peak lift)"},
+  {"name": "impact_soft", "t": 92.308, "note": "logo hit (bar 41)"},
+  {"name": "stamp", "t": 96.923, "note": "store badges land (bar 43)"},
+  {"name": "tap", "t": 99.231, "note": "web address lands (bar 44)"}
+]

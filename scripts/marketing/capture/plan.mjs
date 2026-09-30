@@ -1,0 +1,212 @@
+/**
+ * Every live screen the store images, the social posts and the launch video
+ * use, captured from production as the QA member account.
+ *
+ *   id        file name in docs/marketing/source/<id>.webp
+ *   kind      "mobile" (the 6.9" iPhone's web view, 440 x 894 pt at 3x) or
+ *             "desktop" (1440 x 900 at 2x)
+ *   theme     "dark" (the default) or "light"
+ *   auth      false for a public screen captured signed out
+ *   locale    the language cookie the in-app switcher writes (yo, ha, ig)
+ *   full      also capture the whole page, top to bottom, at 2x, for the
+ *             video's scrolling shots (<id>-full.webp)
+ *   steps     run in order after the page loads:
+ *     { goto }                      navigate
+ *     { click }                     tap the first match
+ *     { clickIf }                   tap it only if it is there
+ *     { reveal, offset }            scroll a section to `offset` px below the top
+ *     { type: selector, text }      type into a field, key by key
+ *     { press: key }                press a key
+ *     { waitStable: selector }      wait until an element's text stops changing
+ *     { wait }                      settle
+ *
+ * What a capture writes to production, only ever to the QA account: the AI
+ * assistant capture records the assistant consent and asks one question; the
+ * passcode capture opens "Create your passcode" and types four of six digits,
+ * which saves nothing (step 1 of 2). Nothing else is created or changed.
+ */
+
+export const LISTING_RENT = "/listing/ed000000-0000-4000-8000-00000000003e"; // Four bedroom villa in Maitama
+export const LISTING_SALE = "/listing/ed000000-0000-4000-8000-000000000040"; // Three bedroom terrace, Karsana
+export const LISTING_BANANA = "/listing/ed000000-0000-4000-8000-00000000003f"; // Chevron Drive
+export const STAY = "/stay/ea000000-0000-4000-8000-000000000003"; // Lagoon Crest Resort
+export const RESTAURANT = "/restaurant/eb000000-0000-4000-8000-000000000006"; // Harbour Lights Kitchen
+export const THREAD = "/messages/d140e186-9fa3-41f4-8234-32ef75a1060e"; // the QA member's rental enquiry
+const PRICE = "/price?state=LA&area=Lekki&lat=6.44&lng=3.47&type=apartment&intent=rent&period=year&beds=2";
+const STAYS_DATES = "/stays/search?in=2026-10-16&out=2026-10-19&guests=2";
+
+const go = (path) => [{ goto: path }];
+const HOME = [{ goto: "/home" }, { clickIf: "[data-testid=welcome-skip-all]" }, { goto: "/home" }];
+const reveal = (path, selector, offset = 96) => [{ goto: path }, { reveal: selector, offset }];
+const ask = (question) => [
+  /* A fresh conversation: the assistant keeps its threads in this browser. */
+  { goto: "/assistant" },
+  { clear: ["nf_ai_threads", "nf_ai_thread"] },
+  { goto: "/assistant" },
+  { type: "textarea, input[placeholder='Type your message']", text: question },
+  { press: "Enter" },
+  { wait: 1500 },
+  { clickIf: "button:has-text('I understand, continue')" },
+  { wait: 2500 },
+  { clickIf: "button[aria-label*='end' i]:not([disabled])" },
+  { waitStable: "main", ms: 4000, max: 90000 },
+  { into: `main >> text="${question}"`, offset: 40 },
+];
+/* The inbox opens on the side last used; the rental enquiry is under Property. */
+const INBOX = [{ goto: "/messages" }, { clickIf: "main button:text-is('Property'), main [role=tab]:text-is('Property')" }, { wait: 1500 }];
+/* Filter sheets narrowed for real, so the Apply count is the true count. */
+const FILTER = (...clicks) => [{ goto: "/search?filters=open" }, ...clicks.map((c) => ({ clickIf: c, pause: 900 })), { wait: 1500 }];
+const FILTERS_SET = [
+  { goto: "/search?filters=open" },
+  { clickIf: "button:has-text('Villas')", pause: 700 },
+  { clickIf: "button:has-text('Apartments')", pause: 700 },
+  { clickIf: "[role=switch]", pause: 900 },
+  { wait: 1500 },
+];
+
+export const CAPTURES = [
+  /* ---------------------------------------------------------- signed out */
+  ...[1, 2, 3, 4].map((n) => ({ id: `welcome-${n}`, auth: false, steps: [{ goto: "/welcome" }, { click: `[data-testid=welcome-dot-${n}]` }, { wait: 1800 }] })),
+  /* /welcome opens on its last slide for a returning browser; the dot brings slide 1. */
+  ...["yo", "ha", "ig"].map((loc) => ({ id: `welcome-${loc}`, auth: false, locale: loc, steps: [{ goto: "/welcome" }, { click: "[data-testid=welcome-dot-1]" }, { wait: 2600 }] })),
+  { id: "welcome-yo-4", auth: false, locale: "yo", steps: [{ goto: "/welcome" }, { click: "[data-testid=welcome-dot-4]" }, { wait: 1800 }] },
+  { id: "sign-in", auth: false, steps: go("/sign-in") },
+  { id: "sign-up", auth: false, steps: go("/sign-up") },
+
+  /* ---------------------------------------------------------- property */
+  { id: "home", full: true, steps: HOME },
+  /* "Looked at recently" is what this phone remembers (lib/search/memory.ts),
+     so the capture looks at three places first. */
+  { id: "home-recent", steps: [{ goto: LISTING_BANANA }, { goto: LISTING_SALE }, { goto: LISTING_RENT }, ...HOME, { reveal: "h2:text-is('Looked at recently')", offset: 110 }] },
+  { id: "drawer", steps: [...HOME, { click: "button[aria-label='Open menu']" }, { wait: 1200 }] },
+  { id: "search", full: true, steps: go("/search?market=rent") },
+  { id: "search-buy", steps: go("/search?market=buy") },
+  { id: "filters", steps: go("/search?filters=open") },
+  { id: "filters-set", steps: FILTERS_SET },
+  { id: "filters-villas", steps: FILTER("button:has-text('Villas')") },
+  { id: "filters-detached-bq", steps: FILTER("button:has-text('Detached house')", "[role=switch]") },
+  { id: "search-villas", full: true, steps: [...FILTER("button:has-text('Villas')"), { click: "button:has-text('Apply (')" }, { wait: 2500 }] },
+  { id: "listing", full: true, steps: go(LISTING_RENT) },
+  { id: "listing-cost", steps: reveal(LISTING_RENT, "h2:text-is('What you will actually pay')", 96) },
+  { id: "listing-cost-total", steps: reveal(LISTING_RENT, "[data-testid=move-in-line-caution]", 150) },
+  { id: "listing-amenities", steps: reveal(LISTING_RENT, "h2:text-is('Amenities')", 96) },
+  { id: "listing-share", steps: [{ goto: LISTING_RENT }, { click: "[data-testid=listing-share]" }, { wait: 1200 }] },
+  { id: "listing-sale", steps: go(LISTING_SALE) },
+  { id: "listing-banana", steps: go(LISTING_BANANA) },
+  { id: "price", steps: go(PRICE) },
+  { id: "saved", full: true, steps: go("/saved") },
+
+  /* ---------------------------------------------------------- stays and tables */
+  { id: "stays", full: true, steps: go("/stays") },
+  { id: "stays-dates", steps: go(STAYS_DATES) },
+  { id: "stays-filters", steps: go("/stays/search?filters=open") },
+  { id: "stay", full: true, steps: go(STAY) },
+  { id: "stay-amenities", steps: reveal(STAY, "h2:text-is('Amenities')", 96) },
+  { id: "restaurants", full: true, steps: go("/restaurants") },
+  { id: "restaurant", full: true, steps: go(RESTAURANT) },
+  { id: "restaurant-hours", steps: reveal(RESTAURANT, "h2:text-is('Opening hours')", 96) },
+
+  /* ---------------------------------------------------------- people and messages */
+  { id: "around", full: true, steps: go("/around") },
+  { id: "messages", steps: INBOX },
+  { id: "thread", steps: go(THREAD) },
+  { id: "notifications", steps: go("/notifications") },
+  { id: "assistant", steps: go("/assistant") },
+  /* The assistant, asked a real question: the consent note is accepted, the
+     answer is waited for, and the conversation is scrolled back to the question. */
+  { id: "assistant-answer", steps: ask("What documents should I ask for before I rent a flat?") },
+  { id: "assistant-areas", steps: ask("Is Yaba or Lekki better for a young family?") },
+  { id: "assistant-caution", steps: ask("What is a caution deposit?") },
+
+  /* ---------------------------------------------------------- account and money */
+  { id: "profile", steps: go("/profile") },
+  { id: "plans", steps: go("/bookings") },
+  { id: "agreements", steps: go("/agreements") },
+  { id: "payments", steps: go("/payments") },
+  { id: "payment-methods", steps: go("/settings/payments") },
+  { id: "support", steps: go("/support") },
+  { id: "settings", steps: reveal("/settings", "text=Data saver", 150) },
+  { id: "appearance", steps: go("/settings/appearance") },
+  { id: "passcode", steps: go("/settings/passcode") },
+  {
+    id: "passcode-create",
+    steps: [
+      { goto: "/settings/passcode" },
+      { click: "button:has-text('Change passcode')" },
+      { wait: 1500 },
+      ...["1", "9", "6", "0"].map((d) => ({ clickIf: `button:text-is('${d}')`, pause: 350 })),
+      { wait: 700 },
+      { top: true },
+    ],
+  },
+  { id: "verification", steps: go("/verification") },
+
+  /* ---------------------------------------------------------- workspaces */
+  { id: "agent-dashboard", steps: go("/agent/dashboard") },
+  { id: "agent-properties", steps: go("/agent/listings") },
+  { id: "agent-earnings", steps: go("/agent/earnings") },
+  { id: "host", steps: go("/host") },
+  /* "Start an application" asks what kind of host you are (a page, nothing is saved). */
+  { id: "host-start", steps: go("/profile/setup?side=stays") },
+  { id: "host-bookings", steps: go("/host/bookings") },
+  { id: "host-earnings", steps: go("/host/earnings") },
+  { id: "host-assistant", steps: go("/host/assistant") },
+
+  /* ---------------------------------------------------------- a few in light */
+  { id: "home-light", theme: "light", steps: HOME },
+  { id: "drawer-light", theme: "light", steps: [...HOME, { click: "button[aria-label='Open menu']" }, { wait: 1200 }] },
+  { id: "search-light", theme: "light", steps: go("/search?market=rent") },
+  { id: "listing-light", theme: "light", steps: go(LISTING_SALE) },
+  { id: "listing-cost-light", theme: "light", steps: reveal(LISTING_RENT, "h2:text-is('What you will actually pay')", 96) },
+  { id: "stays-light", theme: "light", steps: go("/stays") },
+  { id: "stay-light", theme: "light", steps: go(STAY) },
+  { id: "restaurant-light", theme: "light", steps: go(RESTAURANT) },
+  { id: "thread-light", theme: "light", steps: go(THREAD) },
+  { id: "saved-light", theme: "light", steps: go("/saved") },
+
+  /* ---------------------------------------------------------- desktop */
+  { id: "d-landing", kind: "desktop", auth: false, steps: go("/") },
+  { id: "d-home", kind: "desktop", steps: HOME },
+  { id: "d-search", kind: "desktop", steps: go("/search?market=rent") },
+  { id: "d-listing", kind: "desktop", steps: go(LISTING_RENT) },
+  { id: "d-listing-cost", kind: "desktop", steps: reveal(LISTING_RENT, "h2:text-is('What you will actually pay')", 110) },
+  { id: "d-stays", kind: "desktop", steps: go("/stays") },
+  { id: "d-stay", kind: "desktop", steps: go(STAY) },
+  { id: "d-restaurants", kind: "desktop", steps: go("/restaurants") },
+  { id: "d-thread", kind: "desktop", steps: go(THREAD) },
+  { id: "d-host", kind: "desktop", steps: go("/host") },
+  { id: "d-host-start", kind: "desktop", steps: go("/profile/setup?side=stays") },
+  { id: "d-payments", kind: "desktop", steps: go("/payments") },
+  { id: "d-home-full", kind: "desktop", full: true, steps: HOME },
+  { id: "d-search-full", kind: "desktop", full: true, steps: go("/search?market=rent") },
+  { id: "d-filters", kind: "desktop", steps: go("/search?filters=open") },
+  { id: "d-filters-set", kind: "desktop", steps: FILTERS_SET },
+  { id: "d-filters-villas", kind: "desktop", steps: FILTER("button:has-text('Villas')") },
+  { id: "d-search-villas", kind: "desktop", steps: [...FILTER("button:has-text('Villas')"), { click: "button:has-text('Apply (')" }, { wait: 2500 }] },
+  { id: "d-assistant-caution", kind: "desktop", steps: ask("What is a caution deposit?") },
+  { id: "d-listing-share", kind: "desktop", steps: [{ goto: LISTING_RENT }, { click: "[data-testid=listing-share]" }, { wait: 1200 }] },
+  { id: "d-listing-full", kind: "desktop", full: true, steps: go(LISTING_RENT) },
+  { id: "d-stays-dates", kind: "desktop", steps: go(STAYS_DATES) },
+  { id: "d-restaurant", kind: "desktop", steps: go(RESTAURANT) },
+  { id: "d-messages", kind: "desktop", steps: INBOX },
+  { id: "d-saved", kind: "desktop", steps: go("/saved") },
+  { id: "d-around", kind: "desktop", steps: go("/around") },
+  { id: "d-notifications", kind: "desktop", steps: go("/notifications") },
+  { id: "d-assistant-answer", kind: "desktop", steps: ask("What documents should I ask for before I rent a flat?") },
+  { id: "d-assistant-areas", kind: "desktop", steps: ask("Is Yaba or Lekki better for a young family?") },
+  { id: "d-verification", kind: "desktop", steps: go("/verification") },
+  { id: "d-price", kind: "desktop", steps: go(PRICE) },
+  { id: "d-agent-dashboard", kind: "desktop", steps: go("/agent/dashboard") },
+  { id: "d-agent-list", kind: "desktop", steps: go("/agent/list") },
+  { id: "d-host-bookings", kind: "desktop", steps: go("/host/bookings") },
+  { id: "d-passcode-create", kind: "desktop", steps: [
+    { goto: "/settings/passcode" }, { click: "button:has-text('Change passcode')" }, { wait: 1500 },
+    ...["1", "9", "6", "0"].map((d) => ({ clickIf: `button:text-is('${d}')`, pause: 350 })), { wait: 700 }, { top: true },
+  ] },
+  { id: "d-sign-in", kind: "desktop", auth: false, steps: go("/sign-in") },
+  ...[null, "yo", "ha", "ig"].map((loc) => ({ id: loc ? `d-welcome-${loc}` : "d-welcome", kind: "desktop", auth: false, ...(loc ? { locale: loc } : {}), steps: [{ goto: "/welcome" }, { click: "[data-testid=welcome-dot-1]" }, { wait: 2600 }] })),
+  { id: "d-welcome-4", kind: "desktop", auth: false, steps: [{ goto: "/welcome" }, { click: "[data-testid=welcome-dot-4]" }, { wait: 2600 }] },
+  { id: "d-home-light", kind: "desktop", theme: "light", steps: HOME },
+  { id: "d-listing-light", kind: "desktop", theme: "light", steps: go(LISTING_SALE) },
+  { id: "d-stays-light", kind: "desktop", theme: "light", steps: go("/stays") },
+];
