@@ -76,6 +76,11 @@ export function checkFeedUrl(raw: string): { ok: true; url: string } | { ok: fal
     return { ok: false, reason: "That link cannot be used. Copy the calendar export link from the other site." };
   }
   const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
+  /* An address, not a name, is never a calendar site: refused before the list,
+     so no private or internal address can be reached by typing it. */
+  if (isIpLiteral(host)) {
+    return { ok: false, reason: "Use the calendar link the site gives you, not an address." };
+  }
   const allowed = ALLOWED_FEED_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
   if (!allowed) {
     return {
@@ -86,6 +91,54 @@ export function checkFeedUrl(raw: string): { ok: true; url: string } | { ok: fal
   }
   if (trimmed.length > 2000) return { ok: false, reason: "That link is too long to be a calendar link." };
   return { ok: true, url: parsed.toString() };
+}
+
+/** "10.0.0.1", "[::1]", "::ffff:127.0.0.1": a host that is an IP address. */
+export function isIpLiteral(host: string): boolean {
+  const h = host.replace(/^\[|\]$/g, "");
+  return /^\d{1,3}(\.\d{1,3}){3}$/.test(h) || h.includes(":");
+}
+
+/**
+ * Private, loopback, link-local, carrier-grade NAT, multicast and reserved
+ * addresses, IPv4 and IPv6 (including IPv4-mapped IPv6). A calendar name that
+ * resolves to one of these is refused at fetch time (SSRF), whatever the list
+ * of sites says.
+ */
+export function isPrivateAddress(address: string): boolean {
+  let a = address.trim().toLowerCase().replace(/^\[|\]$/g, "");
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(a);
+  if (mapped?.[1]) a = mapped[1];
+  const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(a);
+  if (v4) {
+    const [o1, o2] = [Number(v4[1]), Number(v4[2])];
+    return (
+      o1 === 0 ||
+      o1 === 10 ||
+      o1 === 127 ||
+      (o1 === 100 && o2 >= 64 && o2 <= 127) ||
+      (o1 === 169 && o2 === 254) ||
+      (o1 === 172 && o2 >= 16 && o2 <= 31) ||
+      (o1 === 192 && o2 === 168) ||
+      (o1 === 192 && o2 === 0) ||
+      (o1 === 198 && (o2 === 18 || o2 === 19)) ||
+      o1 >= 224
+    );
+  }
+  if (!a.includes(":")) return true; /* not an address at all: refuse */
+  return (
+    a === "::" ||
+    a === "::1" ||
+    a.startsWith("fc") ||
+    a.startsWith("fd") ||
+    a.startsWith("fe8") ||
+    a.startsWith("fe9") ||
+    a.startsWith("fea") ||
+    a.startsWith("feb") ||
+    a.startsWith("ff") ||
+    a.startsWith("64:ff9b:") ||
+    a.startsWith("2001:db8")
+  );
 }
 
 /* ------------------------------------------------------------- reading */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFeed, checkFeedUrl, icalDate, isFeedToken, readFeed, runsOfNights, unfold } from "./ical";
+import { buildFeed, checkFeedUrl, icalDate, isFeedToken, isPrivateAddress, readFeed, runsOfNights, unfold } from "./ical";
 
 const AIRBNB = [
   "BEGIN:VCALENDAR",
@@ -65,6 +65,22 @@ describe("which links may be added", () => {
     expect(checkFeedUrl("https://user:pw@airbnb.com/x.ics").ok).toBe(false);
     expect(checkFeedUrl("https://airbnb.com:8443/x.ics").ok).toBe(false);
     expect(checkFeedUrl("not a link").ok).toBe(false);
+  });
+});
+
+describe("private and internal addresses (SSRF)", () => {
+  it("knows the inside from the outside", () => {
+    for (const inside of ["10.1.2.3", "127.0.0.1", "169.254.169.254", "172.20.0.1", "192.168.0.1", "100.64.0.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:127.0.0.1", "not-an-ip"]) {
+      expect(isPrivateAddress(inside), inside).toBe(true);
+    }
+    for (const outside of ["54.230.10.10", "172.32.0.1", "2a03:2880:f10c::1", "::ffff:8.8.8.8"]) {
+      expect(isPrivateAddress(outside), outside).toBe(false);
+    }
+  });
+
+  it("refuses an address typed in place of a name", () => {
+    expect(checkFeedUrl("https://127.0.0.1/x.ics").ok).toBe(false);
+    expect(checkFeedUrl("https://[::1]/x.ics").ok).toBe(false);
   });
 });
 

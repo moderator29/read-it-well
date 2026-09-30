@@ -109,7 +109,7 @@ export function HostTodayView({
               label={d.today.needsAttention}
               action={
                 today.attention.length > shown.length ? (
-                  <Link href="/host/bookings" className="nf-link-quiet">
+                  <Link href="/host/decide" className="nf-link-quiet">
                     {d.today.viewAll.replace("{count}", String(today.attention.length))}
                   </Link>
                 ) : undefined

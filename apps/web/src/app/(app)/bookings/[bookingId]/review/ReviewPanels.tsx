@@ -79,7 +79,7 @@ export function AlreadyReviewedPanel({
       </Reveal>
 
       <Reveal delay={80} className="mt-block flex flex-wrap gap-row">
-        <ButtonLink href={`/listing/${subject.listingId}`} variant="primary">
+        <ButtonLink href={subject.href} variant="primary">
           See it on the listing
         </ButtonLink>
         <ButtonLink href="/bookings?side=stays&from=stays" variant="secondary">

@@ -98,6 +98,7 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_hold_claims_sweep", cron: "* * * * *", when: "every minute", what: "lets compliance hold claims take over within a minute of a this-was-not-me hold ending (SCUML items 6 and 8)" },
   { name: "vallo_release_stale_holds", cron: "*/15 * * * *", when: "every 15 min", what: "database side of the hold release" },
   { name: "vallo_remind_hosts_to_decide", cron: "4,19,34,49 * * * *", when: "every 15 min", what: "reminds a host once when a room or table request has used three quarters of its window (C3)" },
+  { name: "vallo_send_member_reminders", cron: "7,22,37,52 * * * *", when: "every 15 min", what: "sends each viewing reminder (the evening before, two hours before) and rent-due reminder (180, 90, 30, 7 days) once (B5, B10)" },
   { name: "vallo_alert_overdue_refunds", cron: "12 * * * *", when: "hourly at :12", what: "alerts on refunds past their due-by date" },
   { name: "vallo_escrow_sweep_timeouts", cron: "17 * * * *", when: "hourly at :17", what: "escrow timeouts" },
   { name: "vallo_str_nudge_overdue", cron: "17 * * * *", when: "hourly at :17", what: "reminds staff of an STR case past its clock, once a day each (SCUML item 6)" },

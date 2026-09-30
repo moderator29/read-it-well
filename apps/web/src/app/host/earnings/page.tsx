@@ -9,6 +9,10 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
 import { EarningsHistory } from "@/components/app/money-history/EarningsHistory";
+import { ListGroup, ListRow } from "@/components/ui/ListGroup";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { monthsWithLines } from "@/lib/host/statement";
 
 export const metadata: Metadata = { title: "Earnings", robots: { index: false, follow: false } };
 
@@ -35,6 +39,11 @@ export default async function HostEarningsPage({
   const t = getDictionary(locale);
   const before = parseBefore((await searchParams).before);
   const read = await readMyEarnings(before);
+  /* C9: a statement for every month that has a payment in it, from the
+     newest page of the same record. */
+  const months = read.state === "ok" ? monthsWithLines(read.entries).slice(0, 12) : [];
+  const tag = locale === "en" ? "en-NG" : locale;
+  const monthName = new Intl.DateTimeFormat(tag, { month: "long", year: "numeric", timeZone: "UTC" });
 
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
@@ -63,6 +72,24 @@ export default async function HostEarningsPage({
             next={{ href: "/host/reservations", label: "See your reservations" }}
           />
         )}
+        {months.length > 0 ? (
+          <ListGroup label="Statements" className="mt-block" data-testid="host-statements">
+            {months.map((month) => (
+              <ListRow
+                key={month}
+                leading={
+                  <IconPlate size="sm">
+                    <UiIcon name="file-text" size={ICON_PLATE_GLYPH.sm} />
+                  </IconPlate>
+                }
+                title={monthName.format(new Date(`${month}-01T12:00:00Z`))}
+                sub="Every payment, line by line, with a CSV"
+                href={`/host/earnings/statement?month=${month}`}
+                chevron
+              />
+            ))}
+          </ListGroup>
+        ) : null}
       </div>
     </HostShell>
   );

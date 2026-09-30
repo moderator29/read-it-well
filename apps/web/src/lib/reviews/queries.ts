@@ -45,7 +45,10 @@ export type ListingReview = {
 
 export type ReviewSubject = {
   bookingId: string;
+  /** The listing, or the hotel (C4) when the stay was a room. */
   listingId: string;
+  /** Where the reviewed place lives: `/listing/<id>` or `/stay/<id>` (C4). */
+  href: string;
   title: string;
   location: string;
   checkOutDisplay: string;
@@ -136,36 +139,56 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
   try {
     const { data: booking, error } = await session.supabase
       .from("bookings")
-      .select("id, listing_id, status, check_out")
+      .select("id, listing_id, accommodation_id, status, check_out")
       .eq("id", bookingId)
       .maybeSingle();
 
     if (error) return { state: "unavailable" };
     if (!booking) return { state: "missing" };
 
-    /* ROOM BOOKINGS 1: reviews attach to listings; a hotel stay has none yet. */
-    if (!booking.listing_id) return { state: "missing" };
-    const listingId: string = booking.listing_id;
+    /* C4 (30 September 2026): a hotel room stay is reviewed against its
+       hotel. The insert is refused in words until the pending migration
+       gives reviews their accommodation spine (`lib/reviews/actions.ts`). */
+    let subject: ReviewSubject;
+    if (!booking.listing_id) {
+      if (!booking.accommodation_id) return { state: "missing" };
+      const { data: place } = await session.supabase
+        .from("accommodations")
+        .select("name, area, city")
+        .eq("id", booking.accommodation_id)
+        .maybeSingle();
+      subject = {
+        bookingId: booking.id,
+        listingId: booking.accommodation_id,
+        href: `/stay/${booking.accommodation_id}`,
+        title: place?.name ?? "Your stay",
+        location: [place?.area, place?.city].filter(Boolean).join(", "),
+        checkOutDisplay: formatDate(new Date(`${booking.check_out}T12:00:00Z`), locale),
+      };
+    } else {
+      const listingId: string = booking.listing_id;
 
-    // Display data: the platform listing row first, the seed catalogue as the
-    // fallback, a plain placeholder after that. Same ladder the trips hub uses.
-    const { data: listingRow } = await session.supabase
-      .from("listings")
-      .select("title, area, city")
-      .eq("id", listingId)
-      .maybeSingle();
+      // Display data: the platform listing row first, the seed catalogue as the
+      // fallback, a plain placeholder after that. Same ladder the trips hub uses.
+      const { data: listingRow } = await session.supabase
+        .from("listings")
+        .select("title, area, city")
+        .eq("id", listingId)
+        .maybeSingle();
 
-    const seed = listingRow ? null : await getListingRepository().byId(listingId);
+      const seed = listingRow ? null : await getListingRepository().byId(listingId);
 
-    const subject: ReviewSubject = {
-      bookingId: booking.id,
-      listingId,
-      title: listingRow?.title ?? seed?.title ?? "Your stay",
-      location: [listingRow?.area ?? seed?.area, listingRow?.city ?? seed?.city]
-        .filter(Boolean)
-        .join(", "),
-      checkOutDisplay: formatDate(new Date(`${booking.check_out}T12:00:00Z`), locale),
-    };
+      subject = {
+        bookingId: booking.id,
+        listingId,
+        href: `/listing/${listingId}`,
+        title: listingRow?.title ?? seed?.title ?? "Your stay",
+        location: [listingRow?.area ?? seed?.area, listingRow?.city ?? seed?.city]
+          .filter(Boolean)
+          .join(", "),
+        checkOutDisplay: formatDate(new Date(`${booking.check_out}T12:00:00Z`), locale),
+      };
+    }
 
     // An existing review wins over every other state: the guest should see what
     // they wrote, not be told they are ineligible to write it again.

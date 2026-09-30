@@ -113,7 +113,7 @@ export function ReviewForm({
         actions={[
           {
             label: "See it on the listing",
-            href: `/listing/${state.data.listingId}`,
+            href: state.data.href,
             tone: "primary",
           },
           { label: plansAction.label, href: plansAction.href, tone: "quiet" },

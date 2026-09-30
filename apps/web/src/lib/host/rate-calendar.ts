@@ -73,7 +73,8 @@ export function monthOf(date: IsoDate): string {
 }
 
 export function addMonths(month: string, delta: number): string {
-  const [y, m] = month.split("-").map(Number);
+  const y = Number(month.slice(0, 4));
+  const m = Number(month.slice(5, 7));
   const index = y * 12 + (m - 1) + delta;
   const year = Math.floor(index / 12);
   const mm = (index % 12) + 1;
@@ -177,7 +178,14 @@ export function describeSelection(dates: readonly IsoDate[]): string {
 
 /* ------------------------------------------------------------ the cells */
 
-export type RatePlanLite = { id: string; name: string; rateMinor: number; active: boolean };
+export type RatePlanLite = {
+  id: string;
+  name: string;
+  rateMinor: number;
+  active: boolean;
+  minStayNights?: number;
+  maxStayNights?: number | null;
+};
 
 export type CalendarRoom = {
   id: string;
@@ -211,7 +219,7 @@ export type NightCell = {
   /** Null when there is no inventory row: the night is not offered at all. */
   unitsOpen: number | null;
   unitsBooked: number;
-  /** "Airbnb", when another site's calendar blocked this night. */
+  /** "Airbnb", when another site's calendar holds a room this night. */
   imported: string | null;
 };
 
@@ -261,7 +269,9 @@ export type CellTone = "past" | "closed" | "imported" | "full" | "none" | "overr
  */
 export function toneOf(cell: NightCell): CellTone {
   if (cell.past) return "past";
-  if (cell.imported) return "imported";
+  /* C2b: a booking on another site takes ONE room, so a night reads as
+     "booked elsewhere" only once no room is left for Vallo to sell. */
+  if (cell.imported && (cell.unitsOpen === null || cell.unitsOpen - cell.unitsBooked <= 0)) return "imported";
   if (cell.closed) return "closed";
   if (cell.unitsOpen === null) return "none";
   if (cell.unitsOpen > 0 && cell.unitsBooked >= cell.unitsOpen) return "full";

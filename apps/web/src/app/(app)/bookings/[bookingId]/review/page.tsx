@@ -134,7 +134,7 @@ export default async function ReviewPage({
             { label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" },
             {
               label: "View the stay",
-              href: `/listing/${read.subject.listingId}`,
+              href: read.subject.href,
               tone: "quiet",
             },
           ]}

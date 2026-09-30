@@ -1,0 +1,236 @@
+import Link from "next/link";
+import "@/app/host/host-desk.css";
+import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
+import type { HostRoomBooking } from "@/lib/host/room-bookings";
+import { clockFor, type DecideItem } from "@/lib/host/decide";
+import { stayDateLabel } from "@/lib/stays/date-label";
+import type { HostReservationView } from "@/lib/reservations/queries";
+import { EmptyState } from "@/components/app/Screen";
+import { PageHeader } from "@/components/app/PageHeader";
+import { SummaryCard } from "@/components/ui/SummaryCard";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { ListGroup, ListRow } from "@/components/ui/ListGroup";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { DecideClock } from "@/components/host/DecideClock";
+import { RoomRequestAnswer } from "@/app/host/bookings/RoomRequestAnswer";
+import { Decision } from "@/app/host/reservations/ReservationsBoard";
+
+/**
+ * THE DECIDE-BY LIST, DRAWN (C3). `app/host/decide/page.tsx` reads; this
+ * draws, so the preview harness can draw it from fixtures too.
+ */
+
+export type DecideRowData =
+  | (DecideItem & { kind: "room"; booking: HostRoomBooking })
+  | (DecideItem & { kind: "table"; table: HostReservationView });
+
+export function DecideView({
+  rows: sorted,
+  now,
+  locale,
+  unreadable,
+}: {
+  rows: DecideRowData[];
+  now: number;
+  locale: Locale;
+  unreadable: boolean;
+}) {
+  const counts = { spare: 0, soon: 0, late: 0, lapsed: 0 };
+  for (const item of sorted) counts[clockFor(item.openedAt, item.deadline, now).urgency] += 1;
+  const t = getDictionary(locale);
+
+  return (
+    <>
+      <PageHeader
+        variant="large"
+        back={false}
+        title="Decide by"
+        subtitle={
+          sorted.length === 0
+            ? "Nothing is waiting for you"
+            : `${sorted.length} ${sorted.length === 1 ? "request is" : "requests are"} waiting for your answer`
+        }
+      />
+
+      <div className="nf-decide">
+        <div className="grid gap-md">
+          {unreadable ? (
+            <p className="nf-body" role="alert">
+              Some of your requests could not be read just now. Refresh to try again.
+            </p>
+          ) : null}
+
+          {sorted.length > 0 ? (
+            <SummaryCard
+              label="Waiting for your answer"
+              figure={sorted.length}
+              sentence={
+                counts.late + counts.soon > 0
+                  ? `${counts.late + counts.soon} of them ${counts.late + counts.soon === 1 ? "is" : "are"} close to lapsing. Answer those first.`
+                  : "Each one has time to spare. Answering fast is what guests remember."
+              }
+              segments={[
+                { key: "late", label: "Last hour", count: counts.late + counts.lapsed, tone: "error" as const },
+                { key: "soon", label: "Last quarter", count: counts.soon, tone: "warning" as const },
+                { key: "spare", label: "Time to spare", count: counts.spare, tone: "brand" as const },
+              ].filter((s) => s.count > 0)}
+              barLabel="Requests by time left"
+            />
+          ) : null}
+
+          {sorted.length === 0 && !unreadable ? (
+            <EmptyState
+              icon="clock-check"
+              title="You are all caught up"
+              body="When a guest asks for a room or a table, it appears here with the time you have to answer."
+            />
+          ) : (
+            <ul className="nf-decide__list" data-testid="decide-list">
+              {sorted.map((item) => (
+                <DecideRow key={`${item.kind}-${item.id}`} item={item} now={now} locale={locale} counts={t.counts} />
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <aside className="grid gap-md">
+          <ListGroup label="The clock">
+            <ListRow
+              leading={<Dot tone="brand" />}
+              title="Time to spare"
+              sub="More than a quarter of the window is left."
+            />
+            <ListRow leading={<Dot tone="warning" />} title="Last quarter" sub="Answer soon." />
+            <ListRow
+              leading={<Dot tone="error" />}
+              title="Last hour"
+              sub="A room request lapses 48 hours after it is made and its nights go back on sale. A table request lapses at the table's time."
+            />
+          </ListGroup>
+          <ListGroup label="Everything else">
+            <ListRow
+              leading={
+                <IconPlate size="sm">
+                  <UiIcon name="calendar-check" size={ICON_PLATE_GLYPH.sm} />
+                </IconPlate>
+              }
+              title="Room bookings"
+              sub="Accepted and past stays"
+              href="/host/bookings"
+              chevron
+            />
+            <ListRow
+              leading={
+                <IconPlate size="sm">
+                  <UiIcon name="utensils" size={ICON_PLATE_GLYPH.sm} />
+                </IconPlate>
+              }
+              title="Reservations"
+              sub="Tables coming up and past"
+              href="/host/reservations"
+              chevron
+            />
+          </ListGroup>
+        </aside>
+      </div>
+    </>
+  );
+}
+
+function Dot({ tone }: { tone: "brand" | "warning" | "error" }) {
+  return (
+    <span aria-hidden="true" className="nf-decide__dot" data-tone={tone} />
+  );
+}
+
+const LAGOS_WHEN = new Intl.DateTimeFormat("en-NG", {
+  timeZone: "Africa/Lagos",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+function DecideRow({
+  item,
+  now,
+  locale,
+  counts,
+}: {
+  item: DecideRowData;
+  now: number;
+  locale: Locale;
+  counts: ReturnType<typeof getDictionary>["counts"];
+}) {
+  const clock = clockFor(item.openedAt, item.deadline, now);
+  const lapseWords = `Lapses ${LAGOS_WHEN.format(new Date(item.deadline))}`;
+  if (item.kind === "room") {
+    const b = item.booking;
+    const dates = `${stayDateLabel(b.checkIn) ?? b.checkIn} to ${stayDateLabel(b.checkOut) ?? b.checkOut}`;
+    return (
+      <li className="nf-decide__row" data-urgency={clock.urgency} data-testid="decide-room">
+        <div className="nf-decide__top">
+          <IconPlate size="md" tone={clock.urgency === "spare" ? "neutral" : clock.urgency === "soon" ? "warning" : "danger"}>
+            <UiIcon name="bed" size={ICON_PLATE_GLYPH.md} />
+          </IconPlate>
+          <div className="nf-decide__what">
+            <p className="nf-decide__title">
+              {b.room} at {b.hotel}
+            </p>
+            <p className="nf-decide__sub">
+              {b.guestName} · {dates} · {plural(b.nights, counts.nights, locale)} · {formatMoney(b.totalMinor, locale)}
+            </p>
+          </div>
+          <DecideClock openedAt={item.openedAt} deadline={item.deadline} serverNow={now} />
+        </div>
+        <DecideClock openedAt={item.openedAt} deadline={item.deadline} serverNow={now} bar />
+        <p className="nf-caption">{lapseWords}. If nobody answers, the request lapses and the nights go back on sale.</p>
+        <RoomRequestAnswer
+          bookingId={b.id}
+          summary={{
+            guestName: b.guestName,
+            room: b.room,
+            hotel: b.hotel,
+            dates,
+            stay: `${plural(b.nights, counts.nights, locale)} · ${plural(b.guests, counts.guests, locale)}`,
+            total: formatMoney(b.totalMinor, locale),
+            listingTitle: b.hotel,
+            checkIn: b.checkIn,
+            checkOut: b.checkOut,
+            nights: b.nights,
+            totalMinor: b.totalMinor,
+          }}
+        />
+      </li>
+    );
+  }
+  const tb = item.table;
+  return (
+    <li className="nf-decide__row" data-urgency={clock.urgency} data-testid="decide-table">
+      <div className="nf-decide__top">
+        <IconPlate size="md" tone={clock.urgency === "spare" ? "neutral" : clock.urgency === "soon" ? "warning" : "danger"}>
+          <UiIcon name="utensils" size={ICON_PLATE_GLYPH.md} />
+        </IconPlate>
+        <div className="nf-decide__what">
+          <p className="nf-decide__title">
+            Table for {tb.partySize} at {tb.listingTitle}
+          </p>
+          <p className="nf-decide__sub">
+            {tb.guestName} · {LAGOS_WHEN.format(new Date(tb.reservedFor))}
+          </p>
+        </div>
+        <DecideClock openedAt={item.openedAt} deadline={item.deadline} serverNow={now} />
+      </div>
+      <DecideClock openedAt={item.openedAt} deadline={item.deadline} serverNow={now} bar />
+      {tb.note ? <p className="nf-caption">{tb.note}</p> : null}
+      <Decision table={tb} />
+      {tb.conversationId ? (
+        <Link href={`/messages/${tb.conversationId}`} className="nf-link-quiet text-[length:var(--nf-text-body-sm)]">
+          Talk to {tb.guestName}
+        </Link>
+      ) : null}
+    </li>
+  );
+}

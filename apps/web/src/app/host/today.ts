@@ -134,7 +134,8 @@ export function hostToday(input: TodayInput): HostToday {
     kpis.push({
       key: "requests",
       value: waiting,
-      href: rooms && rooms.waiting.length > 0 ? "/host/bookings" : tables ? "/host/reservations" : "/host/bookings",
+      /* C3: the one decide-by list, with the clock on every request. */
+      href: "/host/decide",
     });
   }
   if (input.unread !== null) {
@@ -168,7 +169,7 @@ export function hostToday(input: TodayInput): HostToday {
       tone: "warning",
       title: `${b.room} · ${b.hotel}`,
       sub: b.guestName,
-      href: "/host/bookings",
+      href: "/host/decide",
       since: b.createdAt,
     });
   }
@@ -179,7 +180,7 @@ export function hostToday(input: TodayInput): HostToday {
       tone: "warning",
       title: row.guestName,
       sub: row.reservedFor,
-      href: "/host/reservations",
+      href: "/host/decide",
       since: row.reservedFor,
     });
   }

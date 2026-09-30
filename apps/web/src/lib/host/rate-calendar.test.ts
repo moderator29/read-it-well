@@ -56,7 +56,7 @@ describe("dates", () => {
     const grid = monthGrid("2026-10");
     // 1 October 2026 is a Thursday.
     expect(weekdayMon0("2026-10-01")).toBe(3);
-    expect(grid[0].slice(0, 4)).toEqual([null, null, null, "2026-10-01"]);
+    expect(grid[0]?.slice(0, 4)).toEqual([null, null, null, "2026-10-01"]);
     expect(grid.every((week) => week.length === 7)).toBe(true);
     expect(grid.flat().filter(Boolean)).toHaveLength(31);
   });
@@ -120,8 +120,13 @@ describe("cells", () => {
         [rowKey("rt1", "2026-10-03"), { unitsOpen: 2, unitsBooked: 2 }],
         [rowKey("rt1", "2026-10-04"), { unitsOpen: 0, unitsBooked: 0 }],
         [rowKey("rt1", "2026-10-05"), { unitsOpen: 3, unitsBooked: 1 }],
+        [rowKey("rt1", "2026-10-06"), { unitsOpen: 0, unitsBooked: 0 }],
+        [rowKey("rt1", "2026-10-07"), { unitsOpen: 2, unitsBooked: 0 }],
       ]),
-      imported: new Map([[rowKey("rt1", "2026-10-06"), "Airbnb"]]),
+      imported: new Map([
+        [rowKey("rt1", "2026-10-06"), "Airbnb"],
+        [rowKey("rt1", "2026-10-07"), "Airbnb"],
+      ]),
     });
     const at = (d: string) => toneOf(cellFor(room, plan, d, r, "2026-10-01"));
     expect(at("2026-09-30")).toBe("past");
@@ -130,6 +135,8 @@ describe("cells", () => {
     expect(at("2026-10-04")).toBe("closed");
     expect(at("2026-10-05")).toBe("open");
     expect(at("2026-10-06")).toBe("imported");
+    // Airbnb holds one of three rooms: two are still for sale here.
+    expect(at("2026-10-07")).toBe("open");
   });
 
   it("the booked floor is the busiest night's holds", () => {

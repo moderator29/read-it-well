@@ -10,6 +10,9 @@ import { HostShell } from "@/components/host/HostShell";
 import { readHostRoomBookings, type HostRoomBooking } from "@/lib/host/room-bookings";
 import { stayDateLabel } from "@/lib/stays/date-label";
 import { RoomRequestAnswer } from "./RoomRequestAnswer";
+import { DecideClock } from "@/components/host/DecideClock";
+import { requestNow, roomDeadline } from "@/lib/host/decide";
+import "../host-desk.css";
 
 export const metadata: Metadata = { title: "Room bookings", robots: { index: false, follow: false } };
 
@@ -107,15 +110,20 @@ function Section({
 }) {
   if (rows.length === 0) return null;
   const counts = getDictionary(locale).counts;
+  const now = requestNow();
   return (
     <section className="mt-block" aria-label={title}>
       <h2 className="nf-h4">{title}</h2>
       <ul className="mt-xs grid gap-xs">
         {rows.map((b) => (
           <li key={b.id} className="nf-panel nf-panel--card p-card" data-testid="host-room-booking">
-            <p className="font-semibold">
-              {b.room} &middot; {plural(b.rooms, counts.rooms, locale)} &middot; {b.hotel}
-            </p>
+            <div className="flex items-start justify-between gap-sm">
+              <p className="font-semibold">
+                {b.room} &middot; {plural(b.rooms, counts.rooms, locale)} &middot; {b.hotel}
+              </p>
+              {/* C3: by when this must be answered, in words and colour. */}
+              {answer ? <DecideClock openedAt={b.createdAt} deadline={roomDeadline(b.createdAt)} serverNow={now} /> : null}
+            </div>
             <p className={TYPE.rowMeta}>
               {stayDateLabel(b.checkIn) ?? b.checkIn} to {stayDateLabel(b.checkOut) ?? b.checkOut} &middot;{" "}
               {plural(b.nights, counts.nights, locale)} &middot; {plural(b.guests, counts.guests, locale)}
