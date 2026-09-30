@@ -1077,3 +1077,84 @@ reads `tgattr`, so it proves the real column list.
 which is how the `on delete set null` path works. The repo has no in-database
 function that deletes from `auth.users`, so account deletion goes through the
 Auth admin API with no caller. This behaviour is the same in the live C13.
+
+---
+
+## Review: `email_lifecycle_triggers.sql` (pending, not yet versioned): **APPLY, once the PR #75 deploy is live**
+
+Checked read-only against the live schema, and the templates against
+`origin/main` (e9e9e75f, the merge of PR #75).
+
+**Templates are on main.** All 14 template names the triggers write are
+registered in `apps/web/src/lib/notify/templates.ts`: `inspection.proposed`,
+`.declined`, `.withdrawn`, `.completed`, `support.replied`, `agreement.waiting`,
+`.submitted`, `.cancelled`, `guarantee.claim_opened`,
+`verification.rung_failed`, `listing.submitted`, `reservation.confirmed`,
+`.cancelled` and `refund.requested`. The builders are in
+`lib/email/lifecycle-messages.ts`, and `agreement.waiting` uses the existing
+agreement builder. The drain drops a row with an unknown template for good,
+so **apply only after the production deploy of PR #75 has finished**, as the
+file's own header says. That deploy is the one ordering condition.
+
+**Live schema:**
+* **Columns and allowed values:** every column the eight trigger functions
+  read exists with the expected type. Enum and CHECK values match:
+  `inspection_state`, `booking_status` (`CONFIRMED`, `CANCELLED`),
+  `agreement_status` (`in_review`, `cancelled`),
+  `agent_verification_checks.kind` (`identity`, `address`, `payout`,
+  `in_person`) and `status` (`failed`), and
+  `support_ticket_messages.sender_role` (`admin`).
+* **No trigger or function exists yet:** none of the eight trigger names exists
+  live, and neither do the eight `private.enqueue_*` function names this file
+  creates. They sit beside the existing `enqueue_inspection_booked_email` and
+  `enqueue_verification_rung_email`, whose dedupe keys (`:CONFIRMED:`, and
+  `verification:<agent>:<rung>`) differ from the new ones, so nothing is sent
+  twice.
+* **`agreement.waiting` uses the same key as the stay path:** the key is
+  byte-for-byte the one `private.agreement_tell_both` composes, so a stay that
+  already sends it still sends it once. No other live function enqueues any of
+  these 14 templates.
+* **`private.email_outbox_enqueue` never raises:**
+  * a null user, template or key returns null;
+  * a duplicate key is `on conflict do nothing`;
+  * `email_outbox` has no template CHECK and no triggers.
+
+  So none of these triggers can fail the write it rides on. Every dedupe key
+  is built only from NOT NULL parts, or from parts wrapped in `coalesce`.
+
+**RLS, grants and search_path:**
+* The file creates no table and no policy, so RLS is untouched.
+  `email_outbox` stays RLS on with no policy, service role only. The three
+  short texts copied into payloads (a lister's note, a reviewer's note and a
+  venue name) stay there.
+* All eight functions are definers, with execute revoked from PUBLIC, anon and
+  authenticated.
+* They use `search_path to 'public'`, not `''`. That matches every existing
+  `enqueue_*` function and `email_outbox_enqueue` itself. Every relation in the
+  bodies is qualified (`public.` or `private.`), and the API roles have USAGE
+  but not CREATE on `public`, so nothing can shadow a name. This is safe, but
+  it is not the house `''`. Switching to `''` would need no body change.
+
+**Idempotency:** `create or replace` everywhere, and `drop trigger if exists`
+before each `create trigger`. The read-back counts the 8 enabled triggers and
+raises otherwise.
+
+**Hot tables:** all eight triggers are AFTER, and cheap:
+* On `listings`, the trigger fires on insert or status change and does work
+  only on entering SUBMITTED (one `agents` lookup, one queue insert).
+* On `deal_agreements`, it acts on insert and on `in_review` or `cancelled`,
+  never on `paid`. That means at most two queue inserts, and it cannot raise
+  (see above), so the agreement and payment-gate path cannot be blocked.
+* `inspection_requests`, `reservations`, `support_ticket_messages`,
+  `guarantee_claims`, `agent_verification_checks` and `refund_requests` are
+  low volume.
+* No payment or settlement table gets a trigger.
+
+**Probes:** `sec-agreement-helpers` counts only `agreement.approved` rows.
+`sec-13` checks that a deleted account's outbox rows go (cascade) and that
+the purge works. Neither is affected by extra rows. No probe asserts the
+outbox is empty after an agreement, inspection or listing write.
+
+**When applying:** rename the file to `<version>_email_lifecycle_triggers.sql`
+in `supabase/migrations/` and record it with
+`node scripts/check-migrations.mjs --record`. The file itself says to do this.
