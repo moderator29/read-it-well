@@ -28,6 +28,7 @@ import { unitLine } from "@/lib/listings/unit-shape";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { CardPhotos } from "@/components/app/search/CardPhotos";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
+import { CardMenu, useCardMenu } from "@/components/app/listing/CardMenu";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -296,6 +297,9 @@ export function ListingCard({
 
   const tunableKind: PropertyType | null = isPropertyType(listing.kind) ? listing.kind : null;
   const save = useSaveControl(listing.id, saved);
+  /* Details pass: hold the card for Save, Share and Hide (CardMenu.tsx). */
+  const shareable = !listing.isDemo;
+  const menu = useCardMenu(listing.id, { shareable });
 
   /* The facts row: beds, baths, then the floor area when the lister gave one,
      then what the place is. Four at most, so a card stays one row. */
@@ -357,9 +361,14 @@ export function ListingCard({
   const shown = factRow.slice(0, factLimit);
   const spilled = factRow.slice(factLimit, 3);
 
+  /* Hidden on this phone from the card menu; a saved listing never hides. */
+  if (menu.hidden && !save.saved) return null;
+
   return (
     <article
       ref={cardRef}
+      {...menu.press.handlers}
+      data-long-press={menu.press.holding ? "holding" : undefined}
       className={panelClass({
         variant: "card",
         className: `nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${index !== undefined ? "nf-card-in" : ""}`,
@@ -688,6 +697,20 @@ export function ListingCard({
           </ButtonLink>
         </div>
       )}
+      <CardMenu
+        open={menu.open}
+        onOpenChange={menu.setOpen}
+        listingId={listing.id}
+        title={listing.title}
+        thumb={photo}
+        saved={save.saved}
+        onToggleSave={() => {
+          setHeartPop(true);
+          save.toggle();
+        }}
+        mint={menu.mint}
+        shareable={shareable}
+      />
     </article>
   );
 }
