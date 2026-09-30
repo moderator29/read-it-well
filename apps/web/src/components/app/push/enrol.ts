@@ -5,6 +5,7 @@ import { looksNative } from "@/lib/native/platform";
 import {
   clearLocalDevice,
   isIosHomeScreenApp,
+  readLocalDevice,
   writeLocalDevice,
   type EnrolFailureReason,
 } from "./device-state";
@@ -136,9 +137,11 @@ export function currentPermission(): "granted" | "denied" | "default" | "unsuppo
   if (typeof window === "undefined") return "unsupported";
   if (looksNative()) {
     /* The native permission is not readable synchronously, and guessing
-       `granted` here would let a caller skip the Vallo screen. `default` is
-       the honest answer: ask properly. */
-    return "default";
+       `granted` here would let a caller skip the Vallo screen. F-15: the
+       shell reads the real answer at launch (`readNativePermission`, from
+       `lib/native/boot.ts`) and it is remembered here; until that read has
+       answered, `default` is the honest answer: ask properly. */
+    return nativePermissionSeen ?? "default";
   }
   if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
     return "unsupported";
@@ -307,8 +310,11 @@ async function enrolWeb(): Promise<EnrolOutcome> {
  * plugin is not in the native project, calls reject, which the catch below
  * turns into `unsupported` rather than a crash.
  */
+type NativeReceive = "granted" | "denied" | "prompt" | "prompt-with-rationale";
+
 type PushPlugin = {
-  requestPermissions: () => Promise<{ receive: "granted" | "denied" | "prompt" | "prompt-with-rationale" }>;
+  requestPermissions: () => Promise<{ receive: NativeReceive }>;
+  checkPermissions?: () => Promise<{ receive: NativeReceive }>;
   register: () => Promise<void>;
   addListener: (
     event: "registration" | "registrationError",
@@ -327,46 +333,10 @@ async function enrolNative(): Promise<EnrolOutcome> {
        produces several prompts, and each one is a fresh chance to be
        refused. Capacitor's `requestPermissions` asks for all three. */
     const permission = await plugin.requestPermissions();
+    nativePermissionSeen = fromReceive(permission.receive);
     if (permission.receive !== "granted") return { ok: false, reason: "permission_denied" };
 
-    /* THE TOKEN ARRIVES ON A LISTENER, NOT AS A RETURN VALUE. `register()`
-       resolves as soon as the request is made; the token comes back from
-       APNs or FCM moments later on the `registration` event. Code that
-       treats `register()` resolving as success registers nobody, which is a
-       very easy mistake to make and an invisible one. */
-    const token = await new Promise<string | null>((resolve) => {
-      let done = false;
-      /* Every attempt used to add a fresh `registration` and
-         `registrationError` pair and never remove it, so a person who tried
-         twice had two listeners posting two registrations. Both handles are
-         kept and removed the moment this attempt settles. */
-      const handles: Array<Promise<{ remove: () => Promise<void> }>> = [];
-      const settle = (value: string | null): void => {
-        if (done) return;
-        done = true;
-        for (const handle of handles) void handle.then((h) => h.remove()).catch(() => undefined);
-        resolve(value);
-      };
-
-      /* A handset with no network gets neither event. Ten seconds, then the
-         person is told it did not work rather than being left on a spinner. */
-      const timer = setTimeout(() => settle(null), 10_000);
-
-      handles.push(
-        plugin.addListener("registration", (payload) => {
-          clearTimeout(timer);
-          settle(typeof payload.value === "string" ? payload.value : null);
-        }),
-        plugin.addListener("registrationError", () => {
-          clearTimeout(timer);
-          settle(null);
-        }),
-      );
-      void plugin.register().catch(() => {
-        clearTimeout(timer);
-        settle(null);
-      });
-    });
+    const token = await nativeToken(plugin);
 
     if (!token) return { ok: false, reason: "failed" };
 
@@ -374,6 +344,108 @@ async function enrolNative(): Promise<EnrolOutcome> {
     return postRegistration({ platform, token, deviceLabel: platform === "ios" ? "iPhone" : "Android" });
   } catch {
     return { ok: false, reason: "unsupported" };
+  }
+}
+
+/**
+ * Ask the plugin for this device's token and wait for it to arrive on the
+ * listener. Null on an error or after ten seconds without an answer.
+ */
+function nativeToken(plugin: PushPlugin): Promise<string | null> {
+  /* THE TOKEN ARRIVES ON A LISTENER, NOT AS A RETURN VALUE. `register()`
+     resolves as soon as the request is made; the token comes back from
+     APNs or FCM moments later on the `registration` event. Code that
+     treats `register()` resolving as success registers nobody, which is a
+     very easy mistake to make and an invisible one. */
+  return new Promise<string | null>((resolve) => {
+    let done = false;
+    /* Every attempt used to add a fresh `registration` and
+       `registrationError` pair and never remove it, so a person who tried
+       twice had two listeners posting two registrations. Both handles are
+       kept and removed the moment this attempt settles. */
+    const handles: Array<Promise<{ remove: () => Promise<void> }>> = [];
+    const settle = (value: string | null): void => {
+      if (done) return;
+      done = true;
+      for (const handle of handles) void handle.then((h) => h.remove()).catch(() => undefined);
+      resolve(value);
+    };
+
+    /* A handset with no network gets neither event. Ten seconds, then the
+       person is told it did not work rather than being left on a spinner. */
+    const timer = setTimeout(() => settle(null), 10_000);
+
+    handles.push(
+      plugin.addListener("registration", (payload) => {
+        clearTimeout(timer);
+        settle(typeof payload.value === "string" ? payload.value : null);
+      }),
+      plugin.addListener("registrationError", () => {
+        clearTimeout(timer);
+        settle(null);
+      }),
+    );
+    void plugin.register().catch(() => {
+      clearTimeout(timer);
+      settle(null);
+    });
+  });
+}
+
+/** The answer the shell last read from the operating system (F-15). */
+let nativePermissionSeen: "granted" | "denied" | "default" | null = null;
+
+function fromReceive(receive: NativeReceive): "granted" | "denied" | "default" {
+  return receive === "granted" ? "granted" : receive === "denied" ? "denied" : "default";
+}
+
+/**
+ * F-15: the real notification permission on a handset, read WITHOUT asking.
+ * `checkPermissions` never shows a prompt. Remembered so `currentPermission`
+ * stops answering `default` to somebody who already said yes, which offered
+ * them the Vallo explainer again.
+ */
+export async function readNativePermission(): Promise<"granted" | "denied" | "default" | "unsupported"> {
+  if (typeof window === "undefined" || !looksNative()) return "unsupported";
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (!Capacitor.isNativePlatform()) return "unsupported";
+    const plugin = Capacitor.registerPlugin<PushPlugin>("PushNotifications");
+    if (typeof plugin.checkPermissions !== "function") return "unsupported";
+    const { receive } = await plugin.checkPermissions();
+    nativePermissionSeen = fromReceive(receive);
+    return nativePermissionSeen;
+  } catch {
+    return "unsupported";
+  }
+}
+
+/**
+ * F-14: at launch, a device that was enrolled before and still has the
+ * permission re-registers silently, so a token APNs or FCM rotated is not left
+ * stale until the provider answers "gone". It never prompts and never runs for
+ * a device that was not enrolled on this install: the rule at the top of this
+ * file (nothing before a Yes on the Vallo screen) holds. The server upserts
+ * the same token, so an unchanged token is a no-op there.
+ *
+ * Returns what happened, for the boot log and the test; the person sees
+ * nothing either way.
+ */
+export async function refreshNativeRegistration(): Promise<"refreshed" | "skipped" | "failed"> {
+  if (typeof window === "undefined" || !looksNative()) return "skipped";
+  if (!readLocalDevice()) return "skipped";
+  try {
+    const permission = await readNativePermission();
+    if (permission !== "granted") return "skipped";
+    const { Capacitor } = await import("@capacitor/core");
+    const plugin = Capacitor.registerPlugin<PushPlugin>("PushNotifications");
+    const token = await nativeToken(plugin);
+    if (!token) return "failed";
+    const platform = Capacitor.getPlatform() === "ios" ? "ios" : "android";
+    const outcome = await postRegistration({ platform, token, deviceLabel: platform === "ios" ? "iPhone" : "Android" });
+    return outcome.ok ? "refreshed" : "failed";
+  } catch {
+    return "failed";
   }
 }
 

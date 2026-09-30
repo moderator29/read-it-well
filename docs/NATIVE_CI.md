@@ -6,6 +6,7 @@ macOS; `dl.google.com` blocked), so GitHub's runners do it.
 | Workflow | Job | Runs | Needs | Proves |
 | --- | --- | --- | --- | --- |
 | `.github/workflows/native-android.yml` | Android debug build | every push to main or PR touching the native files, and by hand | nothing | the Android project compiles; gives a debug APK to install on a handset |
+| `.github/workflows/native-android.yml` | Android emulator smoke (no account) | after every green debug build | nothing | the APK installs and launches on an emulated Pixel 6 (Android 14); screenshots of cold launch online and offline, a deep link to `/open` and the back button at the root (C15, 30 September 2026). Non-blocking: an emulator that fails to boot never fails the run |
 | `.github/workflows/native-ios.yml` | iOS compile (unsigned, simulator) | every push to main touching the iOS files, and by hand | nothing | the iOS project and its Swift packages compile |
 | `.github/workflows/native-ios.yml` | iOS signed archive | by hand only, with "archive" ticked | the four Apple secrets below | a signed App Store IPA, optionally uploaded to TestFlight |
 
