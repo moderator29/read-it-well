@@ -543,3 +543,78 @@ is told. When the report becomes `withdrawn`, the contest closes as
 The file adds no table grants and no policies, so `db-06` and `db-20` are
 unchanged. No probe calls `apply_calendar_import` or reads `review_contests`,
 and no probe updates `reports.status`.
+
+---
+
+## Review: c5 (`20260930130000_c5_lister_confirms_still_available`)
+
+**Verdict: HOLD.** I fixed one clear defect: the missing read grant. One
+integrity gap remains, and it needs a change to an existing guard function,
+which goes back to the author.
+
+**What it adds:** a nullable column `listings.lister_confirmed_at` and the
+definer function `lister_confirm_available(uuid[])`. The function uses
+`search_path ''` and qualified names. It refuses a caller with no `auth.uid()`
+and refuses more than 200 ids. It updates only the listings where
+`agents.user_id = auth.uid()` and the status is `PUBLISHED`. It writes one
+audit row per call (`entity_id` is nullable). Execute is revoked from PUBLIC
+and anon and granted to authenticated. The column does not exist live yet.
+
+**How it behaves against the live `listings` triggers:** the definer runs as
+`postgres`, so `guard_owner_write`, `listing_platform_facts_guard` and
+`listings_needs_mandate_fact` step aside, because they act only for
+`authenticated` and `anon`. RLS is bypassed because the function owner owns
+the table. So the update does reach PUBLISHED rows. Two side effects: each
+confirmation bumps `updated_at` (through `set_updated_at`), and each one
+re-runs `catalogue_on_listing` for that listing, up to 200 per call.
+`closed_listing_stays_closed` and the status-scoped triggers are not touched.
+
+**Fixed (commit fb3c5726): the missing SELECT grant.** Since S1
+(`20260929123603`), `authenticated` reads `listings` through an explicit
+column list (89 of 101 columns; there is no table-level SELECT). The S1 file
+itself says "a column added later is not readable by a member until it is
+granted". The only reader, `lib/agent/freshness-read.ts`, called from the agent
+dashboard with the caller's client, selects `lister_confirmed_at`. PostgREST
+refuses the whole read with 42501, so the freshness card would never draw. I
+added `grant select (lister_confirmed_at) on public.listings to authenticated`
+and a read-back check for it. A confirmation date is not one of S1's private
+facts (address, contacts, reviewer, fees, exact point). I did not grant it to
+anon. Whether renters who are signed out see it is a product decision for the
+lead.
+
+**Still open, which is why this is held: members can forge the stamp.**
+`authenticated` holds **table-level** INSERT and UPDATE on `listings`, so the
+new column is writable directly. A column-level revoke cannot narrow a
+table-level grant. No guard covers the new column:
+* `guard_owner_write` freezes every column only once a listing has been through
+  review, so on a published listing a direct write is refused. On a DRAFT,
+  MORE_INFO_REQUIRED or REJECTED listing, and on INSERT, a lister can set
+  `lister_confirmed_at` to any value, for example the year 2099. Its
+  `reset_on_insert` list does not include the column.
+* `listing_platform_facts_guard` resets `availability_confirmed_at` and the
+  other platform facts on insert and refuses changes to them on update, but
+  not `lister_confirmed_at`.
+
+A forged future stamp survives review and publish, so the listing reads as
+"confirmed" indefinitely. That also undermines any later demote-when-stale
+rule (the open founder decision).
+
+**The fix for the author:** `create or replace private.listing_platform_facts_guard()`
+so that, for `authenticated` and `anon`, it sets
+`new.lister_confirmed_at := null` on INSERT and raises `insufficient_privilege`
+when `lister_confirmed_at` changes on UPDATE, exactly as it already does for
+`availability_confirmed_at`. The definer runs as `postgres` and is unaffected.
+The read-back should prove that a member's direct write is refused and the
+definer's is not. I did not make this change because it replaces an existing
+security function.
+
+**Probes:**
+* `db-01`, `db-02`, `db-03` and `new-a4-01` insert and update `listings` with
+  explicit column lists and select named columns only, never `*` or
+  `RETURNING *`. A nullable column with no default does not change them.
+* `db-06` is unchanged, because `listings` is already `idu` and the column
+  rides the table-level grant. `db-20` is unchanged because there are no
+  policy changes.
+* `revoked-columns.test.ts` checks member selects against the step-2 private
+  lists. The new column is not on them, so it passes, and with the grant the
+  read also works at runtime.
