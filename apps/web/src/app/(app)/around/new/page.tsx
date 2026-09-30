@@ -51,7 +51,7 @@ export default async function ProposeAreaPage() {
 
         <div className="mt-md grid gap-md sm:grid-cols-2">
           <div>
-            <h3 className="text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.12em] text-[var(--nf-state-success)]">
+            <h3 className="nf-section-label text-[var(--nf-state-success)]">
               You can
             </h3>
             <ul className="mt-xs flex flex-col gap-xs">
@@ -66,7 +66,7 @@ export default async function ProposeAreaPage() {
             </ul>
           </div>
           <div>
-            <h3 className="text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.12em] text-[var(--nf-content-muted)]">
+            <h3 className="nf-section-label">
               You cannot
             </h3>
             <ul className="mt-xs flex flex-col gap-xs">

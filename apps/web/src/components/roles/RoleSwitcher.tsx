@@ -257,13 +257,13 @@ export function RoleSwitcher({
                               looking identical to one that has and then dead
                               ending on the tap. */}
                           {!role.setUp && (
-                            <span className={`${TYPE.caption} font-semibold uppercase tracking-wide`}>
+                            <span className={`${TYPE.caption} font-semibold uppercase tracking-[var(--nf-tracking-label)]`}>
                               {NOT_SET_UP}
                             </span>
                           )}
                           {role.setUp && requiresVerification(id) && !role.verified && (
                             <span
-                              className={`${TYPE.caption} font-semibold uppercase tracking-wide`}
+                              className={`${TYPE.caption} font-semibold uppercase tracking-[var(--nf-tracking-label)]`}
                               style={{ color: "var(--nf-status-pending)" }}
                             >
                               {UNVERIFIED}

@@ -16,7 +16,7 @@ export function ProposalsWaiting({ proposals }: { proposals: AreaProposal[] }) {
   if (proposals.length === 0) return null;
   return (
     <section className="mb-xl">
-      <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+      <h2 className="mb-sm nf-section-label">
         Waiting on us
       </h2>
       <ul className="flex flex-col gap-xs">
@@ -47,7 +47,7 @@ export function ProposalsAnswered({ proposals }: { proposals: AreaProposal[] }) 
   if (proposals.length === 0) return null;
   return (
     <section className="mb-xl">
-      <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+      <h2 className="mb-sm nf-section-label">
         We came back to you
       </h2>
       <ul className="flex flex-col gap-xs">

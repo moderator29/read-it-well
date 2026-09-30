@@ -313,7 +313,7 @@ export function TH({
       className={[
         TH_PAD[density],
         HAIRLINE,
-        "text-[length:var(--nf-text-overline)] font-bold uppercase tracking-[0.06em] text-[var(--nf-content-muted)]",
+        "nf-section-label",
         align === "end" ? "text-end" : "text-start",
         sticky ? "sticky top-0 z-1" : "",
         className ?? "",

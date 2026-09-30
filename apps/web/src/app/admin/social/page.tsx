@@ -154,7 +154,7 @@ export default async function AdminSocialPage({
                   <h3 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {area.name}
                   </h3>
-                  <span className="text-[length:var(--nf-text-overline)] uppercase tracking-wider text-[var(--nf-content-muted)]">
+                  <span className="nf-section-label">
                     {area.kind}
                   </span>
                   <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
@@ -282,7 +282,7 @@ export default async function AdminSocialPage({
                       {area.name}
                     </Link>
                     {area.status === "PAUSED" ? (
-                      <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+                      <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)]">
                         Paused
                       </span>
                     ) : null}

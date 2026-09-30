@@ -50,7 +50,7 @@ export function ReplyForm({
   if (saved && !editing) {
     return (
       <div className="mt-sm nf-panel nf-panel--card block p-md">
-        <p className="flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
+        <p className="flex items-center gap-xs nf-section-label">
           <UiIcon name="chat-bubble" size={12} className="shrink-0" />
           Your reply
           {savedWhen && <span className="font-normal normal-case tracking-normal">{savedWhen}</span>}
