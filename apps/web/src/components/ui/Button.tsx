@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Children, forwardRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
+import { joinTextParts } from "./button-label";
 import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
 import { feedback } from "@/lib/ui/feedback";
 
@@ -276,7 +277,9 @@ function Content({
    * The label class is what `[data-loading]` dims, and dimming an icon the
    * caller passed deliberately would be wrong.
    */
-  const parts = Children.toArray(children);
+  /* Neighbouring text is one label (button-label.ts): `Take down ({n})` as
+     three flex items printed "Take down ( 1 )". */
+  const parts = joinTextParts(Children.toArray(children));
   return (
     <>
       {loading ? (
