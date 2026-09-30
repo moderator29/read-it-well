@@ -61,7 +61,8 @@ import { SUCCESS_FEEL, VARIANT_OBJECT, type SuccessVariant } from "@/lib/ui/succ
  * The sheet is a real dialog named by the title; the screen carries the
  * title as its heading. The line is announced through a polite live region
  * filled one frame after opening, because a live region that arrives already
- * full is not announced by every reader. Focus goes to the primary action.
+ * full is not announced by every reader. In the sheet, focus goes to the
+ * primary action; the screen is a page and leaves focus where a page does.
  * The object is decorative: the words say everything.
  */
 
@@ -191,11 +192,8 @@ export function SuccessScreen({
   ...moment
 }: SuccessMomentProps) {
   const primaryRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
+  /* No focus is moved: a page is read from its top, like any other page. */
   const { quiet, announced } = useMomentState(true, variant, haptic);
-
-  useEffect(() => {
-    primaryRef.current?.focus({ preventScroll: true });
-  }, []);
 
   return (
     <section className="nf-success-screen" data-testid={testId} aria-labelledby={`${testId}-title`}>
