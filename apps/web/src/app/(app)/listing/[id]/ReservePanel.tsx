@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/Switch";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
 import { Chip, ChipRow } from "@/components/ui/Chip";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The next fourteen days, as ISO dates.
@@ -262,9 +262,9 @@ export function ReservePanel({
         ) : null}
         <span aria-hidden="true" className="nf-confirm-dim" />
         <div className="flex flex-col items-center gap-xs text-center">
-          <IconPlate size="lg" tone="success" className="shrink-0">
-            <UiIcon name="calendar-check" size={24} />
-          </IconPlate>
+          <span className="grid size-[4.5rem] shrink-0 place-items-center" aria-hidden="true" data-art="calendar-pending">
+            <Icon3D name="calendar-pending" size={72} />
+          </span>
           <p className="nf-lede font-semibold text-[var(--nf-content-primary)]">
             Booking requested
           </p>

@@ -130,6 +130,7 @@ export default async function StaysHomePage() {
   const doors: HomeCategory[] = [
     {
       key: "hotels",
+      art: "hotel",
       label: stays.hotels,
       meaning: stays.hotelsNote,
       href: "/stays/search?type=hotel",
@@ -137,6 +138,7 @@ export default async function StaysHomePage() {
     },
     {
       key: "shortlets",
+      art: "shortlet",
       label: stays.shortlets,
       meaning: stays.shortletsNote,
       href: "/stays/search?type=shortlet",
@@ -144,6 +146,7 @@ export default async function StaysHomePage() {
     },
     {
       key: "restaurants",
+      art: "restaurant",
       label: stays.restaurants,
       meaning: stays.restaurantsNote,
       href: "/restaurants",
@@ -151,6 +154,7 @@ export default async function StaysHomePage() {
     },
     {
       key: "nearby",
+      art: "local-talks",
       label: stays.nearby,
       meaning: stays.nearbyNote,
       href: "/around",

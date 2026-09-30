@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Amount, Figure } from "@/components/ui/Amount";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The host's earnings console: what has actually settled, read straight from
@@ -84,9 +84,10 @@ export function EarningsWorkspace({
   if (earnings.months.length === 0) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-md py-10 text-center sm:py-14">
-        <IconPlate size="lg">
-          <UiIcon name="bank" size={24} />
-        </IconPlate>
+        {/* The founder's 3D earnings hand (30 September), 88px, fixed box. */}
+        <span className="grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="earnings">
+          <Icon3D name="earnings" size={88} />
+        </span>
         <h2 className="nf-h3">{t.emptyTitle}</h2>
         <p className="mx-auto max-w-[40ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}

@@ -51,6 +51,7 @@ import { RoomTypesStep } from "./stays/RoomTypesStep";
 import { StaysHead } from "./stays/StaysParts";
 import { TablesStep } from "./stays/TablesStep";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
@@ -1041,9 +1042,9 @@ function Fact({ label, value, onEdit }: { label: string; value: string; onEdit: 
 function Sent({ businessName }: { businessName: string }) {
   return (
     <div className="flex flex-col items-center px-lg py-section text-center">
-      <IconPlate size="lg" tone="brand">
-        <UiIcon name="hourglass" size={24} />
-      </IconPlate>
+      <span className="grid size-[5.5rem] shrink-0 place-items-center" aria-hidden="true" data-art="calendar-pending">
+        <Icon3D name="calendar-pending" size={88} />
+      </span>
       <p className={`mt-block ${TYPE.sectionTitle}`}>{businessName || "Your application"} is with our team</p>
       <p className={`mt-inline max-w-[42ch] ${TYPE.body}`}>
         A person reads it next. You will hear from us when it has been read, and you can see where it stands on your host page.

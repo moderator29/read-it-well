@@ -2,6 +2,8 @@ import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
 
@@ -41,6 +43,12 @@ export type HomeCategory = {
   icon: BrandIconName;
   /** The line glyph for the flat plate (`variant="plates"`). */
   glyph?: UiIconName;
+  /**
+   * The founder's 3D object for this door (30 September). Drawn in place of
+   * the plate or the glass object, in the same fixed box, so a door is one
+   * object and its word.
+   */
+  art?: Icon3DName;
   /** Fetch the page whole before the tap (`WholePrefetchLink`); for light pages only. */
   whole?: boolean;
 };
@@ -72,10 +80,19 @@ export function CategoryRow({
             const Door = category.whole ? WholePrefetchLink : Link;
             return (
               <li key={category.key} className="min-w-0">
-                <Door href={category.href} className="nf-home-door" data-testid={`home-category-${category.key}`}>
-                  <IconPlate size="md" tone="neutral">
-                    <UiIcon name={category.glyph ?? "home"} size={ICON_PLATE_GLYPH.md} />
-                  </IconPlate>
+                <Door href={category.href} className="nf-home-door group" data-testid={`home-category-${category.key}`}>
+                  {category.art ? (
+                    <span
+                      className="grid size-12 place-items-center transition-transform duration-[var(--nf-duration-press,120ms)] group-active:scale-[0.94] motion-reduce:transition-none"
+                      data-art={category.art}
+                    >
+                      <Icon3D name={category.art} size={48} />
+                    </span>
+                  ) : (
+                    <IconPlate size="md" tone="neutral">
+                      <UiIcon name={category.glyph ?? "home"} size={ICON_PLATE_GLYPH.md} />
+                    </IconPlate>
+                  )}
                   <span className="nf-home-door__label">{category.label}</span>
                 </Door>
               </li>
@@ -97,8 +114,12 @@ export function CategoryRow({
                 className={panelClass({ variant: "card", className: "nf-cat-tile nf-tap" })}
                 data-testid={`home-category-${category.key}`}
               >
-                <span className="nf-cat-tile__plate" aria-hidden="true">
-                  <BrandIcon name={category.icon} fill drawn={64} />
+                <span className="nf-cat-tile__plate" aria-hidden="true" {...(category.art ? { "data-art": category.art } : {})}>
+                  {category.art ? (
+                    <Icon3D name={category.art} size={64} className="[--nf-icon3d-size:100%]" />
+                  ) : (
+                    <BrandIcon name={category.icon} fill drawn={64} />
+                  )}
                 </span>
                 <span className="nf-cat-tile__label">{category.label}</span>
                 {category.meaning && (

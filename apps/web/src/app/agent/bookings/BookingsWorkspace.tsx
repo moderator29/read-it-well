@@ -22,7 +22,7 @@ import { DecisionCard } from "@/components/app/confirm/DecisionCard";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { TextArea } from "@/components/ui/Field";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * The host's bookings console: requests that need a decision, plus the stays
@@ -516,9 +516,9 @@ export function BookingsWorkspace({
           </ul>
         ) : (
           <div className="flex flex-col items-center gap-md py-10 text-center sm:py-14">
-            <IconPlate size="lg">
-              <UiIcon name="calendar-check" size={24} />
-            </IconPlate>
+            <span className="grid size-[5.5rem] shrink-0 place-items-center" aria-hidden="true" data-art="calendar-booked">
+              <Icon3D name="calendar-booked" size={88} />
+            </span>
             <h3 className="nf-h3">{emptyCopy[active].title}</h3>
             <p className="mx-auto max-w-[38ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {emptyCopy[active].body}

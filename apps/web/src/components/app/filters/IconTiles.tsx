@@ -2,8 +2,17 @@
 
 import { useRef, type KeyboardEvent } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 
-export type IconTileOption<T extends string> = { value: T; label: string; icon: UiIconName };
+export type IconTileOption<T extends string> = {
+  value: T;
+  label: string;
+  icon: UiIconName;
+  /** The founder's 3D object (30 September) for a property type; drawn in
+      the glyph's place, 40px, in a fixed box. */
+  art?: Icon3DName | undefined;
+};
 
 /**
  * A grid of icon tiles for a filter: property type (pick one) and space (pick
@@ -91,9 +100,15 @@ export function IconTiles<T extends string>({
             onClick={() => onToggle(option.value)}
             className="nf-icon-tile-option"
           >
-            <span className="nf-icon-tile-option__glyph" aria-hidden="true">
-              <UiIcon name={option.icon} size={24} />
-            </span>
+            {option.art ? (
+              <span className="grid size-10 place-items-center" aria-hidden="true" data-art={option.art}>
+                <Icon3D name={option.art} size={40} />
+              </span>
+            ) : (
+              <span className="nf-icon-tile-option__glyph" aria-hidden="true">
+                <UiIcon name={option.icon} size={24} />
+              </span>
+            )}
             <span className="nf-icon-tile-option__label">{option.label}</span>
             <span className="nf-icon-tile-option__tick" aria-hidden="true">
               <UiIcon name="check" size={16} />

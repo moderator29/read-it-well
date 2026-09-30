@@ -21,6 +21,7 @@ import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { createUndoWindow, type UndoWindow } from "@/lib/ui/undo-window";
 import { withDone } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
@@ -745,10 +746,9 @@ export function ListingsWorkspace({
   if (listings.length === 0) {
     return (
       <div className="mx-auto max-w-md py-10 text-center">
-        <span
-          className="nf-plate nf-plate--brand nf-plate--lg mx-auto"
-        >
-          <UiIcon name="house" size={24} />
+        {/* The first-run card: the founder's 3D keys (30 September). */}
+        <span className="mx-auto grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="keys">
+          <Icon3D name="keys" size={88} />
         </span>
         <h2 className="nf-h3 mt-5">{t.workspace.emptyTitle}</h2>
         <p className="mx-auto mt-xs max-w-[38ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">

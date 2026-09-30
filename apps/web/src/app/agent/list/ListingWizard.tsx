@@ -99,6 +99,8 @@ import {
 import { reviewerAsked } from "@/lib/agent/listings-edit-state";
 import Link from "next/link";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
 
@@ -426,6 +428,31 @@ function Field({
  * Each of those is one component here so a step cannot draw its own version.
  */
 
+/**
+ * The founder's 3D object on each step's header (30 September), in place of
+ * the glass object's line twin. Photos and the rooms' facts have none.
+ */
+const STEP_ART: Partial<Record<(typeof STEP_KEYS)[number], Icon3DName>> = {
+  basics: "list",
+  location: "explore",
+  pricing: "earnings",
+  guestView: "search",
+  submit: "calendar-pending",
+};
+
+/** The 3D object on each property type's card, where the sheets draw one. */
+const TYPE_ART: Partial<Record<PropertyType, Icon3DName>> = {
+  apartment: "apartment",
+  shortlet: "shortlet",
+  home: "home-verified",
+  villa: "villa",
+  hotel: "hotel",
+  rental: "keys",
+  office: "city",
+  land: "land",
+  restaurant: "restaurant",
+};
+
 /** The object each step's header carries, where the set has an honest one. */
 const STEP_OBJECT: Partial<Record<(typeof STEP_KEYS)[number], BrandIconName>> = {
   basics: "apartment-block",
@@ -518,10 +545,12 @@ function StepHead({
   title,
   sub,
   object,
+  art,
 }: {
   title: string;
   sub?: string;
   object?: BrandIconName | "" | undefined;
+  art?: Icon3DName | "" | undefined;
 }) {
   return (
     <div className="nf-lw-head">
@@ -533,10 +562,16 @@ function StepHead({
         </h1>
         {sub && <p className="nf-lw-head__sub">{sub}</p>}
       </div>
-      {object && (
-        <IconPlate size="md" tone="brand" className="nf-lw-head__object">
-          <UiIcon name={lineGlyphFor(object)} size={20} />
-        </IconPlate>
+      {art ? (
+        <span className="nf-lw-head__object grid size-14 shrink-0 place-items-center" aria-hidden="true" data-art={art}>
+          <Icon3D name={art} size={56} priority />
+        </span>
+      ) : (
+        object && (
+          <IconPlate size="md" tone="brand" className="nf-lw-head__object">
+            <UiIcon name={lineGlyphFor(object)} size={20} />
+          </IconPlate>
+        )
       )}
     </div>
   );
@@ -575,6 +610,7 @@ function Choice({
   name,
   sub,
   object,
+  art,
   glyph,
   chosen,
   centred,
@@ -583,6 +619,8 @@ function Choice({
   name: string;
   sub?: string;
   object?: BrandIconName;
+  /** The founder's 3D object, in place of the plate. */
+  art?: Icon3DName | undefined;
   glyph?: UiIconName;
   chosen: boolean;
   centred?: boolean;
@@ -595,7 +633,11 @@ function Choice({
       aria-pressed={chosen}
       className={`nf-lw-choice${centred ? " nf-lw-choice--centred" : ""}`}
     >
-      {object ? (
+      {art ? (
+        <span className="nf-lw-choice__object grid size-12 place-items-center" aria-hidden="true" data-art={art}>
+          <Icon3D name={art} size={48} />
+        </span>
+      ) : object ? (
         <IconPlate size="sm" tone={chosen ? "brand" : "neutral"} className="nf-lw-choice__object">
           <UiIcon name={lineGlyphFor(object)} size={20} />
         </IconPlate>
@@ -2070,6 +2112,7 @@ export function ListingWizard({
         title={(stepKey && copy.drawn.titles[stepKey]) || (stepNames[step] ?? "")}
         sub={stepKey && copy.drawn.subtitles[stepKey]}
         object={stepKey && STEP_OBJECT[stepKey]}
+        art={stepKey && STEP_ART[stepKey]}
       />
 
       {!canPersist && (
@@ -2154,6 +2197,7 @@ export function ListingWizard({
                     centred
                     name={copy.propertyTypes[type].label}
                     object={TYPE_OBJECT[type]}
+                    art={TYPE_ART[type]}
                     chosen={values.propertyType === type}
                     onClick={() => set("propertyType", type)}
                   />

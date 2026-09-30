@@ -2,6 +2,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 type WizardCopy = Dictionary["agentListings"];
@@ -50,9 +51,9 @@ export function ListingSentForReview({
   return (
       <div className="mx-auto max-w-2xl px-gutter py-3xl">
         <div className="nf-lw-done">
-          <IconPlate size="lg" tone="success">
-            <UiIcon name="circle-check" size={24} />
-          </IconPlate>
+          <span className="grid size-[5.5rem] shrink-0 place-items-center" aria-hidden="true" data-art="calendar-pending">
+            <Icon3D name="calendar-pending" size={88} />
+          </span>
           <h1 className="nf-lw-done__verdict">{copy.submitted.title}</h1>
           <p className="nf-lw-done__body">{copy.submitted.body}</p>
 

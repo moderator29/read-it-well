@@ -8,6 +8,8 @@ import { SegmentedProgress } from "@/components/ui/Progress";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 import { DocumentUploader } from "./DocumentUploader";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
@@ -25,6 +27,7 @@ import {
   type KycDocument,
   type KycSubmission,
   type KycSubmitResult,
+  type StepId,
 } from "./kyc";
 
 /**
@@ -187,7 +190,12 @@ export function KycFlow({
         className="mt-sm"
       />
 
-      <h1 className="nf-h2 mt-lg">{step.title}</h1>
+      {/* The founder's 3D object for the step (30 September): one per
+          screen, 64px in a fixed box, decorative beside the title. */}
+      <span className="mt-lg grid size-16 place-items-center" aria-hidden="true" data-art={STEP_ART[step.id]}>
+        <Icon3D name={STEP_ART[step.id]} size={64} priority />
+      </span>
+      <h1 className="nf-h2 mt-sm">{step.title}</h1>
       <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {step.hint}
       </p>
@@ -430,12 +438,22 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
  * either way, and if anything is wrong we say exactly what" is four facts they
  * can plan around.
  */
+/** Each step's object: the ID, the home, the business, the consent. */
+const STEP_ART: Record<StepId, Icon3DName> = {
+  "identity-document": "id-check",
+  "address-document": "home-small",
+  "business-question": "city",
+  "business-details": "city",
+  consent: "shield",
+  review: "verified",
+};
+
 function Submitted() {
   return (
     <div className="mx-auto max-w-md py-xl text-center">
-      <IconPlate size="lg" className="mx-auto">
-        <UiIcon name="calendar-booking" size={ICON_PLATE_GLYPH.lg} />
-      </IconPlate>
+      <span className="mx-auto grid size-[5.5rem] place-items-center" aria-hidden="true" data-art="calendar-pending">
+        <Icon3D name="calendar-pending" size={88} />
+      </span>
       <h1 className="nf-h2 mt-md">{SENT_TITLE}</h1>
       <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {SENT_BODY}

@@ -43,7 +43,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
 import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
 import { WORKSPACE_FRAMES, type AssistantWorkspace } from "@/lib/assistant/workspace";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
 
 /**
  * Vallo AI, to its governing image (`docs/design/references/BF49B814`).
@@ -678,9 +678,12 @@ export function AssistantChat({
                     greeting arrives word by word out of depth, and the line
                     under it rises after. All of it waits for the app-open
                     door and is still under reduced motion. */}
-                <IconPlate size="lg" tone="brand" className="nf-ai-hello-bot">
-                  <UiIcon name="bot" size={24} />
-                </IconPlate>
+                {/* The founder's 3D assistant (30 September), 88px in a
+                    fixed box; the title beside it names it, so it is
+                    decorative. */}
+                <span className="nf-ai-hello-bot grid size-[5.5rem] place-items-center">
+                  <Icon3D name="assistant" size={88} priority />
+                </span>
                 <div>
                   {/* Both of these were English constants in the markup, on a
                       screen whose composer, chips and thinking pill all come

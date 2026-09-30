@@ -5,6 +5,8 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
 import { trackStates } from "@/components/app/status/tracks";
 import { ICON_PLATE_GLYPH, IconPlate, type IconPlateTone } from "@/components/ui/IconPlate";
+import { Icon3D } from "@/components/ui/Icon3D";
+import type { Icon3DName } from "@/components/ui/icon-3d";
 
 /* The status plate takes the state's own tone on the shared plate (orphans
    sweep): pending for waiting, emerald for approved, rose for refused. */
@@ -118,6 +120,7 @@ export function KycStatus({
         tone="warning"
         pill={w.pendingPill}
         icon="calendar-booking"
+        art="calendar-pending"
         title={w.pendingTitle}
         body={w.pendingBody}
         track={<ReviewTrack state="pending" sentAt={status.submittedAt} w={w} />}
@@ -137,6 +140,7 @@ export function KycStatus({
         tone="success"
         pill={w.approvedPill}
         icon="verified"
+        art="shield"
         title={w.approvedTitle}
         body={w.approvedBody}
         track={<ReviewTrack state="approved" w={w} />}
@@ -246,6 +250,7 @@ function Panel({
   tone,
   pill,
   icon,
+  art,
   title,
   body,
   children,
@@ -256,6 +261,9 @@ function Panel({
   /* Widened from a three-name literal union when the fourth and fifth states
      arrived. Still the platform's icon set rather than a free string. */
   icon: UiIconName;
+  /** The founder's 3D object for a calm state (in review, approved); a
+      refusal or a request keeps its tinted glyph. */
+  art?: Icon3DName;
   title: string;
   body: string;
   children?: React.ReactNode;
@@ -265,9 +273,15 @@ function Panel({
   return (
     <section className="nf-panel nf-panel--card block p-lg">
       <div className="flex items-start gap-md">
-        <IconPlate size="md" tone={PLATE_TONE[tone]}>
-          <UiIcon name={icon} size={ICON_PLATE_GLYPH.md} />
-        </IconPlate>
+        {art ? (
+          <span className="grid size-14 shrink-0 place-items-center" aria-hidden="true" data-art={art}>
+            <Icon3D name={art} size={56} />
+          </span>
+        ) : (
+          <IconPlate size="md" tone={PLATE_TONE[tone]}>
+            <UiIcon name={icon} size={ICON_PLATE_GLYPH.md} />
+          </IconPlate>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-xs">
             <h2 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
