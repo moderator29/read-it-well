@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 const APP = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(APP, "..");
 const globals = readFileSync(join(APP, "globals.css"), "utf8");
-const imports = [...globals.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]);
+const imports = [...globals.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1] ?? "");
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const e of readdirSync(dir, { withFileTypes: true })) {

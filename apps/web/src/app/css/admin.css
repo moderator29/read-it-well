@@ -693,6 +693,24 @@
   .nf-admin-more > summary::-webkit-details-marker {
     display: none;
   }
+  /* C16: the search row when it carries the date control. The field keeps the
+     row; the sliders summary sits at its end; the dates open full width below. */
+  .nf-admin-search--split {
+    position: relative;
+    display: block;
+  }
+  .nf-admin-search--split > .nf-admin-search__field {
+    margin-inline-end: calc(2.75rem + var(--nf-space-xs));
+  }
+  .nf-admin-search--split > .nf-admin-more > summary {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    cursor: pointer;
+  }
+  .nf-admin-search--split:not(:has(.nf-admin-search__field)) {
+    min-height: 2.75rem;
+  }
   /*
    * ------------------------------------------------- THE OVERVIEW'S TILES
    *

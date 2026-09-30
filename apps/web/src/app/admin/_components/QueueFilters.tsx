@@ -199,32 +199,37 @@ export function QueueFilters({
         {formTarget(base).keep.map(([name, value]) => (
           <input key={name} type="hidden" name={name} value={value} />
         ))}
-        <details className="nf-admin-more" open={Boolean(query.from || query.to)}>
-          <summary className="nf-admin-search">
-            {searchable && (
-              <label className="nf-admin-search__field">
-                <span className="sr-only">{searchLabel ?? common.searchLabel}</span>
-                <UiIcon name="search" size={20} className="nf-admin-search__glyph" />
-                <input
-                  type="search"
-                  name="q"
-                  defaultValue={query.q ?? ""}
-                  placeholder={searchPlaceholder ?? common.searchPlaceholder}
-                />
-              </label>
-            )}
-            {dateable && (
-              <span className="nf-icon-btn" role="button" aria-label={`${f.from} / ${f.to}`}>
+        {/*
+          C16: the field is NOT inside the <summary> any more. An input inside
+          a summary is two interactive controls nested in one (axe
+          nested-interactive, serious), and a screen reader announced the
+          search as a disclosure button. The summary is now the sliders
+          control alone, placed at the end of the search row by CSS
+          (`.nf-admin-search--split`, admin.css); the dates open beneath.
+        */}
+        <div className={`nf-admin-search${dateable ? " nf-admin-search--split" : ""}`}>
+          {searchable && (
+            <label className="nf-admin-search__field">
+              <span className="sr-only">{searchLabel ?? common.searchLabel}</span>
+              <UiIcon name="search" size={20} className="nf-admin-search__glyph" />
+              <input
+                type="search"
+                name="q"
+                defaultValue={query.q ?? ""}
+                placeholder={searchPlaceholder ?? common.searchPlaceholder}
+              />
+            </label>
+          )}
+          {!dateable && (
+            <button type="submit" className="nf-icon-btn" aria-label={f.apply}>
+              <UiIcon name="arrow-right" size={20} />
+            </button>
+          )}
+          {dateable && (
+            <details className="nf-admin-more" open={Boolean(query.from || query.to)}>
+              <summary className="nf-icon-btn" aria-label={`${f.from} / ${f.to}`}>
                 <UiIcon name="sliders" size={20} />
-              </span>
-            )}
-            {!dateable && (
-              <button type="submit" className="nf-icon-btn" aria-label={f.apply}>
-                <UiIcon name="arrow-right" size={20} />
-              </button>
-            )}
-          </summary>
-
+              </summary>
           {/* A DATE RANGE, because half of what an operator is asked is "what
               happened on Tuesday". Two native date inputs rather than a
               picker: keyboard-reachable, localised by the browser, and the
@@ -249,7 +254,9 @@ export function QueueFilters({
               )}
             </div>
           )}
-        </details>
+            </details>
+          )}
+        </div>
         {/* The status travels with the search so a submit does not silently
             drop the chip the operator already chose. */}
         {query.status && <input type="hidden" name="status" value={query.status} />}
